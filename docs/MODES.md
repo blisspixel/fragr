@@ -102,7 +102,7 @@ a duel into free-for-all. This is the smallest competitive balance test.
 
 ### Scrap
 
-Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against.
+Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against. A clock that runs out level after somebody has scored goes to sudden death: the clock stops and the next score wins.
 
 Weapons, armour and the good health spawn on predictable clocks, so knowing where the rail comes back and getting there first is most of the skill. That is the oldest loop in the genre and it still works.
 
@@ -140,7 +140,7 @@ movement, release or damage restarts either. A planted charge runs 35 seconds
 and its clock replaces the round's. Survivors carry their weapons and armour
 into the next round; generic Sabotage's fallen start empty and leave their best gun on the
 floor. Sides change uniform at half: halves of four, first to five, or halves
-of eight, first to nine, with extra time when level. Rule bots stage, push,
+of eight, first to nine, with extra time when level (the short format then plays one sudden death round, never a draw). Rule bots stage, push,
 plant, anchor, rotate, retake and defuse, and agents read the same objective
 through MCP. Evidence and the rules as built are in
 [the Sabotage plan](plans/sabotage-mode.md); the design is in

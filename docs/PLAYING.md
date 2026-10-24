@@ -359,12 +359,28 @@ platform achievements. Campaign-completion and gold awards remain planned.
 The boot menu and in-match menu share Controls, Look, Display, Graphics,
 Audio and Accessibility settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, an optional frame counter, sensitivity, stick
-response and separate master, radio and effects levels. The tilde key opens a
+response and separate master, radio, effects and announcer levels. The tilde key opens a
 console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
 counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
 play. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
+
+The Host calls rarely: first blood, a triple frag or more inside three
+seconds, a spree, an ended spree, a comeback, the last one standing, a flag
+capture, a planted charge, match point and sudden death are the big moments.
+A double frag, a lead change, a lifted flag and the golden Railgun are text
+captions only. Voiced calls land at least eight seconds apart, and a caption
+waits eight seconds after any call. Settings > Audio >
+Announcer (also on the match menu's Settings) chooses On, Big moments only or
+Off, and Announcer volume sets the Host's own bus. Frags, objectives, results
+and the sudden death chip always show. Host calls are text until the voice is
+recorded; the volume has nothing to play until then.
+
+A clock that runs out level, after somebody has scored, goes to sudden death:
+the clock stops and the next score wins. A room where nobody scores for two
+more minutes ends level. A Sabotage match level after its extra pair plays one
+deciding round instead of a draw.
 
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
 bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,

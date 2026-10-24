@@ -33,6 +33,9 @@ const DEFAULTS: Dictionary = {
 		"music": 0.7,
 		"effects": 0.5,
 		"voice": 0.9,       # Story narration; its own bus so speech stays level.
+		# The Host's match calls: 0 On, 1 Big moments only, 2 Off.
+		"announcer": 0,
+		"announcer_volume": 0.9, # The Announcer bus, for the Host's voiced calls.
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
@@ -87,6 +90,11 @@ const FLASHES_OFF: int = 2
 const TEXT_STANDARD: int = 0
 const TEXT_LARGE: int = 1
 
+const ANNOUNCER_ON: int = 0
+const ANNOUNCER_BIG_MOMENTS: int = 1
+const ANNOUNCER_OFF: int = 2
+const ANNOUNCER_MODES: Array[int] = [ANNOUNCER_ON, ANNOUNCER_BIG_MOMENTS, ANNOUNCER_OFF]
+
 const TEAM_STANDARD: int = 0
 const TEAM_HIGH_CONTRAST: int = 1
 
@@ -101,6 +109,7 @@ const RANGES: Dictionary = {
 	"audio/music": Vector2(0.0, 1.0),
 	"audio/effects": Vector2(0.0, 1.0),
 	"audio/voice": Vector2(0.0, 1.0),
+	"audio/announcer_volume": Vector2(0.0, 1.0),
 	"controls/mouse_sensitivity": Vector2(0.1, 10.0),
 	"controls/turn_speed": Vector2(0.5, 6.0),
 	"controls/stick_yaw_speed": Vector2(60.0, 720.0),
@@ -162,7 +171,7 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "accessibility/screen_flashes"]:
+	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "accessibility/screen_flashes", "audio/announcer"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
 	elif path in ["accessibility/text_size", "accessibility/team_colours"]:
@@ -286,6 +295,7 @@ func apply_audio() -> void:
 	_set_bus("Radio", float(get_value("audio", "music")))
 	_set_bus("Effects", float(get_value("audio", "effects")))
 	_set_bus("Voice", float(get_value("audio", "voice")))
+	_set_bus("Announcer", float(get_value("audio", "announcer_volume")))
 
 static func _set_bus(name: String, linear: float) -> void:
 	var index: int = AudioServer.get_bus_index(name)
@@ -298,6 +308,16 @@ static func _set_bus(name: String, linear: float) -> void:
 ## Vertical FOV, with horizontal coverage expanding on wider viewports.
 func fov() -> float:
 	return float(get_value("video", "vertical_fov"))
+
+func announcer() -> int:
+	return int(get_value("audio", "announcer"))
+
+## The three announcer choices, in ANNOUNCER_MODES order, for every menu.
+static func announcer_labels() -> Array[String]:
+	var labels: Array[String] = []
+	for key: String in ["SETTINGS_ANNOUNCER_ON", "SETTINGS_ANNOUNCER_BIG", "SETTINGS_ANNOUNCER_OFF"]:
+		labels.append(TranslationServer.translate(key))
+	return labels
 
 func screen_flashes() -> int:
 	return int(get_value("accessibility", "screen_flashes"))

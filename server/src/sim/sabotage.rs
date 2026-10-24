@@ -6,9 +6,9 @@ use super::{
     ArenaPickup, GameState, PickupKind, Player, RoundState, Standing, PLAYER_FLOOR_Y, PLAYER_MAX_HP,
 };
 use crate::protocol::{
-    ChargeState, ChargeStatus, EquipmentPolicy, GameEvent, GameMode, ProgressKind,
-    SabotageEventKind, SabotagePhase, SabotageProgress, SabotageReason, SabotageResult,
-    SabotageState, SiteId, SupplyClaim, Team, TeamScores, WeaponType,
+    ChargeState, ChargeStatus, EquipmentPolicy, GameEvent, GameMode, HostReactionKind,
+    ProgressKind, SabotageEventKind, SabotagePhase, SabotageProgress, SabotageReason,
+    SabotageResult, SabotageState, SiteId, SupplyClaim, Team, TeamScores, WeaponType,
 };
 use crate::rules::{match_outcome, round_slot, MatchOutcome};
 use std::collections::HashSet;
@@ -226,6 +226,10 @@ impl GameState {
             SiteId::B
         };
         let score = sab.score;
+        if round_slot(self.config.sabotage.format, sab.round).sudden_death {
+            tracing::info!(target: crate::logging::FEED_TARGET, "SUDDEN DEATH: round {} decides the match", sab.round);
+            self.sudden_death = Some(self.tick);
+        }
         self.sabotage = Some(sab);
         if swap {
             self.sabotage_event(SabotageEventKind::SidesSwapped, None, None, score);
@@ -677,6 +681,14 @@ impl GameState {
             sab.phase = SabotagePhase::Planted;
             sab.phase_started = self.tick;
             self.push_sabotage(sab, SabotageEventKind::Planted, Some(carrier), Some(site));
+            let planter = self
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| (p.name.clone(), p.team));
+            if let Some((name, team)) = planter {
+                self.react(HostReactionKind::ChargePlanted, Some(name), None, team);
+            }
             return;
         }
         if let (true, true, Some(site)) = (able, still, site) {
@@ -831,13 +843,12 @@ impl GameState {
             match_over,
             match_winner: match outcome {
                 MatchOutcome::Won(team) => Some(team),
-                _ => None,
+                MatchOutcome::Continue => None,
             },
         };
         sab.result = Some(result);
         let text = match (outcome, reason) {
             (MatchOutcome::Won(_), _) => "Match decided",
-            (MatchOutcome::Draw, _) => "Match drawn",
             (_, SabotageReason::Elimination) => "Side eliminated",
             (_, SabotageReason::Detonation) => "Charge detonated",
             (_, SabotageReason::Defused) => "Charge defused",
@@ -850,9 +861,6 @@ impl GameState {
     pub(super) fn sabotage_host_line(&self, winner: Option<Team>) -> Option<String> {
         let result = self.sabotage.as_ref()?.result.as_ref()?;
         let winner = winner?;
-        if result.match_over && result.match_winner.is_none() {
-            return Some(crate::protocol::sabotage_draw_host_line(result.score));
-        }
         Some(crate::protocol::sabotage_round_host_line(
             winner,
             result.reason,

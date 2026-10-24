@@ -316,3 +316,21 @@ msgstr "HIGH CONTRAST"
 
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
 msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast."
+
+msgid "SETTINGS_ANNOUNCER"
+msgstr "ANNOUNCER"
+
+msgid "SETTINGS_ANNOUNCER_VOLUME"
+msgstr "ANNOUNCER VOLUME"
+
+msgid "SETTINGS_ANNOUNCER_ON"
+msgstr "ON"
+
+msgid "SETTINGS_ANNOUNCER_BIG"
+msgstr "BIG MOMENTS ONLY"
+
+msgid "SETTINGS_ANNOUNCER_OFF"
+msgstr "OFF"
+
+msgid "SETTINGS_AUDIO_NOTE"
+msgstr "Announcer: On shows every Host call and voices the big ones. Big moments only keeps first blood, triple frags and up, sprees, ended sprees, comebacks, last one standing, captures, plants, match point and sudden death. Off silences the Host. Frags, objectives and results always show.\nC: next station. N: next track. M: radio on/off. Changes apply when saved. Zero volume mutes the bus."

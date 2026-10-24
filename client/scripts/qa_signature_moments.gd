@@ -42,7 +42,7 @@ func _run() -> void:
 	await _capture_frame(out_dir.path_join("seal_cut_join_union.png"))
 
 	# 3. Capture Stamped Sabotage round card
-	hud.show_sabotage_result("UNION TAKES ROUND 1\nCHARGE DETONATED // SITE B DESTROYED", "HOST: UNION CARRIES THE FREQUENCY")
+	hud.show_sabotage_result("UNION TAKES ROUND 1\nCHARGE DETONATED // SITE B DESTROYED", "HOST: THE CHARGE WENT UP. UNION TAKE THE ROUND, 1 TO 0.")
 	hud.stamp_card.trigger_stamp(hud.round_message, MatchRules.THEIRS_MARK, false)
 	await _capture_frame(out_dir.path_join("stamped_sabotage_round_card.png"))
 

@@ -139,11 +139,13 @@ func show_page(page: String) -> void:
 			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
-			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider("EFFECTS", "audio", "effects", 0.0, 1.0, 0.05)
+			_option(tr("SETTINGS_ANNOUNCER"), "audio", "announcer", FragrSettings.announcer_labels(), FragrSettings.ANNOUNCER_MODES)
+			_slider(tr("SETTINGS_ANNOUNCER_VOLUME"), "audio", "announcer_volume", 0.0, 1.0, 0.05)
+			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider(tr("SETTINGS_VOICE"), "audio", "voice", 0.0, 1.0, 0.05)
 			_toggle(tr("SETTINGS_STORY_CAPTIONS"), "gameplay", "story_captions")
-			_note.text = "C: next station. N: next track. M: radio on/off.\nChanges apply when saved. Zero volume mutes the bus."
+			_note.text = tr("SETTINGS_AUDIO_NOTE")
 
 func focus_first() -> void:
 	(_tabs.get_child(0) as Button).grab_focus()

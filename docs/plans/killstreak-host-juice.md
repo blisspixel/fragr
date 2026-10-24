@@ -3,7 +3,7 @@
 **Repo:** https://github.com/blisspixel/fragr
 **Branch:** `cursor/killstreak-host-juice`
 **Spend:** $0. No ElevenLabs, no GCP apply, no renet, no look_at/hit reopen.
-**Status:** **shipped** (#75 / `979f263`). Tip face: killstreak Host juice.
+**Status:** **superseded** by the Host spine in [multiplayer excellence](multiplayer-excellence-20261017.md#host-spine-431-wave-2) (#431). Shipped as #75 / `979f263`; the `killstreak` event and its frequency lines are retired.
 
 ## Goal
 

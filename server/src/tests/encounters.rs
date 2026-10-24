@@ -290,7 +290,7 @@ fn authored_enemies_activate_once_clear_in_order_and_never_respawn() {
     assert_eq!(session.state.scores[&id], 0);
     assert!(session.state.take_events().iter().all(|event| !matches!(
         event,
-        crate::protocol::GameEvent::Frag { .. } | crate::protocol::GameEvent::Killstreak { .. }
+        crate::protocol::GameEvent::Frag { .. } | crate::protocol::GameEvent::HostReaction { .. }
     )));
     advance(&mut session, 1);
     assert_eq!(

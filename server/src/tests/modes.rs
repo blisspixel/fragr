@@ -1505,19 +1505,21 @@ fn first_blood_streaks_and_comebacks_are_called_with_a_gap() {
         GameEvent::HostReaction { kind: HostReactionKind::FirstBlood, variant: 0, player: Some(p), other: Some(o), .. }
             if p == "F1" && o == "F2"
     )));
-    // B's side falls four behind, then draws level: a comeback.
-    for _ in 0..3 {
+    // B's side falls five behind; A's fifth is a team deathmatch Rampage.
+    for _ in 0..4 {
         wait(&mut state, 70);
         kill(&mut state, a, b);
     }
-    assert_eq!(state.team_scores.get(player(&state, a).team.unwrap()), 4);
-    // A is on a four streak; B ends it, but only after the eight second gap.
-    wait(&mut state, 70);
+    assert_eq!(state.team_scores.get(player(&state, a).team.unwrap()), 5);
+    assert_eq!(reactions(&events(&mut state)), [HostReactionKind::Rampage]);
+    // B ends the spree once the eight second gap has passed.
+    wait(&mut state, 170);
     state.take_events();
     kill(&mut state, b, a);
     let ended = reactions(&events(&mut state));
     assert_eq!(ended, [HostReactionKind::StreakEnded]);
-    for _ in 0..3 {
+    // B draws level from five down: the comeback outranks B's own Rampage.
+    for _ in 0..4 {
         wait(&mut state, 70);
         kill(&mut state, b, a);
     }
@@ -1644,4 +1646,357 @@ fn plain_free_for_all_keeps_the_old_wire() {
     let state = GameState::with_authored_map(campaign);
     let json = serde_json::to_value(state.map_info()).unwrap();
     assert!(json.get("rules").is_none());
+}
+
+/// Put a downed fighter back on their feet without running the sim.
+fn revive(state: &mut GameState, id: Uuid) {
+    let p = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    p.hp = 100;
+    p.armor = 0;
+    p.respawn_timer = None;
+}
+
+fn calls(events: &[GameEvent]) -> Vec<(HostReactionKind, bool)> {
+    events
+        .iter()
+        .filter_map(|event| match event {
+            GameEvent::HostReaction { kind, big, .. } => Some((*kind, *big)),
+            _ => None,
+        })
+        .collect()
+}
+
+/// A frag through the ordinary hit path at an exact tick, the sim held still.
+fn frag_at(
+    state: &mut GameState,
+    tick: u64,
+    killer: Uuid,
+    victim: Uuid,
+) -> Vec<(HostReactionKind, bool)> {
+    state.tick = tick;
+    revive(state, victim);
+    state.take_events();
+    assert!(state.hit_for_test(killer, victim, 500));
+    calls(&state.take_events())
+}
+
+#[test]
+fn host_spacing_keeps_voices_eight_seconds_apart_and_captions_after_any_call() {
+    use HostReactionKind as K;
+    let gap = crate::rules::REACTION_GAP_TICKS;
+    let mut state = range(rules(GameMode::Ffa, &[]));
+    state.take_events();
+    state.tick = 500;
+    assert!(state.react(K::TripleFrag, Some("A".into()), None, None));
+    state.tick = 500 + gap - 1;
+    assert!(
+        !state.react(K::MatchPoint, None, None, None),
+        "voice waits for voice"
+    );
+    assert!(
+        !state.react(K::LeadChange, None, None, None),
+        "caption waits for any call"
+    );
+    state.tick = 500 + gap;
+    assert!(state.react(K::LeadChange, None, None, None));
+    assert!(
+        state.react(K::MatchPoint, None, None, None),
+        "a caption never holds back a big moment"
+    );
+    state.tick += 1;
+    assert!(!state.react(K::DoubleFrag, None, None, None));
+    assert!(!state.react(K::FlagCaptured, None, None, None));
+    // Information is never held back: sudden death and the golden Railgun.
+    assert!(state.react(K::SuddenDeath, None, None, None));
+    assert!(state.react(K::GoldenRail, Some("A".into()), None, None));
+    assert_eq!(
+        calls(&state.take_events()),
+        [
+            (K::TripleFrag, true),
+            (K::LeadChange, false),
+            (K::MatchPoint, true),
+            (K::SuddenDeath, true),
+            (K::GoldenRail, false)
+        ]
+    );
+}
+
+#[test]
+fn multikills_chain_inside_three_seconds_and_only_the_big_ones_are_voiced() {
+    use HostReactionKind as K;
+    let mut state = range(rules(GameMode::Ffa, &[]));
+    state.config.frag_limit = Some(50);
+    let a = join(&mut state, 1, Role::Agent);
+    let rivals: Vec<Uuid> = (2..=4).map(|n| join(&mut state, n, Role::Agent)).collect();
+    state.start_round();
+    let mut t = 1_000;
+    assert_eq!(
+        frag_at(&mut state, t, a, rivals[0]),
+        [(K::FirstBlood, true)]
+    );
+    // Ten seconds on, one frag is no chain.
+    t += 200;
+    assert_eq!(frag_at(&mut state, t, a, rivals[1]), []);
+    // A second inside the window is a text caption.
+    t += 20;
+    assert_eq!(
+        frag_at(&mut state, t, a, rivals[2]),
+        [(K::DoubleFrag, false)]
+    );
+    // A third on the window's last tick is voiced, and the caption a moment
+    // ago does not hold it back.
+    t += crate::rules::MULTIKILL_WINDOW_TICKS;
+    assert_eq!(
+        frag_at(&mut state, t, a, rivals[0]),
+        [(K::TripleFrag, true)]
+    );
+    // Four and five keep chaining, but the voice that just spoke needs its
+    // eight seconds: one call per frag, held back, never stacked.
+    t += 20;
+    assert_eq!(frag_at(&mut state, t, a, rivals[1]), []);
+    t += 20;
+    assert_eq!(frag_at(&mut state, t, a, rivals[2]), []);
+    // Past the window the chain starts again from one.
+    t += crate::rules::MULTIKILL_WINDOW_TICKS + 1;
+    assert_eq!(frag_at(&mut state, t, a, rivals[0]), []);
+    t += 200;
+    assert_eq!(frag_at(&mut state, t, a, rivals[1]), []);
+    t += 20;
+    assert_eq!(
+        frag_at(&mut state, t, a, rivals[2]),
+        [(K::DoubleFrag, false)]
+    );
+}
+
+#[test]
+fn spree_tiers_follow_the_mode_step_and_an_ended_spree_names_both() {
+    use HostReactionKind as K;
+    let steps = [
+        GameMode::Ffa,
+        GameMode::Tdm,
+        GameMode::Ctf,
+        GameMode::Conquest,
+        GameMode::Sabotage,
+    ]
+    .map(crate::rules::spree_step);
+    assert_eq!(steps, [5, 5, 4, 4, 3]);
+    let mut state = ctf();
+    let a = join(&mut state, 1, Role::Agent);
+    let b = join(&mut state, 2, Role::Agent);
+    assert_ne!(player(&state, a).team, player(&state, b).team);
+    state.start_round();
+    let mut t = 1_000;
+    let mut heard = Vec::new();
+    for n in 1..=12 {
+        t += 200;
+        for call in frag_at(&mut state, t, a, b) {
+            heard.push((n, call));
+        }
+    }
+    assert_eq!(
+        heard,
+        [
+            (1, (K::FirstBlood, true)),
+            (4, (K::Rampage, true)),
+            (8, (K::Riot, true)),
+            (12, (K::Untouchable, true))
+        ]
+    );
+    state.tick = t + 200;
+    revive(&mut state, a);
+    state.take_events();
+    assert!(state.hit_for_test(b, a, 500));
+    let ended = state
+        .take_events()
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::HostReaction {
+                kind: K::StreakEnded,
+                player,
+                other,
+                team,
+                big,
+                ..
+            } => Some((player, other, team, big)),
+            _ => None,
+        });
+    assert_eq!(
+        ended,
+        Some((
+            Some("F1".to_string()),
+            Some("F2".to_string()),
+            player(&state, a).team,
+            true
+        ))
+    );
+}
+
+#[test]
+fn a_lead_change_is_a_caption_and_match_point_is_called_once_per_round() {
+    use HostReactionKind as K;
+    let mut state = range(rules(GameMode::Ffa, &[]));
+    state.config.frag_limit = Some(5);
+    let a = join(&mut state, 1, Role::Agent);
+    let b = join(&mut state, 2, Role::Agent);
+    let c = join(&mut state, 3, Role::Agent);
+    state.start_round();
+    let mut t = state.tick + 1_000;
+    let mut heard = Vec::new();
+    for killer in [a, a, a, b, b, b] {
+        t += 200;
+        heard.extend(frag_at(&mut state, t, killer, c));
+    }
+    assert_eq!(heard, [(K::FirstBlood, true)], "level is not a lead change");
+    state.tick = t + 200;
+    revive(&mut state, c);
+    state.take_events();
+    assert!(state.hit_for_test(b, c, 500));
+    let lead = state
+        .take_events()
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::HostReaction {
+                kind: K::LeadChange,
+                player,
+                other,
+                big,
+                ..
+            } => Some((player, other, big)),
+            _ => None,
+        });
+    assert_eq!(lead, Some((Some("F2".into()), Some("F1".into()), false)));
+    // Four of five: the next tick calls match point, and only once.
+    state.tick(0.05);
+    let point = state
+        .take_events()
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::HostReaction {
+                kind: K::MatchPoint,
+                player,
+                big,
+                ..
+            } => Some((player, big)),
+            _ => None,
+        });
+    assert_eq!(point, Some((Some("F2".into()), true)));
+    let t = state.tick + 400;
+    assert_eq!(frag_at(&mut state, t, a, c), []);
+    wait(&mut state, 200);
+    assert!(calls(&state.take_events()).is_empty());
+}
+
+#[test]
+fn ctf_calls_the_take_as_a_caption_the_capture_as_a_big_moment_then_match_point() {
+    use HostReactionKind as K;
+    let mut state = ctf();
+    let coalition = join(&mut state, 1, Role::Human);
+    let union = join(&mut state, 2, Role::Agent);
+    state.start_round();
+    state.take_events();
+    place(&mut state, union, 50.0, 0.0);
+    let mut heard = Vec::new();
+    for _ in 0..2 {
+        place(&mut state, coalition, -70.0, 0.0);
+        state.tick(0.05);
+        heard.extend(calls(&events(&mut state)));
+        place(&mut state, coalition, 70.0, 0.0);
+        state.tick(0.05);
+        heard.extend(calls(&events(&mut state)));
+        wait(&mut state, 200);
+        heard.extend(calls(&events(&mut state)));
+    }
+    assert_eq!(state.capture_scores.coalition, 2);
+    assert_eq!(state.round_state, RoundState::Active);
+    assert_eq!(
+        heard,
+        [
+            (K::FlagTaken, false),
+            (K::FlagCaptured, true),
+            (K::FlagTaken, false),
+            (K::FlagCaptured, true),
+            // Two of three: held behind the capture's voice, then called once.
+            (K::MatchPoint, true)
+        ]
+    );
+}
+
+#[test]
+fn a_level_clock_goes_to_sudden_death_and_the_next_frag_decides() {
+    use HostReactionKind as K;
+    let mut state = range(rules(GameMode::Ffa, &[]));
+    state.config.frag_limit = Some(50);
+    state.config.time_limit_ticks = Some(40);
+    let a = join(&mut state, 1, Role::Agent);
+    let b = join(&mut state, 2, Role::Agent);
+    state.start_round();
+    assert!(state.hit_for_test(a, b, 500));
+    revive(&mut state, b);
+    assert!(state.hit_for_test(b, a, 500));
+    wait(&mut state, 45);
+    let heard = calls(&events(&mut state));
+    assert!(heard.contains(&(K::SuddenDeath, true)), "{heard:?}");
+    assert_eq!(state.round_state, RoundState::Active);
+    let snap = state.snapshot();
+    assert!(snap.sudden_death);
+    assert_eq!(snap.round_time_left, None, "the clock stops");
+    let json = serde_json::to_value(&snap).unwrap();
+    assert_eq!(json["sudden_death"], true);
+    // Nobody scores: the round keeps going past its clock.
+    wait(&mut state, 100);
+    assert_eq!(state.round_state, RoundState::Active);
+    revive(&mut state, b);
+    assert!(state.hit_for_test(a, b, 500));
+    state.tick(0.05);
+    assert_eq!(state.round_state, RoundState::Ended);
+    let end = events(&mut state)
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::RoundEnd { reason, winner, .. } => Some((reason, winner)),
+            _ => None,
+        });
+    assert_eq!(
+        end,
+        Some(("Sudden death decided".to_string(), Some("F1".to_string())))
+    );
+    let json = serde_json::to_value(state.snapshot()).unwrap();
+    assert!(json.get("sudden_death").is_none(), "omitted when false");
+}
+
+#[test]
+fn a_scoreless_clock_ends_and_a_quiet_sudden_death_ends_level() {
+    let mut quiet = range(rules(GameMode::Ffa, &[]));
+    quiet.config.time_limit_ticks = Some(40);
+    join(&mut quiet, 1, Role::Agent);
+    join(&mut quiet, 2, Role::Agent);
+    quiet.start_round();
+    wait(&mut quiet, 45);
+    assert_eq!(quiet.round_state, RoundState::Ended);
+    assert!(quiet.sudden_death.is_none());
+
+    let mut state = range(rules(GameMode::Tdm, &[]));
+    state.config.frag_limit = Some(50);
+    state.config.time_limit_ticks = Some(40);
+    let a = join(&mut state, 1, Role::Agent);
+    let b = join(&mut state, 2, Role::Agent);
+    state.start_round();
+    assert!(state.hit_for_test(a, b, 500));
+    revive(&mut state, b);
+    assert!(state.hit_for_test(b, a, 500));
+    wait(&mut state, 45);
+    assert!(state.sudden_death.is_some());
+    state.take_events();
+    wait(&mut state, crate::rules::SUDDEN_DEATH_LIMIT_TICKS + 1);
+    assert_eq!(state.round_state, RoundState::Ended);
+    let end = events(&mut state)
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::RoundEnd {
+                reason,
+                winning_team,
+                ..
+            } => Some((reason, winning_team)),
+            _ => None,
+        });
+    assert_eq!(end, Some(("Level after sudden death".to_string(), None)));
 }

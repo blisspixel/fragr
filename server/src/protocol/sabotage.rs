@@ -43,7 +43,8 @@ impl SabotageFormat {
         }
     }
 
-    /// Extra periods before a level match is a draw. None plays until decided.
+    /// Extra periods before a level match goes to one sudden death round.
+    /// None plays periods until decided.
     pub const fn extra_periods(self) -> Option<u32> {
         match self {
             Self::Short => Some(1),

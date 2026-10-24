@@ -129,8 +129,9 @@ pub use status::{
 pub use vehicle::{VehicleKind, VehicleSeat, VehicleState, MAX_VEHICLES, VEHICLE_GAMEPLAY_VERSION};
 pub use water::{validate_water_regions, WaterRegion};
 
-/// Named scrap-league identity (Contested Frequency denies it exists).
-pub const MODE_NAME: &str = "Contested Frequency";
+/// The arena's identity on the warmup card and the result card. The radio
+/// station is small background flavour, never the match's name.
+pub const MODE_NAME: &str = "Scrap League";
 /// Playlist label under the league lie.
 pub const PLAYLIST_NAME: &str = "Arena Duel";
 /// Desktop builds and `SHA256SUMS.txt`. Join does not fetch this URL.
@@ -144,8 +145,10 @@ pub fn default_playlist() -> String {
     PLAYLIST_NAME.to_string()
 }
 
+/// The Host's plain arena intro: where, then go. He never explains the
+/// setting and never chants.
 pub fn default_host_line() -> String {
-    "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.".to_string()
+    "HOST: ARENA DUEL IS LIVE.".to_string()
 }
 
 pub fn default_mode_id() -> String {
@@ -238,29 +241,10 @@ pub fn boss_down_host_line() -> String {
 
 /// Host line when a live drone is wiped at round end (no frag credit).
 pub fn boss_round_wipe_host_line() -> String {
-    "HOST: FREQUENCY CLOSES. DRONE RECALLED. CONTINUANCE DENIES THE BEAT.".to_string()
+    "HOST: TIME. DRONE RECALLED. NOBODY GETS THAT ONE.".to_string()
 }
 
-/// Host line for a within-round killstreak tier (Contested Frequency voice).
-pub fn killstreak_host_line(streak: u32, player: &str) -> Option<(String, String)> {
-    match streak {
-        2 => Some((
-            "double".to_string(),
-            format!("HOST: DOUBLE FREQUENCY. {player} DENIES THE DENIAL."),
-        )),
-        3 => Some((
-            "triple".to_string(),
-            "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.".to_string(),
-        )),
-        5 => Some((
-            "rampage".to_string(),
-            format!("HOST: FREQUENCY RAMPAGE. {player} BREAKS EVERY APPROVED LANE."),
-        )),
-        _ => None,
-    }
-}
-
-/// Host line for round-end MVP / podium (Contested Frequency voice).
+/// Host line for round-end MVP / podium.
 pub fn mvp_host_line(mvp: &str, frags: u32) -> String {
     format!("HOST: ROUND MVP. {mvp} WITH {frags} FRAGS. CONTINUANCE DENIES THE PODIUM.")
 }
@@ -311,14 +295,6 @@ pub fn sabotage_round_host_line(
     }
 }
 
-/// Host line when a Sabotage match ends level after its extra time.
-pub fn sabotage_draw_host_line(score: TeamScores) -> String {
-    format!(
-        "HOST: LEVEL AFTER EXTRA TIME, {} ALL. THE ROTATION MOVES ON.",
-        score.union
-    )
-}
-
 /// Host line when a lives-limited round ends with one fighter left, or none.
 pub fn last_fighter_host_line(survivor: Option<&str>) -> String {
     match survivor {
@@ -335,18 +311,13 @@ pub fn empty_mvp_host_line() -> String {
     "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP.".to_string()
 }
 
-/// Host bumper when a named scrap bot dials in (Warmup / spawn flavor).
-pub fn bot_intro_host_line(name: &str) -> String {
-    format!("HOST: {} DIALS THE FREQUENCY.", name.to_uppercase())
-}
-
-/// Sticky Warmup / mid-join Host line naming the dialed-in rule-bot roster.
+/// Sticky Warmup / mid-join Host line naming the rule-bot roster.
 pub fn roster_host_line(names: &[String]) -> String {
     if names.is_empty() {
         return default_host_line();
     }
     let listed = format_roster_names(names);
-    format!("HOST: {listed} ON THE SCRAP. FREQUENCY STAYS LIVE.")
+    format!("HOST: {listed} ON THE SCRAP.")
 }
 
 fn format_roster_names(names: &[String]) -> String {
@@ -358,29 +329,26 @@ fn format_roster_names(names: &[String]) -> String {
     }
 }
 
-/// Warmup / pre-round Host drama: Contested Frequency bumper, map, roster, countdown.
+/// The Warmup intro: the venue, who is on it and the countdown. A plain
+/// arena intro, never a station ident.
 pub fn warmup_host_line(map_name: &str, names: &[String], secs_left: u32) -> String {
     let map = map_name.to_uppercase();
     let secs = secs_left.max(1);
     if names.is_empty() {
-        return format!(
-            "HOST: CONTESTED FREQUENCY. {map} TUNES IN. FREQUENCY GOES LIVE IN {secs}."
-        );
+        return format!("HOST: {map}. GOES LIVE IN {secs}.");
     }
     let listed = format_roster_names(names);
-    format!(
-        "HOST: CONTESTED FREQUENCY. {map} TUNES IN. {listed} ON THE SCRAP. GOES LIVE IN {secs}."
-    )
+    format!("HOST: {map}. {listed} ON THE SCRAP. GOES LIVE IN {secs}.")
 }
 
 /// RoundStart Host line once Warmup ends (map + roster, fight energy, no countdown).
 pub fn round_open_host_line(map_name: &str, names: &[String]) -> String {
     let map = map_name.to_uppercase();
     if names.is_empty() {
-        return format!("HOST: CONTESTED FREQUENCY. {map} IS LIVE. FIGHT!");
+        return format!("HOST: {map} IS LIVE. FIGHT!");
     }
     let listed = format_roster_names(names);
-    format!("HOST: CONTESTED FREQUENCY. {map}. {listed} ON THE SCRAP. FIGHT!")
+    format!("HOST: {map}. {listed} ON THE SCRAP. FIGHT!")
 }
 
 /// Beat that triggers a Contested Frequency rule-bot speak line.
@@ -1470,8 +1438,14 @@ pub struct Snapshot {
     pub players: Vec<PlayerState>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub round_state: Option<String>,
+    /// Seconds left on the round clock. Absent during sudden death, when the
+    /// clock is stopped.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub round_time_left: Option<u32>,
+    /// The clock ran out level (or a level Sabotage match reached its
+    /// decider round): the next score wins. Omitted when false.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub sudden_death: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub frag_limit: Option<u32>,
     /// Shots resolved on this tick (empty omitted on wire).
@@ -1817,16 +1791,9 @@ pub enum GameEvent {
         #[serde(default, skip_serializing_if = "is_false")]
         secret: bool,
     },
-    /// Within-round multi-kill Host callout (tiers 2 / 3 / 5).
-    Killstreak {
-        player: String,
-        player_id: Uuid,
-        streak: u32,
-        tier: String,
-        message: String,
-    },
     /// A Host beat from an authoritative fact. The client owns the words,
-    /// keyed by kind and variant; names fill its placeholders.
+    /// keyed by kind and variant; names fill its placeholders. Multikills
+    /// and spree tiers are kinds here too.
     HostReaction {
         kind: HostReactionKind,
         /// `0..HOST_REACTION_VARIANTS`, rotated so a regular hears them all.
@@ -1840,6 +1807,10 @@ pub enum GameEvent {
         /// The side the beat is about.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         team: Option<Team>,
+        /// A big moment the Host voices (`HostReactionKind::big`). Omitted
+        /// for a text-only caption.
+        #[serde(default, skip_serializing_if = "is_false")]
+        big: bool,
     },
     /// Off-tick agent/human callout (rate-limited, length-capped).
     Speak {
@@ -1973,6 +1944,7 @@ mod protocol_tests {
             players: vec![],
             round_state: None,
             round_time_left: None,
+            sudden_death: false,
             frag_limit: None,
             shot_results: vec![shot.clone()],
             projectiles: vec![],
@@ -2211,6 +2183,7 @@ mod protocol_tests {
             players: vec![],
             round_state: None,
             round_time_left: None,
+            sudden_death: false,
             frag_limit: None,
             shot_results: vec![],
             projectiles: vec![],
@@ -2315,44 +2288,65 @@ mod protocol_tests {
         ));
     }
     #[test]
-    fn killstreak_event_wire_json_shape() {
-        let id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-        let ev = GameEvent::Killstreak {
-            player: "Rusher".into(),
-            player_id: id,
-            streak: 2,
-            tier: "double".into(),
-            message: "HOST: DOUBLE FREQUENCY. Rusher DENIES THE DENIAL.".into(),
+    fn host_reaction_wire_marks_big_moments_and_omits_captions_flag() {
+        let triple = GameEvent::HostReaction {
+            kind: HostReactionKind::TripleFrag,
+            variant: 1,
+            player: Some("Rusher".into()),
+            other: Some("Target".into()),
+            team: None,
+            big: true,
         };
-        let v = serde_json::to_value(&ev).unwrap();
-        assert_eq!(v["event"], "killstreak");
-        assert_eq!(v["player"], "Rusher");
-        assert_eq!(v["streak"], 2);
-        assert_eq!(v["tier"], "double");
-        assert!(v["message"].as_str().unwrap().contains("DOUBLE FREQUENCY"));
+        let v = serde_json::to_value(&triple).unwrap();
+        assert_eq!(v["event"], "host_reaction");
+        assert_eq!(v["kind"], "triple_frag");
+        assert_eq!(v["big"], true);
+        assert!(v.get("team").is_none());
         let back: GameEvent = serde_json::from_value(v).unwrap();
-        match back {
-            GameEvent::Killstreak { streak, tier, .. } => {
-                assert_eq!(streak, 2);
-                assert_eq!(tier, "double");
+        assert!(matches!(
+            back,
+            GameEvent::HostReaction {
+                kind: HostReactionKind::TripleFrag,
+                big: true,
+                ..
             }
-            other => panic!("expected Killstreak, got {:?}", other),
-        }
+        ));
+        let caption = GameEvent::HostReaction {
+            kind: HostReactionKind::DoubleFrag,
+            variant: 0,
+            player: Some("Rusher".into()),
+            other: None,
+            team: None,
+            big: false,
+        };
+        let v = serde_json::to_value(&caption).unwrap();
+        assert!(v.get("big").is_none(), "a caption omits the flag: {v}");
+        assert!(matches!(
+            serde_json::from_value(v).unwrap(),
+            GameEvent::HostReaction { big: false, .. }
+        ));
     }
 
     #[test]
-    fn killstreak_host_line_tiers() {
-        assert!(killstreak_host_line(1, "X").is_none());
-        assert!(killstreak_host_line(4, "X").is_none());
-        let (tier, msg) = killstreak_host_line(2, "Rusher").unwrap();
-        assert_eq!(tier, "double");
-        assert!(msg.contains("Rusher"));
-        let (tier, msg) = killstreak_host_line(3, "Rusher").unwrap();
-        assert_eq!(tier, "triple");
-        assert!(msg.contains("TRIPLE"));
-        let (tier, msg) = killstreak_host_line(5, "Rusher").unwrap();
-        assert_eq!(tier, "rampage");
-        assert!(msg.contains("RAMPAGE"));
+    fn host_lines_never_use_station_vocabulary() {
+        let names = vec!["Dead Air Dan".to_string()];
+        let lines = [
+            default_host_line(),
+            roster_host_line(&names),
+            warmup_host_line("Arena Duel", &names, 3),
+            warmup_host_line("Arena Duel", &[], 3),
+            round_open_host_line("Arena Duel", &names),
+            round_open_host_line("Arena Duel", &[]),
+            boss_round_wipe_host_line(),
+            mvp_host_line("Rusher", 3),
+            empty_mvp_host_line(),
+        ];
+        for line in lines {
+            assert!(line.starts_with("HOST: "), "{line}");
+            assert!(!line.contains("FREQUENCY"), "no station puns: {line}");
+            assert!(!line.contains("TUNES IN"), "no station puns: {line}");
+        }
+        assert_eq!(MODE_NAME, "Scrap League");
     }
 
     #[test]
@@ -2367,9 +2361,6 @@ mod protocol_tests {
 
     #[test]
     fn scrap_bot_host_lines() {
-        let intro = bot_intro_host_line("Dead Air Dan");
-        assert!(intro.contains("DEAD AIR DAN"));
-        assert!(intro.contains("DIALS THE FREQUENCY"));
         let roster = roster_host_line(&[
             "Dead Air Dan".into(),
             "Nightfall".into(),
@@ -2387,7 +2378,10 @@ mod protocol_tests {
     fn warmup_and_round_open_host_lines() {
         let names = vec!["Dead Air Dan".into(), "Nightfall".into()];
         let warm = warmup_host_line("Arena Duel", &names, 2);
-        assert!(warm.contains("CONTESTED FREQUENCY"));
+        assert_eq!(
+            warm,
+            "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. GOES LIVE IN 2."
+        );
         assert!(warm.contains("ARENA DUEL"));
         assert!(warm.contains("DEAD AIR DAN"));
         assert!(warm.contains("ON THE SCRAP"));

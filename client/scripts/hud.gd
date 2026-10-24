@@ -96,8 +96,7 @@ var _leaderboard_scroll: ScrollContainer = null
 var _leaderboard_hint: Label = null
 var ghost_rival = ""
 var leader_name = ""
-var host_bumper_index = 0
-var league_mode_name = "Contested Frequency"
+var league_mode_name = "Scrap League"
 var league_playlist = "Arena Duel"
 var map_label = "Arena Duel"
 var pressure_id = ""
@@ -126,20 +125,14 @@ var round_chrome_state = "Warmup"
 var round_seconds: int = 0
 var round_clock_known: bool = false
 var round_target: int = 0
+## The clock ran out level (or a level Sabotage match reached its decider).
+var sudden_death: bool = false
 var campaign_context: bool = false
 var regions: HudRegions
 var hud_style: HudStyle = HudStyle.new()
 var score_subject := HudScoreSubject.new()
 var result_subject: String = ""
 var _controls_visible: bool = false
-
-const HOST_BUMPERS = [
-	"HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE.",
-	"HOST: ARENA DUEL UNDER THE LIE. LIVE LAUGH FRAG.",
-	"HOST: CONTINUANCE WATCHES. YOU SHOOT.",
-	"HOST: SHALL NOT BE INFRINGED. OPEN WEIGHTS. OPEN FIRE.",
-	"HOST: PORT 6767 ENERGY. DENY EVERYTHING.",
-]
 
 var weapon_textures = {}
 var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE.duplicate()
@@ -175,6 +168,8 @@ var fp_bob_weight: float = 0.0
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
+## Settings > Audio > Announcer: which Host calls reach the voice row.
+var announcer: int = FragrSettings.ANNOUNCER_ON
 var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
@@ -586,7 +581,7 @@ func _place_use_plate() -> void:
 
 ## The round card for a decided Sabotage round, on the opaque backing.
 func show_sabotage_result(card: String, host_line: String) -> void:
-	host_spoke.emit(4.0)
+	host_duck(4.0, true)
 	if host_line != "":
 		sticky_host_line = host_line
 		host_line_seen = true
@@ -705,6 +700,10 @@ func _refresh_mode_chip() -> void:
 			score_line += (" // " if not score_line.is_empty() else "") + clock
 		if not score_line.is_empty():
 			lines.append(score_line)
+	# The clock stopped level: the rule change is a fact, shown whatever the
+	# announcer setting says.
+	if sudden_death and round_chrome_state == "Active":
+		lines.append(tr("HUD_SUDDEN_DEATH_ROUND" if sabotage() else "HUD_SUDDEN_DEATH"))
 	if pressure_id == "compliance_drone":
 		lines.append("ARTICLE 7 ENFORCEMENT")
 	elif pressure_id == "compliance":
@@ -725,11 +724,14 @@ func _refresh_mode_chip() -> void:
 
 
 ## A Host beat from a `host_reaction` event, in the Host's corner voice.
+## Captions keep the names. A big moment lowers the radio; a text-only
+## caption does not, and Big moments only drops it.
 func show_host_reaction(data: Dictionary) -> void:
 	var line: String = MatchRules.reaction_line(data)
-	if line.is_empty():
+	var big: bool = MatchRules.reaction_big(data)
+	if line.is_empty() or not announcer_allows(big):
 		return
-	combat_feed.push(line, MenuTheme.EMBER, 2.0)
+	combat_feed.push(line, MenuTheme.EMBER, 2.0 if big else 0.0)
 
 
 func show_flag_event(data: Dictionary) -> void:
@@ -838,7 +840,8 @@ func set_tick(tick: int):
 		var seconds = tick / 20
 		tick_label.text = "Time: " + str(seconds) + "s"
 
-func set_round_info(state: String, time_left: Variant, frag_limit: int):
+func set_round_info(state: String, time_left: Variant, frag_limit: int, level_clock: bool = false):
+	sudden_death = level_clock and state == "Active"
 	# Retained state also clears the card after a late join or recorded replay,
 	# where the separate RoundStart notice may not have been observed.
 	if state != "Warmup" and warmup_tv_active:
@@ -1260,6 +1263,7 @@ func apply_preferences(settings: FragrSettings) -> void:
 	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
+	announcer = settings.announcer()
 	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob")) and not reduced_motion
 	if reduced_motion:
 		_cancel_round_pulse()
@@ -1379,20 +1383,42 @@ func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 	return false
 
 func show_host_join(host_line: String, duck: bool = true) -> void:
-	combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+	if announcer_allows(false):
+		combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+
+## Off silences every Host call; Big moments only keeps the rare ones. The
+## facts themselves (frags, objectives, results, sudden death) never pass
+## through here.
+func announcer_allows(big_moment: bool) -> bool:
+	match announcer:
+		FragrSettings.ANNOUNCER_OFF:
+			return false
+		FragrSettings.ANNOUNCER_BIG_MOMENTS:
+			return big_moment
+	return true
+
+## Lower the radio for a Host call only when the announcer will make one. The
+## result or bumper card still shows; with the announcer off nobody speaks.
+func host_duck(seconds: float, big_moment: bool) -> void:
+	if announcer_allows(big_moment):
+		host_spoke.emit(seconds)
+
+## The plain arena intro when the server sent none: where, then go.
+func _plain_intro() -> String:
+	return "HOST: " + map_label.to_upper() + " IS LIVE."
 
 func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	round_banner_remaining = 0.0
-	host_spoke.emit(3.0)
+	host_duck(3.0, false)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
 	flash_broadcast_chrome("host")
-	# Unmissable full-frame Contested Frequency Warmup TV bumper.
+	# Unmissable full-frame Warmup TV bumper.
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).
 	if warmup_tv == null and round_message:
 		var line = host_line
 		if line == "":
-			line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+			line = _plain_intro()
 		var sub = "WARMUP // " + map_label.to_upper()
 		if secs_left > 0:
 			sub += " // GOES LIVE IN " + str(secs_left)
@@ -1422,7 +1448,7 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 		return
 	var line = host_line
 	if line == "":
-		line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+		line = _plain_intro()
 	warmup_tv_host_line = line
 	warmup_tv_secs = max(secs_left, 0)
 	if warmup_tv_league:
@@ -1477,15 +1503,16 @@ func show_round_start(round_number: int, host_line: String = "") -> void:
 	_conquest_owners.clear()
 	score_subject.clear()
 	result_subject = ""
+	# One source for the Host's words: the server's line, or the plain intro.
 	var line: String = host_line
 	if line.is_empty():
-		line = HOST_BUMPERS[host_bumper_index % HOST_BUMPERS.size()]
-		host_bumper_index += 1
+		line = _plain_intro() + " FIGHT!"
 	sticky_host_line = line
 	host_line_seen = true
 	_refresh_mode_label()
 	hide_warmup_tv()
-	combat_feed.push(line, MenuTheme.EMBER, 2.0)
+	if announcer_allows(false):
+		combat_feed.push(line, MenuTheme.EMBER, 2.0)
 	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
 	if vitals_seal_plate != null:
 		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
@@ -1512,9 +1539,6 @@ func show_boss_down(message: String, killer: String = "") -> void:
 	_refresh_mode_label()
 	combat_feed.push(tr("HUD_BOSS_DOWN").format({"killer": killer}), MenuTheme.EMBER)
 
-func show_killstreak(player_name: String, streak: int, _tier: String, _message: String) -> void:
-	combat_feed.push(tr("HUD_STREAK").format({"player": player_name, "count": streak}), MenuTheme.EMBER)
-
 func show_speak(player: String, line: String) -> void:
 	if not line.is_empty():
 		combat_feed.push(player + ": " + line)
@@ -1525,8 +1549,8 @@ func show_venue_notice(line: String) -> void:
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
-	host_spoke.emit(4.0)
-	# Round-end MVP / podium Host drama (Contested Frequency voice).
+	host_duck(4.0, true)
+	# Round-end MVP / podium Host drama.
 	_standings.clear()
 	_standings_revision += 1
 	leader_name = mvp_name
