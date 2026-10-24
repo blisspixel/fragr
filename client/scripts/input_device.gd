@@ -100,16 +100,20 @@ static func layout_for(joy_name: String, info: Dictionary = {}) -> String:
 		return "shapes"
 	if vendor == 0x045E or info.has("xinput_index"):
 		return "letters"
-	for hint: String in ["dualsense", "dualshock", "playstation", "sony", "ps3", "ps4", "ps5", "wireless controller"]:
+	for hint: String in ["dualsense", "dualshock", "playstation", "sony", "ps3", "ps4", "ps5"]:
 		if name.contains(hint):
 			return "shapes"
 	# Nintendo layouts swap A and B, so letters would lie. Positional is honest.
 	for hint: String in ["nintendo", "switch", "joy-con", "pro controller"]:
 		if name.contains(hint):
 			return "generic"
+	# Before the bare "Wireless Controller" a DualShock 4 reports, because the
+	# Xbox pad's own name is "Xbox Wireless Controller".
 	for hint: String in ["xbox", "xinput", "x-box", "microsoft"]:
 		if name.contains(hint):
 			return "letters"
+	if name.contains("wireless controller"):
+		return "shapes"
 	return "generic"
 
 ## Test and tour hook: set the state directly.

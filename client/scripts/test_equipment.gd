@@ -166,15 +166,21 @@ func _run() -> void:
 	key.physical_keycode = KEY_N
 	_check(key.is_action_pressed("radio_next_track"), "N skips the track")
 	key.physical_keycode = KEY_M
-	_check(key.is_action_pressed("radio_toggle"), "M plays or pauses the radio")
+	_check(key.is_action_pressed("radio_toggle"), "M switches the radio on or off")
+	key.physical_keycode = KEY_X
+	_check(key.is_action_pressed("radio_prev_station"), "X turns back a station")
 	var pad := InputEventJoypadButton.new()
 	pad.pressed = true
 	pad.button_index = JOY_BUTTON_DPAD_UP
-	_check(not pad.is_action_pressed("radio_next_station"), "D-pad up is not the radio")
+	_check(pad.is_action_pressed("throw_grenade") and not pad.is_action_pressed("radio_next_station"), "D-pad up throws a grenade, not the radio")
 	pad.button_index = JOY_BUTTON_DPAD_DOWN
-	_check(not pad.is_action_pressed("radio_next_track"), "D-pad down is not the radio")
+	_check(pad.is_action_pressed("place_mine") and not pad.is_action_pressed("reload"), "D-pad down places a mine and no longer reloads")
+	pad.button_index = JOY_BUTTON_X
+	_check(pad.is_action_pressed("reload"), "X or Square reloads")
 	pad.button_index = JOY_BUTTON_DPAD_LEFT
-	_check(not pad.is_action_pressed("radio_toggle"), "D-pad left is not the radio")
+	_check(pad.is_action_pressed("radio_prev_station") and not pad.is_action_pressed("duck"), "D-pad left is the previous station, not crouch")
+	pad.button_index = JOY_BUTTON_DPAD_RIGHT
+	_check(pad.is_action_pressed("radio_next_station") and not pad.is_action_pressed("trigger_remote_mines"), "D-pad right is the next station")
 	var scope_key := InputEventKey.new()
 	scope_key.physical_keycode = KEY_Z
 	scope_key.pressed = true

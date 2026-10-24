@@ -175,6 +175,13 @@ var fp_bob_weight: float = 0.0
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
+## Settings > Audio > Announcer: which Host calls reach the voice row.
+var announcer: int = FragrSettings.ANNOUNCER_ON
+## Host reactions that still speak with Big moments only (#431): first blood,
+## a streak ending, a last fighter standing, a side drawing level and the one
+## golden Railgun changing hands (the arena's FLAG TAKEN).
+const BIG_REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
+const BIG_STREAKS: Array[String] = ["triple", "rampage"]
 var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
@@ -586,7 +593,7 @@ func _place_use_plate() -> void:
 
 ## The round card for a decided Sabotage round, on the opaque backing.
 func show_sabotage_result(card: String, host_line: String) -> void:
-	host_spoke.emit(4.0)
+	host_duck(4.0, true)
 	if host_line != "":
 		sticky_host_line = host_line
 		host_line_seen = true
@@ -727,7 +734,7 @@ func _refresh_mode_chip() -> void:
 ## A Host beat from a `host_reaction` event, in the Host's corner voice.
 func show_host_reaction(data: Dictionary) -> void:
 	var line: String = MatchRules.reaction_line(data)
-	if line.is_empty():
+	if line.is_empty() or not announcer_allows(str(data.get("kind", "")) in BIG_REACTIONS):
 		return
 	combat_feed.push(line, MenuTheme.EMBER, 2.0)
 
@@ -1260,6 +1267,7 @@ func apply_preferences(settings: FragrSettings) -> void:
 	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
+	announcer = settings.announcer()
 	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob")) and not reduced_motion
 	if reduced_motion:
 		_cancel_round_pulse()
@@ -1287,6 +1295,9 @@ func _apply_hud_style() -> void:
 			lbl.add_theme_font_size_override("font_size", body_sz)
 	if is_instance_valid(map_chip_label):
 		map_chip_label.add_theme_font_size_override("font_size", body_sz)
+	for line: Label in [radio_card_name, radio_card_title]:
+		if is_instance_valid(line):
+			line.add_theme_font_size_override("font_size", body_sz)
 	if regions != null and is_instance_valid(regions.hints):
 		regions.hints.add_theme_font_size_override("font_size", body_sz)
 	if is_instance_valid(equipment_hud) and equipment_hud.has_method("apply_style"):
@@ -1379,11 +1390,28 @@ func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 	return false
 
 func show_host_join(host_line: String, duck: bool = true) -> void:
-	combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+	if announcer_allows(false):
+		combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+
+## Off silences every Host call; Big moments only keeps the rare ones. The
+## facts themselves (frags, objectives, results) never pass through here.
+func announcer_allows(big_moment: bool) -> bool:
+	match announcer:
+		FragrSettings.ANNOUNCER_OFF:
+			return false
+		FragrSettings.ANNOUNCER_BIG_MOMENTS:
+			return big_moment
+	return true
+
+## Lower the radio for a Host call only when the announcer will make one. The
+## result or bumper card still shows; with the announcer off nobody speaks.
+func host_duck(seconds: float, big_moment: bool) -> void:
+	if announcer_allows(big_moment):
+		host_spoke.emit(seconds)
 
 func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	round_banner_remaining = 0.0
-	host_spoke.emit(3.0)
+	host_duck(3.0, false)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
 	flash_broadcast_chrome("host")
 	# Unmissable full-frame Contested Frequency Warmup TV bumper.
@@ -1485,7 +1513,8 @@ func show_round_start(round_number: int, host_line: String = "") -> void:
 	host_line_seen = true
 	_refresh_mode_label()
 	hide_warmup_tv()
-	combat_feed.push(line, MenuTheme.EMBER, 2.0)
+	if announcer_allows(false):
+		combat_feed.push(line, MenuTheme.EMBER, 2.0)
 	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
 	if vitals_seal_plate != null:
 		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
@@ -1512,7 +1541,9 @@ func show_boss_down(message: String, killer: String = "") -> void:
 	_refresh_mode_label()
 	combat_feed.push(tr("HUD_BOSS_DOWN").format({"killer": killer}), MenuTheme.EMBER)
 
-func show_killstreak(player_name: String, streak: int, _tier: String, _message: String) -> void:
+func show_killstreak(player_name: String, streak: int, tier: String, _message: String) -> void:
+	if not announcer_allows(tier in BIG_STREAKS):
+		return
 	combat_feed.push(tr("HUD_STREAK").format({"player": player_name, "count": streak}), MenuTheme.EMBER)
 
 func show_speak(player: String, line: String) -> void:
@@ -1525,7 +1556,7 @@ func show_venue_notice(line: String) -> void:
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
-	host_spoke.emit(4.0)
+	host_duck(4.0, true)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
 	_standings.clear()
 	_standings_revision += 1
@@ -1714,6 +1745,7 @@ func _process(delta):
 	if _use_template != "" and _use_revision != InputDevice.revision:
 		_show_use_plate(_use_template)
 	_place_use_plate()
+	tick_radio_toast(delta)
 	if round_banner_remaining > 0.0:
 		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
 		if round_banner_remaining == 0.0:
@@ -2456,117 +2488,133 @@ func show_spawn_flash() -> void:
 		vitals_seal_plate.settle(viewer_team)
 
 
-var radio_label: Label = null
-var radio_tween: Tween = null
+## --- Now playing ---------------------------------------------------------------
+## Radio is small background flavour (VISION): one level two-line card at the
+## lower right naming the station and the song or the radio state. It appears
+## on a station, track or power change and leaves after a few seconds. No
+## badge and no controls line in combat; the controls live in the match menu.
 
-## Bottom-right radio toast: station on switch, title on each new track, then fade.
-func show_radio(station: String, title: String) -> void:
-	if radio_label == null:
-		radio_label = Label.new()
-		radio_label.name = "RadioLabel"
-		radio_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		radio_label.anchor_left = 1.0
-		radio_label.anchor_top = 1.0
-		radio_label.anchor_right = 1.0
-		radio_label.anchor_bottom = 1.0
-		radio_label.offset_left = -640.0
-		radio_label.offset_top = -116.0
-		radio_label.offset_right = -16.0
-		radio_label.offset_bottom = -16.0
-		radio_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		radio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		radio_label.max_lines_visible = 3
-		radio_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		radio_label.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_label.add_theme_constant_override("outline_size", 4)
-		add_child(radio_label)
-	var text := "ON AIR: " + station
-	if title != "":
-		text += "  //  " + title
-	radio_label.text = text
-	radio_label.modulate.a = 1.0
-	radio_label.visible = true
-	if radio_tween != null and radio_tween.is_valid():
-		radio_tween.kill()
-	radio_tween = create_tween()
-	radio_tween.tween_interval(3.5)
-	radio_tween.tween_property(radio_label, "modulate:a", 0.0, 1.0)
+const RADIO_TOAST_HOLD: float = 4.0
+const RADIO_TOAST_FADE: float = 0.6
 
-
-var radio_card: Control = null
-var radio_card_badge: ColorRect = null
-var radio_card_mark: Label = null
+var radio_card: PanelContainer = null
 var radio_card_name: Label = null
-var radio_card_tagline: Label = null
-var radio_card_tween: Tween = null
+var radio_card_title: Label = null
+var radio_toast_info: Dictionary = {}
+## Seconds since the toast was last shown; negative while hidden.
+var radio_toast_age: float = -1.0
 
-## Station card above the radio toast: badge, name, tagline. Shown on every
-## station switch and radio toggle, then fades.
-func show_station_card(card: Dictionary) -> void:
+## Lines shown for one radio state. Pure so tests can read every state.
+static func radio_toast_lines(info: Dictionary) -> Dictionary:
+	var station: String = str(info.get("station", "")).to_upper()
+	var title: String = str(info.get("title", ""))
+	match str(info.get("state", "")):
+		"playing":
+			return {"name": station, "detail": title, "muted": false}
+		"held":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_HELD").format({"title": title}), "muted": true}
+		"off":
+			return {"name": TranslationServer.translate("RADIO_STATE_OFF"), "detail": station, "muted": true}
+		"off_air":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_OFF_AIR"), "muted": true}
+		"unavailable":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_UNAVAILABLE"), "muted": true}
+		"idle":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_IDLE"), "muted": true}
+	return {"name": TranslationServer.translate("RADIO_STATE_NONE"), "detail": "", "muted": true}
+
+func show_now_playing(info: Dictionary) -> void:
+	# The radio announces deferred; during scene exit the HUD may already be gone.
+	if not is_inside_tree():
+		return
+	_build_radio_toast()
+	radio_toast_info = info.duplicate()
+	var lines: Dictionary = radio_toast_lines(info)
+	radio_card_name.text = str(lines["name"])
+	radio_card_title.text = str(lines["detail"])
+	radio_card_title.add_theme_color_override("font_color", MenuTheme.MUTED if bool(lines["muted"]) else MenuTheme.BONE)
+	radio_card_title.visible = not radio_card_title.text.is_empty()
+	radio_toast_age = 0.0
+	_set_radio_toast_alpha(1.0)
+	# The card fits its text, so a short song does not carry an empty panel.
+	if regions != null:
+		regions.layout()
+
+## Pixels the toast needs for its current text, frame included. The card is
+## never wider than this, and never wider than its cap in `hud_regions.gd`.
+func radio_toast_content_width() -> float:
 	if radio_card == null:
-		radio_card = Control.new()
-		radio_card.name = "RadioCard"
-		radio_card.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		radio_card.anchor_left = 1.0
-		radio_card.anchor_top = 1.0
-		radio_card.anchor_right = 1.0
-		radio_card.anchor_bottom = 1.0
-		radio_card.offset_left = -640.0
-		radio_card.offset_top = -292.0
-		radio_card.offset_right = -16.0
-		radio_card.offset_bottom = -128.0
-		radio_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var back := ColorRect.new()
-		back.color = MenuTheme.INK
-		back.set_anchors_preset(Control.PRESET_FULL_RECT)
-		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		radio_card.add_child(back)
-		radio_card_badge = ColorRect.new()
-		radio_card_badge.position = Vector2(8, 8)
-		radio_card_badge.size = Vector2(78, 78)
-		radio_card_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		radio_card.add_child(radio_card_badge)
-		radio_card_mark = Label.new()
-		radio_card_mark.position = Vector2(8, 8)
-		radio_card_mark.size = Vector2(78, 78)
-		radio_card_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		radio_card_mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		radio_card_mark.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_mark.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_card_mark.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_card_mark.add_theme_constant_override("outline_size", 6)
-		radio_card.add_child(radio_card_mark)
-		radio_card_name = Label.new()
-		radio_card_name.position = Vector2(98, 12)
-		radio_card_name.size = Vector2(510, 62)
-		radio_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		radio_card_name.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_name.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_card_name.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_card_name.add_theme_constant_override("outline_size", 4)
-		radio_card.add_child(radio_card_name)
-		radio_card_tagline = Label.new()
-		radio_card_tagline.position = Vector2(98, 78)
-		radio_card_tagline.size = Vector2(510, 78)
-		radio_card_tagline.autowrap_mode = TextServer.AUTOWRAP_WORD
-		radio_card_tagline.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_tagline.add_theme_color_override("font_color", MenuTheme.MUTED)
-		radio_card.add_child(radio_card_tagline)
-		add_child(radio_card)
-	radio_card_badge.color = MenuTheme.BORDER
-	radio_card_mark.text = str(card.get("badge", "CF"))
-	radio_card_name.text = str(card.get("name", "RADIO")).to_upper()
-	var tagline := str(card.get("tagline", ""))
-	if not bool(card.get("enabled", true)):
-		tagline = "RADIO OFF"
-	elif not bool(card.get("has_tracks", true)):
-		tagline = "OFF THE AIR (no tracks yet)"
-	radio_card_tagline.text = tagline
-	radio_card.modulate.a = 1.0
-	radio_card.visible = true
-	if radio_card_tween != null and radio_card_tween.is_valid():
-		radio_card_tween.kill()
-	radio_card_tween = create_tween()
-	radio_card_tween.tween_interval(4.0)
-	radio_card_tween.tween_property(radio_card, "modulate:a", 0.0, 0.8)
+		return 0.0
+	var text_width: float = 0.0
+	for line: Label in [radio_card_name, radio_card_title]:
+		if not line.visible or line.text.is_empty():
+			continue
+		var font: Font = line.get_theme_font("font")
+		var size: int = line.get_theme_font_size("font_size")
+		# The pixel font draws capitals; measure them so nothing trims early.
+		text_width = maxf(text_width, font.get_string_size(line.text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x)
+	var frame: StyleBox = radio_card.get_theme_stylebox("panel")
+	return ceilf(text_width + (frame.get_minimum_size().x if frame != null else 0.0) + 6.0)
+
+## Advance the toast clock. Called from `_process`; tests call it directly.
+func tick_radio_toast(delta: float) -> void:
+	if radio_toast_age < 0.0 or radio_card == null:
+		return
+	radio_toast_age += maxf(delta, 0.0)
+	var alpha: float = radio_toast_alpha(radio_toast_age)
+	_set_radio_toast_alpha(alpha)
+	if alpha <= 0.0:
+		radio_toast_age = -1.0
+
+static func radio_toast_alpha(age: float) -> float:
+	if age < 0.0:
+		return 0.0
+	if age <= RADIO_TOAST_HOLD:
+		return 1.0
+	return clampf(1.0 - (age - RADIO_TOAST_HOLD) / RADIO_TOAST_FADE, 0.0, 1.0)
+
+func radio_toast_visible() -> bool:
+	return radio_card != null and radio_card.visible
+
+func _set_radio_toast_alpha(alpha: float) -> void:
+	radio_card.modulate.a = alpha
+	radio_card.visible = alpha > 0.0
+
+func _build_radio_toast() -> void:
+	if radio_card != null:
+		return
+	radio_card = PanelContainer.new()
+	radio_card.name = "RadioCard"
+	radio_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var frame: StyleBoxFlat = MenuTheme.panel(MenuTheme.alpha(MenuTheme.INK, 0.72), MenuTheme.BORDER)
+	frame.content_margin_left = 12
+	frame.content_margin_right = 12
+	frame.content_margin_top = 6
+	frame.content_margin_bottom = 6
+	radio_card.add_theme_stylebox_override("panel", frame)
+	# Level: the toast is read mid-fight and never tilts or stamps.
+	radio_card.rotation = 0.0
+	var text: VBoxContainer = VBoxContainer.new()
+	text.alignment = BoxContainer.ALIGNMENT_CENTER
+	text.add_theme_constant_override("separation", 2)
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	radio_card.add_child(text)
+	radio_card_name = _radio_line(MenuTheme.EMBER)
+	radio_card_title = _radio_line(MenuTheme.BONE)
+	text.add_child(radio_card_name)
+	text.add_child(radio_card_title)
+	add_child(radio_card)
+	if regions != null:
+		regions.layout()
+
+func _radio_line(colour: Color) -> Label:
+	var line: Label = Label.new()
+	line.max_lines_visible = 1
+	line.clip_text = true
+	line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Same body size as the rest of the HUD, so HUD scale and text size reach it.
+	line.add_theme_font_size_override("font_size", hud_style.body_font_size() if hud_style != null else MenuTheme.BODY)
+	line.add_theme_color_override("font_color", colour)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return line

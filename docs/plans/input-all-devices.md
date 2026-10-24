@@ -168,6 +168,17 @@ Plus `tools/godot_check.sh` (PASS, 157 checks, 2026-09-24),
 
 ## Open
 
+October 23 (#442, PR #448): the console convention replaces the pad layout
+below and in the table above. X or Square reloads, B or Circle crouches, Y or
+Triangle uses, LT or L2 scopes, the bumpers cycle weapons, D-pad up and down
+throw and place, D-pad left and right change radio station (hold for power and
+skip), and the Guide button stays with the system. It follows the shared
+pattern of current console shooters (Halo Infinite, Call of Duty, Battlefield)
+and Microsoft's gamepad guidance for menus. `docs/PLAYING.md` owns the current
+table. Saved custom bindings carry the layout they were made for; bindings from
+another layout are refused with a note on the Controls page, never migrated.
+The October 17 notes remain as history.
+
 October 17 convergence completes the default pad layout with D-pad down for
 reload and D-pad left for held crouch. Both are unclaimed in overlapping play
 contexts. Existing deliberate bindings and explicit unbound overrides retain
