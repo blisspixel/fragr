@@ -20,6 +20,8 @@ func _initialize() -> void:
 	_test_pick_next_no_repeat()
 	_test_station_cycle_and_toggle()
 	_test_volume_table()
+	await _test_missing_track_stops_previous()
+	await _test_scene_hold()
 	await _test_playback_retirement()
 	if failures.is_empty():
 		print("test_radio: PASS")
@@ -124,26 +126,162 @@ func _test_station_cycle_and_toggle() -> void:
 		[{"id": "a", "name": "A"}, {"id": "b", "name": "B"}, {"id": "c", "name": "C"}],
 		{}
 	)
-	var seen_names: Array = []
-	radio.station_changed.connect(func(name, _tagline, _has): seen_names.append(name))
+	var seen: Array = []
+	radio.now_playing_changed.connect(func(info: Dictionary) -> void:
+		seen.append(str(info["station"]) if info["state"] != "off" else "OFF"))
 	radio.next_station()
 	radio.next_station()
+	_check(radio.station_index == 2 and radio.enabled, "next_station walks the dial")
 	radio.next_station()
-	_check(radio.station_index == 0, "next_station wraps around, got %d" % radio.station_index)
+	_check(not radio.enabled and radio.now_playing()["state"] == "off", "past the last station the dial reaches RADIO OFF")
+	radio.next_station()
+	_check(radio.enabled and radio.station_index == 0, "next from RADIO OFF wraps to the first station, got %d" % radio.station_index)
 	radio.prev_station()
-	_check(radio.station_index == 2, "prev_station wraps backwards, got %d" % radio.station_index)
-	_check(seen_names == ["B", "C", "A", "C"], "station_changed emits in order, got %s" % str(seen_names))
+	_check(not radio.enabled, "previous from the first station wraps back to RADIO OFF")
+	radio.prev_station()
+	_check(radio.enabled and radio.station_index == 2, "previous from RADIO OFF lands on the last station, got %d" % radio.station_index)
+	_check(seen == ["B", "C", "OFF", "A", "OFF", "C"], "one now-playing change per dial step, in order, got %s" % str(seen))
+	_check(radio.now_playing()["state"] == "off_air" and radio.now_playing()["title"] == "", "an empty station says off the air and names no song")
+	seen.clear()
 	radio.toggle()
-	_check(radio.enabled == false, "toggle turns the radio off")
+	_check(radio.enabled == false and radio.now_playing()["state"] == "off", "toggle turns the radio off")
+	radio.next_track()
+	_check(not radio.enabled, "skip while off does not switch the radio on")
 	radio.toggle()
-	_check(radio.enabled == true, "toggle turns the radio back on")
-	var cards: Array = []
-	radio.station_card.connect(func(card): cards.append(card))
-	radio.toggle()
-	radio.toggle()
-	_check(cards.size() == 2, "toggle emits a station card each time, got %d" % cards.size())
-	_check(cards.size() == 2 and cards[0]["enabled"] == false and cards[1]["enabled"] == true, "card carries the enabled state")
-	_check(cards.size() == 2 and cards[1]["name"] == "C" and cards[1]["has_tracks"] == false, "card carries name and has_tracks")
+	_check(radio.enabled == true and radio.station_index == 2, "toggle turns the radio back on at the same station")
+	_check(seen == ["OFF", "OFF", "C"], "toggle and skip each announce the state, got %s" % str(seen))
+	radio.free()
+	_test_hold_gestures()
+	var empty: Node = RadioScript.new()
+	empty.next_station()
+	empty.prev_station()
+	empty.toggle()
+	empty.next_track()
+	_check(empty.now_playing()["state"] == "none" and empty.enabled, "an empty catalog ignores every control")
+	empty.free()
+
+
+func _pad_button(button: JoyButton, pressed: bool) -> InputEventJoypadButton:
+	var event: InputEventJoypadButton = InputEventJoypadButton.new()
+	event.button_index = button
+	event.pressed = pressed
+	return event
+
+
+func _key(code: Key) -> InputEventKey:
+	var event: InputEventKey = InputEventKey.new()
+	event.physical_keycode = code
+	event.pressed = true
+	return event
+
+
+## D-pad left and right turn the dial on release; holding right skips the
+## track and holding left is power. Keys act at once.
+func _test_hold_gestures() -> void:
+	var radio: Node = RadioScript.new()
+	radio.stations = RadioScript.build_stations([{"id": "a", "name": "A"}, {"id": "b", "name": "B"}], {})
+	var right_down: InputEventJoypadButton = _pad_button(JOY_BUTTON_DPAD_RIGHT, true)
+	_check(right_down.is_action_pressed("radio_next_station"), "D-pad right is the next station")
+	_check(_pad_button(JOY_BUTTON_DPAD_LEFT, true).is_action_pressed("radio_prev_station"), "D-pad left is the previous station")
+	_check(radio.handle_input(right_down), "the D-pad arm is a radio control")
+	Input.action_press("radio_next_station")
+	_check(radio.station_index == 0, "a pad arm waits for release before turning the dial")
+	radio.advance_holds(0.1)
+	Input.action_release("radio_next_station")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_RIGHT, false))
+	_check(radio.station_index == 1 and radio.enabled, "a short press of D-pad right turns to the next station")
+	var skips: Array = []
+	radio.now_playing_changed.connect(func(info: Dictionary) -> void: skips.append(info["state"]))
+	radio.handle_input(right_down)
+	Input.action_press("radio_next_station")
+	radio.advance_holds(RadioScript.HOLD_SECONDS * 0.5)
+	_check(skips.is_empty(), "a hold does nothing before the threshold")
+	radio.advance_holds(RadioScript.HOLD_SECONDS)
+	_check(skips.size() == 1 and radio.station_index == 1, "holding D-pad right skips the track without changing station")
+	radio.advance_holds(1.0)
+	_check(skips.size() == 1, "a long hold skips only once")
+	Input.action_release("radio_next_station")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_RIGHT, false))
+	_check(radio.station_index == 1 and skips.size() == 1, "releasing after a hold does not also turn the dial")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_LEFT, true))
+	Input.action_press("radio_prev_station")
+	radio.advance_holds(RadioScript.HOLD_SECONDS + 0.01)
+	_check(not radio.enabled, "holding D-pad left switches the radio off")
+	Input.action_release("radio_prev_station")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_LEFT, false))
+	_check(not radio.enabled and radio.station_index == 1, "release after the power hold leaves the dial alone")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_LEFT, true))
+	Input.action_press("radio_prev_station")
+	radio.advance_holds(RadioScript.HOLD_SECONDS + 0.01)
+	Input.action_release("radio_prev_station")
+	radio.handle_input(_pad_button(JOY_BUTTON_DPAD_LEFT, false))
+	_check(radio.enabled and radio.station_index == 1, "holding D-pad left again switches it back on at the same station")
+	# A hold whose release never arrives is dropped, not fired.
+	radio.handle_input(right_down)
+	radio.advance_holds(RadioScript.HOLD_SECONDS + 0.01)
+	_check(radio._holds.is_empty() and radio.station_index == 1, "a lost release drops the hold without acting")
+	_check(radio.handle_input(_key(KEY_C)) and not radio.enabled, "C turns at once, past the last station to RADIO OFF")
+	_check(radio.handle_input(_key(KEY_C)) and radio.station_index == 0 and radio.enabled, "C again wraps to the first station")
+	_check(radio.handle_input(_key(KEY_X)) and not radio.enabled, "X turns back through RADIO OFF")
+	_check(radio.handle_input(_key(KEY_X)) and radio.station_index == 1 and radio.enabled, "X again lands on the last station")
+	_check(radio.handle_input(_key(KEY_M)) and not radio.enabled, "M is power")
+	_check(radio.handle_input(_key(KEY_M)) and radio.enabled, "M again is power on")
+	var skipped: Array = []
+	radio.now_playing_changed.connect(func(_info: Dictionary) -> void: skipped.append(true))
+	_check(radio.handle_input(_key(KEY_N)) and skipped.size() == 1, "N skips the track")
+	_check(not radio.handle_input(_key(KEY_W)), "movement is not a radio control")
+	var echo: InputEventKey = _key(KEY_C)
+	echo.echo = true
+	_check(not radio.handle_input(echo) and radio.station_index == 1, "key repeat does not spin the dial")
+	radio.free()
+
+
+## A track that fails to load must stop the song before it, never leave it
+## playing under the new station's name.
+func _test_missing_track_stops_previous() -> void:
+	var radio: Node = RadioScript.new()
+	root.add_child(radio)
+	await process_frame
+	radio.stations = RadioScript.build_stations([{"id": "lockin", "name": "LOCK IN"}, {"id": "ghost", "name": "Ghost"}], {
+		"radio/lockin/01-push": {"file": "radio/lockin/01-push.mp3", "title": "Push Push Push Push"},
+		"radio/ghost/01-missing": {"file": "radio/ghost/01-missing.mp3", "title": "Never Shipped"},
+	})
+	radio.station_index = 0
+	radio.enabled = true
+	radio.play_random()
+	_check(radio.player.stream != null and radio.now_playing()["state"] == "playing" and radio.now_playing()["title"] == "Push Push Push Push",
+		"a committed track loads and is named")
+	radio.next_station()
+	var info: Dictionary = radio.now_playing()
+	_check(radio.player.stream == null and not radio.player.playing, "a missing file stops the previous song")
+	_check(info["state"] == "unavailable" and info["title"] == "" and info["station"] == "Ghost", "the state names the station and no song")
+	radio.prev_station()
+	_check(radio.now_playing()["state"] == "playing" and radio.player.stream != null, "changing station recovers")
+	root.remove_child(radio)
+	radio.free()
+
+
+func _test_scene_hold() -> void:
+	var radio: Node = RadioScript.new()
+	root.add_child(radio)
+	await process_frame
+	radio.stations = RadioScript.build_stations([{"id": "lockin", "name": "LOCK IN"}], {
+		"radio/lockin/01-push": {"file": "radio/lockin/01-push.mp3", "title": "Push Push Push Push"},
+	})
+	radio.station_index = 0
+	radio.enabled = true
+	radio.play_random()
+	var announced: Array = []
+	radio.now_playing_changed.connect(func(info: Dictionary) -> void: announced.append(info["state"]))
+	radio.set_scene_hold(true)
+	_check(radio.player.stream_paused and radio.now_playing()["state"] == "held", "a story scene pauses the station")
+	radio.set_scene_hold(true)
+	_check(announced == ["held"], "a repeated hold announces once")
+	radio.next_track()
+	_check(radio.player.stream_paused, "a track chosen during a scene stays paused")
+	radio.set_scene_hold(false)
+	_check(not radio.player.stream_paused and radio.now_playing()["state"] == "playing", "the station resumes after the scene")
+	root.remove_child(radio)
 	radio.free()
 
 
@@ -179,6 +317,17 @@ func _test_playback_retirement() -> void:
 			radio.play_random()
 			_check(TourScript.radio_comparison_matches(radio, selected),
 				"QA comparison repeats the same track if playback rolls over")
+			radio.load_catalog()
+			for step: int in range(radio.stations.size() + 1):
+				radio.next_station()
+				var players: int = 0
+				for child: Node in radio.get_children():
+					if child is AudioStreamPlayer:
+						players += 1
+				_check(players == 1, "station change %d keeps a single radio player" % step)
+				var state: String = str(radio.now_playing()["state"])
+				_check((state == "playing") == player.playing, "station change %d: playing label matches the player (%s)" % [step, state])
+			_check(radio.enabled, "a full turn of the dial returns to a station")
 		var playback: WeakRef = weakref(player.get_stream_playback())
 		root.remove_child(radio)
 		_check(not player.playing, "scene exit stops radio %d" % iteration)
