@@ -299,7 +299,7 @@ impl GameState {
                 resolved: None,
             });
         }
-        tracing::info!("SABOTAGE: charge starts with {carrier}");
+        tracing::info!(target: crate::logging::FEED_TARGET, "SABOTAGE: charge starts with {carrier}");
     }
 
     /// A joiner during muster takes a spawn point in its zone; a later joiner
@@ -360,7 +360,7 @@ impl GameState {
                 .find(|p| p.id == id)
                 .map(|p| p.name.clone())
         });
-        tracing::info!("SABOTAGE: {:?} {:?} {:?}", kind, name, site);
+        tracing::info!(target: crate::logging::FEED_TARGET, "SABOTAGE: {:?} {:?} {:?}", kind, name, site);
         self.events.push(GameEvent::Sabotage {
             kind,
             player: name,
@@ -440,7 +440,7 @@ impl GameState {
         let feet_y = player.y - PLAYER_FLOOR_Y;
         let floor = self.map.arena().support_height(player.x, player.z, feet_y);
         let (x, z, name) = (player.x, player.z, player.name.clone());
-        tracing::info!("SABOTAGE: {name} dropped the {}", weapon.name());
+        tracing::info!(target: crate::logging::FEED_TARGET, "SABOTAGE: {name} dropped the {}", weapon.name());
         self.pickups.push(ArenaPickup {
             claim: SupplyClaim::Contested,
             id,

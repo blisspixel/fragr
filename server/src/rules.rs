@@ -13,6 +13,18 @@ pub const TEAM_FRAG_LIMIT: u32 = 25;
 pub const CTF_CAPTURE_LIMIT: u32 = 3;
 /// Weapon pads come back on the rule sheet's slower team clock.
 pub const TEAM_WEAPON_RESPAWN_TICKS: u32 = 20 * 30;
+/// Ticks a fallen free-for-all fighter waits before the server tries to put
+/// them back (three seconds at 20 Hz). This is the one value to change for FFA
+/// pacing (#441); it does not move the team modes or the spawn shield.
+pub const FFA_RESPAWN_DELAY_TICKS: u32 = 60;
+/// The same wait for team modes that respawn (TDM, CTF, Conquest). Kept
+/// separate so FFA pacing can change without silently moving these.
+pub const TEAM_RESPAWN_DELAY_TICKS: u32 = 60;
+/// The wait a campaign participant's body is given at death. Campaign maps
+/// run under the default (FFA) rule sheet, so without this value an FFA
+/// pacing change would silently move campaign death timing as well. Mission
+/// recovery owns what happens next.
+pub const CAMPAIGN_RESPAWN_DELAY_TICKS: u32 = 60;
 /// No Host reaction lands within eight seconds of the last one.
 pub const REACTION_GAP_TICKS: u64 = 20 * 8;
 /// A streak this long is worth a line when it ends.
@@ -135,6 +147,18 @@ impl RuleSet {
             mutators: self.mutators.clone(),
             friendly_fire: self.friendly_fire,
             lives: self.lives(),
+        }
+    }
+
+    /// Ticks between an arcade death and the respawn attempt. Elimination
+    /// (out of lives) never uses it; campaign maps use
+    /// [`CAMPAIGN_RESPAWN_DELAY_TICKS`] instead (see `GameState`).
+    pub fn respawn_delay_ticks(&self) -> u32 {
+        match self.mode {
+            GameMode::Ffa => FFA_RESPAWN_DELAY_TICKS,
+            GameMode::Tdm | GameMode::Ctf | GameMode::Sabotage | GameMode::Conquest => {
+                TEAM_RESPAWN_DELAY_TICKS
+            }
         }
     }
 

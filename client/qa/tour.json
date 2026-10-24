@@ -228,7 +228,14 @@
       "at_seconds": 3,
       "camera": "none",
       "menu_page": "multi",
-      "note": "Address entry and focus without clipping or unsupported hosting claims."
+      "note": "Multiplayer asks one question first: Find / join a match, or Run a match."
+    },
+    {
+      "name": "multiplayer_join",
+      "at_seconds": 3,
+      "camera": "none",
+      "menu_page": "join",
+      "note": "Join view: direct address, the selected server's card with Watch and Join, then nearby and saved lists, without clipping."
     },
     {
       "name": "single_player_menu",

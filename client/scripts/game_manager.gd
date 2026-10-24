@@ -49,8 +49,8 @@ var radio = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
-## Killer to watch once an arcade death drops first person. Empty until then.
-var _death_watch_killer: String = ""
+## The joined arcade life: alive, down, awaiting respawn, or out (#441).
+var local_life: LocalLife = LocalLife.new()
 var _frag_identity := FragIdentity.new()
 var _joined_ui_team: String = ""
 # Mid-join Ended podium shown once per Ended phase.
@@ -89,6 +89,9 @@ var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
 var pending_fire: bool = false
+## A trigger or jump held into a new life stays dead until it is released.
+var fire_armed: bool = true
+var jump_armed: bool = true
 var pending_interact: bool = false
 var interact_held: bool = false
 var pending_throw: bool = false
@@ -198,6 +201,26 @@ var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
 var scope_cue_count: int = 0
 var _dry_fire_seen: int = -1
+## Reload start and finish for the fighter this screen belongs to. No reload
+## clip has been produced, so two short reviewed handling sounds are reused:
+## the scope-out swish and tap as the gun comes down, the scope-in click as the
+## magazine seats. Pitch and level set them apart from the Sniper scope.
+const RELOAD_START_SOUND_PATH: String = "res://assets/audio/sniper/scope_out.wav"
+const RELOAD_COMPLETE_SOUND_PATH: String = "res://assets/audio/sniper/scope_in.wav"
+const RELOAD_START_DB: float = -10.0
+const RELOAD_START_PITCH: float = 0.94
+const RELOAD_COMPLETE_DB: float = -8.0
+const RELOAD_COMPLETE_PITCH: float = 1.08
+var reload_sound: AudioStreamPlayer = null
+var reload_start_stream: AudioStream = null
+var reload_complete_stream: AudioStream = null
+var reload_start_cue_count: int = 0
+var reload_complete_cue_count: int = 0
+## Whether the last action that reached the socket carried reload. The server
+## starts a reload only on that rising edge, so the client asks on it too.
+var _reload_sent_down: bool = false
+## Whether the reload presentation context was live on the last refresh.
+var _reload_context_live: bool = false
 
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
 const CRAWLER_SOUND_VOICES: int = 4
@@ -281,7 +304,8 @@ func _ready():
 	settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
 	_apply_preferences()
-	net_client.snapshot_received.connect(_on_snapshot_received)
+	net_client.snapshot_received.connect(_on_snapshot_traced)
+	net_client.stutter_trace = stutter_trace
 	net_client.loadout_received.connect(_on_loadout_received)
 	net_client.record_received.connect(_on_record_received)
 	net_client.mission_received.connect(_on_mission_received)
@@ -490,6 +514,7 @@ func _on_map_info(info: Dictionary) -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	_reset_reload_presentation()
 	pending_remote_place = false
 	remote_place_armed = false
 	pending_remote_trigger = false
@@ -609,7 +634,10 @@ func _setup_frontend() -> void:
 	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
 	frame_counter.name = "PerformanceOverlay"
 	frame_counter.preferences = settings
+	frame_counter.trace = stutter_trace
 	add_child(frame_counter)
+	hud.top_region_query = _top_band_reservations
+	performance_overlay = frame_counter
 
 	pause_menu = PauseMenu.new()
 	pause_menu.preferences = settings
@@ -674,6 +702,18 @@ func _event_cover_regions() -> Array[Rect2]:
 		regions.append(departure_review.occupied_region())
 	if is_instance_valid(mission_hud):
 		regions.append_array(mission_hud.event_cover_regions())
+	return regions
+
+## Text on other canvas layers that shares the HUD's top band. The HUD lays its
+## corner, center facts and frag feed out below whatever crosses each column.
+func _top_band_reservations() -> Array[Rect2]:
+	var regions: Array[Rect2] = []
+	var frame_counter: PerformanceOverlay = get_node_or_null("PerformanceOverlay") as PerformanceOverlay
+	if frame_counter != null:
+		regions.append(frame_counter.occupied_region())
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null:
+		regions.append(run.occupied_region())
 	return regions
 
 func _refresh_ui_context(roster: Array) -> void:
@@ -876,6 +916,10 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	# Leaving the match must not lose a recording the player started.
+	if stutter_trace.recording:
+		var report: Dictionary = end_stutter_trace()
+		print("stutter trace saved on leave: ", report.get("path", ""))
 	_release_match_audio()
 	if _benchmark:
 		_stop_benchmark_host()
@@ -1024,6 +1068,16 @@ func _load_audio_streams():
 		dry_fire_sound.volume_db = -6.0
 		dry_fire_sound.stream = load(DRY_FIRE_SOUND_PATH)
 		audio_parent.add_child(dry_fire_sound)
+	if reload_sound == null:
+		reload_sound = AudioStreamPlayer.new()
+		reload_sound.name = "ReloadSound"
+		reload_sound.bus = &"Effects"
+		reload_sound.volume_db = RELOAD_START_DB
+		audio_parent.add_child(reload_sound)
+		if ResourceLoader.exists(RELOAD_START_SOUND_PATH):
+			reload_start_stream = load(RELOAD_START_SOUND_PATH)
+		if ResourceLoader.exists(RELOAD_COMPLETE_SOUND_PATH):
+			reload_complete_stream = load(RELOAD_COMPLETE_SOUND_PATH)
 	if hit_confirm_sound == null and ResourceLoader.exists(HIT_CONFIRM_SOUND_PATH):
 		hit_confirm_stream = load(HIT_CONFIRM_SOUND_PATH)
 		hit_confirm_sound = AudioStreamPlayer.new()
@@ -1078,6 +1132,85 @@ func _play_scope_cue(was_scoped: bool, now_scoped: bool) -> void:
 	scope_sound.stream = load(path)
 	scope_sound.play()
 	scope_cue_count += 1
+
+## The HUD's reload cue, or null for a presenter without one.
+func _reload_cue() -> ReloadCue:
+	if hud == null:
+		return null
+	var equipment: Variant = hud.get("equipment_hud")
+	if not equipment is Object or not is_instance_valid(equipment):
+		return null
+	var cue: Variant = (equipment as Object).get("reload")
+	return cue if cue is ReloadCue else null
+
+## Present what one validated loadout says about the local reload. Only the
+## live first-person fighter hears or sees it; the cue deduplicates deadlines.
+func _present_reload_cues(loadout: Dictionary) -> void:
+	_refresh_reload_context()
+	var cue: ReloadCue = _reload_cue()
+	if cue == null or not _reload_context_live:
+		return
+	for event: String in cue.observe(loadout, Time.get_ticks_usec()):
+		match event:
+			"start":
+				_play_reload_sound(reload_start_stream, RELOAD_START_DB, RELOAD_START_PITCH)
+				reload_start_cue_count += 1
+				cue.presented(Time.get_ticks_usec())
+			"complete":
+				_play_reload_sound(reload_complete_stream, RELOAD_COMPLETE_DB, RELOAD_COMPLETE_PITCH)
+				reload_complete_cue_count += 1
+
+func _play_reload_sound(stream: AudioStream, volume_db: float, pitch: float) -> void:
+	if reload_sound == null or stream == null:
+		return
+	reload_sound.stream = stream
+	reload_sound.volume_db = volume_db
+	reload_sound.pitch_scale = pitch
+	reload_sound.play()
+
+## A live context is the joined fighter alive in first person on foot with a
+## private loadout. Leaving it clears the reload cue and stops its sound, so
+## swap, death, respawn, disconnect, map change and vehicles never leave a late
+## cue. Re-entering adopts whatever the last loadout shows, silently.
+func _refresh_reload_context() -> void:
+	var cue: ReloadCue = _reload_cue()
+	if cue == null or net_client == null:
+		return
+	var pawn: Variant = players.get(net_client.player_id)
+	var live: bool = is_human_player and not net_client.equipment.is_empty() \
+		and is_instance_valid(pawn) and int(pawn.hp) > 0 and hud.get("fp_juice_enabled") == true \
+		and _vehicle_seat().is_empty()
+	if live == _reload_context_live:
+		return
+	_reload_context_live = live
+	cue.reset()
+	if reload_sound != null and reload_sound.playing:
+		reload_sound.stop()
+	if live:
+		cue.observe(net_client.equipment, Time.get_ticks_usec())
+
+## Map change and disconnect: drop every reload cue, pose and sound at once.
+## The next live refresh adopts the new venue's loadout silently.
+func _reset_reload_presentation() -> void:
+	_reload_context_live = false
+	_reload_sent_down = false
+	if reload_sound != null and reload_sound.playing:
+		reload_sound.stop()
+	var cue: ReloadCue = _reload_cue()
+	if cue != null:
+		cue.reset()
+	var motion: Variant = hud.get("fp_reload_motion") if hud != null else null
+	if motion is WeaponArt.ReloadMotion:
+		(motion as WeaponArt.ReloadMotion).clear()
+
+## A reload request left this client: the rising edge reached the socket, or R
+## was pressed where guns have no magazines. A refusal the last loadout already
+## predicts shows one short silent line; otherwise the request is pending.
+func _note_reload_request() -> void:
+	_refresh_reload_context()
+	var cue: ReloadCue = _reload_cue()
+	if cue != null and _reload_context_live:
+		cue.request(net_client.equipment, Time.get_ticks_usec())
 
 ## The owner's dry trigger count only grows within one life; a held empty
 ## trigger repeats at the weapon's own cadence on the server.
@@ -1248,6 +1381,10 @@ func _input(_event):
 		return
 	if _event.is_action_released("interact"):
 		interact_held = false
+	if _event.is_action_released("fire"):
+		fire_armed = true
+	if _event.is_action_released("jump"):
+		jump_armed = true
 	if _event.is_action_released("throw_grenade"):
 		throw_armed = true
 	if _event.is_action_released("place_mine"):
@@ -1275,6 +1412,15 @@ func _input(_event):
 	if Input.is_action_pressed("scoreboard") and hud != null and hud.handle_leaderboard_input(_event):
 		get_viewport().set_input_as_handled()
 		return
+	if is_human_player and not local_life.alive():
+		# Down: gameplay presses are not queued into the next life. Leaving
+		# and speaking still work.
+		_drop_life_presses()
+		if Input.is_action_just_pressed("leave_match"):
+			change_role(false)
+		elif Input.is_action_just_pressed("speak"):
+			_send_speak_taunt()
+		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
 	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():
@@ -1282,6 +1428,9 @@ func _input(_event):
 	if is_human_player and reload_armed and _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
 		pending_reload = true
 		reload_armed = false
+	elif is_human_player and not _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
+		# Nothing goes on the wire where guns have no magazines; say so once.
+		_note_reload_request()
 	if is_human_player and remote_place_armed and _event.is_action_pressed("place_remote_mine") and not _event.is_echo():
 		pending_remote_place = true
 	if is_human_player and remote_trigger_armed and _event.is_action_pressed("trigger_remote_mines") and not _event.is_echo():
@@ -1340,6 +1489,7 @@ func change_role(play: bool) -> void:
 	net_client.leave_match()
 	is_human_player = play
 	_clear_fp_state()
+	_reset_local_life()
 	pending_weapon_swap = null
 	await get_tree().create_timer(0.1).timeout
 	# The previous connection may have failed while its loading card was still
@@ -1359,6 +1509,11 @@ var input_seq: int = 0
 ## a replayable movement step and a full authoritative body state first.
 var last_ack: Dictionary = {}
 var ack_probe: InputAckProbe = InputAckProbe.new()
+## Opt-in stutter diagnosis (`stutter` console command, qa_stutter harness).
+var stutter_trace: StutterTrace = StutterTrace.new()
+var performance_overlay: PerformanceOverlay = null
+## Where the last stopped trace was written, for the console and harnesses.
+var stutter_trace_path: String = ""
 
 
 func _on_ack_received(data: Dictionary) -> void:
@@ -1367,11 +1522,148 @@ func _on_ack_received(data: Dictionary) -> void:
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
+		local_life.observe_ack(data, now_usec)
 		if _vehicle_seat() == "driver":
 			vehicle_prediction.accept_driver_ack(data, now_usec)
 		elif _vehicle_seat().is_empty():
 			local_prediction.accept_ack(data, now_usec)
 		_apply_local_prediction(now_usec)
+	if stutter_trace.recording:
+		var traced_usec: int = Time.get_ticks_usec()
+		stutter_trace.record_ack(data, traced_usec)
+		stutter_trace.observe_prediction(local_prediction, traced_usec)
+
+
+## Snapshots reach the match through here so a recording trace can time the
+## whole handler. Off, it is one boolean test before the ordinary handler.
+func _on_snapshot_traced(data: Dictionary) -> void:
+	if not stutter_trace.recording:
+		_on_snapshot_received(data)
+		return
+	var started: int = Time.get_ticks_usec()
+	_on_snapshot_received(data)
+	var finished: int = Time.get_ticks_usec()
+	stutter_trace.record_snapshot(data.get("tick"), started, finished - started)
+	stutter_trace.observe_prediction(local_prediction, finished)
+
+
+## Starts a stutter trace for this match. False when one is already running.
+func begin_stutter_trace() -> bool:
+	if stutter_trace.recording:
+		return false
+	stutter_trace.begin(Time.get_ticks_usec(), int(Time.get_unix_time_from_system() * 1000000.0), _stutter_context())
+	if performance_overlay != null:
+		performance_overlay.set_tracing(true)
+	return true
+
+
+## Stops the trace, writes it, and returns the report summary. An empty path
+## writes under user://diagnostics with a timestamped name.
+func end_stutter_trace(path: String = "") -> Dictionary:
+	if not stutter_trace.recording:
+		return {"error": "no stutter trace is recording"}
+	if performance_overlay != null:
+		performance_overlay.set_tracing(false)
+	var saved: Dictionary = stutter_trace.stop(Time.get_ticks_usec())
+	var target: String = path if not path.is_empty() else "user://diagnostics/stutter-%s.json" % \
+		Time.get_datetime_string_from_system(true, false).replace(":", "").replace("-", "")
+	var result: Error = StutterTrace.save(saved, target)
+	stutter_trace_path = ProjectSettings.globalize_path(target) if result == OK else ""
+	var report: Dictionary = StutterReport.analyze(saved)
+	report["path"] = stutter_trace_path
+	report["save_error"] = result
+	return report
+
+
+func _stutter_context() -> Dictionary:
+	var role: String = "human" if is_human_player else "spectator"
+	var window: Vector2i = get_window().size if get_window() != null else Vector2i.ZERO
+	return {
+		"engine": Engine.get_version_info().get("string", ""),
+		"gameplay_version": LocalHost.GAMEPLAY_VERSION,
+		"os": OS.get_name(),
+		"adapter": RenderingServer.get_video_adapter_name(),
+		"adapter_vendor": RenderingServer.get_video_adapter_vendor(),
+		"rendering_method": RenderingServer.get_current_rendering_method(),
+		"window": [window.x, window.y],
+		"screen_refresh_hz": DisplayServer.screen_get_refresh_rate(),
+		"vsync_mode": DisplayServer.window_get_vsync_mode(),
+		"max_fps": Engine.max_fps,
+		"video": _stutter_video_settings(),
+		"server_url": str(net_client.server_url),
+		"role": role,
+		"map_id": current_map_id,
+		"local_host": get_tree().root.get_node_or_null("LocalHost") != null,
+	}
+
+
+func _stutter_video_settings() -> Dictionary:
+	var values: Dictionary = {}
+	if settings == null:
+		return values
+	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "upscaling", "pixel_scale", "dither", "vertical_fov"]:
+		values[key] = settings.get_value("video", key)
+	return values
+
+
+## Camera mode, followed body and pose for the trace, then the remote pawns
+## whose interpolation had nothing newer to show this frame.
+func _note_stutter_view(now_usec: int) -> void:
+	var key: String = "none"
+	var pose: Vector4 = Vector4(NAN, NAN, NAN, NAN)
+	if is_instance_valid(camera):
+		var target: Variant = camera.get("fp_target")
+		var followed: String = str(target.get("player_id")) if target is Node and is_instance_valid(target) else ""
+		key = "%s:%s:%s:%s" % ["first_person" if bool(camera.get("fp_mode")) else "third_person",
+			followed, _vehicle_seat(), "human" if is_human_player else "spectator"]
+		var forward: Vector3 = -camera.global_transform.basis.z
+		pose = Vector4(camera.global_position.x, camera.global_position.y, camera.global_position.z, atan2(forward.z, forward.x))
+	var starved: int = 0
+	for id: Variant in players:
+		var pawn: Variant = players[id]
+		if not is_instance_valid(pawn) or bool(pawn.get("prediction_active")) \
+				or bool(pawn.get("is_campaign_enemy")) or bool(pawn.get("is_campaign_companion")):
+			continue
+		var presentation: Variant = pawn.get("remote_presentation")
+		if presentation is RemotePresentation and (presentation as RemotePresentation).starved:
+			starved += 1
+	stutter_trace.note_view(now_usec, key, pose, starved)
+	stutter_trace.observe_prediction(local_prediction, now_usec)
+
+
+## The console's `stutter` verb: start, stop [path], mark <label>, or status.
+func stutter_command(args: Array[String]) -> PackedStringArray:
+	var verb: String = args[0].to_lower() if not args.is_empty() else "status"
+	match verb:
+		"start":
+			if not begin_stutter_trace():
+				return PackedStringArray(["stutter trace already recording"])
+			return PackedStringArray(["stutter trace recording; play the moment, then: stutter stop"])
+		"mark":
+			if not stutter_trace.recording:
+				return PackedStringArray(["no stutter trace is recording"])
+			var label: String = " ".join(args.slice(1))
+			stutter_trace.mark(label, Time.get_ticks_usec())
+			return PackedStringArray(["marked " + (label if not label.is_empty() else "mark")])
+		"stop":
+			var report: Dictionary = end_stutter_trace(args[1] if args.size() > 1 else "")
+			if not str(report.get("error", "")).is_empty():
+				return PackedStringArray([str(report["error"])])
+			if int(report.get("save_error", OK)) != OK:
+				return PackedStringArray(["stutter trace could not be saved (%d)" % int(report["save_error"])])
+			var session: Dictionary = report["session"]
+			var frames: Dictionary = session["frames"]
+			var snaps: Dictionary = session["snapshots"]
+			return PackedStringArray([
+				"stutter trace saved: " + str(report["path"]),
+				"frames %d, p50 %s ms, p99 %s ms, max %s ms, %d spikes, %d hitches" % [frames["count"],
+					str(frames["p50_ms"]), str(frames["p99_ms"]), str(frames["max_ms"]), frames["spikes"], frames["hitches"]],
+				"snapshots %d, gap p99 %s ms, max %s ms, %d gaps over 75 ms" % [snaps["count"],
+					str(snaps["gap_p99_ms"]), str(snaps["gap_max_ms"]), snaps["gaps"]],
+			])
+		"status":
+			return PackedStringArray(["stutter trace " + ("recording" if stutter_trace.recording else "off")])
+	return PackedStringArray(["usage: stutter start | mark <label> | stop [path] | status"])
 
 
 func begin_ack_probe() -> bool:
@@ -1420,12 +1712,15 @@ func _process(_delta):
 	_local_fire_allowed_last_frame = fire_allowed
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
+		_update_death_presentation(now_usec)
 		local_prediction.advance(now_usec)
 		local_prediction.decay_visual(_delta)
 		vehicle_prediction.advance(now_usec)
 		vehicle_prediction.decay_visual(_delta)
 		_apply_local_prediction(now_usec)
 	_update_vehicle_view()
+	if stutter_trace.recording:
+		_note_stutter_view(Time.get_ticks_usec())
 
 
 ## The Sniper Rifle's scope is presentation: held input narrows the local view
@@ -1521,8 +1816,12 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.back = Input.is_action_pressed("move_back") or bool(pad.get("back", false))
 	action_state.left = Input.is_action_pressed("move_left") or (strafing and Input.is_action_pressed("turn_left")) or bool(pad.get("left", false))
 	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
-	action_state.fire = pending_fire or Input.is_action_pressed("fire")
-	action_state.jump = pending_jump or Input.is_action_pressed("jump")
+	if not Input.is_action_pressed("fire") and not pending_fire:
+		fire_armed = true
+	action_state.fire = fire_armed and (pending_fire or Input.is_action_pressed("fire"))
+	if not Input.is_action_pressed("jump") and not pending_jump:
+		jump_armed = true
+	action_state.jump = jump_armed and (pending_jump or Input.is_action_pressed("jump"))
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
 		throw_armed = true
@@ -1620,6 +1919,10 @@ func _send_local_action(now_usec: int) -> bool:
 		else:
 			ack_probe.failed_sends += 1
 	if net_client.last_send_ok:
+		var reload_sent: bool = bool(action_state.get("reload", false))
+		if reload_sent and not _reload_sent_down:
+			_note_reload_request()
+		_reload_sent_down = reload_sent
 		_present_local_fire(action_state, now_usec)
 		pending_seat = ""
 		pending_fire = false
@@ -1904,7 +2207,8 @@ func assist_targets() -> Array:
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
 	# in that interval overwrites the authored spawn facing before we adopt it.
-	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
+	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id) \
+		or not local_life.alive():
 		return false
 	var pawn: Node = players.get(local_fp_pawn_id)
 	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
@@ -2134,10 +2438,12 @@ func _clear_world() -> void:
 	pending_weapon_swap = null
 	latest_snapshot.clear()
 	hud.equipment_hud.apply({})
+	_reset_reload_presentation()
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
 	_clear_fp_state()
+	_reset_local_life()
 	# Drop presentation nodes so rejoin does not keep stale pawns/pads.
 	for id in players.keys():
 		if is_instance_valid(players[id]):
@@ -2156,6 +2462,7 @@ func _clear_world() -> void:
 func _on_loadout_received(data: Dictionary) -> void:
 	local_fire.observe_equipment(data)
 	hud.equipment_hud.apply(data)
+	_present_reload_cues(data)
 	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
 	_refresh_equipment_visibility()
@@ -2164,6 +2471,7 @@ func _refresh_equipment_visibility() -> void:
 	var pawn: Node = players.get(net_client.player_id)
 	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled and _vehicle_seat().is_empty()
+	_refresh_reload_context()
 
 func _on_snapshot_received(data):
 	_receiving_snapshot = true
@@ -2506,7 +2814,7 @@ func _on_event_received(data):
 			frag_sound.play()
 		
 		if is_human_player and _is_local_victim(victim_id):
-			_remember_own_frag(killer_id)
+			_on_local_frag(victim_id, killer_id, killer_name)
 		elif not is_human_player and killer_id != "" and camera:
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
@@ -2886,6 +3194,8 @@ func _refresh_fp_target() -> void:
 	var pawn = players[pid]
 	if not is_instance_valid(pawn):
 		return
+	if not local_life.alive():
+		_begin_new_life()
 	if local_fp_pawn_id != "" and local_fp_pawn_id != pid and players.has(local_fp_pawn_id):
 		var prev = players[local_fp_pawn_id]
 		if is_instance_valid(prev) and prev.has_method("set_local_fp"):
@@ -2972,7 +3282,9 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	# body stays in the snapshot at zero health and keeps its eyes.
 	if local_fp_pawn_id == pid and not _mission_map():
 		_clear_fp_state(true)
-		_watch_own_killer()
+		local_life.body_gone(int(latest_snapshot.get("tick", -1)))
+		_end_life_input()
+		_begin_death_view()
 
 ## The joined callsign, from the live pawn while it exists and from the
 ## connection after an arcade death has removed it.
@@ -2980,22 +3292,93 @@ func _is_local_victim(victim_id: String) -> bool:
 	return not victim_id.is_empty() and is_human_player and net_client != null \
 		and net_client.player_id != null and victim_id == str(net_client.player_id)
 
-func _remember_own_frag(killer_id: String) -> void:
-	_death_watch_killer = killer_id
-	_watch_own_killer()
+## The frag fact for this player's own death. It may land before or after the
+## snapshot that removes the body; either order ends this life's input now.
+func _on_local_frag(victim_id: String, killer_id: String, killer_name: String) -> void:
+	if _mission_map():
+		return
+	local_life.record_frag(victim_id, killer_id, killer_name, int(latest_snapshot.get("tick", -1)))
+	_end_life_input()
+	if local_fp_pawn_id.is_empty():
+		_begin_death_view()
 
-## Chase the killer only after first person has let go. Sabotage already
-## watches living teammates, so this does not take that view.
-func _watch_own_killer() -> void:
-	if _death_watch_killer == "" or _sabotage_watching_mates:
+## Stop the dead life's prediction, local fire and every queued press.
+func _end_life_input() -> void:
+	_reset_local_fire()
+	local_prediction.reset("death", true)
+	_clear_predicted_pawn()
+	_drop_life_presses()
+
+func _drop_life_presses() -> void:
+	pending_fire = false
+	pending_jump = false
+	pending_interact = false
+	interact_held = false
+	pending_throw = false
+	pending_place = false
+	pending_reload = false
+	pending_remote_place = false
+	pending_remote_trigger = false
+	pending_weapon_swap = null
+	pending_seat = ""
+	fire_armed = false
+	jump_armed = false
+	throw_armed = false
+	place_armed = false
+	reload_armed = false
+	remote_place_armed = false
+	remote_trigger_armed = false
+
+## Hold the dead eye, or chase the killer, until the server returns the body.
+## Sabotage keeps its own teammate watch for a fallen fighter.
+func _begin_death_view() -> void:
+	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
+		or local_life.alive():
 		return
-	if camera == null or not camera.has_method("lock_on_frag"):
+	if not local_fp_pawn_id.is_empty():
 		return
-	if bool(camera.get("fp_mode")):
+	if bool(camera.get("death_view")):
+		camera.death_chase_id = local_life.chase_id()
+	elif local_life.phase != LocalLife.Phase.OUT:
+		camera.begin_death_view(local_life.chase_id())
+
+## The body is back: a new life starts with no carried presses, and a trigger
+## or device still held from the last life must be released first.
+func _begin_new_life() -> void:
+	local_life.respawned()
+	if camera != null and camera.has_method("end_death_view"):
+		camera.end_death_view()
+	hud.hide_death_card()
+	_drop_life_presses()
+	fire_armed = not Input.is_action_pressed("fire")
+	jump_armed = not Input.is_action_pressed("jump")
+	throw_armed = not Input.is_action_pressed("throw_grenade")
+	place_armed = not Input.is_action_pressed("place_mine")
+	reload_armed = not InputMap.has_action("reload") or not Input.is_action_pressed("reload")
+	remote_place_armed = not Input.is_action_pressed("place_remote_mine")
+	remote_trigger_armed = not Input.is_action_pressed("trigger_remote_mines")
+
+func _reset_local_life() -> void:
+	local_life.reset()
+	if camera != null and camera.has_method("end_death_view"):
+		camera.end_death_view()
+	if hud != null and hud.has_method("hide_death_card"):
+		hud.hide_death_card()
+
+## The death card follows the server countdown and the camera's real view.
+func _update_death_presentation(now_usec: int) -> void:
+	if not is_human_player or local_life.alive() or camera == null:
 		return
-	var killer := _death_watch_killer
-	_death_watch_killer = ""
-	camera.lock_on_frag(killer, 2.0)
+	if local_life.phase == LocalLife.Phase.OUT and bool(camera.get("death_view")):
+		camera.end_death_view()
+	if hud.sabotage():
+		hud.hide_death_card()
+		return
+	var watching: String = ""
+	var target: Variant = camera.get_followed_target()
+	if is_instance_valid(target):
+		watching = str(target.get("player_name"))
+	hud.show_death_card(local_life.card_lines(now_usec, watching))
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.

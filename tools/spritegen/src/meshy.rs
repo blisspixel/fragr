@@ -14,6 +14,24 @@ use crate::{check_budget, Error, Method, Request, Transport};
 pub const API_BASE: &str = "https://api.meshy.ai/openapi/v1";
 pub const USD_PER_CREDIT: f64 = 0.02;
 pub const PRICING_DATE: &str = "2026-10-03";
+/// Largest `--max-credits` one run may name: Nick's reported 1,900-credit
+/// monthly allowance. The live balance and retained holds still gate every
+/// stage, so a run can never reserve more than the account actually has.
+pub const MAX_CREDITS: u64 = 1_900;
+/// Largest single stage valuation a reservation may carry.
+pub const MAX_STAGE_CREDITS: u64 = 250;
+/// Largest number of stages in one model spec.
+pub const MAX_STAGES: usize = 32;
+
+/// Validate a run's credit ceiling against [`MAX_CREDITS`].
+pub fn check_credit_cap(max_credits: u64) -> Result<(), Error> {
+    if max_credits == 0 || max_credits > MAX_CREDITS {
+        return Err(Error::Budget(format!(
+            "credit cap must be 1 to {MAX_CREDITS}"
+        )));
+    }
+    Ok(())
+}
 pub const ACCOUNT_HOLD: &str = "art/raw/meshy-account-hold.json";
 
 /// Keep the account carry beside the canonical credential root, independent of
@@ -205,7 +223,7 @@ pub fn pending_credits(ledger: &Ledger) -> Result<u64, Error> {
             .and_then(Value::as_u64)
             .ok_or_else(|| Error::Io("model reservation has no credit valuation".into()))?;
         if credits == 0
-            || credits > 250
+            || credits > MAX_STAGE_CREDITS
             || (job.estimated_usd - credits as f64 / 50.0).abs() > 0.000001
         {
             return Err(Error::Io(
@@ -434,7 +452,7 @@ pub fn parse_spec(text: &str) -> Result<Spec, Error> {
         .map_err(|_| Error::Spec("invalid model specification JSON".into()))?;
     let spec: Spec = serde_json::from_value(raw.clone())
         .map_err(|_| Error::Spec("invalid model specification fields".into()))?;
-    if spec.out_dir.as_os_str().is_empty() || spec.jobs.is_empty() || spec.jobs.len() > 32 {
+    if spec.out_dir.as_os_str().is_empty() || spec.jobs.is_empty() || spec.jobs.len() > MAX_STAGES {
         return Err(Error::Spec(
             "model spec needs an output directory and 1 to 32 stages".into(),
         ));
@@ -482,10 +500,8 @@ pub fn generate(
     sleep: &mut dyn FnMut(Duration),
 ) -> Result<(), Error> {
     check_budget(0.0, max_spend_usd)?;
-    if max_credits == 0 || max_credits > 250 {
-        return Err(Error::Budget("credit cap must be 1 to 250".into()));
-    }
-    if spec.out_dir.as_os_str().is_empty() || spec.jobs.is_empty() || spec.jobs.len() > 32 {
+    check_credit_cap(max_credits)?;
+    if spec.out_dir.as_os_str().is_empty() || spec.jobs.is_empty() || spec.jobs.len() > MAX_STAGES {
         return Err(Error::Spec(
             "model spec needs an output directory and 1 to 32 stages".into(),
         ));

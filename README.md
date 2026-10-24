@@ -92,8 +92,9 @@ Add `--playlist` to keep that process up and rotate maps and modes between
 shows. The [hosting guide](docs/HOSTING.md) lists the night order and the
 settings for a night of about 24 people or a house of about 64 connections.
 
-Launch the client and choose **Multiplayer**. Join a server uses the address
-you type. Run a server is separate and does not replace that address. Save
+Launch the client and choose **Multiplayer**, then **Find / join a match** or
+**Run a match**. The join view uses the address you type. Run a match is
+separate and does not replace that address. Save
 this host keeps an address on this computer. A server on the same LAN can
 appear under On this network. The address field still reaches any host,
 including one on the internet. Other

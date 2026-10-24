@@ -6,6 +6,8 @@
 //! real HTTP transport. Players never run this; it exists so developers can
 //! produce sound effects and music beds that are committed as ordinary assets.
 
+pub mod review;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -577,6 +579,45 @@ pub fn describe_subscription(sub: &Subscription) -> String {
         })
         .unwrap_or_else(|| "unknown".to_string());
     format!("tier: {tier}\nstatus: {status}\ncredits used: {credits}\nresets at: {reset}\ncan extend credits: {}\nallowed to extend credits: {}\nmaximum credit extension: {extension}\ncurrent overage: {overage}", flag(sub.can_extend_character_limit), flag(sub.allowed_to_extend_character_limit))
+}
+
+/// Credits a live batch must leave untouched on the account. A batch whose
+/// `--max-credits` would reach into this margin is refused before any POST.
+pub const BATCH_QUOTA_MARGIN: u64 = 25_000;
+
+/// Read the live subscription, the free account check a paid batch runs first.
+pub fn fetch_subscription(
+    transport: &dyn Transport,
+    api_key: &str,
+    sleep: &mut dyn FnMut(Duration),
+) -> Result<Subscription, Error> {
+    let response = send_with_retry(
+        transport,
+        api_key,
+        &quota_request(),
+        &RetryPolicy::default(),
+        sleep,
+    )?;
+    parse_subscription(&response.body)
+}
+
+/// Refuse a batch cap that is not covered by the live remaining credits minus
+/// [`BATCH_QUOTA_MARGIN`]. An unreadable quota refuses rather than assuming room.
+pub fn check_batch_quota(sub: &Subscription, max_credits: u64) -> Result<u64, Error> {
+    let (Some(used), Some(limit)) = (sub.character_count, sub.character_limit) else {
+        return Err(Error::InvalidArgument(
+            "live quota did not report used and limit credits; nothing was generated".into(),
+        ));
+    };
+    let remaining = limit.saturating_sub(used);
+    let usable = remaining.saturating_sub(BATCH_QUOTA_MARGIN);
+    if max_credits > usable {
+        return Err(Error::InvalidArgument(format!(
+            "--max-credits {max_credits} exceeds live remaining {remaining} minus the \
+{BATCH_QUOTA_MARGIN} credit margin ({usable}); nothing was generated"
+        )));
+    }
+    Ok(remaining)
 }
 
 /// Turn an error body into one readable line. Handles the structured
@@ -1617,14 +1658,7 @@ pub fn run_command(
 ) -> Result<(), Error> {
     match command {
         Command::Quota => {
-            let response = send_with_retry(
-                transport,
-                api_key,
-                &quota_request(),
-                &RetryPolicy::default(),
-                sleep,
-            )?;
-            let subscription = parse_subscription(&response.body)?;
+            let subscription = fetch_subscription(transport, api_key, sleep)?;
             writeln!(out, "{}", describe_subscription(&subscription))?;
             Ok(())
         }
@@ -1762,11 +1796,47 @@ pub fn run_command(
                     )));
                 }
             }
-            for (name, job) in &planned {
-                let outcome = generator.run(name, job, sleep)?;
-                report(out, name, &outcome, estimate_credits(job))?;
+            let live = !options.dry_run && !planned.is_empty();
+            if live {
+                // Free account check before any paid POST: the cap must fit
+                // inside the live remaining credits minus the margin.
+                let Some(cap) = options.max_credits else {
+                    return Err(Error::InvalidArgument(
+                        "a finite --max-credits cap is required before a paid generation".into(),
+                    ));
+                };
+                let before = fetch_subscription(transport, api_key, sleep)?;
+                writeln!(
+                    out,
+                    "quota before batch:\n{}",
+                    describe_subscription(&before)
+                )?;
+                check_batch_quota(&before, cap)?;
             }
-            Ok(())
+            let mut result = Ok(());
+            for (name, job) in &planned {
+                match generator.run(name, job, sleep) {
+                    Ok(outcome) => report(out, name, &outcome, estimate_credits(job))?,
+                    Err(error) => {
+                        result = Err(error);
+                        break;
+                    }
+                }
+            }
+            if live {
+                // Report the account after the batch, including after a failed job,
+                // so the reconciliation always has a live reading.
+                match fetch_subscription(transport, api_key, sleep) {
+                    Ok(after) => {
+                        writeln!(out, "quota after batch:\n{}", describe_subscription(&after))?;
+                    }
+                    Err(error) => {
+                        writeln!(out, "quota after batch: unavailable ({error}); run quota")?;
+                        result = result.and(Err(error));
+                    }
+                }
+            }
+            result
         }
     }
 }
@@ -1779,6 +1849,9 @@ mod tests {
 
     struct FakeTransport {
         responses: RefCell<Vec<Response>>,
+        /// Scripted subscription reads, served only to batch quota checks.
+        /// `None` keeps the old behaviour: quota reads take the next response.
+        quota: Option<RefCell<Vec<Response>>>,
         seen: RefCell<Vec<(String, Request)>>,
     }
 
@@ -1786,8 +1859,36 @@ mod tests {
         fn new(responses: Vec<Response>) -> Self {
             FakeTransport {
                 responses: RefCell::new(responses),
+                quota: None,
                 seen: RefCell::new(Vec::new()),
             }
+        }
+
+        /// A batch transport whose quota reads report `remaining` credits.
+        fn batch(responses: Vec<Response>, remaining: &[u64]) -> Self {
+            let quota = remaining
+                .iter()
+                .map(|left| Response {
+                    status: 200,
+                    body: format!(
+                        r#"{{"tier":"pro","character_count":{},"character_limit":1000000}}"#,
+                        1_000_000 - left
+                    )
+                    .into_bytes(),
+                })
+                .collect();
+            FakeTransport {
+                quota: Some(RefCell::new(quota)),
+                ..FakeTransport::new(responses)
+            }
+        }
+
+        fn posts(&self) -> usize {
+            self.seen
+                .borrow()
+                .iter()
+                .filter(|(_, request)| request.method == Method::Post)
+                .count()
         }
 
         fn ok(body: Vec<u8>) -> Self {
@@ -1800,7 +1901,10 @@ mod tests {
             self.seen
                 .borrow_mut()
                 .push((api_key.to_string(), request.clone()));
-            let mut responses = self.responses.borrow_mut();
+            let mut responses = match &self.quota {
+                Some(quota) if request.path == "/v1/user/subscription" => quota.borrow_mut(),
+                _ => self.responses.borrow_mut(),
+            };
             if responses.is_empty() {
                 return Err(Error::Transport("no scripted response".to_string()));
             }
@@ -2630,10 +2734,13 @@ mod tests {
             dir.display().to_string().replace('\\', "/")
         ))
         .unwrap();
-        let transport = FakeTransport::new(vec![Response {
-            status: 200,
-            body: vec![1u8; 10],
-        }]);
+        let transport = FakeTransport::batch(
+            vec![Response {
+                status: 200,
+                body: vec![1u8; 10],
+            }],
+            &[500_000, 499_925],
+        );
         let mut out = Vec::new();
         let command = Command::Batch {
             spec: spec.clone(),
@@ -2680,33 +2787,34 @@ mod tests {
             prefix: None,
             limit: None,
         };
-        let transport = FakeTransport::new(vec![
-            Response {
-                status: 200,
-                body: vec![1u8; 10],
-            },
-            Response {
-                status: 422,
-                body: br#"{"detail":[{"msg":"bad"}]}"#.to_vec(),
-            },
-        ]);
+        let transport = FakeTransport::batch(
+            vec![
+                Response {
+                    status: 200,
+                    body: vec![1u8; 10],
+                },
+                Response {
+                    status: 422,
+                    body: br#"{"detail":[{"msg":"bad"}]}"#.to_vec(),
+                },
+            ],
+            &[500_000, 499_960],
+        );
         let options = RunOptions {
             out_dir: Some(dir.clone()),
             overwrite: true,
             dry_run: false,
             max_credits: Some(100_000),
         };
-        let err = run_command(
-            &all,
-            &options,
-            &transport,
-            "k",
-            &mut Vec::new(),
-            &mut no_sleep(),
-        )
-        .unwrap_err();
+        let mut out = Vec::new();
+        let err =
+            run_command(&all, &options, &transport, "k", &mut out, &mut no_sleep()).unwrap_err();
         assert_eq!(err.to_string(), "API error 422: validation failed: bad");
         assert!(dir.join("a.wav").exists());
+        // A failed job still reports the live quota afterwards.
+        assert!(String::from_utf8(out)
+            .unwrap()
+            .contains("quota after batch:\ntier: pro"));
         fs::remove_dir_all(&dir).unwrap();
     }
 
@@ -2826,10 +2934,13 @@ mod tests {
             dry_run: false,
             max_credits: Some(1000),
         };
-        let transport = FakeTransport::new(vec![Response {
-            status: 200,
-            body: vec![1u8; 4],
-        }]);
+        let transport = FakeTransport::batch(
+            vec![Response {
+                status: 200,
+                body: vec![1u8; 4],
+            }],
+            &[100_000, 99_100],
+        );
         let command = Command::Batch {
             spec: spec.clone(),
             only: None,
@@ -2851,10 +2962,13 @@ mod tests {
         assert!(dir.join("radio/rock/01.mp3").exists());
         assert!(!dir.join("radio/rock/02.mp3").exists());
         // Second wave: the existing file is skipped and the next one is generated.
-        let transport = FakeTransport::new(vec![Response {
-            status: 200,
-            body: vec![1u8; 4],
-        }]);
+        let transport = FakeTransport::batch(
+            vec![Response {
+                status: 200,
+                body: vec![1u8; 4],
+            }],
+            &[99_100, 98_200],
+        );
         let command = Command::Batch {
             spec: spec.clone(),
             only: None,
@@ -2913,6 +3027,184 @@ mod tests {
         .unwrap_err();
         assert!(err.to_string().contains("prefix 'radio/country/'"));
         fs::remove_dir_all(&dir).unwrap();
+    }
+
+    fn one_sfx_batch(dir: &Path) -> Command {
+        Command::Batch {
+            spec: parse_spec(&format!(
+                r#"{{"out_dir": "{}", "items": [{{"kind": "sfx", "name": "a", "prompt": "pa"}}]}}"#,
+                dir.display().to_string().replace('\\', "/")
+            ))
+            .unwrap(),
+            only: None,
+            prefix: None,
+            limit: None,
+        }
+    }
+
+    #[test]
+    fn batch_reads_quota_first_and_refuses_a_cap_inside_the_margin() {
+        let dir = temp_dir("quota-margin");
+        let command = one_sfx_batch(&dir);
+        let options = RunOptions {
+            max_credits: Some(5_001),
+            ..RunOptions::default()
+        };
+        // 30,000 remaining leaves 5,000 above the 25,000 margin; 5,001 is refused.
+        let transport = FakeTransport::batch(vec![], &[30_000]);
+        let mut out = Vec::new();
+        let err = run_command(
+            &command,
+            &options,
+            &transport,
+            "k",
+            &mut out,
+            &mut no_sleep(),
+        )
+        .unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("exceeds live remaining 30000 minus the 25000 credit margin (5000)"),
+            "{err}"
+        );
+        assert_eq!(transport.posts(), 0);
+        let seen = transport.seen.borrow();
+        assert_eq!(seen.len(), 1);
+        assert_eq!(seen[0].1.path, "/v1/user/subscription");
+        assert!(String::from_utf8(out)
+            .unwrap()
+            .contains("quota before batch:\ntier: pro"));
+        assert!(!dir.join("a.wav").exists());
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn batch_inside_the_margin_generates_then_prints_quota_after() {
+        let dir = temp_dir("quota-after");
+        let command = one_sfx_batch(&dir);
+        let options = RunOptions {
+            max_credits: Some(5_000),
+            ..RunOptions::default()
+        };
+        let transport = FakeTransport::batch(
+            vec![Response {
+                status: 200,
+                body: vec![1u8; 10],
+            }],
+            &[30_000, 29_960],
+        );
+        let mut out = Vec::new();
+        run_command(
+            &command,
+            &options,
+            &transport,
+            "k",
+            &mut out,
+            &mut no_sleep(),
+        )
+        .unwrap();
+        let text = String::from_utf8(out).unwrap();
+        let before = text.find("quota before batch:").unwrap();
+        let wrote = text.find("wrote a -> ").unwrap();
+        let after = text.find("quota after batch:").unwrap();
+        assert!(before < wrote && wrote < after, "{text}");
+        assert!(text.contains("remaining 29960"));
+        let paths: Vec<String> = transport
+            .seen
+            .borrow()
+            .iter()
+            .map(|(_, request)| request.path.clone())
+            .collect();
+        assert_eq!(
+            paths,
+            [
+                "/v1/user/subscription",
+                "/v1/sound-generation",
+                "/v1/user/subscription"
+            ]
+        );
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn batch_refuses_unreadable_or_missing_quota_and_needs_a_cap() {
+        let dir = temp_dir("quota-unknown");
+        let command = one_sfx_batch(&dir);
+        let capped = RunOptions {
+            max_credits: Some(300),
+            ..RunOptions::default()
+        };
+        let transport = FakeTransport::new(vec![Response {
+            status: 200,
+            body: br#"{"tier":"pro"}"#.to_vec(),
+        }]);
+        let err = run_command(
+            &command,
+            &capped,
+            &transport,
+            "k",
+            &mut Vec::new(),
+            &mut no_sleep(),
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("did not report"), "{err}");
+        assert_eq!(transport.posts(), 0);
+        let failing = FakeTransport::new(vec![Response {
+            status: 401,
+            body: br#"{"detail":{"message":"nope"}}"#.to_vec(),
+        }]);
+        assert!(run_command(
+            &command,
+            &capped,
+            &failing,
+            "k",
+            &mut Vec::new(),
+            &mut no_sleep(),
+        )
+        .is_err());
+        assert_eq!(failing.posts(), 0);
+        let uncapped = FakeTransport::batch(vec![], &[1_000_000]);
+        let err = run_command(
+            &command,
+            &RunOptions::default(),
+            &uncapped,
+            "k",
+            &mut Vec::new(),
+            &mut no_sleep(),
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("--max-credits"));
+        assert!(uncapped.seen.borrow().is_empty());
+        // Dry runs stay free and offline.
+        let offline = FakeTransport::new(vec![]);
+        run_command(
+            &command,
+            &RunOptions {
+                dry_run: true,
+                ..capped
+            },
+            &offline,
+            "k",
+            &mut Vec::new(),
+            &mut no_sleep(),
+        )
+        .unwrap();
+        assert!(offline.seen.borrow().is_empty());
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn quota_margin_boundary_is_exact() {
+        let sub = |used, limit| Subscription {
+            character_count: Some(used),
+            character_limit: Some(limit),
+            ..Subscription::default()
+        };
+        assert_eq!(check_batch_quota(&sub(0, 30_000), 5_000).unwrap(), 30_000);
+        assert!(check_batch_quota(&sub(0, 30_000), 5_001).is_err());
+        assert!(check_batch_quota(&sub(10, 20_000), 1).is_err());
+        assert!(check_batch_quota(&sub(50, 10), 1).is_err());
+        assert!(check_batch_quota(&Subscription::default(), 1).is_err());
     }
 
     fn tts(text: &str) -> TtsParams {

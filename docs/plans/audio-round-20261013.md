@@ -73,6 +73,11 @@ pending a basis for this public repository's raw audio distribution. Existing
 assets and licenses remain intact; this round does not retrospectively decide
 their historical terms.
 
+**Rights decision, 2026-10-23.** Nick decided on 2026-10-23 that new ElevenLabs sound effects and music ship by committing them to the repository with provenance, on the same basis as the [October 2 sound pass](sound-pass-20261002.md) and [`client/assets/audio/README.md`](../../client/assets/audio/README.md): each committed file keeps its `audiogen-manifest.json` entry (prompt, model, format, duration, generation time) and its batch spec. The SFX and music
+candidates from this round may be promoted on that basis once they pass their
+listening, level and in-engine gates; the internal-only hold above is lifted
+for future promotion, not applied retroactively to anything unreviewed.
+
 Live preflight: Pro active, 23,998 of 1,185,132 credits used, 1,161,134 remaining.
 Reset is 1793976680 unix. Credit extension eligibility is false, permission true,
 maximum extension 250,000 and current overage 0 USD. This is existing account

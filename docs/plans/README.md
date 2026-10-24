@@ -13,10 +13,23 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 - Tailscale is private smoke only, never the documented join path.
 - On 2026-10-03 Nick reported a $100 Higgsfield API top-up and $105.88 available, authorizing that total for asset production. This replaces the historical $50 ceiling only for this Higgsfield asset effort. The $5 per-run ceiling, price preflight and reservation accounting remain; automatic top-ups stay disabled.
 - On 2026-10-18 Nick replaced the historical $5 per-run asset limit with the remaining funded Higgsfield balance and included Meshy and ElevenLabs credits available for fragr. Live verification, exact prices, durable reservations and retained holds still bound each batch. Existing native asset-tool limits must follow this authorization before larger batches. No new purchases, renewals, top-ups or overages are authorized; brain inference and cloud rules are unchanged.
+- On 2026-10-23 Nick decided that new ElevenLabs sound effects and music ship by committing them to the repository with provenance, on the same basis as the [October 2 sound pass](sound-pass-20261002.md): each file keeps its `audiogen-manifest.json` entry and batch spec. Candidates still pass listening, level and in-engine gates before promotion. Speech was already cleared under the 2026-09-30 paid-account basis. The 1,333 ElevenLabs credits used between 2026-10-17 and 2026-10-23 without a local manifest were Nick's own account use; they are noted, not held.
+- The native asset-tool ceilings follow the 2026-10-18 decision since 2026-10-23: `fragr-spritegen` `HARD_CAP_USD` is $40 (explicit `--max-spend-usd` still required per run), `meshy-gen --max-credits` accepts 1 to 1,900 with the 250-credit stage valuation and 32-stage limits unchanged, and a live `fragr-audiogen batch` reads the free quota first, refuses a `--max-credits` above remaining minus 25,000 and prints the quota afterwards. The [expiring-credit asset round](asset-round-20261023.md) uses them.
 - Nick authorized included model API credits through the native bounded pipeline. The October 6 free checker reports 1,900 available, 15 held and 1,885 usable. Tracked consumption is 1,170 after the five-credit civilian synthetic rig and the separate 140-credit four-vehicle source batch. The first 900-credit allocation has 625 used and 275 remaining; the trials do not silently expand it. The historical 30-credit unassigned discrepancy remains separate. The [full asset plan](meshy-full-game-assets.md) and [cast receipt](../evidence/named-cast-source-production-20261005.md) separate inspected sources from local repair and selected runtime art. Edda's original walking defect remains retained historical evidence; her [local source repair and live integration](edda-live-repair-20261008.md) have separate acceptance receipts. Splice is prepared and locally selected, with 67 ordinary states accepted and contact-aware gait still open, and the separate vehicle and synthetic plans record their current runtime selections. No new cash, renewal, automatic top-up or overage was enabled.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first. The [server excellence goal](server-excellence.md) keeps a spare home machine as a complete host and adds plan-only IaC for one popular small-VM virtual network plus GCP, AWS, and Azure. Main contains the unapplied GCP root; additional local cloud and installer drafts require review and validation.
 
 ## Index
+
+The [menu focus and Multiplayer structure](menu-focus-and-structure-20261023.md)
+round (#435, #436) is **implemented** on branch `wave1/menus` with local Linux
+evidence; Windows rendered evidence and a physical gamepad pass are still owed.
+
+Wave 1 of the October 23 playtest fixes is **integrated** on `wave1/integration`
+with the menus, HUD, reload, music review and tool ceiling rounds above and
+three more plans: the [FFA death lifecycle](ffa-death-lifecycle-20261023.md)
+(#441, PR #450), the [operator console output](operator-console-output-20261023.md)
+(#438, PR #446) and the [stutter diagnosis](stutter-diagnosis-20261023.md)
+(#434, PR #452). Linux evidence only; Windows and human play checks are still owed.
 
 The interface rules and polish milestone #411-#418 is completely **shipped** in
 v0.90.0, covering [UI palette and type](ui-palette-type-20261017.md) (#411, PR #420),
@@ -28,6 +41,10 @@ signature moments with Seal Cut and Stamped cards (#416, PR #427), and
 the README front door refresh and game voice (#417, PR #428).
 All sub-issues #411-#417 and parent milestone #418 are closed with passing CI across all platforms.
 v0.90.0 is the current release.
+
+[HUD top-band collisions and upright result cards](hud-layout-upright-results-20261023.md)
+(#437, wave 1) is **in review** on `wave1/hud-layout`: Linux rendered evidence
+recorded, Windows confirmation open.
 
 The [bounded client checks repair](bounded-client-checks-20261018.md) **shipped**
 through PR #422 with passing main CI 39150766048. Linux, macOS and Windows
@@ -138,6 +155,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`asset-round-20261023.md`](./asset-round-20261023.md) | **planned**, tool ceilings implemented | Turn the expiring Meshy and ElevenLabs allowances and the funded Higgsfield balance into reviewed, shippable candidates: reference sheets, Repeater and reload art, enemy and prop models, speech, SFX and music, each behind its own batch ceiling and acceptance gate. |
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **merged and packaged**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 draft | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |
@@ -211,6 +229,7 @@ remain open.
 | [`synthetic-participant-20261006.md`](./synthetic-participant-20261006.md) | **in flight** | Inspected civilian synthetic rig and compact eight-cell runtime atlas; wider played acceptance remains open. |
 | [`fight-feel.md`](./fight-feel.md) | **in flight** | Clerks, Sweepers and Heavies sidestep between bursts. A head-band pellet deals double. Radio is C, N and M, and scope stays right mouse or Z. Reloads are not in this slice. Not merged. |
 | [`reloads.md`](./reloads.md) | **implemented** | A joined human reloads with R. The arcade bag is finite: 80 bullets, 24 shells, 16 cells, restored on death. Weapon-only matches stay unlimited. Agents keep one count. Gameplay 37. Not merged. The night process does not have it. |
+| [`reload-readability-20261023.md`](./reload-readability-20261023.md) | **implemented** | #440: every magazine gun shows RELOAD REQUESTED, RELOADING with a bar, LOADED, cancelled and refused states in the ammo corner, dips the held gun (reduced motion stills it) and plays one start and one finish sound reused from the reviewed Sniper scope clips. No ammo, timing or wire change. Linux evidence only; Windows installed build and listening are not done. Not merged. |
 | [`use-prompt.md`](./use-prompt.md) | **implemented** | Use sits under the crosshair and names F, Enter, or B. A nearby panel says to aim before that press is legal. Q and E still turn. Local HUD checks passed. Not merged. |
 | [`m01-wayfinding.md`](./m01-wayfinding.md) | **implemented** | Recall Notice names transfer control, after dispatch. A corner bearing stays after the objective card leaves, and only Latch's console says to read the file. Local HUD checks. Not merged. The night process does not need a restart. |
 | [`team-read.md`](./team-read.md) | **implemented** | In a team match your side is marked OURS and stays bright. The other side is marked THEIRS and warms toward red. Spectators still read UNION and FREE. Local checks. Not merged. |
@@ -432,6 +451,7 @@ remain open.
 | [`local-campaign-entry.md`](./local-campaign-entry.md) | **shipped** (#187, v0.27.0) | Start the correct local campaign server from Single Player and own its complete lifetime. |
 | [`gpu-bot-compute.md`](./gpu-bot-compute.md) | **planned** | Portable optional GPU perception/inference, measured against CPU queries with rendering contention and fallback. |
 | [`audio-effects-refresh.md`](./audio-effects-refresh.md) | **superseded** by [`sound-pass-20261002.md`](./sound-pass-20261002.md) | Distinct weapon, movement, impact and world sounds; capped candidates and in-game mix verification. |
+| [`music-review-tool-20261023.md`](./music-review-tool-20261023.md) | **implemented locally** | `fragr-audiogen review` loopback page for keep or reject on shipped and candidate radio tracks, and `promote` with manifest provenance and a station minimum. |
 | [`radio-refresh.md`](./radio-refresh.md) | **in flight** | Two fictional talk formats and world-appropriate music; staged pilots, captions and distribution review. |
 | [`campaign-scenes.md`](./campaign-scenes.md) | **in flight** | Audio cutscenes between levels: a data-driven scene player (M01 opening migrated with two salvaged stills, first interlude drafted), narration over one key image per scene, the twenty-three scene list, costs and per-batch spend gates. |
 | [`cutscene-film.md`](./cutscene-film.md) | **planned**, deferred | The production plan behind that gate: a narrated key-image slideshow first, film reusing the same frozen scripts and shot lists last, the pixel look baked into generation with named-color palettes, reference sheets and fixed trait blocks, a staged spend ladder from free groundwork to capped test clips, and the licensing questions to clear first. |

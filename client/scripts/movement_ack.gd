@@ -38,6 +38,9 @@ static func validation_error(data: Dictionary, previous: Dictionary = {}) -> Str
 		return INVALID
 	if data.has("pitch") and not _finite_range(data.get("pitch"), -PI / 2.0, PI / 2.0):
 		return INVALID
+	# Optional countdown for a down fighter; absent while alive or out.
+	if data.get("respawn_ticks") != null and not _integer(data.get("respawn_ticks"), LocalLife.MAX_RESPAWN_TICKS):
+		return INVALID
 	if not data.has("movement") or data.get("movement") == null:
 		return ""
 	var body: Variant = data["movement"]

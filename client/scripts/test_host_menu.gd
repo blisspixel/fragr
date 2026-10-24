@@ -56,6 +56,37 @@ func _run() -> void:
 		"hosting defaults to this computer rather than opening LAN")
 	_check(menu._host_bot_policy.selected == 0 and menu._host_bots.value == 4,
 		"fixed four remains the initial bot profile")
+	_check(menu._host_bot_policy.is_visible_in_tree() and not menu._host_more.button_pressed and not menu._host_advanced.visible
+		and menu._root.get_node("HostMoreOptions").get_index() < menu._root.get_node("StartServer").get_index(),
+		"default hosting shows mode, map and an explicit bot policy; rules and network fold before Start")
+	menu._host_more.button_pressed = true
+	_check(menu._host_advanced.visible and menu._host_lan.is_visible_in_tree() and menu._host_mutator.is_visible_in_tree(),
+		"one switch discloses rules, friendly fire, LAN and port")
+	await menu._show("host")
+	_check(menu._host_advanced.visible, "the disclosure stays open across a page rebuild")
+	menu._host_more.button_pressed = false
+	_check(not menu._host_advanced.visible, "the disclosure folds again")
+	# A failed start leaves the setup page with its reason, Start again and Back,
+	# and Multiplayer does not claim a running match.
+	owner.error_key = "LOCAL_SERVER_START_FAILED"
+	await menu._show("host")
+	var host_error: Label = menu._root.get_node_or_null("HostError") as Label
+	var failed_start: Button = menu._root.get_node_or_null("StartServer") as Button
+	_check(host_error != null and host_error.text == tr("LOCAL_SERVER_START_FAILED") and failed_start != null and not failed_start.disabled
+		and menu._root.get_node_or_null("HostBack") != null and menu.get_viewport().gui_get_focus_owner() != null,
+		"a failed start shows its reason beside a usable Start and Back")
+	await menu._show("multi")
+	_check(menu._root.get_node_or_null("RunningMatch") == null
+		and (menu._root.get_node("RunServer") as Button).text == tr("HOST_CREATE").to_upper(),
+		"after a failed start Multiplayer offers Run a match, not a running card")
+	owner.error_key = ""
+	# Leave the way a player does, through Run a match.
+	var run_again: Button = menu._root.get_node("RunServer") as Button
+	run_again.grab_focus()
+	run_again.pressed.emit()
+	await process_frame
+	await process_frame
+	_check(menu._page == "host" and menu._root.get_node_or_null("HostError") == null, "Run a match reopens setup without the old error")
 	menu._host_bots.value = 7
 	menu._host_bot_policy.select(2)
 	menu._host_bot_policy.item_selected.emit(2)
@@ -121,34 +152,41 @@ func _run() -> void:
 	await menu._show("main")
 	_check(menu._root.get_node_or_null("RejoinHosted") != null, "main menu exposes the still-running match")
 	await menu._show("multi")
-	_check(menu._match_line.text == "Check this address to join a different server.", "an owned match does not automatically probe an unrelated join address")
+	var run: Button = menu._root.get_node_or_null("RunServer") as Button
+	var running_card: Label = menu._root.get_node_or_null("RunningMatch") as Label
+	_check(running_card != null and running_card.text == tr("HOST_RUNNING") % tr("HOST_SABOTAGE"),
+		"Multiplayer leads with a card for the match this app is running")
+	_check(run != null and run.text == tr("HOST_YOUR_SERVER").to_upper() and run.get_index() < menu._root.get_node("FindMatch").get_index(),
+		"the running match is managed from its own control, above Find / join")
+	_check(menu.get_viewport().gui_get_focus_owner() == run, "the running match control owns focus on arrival")
 	_check(child.alive and owner.state == LocalHost.State.RUNNING, "returning to Multiplayer keeps hosting")
-	_check(menu._root.get_node_or_null("UseRunningServer") == null, "join page has no control that replaces the typed address")
+	await menu._show("join")
+	_check(menu._match_line.text == "Check this address to join a different server.", "an owned match does not automatically probe an unrelated join address")
+	_check(menu._root.find_child("UseRunningServer", true, false) == null, "join page has no control that replaces the typed address")
 	_check(menu._host_edit.text != owner.url, "the join address is not the owned server")
-	var run: Button = menu._root.get_node("RunServer") as Button
-	_check(run != null and run.text == tr("HOST_YOUR_SERVER").to_upper(), "a running server stays on its own control")
-	var headings: PackedStringArray = PackedStringArray()
-	var next_name: String = ""
-	var passed_check: bool = false
-	for node: Node in menu._root.get_children():
-		if node is Label:
-			headings.append((node as Label).text)
-		if passed_check and node is Button and next_name.is_empty():
-			next_name = node.name
-		if node.name == "CheckHost":
-			passed_check = true
-	_check(headings.has(tr("HOST_RUN_SECTION")) and headings.has(tr("JOIN_SECTION")) and headings.has(tr("HOST_STILL_RUNNING")),
-		"run and join are separate headings")
-	_check(next_name == "Watch", "Watch follows Check host, with no second check between them")
+	_check(menu._watch_button.disabled and menu._join_button.disabled,
+		"an unchecked remote address never inherits the running local match's admission")
 	menu._host_edit.text = "remote.example:6767"
 	menu._host_edit.text_changed.emit("remote.example:6767")
+	await menu._show("multi")
+	run = menu._root.get_node("RunServer") as Button
 	run.pressed.emit()
 	await process_frame
-	_check(menu._page == "host" and menu._root.get_node_or_null("JoinHosted") != null and menu._root.get_node_or_null("HostAddress") == null,
+	_check(menu._page == "host" and menu._root.get_node_or_null("JoinHosted") != null and menu._root.find_child("HostAddress", true, false) == null,
 		"your server opens its own page and does not use the join field")
-	await menu._show("multi")
+	_check(menu._root.get_node("WatchHosted").get_index() < menu._root.get_node("JoinHosted").get_index()
+		and menu._root.get_node("JoinHosted").get_index() < menu._root.get_node("StopServer").get_index(),
+		"the running card keeps Watch, Join and Stop as separate explicit actions")
+	var escape: InputEventKey = InputEventKey.new()
+	escape.physical_keycode = KEY_ESCAPE
+	escape.pressed = true
+	menu._unhandled_input(escape)
+	await process_frame
+	_check(menu._page == "multi" and menu.get_viewport().gui_get_focus_owner() == menu._root.get_node("RunServer"),
+		"Escape from the running card returns to Multiplayer with its control focused")
+	await menu._show("join")
 	_check(menu._host_edit.text == "remote.example:6767", "a typed join address survives the server page")
-	_check(menu._root.get_node_or_null("UseRunningServer") == null, "the join page still does not replace that address")
+	_check(menu._root.find_child("UseRunningServer", true, false) == null, "the join page still does not replace that address")
 	menu.queue_free()
 	await process_frame
 	_check(child.alive and owner.state == LocalHost.State.RUNNING, "boot scene retirement does not stop shared arena")
@@ -178,6 +216,8 @@ func _run() -> void:
 	_check(returned._host_mode.selected == 1 and returned._host_bot_policy.selected == 1
 		and returned._host_lan.button_pressed and returned._host_port.value == 16867,
 		"returning from a match restores its last host profile after stop")
+	_check(returned._host_advanced.visible and returned._host_more.button_pressed,
+		"a remembered LAN profile opens its folded options rather than hiding them")
 	returned._host_bot_policy.select(2)
 	returned._host_bot_policy.item_selected.emit(2)
 	returned._host_bots.value = 8
