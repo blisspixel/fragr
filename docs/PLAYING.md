@@ -128,11 +128,16 @@ cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broa
 godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Multiplayer** connects to a shared server. **Run a server** starts Team
-Deathmatch, 5v5 Sector 9 Sabotage or Holdfast Atoll Conquest with the bundled
-server. **Join a server**
-is a separate address. Check host reads the address you typed and leaves it
-there. Choose Watch or Join after the match line comes back. A host you check,
+**Multiplayer** asks one question first: **Find / join a match** or **Run a
+match**. Run a match starts Team Deathmatch, 5v5 Sector 9 Sabotage or Holdfast
+Atoll Conquest with the bundled server; mutators, friendly fire, LAN and port
+fold behind **Rules, LAN and port**. Find / join a match opens the join view:
+a direct address with Check host, then the servers on this network and the
+ones saved on this computer. Choosing a server moves its card under that row:
+the match line, Watch, Join and Save this host belong to that server only.
+Check host reads the address you typed and leaves it there. Editing the
+address waits for a new check before Watch or Join. Choose Watch or Join
+after the match line comes back. A host you check,
 watch, join, or save stays on this computer. Scan this network asks which
 machines answer the game port. It checks this computer first, then the rest of
 each adapter's /24, and it does not search the internet. A server that does
@@ -233,6 +238,11 @@ maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
 the other guns on the same type. R or D-pad down reloads the gun in hand.
+Under the count, the corner says RELOAD REQUESTED while the press travels,
+RELOADING with a filling bar once the server accepts it, then LOADED. A full
+gun, an empty bag, a melee weapon or a mode without magazines says so instead.
+A swap, death or vehicle seat cancels quietly. The held gun dips while
+reloading and one short sound marks the start and the finish.
 An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
 costs one shell. An arcade human spawns with the rifle, shotgun and railgun
@@ -359,7 +369,7 @@ play. Save applies a draft; Cancel discards it. The
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
 bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,
 scope, accepted firing/reloading frames, actors and machinery keep their normal
-behavior. Your separate weapon-bob choice remains saved.
+behavior. The held gun's reload dip stops; the corner's reload line and bar stay. Your separate weapon-bob choice remains saved.
 
 Health is bone above 50, ember at 50 or below and red at 25 or below, with an
 exact number and a filled bar. A fresh critical injury pulses once unless

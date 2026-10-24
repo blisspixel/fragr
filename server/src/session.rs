@@ -206,7 +206,7 @@ impl GameSession {
             let bot_controller = BotController::new(bot_id, behavior);
             self.bots.push(bot_controller.clone());
             self.state.bots.push(bot_controller);
-            tracing::info!("Spawned bot: {} ({:?}, {})", display_name, behavior, bot_id);
+            tracing::info!(target: crate::logging::FEED_TARGET, "Spawned bot: {} ({:?}, {})", display_name, behavior, bot_id);
         }
         if self.auto_fill_target.is_none() && self.bots.len() > self.min_bots {
             self.min_bots = self.bots.len();
@@ -270,7 +270,7 @@ impl GameSession {
             return;
         }
         let need = self.min_bots - have;
-        tracing::info!(
+        tracing::info!(target: crate::logging::FEED_TARGET,
             "Arena below min_bots ({have}/{}); spawning {need} rule bot(s)",
             self.min_bots
         );

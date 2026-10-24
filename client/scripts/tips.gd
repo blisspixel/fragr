@@ -27,7 +27,7 @@ const TIPS: Array[String] = [
 	"The rail kills in two hits. So does walking off the thing you climbed to get the rail.",
 	"Punching someone to death is possible. It takes five hits, and they get to do things during those five hits.",
 	"You cannot lose a fight you decline to have. You also cannot win it, and the scoreboard has opinions about this.",
-	"Pressing R does nothing. It used to reload. Now every bullet you own is already in the gun.",
+	"Pressing R on a full gun does nothing, and the corner will say so. Pressing it on an empty bag does nothing more politely.",
 	"Standing still improves your accuracy considerably and your life expectancy not at all.",
 	"There is no fall damage. There is also nothing to fall off yet. We are working on the second one.",
 	"Every fight you run from is a fight you survive. Nobody has ever been carried off the field on their shield for that.",

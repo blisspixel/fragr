@@ -54,6 +54,9 @@ var _movement_ack_previous: Dictionary = {}
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
 var track_text_bytes: bool = false
+## Opt-in stutter diagnosis. While it records, each poll that delivered
+## messages reports how long the drain took, handlers included.
+var stutter_trace: StutterTrace = null
 var tx_text_bytes: int = 0
 var rx_text_bytes: int = 0
 var last_send_ok: bool = false
@@ -381,14 +384,23 @@ func _process(_delta):
 	
 	# A rejection and close frame may arrive in the same poll. Drain the final
 	# messages before retiring the session so the useful error is not discarded.
+	var traced: bool = stutter_trace != null and stutter_trace.recording
+	var drain_started: int = Time.get_ticks_usec() if traced else 0
+	var drained_packets: int = 0
+	var drained_bytes: int = 0
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
 		if track_text_bytes:
 			rx_text_bytes += packet.size()
+		drained_packets += 1
+		drained_bytes += packet.size()
 		var text = packet.get_string_from_utf8()
 		_handle_message(text)
 		if not is_processing():
 			return
+	if traced:
+		# Parsing, validation and every handler the messages reached.
+		stutter_trace.record_poll(drain_started, Time.get_ticks_usec() - drain_started, drained_packets, drained_bytes)
 	if state == WebSocketPeer.STATE_CLOSED:
 		var reason: String = socket.get_close_reason()
 		if _admission_error(reason):

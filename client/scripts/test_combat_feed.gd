@@ -21,6 +21,15 @@ class CameraProbe extends Node:
 		if fp_mode:
 			return
 		locked = killer_id
+	var death_view: bool = false
+	var death_chase_id: String = ""
+	func begin_death_view(chase_id: String = "") -> void:
+		fp_mode = false
+		death_view = true
+		death_chase_id = chase_id
+	func end_death_view() -> void:
+		death_view = false
+		death_chase_id = ""
 
 class NamedFighter extends Node:
 	var player_id: String = ""
@@ -155,25 +164,25 @@ func _run() -> void:
 	game._update_local_fp_hud([{"id": "self", "hp": 90, "armor": 0, "yaw": 1.0, "pitch": 0.0, "weapon": "Flechette", "name": "Proxy"}])
 	_check(camera.fp_mode and game.local_fp_pawn_id == "self", "a living body keeps first person")
 	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
-	_check(camera.fp_mode and camera.locked == "", "the death watch waits until first person lets go")
+	_check(camera.fp_mode and not camera.death_view, "the death watch waits until first person lets go")
 	game._update_local_fp_hud([])
-	_check(not camera.fp_mode and game.local_fp_pawn_id == "" and camera.locked == "killer", "arcade death leaves first person and watches the killer")
+	_check(not camera.fp_mode and game.local_fp_pawn_id == "" and camera.death_view and camera.death_chase_id == "killer", "arcade death leaves first person and watches the killer")
+	game._reset_local_life()
 	camera.fp_mode = true
-	camera.locked = ""
 	game.local_fp_pawn_id = "self"
 	game.current_map_info = {"mission": {"id": MissionState.ID, "phase": "find_transfer"}}
 	game._update_local_fp_hud([])
-	_check(camera.fp_mode and game.local_fp_pawn_id == "self", "a mission omission keeps the player's eyes")
+	_check(camera.fp_mode and game.local_fp_pawn_id == "self" and not camera.death_view, "a mission omission keeps the player's eyes")
 	game.current_map_info = {}
 	game._update_local_fp_hud([])
-	_check(not camera.fp_mode, "an arcade body that is gone leaves first person")
-	camera.locked = ""
+	_check(not camera.fp_mode and camera.death_view and camera.death_chase_id == "", "an arcade body that is gone leaves first person for a held view")
 	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
-	_check(camera.locked == "killer", "a frag after the body is gone still finds the killer")
-	camera.locked = ""
+	_check(camera.death_chase_id == "killer", "a frag after the body is gone still finds the killer")
+	game._reset_local_life()
 	game._sabotage_watching_mates = true
 	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
-	_check(camera.locked == "", "sabotage already watches living teammates")
+	_check(not camera.death_view and camera.death_chase_id == "", "sabotage already watches living teammates")
+	_check(camera.locked == "", "a joined player's death no longer uses the spectator frag lock")
 	killer.free()
 	game.free()
 	camera.free()

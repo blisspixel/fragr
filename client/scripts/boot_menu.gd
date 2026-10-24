@@ -81,8 +81,21 @@ var _campaign_play_arrival: bool = false
 var _profile_return: String = "main"
 var _opening: CampaignOpening
 var _title: Label
-var _tagline: Label
 var _device_revision: int = -1
+## The selected server's status and actions. It sits under the exact row or
+## address it describes, so a check never reads as another server's result.
+var _selected_card: PanelContainer = null
+var _selected_address: Label = null
+var _direct_slot: VBoxContainer = null
+## "" when the typed address is selected, else the list row's address.
+var _selected_row: String = ""
+## Hosting rules, LAN and port stay folded until asked for or already in use.
+var _host_more: CheckButton = null
+var _host_advanced: VBoxContainer = null
+var _host_more_open: bool = false
+## The control each page last had focused, by stable name, so Back returns
+## the player to where they left rather than the top of the list.
+var _focus_memory: Dictionary = {}
 
 var _palette: Dictionary = MenuTheme.colors(MenuTheme.Context.FRONT_END)
 
@@ -106,6 +119,7 @@ func _ready() -> void:
 	if not _local_match.run_preview_changed.is_connected(_on_run_preview_changed):
 		_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build(MenuTheme.Context.FRONT_END)
+	MenuFocus.attach(self)
 	UserDataMigration.run_for(get_tree())
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
@@ -178,13 +192,6 @@ func _build_chrome() -> void:
 	title.add_theme_constant_override("outline_size", 8)
 	title.add_theme_color_override("font_outline_color", _palette.ink)
 	column.add_child(title)
-	var tagline: Label = Label.new()
-	_tagline = tagline
-	tagline.text = "CONTESTED FREQUENCY  //  PORT 6767"
-	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tagline.add_theme_font_size_override("font_size", MenuTheme.BODY)
-	tagline.add_theme_color_override("font_color", _palette.accent)
-	column.add_child(tagline)
 
 	_page_scroll = ScrollContainer.new()
 	_page_scroll.name = "MultiplayerScroll"
@@ -196,7 +203,7 @@ func _build_chrome() -> void:
 	_root.add_theme_constant_override("separation", 8)
 	_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_root)
-	_scroll_back = _styled_button("Back", func() -> void: _show("main"))
+	_scroll_back = _styled_button("Back", func() -> void: _show(_parent_page(_page)))
 	_scroll_back.name = "MultiplayerBack"
 	_scroll_back.visible = false
 	column.add_child(_scroll_back)
@@ -246,21 +253,19 @@ func _styled_button(text: String, handler: Callable, compact: bool = false) -> B
 	b.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	if compact:
 		b.clip_text = true
-	b.add_theme_color_override("font_color", _palette.text)
-	b.add_theme_color_override("font_focus_color", _palette.accent)
-	b.add_theme_color_override("font_hover_color", _palette.accent)
-	b.add_theme_color_override("font_pressed_color", _palette.text)
-	b.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-	var selected: StyleBoxFlat = StyleBoxFlat.new()
-	selected.bg_color = _palette.ink
-	selected.border_color = _palette.accent
-	selected.border_width_left = 6
-	selected.border_width_bottom = 2
-	b.add_theme_stylebox_override("focus", selected)
-	b.add_theme_stylebox_override("hover", selected)
-	b.add_theme_stylebox_override("pressed", selected)
+	# Hover, focus and pressed come from the shared theme. A per-row override
+	# here once drew focus and hover identically, as a left and bottom edge.
+	b.theme_type_variation = MenuTheme.MENU_ITEM
 	b.pressed.connect(handler)
 	return b
+
+## A section heading: accent text, which no button state uses, so a heading
+## is never mistaken for a choice.
+func _heading(text: String, node_name: String) -> Label:
+	var heading: Label = _label(text)
+	heading.name = node_name
+	heading.add_theme_color_override("font_color", _palette.accent)
+	return heading
 
 func _label(text: String) -> Label:
 	var l: Label = Label.new()
@@ -289,11 +294,11 @@ func _show(page: String) -> void:
 	_stop_lan_scan()
 	if _release_fetch != null:
 		_release_fetch.cancel()
+	_remember_focus()
 	_page = page
-	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
+	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "join", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
 	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 960.0 if page in ["host", "records", "benchmark"] else 780.0
 	(get_node("MenuBackdrop") as MenuBackdrop).content_width = _column.custom_minimum_size.x
-	_tagline.visible = page not in ["records", "settings", "profile", "rewards", "single", "practice", "multi", "host", "benchmark"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -309,6 +314,8 @@ func _show(page: String) -> void:
 			_page_new_confirm()
 		"multi":
 			_page_multi()
+		"join":
+			_page_join()
 		"host":
 			_page_host()
 		"settings":
@@ -333,7 +340,7 @@ func _show(page: String) -> void:
 			_button(tr("RECORD_BACK"), func() -> void: _show("main"))
 		"launch":
 			_page_launch()
-	_scroll_multiplayer(page == "multi")
+	_scroll_multiplayer(page == "join")
 	await get_tree().process_frame
 	if not is_inside_tree() or _page != page:
 		return
@@ -347,10 +354,47 @@ func _show(page: String) -> void:
 	if page == "rewards":
 		(_root.get_node("RewardsPanel") as RewardsPanel).focus_first()
 		return
-	for child in _root.get_children():
-		if child is Button and (child as Button).visible and not (child as Button).disabled:
-			(child as Button).grab_focus()
+	_restore_focus(page)
+
+## Remember the focused control of the page being left, by stable name only:
+## generated names change on every rebuild.
+func _remember_focus() -> void:
+	if _root == null or not is_inside_tree():
+		return
+	var owner: Control = get_viewport().gui_get_focus_owner()
+	if owner == null or not _root.is_ancestor_of(owner) or str(owner.name).begins_with("@"):
+		return
+	_focus_memory[_page] = str(owner.name)
+
+## Focus the control this page last had, else its first usable button. A
+## disabled or hidden remembered control falls back rather than trapping focus.
+func _restore_focus(page: String) -> void:
+	var remembered: String = str(_focus_memory.get(page, ""))
+	if not remembered.is_empty():
+		var previous: Control = _root.find_child(remembered, true, false) as Control
+		if previous != null and previous.is_visible_in_tree() and previous.focus_mode != Control.FOCUS_NONE \
+				and not (previous is BaseButton and (previous as BaseButton).disabled):
+			previous.grab_focus()
+			return
+	# Tree order, so a button inside a row (Check host) counts as first.
+	for child: Node in _root.find_children("*", "Button", true, false):
+		var first: Button = child as Button
+		if first.is_visible_in_tree() and not first.disabled and first.focus_mode != Control.FOCUS_NONE:
+			first.grab_focus()
 			break
+
+## Where Back and Escape go from each page.
+func _parent_page(page: String) -> String:
+	match page:
+		"rewards":
+			return "profile"
+		"profile":
+			return _profile_return
+		"difficulty", "new_confirm", "practice":
+			return "single"
+		"join", "host":
+			return "multi"
+	return "main"
 
 ## Navigation help for the device in the player's hands.
 func _nav_hint() -> String:
@@ -364,16 +408,16 @@ func _process(_delta: float) -> void:
 			_status.text = _nav_hint()
 
 func _page_main() -> void:
-	_button("Single Player", func() -> void: _show("single"))
+	_button("Single Player", func() -> void: _show("single")).name = "SinglePlayer"
 	if _local_host.state == LocalHost.State.RUNNING:
 		_button("Your match is running - Rejoin", func() -> void: _show("host")).name = "RejoinHosted"
 	else:
-		_button("Multiplayer", func() -> void: _show("multi"))
-	_button("Your callsign", func() -> void: _open_profile("main"))
-	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
-	_button("Settings", func() -> void: _show("settings"))
+		_button("Multiplayer", func() -> void: _show("multi")).name = "Multiplayer"
+	_button("Your callsign", func() -> void: _open_profile("main")).name = "CallsignButton"
+	_button(tr("RECORD_TITLE"), func() -> void: _show("records")).name = "ServiceRecordButton"
+	_button("Settings", func() -> void: _show("settings")).name = "Settings"
 	_button("Benchmark", func() -> void: _show("benchmark")).name = "Benchmark"
-	_button("Quit", func() -> void: ClientRetirement.for_tree(get_tree()).request_quit())
+	_button("Quit", func() -> void: ClientRetirement.for_tree(get_tree()).request_quit()).name = "Quit"
 
 func _page_single() -> void:
 	_label(tr("MENU_CAMPAIGN"))
@@ -751,59 +795,186 @@ func _on_local_ready(address: String) -> void:
 		_launch_pending = false
 		_launch("campaign", address, _campaign_run_mode)
 
+## Multiplayer asks one question first: join someone's match, or run one here.
+## A match this app is already running gets its own card above both.
 func _page_multi() -> void:
-	_label(tr("HOST_RUN_SECTION"))
-	if _local_host.state == LocalHost.State.RUNNING:
-		_label(tr("HOST_STILL_RUNNING"))
-	var run_label: String = tr("HOST_YOUR_SERVER") if _local_host.state == LocalHost.State.RUNNING else tr("HOST_CREATE")
-	_button(run_label, func() -> void: _show("host")).name = "RunServer"
-	var gap: Control = Control.new()
-	gap.custom_minimum_size = Vector2(0.0, 22.0)
-	_root.add_child(gap)
-	_label(tr("JOIN_SECTION"))
+	var running: bool = _local_host.state == LocalHost.State.RUNNING
+	if running:
+		var card: Label = _label(tr("HOST_RUNNING") % _mode_text(str(_local_host.settings.get("mode", "tdm"))))
+		card.name = "RunningMatch"
+		card.add_theme_color_override("font_color", _palette.accent)
+		_button(tr("HOST_YOUR_SERVER"), func() -> void: _show("host")).name = "RunServer"
+	_button(tr("JOIN_SECTION"), func() -> void: _show("join")).name = "FindMatch"
+	_choice_note(tr("MULTI_FIND_NOTE"), "FindNote")
+	if not running:
+		_button(tr("HOST_CREATE"), func() -> void: _show("host")).name = "RunServer"
+		_choice_note(tr("MULTI_RUN_NOTE"), "RunNote")
+	_button("Back", func() -> void: _show("main")).name = "MultiBack"
+
+## One line under a choice. Muted, so the choices read as the controls and
+## the notes as their explanation.
+func _choice_note(text: String, node_name: String) -> Label:
+	var note: Label = _label(text)
+	note.name = node_name
+	note.add_theme_color_override("font_color", _palette.muted)
+	return note
+
+func _mode_text(mode_key: String) -> String:
+	match mode_key:
+		"ffa": return tr("MODE_FFA")
+		"ctf": return tr("MODE_CTF")
+		"sabotage": return tr("HOST_SABOTAGE")
+		"conquest": return tr("MODE_CONQUEST")
+	return tr("MODE_TDM")
+
+## Join: a direct address with the selected server's card, then the nearby
+## and saved lists. Choosing a row moves the card under that row.
+func _page_join() -> void:
+	_heading(tr("JOIN_SECTION"), "JoinHeading")
+	_heading(tr("JOIN_DIRECT"), "DirectHeading")
+	var address_row: HBoxContainer = HBoxContainer.new()
+	address_row.name = "AddressRow"
+	address_row.add_theme_constant_override("separation", 8)
+	_root.add_child(address_row)
 	_host_edit = LineEdit.new()
 	_host_edit.name = "HostAddress"
 	_host_edit.text = _join_field_text()
 	_host_edit.text_changed.connect(_remember_join_draft)
-	_host_edit.custom_minimum_size = Vector2(0.0, 36.0)
-	_root.add_child(_host_edit)
-	_button("Check host", _probe_host).name = "CheckHost"
-	_match_line = _label("Check this address to join a different server." if _local_host.state == LocalHost.State.RUNNING else "Checking the host.")
-	_match_line.name = "MatchLine"
-	_watch_button = _button("Watch", func() -> void: _launch("spectate", _host_address()))
-	_join_button = _button("Join", func() -> void: _launch("join", _host_address()))
-	_watch_button.name = "Watch"
-	_join_button.name = "Join"
-	_watch_button.disabled = true
-	_join_button.disabled = true
-	_install_button = _button("Install the latest and rejoin", _offer_install)
-	_install_button.name = "InstallLatest"
-	_install_button.visible = false
-	_install_note = _label(ReleaseInstall.OFFER_NOTE)
-	_install_note.name = "InstallNote"
-	_install_note.visible = false
-	_button(tr("JOIN_SAVE"), _save_join_address).name = "SaveHost"
-	_label(tr("JOIN_NEARBY"))
+	_host_edit.text_submitted.connect(func(_text: String) -> void: _probe_host())
+	_host_edit.custom_minimum_size = Vector2(0.0, 62.0)
+	_host_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	address_row.add_child(_host_edit)
+	var check: Button = _styled_button("Check host", _probe_host)
+	check.name = "CheckHost"
+	check.custom_minimum_size.x = 230.0
+	address_row.add_child(check)
+	_direct_slot = VBoxContainer.new()
+	_direct_slot.name = "DirectSlot"
+	_root.add_child(_direct_slot)
+	_build_selected_card()
+	_heading(tr("JOIN_NEARBY"), "NearbyHeading")
 	_scan_button = _button(tr("JOIN_SCAN"), _start_lan_scan)
 	_scan_button.name = "ScanNetwork"
 	_nearby_box = VBoxContainer.new()
 	_nearby_box.name = "NearbyList"
 	_root.add_child(_nearby_box)
-	_label(tr("JOIN_SAVED"))
+	_heading(tr("JOIN_SAVED"), "SavedHeading")
 	_saved_box = VBoxContainer.new()
 	_saved_box.name = "SavedList"
 	_root.add_child(_saved_box)
 	_fill_server_lists()
-	_label("The host chooses the arena and rules. You watch in this app, then join.")
+	_label("The host chooses the arena and rules. Watch first; join when you are ready.")
 	_ensure_lan_listen()
 	if _local_host.state != LocalHost.State.RUNNING:
 		_probe_host()
 	_enqueue_known()
 
+## One card owns the status and the Watch and Join actions for the selected
+## address. It is reparented, never rebuilt, so its state follows selection.
+func _build_selected_card() -> void:
+	_selected_card = PanelContainer.new()
+	_selected_card.name = "SelectedServer"
+	var frame: StyleBoxFlat = MenuTheme.panel(_palette.inset, _palette.border)
+	frame.content_margin_top = 12
+	frame.content_margin_bottom = 12
+	_selected_card.add_theme_stylebox_override("panel", frame)
+	_direct_slot.add_child(_selected_card)
+	# A status line can wrap after the check answers. Keep the card in view.
+	_selected_card.resized.connect(func() -> void: _reveal_selected_card.call_deferred())
+	var body: VBoxContainer = VBoxContainer.new()
+	body.name = "SelectedBody"
+	body.add_theme_constant_override("separation", 8)
+	_selected_card.add_child(body)
+	_selected_address = Label.new()
+	_selected_address.name = "SelectedAddress"
+	_selected_address.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_selected_address.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_child(_selected_address)
+	_match_line = Label.new()
+	_match_line.name = "MatchLine"
+	_match_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_match_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_match_line.text = "Check this address to join a different server." if _local_host.state == LocalHost.State.RUNNING else "Checking the host."
+	body.add_child(_match_line)
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.name = "ServerActions"
+	actions.add_theme_constant_override("separation", 8)
+	body.add_child(actions)
+	_watch_button = _styled_button("Watch", func() -> void: _launch("spectate", _host_address()))
+	_join_button = _styled_button("Join", func() -> void: _launch("join", _host_address()))
+	_watch_button.name = "Watch"
+	_join_button.name = "Join"
+	for action: Button in [_watch_button, _join_button]:
+		action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		action.disabled = true
+		actions.add_child(action)
+	_install_button = _styled_button("Install the latest and rejoin", _offer_install)
+	_install_button.name = "InstallLatest"
+	_install_button.visible = false
+	body.add_child(_install_button)
+	_install_note = Label.new()
+	_install_note.name = "InstallNote"
+	_install_note.text = ReleaseInstall.OFFER_NOTE
+	_install_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_install_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_install_note.visible = false
+	body.add_child(_install_note)
+	var save: Button = _styled_button(tr("JOIN_SAVE"), _save_join_address)
+	save.name = "SaveHost"
+	body.add_child(save)
+	_selected_row = ""
+	_refresh_selected_address()
+
+## Scroll the chosen row's card into view once layout has placed it, so its
+## status and actions are visible without leaving the row.
+func _reveal_selected_card() -> void:
+	await get_tree().process_frame
+	if _page != "join" or _selected_card == null or not is_instance_valid(_selected_card) or not _page_scroll.visible \
+			or _selected_row.is_empty():
+		return
+	# Only while the player is on that server: never pull the list away from
+	# a row they have since moved to.
+	var focused: Control = get_viewport().gui_get_focus_owner()
+	var row: Node = _selected_card.get_parent().find_child("Use_" + _row_token(_selected_row), true, false)
+	if focused == null or not (focused == row or _selected_card.is_ancestor_of(focused)):
+		return
+	_page_scroll.ensure_control_visible(_selected_card)
+
+func _refresh_selected_address() -> void:
+	if _selected_address != null and is_instance_valid(_selected_address):
+		_selected_address.text = tr("JOIN_SELECTED").format({"address": _host_address()})
+
+## Put the card under the selected row, or under the address field when the
+## typed address is selected or that row has left the lists.
+func _place_selected_card() -> void:
+	if _selected_card == null or not is_instance_valid(_selected_card):
+		return
+	var destination: Node = _direct_slot
+	var index: int = -1
+	if not _selected_row.is_empty():
+		var token: String = _row_token(_selected_row)
+		for box: VBoxContainer in [_nearby_box, _saved_box]:
+			if box == null or destination != _direct_slot:
+				continue
+			var row_button: Node = box.find_child("Use_" + token, true, false)
+			if row_button != null and row_button.get_parent().get_parent() == box:
+				destination = box
+				index = row_button.get_parent().get_index() + 1
+		if destination == _direct_slot:
+			_selected_row = ""
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var had_focus: bool = focused != null and _selected_card.is_ancestor_of(focused)
+	if _selected_card.get_parent() != destination:
+		_selected_card.reparent(destination, false)
+	if index >= 0:
+		destination.move_child(_selected_card, mini(index, destination.get_child_count() - 1))
+	if had_focus and is_instance_valid(focused) and focused.is_visible_in_tree():
+		focused.grab_focus()
+
 func _on_host_state_changed() -> void:
 	if _benchmark_pending:
 		return
-	if _page in ["host", "benchmark", "main", "multi"]:
+	if _page in ["host", "benchmark", "main", "multi", "join"]:
 		_show(_page)
 
 func _page_benchmark() -> void:
@@ -866,9 +1037,9 @@ func _on_benchmark_failed(_key: String) -> void:
 	if is_inside_tree():
 		_show("benchmark")
 
-func _host_option(label: String, name_text: String) -> OptionButton:
+func _host_option(label: String, name_text: String, parent: Node = null) -> OptionButton:
 	var row: HBoxContainer = HBoxContainer.new()
-	_root.add_child(row)
+	(parent if parent != null else _root).add_child(row)
 	var text: Label = Label.new()
 	text.text = label
 	text.custom_minimum_size.x = 210.0
@@ -880,30 +1051,36 @@ func _host_option(label: String, name_text: String) -> OptionButton:
 	row.add_child(option)
 	return option
 
+## Hosting starts simple: mode, map and an explicit bot policy, then Start.
+## Rules, friendly fire, LAN and port fold behind one switch that opens by
+## itself when the remembered profile already uses any of them.
 func _page_host() -> void:
 	if _local_host.state == LocalHost.State.RUNNING:
-		var mode_key: String = _local_host.settings["mode"]
-		var mode_text: String = tr("MODE_FFA") if mode_key == "ffa" else tr("MODE_CTF") if mode_key == "ctf" else tr("HOST_SABOTAGE") if mode_key == "sabotage" else tr("MODE_CONQUEST") if mode_key == "conquest" else tr("MODE_TDM")
-		_label(tr("HOST_RUNNING") % mode_text)
+		var mode_text: String = _mode_text(str(_local_host.settings["mode"]))
+		var running: Label = _label(tr("HOST_RUNNING") % mode_text)
+		running.name = "RunningMatch"
+		running.add_theme_color_override("font_color", _palette.accent)
 		_label(_host_bot_summary(_local_host.settings))
-		_label(_local_host.url)
+		_label(_local_host.url).name = "HostedAddress"
 		if _local_host.settings["lan"]:
 			_label(tr("HOST_LAN_ADDRESS") % int(_local_host.settings["port"]))
 		else:
 			_label(tr("HOST_LOOPBACK_ONLY"))
+		_label(tr("HOST_RUNNING_CHOICE"))
 		_button("Watch", func() -> void: _launch("spectate", _local_host.url)).name = "WatchHosted"
 		_button("Join", func() -> void: _launch("join", _local_host.url)).name = "JoinHosted"
 		_button(tr("HOST_STOP"), _local_host.stop).name = "StopServer"
-		_button("Back", func() -> void: _show("multi"))
+		_button("Back", func() -> void: _show("multi")).name = "HostBack"
 		return
 	if _local_host.state in [LocalHost.State.STARTING, LocalHost.State.STOPPING]:
 		_label(tr("HOST_STARTING" if _local_host.state == LocalHost.State.STARTING else "HOST_STOPPING"))
 		if _local_host.state == LocalHost.State.STARTING:
-			_button("Cancel", _local_host.stop)
-		_button("Back", func() -> void: _show("multi"))
+			_button("Cancel", _local_host.stop).name = "CancelHost"
+		_button("Back", func() -> void: _show("multi")).name = "HostBack"
 		return
+	_heading(tr("HOST_CREATE"), "HostHeading")
 	if not _local_host.error_key.is_empty():
-		_label(tr(_local_host.error_key))
+		_label(tr(_local_host.error_key)).name = "HostError"
 	_host_mode = _host_option(tr("HOST_MODE"), "HostMode")
 	_host_mode.add_item(tr("MODE_TDM"))
 	_host_mode.add_item(tr("HOST_SABOTAGE"))
@@ -915,18 +1092,7 @@ func _page_host() -> void:
 	if _host_settings["bot_policy"] == "auto":
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
-	_host_mutator = _host_option("Mutators", "HostMutator")
-	_host_mutator.add_item("Standard Rules")
-	_host_mutator.add_item(tr("MUTATOR_GOLDEN_RAIL"))
-	_host_mutator.add_item(tr("MUTATOR_LICENCE_TO_KILL"))
-	_host_mutator.add_item(tr("MUTATOR_SHOTGUN_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_RAIL_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
-	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa"])
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
-	_rebuild_host_maps()
-	_host_mode.item_selected.connect(_change_host_mode)
 	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
 	for key: String in ["HOST_BOTS_FIXED", "HOST_BOTS_NONE", "HOST_BOTS_AUTO"]:
 		_host_bot_policy.add_item(tr(key))
@@ -946,11 +1112,38 @@ func _page_host() -> void:
 	if _host_bot_selection != "none":
 		_host_bot_counts[_host_bot_selection] = _host_settings["fill_target"] if _host_bot_selection == "auto" else _host_settings["bots"]
 	_host_bot_policy.item_selected.connect(func(_index: int) -> void: _rebuild_host_bots(true))
+	_host_bot_hint = _label(tr("HOST_FINITE_SEATS"))
+	_host_more = CheckButton.new()
+	_host_more.name = "HostMoreOptions"
+	_host_more.text = tr("HOST_MORE_OPTIONS")
+	_root.add_child(_host_more)
+	_host_advanced = VBoxContainer.new()
+	_host_advanced.name = "HostAdvanced"
+	_host_advanced.add_theme_constant_override("separation", 8)
+	_root.add_child(_host_advanced)
+	_host_mutator = _host_option("Mutators", "HostMutator", _host_advanced)
+	_host_mutator.add_item("Standard Rules")
+	_host_mutator.add_item(tr("MUTATOR_GOLDEN_RAIL"))
+	_host_mutator.add_item(tr("MUTATOR_LICENCE_TO_KILL"))
+	_host_mutator.add_item(tr("MUTATOR_SHOTGUN_ONLY"))
+	_host_mutator.add_item(tr("MUTATOR_RAIL_ONLY"))
+	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
+	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
+	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa"])
+	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives"].find(str(_host_settings.get("mutator", "")))
+	if mutator_index > 0 and not _host_mutator.is_item_disabled(mutator_index):
+		_host_mutator.select(mutator_index)
+	_host_friendly_fire = CheckButton.new()
+	_host_friendly_fire.name = "HostFriendlyFire"
+	_host_friendly_fire.text = "Friendly Fire"
+	_host_friendly_fire.button_pressed = _host_settings.get("friendly_fire", false)
+	_host_friendly_fire.visible = _host_selected_mode != "ffa"
+	_host_advanced.add_child(_host_friendly_fire)
 	_host_lan = CheckButton.new()
 	_host_lan.name = "HostLAN"
 	_host_lan.text = tr("HOST_ALLOW_LAN")
 	_host_lan.button_pressed = _host_settings["lan"]
-	_root.add_child(_host_lan)
+	_host_advanced.add_child(_host_lan)
 	_host_port = SpinBox.new()
 	_host_port.name = "HostPort"
 	_host_port.prefix = tr("HOST_PORT") + " "
@@ -959,18 +1152,21 @@ func _page_host() -> void:
 	_host_port.step = 1
 	_host_port.value = _host_settings["port"] if _host_settings["lan"] else 6767
 	_host_port.editable = _host_lan.button_pressed
-	_root.add_child(_host_port)
+	_host_advanced.add_child(_host_port)
 	_host_lan.toggled.connect(func(enabled: bool) -> void: _host_port.editable = enabled)
-	_host_friendly_fire = CheckButton.new()
-	_host_friendly_fire.name = "HostFriendlyFire"
-	_host_friendly_fire.text = "Friendly Fire"
-	_host_friendly_fire.button_pressed = _host_settings.get("friendly_fire", false)
-	_host_friendly_fire.visible = _host_selected_mode != "ffa"
-	_root.add_child(_host_friendly_fire)
-	_host_bot_hint = _label(tr("HOST_FINITE_SEATS"))
+	_rebuild_host_maps()
+	_host_mode.item_selected.connect(_change_host_mode)
 	_rebuild_host_bots(false)
+	# A profile already using an option shows it. Folding never hides state.
+	if mutator_index > 0 or bool(_host_settings.get("friendly_fire", false)) or bool(_host_settings["lan"]):
+		_host_more_open = true
+	_host_more.button_pressed = _host_more_open
+	_host_advanced.visible = _host_more_open
+	_host_more.toggled.connect(func(enabled: bool) -> void:
+		_host_more_open = enabled
+		_host_advanced.visible = enabled)
 	_button(tr("HOST_START"), _start_host).name = "StartServer"
-	_button("Back", func() -> void: _show("multi"))
+	_button("Back", func() -> void: _show("multi")).name = "HostBack"
 
 func _change_host_mode(_index: int) -> void:
 	if _host_bot_selection == "auto":
@@ -1056,6 +1252,7 @@ func _start_host() -> void:
 func _probe_host() -> void:
 	_probe_generation += 1
 	var generation: int = _probe_generation
+	_refresh_selected_address()
 	_set_install_offer(false)
 	if _watch_button != null:
 		_watch_button.disabled = true
@@ -1082,7 +1279,7 @@ func _probe_host() -> void:
 	_start_field_probe.call_deferred(generation)
 
 func _start_field_probe(generation: int) -> void:
-	if generation != _probe_generation or _page != "multi" or _probe == null:
+	if generation != _probe_generation or _page != "join" or _probe == null:
 		return
 	var endpoint: Dictionary = ServerEndpoint.parse(_host_address())
 	if endpoint.is_empty():
@@ -1141,7 +1338,7 @@ func _show_probe_failure(line: String) -> void:
 		_match_line.text = line
 
 func _on_status_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	if _page != "multi":
+	if _page != "join":
 		return
 	var failure: String = probe_failure_line(result, code, _probe_target)
 	if not failure.is_empty():
@@ -1248,11 +1445,11 @@ func _offer_install() -> void:
 	_release_fetch.start(str(endpoint["game_url"]), staging, blocked)
 
 func _on_release_reported(text: String) -> void:
-	if _page == "multi" and _status != null:
+	if _page == "join" and _status != null:
 		_status.text = text
 
 func _on_release_failed(text: String) -> void:
-	if _page != "multi" or _status == null:
+	if _page != "join" or _status == null:
 		return
 	_status.text = text
 	if _install_button != null and is_instance_valid(_install_button):
@@ -1375,6 +1572,23 @@ func _page_settings() -> void:
 
 func _remember_join_draft(value: String) -> void:
 	_join_draft = value
+	# Typing selects the typed address. Its card returns under the field, and
+	# an earlier check no longer describes it, so Watch and Join wait.
+	if not _selected_row.is_empty():
+		_selected_row = ""
+		_place_selected_card()
+	_refresh_selected_address()
+	if _match_line == null or not is_instance_valid(_match_line):
+		return
+	var typed: String = ServerBook.canonical(_host_address())
+	if typed.is_empty() or typed != _probe_target:
+		_probe_generation += 1
+		_set_install_offer(false)
+		if _watch_button != null:
+			_watch_button.disabled = true
+		if _join_button != null:
+			_join_button.disabled = true
+		_match_line.text = tr("JOIN_CHECK_PROMPT")
 
 ## Join field only. An owned server has its own page and its own URL.
 func _join_field_text() -> String:
@@ -1411,7 +1625,10 @@ func _use_address(address: String) -> void:
 	_join_draft = address
 	if _host_edit != null:
 		_host_edit.text = address
+	_selected_row = address
+	_place_selected_card()
 	_probe_host()
+	_reveal_selected_card.call_deferred()
 
 func _keep_address(address: String) -> void:
 	if _book != null:
@@ -1430,6 +1647,21 @@ func _hide_nearby(address: String) -> void:
 func _fill_server_lists() -> void:
 	if _nearby_box == null or _saved_box == null:
 		return
+	# Rows are rebuilt; the selected card and keyboard focus are not lost with them.
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var focus_name: String = ""
+	var focus_box: VBoxContainer = null
+	# Moving the card out of a list drops focus inside it; hold that control.
+	var card_focus: Control = null
+	if focused != null and _selected_card != null and is_instance_valid(_selected_card) and _selected_card.is_ancestor_of(focused):
+		card_focus = focused
+	elif focused != null:
+		for box: VBoxContainer in [_nearby_box, _saved_box]:
+			if box.is_ancestor_of(focused):
+				focus_name = str(focused.name)
+				focus_box = box
+	if _selected_card != null and is_instance_valid(_selected_card) and _selected_card.get_parent() != _direct_slot:
+		_selected_card.reparent(_direct_slot, false)
 	_clear_box(_nearby_box)
 	_clear_box(_saved_box)
 	if _lan.is_empty():
@@ -1444,6 +1676,20 @@ func _fill_server_lists() -> void:
 	else:
 		for row: Dictionary in saved:
 			_add_saved_row(str(row["address"]), bool(row["kept"]))
+	_place_selected_card()
+	if card_focus != null and is_instance_valid(card_focus) and card_focus.is_visible_in_tree():
+		card_focus.grab_focus()
+	elif not focus_name.is_empty():
+		# The same list first: an address can be both nearby and saved.
+		var again: Control = focus_box.find_child(focus_name, true, false) as Control
+		if again == null:
+			var other: VBoxContainer = _saved_box if focus_box == _nearby_box else _nearby_box
+			again = other.find_child(focus_name, true, false) as Control
+		if again != null:
+			again.grab_focus()
+		elif _scan_button != null and is_instance_valid(_scan_button):
+			# The focused row left the list. Keep focus inside the join view.
+			_scan_button.grab_focus()
 
 func _clear_box(box: VBoxContainer) -> void:
 	for child: Node in box.get_children():
@@ -1573,7 +1819,7 @@ func _on_scan_found(address: String, summary: String) -> void:
 		return
 	_lan.append(address)
 	_server_summaries[address] = summary
-	if _page != "multi":
+	if _page != "join":
 		return
 	_fill_server_lists()
 
@@ -1583,7 +1829,7 @@ func _on_lan_scan_finished() -> void:
 	if _scan_button != null and is_instance_valid(_scan_button):
 		_scan_button.disabled = false
 		_scan_button.text = tr("JOIN_SCAN")
-	if _page == "multi":
+	if _page == "join":
 		_fill_server_lists()
 
 func _stop_lan_scan() -> void:
@@ -1628,7 +1874,7 @@ func _enqueue(address: String) -> void:
 	_list_queue.append(address)
 
 func _pump_list() -> void:
-	if _page != "multi" or _list_current != "" or _list_queue.is_empty():
+	if _page != "join" or _list_current != "" or _list_queue.is_empty():
 		return
 	if _list_probe == null:
 		_list_probe = HTTPRequest.new()
@@ -1650,7 +1896,7 @@ func _pump_list() -> void:
 	_begin_list_probe.call_deferred(generation, address, str(endpoint["status_url"]))
 
 func _begin_list_probe(generation: int, address: String, url: String) -> void:
-	if generation != _list_generation or _page != "multi" or _list_probe == null or _list_current != address:
+	if generation != _list_generation or _page != "join" or _list_probe == null or _list_current != address:
 		return
 	_list_started = Time.get_ticks_msec()
 	_list_probe.request_completed.connect(
@@ -1685,7 +1931,7 @@ func _finish_list(address: String, summary: String, beacon_live: bool = false) -
 		_lan.append(address)
 		added = true
 	_apply_summary(address, summary)
-	if added and _page == "multi":
+	if added and _page == "join":
 		_fill_server_lists()
 	if _list_current == address:
 		_list_current = ""
@@ -1702,7 +1948,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif _page == "benchmark":
 			_cancel_benchmark()
 		else:
-			_show("profile" if _page == "rewards" else (_profile_return if _page == "profile" else ("single" if _page in ["difficulty", "new_confirm", "practice"] else "main")))
+			_show(_parent_page(_page))
 		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String, run_mode: String = "") -> void:

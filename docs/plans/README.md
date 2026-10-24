@@ -16,6 +16,8 @@ Status words: **proposed** (awaiting Nick's decision; directs no work), **planne
 
 The [October 23 playtest round](playtest-round-20261023.md) is **in flight**. Wave 1 lanes: FFA death lifecycle (#441), HUD layout and upright results (#437), menu focus and structure (#435, #436), reload readability (#440), operator console output (#438) and stutter diagnosis (#434). Wave 2, the asset round and Episode V follow per that plan and the [Full build order](../ROADMAP.md#full-build-order). The golden slice that sets the quality bar comes before Episode V.
 
+Wave 1 **shipped** through PR #457: [FFA death lifecycle](ffa-death-lifecycle-20261023.md), [HUD layout and upright results](hud-layout-upright-results-20261023.md), [menu focus and structure](menu-focus-and-structure-20261023.md), [reload readability](reload-readability-20261023.md), [operator console output](operator-console-output-20261023.md), [stutter diagnosis](stutter-diagnosis-20261023.md), [music review tool](music-review-tool-20261023.md) and the asset tool ceilings. The [asset round](asset-round-20261023.md) is in flight. Windows and human play checks are still owed.
+
 ## Active plans
 
 Plans whose recorded status is proposed, planned, in flight or otherwise open. Many October 6 to 9 rows predate later consolidation; read the plan and the source before trusting its status.

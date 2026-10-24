@@ -65,7 +65,7 @@ impl GameState {
                 player.name.clone(),
                 player.respawn_timer.is_none() && !player.eliminated,
             );
-            tracing::info!("TEAM BALANCE: {} moves to {}", name, small.id());
+            tracing::info!(target: crate::logging::FEED_TARGET, "TEAM BALANCE: {} moves to {}", name, small.id());
             if placed {
                 self.do_respawn(id);
             }
@@ -96,7 +96,7 @@ impl GameState {
         let count = self.reaction_counts[slot];
         self.reaction_counts[slot] = count.wrapping_add(1);
         let variant = (count % u32::from(HOST_REACTION_VARIANTS)) as u8;
-        tracing::info!(
+        tracing::info!(target: crate::logging::FEED_TARGET,
             "HOST REACTION: {:?} {:?} {:?} {:?}",
             kind,
             player,
@@ -194,7 +194,7 @@ impl GameState {
         if let Some(gold) = self.golden_rail.as_mut() {
             if gold.holder == Some(id) {
                 gold.holder = None;
-                tracing::info!("Golden Railgun returned to its pad");
+                tracing::info!(target: crate::logging::FEED_TARGET, "Golden Railgun returned to its pad");
             }
         }
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
@@ -244,7 +244,7 @@ impl GameState {
             pickup_id: super::GOLDEN_RAIL_PICKUP_ID.to_string(),
             secret: false,
         });
-        tracing::info!("PICKUP: {} claimed the golden Railgun", name);
+        tracing::info!(target: crate::logging::FEED_TARGET, "PICKUP: {} claimed the golden Railgun", name);
         self.react(HostReactionKind::GoldenRail, Some(name), None, team);
     }
 

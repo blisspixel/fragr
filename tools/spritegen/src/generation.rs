@@ -522,7 +522,13 @@ mod tests {
         let dir = TestDir::new();
         let spec = spec(&dir);
         let untouched = Fake::new(&dir, vec![], vec![]);
-        for cap in [None, Some(0.0), Some(-1.0), Some(5.01), Some(f64::NAN)] {
+        for cap in [
+            None,
+            Some(0.0),
+            Some(-1.0),
+            Some(crate::HARD_CAP_USD + 0.01),
+            Some(f64::NAN),
+        ] {
             assert!(generate(
                 &untouched,
                 "test",

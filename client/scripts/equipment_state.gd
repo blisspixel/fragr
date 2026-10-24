@@ -207,6 +207,36 @@ static func count_text(state: Dictionary, weapon: String) -> String:
 				parked += int(entry.get("rounds", 0))
 	return "%d|%d" % [ready, maxi(0, ammo(state, pool) - parked)]
 
+## Rounds still in the bag for a magazine gun: its pool minus every loaded
+## magazine on that pool. -1 means the reserve is unlimited, which is a
+## weapon-only arcade gun (one owned gun, three zero pools). A finite arcade
+## bag that has run dry carries several guns, so it reads 0, not unlimited.
+## Presentation only: the server alone decides whether a reload starts.
+static func reserve(state: Dictionary, weapon: String) -> int:
+	var name: String = weapon.to_lower()
+	var pool: String = str(POOLS.get(name, ""))
+	if pool.is_empty() or not state.has("loaded"):
+		return 0
+	var carried: Variant = state.get("weapons", [])
+	if carried is Array and not carried.has("fists") and not _bag_is_finite(state) and (carried as Array).size() == 1:
+		return -1
+	var parked: int = 0
+	var magazines: Variant = state.get("loaded", [])
+	if magazines is Array:
+		for entry: Variant in magazines:
+			if entry is Dictionary and str(POOLS.get(str(entry.get("weapon", "")).to_lower(), "")) == pool:
+				parked += int(entry.get("rounds", 0))
+	return maxi(0, ammo(state, pool) - parked)
+
+## The magazine entry for one gun, or an empty dictionary.
+static func magazine(state: Dictionary, weapon: String) -> Dictionary:
+	var magazines: Variant = state.get("loaded", [])
+	if magazines is Array:
+		for entry: Variant in magazines:
+			if entry is Dictionary and str(entry.get("weapon", "")).to_lower() == weapon.to_lower():
+				return entry
+	return {}
+
 static func _bag_is_finite(state: Dictionary) -> bool:
 	for entry: Variant in state.get("ammo", []):
 		if entry is Dictionary and int(entry.get("rounds", 0)) > 0:
