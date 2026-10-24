@@ -62,9 +62,10 @@ func _run() -> void:
 	_check(second.configure("edda"), "second named skin available")
 	var first_material: StandardMaterial3D = _mesh(figure.skin).get_active_material(0)
 	var second_material: StandardMaterial3D = _mesh(second).get_active_material(0)
-	var second_color: Color = second_material.albedo_color
-	figure.skin.tint(Color(0.5, 0.7, 1.0))
-	_check(first_material != second_material and second_material.albedo_color == second_color, "Edda tint stays local to the actual instance")
+	figure.skin.dress("free", FactionPalette.FREE_AMBER)
+	figure.skin.glow(Color(1.0, 0.8, 0.3, 0.5))
+	_check(first_material != second_material and not second_material.emission_enabled and second.accent_parts().is_empty(),
+		"Edda dress and glow stay local to the actual instance")
 	figure.free()
 	second.free()
 	_check_mission_cast()

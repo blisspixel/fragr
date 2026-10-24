@@ -86,6 +86,11 @@ func _run() -> void:
 	holder.queue_free()
 	var other_label: Label3D = renderer.get_child(3).get_node("FlagLabel")
 	_check(other_label.text == "FREE FLAG CARRIED", "coalition carried label names the carry")
+	for part: String in ["Pole", "Cloth"]:
+		var free_part: StandardMaterial3D = (renderer.get_child(3).get_node(part) as MeshInstance3D).material_override as StandardMaterial3D
+		_check(free_part != null and not FactionPalette.is_off_white(free_part.albedo_color) \
+			and not FactionPalette.is_red(free_part.albedo_color),
+			"the free flag %s is neither bone nor Union red: %s" % [part, free_part.albedo_color.to_html(false) if free_part else "none"])
 	flags[1]["status"] = "home"
 	flags[1].erase("carrier")
 	flags[1]["position"] = [70.0, 0.0, 0.0]

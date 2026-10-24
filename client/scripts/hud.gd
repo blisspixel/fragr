@@ -595,10 +595,11 @@ func show_sabotage_result(card: String, host_line: String) -> void:
 	_show_round_banner(card, 4.5, true)
 	if stamp_card != null:
 		var stamp_col: Color = MenuTheme.EMBER
+		# The winning side's own colour, never bone, which no side wears.
 		if card.find("UNION") != -1:
-			stamp_col = MatchRules.THEIRS_MARK
+			stamp_col = MatchRules.team_label_color("union")
 		elif card.find("FREE") != -1 or card.find("COALITION") != -1:
-			stamp_col = MatchRules.OURS_MARK
+			stamp_col = MatchRules.team_label_color("coalition")
 		stamp_card.trigger_stamp(round_message, stamp_col, reduced_motion)
 
 
@@ -1550,9 +1551,9 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		var end_col: Color = MenuTheme.EMBER
 		var win_str: String = str(winning_team).to_lower()
 		if win_str == "union":
-			end_col = MatchRules.THEIRS_MARK
+			end_col = MatchRules.team_label_color("union")
 		elif win_str == "coalition" or win_str == "free":
-			end_col = MatchRules.OURS_MARK
+			end_col = MatchRules.team_label_color("coalition")
 		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
 			var winner_side: String = MatchRules.valid_team(winning_team)
 			var result: String = tr("FLAG_ROUND_WINNER").format({"team": MatchRules.team_short(winner_side)}) if winner_side != "" else tr("FLAG_ROUND_DRAW")

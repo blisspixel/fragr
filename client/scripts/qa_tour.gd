@@ -73,6 +73,8 @@ var _body_pawn: Node3D = null
 var _body_kind: String = ""
 var _body_team: String = ""
 var _body_frame_clear: bool = false
+## How far the "body" camera stands from its subject, in metres.
+var _body_distance: float = 3.0
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -467,6 +469,7 @@ func _run() -> void:
 					(label as Node3D).visible = false
 					hidden_copy.append(label as Node3D)
 		if state.get("camera", "") == "body":
+			_body_distance = clampf(float(state.get("body_distance", 3.0)), 1.5, 40.0)
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
 		# A held scope frames the still through the presentation-only overlay.
 		var scoped_still: bool = state.get("scope", false) == true
@@ -477,6 +480,11 @@ func _run() -> void:
 		# the human still for the menu-still delay would change the fight.
 		await create_timer(float(state.get("settle_seconds",
 			0.2 if state.has("expect_active_enemies") else 0.75))).timeout
+		# A live subject can fall during the settle, with no other of its kind
+		# standing: wait for one alive and in clear view, and settle again.
+		if state.get("camera", "") == "body" and not _body_frame_clear:
+			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
+			await create_timer(0.75).timeout
 		if state.has("expect_m02_machine_playing"):
 			var ward: M02Ward = _game_manager().get("m02_ward") as M02Ward if _game_manager() != null else null
 			var playing: bool = ward != null and is_instance_valid(ward._ward_machine_sound) and ward._ward_machine_sound.playing
@@ -2931,16 +2939,22 @@ func _live_body() -> Node3D:
 			return pawn
 	return null
 
-## Three metres from the fighter, preferring the arena centre and checking
-## the full body against the same authoritative solids as the real camera.
-static func body_camera_position(feet: Vector3, solids: Array) -> Vector3:
+## How far a body still's camera keeps from any solid, so no wall or crate
+## fills the side of the frame in front of the subject.
+const BODY_CAMERA_CLEARANCE: float = 1.0
+
+## Three metres from the fighter (or `distance`), preferring the arena centre
+## and checking the full body against the same authoritative solids as the
+## real camera, from a spot `margin` metres clear of every solid.
+static func body_camera_position(feet: Vector3, solids: Array, distance: float = 3.0,
+		margin: float = BODY_CAMERA_CLEARANCE) -> Vector3:
 	var toward: Vector3 = Vector3(-feet.x, 0, -feet.z)
 	toward = toward.normalized() if toward.length() > 0.5 else Vector3.BACK
 	for index: int in range(16):
 		var direction: Vector3 = toward.rotated(Vector3.UP, float(index) * TAU / 16.0)
 		var side: Vector3 = Vector3(-direction.z, 0, direction.x) * 0.45
-		var candidate: Vector3 = feet + direction * 3.0 + Vector3(0, 1.3, 0)
-		var clear: bool = true
+		var candidate: Vector3 = feet + direction * distance + Vector3(0, 1.3, 0)
+		var clear: bool = _clear_of_solids(candidate, solids, margin)
 		for height: float in [0.12, 0.95, 1.85]:
 			for offset: Vector3 in [Vector3.ZERO, side, -side]:
 				if not AimAssist.line_of_sight(candidate, feet + Vector3(0, height, 0) + offset, solids):
@@ -2948,6 +2962,20 @@ static func body_camera_position(feet: Vector3, solids: Array) -> Vector3:
 		if clear:
 			return candidate
 	return Vector3.INF
+
+## True when `point` stands at least `margin` metres outside every solid
+## that spans its height.
+static func _clear_of_solids(point: Vector3, solids: Array, margin: float) -> bool:
+	for entry: Variant in solids:
+		if not entry is Dictionary:
+			continue
+		var solid: Dictionary = entry
+		if point.y < float(solid.get("bottom", MoveStep.GROUND_Y)) or point.y > float(solid.get("top", MoveStep.WALL_TOP)):
+			continue
+		if point.x > float(solid.get("min_x", 0.0)) - margin and point.x < float(solid.get("max_x", 0.0)) + margin \
+				and point.z > float(solid.get("min_z", 0.0)) - margin and point.z < float(solid.get("max_z", 0.0)) + margin:
+			return false
+	return true
 
 ## Holds the accepted body rather than leaving a still behind as it moves,
 ## so the nearest wall is behind the subject rather than in front of it.
@@ -2959,8 +2987,27 @@ func _hold_body_camera() -> void:
 		_body_pawn = _live_body()
 	if _body_pawn == null or not cam is Node3D:
 		return
-	var feet: Vector3 = _body_pawn.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
-	var position: Vector3 = body_camera_position(feet, cam.get("assist_solids"))
+	# The subject from a spot clear of every crate, else another who matches
+	# from such a spot, and only then the subject from any clear sightline.
+	var subjects: Array[Node3D] = [_body_pawn]
+	var gm: Node = _game_manager()
+	for pawn: Variant in (gm.get("players") as Dictionary).values() if gm != null else []:
+		if is_instance_valid(pawn) and pawn != _body_pawn and pawn.get("body_kind") == _body_kind \
+				and int(pawn.get("hp")) > 0 and not bool(pawn.get("is_local_fp")) \
+				and (_body_team.is_empty() or pawn.get("team") == _body_team):
+			subjects.append(pawn as Node3D)
+	var feet: Vector3 = Vector3.INF
+	var position: Vector3 = Vector3.INF
+	for margin: float in [BODY_CAMERA_CLEARANCE, 0.0]:
+		for subject: Node3D in subjects:
+			var at: Vector3 = subject.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
+			position = body_camera_position(at, cam.get("assist_solids"), _body_distance, margin)
+			if position.is_finite():
+				_body_pawn = subject
+				feet = at
+				break
+		if position.is_finite():
+			break
 	if not position.is_finite():
 		return
 	var camera: Node3D = cam

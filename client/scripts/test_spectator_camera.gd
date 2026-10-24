@@ -38,12 +38,19 @@ func _run() -> void:
 	var body_feet: Vector3 = Vector3(8, 0, 0)
 	var open_body: Vector3 = TOUR.body_camera_position(body_feet, [])
 	_check(open_body.is_equal_approx(Vector3(5, 1.3, 0)), "body capture prefers the arena centre when clear")
+	var far_body: Vector3 = TOUR.body_camera_position(body_feet, [], 15.0)
+	_check(far_body.is_equal_approx(Vector3(-7, 1.3, 0)), "a readability still stands at the asked distance: " + str(far_body))
 	var body_wall: Array = [{"min_x": 6, "max_x": 7, "min_z": -2, "max_z": 2, "bottom": 0, "top": 3}]
 	var clear_body: Vector3 = TOUR.body_camera_position(body_feet, body_wall)
 	_check(clear_body.is_finite() and not clear_body.is_equal_approx(open_body)
 		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 0.12, 0), body_wall)
 		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 1.85, 0), body_wall),
 		"body capture moves around a wall and keeps feet and head visible")
+	var hugged: Array = [{"min_x": 4.2, "max_x": 4.6, "min_z": -0.5, "max_z": 0.5, "bottom": 0, "top": 3}]
+	var spaced: Vector3 = TOUR.body_camera_position(body_feet, hugged)
+	_check(spaced.is_finite() and not spaced.is_equal_approx(open_body)
+		and TOUR._clear_of_solids(spaced, hugged, TOUR.BODY_CAMERA_CLEARANCE),
+		"body capture never stands against a crate that would fill the frame: " + str(spaced))
 	_check(not TOUR.body_camera_position(body_feet, [{"min_x": 0, "max_x": 12, "min_z": -5,
 		"max_z": 5, "bottom": 0, "top": 3}]).is_finite(), "an enclosed body cannot produce a passing still")
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()

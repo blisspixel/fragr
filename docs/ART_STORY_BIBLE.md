@@ -396,14 +396,28 @@ Emissive choices stay in the warm amber to warm-white range. The same check
 runs on load, so an edited file cannot bypass it. Thresholds are a starting
 point to tune in the actual renderer.
 
-**Status: direction, not yet enforced in code.** No player-chosen body colour
-ships; free-for-all name colours are hashed from the callsign and can land on
-red. Other known divergences in the built client (`match_rules.gd`,
-`player_pawn.gd`): the coalition flag and pennant body colour is bone
-(`#E8E2D6`), legacy fighters without a body kind are tinted toward bone on the
-coalition side, and first-person foes are tinted toward Union red whatever
-their side. Each needs its own reviewed change; this contract does not claim
-them fixed.
+**Status: enforced in the multiplayer client.** `FactionPalette`
+(`client/scripts/faction_palette.gd`) holds the reserved colours and the
+colour picker rule above (`check` for a composed body, `check_record` for a
+saved or received one), and snaps with a one-line reason. No whole-body tint
+remains: a live body (`SkinnedCharacter.dress`, fitted by `BodyLivery`) keeps
+its own art and carries its accent as shoulder and arm tape, ink-edged on the
+free side; the Union side of a team match wears the issued livery (its art
+recoloured to black cloth and plates, red armbands, a red visor); the free
+coalition wears amber tape; a sideless fighter wears its callsign colour,
+checked against the body's measured base. Callsign and rule-bot colours never
+land on red, cyan or off-white; the coalition flag pole and pennant staff are
+worn leather; first person marks OURS and THEIRS in each fighter's own side
+colour, never a red wash. A sided nameplate carries a team edge over it, a
+solid red bar for the Union and an open amber frame for the free side, the
+same shapes as the HUD side marks, so the side reads in grayscale. Hit and
+golden-Railgun cues are light, not paint.
+Not yet built: a player colour picker, cosmetics or saved colour records
+(each must call `check` or `check_record`), a free-versus-free mode (its
+ember and magenta pair and high-contrast pair exist as `free_pair`),
+Inheritance machines and absorbed bots. The server carries no cosmetics, so it
+validates none. Review captures: `client/qa/faction_readability_review.gd` and
+the `faction-readability-*.json` tours.
 
 | Environment | Dominant materials and color | Light, landmarks and lived detail |
 |---|---|---|

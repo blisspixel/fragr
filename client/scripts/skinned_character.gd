@@ -17,7 +17,19 @@ var source_body: Node3D
 var skeleton: Skeleton3D
 var aim_pitch: float = 0.0
 var _source: LatchSource = LatchSource.new()
-var _materials: Dictionary[StandardMaterial3D, Color] = {}
+## Each instance material and the body texture it was authored with.
+var _materials: Dictionary[StandardMaterial3D, Texture2D] = {}
+## Faction presentation: the livery ("free" or "union") and the accent on the
+## shoulder and arm tape. Empty until a caller dresses the body; civilians
+## and named cast keep their authored art untouched.
+var livery: String = ""
+var accent: Color = Color(0, 0, 0, 0)
+var _bands: Array[MeshInstance3D] = []
+var _visor: MeshInstance3D = null
+var _edges: Array[MeshInstance3D] = []
+var _band_material: StandardMaterial3D = null
+var _edge_material: StandardMaterial3D = null
+var _visor_material: StandardMaterial3D = null
 var _stride: float = 0.0
 var _fall: float = 0.0
 var _register_floor: bool = true
@@ -77,7 +89,7 @@ func configure(body_kind: String, register_floor: bool = true) -> bool:
 			var material: StandardMaterial3D = original.duplicate() as StandardMaterial3D
 			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 			part.set_surface_override_material(surface, material)
-			_materials[material] = material.albedo_color
+			_materials[material] = material.albedo_texture
 	pose(0.0, false, false, false)
 	return true
 
@@ -164,6 +176,101 @@ func _floor(action: String, progress: float) -> float:
 func hand_transform() -> Transform3D:
 	return source_body.transform * _source.bone_transform(source_body, "RightHand")
 
-func tint(color: Color) -> void:
+## Dress the body for its side. "free" keeps the body's own art and wears
+## `accent_color` as shoulder and arm tape. "union" is the issued livery: the
+## art recoloured to black cloth and plates one step lighter, red armbands and
+## a red visor. Nothing tints the whole body toward a side colour.
+func dress(next_livery: String, accent_color: Color) -> void:
+	if source_body == null or skeleton == null:
+		return
+	var union: bool = next_livery == "union"
+	var next_accent: Color = FactionPalette.UNION_RED if union else accent_color
+	if _band_material != null and livery == ("union" if union else "free") and accent == next_accent:
+		return
+	livery = "union" if union else "free"
+	accent = next_accent
+	var fitting: Dictionary = BodyLivery.fitting_for(self)
 	for material: StandardMaterial3D in _materials:
-		material.albedo_color = _materials[material] * color
+		var source: Texture2D = _materials[material]
+		material.albedo_texture = BodyLivery.union_texture(source) if union and source != null else source
+		material.albedo_color = FactionPalette.UNION_CLOTH if union and source == null else Color.WHITE
+		material.emission_enabled = true
+	if _band_material == null:
+		_band_material = StandardMaterial3D.new()
+		_band_material.roughness = 0.9
+		_edge_material = StandardMaterial3D.new()
+		_edge_material.albedo_color = BodyLivery.TAPE_EDGE
+		_edge_material.roughness = 1.0
+		for band: Dictionary in fitting.get("bands", []):
+			var node: MeshInstance3D = _fit(str(band["bone"]), band["transform"], "AccentTape", BodyLivery.tape_mesh(), _band_material)
+			if node == null:
+				continue
+			_bands.append(node)
+			for end: float in [-0.5, 0.5]:
+				var edge: MeshInstance3D = MeshInstance3D.new()
+				edge.name = "TapeEdge"
+				edge.mesh = BodyLivery.tape_mesh()
+				edge.material_override = _edge_material
+				edge.transform = Transform3D(Basis.from_scale(Vector3(1.04, 0.2, 1.04)), Vector3(0, end * 0.9, 0))
+				edge.layers = ArenaSky.ACTOR_LAYERS
+				edge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				node.add_child(edge)
+				_edges.append(edge)
+	if _visor_material == null:
+		_visor_material = StandardMaterial3D.new()
+		_visor_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_visor_material.albedo_color = FactionPalette.UNION_RED
+		if fitting.has("visor"):
+			var box: BoxMesh = BoxMesh.new()
+			box.size = Vector3.ONE
+			_visor = _fit(str(fitting["visor"]["bone"]), fitting["visor"]["transform"], "UnionVisor", box, _visor_material)
+	_band_material.albedo_color = Color(accent.r, accent.g, accent.b)
+	for band: MeshInstance3D in _bands:
+		band.visible = accent.a > 0.0
+	# Free tape carries ink edges; the Union armband is plain issued red.
+	for edge: MeshInstance3D in _edges:
+		edge.visible = not union
+	if _visor != null:
+		_visor.visible = union
+
+
+## A short light over the whole body for hit and power cues, never paint. A
+## transparent colour turns it off. Only a dressed body carries it.
+func glow(color: Color) -> void:
+	for material: StandardMaterial3D in _materials:
+		if not material.emission_enabled:
+			continue
+		material.emission = Color(color.r, color.g, color.b) if color.a > 0.0 else Color.BLACK
+		material.emission_energy_multiplier = color.a if color.a > 0.0 else 0.0
+
+
+## The dominant colour of the body's own art, for the colour picker rule.
+func base_color() -> Color:
+	return BodyLivery.fitting_for(self).get("base", Color(0.5, 0.5, 0.5))
+
+
+## The tape and visor nodes, for checks and reviews.
+func accent_parts() -> Array[MeshInstance3D]:
+	var parts: Array[MeshInstance3D] = _bands.duplicate()
+	parts.append_array(_edges)
+	if _visor != null:
+		parts.append(_visor)
+	return parts
+
+
+func _fit(bone: String, at: Transform3D, node_name: String, mesh: Mesh, material: Material) -> MeshInstance3D:
+	if skeleton.find_bone(bone) < 0:
+		return null
+	var attachment: BoneAttachment3D = BoneAttachment3D.new()
+	attachment.name = node_name + bone
+	attachment.bone_name = bone
+	skeleton.add_child(attachment)
+	var part: MeshInstance3D = MeshInstance3D.new()
+	part.name = node_name
+	part.mesh = mesh
+	part.material_override = material
+	part.transform = at
+	part.layers = ArenaSky.ACTOR_LAYERS
+	part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	attachment.add_child(part)
+	return part

@@ -22,7 +22,7 @@
       "camera": "body",
       "body": "human",
       "body_team": "coalition",
-      "note": "Free coalition side: a human body keeps its own free palette under the side plate. Requires FRAGR_QA_MODE=tdm."
+      "note": "Free coalition side: a human body keeps its own art with ink-edged amber tape under the side plate. Requires FRAGR_QA_MODE=tdm."
     },
     {
       "name": "modes_body_coalition_synthetic",
@@ -30,7 +30,7 @@
       "camera": "body",
       "body": "synthetic",
       "body_team": "coalition",
-      "note": "Free coalition side: a synthetic body keeps bone, leather, ember and cyan, never Union black and red."
+      "note": "Free coalition side: a synthetic body keeps its own art with amber tape, never Union black and red or an off-white shell."
     },
     {
       "name": "modes_body_union_side",
@@ -38,7 +38,7 @@
       "camera": "body",
       "body": "synthetic",
       "body_team": "union",
-      "note": "The Union side of a team match: the same body under the dark side tint and red plate, so sides still read apart."
+      "note": "The Union side of a team match: the same body in issued black livery with red armbands, a red visor and the red plate."
     },
     {
       "name": "modes_first_person",

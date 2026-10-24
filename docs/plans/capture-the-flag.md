@@ -4,7 +4,7 @@ Status: **in flight** (2026-09-27). This is the implementation record for the ne
 
 ## Goal and why
 
-Ship a complete two-side capture the flag match on Sector 9: authoritative pickup, carry, drop, return, capture, score and round end; legible first-person and spectator presentation; objective-aware rule bots and agent observations; deterministic tests and a real client tour. This is the first objective mode, so the carried-object wire shape should be reusable without making Rescue or Sabotage gameplay now. In the fiction this is a staged league scenario, not a campaign battle. Side markers use Union black, steel and red and Coalition bone and ember; neither flag is a captive agent or a universal faction banner.
+Ship a complete two-side capture the flag match on Sector 9: authoritative pickup, carry, drop, return, capture, score and round end; legible first-person and spectator presentation; objective-aware rule bots and agent observations; deterministic tests and a real client tour. This is the first objective mode, so the carried-object wire shape should be reusable without making Rescue or Sabotage gameplay now. In the fiction this is a staged league scenario, not a campaign battle. Side markers use Union black, steel and red and Coalition amber and worn leather; neither flag is a captive agent or a universal faction banner.
 
 ## Boundaries and decisions
 
