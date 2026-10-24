@@ -97,16 +97,20 @@ func _run() -> void:
 	_check(not MissionState.validation_error(current, geometry).is_empty(), "new facts require the changed map first")
 	_check(MissionState.validation_error(current, opened_geometry, first).is_empty(), "matching raised map accepts the facts")
 	_check(not MissionState.validation_error(first, geometry, current).is_empty(), "an attempt cannot rewind")
-	var unknown: Dictionary = first.duplicate(true)
-	unknown["state"]["m09"]["carried_archive"] = {"kind": "historical_unrecorded"}
-	_check(MissionState.validation_error(unknown, geometry).is_empty(), "historical archive choices remain unknown")
-	bad = unknown.duplicate(true)
-	bad["state"]["m09"]["carried_archive"]["captives_evacuated"] = false
-	_check(not MissionState.validation_error(bad, geometry).is_empty(), "unknown history cannot invent a result")
-	bad = unknown.duplicate(true)
-	bad["state"]["m09"]["carried_archive"] = {"kind": "recorded", "custody_released": false, "recovered_mind_secured": true, "captives_evacuated": true}
+	var carried: Dictionary = first.duplicate(true)
+	carried["state"]["m09"]["carried_archive"] = {"custody_released": true, "recovered_mind_secured": false, "captives_evacuated": true}
+	_check(MissionState.validation_error(carried, geometry).is_empty(), "carried archive choices are accepted")
+	for retired: Dictionary in [{"kind": "historical_unrecorded"}, {"kind": "recorded", "custody_released": true, "recovered_mind_secured": false, "captives_evacuated": true}]:
+		bad = carried.duplicate(true)
+		bad["state"]["m09"]["carried_archive"] = retired
+		_check(not MissionState.validation_error(bad, geometry).is_empty(), "retired archive shapes are refused")
+	bad = carried.duplicate(true)
+	bad["state"]["m09"]["carried_archive"].erase("captives_evacuated")
+	_check(not MissionState.validation_error(bad, geometry).is_empty(), "a carried archive cannot drop a result")
+	bad = carried.duplicate(true)
+	bad["state"]["m09"]["carried_archive"] = {"custody_released": false, "recovered_mind_secured": true, "captives_evacuated": true}
 	_check(not MissionState.validation_error(bad, geometry).is_empty(), "evacuation requires recorded release")
-	_check(not MissionState.validation_error(first, geometry, unknown).is_empty(), "retry cannot erase carried history")
+	_check(not MissionState.validation_error(first, geometry, carried).is_empty(), "retry cannot erase carried history")
 	var departure: Dictionary = fixture_state(opened, 8)
 	departure["state"]["prompts"] = [{"player_id": PLAYER, "kind": "objective_use"}]
 	_check(MissionState.validation_error(departure, opened_geometry).is_empty(), "ready living aboard party can use the exit")

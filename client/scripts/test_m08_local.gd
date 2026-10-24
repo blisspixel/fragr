@@ -59,18 +59,18 @@ func _run() -> void:
 	var hash: Array[int] = []
 	for byte: int in digest:
 		hash.append(byte)
-	_check(hash.size() == 32, "historical exit binds actual M07 authored bytes")
+	_check(hash.size() == 32, "completed town binds actual M07 authored bytes")
 	var fixture: Dictionary = {
-		"version": 8, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
-		"level_start_continues": 1, "body": "synthetic", "rules": {"difficulty": "standard", "revision": 3}, "content_sha256": hash,
+		"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
+		"level_start_continues": 1, "body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["workshop_agent_b", "splice", "workshop_agent_a"], "evacuated_workers": ["splice"]},
 		"m06_outcome": {"prisoner_route_marked": true},
 		"step": {"kind": "awaiting_mission", "completed_mission": "declared_goods", "next_mission": "custodian_of_record",
 			"exit": {"hp": 15, "armor": 0, "equipment": {"selected": "sniper", "weapons": ["fists", "flechette", "scatter", "sniper"],
-				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}],
-				"grenades": 1, "personal_claims": ["post_sniper"]}}}}
+				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 1, "proximity_mines": 0, "remote_mines": 0, "personal_claims": ["post_sniper"]}}}}
 	var source: String = JSON.stringify(fixture) + "\n  \n"
 	var expected: Variant = JSON.parse_string(source)
 	_write_run(source)
@@ -82,7 +82,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "actual read-only preview accepts the M07 edge"):
 		return
 	_check(owned.run_preview["mission"] == MissionState.M08_ID and int(owned.run_preview["continues"]) == 1, "preview names M08 with retained allowance")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact v8 source bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("CustodianOfRecordSaved") as Button
 	_check(resume != null and not resume.disabled, "M08 saved continuation offers a real launch")
 	if resume == null:
@@ -103,14 +103,14 @@ func _run() -> void:
 	if not await _until(func() -> bool: return not _gear().is_empty(), "carried private loadout arrives"):
 		return
 	var gear: Dictionary = _gear()
-	_check(gear["selected"] == "sniper" and EquipmentState.ammo(gear, "cells") == 1 and int(gear.get("proximity_mines", 0)) == 0, "Sniper and last Cell carry, historical mines become zero")
+	_check(gear["selected"] == "sniper" and EquipmentState.ammo(gear, "cells") == 1 and int(gear.get("proximity_mines", 0)) == 0, "Sniper and last Cell carry, carried mines stay zero")
 	_check(gear["personal_claims"].is_empty() and int(gear["grenades"]) == 1, "old claims clear while grenades remain independent")
 	_check(game.mission_hud.state["run"]["id"] == RUN_ID and int(game.mission_hud.state["run"]["continues"]) == 1, "M08 never refills Episode II")
 	_check(game.net_client.accepted_body == "synthetic", "saved body wins over the current profile")
 	if not await _stop(owned):
 		return
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 22 and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes current M08 entry")
+	_check(saved is Dictionary and saved["version"] == RunFixture.VERSION and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes current M08 entry")
 	if not saved is Dictionary:
 		quit(1)
 		return
@@ -118,11 +118,7 @@ func _run() -> void:
 	_check(int(entry["hp"]) == 15 and int(entry["armor"]) == 0 and int(entry["equipment"]["proximity_mines"]) == 0, "actual entry does not heal or invent mines")
 	for outcome: String in ["m03_outcome", "m04_outcome", "m05_outcome", "m06_outcome"]:
 		_check(expected is Dictionary and saved[outcome] == expected[outcome], "M08 retains " + outcome)
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "single archive contains exact v8 bytes")
+	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	# Reopen a valid M08 entry with a finite mine anchor. Stopping after placing
 	# one must persist the mission entry, never the live mid-fight inventory.
 	var saved_bytes: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
@@ -160,7 +156,7 @@ func _run() -> void:
 	var reopened: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
 	_check(reopened is Dictionary and int(reopened["step"]["entry"]["equipment"]["proximity_mines"]) == 3, "saved retry anchor retains entry mines rather than spent live count")
 	if failures == 0:
-		print("test_m08_local: PASS v8 exact archive, M07-M08 carry, owned child, finite mines and saved entry anchor")
+		print("test_m08_local: PASS atomic promotion, M07-M08 carry, owned child, finite mines and saved entry anchor")
 	quit(0 if failures == 0 else 1)
 
 func _write_run(bytes: String) -> void:

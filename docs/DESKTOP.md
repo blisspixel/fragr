@@ -54,10 +54,6 @@ it does not establish a playable boot on every clean desktop. The
 [release plan](plans/desktop-release.md) records the remaining platform
 evidence.
 
-The app was previously named `fragr Client`, which also named its Godot
-settings folder. On the first launch under the current name, the game copies
-old `settings.cfg` and service records only when the new folder has neither.
-
 ## Build an export from source
 
 Install Godot 4.7.2-stable with matching export templates. From the

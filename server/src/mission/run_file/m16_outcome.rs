@@ -12,12 +12,6 @@ pub(crate) struct M16Outcome {
     pub doors_open: bool,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M16Outcome>, D::Error> {
-    M16Outcome::deserialize(decoder).map(Some)
-}
-
 impl M16Outcome {
     pub(super) fn capture(state: &M16ObjectiveState, tick: u64) -> Result<Self, &'static str> {
         state.validate(MissionPhase::Departed, tick)?;

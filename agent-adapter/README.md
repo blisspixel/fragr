@@ -558,7 +558,7 @@ The readiness and continue schemas list every built mission from the same typed
 stage list as saved campaign progression. Pending destinations are not offered.
 
 Connected M13 uses `weight_of_permission` through these same tools. Matching
-adapters advertise gameplay 54 and validate its registered objectives, worker
+adapters advertise gameplay 55 and validate its registered objectives, worker
 choices, actual arrivals and moving freight lift. After a fresh all-party lift
 Use, the controller holds position while the authoritative deck moves. If it
 returns after losing a rider, the party reboards and uses the same control.
@@ -582,7 +582,8 @@ versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
 retains the server's reason in `connection_error`, without a pending join.
 These missions keep the same readiness, action and continue tools. Saved runs
 refill continues only when entering M15 (Episode IV) and M18 (Episode V).
-The M19 destination remains pending and unplayable.
+The M19 destination remains pending and unplayable. Passenger Manifest and
+Common Carrier require gameplay 55 for their carried M08 and M10 receipts.
 
 ### `mission_continue`
 

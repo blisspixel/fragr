@@ -23,8 +23,8 @@ const M05_GAMEPLAY: int = 43
 const M06_GAMEPLAY: int = 43
 const M07_GAMEPLAY: int = 43
 const M08_GAMEPLAY: int = 43
-const M09_GAMEPLAY: int = 43
-const M10_GAMEPLAY: int = 43
+const M09_GAMEPLAY: int = 55
+const M10_GAMEPLAY: int = 55
 const M11_GAMEPLAY: int = 43
 const NEXT_MISSION: String = "planned_works"
 

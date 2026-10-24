@@ -825,17 +825,23 @@ fn remote_stock_is_finite_independent_and_restores_without_gun_or_other_device_c
 }
 
 #[test]
-fn remote_stock_boundary_refuses_malformed_counts_and_omits_current_zero() {
+fn remote_stock_boundary_refuses_malformed_or_missing_saved_counts() {
     let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
     let quiet = inventory.saved_equipment(WeaponType::Fists).unwrap();
     let value = serde_json::to_value(&quiet).unwrap();
-    assert!(value.get("remote_mines").is_none());
+    assert_eq!(
+        value["remote_mines"], 0,
+        "saved equipment writes every count"
+    );
     assert_eq!(
         serde_json::from_value::<SavedEquipment>(value.clone())
             .unwrap()
             .remote_mines,
         0
     );
+    let mut missing = value.clone();
+    missing.as_object_mut().unwrap().remove("remote_mines");
+    assert!(serde_json::from_value::<SavedEquipment>(missing).is_err());
     for bad in [
         serde_json::json!(-1),
         serde_json::json!(1.5),

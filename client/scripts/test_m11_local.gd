@@ -5,23 +5,23 @@ var failures: int = 0
 var run_directory: String = ""
 var settings_path: String = ""
 
-## Representative historical bytes isolate M11 entry. This is not M10 play evidence.
+## A representative completed ship isolates M11 entry. This is not M10 play evidence.
 static func completed_ship() -> Dictionary:
 	var hash: Array[int] = []
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m10_common_carrier.json").hex_decode():
 		hash.append(byte)
-	return {"version": 13, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 3,
-		"body": "synthetic", "rules": {"difficulty": "standard", "revision": 3}, "content_sha256": hash,
+	return {"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 3,
+		"body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]}, "m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers": ["splice"]},
 		"m06_outcome": {"prisoner_route_marked": true},
-		"m08_outcome": {"kind": "recorded", "custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
-		"m09_outcome": {"kind": "recorded", "released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": ["tern", "berth_crew_a", "berth_crew_b"]},
+		"m08_outcome": {"custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
+		"m09_outcome": {"released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": ["tern", "berth_crew_a", "berth_crew_b"]},
 		"m10_transit": {"kind": "recorded", "arrived_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"]},
 		"step": {"kind": "awaiting_mission", "completed_mission": "common_carrier", "next_mission": "right_of_search",
 			"exit": {"hp": 43, "armor": 22, "equipment": {"selected": "flechette", "weapons": ["fists", "flechette", "scatter", "sniper"],
-				"ammo": [{"pool": "bullets", "rounds": 100}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 8}],
-				"grenades": 2, "proximity_mines": 3, "personal_claims": ["m10_actual_find"]}}}}
+				"ammo": [{"pool": "bullets", "rounds": 100}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 8}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 2, "proximity_mines": 3, "remote_mines": 0, "personal_claims": ["m10_actual_find"]}}}}
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -95,7 +95,7 @@ func _run() -> void:
 	var fixture: Dictionary = completed_ship()
 	var source: String = JSON.stringify(fixture) + "\n  \n"
 	var file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
-	_check(file != null, "historical fixture writable")
+	_check(file != null, "saved fixture writable")
 	if file == null:
 		quit(1)
 		return
@@ -109,7 +109,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "actual preview reads M10 completion"):
 		return
 	_check(owned.run_preview.get("mission") == MissionState.M11_ID, "preview names M11")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact historical bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("RightOfSearchSaved") as Button
 	_check(resume != null and not resume.disabled, "real saved tender button")
 	if resume == null:
@@ -155,13 +155,9 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved["version"] == 22 and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 entry without refill")
+	_check(saved["version"] == RunFixture.VERSION and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 entry without refill")
 	_check(saved["step"]["entry"]["equipment"].get("remote_mines", 0) == 0 and saved["step"]["entry"]["hp"] == 43, "durable entry retains original finite counts")
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "v13 archive retains exact original bytes")
+	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	_check(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "reopen boot")
 	await process_frame
 	await process_frame

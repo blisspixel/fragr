@@ -140,7 +140,8 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 	return ""
 
 static func _transit(value: Variant) -> bool:
-	if M03MissionState._exact(value, ["kind"]) and value["kind"] == "historical_unrecorded":
+	# Practice play without a campaign run has no berth to carry from.
+	if M03MissionState._exact(value, ["kind"]) and value["kind"] == "unlinked":
 		return true
 	if not M03MissionState._exact(value, ["kind", "arrived_crew"]) or value["kind"] != "recorded" \
 		or not value["arrived_crew"] is Array or value["arrived_crew"].size() < 3 or value["arrived_crew"].size() > 5:

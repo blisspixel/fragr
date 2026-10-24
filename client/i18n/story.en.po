@@ -239,6 +239,9 @@ msgstr "Totals cover the latest {count} records on this device."
 msgid "RECORD_SAVE_ERROR"
 msgstr "Records could not be saved or loaded. Existing files are preserved."
 
+msgid "RECORD_STARTED_FRESH"
+msgstr "Your service record came from an older build of fragr, so a fresh one has started."
+
 msgid "RECORD_EMPTY"
 msgstr "No records yet. Go make a statistically questionable decision."
 

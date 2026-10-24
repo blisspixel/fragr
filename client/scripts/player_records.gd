@@ -2,10 +2,10 @@ class_name PlayerRecords
 extends RefCounted
 
 ## Bounded local history, not identity authentication or a public reward ledger.
+## Only VERSION is read. An older file is set aside and the record starts fresh;
+## a newer one is preserved and blocks writes until that build reads it.
 const PATH: String = "user://service-record"
 const VERSION: int = 3
-const LEGACY_VERSION: int = 1
-const PROVENANCE_VERSION: int = 2
 const LIMIT: int = 256
 const MAX_BYTES: int = 4 * 1024 * 1024
 var entries: Array[Dictionary] = []
@@ -19,6 +19,8 @@ var _blocked: bool = false
 var _dirty: bool = false
 var _last_saved_tick: int = -1
 var _award_notices: Array[String] = []
+## True when only an older-format record was found and a fresh one began.
+var started_fresh: bool = false
 
 static func for_tree(tree: SceneTree) -> PlayerRecords:
 	var fallback: String = "" if tree.get_meta("fragr_automated", false) else PATH
@@ -37,6 +39,7 @@ func _load() -> void:
 		return
 	var candidates: Array[Dictionary] = []
 	var existing: int = 0
+	var older: bool = false
 	for slot: int in range(2):
 		var path: String = _slot(slot)
 		if not FileAccess.file_exists(path):
@@ -51,8 +54,14 @@ func _load() -> void:
 		if parsed != OK or not parser.data is Dictionary:
 			continue
 		var data: Dictionary = parser.data
+		var version: Variant = data.get("version")
+		# An older format is not migrated. The next save overwrites its slot.
+		if EquipmentState.integer(version, VERSION - 1):
+			existing -= 1
+			older = true
+			continue
 		# A future format is preserved even if the other slot is readable.
-		if not _supported_version(data.get("version")):
+		if version != VERSION:
 			_blocked = true
 			error = ERR_FILE_UNRECOGNIZED
 			return
@@ -62,6 +71,7 @@ func _load() -> void:
 		if existing > 0:
 			_blocked = true
 			error = ERR_FILE_CORRUPT
+		started_fresh = older and not _blocked
 		return
 	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["generation"]) > int(b["generation"]))
 	var selected: Dictionary = candidates[0]
@@ -72,13 +82,12 @@ func _load() -> void:
 	profile_id = selected["profile_id"]
 	_generation = int(selected["generation"])
 	entries.assign(selected["entries"])
-	if int(selected["version"]) == VERSION:
-		unlocks.assign(selected["unlocks"])
-		customization = selected["customization"].duplicate()
+	unlocks.assign(selected["unlocks"])
+	customization = selected["customization"].duplicate()
 
 static func _valid_document(data: Dictionary) -> bool:
-	if not _supported_version(data.get("version")) \
-		or data.size() != (6 if data["version"] == VERSION else 4) or not data.get("profile_id") is String or data["profile_id"].length() != 32 \
+	if data.get("version") != VERSION \
+		or data.size() != 6 or not data.get("profile_id") is String or data["profile_id"].length() != 32 \
 		or not data["profile_id"].is_valid_hex_number() \
 		or not EquipmentState.integer(data.get("generation"), EquipmentState.MAX_EXACT_INTEGER - 1) \
 		or int(data["generation"]) < 1 or not data.get("entries") is Array or data["entries"].size() > LIMIT:
@@ -87,7 +96,7 @@ static func _valid_document(data: Dictionary) -> bool:
 	for entry: Variant in data["entries"]:
 		if not entry is Dictionary or entry.size() != 2 + int(entry.has("server_sha256")) or entry.get("origin") not in ["local", "external"] or not entry.get("record") is Dictionary:
 			return false
-		if entry.has("server_sha256") and (data["version"] == LEGACY_VERSION or entry["origin"] != "local" or not _valid_server_hash(entry["server_sha256"])):
+		if entry.has("server_sha256") and (entry["origin"] != "local" or not _valid_server_hash(entry["server_sha256"])):
 			return false
 		var record: Dictionary = entry["record"]
 		if not PlayerRecord.validation_error(record, record.get("player_id")).is_empty():
@@ -96,17 +105,11 @@ static func _valid_document(data: Dictionary) -> bool:
 		if seen.has(identity):
 			return false
 		seen[identity] = true
-	if data["version"] == VERSION:
-		if not PlayerRewards.valid_unlocks(data.get("unlocks")):
-			return false
-		var proofs: Array[Dictionary] = []
-		proofs.assign(data["unlocks"])
-		if not PlayerRewards.valid_selection(data.get("customization"), proofs):
-			return false
-	return true
-
-static func _supported_version(value: Variant) -> bool:
-	return EquipmentState.integer(value, VERSION) and int(value) in [LEGACY_VERSION, PROVENANCE_VERSION, VERSION]
+	if not PlayerRewards.valid_unlocks(data.get("unlocks")):
+		return false
+	var proofs: Array[Dictionary] = []
+	proofs.assign(data["unlocks"])
+	return PlayerRewards.valid_selection(data.get("customization"), proofs)
 
 static func _valid_server_hash(value: Variant) -> bool:
 	return value is String and value.length() == 64 and value.is_valid_hex_number() and value == value.to_lower()
@@ -225,8 +228,8 @@ func totals(kind: String) -> Dictionary:
 			PlayerRecord.add_counts(counts, entry["record"]["total"])
 	return counts
 
-## Exact local server builds form separate cohorts. Historical records without
-## this provenance remain readable but cannot establish a comparable time.
+## Exact local server builds form separate cohorts. Records without this
+## provenance remain readable but cannot establish a comparable time.
 func mission_comparison(record: Dictionary, server_hash: String) -> Dictionary:
 	if not _valid_server_hash(server_hash) or not PlayerRecord.validation_error(record, record.get("player_id")).is_empty() \
 		or record["role"] != "human" or record["status"] != "complete" or record["scope"]["kind"] != "mission" \

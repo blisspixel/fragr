@@ -10,12 +10,6 @@ pub(crate) struct M11Outcome {
     pub bridge_response_ticks: u64,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<M11Outcome>, D::Error> {
-    M11Outcome::deserialize(deserializer).map(Some)
-}
-
 impl M11Outcome {
     pub(super) fn capture(
         challenges: &crate::protocol::M11ChallengeState,

@@ -112,13 +112,6 @@ fn m12_promotion_preserves_tender_receipt_finite_entry_and_episode_allowance() {
         }
         assert!(invalid.validate(m09_tests::HASHES[11]).is_err());
     }
-    let mut historical = serde_json::to_value(&promoted).unwrap();
-    historical["version"] = 14.into();
-    historical["rules"]["revision"] = 3.into();
-    assert!(matches!(
-        RunStore::inspect_bytes(&serde_json::to_vec(&historical).unwrap(), m09_tests::HASHES),
-        RunProbe::Incompatible
-    ));
 }
 
 #[test]
@@ -243,45 +236,31 @@ fn m12_current_save_requires_exact_completed_outcome_and_retains_real_arc_counts
 }
 
 #[test]
-fn m12_v14_to_live_promotion_archives_original_bytes_and_recovers_interrupted_replace() {
+fn m12_locked_promotion_recovers_an_interrupted_replace() {
     let source = arc_tests::completed_tender();
     let promoted = source
         .promote_next(MissionId::TermsOfCooperation, m09_tests::HASHES[11])
         .unwrap();
-    let mut legacy = serde_json::to_value(&source).unwrap();
-    legacy["version"] = 14.into();
-    legacy["rules"]["revision"] = 3.into();
-    super::super::omit_historical_rockets(&mut legacy);
-    let mut bytes = serde_json::to_vec_pretty(&legacy).unwrap();
-    bytes.extend_from_slice(b"\n\t \n");
     let directory = std::env::temp_dir().join(format!("fragr-m12-promotion-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     assert!(RunStore::open_with_hashes(&directory, m09_tests::HASHES).is_err());
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
     let loaded = store.load().unwrap().unwrap();
     assert_eq!(loaded, source);
     assert!(store
-        .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
-            "interrupted M12 edge"
-        )))
+        .save_with_sync(
+            &promoted,
+            |_| Err(io::Error::other("interrupted M12 edge")),
+            sync_directory,
+        )
         .is_err());
     assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archived = store.archive_and_save(&loaded, &promoted).unwrap();
-    assert_eq!(fs::read(archived).unwrap(), bytes);
-    assert_eq!(store.load().unwrap().unwrap(), promoted);
-    assert!(!store.needs_upgrade().unwrap());
-    assert!(store.archive_and_save(&loaded, &promoted).is_err());
+    assert_eq!(store.load().unwrap().unwrap(), source);
+    store.save(&promoted).unwrap();
     drop(store);
     let reopened = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     assert_eq!(reopened.load().unwrap().unwrap(), promoted);
-    assert_eq!(
-        fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|p| p.file_name().to_string_lossy().starts_with("run.prior-"))
-            .count(),
-        1
-    );
     drop(reopened);
     fs::remove_dir_all(directory).unwrap();
 }

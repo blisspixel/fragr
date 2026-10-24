@@ -134,7 +134,7 @@ fn m10_safe_entry_readiness_does_not_start_fights_or_clone_crew() {
     assert!(f.passengers.is_empty());
     assert!(matches!(
         f.transit,
-        crate::protocol::M10Transit::HistoricalUnrecorded {}
+        crate::protocol::M10Transit::Unlinked {}
     ));
     assert_eq!(f.pilot, s.state.map.m10_geometry().unwrap().pilot);
     place(&mut s, id, [0.0, 2.0, -12.0]);
@@ -328,7 +328,13 @@ fn m10_controller_requires_fresh_map_bound_facts_and_keeps_carried_history() {
         match mutation {
             0 => f.pilot[0] += 0.5,
             1 => f.current = Some(g.objectives[1].clone()),
-            _ => f.carried_archive = Some(crate::protocol::M08Outcome::HistoricalUnrecorded {}),
+            _ => {
+                f.carried_archive = Some(crate::protocol::M08Outcome {
+                    custody_released: true,
+                    recovered_mind_secured: false,
+                    captives_evacuated: false,
+                })
+            }
         }
         assert!(client.observe(s.state.tick, bad).is_err());
     }
@@ -393,6 +399,8 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
         crate::protocol::REPEATER_GAMEPLAY_VERSION,
         crate::protocol::M10_GAMEPLAY_VERSION,
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+        crate::protocol::M18_GAMEPLAY_VERSION,
+        crate::protocol::RECEIPT_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -405,12 +413,14 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    // M10 facts carry the single-schema transit receipt, so an
+                    // older reader is refused before it can misread them.
+                    if version < crate::protocol::RECEIPT_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error");
                         assert_eq!(value["code"], "unsupported_gameplay");
                         assert!(value["message"].as_str().unwrap().contains(&format!(
                             "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                            crate::protocol::RECEIPT_GAMEPLAY_VERSION
                         )));
                         break;
                     }

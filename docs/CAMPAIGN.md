@@ -28,10 +28,10 @@ outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
 Carrier, M11 Right of Search, M12 Terms of Cooperation, M13 The Weight of
 Permission, M14 Launch Authority, M15 Civic Pressure Valve, M16 Freedom of
-Movement, M17 Peace Without Interruption, and M18 All Systems Normal. Version 22 saves retain mission-entry retries,
+Movement, M17 Peace Without Interruption, and M18 All Systems Normal. Saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
-people from those actually evacuated or aboard. Historical saves upgrade
-explicitly and retain exact-byte archives. M12 adds the Arc, Assessor, shelter,
+people from those actually evacuated or aboard. A save from another build is
+refused rather than converted. M12 adds the Arc, Assessor, shelter,
 pump conditions and coalition departure. M13 adds the first finite Rocket
 Launcher, voluntary worker choices, guarded gallery, protected town feed,
 machinery hazards and physical freight-lift departure. M14 adds the Continuance

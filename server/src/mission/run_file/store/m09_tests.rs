@@ -28,7 +28,7 @@ pub(super) fn completed_archive() -> RunDocument {
         next_mission: "passenger_manifest".into(),
         exit,
     };
-    document.m08_outcome = Some(M08Outcome::Recorded {
+    document.m08_outcome = Some(M08Outcome {
         custody_released: true,
         recovered_mind_secured: true,
         captives_evacuated: true,
@@ -37,37 +37,15 @@ pub(super) fn completed_archive() -> RunDocument {
     document
 }
 
-fn v9_bytes(document: &RunDocument) -> Vec<u8> {
-    let mut value = serde_json::to_value(document).unwrap();
-    value["version"] = 9.into();
-    value["rules"]["revision"] = (3).into();
-    value.as_object_mut().unwrap().remove("m08_outcome");
-    super::super::omit_historical_rockets(&mut value);
-    let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
-    bytes.extend_from_slice(b"\n \n");
-    bytes
-}
-
 #[test]
-fn strict_v10_upgrade_archives_exact_bytes_and_preserves_real_m09_carry() {
+fn m09_entry_round_trips_and_preserves_real_m08_carry() {
     let source = completed_archive()
         .promote_next(MissionId::PassengerManifest, HASHES[8])
         .unwrap();
-    let mut value = serde_json::to_value(&source).unwrap();
-    value["version"] = 10.into();
-    value["rules"]["revision"] = (3).into();
-    super::super::omit_historical_rockets(&mut value);
-    let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
-    bytes.extend_from_slice(b"\n \n");
-    let directory = std::env::temp_dir().join(format!("fragr-v10-repeater-{}", Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!("fragr-m09-entry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-    let loaded = store.load().unwrap().unwrap();
-    assert_eq!(loaded, source);
-    assert!(store.needs_upgrade().unwrap());
-    let archive = store.archive_and_save(&loaded, &loaded).unwrap();
-    assert_eq!(fs::read(archive).unwrap(), bytes);
-    assert!(!store.needs_upgrade().unwrap());
+    store.save(&source).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), source);
     drop(store);
     let reopened = RunStore::open_with_hashes(&directory, HASHES).unwrap();
     assert_eq!(reopened.load().unwrap().unwrap(), source);
@@ -91,25 +69,18 @@ fn strict_v10_upgrade_archives_exact_bytes_and_preserves_real_m09_carry() {
 }
 
 #[test]
-fn strict_historical_and_current_pre_m10_documents_refuse_repeater_ownership() {
+fn pre_m10_documents_refuse_repeater_ownership() {
     let source = completed_archive()
         .promote_next(MissionId::PassengerManifest, HASHES[8])
         .unwrap();
-    for version in [9, 10, 11, super::super::RUN_FILE_VERSION] {
+    let initial = RunDocument::new(
+        Uuid::new_v4(),
+        crate::protocol::CampaignRules::default(),
+        HASHES[0],
+    );
+    for document in [&source, &initial] {
         for selected in [false, true] {
-            let mut value = serde_json::to_value(&source).unwrap();
-            value["version"] = version.into();
-            value["rules"]["revision"] = (if version <= 4 {
-                2
-            } else if version < super::super::RUN_FILE_VERSION {
-                3
-            } else {
-                crate::protocol::CAMPAIGN_RULES_REVISION
-            })
-            .into();
-            if version == 9 {
-                value.as_object_mut().unwrap().remove("m08_outcome");
-            }
+            let mut value = serde_json::to_value(document).unwrap();
             let equipment = &mut value["step"]["entry"]["equipment"];
             equipment["weapons"]
                 .as_array_mut()
@@ -119,172 +90,12 @@ fn strict_historical_and_current_pre_m10_documents_refuse_repeater_ownership() {
                 equipment["selected"] = "repeater".into();
             }
             let probe = RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), HASHES);
-            if version == super::super::RUN_FILE_VERSION {
-                assert!(
-                    matches!(probe, RunProbe::Incompatible),
-                    "current valid shape must refuse unsupported mission ownership"
-                );
-            } else {
-                assert!(
-                    matches!(probe, RunProbe::Corrupt),
-                    "historical shape must refuse impossible gun identity before upgrade"
-                );
-            }
-        }
-    }
-}
-
-#[test]
-fn every_strict_v2_through_v8_reader_refuses_future_gun_before_migration() {
-    let initial = RunDocument::new(
-        Uuid::new_v4(),
-        crate::protocol::CampaignRules::default(),
-        HASHES[0],
-    );
-    for version in 2..=8 {
-        let mut baseline = serde_json::to_value(&initial).unwrap();
-        baseline["version"] = version.into();
-        baseline["rules"]["revision"] = (if version <= 4 {
-            2
-        } else if version < super::super::RUN_FILE_VERSION {
-            3
-        } else {
-            crate::protocol::CAMPAIGN_RULES_REVISION
-        })
-        .into();
-        for key in [
-            "m03_outcome",
-            "m04_outcome",
-            "m05_outcome",
-            "m06_outcome",
-            "m08_outcome",
-        ] {
-            baseline.as_object_mut().unwrap().remove(key);
-        }
-        if version <= 4 {
-            baseline["rules"]["revision"] = 2.into();
-        }
-        if version == 2 {
-            baseline.as_object_mut().unwrap().remove("body");
-            baseline
-                .as_object_mut()
-                .unwrap()
-                .remove("level_start_continues");
-        }
-        baseline["step"]["entry"]["equipment"]
-            .as_object_mut()
-            .unwrap()
-            .remove("proximity_mines");
-        if version < 6 {
-            baseline["step"]["entry"]["equipment"]
-                .as_object_mut()
-                .unwrap()
-                .remove("grenades");
-        }
-        super::super::omit_historical_rockets(&mut baseline);
-        assert!(
-            matches!(
-                RunStore::inspect_bytes(&serde_json::to_vec(&baseline).unwrap(), HASHES),
-                RunProbe::Compatible(_)
-            ),
-            "valid v{version} fixture must upgrade first"
-        );
-        for selected in [false, true] {
-            let mut forged = baseline.clone();
-            forged["step"]["entry"]["equipment"]["weapons"]
-                .as_array_mut()
-                .unwrap()
-                .push("repeater".into());
-            if selected {
-                forged["step"]["entry"]["equipment"]["selected"] = "repeater".into();
-            }
             assert!(
-                matches!(
-                    RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), HASHES),
-                    RunProbe::Corrupt
-                ),
-                "forged v{version} gun must fail shape validation"
+                matches!(probe, RunProbe::Incompatible),
+                "a valid shape must refuse unsupported mission ownership"
             );
         }
     }
-}
-
-#[test]
-fn strict_v9_archive_completion_retains_unknown_choices_and_exact_source_bytes() {
-    let directory = std::env::temp_dir().join(format!("fragr-v9-custody-{}", Uuid::new_v4()));
-    let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
-    let source = completed_archive();
-    let bytes = v9_bytes(&source);
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-    let preview = RunStore::preview_with_hashes(&directory, HASHES)
-        .unwrap()
-        .unwrap();
-    let mut expected = source.clone();
-    expected.m08_outcome = Some(M08Outcome::HistoricalUnrecorded {});
-    assert_eq!(preview, expected);
-    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    assert!(store.needs_upgrade().unwrap());
-    assert!(store
-        .archive_and_save_before_replace(&preview, &preview, |_| {
-            Err(io::Error::other("injected v9 replacement failure"))
-        })
-        .is_err());
-    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archive = store.archive_and_save(&preview, &preview).unwrap();
-    assert_eq!(fs::read(archive).unwrap(), bytes);
-    assert_eq!(store.load().unwrap().unwrap(), expected);
-    assert!(!store.needs_upgrade().unwrap());
-    assert_eq!(expected.m03_outcome, source.m03_outcome);
-    assert_eq!(expected.m04_outcome, source.m04_outcome);
-    assert_eq!(expected.m05_outcome, source.m05_outcome);
-    assert_eq!(expected.m06_outcome, source.m06_outcome);
-    assert_eq!(
-        expected.step, source.step,
-        "actual finite counts never default"
-    );
-    drop(store);
-    let reopened = RunStore::open_with_hashes(&directory, HASHES).unwrap();
-    assert_eq!(reopened.load().unwrap().unwrap(), expected);
-    drop(reopened);
-    fs::remove_dir_all(directory).unwrap();
-}
-
-#[test]
-fn historical_v9_refuses_outcome_fields_even_null_and_does_not_guess_entry_choices() {
-    let source = completed_archive();
-    let value: serde_json::Value = serde_json::from_slice(&v9_bytes(&source)).unwrap();
-    for outcome in [
-        serde_json::Value::Null,
-        serde_json::json!({"kind":"historical_unrecorded"}),
-        serde_json::json!({"kind":"recorded","custody_released":false,
-            "recovered_mind_secured":false,"captives_evacuated":false}),
-    ] {
-        let mut forged = value.clone();
-        forged["m08_outcome"] = outcome;
-        assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), HASHES),
-            RunProbe::Corrupt
-        ));
-    }
-    let mut entry = super::m07_tests::completed_port()
-        .promote_next(MissionId::DeclaredGoods, HASHES[6])
-        .unwrap();
-    entry.step = SavedStep::AwaitingMission {
-        completed_mission: MissionId::DeclaredGoods,
-        next_mission: "custodian_of_record".into(),
-        exit: super::m07_tests::exit(true),
-    };
-    let entry = entry
-        .promote_next(MissionId::CustodianOfRecord, HASHES[7])
-        .unwrap();
-    let RunProbe::Compatible(upgraded) = RunStore::inspect_bytes(&v9_bytes(&entry), HASHES) else {
-        panic!("valid v9 M08 entry refused")
-    };
-    assert_eq!(*upgraded, entry);
-    assert!(
-        upgraded.m08_outcome.is_none(),
-        "an unfinished M08 has no outcome"
-    );
 }
 
 #[test]
@@ -294,7 +105,7 @@ fn current_custody_outcomes_require_release_and_refuse_extra_or_missing_facts() 
         for recovered_mind_secured in [false, true] {
             for captives_evacuated in [false, true] {
                 let mut candidate = document.clone();
-                candidate.m08_outcome = Some(M08Outcome::Recorded {
+                candidate.m08_outcome = Some(M08Outcome {
                     custody_released,
                     recovered_mind_secured,
                     captives_evacuated,
@@ -307,10 +118,13 @@ fn current_custody_outcomes_require_release_and_refuse_extra_or_missing_facts() 
         }
     }
     for malformed in [
+        serde_json::Value::Null,
+        serde_json::json!({"kind":"historical_unrecorded"}),
         serde_json::json!({"kind":"historical_unrecorded","custody_released":false}),
-        serde_json::json!({"kind":"historical_unrecorded","historical_version":9}),
-        serde_json::json!({"kind":"recorded","custody_released":true,"recovered_mind_secured":true}),
         serde_json::json!({"kind":"recorded","custody_released":true,"recovered_mind_secured":true,
+            "captives_evacuated":true}),
+        serde_json::json!({"custody_released":true,"recovered_mind_secured":true}),
+        serde_json::json!({"custody_released":true,"recovered_mind_secured":true,
             "captives_evacuated":true,"mind_restored":true}),
     ] {
         let mut value = serde_json::to_value(&document).unwrap();
@@ -324,7 +138,7 @@ fn current_custody_outcomes_require_release_and_refuse_extra_or_missing_facts() 
     missing.m08_outcome = None;
     assert!(missing.validate(HASHES[7]).is_err());
     let mut premature = RunDocument::new(document.id, document.rules, HASHES[0]);
-    premature.m08_outcome = Some(M08Outcome::HistoricalUnrecorded {});
+    premature.m08_outcome = document.m08_outcome.clone();
     assert!(premature.validate(HASHES[0]).is_err());
 }
 
@@ -357,8 +171,8 @@ fn m09_promotion_carries_finite_exit_and_never_refills_episode_two() {
         .promote_next(MissionId::PortOfEntry, HASHES[5])
         .is_err());
     assert!(matches!(
-        RunStore::inspect_bytes(&v9_bytes(&entry), HASHES),
-        RunProbe::Incompatible
+        RunStore::inspect_bytes(&serde_json::to_vec(&entry).unwrap(), HASHES),
+        RunProbe::Compatible(_)
     ));
 }
 
@@ -443,7 +257,7 @@ fn m09_low_resource_carry_stays_safe_until_real_loading_crossing_after_tack_pick
 }
 
 #[test]
-fn m09_historical_unknown_survives_actual_retry_and_newer_inventory_revisions() {
+fn m09_carried_custody_survives_actual_retry_and_newer_inventory_revisions() {
     use crate::maps::{AuthoredSource, RuntimeMap};
     use crate::protocol::{Action, MissionContinue, MissionReady, Role};
     use crate::sim::GameState;
@@ -452,10 +266,7 @@ fn m09_historical_unknown_survives_actual_retry_and_newer_inventory_revisions() 
         .unwrap();
     let hash = RuntimeMap::Authored(map.clone()).content_sha256().unwrap();
     let source = completed_archive();
-    let RunProbe::Compatible(upgraded) = RunStore::inspect_bytes(&v9_bytes(&source), HASHES) else {
-        panic!("strict v9 completion")
-    };
-    let saved = upgraded
+    let saved = source
         .promote_next(MissionId::PassengerManifest, hash)
         .unwrap();
     let anchor = match &saved.step {
@@ -496,10 +307,7 @@ fn m09_historical_unknown_survives_actual_retry_and_newer_inventory_revisions() 
     player.hp = 0;
     game.update_campaign_run();
     let pending = game.campaign_run_document().unwrap().unwrap();
-    assert_eq!(
-        pending.m08_outcome,
-        Some(M08Outcome::HistoricalUnrecorded {})
-    );
+    assert_eq!(pending.m08_outcome, source.m08_outcome);
     assert!(matches!(&pending.step,SavedStep::PendingContinue{entry,..} if *entry==anchor));
     let mut reopened = GameState::with_authored_map(map);
     reopened.load_campaign_run(&pending).unwrap();
@@ -515,7 +323,7 @@ fn m09_historical_unknown_survives_actual_retry_and_newer_inventory_revisions() 
         ));
         assert_eq!(
             state.mission_state().unwrap().m09.unwrap().carried_archive,
-            Some(M08Outcome::HistoricalUnrecorded {})
+            source.m08_outcome
         );
         let player = state.players.iter().find(|p| p.id == owner).unwrap();
         assert_eq!(
@@ -714,7 +522,7 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                 }
                 let boarding = game.map.m09_geometry().unwrap().boarding;
                 let document = game.campaign_run_document().unwrap().unwrap();
-                let expected = crate::mission::run_file::M09Outcome::Recorded {
+                let expected = crate::mission::run_file::M09Outcome {
                     released_crew: crew.iter().map(|c| c.id.clone()).collect(),
                     aboard_at_departure: crew
                         .iter()
@@ -757,18 +565,6 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                 assert!(
                     game.campaign_run_document().is_err(),
                     "a fabricated native completion without its actual receipt must refuse"
-                );
-                game.mission
-                    .as_mut()
-                    .unwrap()
-                    .m09
-                    .as_mut()
-                    .unwrap()
-                    .departure_outcome =
-                    Some(crate::mission::run_file::M09Outcome::HistoricalUnrecorded {});
-                assert!(
-                    game.campaign_run_document().is_err(),
-                    "historical unknown cannot substitute for a new actual departure"
                 );
                 game.mission
                     .as_mut()

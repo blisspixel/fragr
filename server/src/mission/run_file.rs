@@ -1,22 +1,14 @@
-//! Versioned solo-run document. Disk transport is local-only and separate.
+//! The solo campaign run document: one schema, validated on every read and
+//! write. Disk transport is local-only and lives in `store`.
 use crate::inventory::{Inventory, SavedEquipment};
 use crate::protocol::{
-    AmmoCount, AmmoPool, BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId,
-    WeaponType, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
+    AmmoPool, BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType,
+    CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
 };
 use crate::sim::{GameState, Player, PLAYER_MAX_ARMOR, PLAYER_MAX_HP};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-mod geometry;
-mod legacy;
-mod legacy_v14;
-mod legacy_v16;
-mod legacy_v17;
-mod legacy_v18;
-mod legacy_v19;
-mod legacy_v20;
-mod legacy_v21;
 mod m09_outcome;
 mod m11_outcome;
 mod m12_outcome;
@@ -27,11 +19,6 @@ mod m16_outcome;
 mod m17_outcome;
 pub(crate) mod m18_outcome;
 pub(crate) mod store;
-use legacy::{
-    RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2, RunDocumentV3,
-    RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
-};
-use legacy_v14::RunDocumentV14;
 pub(crate) use m09_outcome::M09Outcome;
 pub(crate) use m11_outcome::M11Outcome;
 pub(crate) use m12_outcome::M12Outcome;
@@ -42,10 +29,11 @@ pub(crate) use m16_outcome::M16Outcome;
 pub(crate) use m17_outcome::M17Outcome;
 pub(crate) use m18_outcome::M18Outcome;
 
-/// Version 22 connects All Systems Normal and retains actual recovery receipts.
-/// Historical documents retain exact original-byte archives before upgrade.
-pub(super) const RUN_FILE_VERSION: u32 = 22;
-const PRE_ASSESSOR_RULES_REVISION: u32 = 3;
+/// The only run-file schema this build reads or writes. There is no migration:
+/// a document with any other version is refused as incompatible and the player
+/// starts a new run. Bump this on any change to the serialized shape and never
+/// reuse an earlier number, so a stale file can never be mistaken for current.
+pub(super) const RUN_FILE_VERSION: u32 = 23;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -219,6 +207,16 @@ pub(crate) enum SavedStep {
     },
 }
 
+/// Carried outcomes are absent until their mission completes. A present field
+/// must hold a real value: `null` is refused rather than read as absent.
+fn present<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    T::deserialize(deserializer).map(Some)
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct RunDocument {
@@ -231,65 +229,93 @@ pub(crate) struct RunDocument {
     pub rules: CampaignRules,
     pub content_sha256: [u8; 32],
     pub step: SavedStep,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m03_outcome: Option<M03Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m04_outcome: Option<M04Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m05_outcome: Option<M05Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m06_outcome: Option<M06Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m08_outcome: Option<M08Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m09_outcome: Option<M09Outcome>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub m10_transit: Option<crate::protocol::M10Transit>,
     #[serde(
         default,
-        deserialize_with = "m11_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m11_outcome: Option<M11Outcome>,
     #[serde(
         default,
-        deserialize_with = "m12_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m12_outcome: Option<M12Outcome>,
     #[serde(
         default,
-        deserialize_with = "m13_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m13_outcome: Option<M13Outcome>,
     #[serde(
         default,
-        deserialize_with = "m14_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m14_outcome: Option<M14Outcome>,
     #[serde(
         default,
-        deserialize_with = "m15_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m15_outcome: Option<M15Outcome>,
     #[serde(
         default,
-        deserialize_with = "m16_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m16_outcome: Option<M16Outcome>,
     #[serde(
         default,
-        deserialize_with = "m17_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m17_outcome: Option<M17Outcome>,
     #[serde(
         default,
-        deserialize_with = "m18_outcome::present",
+        deserialize_with = "present",
         skip_serializing_if = "Option::is_none"
     )]
     pub m18_outcome: Option<M18Outcome>,
@@ -389,22 +415,13 @@ impl RunDocument {
             promoted.level_start_continues = CAMPAIGN_CONTINUES;
         }
         if mission == MissionId::CommonCarrier {
-            promoted.m10_transit = Some(
-                match self
-                    .m09_outcome
-                    .as_ref()
-                    .ok_or("M10 promotion requires the berth receipt")?
-                {
-                    M09Outcome::Recorded { released_crew, .. } => {
-                        crate::protocol::M10Transit::Recorded {
-                            arrived_crew: released_crew.clone(),
-                        }
-                    }
-                    M09Outcome::HistoricalUnrecorded {} => {
-                        crate::protocol::M10Transit::HistoricalUnrecorded {}
-                    }
-                },
-            );
+            let berth = self
+                .m09_outcome
+                .as_ref()
+                .ok_or("M10 promotion requires the berth receipt")?;
+            promoted.m10_transit = Some(crate::protocol::M10Transit::Recorded {
+                arrived_crew: berth.released_crew.clone(),
+            });
         }
         promoted.step = SavedStep::MissionEntry { mission, entry };
         promoted.validate(content_hash)?;
@@ -440,33 +457,6 @@ impl RunDocument {
             m17_outcome: None,
             m18_outcome: None,
         }
-    }
-
-    /// Historical equipment gains a zero Rockets count exactly once. A forged
-    /// launcher or a Rockets pool, including zero, is refused. Current
-    /// documents do not call this: a missing pool still fails validation.
-    pub(super) fn migrate_historical_rockets(&mut self) -> Result<(), &'static str> {
-        let equipment = match &mut self.step {
-            SavedStep::MissionEntry { entry, .. }
-            | SavedStep::PendingContinue { entry, .. }
-            | SavedStep::Failed { entry, .. }
-            | SavedStep::Abandoned { entry, .. } => &mut entry.equipment,
-            SavedStep::AwaitingMission { exit, .. } => &mut exit.equipment,
-        };
-        if equipment.selected == WeaponType::Rocket
-            || equipment.weapons.contains(&WeaponType::Rocket)
-            || equipment
-                .ammo
-                .iter()
-                .any(|count| count.pool == AmmoPool::Rockets)
-        {
-            return Err("historical saves cannot carry the Rocket Launcher");
-        }
-        equipment.ammo.push(AmmoCount {
-            pool: AmmoPool::Rockets,
-            rounds: 0,
-        });
-        Ok(())
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
@@ -623,15 +613,11 @@ impl RunDocument {
         }
         if let Some(transit) = &self.m10_transit {
             transit.validate()?;
-            if !matches!((&self.m09_outcome, transit), (Some(M09Outcome::Recorded {released_crew,..}), crate::protocol::M10Transit::Recorded {arrived_crew}) if released_crew == arrived_crew)
-                && !matches!(
-                    (&self.m09_outcome, transit),
-                    (
-                        Some(M09Outcome::HistoricalUnrecorded {}),
-                        crate::protocol::M10Transit::HistoricalUnrecorded {}
-                    )
-                )
-            {
+            if !matches!(
+                (&self.m09_outcome, transit),
+                (Some(berth), crate::protocol::M10Transit::Recorded { arrived_crew })
+                    if berth.released_crew == *arrived_crew
+            ) {
                 return Err("saved M10 arrivals disagree with the immutable berth release");
             }
         }
@@ -1252,7 +1238,7 @@ impl GameState {
                 && mission == MissionId::CustodianOfRecord
             {
                 let progress = run.m08.as_ref().ok_or("completed M08 lacks progress")?;
-                Some(M08Outcome::Recorded {
+                Some(M08Outcome {
                     custody_released: progress.custody_released,
                     recovered_mind_secured: progress.recovered_mind_secured,
                     captives_evacuated: progress.captives_evacuated,
@@ -1281,7 +1267,6 @@ impl GameState {
                     run.m09
                         .as_ref()
                         .and_then(|p| p.departure_outcome.clone())
-                        .filter(|outcome| matches!(outcome, M09Outcome::Recorded { .. }))
                         .ok_or("completed M09 lacks its actual departure receipt")?,
                 )
             } else if matches!(
@@ -1479,82 +1464,6 @@ impl GameState {
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
-    }
-}
-
-#[cfg(test)]
-pub(super) fn historical_value(document: &RunDocument) -> serde_json::Value {
-    let mut value = serde_json::to_value(document).unwrap();
-    remove_historical_grenades(&mut value);
-    value
-}
-
-#[cfg(test)]
-pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
-    remove_historical_mines(value);
-    for entry_key in ["entry", "exit"] {
-        if let Some(equipment) = value
-            .get_mut("step")
-            .and_then(|step| step.get_mut(entry_key))
-            .and_then(|entry| entry.get_mut("equipment"))
-            .and_then(serde_json::Value::as_object_mut)
-        {
-            assert_eq!(
-                equipment
-                    .get("grenades")
-                    .and_then(serde_json::Value::as_u64),
-                Some(0)
-            );
-            equipment.remove("grenades");
-        }
-    }
-}
-
-/// Historical bytes predate the Rockets pool. A zero count is the current
-/// serializer's empty pool, so fixture downgrades omit it and the upgrade
-/// assigns zero once. A nonzero count stays, and migration still refuses it.
-#[cfg(test)]
-pub(super) fn omit_historical_rockets(value: &mut serde_json::Value) {
-    for entry_key in ["entry", "exit"] {
-        let Some(ammo) = value
-            .get_mut("step")
-            .and_then(|step| step.get_mut(entry_key))
-            .and_then(|entry| entry.get_mut("equipment"))
-            .and_then(|equipment| equipment.get_mut("ammo"))
-            .and_then(serde_json::Value::as_array_mut)
-        else {
-            continue;
-        };
-        let forged = ammo.iter().any(|count| {
-            count.get("pool").and_then(serde_json::Value::as_str) == Some("rockets")
-                && count.get("rounds").and_then(serde_json::Value::as_u64) != Some(0)
-        });
-        if !forged {
-            ammo.retain(|count| {
-                count.get("pool").and_then(serde_json::Value::as_str) != Some("rockets")
-            });
-        }
-    }
-}
-
-#[cfg(test)]
-pub(super) fn remove_historical_mines(value: &mut serde_json::Value) {
-    omit_historical_rockets(value);
-    for entry_key in ["entry", "exit"] {
-        if let Some(equipment) = value
-            .get_mut("step")
-            .and_then(|step| step.get_mut(entry_key))
-            .and_then(|entry| entry.get_mut("equipment"))
-            .and_then(serde_json::Value::as_object_mut)
-        {
-            assert_eq!(
-                equipment
-                    .get("proximity_mines")
-                    .and_then(serde_json::Value::as_u64),
-                Some(0)
-            );
-            equipment.remove("proximity_mines");
-        }
     }
 }
 
@@ -2153,36 +2062,6 @@ mod tests {
         assert!(entry.validate([5; 32]).is_err());
     }
 
-    #[test]
-    fn released_version_three_upgrades_m02_without_inventing_m03_outcomes() {
-        let mut saved = document();
-        saved.version = 3;
-        saved.rules.revision = 2;
-        saved.remaining_continues = 2;
-        saved.body = Some(BodyKind::Synthetic);
-        saved.step = SavedStep::AwaitingMission {
-            completed_mission: MissionId::PersonsUnknown,
-            next_mission: M03_MISSION.into(),
-            exit: SavedEntry::initial(),
-        };
-        let value = historical_value(&saved);
-        let legacy: RunDocumentV3 = serde_json::from_value(value.clone()).unwrap();
-        let upgraded = legacy.upgrade([7; 32], [5; 32]).unwrap();
-        assert_eq!(upgraded.version, RUN_FILE_VERSION);
-        assert_eq!(
-            (upgraded.id, upgraded.body, upgraded.step.clone()),
-            (saved.id, saved.body, saved.step)
-        );
-        assert!(upgraded.m03_outcome.is_none());
-        assert!(serde_json::from_value::<RunDocumentV3>(value.clone())
-            .unwrap()
-            .upgrade([5; 32], [7; 32])
-            .is_err());
-        let mut forged = value;
-        forged["m03_outcome"] = serde_json::json!({"liberated_cars":[]});
-        assert!(serde_json::from_value::<RunDocumentV3>(forged).is_err());
-    }
-
     pub(super) fn completed_market_document() -> RunDocument {
         let mut saved = document();
         saved.content_sha256 = [11; 32];
@@ -2218,20 +2097,9 @@ mod tests {
     }
 
     #[test]
-    fn historical_v5_upgrades_exact_market_carry_with_no_invented_grenades() {
-        let mut saved = completed_market_document();
-        saved.version = 5;
-        saved.rules.revision = 3;
-        let value = historical_value(&saved);
-        let old: RunDocumentV5 = serde_json::from_value(value.clone()).unwrap();
-        let upgraded = old.upgrade([[5; 32], [7; 32], [9; 32], [11; 32]]).unwrap();
-        assert_eq!(upgraded.version, RUN_FILE_VERSION);
-        assert_eq!(upgraded.step, saved.step);
-        assert_eq!(
-            (upgraded.id, upgraded.body, upgraded.remaining_continues),
-            (saved.id, saved.body, 1)
-        );
-        let carried = upgraded
+    fn completed_market_promotes_exact_carry_into_m05_without_refill() {
+        let saved = completed_market_document();
+        let carried = saved
             .promote_next(MissionId::NoForwardingAddress, [12; 32])
             .unwrap();
         let SavedStep::MissionEntry { mission, entry } = &carried.step else {
@@ -2257,8 +2125,8 @@ mod tests {
                 .collect::<Vec<_>>(),
             [29, 8, 0, 0]
         );
-        assert_eq!(carried.m03_outcome, upgraded.m03_outcome);
-        assert_eq!(carried.m04_outcome, upgraded.m04_outcome);
+        assert_eq!(carried.m03_outcome, saved.m03_outcome);
+        assert_eq!(carried.m04_outcome, saved.m04_outcome);
         assert_eq!(
             (
                 carried.level_start_continues,
@@ -2267,25 +2135,18 @@ mod tests {
             ),
             (1, 1, 1)
         );
-        let mut forged = value.clone();
-        forged["step"]["exit"]["equipment"]["grenades"] = 0.into();
-        assert!(serde_json::from_value::<RunDocumentV5>(forged).is_err());
-        let mut forged = value.clone();
-        forged["step"]["completed_mission"] = M05_MISSION.into();
-        assert!(serde_json::from_value::<RunDocumentV5>(forged)
-            .unwrap()
-            .upgrade([[11; 32]; 4])
+        // Promotion only accepts the mission the saved edge names, and the
+        // promoted document is bound to that mission's content.
+        assert!(saved
+            .promote_next(MissionId::PortOfEntry, [12; 32])
             .is_err());
-        let mut forged = value.clone();
-        forged["rules"]["revision"] = 2.into();
-        assert!(serde_json::from_value::<RunDocumentV5>(forged)
-            .unwrap()
-            .upgrade([[11; 32]; 4])
-            .is_err());
-        let mut forged = value;
-        forged["m05_outcome"] =
-            serde_json::json!({"released_workers": [], "evacuated_workers": []});
-        assert!(serde_json::from_value::<RunDocumentV5>(forged).is_err());
+        assert!(carried.validate([11; 32]).is_err());
+        let mut forged = saved.clone();
+        forged.m05_outcome = Some(M05Outcome {
+            released_workers: vec![],
+            evacuated_workers: vec![],
+        });
+        assert!(forged.validate([11; 32]).is_err());
     }
 
     #[test]
@@ -2704,30 +2565,6 @@ mod tests {
         completed.m04_outcome.as_mut().unwrap().rescued_patients =
             vec!["edda".into(), "edda".into()];
         assert!(completed.validate([6; 32]).is_err());
-    }
-
-    #[test]
-    fn historical_v4_rejects_forged_rules_and_m04_before_upgrade() {
-        let mut value = historical_value(&document());
-        value["version"] = 4.into();
-        value["rules"]["revision"] = 2.into();
-        let legacy: RunDocumentV4 = serde_json::from_value(value.clone()).unwrap();
-        let upgraded = legacy.upgrade([[5; 32]; 3]).unwrap();
-        assert_eq!(upgraded.rules.revision, CAMPAIGN_RULES_REVISION);
-        assert!(upgraded.m03_outcome.is_none() && upgraded.m04_outcome.is_none());
-        value["rules"]["revision"] = 1.into();
-        assert!(serde_json::from_value::<RunDocumentV4>(value.clone())
-            .unwrap()
-            .upgrade([[5; 32]; 3])
-            .is_err());
-        value["rules"]["revision"] = 2.into();
-        value["step"]["mission"] = "notice_to_vacate".into();
-        assert!(serde_json::from_value::<RunDocumentV4>(value.clone())
-            .unwrap()
-            .upgrade([[5; 32]; 3])
-            .is_err());
-        value["m04_outcome"] = serde_json::json!({"rescued_patients":[],"photos_completed":0});
-        assert!(serde_json::from_value::<RunDocumentV4>(value).is_err());
     }
 
     #[test]
