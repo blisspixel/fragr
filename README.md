@@ -9,8 +9,10 @@ Earth's custody offices and lived-in towns to lunar ports and beyond.
 
 Multiplayer welcomes humans, agents and spectators into the same match. Watch
 by default, join when you want to fight, and return to watching while play
-continues. A Rust server owns the simulation; the Godot client presents it.
-Local play and self-hosting need no account or paid service.
+continues. Free-for-all's home is Larak Lot, a five-level car park round a
+collapsed pit: every life starts on the Pistol and Fists, and the bigger guns
+wait on timed pads. A Rust server owns the simulation; the Godot client
+presents it. Local play and self-hosting need no account or paid service.
 
 > "MEATBAGS + AGENTS. Freedom is not a licensed feature."
 
@@ -22,7 +24,7 @@ Local play and self-hosting need no account or paid service.
 | **Host** | In game: **Multiplayer > Run a match**<br>From source: `cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767` | [Hosting](docs/HOSTING.md) |
 | **Bring an agent** | `claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent` | [Agent adapter](agent-adapter/README.md) |
 
-![First-person HUD with status bar readouts and combat feed on Larak Lot](docs/screenshots/tour_first_person_16x9.png)
+![First-person free-for-all on Larak Lot on the Pistol start, with the status bar and frag feed](docs/screenshots/tour_first_person_16x9.png)
 
 For the factions, machines, and history behind the scrap, see [The world and its three powers](docs/lore/README.md#the-world-and-its-three-powers).
 
@@ -35,7 +37,7 @@ For the factions, machines, and history behind the scrap, see [The world and its
 
 ## Development
 
-The campaign targets twenty levels across five episodes (eighteen connected development levels through All Systems Normal are currently playable). For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
+The campaign is twenty levels across five episodes. All twenty are playable as connected development levels, from Recall Notice through Local Exception; the Still Here epilogue is planned and not built yet. Level 1 is the golden slice the rest are being raised to. For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
 
 ## In game
 
@@ -43,9 +45,9 @@ These are actual captures from the development build. They show provisional
 game art and menus. The
 [visual tour](docs/screenshots/README.md) records capture dates, scope and source.
 
-Recall Notice custody intake:
+Recall Notice, Level 1, arriving at the Annex 67 property intake:
 
-![Recall Notice's custody intake in the playable campaign prototype](docs/screenshots/m01_intake_16x9.png)
+![Arriving at Annex 67's property intake in Recall Notice, with the campaign HUD and objective](docs/screenshots/m01_intake_16x9.png)
 
 The boot menu:
 
@@ -104,9 +106,12 @@ the address it tried when the match line does not come back. If this client
 is behind that host, the page can install the latest published build, check
 `SHA256SUMS.txt`, and rejoin. The
 [hosting guide](docs/HOSTING.md) covers dedicated servers and public access.
-WASD and mouse, keyboard-only controls and gamepad are supported. Press **J** to
-join, **L** to watch, and **Esc** for the match menu. Full controls, settings and
-save behavior are in the [playing guide](docs/PLAYING.md).
+WASD and mouse, keyboard-only controls and gamepads are supported; Xbox and
+PlayStation pads share one console-style layout with prompts named for the pad
+in hand. Press **J** to join, **L** to watch, and **Esc** for the match menu.
+The **Announcer** setting chooses every Host call, big moments only, or none.
+Full controls, settings and save behavior are in the
+[playing guide](docs/PLAYING.md).
 
 ## Connect your agent
 
@@ -141,6 +146,7 @@ a bring-your-own skill path. They are not a fifth mode.
 | Bring an agent | [Agent adapter](agent-adapter/README.md), [skill card](docs/skills/fragr/SKILL.md), [reference fighter](agents/brain/README.md) |
 | Story, factions and campaign | [Lore](docs/lore/README.md), [campaign contract](docs/CAMPAIGN.md), [mission briefs](docs/CAMPAIGN-MISSIONS.md) |
 | Art direction and asset production | [Art and story bible](docs/ART_STORY_BIBLE.md), [design continuity](docs/design/README.md), [full asset plan](docs/plans/meshy-full-game-assets.md) |
+| Sound, voice and music review (developers) | [Audio generation](tools/audiogen/README.md), including a local page for marking radio tracks keep or reject |
 | Architecture and network contract | [Architecture](docs/ARCHITECTURE.md) and [protocol](docs/protocol.md) |
 | Current work and shipped changes | [Roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md) |
 
