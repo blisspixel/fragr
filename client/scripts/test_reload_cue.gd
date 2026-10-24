@@ -44,6 +44,9 @@ class HudProbe extends Node:
 		pass
 
 var _failures: int = 0
+## Reload playbacks started through the real manager, released before exit.
+var _voices: Array[WeakRef] = []
+const RELEASE_DEADLINE_MS: int = 5000
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -250,7 +253,7 @@ func _check_manager_wiring() -> void:
 	_check(manager.reload_sound != null and manager.reload_start_stream != null and manager.reload_complete_stream != null and manager.reload_sound.bus == &"Effects", "reload audio reuses the committed handling sounds on the Effects bus")
 	var partial: Dictionary = _loadout("flechette", 4, 100)
 	network.equipment = partial
-	manager._on_loadout_received(partial)
+	_deliver(manager, partial)
 	_check(manager._reload_context_live and hud.equipment_hud.reload.phase == ReloadCue.Phase.IDLE, "the live fighter's first loadout is observed silently")
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_R
@@ -271,16 +274,16 @@ func _check_manager_wiring() -> void:
 	_check(not network.sent.back().has("reload") and not manager._reload_sent_down, "releasing R clears the sent edge")
 	var accepted: Dictionary = _loadout("flechette", 4, 101, 123)
 	network.equipment = accepted
-	manager._on_loadout_received(accepted)
+	_deliver(manager, accepted)
 	_check(manager.reload_start_cue_count == 1 and manager.reload_sound.stream == manager.reload_start_stream and is_equal_approx(manager.reload_sound.pitch_scale, manager.RELOAD_START_PITCH), "acceptance plays one start sound")
 	_check(hud.equipment_hud.reload.last_accept_to_cue_usec >= 0, "accept-to-cue is recorded for the live path")
-	manager._on_loadout_received(accepted)
-	manager._on_loadout_received(accepted)
+	_deliver(manager, accepted)
+	_deliver(manager, accepted)
 	_check(manager.reload_start_cue_count == 1, "repeated loadouts never replay the start")
 	var filled: Dictionary = _loadout("flechette", 20, 123)
 	network.equipment = filled
-	manager._on_loadout_received(filled)
-	manager._on_loadout_received(filled)
+	_deliver(manager, filled)
+	_deliver(manager, filled)
 	_check(manager.reload_complete_cue_count == 1 and manager.reload_sound.stream == manager.reload_complete_stream, "the filled magazine plays one completion sound")
 	# A full gun: the edge still goes out, the corner says FULL, no sound.
 	manager.reload_armed = true
@@ -294,13 +297,13 @@ func _check_manager_wiring() -> void:
 	var second: Dictionary = _loadout("flechette", 2, 200, 222)
 	hud.equipment_hud.reload.reset()
 	network.equipment = second
-	manager._on_loadout_received(second)
+	_deliver(manager, second)
 	pawn.hp = 0
 	manager._refresh_equipment_visibility()
 	_check(not manager._reload_context_live and hud.equipment_hud.reload.phase == ReloadCue.Phase.IDLE, "death clears the reload presentation")
 	var after_death: Dictionary = _loadout("flechette", 20, 222)
 	network.equipment = after_death
-	manager._on_loadout_received(after_death)
+	_deliver(manager, after_death)
 	_check(manager.reload_complete_cue_count == 1 and manager.reload_start_cue_count == 1, "no late completion is heard while dead")
 	pawn.hp = 100
 	manager._refresh_equipment_visibility()
@@ -308,14 +311,14 @@ func _check_manager_wiring() -> void:
 	# Vehicle seat: the server may finish the reload; the seat hears nothing.
 	var third: Dictionary = _loadout("flechette", 1, 300)
 	network.equipment = third
-	manager._on_loadout_received(third)
+	_deliver(manager, third)
 	manager.reload_armed = true
 	manager._input(key)
 	manager._last_action_usec = -1000000000
 	_send(manager)
 	var third_accept: Dictionary = _loadout("flechette", 1, 301, 323)
 	network.equipment = third_accept
-	manager._on_loadout_received(third_accept)
+	_deliver(manager, third_accept)
 	_check(manager.reload_start_cue_count == 2, "a new life's reload starts once")
 	manager.latest_snapshot = {"tick": 305, "vehicles": [{"id": 1, "kind": "jeep", "driver": null, "gunner": "self"}]}
 	_check(manager._vehicle_seat() == "gunner", "vehicle fixture seats the local fighter")
@@ -323,7 +326,7 @@ func _check_manager_wiring() -> void:
 	_check(not manager._reload_context_live and hud.equipment_hud.reload.phase == ReloadCue.Phase.IDLE, "a vehicle seat clears the reload presentation")
 	var seated_finish: Dictionary = _loadout("flechette", 20, 323)
 	network.equipment = seated_finish
-	manager._on_loadout_received(seated_finish)
+	_deliver(manager, seated_finish)
 	_check(manager.reload_complete_cue_count == 1, "a reload finished in the seat is silent")
 	manager.latest_snapshot = {}
 	# Disconnect clears everything at once.
@@ -333,9 +336,14 @@ func _check_manager_wiring() -> void:
 	_check(not manager._reload_context_live and hud.equipment_hud.reload.phase == ReloadCue.Phase.IDLE and not manager._reload_sent_down, "disconnect and map change drop the cue")
 	manager.reload_sound.stop()
 	manager.reload_sound.stream = null
-	# The audio server releases finished playbacks on its own frames.
-	for frame: int in range(8):
+	# The audio server releases stopped playbacks on its own mix thread, which
+	# a loaded machine can delay well past a fixed frame count. Wait on the
+	# actual playbacks, bounded, as ClientRetirement does at exit.
+	var release_by: int = Time.get_ticks_msec() + RELEASE_DEADLINE_MS
+	while not _voices_released() and Time.get_ticks_msec() < release_by:
 		await process_frame
+	_check(_voices_released(), "every reload playback is released before exit")
+	_voices.clear()
 	manager.reload_sound.free()
 	manager.free()
 	hud.free()
@@ -343,6 +351,23 @@ func _check_manager_wiring() -> void:
 	camera.free()
 	network.free()
 	await process_frame
+
+## Deliver one private loadout and remember any reload voice it started.
+func _deliver(manager: Node, loadout: Dictionary) -> void:
+	manager._on_loadout_received(loadout)
+	var player: AudioStreamPlayer = manager.reload_sound
+	if player != null and player.has_stream_playback():
+		var playback: AudioStreamPlayback = player.get_stream_playback()
+		for reference: WeakRef in _voices:
+			if reference.get_ref() == playback:
+				return
+		_voices.append(weakref(playback))
+
+func _voices_released() -> bool:
+	for reference: WeakRef in _voices:
+		if reference.get_ref() != null:
+			return false
+	return true
 
 func _send(manager: Node) -> void:
 	_check(manager._send_local_action(Time.get_ticks_usec()), "the paced action actually went out")
