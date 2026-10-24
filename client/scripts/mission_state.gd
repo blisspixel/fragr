@@ -18,6 +18,7 @@ const M15_ID: String = "civic_pressure_valve"
 const M16_ID: String = "freedom_of_movement"
 const M17_ID: String = "peace_without_interruption"
 const M18_ID: String = "all_systems_normal"
+const M19_ID: String = "planned_works"
 const M12_ID: String = "terms_of_cooperation"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
@@ -26,7 +27,7 @@ const RULES_REVISION: int = 4
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
-const ORDERED_IDS: Array[String] = [M03_ID, M04_ID, M05_ID, M06_ID, M07_ID, M08_ID, M09_ID, M10_ID, M11_ID, M12_ID, M13_ID, M14_ID, M15_ID, M16_ID, M17_ID, M18_ID]
+const ORDERED_IDS: Array[String] = [M03_ID, M04_ID, M05_ID, M06_ID, M07_ID, M08_ID, M09_ID, M10_ID, M11_ID, M12_ID, M13_ID, M14_ID, M15_ID, M16_ID, M17_ID, M18_ID, M19_ID]
 
 ## Identity of an already validated MapInfo. Shared by entry and live controls.
 static func id_for_map(info: Dictionary) -> String:
@@ -119,6 +120,8 @@ static func late_contract_error(message: Dictionary, geometry: Dictionary, previ
 	return ""
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("m19"):
+		return M19MissionState.map_error(info)
 	if info.has("m18"):
 		return M18MissionState.map_error(info)
 	if info.has("m17"):
@@ -193,6 +196,8 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == M19_ID or (claimed is Dictionary and claimed.get("id") == M19_ID):
+		return M19MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M18_ID or (claimed is Dictionary and claimed.get("id") == M18_ID):
 		return M18MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M17_ID or (claimed is Dictionary and claimed.get("id") == M17_ID):
@@ -357,6 +362,8 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("m19"):
+		return M19MissionState.geometry_for(info)
 	if info.has("m18"):
 		return M18MissionState.geometry_for(info)
 	if info.has("m17"):

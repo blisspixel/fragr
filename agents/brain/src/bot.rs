@@ -923,7 +923,7 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         carrier_defense.clear();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
@@ -972,6 +972,7 @@ pub async fn run_bot(
                         if let Err(error) = mission_client.replace_map_with_m12(m12.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M12 mission map: {error}")));break;}
                         if let Err(error) = mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M13 mission map: {error}")));break;}
                         if let Err(error) = mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M14 mission map: {error}")));break;}
+                        if let Err(error) = mission_client.replace_map_with_m19(m19.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M19 mission map: {error}")));break;}
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
                             fragr_server::navigation::Navigation::shared(arena)
@@ -1450,6 +1451,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -1512,6 +1514,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1656,6 +1659,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1721,12 +1725,13 @@ mod tests {
         let id = Uuid::from_u128(1);
         let mut mine = player("Brain", id, 0.0, 0.0, 100, "tack");
         mine.campaign = Some(CampaignActor::Participant {});
-        let union = Some(CampaignActor::Union {
+        let union = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let mut hidden = player("Hidden", Uuid::from_u128(2), 10.0, 0.0, 60, "tack");
         hidden.campaign = union;
@@ -1768,6 +1773,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
@@ -2039,6 +2045,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         };
         let mut epoch = DecisionEpoch::default();
         if DecisionEpoch::mission_changed(None, &mission) {

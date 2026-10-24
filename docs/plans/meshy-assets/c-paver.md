@@ -1,6 +1,6 @@
 # Paver
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Demand follows the roadmap and the relevant mission or map.
+Status: two candidates generated 2026-10-23 (`paver-20261023-v1`, `-v2`), not selected. Both are low four-legged sledges about 0.55 m tall and 1.9 m long, while the level 19 Paver fights in the ordinary 1.8 m fighter volume. Selection waits on a Paver-specific broad, low shot and contact volume (the Assessor precedent) or a candidate at the authored proportions; `PaverRig.MODEL_PATH` is the swap seam.
 Stable ID: `C-paver`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design

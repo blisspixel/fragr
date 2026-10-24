@@ -29,6 +29,51 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m19_objectives(&self) -> Option<&super::authored::m19::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m19.as_deref(),
+        }
+    }
+    pub fn m19_geometry(&self) -> Option<crate::protocol::M19MapGeometry> {
+        let mut geometry = self.m19_objectives()?.geometry.clone();
+        geometry.gate_open = self.m19_stage() >= 1;
+        Some(geometry)
+    }
+    /// 0 initial, 1 waterworks gate open.
+    pub fn m19_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m19.is_some() => map.m19_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m19_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m19.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            0 => {
+                selected.arena = prepared.initial.clone();
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.open.clone();
+                selected.navigation = prepared.open_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m19_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    /// Feet never rise above this under jetpack thrust on this map.
+    pub fn jetpack_ceiling(&self) -> f32 {
+        self.m19_objectives()
+            .map_or(crate::movement::jetpack::DEFAULT_CEILING, |prepared| {
+                prepared.geometry.jetpack_ceiling
+            })
+    }
     pub(crate) fn m18_objectives(&self) -> Option<&super::authored::m18::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -541,8 +586,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m18_geometry()
-            .map(|_| crate::protocol::MissionId::AllSystemsNormal)
+        self.m19_objectives()
+            .map(|_| crate::protocol::MissionId::PlannedWorks)
+            .or_else(|| {
+                self.m18_geometry()
+                    .map(|_| crate::protocol::MissionId::AllSystemsNormal)
+            })
             .or_else(|| {
                 self.m17_geometry()
                     .map(|_| crate::protocol::MissionId::PeaceWithoutInterruption)

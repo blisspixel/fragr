@@ -42,7 +42,7 @@ func apply(snapshot: Dictionary, listener_position: Vector3) -> int:
 	var played: int = 0
 	for index: int in range(mini(actors.size(), MAX_ACTORS)):
 		var actor: Variant = actors[index]
-		if not actor is Dictionary or not ActorState.is_union(actor) \
+		if not actor is Dictionary or not ActorState.is_hostile(actor) \
 				or actor["campaign"].get("kind") != "jammer" \
 				or typeof(actor.get("just_fired")) != TYPE_BOOL or not actor["just_fired"]:
 			continue

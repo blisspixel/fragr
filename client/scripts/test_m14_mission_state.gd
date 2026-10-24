@@ -153,7 +153,7 @@ func _run() -> void:
 	hud.apply(down["state"], PLAYER)
 	_check(hud._evac_badge.text == tr("M14_MACHINE_FALLEN") and hud._copy.text == tr("M14_OBJECTIVE_GANTRY_SECURED"), "fallen receipt and next destination remain separate readable cues")
 	hud.queue_free()
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M14_ID) == 49 and LocalMatch.NEXT_MISSION == "planned_works", "practice capability and pending boundary agree")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M14_ID) == 49 and LocalMatch.NEXT_MISSION == "local_exception", "practice capability and pending boundary agree")
 	_check(StoryScene.exists("m14_arrival") and StoryScene.AFTER_MISSION.get(MissionState.M14_ID) == "l14_l15", "arrival and departure retain shared story player")
 	await process_frame
 	if failures == 0:

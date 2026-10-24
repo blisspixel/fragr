@@ -65,6 +65,9 @@ static func validation_error(data: Dictionary, previous: Dictionary = {}) -> Str
 		return INVALID
 	if int(body["version"]) == FIGHTER and not _integer(body.get("dodge_cooldown"), MoveStep.DODGE_COOLDOWN_TICKS):
 		return INVALID
+	# A worn jetpack's fuel after this step, for replay. Absent without a pack.
+	if body.has("jet_fuel") and not _integer(body["jet_fuel"], JetMovement.FUEL_MAX):
+		return INVALID
 	if not bool(body["applied"]) and (float(body["vx"]) != 0.0 or float(body["vz"]) != 0.0 \
 			or float(body["effective_speed"]) != 0.0 or bool(body["jump_input"])):
 		return INVALID

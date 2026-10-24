@@ -491,12 +491,13 @@ fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
         p.campaign = Some(if p.id == agent {
             crate::protocol::CampaignActor::Participant {}
         } else {
-            crate::protocol::CampaignActor::Union {
+            crate::protocol::CampaignActor::Hostile {
                 kind: crate::protocol::EnemyKind::Clerk,
                 phase: crate::protocol::EnemyPhase::Idle,
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                control: crate::protocol::ControlDomain::Union,
             }
         });
     }

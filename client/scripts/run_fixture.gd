@@ -4,7 +4,7 @@ extends RefCounted
 ## The server reads and writes exactly one run-file version and refuses every
 ## other one, so fixtures are always written in the current shape.
 
-const VERSION: int = 23
+const VERSION: int = 24
 
 ## Every save is an atomic replace of run.json under run.lock. Nothing else,
 ## such as an archive, copy or temporary file, may remain afterwards.

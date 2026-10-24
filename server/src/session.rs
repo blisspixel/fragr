@@ -906,7 +906,7 @@ impl GameSession {
                 .is_some_and(|p| {
                     matches!(
                         p.campaign,
-                        Some(protocol::CampaignActor::Union {
+                        Some(protocol::CampaignActor::Hostile {
                             phase: protocol::EnemyPhase::Windup
                                 | protocol::EnemyPhase::Firing
                                 | protocol::EnemyPhase::Leaping

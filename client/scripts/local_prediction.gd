@@ -147,6 +147,8 @@ func configure_map(info: Dictionary) -> void:
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
 		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true), "water_regions": info.get("water_regions", []).duplicate(true)}
+		# A worn pack climbs only to the map's authored ceiling.
+		arena["jet_ceiling"] = float(info["m19"]["jetpack_ceiling"]) if info.get("m19") is Dictionary and M19MissionState.map_error(info).is_empty() else JetMovement.DEFAULT_CEILING
 
 
 func reset(reason: String, clear_measurements: bool = false) -> void:
@@ -212,13 +214,17 @@ static func newer_sequence(seq: int, before: int) -> bool:
 
 static func _body(ack: Dictionary) -> Dictionary:
 	var movement: Dictionary = ack["movement"]
-	return {
+	var body: Dictionary = {
 		"x": float(ack["x"]), "z": float(ack["z"]),
 		"y": float(movement["y"]) - FLOOR_OFFSET,
 		"vx": float(movement["vx"]), "vy": float(movement["vy"]),
 		"vz": float(movement["vz"]), "yaw": float(ack["yaw"]),
 		"dodge_cooldown": int(movement.get("dodge_cooldown", 0)),
 	}
+	# A worn pack replays from the acknowledged fuel after that same step.
+	if movement.has("jet_fuel"):
+		body["fuel"] = int(movement["jet_fuel"])
+	return body
 
 
 static func world_position(pose: Dictionary) -> Vector3:
@@ -687,7 +693,12 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 		input["dodge"] = fighter and cooldown == 0
 		if bool(input["dodge"]) and WaterMovement.dodge_applies(pose, input, world):
 			cooldown = MoveStep.DODGE_COOLDOWN_TICKS
-	var proposed: Dictionary = WaterMovement.step(pose, input, speed, live_dt, world, height, fighter)
+	var proposed: Dictionary
+	if pose.has("fuel"):
+		proposed = JetMovement.live_step(pose, input, speed, live_dt, world, height, int(pose["fuel"]),
+			float(world.get("jet_ceiling", JetMovement.DEFAULT_CEILING)), dt <= 0.0)
+	else:
+		proposed = WaterMovement.step(pose, input, speed, live_dt, world, height, fighter)
 	proposed["ducking"] = ducking
 	proposed["dodge_cooldown"] = cooldown
 	var reach: float = Vector2(float(proposed["x"]) - float(pose["x"]), float(proposed["z"]) - float(pose["z"])).length()
@@ -700,6 +711,9 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 	var accepted: Dictionary = ActorContact.resolve(bodies, live_dt, WaterMovement.supported_arena(world)).back()
 	accepted["ducking"] = ducking
 	accepted["dodge_cooldown"] = cooldown
+	for key: String in ["fuel", "thrusting"]:
+		if proposed.has(key):
+			accepted[key] = proposed[key]
 	if accepted["x"] != proposed["x"] or accepted["z"] != proposed["z"]:
 		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / live_dt
 		accepted["vz"] = (float(accepted["z"]) - float(pose["z"])) / live_dt

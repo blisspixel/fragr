@@ -242,6 +242,8 @@ static func preset_for(map_name: String) -> Preset:
 		return moon_archive()
 	if key.contains("declared goods"):
 		return moon_town()
+	if key.contains("planned works"):
+		return planned_works()
 	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
@@ -419,6 +421,28 @@ static func larak_lot() -> Preset:
 	preset.contrast = 1.1
 	preset.saturation = 1.0
 	preset.glow_intensity = 0.4
+	return preset
+
+## Low Water the night of the wipe. A cool moon key and a deep blue sky keep
+## silhouettes separate; the warm practicals that still burn are the
+## interrupted light, and glow lets the white work marks read as light on the
+## ground rather than paint. The actor fill keeps every machine readable.
+static func planned_works() -> Preset:
+	var preset: Preset = Preset.new(Color("0b1220"), Color("2b3446"),
+		Color("1b1f26"), Color("1d2533"), 0.0065, Color("7d8aa6"), 0.36)
+	preset.outdoor_embers = false
+	preset.key_color = Color("9fb4d6")
+	preset.key_energy = 0.48
+	preset.scene_fill_energy = 0.05
+	preset.practical_color = Color("ffd29a")
+	preset.practical_energy = 2.4
+	preset.practical_range = 12.0
+	preset.practical_attenuation = 1.3
+	preset.view_fill_energy = 0.7
+	preset.view_fill_range = 40.0
+	preset.contrast = 1.06
+	preset.saturation = 0.9
+	preset.glow_intensity = 0.55
 	return preset
 
 static func freight_yard() -> Preset:

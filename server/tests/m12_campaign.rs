@@ -87,7 +87,7 @@ impl Attempt {
         state.mission_state().unwrap().validate(state.tick).unwrap();
         let snapshot = state.snapshot();
         for guard in &snapshot.players {
-            if guard.hp <= 0 && matches!(guard.campaign, Some(CampaignActor::Union { .. })) {
+            if guard.hp <= 0 && matches!(guard.campaign, Some(CampaignActor::Hostile { .. })) {
                 self.killed.insert(guard.name.clone());
             }
         }

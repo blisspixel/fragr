@@ -41,7 +41,7 @@ fn phase(session: &GameSession) -> (EnemyPhase, u64, u64) {
         .find(|p| p.is_campaign_enemy())
         .unwrap();
     match guard.campaign.unwrap() {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             phase,
             phase_started,
             phase_ends,

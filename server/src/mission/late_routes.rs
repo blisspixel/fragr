@@ -187,7 +187,7 @@ fn late_campaign_carried_arsenal_controller_routes() {
                 false,
                 |me, other| {
                     use crate::protocol::{CampaignActor, EnemyPhase};
-                    let awake = matches!(other.campaign, Some(CampaignActor::Union { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
+                    let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
                     (other.x - me.x).hypot(other.z - me.z) <= if awake { 32.0 } else { 20.0 }
                         && crate::combat::line_of_sight(
                             [

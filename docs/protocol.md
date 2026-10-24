@@ -14,9 +14,10 @@ Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
 the first campaign launcher. The standalone Walker foundation requires 48 and
 connected Launch Authority requires 49. Article Blade requires 50, connected
 Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
-and All Systems Normal 54. Passenger Manifest and Common Carrier require 55,
-which carries the untagged M08 outcome and the `unlinked` M10 practice transit;
-the free-for-all Pistol start with `rules.start_kit` is the same contract 55.
+and All Systems Normal 54. Passenger Manifest, Common Carrier and Planned
+Works require 55, which carries the untagged M08 outcome, the `unlinked` M10
+practice transit and connected Planned Works; the free-for-all Pistol start
+with `rules.start_kit` is the same contract 55.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -1755,6 +1756,23 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 {"side":"companion","kind":"latch","phase":"following","phase_started":240}
 ```
 
+```json
+{"side":"inheritance","control":"absorbed","kind":"sweeper","phase":"windup","phase_started":10,"phase_ends":22}
+```
+
+A hostile body's `side` names who commands it, separately from its `kind`,
+combat role and hostility. `union` is the Union's own people and the bots still
+answering to it. `inheritance` (capability 55) always carries `control`: `absorbed` (a former
+Union bot taken at the wipe, keeping its chassis and learned attacks) or
+`restoration` (an Inheritance restoration machine). Control must fit the body:
+only Union machines (`sweeper`, `heavy_sweeper`, `turret`, `crawler`,
+`jammer`, `notary`, `ranged_sweeper`, `assessor`) can be absorbed, Union people
+never are, and only a `paver` is restoration and never `union`. An Inheritance
+body never carries `seated`. Both sides are equally hostile to participants;
+clients and agents must not infer control from a kind or appearance. Authored
+encounter placements carry the same optional `control` (absent means `union`),
+validated against the kind before the map loads.
+
 M02 spawns one server-owned Latch pawn when `companion_released` completes. They
 appear at the second ward bay in `releasing` for 240 ticks, then follow the
 nearest ready living participant. `firing` marks a bounded Tack support shot at
@@ -1782,8 +1800,9 @@ officer with a shield plate), `ranged_sweeper` (stationary marksman bot,
 capability 30) or `enforcer` (human elite in issued powered armor, capability
 34). Names are labels, never a
 targeting rule. Current
-campaign identity describes these introductory encounters; it does not implement
-Inheritance takeover, additional companions or the complete co-op lifecycle.
+campaign identity describes these encounters and the Inheritance's control
+domains; it does not implement the takeover itself, additional companions or
+the complete co-op lifecycle.
 
 Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit`, `dead`
 and, for an `auditor` only, `channeling`, or for an `enforcer` only, `charging`.
@@ -2760,7 +2779,7 @@ directory named by `FRAGR_RUN_DIR` or the platform data folder
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
-**One schema, no migration.** The document carries `"version": 23`, the only
+**One schema, no migration.** The document carries `"version": 24`, the only
 version this build reads or writes. Any other version, older or newer, is
 refused as `incompatible` before its shape is read. Nothing is upgraded,
 archived or carried forward from earlier formats. A change to the serialized
@@ -2796,7 +2815,7 @@ replaces whatever was there, including an incompatible or corrupt file.
 **Shape.**
 
 ```json
-{"version":23,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+{"version":24,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
  "level_start_continues":3,"body":"synthetic",
  "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
  "step":{"kind":"mission_entry","mission":"recall_notice",
@@ -3453,6 +3472,7 @@ readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4
 | Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
 | Peace Without Interruption | 1017 | 53 | `m17` | `core_unsealed`, `voss_captured` |
 | All Systems Normal | 1018 | 54 | `m18` | `roadblock_active`, `concourse_evac_completed` |
+| Planned Works | 1019 | 55 | `m19` | `gate_open` |
 
 Each block registers six ordered `objectives`, a `departure` Use target and
 `boarding` region. M15 additionally registers its arming crate and booth terminal;
@@ -3491,5 +3511,62 @@ registered control instead of inferring it solely from the ordered objective.
 
 Promotion into each late mission retains actual finite entry resources and
 prior outcomes. M15 and M18 begin Episodes IV and V with three continues; M16
-and M17 do not refill. M18 completion waits at `planned_works`; M19 and M20
-are not playable mission identities.
+and M17 do not refill. M18 completion promotes into `planned_works` without a
+refill; M19 completion waits at `local_exception`, which is not a playable
+mission identity. Once M19 completes the run file carries `m19_outcome`
+{`crossing_cleared`, `paver_interrupted`, `strip_struck`, `latch_departed`}
+(see Campaign run file).
+
+### Planned Works, Paver strips and jetpacks (capability 55)
+
+`MissionId` gains `planned_works` (gameplay 55); shared rooms require 55. The
+`m19` MapInfo block registers eight ordered `objectives`
+(`concourse_stores` Use, then arrivals `broken_stair`, `concourse_crossing`,
+`tram_street`, `market_strips`, `water_tanks`, `roof_loop`, `tram_trench`),
+the `stores` Use target, the `departure` Use target and `boarding` region,
+`jetpack_ceiling` (the flight ceiling in metres), the presentation-only
+`latch_route` (two to twelve feet points), up to 48 static `work_marks`
+(`{min:[x,z], max:[x,z], y}` floor rectangles), authored `jet_hops`
+(one to four `{launch, landing}` feet pairs the free controller flies) and `gate_open`.
+The changed world swaps only the waterworks gate solid; every other field must
+match the accepted contract. Decoration kinds `m19_stores_counter`,
+`m19_stores_sign`, `m19_concourse_board`, `m19_planned_works`,
+`m19_clinic_dark`, `m19_tram_vote`, `m19_floating_67`, `m19_market_board`,
+`m19_market_six`, `m19_water_tank`, `m19_service_six` and `m19_waterworks`
+are accepted only with the `m19` block.
+
+The mission block holds `completed`, `current` (until departure),
+`challenges` {`crossing_cleared`, `paver_interrupted`, `strip_struck`},
+`jetpack_taken` (true once the stores counter is used), `latch_departed`
+(true from six completions), `gate_open` (true from eight) and the derived
+`brief_completed`. The ninth completion is `party_departed`. Assisted needs the crossing, Standard adds a Paver put out
+during its preparation, Severe adds no strip damage. Use prompts are allowed
+only for the stores before any jetpack and for the shared departure. Every
+Planned Works hostile is the Inheritance: its Sweepers, Heavy Sweepers and
+Notaries are `absorbed` and its Pavers `restoration`; a map that leaves one
+under Union control is refused.
+
+`campaign.kind:"paver"` is an Inheritance restoration machine
+(`side:"inheritance"`, `control:"restoration"`): 220 HP, armored,
+`fists`, phases `idle`, `moving`, `windup` (preparation), `firing` (work),
+`recovery`, `hit`, `dead`. It marks one strip at its preparation start and never
+re-aims it. `Snapshot.paver_strips`, omitted while empty, holds at most eight:
+
+```json
+{"owner_id":"00000000-0000-0000-0000-000000000006","origin":[3.1,0,-16],"yaw":3.1415927,"length":15,"half_width":1.6,"working":false,"phase_started":45,"phase_ends":79}
+```
+
+Length is 4 to 15 m after clipping against walls, drops and the map edge;
+half width is exactly 1.6. `working` agrees with the owner's `firing` phase.
+Preparation lasts 44/34/28 ticks on Assisted/Standard/Severe; 30 damage
+during it puts the strip out and stuns the Paver for 30 ticks. Work is a 12-tick
+cycle of three 18-damage pulses at ticks 0, 4 and 8 to every participant whose
+feet are inside the strip and within 0.7 m of its floor. A Paver works only its
+own floor and watches targets on other levels.
+
+`Snapshot.jetpacks`, omitted while empty, lists `{player_id, fuel, thrusting}`
+for every wearer (fuel 0 to 60 ticks). Holding Jump while airborne thrusts
+(34 m/s squared, rise capped at 4.5 m/s, clamped under `jetpack_ceiling`);
+support refills 3 per tick. The Ack `movement` block adds `jet_fuel` for a
+wearer so prediction replays the same step; vectors are in
+`client/golden/jetpack_vectors.json`.

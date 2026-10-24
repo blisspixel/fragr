@@ -1,6 +1,6 @@
 # Jetpack
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Demand follows the roadmap and the relevant mission or map.
+Status: integrated for level 19, 2026-10-24. Candidate `jetpack-20261023-v1` (raw sha256 `366a8244...67dd1`) is prepared by `tools/prepare_jetpack_source.gd` into `client/assets/models/jetpack.glb` (128 px painted clusters, 512 px maps, 0.62 m on a 1.8 m fighter, harness to the wearer, two nozzle anchors) with its receipt beside it. `JetpackRig` wears it and the concourse stores racks hang four spares. Played acceptance is open.
 Stable ID: `E-jetpack`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design

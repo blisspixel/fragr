@@ -244,7 +244,7 @@ fn actual_human_finds_cells_dodges_visible_volley_reloads_and_downs_assessor() {
     let drone = session.state.players.iter().find(|p| {
         matches!(
             p.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind: EnemyKind::Assessor,
                 ..
             })

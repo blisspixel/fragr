@@ -44,6 +44,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::FreedomOfMovement => 15,
         MissionId::PeaceWithoutInterruption => 16,
         MissionId::AllSystemsNormal => 17,
+        MissionId::PlannedWorks => 18,
     }
 }
 
@@ -271,6 +272,7 @@ mod tests {
             m16_outcome: None,
             m17_outcome: None,
             m18_outcome: None,
+            m19_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -441,7 +443,7 @@ mod tests {
         let mut bad_step = current.clone();
         bad_step["step"]["kind"] = "rewound".into();
         let mut bad_mission = current;
-        bad_mission["step"]["mission"] = "planned_works".into();
+        bad_mission["step"]["mission"] = "not_a_mission".into();
         for value in [unknown, missing, null_outcome, bad_step, bad_mission] {
             assert!(matches!(probe(&value), RunProbe::Corrupt), "{value}");
         }
@@ -450,7 +452,16 @@ mod tests {
     #[test]
     fn other_versions_changed_content_and_invalid_runs_are_incompatible() {
         let current = serde_json::to_value(document()).unwrap();
-        for version in [0, 1, 2, 21, 22, u64::from(RUN_FILE_VERSION) + 1, u64::MAX] {
+        for version in [
+            0,
+            1,
+            2,
+            21,
+            22,
+            23,
+            u64::from(RUN_FILE_VERSION) + 1,
+            u64::MAX,
+        ] {
             if version == u64::from(RUN_FILE_VERSION) {
                 continue;
             }
@@ -595,5 +606,7 @@ mod m13_tests;
 mod m14_tests;
 #[cfg(test)]
 pub(super) mod m15_tests;
+#[cfg(test)]
+mod m19_tests;
 #[cfg(test)]
 mod stair_entry_tests;

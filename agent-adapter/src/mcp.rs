@@ -978,9 +978,18 @@ fn campaign_token(actor: Option<protocol::CampaignActor>) -> String {
     let Ok(value) = serde_json::to_value(actor) else {
         return "unknown".to_string();
     };
-    match value.get("side").and_then(Value::as_str) {
+    let side = match (
+        value.get("side").and_then(Value::as_str),
+        value.get("control").and_then(Value::as_str),
+    ) {
+        // Absorbed bots and restoration machines name their control domain.
+        (Some("inheritance"), Some(control)) => Some(format!("inheritance:{control}")),
+        (Some(side @ ("participant" | "union" | "companion")), None) => Some(side.to_string()),
+        _ => None,
+    };
+    match side.as_deref() {
         Some("participant") => "participant".to_string(),
-        Some(side @ ("union" | "companion")) => format!(
+        Some(side) => format!(
             "{side}/{}/{}",
             value
                 .get("kind")
@@ -1753,6 +1762,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m16,
             m17,
             m18,
+            m19,
             walker,
             article_blade,
             map_name,
@@ -1932,6 +1942,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m18 {
                 map["m18"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m19(
+                m19.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m19 {
+                map["m19"] = serde_json::json!(geometry);
             }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
@@ -3000,7 +3019,7 @@ mod mcp_tests {
             let ids = tool["inputSchema"]["properties"]["id"]["enum"]
                 .as_array()
                 .unwrap();
-            assert_eq!(ids.len(), 18);
+            assert_eq!(ids.len(), 19);
             for id in [
                 "recall_notice",
                 "no_forwarding_address",
@@ -3017,10 +3036,11 @@ mod mcp_tests {
                 "freedom_of_movement",
                 "peace_without_interruption",
                 "all_systems_normal",
+                "planned_works",
             ] {
                 assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
             }
-            assert!(!ids.contains(&serde_json::json!("planned_works")));
+            assert!(!ids.contains(&serde_json::json!("local_exception")));
             for id in ids {
                 let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
                 let ready: protocol::MissionReady =
@@ -4682,5 +4702,37 @@ mod mcp_tests {
             &mut state,
         );
         assert_eq!(bad_detail.response.result.unwrap()["isError"], true);
+    }
+
+    #[test]
+    fn campaign_tokens_name_the_inheritance_control_domain() {
+        use protocol::{CampaignActor, ControlDomain, EnemyKind, EnemyPhase};
+        let body = |kind, control| {
+            Some(CampaignActor::Hostile {
+                kind,
+                phase: EnemyPhase::Windup,
+                phase_started: 1,
+                phase_ends: 9,
+                seated: false,
+                control,
+            })
+        };
+        assert_eq!(
+            campaign_token(body(EnemyKind::Sweeper, ControlDomain::Union)),
+            "union/sweeper/windup"
+        );
+        assert_eq!(
+            campaign_token(body(EnemyKind::Sweeper, ControlDomain::Absorbed)),
+            "inheritance:absorbed/sweeper/windup"
+        );
+        assert_eq!(
+            campaign_token(body(EnemyKind::Paver, ControlDomain::Restoration)),
+            "inheritance:restoration/paver/windup"
+        );
+        assert_eq!(
+            campaign_token(Some(CampaignActor::Participant {})),
+            "participant"
+        );
+        assert_eq!(campaign_token(None), "none");
     }
 }

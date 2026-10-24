@@ -127,6 +127,7 @@ var m15_stadium: M15Stadium
 var m16_avenue: M16Avenue
 var m17_office: M17Office
 var m18_transit: M18Transit
+var m19_works: M19Works
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
@@ -421,6 +422,12 @@ func _ready():
 	m18_transit.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m18_transit)
+	m19_works = M19Works.new()
+	m19_works.name = "M19Works"
+	m19_works.players = players
+	m19_works.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m19_works)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -624,6 +631,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m17_office.configure_map(info)
 	if m18_transit != null:
 		m18_transit.configure_map(info)
+	if m19_works != null:
+		m19_works.configure_map(info)
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -2157,6 +2166,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m17_office.apply_state(state)
 	if m18_transit != null:
 		m18_transit.apply_state(state)
+	if m19_works != null:
+		m19_works.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.set_campaign(not state.is_empty())
@@ -2547,6 +2558,8 @@ func _clear_world() -> void:
 		m17_office.clear_map()
 	if m18_transit != null:
 		m18_transit.clear_map()
+	if m19_works != null:
+		m19_works.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.set_campaign(false)
@@ -2618,6 +2631,9 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m19_works != null and m19_works.active():
+		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
+		m19_works.apply_snapshot(data)
 	if conquest_hud != null:
 		conquest_hud.apply(data)
 		hud.observe_conquest(data)
@@ -2884,7 +2900,9 @@ func _update_nameplates() -> void:
 		if not is_instance_valid(pawn):
 			continue
 		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
-		if label == null or view.is_position_behind(label.global_position):
+		# A campaign machine or Union body is named by the server's authored
+		# id, an implementation detail that never reaches a player's screen.
+		if label == null or bool(pawn.get("is_campaign_enemy")) or view.is_position_behind(label.global_position):
 			pawn.set_nameplate_enabled(false)
 			continue
 		var area: Rect2 = NameplateLayoutScript.project_label(view, label)

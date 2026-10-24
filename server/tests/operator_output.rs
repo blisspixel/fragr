@@ -114,7 +114,7 @@ fn redirected_output_keeps_the_full_plain_log() {
         server.all()
     );
     assert!(
-        server.stderr_has("fragr_server::startup: Map: Arena Duel"),
+        server.stderr_has("fragr_server::startup: Map: Larak Lot"),
         "{}",
         server.all()
     );
@@ -165,7 +165,7 @@ fn forced_overview_prints_a_card_and_pulses_without_the_feed() {
     );
     for needle in [
         "No game window",
-        "Arena Duel, Free-for-all.",
+        "Larak Lot, Free-for-all.",
         "Bots: 4 fixed rule bots",
         "local   ws://127.0.0.1:",
         "Other computers cannot join a loopback bind",
@@ -184,7 +184,7 @@ fn forced_overview_prints_a_card_and_pulses_without_the_feed() {
         "FRAG:",
         "PICKUP:",
         "STATUS {",
-        "Map: Arena Duel",
+        "Map: Larak Lot",
     ] {
         assert!(
             !server.all().contains(hidden),

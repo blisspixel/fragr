@@ -146,6 +146,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             m03: Some(M03ObjectiveState {
                 mast_hp: progress.mast_hp,
                 mast_secured,

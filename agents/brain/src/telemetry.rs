@@ -428,6 +428,8 @@ pub(crate) mod fixtures {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),

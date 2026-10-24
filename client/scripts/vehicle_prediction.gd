@@ -121,7 +121,7 @@ static func _blockers(snapshot: Dictionary, identity: int) -> Array[Dictionary]:
 		if occupants.has(actor.get("id")) or float(actor.get("hp", 0)) <= 0.0 or not actor.get("collidable", true):
 			continue
 		var height: float = MoveStep.DUCK_HEIGHT if actor.get("ducking", false) else MoveStep.BODY_HEIGHT
-		if ActorState.is_union(actor):
+		if ActorState.is_hostile(actor):
 			if actor["campaign"]["kind"] == "crawler":
 				height = 0.8
 			elif actor["campaign"]["kind"] == "notary":

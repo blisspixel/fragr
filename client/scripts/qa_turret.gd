@@ -72,7 +72,7 @@ func observe(snapshot: Dictionary) -> void:
 				return
 			target = actor
 	if player.is_empty() or target.is_empty() or not ActorState.is_participant(player) \
-		or not ActorState.is_union(target) or target["campaign"]["kind"] != _kind:
+		or not ActorState.is_hostile(target) or target["campaign"]["kind"] != _kind:
 		_fail("registered living participant or Turret absent")
 		return
 	if _target_id.is_empty():

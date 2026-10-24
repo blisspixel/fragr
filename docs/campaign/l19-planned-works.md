@@ -5,7 +5,34 @@ Shared [world direction](../design/earth.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** planned, accepted 2026-09-25, unbuilt. The middle third of
+**Status:** connected, built 2026-10-23 (issue #429). Map 1019,
+`server/maps/m19-planned-works.json`, gameplay capability 55. Promoted from a
+completed level 18 save without a refill; completion leaves pending level 20.
+The free local agent completes it on all three difficulties: the seeded
+`free_local_controller_completes_planned_works_on_every_tier` route, and live
+`fragr-brain --provider local` runs on the standalone map's discovery kit
+(seeds 1 and 2 on each tier, 2026-10-23: all six departed; Severe seed 1 after
+one retry). The worn and racked jetpack is the generated candidate prepared by
+`tools/prepare_jetpack_source.gd` (`JetpackRig.MODEL_PATH`, receipt beside
+the model). The Paver and the scene figures are placeholder forms. Both
+generated Paver candidates are low four-legged sledges about 0.55 by 1.9 m,
+while the Paver fights in the ordinary 1.8 m fighter volume, so swapping one
+in through `PaverRig.MODEL_PATH` waits on a Paver-specific broad, low shot and
+contact volume or a candidate at the authored proportions. The night dressing
+(`m19_town_dressing.gd`: homes, lit and interrupted windows, survey marks, tanks, tram, rails, lamps, trench,
+concourse and workshop) only follows exact authored solids;
+`client/qa/m19_static_review.gd` and `m19_live_review.gd` photograph it.
+Every hostile here is the Inheritance on the wire and on screen: Sweepers,
+Heavy Sweepers and Notaries are `absorbed` (their Union chassis and paint kept,
+red optics dead and lit in muted cyan, gait and working light on one shared
+beat), and Pavers are `restoration` machines with muted cyan indicators. The
+Collectors this brief places at the turnstiles and Splice's workshop door are
+omitted until the role exists; no stronger renamed Sweeper stands in for them
+([wipe design](../design/wipe-finale-and-mode.md)). The concourse crowd and the
+pier are households, pairs and free agents in their own colours, and the Clerk
+at the stretcher keeps his red armband and seal.
+Rendered review only, not fresh-player acceptance. Accepted 2026-09-25.
+The middle third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10
 to 21, the concourse and changed Low Water, the dark night.

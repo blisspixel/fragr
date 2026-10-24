@@ -22,6 +22,7 @@ mod m15;
 mod m16;
 mod m17;
 mod m18;
+mod m19;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -75,6 +76,11 @@ pub struct MissionClient {
     m18_map: Option<crate::protocol::M18MapGeometry>,
     m18_points: Option<[[f32; 3]; 3]>,
     m18_pending: bool,
+    m19_map: Option<crate::protocol::M19MapGeometry>,
+    m19_points: Option<[[f32; 3]; 2]>,
+    m19_solids: Vec<Solid>,
+    m19_pending: bool,
+    m19_hops: m19::HopState,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -568,7 +574,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::AllSystemsNormal {
+        let map_matches = if state.id == MissionId::PlannedWorks {
+            self.validate_m19_target(&state)?;
+            true
+        } else if state.id == MissionId::AllSystemsNormal {
             self.validate_m18_target(&state)?;
             true
         } else if state.id == MissionId::PeaceWithoutInterruption {
@@ -660,6 +669,7 @@ impl MissionClient {
         self.m16_pending = false;
         self.m17_pending = false;
         self.m18_pending = false;
+        self.m19_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -766,7 +776,8 @@ impl MissionClient {
             && self.m15_map.is_none()
             && self.m16_map.is_none()
             && self.m17_map.is_none()
-            && self.m18_map.is_none())
+            && self.m18_map.is_none()
+            && self.m19_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -954,9 +965,17 @@ impl MissionClient {
             || self.m16_pending
             || self.m17_pending
             || self.m18_pending
+            || self.m19_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::PlannedWorks)
+        {
+            return self.steer_m19(navigator, world, id, snapshot, action);
         }
         if self
             .state

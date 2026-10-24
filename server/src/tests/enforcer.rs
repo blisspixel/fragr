@@ -57,7 +57,7 @@ fn body(session: &GameSession, id: Uuid) -> &crate::sim::Player {
 }
 fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
     match body(session, id).campaign.unwrap() {
-        CampaignActor::Union { phase, .. } => phase,
+        CampaignActor::Hostile { phase, .. } => phase,
         _ => panic!("expected Union role"),
     }
 }

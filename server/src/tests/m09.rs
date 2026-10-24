@@ -217,7 +217,7 @@ fn lesson_charge_descent(source: Arc<AuthoredMap>) -> (GameSession, Uuid, String
             .is_some_and(|p| {
                 matches!(
                     p.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Windup,
                         ..
                     })
@@ -236,7 +236,7 @@ fn lesson_charge_descent(source: Arc<AuthoredMap>) -> (GameSession, Uuid, String
         let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
         charged |= matches!(
             enemy.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 phase: EnemyPhase::Charging,
                 ..
             })

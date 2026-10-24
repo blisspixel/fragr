@@ -14,6 +14,7 @@ pub mod grenade;
 mod kit;
 pub mod mine;
 mod modes;
+mod paver;
 mod playlist;
 mod spawn;
 pub(crate) mod walker;
@@ -664,6 +665,9 @@ pub struct GameState {
     remote_mines: Vec<remote_mine::RemoteMine>,
     explosion_results: Vec<crate::protocol::ExplosionResult>,
     projectile_serial: u32,
+    /// Participants actually damaged by a Paver work pulse, ever. Missions
+    /// compare against their own entry value.
+    pub(crate) paver_strip_hits: u64,
     /// Remaining ticks of Continuance compliance slow (0 = none).
     pub compliance_ticks_left: u32,
     /// Whether this Active round already fired its compliance ping.
@@ -784,6 +788,11 @@ pub struct Player {
     pub(crate) vz: f32,
     last_move_speed: f32,
     last_jump_input: bool,
+    /// A worn coalition jetpack and its fuel. Issued by a mission owner; the
+    /// live step burns and refills it.
+    pub(crate) jetpack: Option<crate::movement::jetpack::Pack>,
+    /// The last live step burned jetpack thrust.
+    pub(crate) jet_thrusting: bool,
     /// Side in a team mode.
     pub team: Option<Team>,
     /// Lives left this round when lives are limited, the current one included.
@@ -924,6 +933,8 @@ impl Player {
             vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -1572,12 +1583,13 @@ impl GameState {
         player.armor = i32::from(placement.armor.unwrap_or(0));
         player.weapon = weapon;
         player.inventory.grant_weapon(weapon);
-        player.campaign = Some(CampaignActor::Union {
+        player.campaign = Some(CampaignActor::Hostile {
             kind: placement.kind,
             phase: EnemyPhase::Idle,
             phase_started: self.tick,
             phase_ends: self.tick,
             seated: placement.seated,
+            control: placement.control,
         });
         self.players.push(player);
         id
@@ -1790,6 +1802,7 @@ impl GameState {
             m16: self.map.m16_geometry(),
             m17: self.map.m17_geometry(),
             m18: self.map.m18_geometry(),
+            m19: self.map.m19_geometry(),
             walker: self.map.walker_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
@@ -1876,6 +1889,7 @@ impl GameState {
                                 effective_speed: if applied { p.last_move_speed } else { 0.0 },
                                 jump_input: applied && p.last_jump_input,
                                 dodge_cooldown: p.dodge_cooldown,
+                                jet_fuel: p.jetpack.map(|pack| pack.fuel),
                             }),
                             respawn_ticks: p.respawn_timer.filter(|_| !p.eliminated),
                         },
@@ -2250,20 +2264,39 @@ impl GameState {
             {
                 player.dodge_cooldown = crate::movement::DODGE_COOLDOWN_TICKS;
             }
-            let moved = crate::movement::water::step(
-                if fighter {
-                    crate::movement::water::Model::Fighter
-                } else {
-                    crate::movement::water::Model::Actor
-                },
-                body,
-                &input,
-                travel,
-                dt,
-                movement_arena,
-                body_height,
-                self.map.water_regions(),
-            );
+            // Campaign gear: a worn jetpack steps through its own fuel model
+            // (Planned Works); every other body takes its ordinary step.
+            let moved = if let Some(pack) = player.jetpack {
+                let (moved, pack, thrusting) = crate::movement::jetpack::live_step(
+                    body,
+                    &input,
+                    travel,
+                    dt,
+                    movement_arena,
+                    body_height,
+                    self.map.water_regions(),
+                    pack,
+                    self.map.jetpack_ceiling(),
+                );
+                player.jetpack = Some(pack);
+                player.jet_thrusting = thrusting;
+                moved
+            } else {
+                crate::movement::water::step(
+                    if fighter {
+                        crate::movement::water::Model::Fighter
+                    } else {
+                        crate::movement::water::Model::Actor
+                    },
+                    body,
+                    &input,
+                    travel,
+                    dt,
+                    movement_arena,
+                    body_height,
+                    self.map.water_regions(),
+                )
+            };
             let held = muster.zip(player.team).is_some_and(|(layout, team)| {
                 player.contestant()
                     && layout.in_muster(team.index(), player.x, player.z)
@@ -2466,7 +2499,7 @@ impl GameState {
                 }
                 if matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         kind: crate::protocol::EnemyKind::Jammer,
                         ..
                     })
@@ -2717,7 +2750,7 @@ impl GameState {
         for (attacker, victim, trace) in crawler_contacts {
             let enforcer = matches!(
                 self.players[attacker].campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     kind: crate::protocol::EnemyKind::Enforcer,
                     ..
                 })
@@ -2742,6 +2775,8 @@ impl GameState {
             }
         }
 
+        // Strips work bodies where actual movement and contact left them.
+        self.tick_paver_strips();
         self.tick_grenades(dt);
         self.tick_assessor_canisters(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
         self.tick_rockets(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
@@ -2774,7 +2809,7 @@ impl GameState {
             let crawler = &self.players[attacker];
             let enforcer = matches!(
                 crawler.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     kind: crate::protocol::EnemyKind::Enforcer,
                     phase: EnemyPhase::Charging,
                     ..
@@ -2791,7 +2826,7 @@ impl GameState {
                 || (!enforcer
                     && !matches!(
                         crawler.campaign,
-                        Some(CampaignActor::Union {
+                        Some(CampaignActor::Hostile {
                             kind: crate::protocol::EnemyKind::Crawler,
                             phase: EnemyPhase::Leaping,
                             ..
@@ -2950,7 +2985,7 @@ impl GameState {
         if crate::combat::is_assessor(player.campaign) {
             let recovery = matches!(
                 player.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Recovery,
                     ..
                 })
@@ -3012,7 +3047,7 @@ impl GameState {
             let normal = *normal;
             let recovery = matches!(
                 player.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Recovery,
                     ..
                 })
@@ -3023,7 +3058,7 @@ impl GameState {
         }
         if !matches!(
             player.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind: crate::protocol::EnemyKind::Auditor,
                 ..
             })
@@ -3522,6 +3557,21 @@ impl GameState {
             impact,
         }
     }
+    /// Worn packs of living bodies, for the snapshot.
+    fn jetpack_states(&self) -> Vec<crate::protocol::JetpackState> {
+        self.players
+            .iter()
+            .filter(|p| p.hp > 0 && p.respawn_timer.is_none())
+            .filter_map(|p| {
+                p.jetpack.map(|pack| crate::protocol::JetpackState {
+                    player_id: p.id,
+                    fuel: pack.fuel,
+                    thrusting: p.jet_thrusting,
+                })
+            })
+            .collect()
+    }
+
     pub fn snapshot(&self) -> Snapshot {
         let sabotage = self.wire_sabotage();
         let sudden_death = self.round_state == RoundState::Active && self.sudden_death.is_some();
@@ -3603,6 +3653,8 @@ impl GameState {
             mines: self.mine_states(),
             remote_mines: self.remote_mine_states(),
             auditors: self.encounters.auditor_states(),
+            paver_strips: self.encounters.paver_strips(),
+            jetpacks: self.jetpack_states(),
             explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"
@@ -4091,6 +4143,8 @@ impl GameState {
             vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -4556,6 +4610,8 @@ impl GameState {
             vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -4819,6 +4875,7 @@ impl Default for GameState {
             remote_mines: Vec::new(),
             explosion_results: Vec::new(),
             projectile_serial: 0,
+            paver_strip_hits: 0,
             compliance_ticks_left: 0,
             compliance_fired: false,
             boss_id: None,

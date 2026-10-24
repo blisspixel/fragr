@@ -12,8 +12,9 @@ const VENUE_PAINT: Color = Color("2b2723")
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
-	if venue in ["holdfast_atoll", "earth_intake"]:
-		# Recall Notice's street skyline belongs to its intake presenter.
+	if venue in ["holdfast_atoll", "earth_intake", "planned_works"]:
+		# Recall Notice's street skyline belongs to its intake presenter;
+		# Planned Works: M19Works builds the night town, river and pier.
 		return
 	if venue in ["launch_works", "mars_habitat", "mars_foundry"]:
 		_build_mars(half, venue == "mars_habitat")

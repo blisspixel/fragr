@@ -116,7 +116,7 @@ fn body(session: &GameSession, id: Uuid) -> &crate::sim::Player {
 
 fn identity(session: &GameSession, id: Uuid) -> (EnemyKind, EnemyPhase, u64, u64) {
     match body(session, id).campaign.unwrap() {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             kind,
             phase,
             phase_started,
@@ -695,12 +695,13 @@ fn the_range_validates_requires_capability_and_resets_on_party_wipe() {
 
 #[test]
 fn the_ranged_sweeper_kind_is_strict_on_the_actor_wire() {
-    let actor = CampaignActor::Union {
+    let actor = CampaignActor::Hostile {
         kind: EnemyKind::RangedSweeper,
         phase: EnemyPhase::Windup,
         phase_started: 10,
         phase_ends: 40,
         seated: false,
+        control: Default::default(),
     };
     let value = serde_json::to_value(actor).unwrap();
     assert_eq!(value["kind"], "ranged_sweeper");

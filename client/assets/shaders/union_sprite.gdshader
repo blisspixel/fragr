@@ -12,6 +12,11 @@ render_mode cull_disabled, diffuse_lambert, specular_disabled, depth_draw_opaque
 //   bright ones.
 // Billboarding, nearest sampling, alpha cut and the hit-flash modulate
 // (vertex colour) match the Sprite3D settings this replaces.
+//
+// Absorbed bots (Inheritance control) keep their Union chassis, paint and
+// plates, but their red goes dead: red pixels drop to a dull unlit oxblood,
+// and the brightest of them (optics, visor slits, tell lights) carry the
+// Inheritance's muted cyan working glow instead.
 
 uniform sampler2D sprite_texture : source_color, filter_nearest;
 uniform sampler2D sprite_normals : filter_nearest;
@@ -24,6 +29,9 @@ uniform float rim_glow = 0.55;
 // Redactor approach only: one texel of visible scan jitter, never invisibility.
 uniform float shimmer = 0.0;
 uniform float shimmer_tick = 0.0;
+uniform float absorbed = 0.0;
+uniform vec3 work_glow : source_color = vec3(0.290, 0.541, 0.573); // #4A8A92
+uniform float work_energy = 1.1;
 
 void vertex() {
 	// Keep the scene camera basis during light-camera shadow draws as well.
@@ -65,12 +73,20 @@ void fragment() {
 		float dark = 1.0 - smoothstep(0.0, 0.06, value);
 		vec3 body = mix(texel.rgb, max(texel.rgb, charcoal), body_lift * dark);
 		float red = red_mask(texel.rgb);
-		ALBEDO = body * tint;
+		// Dead optics: the red's own value, drained to an unlit oxblood.
+		vec3 dead = vec3(texel.r * 0.22, texel.r * 0.07, texel.r * 0.06);
+		vec3 albedo = mix(body, mix(body, dead, red), absorbed);
+		ALBEDO = albedo * tint;
 		if (normals_enabled) {
 			NORMAL_MAP = texture(sprite_normals, UV).rgb;
 			NORMAL_MAP_DEPTH = 1.0;
 		}
-		EMISSION = texel.rgb * red * red_glow * tint;
+		// Only the brightest red points were lights; only they take the glow.
+		// Union optic red sits near 0.26 linear; painted red trim is darker.
+		float lamp = red * smoothstep(0.13, 0.22, texel.r);
+		vec3 union_light = texel.rgb * red * red_glow;
+		vec3 working_light = work_glow * lamp * work_energy;
+		EMISSION = mix(union_light, working_light, absorbed) * tint;
 	}
 	ROUGHNESS = 1.0;
 }

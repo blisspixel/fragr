@@ -100,7 +100,7 @@ fn preview(directory: &Path) -> serde_json::Value {
 }
 
 /// The only run-file version this build reads or writes.
-const RUN_FILE_VERSION: u64 = 23;
+const RUN_FILE_VERSION: u64 = 24;
 
 /// Every write is an atomic replace: no archives, copies or temporaries remain.
 fn assert_only_live_run(directory: &Path) {
@@ -1192,7 +1192,10 @@ fn unreadable_runs_are_refused_kept_until_new_run_and_then_replaced() {
     future["version"] = 999.into();
     for (bytes, status) in [
         (b"broken".to_vec(), "corrupt"),
-        (b"{\"version\":23}".to_vec(), "corrupt"),
+        (
+            format!("{{\"version\":{RUN_FILE_VERSION}}}").into_bytes(),
+            "corrupt",
+        ),
         (serde_json::to_vec(&older).unwrap(), "incompatible"),
         (serde_json::to_vec(&future).unwrap(), "incompatible"),
     ] {

@@ -143,10 +143,13 @@ fn late_campaign_promotion_carries_outcomes_and_refills_only_episode_v() {
         .m17_outcome
         .as_ref()
         .is_some_and(|o| !o.kessel_secured));
+    // Completed recovery opens only Planned Works; m19_tests owns that edge.
     for mission in CAMPAIGN_MISSIONS {
-        assert!(source
-            .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
-            .is_err());
+        if mission != MissionId::PlannedWorks {
+            assert!(source
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .is_err());
+        }
     }
 }
 
