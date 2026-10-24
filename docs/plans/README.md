@@ -20,6 +20,9 @@ Wave 1 **shipped** through PR #457: [FFA death lifecycle](ffa-death-lifecycle-20
 
 ## Active plans
 
+The [asset production practices](asset-practices/README.md) (2026-10-24) are the current guide for every Higgsfield, Meshy and ElevenLabs stage: latest models and settings, prompt patterns, QA gates, the [lore and design gate](asset-practices/lore-gate.md) and the [asset brief template](asset-practices/brief-template.md). Every asset brief and candidate passes the gate before spend and before integration.
+
+
 Plans whose recorded status is proposed, planned, in flight or otherwise open. Many October 6 to 9 rows predate later consolidation; read the plan and the source before trusting its status.
 
 | Plan | Status | One-liner |
