@@ -96,6 +96,16 @@ const RULE_BOT_WARMUP_TAUNT_EVERY: u32 = 20;
 pub const BOSS_MAX_HP: i32 = 200;
 /// Touch radius for mid-map pickup pads.
 pub const PICKUP_CLAIM_RADIUS: f32 = 1.75;
+/// A CTF bot fights an opponent it sees inside this distance when that
+/// opponent is near the point the bot guards.
+const CTF_ENGAGE_RANGE: f32 = 25.0;
+/// A defender fights only an opponent this close to its own flag stand, so
+/// a runner that wins the approach can still take the flag. Chasing a thief
+/// keeps the contact-range intercept.
+const CTF_HOLD_RADIUS: f32 = 6.0;
+/// A runner or escort clears opponents this close to the enemy flag or the
+/// carrier.
+const CTF_CLEAR_RADIUS: f32 = 10.0;
 /// How far above or below a pad's own floor a fighter may be and still claim
 /// it. Generous enough to take a pad while jumping over it, tight enough that
 /// a pad on a walkway is not free to whoever stands underneath.
@@ -104,6 +114,8 @@ pub const PICKUP_CLAIM_HEIGHT: f32 = 2.0;
 pub const PICKUP_RESPAWN_TICKS: u32 = 20 * 12;
 /// Ticks until a claimed health/armor pad respawns (~15s at 20 Hz).
 pub const HEALTH_PICKUP_RESPAWN_TICKS: u32 = 20 * 15;
+/// Ammunition and explosive supply return after 10 s.
+pub const SUPPLY_PICKUP_RESPAWN_TICKS: u32 = 20 * 10;
 /// Max scrap armor (simple absorb-before-HP).
 pub const PLAYER_MAX_ARMOR: i32 = 100;
 /// Half-angle of an Auditor's frontal shield plate: 60 degrees either side.
@@ -472,6 +484,18 @@ impl PickupKind {
         }
     }
 
+    /// A pad worth timing: a gun better than the common Flechette or the
+    /// sidearm, or plate.
+    pub fn is_power(self) -> bool {
+        match self {
+            PickupKind::Weapon(weapon) => {
+                !matches!(weapon, WeaponType::Flechette | WeaponType::Tack)
+            }
+            PickupKind::Armor => true,
+            _ => false,
+        }
+    }
+
     pub fn weapon(self) -> Option<WeaponType> {
         match self {
             PickupKind::Weapon(w) => Some(w),
@@ -538,12 +562,21 @@ impl ArenaPickup {
         }
     }
 
+    /// The pad's published return clock. Rule bots learn these numbers the
+    /// way a regular does; they never read a live timer.
+    pub(crate) fn clock(&self, team_clock: bool) -> u32 {
+        match self.kind {
+            PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
+            _ => self.respawn_ticks(),
+        }
+    }
+
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
             PickupKind::Grenade { .. }
             | PickupKind::ProximityMine { .. }
-            | PickupKind::RemoteMine { .. } => 200,
-            PickupKind::Ammo { .. } => 200,
+            | PickupKind::RemoteMine { .. }
+            | PickupKind::Ammo { .. } => SUPPLY_PICKUP_RESPAWN_TICKS,
             PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
         }
@@ -717,7 +750,8 @@ impl Player {
         self.jump_requested || self.pending_action.jump
     }
     fn reset_movement_baseline(&mut self) {
-        self.bot_senses = bot_senses::BotSenses::default();
+        // A new body forgets who it was fighting; it still knows the map.
+        self.bot_senses.forget_fighters();
         self.movement_epoch = self.movement_epoch.saturating_add(1);
         self.last_movement_tick = None;
         self.last_move_vx = 0.0;
@@ -2979,6 +3013,15 @@ impl GameState {
             )
         };
 
+        if damage > 0 && !died && shooter_idx != victim_idx {
+            // The victim learns where the shot came from, and flinches.
+            let shooter = &self.players[shooter_idx];
+            let from = [shooter.x, shooter.y - PLAYER_FLOOR_Y, shooter.z];
+            let tick = self.tick;
+            self.players[victim_idx]
+                .bot_senses
+                .hurt_by(shooter_id, from, tick);
+        }
         if damage > 0 {
             let victim = &self.players[victim_idx];
             let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
@@ -4147,10 +4190,7 @@ impl GameState {
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
-            let respawn = (!self.map.is_campaign()).then(|| match pad.kind {
-                PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
-                _ => pad.respawn_ticks(),
-            });
+            let respawn = (!self.map.is_campaign()).then(|| pad.clock(team_clock));
             if claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
                 pad.respawn_timer = respawn;
@@ -4707,21 +4747,23 @@ impl BotController {
         }
     }
 
-    /// Capture-the-flag goals for a side with at least three rule bots.
-    /// Two-bot sides keep the older branch in `intent`.
+    /// Capture-the-flag goals for a side with at least three rule bots, with
+    /// the point this bot guards and how close an opponent must come to it:
+    /// the defender its own stand, the escort the carrier, a runner the flag
+    /// it came for. Two-bot sides keep the older branch in `ctf_intent`.
     fn ctf_support_intent(
         &self,
         state: &GameState,
         bot: &Player,
         team: Team,
         flags: &[ctf::Flag; 2],
-    ) -> BotIntent {
+    ) -> (BotIntent, Option<([f32; 3], f32)>) {
         let own = &flags[team.index()];
         let enemy = &flags[team.other().index()];
         let living =
             |player: &Player| player.hp > 0 && player.respawn_timer.is_none() && !player.detached;
         if !living(bot) {
-            return BotIntent::default();
+            return (BotIntent::default(), None);
         }
         let feet_of = |player: &Player| [player.x, player.y - PLAYER_FLOOR_Y, player.z];
         let carrier = enemy.carrier.and_then(|id| {
@@ -4798,10 +4840,173 @@ impl BotController {
                 }
             }
         }
-        BotIntent {
-            action,
-            goal: Some(crate::navigation::NavigationGoal { feet, combat }),
+        let guard = if carrying {
+            None
+        } else if defending {
+            Some((own.stand, CTF_HOLD_RADIUS))
+        } else if escorting {
+            carrier.map(|runner| (feet_of(runner), CTF_CLEAR_RADIUS))
+        } else {
+            Some((enemy.position, CTF_CLEAR_RADIUS))
+        };
+        (
+            BotIntent {
+                action,
+                goal: Some(crate::navigation::NavigationGoal { feet, combat }),
+            },
+            guard,
+        )
+    }
+
+    /// Capture-the-flag objective intent, or None without a side and flags.
+    fn ctf_intent(&self, state: &GameState, bot: &Player) -> Option<BotIntent> {
+        // Objective movement runs through the same bounded navigator as combat.
+        // It must work even when no enemy is in sight.
+        let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) else {
+            return None;
+        };
+        let own = &flags[team.index()];
+        let enemy = &flags[team.other().index()];
+        // A side of two keeps one defender and one flag runner.
+        // A larger side elects one defender and one escort.
+        let side_count = state
+            .bots
+            .iter()
+            .filter(|controller| {
+                state
+                    .players
+                    .iter()
+                    .any(|player| player.id == controller.player_id && player.team == Some(team))
+            })
+            .count();
+        if side_count >= 3 {
+            let (objective, guard) = self.ctf_support_intent(state, bot, team, flags);
+            return Some(self.ctf_combat(state, bot, guard, objective));
         }
+        // Keep one stable defender per side. The other rule bots stay
+        // on the flag route even when the roster grows.
+        let defender = state
+            .bots
+            .iter()
+            .find(|controller| {
+                state
+                    .players
+                    .iter()
+                    .any(|player| player.id == controller.player_id && player.team == Some(team))
+            })
+            .is_some_and(|controller| controller.player_id == bot.id);
+        let feet = if enemy.carrier == Some(bot.id) {
+            if own.dropped_at.is_some() {
+                own.position
+            } else if let Some(carrier) = own.carrier {
+                state
+                    .players
+                    .iter()
+                    .find(|p| p.id == carrier)
+                    .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                    .unwrap_or(own.stand)
+            } else {
+                own.stand
+            }
+        } else if own.dropped_at.is_some() {
+            own.position
+        } else if let Some(carrier) = own.carrier.filter(|_| defender) {
+            state
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        } else if defender {
+            own.stand
+        } else if enemy.carrier.is_none() {
+            enemy.position
+        } else {
+            own.stand
+        };
+        let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
+        let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
+        let mut action = Action {
+            forward: true,
+            ..Action::default()
+        };
+        if diff > 0.18 {
+            action.turn_right = true;
+        }
+        if diff < -0.18 {
+            action.turn_left = true;
+        }
+        let thief = own.carrier.and_then(|carrier| {
+            state
+                .players
+                .iter()
+                .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
+        });
+        // A carrier already pursuing its own flag thief can defend at
+        // the same contact range as the side's ordinary defender.
+        let intercept = (defender || enemy.carrier == Some(bot.id))
+            && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
+        if let Some(target) = thief.filter(|_| intercept) {
+            aim_contact(&mut action, bot, target);
+        }
+        let objective = BotIntent {
+            action,
+            goal: Some(crate::navigation::NavigationGoal {
+                feet,
+                combat: intercept,
+            }),
+        };
+        // The defender holds its own flag; the runner clears the flag it came
+        // for. The carrier only runs.
+        let guard = if enemy.carrier == Some(bot.id) {
+            None
+        } else if defender {
+            Some((own.stand, CTF_HOLD_RADIUS))
+        } else {
+            Some((enemy.position, CTF_CLEAR_RADIUS))
+        };
+        Some(self.ctf_combat(state, bot, guard, objective))
+    }
+
+    /// A CTF bot keeps its objective route and shoots what it actually sees
+    /// along it. With a `guard` point it turns and fights an opponent it sees
+    /// close to that point: a defender at its stand, an escort beside the
+    /// carrier, a runner at the flag it came for. Nobody chases a fight
+    /// elsewhere; measured on Sector 9, every bot
+    /// fighting whatever it saw inside 25 m cut 2v2 captures from 16 of 16
+    /// seeded rounds to 3. A contact-range intercept of the flag thief keeps
+    /// its own aim. All of it uses the shared delayed observations.
+    fn ctf_combat(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        guard: Option<([f32; 3], f32)>,
+        mut objective: BotIntent,
+    ) -> BotIntent {
+        if objective.goal.is_some_and(|goal| goal.combat) {
+            return objective;
+        }
+        let threat = guard.and_then(|(point, radius)| {
+            self.sensed_enemy(state, bot, CTF_ENGAGE_RANGE)
+                .filter(|(enemy, _)| (enemy.x - point[0]).hypot(enemy.z - point[2]) <= radius)
+        });
+        if threat.is_some() {
+            if let Some(fight) = self.sensed_fight(state, bot, None, true) {
+                return fight;
+            }
+        }
+        if let Some(combat) = self.sensed_objective_aim(state, bot) {
+            objective.action.yaw = combat.yaw;
+            objective.action.pitch = combat.pitch;
+            objective.action.weapon_swap = combat.weapon_swap;
+            objective.action.turn_left = false;
+            objective.action.turn_right = false;
+            objective.action.fire = combat.fire;
+        } else if self.uses_senses(state, bot) {
+            // A close aim helper must not restore a shot nobody saw.
+            objective.action.fire = false;
+        }
+        objective
     }
 
     pub fn update(&self, state: &GameState) -> Action {
@@ -4822,6 +5027,11 @@ impl BotController {
 
         if state.conquest.is_some() && bot.contestant() {
             return self.conquest_intent(state, bot);
+        }
+        if state.config.rules.mode() == crate::protocol::GameMode::Ctf && bot.contestant() {
+            if let Some(intent) = self.ctf_intent(state, bot) {
+                return intent;
+            }
         }
         if self.uses_senses(state, bot) {
             return self.sensed_intent(state, bot);
@@ -4846,101 +5056,6 @@ impl BotController {
             if dist < nearest_dist {
                 nearest_dist = dist;
                 nearest_target = Some(target);
-            }
-        }
-
-        // Objective movement runs through the same bounded navigator as combat.
-        // It must work even when no enemy is in sight.
-        if state.config.rules.mode() == crate::protocol::GameMode::Ctf && bot.contestant() {
-            if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
-                let own = &flags[team.index()];
-                let enemy = &flags[team.other().index()];
-                // A side of two keeps one defender and one flag runner.
-                // A larger side elects one defender and one escort.
-                let side_count = state
-                    .bots
-                    .iter()
-                    .filter(|controller| {
-                        state.players.iter().any(|player| {
-                            player.id == controller.player_id && player.team == Some(team)
-                        })
-                    })
-                    .count();
-                if side_count >= 3 {
-                    return self.ctf_support_intent(state, bot, team, flags);
-                }
-                // Keep one stable defender per side. The other rule bots stay
-                // on the flag route even when the roster grows.
-                let defender = state
-                    .bots
-                    .iter()
-                    .find(|controller| {
-                        state.players.iter().any(|player| {
-                            player.id == controller.player_id && player.team == Some(team)
-                        })
-                    })
-                    .is_some_and(|controller| controller.player_id == bot.id);
-                let feet = if enemy.carrier == Some(bot.id) {
-                    if own.dropped_at.is_some() {
-                        own.position
-                    } else if let Some(carrier) = own.carrier {
-                        state
-                            .players
-                            .iter()
-                            .find(|p| p.id == carrier)
-                            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                            .unwrap_or(own.stand)
-                    } else {
-                        own.stand
-                    }
-                } else if own.dropped_at.is_some() {
-                    own.position
-                } else if let Some(carrier) = own.carrier.filter(|_| defender) {
-                    state
-                        .players
-                        .iter()
-                        .find(|p| p.id == carrier)
-                        .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                        .unwrap_or(own.stand)
-                } else if defender {
-                    own.stand
-                } else if enemy.carrier.is_none() {
-                    enemy.position
-                } else {
-                    own.stand
-                };
-                let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
-                let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
-                let mut action = Action {
-                    forward: true,
-                    ..Action::default()
-                };
-                if diff > 0.18 {
-                    action.turn_right = true;
-                }
-                if diff < -0.18 {
-                    action.turn_left = true;
-                }
-                let thief = own.carrier.and_then(|carrier| {
-                    state
-                        .players
-                        .iter()
-                        .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
-                });
-                // A carrier already pursuing its own flag thief can defend at
-                // the same contact range as the side's ordinary defender.
-                let intercept = (defender || enemy.carrier == Some(bot.id))
-                    && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
-                if let Some(target) = thief.filter(|_| intercept) {
-                    aim_contact(&mut action, bot, target);
-                }
-                return BotIntent {
-                    action,
-                    goal: Some(crate::navigation::NavigationGoal {
-                        feet,
-                        combat: intercept,
-                    }),
-                };
             }
         }
 

@@ -66,6 +66,8 @@ pub struct ToolState {
     /// Body the next Hello requests: `--body` at start, or the last `join`
     /// that named one. A resumed or already admitted pawn keeps its own.
     pub body: protocol::BodyKind,
+    /// What the joined fighter has seen of the pads, for `observe`.
+    pub pads: crate::pads::PadView,
 }
 
 impl Default for ToolState {
@@ -84,6 +86,7 @@ impl Default for ToolState {
             session_name: None,
             map: None,
             body: protocol::BodyKind::Human,
+            pads: crate::pads::PadView::default(),
         }
     }
 }
@@ -493,6 +496,24 @@ pub fn validate_no_arg_tool(tool: &str, arguments: &Value) -> Result<(), String>
     Ok(())
 }
 
+/// A joined fighter sees pads through its own eyes; a booth spectator that
+/// never joined keeps the live pad view.
+fn joined_fighter(state: &ToolState) -> bool {
+    let Some(id) = state.player_id.map(|id| id.to_string()) else {
+        return false;
+    };
+    state
+        .last_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.get("players"))
+        .and_then(Value::as_array)
+        .is_some_and(|players| {
+            players
+                .iter()
+                .any(|player| player.get("id").and_then(Value::as_str) == Some(id.as_str()))
+        })
+}
+
 pub fn build_observe_result(state: &ToolState) -> Value {
     if let Some(error) = &state.connection_error {
         return serde_json::json!({
@@ -515,6 +536,11 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 );
                 if let Some(map) = state.map.as_ref() {
                     obj.insert("map".to_string(), map.clone());
+                }
+                if joined_fighter(state) {
+                    if let Some(pickups) = obj.get_mut("pickups") {
+                        state.pads.redact(pickups);
+                    }
                 }
                 if let Some(loadout) = state.loadout.as_ref() {
                     obj.insert("loadout".into(), serde_json::json!(loadout));
@@ -718,7 +744,7 @@ fn tools_list_result() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads, and the round. detail=full is the snapshot object (players, pickups, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, and the round. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -1078,11 +1104,19 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         .filter(|player| player.hp > 0)
         .count();
     let origin = me.map(|player| (player.x, player.z)).unwrap_or((0.0, 0.0));
+    // A joined fighter's pads are what it has seen; the booth sees them all.
+    let believed = |pad: &protocol::PickupState| {
+        if me.is_some() {
+            state.pads.up(pad)
+        } else {
+            pad.available
+        }
+    };
     let nearest = |kind: &str| -> Option<f32> {
         snapshot
             .pickups
             .iter()
-            .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case(kind))
+            .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case(kind))
             .map(|pad| (pad.x - origin.0).hypot(pad.z - origin.1))
             .filter(|dist| dist.is_finite())
             .min_by(|a, b| a.total_cmp(b))
@@ -1091,7 +1125,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
     for pad in snapshot
         .pickups
         .iter()
-        .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case("weapon"))
+        .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case("weapon"))
     {
         let name = if pad.weapon.is_empty() {
             "weapon".to_string()
@@ -1661,6 +1695,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             {
                 return Ok(());
             }
+            state.pads.observe(&snapshot, state.player_id);
             if let Ok(snapshot_value) = serde_json::to_value(snapshot) {
                 state.last_snapshot = Some(snapshot_value);
             }
@@ -1882,6 +1917,8 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(m04) = m04 {
                 map["m04"] = serde_json::json!(m04);
             }
+            let teams = rules.as_ref().is_some_and(|rules| rules.mode.teams());
+            state.pads.reset_map(solids.clone(), teams);
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
             }
@@ -1905,6 +1942,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
+            if matches!(event, protocol::GameEvent::RoundStart { .. }) {
+                state.pads.reset_round();
+            }
             if let Ok(event_value) = serde_json::to_value(event) {
                 push_recent_event(state, event_value);
             }
@@ -1916,6 +1956,8 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.loadout = None;
             state.record = None;
             state.mission = Default::default();
+            // The map follows the Welcome; a new seat has seen nothing yet.
+            state.pads = Default::default();
             state.player_id = player_id;
             state.connected = true;
         }

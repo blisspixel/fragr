@@ -275,7 +275,18 @@ fn a_parked_body_is_not_a_sabotage_fight() {
     put(&mut state, ghost, [A[0] + 1.2, A[1], A[2]]);
     state.players.iter_mut().find(|p| p.id == bot).unwrap().yaw = 0.0;
     let controller = BotController::new(bot, BotBehavior::Compliance);
-    let live = controller.intent(&state);
+    // A Sabotage bot fights what it has seen, after a human reaction.
+    let start = state.tick;
+    let mut live = controller.intent(&state);
+    assert!(!live.action.fire, "nobody is fought before being seen");
+    for tick in start..start + 12 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&controller));
+        live = controller.intent(&state);
+        if live.action.fire {
+            break;
+        }
+    }
     assert!(
         live.action.fire,
         "a standing enemy at arm's length is a fight"

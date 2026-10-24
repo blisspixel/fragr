@@ -47,6 +47,19 @@ that reason, and `round_state.connection_error` carries it even after event
 drain. A fresh connection attempt or Welcome clears it. An explicit rejected
 `join` returns an MCP tool error. Unknown `map_id` and `map_name` are null.
 
+**Pads in a joined agent's `observe`:** the Snapshot carries every pad's live
+state for renderers and spectators. Once the adapter's own fighter is in the
+snapshot, `observe` reports pads as that fighter perceives them, the way rule
+bots do: a pad is seen inside a 120 degree view, within 40 m and past the map's
+solids, or within 2.5 m whatever the facing. Full `observe.pickups[].available`
+is the fighter's belief, `in_view` says whether it sees the pad now, and the live
+`respawn_in` timer is removed. A pad seen empty is believed back after its
+published clock (weapons 240 ticks, 600 in team modes; health and armor 300;
+ammo and explosives 200); campaign stock seen empty stays empty until seen
+again. Unseen pads are believed up, and a `round_start` puts every pad back.
+The brief's pad distances use the same belief. Personal stock passes through.
+An adapter that never joined keeps the full live view.
+
 **Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
 trims names to 24 Unicode scalars, uses `Player` for an empty result, and appends

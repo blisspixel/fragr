@@ -1,4 +1,5 @@
 mod mcp;
+mod pads;
 
 use clap::{Parser, Subcommand};
 use fragr_server::protocol::{self as protocol, ClientMessage, Role, ServerMessage};
@@ -1397,6 +1398,61 @@ mod tests {
             }
             _ => panic!("Expected Event(PlayerLeft)"),
         }
+    }
+
+    #[test]
+    fn a_joined_agent_observes_only_the_pads_it_has_seen() {
+        use fragr_server::sim::GameState;
+        let mut game = GameState::new();
+        game.start_round();
+        let me = uuid::Uuid::from_u128(77);
+        game.add_player(me, "Agent".into(), protocol::Role::Agent);
+        // Face away from pad 0 from well out of underfoot reach.
+        let (x, floor, z) = (game.pickups[0].x, game.pickups[0].floor, game.pickups[0].z);
+        let player = game.players.iter_mut().find(|p| p.id == me).unwrap();
+        player.x = x - 10.0;
+        player.z = z;
+        player.y = floor + fragr_server::sim::PLAYER_FLOOR_Y;
+        player.yaw = std::f32::consts::PI;
+        game.pickups[0].available = false;
+        game.pickups[0].respawn_timer = Some(30);
+        let mut joined = mcp::ToolState::default();
+        let welcome = serde_json::json!({"type":"welcome", "role":"agent", "player_id": me});
+        mcp::ingest_server_text(&mut joined, &welcome.to_string()).unwrap();
+        mcp::ingest_server_text(&mut joined, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&joined);
+        let pad = &observation["pickups"][0];
+        assert_eq!(
+            pad["available"], true,
+            "taken behind its back: still believed up"
+        );
+        assert_eq!(pad["in_view"], false);
+        assert!(
+            pad.get("respawn_in").is_none(),
+            "no live timer for a fighter"
+        );
+
+        // Turned around, it sees the empty pad.
+        game.players.iter_mut().find(|p| p.id == me).unwrap().yaw = 0.0;
+        game.tick += 1;
+        mcp::ingest_server_text(&mut joined, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&joined);
+        assert_eq!(observation["pickups"][0]["available"], false);
+        assert_eq!(observation["pickups"][0]["in_view"], true);
+
+        // A booth that never joined keeps the live view and the timer.
+        let mut booth = mcp::ToolState::default();
+        let welcome = serde_json::json!({"type":"welcome", "role":"spectator", "player_id": null});
+        mcp::ingest_server_text(&mut booth, &welcome.to_string()).unwrap();
+        mcp::ingest_server_text(&mut booth, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&booth);
+        assert_eq!(observation["pickups"][0]["available"], false);
+        assert_eq!(observation["pickups"][0]["respawn_in"], 30);
+        assert!(observation["pickups"][0].get("in_view").is_none());
+    }
+
+    fn snapshot_text(game: &fragr_server::sim::GameState) -> String {
+        serde_json::to_string(&protocol::ServerMessage::Snapshot(game.snapshot())).unwrap()
     }
 
     #[test]
