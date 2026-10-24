@@ -33,6 +33,7 @@ func _run() -> void:
 	hud.set_process(false)
 	await _test_reservation_validation()
 	await _test_real_top_layers()
+	await _test_nameplate_blockers()
 	await _test_scaled_columns()
 	await _test_result_cards()
 	await _test_card_placement()
@@ -41,7 +42,7 @@ func _run() -> void:
 	hud.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_hud_layout: PASS top band reservations, scaled columns, upright cards, stamp lifetime and card placement")
+		print("test_hud_layout: PASS top band reservations, nameplate blockers, scaled columns, upright cards, stamp lifetime and card placement")
 		quit(0)
 	else:
 		push_error("test_hud_layout: FAIL with %d failures" % failures)
@@ -142,6 +143,36 @@ func _test_real_top_layers() -> void:
 	counter.set_mode(PerformanceOverlay.OFF)
 	await _settle()
 	_check(is_equal_approx(hud.frag_feed.position.y, base_feed) and is_equal_approx(hud.mode_chip_label.position.y, base_center), "columns return when the layer turns off")
+
+## A watched match's nameplate never draws under a HUD plate: the FOLLOWING
+## context plate (seen in tour_combat_follow on 2026-10-24) and the frag feed
+## rows are blockers, and a plate touching one yields while a clear one stays.
+func _test_nameplate_blockers() -> void:
+	_busy_top()
+	hud.weapon_label.text = "FOLLOWING: AUNT LINDA [BAL]\nRIFLE"
+	hud.weapon_label.show()
+	hud.map_chip_label.text = "LARAK LOT"
+	hud.map_chip_label.show()
+	hud.round_message.hide()
+	await _settle()
+	hud.regions.fit_backings()
+	var plate: Panel = hud.regions.backings["context"]
+	_check(plate.visible, "the context plate backs the FOLLOWING facts")
+	var blockers: Array[Rect2] = hud.regions.world_label_blockers()
+	var context: Rect2 = plate.get_global_rect()
+	_check(blockers.any(func(rect: Rect2) -> bool: return rect.encloses(context)), "the context plate blocks world labels: " + str(context))
+	_check(hud.frag_feed.get_child_count() > 0, "the busy top band has frag rows")
+	for row: Node in hud.frag_feed.get_children():
+		var row_rect: Rect2 = (row as Control).get_global_rect()
+		_check(blockers.any(func(rect: Rect2) -> bool: return rect.encloses(row_rect)), "frag feed rows block world labels")
+	var plates: Array[Dictionary] = [
+		{"id": "under", "rect": Rect2(context.position + Vector2(16.0, -12.0), Vector2(320.0, 24.0)), "priority": 1, "distance": 6.0},
+		{"id": "clear", "rect": Rect2(560.0, 400.0, 180.0, 24.0), "priority": 2, "distance": 12.0},
+	]
+	_check(NameplateLayout.choose(plates, blockers) == ["clear"], "a nameplate under a HUD plate hides and a clear one stays")
+	hud.weapon_label.text = ""
+	hud.map_chip_label.text = ""
+	await _settle()
 
 func _test_scaled_columns() -> void:
 	for spec: Array in [[1.5, FragrSettings.TEXT_LARGE], [1.5, FragrSettings.TEXT_STANDARD], [1.0, FragrSettings.TEXT_LARGE], [0.75, FragrSettings.TEXT_STANDARD]]:

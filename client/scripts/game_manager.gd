@@ -2956,6 +2956,10 @@ func _update_nameplates() -> void:
 		entries.append({"id": str(id), "rect": area, "priority": priority,
 			"distance": view.global_position.distance_to(label.global_position)})
 	var reserved: Array[Rect2] = arena_flags.blocker_rects(view) if arena_flags != null else []
+	# HUD panels own their pixels: a nameplate that would draw under the
+	# FOLLOWING plate, the feed or a card hides instead.
+	if hud != null and hud.regions != null:
+		reserved.append_array(hud.regions.world_label_blockers())
 	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries, reserved)
 	for id: Variant in players:
 		var pawn: Node = players[id]

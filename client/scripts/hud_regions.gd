@@ -376,6 +376,38 @@ func reserved_regions() -> Array[Rect2]:
 			regions.append(value)
 	return regions
 
+## Viewport rectangles the HUD currently draws plates or text over: the corner,
+## center and context backings, frag feed rows, combat feed lines, the weapon
+## plate, the round card, the leaderboard, the use prompt, the radio card and
+## the warmup screen. World labels (fighter nameplates) are hidden where they
+## would touch one, so a callsign never draws under or over a HUD panel.
+func world_label_blockers() -> Array[Rect2]:
+	var drawn: Array[Rect2] = []
+	# Untyped on purpose: plates of several Control types share one pass.
+	var plates: Array = []
+	plates.append_array(backings.values())
+	plates.append_array([hud.get("weapon_icon_bg"), hud.get("round_backdrop"), hud.get("_leaderboard"),
+		hud.get("_use_plate"), hud.get("radio_card"), hud.get("warmup_tv")])
+	var feed: Variant = hud.get("frag_feed")
+	if feed is Control and (feed as Control).is_visible_in_tree():
+		plates.append_array((feed as Control).get_children())
+	for plate: Variant in plates:
+		if plate is Control and (plate as Control).is_visible_in_tree():
+			drawn.append((plate as Control).get_global_rect())
+	var lines: Array = [hud.get("round_message")]
+	var combat: Variant = hud.get("combat_feed")
+	if combat is Control and (combat as Control).is_visible_in_tree():
+		lines.append_array((combat as Control).get_children())
+	for line: Variant in lines:
+		if line is Label:
+			drawn.append(text_bounds(line as Label).grow(4.0))
+	var to_view: Transform2D = hud.get_final_transform()
+	var blockers: Array[Rect2] = []
+	for rect: Rect2 in drawn:
+		if rect.has_area() and rect.is_finite():
+			blockers.append(to_view * rect)
+	return blockers
+
 ## Drawn text bounds in canvas coordinates: the widest line from the label's
 ## own font and size (capped by its width when it wraps), aligned as the label
 ## aligns it, through the label's full canvas transform. A rotated or scaled
