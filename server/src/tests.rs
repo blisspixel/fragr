@@ -4864,7 +4864,7 @@ fn test_protocol_snapshot_map_defaults_round_trip() {
         "players": [],
         "mode_name": "Contested Frequency",
         "playlist": "Arena Duel",
-        "host_line": "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
+        "host_line": "HOST: WELCOME TO THE SCRAP. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
     });
     let snap: Snapshot = serde_json::from_value(json).unwrap();
     assert_eq!(snap.map_id, default_map_id());
@@ -4880,8 +4880,7 @@ fn test_warmup_host_drama_roster_map_countdown() {
 
     let snap = state.snapshot();
     assert_eq!(snap.round_time_left, Some(2));
-    assert!(snap.host_line.contains("CONTESTED FREQUENCY"));
-    assert!(snap.host_line.contains("ARENA DUEL"));
+    assert!(snap.host_line.starts_with("HOST: WELCOME TO ARENA DUEL."));
     assert!(snap.host_line.contains("DEAD AIR DAN"));
     assert!(snap.host_line.contains("ON THE SCRAP"));
     assert!(snap.host_line.contains("2."));
@@ -4945,8 +4944,10 @@ fn rule_bot_taunt_emits_speak_and_respects_cooldown() {
         .collect();
     assert_eq!(speaks.len(), 1);
     assert_eq!(speaks[0].0, "Dead Air Dan");
-    assert!(!speaks[0].1.is_empty());
-    assert!(speaks[0].1.chars().count() <= 80);
+    let lines = crate::roster::find("Dead Air Dan")
+        .unwrap()
+        .taunts(BotTauntKind::Frag);
+    assert!(lines.contains(&speaks[0].1.as_str()), "{}", speaks[0].1);
 
     assert_eq!(
         state.try_rule_bot_taunt(bot_id, BotTauntKind::Death),
@@ -5020,10 +5021,10 @@ fn warmup_rule_bot_taunt_path_can_emit_speak() {
             _ => None,
         })
         .expect("Warmup Speak");
-    assert!(
-        line.contains("glitch") || line.contains("static") || line.contains("tuning"),
-        "{line}"
-    );
+    let lines = crate::roster::find("Static Kid")
+        .unwrap()
+        .taunts(BotTauntKind::Warmup);
+    assert!(lines.contains(&line.as_str()), "{line}");
 
     state.tick += 1;
     assert_eq!(

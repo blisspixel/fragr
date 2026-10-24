@@ -115,7 +115,7 @@ func _capture_warmup_tv_bumper(out_dir: String) -> void:
 		"NODS-3",
 		"NODS-4",
 	]
-	var host_line: String = "HOST: CONTESTED FREQUENCY. LARAK LOT TUNES IN. NODS-1, NODS-2, +2 ON THE SCRAP. GOES LIVE IN 2."
+	var host_line: String = "HOST: WELCOME TO LARAK LOT. NODS-1, NODS-2, +2 ON THE SCRAP. GOES LIVE IN 2."
 	hud.show_warmup_bumper(host_line, 2, roster)
 	await create_timer(0.25).timeout
 	await RenderingServer.frame_post_draw

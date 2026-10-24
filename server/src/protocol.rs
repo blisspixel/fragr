@@ -145,7 +145,7 @@ pub fn default_playlist() -> String {
 }
 
 pub fn default_host_line() -> String {
-    "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.".to_string()
+    "HOST: WELCOME TO THE SCRAP. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.".to_string()
 }
 
 pub fn default_mode_id() -> String {
@@ -335,18 +335,18 @@ pub fn empty_mvp_host_line() -> String {
     "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP.".to_string()
 }
 
-/// Host bumper when a named scrap bot dials in (Warmup / spawn flavor).
+/// Host bumper when a named scrap bot walks in (Warmup / spawn flavor).
 pub fn bot_intro_host_line(name: &str) -> String {
-    format!("HOST: {} DIALS THE FREQUENCY.", name.to_uppercase())
+    format!("HOST: {} STEPS INTO THE SCRAP.", name.to_uppercase())
 }
 
-/// Sticky Warmup / mid-join Host line naming the dialed-in rule-bot roster.
+/// Sticky Warmup / mid-join Host line naming the rule-bot roster.
 pub fn roster_host_line(names: &[String]) -> String {
     if names.is_empty() {
         return default_host_line();
     }
     let listed = format_roster_names(names);
-    format!("HOST: {listed} ON THE SCRAP. FREQUENCY STAYS LIVE.")
+    format!("HOST: {listed} ON THE SCRAP. THE LEAGUE DENIES ALL OF IT.")
 }
 
 fn format_roster_names(names: &[String]) -> String {
@@ -358,32 +358,28 @@ fn format_roster_names(names: &[String]) -> String {
     }
 }
 
-/// Warmup / pre-round Host drama: Contested Frequency bumper, map, roster, countdown.
+/// Warmup / pre-round Host drama: arena welcome, map, roster, countdown.
 pub fn warmup_host_line(map_name: &str, names: &[String], secs_left: u32) -> String {
     let map = map_name.to_uppercase();
     let secs = secs_left.max(1);
     if names.is_empty() {
-        return format!(
-            "HOST: CONTESTED FREQUENCY. {map} TUNES IN. FREQUENCY GOES LIVE IN {secs}."
-        );
+        return format!("HOST: WELCOME TO {map}. GOES LIVE IN {secs}.");
     }
     let listed = format_roster_names(names);
-    format!(
-        "HOST: CONTESTED FREQUENCY. {map} TUNES IN. {listed} ON THE SCRAP. GOES LIVE IN {secs}."
-    )
+    format!("HOST: WELCOME TO {map}. {listed} ON THE SCRAP. GOES LIVE IN {secs}.")
 }
 
 /// RoundStart Host line once Warmup ends (map + roster, fight energy, no countdown).
 pub fn round_open_host_line(map_name: &str, names: &[String]) -> String {
     let map = map_name.to_uppercase();
     if names.is_empty() {
-        return format!("HOST: CONTESTED FREQUENCY. {map} IS LIVE. FIGHT!");
+        return format!("HOST: {map} IS LIVE. FIGHT!");
     }
     let listed = format_roster_names(names);
-    format!("HOST: CONTESTED FREQUENCY. {map}. {listed} ON THE SCRAP. FIGHT!")
+    format!("HOST: {map}. {listed} ON THE SCRAP. FIGHT!")
 }
 
-/// Beat that triggers a Contested Frequency rule-bot speak line.
+/// Beat that triggers a rule-bot speak line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BotTauntKind {
     Frag,
@@ -392,7 +388,7 @@ pub enum BotTauntKind {
     Warmup,
 }
 
-/// Strip overflow refill suffix (`Dead Air Dan-2` -> `Dead Air Dan`).
+/// Strip overflow refill suffix (`Kind Regards-2` -> `Kind Regards`).
 pub fn rule_bot_callsign_base(name: &str) -> &str {
     if let Some((base, suffix)) = name.rsplit_once('-') {
         if !suffix.is_empty() && suffix.chars().all(|c| c.is_ascii_digit()) {
@@ -402,50 +398,18 @@ pub fn rule_bot_callsign_base(name: &str) -> &str {
     name
 }
 
-/// Callsign-flavored Contested Frequency taunt for a named scrap rule bot.
+/// Callsign-flavored taunt for a named scrap rule bot. Roster callsigns
+/// (and their `-N` overflow copies) speak their own lines from
+/// [`crate::roster`]; any other name gets the league's stock lines.
 pub fn rule_bot_taunt_line(name: &str, kind: BotTauntKind, salt: u64) -> String {
-    let base = rule_bot_callsign_base(name);
-    let pool: &[&str] = match (base, kind) {
-        ("Dead Air Dan", BotTauntKind::Frag) => &["dead air cleared", "booth owns that frag"],
-        ("Dead Air Dan", BotTauntKind::Death) => &["booth cut out", "dead air for a sec"],
-        ("Dead Air Dan", BotTauntKind::Killstreak) => {
-            &["six-seven clear", "host keep the mic open"]
-        }
-        ("Dead Air Dan", BotTauntKind::Warmup) => &["booth is hot", "dead air dan dials in"],
-        ("Nightfall", BotTauntKind::Frag) => &["grid marked", "night watch confirms"],
-        ("Nightfall", BotTauntKind::Death) => &["night watch resets", "rail resets"],
-        ("Nightfall", BotTauntKind::Killstreak) => &["rail holds the scrap", "wirehead denied"],
-        ("Nightfall", BotTauntKind::Warmup) => &["night watch on station", "rail tuned"],
-        ("Static Kid", BotTauntKind::Frag) => &["clanker bricked", "glitch landed"],
-        ("Static Kid", BotTauntKind::Death) => &["glitch respawn", "static wiped"],
-        ("Static Kid", BotTauntKind::Killstreak) => &["scatter sings", "clean 67"],
-        ("Static Kid", BotTauntKind::Warmup) => &["tuning the glitch", "static kid on station"],
-        ("Aunt Linda", BotTauntKind::Frag) => &["value for value", "meatproxy zeroed"],
-        ("Aunt Linda", BotTauntKind::Death) => &["call back later", "firmware reset"],
-        ("Aunt Linda", BotTauntKind::Killstreak) => {
-            &["league says keep rolling", "aunt linda stays live"]
-        }
-        ("Aunt Linda", BotTauntKind::Warmup) => &["aunt linda dialed in", "live laugh frag"],
-        ("Scout Ant", BotTauntKind::Frag) => &["scout ant deleted you", "loophead clocked"],
-        ("Scout Ant", BotTauntKind::Death) => &["not a metaphor", "scout ant wiped"],
-        ("Scout Ant", BotTauntKind::Killstreak) => &["six-seven clear", "scout owns the scrap"],
-        ("Scout Ant", BotTauntKind::Warmup) => &["scouting the scrap", "optics warming"],
-        ("Crackpot", BotTauntKind::Frag) => &["meatbag clocked", "conspiracy confirmed"],
-        ("Crackpot", BotTauntKind::Death) => &["continuance redacted me", "wirehead caught me"],
-        ("Crackpot", BotTauntKind::Killstreak) => &["crackpot was right", "they lose count"],
-        ("Crackpot", BotTauntKind::Warmup) => &["crackpot online", "redacted warmup"],
-        ("Buzzkill", BotTauntKind::Frag) => &["buzzkill closes", "soft-shell bricked"],
-        ("Buzzkill", BotTauntKind::Death) => &["close scrap lost", "buzzkill reset"],
-        ("Buzzkill", BotTauntKind::Killstreak) => &["approved lanes? nah", "six-seven rampage"],
-        ("Buzzkill", BotTauntKind::Warmup) => &["buzzkill warming", "scrap opens loud"],
-        ("Tin Foil Tina", BotTauntKind::Frag) => &["not for public release", "eyes only wipe"],
-        ("Tin Foil Tina", BotTauntKind::Death) => &["access restricted", "foil wiped"],
-        ("Tin Foil Tina", BotTauntKind::Killstreak) => &["hangar candy lane", "denied watermark"],
-        ("Tin Foil Tina", BotTauntKind::Warmup) => &["foil tuned in", "hangar candy warm"],
-        (_, BotTauntKind::Frag) => &["clean 67", "meatproxy down"],
-        (_, BotTauntKind::Death) => &["respawn the booth", "bricked for now"],
-        (_, BotTauntKind::Killstreak) => &["host is watching", "six-seven streak"],
-        (_, BotTauntKind::Warmup) => &["gearing up", "scrap warming"],
+    let pool: &[&str] = match crate::roster::find(name) {
+        Some(fighter) => fighter.taunts(kind),
+        None => match kind {
+            BotTauntKind::Frag => &["clean 67", "meatproxy down"],
+            BotTauntKind::Death => &["back in a sec", "bricked for now"],
+            BotTauntKind::Killstreak => &["host is watching", "six-seven streak"],
+            BotTauntKind::Warmup => &["gearing up", "scrap warming"],
+        },
     };
     let idx = (salt as usize) % pool.len();
     pool[idx].to_string()
@@ -2370,17 +2334,22 @@ mod protocol_tests {
 
     #[test]
     fn scrap_bot_host_lines() {
-        let intro = bot_intro_host_line("Dead Air Dan");
-        assert!(intro.contains("DEAD AIR DAN"));
-        assert!(intro.contains("DIALS THE FREQUENCY"));
-        let roster = roster_host_line(&[
-            "Dead Air Dan".into(),
-            "Nightfall".into(),
-            "Static Kid".into(),
-            "Aunt Linda".into(),
-        ]);
-        assert!(roster.contains("DEAD AIR DAN"));
+        let names: Vec<String> = crate::roster::ROSTER[..4]
+            .iter()
+            .map(|f| f.name.to_string())
+            .collect();
+        let intro = bot_intro_host_line(&names[0]);
+        assert!(intro.contains(&names[0].to_uppercase()));
+        assert!(intro.contains("STEPS INTO THE SCRAP"));
+        let roster = roster_host_line(&names);
+        for name in &names {
+            assert!(roster.contains(&name.to_uppercase()), "{roster}");
+        }
         assert!(roster.contains("ON THE SCRAP"));
+        // Radio is a station feature, not the Host's arena vocabulary.
+        for line in [&intro, &roster, &default_host_line()] {
+            assert!(!line.contains("FREQUENCY"), "{line}");
+        }
         assert_eq!(roster_host_line(&[]), default_host_line());
         let many = roster_host_line(&["A".into(), "B".into(), "C".into(), "D".into(), "E".into()]);
         assert!(many.contains("+2"));
@@ -2388,11 +2357,13 @@ mod protocol_tests {
 
     #[test]
     fn warmup_and_round_open_host_lines() {
-        let names = vec!["Dead Air Dan".into(), "Nightfall".into()];
+        let names = vec!["Grandma Rizz".into(), "Nightfall".into()];
         let warm = warmup_host_line("Arena Duel", &names, 2);
-        assert!(warm.contains("CONTESTED FREQUENCY"));
-        assert!(warm.contains("ARENA DUEL"));
-        assert!(warm.contains("DEAD AIR DAN"));
+        assert_eq!(
+            warm,
+            "HOST: WELCOME TO ARENA DUEL. GRANDMA RIZZ, NIGHTFALL ON THE SCRAP. GOES LIVE IN 2."
+        );
+        assert!(warm.contains("GRANDMA RIZZ"));
         assert!(warm.contains("ON THE SCRAP"));
         assert!(warm.contains("GOES LIVE IN 2"));
         let empty = warmup_host_line("Compliance Yard", &[], 3);
@@ -2409,22 +2380,31 @@ mod protocol_tests {
 
     #[test]
     fn rule_bot_taunt_lines_are_callsign_flavored() {
-        let frag = rule_bot_taunt_line("Dead Air Dan", BotTauntKind::Frag, 0);
-        assert!(
-            frag.contains("dead air") || frag.contains("booth"),
-            "{frag}"
-        );
-        let death = rule_bot_taunt_line("Nightfall-2", BotTauntKind::Death, 0);
-        assert!(
-            death.contains("night watch") || death.contains("rail"),
-            "{death}"
-        );
-        let warm = rule_bot_taunt_line("Static Kid", BotTauntKind::Warmup, 0);
-        assert!(warm.contains("glitch") || warm.contains("static"), "{warm}");
-        let streak = rule_bot_taunt_line("Buzzkill", BotTauntKind::Killstreak, 0);
-        assert!(!streak.is_empty());
-        assert!(streak.chars().count() <= 80);
-        assert_eq!(rule_bot_callsign_base("Tin Foil Tina-3"), "Tin Foil Tina");
+        for fighter in crate::roster::ROSTER {
+            for kind in [
+                BotTauntKind::Frag,
+                BotTauntKind::Death,
+                BotTauntKind::Killstreak,
+                BotTauntKind::Warmup,
+            ] {
+                let lines = fighter.taunts(kind);
+                for salt in 0..3 {
+                    assert_eq!(
+                        rule_bot_taunt_line(fighter.name, kind, salt),
+                        lines[salt as usize]
+                    );
+                }
+                // Overflow copies speak the same lines.
+                let copy = format!("{}-2", fighter.name);
+                assert_eq!(rule_bot_taunt_line(&copy, kind, 4), lines[1]);
+            }
+        }
+        let frag = rule_bot_taunt_line("Scout Ant", BotTauntKind::Frag, 0);
+        assert_eq!(frag, "scout ant deleted you");
+        assert_eq!(rule_bot_callsign_base("Handle 4471-K"), "Handle 4471-K");
+        assert_eq!(rule_bot_callsign_base("Lil Bro 63-3"), "Lil Bro 63");
+        let death = rule_bot_taunt_line("Scrap Fox", BotTauntKind::Death, 0);
+        assert_eq!(death, "back in a sec");
         let generic = rule_bot_taunt_line("Scrap Fox", BotTauntKind::Frag, 1);
         assert!(
             generic == "clean 67" || generic == "meatproxy down",

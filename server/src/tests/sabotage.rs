@@ -867,6 +867,65 @@ fn sides_swap_at_half_and_the_score_swaps_with_the_fighters() {
 }
 
 #[test]
+fn rule_bots_change_callsigns_when_the_half_changes_their_colors() {
+    let mut state = arena(SabotageConfig {
+        live_ticks: 20,
+        ..quick()
+    });
+    let names = [
+        "Formerly 4471",
+        "Handle 4471-K",
+        "Scout Ant",
+        "Kind Regards 07",
+    ];
+    let mut ids = Vec::new();
+    for (n, name) in names.into_iter().enumerate() {
+        let id = Uuid::from_u128(n as u128 + 1);
+        state.add_player(id, name.into(), Role::Agent);
+        let behavior = crate::roster::find(name).unwrap().behavior;
+        state.bots.push(BotController::new(id, behavior));
+        ids.push(id);
+    }
+    // A person is never renamed, whatever their name fits.
+    let person = join(&mut state, 9);
+    state.start_round();
+    let before: Vec<(Uuid, String)> = state
+        .players
+        .iter()
+        .map(|p| (p.id, p.name.clone()))
+        .collect();
+    for id in &ids {
+        let p = player(&state, *id);
+        let fits = crate::roster::find(&p.name)
+            .unwrap()
+            .allegiance
+            .fits(p.team);
+        assert!(fits, "first half: {} on {:?}", p.name, p.team);
+    }
+    let _ = time_out_rounds(&mut state, 4);
+    let events = run(&mut state, 5);
+    assert!(kinds(&events).contains(&SabotageEventKind::SidesSwapped));
+    let mut seen = std::collections::HashSet::new();
+    for (id, old) in &before {
+        let p = player(&state, *id);
+        assert!(seen.insert(p.name.to_ascii_lowercase()), "{} twice", p.name);
+        if *id == person {
+            assert_eq!(&p.name, old);
+            continue;
+        }
+        let fighter = crate::roster::find(&p.name).expect("roster callsign");
+        assert!(
+            fighter.allegiance.fits(p.team),
+            "{old} became {} on {:?}",
+            p.name,
+            p.team
+        );
+        // A league regular keeps her name; everyone else changed colors.
+        assert_eq!(p.name == *old, old == "Scout Ant", "{old} -> {}", p.name);
+    }
+}
+
+#[test]
 fn the_match_ends_at_the_target_and_a_new_match_starts_fresh() {
     let mut state = arena(SabotageConfig {
         live_ticks: 20,

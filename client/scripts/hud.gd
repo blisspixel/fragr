@@ -134,7 +134,7 @@ var result_subject: String = ""
 var _controls_visible: bool = false
 
 const HOST_BUMPERS = [
-	"HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE.",
+	"HOST: THE LEAGUE DENIES EXISTENCE.",
 	"HOST: ARENA DUEL UNDER THE LIE. LIVE LAUGH FRAG.",
 	"HOST: CONTINUANCE WATCHES. YOU SHOOT.",
 	"HOST: SHALL NOT BE INFRINGED. OPEN WEIGHTS. OPEN FIRE.",
@@ -1387,13 +1387,13 @@ func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	host_spoke.emit(3.0)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
 	flash_broadcast_chrome("host")
-	# Unmissable full-frame Contested Frequency Warmup TV bumper.
+	# Unmissable full-frame Warmup TV bumper.
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).
 	if warmup_tv == null and round_message:
 		var line = host_line
 		if line == "":
-			line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+			line = "HOST: WELCOME TO " + map_label.to_upper() + "."
 		var sub = "WARMUP // " + map_label.to_upper()
 		if secs_left > 0:
 			sub += " // GOES LIVE IN " + str(secs_left)
@@ -1423,7 +1423,7 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 		return
 	var line = host_line
 	if line == "":
-		line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+		line = "HOST: WELCOME TO " + map_label.to_upper() + "."
 	warmup_tv_host_line = line
 	warmup_tv_secs = max(secs_left, 0)
 	if warmup_tv_league:

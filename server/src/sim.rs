@@ -1385,13 +1385,7 @@ impl GameState {
         if !self.admit_campaign_owner(id) {
             return;
         }
-        // A Sabotage joiner evens the sides, then joins the side behind on rounds.
-        let standings = self
-            .sabotage
-            .as_ref()
-            .map_or(self.team_scores, |sab| sab.score);
-        let team = (self.config.rules.teams() && !self.map.is_campaign())
-            .then(|| crate::rules::choose_team(self.team_counts(), standings));
+        let team = self.joining_team();
         let angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
         // Warmup is placement for the opening fight. It needs the same cover
         // and clearance policy as a live join, even before weapons activate.

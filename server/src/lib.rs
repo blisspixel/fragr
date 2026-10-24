@@ -20,6 +20,7 @@ pub mod operator;
 mod preflight;
 pub mod protocol;
 pub mod resume;
+pub mod roster;
 pub mod rules;
 pub mod run;
 pub mod session;
