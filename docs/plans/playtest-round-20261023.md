@@ -14,19 +14,23 @@ passing CI before the next wave starts.
 
 ## Waves
 
-| Wave | Lanes and issues | Plan |
+Bounded lanes carry their scope and evidence in the issue and the PR
+description; a lane writes a plan file only if it grows into several PRs.
+
+| Wave | Lanes and issues | Record |
 |---|---|---|
-| 1 | Death and respawn lifecycle, post-death residue (#441, #437 comment) | [ffa-death-lifecycle](ffa-death-lifecycle-20261023.md) |
-| 1 | Top-HUD collisions and upright result text (#437) | [hud-layout-upright-results](hud-layout-upright-results-20261023.md) |
-| 1 | Mixed-input menu focus, main and multiplayer menu structure (#435, #436) | [menu-focus-and-structure](menu-focus-and-structure-20261023.md) |
-| 1 | Reload readability for ordinary weapons (#440) | [reload-readability](reload-readability-20261023.md) |
-| 1 | Dedicated server operator output and Windows hosting (#438) | [operator-console-output](operator-console-output-20261023.md) |
-| 1 | Stutter diagnosis slice (#434, second comment) | [stutter-diagnosis](stutter-diagnosis-20261023.md) |
-| 1 | Issue closeout rule (#433), this plan, roadmap | this file |
-| 2 | Benchmark UX (#439), music playback and controls (#442), FFA starting kit (#431 comment), 4 s FFA respawn, wave 1 leftovers | written at wave start |
-| 2+ | Asset round with the funded Higgsfield, Meshy and ElevenLabs credits | [asset round](asset-round-20261023.md), written before any paid stage |
-| 3 | Level 19, Planned Works (#429) | [brief](../campaign/l19-planned-works.md) |
-| 4 | Level 20, Local Exception (#430) | [brief](../campaign/l20-local-exception.md) |
+| 1 | Death and respawn lifecycle, post-death residue (#441, #437 comment) | issue and PR |
+| 1 | Top-HUD collisions and upright result text (#437) | issue and PR |
+| 1 | Mixed-input menu focus, main and multiplayer menu structure (#435, #436) | issues and PR |
+| 1 | Reload readability for ordinary weapons (#440) | issue and PR |
+| 1 | Dedicated server operator output and Windows hosting (#438) | issue and PR |
+| 1 | Stutter diagnosis slice (#434, second comment) | issue and PR |
+| 1 | Issue closeout rule (#433), this plan, roadmap, agent guidance diet | this file, PR #443 |
+| 2 | Benchmark UX (#439), music playback and controls (#442), FFA starting kit (#431 comment), 4 s FFA respawn, wave 1 leftovers | issues and PRs |
+| 2+ | Asset round with the funded Higgsfield, Meshy and ElevenLabs credits | ledger reservation before any paid stage; plan only if it spans several PRs |
+| 3 | Golden slice and hero map: boot, menu, join, fight, die, respawn and result on one hero FFA map, plus campaign Level 1 | [roadmap rung 2](../ROADMAP.md#full-build-order) |
+| 4 | Level 19, Planned Works (#429), built to the golden-slice bar | [brief](../campaign/l19-planned-works.md) |
+| 5 | Level 20, Local Exception (#430), built to the golden-slice bar | [brief](../campaign/l20-local-exception.md) |
 
 Later, not in these waves: the remaining multiplayer excellence (#431) and
 bot and enemy AI excellence (#432) scope, and #434 stages 2 to 6, which wait on
@@ -67,7 +71,7 @@ round's lanes into a second build order.
 
 ## Verification
 
-Each lane records its own evidence in its plan and PR: the AGENTS.md checks for
+Each lane records its own evidence in its PR and issue closeout: the AGENTS.md checks for
 what it touched, rendered captures inspected under `.agents/`, and Windows
 rendered evidence listed as not run when it was not run (the round's lanes run
 on a Linux host). One `tools/qa_tour.sh --publish` runs at the end of each wave

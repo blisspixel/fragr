@@ -8,7 +8,7 @@ Status words: **proposed** (awaiting Nick's decision; directs no work), **planne
 
 - Game port is **6767** (TCP today; UDP reserved for the planned low-latency transport).
 - Spend rules, including the current asset-credit authorization, live in one place: the hard constraints in [`AGENTS.md`](../../AGENTS.md). Dated balance readings are history, not live allowances.
-- No backward compatibility before 1.0: one current save schema, wire shape and settings file. Plans do not add migrations.
+- No backward compatibility before 1.0: one current save schema, wire shape and settings file. Plans do not add migrations, and any save-compatibility, carry-version or migration step an older plan below still names is void.
 - Tailscale is private smoke only, never the documented join path.
 - The dedicated server bar is rock solid, secure and cheap, with a spare home machine as a complete host. The [server excellence goal](server-excellence.md) owns plan-only cloud work; nothing is applied without written spend approval.
 
