@@ -11,7 +11,23 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## October 18, 2026 palette and typography round
+## October 24, 2026 wave 1 visual QA round
+
+`tools/qa_tour.sh --publish` now runs a second, team deathmatch pass from
+`client/qa/team_tour.json`, so `tour_team_first_person` and
+`tour_team_spectator` are regenerated with every publish, and it removes any
+published `tour_*` still the run did not produce. That retired the stale
+September team still and the two synthetic host-menu fixtures
+(`tour_host_running`, `tour_host_auto`) that showed the pre-#436 menu. The 34
+arena states and both team states were captured at 1280x720 on a nested
+Xwayland display with OpenGL Compatibility on the GPU, and the published
+stills were inspected at full size. A second look found the followed fighter
+hidden behind cover in the chase stills and the kill feed glyph stretched over
+its own gap; the chase boom now rises over cover (pulling in only when no
+angle clears), the glyph keeps its margins, and the tour was published again. Presentation only; no
+Windows frames.
+
+## Historical October 18, 2026 palette and typography round
 
 The complete 32-state arena tour passed and `tools/qa_tour.sh --publish`
 refreshed fourteen retained stills. The contact sheet, menus, first-person and
@@ -97,12 +113,7 @@ llvmpipe. That complete tour failed three transient weapon-effect visibility
 checks; the failed receipt is retained locally. These approved menu frames do
 not imply a passing full tour or qualify a release.
 
-`tour_host_running_16x9.png` and `tour_host_auto_16x9.png` are separately rendered
-menu fixtures using a declared synthetic local-host state. They show the running
-match entry and ten-fighter automatic-fill layout, not a real hosted match or
-native process qualification. The ordinary host-menu harness separately checks
-menu replacement and retained settings. All three new frames were inspected at
-full size. Older gameplay and boot stills retain the dates and limits below.
+Older gameplay and boot stills retain the dates and limits below.
 
 ## Historical README gallery, October 10, 2026
 
