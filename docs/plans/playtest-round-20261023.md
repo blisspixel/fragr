@@ -65,6 +65,16 @@ rendered evidence listed as not run when it was not run (the round's lanes run
 on a Linux host). One `tools/qa_tour.sh --publish` runs at the end of each wave
 that changes what a player sees, so lanes do not fight over screenshots.
 
+## Visual QA loop (every wave)
+
+Headless checks do not see ugly. After each wave merges, rerun the full tour,
+then have reviewers open every still and motion strip against the art bible and
+the bar of current retro shooters. Each defect they file goes to a fix lane,
+followed by recapture and another look, until a pass finds nothing. Stale stills
+count as defects: on 2026-10-23 `tour_team_first_person_16x9.png` still showed a
+September HUD. The published `tour_multiplayer_16x9.png` showed the #435
+two-edge highlight that no check had flagged.
+
 ## Success criteria
 
 - Every wave merges back to one green `main`, squash merged in a recorded order.
