@@ -243,7 +243,7 @@ Every weapon owns its own set. Nothing is shared, because a shared fire sound is
 |---|---|---|
 | **fire** | The shot leaves | Yes |
 | **cycle** | Between shots: pump, recharge, spin-down, settle | Yes |
-| **reload** | A human magazine finishes filling. No new cue is wired yet | Guns with a magazine |
+| **reload** | An accepted human reload starts, then its magazine fills. Both reuse reviewed Sniper scope handling sounds at a lower level and shifted pitch until dedicated clips exist | Guns with a magazine |
 | **raise** | You switch to it | Yes |
 | **dry** | Trigger pulled with an empty count | Yes |
 | **empty** | The count just reached zero and this weapon is finished until a pickup | Yes |

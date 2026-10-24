@@ -1165,6 +1165,12 @@ pub enum ServerMessage {
         /// Optional post-tick body state for replay-aware human clients.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         movement: Option<MovementAck>,
+        /// Ticks until this fighter's server respawn attempt, present only
+        /// while it is down and awaiting an arcade respawn. The respawn runs
+        /// on tick `tick + respawn_ticks`. Presentation only: a client cannot
+        /// request or advance it.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        respawn_ticks: Option<u32>,
     },
     /// Unicast control-plane rejection (e.g. speak rate limit). Not broadcast.
     Error {

@@ -202,6 +202,8 @@ func run(line: String) -> void:
 			_report_players()
 		"version":
 			echo("godot " + str(Engine.get_version_info().get("string", "")))
+		"stutter":
+			_stutter(rest)
 		_:
 			command_run.emit(line)
 			echo("unknown command: " + verb + " (try help)")
@@ -220,6 +222,7 @@ func _help() -> void:
 	echo("controls        what every key does")
 	echo("tip             another piece of questionable advice")
 	echo("version         engine version")
+	echo("stutter start|mark <label>|stop  record frame, snapshot and prediction timing to a file")
 	echo("quit            leave")
 
 func _report_controls() -> void:
@@ -307,6 +310,17 @@ func _report_players() -> void:
 		var pawn: Variant = (players as Dictionary)[pid]
 		if pawn is Node and is_instance_valid(pawn):
 			echo("  " + str((pawn as Node).name))
+
+## Stutter diagnosis belongs to a match; the boot menu has none to record.
+func _stutter(args: Array[String]) -> void:
+	var game: Node = _game()
+	if game == null or not game.has_method("stutter_command"):
+		echo("no match")
+		return
+	var lines: Variant = game.call("stutter_command", args)
+	if lines is PackedStringArray:
+		for line: String in lines:
+			echo(line)
 
 func _set_fullscreen(on: bool) -> void:
 	_save_preference("video", "display_mode", 2 if on else 0)

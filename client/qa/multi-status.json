@@ -1,5 +1,5 @@
 {
-  "comment": "Multiplayer page after GET /status. The frame is evidence only if the match line names the map.",
+  "comment": "Join view after GET /status. The frame is evidence only if the match line names the map.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -8,7 +8,7 @@
       "scene": "res://scenes/boot_menu.tscn",
       "at_seconds": 4,
       "camera": "none",
-      "menu_page": "multi",
+      "menu_page": "join",
       "note": "One host in the app, with the live map line. Not a web list."
     }
   ]

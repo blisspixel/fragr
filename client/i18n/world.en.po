@@ -1053,17 +1053,32 @@ msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"
 msgid "HOST_CREATE"
 msgstr "Run a match"
 
-msgid "HOST_RUN_SECTION"
-msgstr "Run a server"
-
 msgid "HOST_YOUR_SERVER"
-msgstr "Your server"
+msgstr "Manage your match"
 
-msgid "HOST_STILL_RUNNING"
-msgstr "Your server is still running."
+msgid "HOST_RUNNING_CHOICE"
+msgstr "Nobody joins for you. Watch and Join are separate choices; Stop server ends the match for everyone."
+
+msgid "HOST_MORE_OPTIONS"
+msgstr "Rules, LAN and port"
+
+msgid "MULTI_FIND_NOTE"
+msgstr "Watch or play on someone's server: nearby, saved, or by address."
+
+msgid "MULTI_RUN_NOTE"
+msgstr "Start a match on this computer. Watch or join it when you choose."
 
 msgid "JOIN_SECTION"
-msgstr "Join a server"
+msgstr "Find / join a match"
+
+msgid "JOIN_DIRECT"
+msgstr "Direct address"
+
+msgid "JOIN_SELECTED"
+msgstr "Selected: {address}"
+
+msgid "JOIN_CHECK_PROMPT"
+msgstr "Check this address to see its match."
 
 msgid "JOIN_SAVE"
 msgstr "Save this host"

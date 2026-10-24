@@ -28,6 +28,14 @@ const DISPLAY_SMALL: int = 48
 const DISPLAY_MEDIUM: int = 64
 const DISPLAY_LARGE: int = 96
 const PIXEL_SIZES: Array[int] = [16, 24, 32, 48]
+## Focus is the one selected look: a plate framed on all four edges plus a
+## heavy left rail, so it reads by shape as well as colour (#435). Hover is a
+## thin neutral frame that never resembles it.
+const FOCUS_FRAME: int = 4
+const FOCUS_RAIL: int = 14
+const HOVER_FRAME: int = 2
+## Theme type variation for the front menu's borderless list rows.
+const MENU_ITEM: StringName = &"MenuItem"
 const DISPLAY_SIZES: Array[int] = [48, 64, 96]
 const SWATCHES: Dictionary = {
 	"ink": INK, "bone": BONE, "ember_hot": EMBER,
@@ -91,6 +99,27 @@ static func panel(fill: Color = SURFACE, edge: Color = BORDER) -> StyleBoxFlat:
 	style.content_margin_bottom = 6
 	return style
 
+## The selected plate. Drawn by Godot over the state style, so the frame sits
+## inside the control's own rect: scroll clips, neighbours and shadows cannot
+## cut an edge off it. `fill` should contrast with the normal fill.
+static func focus_plate(fill: Color, accent: Color = EMBER) -> StyleBoxFlat:
+	var style: StyleBoxFlat = panel(fill, accent)
+	style.set_border_width_all(FOCUS_FRAME)
+	style.border_width_left = FOCUS_RAIL
+	style.shadow_size = 0
+	style.shadow_offset = Vector2.ZERO
+	style.anti_aliasing = false
+	return style
+
+## Pointer hover without focus: a quiet frame, never the accent.
+static func hover_frame(fill: Color, edge: Color = MUTED) -> StyleBoxFlat:
+	var style: StyleBoxFlat = panel(fill, edge)
+	style.set_border_width_all(HOVER_FRAME)
+	style.shadow_size = 0
+	style.shadow_offset = Vector2.ZERO
+	style.anti_aliasing = false
+	return style
+
 static func build(context: Context) -> Theme:
 	if _themes.has(context):
 		return _themes[context]
@@ -100,8 +129,10 @@ static func build(context: Context) -> Theme:
 	theme.default_font_size = BODY
 	for type: String in ["Button", "OptionButton", "CheckButton", "CheckBox", "LineEdit", "PopupMenu", "Label", "TooltipLabel"]:
 		theme.set_color("font_color", type, palette.text)
-		theme.set_color("font_hover_color", type, palette.accent)
-		theme.set_color("font_focus_color", type, palette.accent)
+		# Hover text stays plain. Godot draws a focused, hovered button with
+		# the hover colour, so focus text matches it and the plate carries focus.
+		theme.set_color("font_hover_color", type, palette.text)
+		theme.set_color("font_focus_color", type, palette.text)
 		theme.set_color("font_pressed_color", type, palette.text)
 		theme.set_color("font_hover_pressed_color", type, palette.text)
 		theme.set_color("font_disabled_color", type, palette.muted)
@@ -109,13 +140,16 @@ static func build(context: Context) -> Theme:
 		theme.set_constant("outline_size", type, 2)
 	for type: String in ["Button", "OptionButton", "LineEdit", "CheckButton", "CheckBox"]:
 		theme.set_stylebox("normal", type, panel(palette.surface, palette.border))
-		theme.set_stylebox("hover", type, panel(palette.surface, palette.accent))
+		theme.set_stylebox("hover", type, hover_frame(palette.surface, palette.muted))
 		theme.set_stylebox("pressed", type, panel(palette.ink, palette.accent))
 		theme.set_stylebox("hover_pressed", type, panel(palette.ink, palette.accent))
-		var focus: StyleBoxFlat = panel(CLEAR, palette.accent)
-		focus.shadow_size = 0
-		theme.set_stylebox("focus", type, focus)
+		theme.set_stylebox("focus", type, focus_plate(palette.ink, palette.accent))
 		theme.set_stylebox("disabled", type, panel(palette.ink, palette.border))
+	# A switched-on toggle is a value, shown by its switch icon. Drawing it in
+	# the accent frame made every enabled option look selected.
+	for type: String in ["CheckButton", "CheckBox"]:
+		theme.set_stylebox("pressed", type, panel(palette.surface, palette.border))
+		theme.set_stylebox("hover_pressed", type, hover_frame(palette.surface, palette.muted))
 	theme.set_stylebox("normal", "LineEdit", panel(palette.ink, palette.border))
 	theme.set_stylebox("read_only", "LineEdit", panel(palette.ink, palette.border))
 	theme.set_color("font_uneditable_color", "LineEdit", palette.muted)
@@ -137,14 +171,15 @@ static func build(context: Context) -> Theme:
 	theme.set_color("font_color", "ProgressBar", palette.text)
 	theme.set_color("font_outline_color", "ProgressBar", palette.ink)
 	theme.set_constant("outline_size", "ProgressBar", 2)
-	theme.set_stylebox("hover", "PopupMenu", panel(palette.surface, palette.accent))
+	# A popup has no separate focus: its highlighted item is the selection.
+	theme.set_stylebox("hover", "PopupMenu", focus_plate(palette.surface, palette.accent))
+	theme.set_color("font_hover_color", "PopupMenu", palette.accent)
 	theme.set_color("font_accelerator_color", "PopupMenu", palette.text)
 	for type: String in ["HSlider", "VSlider"]:
 		theme.set_stylebox("slider", type, panel(palette.ink, palette.border))
 		theme.set_stylebox("grabber_area", type, panel(palette.accent, palette.accent))
 		theme.set_stylebox("grabber_area_highlight", type, panel(palette.text, palette.accent))
-		var focus: StyleBoxFlat = panel(CLEAR, palette.accent)
-		focus.shadow_size = 0
+		var focus: StyleBoxFlat = focus_plate(CLEAR, palette.accent)
 		theme.set_stylebox("focus", type, focus)
 		for state: String in ["grabber", "grabber_highlight", "grabber_disabled"]:
 			var mark: Color = palette.muted if state == "grabber_disabled" else palette.accent if state == "grabber_highlight" else palette.text
@@ -173,8 +208,26 @@ static func build(context: Context) -> Theme:
 			var mark: Color = palette.muted if state == "_disabled" else palette.text if state.is_empty() else palette.accent
 			theme.set_icon(direction + state, "SpinBox", _arrow(direction == "up", mark))
 			theme.set_color(direction + state + "_icon_modulate", "SpinBox", UNTINTED)
+	_menu_item(theme, palette)
 	_themes[context] = theme
 	return theme
+
+## Borderless front-menu rows: plain text at rest, the same focus plate as
+## every other control when selected.
+static func _menu_item(theme: Theme, palette: Dictionary) -> void:
+	theme.set_type_variation(MENU_ITEM, "Button")
+	var rest: StyleBoxEmpty = StyleBoxEmpty.new()
+	rest.content_margin_left = 18
+	rest.content_margin_right = 18
+	rest.content_margin_top = 6
+	rest.content_margin_bottom = 6
+	theme.set_stylebox("normal", MENU_ITEM, rest)
+	# Unavailable rows keep a dim frame, so they read as buttons that are off.
+	theme.set_stylebox("disabled", MENU_ITEM, hover_frame(CLEAR, palette.edge))
+	theme.set_stylebox("hover", MENU_ITEM, hover_frame(CLEAR, palette.muted))
+	theme.set_stylebox("pressed", MENU_ITEM, focus_plate(palette.surface, palette.accent))
+	theme.set_stylebox("hover_pressed", MENU_ITEM, focus_plate(palette.surface, palette.accent))
+	theme.set_stylebox("focus", MENU_ITEM, focus_plate(palette.surface, palette.accent))
 
 static func _block(mark: Color, backing: Color) -> Texture2D:
 	var image: Image = Image.create(18, 24, false, Image.FORMAT_RGBA8)

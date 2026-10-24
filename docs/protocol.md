@@ -861,6 +861,14 @@ World-point aim:
   the client's send time or raw socket arrival. The selected value is held on
   later ticks until a newer Action replaces it. Weapon selection and a jump
   press survive intervening packets until an active tick consumes them.
+- Death ends that life's input. The server clears held movement and every
+  queued press (jump, use, grenade, mine, reload, remote mines) at the death
+  tick. A `fire` still held at death stays latched: the next life fires only
+  after an Action releases the trigger. While a fighter awaits respawn the
+  server keeps only its newest held state; presses, weapon choices and seat
+  changes sent while down are not queued into the next life, and a `fire`
+  held when the body returns needs a release first. Held movement in the
+  first Action after the respawn applies normally.
 - All `true` fields are applied together on the next server tick
 - Movement keys combine (e.g., forward + left = diagonal)
 - `look_at` is applied after movement/turn so agents can strafe while locking aim
@@ -1386,6 +1394,13 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
 - `movement.jump_input`: the latched or held jump request sent into the
   movement integrator for this tick. It is not proof of takeoff: an airborne
   body or low ceiling can prevent a new jump.
+- `respawn_ticks`: (optional) present only while this fighter is down and
+  awaiting an arcade respawn. The server attempts the respawn on tick
+  `tick + respawn_ticks`; every Ack while down restates it, so a client
+  countdown re-anchors on the newest Ack and never runs its own admission
+  clock. Absent while alive, while eliminated (out of lives), and for campaign
+  bodies. A respawn that finds no safe spawn retries one tick later. Godot
+  rejects a non-integer, negative or over-long value at the Ack boundary.
 
 The server builds the Ack after simulation. It queues MapInfo, Mission,
 Snapshot and events before the same-tick Ack unicast. An unsent quiet world

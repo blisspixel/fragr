@@ -478,6 +478,7 @@ pub async fn serve_with_mode(
         join_audience: admission.audience,
         origin_allow: admission.origins,
         spectator_tickets: admission.spectator_tickets,
+        tick_trace: crate::tick_trace::path_from_env()?,
         ..Default::default()
     };
     let (difficulty_tx, difficulty_rx) = oneshot::channel();
