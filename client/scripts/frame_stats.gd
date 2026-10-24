@@ -13,18 +13,6 @@ class_name FrameStats
 
 const SLOW_FRAME_S: float = 0.033
 const STALL_FRAME_S: float = 0.050
-const FAST_MEDIAN_MS: float = 8.0
-const SLOW_MEDIAN_MS: float = 16.0
-const EVEN_RATIO: float = 1.5
-const HITCH_RATIO: float = 2.0
-const HITCH_SHARE: float = 0.02
-
-const EMPTY_VERDICT: String = "No frames were scored."
-const FAST_VERDICT: String = "Frames are fast and even. With sync off, the picture can tear, and the match still moves at 20 snapshots a second."
-const HITCH_VERDICT: String = "Frames are fast on average and then hitch. A fast graphics card does not hide a stall between frames."
-const SLOW_VERDICT: String = "Frames themselves are slow."
-const SLOW_HITCH_VERDICT: String = "Frames are slow, and some of them hitch. The graphics card is not the only limit."
-const KEEPING_UP_VERDICT: String = "Frames are keeping up. Read the 99th percentile against the median before blaming the graphics card."
 
 static func report(intervals: PackedFloat32Array) -> Dictionary:
 	var clean: PackedFloat32Array = PackedFloat32Array()
@@ -87,24 +75,6 @@ static func report(intervals: PackedFloat32Array) -> Dictionary:
 		"stutter_max_ms": delta_max * 1000.0,
 		"stutter_count": _stutter_count(clean),
 	}
-
-static func verdict(summary: Dictionary) -> String:
-	if int(summary.get("count", 0)) <= 0:
-		return EMPTY_VERDICT
-	var median: float = float(summary.get("median_ms", 0.0))
-	var ratio: float = float(summary.get("smoothness", 0.0))
-	var hitch: float = float(summary.get("over_33_share", 0.0))
-	var slow: bool = median > SLOW_MEDIAN_MS
-	var uneven: bool = ratio > HITCH_RATIO or hitch >= HITCH_SHARE
-	if slow and uneven:
-		return SLOW_HITCH_VERDICT
-	if slow:
-		return SLOW_VERDICT
-	if uneven:
-		return HITCH_VERDICT
-	if median <= FAST_MEDIAN_MS and ratio <= EVEN_RATIO and hitch < HITCH_SHARE:
-		return FAST_VERDICT
-	return KEEPING_UP_VERDICT
 
 static func _empty(dropped: int) -> Dictionary:
 	return {

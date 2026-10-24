@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Headless geometry regressions for #437: the top band shared by the HUD
-## columns, the frame counter and the benchmark banner; and result cards whose
+## columns and the frame counter; and result cards whose
 ## readable copy stays upright while their stamp follows the card's lifetime.
 ## Rendered evidence is qa_hud_layout.gd; this harness keeps the rules.
 ## Run: godot --path client --headless --script res://scripts/test_hud_layout.gd
@@ -9,7 +9,6 @@ extends SceneTree
 var failures: int = 0
 var hud: CanvasLayer
 var counter: PerformanceOverlay
-var bench: BenchmarkRun
 var query_answer: Variant = []
 
 func _initialize() -> void:
@@ -117,15 +116,13 @@ func _busy_top() -> void:
 func _test_real_top_layers() -> void:
 	counter = PerformanceOverlay.new()
 	root.add_child(counter)
-	bench = BenchmarkRun.new()
-	root.add_child(bench)
-	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region(), bench.occupied_region()]
+	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region()]
 	_busy_top()
 	await _settle()
 	var base_feed: float = hud.frag_feed.position.y
 	var base_center: float = hud.mode_chip_label.position.y
 	var base_corner: float = hud.get_node("Panel").position.y
-	_check(counter.occupied_region() == Rect2() and bench.occupied_region() == Rect2(), "off counter and idle benchmark reserve nothing")
+	_check(counter.occupied_region() == Rect2(), "an off counter reserves nothing")
 	var view: Rect2 = hud.get_viewport().get_visible_rect()
 	counter.set_mode(PerformanceOverlay.DETAIL)
 	# The readout before its first refresh is empty; the region already holds the widest text.
@@ -139,27 +136,12 @@ func _test_real_top_layers() -> void:
 	_check(hud.frag_feed.position.y >= region.end.y, "frag feed starts below the counter")
 	_check(not hud.frag_feed.get_global_rect().intersects(drawn), "frag rows never sit under the counter")
 	_check(is_equal_approx(hud.mode_chip_label.position.y, base_center) and is_equal_approx(hud.get_node("Panel").position.y, base_corner), "counter does not move columns it does not cross")
-	bench.set_process(false)
-	bench.begin()
-	bench.set_process(false)
-	await _settle()
-	var banner: Rect2 = bench.occupied_region()
-	_check(banner.has_area() and not bench.get("_banner").text.is_empty(), "a running benchmark reserves its banner")
-	var center: Rect2 = HudRegions.text_bounds(hud.mode_chip_label)
-	_check(center.has_area() and not center.intersects(banner), "center facts sit below the benchmark banner: %s vs %s" % [center, banner])
-	_check(not hud.frag_feed.get_global_rect().intersects(banner), "frag feed clears the banner")
-	# Dynamic change: retire both layers and the columns return.
+	# Dynamic change: retire the layer and the columns return. (A benchmark
+	# hides the match HUD outright, and its own HUD clears the counter; see
+	# test_benchmark.gd.)
 	counter.set_mode(PerformanceOverlay.OFF)
-	# Run the measurement to its end through the public clock: the banner clears.
-	bench.advance(BenchmarkRun.PRIME_SECONDS + 0.1)
-	bench.advance(BenchmarkRun.SCORE_SECONDS + 0.1)
-	_check(bench.phase == "done" and bench.occupied_region() == Rect2(), "a finished benchmark releases its reservation")
 	await _settle()
-	_check(is_equal_approx(hud.frag_feed.position.y, base_feed) and is_equal_approx(hud.mode_chip_label.position.y, base_center), "columns return when the layers turn off")
-	# The match manager owns these layers; once one is gone it is not queried.
-	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region()]
-	bench.queue_free()
-	await process_frame
+	_check(is_equal_approx(hud.frag_feed.position.y, base_feed) and is_equal_approx(hud.mode_chip_label.position.y, base_center), "columns return when the layer turns off")
 
 func _test_scaled_columns() -> void:
 	for spec: Array in [[1.5, FragrSettings.TEXT_LARGE], [1.5, FragrSettings.TEXT_STANDARD], [1.0, FragrSettings.TEXT_LARGE], [0.75, FragrSettings.TEXT_STANDARD]]:

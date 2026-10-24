@@ -11,6 +11,7 @@ extends Control
 const ARENA_SCENE: String = "res://scenes/main.tscn"
 const LOOPBACK: String = "127.0.0.1:6767"
 const MENU_FONT: Font = MenuTheme.DISPLAY_FONT
+const BENCHMARK_CANCELLED: String = "Benchmark cancelled. Nothing was scored or saved, and your settings are restored."
 
 var _page: String = "main"
 var _root: VBoxContainer = null
@@ -73,6 +74,9 @@ var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
 var _benchmark_pending: bool = false
 var _benchmark_compare: bool = false
+## How the last benchmark ended when it ended early; shown on the page until
+## the next one starts.
+var _benchmark_notice: String = ""
 ## A finished mission asked to continue the run; cleared once it starts or the
 ## saved run turns out to have nothing playable next.
 var _onward_pending: bool = false
@@ -137,6 +141,15 @@ func _ready() -> void:
 		get_tree().remove_meta(LocalMatch.ONWARD_META)
 		_onward_pending = true
 		_show("single")
+	elif get_tree().has_meta(BenchmarkRun.AGAIN_META):
+		var compare: bool = get_tree().get_meta(BenchmarkRun.AGAIN_META) == true
+		get_tree().remove_meta(BenchmarkRun.AGAIN_META)
+		_show("benchmark")
+		_start_benchmark(compare)
+	elif get_tree().has_meta(BenchmarkRun.CANCELLED_META):
+		get_tree().remove_meta(BenchmarkRun.CANCELLED_META)
+		_benchmark_notice = BENCHMARK_CANCELLED
+		_show("benchmark")
 	else:
 		_show("main")
 	_console = FragrConsole.new()
@@ -296,7 +309,7 @@ func _show(page: String) -> void:
 	_remember_focus()
 	_page = page
 	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "join", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
-	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 960.0 if page in ["host", "records", "benchmark"] else 780.0
+	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 1100.0 if page == "benchmark" else 960.0 if page in ["host", "records"] else 780.0
 	(get_node("MenuBackdrop") as MenuBackdrop).content_width = _column.custom_minimum_size.x
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
@@ -976,9 +989,50 @@ func _on_host_state_changed() -> void:
 	if _page in ["host", "benchmark", "main", "multi", "join"]:
 		_show(_page)
 
+## The setup card: what the benchmark measures, what runs, how long it takes,
+## what changes while it runs and where the results go, before anything starts.
 func _page_benchmark() -> void:
-	_label("Compare graphics settings on this computer. A fixed camera circles Arena Duel with ten bots. Every preset plays the same recorded fight.")
-	_label("See average FPS, 1% lows and frame-time spikes. Current preset takes about a minute; all three take about two. Your settings return when the test ends. Results save as JSON and CSV.")
+	var current: String = BenchmarkRun.preset_label(int(_settings.get_value("video", "quality")))
+	_heading("Rendered graphics benchmark on this computer", "BenchmarkPurpose")
+	if not _benchmark_notice.is_empty():
+		_label(_benchmark_notice).name = "BenchmarkNotice"
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "BenchmarkSetup"
+	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.INSET, MenuTheme.EDGE)
+	plate.content_margin_left = 24
+	plate.content_margin_right = 24
+	plate.content_margin_top = 14
+	plate.content_margin_bottom = 14
+	card.add_theme_stylebox_override("panel", plate)
+	_root.add_child(card)
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 6)
+	card.add_child(grid)
+	var size: Vector2i = get_window().size if is_inside_tree() else Vector2i.ZERO
+	var adapter: String = RenderingServer.get_video_adapter_name()
+	for row: Array in [
+			["Scene", "Arena Duel, ten bots. One recorded fight, replayed for each preset under an automated camera."],
+			["Scored", "%d s per preset, after %d s of warm-up that is not scored." % [int(BenchmarkRun.SCORE_SECONDS), int(BenchmarkRun.PRIME_SECONDS)]],
+			["Takes", "%s only: about %s. All three: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
+			["While it runs", "V-sync and the frame cap are off. Esc cancels. Your settings come back."],
+			["Results", "Average FPS, 1% low and frame-time spikes, saved as JSON and CSV."],
+			["This computer", "%s, %s, %d x %d." % [adapter if not adapter.is_empty() else "Graphics adapter not reported", RenderQuality.renderer_name(RenderingServer.get_current_rendering_method()), size.x, size.y]]]:
+		var key: Label = Label.new()
+		key.text = str(row[0]).to_upper()
+		key.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		key.add_theme_color_override("font_color", _palette.accent)
+		key.custom_minimum_size.x = 250.0
+		grid.add_child(key)
+		var value: Label = Label.new()
+		value.text = row[1]
+		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		value.custom_minimum_size.x = 740.0
+		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		value.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		value.add_theme_color_override("font_color", _palette.text)
+		grid.add_child(value)
 	if _benchmark_pending and _local_host.state == LocalHost.State.STARTING:
 		_label("Starting a local match on this computer. A server you already left running for other people stays up.")
 		_button("Cancel", _cancel_benchmark).name = "CancelBenchmark"
@@ -989,11 +1043,19 @@ func _page_benchmark() -> void:
 		_label("Stop the server you started in this app before a benchmark.")
 		_button("Back", func() -> void: _show("main"))
 		return
-	_button("Run current preset", func() -> void: _start_benchmark(false)).name = "RunBenchmark"
+	_button("Run current preset (%s)" % current, func() -> void: _start_benchmark(false)).name = "RunBenchmark"
 	_button("Compare all three", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
 	_button("Back", func() -> void: _show("main"))
+	var scope: Label = _label("Frames drawn on this computer only. Not a server, network or player-capacity test.")
+	scope.name = "BenchmarkScope"
+	scope.add_theme_color_override("font_color", _palette.muted)
+
+static func _minutes(seconds: float) -> String:
+	var whole: int = maxi(1, roundi(seconds / 60.0))
+	return "1 minute" if whole == 1 else "%d minutes" % whole
 
 func _start_benchmark(all_presets: bool = false) -> void:
+	_benchmark_notice = ""
 	_benchmark_compare = all_presets
 	_benchmark_pending = true
 	if not _local_host.start_host(BenchmarkRun.workload()):

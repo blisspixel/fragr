@@ -3,8 +3,8 @@ extends SceneTree
 ## Rendered inspection of the top HUD band and result cards (#437).
 ##
 ## Builds the real gameplay HUD from main.tscn beside the real frame counter
-## and benchmark banner layers, walks ordinary, spectator, warm-up, result and
-## benchmark states at three window sizes and the supported HUD scale and text
+## and benchmark HUD layers, walks ordinary, spectator, warm-up, result and
+## benchmark states at four window sizes and the supported HUD scale and text
 ## size extremes, then saves one PNG and one JSON measurement per state. Text
 ## bounds use each label's font, wrapped lines and full canvas transform, so a
 ## rotated card or a wrapped banner is measured as drawn, not as its logical box.
@@ -33,7 +33,7 @@ const LONG_NAME: String = "Extremely Long Callsign Of Record"
 var hud: CanvasLayer
 var view: SubViewport
 var counter: PerformanceOverlay
-var bench: BenchmarkRun
+var bench: BenchmarkHud
 var out_dir: String
 var report: Array[Dictionary] = []
 var problems: int = 0
@@ -68,9 +68,10 @@ func _run() -> void:
 	view.add_child(hud)
 	counter = PerformanceOverlay.new()
 	view.add_child(counter)
-	bench = BenchmarkRun.new()
+	bench = BenchmarkHud.new()
+	bench.reserved_query = func() -> Array: return [counter.occupied_region()]
 	view.add_child(bench)
-	bench.set_process(false)
+	bench.visible = false
 	_wire_top_band()
 	await process_frame
 	for size: Vector2i in SIZES:
@@ -95,19 +96,15 @@ func _run() -> void:
 		print("qa_hud_layout: PASS")
 	quit(0 if problems == 0 else 1)
 
-## Production wiring: the match manager supplies the frame counter and the
-## benchmark banner as reserved top regions. Before that seam exists this is a
-## no-op, and the measurement shows the unreserved layout.
+## Production wiring: the match manager supplies the frame counter as a
+## reserved top region to the match HUD and to the benchmark HUD.
 func _wire_top_band() -> void:
-	if "top_region_query" in hud:
-		hud.set("top_region_query", func() -> Array[Rect2]:
-			var regions: Array[Rect2] = []
-			for owner: Object in [counter, bench]:
-				if owner.has_method("occupied_region"):
-					var rect: Rect2 = owner.call("occupied_region")
-					if rect.has_area():
-						regions.append(rect)
-			return regions)
+	hud.set("top_region_query", func() -> Array[Rect2]:
+		var regions: Array[Rect2] = []
+		var rect: Rect2 = counter.occupied_region()
+		if rect.has_area():
+			regions.append(rect)
+		return regions)
 
 ## The project stretch: canvas_items with expand keeps 1080 logical rows on a
 ## wide window and 1920 logical columns on a tall one.
@@ -131,10 +128,8 @@ func _reset_state(fps: int) -> void:
 	if fps != PerformanceOverlay.OFF:
 		# A worst-case readout: three-digit rates and a two-digit frame time.
 		counter.get_node("FrameCounter").text = PerformanceOverlay.format(fps, {"fps": 999.0, "frame_ms": 16.7, "low_fps": 888.0})
-	var banner: Label = bench.get("_banner")
-	if banner != null:
-		banner.text = ""
-		banner.get_parent().visible = false
+	bench.visible = false
+	hud.visible = true
 
 func _busy_match(spectating: bool) -> void:
 	hud.set_mode("SPECTATING" if spectating else "PLAYING")
@@ -158,10 +153,15 @@ func _scene_ordinary(tag: String, fps: int) -> void:
 func _scene_benchmark(tag: String, fps: int) -> void:
 	_reset_state(fps)
 	_busy_match(true)
-	bench.call("_ensure_banner")
-	var banner: Label = bench.get("_banner")
-	banner.get_parent().visible = true
-	banner.text = "%s (%d/%d)  |  Scoring. %d s left. Esc returns to the menu." % [BenchmarkRun.preset_label(1), 2, 3, 20]
+	# A benchmark hides the match HUD; its own plates clear the frame counter.
+	hud.visible = false
+	bench.visible = true
+	bench.apply_style(hud.hud_style)
+	for frame: int in range(240):
+		bench.push_interval(1.0 / 144.0)
+	bench.show_progress({"state": "scoring", "headline": "MEASURING BALANCED", "detail": "Scored. 12 s left for this preset.",
+		"overall": 0.62, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Performance", "Balanced", "High"]),
+		"step": 2, "elapsed_s": 75.0, "remaining_s": 42.0, "scored_frames": 1150, "scored_s": 8.0})
 	await _capture("%s-benchmark-fps%d" % [tag, fps])
 
 func _scene_warmup(tag: String) -> void:
@@ -203,9 +203,10 @@ func _top_text() -> Dictionary:
 	named["corner_round"] = text_bounds(hud.round_label)
 	named["center_facts"] = text_bounds(hud.mode_chip_label)
 	named["frame_counter"] = text_bounds(counter.get_node("FrameCounter"))
-	var banner: Label = bench.get("_banner")
-	if banner != null and banner.get_parent().visible:
-		named["benchmark_banner"] = text_bounds(banner)
+	if bench.visible:
+		var plates: Dictionary = bench.occupied()
+		for key: String in plates:
+			named["benchmark_" + key] = plates[key]
 	var index: int = 0
 	for row: Node in hud.frag_feed.get_children():
 		if row is Control and (row as Control).is_visible_in_tree():
@@ -236,7 +237,7 @@ func _capture(name: String, card: bool = false) -> void:
 		if not visible.encloses(first.grow(-0.5)):
 			issues.append("%s leaves the view %s" % [keys[a], first])
 		# Centered top text must not run down into the aiming area.
-		if str(keys[a]) in ["center_facts", "benchmark_banner"] and first.end.y > visible.size.y * 0.5 - AIM_CLEARANCE:
+		if str(keys[a]) == "center_facts" and first.end.y > visible.size.y * 0.5 - AIM_CLEARANCE:
 			issues.append("%s reaches the crosshair (bottom %.0f)" % [keys[a], first.end.y])
 		for b: int in range(a + 1, keys.size()):
 			var second: Rect2 = named[keys[b]]

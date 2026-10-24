@@ -27,8 +27,8 @@ var frag_feed: FragFeed
 var objective_call: ObjectiveCall
 var event_cover_query: Callable
 var event_region_query: Callable
-## Top-band text owned by other canvas layers (frame counter, benchmark
-## banner): returns Array[Rect2] in canvas units. HudRegions lays the match
+## Top-band text owned by other canvas layers (the frame counter):
+## returns Array[Rect2] in canvas units. HudRegions lays the match
 ## facts, corner and frag feed out below whatever crosses their columns.
 var top_region_query: Callable
 var viewer_team: String = ""

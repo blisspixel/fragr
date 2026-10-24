@@ -699,6 +699,20 @@ func _set_observed_pawn(target: Node3D) -> void:
 		_observed_pawn.set_local_fp(true)
 
 
+## A scripted camera path (the benchmark orbit) owns the pose from here. The
+## camera stops following anyone, so no fighter is hidden for an eye view, no
+## viewmodel or vitals are presented for a fighter the camera is not inside,
+## and no highlight ring marks a followed pawn.
+func hand_over_pose() -> void:
+	set_fp_mode(false)
+	_set_observed_pawn(null)
+	follow_mode = false
+	spectator_first_person = false
+	frag_follow_timer = 0.0
+	frag_follow_target_id = ""
+	auto_cycle_timer = 0.0
+	mouse_motion = Vector2.ZERO
+
 ## tip_capture: latch free-fly pose at dish and re-assert every frame.
 func latch_tip_pose(xform: Transform3D) -> void:
 	_set_observed_pawn(null)

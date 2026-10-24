@@ -7,6 +7,12 @@ class RestoreProbe extends Node:
 	func _apply_render_preferences() -> void:
 		restored += 1
 
+class ObservedProbe extends Node3D:
+	var player_id: String = ""
+	var local_fp: bool = false
+	func set_local_fp(enabled: bool) -> void:
+		local_fp = enabled
+
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	call_deferred("_run")
@@ -125,7 +131,25 @@ func _run() -> void:
 	manager._prepare_benchmark_presentation()
 	_check(not console.is_open() and not console.is_processing_unhandled_input(), "benchmark closes and disables console input before capture")
 	_check(hud._weapon_finish == "standard", "benchmark resets personal gun paint before capture")
+	_check(not hud.visible, "benchmark hides match chrome, viewmodel and crosshair for the whole run")
+	hud.visible = true
 	manager.free()
+	# The orbit takes the pose from a camera that was following a fighter in
+	# first person: the fighter is shown again and nobody is followed.
+	var watcher: Node3D = load("res://scripts/spectator_cam.gd").new()
+	root.add_child(watcher)
+	var watched: ObservedProbe = ObservedProbe.new()
+	watched.player_id = "bot-1"
+	root.add_child(watched)
+	watcher.set_available_targets([watched])
+	watcher._set_observed_pawn(watched)
+	_check(watched.local_fp and watcher.is_observing_first_person(), "fixture starts inside a followed fighter")
+	watcher.hand_over_pose()
+	_check(not watched.local_fp and not watcher.is_observing_first_person() and watcher.get_followed_target() == null, "hand over leaves no hidden fighter, eye view or followed target")
+	watcher.set_available_targets([watched])
+	_check(not watched.local_fp and watcher.get_followed_target() == null, "replayed snapshots do not restart following")
+	watcher.queue_free()
+	watched.queue_free()
 	console.queue_free()
 	hud.show_warmup_bumper("Warmup", 2, [])
 	_check(hud.warmup_tv_active, "retained-state fixture starts with a real warmup card")

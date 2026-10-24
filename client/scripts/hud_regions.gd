@@ -8,7 +8,7 @@ extends RefCounted
 ## match facts, and the frag feed with notices on the right. The side columns
 ## shrink before the center falls under its floor, so no HUD scale or text size
 ## puts two columns over the same pixels. Text owned by other canvas layers on
-## the same canvas (the frame counter, the benchmark banner) arrives through
+## the same canvas (the frame counter) arrives through
 ## `hud.top_region_query` as reserved rectangles, and each column starts below
 ## any reservation that crosses its span. Nothing is shrunk to fit under them.
 
@@ -214,7 +214,7 @@ func _shift_card(amount: float) -> void:
 			node.offset_bottom += amount
 
 ## Keep the shared round card inside the space its neighbours leave. Above it:
-## the corner facts and any reserved top text (frame counter, benchmark banner)
+## the corner facts and any reserved top text (the frame counter)
 ## that cross its span. Below it: the bottom-left context when they share
 ## columns, otherwise the band reserved for vitals. A tall card (a long podium,
 ## wrapped names, large text) moves the least distance that fits; a backed card
