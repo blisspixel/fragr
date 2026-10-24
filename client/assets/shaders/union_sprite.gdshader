@@ -84,7 +84,11 @@ void fragment() {
 		// Only the brightest red points were lights; only they take the glow.
 		// Union optic red sits near 0.26 linear; painted red trim is darker.
 		float lamp = red * smoothstep(0.13, 0.22, texel.r);
-		vec3 union_light = texel.rgb * red * red_glow;
+		// Above its resting level the attack tell adds saturated red, never
+		// white: a lighter red pixel driven hard would otherwise clip to pink.
+		float resting = min(red_glow, 1.6);
+		vec3 union_light = texel.rgb * red * resting
+			+ vec3(1.0, 0.07, 0.05) * red * texel.r * max(red_glow - resting, 0.0);
 		vec3 working_light = work_glow * lamp * work_energy;
 		EMISSION = mix(union_light, working_light, absorbed) * tint;
 	}

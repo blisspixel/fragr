@@ -1968,6 +1968,128 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     );
 }
 
+/// Latch's pace follows the participant: measured while they hold fire,
+/// steady while they fight, fast while they reload. The Tack magazine is
+/// real: twelve rounds, then a reload before the next shot.
+#[test]
+fn latch_covers_a_reload_and_fires_a_real_magazine() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    let target_id = state
+        .players
+        .iter()
+        .find(|p| p.name == "ward_sweeper")
+        .unwrap()
+        .id;
+    let companion_id = state.spawn_m02_companion().unwrap();
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -10.0];
+    companion.campaign = Some(CampaignActor::Companion {
+        kind: crate::protocol::CompanionKind::Latch,
+        phase: CompanionPhase::Following,
+        phase_started: state.tick,
+    });
+    // Shots over a window of decisions, with the sweeper kept standing and
+    // the participant set up by `prepare` before each decision.
+    let shots = |state: &mut GameState, ticks: u64, prepare: &dyn Fn(&mut GameState)| {
+        let mut fired = Vec::new();
+        let start = state.tick;
+        for tick in start..start + ticks {
+            state.tick = tick;
+            prepare(state);
+            if let Some(target) = state.players.iter_mut().find(|p| p.id == target_id) {
+                target.hp = 80;
+            }
+            if state.m02_companion_intent().unwrap().1.action.fire {
+                fired.push(tick);
+            }
+        }
+        state.tick = start + ticks;
+        fired
+    };
+    let gaps = |fired: &[u64]| fired.windows(2).map(|w| w[1] - w[0]).collect::<Vec<_>>();
+
+    let waiting = shots(&mut state, 100, &|_| {});
+    assert!(
+        gaps(&waiting).iter().all(|gap| *gap == 44),
+        "a participant holding fire gets a measured pace: {waiting:?}"
+    );
+    let engaged = shots(&mut state, 100, &|state| {
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == id)
+            .unwrap()
+            .just_fired = true;
+    });
+    assert!(
+        !engaged.is_empty() && gaps(&engaged).iter().all(|gap| *gap == 16),
+        "a fighting participant gets steady support: {engaged:?}"
+    );
+
+    // The participant fires a Pistol round and reloads.
+    {
+        let participant = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        participant.just_fired = false;
+        participant
+            .inventory
+            .grant_weapon(crate::protocol::WeaponType::Tack);
+        participant.inventory.arm_magazines();
+        assert!(participant
+            .inventory
+            .try_fire(crate::protocol::WeaponType::Tack));
+    }
+    let tick = state.tick;
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .request_reload(crate::protocol::WeaponType::Tack, tick));
+    // A fresh magazine, so the covering string is not cut by Latch's reload.
+    state.mission.as_mut().unwrap().companion = Default::default();
+    let covering = shots(&mut state, 100, &|_| {});
+    let covering_gaps = gaps(&covering);
+    // Twelve rounds six ticks apart, Latch's own reload, then cover again.
+    assert!(
+        covering.len() > 12
+            && covering_gaps[..11].iter().all(|gap| *gap == 6)
+            && covering_gaps[11] >= 16
+            && covering_gaps[12..].iter().all(|gap| *gap == 6),
+        "a reload is covered with fast fire from a real magazine: {covering:?}"
+    );
+    let support = &state.mission.as_ref().unwrap().companion;
+    assert_eq!(
+        support.covering_shots,
+        u32::try_from(covering.len()).unwrap()
+    );
+    assert_eq!(
+        support.rounds(),
+        12 - u8::try_from(covering.len() - 12).unwrap(),
+        "the reload refilled the magazine"
+    );
+    let bullets = state
+        .players
+        .iter()
+        .find(|p| p.id == companion_id)
+        .unwrap()
+        .inventory
+        .state(companion_id, crate::protocol::WeaponType::Tack, state.tick)
+        .unwrap()
+        .ammo(crate::protocol::AmmoPool::Bullets);
+    assert!(
+        bullets >= 12,
+        "Latch's own rounds were restocked: {bullets}"
+    );
+}
+
 #[test]
 fn companion_spread_stops_on_a_participant_without_friendly_damage() {
     let (mut state, participant_id) = ward_test_state();

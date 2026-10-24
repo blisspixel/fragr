@@ -34,6 +34,10 @@ const COVER_FAR: f32 = 4.6;
 /// Furthest round from the threat bearing a covering position may sit:
 /// abreast or a little back, never behind the participant's shoulders.
 const COVER_WIDE: f32 = 2.1;
+/// The participant's line of fire Latch keeps clear: this far down their
+/// crosshair and toward the threat, this wide either side.
+const FIRE_REACH: f32 = 12.0;
+const FIRE_HALF_WIDTH: f32 = 0.9;
 
 const STAND_OFF: f32 = 2.4;
 const YIELD_CLEARANCE: f32 = RADIUS * 2.0 + 0.6;
@@ -127,46 +131,106 @@ fn level_point(arena: &Arena, origin: [f32; 3], x: f32, z: f32) -> Option<[f32; 
     ((floor - origin[1]).abs() <= 0.1).then_some([x, floor, z])
 }
 
-/// Whether `point` stands in the lane a moving participant is about to walk.
-fn in_path(leader: &Leader, point: [f32; 3], height: f32) -> bool {
-    let speed = leader.velocity[0].hypot(leader.velocity[1]);
-    if speed < WALKING || (point[1] - leader.feet[1]).abs() >= height {
-        return false;
-    }
-    let along = [leader.velocity[0] / speed, leader.velocity[1] / speed];
-    let offset = [point[0] - leader.feet[0], point[2] - leader.feet[2]];
-    let ahead = offset[0] * along[0] + offset[1] * along[1];
-    let lateral = (offset[0] * along[1] - offset[1] * along[0]).abs();
-    ahead > 0.0 && ahead < PATH_AHEAD && lateral < PATH_HALF_WIDTH
+/// A strip of floor in front of the participant that Latch keeps clear: the
+/// way they are walking, or the line they are shooting down.
+#[derive(Clone, Copy)]
+struct Lane {
+    origin: [f32; 3],
+    along: [f32; 2],
+    reach: f32,
+    half_width: f32,
+    /// Whether leading ahead along it gets Latch out of it. Through a
+    /// doorway it does; down a line of fire it never does.
+    lead: bool,
 }
 
-/// Out of the way of a participant walking at Latch: a step aside on Latch's
-/// own side of their line, the other side, or a lead through the doorway
-/// ahead of them when the walls leave no side.
-fn clear_path(
+impl Lane {
+    fn toward(origin: [f32; 3], yaw: f32, reach: f32, half_width: f32, lead: bool) -> Self {
+        Self {
+            origin,
+            along: [yaw.cos(), yaw.sin()],
+            reach,
+            half_width,
+            lead,
+        }
+    }
+
+    /// Signed sideways offset of `point` from the lane's line, and how far
+    /// along it the point lies.
+    fn frame(&self, point: [f32; 3]) -> (f32, f32) {
+        let offset = [point[0] - self.origin[0], point[2] - self.origin[2]];
+        (
+            offset[0] * self.along[1] - offset[1] * self.along[0],
+            offset[0] * self.along[0] + offset[1] * self.along[1],
+        )
+    }
+
+    fn holds(&self, point: [f32; 3], height: f32) -> bool {
+        let (lateral, ahead) = self.frame(point);
+        (point[1] - self.origin[1]).abs() < height
+            && ahead > 0.0
+            && ahead < self.reach
+            && lateral.abs() < self.half_width
+    }
+}
+
+/// The lanes around the participant Latch must not stand in: where a moving
+/// participant is about to walk and, in a fight, their crosshair and their
+/// line to the threat.
+fn lanes(leader: &Leader, threat: Option<&Threat<'_>>) -> Vec<Lane> {
+    let mut lanes = Vec::new();
+    if let Some(threat) = threat {
+        let bearing = (threat.feet[2] - leader.feet[2]).atan2(threat.feet[0] - leader.feet[0]);
+        let distance = (threat.feet[0] - leader.feet[0]).hypot(threat.feet[2] - leader.feet[2]);
+        lanes.push(Lane::toward(
+            leader.feet,
+            bearing,
+            distance,
+            FIRE_HALF_WIDTH,
+            false,
+        ));
+        lanes.push(Lane::toward(
+            leader.feet,
+            leader.yaw,
+            FIRE_REACH,
+            FIRE_HALF_WIDTH,
+            false,
+        ));
+    }
+    let speed = leader.velocity[0].hypot(leader.velocity[1]);
+    if speed >= WALKING {
+        let heading = leader.velocity[1].atan2(leader.velocity[0]);
+        lanes.push(Lane::toward(
+            leader.feet,
+            heading,
+            PATH_AHEAD,
+            PATH_HALF_WIDTH,
+            threat.is_none(),
+        ));
+    }
+    lanes
+}
+
+/// Out of every lane around the participant: a step aside on Latch's own side
+/// of the lane, the other side, a lead through the doorway ahead when the
+/// walls leave no side and nobody is shooting, or a place behind the
+/// participant's shoulder.
+fn clear_lanes(
     arena: &Arena,
     me: &ContactBody,
     leader: &Leader,
     bodies: &[ContactBody],
+    threat: Option<&Threat<'_>>,
 ) -> Option<NavigationGoal> {
     let feet = [me.from.x, me.from.y, me.from.z];
-    if !in_path(leader, feet, me.height) {
-        return None;
-    }
-    let speed = leader.velocity[0].hypot(leader.velocity[1]);
-    let along = [leader.velocity[0] / speed, leader.velocity[1] / speed];
-    let offset = [feet[0] - leader.feet[0], feet[2] - leader.feet[2]];
-    let side = if offset[0] * along[1] - offset[1] * along[0] >= 0.0 {
-        1.0
-    } else {
-        -1.0
-    };
-    // The perpendicular on Latch's side of the participant's line.
-    let across = [along[1] * side, -along[0] * side];
-    [
+    let lanes = lanes(leader, threat);
+    let lane = *lanes.iter().find(|lane| lane.holds(feet, me.height))?;
+    let side = if lane.frame(feet).0 >= 0.0 { 1.0 } else { -1.0 };
+    // The perpendicular on Latch's side of the lane.
+    let across = [lane.along[1] * side, -lane.along[0] * side];
+    let mut steps: Vec<[f32; 3]> = [
         (across, PATH_STEP),
         ([-across[0], -across[1]], PATH_STEP),
-        (along, PATH_AHEAD),
         (across, PATH_STEP * 0.6),
     ]
     .into_iter()
@@ -178,15 +242,43 @@ fn clear_path(
             feet[2] + direction[1] * length,
         )
     })
-    .find(|point| {
-        !occupied(*point, me, bodies)
-            && Navigation::walkable_in(arena, feet, *point)
-            && (point[0] - leader.feet[0]).hypot(point[2] - leader.feet[2]) >= YIELD_CLEARANCE
-    })
-    .map(|point| NavigationGoal {
-        feet: point,
-        combat: false,
-    })
+    .filter(|point| Navigation::walkable_in(arena, feet, *point))
+    .collect();
+    if lane.lead {
+        steps.extend(
+            level_point(
+                arena,
+                feet,
+                feet[0] + lane.along[0] * PATH_AHEAD,
+                feet[2] + lane.along[1] * PATH_AHEAD,
+            )
+            .filter(|point| Navigation::walkable_in(arena, feet, *point)),
+        );
+    }
+    // Behind the participant's shoulder, reached around them by the route
+    // search rather than through them.
+    for shoulder in [side, -side, 0.0] {
+        steps.extend(
+            level_point(
+                arena,
+                leader.feet,
+                leader.feet[0] - lane.along[0] * STAND_OFF + lane.along[1] * shoulder * 1.0,
+                leader.feet[2] - lane.along[1] * STAND_OFF - lane.along[0] * shoulder * 1.0,
+            )
+            .filter(|point| Navigation::walkable_in(arena, leader.feet, *point)),
+        );
+    }
+    steps
+        .into_iter()
+        .find(|point| {
+            !occupied(*point, me, bodies)
+                && (point[0] - leader.feet[0]).hypot(point[2] - leader.feet[2]) >= YIELD_CLEARANCE
+                && !lanes.iter().any(|lane| lane.holds(*point, me.height))
+        })
+        .map(|point| NavigationGoal {
+            feet: point,
+            combat: false,
+        })
 }
 
 /// In a fight Latch stands beside the participant with a line on the threat,
@@ -216,7 +308,9 @@ fn covering(
             && angle_between(round, bearing) >= FIRE_CONE
             && angle_between(round, bearing) <= COVER_WIDE
             && angle_between(round, leader.yaw) >= FIRE_CONE
-            && !in_path(leader, point, me.height)
+            && !lanes(leader, Some(threat))
+                .iter()
+                .any(|lane| lane.holds(point, me.height))
             && crate::combat::line_of_sight(
                 [point[0], point[1] + EYE_HEIGHT, point[2]],
                 threat_eye,
@@ -273,7 +367,7 @@ pub(super) fn goal(
     let gap = (feet[0] - leader[0]).hypot(feet[2] - leader[2]);
     let close = gap < YIELD_CLEARANCE && (feet[1] - leader[1]).abs() < me.height;
     if !close {
-        if let Some(clear) = clear_path(arena, me, leader_state, bodies) {
+        if let Some(clear) = clear_lanes(arena, me, leader_state, bodies, threat.as_ref()) {
             return Some(clear);
         }
         if let Some(cover) = threat
@@ -292,6 +386,9 @@ pub(super) fn goal(
             && !arena.blocked_at(point[0], point[2], point[1] + STEP_UP)
             && (point[0] - leader[0]).hypot(point[2] - leader[2]) >= RADIUS * 2.0 + 0.1
             && !occupied(point, me, bodies)
+            && !lanes(leader_state, threat.as_ref())
+                .iter()
+                .any(|lane| lane.holds(point, me.height))
         {
             return ((feet[0] - point[0]).hypot(feet[2] - point[2]) > FOLLOW_TOLERANCE
                 || (feet[1] - point[1]).abs() > 0.1)
@@ -331,6 +428,9 @@ pub(super) fn goal(
             || (point[0] - leader[0]).hypot(point[2] - leader[2]) < YIELD_CLEARANCE
             || occupied(point, me, bodies)
             || !Navigation::walkable_in(arena, origin, point)
+            || lanes(leader_state, threat.as_ref())
+                .iter()
+                .any(|lane| lane.holds(point, me.height))
             || (close && !safe_yield(arena, me, bodies, yaw, 4))
         {
             continue;

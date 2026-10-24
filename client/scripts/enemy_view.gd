@@ -21,6 +21,14 @@ const WORK_ENERGY: float = 1.1
 ## server tick, so a group moves with one timing no Union squad has.
 const SHARED_BEAT_SECONDS: float = 0.64
 const SHARED_BREATH_SECONDS: float = 2.56
+## Union optic light (the shader's `red_glow`): at rest, the flash that opens
+## a tell, the swell from just after it to the shot, and through a burst.
+const OPTIC_REST: float = 1.6
+const OPTIC_FLASH: float = 4.6
+const OPTIC_FLASH_SECONDS: float = 0.1
+const OPTIC_SWELL: float = 2.2
+const OPTIC_PEAK: float = 3.6
+const OPTIC_FIRING: float = 2.8
 
 var actor: Dictionary = {}
 var weapon: String = ""
@@ -168,6 +176,26 @@ static func work_energy(state: Dictionary, seconds: float, snapshot_tick: int, s
 		return WORK_ENERGY * 2.6
 	return WORK_ENERGY * breath
 
+## The Union optics' light for this frame. Red optics are the Union attack
+## tell (art bible): steady at rest, a hard flash on the tick a tell starts,
+## a swell to the shot and hot through the burst. The server starts a tell
+## only with a free attack token, so a guard holding its lane while two others
+## shoot keeps resting optics: on screen, lit optics are the attacks coming.
+static func tell_glow(state: Dictionary, snapshot_tick: int, since: float) -> float:
+	var phase: String = str(state.get("phase", ""))
+	if phase == "windup":
+		var started: int = int(state.get("phase_started", snapshot_tick))
+		var duration: float = maxf(EnemyAnimation.TICK_SECONDS,
+			float(int(state.get("phase_ends", snapshot_tick)) - started) * EnemyAnimation.TICK_SECONDS)
+		var age: float = maxf(0.0, float(snapshot_tick - started) * EnemyAnimation.TICK_SECONDS) \
+			+ clampf(since, 0.0, EnemyAnimation.MAX_EXTRAPOLATION)
+		if age < OPTIC_FLASH_SECONDS:
+			return OPTIC_FLASH
+		return lerpf(OPTIC_SWELL, OPTIC_PEAK, clampf(age / duration, 0.0, 1.0))
+	if phase == "firing":
+		return OPTIC_FIRING
+	return OPTIC_REST
+
 ## Absorbed gait progress in metres of stride, on the shared beat rather than
 ## the body's own travel. A Heavy steps on every other beat.
 func shared_travel() -> float:
@@ -260,11 +288,12 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 			var hidden_approach: bool = actor.get("phase") in ["idle", "moving"]
 			material.set_shader_parameter("shimmer", 1.0 if hidden_approach else 0.0)
 			material.set_shader_parameter("shimmer_tick", float(tick))
-			material.set_shader_parameter("red_glow", 2.4 if actor.get("phase") == "windup" else 1.6)
-	if absorbed:
-		var glow: ShaderMaterial = body.material_override as ShaderMaterial
-		if glow != null and glow.shader == UNION_SPRITE:
+	var glow: ShaderMaterial = body.material_override as ShaderMaterial
+	if glow != null and glow.shader == UNION_SPRITE:
+		if absorbed:
 			glow.set_shader_parameter("work_energy", work_energy(actor, shared_seconds(), tick, elapsed))
+		else:
+			glow.set_shader_parameter("red_glow", tell_glow(actor, tick, elapsed))
 	var gait_travel: float = shared_travel() if absorbed else travel
 	var facing: int = EnemyAnimation.direction(yaw, to_camera)
 	if _kind == "notary":

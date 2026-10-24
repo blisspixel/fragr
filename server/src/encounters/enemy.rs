@@ -1991,6 +1991,84 @@ mod tests {
         }
     }
 
+    /// Two Clerks and a Jammer wake on one participant. Lit optics on screen
+    /// are the attacks coming: never more than two at once, and every guard
+    /// still gets its turn.
+    #[test]
+    fn a_mixed_room_never_lights_a_third_tell() {
+        use crate::protocol::Role;
+
+        let mut state = GameState::new();
+        let player_id = Uuid::from_u128(0x0c10);
+        state.add_player(player_id, "Visitor".into(), Role::Human);
+        let room = [
+            (Uuid::from_u128(0x0c00), EnemyKind::Clerk, -2.0_f32),
+            (Uuid::from_u128(0x0c01), EnemyKind::Clerk, 2.0),
+            (Uuid::from_u128(0x0c02), EnemyKind::Jammer, 0.0),
+        ];
+        for (id, kind, _) in room {
+            state.add_player(id, format!("{kind:?}"), Role::Agent);
+        }
+        let floor = state.players[0].y;
+        for player in state.players.iter_mut() {
+            player.y = floor;
+            if player.id == player_id {
+                [player.x, player.z] = [6.0, 0.0];
+                player.campaign = Some(CampaignActor::Participant {});
+            } else {
+                let (_, kind, z) = room.iter().find(|(id, _, _)| *id == player.id).unwrap();
+                [player.x, player.z] = [0.0, *z];
+                player.campaign = Some(CampaignActor::Hostile {
+                    kind: *kind,
+                    phase: EnemyPhase::Idle,
+                    phase_started: 0,
+                    phase_ends: 0,
+                    seated: false,
+                    control: crate::protocol::ControlDomain::Union,
+                });
+            }
+        }
+        state.spawn_shields.clear();
+        let mut controllers: Vec<EnemyController> = room
+            .iter()
+            .map(|(id, kind, z)| {
+                let mut guard = EnemyController::new(*id, *kind, [0.0, 0.0, *z], 0.0, 0, false);
+                guard.last_hp = state.players.iter().find(|p| p.id == *id).unwrap().hp;
+                guard
+            })
+            .collect();
+        let mut tokens = AttackTokens::limited(RANGED_ATTACK_TOKENS);
+        let mut most = 0;
+        let mut tells = [0_u32; 3];
+        for tick in 10..410 {
+            state.tick = tick;
+            let snapshot = state.snapshot();
+            tokens.begin_tick();
+            for guard in &controllers {
+                if let Some(target) = guard.holds_token() {
+                    tokens.take(target, guard.phase_started());
+                }
+            }
+            for (index, guard) in controllers.iter_mut().enumerate() {
+                let before = guard.holds_token();
+                let was = guard.phase;
+                guard.paced_intent(&state, &snapshot, &tokens);
+                tokens.settle(before, guard.holds_token(), tick);
+                if guard.phase == EnemyPhase::Windup && was != EnemyPhase::Windup {
+                    tells[index] += 1;
+                }
+            }
+            let lit = controllers
+                .iter()
+                .filter(|guard| matches!(guard.phase, EnemyPhase::Windup | EnemyPhase::Firing))
+                .count();
+            most = most.max(lit);
+        }
+        eprintln!("mixed room: most lit at once {most}, tells per guard {tells:?}");
+        assert!(most <= RANGED_ATTACK_TOKENS, "a third tell lit: {most}");
+        assert!(tells.iter().all(|count| *count > 0), "{tells:?}");
+    }
+
     #[test]
     fn a_waking_room_holds_two_tells_at_a_time_and_every_guard_still_fires() {
         use crate::protocol::Role;
