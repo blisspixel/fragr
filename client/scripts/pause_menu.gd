@@ -27,6 +27,7 @@ var _hint: Label
 func _ready() -> void:
 	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	MenuFocus.attach(self)
 	_build()
 	visible = false
 

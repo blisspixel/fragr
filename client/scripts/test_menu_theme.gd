@@ -61,7 +61,7 @@ func _run() -> void:
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
 	menu.set("_settings", FragrSettings.new(settings_path))
 	root.add_child(menu)
-	for page: String in ["main", "profile", "settings", "host", "records"]:
+	for page: String in ["main", "multi", "join", "profile", "settings", "host", "records"]:
 		menu._show(page)
 		await process_frame
 		_inspect_type(menu)

@@ -20,9 +20,11 @@ Fixed bots keeps the requested bot count, four by default. Automatic fill
 targets the total number of fighters, including humans and agents, and makes
 room for either by replacing eligible server bots. Watch or Join becomes
 available after the bundled server reports readiness. The default is local
-to this computer on an available port. Enable **Allow LAN players** and choose
-a port to invite another machine; peers enter your LAN address and that port
-in Multiplayer. The app shows its own loopback connection address, not a
+to this computer on an available port. Open **Rules, LAN and port**, enable
+**Allow players on this LAN** and choose a port to invite another machine;
+peers enter your LAN address and that port under Multiplayer > Find / join a
+match. The same switch holds mutators and friendly fire, and it opens by
+itself when the remembered setup already uses any of them. The app shows its own loopback connection address, not a
 detected external address. Existing releases before this increment use the
 dedicated command below.
 
@@ -296,9 +298,10 @@ matter. Virtual adapters (VMware, WSL, Hyper-V, and the same class of name)
 are not offered. In the app, Check host keeps "This host did not answer."
 when no status was parsed. A finished request names the address it checked,
 and says when the reply was too large or the host was busy. Check host uses
-the address under Join a server and does not replace it. Run a server is a
-separate page. Watch, Join and Stop for a server started in the app are on
-that page.
+the address under Find / join a match and does not replace it. Run a match is
+a separate page. While it runs, Multiplayer leads with that match, and its
+Watch, Join and Stop server stay separate choices on its page; starting a
+match never joins you to it.
 
 A bind that is not loopback also broadcasts a LAN presence packet on UDP
 6768 every two seconds. The packet is `FRAGR/1` and the game port. It is not

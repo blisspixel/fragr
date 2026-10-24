@@ -18,6 +18,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
+The [menu focus and Multiplayer structure](menu-focus-and-structure-20261023.md)
+round (#435, #436) is **implemented** on branch `wave1/menus` with local Linux
+evidence; Windows rendered evidence and a physical gamepad pass are still owed.
+
 The interface rules and polish milestone #411-#418 is completely **shipped** in
 v0.90.0, covering [UI palette and type](ui-palette-type-20261017.md) (#411, PR #420),
 [status bar](ui-status-bar-20261018.md) (#412, PR #421),

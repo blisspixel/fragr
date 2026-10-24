@@ -128,11 +128,16 @@ cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broa
 godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Multiplayer** connects to a shared server. **Run a server** starts Team
-Deathmatch, 5v5 Sector 9 Sabotage or Holdfast Atoll Conquest with the bundled
-server. **Join a server**
-is a separate address. Check host reads the address you typed and leaves it
-there. Choose Watch or Join after the match line comes back. A host you check,
+**Multiplayer** asks one question first: **Find / join a match** or **Run a
+match**. Run a match starts Team Deathmatch, 5v5 Sector 9 Sabotage or Holdfast
+Atoll Conquest with the bundled server; mutators, friendly fire, LAN and port
+fold behind **Rules, LAN and port**. Find / join a match opens the join view:
+a direct address with Check host, then the servers on this network and the
+ones saved on this computer. Choosing a server moves its card under that row:
+the match line, Watch, Join and Save this host belong to that server only.
+Check host reads the address you typed and leaves it there. Editing the
+address waits for a new check before Watch or Join. Choose Watch or Join
+after the match line comes back. A host you check,
 watch, join, or save stays on this computer. Scan this network asks which
 machines answer the game port. It checks this computer first, then the rest of
 each adapter's /24, and it does not search the internet. A server that does
