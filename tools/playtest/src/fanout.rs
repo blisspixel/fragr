@@ -7,10 +7,12 @@ use fragr_server::sim::{MapKind, MatchConfig};
 use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+use tokio::net::{TcpSocket, TcpStream};
 use tokio::sync::{oneshot, watch};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio_tungstenite::{client_async, tungstenite::Message, WebSocketStream};
 
 /// The current per-IP connection cap allows the largest row exactly.
 pub const MAX_LOCAL_ROSTER: usize = 32;
@@ -124,14 +126,42 @@ fn require_live_watchers(results: &[WatchResult]) -> Result<(), Error> {
     Ok(())
 }
 
+/// The server admits eight loopback spectators per address, so each eight
+/// watchers take the next 127/8 source address.
+const WATCHERS_PER_ADDRESS: usize = 8;
+
+fn watcher_source(index: usize) -> Result<std::net::Ipv4Addr, Error> {
+    let host = u8::try_from(1 + index / WATCHERS_PER_ADDRESS)
+        .map_err(|_| Error::Server("too many fanout watchers".into()))?;
+    Ok(std::net::Ipv4Addr::new(127, 0, 0, host))
+}
+
+/// Connect from a chosen loopback source. Linux routes all of 127/8 to the
+/// loopback device; a platform that does not refuses the bind here.
+async fn connect_from(
+    url: &str,
+    server: SocketAddr,
+    source: std::net::Ipv4Addr,
+) -> Result<WebSocketStream<TcpStream>, Error> {
+    let socket = TcpSocket::new_v4().map_err(transport)?;
+    socket
+        .bind(SocketAddr::from((source, 0)))
+        .map_err(|error| Error::Server(format!("fanout watcher cannot bind {source}: {error}")))?;
+    let stream = socket.connect(server).await.map_err(transport)?;
+    let (socket, _) = client_async(url, stream).await.map_err(transport)?;
+    Ok(socket)
+}
+
 async fn watcher_task(
     url: String,
+    server: SocketAddr,
+    source: std::net::Ipv4Addr,
     name: String,
     ready: oneshot::Sender<()>,
     mut start: watch::Receiver<Option<Instant>>,
     mut stop: watch::Receiver<bool>,
 ) -> Result<WatchResult, Error> {
-    let (socket, _) = connect_async(&url).await.map_err(transport)?;
+    let socket = connect_from(&url, server, source).await?;
     let (mut sink, mut stream) = socket.split();
     sink.send(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
@@ -351,6 +381,8 @@ async fn one_row(
         watcher_ready.push(rx);
         watcher_tasks.push(tokio::spawn(watcher_task(
             url.clone(),
+            addr,
+            watcher_source(index)?,
             format!("Watcher-{}", index + 1),
             tx,
             start_rx.clone(),
@@ -525,6 +557,15 @@ mod tests {
         assert_eq!(json["rows"][0]["relative_snapshot_age_ms"]["samples"], 3);
         assert_eq!(json["rows"][0]["serialization_ms_per_second"], 1.5);
         assert!(json["environment"]["available_parallelism"].is_number());
+    }
+
+    #[test]
+    fn every_eight_watchers_take_the_next_loopback_source() {
+        assert_eq!(watcher_source(0).unwrap().octets(), [127, 0, 0, 1]);
+        assert_eq!(watcher_source(7).unwrap().octets(), [127, 0, 0, 1]);
+        assert_eq!(watcher_source(8).unwrap().octets(), [127, 0, 0, 2]);
+        assert_eq!(watcher_source(15).unwrap().octets(), [127, 0, 0, 2]);
+        assert!(watcher_source(usize::MAX).is_err());
     }
 
     #[test]
