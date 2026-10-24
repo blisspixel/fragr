@@ -31,7 +31,9 @@ enum SeatKind {
 impl GameSession {
     pub(crate) fn desk(&mut self, verb: DeskVerb) -> DeskOutcome {
         match verb {
-            DeskVerb::Who => DeskOutcome::Text(self.desk_who()),
+            // The game loop adds the served pulse to `status`; on its own the
+            // session can only answer with the room table.
+            DeskVerb::Who | DeskVerb::Status => DeskOutcome::Text(self.desk_who()),
             DeskVerb::Kick { name } => self.desk_kick(&name),
             DeskVerb::PrepareBan { query } => self.desk_prepare_ban(&query),
             DeskVerb::FinishBan(ready) => self.desk_finish_ban(ready),

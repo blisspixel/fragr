@@ -5829,8 +5829,10 @@ fn acks_report_the_state_the_input_produced() {
             yaw,
             pitch,
             movement,
+            respawn_ticks,
         } => {
             assert!(pitch.is_finite());
+            assert_eq!(*respawn_ticks, None, "a living fighter has no countdown");
             assert_eq!(*seq, 41);
             assert_eq!(*tick, state.tick);
             assert_eq!(*x, state.players[idx].x);
@@ -6256,6 +6258,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         z: -2.0,
         yaw: 0.5,
         movement: None,
+        respawn_ticks: None,
     };
     let json = serde_json::to_string(&ack).unwrap();
     assert!(json.contains("\"type\":\"ack\""), "{json}");
@@ -6264,7 +6267,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         "{json}"
     );
     assert!(
-        !json.contains("movement"),
+        !json.contains("movement") && !json.contains("respawn_ticks"),
         "legacy Ack is still the old shape: {json}"
     );
     let old: ServerMessage = serde_json::from_str(&json).unwrap();
@@ -6287,10 +6290,14 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
             effective_speed: 5.0,
             jump_input: false,
         }),
+        respawn_ticks: Some(37),
     };
     let full_json = serde_json::to_string(&full).unwrap();
+    assert!(full_json.contains("\"respawn_ticks\":37"), "{full_json}");
     let read: ServerMessage = serde_json::from_str(&full_json).unwrap();
-    assert!(matches!(read, ServerMessage::Ack { movement: Some(body), .. } if body.epoch == 2));
+    assert!(
+        matches!(read, ServerMessage::Ack { movement: Some(body), respawn_ticks: Some(37), .. } if body.epoch == 2)
+    );
 }
 
 /// A straight, unobstructed east-west lane in the arena: a shooter position
@@ -7455,4 +7462,5 @@ mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;
+mod tick_trace;
 mod traveling_shot;

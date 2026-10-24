@@ -7,6 +7,7 @@ const SealCutPlateScript = preload("res://scripts/seal_cut_plate.gd")
 const StampCardScript = preload("res://scripts/stamp_card.gd")
 var vitals_seal_plate = null
 var stamp_card = null
+var death_card: DeathCard = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -24,6 +25,10 @@ var frag_feed: FragFeed
 var objective_call: ObjectiveCall
 var event_cover_query: Callable
 var event_region_query: Callable
+## Top-band text owned by other canvas layers (frame counter, benchmark
+## banner): returns Array[Rect2] in canvas units. HudRegions lays the match
+## facts, corner and frag feed out below whatever crosses their columns.
+var top_region_query: Callable
 var viewer_team: String = ""
 var board_id: String = ""
 var _conquest_owners: Dictionary = {}
@@ -271,6 +276,8 @@ func _ready():
 	stamp_card = StampCardScript.new()
 	stamp_card.name = "StampCard"
 	add_child(stamp_card)
+	death_card = DeathCard.new()
+	add_child(death_card)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
@@ -296,7 +303,8 @@ func _ready():
 	objective_call.coverage_query = func() -> bool: return event_lane_covered(objective_call.occupied_region(), true)
 	combat_feed.host_presented.connect(func(seconds: float) -> void: host_spoke.emit(seconds))
 	# Tiers follow the scope but never draw over a warmup or result card.
-	for cover: Node in [round_backdrop, round_message, warmup_tv]:
+	# The stamp's ink sits on the card backing and under the card's own text.
+	for cover: Node in [round_backdrop, stamp_card, round_message, warmup_tv]:
 		if cover != null:
 			move_child(cover, get_child_count() - 1)
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
@@ -1141,11 +1149,11 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	round_banner_remaining = 0.0
 	if not round_message:
 		return
-	round_message.visible = true
 	var line = host_line if host_line != "" else "HOST: Amen, fistbump. Frequency still unmetered."
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
-	round_message.text = line
+	# Held until the next card: zero seconds never expires.
+	_show_round_banner(line, 0.0)
 	if stamp_card != null:
 		stamp_card.trigger_stamp(round_message, MenuTheme.EMBER, reduced_motion)
 
@@ -1155,9 +1163,8 @@ func show_episode_fail(host_line: String):
 	# Comedy fail splash, not a lecture.
 	if not round_message:
 		return
-	round_message.visible = true
 	var line = host_line if host_line != "" else "HOST: Citizen Handle assigned. Reload."
-	round_message.text = line + "\n( Continuance paperwork is the real final boss )"
+	_show_round_banner(line + "\n( Continuance paperwork is the real final boss )", 0.0)
 	if stamp_card != null:
 		stamp_card.trigger_stamp(round_message, MenuTheme.DANGER, reduced_motion)
 
@@ -1389,8 +1396,7 @@ func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 		var sub = "WARMUP // " + map_label.to_upper()
 		if secs_left > 0:
 			sub += " // GOES LIVE IN " + str(secs_left)
-		round_message.text = line + "\n" + sub
-		round_message.visible = true
+		_show_round_banner(line + "\n" + sub, 0.0)
 
 func refresh_warmup_tv(host_line: String, secs_left: int = 0, roster = []) -> void:
 	# Live Warmup Snapshot refresh while the TV is up.
@@ -1589,8 +1595,14 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		if stamp_card != null:
 			stamp_card.trigger_stamp(round_message, end_col, reduced_motion)
 
+## Every card on the shared round label starts here: the previous card's
+## stamp, pulse, transform and tint are retired before the new text shows, so
+## nothing from an earlier round, result or episode card leaks into this one.
 func _show_round_banner(text: String, seconds: float, backed: bool = false) -> void:
 	_cancel_round_pulse()
+	# A new banner is not the stamped result; callers that stamp do so after.
+	if stamp_card != null:
+		stamp_card.retire()
 	round_banner_remaining = seconds
 	round_message.text = text
 	round_message.scale = Vector2.ONE
@@ -1600,11 +1612,16 @@ func _show_round_banner(text: String, seconds: float, backed: bool = false) -> v
 	if round_backdrop:
 		round_backdrop.visible = backed
 	_fit_round_message(backed)
+	# A pulse grows from the card's center, not its top-left corner.
+	round_message.pivot_offset = round_message.size * 0.5
 
 
 func _fit_round_message(backed: bool) -> void:
 	if round_message == null:
 		return
+	# Fresh offsets below; HudRegions places the card again on its next layout.
+	if regions != null:
+		regions.reset_card_shift()
 	if backed and round_backdrop != null:
 		round_message.offset_left = round_backdrop.offset_left + 28.0
 		round_message.offset_right = round_backdrop.offset_right - 28.0
@@ -1701,6 +1718,8 @@ func _process(delta):
 		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
 		if round_banner_remaining == 0.0:
 			round_message.visible = false
+			if stamp_card != null:
+				stamp_card.retire()
 			if round_backdrop:
 				round_backdrop.visible = false
 	if round_backdrop and round_backdrop.visible and not round_message.visible:
@@ -1759,7 +1778,9 @@ func _process(delta):
 		fp_shot_age += delta
 	fp_throw_time += delta
 	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
-		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, delta, head_bob_enabled)
+		# Reload motion is an action pose like weapon kick, so only reduced
+		# motion stills it. Head bob off keeps it; the HUD line always shows.
+		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, delta, not reduced_motion)
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
@@ -1782,7 +1803,7 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = Vector2.ZERO if reduced_motion else fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * 0.55 * fp_reload_motion.depth) + bob + kick).round()
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick).round()
 	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
@@ -2418,6 +2439,15 @@ func show_damage_flash() -> void:
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
 		crawler_caption.push_scrabble()
+
+## The joined player's death card: three lines, or empty to clear it.
+func show_death_card(lines: PackedStringArray) -> void:
+	if death_card != null:
+		death_card.present(lines)
+
+func hide_death_card() -> void:
+	if death_card != null:
+		death_card.clear()
 
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:

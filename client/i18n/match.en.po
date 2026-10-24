@@ -489,5 +489,59 @@ msgstr "CONTINUANCE WALKER\nDISABLED"
 msgid "HUD_AMMO_EMPTY"
 msgstr "EMPTY"
 
+msgid "HUD_DEATH_BY"
+msgstr "FRAGGED BY {killer}"
+
+msgid "HUD_DEATH_SOMEONE"
+msgstr "AN UNNAMED FIGHTER"
+
+msgid "HUD_DEATH_SELF"
+msgstr "SELF-INFLICTED"
+
+msgid "HUD_DEATH_DOWN"
+msgstr "YOU WENT DOWN"
+
+msgid "HUD_DEATH_WATCHING"
+msgstr "WATCHING {name}"
+
+msgid "HUD_DEATH_HOLDING"
+msgstr "YOUR LAST VIEW"
+
+msgid "HUD_DEATH_RESPAWN_IN"
+msgstr "RESPAWN IN {seconds}"
+
+msgid "HUD_DEATH_RESPAWNING"
+msgstr "RESPAWNING"
+
+msgid "HUD_DEATH_OUT"
+msgstr "OUT UNTIL THE NEXT ROUND"
+
+msgid "HUD_RELOAD_PENDING"
+msgstr "RELOAD REQUESTED"
+
+msgid "HUD_RELOAD_ACTIVE"
+msgstr "RELOADING"
+
+msgid "HUD_RELOAD_COMPLETE"
+msgstr "LOADED"
+
+msgid "HUD_RELOAD_CANCELLED"
+msgstr "RELOAD CANCELLED"
+
+msgid "HUD_RELOAD_FULL"
+msgstr "MAGAZINE FULL"
+
+msgid "HUD_RELOAD_NO_RESERVE"
+msgstr "NOTHING LEFT TO LOAD"
+
+msgid "HUD_RELOAD_NO_MAGAZINE"
+msgstr "NOTHING TO RELOAD"
+
+msgid "HUD_RELOAD_UNSUPPORTED"
+msgstr "NO MAGAZINES HERE"
+
+msgid "HUD_RELOAD_NOT_ACCEPTED"
+msgstr "RELOAD NOT ACCEPTED"
+
 msgid "FLAG_STATUS_ROWS"
 msgstr "UNION FLAG {union}\nFREE FLAG {coalition}"

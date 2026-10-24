@@ -1,8 +1,9 @@
 //! A server-owned point that travels, hits, and stays in the air after the shooter dies.
 use crate::maps::AuthoredMap;
 use crate::protocol::{GameEvent, Role};
+use crate::rules::FFA_RESPAWN_DELAY_TICKS;
 use crate::sim::traveling_shot::{DAMAGE, LIFE_TICKS, SPEED};
-use crate::sim::{GameState, PLAYER_MAX_HP, RESPAWN_DELAY_TICKS, SPAWN_SHIELD_TICKS};
+use crate::sim::{GameState, PLAYER_MAX_HP, SPAWN_SHIELD_TICKS};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -123,7 +124,7 @@ fn the_point_keeps_traveling_after_the_shooter_dies() {
         .find(|player| player.id == shooter)
         .unwrap();
     body.hp = 0;
-    body.respawn_timer = Some(RESPAWN_DELAY_TICKS);
+    body.respawn_timer = Some(FFA_RESPAWN_DELAY_TICKS);
     advance(&mut state, ticks_to_reach(5.5));
     assert_eq!(hp(&state, target), PLAYER_MAX_HP - DAMAGE);
     assert_eq!(hp(&state, shooter), 0);

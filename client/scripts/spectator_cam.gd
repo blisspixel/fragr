@@ -60,6 +60,12 @@ var camera_shake_intensity = 0.0
 var camera_zoom_offset = 0.0
 var reduced_motion: bool = false
 
+## Joined-player death view (#441). While set, the camera holds the dead
+## eye or chases the killer and reads no movement, look or view keys, so held
+## gameplay input cannot become free flight or a jump into another fighter.
+var death_view: bool = false
+var death_chase_id: String = ""
+
 var mouse_motion = Vector2.ZERO
 ## Sniper scope magnification from the HUD: 1.0 is the player's own view. Look
 ## turns slow by the same factor, so one mouse count covers the same picture.
@@ -133,6 +139,10 @@ func accept_mouse_motion(event: InputEventMouseMotion, captured: bool) -> void:
 func _process(delta: float) -> void:
 	camera_shake_intensity *= exp(-10.0 * maxf(delta, 0.0))
 	camera_zoom_offset *= exp(-5.0 * maxf(delta, 0.0))
+	if death_view and not tip_pose_lock:
+		mouse_motion = Vector2.ZERO
+		_process_death_view(delta)
+		return
 	if _controls_blocked():
 		mouse_motion = Vector2.ZERO
 		# A chat draft blocks input, but the watched fight keeps moving.
@@ -376,6 +386,8 @@ func camera_punch():
 	camera_zoom_offset = -1.5
 
 func get_followed_target():
+	if death_view:
+		return death_view_target()
 	if fp_mode and is_instance_valid(fp_target):
 		return fp_target
 	if follow_mode and len(available_targets) > 0:
@@ -410,6 +422,51 @@ func _follow_frag_target(delta: float = 1.0 / 60.0) -> void:
 			global_transform = global_transform.interpolate_with(desired_transform, follow_weight(0.2, delta))
 			return
 
+
+## Begin the death view from wherever the camera is now: the dead eye. No
+## other camera mode runs until `end_death_view`.
+func begin_death_view(chase_id: String = "") -> void:
+	if not pinned_player_id.is_empty():
+		return
+	if fp_mode:
+		set_fp_mode(false)
+	_set_observed_pawn(null)
+	frag_follow_timer = 0.0
+	frag_follow_target_id = ""
+	mouse_motion = Vector2.ZERO
+	death_view = true
+	death_chase_id = chase_id
+
+func end_death_view() -> void:
+	death_view = false
+	death_chase_id = ""
+
+## The fighter the death view is actually following, or null while holding.
+func death_view_target() -> Node3D:
+	if not death_view or death_chase_id.is_empty():
+		return null
+	for target: Variant in _all_targets:
+		if is_instance_valid(target) and str(target.get("player_id")) == death_chase_id:
+			return target as Node3D
+	return null
+
+func _process_death_view(delta: float) -> void:
+	var target: Node3D = death_view_target()
+	if target == null:
+		# Killer gone, suicide or no killer: hold the last view exactly.
+		return
+	var target_pos: Vector3 = target.global_position
+	var cam_pos: Vector3 = target_pos + Vector3(0, 5.5, 10.5).rotated(Vector3.UP, target.rotation.y)
+	var look_target: Vector3 = target_pos + Vector3(0, 1.5, 0)
+	if reduced_motion:
+		global_position = cam_pos
+		if not global_position.is_equal_approx(look_target):
+			look_at(look_target, Vector3.UP)
+		return
+	position = position.lerp(cam_pos, follow_weight(0.15, delta))
+	if not global_position.is_equal_approx(look_target):
+		var desired: Transform3D = global_transform.looking_at(look_target, Vector3.UP)
+		global_transform = global_transform.interpolate_with(desired, follow_weight(0.2, delta))
 
 ## Preserve the existing 60 Hz chase speed at every rendering cadence.
 static func follow_weight(weight_at_60_hz: float, delta: float) -> float:
@@ -560,6 +617,8 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 	if fp_mode == enabled and fp_target == target:
 		return
 	_set_observed_pawn(null)
+	if enabled:
+		end_death_view()
 	fp_mode = enabled
 	fp_target = target
 	if not enabled:
@@ -592,7 +651,7 @@ static func _target_presentation_pitch(target: Node3D) -> float:
 	return float(target.get("presentation_pitch")) if "presentation_pitch" in target else _target_server_pitch(target)
 
 func is_observing_first_person() -> bool:
-	return not fp_mode and follow_mode and spectator_first_person and is_instance_valid(get_followed_target())
+	return not death_view and not fp_mode and follow_mode and spectator_first_person and is_instance_valid(get_followed_target())
 
 func _set_observed_pawn(target: Node3D) -> void:
 	if _observed_pawn == target:

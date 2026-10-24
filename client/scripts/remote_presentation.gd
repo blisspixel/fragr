@@ -11,6 +11,9 @@ const SNAP_DISTANCE: float = 3.0
 var samples: Array[Dictionary] = []
 var arrival_offsets: Array[int] = []
 var discontinuity: bool = false
+## True when the last sample() wanted a tick newer than any received, so the
+## pawn held its newest pose instead of moving. Diagnostic only.
+var starved: bool = false
 var _render_tick: float = -1.0
 
 
@@ -19,6 +22,7 @@ func reset() -> void:
 	arrival_offsets.clear()
 	_render_tick = -1.0
 	discontinuity = false
+	starved = false
 
 
 func accept(tick: int, position: Vector3, yaw: float, pitch: float,
@@ -54,6 +58,7 @@ func sample(now_usec: int) -> Dictionary:
 		offset = mini(offset, observed)
 	var desired: float = float(now_usec - offset) / float(TICK_USEC) - BUFFER_TICKS
 	var newest: Dictionary = samples.back()
+	starved = desired > float(newest["tick"])
 	_render_tick = clampf(maxf(_render_tick, desired), float(samples[0]["tick"]), float(newest["tick"]))
 	for index: int in range(1, samples.size()):
 		var next: Dictionary = samples[index]

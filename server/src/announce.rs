@@ -63,7 +63,7 @@ pub async fn broadcast_loop(game_port: u16) {
         return;
     }
     let dest = SocketAddr::from((Ipv4Addr::BROADCAST, BEACON_PORT));
-    tracing::info!(
+    tracing::info!(target: crate::logging::STARTUP_TARGET,
         "LAN beacon: UDP {BEACON_PORT} every 2s for game port {game_port}. A beacon is not a join."
     );
     let mut interval = tokio::time::interval(std::time::Duration::from_secs(2));

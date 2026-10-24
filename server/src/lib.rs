@@ -16,6 +16,7 @@ pub mod mission;
 pub mod movement;
 pub mod navigation;
 pub mod net;
+pub mod operator;
 mod preflight;
 pub mod protocol;
 pub mod resume;
@@ -26,6 +27,7 @@ pub mod session;
 mod sheet;
 pub mod sim;
 mod statistics;
+pub mod tick_trace;
 pub mod trace;
 pub mod vehicles;
 

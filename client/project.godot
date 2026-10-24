@@ -31,6 +31,10 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/vsync/vsync_mode=0
 
+[gui]
+
+common/show_focus_state_on_pointer_event=2
+
 [input]
 
 ui_accept={

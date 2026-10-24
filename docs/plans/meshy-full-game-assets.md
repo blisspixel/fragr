@@ -4,7 +4,7 @@ Status: in flight, 2026-10-04. This is the asset catalog beneath the roadmap's e
 
 ## Scope and counting
 
-The catalog has **190 individual asset and construction-kit briefs**: 35 cast/role briefs, 33 weapon/equipment briefs, 79 world/vehicle/multiplayer source choices and 43 local construction/detail briefs. Count source families once; faction paint, wear, poses, opened/damaged states, icons and repeated placements reuse them. A kit can produce many runtime pieces. These are not 190 completed models.
+The catalog has **192 individual asset and construction-kit briefs**: 35 cast/role briefs, 33 weapon/equipment briefs, 81 world/vehicle/multiplayer source choices and 43 local construction/detail briefs. Count source families once; faction paint, wear, poses, opened/damaged states, icons and repeated placements reuse them. A kit can produce many runtime pieces. These are not 192 completed models. The stretcher and supply-crate briefs were added on 2026-10-23 for the L19 and L20 asset round; the route table below is the original 190-brief baseline.
 
 | Route | Briefs | Meaning |
 |---|---:|---|
@@ -15,7 +15,7 @@ The catalog has **190 individual asset and construction-kit briefs**: 35 cast/ro
 
 This route split is the original planning baseline, not a current count of
 missing paid sources. The subsequent production receipts below track generated
-candidates and selected assets separately. Every one of the 190 linked briefs
+candidates and selected assets separately. Every one of the 192 linked briefs
 still has to meet its own practical integration and visual acceptance gate.
 
 First-person weapon art may use the successful drawn Shotgun workflow. Nick
@@ -304,6 +304,8 @@ the exact map, camera, frame and source receipt when diagnosing it.
 | [Civilian bicycle](meshy-assets/e-bicycle.md) | New source candidate | Low Water and Earth civilian districts |
 | [Replacement tram motor](meshy-assets/e-tram-motor.md) | New source candidate | M05/M18-M20 continuity |
 | [Edda portable lamp](meshy-assets/e-edda-lamp.md) | New source candidate | M04 clinic, conditional ship/evacuation and refuge |
+| [Evacuation stretcher](meshy-assets/e-stretcher.md) | New source candidate | M19 concourse and clinic post, M20 refuge and later medical use |
+| [Carried supply crate](meshy-assets/e-supply-crate.md) | New source candidate | M20 pier resupply and freight yard, M19 concourse and refuge |
 
 ### Utilities and lifelines
 

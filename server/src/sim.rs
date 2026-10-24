@@ -7,6 +7,8 @@ mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
 #[cfg(test)]
+mod death_lifecycle_tests;
+#[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
 pub mod mine;
@@ -63,7 +65,6 @@ struct ResolvedShot {
     origin: [f32; 3],
     pellets: Vec<ResolvedPellet>,
 }
-pub(crate) const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
@@ -1592,6 +1593,16 @@ impl GameState {
                     (None, None) => {}
                 }
             }
+            if player.respawn_timer.is_some() {
+                // Awaiting respawn: keep only the newest held state. Presses
+                // made while dead are not queued into the next life, and a
+                // trigger held now must be released after the respawn.
+                action.weapon_swap = None;
+                action.seat = None;
+                player.fire_latched = action.fire;
+                player.pending_action = action;
+                return;
+            }
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
@@ -1729,6 +1740,7 @@ impl GameState {
                                 effective_speed: if applied { p.last_move_speed } else { 0.0 },
                                 jump_input: applied && p.last_jump_input,
                             }),
+                            respawn_ticks: p.respawn_timer.filter(|_| !p.eliminated),
                         },
                     )
                 })
@@ -2879,6 +2891,13 @@ impl GameState {
             });
         let mut ended_streak = 0;
         let mut lost_golden = false;
+        // Campaign maps keep the default (FFA) rule sheet, so they take their
+        // own value: an FFA pacing change must not move campaign deaths.
+        let respawn_delay = if self.map.is_campaign() {
+            crate::rules::CAMPAIGN_RESPAWN_DELAY_TICKS
+        } else {
+            self.config.rules.respawn_delay_ticks()
+        };
         let (
             target_id,
             target_name,
@@ -2918,12 +2937,13 @@ impl GameState {
             victim.statistics.hurt(hp_damage, absorbed as u64, died);
             let victim_was_boss = victim.is_boss;
             if died {
-                victim.repeater_cycle.reset();
+                // The dead life's input ends here (#441). Held movement or a
+                // queued press must not drive the next body; a trigger still
+                // held at death stays latched until the client releases it.
+                let trigger_held = victim.pending_action.fire;
+                victim.clear_input();
+                victim.fire_latched = trigger_held;
                 victim.inventory.release_trigger();
-                victim.throw_requested = false;
-                victim.place_requested = false;
-                victim.remote_place_requested = false;
-                victim.remote_trigger_requested = false;
                 // Victim streak dies with them; boss does not respawn.
                 ended_streak = std::mem::take(&mut victim.killstreak);
                 lost_golden = std::mem::take(&mut victim.golden);
@@ -2937,7 +2957,7 @@ impl GameState {
                     victim.respawn_timer = None;
                     victim.eliminated = true;
                 } else {
-                    victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
+                    victim.respawn_timer = Some(respawn_delay);
                 }
             }
             (
@@ -3026,7 +3046,7 @@ impl GameState {
             // Campaign casualties have no arcade streaks, taunts or
             // participant scores. ShotResult remains the kill evidence.
             if self.players[shooter_idx].campaign.is_some() {
-                tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
+                tracing::info!(target: crate::logging::FEED_TARGET, shooter = %shooter_name, target = %target_name, "Campaign combatant down");
                 return (hp_damage, armor_damage, died);
             }
             if teammates {
@@ -3041,7 +3061,7 @@ impl GameState {
                     killer_team: shooter_team,
                     victim_team,
                 });
-                tracing::info!("TEAM KILL: {} -> {}", shooter_name, target_name);
+                tracing::info!(target: crate::logging::FEED_TARGET, "TEAM KILL: {} -> {}", shooter_name, target_name);
                 return (hp_damage, armor_damage, died);
             }
             *self.scores.entry(shooter_id).or_insert(0) += 1;
@@ -3119,7 +3139,7 @@ impl GameState {
                     killer: Some(shooter_name.clone()),
                     message: boss_msg,
                 });
-                tracing::info!(
+                tracing::info!(target: crate::logging::FEED_TARGET,
                     "BOSS DOWN: {} fragged {} (score: {})",
                     shooter_name,
                     target_name,
@@ -3131,7 +3151,7 @@ impl GameState {
                 }
             } else {
                 self.note_nods_frag(shooter_id, target_id);
-                tracing::info!(
+                tracing::info!(target: crate::logging::FEED_TARGET,
                     "FRAG: {} -> {} (score: {})",
                     shooter_name,
                     target_name,
@@ -3860,7 +3880,7 @@ impl GameState {
             message: episode0_host_line_auditor(),
             hp: BOSS_MAX_HP,
         });
-        tracing::info!("Auditor spawned ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Auditor spawned ({})", id);
         Some(id)
     }
 
@@ -4225,7 +4245,7 @@ impl GameState {
                 pickup_id: pickup_id.clone(),
                 secret,
             });
-            tracing::info!("PICKUP: {} claimed {} ({})", name, label, pickup_id);
+            tracing::info!(target: crate::logging::FEED_TARGET, "PICKUP: {} claimed {} ({})", name, label, pickup_id);
         }
     }
 
@@ -4236,7 +4256,7 @@ impl GameState {
             message: compliance_host_line(),
             duration_ticks: self.config.compliance_duration_ticks,
         });
-        tracing::info!(
+        tracing::info!(target: crate::logging::FEED_TARGET,
             "Compliance ping fired (duration {} ticks)",
             self.config.compliance_duration_ticks
         );
@@ -4318,7 +4338,7 @@ impl GameState {
             message: boss_host_line(),
             hp: BOSS_MAX_HP,
         });
-        tracing::info!("Compliance Drone spawned ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Compliance Drone spawned ({})", id);
         Some(id)
     }
 
@@ -4348,7 +4368,7 @@ impl GameState {
             message: boss_round_wipe_host_line(),
         });
         self.clear_boss();
-        tracing::info!("Boss wiped on round end ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Boss wiped on round end ({})", id);
     }
 
     fn clear_boss(&mut self) {
