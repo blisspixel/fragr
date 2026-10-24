@@ -206,3 +206,63 @@ Not run:
 Open decisions for Nick: whether to produce dedicated reload clips (specs
 already exist in `tools/audiogen/specs/sfx-weapons.json`) instead of the
 reused scope sounds, and whether the Repeater should get a held frame.
+
+## Independent review (2026-10-23)
+
+A separate reviewer read issue #440, the full diff against `origin/main`
+(`e4cec37`) and the server reload owner (`inventory.rs` `can_reload`,
+`request_reload`, `cancel_reload`, `finish_reload`; `sim.rs` tick order) and
+checked the implementation against them. Source, automated results and
+visual evidence are kept apart below.
+
+Source review:
+
+- `ReloadCue.refusal` matches `Inventory::can_reload`: no magazines, a
+  reload already running, a full magazine, and an empty reserve only where the
+  server checks one (discovery and finite arcade; a weapon-only gun is
+  unlimited). The server stays the authority; a wrong prediction corrects
+  itself (an accepted loadout still starts, an unanswered request reads
+  RELOAD NOT ACCEPTED after one second).
+- Starts are keyed by weapon and `ready_at` within a reset epoch, completion
+  needs the server's magazine to grow at or after the deadline, and every
+  context exit (death, vehicle seat, leaving first person, map change,
+  disconnect) resets silently and stops the reload voice. Cancel and refusal
+  states never play sound. No ammunition, timing, wire or server change.
+- Audio: `sniper/scope_out.wav` and `sniper/scope_in.wav` are committed
+  entries in `client/assets/audio/audiogen-manifest.json`. No generation and
+  no spend.
+- Known presentation limits, not fixed: a press within one round trip of a
+  shot from a full magazine can briefly read MAGAZINE FULL from the stale
+  loadout before the server's acceptance turns it into RELOADING; a weapon
+  swap on the exact deadline tick finishes the reload on the server but shows
+  no LOADED line or sound, because the server finishes before it swaps.
+
+Review fixes:
+
+- This plan was not indexed in `docs/plans/README.md`; it now is. The
+  verification plan credited `test_equipment` with the manager wiring checks
+  that live in `test_reload_cue`; corrected.
+- `test_reload_cue` failed the full suite on this loaded host after printing
+  PASS: three `AudioStreamPlaybackWAV` instances and two streams leaked at
+  exit, because the harness waited a fixed eight frames for the audio mix
+  thread. It now tracks each reload playback by weak reference and waits,
+  bounded at five seconds, for their release (the `ClientRetirement` pattern),
+  failing visibly otherwise. Five consecutive runs at load average about 29
+  were clean.
+
+Reviewer verification, Godot 4.7.2-stable, Linux, logs under `.agents/`:
+
+- Focused: `test_reload_cue`, `test_viewmodel`, `test_rocket`, `test_arc`,
+  `test_equipment`, `test_accessibility_hud`, `test_local_fire_feedback`: PASS
+  with clean verbose logs.
+- Mutation: removing the "rounds grew" completion guard fails
+  `test_reload_cue` (FAIL 1).
+- Full `tools/godot_check.sh` before the harness fix: 611 of 612 ok, the one
+  failure the exit leak above. After the fix: PASS, 612 of
+  612 ok (`.agents/review-godot-check-full2.log`).
+- The implementer's live loopback receipts (Rifle, Shotgun, Railgun) were
+  read: each shows one start and one finish, RELOADING from the accepting
+  tick, a rising bar, the dip and return, LOADED at the deadline and an
+  unchanged bag total. The full-size Railgun frame was viewed.
+- Not run by the reviewer: a fresh live loopback capture, Windows installed
+  builds, listening, Rust checks (no Rust changed).
