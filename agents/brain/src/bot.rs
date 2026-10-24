@@ -1799,7 +1799,13 @@ mod tests {
             bots,
             bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
             fill_target: 0,
-            map: MapKind::default(),
+            // Larak Lot (map 1) has no flag stands; capture the flag plays
+            // on Sector 9.
+            map: if mode == fragr_server::protocol::GameMode::Ctf {
+                MapKind::Sector9
+            } else {
+                MapKind::default()
+            },
             map_rotate: false,
             playlist: false,
             solo_broadcast: false,

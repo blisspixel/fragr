@@ -71,7 +71,9 @@ Recording still affects caches and wall-clock load, so compare like configuratio
 ## Local spectator fan-out
 
 The playtest harness has a separate live WebSocket matrix for 4 or 16 fighters
-and 1, 8, or 16 spectators on Arena Duel and Tripoint Works, all at seed 42:
+and 1, 8, or 16 spectators on map 1 and Tripoint Works, all at seed 42. Map 1
+has been Larak Lot since 2026-10-23; matrix rows recorded before that date ran
+on the retired Arena Duel field and are not comparable:
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
@@ -124,7 +126,7 @@ comparison below captures its own bounded in-memory snapshot sequence.
 
 Choose **Benchmark** from the main menu to measure the current preset or compare
 Performance, Balanced and High. It first records 28 seconds of an owned local
-ten-bot Arena Duel match, then stops that host. Every preset replays the same
+ten-bot Larak Lot match, then stops that host. Every preset replays the same
 authoritative snapshots and time-based camera path. Eight warm-up seconds are
 discarded, followed by twenty scored seconds. V-sync and the frame cap are
 temporarily disabled; completion, cancellation and failure restore the user's
@@ -140,7 +142,9 @@ participant or network recording is saved.
 
 Compared presets within a run receive the same fight; a new run records a new
 fight. Repeated runs and a representative workload matter before judging small
-differences. This Arena Duel scene does not establish 64-player capacity or
+differences. The report records `scene_revision`: revision 2 is Larak Lot with
+an orbit 31 m out and 17 m up; revision 1 circled the retired Arena Duel field
+and its scores are not comparable. This scene does not establish 64-player capacity or
 island performance. Headless checks cover arithmetic and lifecycle, not hardware
 frame rates. A frame rate is not a CI gate. The server `--bench` results above
 remain separate CPU measurements. The

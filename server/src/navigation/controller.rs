@@ -698,10 +698,13 @@ mod tests {
         let enemy = Uuid::new_v4();
         state.add_player(me, "Meat Proxy".into(), Role::Agent);
         state.add_player(enemy, "Target".into(), Role::Agent);
-        state.players[0].x = -4.0;
-        state.players[0].z = 0.0;
-        state.players[1].x = 4.0;
-        state.players[1].z = 0.0;
+        // This small world is flat; stand both on its floor, not on a deck
+        // of the default map's spawn slots.
+        for (player, x) in state.players.iter_mut().zip([-4.0, 4.0]) {
+            player.x = x;
+            player.z = 0.0;
+            player.y = crate::sim::PLAYER_FLOOR_Y;
+        }
         let mut snapshot = state.snapshot();
         snapshot.tick = 1;
         let mut driver = Navigator::default();

@@ -60,7 +60,7 @@ fn sector9_sabotage_broadcast_names_the_running_match() {
     let snap = state.snapshot();
     assert_eq!(snap.playlist, MapKind::Sector9.name());
     assert!(snap.host_line.contains("SECTOR 9") && snap.host_line.contains("SABOTAGE"));
-    assert!(!snap.host_line.contains("ARENA DUEL"));
+    assert!(!snap.host_line.contains("LARAK LOT"));
     assert!(state.events.iter().any(|event| matches!(event, GameEvent::RoundStart { playlist, .. } if playlist == MapKind::Sector9.name())));
 }
 
@@ -684,7 +684,7 @@ fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
 
 #[test]
 fn ctf_validated_maps_place_stands_and_score_a_carry_home() {
-    for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+    for map in [MapKind::Directive17, MapKind::Sector9] {
         let stands = map.ctf_stands().expect("validated CTF map");
         let mut state = arena(map, rules(GameMode::Ctf, &[]));
         state.config.frag_limit = None;

@@ -297,6 +297,9 @@ and red) holds ground the free coalition wants back.
 
 #### 1. Arena Duel (keep, tighten)
 
+**Superseded 2026-10-23:** map 1 became Larak Lot instead of a tightened
+rosette. See [larak-lot.md](larak-lot.md); the rosette is retired.
+
 - **Place:** a municipal assembly floor certified for use as an arena.
 - **Players and modes:** 2 to 4. Duel, deathmatch, every mutator.
 - **Layout and loop:** unchanged rosette: hub, broken gantry ring, spokes. Pull
@@ -312,6 +315,11 @@ and red) holds ground the free coalition wants back.
   (the prize is a public act).
 
 #### 2. Larak Lot (new)
+
+**Implemented 2026-10-23 on map 1** from a merged design rather than this
+sketch: 72 by 56 m, five walking levels round a collapsed Pit, the Custody
+Plate on the Roof and the Rail down the Low Ramp. Episode 0 keeps its name,
+now over matching geometry. See [larak-lot.md](larak-lot.md).
 
 - **Place:** the Perimeter's five-level parking structure, whose ramp goes one
   level further down than the sign admits.
@@ -729,7 +737,7 @@ end conditions, and a mixed human, agent and bot session.
 
 ## Success criteria
 
-- [ ] Arena Duel tightened, with four named gantry faces, under 25 s across.
+- [x] Map 1 under 25 s across with named places: Arena Duel replaced by Larak Lot, 19.4 s corner to corner by measured route ([plan](larak-lot.md)).
 - [ ] Area Kitchen replaces Compliance Yard and beats 12 frags a minute at six.
 - [ ] Every small map meets rule 10 at its target count.
 - [ ] Duel and the mutator set playable by humans, agents and bots together.

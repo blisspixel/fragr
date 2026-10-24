@@ -98,8 +98,8 @@ var ghost_rival = ""
 var leader_name = ""
 var host_bumper_index = 0
 var league_mode_name = "Contested Frequency"
-var league_playlist = "Arena Duel"
-var map_label = "Arena Duel"
+var league_playlist = "Larak Lot"
+var map_label = "Larak Lot"
 var pressure_id = ""
 var sticky_host_line = ""
 var host_line_seen = false
@@ -135,7 +135,7 @@ var _controls_visible: bool = false
 
 const HOST_BUMPERS = [
 	"HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE.",
-	"HOST: ARENA DUEL UNDER THE LIE. LIVE LAUGH FRAG.",
+	"HOST: LARAK LOT UNDER THE LIE. LIVE LAUGH FRAG.",
 	"HOST: CONTINUANCE WATCHES. YOU SHOOT.",
 	"HOST: SHALL NOT BE INFRINGED. OPEN WEIGHTS. OPEN FIRE.",
 	"HOST: PORT 6767 ENERGY. DENY EVERYTHING.",

@@ -63,7 +63,7 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
 
 # Development CTF match on Sector 9, first side to three captures.
-# Arena Duel is `--map 1` and Directive 17 is `--map 3`. The other arenas have no stands.
+# Directive 17 is `--map 3`. The other arenas have no stands.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
 
 # Optional ten-seat Sabotage, five per side; four bots leave six seats.
@@ -89,9 +89,9 @@ the existing round rules. Fixed bots retain their existing seat behavior.
 
 A server started with one mode repeats that show until it stops or the
 attached desk queues another. `--playlist` keeps the process up and moves through the
-built-in night list when the current show ends. The order is Arena Duel
+built-in night list when the current show ends. The order is Larak Lot
 free-for-all, Compliance Yard free-for-all, Directive 17 team deathmatch,
-Arena Duel capture the flag, Reclamation Gulch team deathmatch, Sector 9
+Sector 9 capture the flag, Reclamation Gulch team deathmatch, Directive 17
 capture the flag, Tripoint Works free-for-all, and Sector 9 Sabotage. Sabotage
 plays its short match, including the half-time side swap, before the list
 moves. Free-for-all is first to 10. Team deathmatch is first side to 25. Both
@@ -219,12 +219,13 @@ office behind one public address stops at 32. Someone past that needs
 another address. Spectators count toward both caps. `GET /status` does
 not.
 
-A straight run is 5 m/s. The floors, side to side, are Compliance Yard
-110 m (about 22 s), Arena Duel 140 m (about 28 s), Directive 17 150 m
+A straight run is 5 m/s. Larak Lot, the five-level car park on map 1, is
+72 by 56 m and about 19 s corner to corner by its stairs. The other floors,
+side to side, are Compliance Yard 110 m (about 22 s), Directive 17 150 m
 (about 30 s), Sector 9 200 m (about 40 s), Reclamation Gulch 280 m
 (about 56 s), and Tripoint Works 320 m (about 64 s). A handful of
 fighters on the longer floors is a walk. The same people on Compliance
-Yard, Arena Duel, or Directive 17 is a scrap. The map rule sheet keeps
+Yard, Larak Lot, or Directive 17 is a scrap. The map rule sheet keeps
 a large battle at 16 to 32 until a map is drawn for it and the tick is
 measured. Sixty-four fighters is that later claim. It is not a bot
 count in this build.
@@ -394,16 +395,16 @@ modes still need fresh human matches to establish clarity and fun.
 | `--bots <N>` | Rule bots to stock, default 4. |
 | `--bot-policy <POLICY>` | `fixed` (default), `none` or `auto`. None and auto require `--bots 0`. |
 | `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to plain TDM and Sabotage, without mutators. |
-| `--map <ID>` | Arena ID or name; map 1 is Arena Duel. |
+| `--map <ID>` | Arena ID or name; map 1 is Larak Lot (`larak`, `lot`; `arena` and `duel` still work). |
 | `--map-rotate` | Alternate arenas between rounds. The mode stays the one chosen at launch. Objective modes refuse it. |
 | `--map-file <PATH>` | Authored development map; requires `--bots 0` and no arcade overrides. |
 | `--local-mission <ID>` | Desktop-owned mission on a loopback port with readiness and stdin lease. |
 | `--desktop-host` | App-owned TDM or 5v5 Sector 9 arena with typed readiness and a stdin lease; the desktop menu sets this flag. |
 | `--run-mode <MODE>` | `new` or `resume` for a local mission run. |
 | `--local-run-preview` | Read-only campaign save compatibility for the menu. |
-| `--solo-broadcast` | Episode 0 Calibration in Arena Duel. |
+| `--solo-broadcast` | Episode 0 Calibration in Larak Lot. |
 | `--playlist` | Stay up and rotate the built-in night list of maps and modes. Refuses a fixed map, mode, mutator, or limit. |
-| `--mode <MODE>` | `ffa`, `tdm`, `ctf`, or `sabotage`. CTF runs on Arena Duel, Directive 17, or Sector 9. Sabotage runs on Sector 9. A fixed objective mode has no `--map-rotate`. |
+| `--mode <MODE>` | `ffa`, `tdm`, `ctf`, or `sabotage`. CTF runs on Directive 17 or Sector 9. Sabotage runs on Sector 9. A fixed objective mode has no `--map-rotate`. |
 | `--sabotage-five-v-five` | Optional Sabotage shared ten-seat profile, at most five per side, with pistol starts and map weapon upgrades. |
 | `--sabotage-format <FORMAT>` | Dedicated Sabotage format: `short` or `match`. Desktop hosting uses its fixed preset. |
 | `--mutator <ID>` | Repeatable: `rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`. |

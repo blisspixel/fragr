@@ -624,13 +624,13 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "round_time_left": 90,
   "frag_limit": 10,
   "mode_name": "Contested Frequency",
-  "playlist": "Arena Duel",
-  "host_line": "HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE. ARENA DUEL IS LIVE.",
+  "playlist": "Larak Lot",
+  "host_line": "HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE. LARAK LOT IS LIVE.",
   "pressure": null,
   "mvp": null,
   "mvp_frags": null,
   "map_id": 1,
-  "map_name": "Arena Duel",
+  "map_name": "Larak Lot",
   "rules": {"mode": "tdm", "name": "Team Deathmatch: Rail Only", "mutators": ["rail-only"]},
   "team_scores": {"union": 4, "coalition": 6},
   "self_team": "coalition",
@@ -644,7 +644,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
 Fields come from the last snapshot plus the most recent `round_start` /
 `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
 sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
-`map_name` are always present (defaulting to Arena Duel if the snapshot omitted
+`map_name` are always present (defaulting to Larak Lot if the snapshot omitted
 them). `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.

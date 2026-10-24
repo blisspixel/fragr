@@ -1115,6 +1115,9 @@ pub struct Report {
     pub longest_gap_without_frag_s: f64,
     pub host_beats_per_minute: f64,
     pub pickups: u64,
+    /// Claims per pad id, so a map's power items can be seen to circulate.
+    #[serde(default)]
+    pub pickups_by_pad: BTreeMap<String, u64>,
     pub spawn_deaths: u64,
     /// Spawn deaths whose spawn was the round opening rather than a respawn.
     /// Opening placement is decided from the whole roster before anyone moves,
@@ -1188,6 +1191,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut frag_ticks: Vec<u64> = Vec::new();
     let mut host_beats = 0u64;
     let mut pickups = 0u64;
+    let mut pickups_by_pad: BTreeMap<String, u64> = BTreeMap::new();
     let mut host_reactions = 0u64;
     let mut team_kills = 0u64;
     let mut flag_takes = 0u64;
@@ -1276,7 +1280,10 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
-            GameEvent::Pickup { .. } => pickups += 1,
+            GameEvent::Pickup { pickup_id, .. } => {
+                pickups += 1;
+                *pickups_by_pad.entry(pickup_id.clone()).or_default() += 1;
+            }
             GameEvent::Flag { kind, .. } => match kind {
                 fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
                 fragr_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
@@ -1343,6 +1350,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         longest_gap_without_frag_s: seconds(longest_gap),
         host_beats_per_minute: per_minute(host_beats, ticks),
         pickups,
+        pickups_by_pad,
         spawn_deaths,
         opening_spawn_deaths,
         snapshot_bytes_per_tick: if obs.snapshots_seen == 0 {
@@ -3073,6 +3081,7 @@ mod tests {
             }
         );
         assert_eq!(report.pickups, 1);
+        assert_eq!(report.pickups_by_pad.values().sum::<u64>(), 1);
         assert_eq!(report.time_to_first_frag_s, Some(1.0));
         assert!((report.longest_gap_without_frag_s - 50.0).abs() < 1e-9);
         assert!((report.frags_per_minute - 2.0).abs() < 1e-9);
