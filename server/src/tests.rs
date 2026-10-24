@@ -7454,4 +7454,5 @@ mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;
+mod tick_trace;
 mod traveling_shot;
