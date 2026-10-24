@@ -68,9 +68,9 @@ Music costs about 900 credits per minute. One hundred forty tracks averaging fou
 
 - `client/scripts/radio.gd` builds the station list from `client/assets/audio/radio/stations.json` and the manifest entries whose name starts with `radio/<station>/`. No directory scanning, so exports work.
 - Shuffle: no repeat within the last twelve plays (or the pool size minus one when smaller), a fresh random seed per session, play history kept per station for the session.
-- Keys: `radio_next_station` (R), `radio_next_track` (N), `radio_toggle` (M). Gamepad: D-pad up, down, and left.
-- Volume states: spectating 0 dB relative; playing as human minus 6 dB; Host callouts duck a further 9 dB for three seconds with a short recovery; LOCK IN never ducks for combat. The Dead Air Bell mutes the radio for its duration (round-end wiring in a follow-up).
-- HUD: a station card (badge, name, tagline, colour per station from `stations.json`) appears bottom right on every switch and toggle, and a small label under it shows the track title on each new track; both fade. Never in the killfeed corner.
+- Controls: `radio_prev_station` and `radio_next_station` (X and C; D-pad left and right on a pad, acting on release), `radio_next_track` (N; hold D-pad right), `radio_toggle` (M; hold D-pad left). The dial wraps through a RADIO OFF stop. Current bindings live in `client/project.godot` and `docs/PLAYING.md`.
+- Volume states: spectating 0 dB relative; playing as human minus 6 dB; Host callouts duck a further 9 dB for three seconds with a short recovery, only when the Announcer setting lets that call through (Off never ducks); LOCK IN never ducks for combat. The Dead Air Bell mutes the radio for its duration (round-end wiring in a follow-up).
+- HUD: one small two-line card at the lower right (station, then song or state) for a few seconds after every change, then it fades. No station badge and no controls line in combat; the full controls and the whole title live in the match menu Music / Radio area. Never in the killfeed corner.
 - Missing assets are fine: with no tracks the radio stays silent and the HUD says the station is off the air.
 
 ## Verification

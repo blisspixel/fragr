@@ -94,8 +94,9 @@ static func _marker(team: String) -> Node3D:
 	var label: Label3D = Label3D.new()
 	label.name = "FlagLabel"
 	label.text = _world_label(team, "home")
-	label.font_size = 52
-	label.pixel_size = 0.005
+	MenuTheme.world_text(label)
+	label.font_size = 48
+	label.pixel_size = 0.0054
 	label.position = POLE_LABEL
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.layers = ArenaSky.WORLD_LAYERS

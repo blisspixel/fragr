@@ -171,7 +171,7 @@ func _initialize() -> void:
 		ok = false
 	loaded.set_value("video", "display_mode", 1)
 	if loaded.get_value("video", "display_mode") != 2:
-		push_error("test_settings: legacy exclusive mode must map to portable fullscreen")
+		push_error("test_settings: an unsupported display mode must fall back to fullscreen")
 		ok = false
 	for path in script.RANGES:
 		var parts: PackedStringArray = str(path).split("/")

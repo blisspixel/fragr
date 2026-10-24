@@ -120,9 +120,11 @@ Researched 2026-09-24. Sources are listed at the end.
 
 ## Rule sheet
 
-Measure in seconds, not metres. Current movement: top speed 5 m/s, a step of
-0.6 m, a jump about 1.1 m high and 3 m long. [Gunfeel](gunfeel.md) proposes 6.5
-m/s; if it lands, every metre figure below scales by 1.3 and the seconds stand.
+Measure in seconds, not metres. Current arena movement: a 6 m/s run reached in
+three ticks, a step of 0.6 m, a jump about 1.3 m high carrying its run, and a
+9 m/s ground dodge ([feel pass](feel-pass-20261023.md)). The campaign keeps
+5 m/s. The metre figures below were drawn at 5 m/s; at 6 the seconds shrink
+by a sixth, so a map sized to them now plays slightly tighter.
 Weapon reach today: Scatter 12 m, Tack 30 m, Flechette 40 m, Rail 60 m.
 
 ### 1. Size by player count
@@ -178,10 +180,12 @@ players in it. That is the single biggest fault in the current roster.
 
 | Item | Respawn | Status |
 |---|---|---|
-| Weapon, free-for-all | 12 s | built |
-| Weapon, team modes | 30 s | proposed |
-| Health pad (+40) | 15 s | built |
-| Armour pad (+25) | 15 s today, 25 s proposed | built |
+| Weapon, free-for-all: Rifle, Shotgun, Repeater | 15 s | implemented for wave 2 |
+| Weapon, free-for-all: Railgun, Sniper Rifle, Arc, Rocket Launcher | 25 s | implemented for wave 2 |
+| Weapon, free-for-all: spare Pistol | 8 s | implemented for wave 2 |
+| Weapon, team modes | 30 s | built |
+| Health pad (+40) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
+| Armour pad (+25) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
 | Heavy plate (large armour) | 35 s | proposed |
 | Surplus (health over maximum, drains back) | 35 s | proposed |
 | Overtime (power item: triple damage for 20 s) | 120 s, first at 45 s, announced | proposed |
@@ -190,8 +194,12 @@ players in it. That is the single biggest fault in the current roster.
 - The best item sits on the worst ground: exposed to a lane, to fire from
   above, or at the bottom of something. Never where it is ideal to use.
 - Health sits on escape routes. Each armour is exposed to one lane.
-- The Tack pad is within two seconds of every spawn
-  ([every life starts empty](../MODES.md#every-life-starts-empty)).
+- Every free-for-all life starts with the Pistol and Fists (Nick,
+  2026-10-23), so the Tack-by-spawn pad is not needed. Instead every spawn is
+  within a fair walk of a stronger gun: 10 s on small maps, 12 s on Sector 9,
+  15 s on the large maps, checked by
+  `every_free_for_all_map_puts_a_gun_within_reach_of_every_spawn`. Maps lay
+  extra free-for-all gun pads (`scrap_pads`) to meet it.
 - Two big items 30 to 50 s of walking apart, so timing both is a plan.
 - Spectators see item clocks. Players learn them by ear: every big item has a
   respawn sound audible across the map.
@@ -256,16 +264,16 @@ Then humans play it. A green report is not fun; it is the right to find out.
 ## The six current maps
 
 Measured frags a minute are from [map-roster-2026](map-roster-2026.md), six
-agents. Crossing times are corner to corner at 5 m/s.
+agents. Crossing times are corner to corner at the 6 m/s arena run.
 
 | Map | Extent | Crossing | Frags/min | Verdict |
 |---|---|---|---|---|
-| Arena Duel | 140 m | 40 s | 23.0 | **Keep, tighten** |
-| Compliance Yard | 110 m | 31 s | 3.8 | **Retire**, replaced by Area Kitchen |
-| Directive 17 Substation | 150 m | 42 s | 15.3 | **Rework** smaller, with a bridge |
-| Sector 9 Transit Hall | 200 m | 57 s | 14.1 | **Rework** as the first team map |
-| Reclamation Gulch | 280 m | 79 s | 6.4 | **Rework** smaller for team play |
-| Tripoint Works | 320 m | 91 s | 9.0 | **Rework** for its mode; out of free-for-all rotation |
+| Arena Duel | 140 m | 33 s | 23.0 | **Keep, tighten** |
+| Compliance Yard | 110 m | 26 s | 3.8 | **Retire**, replaced by Area Kitchen |
+| Directive 17 Substation | 150 m | 35 s | 15.3 | **Rework** smaller, with a bridge |
+| Sector 9 Transit Hall | 200 m | 47 s | 14.1 | **Rework** as the first team map |
+| Reclamation Gulch | 280 m | 66 s | 6.4 | **Rework** smaller for team play |
+| Tripoint Works | 320 m | 75 s | 9.0 | **Rework** for its mode; out of free-for-all rotation |
 
 - **Arena Duel** works. The hub inside the gantry ring gives a middle worth
   fighting into, and it is the CI and Episode 0 map. Its faults: eight-fold
@@ -280,11 +288,11 @@ agents. Crossing times are corner to corner at 5 m/s.
 - **Sector 9** has named places and a measured rollout: both halls reach Mid
   Doors in about five seconds. It is too big for free-for-all and the right
   bones for teams.
-- **Reclamation Gulch** crosses 180 m of open ground at 5 m/s. The rail reaches
+- **Reclamation Gulch** crosses 180 m of open ground at 6 m/s. The rail reaches
   60 m, so most of the gulch is beyond every weapon: a walk, not a fight. Blood
   Gulch works because of vehicles, and this one has none yet.
 - **Tripoint Works** is built for a three-sided mode that does not exist. As
-  free-for-all it is 91 s from corner to corner.
+  free-for-all it is 75 s from corner to corner.
 
 ## The roster
 
@@ -296,6 +304,9 @@ and red) holds ground the free coalition wants back.
 ### Small maps: 2 to 8 players, deathmatch and duel
 
 #### 1. Arena Duel (keep, tighten)
+
+**Superseded 2026-10-23:** map 1 became Larak Lot instead of a tightened
+rosette. See [larak-lot.md](larak-lot.md); the rosette is retired.
 
 - **Place:** a municipal assembly floor certified for use as an arena.
 - **Players and modes:** 2 to 4. Duel, deathmatch, every mutator.
@@ -312,6 +323,11 @@ and red) holds ground the free coalition wants back.
   (the prize is a public act).
 
 #### 2. Larak Lot (new)
+
+**Implemented 2026-10-23 on map 1** from a merged design rather than this
+sketch: 72 by 56 m, five walking levels round a collapsed Pit, the Custody
+Plate on the Roof and the Rail down the Low Ramp. Episode 0 keeps its name,
+now over matching geometry. See [larak-lot.md](larak-lot.md).
 
 - **Place:** the Perimeter's five-level parking structure, whose ramp goes one
   level further down than the sign admits.
@@ -729,7 +745,7 @@ end conditions, and a mixed human, agent and bot session.
 
 ## Success criteria
 
-- [ ] Arena Duel tightened, with four named gantry faces, under 25 s across.
+- [x] Map 1 under 25 s across with named places: Arena Duel replaced by Larak Lot, 19.4 s corner to corner by measured route ([plan](larak-lot.md)).
 - [ ] Area Kitchen replaces Compliance Yard and beats 12 frags a minute at six.
 - [ ] Every small map meets rule 10 at its target count.
 - [ ] Duel and the mutator set playable by humans, agents and bots together.

@@ -89,7 +89,7 @@ fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
         .campaign
         .unwrap()
     {
-        CampaignActor::Union { phase, .. } => phase,
+        CampaignActor::Hostile { phase, .. } => phase,
         _ => panic!("expected enemy"),
     }
 }
@@ -130,7 +130,7 @@ fn crawler_scrabble_precedes_a_single_contact_and_recovery() {
             .find(|p| p.name == "crawler_one")
             .unwrap();
         let current = match crawler.campaign.unwrap() {
-            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Hostile { phase, .. } => phase,
             _ => panic!("expected Crawler"),
         };
         if current == EnemyPhase::Leaping {
@@ -191,7 +191,7 @@ fn crawler_contact_respects_the_existing_spawn_shield() {
             .find(|p| p.name == "crawler_one")
             .unwrap();
         let phase = match crawler.campaign.unwrap() {
-            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Hostile { phase, .. } => phase,
             _ => panic!("expected Crawler"),
         };
         leaped |= phase == EnemyPhase::Leaping;
@@ -290,7 +290,7 @@ fn authored_enemies_activate_once_clear_in_order_and_never_respawn() {
     assert_eq!(session.state.scores[&id], 0);
     assert!(session.state.take_events().iter().all(|event| !matches!(
         event,
-        crate::protocol::GameEvent::Frag { .. } | crate::protocol::GameEvent::Killstreak { .. }
+        crate::protocol::GameEvent::Frag { .. } | crate::protocol::GameEvent::HostReaction { .. }
     )));
     advance(&mut session, 1);
     assert_eq!(
@@ -336,8 +336,33 @@ fn shooting_a_dormant_group_wakes_existing_guards_without_waiting_for_its_depend
     assert_eq!(phase(&session, guards[1]), EnemyPhase::Hit);
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
     advance(&mut session, 6);
-    assert_eq!(phase(&session, guards[1]), EnemyPhase::Windup);
-    assert_eq!(phase(&session, guards[2]), EnemyPhase::Windup);
+    // Both woken guards attack, one tell at a time: the second shifts across
+    // its lane until the stagger has passed.
+    let telling = |session: &GameSession| {
+        [guards[1], guards[2]]
+            .into_iter()
+            .filter(|guard| phase(session, *guard) == EnemyPhase::Windup)
+            .count()
+    };
+    assert_eq!(telling(&session), 1);
+    assert!([guards[1], guards[2]]
+        .into_iter()
+        .any(|guard| phase(&session, guard) == EnemyPhase::Moving));
+    // Keep the participant standing through both bursts.
+    if let Some(player) = session.state.players.iter_mut().find(|p| p.id == id) {
+        player.hp = 1000;
+    }
+    let mut told = [false; 2];
+    for _ in 0..40 {
+        for (index, guard) in [guards[1], guards[2]].into_iter().enumerate() {
+            told[index] |= phase(&session, guard) == EnemyPhase::Windup;
+        }
+        if told == [true, true] {
+            break;
+        }
+        advance(&mut session, 1);
+    }
+    assert_eq!(told, [true, true], "the yielding guard takes its turn");
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
     assert_eq!(
         session
@@ -638,6 +663,7 @@ fn live_and_dead_enemies_cannot_consume_participant_supplies() {
         available: true,
         respawn_timer: None,
         secret: false,
+        clock: None,
     });
     session.state.tick(0.05);
     assert!(session.state.pickups[0].available);
@@ -693,7 +719,7 @@ fn last_departure_and_party_wipe_reset_once_and_allow_retry() {
     assert_ne!(second, third);
     assert!(matches!(
         session.state.players[1].campaign,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             ..
         })
@@ -756,10 +782,13 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
             }
         }
     }
+    // Attack pacing staggers the two tells: the first sweeper fires after
+    // its full tell, the second only after the stagger has passed.
+    let mut firsts = Vec::new();
     for id in sweepers {
         let ticks: Vec<_> = shots.iter().filter(|s| s.0 == id).map(|s| s.1).collect();
         assert_eq!(ticks.len(), 3, "one burst, then recovery and a new tell");
-        assert_eq!(ticks[0] - started, 15);
+        firsts.push(ticks[0] - started);
         assert_eq!(
             ticks[1] - ticks[0],
             u64::from(WeaponType::Flechette.cooldown_ticks())
@@ -769,6 +798,12 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
             u64::from(WeaponType::Flechette.cooldown_ticks())
         );
     }
+    firsts.sort_unstable();
+    assert_eq!(firsts[0], 15);
+    assert!(
+        firsts[1] >= firsts[0] + crate::encounters::enemy::ATTACK_STAGGER_TICKS,
+        "{firsts:?}"
+    );
 }
 
 #[test]

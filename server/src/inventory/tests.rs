@@ -825,17 +825,23 @@ fn remote_stock_is_finite_independent_and_restores_without_gun_or_other_device_c
 }
 
 #[test]
-fn remote_stock_boundary_refuses_malformed_counts_and_omits_current_zero() {
+fn remote_stock_boundary_refuses_malformed_or_missing_saved_counts() {
     let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
     let quiet = inventory.saved_equipment(WeaponType::Fists).unwrap();
     let value = serde_json::to_value(&quiet).unwrap();
-    assert!(value.get("remote_mines").is_none());
+    assert_eq!(
+        value["remote_mines"], 0,
+        "saved equipment writes every count"
+    );
     assert_eq!(
         serde_json::from_value::<SavedEquipment>(value.clone())
             .unwrap()
             .remote_mines,
         0
     );
+    let mut missing = value.clone();
+    missing.as_object_mut().unwrap().remove("remote_mines");
+    assert!(serde_json::from_value::<SavedEquipment>(missing).is_err());
     for bad in [
         serde_json::json!(-1),
         serde_json::json!(1.5),
@@ -889,6 +895,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         }],
         round_state: Some("Active".into()),
         round_time_left: None,
+        sudden_death: false,
         frag_limit: None,
         shot_results: vec![],
         projectiles: vec![],
@@ -898,6 +905,9 @@ fn useful_supply_recognizes_grenades_and_mines() {
         mines: vec![],
         remote_mines: vec![],
         auditors: vec![],
+        paver_strips: Vec::new(),
+        jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: vec![],
         mode_name: "FFA".into(),
         playlist: "Standard".into(),

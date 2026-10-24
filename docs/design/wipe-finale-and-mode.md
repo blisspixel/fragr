@@ -131,8 +131,8 @@ claim that both modes are already built.
 
 Start with one authored rectangle approximately 180 by 160 metres, within the
 current half-extent bound. It is a prototype size, to be cut if travel feels empty.
-The current ordinary top speed is 5 m/s: district links of 35-90 metres mean
-roughly 7-18 unobstructed seconds, before cover, stairs and combat. The longest
+The campaign pace is 5 m/s and the arena run 6 m/s: district links of 35-90
+metres mean roughly 6-18 unobstructed seconds, before cover, stairs and combat. The longest
 diagonal is not an objective commute. Encounter placement and intermediate
 supplies must make every repeated route earn its length.
 
@@ -653,11 +653,13 @@ paid-stage allowance; and inspected source, venue and play evidence. Names and
 faces in a draft cannot become approved casting through generation.
 
 Union outfits remain stylized black, dark steel and red with fictional seals,
-without historical symbols. Civilian repairs retain varied bone, rust, leather
-and individual screen expressions. Restoration machinery is matte off-white,
-with unfamiliar construction and no readable serials. Existing Earth utility
-materials remain recognizable under interruption, rather than generic neon
-science fiction. Approximately 2070 retro-futurist charm persists. Do not turn
+without historical symbols. Civilian repairs retain varied warm personal paint,
+rust, leather and individual screen expressions, never a matte off-white base.
+Absorbed Union bots keep their chassis with dead red optics and cyan working
+glow ([contract](../ART_STORY_BIBLE.md#faction-readability-contract)).
+Restoration machinery is matte off-white, with unfamiliar construction and no
+readable serials. Existing Earth utility materials remain recognizable under
+interruption, rather than generic neon science fiction. Approximately 2070 retro-futurist charm persists. Do not turn
 the shared tactical overlay into an omnipotent AI-character portrait.
 
 ## Acceptance that answers whether this is fun

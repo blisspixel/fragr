@@ -38,12 +38,19 @@ func _run() -> void:
 	var body_feet: Vector3 = Vector3(8, 0, 0)
 	var open_body: Vector3 = TOUR.body_camera_position(body_feet, [])
 	_check(open_body.is_equal_approx(Vector3(5, 1.3, 0)), "body capture prefers the arena centre when clear")
+	var far_body: Vector3 = TOUR.body_camera_position(body_feet, [], 15.0)
+	_check(far_body.is_equal_approx(Vector3(-7, 1.3, 0)), "a readability still stands at the asked distance: " + str(far_body))
 	var body_wall: Array = [{"min_x": 6, "max_x": 7, "min_z": -2, "max_z": 2, "bottom": 0, "top": 3}]
 	var clear_body: Vector3 = TOUR.body_camera_position(body_feet, body_wall)
 	_check(clear_body.is_finite() and not clear_body.is_equal_approx(open_body)
 		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 0.12, 0), body_wall)
 		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 1.85, 0), body_wall),
 		"body capture moves around a wall and keeps feet and head visible")
+	var hugged: Array = [{"min_x": 4.2, "max_x": 4.6, "min_z": -0.5, "max_z": 0.5, "bottom": 0, "top": 3}]
+	var spaced: Vector3 = TOUR.body_camera_position(body_feet, hugged)
+	_check(spaced.is_finite() and not spaced.is_equal_approx(open_body)
+		and TOUR._clear_of_solids(spaced, hugged, TOUR.BODY_CAMERA_CLEARANCE),
+		"body capture never stands against a crate that would fill the frame: " + str(spaced))
 	_check(not TOUR.body_camera_position(body_feet, [{"min_x": 0, "max_x": 12, "min_z": -5,
 		"max_z": 5, "bottom": 0, "top": 3}]).is_finite(), "an enclosed body cannot produce a passing still")
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
@@ -166,6 +173,8 @@ func _run() -> void:
 	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
 	_check_chase_cadence(first)
+	_check_chase_cover()
+	_check_punch()
 	await _check_board_browsing(first, second)
 	var blocker: InputBlocker = InputBlocker.new()
 	root.add_child(blocker)
@@ -258,6 +267,41 @@ func _check_board_browsing(first: Fighter, second: Fighter) -> void:
 	InputMap.action_erase_event("toggle_follow", back)
 	camera.queue_free()
 	await process_frame
+
+
+## Cover on the chase boom keeps the followed fighter in view (#437 stills
+## showed a crate top with the fighter hidden behind it).
+func _check_chase_cover() -> void:
+	var Cam: GDScript = load("res://scripts/spectator_cam.gd")
+	var look: Vector3 = Vector3(0, 1.5, 0)
+	var desired: Vector3 = Vector3(0, 7.0, 10.5)
+	_check(Cam.chase_clear_position(look, desired, []) == desired, "an open boom keeps its full chase spot")
+	var crate: Dictionary = {"min_x": -2.0, "max_x": 2.0, "min_z": 5.0, "max_z": 7.0, "bottom": 0.0, "top": 6.0}
+	var raised: Vector3 = Cam.chase_clear_position(look, desired, [crate])
+	_check(AimAssist.line_of_sight(look, raised, [crate]) and raised.y > desired.y and raised.y < look.y + desired.distance_to(look) * 0.9, "a crate on the boom raises the camera only as far as it needs")
+	var wall: Dictionary = {"min_x": -6.0, "max_x": 6.0, "min_z": 0.6, "max_z": 2.0, "bottom": 0.0, "top": 4.0}
+	var lifted: Vector3 = Cam.chase_clear_position(look, desired, [wall])
+	_check(AimAssist.line_of_sight(look, lifted, [wall]) and lifted.y > 4.0, "cover right behind the fighter lifts the camera over it")
+	_check(AimAssist.first_hit(look, desired, [crate]) > 0.0 and AimAssist.first_hit(look, desired, []) < 0.0, "first hit reports the nearest solid or none")
+
+## The camera punch is presentation: its peak is the asked-for angle, it has
+## the same shape at any frame rate, it settles, and it never moves the aim.
+func _check_punch() -> void:
+	var script: GDScript = load("res://scripts/spectator_cam.gd")
+	var peak: float = 0.0
+	var value: Vector2 = Vector2(0.0, 1.0 * script.PUNCH_OMEGA * exp(1.0))
+	for frame: int in range(240):
+		value = script.spring_step(value.x, value.y, script.PUNCH_OMEGA, 1.0 / 240.0)
+		peak = maxf(peak, value.x)
+	_check(absf(peak - 1.0) < 0.01, "a punch peaks at the angle asked for: %f" % peak)
+	var slow: Vector2 = Vector2(0.0, 3.0)
+	for frame: int in range(6):
+		slow = script.spring_step(slow.x, slow.y, script.PUNCH_OMEGA, 1.0 / 60.0)
+	var fast: Vector2 = Vector2(0.0, 3.0)
+	for frame: int in range(24):
+		fast = script.spring_step(fast.x, fast.y, script.PUNCH_OMEGA, 1.0 / 240.0)
+	_check(absf(slow.x - fast.x) < 0.00001, "the punch has one shape at 60 and 240 fps")
+	_check(absf(value.x) < 0.001, "a punch settles inside a second")
 
 
 func _check_chase_cadence(target: Fighter) -> void:

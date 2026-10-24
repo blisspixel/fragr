@@ -19,6 +19,7 @@ use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
+pub mod bot_survey;
 pub mod fanout;
 mod provenance;
 pub mod sabotage;
@@ -1115,6 +1116,9 @@ pub struct Report {
     pub longest_gap_without_frag_s: f64,
     pub host_beats_per_minute: f64,
     pub pickups: u64,
+    /// Claims per pad id, so a map's power items can be seen to circulate.
+    #[serde(default)]
+    pub pickups_by_pad: BTreeMap<String, u64>,
     pub spawn_deaths: u64,
     /// Spawn deaths whose spawn was the round opening rather than a respawn.
     /// Opening placement is decided from the whole roster before anyone moves,
@@ -1188,6 +1192,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
     let mut frag_ticks: Vec<u64> = Vec::new();
     let mut host_beats = 0u64;
     let mut pickups = 0u64;
+    let mut pickups_by_pad: BTreeMap<String, u64> = BTreeMap::new();
     let mut host_reactions = 0u64;
     let mut team_kills = 0u64;
     let mut flag_takes = 0u64;
@@ -1272,11 +1277,13 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                     .unwrap_or_default();
                 *sabotage_events.entry(key).or_default() += 1;
             }
-            GameEvent::Killstreak { .. }
-            | GameEvent::CompliancePing { .. }
+            GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
-            GameEvent::Pickup { .. } => pickups += 1,
+            GameEvent::Pickup { pickup_id, .. } => {
+                pickups += 1;
+                *pickups_by_pad.entry(pickup_id.clone()).or_default() += 1;
+            }
             GameEvent::Flag { kind, .. } => match kind {
                 fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
                 fragr_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
@@ -1343,6 +1350,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
         longest_gap_without_frag_s: seconds(longest_gap),
         host_beats_per_minute: per_minute(host_beats, ticks),
         pickups,
+        pickups_by_pad,
         spawn_deaths,
         opening_spawn_deaths,
         snapshot_bytes_per_tick: if obs.snapshots_seen == 0 {
@@ -2714,6 +2722,7 @@ mod tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: None,
+            sudden_death: false,
             frag_limit: Some(5),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -2724,8 +2733,11 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -3073,6 +3085,7 @@ mod tests {
             }
         );
         assert_eq!(report.pickups, 1);
+        assert_eq!(report.pickups_by_pad.values().sum::<u64>(), 1);
         assert_eq!(report.time_to_first_frag_s, Some(1.0));
         assert!((report.longest_gap_without_frag_s - 50.0).abs() < 1e-9);
         assert!((report.frags_per_minute - 2.0).abs() < 1e-9);
@@ -3482,7 +3495,7 @@ mod tests {
                     false,
                 )
                 .unwrap()
-                .wire(),
+                .wire(&fragr_server::rules::SabotageConfig::default()),
             ),
             ..Observation::default()
         };
@@ -3548,7 +3561,7 @@ mod tests {
                     false,
                 )
                 .unwrap()
-                .wire(),
+                .wire(&fragr_server::rules::SabotageConfig::default()),
             ),
             sides: [("union".to_string(), 2), ("coalition".to_string(), 2)]
                 .into_iter()
@@ -3655,6 +3668,7 @@ mod combat_tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: shots,
             projectiles: Vec::new(),
@@ -3665,8 +3679,11 @@ mod combat_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -4495,12 +4512,13 @@ mod planner_tests {
         let mut partner = player("partner", ally, 1.0, 0.0, 100, "Tack");
         partner.campaign = mine.campaign;
         let mut guard = player("clerk", foe, 8.0, 0.0, 60, "Tack");
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);
         let arena = Arena::default();
@@ -4574,6 +4592,7 @@ mod planner_tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -4584,8 +4603,11 @@ mod planner_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -5388,6 +5410,7 @@ mod line_of_sight_tests {
             players: vec![],
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -5398,8 +5421,11 @@ mod line_of_sight_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -5673,7 +5699,7 @@ mod rule_checks {
     fn rules(mode: GameMode, mutators: &[Mutator], friendly_fire: bool) -> MatchRules {
         fragr_server::rules::RuleSet::new(mode, mutators, friendly_fire)
             .unwrap()
-            .wire()
+            .wire(&fragr_server::rules::SabotageConfig::default())
     }
 
     fn report(
@@ -5746,6 +5772,7 @@ mod rule_checks {
                 player: Some("a".into()),
                 other: Some("b".into()),
                 team: None,
+                big: true,
             },
         });
         obs.events.push(TimedEvent {

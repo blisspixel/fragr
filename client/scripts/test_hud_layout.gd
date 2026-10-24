@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Headless geometry regressions for #437: the top band shared by the HUD
-## columns, the frame counter and the benchmark banner; and result cards whose
+## columns and the frame counter; and result cards whose
 ## readable copy stays upright while their stamp follows the card's lifetime.
 ## Rendered evidence is qa_hud_layout.gd; this harness keeps the rules.
 ## Run: godot --path client --headless --script res://scripts/test_hud_layout.gd
@@ -9,7 +9,6 @@ extends SceneTree
 var failures: int = 0
 var hud: CanvasLayer
 var counter: PerformanceOverlay
-var bench: BenchmarkRun
 var query_answer: Variant = []
 
 func _initialize() -> void:
@@ -34,6 +33,7 @@ func _run() -> void:
 	hud.set_process(false)
 	await _test_reservation_validation()
 	await _test_real_top_layers()
+	await _test_nameplate_blockers()
 	await _test_scaled_columns()
 	await _test_result_cards()
 	await _test_card_placement()
@@ -42,7 +42,7 @@ func _run() -> void:
 	hud.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_hud_layout: PASS top band reservations, scaled columns, upright cards, stamp lifetime and card placement")
+		print("test_hud_layout: PASS top band reservations, nameplate blockers, scaled columns, upright cards, stamp lifetime and card placement")
 		quit(0)
 	else:
 		push_error("test_hud_layout: FAIL with %d failures" % failures)
@@ -69,7 +69,19 @@ func _test_band_math() -> void:
 	_check(is_equal_approx(HudRegions.fit_shift(50.0, 300.0, 100.0, 800.0), 50.0), "a card above the ceiling moves down the least distance")
 	_check(is_equal_approx(HudRegions.fit_shift(300.0, 1200.0, 100.0, 800.0), -200.0), "a card taller than the room keeps its first lines at the ceiling")
 	var standard: Dictionary = HudRegions.top_band(1920.0, 1.0)
-	_check(is_equal_approx(standard.center_width, 720.0) and is_equal_approx(standard.left_width, 460.0) and is_equal_approx(standard.right_width, 560.0), "100 percent layout keeps the accepted widths")
+	_check(is_equal_approx(standard.center_width, 720.0) and is_equal_approx(standard.left_width, 460.0) and is_equal_approx(standard.right_width, 560.0), "100 percent layout keeps the accepted widths: " + str(standard))
+	var ffa_line: float = MenuTheme.FONT.get_string_size("MEAT PROXY: 10 // FIRST TO 10 // 12:59", HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x
+	_check(ffa_line <= standard.center_width, "an FFA score line stays one row at 100 percent: %.0f" % ffa_line)
+	var wide: Dictionary = HudRegions.top_band(1920.0, 1.5, 1.5, 700.0)
+	_check(wide.center_width >= 700.0 and 20.0 + wide.left_width + HudRegions.GAP <= (1920.0 - wide.center_width) * 0.5 + 0.01, "the center never falls under its widest unbreakable fact")
+	var label := Label.new()
+	label.add_theme_font_override("font", MenuTheme.FONT)
+	label.add_theme_font_size_override("font_size", 36)
+	label.text = "UNION 2 : 2 FREE COALITION // FIRST TO 25 // 2:35"
+	var wrapped: String = HudRegions.wrap_segments(label.text, MenuTheme.FONT, 36, HudRegions.segment_width(label))
+	_check(wrapped == "UNION 2 : 2 FREE COALITION\nFIRST TO 25 // 2:35", "match facts wrap only between whole facts: " + wrapped.c_escape())
+	_check(HudRegions.wrap_segments(wrapped, MenuTheme.FONT, 36, HudRegions.segment_width(label)) == wrapped, "wrapping twice is stable")
+	label.free()
 	var reserved: Array[Rect2] = [Rect2(1500, 2, 412, 31)]
 	_check(HudRegions.column_top(20.0, 1344.0, 560.0, reserved) > 33.0, "a crossing reservation pushes the column below it")
 	_check(is_equal_approx(HudRegions.column_top(16.0, 600.0, 720.0, reserved), 16.0), "a reservation outside the span leaves the column alone")
@@ -105,15 +117,13 @@ func _busy_top() -> void:
 func _test_real_top_layers() -> void:
 	counter = PerformanceOverlay.new()
 	root.add_child(counter)
-	bench = BenchmarkRun.new()
-	root.add_child(bench)
-	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region(), bench.occupied_region()]
+	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region()]
 	_busy_top()
 	await _settle()
 	var base_feed: float = hud.frag_feed.position.y
 	var base_center: float = hud.mode_chip_label.position.y
 	var base_corner: float = hud.get_node("Panel").position.y
-	_check(counter.occupied_region() == Rect2() and bench.occupied_region() == Rect2(), "off counter and idle benchmark reserve nothing")
+	_check(counter.occupied_region() == Rect2(), "an off counter reserves nothing")
 	var view: Rect2 = hud.get_viewport().get_visible_rect()
 	counter.set_mode(PerformanceOverlay.DETAIL)
 	# The readout before its first refresh is empty; the region already holds the widest text.
@@ -127,27 +137,48 @@ func _test_real_top_layers() -> void:
 	_check(hud.frag_feed.position.y >= region.end.y, "frag feed starts below the counter")
 	_check(not hud.frag_feed.get_global_rect().intersects(drawn), "frag rows never sit under the counter")
 	_check(is_equal_approx(hud.mode_chip_label.position.y, base_center) and is_equal_approx(hud.get_node("Panel").position.y, base_corner), "counter does not move columns it does not cross")
-	bench.set_process(false)
-	bench.begin()
-	bench.set_process(false)
-	await _settle()
-	var banner: Rect2 = bench.occupied_region()
-	_check(banner.has_area() and not bench.get("_banner").text.is_empty(), "a running benchmark reserves its banner")
-	var center: Rect2 = HudRegions.text_bounds(hud.mode_chip_label)
-	_check(center.has_area() and not center.intersects(banner), "center facts sit below the benchmark banner: %s vs %s" % [center, banner])
-	_check(not hud.frag_feed.get_global_rect().intersects(banner), "frag feed clears the banner")
-	# Dynamic change: retire both layers and the columns return.
+	# Dynamic change: retire the layer and the columns return. (A benchmark
+	# hides the match HUD outright, and its own HUD clears the counter; see
+	# test_benchmark.gd.)
 	counter.set_mode(PerformanceOverlay.OFF)
-	# Run the measurement to its end through the public clock: the banner clears.
-	bench.advance(BenchmarkRun.PRIME_SECONDS + 0.1)
-	bench.advance(BenchmarkRun.SCORE_SECONDS + 0.1)
-	_check(bench.phase == "done" and bench.occupied_region() == Rect2(), "a finished benchmark releases its reservation")
 	await _settle()
-	_check(is_equal_approx(hud.frag_feed.position.y, base_feed) and is_equal_approx(hud.mode_chip_label.position.y, base_center), "columns return when the layers turn off")
-	# The match manager owns these layers; once one is gone it is not queried.
-	hud.top_region_query = func() -> Array[Rect2]: return [counter.occupied_region()]
-	bench.queue_free()
-	await process_frame
+	_check(is_equal_approx(hud.frag_feed.position.y, base_feed) and is_equal_approx(hud.mode_chip_label.position.y, base_center), "columns return when the layer turns off")
+
+## A watched match's nameplate never draws under a HUD plate: the FOLLOWING
+## context plate (seen in tour_combat_follow on 2026-10-24) and the frag feed
+## rows are blockers, and a plate touching one yields while a clear one stays.
+func _test_nameplate_blockers() -> void:
+	_busy_top()
+	hud.weapon_label.text = "FOLLOWING: AUNT LINDA [BAL]\nRIFLE"
+	hud.weapon_label.show()
+	hud.map_chip_label.text = "LARAK LOT"
+	hud.map_chip_label.show()
+	hud.round_message.hide()
+	await _settle()
+	hud.regions.fit_backings()
+	var plate: Panel = hud.regions.backings["context"]
+	_check(plate.visible, "the context plate backs the FOLLOWING facts")
+	var blockers: Array[Rect2] = hud.regions.world_label_blockers()
+	var context: Rect2 = plate.get_global_rect()
+	_check(blockers.any(func(rect: Rect2) -> bool: return rect.encloses(context)), "the context plate blocks world labels: " + str(context))
+	_check(hud.frag_feed.get_child_count() > 0, "the busy top band has frag rows")
+	for row: Node in hud.frag_feed.get_children():
+		var row_rect: Rect2 = (row as Control).get_global_rect()
+		_check(blockers.any(func(rect: Rect2) -> bool: return rect.encloses(row_rect)), "frag feed rows block world labels")
+	var plates: Array[Dictionary] = [
+		{"id": "under", "rect": Rect2(context.position + Vector2(16.0, -12.0), Vector2(320.0, 24.0)), "priority": 1, "distance": 6.0},
+		{"id": "clear", "rect": Rect2(560.0, 400.0, 180.0, 24.0), "priority": 2, "distance": 12.0},
+	]
+	_check(NameplateLayout.choose(plates, blockers) == ["clear"], "a nameplate under a HUD plate hides and a clear one stays")
+	hud.objective_call.push("COMPLIANCE-DRONE ON DECK.")
+	hud.objective_call._process(0.0)
+	await _settle()
+	var call_rect: Rect2 = hud.objective_call.occupied_region()
+	_check(call_rect.has_area() and hud.regions.world_label_blockers().any(func(rect: Rect2) -> bool: return rect.encloses(call_rect)), "the centre call blocks world labels: " + str(call_rect))
+	hud.objective_call.clear()
+	hud.weapon_label.text = ""
+	hud.map_chip_label.text = ""
+	await _settle()
 
 func _test_scaled_columns() -> void:
 	for spec: Array in [[1.5, FragrSettings.TEXT_LARGE], [1.5, FragrSettings.TEXT_STANDARD], [1.0, FragrSettings.TEXT_LARGE], [0.75, FragrSettings.TEXT_STANDARD]]:

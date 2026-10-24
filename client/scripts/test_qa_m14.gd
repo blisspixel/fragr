@@ -39,7 +39,7 @@ func _initialize() -> void:
 				arrived = true
 				break
 			var yaw: float = atan2(goal[2]-body.z,goal[0]-body.x)
-			body = MoveStep.live_step(body,MoveStep.make_input(true,false,false,false,yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,world)
+			body = MoveStep.live_step(body,MoveStep.make_input(true,false,false,false,yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,world)
 		_check(arrived,"shared movement clears native lander circuit toward "+str(goal))
 	var valid: Dictionary = {"expect_m14_completed":["arrival","depot_secured"],"expect_m14_support_stage":0,"expect_m14_first_cycle_complete":false,"expect_m14_machine_fallen":false,"expect_m14_jeep_id":1,"expect_m14_depot_secured":true,"expect_m14_walker_disabled":false,"expect_m14_jeep_preserved":true,"expect_m14_on_foot":true}
 	_check(script.valid_walks([valid]),"registered launch receipts are accepted by the actual tour boundary")

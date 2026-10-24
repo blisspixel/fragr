@@ -1,6 +1,8 @@
 extends SceneTree
 
 const RUN_ID: String = "40000000-0000-4000-8000-000000000009"
+## The only run-file version the server reads or writes.
+const RUN_FILE_VERSION: int = RunFixture.VERSION
 var failures: int = 0
 var run_directory: String = ""
 var settings_path: String = ""
@@ -49,6 +51,11 @@ func _playing() -> bool:
 	return current_scene != null and current_scene.has_method("change_role") \
 		and current_scene.mission_hud.state.get("phase") == "in_progress" and not current_scene.controls_blocked()
 
+func _only_live_run() -> bool:
+	var names: Array = Array(DirAccess.get_files_at(run_directory))
+	names.sort()
+	return names == ["run.json", "run.lock"]
+
 func _gear() -> Dictionary:
 	return current_scene.net_client.equipment if current_scene != null and current_scene.has_method("change_role") else {}
 
@@ -60,14 +67,17 @@ func _run() -> void:
 	var hash: Array[int] = []
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m08_custodian_of_record.json").hex_decode():
 		hash.append(byte)
-	_check(hash.size() == 32, "strict historical completion binds actual archive bytes")
-	var fixture: Dictionary = {"version": 9, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 1,
-		"body": "synthetic", "rules": {"difficulty": "standard", "revision": 3}, "content_sha256": hash,
+	_check(hash.size() == 32, "completed archive binds actual archive bytes")
+	var custody: Dictionary = {"custody_released": true, "recovered_mind_secured": false, "captives_evacuated": false}
+	var fixture: Dictionary = {"version": RUN_FILE_VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 1,
+		"body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]}, "m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers": ["splice"]}, "m06_outcome": {"prisoner_route_marked": true},
+		"m08_outcome": custody,
 		"step": {"kind": "awaiting_mission", "completed_mission": "custodian_of_record", "next_mission": "passenger_manifest",
 			"exit": {"hp": 39, "armor": 17, "equipment": {"selected": "sniper", "weapons": ["fists", "flechette", "scatter", "sniper"],
-				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}], "grenades": 2, "proximity_mines": 3, "personal_claims": ["cold_cabinet"]}}}}
+				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 2, "proximity_mines": 3, "remote_mines": 0, "personal_claims": ["cold_cabinet"]}}}}
 	var source: String = JSON.stringify(fixture) + "\n  \n"
 	var file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
 	_check(file != null, "isolated source is writable")
@@ -85,7 +95,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "actual preview reads M08 completion"):
 		return
 	_check(owned.run_preview.get("mission") == MissionState.M09_ID, "preview names supported M09")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact v9 bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("PassengerManifestSaved") as Button
 	_check(resume != null and not resume.disabled, "real saved-run berth button")
 	if resume == null:
@@ -106,7 +116,7 @@ func _run() -> void:
 		return
 	_check(_gear()["selected"] == "sniper" and EquipmentState.ammo(_gear(), "cells") == 1 and _gear()["grenades"] == 2 and _gear()["proximity_mines"] == 3, "finite counts and selected weapon carry without refill")
 	_check(_gear()["personal_claims"].is_empty() and game.net_client.accepted_body == "synthetic", "old claims clear while saved body persists")
-	_check(game.mission_hud.state["m09"]["carried_archive"] == {"kind": "historical_unrecorded"} and game.m09_berth._crew.size() == 5, "unknown archive choices and actual conditional cast remain honest")
+	_check(game.mission_hud.state["m09"]["carried_archive"] == custody and game.m09_berth._crew.size() == 5, "carried custody choices and actual conditional cast arrive")
 	_check(game.mission_hud.state["run"]["continues"] == 1, "no Episode II refill")
 	if not await _until(func() -> bool: return game._has_local_input_target() and game.place_armed, "actual pawn input is armed after the story release frame"):
 		return
@@ -122,28 +132,20 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 22 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
+	_check(saved is Dictionary and saved["version"] == RUN_FILE_VERSION and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
-	_check(saved is Dictionary and saved["m08_outcome"] == {"kind": "historical_unrecorded"}, "unknown history persists on disk")
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "migration archive is exact historical source")
-	# Reopen a strict v11 M09 entry through the actual saved-run process path.
+	_check(saved is Dictionary and saved["m08_outcome"] == custody, "carried custody persists on disk")
+	_check(_only_live_run(), "promotion replaces the run without leaving copies")
+	# Reopen the promoted M09 entry through the actual saved-run process path.
 	# Its absent crew outcome is an unfinished mission, never a guessed rescue.
-	# Version 16 carries an empty Rockets pool. Strict v11 bytes do not, and
-	# migration inserts that pool once.
 	if not saved is Dictionary:
 		quit(1)
 		return
 	# Preserve native integer literals: parsing and stringifying them here
 	# would turn strict integer fields into floating-point JSON numbers.
-	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
-	_check(native_source.count('"version":22,') == 1 and native_source.count('"revision":4}') == 1 and native_source.count(',{"pool":"rockets","rounds":0}') == 1, "native current version and rules markers are unique")
-	var retry_source: String = native_source.replace('"version":22,', '"version":11,').replace('"revision":4}', '"revision":3}').replace(',{"pool":"rockets","rounds":0}', "") + "\n \n"
+	var retry_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
 	file = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
-	_check(file != null, "owned historical M09 retry fixture is writable after child exit")
+	_check(file != null, "owned M09 retry fixture is writable after child exit")
 	if file == null:
 		quit(1)
 		return
@@ -154,10 +156,10 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	current_scene._show("single")
-	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready" and owned.run_preview.get("mission") == MissionState.M09_ID, "actual preview recognizes strict v11 M09 entry"):
+	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready" and owned.run_preview.get("mission") == MissionState.M09_ID, "actual preview recognizes the saved M09 entry"):
 		print("test_m09_local: retry preview ", owned.run_preview, " owned state ", owned.state)
 		return
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == retry_source, "preview never rewrites v11 retry bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == retry_source, "preview never rewrites retry bytes")
 	resume = current_scene._root.get_node_or_null("PassengerManifestSaved") as Button
 	_check(resume != null and not resume.disabled, "real M09 retry button remains available")
 	if resume == null:
@@ -181,16 +183,9 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(retry_saved is Dictionary and retry_saved["version"] == 22 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
-	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "strict v11 real-process retry preserves every entry count")
-	archives.clear()
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	var exact_retry_archive: bool = false
-	for filename: String in archives:
-		exact_retry_archive = exact_retry_archive or FileAccess.get_file_as_string(run_directory.path_join(filename)) == retry_source
-	_check(archives.size() == 2 and exact_retry_archive, "actual process archives exact v11 bytes once")
+	_check(retry_saved is Dictionary and retry_saved["version"] == RUN_FILE_VERSION and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
+	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "real-process retry preserves every entry count")
+	_check(_only_live_run(), "retry leaves only the live run")
 	if failures == 0:
 		print("test_m09_local: PASS")
 	quit(0 if failures == 0 else 1)

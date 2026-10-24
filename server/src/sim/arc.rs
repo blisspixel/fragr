@@ -162,7 +162,8 @@ fn ordinary_cover_stops_arc_instead_of_chaining_or_penetrating() {
         "one ordinary ray uses the retained primary trace"
     );
     assert!(matches!(trace.impact, ShotImpact::Solid { .. }));
-    assert!((4.0..=4.3).contains(&trace.end[0]));
+    // An exact first shot meets the wall's face at x = 4 to within rounding.
+    assert!((3.999..=4.3).contains(&trace.end[0]), "{:?}", trace.end);
     assert_eq!(
         state
             .player_record(shooter)
@@ -272,12 +273,13 @@ fn shared_controller_uses_owned_arc_for_armored_nearby_targets_without_overridin
         (crate::protocol::EnemyKind::Assessor, 0, true),
     ] {
         state.players[1].armor = armor;
-        state.players[1].campaign = Some(crate::protocol::CampaignActor::Union {
+        state.players[1].campaign = Some(crate::protocol::CampaignActor::Hostile {
             kind,
             phase: crate::protocol::EnemyPhase::Moving,
             phase_started: 0,
             phase_ends: 100,
             seated: false,
+            control: Default::default(),
         });
         let intent = crate::inventory::control_action(
             shooter,

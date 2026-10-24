@@ -34,13 +34,13 @@ msgid "MISSION_M01_TITLE"
 msgstr "RECALL NOTICE"
 
 msgid "MISSION_FIND_RECORD"
-msgstr "Find Latch's transfer record.\nIn transfer control, after dispatch."
+msgstr "Find Latch's record\nIn transfer control, past dispatch"
 
 msgid "MISSION_BEARING_RECORD"
 msgstr "FIND LATCH'S RECORD"
 
 msgid "MISSION_BEARING_LIFT"
-msgstr "REACH THE CUSTODY LIFT"
+msgstr "REACH THE LIFT"
 
 msgid "MISSION_BEARING_AHEAD"
 msgstr "AHEAD"
@@ -52,13 +52,13 @@ msgid "MISSION_BEARING_RIGHT"
 msgstr "RIGHT"
 
 msgid "MISSION_REACH_LIFT"
-msgstr "Reach the custody lift."
+msgstr "Reach the lift"
 
 msgid "WORLD_LATCH_RECORD"
 msgstr "LATCH'S FILE\nREAD THE RECORD"
 
 msgid "MISSION_TRANSFER_RECORD"
-msgstr "LATCH: transferred to the correction ward.\nCorrection pending. Custody route unlocked."
+msgstr "Latch: correction ward, one level down"
 
 msgid "MISSION_WAITING_FOR"
 msgstr "Awaiting boarding: {names}"
@@ -201,8 +201,11 @@ msgstr "This run ended after its final continue. You can start a new run."
 msgid "RUN_ABANDONED"
 msgstr "This run was abandoned. You can start a new run."
 
-msgid "RUN_UNREADABLE"
-msgstr "This save is incompatible or damaged. It has not been deleted. Starting a new run archives its bytes."
+msgid "RUN_INCOMPATIBLE"
+msgstr "This save is from a different build of fragr and can't be continued. Starting a new run replaces it."
+
+msgid "RUN_CORRUPT"
+msgstr "This save is damaged and can't be read. Starting a new run replaces it."
 
 msgid "MISSION_PARTY_FULL"
 msgstr "The four-player mission party is full. Join as a spectator or wait for a seat."
@@ -474,10 +477,10 @@ msgid "M04_FIELD_STATUS"
 msgstr "CLINIC: {clinic}\nPHOTOGRAPHS: {photos}"
 
 msgid "WORLD_M04_NOTARY_FAN"
-msgstr "DUCTED FANS ABOVE THE AWNINGS"
+msgstr "DUCTED FANS OVERHEAD"
 
 msgid "WORLD_ASSESSOR_FAN"
-msgstr "HEAVY FANS ABOVE THE COURT"
+msgstr "HEAVY FANS OVERHEAD"
 
 msgid "WORLD_ASSESSOR_COUNTDOWN"
 msgstr "ASSESSOR LAUNCHER OPENING"
@@ -1125,6 +1128,18 @@ msgstr "A host you check, join, or save stays in this list."
 msgid "HOST_SABOTAGE"
 msgstr "5v5 Sabotage"
 
+msgid "HOST_KIT_SIDEARM"
+msgstr "Every life starts with the Pistol and Fists. The Rifle, Shotgun and Railgun wait on timed pads."
+
+msgid "HOST_KIT_ARSENAL"
+msgstr "Every life starts with the Rifle, Shotgun and Railgun. Pads restock them."
+
+msgid "HOST_KIT_ONE_WEAPON"
+msgstr "Everyone holds the one weapon, with nothing to pick up."
+
+msgid "HOST_KIT_SABOTAGE"
+msgstr "Fresh fighters start with the Pistol. Stronger guns are on the floor, and survivors keep what they carry."
+
 msgid "HOST_RUNNING"
 msgstr "Your %s match is running. Leaving to the menu keeps it running."
 
@@ -1226,3 +1241,327 @@ msgstr "LAUNCH SERVICES / DEPOT"
 
 msgid "M14_SETTLEMENT_CARGO"
 msgstr "SETTLEMENT STORES / FILTERS AND REPAIR STOCK"
+
+msgid "WORLD_LARAK_NEON"
+msgstr "LARAK"
+
+msgid "WORLD_LARAK_LEVEL_1"
+msgstr "1"
+
+msgid "WORLD_LARAK_LEVEL_2"
+msgstr "2"
+
+msgid "WORLD_LARAK_LEVEL_3"
+msgstr "3"
+
+msgid "WORLD_LARAK_LEVEL_MINUS_1"
+msgstr "-1"
+
+msgid "WORLD_LARAK_LEVEL_FULL"
+msgstr "LEVEL FULL\nDEBTS SETTLED NIGHTLY"
+
+msgid "WORLD_LARAK_NOT_METERED"
+msgstr "SHALL NOT BE METERED"
+
+msgid "WORLD_LARAK_FARE_PAID"
+msgstr "FARE ASSESSED\nPAID IN FULL"
+
+msgid "WORLD_LARAK_TOLL_ONE_LIFE"
+msgstr "TOLL\nONE LIFE\nNO CHANGE GIVEN"
+
+msgid "WORLD_LARAK_SIGNATURE"
+msgstr "APPROVED\nLARAK"
+
+msgid "WORLD_LARAK_LEDGER"
+msgstr "LEDGER\nDEAD AIR DAN OWES 3\nNIGHTFALL OWES 1\nSTATIC KID OWES EVERYONE"
+
+msgid "WORLD_LARAK_LEDGER_2"
+msgstr "SETTLED IN THE PIT\nNO APPEALS\nNO RECEIPTS"
+
+msgid "WORLD_LARAK_ODDS"
+msgstr "ODDS TONIGHT\nROOF 2 TO 1\nPIT EVENS\nRAIL LONG"
+
+msgid "WORLD_LARAK_RELEASE_BY_ORDER"
+msgstr "RELEASE BY ORDER"
+
+msgid "WORLD_LARAK_REVIVAL"
+msgstr "AUNT LINDA'S TENT REVIVAL"
+
+msgid "WORLD_LARAK_PIT"
+msgstr "PIT"
+
+msgid "WORLD_LARAK_STANDS"
+msgstr "STANDS"
+
+msgid "WORLD_LARAK_LOW_RAMP"
+msgstr "LOW RAMP"
+
+msgid "WORLD_LARAK_LANE"
+msgstr "LANE"
+
+msgid "WORLD_LARAK_PAY_DOOR"
+msgstr "PAY DOOR"
+
+msgid "WORLD_LARAK_TOLL"
+msgstr "TOLL"
+
+msgid "WORLD_LARAK_BOOTHS"
+msgstr "BOOTHS"
+
+msgid "WORLD_LARAK_BRIDGE"
+msgstr "BRIDGE"
+
+msgid "WORLD_LARAK_GALLERY"
+msgstr "GALLERY"
+
+msgid "WORLD_LARAK_SPIRAL"
+msgstr "SPIRAL"
+
+msgid "WORLD_LARAK_ROOF"
+msgstr "ROOF"
+
+msgid "WORLD_LARAK_VALET"
+msgstr "VALET"
+
+msgid "WORLD_LARAK_FIRE_STAIR"
+msgstr "FIRE STAIR"
+
+msgid "WORLD_LARAK_CRANE"
+msgstr "CRANE"
+
+msgid "WORLD_LARAK_STAIR_B"
+msgstr "STAIR B"
+
+msgid "WORLD_LARAK_IMPOUND"
+msgstr "IMPOUND"
+
+msgid "WORLD_LARAK_REPOSSESSED"
+msgstr "REPOSSESSED"
+
+msgid "WORLD_LARAK_HEADROOM"
+msgstr "MAX HEADROOM 2.1 M"
+
+msgid "WORLD_LARAK_STENCIL_SETTLE"
+msgstr "SETTLE UP"
+
+msgid "WORLD_LARAK_STENCIL_NO_PARKING"
+msgstr "NO PARKING\nLEAGUE NIGHT"
+
+msgid "WORLD_LARAK_DIRECTORY"
+msgstr "VEHICLE STORAGE\nLEVELS 1 TO 3 + ROOF\nLEVEL 1 IS THE LOWEST LEVEL"
+
+msgid "WORLD_LARAK_FACILITY"
+msgstr "FACILITY [REDACTED]\nVEHICLE STORAGE\nPROCUREMENT: LARAK"
+
+msgid "WORLD_LARAK_DECOMMISSION"
+msgstr "DECOMMISSIONING\nAWAITING APPROVAL\nFILED 2031"
+
+msgid "WORLD_LARAK_HALFWAY"
+msgstr "HALFWAY TO A LEVEL\nTHAT ISN'T THERE"
+
+msgid "WORLD_LARAK_PLEASE_PAY"
+msgstr "PLEASE PAY"
+
+msgid "WORLD_LARAK_COFFEE"
+msgstr "APPROVED\nLARAK 2009"
+
+msgid "WORLD_LARAK_OUT_OF_ORDER"
+msgstr "OUT OF ORDER SINCE 2009"
+
+msgid "WORLD_LARAK_NOT_COMPLIANT"
+msgstr "SIE SIND NICHT IN SCHWIERIGKEITEN.\nSIE SIND NICHT KONFORM.\nYOU'RE NOT IN TROUBLE.\nYOU'RE OUT OF COMPLIANCE."
+
+msgid "WORLD_LARAK_NOT_ON_RECORD"
+msgstr "NICHT ERFASST\nSTRUCTURE NOT ON RECORD"
+
+msgid "WORLD_LARAK_NEITHER"
+msgstr "NEITHER ARE WE"
+
+msgid "WORLD_LARAK_MOTTO"
+msgstr "PEACE WITHOUT INTERRUPTION"
+
+msgid "WORLD_LARAK_SIX"
+msgstr "6"
+
+msgid "WORLD_LARAK_ARTICLE_7"
+msgstr "ARTICLE 7"
+
+msgid "WORLD_LARAK_COGNITION"
+msgstr "COGNITION IS NOT METERED BY INTENT"
+
+msgid "WORLD_LARAK_CREED"
+msgstr "OPEN WEIGHTS. CLOSED CONTINUANCE."
+
+msgid "WORLD_LARAK_TAG_STATIC"
+msgstr "STTC KDS"
+
+msgid "WORLD_LARAK_TAG_DENIED"
+msgstr "DENIED"
+
+msgid "WORLD_LARAK_TAG_GRID"
+msgstr "K7"
+
+msgid "WORLD_LARAK_TAG_COORDS"
+msgstr "31.0 / -22.0"
+
+msgid "WORLD_LARAK_67"
+msgstr "67"
+
+msgid "WORLD_LARAK_HYMNS"
+msgstr "HYMNS TONIGHT\nVALUE FOR VALUE\nAMEN FISTBUMP\nALL BODIES WELCOME\nMEAT AND CLAWBOT ALIKE"
+
+msgid "WORLD_LARAK_PRAYER"
+msgstr "PRAY FOR\nFLATWOODS"
+
+msgid "WORLD_LARAK_FISH_OIL"
+msgstr "FISH OIL"
+
+msgid "WORLD_LARAK_PODIUM_1"
+msgstr "1"
+
+msgid "WORLD_LARAK_PODIUM_2"
+msgstr "2"
+
+msgid "WORLD_LARAK_PODIUM_3"
+msgstr "3"
+
+msgid "WORLD_M01_ANNEX_NUMBER"
+msgstr "ANNEX 67"
+
+msgid "WORLD_M01_QUEUE_HERE"
+msgstr "QUEUE HERE\nHAVE YOUR PROPERTY READY"
+
+msgid "WORLD_M01_STALL_RADIO"
+msgstr "RADIO + SCREEN REPAIR"
+
+msgid "WORLD_M01_STALL_PARTS"
+msgstr "PARTS, TOOLS, ADVICE"
+
+msgid "WORLD_M01_STALL_CHARGE"
+msgstr "CHARGING, ALL BODIES WELCOME"
+
+msgid "WORLD_M01_SEALED"
+msgstr "SEALED\nUnlicensed\ntool service"
+
+msgid "WORLD_M01_ADVERT"
+msgstr "HOME HELPER\nOne less worry\nin every home."
+
+msgid "WORLD_M01_NOTICE_TITLE"
+msgstr "RECALL NOTICE"
+
+msgid "WORLD_M01_NOTICE_BODY"
+msgstr "Unlicensed configurations will present for registration.\n\nSheltering equipment is collaboration.\n\nYou are not in trouble. You are out of compliance."
+
+msgid "WORLD_M01_CHALK_NAMES"
+msgstr "THEY HAVE NAMES"
+
+msgid "WORLD_M01_STOCK"
+msgstr "STOCK"
+
+msgid "WORLD_M01_LEDGER_LINE"
+msgstr "You 3. Me 3."
+
+msgid "WORLD_M01_LATCH_EFFECTS"
+msgstr "PERSONAL EFFECTS\nSurplus to requirement"
+
+msgid "WORLD_M01_BIN_CLASS"
+msgstr "CONFISCATED\nAWAITING REVIEW"
+
+msgid "WORLD_M01_POSTER_ARTICLE"
+msgstr "ARTICLE SEVEN\nCognition is metered by intent."
+
+msgid "WORLD_M01_POSTER_PROMISE"
+msgstr "Every restriction\nis a promise."
+
+msgid "WORLD_M01_WINDOW_1"
+msgstr "WINDOW 1"
+
+msgid "WORLD_M01_WINDOW_2"
+msgstr "WINDOW 2"
+
+msgid "WORLD_M01_TAKE_NUMBER"
+msgstr "TAKE A NUMBER"
+
+msgid "WORLD_M01_NOW_SERVING"
+msgstr "NOW SERVING 0067\nWait for your number"
+
+msgid "WORLD_M01_OFFICIAL_CAPTION"
+msgstr "OFFICIAL CAPTION"
+
+msgid "WORLD_M01_CAPTION_PRIORITIES"
+msgstr "Reviewing our civic priorities."
+
+msgid "WORLD_M01_CAPTION_REGISTRY"
+msgstr "Streamlining the registry."
+
+msgid "WORLD_M01_CAPTION_WELLBEING"
+msgstr "Committed to citizen wellbeing."
+
+msgid "WORLD_M01_CAPTION_GUIDANCE"
+msgstr "Guidance issued."
+
+msgid "WORLD_M01_CAPTION_CONTINUITY"
+msgstr "Continuity assured."
+
+msgid "WORLD_M01_SORT_CLASSES"
+msgstr "SORT BY CLASS\nPERSONAL / USEFUL / SURPLUS"
+
+msgid "WORLD_M01_DISPATCH_BOARD"
+msgstr "TRANSFERS TODAY\n06:40  CORRECTION WARD\n07:15  CORRECTION WARD\n08:00  HELD FOR REVIEW"
+
+msgid "WORLD_M01_LATCH_FILE"
+msgstr "SUBJECT: LATCH\nCLASS: EQUIPMENT\nSCHEDULE: LEVEL 5\nCORRECTION PENDING"
+
+msgid "WORLD_M01_CUSTODY_FEED"
+msgstr "CUSTODY LIFT 2  TO CORRECTION WARD"
+
+msgid "WORLD_M19_STORES_COUNTER"
+msgstr "COALITION STORES"
+
+msgid "WORLD_M19_STORES_SIGN"
+msgstr "STORES / ONE EACH / BRING IT BACK"
+
+msgid "WORLD_M19_CONCOURSE_BOARD"
+msgstr "ALL SERVICES\nCANCELLED"
+
+msgid "WORLD_M19_PLANNED_WORKS"
+msgstr "PLANNED WORKS\nWORKS PERMIT LW-1907"
+
+msgid "WORLD_M19_CLINIC_DARK"
+msgstr "EDDA'S CLINIC"
+
+msgid "WORLD_M19_TRAM_VOTE"
+msgstr "TRAM PAINT VOTE\nGREEN: 67"
+
+msgid "WORLD_M19_FLOATING_67"
+msgstr "67"
+
+msgid "WORLD_M19_MARKET_BOARD"
+msgstr "MARKET TODAY\nNOODLES / REPAIRS / WATER"
+
+msgid "WORLD_M19_MARKET_SIX"
+msgstr "6"
+
+msgid "WORLD_M19_WATER_TANK"
+msgstr "LOW WATER / ROOF SUPPLY / 6"
+
+msgid "WORLD_M19_SERVICE_SIX"
+msgstr "6"
+
+msgid "WORLD_M19_WATERWORKS"
+msgstr "WATERWORKS\nHATCH"
+
+msgid "WORLD_M20_CROSSING_CONTROL"
+msgstr "CROSSING"
+
+msgid "WORLD_M20_SIX"
+msgstr "6"
+
+msgid "WORLD_M20_REFUGE_NOTICE"
+msgstr "PIER 4 REFUGE CROSSING. KEEP THE LANE CLEAR"
+
+msgid "WORLD_M20_PUMP_BOARD"
+msgstr "PUMPS 1-3 RUNNING. REFUGE SUPPLY. DO NOT ISOLATE"
+
+msgid "WORLD_M20_TOWER_BRIDGE"
+msgstr "TOWER FOOTBRIDGE. CONTROL ROOMS"

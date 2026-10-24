@@ -48,7 +48,14 @@ func _run() -> void:
 	var legacy: ArenaBackdrop = ArenaBackdrop.new()
 	root.add_child(legacy)
 	legacy.build(1, 40.0)
-	_check(legacy.find_children("*", "Label3D", true, false).size() == 4, "arcade retains its signs")
+	var signs: Array[Node] = legacy.find_children("*", "Label3D", true, false)
+	_check(signs.size() == 5, "arcade retains its signs and its Article Seven slogan")
+	for sign: Node in signs:
+		var words: String = (sign as Label3D).text
+		# Radio is background flavour, never the venue's name (#437 visual QA).
+		_check(not words.contains("FREQUENCY") and not words.contains("STATION"), "venue signage stays off radio vocabulary: " + words)
+		_check((sign as Label3D).font == ArenaBackdrop.FONT, "venue signage uses the pixel face: " + words)
+	_check(signs.any(func(sign: Node) -> bool: return (sign as Label3D).text.contains("67")), "the 67 ritual mark remains on the venue wall")
 	legacy.free()
 	if not _failed:
 		print("test_town_backdrop: PASS")

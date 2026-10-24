@@ -5,7 +5,7 @@ The canonical list of modes. The roadmap sequences them, the plans build them, t
 **Implementation status, 2026-10-08:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
 launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
-flag plays on Arena Duel, Directive 17 and Sector 9
+flag plays on Directive 17 and Sector 9
 ([plan](plans/capture-the-flag.md)); a human match remains open. Sabotage plays
 on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
 Holdfast Atoll has a five-site vehicle Conquest prototype. Current local
@@ -102,20 +102,22 @@ a duel into free-for-all. This is the smallest competitive balance test.
 
 ### Scrap
 
-Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against.
+Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against. A clock that runs out level after somebody has scored goes to sudden death: the clock stops and the next score wins.
 
 Weapons, armour and the good health spawn on predictable clocks, so knowing where the rail comes back and getting there first is most of the skill. That is the oldest loop in the genre and it still works.
 
+Implemented for wave 2 (2026-10-23), not yet shipped: a free-for-all life starts with the Pistol and Fists. The Rifle, Shotgun and Railgun are owned only after their pad is taken, on 15 and 25 second clocks, with health and armour on 25. Every built map lays extra free-for-all gun pads so each spawn is a fair walk from one. Death loses what you found, the death card says what, and you are back four seconds later. A host can restore the old armed start with the Full Arsenal mutator.
+
 ### Team deathmatch (built)
 
-Scrap in two sides: the Union in black and red against the free coalition in bone, leather and ember. Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
+Scrap in two sides: the Union in its issued black and red against the free coalition in personal colours under a warm amber team accent ([readability contract](ART_STORY_BIBLE.md#faction-readability-contract)). Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
 
 ### Capture the flag (three built layouts)
 
 Two flags, one per side on a stand in its back third. Take theirs home while
 yours is home. A dropped friendly flag returns when an owner-side fighter
 touches it or after 20 seconds. The carrier can shoot. Captures decide the
-match, not frags. Arena Duel, Directive 17 and Sector 9 have registered stands
+match, not frags. Directive 17 and Sector 9 have registered stands
 and tested routes. Other arenas still need two-side route review. Human match
 acceptance remains open. Evidence lives in [the CTF plan](plans/capture-the-flag.md).
 
@@ -140,7 +142,7 @@ movement, release or damage restarts either. A planted charge runs 35 seconds
 and its clock replaces the round's. Survivors carry their weapons and armour
 into the next round; generic Sabotage's fallen start empty and leave their best gun on the
 floor. Sides change uniform at half: halves of four, first to five, or halves
-of eight, first to nine, with extra time when level. Rule bots stage, push,
+of eight, first to nine, with extra time when level (the short format then plays one sudden death round, never a draw). Rule bots stage, push,
 plant, anchor, rotate, retake and defuse, and agents read the same objective
 through MCP. Evidence and the rules as built are in
 [the Sabotage plan](plans/sabotage-mode.md); the design is in
@@ -352,8 +354,9 @@ Mutators are host settings from the start, not unlocks. Built (2026-09-25): Lice
 ## Equipment follows the venue and profile
 
 Discovery venues start with fists and make finding a gun part of their opening.
-Legacy full-arsenal maps and weapon-only mutators retain their existing host
-starts. Optional 5v5 Sabotage starts fresh fighters with the basic Pistol and
+Free-for-all starts every life with the Pistol and Fists; stronger guns are
+found on the floor. Team modes, Golden Rail, the Full Arsenal mutator and
+weapon-only mutators retain their existing host starts. Optional 5v5 Sabotage starts fresh fighters with the basic Pistol and
 fifty Bullets; stronger weapons are contested on the map, survivors keep their
 carry and reconnects do not refill it.
 

@@ -67,7 +67,7 @@ Stranger smiles in 60s playing or watching, or not done.
 1. In the morning. Calibration night. Continuance brought NODS. You're on the air.
 2. Null-Objective Drones don't trash-talk. That's how you know they're approved.
 3. Jammer's up. Seize the dish or I go text-only. Value for value.
-4. Amen, fistbump. Frequency still unmetered. Don't touch that dial.
+4. Amen, fistbump. Still unmetered.
 
 **Fail:** Continuance compliance splash: "Citizen Handle assigned." Reload.
 

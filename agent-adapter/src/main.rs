@@ -1,4 +1,5 @@
 mod mcp;
+mod pads;
 
 use clap::{Parser, Subcommand};
 use fragr_server::protocol::{self as protocol, ClientMessage, Role, ServerMessage};
@@ -764,7 +765,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, m19, m20, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -784,8 +785,11 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m15(m15.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m19(m19.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
+                            // The last stage binds its own pier geometry and clock.
+                            mission_client.replace_map_with_m20(m20.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
                             navigation = Some(tokio::task::spawn_blocking(move || {
                                 fragr_server::navigation::Navigation::shared(arena)
@@ -1171,25 +1175,32 @@ mod tests {
         assert_eq!(frag_json["victim"], "Bot2");
         assert_eq!(frag_json["killer_score"], 5);
 
-        let ks = protocol::GameEvent::Killstreak {
-            player: "Bot1".to_string(),
-            player_id: uuid::Uuid::nil(),
-            streak: 2,
-            tier: "double".to_string(),
-            message: "HOST: DOUBLE FREQUENCY. Bot1 DENIES THE DENIAL.".to_string(),
-        };
-        let ks_json = serde_json::to_value(&ks).unwrap();
-        assert_eq!(ks_json["event"], "killstreak");
-        assert_eq!(ks_json["streak"], 2);
-        assert_eq!(ks_json["tier"], "double");
-        let ks_back: protocol::GameEvent = serde_json::from_value(ks_json).unwrap();
-        match ks_back {
-            protocol::GameEvent::Killstreak { streak, tier, .. } => {
-                assert_eq!(streak, 2);
-                assert_eq!(tier, "double");
+        // Multikills and sprees reach an agent as keyed Host reactions.
+        let triple = serde_json::json!({
+            "type": "event",
+            "event": "host_reaction",
+            "kind": "triple_frag",
+            "variant": 0,
+            "player": "Bot1",
+            "other": "Bot2",
+            "big": true
+        });
+        let triple: protocol::ServerMessage = serde_json::from_value(triple).unwrap();
+        match triple {
+            protocol::ServerMessage::Event(protocol::GameEvent::HostReaction {
+                kind,
+                player,
+                big,
+                ..
+            }) => {
+                assert_eq!(kind, protocol::HostReactionKind::TripleFrag);
+                assert_eq!(player.as_deref(), Some("Bot1"));
+                assert!(big);
             }
-            other => panic!("expected Killstreak, got {:?}", other),
+            other => panic!("expected a host reaction, got {:?}", other),
         }
+        let retired = serde_json::json!({"type": "event", "event": "killstreak", "player": "Bot1"});
+        assert!(serde_json::from_value::<protocol::ServerMessage>(retired).is_err());
 
         let respawn_event = protocol::GameEvent::Respawn {
             player: "Bot2".to_string(),
@@ -1400,6 +1411,61 @@ mod tests {
     }
 
     #[test]
+    fn a_joined_agent_observes_only_the_pads_it_has_seen() {
+        use fragr_server::sim::GameState;
+        let mut game = GameState::new();
+        game.start_round();
+        let me = uuid::Uuid::from_u128(77);
+        game.add_player(me, "Agent".into(), protocol::Role::Agent);
+        // Face away from pad 0 from well out of underfoot reach.
+        let (x, floor, z) = (game.pickups[0].x, game.pickups[0].floor, game.pickups[0].z);
+        let player = game.players.iter_mut().find(|p| p.id == me).unwrap();
+        player.x = x - 10.0;
+        player.z = z;
+        player.y = floor + fragr_server::sim::PLAYER_FLOOR_Y;
+        player.yaw = std::f32::consts::PI;
+        game.pickups[0].available = false;
+        game.pickups[0].respawn_timer = Some(30);
+        let mut joined = mcp::ToolState::default();
+        let welcome = serde_json::json!({"type":"welcome", "role":"agent", "player_id": me});
+        mcp::ingest_server_text(&mut joined, &welcome.to_string()).unwrap();
+        mcp::ingest_server_text(&mut joined, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&joined);
+        let pad = &observation["pickups"][0];
+        assert_eq!(
+            pad["available"], true,
+            "taken behind its back: still believed up"
+        );
+        assert_eq!(pad["in_view"], false);
+        assert!(
+            pad.get("respawn_in").is_none(),
+            "no live timer for a fighter"
+        );
+
+        // Turned around, it sees the empty pad.
+        game.players.iter_mut().find(|p| p.id == me).unwrap().yaw = 0.0;
+        game.tick += 1;
+        mcp::ingest_server_text(&mut joined, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&joined);
+        assert_eq!(observation["pickups"][0]["available"], false);
+        assert_eq!(observation["pickups"][0]["in_view"], true);
+
+        // A booth that never joined keeps the live view and the timer.
+        let mut booth = mcp::ToolState::default();
+        let welcome = serde_json::json!({"type":"welcome", "role":"spectator", "player_id": null});
+        mcp::ingest_server_text(&mut booth, &welcome.to_string()).unwrap();
+        mcp::ingest_server_text(&mut booth, &snapshot_text(&game)).unwrap();
+        let observation = mcp::build_observe_result(&booth);
+        assert_eq!(observation["pickups"][0]["available"], false);
+        assert_eq!(observation["pickups"][0]["respawn_in"], 30);
+        assert!(observation["pickups"][0].get("in_view").is_none());
+    }
+
+    fn snapshot_text(game: &fragr_server::sim::GameState) -> String {
+        serde_json::to_string(&protocol::ServerMessage::Snapshot(game.snapshot())).unwrap()
+    }
+
+    #[test]
     fn test_welcome_message_parsing() {
         let welcome_msg = r#"{"type":"welcome","player_id":"550e8400-e29b-41d4-a716-446655440000","role":"agent"}"#;
         let parsed: Result<protocol::ServerMessage, _> = serde_json::from_str(welcome_msg);
@@ -1539,12 +1605,13 @@ mod tests {
     #[test]
     fn scripted_control_breaks_a_repair_channel_before_a_nearer_hostile() {
         let union = |phase| {
-            Some(protocol::CampaignActor::Union {
+            Some(protocol::CampaignActor::Hostile {
                 kind: protocol::EnemyKind::Auditor,
                 phase,
                 phase_started: 0,
                 phase_ends: 44,
                 seated: false,
+                control: Default::default(),
             })
         };
         let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
@@ -1578,12 +1645,13 @@ mod tests {
         let near = fighter(
             2,
             3.0,
-            Some(protocol::CampaignActor::Union {
+            Some(protocol::CampaignActor::Hostile {
                 kind: protocol::EnemyKind::Sweeper,
                 phase: protocol::EnemyPhase::Windup,
                 phase_started: 0,
                 phase_ends: 14,
                 seated: false,
+                control: Default::default(),
             }),
         );
         let channeling = fighter(3, 12.0, union(protocol::EnemyPhase::Channeling));
@@ -1645,6 +1713,7 @@ mod tests {
             }],
             round_state: Some("Active".to_string()),
             round_time_left: Some(120),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -1655,6 +1724,9 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1702,6 +1774,7 @@ mod tests {
             players: vec![],
             round_state: Some("Active".into()),
             round_time_left: Some(30),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -1712,6 +1785,9 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1744,7 +1820,7 @@ mod tests {
 
         // Legacy observe Snapshot without host_line still parses.
         let legacy: protocol::Snapshot = serde_json::from_str(
-            r#"{"tick":1,"players":[],"mode_name":"Contested Frequency","playlist":"Arena Duel"}"#,
+            r#"{"tick":1,"players":[],"mode_name":"Scrap League","playlist":"Arena Duel"}"#,
         )
         .expect("legacy");
         assert_eq!(legacy.host_line, protocol::default_host_line());
@@ -1819,6 +1895,7 @@ mod tests {
             ],
             round_state: Some("Active".to_string()),
             round_time_left: Some(90),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -1829,6 +1906,9 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -2189,6 +2269,7 @@ mod tests {
             ],
             round_state: Some("Active".into()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -2199,6 +2280,9 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -2263,19 +2347,21 @@ mod tests {
         sim.add_player(far, "Far".into(), Role::Agent);
         sim.add_player(farther, "Yard".into(), Role::Agent);
         let mut snapshot = sim.snapshot();
-        let auditor_id = protocol::CampaignActor::Union {
+        let auditor_id = protocol::CampaignActor::Hostile {
             kind: protocol::EnemyKind::Auditor,
             phase: protocol::EnemyPhase::Channeling,
             phase_started: 0,
             phase_ends: 40,
             seated: false,
+            control: Default::default(),
         };
-        let clerk = protocol::CampaignActor::Union {
+        let clerk = protocol::CampaignActor::Hostile {
             kind: protocol::EnemyKind::Clerk,
             phase: protocol::EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         };
         for player in &mut snapshot.players {
             player.campaign = Some(if player.id == me {
@@ -2711,7 +2797,7 @@ fn main() -> ExitCode {
                     "type": "welcome",
                     "player_id": uuid::Uuid::new_v4().to_string(),
                     "role": "agent",
-                    "mode_name": "Contested Frequency",
+                    "mode_name": "Scrap League",
                     "playlist": "Solo Scrap"
                 });
                 ws.send(Message::Text(welcome.to_string()))
@@ -2744,7 +2830,7 @@ fn main() -> ExitCode {
                         "round_time_left": 60,
                         "frag_limit": 10,
                         "shot_results": [],
-                        "mode_name": "Contested Frequency",
+                        "mode_name": "Scrap League",
                         "playlist": "Solo Scrap",
                         "pressure": null,
                         "host_line": "frequency contested",
@@ -3153,6 +3239,7 @@ fn main() -> ExitCode {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                m20: None,
                 water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,
@@ -3175,6 +3262,7 @@ fn main() -> ExitCode {
                 m16: None,
                 m17: None,
                 m18: None,
+                m19: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,
@@ -3346,6 +3434,7 @@ fn main() -> ExitCode {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                m20: None,
                 water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,
@@ -3368,6 +3457,7 @@ fn main() -> ExitCode {
                 m16: None,
                 m17: None,
                 m18: None,
+                m19: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,

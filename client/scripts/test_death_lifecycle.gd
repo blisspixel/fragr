@@ -71,6 +71,17 @@ func _life_transitions() -> void:
 	# World death with neither id nor name.
 	life.record_frag("self", "", "", 40)
 	_check(life.cause == "unknown" and life.card_lines(0, "")[0] == "YOU WENT DOWN", "no killer fact reads as down")
+	var lost: Array[String] = ["flechette", "rail"]
+	var costed: PackedStringArray = life.card_lines(0, "", lost)
+	_check(costed.size() == 4 and costed[3] == "LOST RIFLE + RAILGUN", "a fourth line names the found guns lost: %s" % [costed])
+	_check(life.card_lines(0, "", [] as Array[String]).size() == 3, "nothing lost, no fourth line")
+	var card: DeathCard = DeathCard.new()
+	root.add_child(card)
+	card.present(costed)
+	_check(card.loss() == "LOST RIFLE + RAILGUN" and card.visible, "the card shows the loss line")
+	card.present(PackedStringArray(["A", "B", "C"]))
+	_check(card.loss() == "", "a three-line card hides the loss line")
+	card.queue_free()
 
 
 func _countdown_edges() -> void:
@@ -215,6 +226,18 @@ func _one_life(manager: Node, network: CaptureNetwork, camera: Node3D, hud: Canv
 	_check(manager.local_life.phase == LocalLife.Phase.AWAITING, "the countdown Ack moves down to awaiting")
 	_check(hud.death_card.visible and hud.death_card.headline() == "FRAGGED BY Rival", "death card names the killer: " + hud.death_card.headline())
 	_check(hud.death_card.detail() == "WATCHING Rival" and hud.death_card.timing() == "RESPAWN IN 3", "death card labels view and server countdown: %s / %s" % [hud.death_card.detail(), hud.death_card.timing()])
+	_check(hud.death_card.loss() == "", "a life that found nothing loses nothing")
+	# A free-for-all life that took the Railgun loses it: the private loadout
+	# still names it while down, the rules name the kit the next life gets.
+	network.equipment = {"weapons": ["fists", "tack", "rail"], "selected": "rail"}
+	hud.set_match_rules(MatchRules.parse({"mode": "ffa", "start_kit": ["fists", "tack"]}), false)
+	manager.call("_update_death_presentation", Time.get_ticks_usec())
+	_check(hud.death_card.loss() == "LOST RAILGUN", "the death card names what death cost: " + hud.death_card.loss())
+	_check(hud.death_card.plate_rect().size.y > 0.0, "the loss line sits inside the plate")
+	network.equipment = {}
+	hud.set_match_rules({}, false)
+	manager.call("_update_death_presentation", Time.get_ticks_usec())
+	_check(hud.death_card.loss() == "", "no kit named, no loss line")
 	# Presses while down are dropped, not queued.
 	manager.call("_input", _key("jump", true))
 	manager.call("_input", _key("interact", true))

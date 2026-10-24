@@ -48,6 +48,15 @@ snapshot; a full room can leave you unseated. `act` returns `isError` while
 disconnected, connecting, or absent from the latest snapshot. A queued action
 is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
 
+A joined agent sees pads the way rule bots do. Its `observe` (brief pad
+distances and full `pickups`) reports what its own fighter has seen: a pad
+inside a 120 degree view, within 40 m and past cover, or underfoot. Full
+`pickups[].available` is that belief, `in_view` says whether the pad is seen
+now, and the live `respawn_in` timer is removed. A pad seen empty is believed
+back after its published clock; pads not seen are believed up. Turn and look to
+learn the map. An adapter that never joined keeps the full live view.
+`docs/protocol.md` has the clocks.
+
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
 ## Quick Start
@@ -295,6 +304,14 @@ does not erase a short tap. The latch is consumed even while airborne or dead;
 holding jump cannot add upward thrust in the air. Geometry still decides which
 steps can be walked onto. See the shared action contract in `docs/protocol.md`.
 
+In arena play movement has momentum: a fighter reaches its 6 m/s run in three
+ticks and slides about 0.17 m to a stop when the keys are released, and an
+opposite key reverses it in one tick. `dodge` is a press, latched like a jump
+tap: a standing fighter holding a direction is thrown that way at 9 m/s on a
+low hop, with 0.75 s before the next. A slow agent loop that wants to stop on
+a mark should release its keys a step early. A campaign mission keeps the
+immediate 5 m/s step and has no dodge.
+
 Authored traversal maps use the same connection and action tools. `observe.map`
 includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.
@@ -505,6 +522,9 @@ resolved snake_case `weapon` ID, for example `rocket` or `article_blade`.
 `get_events` preserves these fields. Older events omit them; missing weapon
 does not identify a current held gun, and equal callsigns do not identify equal
 participants. Prefer explicit IDs, including after bodies leave the snapshot.
+- A `speak` event may carry an optional `to_id`: the one fighter the line is
+  said to, such as a rule bot's frag taunt to its victim. Without it the line
+  is for the whole room.
 - Events are also included in `observe` output under `recent_events`
 - Set `clear: true` to acknowledge events and reset buffer
 
@@ -558,7 +578,7 @@ The readiness and continue schemas list every built mission from the same typed
 stage list as saved campaign progression. Pending destinations are not offered.
 
 Connected M13 uses `weight_of_permission` through these same tools. Matching
-adapters advertise gameplay 54 and validate its registered objectives, worker
+adapters advertise gameplay 55 and validate its registered objectives, worker
 choices, actual arrivals and moving freight lift. After a fresh all-party lift
 Use, the controller holds position while the authoritative deck moves. If it
 returns after losing a rider, the party reboards and uses the same control.
@@ -582,14 +602,39 @@ versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
 retains the server's reason in `connection_error`, without a pending join.
 These missions keep the same readiness, action and continue tools. Saved runs
 refill continues only when entering M15 (Episode IV) and M18 (Episode V).
-The M19 destination remains pending and unplayable.
+
+Connected M19 uses `planned_works` (minimum gameplay 55). `observe.map.m19`
+binds eight ordered objectives, the coalition stores and waterworks controls,
+the jetpack ceiling, authored jetpack hops and the presentation-only Latch
+route and work marks; `gate_open` flips with the prepared open world.
+`observe.snapshot.jetpacks` reports each worn pack's fuel and thrust, and
+`observe.snapshot.paver_strips` each marked strip with its owner, origin,
+yaw, length, half width, phase window and whether it is being worked. The
+shared controller steps out of a strip before it is worked, prefers a Paver
+preparing its strip over a nearer target, and flies an authored hop only with
+enough fuel; the walking route always remains. Completing M19 promotes into
+`local_exception`. Passenger Manifest and Common Carrier also require gameplay
+55 for their carried M08 and M10 receipts.
+
+Connected M20 uses `local_exception` (minimum gameplay 56). `observe.map.m20`
+binds the five ordered arrivals, the refuge gate, the refuge line and the hold
+clock; `observe.mission.m20` reports the crew, quay arrival, barricade, display,
+reprieve, Latch and gate. `observe.snapshot.surveyor_marks` lists live Surveyor
+discs. Every hostile body in M20 observes as `side: "inheritance"`: Surveyors
+and Pavers with `control: "restoration"`, every other machine with
+`control: "absorbed"`; nothing in the finale answers the Union. The shared controller holds each objective, finds a sightline on a
+Surveyor its lesson is waiting on, fights back to its pier post rather than
+chasing, keeps a gun that reaches its target, detours to pier crates it needs
+(further when nearly dry) and leaves through the refuge gate once it opens. The scripted bot binds
+the same geometry. Completing M20 records the campaign's survival with the
+epilogue destination `still_here` pending.
 
 ### `mission_continue`
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
 status can request a mission-start retry using the observed mission ID, run ID
-and attempt. This applies to all built saved campaign missions through M18:
+and attempt. This applies to all built saved campaign missions through M19:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}
@@ -623,14 +668,14 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "round_number": 3,
   "round_time_left": 90,
   "frag_limit": 10,
-  "mode_name": "Contested Frequency",
-  "playlist": "Arena Duel",
-  "host_line": "HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE. ARENA DUEL IS LIVE.",
+  "mode_name": "Scrap League",
+  "playlist": "Larak Lot",
+  "host_line": "HOST: LARAK LOT IS LIVE. FIGHT!",
   "pressure": null,
   "mvp": null,
   "mvp_frags": null,
   "map_id": 1,
-  "map_name": "Arena Duel",
+  "map_name": "Larak Lot",
   "rules": {"mode": "tdm", "name": "Team Deathmatch: Rail Only", "mutators": ["rail-only"]},
   "team_scores": {"union": 4, "coalition": 6},
   "self_team": "coalition",
@@ -644,7 +689,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
 Fields come from the last snapshot plus the most recent `round_start` /
 `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
 sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
-`map_name` are always present (defaulting to Arena Duel if the snapshot omitted
+`map_name` are always present (defaulting to Larak Lot if the snapshot omitted
 them). `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.
@@ -652,8 +697,18 @@ companion actors carry none.
 `rules` is the server's rule set from `map_info` (or the last `round_start`
 before `map_info` arrives): `mode` (`ffa`, `tdm`, `ctf` or `sabotage`), `name`, `mutators`
 (`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
-`two-lives`), `friendly_fire` and `lives`, each omitted at its default. It is
-null only before either arrives or on a campaign map. `team_scores` is the
+`two-lives`, `full-arsenal`), `friendly_fire` and `lives`, each omitted at its
+default, and `start_kit`, always present: the weapons a fresh life holds. It is
+null only before either arrives or on a campaign map. In free-for-all
+`start_kit` is `["fists", "tack"]`: every life starts with the Pistol and Fists,
+and the Rifle, Shotgun and Railgun belong to whoever takes their pad.
+`observe` with `detail: full` carries your private `loadout`; read `weapons`
+there before `weapon_swap`. A life holding only the Pistol should go and take a
+gun: the scripted bot and the reference brain share one equipment helper that
+walks to the nearest unowned gun pad whenever no rival is inside the Pistol's
+reach (30 m), or with a fight on when that pad is a few steps away. An
+objective, Sabotage and a campaign mission keep their own priorities. Holding
+a found gun, the same helper fights. `team_scores` is the
 snapshot's side frags in team deathmatch, else null. In CTF, `flags` lists
 both stands and current flag state, `capture_scores` counts captures, and
 `capture_limit` is the win target. `observe` carries the same typed snapshot.
@@ -665,10 +720,18 @@ joining: in `tdm` a teammate shares your `team`, takes no damage unless
 `golden`. Under a weapon-only mutator, `weapon_swap` to another weapon is
 ignored. Death ends a life's input: `act` presses sent while you wait to
 respawn are dropped rather than queued, and a `fire` held at death or when the
-body returns does nothing until an `act` releases it. The respawn wait is three
-seconds in every arcade mode today. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
-`player`, `other`, `team`); the words live in the client. The full rule
-contract is in [`docs/protocol.md`](../docs/protocol.md#match-rules).
+body returns does nothing until an `act` releases it. The respawn wait is four
+seconds in free-for-all and three in team deathmatch, capture the flag and
+Conquest. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
+`player`, `other`, `team`, and `big` on a voiced big moment); the words live in
+the client. Multikills (`double_frag` to `frag_storm`, three-second chains) and
+mode-scaled sprees (`rampage`, `riot`, `untouchable`) are reaction kinds; there
+is no separate `killstreak` event. `lead_change`, `flag_taken`,
+`flag_captured`, `charge_planted`, `match_point` and `sudden_death` complete the
+set. `round_state` adds `sudden_death`, true when an active arcade round ran
+out of clock level: `round_time_left` is null because the clock has stopped,
+and the next score wins. The full rule contract is in
+[`docs/protocol.md`](../docs/protocol.md#match-rules).
 
 **Sabotage.** On a Sabotage server `round_state` adds four fields, each null
 elsewhere:
@@ -807,6 +870,11 @@ fire fields. They add no mission readiness or campaign progression operation.
 `releasing`, `following`, and `firing` phases describe a server-owned ally, not
 an MCP seat or an action target. It appears in `observe` for late observers,
 but does not collect supplies or count toward the party or departure.
+`side: inheritance` (capability 55) is equally hostile and always names its
+`control`: `absorbed` for a former Union bot that keeps its chassis and learned
+attacks, `restoration` for a restoration machine such as the `paver`. The
+brief `observe` threat token reads `inheritance:absorbed/<kind>/<phase>` or
+`inheritance:restoration/<kind>/<phase>`.
 `side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
 Turrets, low Crawlers, stationary Jammers and stationary marksman Ranged
 Sweepers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`,

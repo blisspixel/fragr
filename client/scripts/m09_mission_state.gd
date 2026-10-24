@@ -91,10 +91,8 @@ static func same_contract(first: Dictionary, second: Dictionary) -> bool:
 	return true
 
 static func _archive(value: Variant) -> bool:
-	if M03MissionState._exact(value, ["kind"]) and value["kind"] == "historical_unrecorded":
-		return true
-	return M03MissionState._exact(value, ["kind", "custody_released", "recovered_mind_secured", "captives_evacuated"]) \
-		and value["kind"] == "recorded" and value["custody_released"] is bool \
+	return M03MissionState._exact(value, ["custody_released", "recovered_mind_secured", "captives_evacuated"]) \
+		and value["custody_released"] is bool \
 		and value["recovered_mind_secured"] is bool and value["captives_evacuated"] is bool \
 		and (value["custody_released"] or not value["captives_evacuated"])
 

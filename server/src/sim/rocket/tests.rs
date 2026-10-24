@@ -325,12 +325,13 @@ fn plate_applies_to_direct_damage_only() {
         .unwrap();
     player.hp = 200;
     player.yaw = std::f32::consts::PI;
-    player.campaign = Some(CampaignActor::Union {
+    player.campaign = Some(CampaignActor::Hostile {
         kind: EnemyKind::Auditor,
         phase: EnemyPhase::Firing,
         phase_started: 0,
         phase_ends: 40,
         seated: false,
+        control: Default::default(),
     });
     launch_and_hold(&mut state, shooter);
     fly(&mut state, 20);
@@ -738,4 +739,28 @@ fn rocket_jumping_imparts_upward_impulse_and_reduced_self_damage() {
         "self damage should be reduced: hp was {}",
         state.players[0].hp
     );
+}
+
+#[test]
+fn a_rocket_fired_at_the_floor_behind_throws_the_fighter_forward() {
+    let mut state = world(serde_json::json!([]));
+    let shooter = arm(&mut state, 1, 0.0, 0.0);
+    grant(&mut state, shooter, 4);
+    // Facing +x, aimed down and back at the floor behind the feet.
+    state.players[0].yaw = std::f32::consts::PI;
+    state.players[0].pitch = -1.1;
+    assert!(state.launch_rocket(shooter));
+    let arena = state.current_arena().into_owned();
+    for _ in 0..10 {
+        state.tick += 1;
+        state.tick_rockets(0.05, &arena, &[], &[]);
+        if state.rockets.is_empty() {
+            break;
+        }
+    }
+    assert!(state.rockets.is_empty(), "rocket should have detonated");
+    let player = &state.players[0];
+    assert!(player.vy > 2.0, "lifted: {}", player.vy);
+    assert!(player.vx > 1.0, "thrown away from the blast: {}", player.vx);
+    assert!(player.vx.hypot(player.vz) <= 14.0 + 1e-4);
 }

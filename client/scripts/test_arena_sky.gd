@@ -11,7 +11,7 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_arena_sky: " + message)
 
 func _run() -> void:
-	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice: intake prototype")
+	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice")
 	var scrap: ArenaSky.Preset = ArenaSky.preset_for("Arena Duel")
 	var yard: ArenaSky.Preset = ArenaSky.preset_for("Compliance Yard")
 	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
@@ -32,7 +32,12 @@ func _run() -> void:
 		"Low Water needs its own warm afternoon sky and light")
 	_check(not freight.interior and freight.sky_top != scrap.sky_top and freight.fog_density < scrap.fog_density,
 		"M03 lost its explicit open daylight sky")
-	_check(ward.ambient_color == recall.ambient_color and ward.interior, "the M02 ward fell through to an outdoor fill")
+	_check(ward.interior and ward.ambient_color != scrap.ambient_color, "the M02 ward fell through to an outdoor fill")
+	# M01 keeps a readable floor (energy times the tint's luminance) while its
+	# strips and warm lamps carry the pools; enemies keep the actor view fill.
+	var intake_floor: float = recall.ambient_energy * recall.ambient_color.get_luminance()
+	_check(recall.practical_energy > ward.practical_energy and intake_floor >= 0.3 and intake_floor < ward.ambient_energy * ward.ambient_color.get_luminance(),
+		"the M01 intake lost its fixture-led light plan or its readable floor")
 	_check(recall.interior and not scrap.interior and not yard.interior, "venue interiors are not matched explicitly")
 	_check(recall.ambient_color != scrap.ambient_color, "Recall Notice still uses the scrapyard fill")
 	_check(yard.ambient_color != scrap.ambient_color, "Compliance Yard lost its own sky")
@@ -60,6 +65,18 @@ func _run() -> void:
 	_check(not ember.visible and is_equal_approx(key.light_energy, recall.key_energy), "interior kept the outdoor ember props or sun")
 	ArenaSky.apply_scene_lights(layout, "Arena Duel")
 	_check(ember.visible and is_equal_approx(key.light_energy, scrap.key_energy), "arena lost its ember props or sun")
+	var larak: ArenaSky.Preset = ArenaSky.preset_for("Larak Lot")
+	_check(not larak.interior and not larak.outdoor_embers and not larak.key_in_sky and larak.sky_top != scrap.sky_top \
+		and larak.view_fill_energy > 0.0 and larak.practical_color.r > larak.practical_color.b \
+		and larak.accent_energy == 0.0,
+		"Larak Lot needs its own night sky, sodium practicals and actor fill without a sun disc or a red seal lamp")
+	var authored: Vector3 = key.rotation_degrees
+	ArenaSky.apply_scene_lights(layout, "Larak Lot")
+	_check(not ember.visible and key.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_ONLY \
+		and key.rotation_degrees.is_equal_approx(larak.key_rotation_degrees), "Larak Lot kept the scrapyard sun or embers")
+	ArenaSky.apply_scene_lights(layout, "Arena Duel")
+	_check(key.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY and key.rotation_degrees.is_equal_approx(authored),
+		"leaving Larak Lot did not restore the authored key light")
 	ArenaSky.apply_scene_lights(layout, "Launch Authority (development)")
 	_check(not ember.visible and is_equal_approx(key.light_energy, launch.key_energy), "Mars retained unmotivated scrapyard ember lamps")
 

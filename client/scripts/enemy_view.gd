@@ -13,6 +13,14 @@ const LAMP_SHADER: Shader = preload("res://assets/shaders/grenade_surface.gdshad
 ## the Auditor channels. Measured from `auditor_rig.gd`.
 const PLATE_LAMPS: Array[Vector3] = [Vector3(0.37, -0.24, 0.08), Vector3(0.40, -0.24, 0.27)]
 const CHANNEL_LAMPS: Array[Vector3] = [Vector3(0.55, -0.02, 0.08), Vector3(0.55, -0.02, 0.28)]
+## Absorbed bots: the Inheritance's muted cyan working light in place of the
+## dead red optics. Never neon: the art bible swatch at a low energy.
+const WORK_GLOW: Color = Color("4a8a92")
+const WORK_ENERGY: float = 1.1
+## Every absorbed bot breathes and steps on one shared beat, taken from the
+## server tick, so a group moves with one timing no Union squad has.
+const SHARED_BEAT_SECONDS: float = 0.64
+const SHARED_BREATH_SECONDS: float = 2.56
 
 var actor: Dictionary = {}
 var weapon: String = ""
@@ -27,7 +35,11 @@ var _landed: bool = false
 ## A repaired bot stands back up through its death clip in reverse.
 var _standing: bool = false
 var _last_phase: String = ""
+## Under Inheritance control: Union chassis with dead red optics.
+var absorbed: bool = false
 var assessor_rig: AssessorRig
+var paver_rig: PaverRig
+var surveyor_rig: SurveyorRig
 
 func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	actor = state["campaign"]
@@ -43,6 +55,16 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		tick = snapshot_tick
 		elapsed = 0.0
 	var kind: String = actor["kind"]
+	absorbed = ActorState.control(actor) == "absorbed"
+	if kind == "surveyor":
+		if surveyor_rig == null:
+			surveyor_rig = SurveyorRig.new()
+			surveyor_rig.position.y = -CAMERA.FP_SERVER_REFERENCE_Y
+			body.get_parent().add_child(surveyor_rig)
+		body.visible = false
+		_kind = kind
+		surveyor_rig.present(actor, tick, elapsed)
+		return
 	if kind == "assessor":
 		if assessor_rig == null:
 			assessor_rig = AssessorRig.new()
@@ -52,10 +74,20 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		_kind = kind
 		assessor_rig.present(actor, tick, elapsed)
 		return
+	if kind == "paver":
+		if paver_rig == null:
+			paver_rig = PaverRig.new()
+			paver_rig.position.y = -CAMERA.FP_SERVER_REFERENCE_Y
+			body.get_parent().add_child(paver_rig)
+		body.visible = false
+		_kind = kind
+		paver_rig.present(actor, tick, elapsed)
+		return
 	if kind == "notary":
 		var feet: Vector3 = Vector3(float(state["x"]), float(state["y"]) - CAMERA.FP_SERVER_REFERENCE_Y, float(state["z"]))
 		_landed = actor["phase"] == "dead" and absf(feet.y - NotaryAnimation.support(feet)) <= 0.04
 	if kind == _kind:
+		_apply_absorbed(body)
 		return
 	_kind = kind
 	if not _textures.has(kind):
@@ -103,6 +135,45 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		material.set_shader_parameter("rim_color", AUDITOR_RIM)
 		_attach_plate(body)
 		_place_lamps(body, phase == "channeling")
+	_apply_absorbed(body)
+
+## Absorption keeps the chassis, paint and plates; only the light changes.
+func _apply_absorbed(body: Sprite3D) -> void:
+	var material: ShaderMaterial = body.material_override as ShaderMaterial
+	if material == null or material.shader != UNION_SPRITE:
+		return
+	material.set_shader_parameter("absorbed", 1.0 if absorbed else 0.0)
+	material.set_shader_parameter("work_glow", WORK_GLOW)
+
+## Seconds on the shared server clock, smoothed by at most one tick.
+func shared_seconds() -> float:
+	return float(tick) * EnemyAnimation.TICK_SECONDS + clampf(elapsed, 0.0, EnemyAnimation.MAX_EXTRAPOLATION)
+
+## The working light's energy for this frame. The attack tell keeps its
+## shape and timing: it swells through the authoritative windup exactly where
+## a Union bot's red optics would.
+static func work_energy(state: Dictionary, seconds: float, snapshot_tick: int, since: float) -> float:
+	var phase: String = str(state.get("phase", ""))
+	if phase == "dead":
+		return 0.0
+	var breath: float = 0.82 + 0.18 * sin(seconds * TAU / SHARED_BREATH_SECONDS)
+	if phase == "windup":
+		var started: int = int(state.get("phase_started", snapshot_tick))
+		var duration: float = maxf(EnemyAnimation.TICK_SECONDS,
+			float(int(state.get("phase_ends", snapshot_tick)) - started) * EnemyAnimation.TICK_SECONDS)
+		var age: float = maxf(0.0, float(snapshot_tick - started) * EnemyAnimation.TICK_SECONDS) \
+			+ clampf(since, 0.0, EnemyAnimation.MAX_EXTRAPOLATION)
+		return WORK_ENERGY * (1.0 + 1.6 * clampf(age / duration, 0.0, 1.0))
+	if phase == "firing":
+		return WORK_ENERGY * 2.6
+	return WORK_ENERGY * breath
+
+## Absorbed gait progress in metres of stride, on the shared beat rather than
+## the body's own travel. A Heavy steps on every other beat.
+func shared_travel() -> float:
+	var beats: float = 2.0 if _kind == "heavy_sweeper" else 1.0
+	var stride: float = CrawlerAnimation.STRIDE_METRES if _kind == "crawler" else EnemyAnimation.STRIDE_METRES
+	return fposmod(shared_seconds() / (SHARED_BEAT_SECONDS * beats), 1.0) * stride
 
 ## Two repair lamps for the plate the atlas draws. They live in pawn space, so
 ## they turn with the server facing and the body hides them from behind;
@@ -156,6 +227,10 @@ func advance(delta: float, distance: float) -> void:
 	elapsed += delta
 	if assessor_rig != null:
 		assessor_rig.advance(delta)
+	if paver_rig != null:
+		paver_rig.advance(delta, distance >= 0.002 and distance < 2.0)
+	if surveyor_rig != null:
+		surveyor_rig.advance(delta)
 	shot_age += delta
 	var phase: String = str(actor.get("phase", ""))
 	stepping = distance >= 0.002 and distance < 2.0
@@ -173,6 +248,12 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	if _kind == "assessor" and assessor_rig != null:
 		assessor_rig.present(actor, tick, elapsed)
 		return
+	if _kind == "paver" and paver_rig != null:
+		paver_rig.present(actor, tick, elapsed)
+		return
+	if _kind == "surveyor" and surveyor_rig != null:
+		surveyor_rig.present(actor, tick, elapsed)
+		return
 	if _kind == "redactor":
 		var material: ShaderMaterial = body.material_override as ShaderMaterial
 		if material != null:
@@ -180,19 +261,24 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 			material.set_shader_parameter("shimmer", 1.0 if hidden_approach else 0.0)
 			material.set_shader_parameter("shimmer_tick", float(tick))
 			material.set_shader_parameter("red_glow", 2.4 if actor.get("phase") == "windup" else 1.6)
+	if absorbed:
+		var glow: ShaderMaterial = body.material_override as ShaderMaterial
+		if glow != null and glow.shader == UNION_SPRITE:
+			glow.set_shader_parameter("work_energy", work_energy(actor, shared_seconds(), tick, elapsed))
+	var gait_travel: float = shared_travel() if absorbed else travel
 	var facing: int = EnemyAnimation.direction(yaw, to_camera)
 	if _kind == "notary":
 		body.frame = NotaryAnimation.frame(actor, tick, elapsed, facing, _landed)
 	elif _kind == "jammer":
 		body.frame = JammerAnimation.frame(actor, tick, elapsed, facing)
 	elif _kind == "crawler":
-		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
+		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, gait_travel, facing)
 	elif _kind == "enforcer" and actor.get("phase") == "charging":
 		body.frame = enforcer_charge_frame(travel, facing)
 	else:
 		var custody: int = custody_frame(actor, weapon, tick, elapsed, facing, _standing)
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
-			travel, shot_age, facing, stepping)
+			gait_travel, shot_age, facing, stepping)
 
 ## The Enforcer's unused armed gait row holds its committed charge posture.
 ## Playback cannot advance the authoritative charge phase or cause a hit.

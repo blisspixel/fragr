@@ -308,7 +308,9 @@ them; keep accents purposeful and silhouettes distinct from their background.
 | Vegetation shadow / leaf | `#3A4C2E`, `#74884E` |
 
 Bone-white outlined titles and compact pixel-readable body type. Current menu
-fonts and their required licenses live in `client/assets/fonts/`. No neon floods,
+fonts and their required licenses live in `client/assets/fonts/`. In a match,
+every word is the Silkscreen pixel face in capitals, on a level baseline, and
+sits on a dark backing over the world; the display face draws only numerals. No neon floods,
 photoreal military treatment, smooth mobile UI, or tiny noisy detail masquerading
 as pixel art. Accent colors identify teams, pickups, heat, or landmarks.
 
@@ -325,10 +327,99 @@ marking. Neither replaces the other. A Union lunar depot must read as both.
 
 | Group | Palette roles | Silhouette, material and motion |
 |---|---|---|
-| Free humans and free agents | Bone and white, warm leather, rust and ember, purple outline, small personally chosen cyan or magenta accents. They read as the people the player is fighting for | Repaired equipment, exposed fasteners, asymmetry, distinct gestures. Humans and agents share practical clothing and tools; no universal rebel uniform |
+| Free humans and free agents | Individual, player-chosen colour: warm varied personal paint, leather, rust and ember, patched cloth, stickers, purple outline. Never the Union black-and-red livery or a matte off-white base ([contract](#faction-readability-contract)). They read as the people the player is fighting for | Repaired equipment, exposed fasteners, asymmetry, distinct gestures, warm personal light. Humans and agents share practical clothing and tools; no universal rebel uniform |
 | Union humans and bots | Black cloth, dark steel and plates one step lighter, with restrained red: visors and optics, armbands and seals. Red optics are also every Union attack tell light | Issued rectangular plates, covered mechanisms, repeated numbered insignia, disciplined ranks. Menace comes from uniformity and order, never spikes, skulls or cartoon villainy. Plates and red accents keep bodies readable in dark rooms. Human officers and controlled bots remain distinguishable by shape and movement |
-| Inheritance restoration machines | Matte bone over ink joints; minimal muted cyan working indicators | Continuous unfamiliar surfaces, few seams, no serials or faces, deliberate coordinated motion. Never a neon faction |
-| Absorbed Union bots | Preserve their existing Union paint, wear and chassis at onset | Marks do not magically vanish. Shared timing, changed targeting and loss of response to human command reveal absorption. Free agents do not acquire this motion |
+| Inheritance restoration machines | Matte off-white (bone) continuous bodies over ink joints; minimal muted cyan working indicators | Continuous unfamiliar surfaces, few seams, no serials or faces, deliberate coordinated motion. Never a neon faction |
+| Absorbed Union bots | Preserve their existing Union paint, wear, plates and chassis at onset; red optics and visors go dark and a muted cyan working glow replaces them | Marks do not magically vanish. Dead red optics, cyan working light, shared timing, changed targeting and loss of response to human command reveal absorption: neither Union nor free. Free agents do not acquire this light or motion |
+
+Nick, 2026-10-23: "we're building a world and a vibe and story and worlds", so
+a fighter's allegiance must read from the world's own canon, not from arbitrary
+asset colour. The contract below is binding on every fighter, bot, machine,
+cosmetic and team presentation. [Lore](lore/README.md#the-world-and-its-three-powers)
+owns why each side looks this way; this section owns how it reads.
+
+### Faction readability contract
+
+From a distance a player must tell a free human or agent from a Union enforcer,
+and late in the campaign from an Inheritance machine. Check every band in
+pixel-art at play resolution, under each environment's combat lighting,
+in motion, in grayscale and with the colour-vision settings.
+
+| Read at | Union (enforcers and their bots) | Free humans and free agents | Inheritance (and absorbed bots) |
+|---|---|---|---|
+| 30 m: silhouette, dominant value, light | Dark mass, severe upright rectangular silhouette, drilled stance; steady **red** points at visor and optics | Asymmetric, layered, mismatched outline (packs, slung gear, patched limbs); mid or varied values; **warm** personal light | Pale, continuous, unfamiliar outline with few breaks; or a recognizable black Union chassis lit **cyan**, never red; coordinated shared timing |
+| 15 m: livery blocking | Black cloth and armour, plates one step lighter, red armbands, visors, seals and optics on issued kit | Personal colour blocking in the player's chosen scheme; repairs, stickers and patches break every large panel | Matte off-white bodies over ink joints, no markings; absorbed bots keep Union paint and plates with dead red optics and cyan working glow |
+| 5 m: detail | Serial and type-approval plates, original Union emblems, repeated numbered insignia, issued weapon housings | Ground-off plates, cut seals, scratched serials, hand lettering, stickers, sewn patches, individual faces and screen expressions | No serials, faces or readable marks on restoration machines; absorbed bots' old serials remain but nothing answers to them |
+
+**Union.** Human troops, bots and elites stay distinguishable inside the
+livery: troops by cloth, peaked caps and stylized faces under red visors;
+bots by plated chassis, sunk or optic heads and mechanical gait, in black and
+red livery with serial plates; committed elites by heavier powered armour, an
+extra red rank seal or collar and their own silhouette ([roster](ENEMIES.md)).
+Red optics glow on all Union hardware and stay the Union attack tell light.
+Emblems are original; never copy real insignia, salutes or uniforms.
+
+**Free humans and free agents.** Individual, player-chosen looks: warm varied
+personal paint, repairs, stickers, patched clothes, personal possessions.
+Free, American-spirited, never an American uniform, flag or national kit.
+Personal light is warm (amber, warm white, CRT phosphor), never red optics or
+cyan glow. Two combinations are **reserved** and a free body may never use
+them: the Union black-plus-red livery, and a matte off-white dominant base.
+Black alone, red alone, cyan or bone as small painted accents remain allowed;
+a cyan panel is still not a promise of safety.
+
+**Inheritance.** Matte off-white continuous surfaces, few seams, no serials,
+faces or emblems, muted cyan working indicators (`#4A8A92`), deliberate
+coordinated motion, never neon. Absorbed former-Union bots keep their
+recognizable chassis, paint, plates and old serials, but visibly carry the
+change: dead red optics replaced by a cyan working glow, shared timing, no
+response to human command. They read as neither Union nor free. Combat
+against Inheritance machines belongs to the wipe (levels 18 to 20); levels
+16 and 17 may carry signs, never a fight.
+
+**Team overlay.** In multiplayer team modes a team accent sits on top of the
+personal scheme without breaking the reservations: shoulder or arm tape, a
+nameplate edge and the existing team plate mark, carried by shape as well as
+colour. When a mode assigns the Union side, that side wears the issued Union
+livery instead of personal colour; uniformity is the point. The free side keeps
+personal colour plus the warm amber team accent of the existing Free plate.
+Free-versus-free modes use two non-reserved accents (default ember and
+magenta, with the high-contrast pair from accessibility settings); a team
+accent is never Union red on black, matte off-white or cyan light.
+
+**Colour picker rule.** Any player colour picker, saved record or received
+cosmetic is validated on the composed body, not per swatch. Reject or snap to
+the nearest allowed colour, with a one-line reason, when: the dominant base is
+near-black (value at or below about 0.30) together with any saturated red
+(hue about 340 to 20 degrees) secondary, trim or accent; the dominant base is
+a matte off-white (value at or above about 0.80, saturation at or below about
+0.15); or any emissive colour is red or cyan (hue about 160 to 220 degrees).
+Emissive choices stay in the warm amber to warm-white range. The same check
+runs on load, so an edited file cannot bypass it. Thresholds are a starting
+point to tune in the actual renderer.
+
+**Status: enforced in the multiplayer client.** `FactionPalette`
+(`client/scripts/faction_palette.gd`) holds the reserved colours and the
+colour picker rule above (`check` for a composed body, `check_record` for a
+saved or received one), and snaps with a one-line reason. No whole-body tint
+remains: a live body (`SkinnedCharacter.dress`, fitted by `BodyLivery`) keeps
+its own art and carries its accent as shoulder and arm tape, ink-edged on the
+free side; the Union side of a team match wears the issued livery (its art
+recoloured to black cloth and plates, red armbands, a red visor); the free
+coalition wears amber tape; a sideless fighter wears its callsign colour,
+checked against the body's measured base. Callsign and rule-bot colours never
+land on red, cyan or off-white; the coalition flag pole and pennant staff are
+worn leather; first person marks OURS and THEIRS in each fighter's own side
+colour, never a red wash. A sided nameplate carries a team edge over it, a
+solid red bar for the Union and an open amber frame for the free side, the
+same shapes as the HUD side marks, so the side reads in grayscale. Hit and
+golden-Railgun cues are light, not paint.
+Not yet built: a player colour picker, cosmetics or saved colour records
+(each must call `check` or `check_record`), a free-versus-free mode (its
+ember and magenta pair and high-contrast pair exist as `free_pair`),
+Inheritance machines and absorbed bots. The server carries no cosmetics, so it
+validates none. Review captures: `client/qa/faction_readability_review.gd` and
+the `faction-readability-*.json` tours.
 
 | Environment | Dominant materials and color | Light, landmarks and lived detail |
 |---|---|---|
@@ -348,9 +439,10 @@ industrial ancestry but have local adaptations. Do not add different gravity to
 a scene without an authored, implemented movement rule.
 
 Team colors, aim feedback, damage and pickup cues keep their gameplay meanings.
-Use outline, silhouette, insignia and behavior as well as color for allegiance;
-a cyan panel is not a promise of safety. Check fighting readability under every
-environment's actual light, including color-vision and grayscale review.
+Use outline, silhouette, insignia and behavior as well as color for allegiance,
+as the [faction readability contract](#faction-readability-contract) requires.
+Check fighting readability under every environment's actual light, including
+color-vision and grayscale review.
 
 ### Character reference contract
 

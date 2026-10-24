@@ -1,5 +1,5 @@
 {
-  "comment": "Continuous 20-second joined human-role movement and fire against one rule bot on Arena Duel. Run with FRAGR_QA_BOTS=1, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/websocket-moving-combat.json. The timed window has no screenshot pause.",
+  "comment": "Continuous 20-second joined human-role movement and fire against one rule bot on Larak Lot. Run with FRAGR_QA_BOTS=1, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/websocket-moving-combat.json. The timed window has no screenshot pause.",
   "width": 1280,
   "height": 720,
   "states": [

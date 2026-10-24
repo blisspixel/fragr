@@ -57,12 +57,38 @@ var _bob_phase: float = 0.0
 var _bob_time: float = 0.0
 var reduced_motion: bool = false
 
+## Where this pad is, heard: a return clack when its clock runs out and a
+## pickup sound when somebody else takes it. Strong items carry across the
+## map; ordinary guns and supplies carry across a room or two.
+const RETURN_SOUND_PATH: String = "res://assets/audio/pickup/pad_return.wav"
+const TAKEN_SOUND_PATHS: Dictionary[String, String] = {
+	"weapon": "res://assets/audio/pickup/weapon.wav",
+	"ammo": "res://assets/audio/pickup/ammo.wav",
+	"health": "res://assets/audio/pickup/health.wav",
+	"armor": "res://assets/audio/pickup/armor.wav",
+}
+const POWER_WEAPONS: Array[String] = ["Rail", "Sniper", "Rocket", "Arc"]
+const POWER_REACH_METRES: float = 70.0
+const COMMON_REACH_METRES: float = 32.0
+## Seconds the item takes to rise back to full size on its return.
+const RETURN_POP_SECONDS: float = 0.28
+
+var _cue: AudioStreamPlayer3D
+## The server's own availability, before any personal claim hides the pad.
+## Unknown until the first snapshot, so a joiner hears nothing for pads that
+## were already up or down.
+var _server_up: int = -1
+var _pop_left: float = 0.0
+var return_cue_count: int = 0
+var taken_cue_count: int = 0
+
 func set_reduced_motion(enabled: bool) -> void:
 	reduced_motion = enabled
 	if enabled and is_instance_valid(icon):
 		icon.position.y = _sprite_rest_y
 
 func _ready() -> void:
+	MenuTheme.world_text(label)
 	_regular_mesh = body.mesh
 	_regular_body_position = body.position
 	_regular_label_position = label.position
@@ -94,12 +120,57 @@ func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pa
 	_bob_phase = float(hash(id) % 997) / 997.0 * TAU
 	_apply_look()
 
+## The server's availability for this pad, every snapshot. A change plays
+## the pad's positional cue unless `audible` is false (the listener is the
+## one standing on it and already hears its own pickup).
+func note_server_available(up: bool, audible: bool = true) -> void:
+	var was: int = _server_up
+	_server_up = 1 if up else 0
+	if was < 0 or was == _server_up:
+		return
+	if up:
+		if not reduced_motion:
+			_pop_left = RETURN_POP_SECONDS
+			scale = Vector3.ONE * 0.35
+		return_cue_count += 1
+		if audible:
+			_play_cue(RETURN_SOUND_PATH, -2.0)
+	else:
+		taken_cue_count += 1
+		if audible:
+			_play_cue(str(TAKEN_SOUND_PATHS.get(pickup_kind, TAKEN_SOUND_PATHS["weapon"])), -6.0)
+
+func reach_metres() -> float:
+	if pickup_kind == "golden_rail" or pickup_kind == "armor" or weapon_name in POWER_WEAPONS:
+		return POWER_REACH_METRES
+	return COMMON_REACH_METRES
+
+func _play_cue(path: String, volume_db: float) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	if _cue == null:
+		_cue = AudioStreamPlayer3D.new()
+		_cue.name = "PadCue"
+		_cue.bus = &"Effects"
+		_cue.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		_cue.position = Vector3(0.0, 0.5, 0.0)
+		add_child(_cue)
+	_cue.unit_size = reach_metres() * 0.25
+	_cue.max_distance = reach_metres()
+	_cue.volume_db = volume_db
+	_cue.stream = load(path)
+	_cue.play()
+
 func set_available(is_available: bool) -> void:
 	available = is_available
 	visible = available
 	_apply_look()
 
 func _process(delta: float) -> void:
+	if _pop_left > 0.0:
+		_pop_left = maxf(0.0, _pop_left - delta)
+		var grown: float = 1.0 - _pop_left / RETURN_POP_SECONDS
+		scale = Vector3.ONE * lerpf(0.35, 1.0, 1.0 - pow(1.0 - grown, 3.0))
 	if not visible or icon == null or not icon.visible:
 		return
 	_bob_time += delta

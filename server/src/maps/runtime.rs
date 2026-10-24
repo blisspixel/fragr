@@ -29,6 +29,106 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m19_objectives(&self) -> Option<&super::authored::m19::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m19.as_deref(),
+        }
+    }
+    pub fn m19_geometry(&self) -> Option<crate::protocol::M19MapGeometry> {
+        let mut geometry = self.m19_objectives()?.geometry.clone();
+        geometry.gate_open = self.m19_stage() >= 1;
+        Some(geometry)
+    }
+    /// 0 initial, 1 waterworks gate open.
+    pub fn m19_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m19.is_some() => map.m19_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m19_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m19.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            0 => {
+                selected.arena = prepared.initial.clone();
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.open.clone();
+                selected.navigation = prepared.open_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m19_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    /// Feet never rise above this under jetpack thrust on this map.
+    pub fn jetpack_ceiling(&self) -> f32 {
+        self.m19_objectives()
+            .map_or(crate::movement::jetpack::DEFAULT_CEILING, |prepared| {
+                prepared.geometry.jetpack_ceiling
+            })
+    }
+    pub(crate) fn m20_objectives(&self) -> Option<&super::authored::m20::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m20.as_deref(),
+        }
+    }
+    pub fn m20_geometry(&self) -> Option<crate::protocol::M20MapGeometry> {
+        let mut geometry = self.m20_objectives()?.geometry.clone();
+        geometry.gate_open = self.m20_stage() >= 1;
+        Some(geometry)
+    }
+    /// 0 refuge gate shut, 1 refuge gate open after the reprieve.
+    pub fn m20_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m20.is_some() => map.m20_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m20_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m20.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.presentation = prepared.presentation.clone();
+        match stage {
+            0 => {
+                selected.arena = prepared.initial.clone();
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.opened.clone();
+                selected.navigation = prepared.opened_navigation.clone();
+                // The gate's painted notice lies flat with the opened leaf.
+                for panel in &mut selected.presentation.decorations {
+                    if panel.solid == prepared.gate {
+                        panel.face = crate::protocol::MapFace::Up;
+                        panel.center = [0.0; 2];
+                        panel.size = [0.25, 4.4];
+                    }
+                }
+            }
+            _ => return None,
+        }
+        selected.m20_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    pub fn requires_surveyor_contract(&self) -> bool {
+        self.encounters().iter().any(|group| {
+            group
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Surveyor)
+        })
+    }
     pub(crate) fn m18_objectives(&self) -> Option<&super::authored::m18::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -541,8 +641,16 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m18_geometry()
-            .map(|_| crate::protocol::MissionId::AllSystemsNormal)
+        self.m20_objectives()
+            .map(|_| crate::protocol::MissionId::LocalException)
+            .or_else(|| {
+                self.m19_objectives()
+                    .map(|_| crate::protocol::MissionId::PlannedWorks)
+            })
+            .or_else(|| {
+                self.m18_geometry()
+                    .map(|_| crate::protocol::MissionId::AllSystemsNormal)
+            })
             .or_else(|| {
                 self.m17_geometry()
                     .map(|_| crate::protocol::MissionId::PeaceWithoutInterruption)
@@ -815,6 +923,7 @@ impl RuntimeMap {
     pub fn presentation_ref(&self) -> Option<&crate::protocol::MapPresentation> {
         match self {
             Self::BuiltIn(MapKind::LowWater) => Some(super::low_water::presentation()),
+            Self::BuiltIn(MapKind::ArenaDuel) => Some(super::larak_lot::presentation()),
             Self::BuiltIn(_) => None,
             Self::Authored(map) => Some(&map.presentation),
         }
@@ -835,6 +944,15 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(kind) => super::sabotage_layout(*kind),
             Self::Authored(_) => None,
+        }
+    }
+
+    /// The extra weapon pads a free-for-all lays on this map. None on an
+    /// authored map, which places its own supplies.
+    pub(crate) fn scrap_pads(&self) -> Vec<ArenaPickup> {
+        match self {
+            Self::BuiltIn(kind) => kind.scrap_pads(),
+            Self::Authored(_) => Vec::new(),
         }
     }
 
@@ -862,6 +980,7 @@ impl RuntimeMap {
     pub(crate) fn spawn_slots(&self) -> usize {
         match self {
             Self::BuiltIn(MapKind::HoldfastAtoll) => 16,
+            Self::BuiltIn(MapKind::ArenaDuel) => super::larak_lot::SPAWNS.len(),
             Self::BuiltIn(_) => 64,
             Self::Authored(map) => map.spawns.len(),
         }

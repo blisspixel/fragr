@@ -98,16 +98,20 @@ pub enum Mutator {
     GoldenRail,
     /// Two lives each per round; the last fighter or side standing wins.
     TwoLives,
+    /// Free-for-all only: every life starts with the Rifle, Shotgun and
+    /// Railgun instead of the Pistol and Fists, and weapon pads restock.
+    FullArsenal,
 }
 
 impl Mutator {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::RailOnly,
         Self::ShotgunOnly,
         Self::FistsOnly,
         Self::LicenceToKill,
         Self::GoldenRail,
         Self::TwoLives,
+        Self::FullArsenal,
     ];
 
     /// The wire and command-line id.
@@ -119,6 +123,7 @@ impl Mutator {
             Self::LicenceToKill => "licence-to-kill",
             Self::GoldenRail => "golden-rail",
             Self::TwoLives => "two-lives",
+            Self::FullArsenal => "full-arsenal",
         }
     }
 
@@ -130,6 +135,7 @@ impl Mutator {
             Self::LicenceToKill => "Licence to Kill",
             Self::GoldenRail => "Golden Rail",
             Self::TwoLives => "Two Lives",
+            Self::FullArsenal => "Full Arsenal",
         }
     }
 
@@ -236,10 +242,17 @@ pub struct MatchRules {
     /// Lives per fighter per round. Omitted when unlimited.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lives: Option<u8>,
+    /// The weapons a fresh life holds under these rules, in wire order.
+    /// Anything else is found on the map and lost at death. Free-for-all
+    /// starts with `fists` and `tack`.
+    pub start_kit: Vec<WeaponType>,
 }
 
 /// A beat the Host calls from an authoritative fact. The client owns the
-/// words, keyed `HOST_REACTION_<KIND>_<VARIANT>`.
+/// words, keyed `HOST_REACTION_<KIND>_<VARIANT>`, and the name-free voiced
+/// clip for a big moment. Calls are rare by design: [`Self::big`] marks the
+/// few the Host voices, and the sim spaces every call
+/// (`rules::REACTION_GAP_TICKS`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HostReactionKind {
@@ -248,20 +261,92 @@ pub enum HostReactionKind {
     LastStanding,
     Comeback,
     GoldenRail,
+    /// Two frags inside the multikill window. Text only.
+    DoubleFrag,
+    TripleFrag,
+    QuadFrag,
+    /// Five frags inside the multikill window.
+    FragStorm,
+    /// Spree tiers: one, two and three times the mode's spree step without
+    /// dying.
+    Rampage,
+    Riot,
+    Untouchable,
+    /// The lead changes hands. Text only.
+    LeadChange,
+    /// Somebody lifts the enemy flag. Text only.
+    FlagTaken,
+    FlagCaptured,
+    ChargePlanted,
+    /// One score from the limit, or one round from the match.
+    MatchPoint,
+    /// Level at the clock: the next score decides.
+    SuddenDeath,
+    /// Larak Lot only: the frag count spikes across the lot, and the Host
+    /// calls it what the league calls it. Text only.
+    LarakLotSpecial,
 }
 
 impl HostReactionKind {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 19] = [
         Self::FirstBlood,
         Self::StreakEnded,
         Self::LastStanding,
         Self::Comeback,
         Self::GoldenRail,
+        Self::DoubleFrag,
+        Self::TripleFrag,
+        Self::QuadFrag,
+        Self::FragStorm,
+        Self::Rampage,
+        Self::Riot,
+        Self::Untouchable,
+        Self::LeadChange,
+        Self::FlagTaken,
+        Self::FlagCaptured,
+        Self::ChargePlanted,
+        Self::MatchPoint,
+        Self::SuddenDeath,
+        Self::LarakLotSpecial,
     ];
 
     /// Information rather than drama: never held back by the reaction gap.
     pub const fn always(self) -> bool {
-        matches!(self, Self::GoldenRail)
+        matches!(self, Self::GoldenRail | Self::SuddenDeath)
+    }
+
+    /// A big moment: the Host voices it and the announcer's Big moments only
+    /// setting keeps it. Every other kind is a text caption.
+    pub const fn big(self) -> bool {
+        !matches!(
+            self,
+            Self::GoldenRail | Self::DoubleFrag | Self::LeadChange | Self::FlagTaken
+        )
+    }
+
+    /// The multikill tier for `count` frags inside the window, if any.
+    pub const fn multikill(count: u32) -> Option<Self> {
+        match count {
+            2 => Some(Self::DoubleFrag),
+            3 => Some(Self::TripleFrag),
+            4 => Some(Self::QuadFrag),
+            5 => Some(Self::FragStorm),
+            _ => None,
+        }
+    }
+
+    /// The spree tier a streak of `streak` reaches exactly, for a mode whose
+    /// spree step is `step`.
+    pub const fn spree(streak: u32, step: u32) -> Option<Self> {
+        if step == 0 || streak == 0 || !streak.is_multiple_of(step) {
+            return None;
+        }
+        match streak / step {
+            1 => Some(Self::Rampage),
+            2 => Some(Self::Riot),
+            3 => Some(Self::Untouchable),
+            _ => None,
+        }
     }
 }
 
@@ -331,11 +416,12 @@ mod tests {
             mutators: vec![],
             friendly_fire: false,
             lives: None,
+            start_kit: vec![WeaponType::Fists, WeaponType::Tack],
         };
         let json = serde_json::to_value(&plain).unwrap();
         assert_eq!(
             json,
-            serde_json::json!({"mode": "ffa", "name": "Free-for-all"})
+            serde_json::json!({"mode": "ffa", "name": "Free-for-all", "start_kit": ["fists", "tack"]})
         );
         let twisted = MatchRules {
             mode: GameMode::Tdm,
@@ -343,11 +429,55 @@ mod tests {
             mutators: vec![Mutator::RailOnly, Mutator::TwoLives],
             friendly_fire: true,
             lives: Some(2),
+            start_kit: vec![WeaponType::Rail],
         };
         let json = serde_json::to_string(&twisted).unwrap();
         assert!(json.contains("\"mutators\":[\"rail-only\",\"two-lives\"]"));
         assert_eq!(serde_json::from_str::<MatchRules>(&json).unwrap(), twisted);
         assert!(HostReactionKind::GoldenRail.always());
         assert!(!HostReactionKind::FirstBlood.always());
+    }
+
+    #[test]
+    fn multikill_and_spree_tiers_name_each_rung_once() {
+        use HostReactionKind as K;
+        let multikills: Vec<Option<K>> = (0..=7).map(K::multikill).collect();
+        assert_eq!(
+            multikills,
+            [
+                None,
+                None,
+                Some(K::DoubleFrag),
+                Some(K::TripleFrag),
+                Some(K::QuadFrag),
+                Some(K::FragStorm),
+                None,
+                None
+            ]
+        );
+        let tiers: Vec<(u32, K)> = (0..=20)
+            .filter_map(|streak| K::spree(streak, 5).map(|kind| (streak, kind)))
+            .collect();
+        assert_eq!(
+            tiers,
+            [(5, K::Rampage), (10, K::Riot), (15, K::Untouchable)]
+        );
+        assert_eq!(K::spree(3, 3), Some(K::Rampage));
+        assert_eq!(K::spree(4, 0), None);
+        // Only the text captions are small; the rest are voiced.
+        let small: Vec<K> = K::ALL.into_iter().filter(|k| !k.big()).collect();
+        assert_eq!(
+            small,
+            [K::GoldenRail, K::DoubleFrag, K::LeadChange, K::FlagTaken]
+        );
+        let ids: std::collections::HashSet<String> = K::ALL
+            .iter()
+            .map(|k| serde_json::to_string(k).unwrap())
+            .collect();
+        assert_eq!(ids.len(), K::ALL.len());
+        assert_eq!(
+            serde_json::to_string(&K::SuddenDeath).unwrap(),
+            "\"sudden_death\""
+        );
     }
 }

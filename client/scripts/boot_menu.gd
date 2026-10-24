@@ -11,6 +11,7 @@ extends Control
 const ARENA_SCENE: String = "res://scenes/main.tscn"
 const LOOPBACK: String = "127.0.0.1:6767"
 const MENU_FONT: Font = MenuTheme.DISPLAY_FONT
+const BENCHMARK_CANCELLED: String = "Benchmark cancelled. Nothing was scored or saved, and your settings are restored."
 
 var _page: String = "main"
 var _root: VBoxContainer = null
@@ -68,11 +69,16 @@ var _host_selected_mode: String = "tdm"
 var _host_lan: CheckButton
 var _host_port: SpinBox
 var _host_mutator: OptionButton
+## One line naming what a fresh life holds under the chosen mode and mutator.
+var _host_kit_hint: Label
 var _host_friendly_fire: CheckButton
 var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
 var _benchmark_pending: bool = false
 var _benchmark_compare: bool = false
+## How the last benchmark ended when it ended early; shown on the page until
+## the next one starts.
+var _benchmark_notice: String = ""
 ## A finished mission asked to continue the run; cleared once it starts or the
 ## saved run turns out to have nothing playable next.
 var _onward_pending: bool = false
@@ -120,7 +126,6 @@ func _ready() -> void:
 		_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build(MenuTheme.Context.FRONT_END)
 	MenuFocus.attach(self)
-	UserDataMigration.run_for(get_tree())
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
@@ -138,6 +143,15 @@ func _ready() -> void:
 		get_tree().remove_meta(LocalMatch.ONWARD_META)
 		_onward_pending = true
 		_show("single")
+	elif get_tree().has_meta(BenchmarkRun.AGAIN_META):
+		var compare: bool = get_tree().get_meta(BenchmarkRun.AGAIN_META) == true
+		get_tree().remove_meta(BenchmarkRun.AGAIN_META)
+		_show("benchmark")
+		_start_benchmark(compare)
+	elif get_tree().has_meta(BenchmarkRun.CANCELLED_META):
+		get_tree().remove_meta(BenchmarkRun.CANCELLED_META)
+		_benchmark_notice = BENCHMARK_CANCELLED
+		_show("benchmark")
 	else:
 		_show("main")
 	_console = FragrConsole.new()
@@ -297,7 +311,7 @@ func _show(page: String) -> void:
 	_remember_focus()
 	_page = page
 	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "join", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
-	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 960.0 if page in ["host", "records", "benchmark"] else 780.0
+	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 1100.0 if page == "benchmark" else 960.0 if page in ["host", "records"] else 780.0
 	(get_node("MenuBackdrop") as MenuBackdrop).content_width = _column.custom_minimum_size.x
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
@@ -449,10 +463,10 @@ func _page_single() -> void:
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview)
 			else:
-				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
-				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
+				# The campaign's survival result: the refuge held and Still Here is unlocked.
+				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.CAMPAIGN_COMPLETE)}))
 				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("M18_NEXT_PENDING"))
+				_label(tr("M20_NEXT_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -461,7 +475,7 @@ func _page_single() -> void:
 			_label(tr("RUN_ABANDONED"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"incompatible", "corrupt":
-			_label(tr("RUN_UNREADABLE"))
+			_label(tr("RUN_INCOMPATIBLE" if status == "incompatible" else "RUN_CORRUPT"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		_:
 			_label(tr("RUN_CHECKING" if status == "loading" else "RUN_PREVIEW_UNAVAILABLE"))
@@ -470,10 +484,14 @@ func _page_single() -> void:
 					_local_match.run_preview.clear()
 					_show("single")
 				)
-	if status != "awaiting_mission" or _local_match.run_preview.get("mission") != LocalMatch.NEXT_MISSION:
+	if status != "awaiting_mission" or _local_match.run_preview.get("mission") != LocalMatch.CAMPAIGN_COMPLETE:
 		var description: String = "MENU_M01_DESCRIPTION"
 		if status in ["ready", "awaiting_mission"]:
-			if _local_match.run_preview.get("mission") == MissionState.M18_ID:
+			if _local_match.run_preview.get("mission") == MissionState.M19_ID:
+				description = "M19_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M20_ID:
+				description = "M20_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M18_ID:
 				description = "M18_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M17_ID:
 				description = "M17_RUN_DESCRIPTION"
@@ -518,12 +536,12 @@ func _page_practice() -> void:
 	var selector: OptionButton = OptionButton.new()
 	selector.name = "DevelopmentMission"
 	selector.custom_minimum_size.y = 46.0
-	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE"]:
+	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE", "M19_PROTOTYPE_TITLE", "M20_PROTOTYPE_TITLE"]:
 		selector.add_item(tr(key))
 	selector.select(5)
 	_root.add_child(selector)
 	var launch: Button = _button(tr("M05_LAUNCH_PROTOTYPE"), func() -> void:
-		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]
+		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]
 		_start_development(ids[selector.selected]))
 	launch.name = "LaunchDevelopmentMission"
 	launch.disabled = not can_start
@@ -559,6 +577,12 @@ func _saved_mission_title(mission_id: String) -> String:
 			return tr("MISSION_M09_TITLE")
 		MissionState.M10_ID:
 			return tr("MISSION_M10_TITLE")
+		MissionState.M19_ID:
+			return tr("MISSION_M19_TITLE")
+		MissionState.M20_ID:
+			return tr("MISSION_M20_TITLE")
+		LocalMatch.CAMPAIGN_COMPLETE:
+			return tr("M20_NEXT_TITLE")
 		MissionState.M18_ID:
 			return tr("MISSION_M18_TITLE")
 		MissionState.M17_ID:
@@ -575,8 +599,6 @@ func _saved_mission_title(mission_id: String) -> String:
 			return tr("MISSION_M12_TITLE")
 		MissionState.M11_ID:
 			return tr("MISSION_M11_TITLE")
-		LocalMatch.NEXT_MISSION:
-			return tr("M18_NEXT_TITLE")
 	return tr("MISSION_M01_TITLE")
 
 func _saved_mission_button(mission_id: String) -> String:
@@ -597,6 +619,10 @@ func _saved_mission_button(mission_id: String) -> String:
 			return "CustodianOfRecordSaved"
 		MissionState.M10_ID:
 			return "CommonCarrierSaved"
+		MissionState.M19_ID:
+			return "PlannedWorksSaved"
+		MissionState.M20_ID:
+			return "LocalExceptionSaved"
 		MissionState.M18_ID:
 			return "AllSystemsNormalSaved"
 		MissionState.M17_ID:
@@ -692,7 +718,7 @@ func _start_development_m04() -> void:
 	_on_local_state_changed()
 
 func _start_development(mission_id: String) -> void:
-	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]:
+	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]:
 		return
 	_launch_pending = true
 	_campaign_run_mode = ""
@@ -705,7 +731,7 @@ func _start_campaign_resume() -> void:
 	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]):
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]):
 		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
@@ -718,12 +744,16 @@ func _start_campaign_resume() -> void:
 static func _arrival_for_preview(preview: Dictionary) -> bool:
 	var mission_id: String = str(preview.get("mission", ""))
 	return preview.get("status") == "awaiting_mission" \
-		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] \
+		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] \
 		and StoryScene.BEFORE_MISSION.has(mission_id)
 
 func _page_launch() -> void:
 	var title: String = _saved_mission_title(_local_match.mission)
-	if _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M18_ID:
+	if _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M19_ID:
+		title = tr("M19_PROTOTYPE_TITLE")
+	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M20_ID:
+		title = tr("M20_PROTOTYPE_TITLE")
+	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M18_ID:
 		title = tr("M18_PROTOTYPE_TITLE")
 	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M17_ID:
 		title = tr("M17_PROTOTYPE_TITLE")
@@ -741,7 +771,11 @@ func _page_launch() -> void:
 		title = tr("M11_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M11_ID else tr("M10_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M10_ID else tr("M09_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M09_ID else tr("M07_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M07_ID else tr("M08_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M08_ID else tr("M06_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M06_ID else (tr("M05_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M05_ID else tr("M04_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M04_ID else ("M03_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M03_ID else "MISSION_M02_GRAYBOX")))
 	_label(title)
 	var preparing: String = "M11_LOCAL_STARTING" if _local_match.mission == MissionState.M11_ID else "M10_LOCAL_STARTING" if _local_match.mission == MissionState.M10_ID else "M09_LOCAL_STARTING" if _local_match.mission == MissionState.M09_ID else "M07_LOCAL_STARTING" if _local_match.mission == MissionState.M07_ID else "M08_LOCAL_STARTING" if _local_match.mission == MissionState.M08_ID else "M06_LOCAL_STARTING" if _local_match.mission == MissionState.M06_ID else ("M05_LOCAL_STARTING" if _local_match.mission == MissionState.M05_ID else "M04_LOCAL_STARTING" if _local_match.mission == MissionState.M04_ID else ("M03_LOCAL_STARTING" if _local_match.mission == MissionState.M03_ID else "LOCAL_SERVER_STARTING"))
-	if _local_match.mission == MissionState.M18_ID:
+	if _local_match.mission == MissionState.M19_ID:
+		preparing = "M19_LOCAL_STARTING"
+	elif _local_match.mission == MissionState.M20_ID:
+		preparing = "M20_LOCAL_STARTING"
+	elif _local_match.mission == MissionState.M18_ID:
 		preparing = "M18_LOCAL_STARTING"
 	elif _local_match.mission == MissionState.M17_ID:
 		preparing = "M17_LOCAL_STARTING"
@@ -977,9 +1011,50 @@ func _on_host_state_changed() -> void:
 	if _page in ["host", "benchmark", "main", "multi", "join"]:
 		_show(_page)
 
+## The setup card: what the benchmark measures, what runs, how long it takes,
+## what changes while it runs and where the results go, before anything starts.
 func _page_benchmark() -> void:
-	_label("Compare graphics settings on this computer. A fixed camera circles Arena Duel with ten bots. Every preset plays the same recorded fight.")
-	_label("See average FPS, 1% lows and frame-time spikes. Current preset takes about a minute; all three take about two. Your settings return when the test ends. Results save as JSON and CSV.")
+	var current: String = BenchmarkRun.preset_label(int(_settings.get_value("video", "quality")))
+	_heading("Rendered graphics benchmark on this computer", "BenchmarkPurpose")
+	if not _benchmark_notice.is_empty():
+		_label(_benchmark_notice).name = "BenchmarkNotice"
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "BenchmarkSetup"
+	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.INSET, MenuTheme.EDGE)
+	plate.content_margin_left = 24
+	plate.content_margin_right = 24
+	plate.content_margin_top = 14
+	plate.content_margin_bottom = 14
+	card.add_theme_stylebox_override("panel", plate)
+	_root.add_child(card)
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 6)
+	card.add_child(grid)
+	var size: Vector2i = get_window().size if is_inside_tree() else Vector2i.ZERO
+	var adapter: String = RenderingServer.get_video_adapter_name()
+	for row: Array in [
+			["Scene", "Larak Lot, ten bots. One recorded fight, replayed for each preset under an automated camera."],
+			["Scored", "%d s per preset, after %d s of warm-up that is not scored." % [int(BenchmarkRun.SCORE_SECONDS), int(BenchmarkRun.PRIME_SECONDS)]],
+			["Takes", "%s only: about %s. All three: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
+			["While it runs", "V-sync and the frame cap are off. Esc cancels. Your settings come back."],
+			["Results", "Average FPS, 1% low and frame-time spikes, saved as JSON and CSV."],
+			["This computer", "%s, %s, %d x %d." % [adapter if not adapter.is_empty() else "Graphics adapter not reported", RenderQuality.renderer_name(RenderingServer.get_current_rendering_method()), size.x, size.y]]]:
+		var key: Label = Label.new()
+		key.text = str(row[0]).to_upper()
+		key.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		key.add_theme_color_override("font_color", _palette.accent)
+		key.custom_minimum_size.x = 250.0
+		grid.add_child(key)
+		var value: Label = Label.new()
+		value.text = row[1]
+		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		value.custom_minimum_size.x = 740.0
+		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		value.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		value.add_theme_color_override("font_color", _palette.text)
+		grid.add_child(value)
 	if _benchmark_pending and _local_host.state == LocalHost.State.STARTING:
 		_label("Starting a local match on this computer. A server you already left running for other people stays up.")
 		_button("Cancel", _cancel_benchmark).name = "CancelBenchmark"
@@ -990,11 +1065,19 @@ func _page_benchmark() -> void:
 		_label("Stop the server you started in this app before a benchmark.")
 		_button("Back", func() -> void: _show("main"))
 		return
-	_button("Run current preset", func() -> void: _start_benchmark(false)).name = "RunBenchmark"
+	_button("Run current preset (%s)" % current, func() -> void: _start_benchmark(false)).name = "RunBenchmark"
 	_button("Compare all three", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
 	_button("Back", func() -> void: _show("main"))
+	var scope: Label = _label("Frames drawn on this computer only. Not a server, network or player-capacity test.")
+	scope.name = "BenchmarkScope"
+	scope.add_theme_color_override("font_color", _palette.muted)
+
+static func _minutes(seconds: float) -> String:
+	var whole: int = maxi(1, roundi(seconds / 60.0))
+	return "1 minute" if whole == 1 else "%d minutes" % whole
 
 func _start_benchmark(all_presets: bool = false) -> void:
+	_benchmark_notice = ""
 	_benchmark_compare = all_presets
 	_benchmark_pending = true
 	if not _local_host.start_host(BenchmarkRun.workload()):
@@ -1093,6 +1176,8 @@ func _page_host() -> void:
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
+	_host_kit_hint = _label("")
+	_host_kit_hint.name = "HostKitHint"
 	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
 	for key: String in ["HOST_BOTS_FIXED", "HOST_BOTS_NONE", "HOST_BOTS_AUTO"]:
 		_host_bot_policy.add_item(tr(key))
@@ -1129,10 +1214,14 @@ func _page_host() -> void:
 	_host_mutator.add_item(tr("MUTATOR_RAIL_ONLY"))
 	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
 	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
+	_host_mutator.add_item(tr("MUTATOR_FULL_ARSENAL"))
 	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa"])
-	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives"].find(str(_host_settings.get("mutator", "")))
+	_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
+	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives", "full-arsenal"].find(str(_host_settings.get("mutator", "")))
 	if mutator_index > 0 and not _host_mutator.is_item_disabled(mutator_index):
 		_host_mutator.select(mutator_index)
+	_host_mutator.item_selected.connect(func(_index: int) -> void: _refresh_host_kit())
+	_refresh_host_kit()
 	_host_friendly_fire = CheckButton.new()
 	_host_friendly_fire.name = "HostFriendlyFire"
 	_host_friendly_fire.text = "Friendly Fire"
@@ -1177,6 +1266,10 @@ func _change_host_mode(_index: int) -> void:
 		_host_mutator.set_item_disabled(6, not finite_lives_allowed)
 		if not finite_lives_allowed and _host_mutator.selected == 6:
 			_host_mutator.select(0)
+		_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
+		if _host_selected_mode != "ffa" and _host_mutator.selected == 7:
+			_host_mutator.select(0)
+	_refresh_host_kit()
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	if _host_friendly_fire != null:
 		_host_friendly_fire.visible = _host_selected_mode != "ffa"
@@ -1212,14 +1305,14 @@ func _rebuild_host_maps() -> void:
 		_host_map.add_item("Holdfast Atoll", 7)
 		return
 	if _host_mode.selected == 4:
+		# Larak Lot is the FFA and Duel home; it has no flag stands.
 		_host_map.add_item("Directive 17", 3)
 		_host_map.add_item("Sector 9", 4)
-		_host_map.add_item("Arena Duel", 1)
-		var ctf_maps: Array[int] = [3, 4, 1]
+		var ctf_maps: Array[int] = [3, 4]
 		var sel_idx: int = ctf_maps.find(_host_settings["map_id"])
 		_host_map.select(sel_idx if sel_idx >= 0 else 0)
 		return
-	var names: Array[String] = ["Arena Duel", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
+	var names: Array[String] = ["Larak Lot", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
 	for index: int in names.size():
 		_host_map.add_item(names[index], index + 1)
 	var selected: int = int(_host_settings["map_id"]) - 1
@@ -1235,7 +1328,25 @@ func _selected_mutator() -> String:
 		4: return "rail-only"
 		5: return "fists-only"
 		6: return "two-lives"
+		7: return "full-arsenal"
 	return ""
+
+## What every fresh life holds, said once under the mode: the free-for-all
+## Pistol start, a weapon-only mutator's one gun, or the arena arsenal.
+func _refresh_host_kit() -> void:
+	if _host_kit_hint == null:
+		return
+	var mutator: String = _selected_mutator()
+	var key: String = "HOST_KIT_ARSENAL"
+	match mutator:
+		"rail-only", "shotgun-only", "fists-only":
+			key = "HOST_KIT_ONE_WEAPON"
+		_:
+			if _host_selected_mode == "sabotage":
+				key = "HOST_KIT_SABOTAGE"
+			elif _host_selected_mode == "ffa" and mutator not in ["golden-rail", "full-arsenal"]:
+				key = "HOST_KIT_SIDEARM"
+	_host_kit_hint.text = tr(key)
 
 func _start_host() -> void:
 	var mut: String = _selected_mutator()

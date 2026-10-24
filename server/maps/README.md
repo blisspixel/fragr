@@ -8,6 +8,13 @@ lower the current live floor. Dated receipts retain their exact original source
 and contract. Connected M12 acceptance remains in flight; the M12-M14 test maps
 are separate standalone development slices.
 
+`m19-planned-works.json` is connected level 19, map 1019 (capability 55):
+the evacuation concourse with its stores counter and broken stair, the tram
+street, the striped market and court, the water-tank roof, the reverse roof loop
+over Splice's workshop and the tram trench to the waterworks hatch. The river
+railing is the north map edge. Groups, rosters, the jet hop and every walking
+route are validated in `server/src/maps/authored/m19.rs`.
+
 `test/arc_foundation_development.json` is the separate finite Arc practice map,
 1042, with its source recipe in `tools/author_arc_development.gd`. It places one forty-Cell
 Arc find, ordinary entry Rifle and armor, two bounded medical stocks and three
@@ -28,7 +35,10 @@ stairs converge at records reception; file stacks and a service bypass lead to
 sorting, dispatch, transfer control and the custody lift. Enter with fists, find
 the pistol and the rifle and collect finite campaign supplies. Clerks and
 Sweepers share authoritative attack, hit and death states.
-Enemy artwork and animation remain provisional. The physical transfer record
+Enemy artwork and animation remain provisional. The street canopy covers only
+the annex door, so the service street opens to the sky; its two queue barriers
+and the bay's confiscation bins are registered solids rather than cosmetic
+props. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
 prototype, not a finished M01 or the rescue. Checkpoints are not built.
 

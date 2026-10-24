@@ -213,13 +213,14 @@ func _run() -> void:
 	current_scene.pause_menu.leave_requested.emit()
 	if not await _until(func() -> bool: return _menu() and owned.state == LocalMatch.State.IDLE, "retried M02 child stops"):
 		return
-	# The next mission has no bundled child yet. Preview its read-only layout
-	# with a marked synthetic state, without claiming a server departure.
-	owned.run_preview = {"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION,
+	# Every level now has a bundled child; only the completed campaign's
+	# pending epilogue has none. Preview its read-only layout with a marked
+	# synthetic state, without claiming a server departure.
+	owned.run_preview = {"status": "awaiting_mission", "mission": LocalMatch.CAMPAIGN_COMPLETE,
 		"difficulty": "severe", "continues": 1, "body": PlayerBody.SYNTHETIC}
 	current_scene._show("single")
 	_expect(current_scene._root.get_node_or_null("PersonsUnknownSaved") == null,
-		"pending Scheduled Service has no launch action")
+		"the pending epilogue has no launch action")
 	await _capture("04-m03-pending-layout-mock")
 	await create_timer(0.5).timeout
 	if failures == 0:

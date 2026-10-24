@@ -217,7 +217,7 @@ fn lesson_charge_descent(source: Arc<AuthoredMap>) -> (GameSession, Uuid, String
             .is_some_and(|p| {
                 matches!(
                     p.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Windup,
                         ..
                     })
@@ -236,7 +236,7 @@ fn lesson_charge_descent(source: Arc<AuthoredMap>) -> (GameSession, Uuid, String
         let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
         charged |= matches!(
             enemy.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 phase: EnemyPhase::Charging,
                 ..
             })
@@ -259,50 +259,6 @@ fn m09_real_lesson_charge_descent_counts_once_without_player_frag() {
     assert_eq!(s.state.scores.get(&id).copied().unwrap_or(0), 0);
     advance(&mut s, 20);
     assert_eq!(facts(&s).charge_falls, 1);
-}
-
-#[test]
-fn m09_charge_lesson_original_continuous_guard_and_opening_have_actual_causal_outcomes() {
-    let original = AuthoredMap::read(
-        include_bytes!(
-            "../mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json"
-        )
-        .as_slice(),
-    )
-    .unwrap();
-    let continuous_guard = AuthoredMap::read(
-        include_bytes!(
-            "../mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json"
-        )
-        .as_slice(),
-    )
-    .unwrap();
-    for (label, world, expected_falls) in [
-        ("original", original, 1),
-        ("continuous_guard", continuous_guard, 0),
-        ("opening", map(), 1),
-    ] {
-        let (mut s, id, name) = lesson_charge_descent(world);
-        let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
-        let feet = [enemy.x, enemy.y - PLAYER_FLOOR_Y, enemy.z];
-        eprintln!(
-            "M09 charge {label}: actual feet {feet:?}, HP {}, charge falls {}",
-            enemy.hp,
-            facts(&s).charge_falls
-        );
-        assert_eq!(facts(&s).charge_falls, expected_falls, "{label}");
-        if expected_falls == 1 {
-            assert_eq!(enemy.hp, 0, "{label}: the committed descent is lethal");
-            assert!(feet[1] < 1.5, "{label}: actual four-metre descent");
-        } else {
-            assert!(enemy.hp > 0, "the continuous guard prevents the fall");
-            assert!((feet[1] - 4.0).abs() < crate::movement::CONTACT_EPSILON);
-            assert!(feet[0] <= -18.0 - crate::movement::RADIUS);
-        }
-        assert_eq!(s.state.scores.get(&id).copied().unwrap_or(0), 0);
-        advance(&mut s, 20);
-        assert_eq!(facts(&s).charge_falls, expected_falls);
-    }
 }
 
 #[test]
@@ -435,8 +391,11 @@ fn m09_controller_refuses_stale_world_facts_and_forged_crew_routes() {
     client.observe(s.state.tick, regressed).unwrap();
     assert!(client.observe(s.state.tick, current.clone()).is_err());
     let mut carry = current;
-    carry.m09.as_mut().unwrap().carried_archive =
-        Some(crate::protocol::M08Outcome::HistoricalUnrecorded {});
+    carry.m09.as_mut().unwrap().carried_archive = Some(crate::protocol::M08Outcome {
+        custody_released: true,
+        recovered_mind_secured: false,
+        captives_evacuated: false,
+    });
     assert!(
         client.observe(s.state.tick, carry).is_err(),
         "history cannot appear mid attempt"

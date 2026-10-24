@@ -152,13 +152,23 @@ peers using your LAN address and selected port. Leaving or returning to the
 menu preserves the match; **Stop server** or closing the app ends your owned
 host.
 
-**Benchmark**, on the main menu, times the frames on this computer. It starts
-its own Arena Duel match with ten bots and a fixed camera, on a port this
-computer picks. A server you already left running for other people stays up.
-Vertical sync and the frame cap turn off for the run, then your settings
-return. The score separates fast even frames from hitches and from frames that
-are slow on their own. A live match changes between runs, so compare the frame
-times. The recorded nine-scene showcase is still ahead.
+**Benchmark**, on the main menu, times the frames drawn on this computer. Run
+the current preset (about a minute) or compare all three (about two). It
+records 28 seconds of its own Larak Lot match with ten bots on a port this
+computer picks, then replays that same fight for each preset under an
+automated orbit camera. A server you already left running for other people
+stays up. Vertical sync and the frame cap turn off for the run, then your
+settings return. The match HUD is hidden; the benchmark's own readout names the
+step (recording, warming up, measuring), shows overall progress and a live
+frame rate. Esc cancels and returns to the Benchmark page.
+
+The result leads with average FPS, the 1% low, the 99th percentile frame time
+and frames at 33 ms or more for each preset, then a frame-time timeline.
+Details hold the other percentiles, the system and settings, and the last
+compatible run from your results folder. Run again, Copy summary and Open
+results folder sit beside Back to menu. A new run records a new fight, so
+repeat runs before trusting a small difference. The recorded nine-scene
+showcase is still ahead.
 
 Choose no bots, a fixed count or automatic fill toward a total fighter count.
 Automatic fill gives humans and agents equal priority over eligible filler
@@ -167,7 +177,7 @@ round, watch and try joining at the next round.
 Older releases require a separately started server. The host chooses
 the arena and rules. Spectators, humans, agents and rule bots share the same
 authoritative match. The current release includes free-for-all and team
-deathmatch, six arenas, capture the flag on Arena Duel, Directive 17 and Sector 9,
+deathmatch, six arenas, capture the flag on Directive 17 and Sector 9,
 and Sector 9 Sabotage (plant or defuse a charge, one life per round). The optional
 5v5 Sabotage profile starts fighters with a Pistol and finite Bullets; stronger
 weapons come from the map. See [5v5 host setup](../infra/docs/HOME-LAN.md#optional-5v5-sabotage).
@@ -182,30 +192,57 @@ The client starts as a spectator when joining a multiplayer match. Press **J**
 to join, **L** to return to watching, **F** to change the watched fighter, and
 **V** to cycle eyes, chase and free camera. The match continues when you leave
 the fighter seat. **Esc** opens the match menu. All actions can be rebound in
-**Settings > Controls**; prompts follow the last device used.
+**Settings > Controls**; prompts follow the last device used. Custom controls
+saved for an older default layout are not carried over: the page says so,
+shows the current defaults and keeps them once you save.
 
-| Action | Keyboard only | Keyboard and mouse | Gamepad |
+Xbox and PlayStation pads share one layout; prompts use the names printed on
+the pad in hand (Xbox name first, PlayStation second below).
+
+| Action | Keyboard only | Keyboard and mouse | Gamepad (Xbox / PlayStation) |
 |---|---|---|---|
 | Move | Up and Down | W and S | Left stick |
 | Turn | Left and Right | Mouse, or Q and E | Right stick |
 | Strafe | Alt with arrows, or Comma and Period | A and D | Left stick |
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
-| Center view | End | End | Right stick click |
-| Fire | Right Ctrl | Left mouse | RT |
-| Crouch | Left Ctrl, hold | Left Ctrl, hold | D-pad left, hold |
-| Reload | R | R | D-pad down |
-| Scope | Z, hold | Right mouse or Z, hold | Left stick click |
-| Throw grenade | G | G or middle mouse | LT |
-| Use | Enter | F | B |
-| Jump | Space | Space | A |
-| Campaign continue | Enter | Enter | A after releasing held inputs |
-| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB |
-| Speak | T | T | Y |
-| Join or leave | J or L | J or L | A while watching, or match menu |
-| Spectator fighter and view | F and V | F and V | D-pad right and Y |
-| Radio station, skip track, play or pause | C, N, M | C, N, M | not bound |
-| Match menu | Esc | Esc | Start |
-| Leaderboard, the whole roster | Tab, hold | Tab, hold | Back |
+| Center view | End | End | not bound (rebindable) |
+| Fire | Right Ctrl | Left mouse | RT / R2 |
+| Scope | Z, hold | Right mouse or Z, hold | LT / L2, hold |
+| Jump | Space | Space | A / Cross |
+| Crouch | Left Ctrl, hold | Left Ctrl, hold | B / Circle, hold |
+| Dodge (arena) | Left Shift | Left Shift | not bound (rebindable) |
+| Reload | R | R | X / Square |
+| Use | Enter | F | Y / Triangle |
+| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB / L1 and R1 |
+| Vehicle seat swap | [ and ] | Wheel | LB and RB / L1 and R1 |
+| Throw grenade | G | G or middle mouse | D-pad up |
+| Place mine | B | B | D-pad down |
+| Remote mine, detonate | V, H | V, H | Left stick click, right stick click (LS, RS / L3, R3) |
+| Campaign continue | Enter | Enter | A / Cross after releasing held inputs |
+| Speak | T | T | not bound (rebindable) |
+| Join or leave | J or L | J or L | A / Cross while watching, or match menu |
+| Spectator fighter and view | F and V | F and V | X and Y / Square and Triangle |
+| Radio previous and next station | X and C | X and C | D-pad left and right |
+| Radio skip track | N | N | Hold D-pad right |
+| Radio on or off | M | M | Hold D-pad left |
+| Match menu | Esc | Esc | Menu / Options |
+| Leaderboard, the whole roster | Tab, hold | Tab, hold | View / Create, hold |
+| Menus: choose, back | Enter, Esc | Enter, Esc | A, B / Cross, Circle; D-pad moves |
+
+The radio is background music, like a car radio in a heist film: previous
+and next station wrap through a RADIO OFF stop. A small card at the lower right
+names the station and the song for a few seconds after every change, and
+nothing else of the radio stays on screen during play. The match menu has a
+**Music / Radio** area with the station, the full song title, buttons for every
+radio control with their current bindings, and the music volume. Switching the
+radio back on starts a fresh track; it does not resume inside a song.
+
+The **Announcer** setting, in the match menu and in Settings > Audio, chooses
+which Host calls reach the voice row: **On** (all of them), **Big moments only**
+(the calls the server marks big, listed under Settings below) or **Off**. Off
+also stops the radio dipping for the Host. Frags, objectives and result cards always show.
+Announcer volume sets the Host's own audio bus; the Host's calls are text
+today, so the slider has nothing to play until the voice is recorded.
 
 Hold Tab to list every fighter. While holding the board, use the weapon-cycle
 keys, wheel or controller bumpers to scroll a large roster. The board shows
@@ -221,7 +258,7 @@ In a team match, world nameplates mark
 someone on your side OURS and keep them bright. The other side is marked THEIRS
 and warms toward red. A spectator still reads UNION and FREE on the full plate.
 
-Hold Left Ctrl or D-pad left to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
+Hold Left Ctrl, or B or Circle on a pad, to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
@@ -237,7 +274,7 @@ Railgun and Arc. The Repeater foundation is not granted in current campaign
 maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
-the other guns on the same type. R or D-pad down reloads the gun in hand.
+the other guns on the same type. R, or X or Square on a pad, reloads the gun in hand.
 Under the count, the corner says RELOAD REQUESTED while the press travels,
 RELOADING with a filling bar once the server accepts it, then LOADED. A full
 gun, an empty bag, a melee weapon or a mode without magazines says so instead.
@@ -245,14 +282,20 @@ A swap, death or vehicle seat cancels quietly. The held gun dips while
 reloading and one short sound marks the start and the finish.
 An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
-costs one shell. An arcade human spawns with the rifle, shotgun and railgun
+costs one shell. In free-for-all every life starts with the Pistol (12 in the
+gun, 38 behind it) and Fists. The Rifle, Shotgun and Railgun sit on timed
+pads: walk over one to own it, and it comes up loaded. Walking over a gun you
+already carry adds to the bag without changing what is in your hands. Death
+loses every gun you found; the death card names them, and the next life starts
+on the Pistol four seconds later. In team modes, and in a free-for-all hosted
+with Full Arsenal, an arcade human spawns with the rifle, shotgun and railgun
 already loaded, and a finite bag behind them: 60 more rifle rounds, 18 more
 shells and 12 more rail shots. The corner uses the same gun-then-bag pair.
 Walking over that gun adds a pickup to the bag. Death puts the spawn kit back.
 A weapon-only match still has one gun and no bag to run out of.
 Agents and campaign enemies still spend the single count. Stand near a mission
 panel and aim at it. The prompt under the crosshair names Use: F with a mouse,
-Enter on a keyboard, B on a pad. Q and E turn. Before that aim is true, the
+Enter on a keyboard, Y or Triangle on a pad. Q and E turn. Before that aim is true, the
 same spot says to aim at the panel. An open arena doorway is walked through.
 
 Grenades have a separate count, up to six, and do not replace the selected
@@ -268,7 +311,8 @@ an explicit retry; exhausting the allowance ends the run. **Continue Run**
 reopens the saved mission entry, including body, difficulty, health, armor,
 weapons, ammunition, grenades, mines and remaining continues. It does not resume
 a mid-mission position. Leaving for the menu retains that entry; **Start New
-Run** archives the previous run after confirmation.
+Run** replaces the saved run after confirmation. A save from a different build
+or a damaged file cannot be continued; the menu says which and offers a new run.
 
 Completing each built mission saves the next destination. Episode II refills
 continues once when entering Port of Entry after level 5. Source builds also
@@ -305,24 +349,12 @@ The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 18 saves; desktop v0.75.0 writes version 12.
-Supported historical saves upgrade
-strictly, retaining exact original bytes in a content-addressed
-`run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1
-saves remain incompatible. A changed mission content hash or rules revision can
-also prevent resuming; the old file stays until you choose to archive it.
-The current stair correction registers exact old and replacement map identities
-for levels 8, 9, 10 and 12. An existing entry or pending continue can upgrade
-to its exact installed replacement without changing health, equipment,
-rescues or continues. Its exact original file is archived first. Completed and
-closed history keeps the original map identity.
-
-To recover an archive, close the game, keep a copy of `run.json`, and copy the
-archive back as `run.json`. It must still match the installed mission and rules.
-Keep client and server from the same release. Migration and compatibility
-details belong to the [run file plan](plans/campaign-run-file.md),
-[carry plan](plans/m01-m02-run-carry.md) and
-[Passenger Manifest plan](plans/m09-passenger-manifest-prototype.md).
+A build reads only its own save format. A save from a different build, or one
+whose mission content has since changed, cannot be continued: the menu says so
+and offers a new run, which replaces the old file. A damaged file is reported
+the same way. Saves are never converted between builds. Keep client and server
+from the same release. The format is described under
+[Campaign run file](protocol.md#campaign-run-file).
 
 The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,
@@ -359,12 +391,29 @@ platform achievements. Campaign-completion and gold awards remain planned.
 The boot menu and in-match menu share Controls, Look, Display, Graphics,
 Audio and Accessibility settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, an optional frame counter, sensitivity, stick
-response and separate master, radio and effects levels. The tilde key opens a
+response and separate master, effects, announcer, radio and story voice
+levels. The tilde key opens a
 console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
 counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
-play. Save applies a draft; Cancel discards it. The
+play and in the match menu. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
+
+The Host calls rarely: first blood, a triple frag or more inside three
+seconds, a spree, an ended spree, a comeback, the last one standing, a flag
+capture, a planted charge, match point and sudden death are the big moments.
+A double frag, a lead change, a lifted flag and the golden Railgun are text
+captions only. Voiced calls land at least eight seconds apart, and a caption
+waits eight seconds after any call. Settings > Audio >
+Announcer (also in the match menu) chooses On, Big moments only or
+Off, and Announcer volume sets the Host's own bus. Frags, objectives, results
+and the sudden death chip always show. Host calls are text until the voice is
+recorded; the volume has nothing to play until then.
+
+A clock that runs out level, after somebody has scored, goes to sudden death:
+the clock stops and the next score wins. A room where nobody scores for two
+more minutes ends level. A Sabotage match level after its extra pair plays one
+deciding round instead of a draw.
 
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
 bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,

@@ -116,7 +116,7 @@ fn body(session: &GameSession, id: Uuid) -> &crate::sim::Player {
 
 fn identity(session: &GameSession, id: Uuid) -> (EnemyKind, EnemyPhase, u64, u64) {
     match body(session, id).campaign.unwrap() {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             kind,
             phase,
             phase_started,
@@ -383,7 +383,7 @@ fn aim_outside_the_sniper_cone_misses_a_far_body() {
 }
 
 #[test]
-fn at_fifty_five_metres_the_rail_cone_misses_where_the_sniper_never_does() {
+fn at_fifty_five_metres_a_participant_rail_and_sniper_both_stay_on_a_centred_body() {
     let mut rail_hits = 0;
     let mut sniper_hits = 0;
     const VOLLEY: usize = 60;
@@ -422,10 +422,11 @@ fn at_fifty_five_metres_the_rail_cone_misses_where_the_sniper_never_does() {
         sniper_hits, VOLLEY,
         "the Sniper cone stays on a centred body"
     );
-    assert!(
-        rail_hits < VOLLEY,
-        "the Rail cone leaves the body at 55 m: {rail_hits}/{VOLLEY}"
-    );
+    // A participant's Rail is exact in arena play. The table cone it used to
+    // fire, which a campaign mission still uses, is wider than a body there.
+    assert_eq!(rail_hits, VOLLEY, "a participant Rail is exact");
+    assert!(WeaponType::Rail.spread_radians().tan() * 55.0 > crate::movement::RADIUS);
+    assert!(WeaponType::Sniper.spread_radians().tan() * 55.0 < crate::movement::RADIUS);
 }
 
 #[test]
@@ -694,12 +695,13 @@ fn the_range_validates_requires_capability_and_resets_on_party_wipe() {
 
 #[test]
 fn the_ranged_sweeper_kind_is_strict_on_the_actor_wire() {
-    let actor = CampaignActor::Union {
+    let actor = CampaignActor::Hostile {
         kind: EnemyKind::RangedSweeper,
         phase: EnemyPhase::Windup,
         phase_started: 10,
         phase_ends: 40,
         seated: false,
+        control: Default::default(),
     };
     let value = serde_json::to_value(actor).unwrap();
     assert_eq!(value["kind"], "ranged_sweeper");

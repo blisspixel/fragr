@@ -246,6 +246,7 @@ mod tests {
 
     fn state(attempt: u32) -> MissionState {
         MissionState {
+            m20: None,
             id: MissionId::RecallNotice,
             run: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
@@ -271,6 +272,7 @@ mod tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         }
     }
 

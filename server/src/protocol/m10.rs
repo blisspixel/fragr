@@ -33,8 +33,11 @@ pub struct M10MapGeometry {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum M10Transit {
-    Recorded { arrived_crew: Vec<String> },
-    HistoricalUnrecorded {},
+    Recorded {
+        arrived_crew: Vec<String>,
+    },
+    /// Practice play without a campaign run has no berth to carry from.
+    Unlinked {},
 }
 
 impl M10Transit {

@@ -49,8 +49,20 @@ func _check_parse() -> void:
 	_check(ffa.get("mutators") == [] and ffa.get("lives") == 0 and not MatchRules.teams(ffa), "plain ffa parses with defaults")
 	for bad: Variant in [null, "tdm", {}, {"mode": "unknown"}, {"mode": 1}, {"mode": "ffa", "mutators": "rail-only"},
 			{"mode": "ffa", "friendly_fire": "yes"}, {"mode": "ffa", "lives": 0}, {"mode": "ffa", "lives": 1.5},
-			{"mode": "ffa", "lives": 99}, {"mode": "ffa", "lives": "2"}]:
+			{"mode": "ffa", "lives": 99}, {"mode": "ffa", "lives": "2"}, {"mode": "ffa", "start_kit": "tack"},
+			{"mode": "ffa", "start_kit": ["tack", "tack"]}, {"mode": "ffa", "start_kit": ["pistol"]}, {"mode": "ffa", "start_kit": [3]}]:
 		_check(MatchRules.parse(bad).is_empty(), "malformed rules are refused: " + str(bad))
+	# The start kit: what a fresh life holds, and so what a death costs.
+	var scrap: Dictionary = MatchRules.parse({"mode": "ffa", "name": "Free-for-all", "start_kit": ["fists", "tack"]})
+	_check(scrap.get("start_kit") == ["fists", "tack"], "the free-for-all kit parses: " + str(scrap.get("start_kit")))
+	_check(MatchRules.lost_at_death(scrap, ["fists", "tack", "rail", "flechette"]) == ["flechette", "rail"], "found guns are lost, in wire order")
+	_check(MatchRules.lost_at_death(scrap, ["fists", "tack"]) == [], "the kit itself is never lost")
+	_check(MatchRules.lost_at_death({}, ["rail"]) == [], "a campaign map names no loss")
+	var arsenal: Dictionary = MatchRules.parse({"mode": "ffa", "mutators": ["full-arsenal"], "start_kit": ["flechette", "scatter", "rail"]})
+	_check(arsenal.get("mutators") == ["full-arsenal"], "full arsenal is a known mutator")
+	_check(MatchRules.lost_at_death(arsenal, ["flechette", "scatter", "rail"]) == [], "an arsenal life loses nothing")
+	_check(MatchRules.chip_text(arsenal) == "FREE FOR ALL // FULL ARSENAL", "full arsenal chip: " + MatchRules.chip_text(arsenal))
+	_check(MatchRules.weapon_list(["flechette", "rail"]) == "RIFLE + RAILGUN", "player names, not wire ids: " + MatchRules.weapon_list(["flechette", "rail"]))
 
 
 func _check_labels() -> void:
@@ -74,7 +86,10 @@ func _check_labels() -> void:
 	_check(MatchRules.team_label_color("union") == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition") == MatchRules.COALITION_LABEL, "side colours")
 	_check(MatchRules.team_label_color("union", true) == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition", true) == Color("e8e2d6"), "high contrast side colours")
 	_check(MatchRules.team_shape_mark("union") == "■" and MatchRules.team_shape_mark("coalition") == "□" and MatchRules.team_shape_mark("") == "", "shape marks for sides")
-	_check(MatchRules.team_body_color("union").get_luminance() < MatchRules.team_body_color("coalition").get_luminance(), "Union plate darker than coalition bone")
+	var free_pole: Color = MatchRules.team_body_color("coalition")
+	_check(not FactionPalette.is_off_white(free_pole) and free_pole.get_luminance() < 0.6 and free_pole.r > free_pole.b,
+		"the free flag pole is worn leather, never bone: " + free_pole.to_html(false))
+	_check(FactionPalette.free_accent_allowed(MatchRules.COALITION_LABEL), "the free cloth is a non-reserved warm accent")
 
 
 func _check_reactions() -> void:
@@ -88,8 +103,26 @@ func _check_reactions() -> void:
 	_check(first == "HOST: FIRST BLOOD. DEAD AIR DAN. SOMEBODY HAD TO.", "first blood line: " + first)
 	var comeback: String = MatchRules.reaction_line({"kind": "comeback", "variant": 0, "team": "coalition"})
 	_check(comeback == "HOST: THE FREE COALITION CLAWS IT BACK. LEVEL GAME.", "comeback names the side: " + comeback)
+	for variant: int in range(MatchRules.REACTION_VARIANTS):
+		var special: String = MatchRules.reaction_line({"kind": "larak_lot_special", "variant": variant, "player": "Nightfall"})
+		_check(special.contains("THE LARAK LOT SPECIAL"), "the frag spike keeps the league's own name: " + special)
 	for bad: Dictionary in [{}, {"kind": "ace"}, {"kind": "first_blood", "variant": 3}, {"kind": "first_blood", "variant": -1}, {"kind": 4}]:
 		_check(MatchRules.reaction_line(bad) == "", "unknown reactions stay silent: " + str(bad))
+	# A side call keys its own words, so no line names an empty fighter.
+	for kind: String in MatchRules.SIDE_REACTIONS:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			var side: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "team": "union"})
+			_check(side.contains("UNION") and not side.contains("  ") and not side.contains(" ."), "side call names the side: " + side)
+	var point: String = MatchRules.reaction_line({"kind": "match_point", "variant": 0, "team": "coalition"})
+	_check(point == "HOST: MATCH POINT! THE FREE COALITION!", "side match point: " + point)
+	var triple: String = MatchRules.reaction_line({"kind": "triple_frag", "variant": 0, "player": "Nightfall", "big": true})
+	_check(triple == "HOST: TRIPLE FRAG! NIGHTFALL!", "triple frag caption keeps the name: " + triple)
+	_check(MatchRules.reaction_big({"big": true}) and not MatchRules.reaction_big({"big": 1}) and not MatchRules.reaction_big({}), "only a true flag is a big moment")
+	# Canon: the Host never sells the station inside a match call.
+	for kind: String in MatchRules.REACTIONS:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			var line: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "player": "A", "other": "B", "team": "union"}).to_upper()
+			_check(not line.contains("FREQUENCY") and not line.contains("TUNES IN"), "no station puns: " + line)
 
 
 func _check_hud() -> void:
@@ -120,7 +153,7 @@ func _check_hud() -> void:
 	_check(lines[1] == "1.*[FREE] Nightfall [DEF]: 4", "leader row carries the side chip: " + lines[1])
 	_check(lines[2] == "2. [UNION] Dead Air Dan: 2", "second row: " + lines[2])
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ctf", "mutators": []}))
-	hud.call("set_league_identity", "Contested Frequency", "Arena Duel")
+	hud.call("set_league_identity", "Scrap League", "Arena Duel")
 	var league_line: String = hud.get("mode_label").text
 	_check(league_line == "CAPTURE THE FLAG", "ctf names its actual mode without the older arena playlist: " + league_line)
 	var flags: Array = [
@@ -169,6 +202,9 @@ func _check_hud() -> void:
 	hud.call("set_fp_carried_flag", "coalition")
 	_check(pennant.visible and pennant_words.text == "FREE FLAG", "coalition pennant uses the free words: " + pennant_words.text)
 	_check((pennant.get_node("Cloth") as ColorRect).color == MatchRules.COALITION_LABEL, "coalition pennant uses the free cloth")
+	var free_staff: Color = (pennant.get_node("Pole") as ColorRect).color
+	_check(free_staff == MatchRules.COALITION_BODY and not FactionPalette.is_off_white(free_staff),
+		"coalition pennant staff is leather, not bone: " + free_staff.to_html(false))
 	hud.call("set_fp_carried_flag", "office")
 	_check(not pennant.visible, "an unknown side does not invent a pennant")
 	hud.call("set_fp_carried_flag", "union")
@@ -344,14 +380,13 @@ func _check_pawn() -> void:
 	state["team"] = "coalition"
 	pawn.call("update_state", state, 2)
 	_check(pawn.get("player_color") == MatchRules.COALITION_LABEL, "a moved fighter changes colour")
-	_check(body.modulate.get_luminance() > 0.85, "coalition body reads bone: " + str(body.modulate))
+	_check(body.modulate == Color.WHITE, "a legacy coalition fighter keeps its own art, never washed to bone: " + str(body.modulate))
 	pawn.set_team_relation("mate")
-	_check(label.text == "OURS" and label.modulate == MatchRules.OURS_MARK, "a teammate is marked OURS: " + label.text)
-	_check(body.modulate.get_luminance() > 0.9, "a teammate stays bright: " + str(body.modulate))
-	pawn.body_kind = "clerk"
+	_check(label.text == "OURS" and label.modulate == MatchRules.COALITION_LABEL, "a teammate is marked OURS in its side colour: " + label.text)
+	_check(body.modulate == Color.WHITE, "a teammate is not tinted: " + str(body.modulate))
 	pawn.set_team_relation("foe")
-	_check(label.text == "THEIRS" and body.modulate.r > body.modulate.g, "the other side warms red on its own body: " + str(body.modulate))
-	pawn.body_kind = ""
+	_check(label.text == "THEIRS" and label.modulate == MatchRules.COALITION_LABEL and body.modulate == Color.WHITE,
+		"a free foe is never tinted or plated Union red: " + str(body.modulate))
 	pawn.set_team_relation("")
 	_check(label.text.begins_with("[FREE]"), "clearing the mark restores the side chip: " + label.text)
 	state.erase("team")

@@ -195,8 +195,29 @@ pub(super) fn build() -> MapDef {
             health_pad("east_aid", 128.0, -32.0, 0.0),
             armor_pad("airfield_supplies", 0.0, -92.0, 0.0),
         ],
+        // Free-for-all: one gun beside each run of coastal bays.
+        scrap_pads: vec![
+            weapon_pad(
+                "bay_flechette_sw",
+                WeaponType::Flechette,
+                -135.0,
+                -100.0,
+                0.0,
+            ),
+            weapon_pad(
+                "bay_flechette_se",
+                WeaponType::Flechette,
+                135.0,
+                -100.0,
+                0.0,
+            ),
+            weapon_pad("bay_scatter_w", WeaponType::Scatter, -140.0, -10.0, 0.0),
+            weapon_pad("bay_scatter_e", WeaponType::Scatter, 140.0, -10.0, 0.0),
+            weapon_pad("bay_flechette_nw", WeaponType::Flechette, -135.0, 90.0, 0.0),
+            weapon_pad("bay_flechette_ne", WeaponType::Flechette, 135.0, 90.0, 0.0),
+        ],
     };
-    for pickup in &mut map.pickups {
+    for pickup in map.pickups.iter_mut().chain(map.scrap_pads.iter_mut()) {
         pickup.floor += LAND_HEIGHT;
         pickup.y += LAND_HEIGHT;
     }

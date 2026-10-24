@@ -93,8 +93,9 @@ Every fighter for themselves. Frag limit and clock. Unchanged, now named `ffa`.
 
 ### Team deathmatch, this PR
 
-- **Sides:** the Union (black and red) against the free coalition (bone,
-  leather and ember, per [ART_STORY_BIBLE.md](../ART_STORY_BIBLE.md)). Wire ids
+- **Sides:** the Union (issued black and red livery) against the free
+  coalition (personal colour under a warm amber team accent, per the
+  [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)). Wire ids
   `union` and `coalition`.
 - **Balance:** every join, human, agent or rule bot, goes through the same
   `add_player` and lands on the smaller side (ties go to the side with fewer
@@ -110,8 +111,10 @@ Every fighter for themselves. Frag limit and clock. Unchanged, now named `ffa`.
 - **Score and win:** a frag of an enemy adds one to the killer and one to the
   side. First side to the limit wins; at the clock the higher side wins, or the
   round is a draw. `round_end` carries `winning_team` and `team_scores`.
-- **Weapons** respawn every 30 s in team modes (12 s in free-for-all), the
-  rule sheet's slower team clock.
+- **Weapons** respawn every 30 s in team modes, the rule sheet's slower team
+  clock. Free-for-all (2026-10-23) runs 15 s for the Rifle and Shotgun, 25 s
+  for the Railgun and 25 s for health and armour, because every life starts on
+  the Pistol and Fists.
 - **Presentation:** team-coloured fighters and nameplate chips, a team score
   line and team-tagged scoreboard rows, killfeed names in team colours, a team
   chip beside the followed fighter for spectators.
@@ -131,6 +134,7 @@ Each is one small server rule, shown in the mode chip.
 | Licence to Kill | Any hit that deals damage kills. |
 | Golden Rail | One golden Railgun sits on the map's Railgun pad (the centre when a map has none). Its holder's Railgun kills in one hit, the holder glows gold and the Host names them. When the holder dies or leaves, it returns to its pad. |
 | Two Lives | Each fighter has two lives per round. A fighter out of lives watches until the round ends. The last fighter (or side) with a life left wins the round. A fighter who joins a live round enters with one life. |
+| Full Arsenal | Free-for-all only (2026-10-23): every life starts with the Rifle, Shotgun and Railgun instead of the Pistol and Fists, and weapon pads restock. The custom host rule for the old start; also the CPU benchmark fixture. |
 
 Two Lives changes the round's end, so it also turns off the mid-round
 Compliance Drone for that server: a boss that can spend everybody's last life

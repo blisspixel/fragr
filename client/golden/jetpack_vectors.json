@@ -1,0 +1,5863 @@
+{
+  "version": 1,
+  "dt": 0.05,
+  "fuel_max": 60,
+  "refill_per_tick": 3,
+  "thrust": 34.0,
+  "max_rise": 4.5,
+  "cases": [
+    {
+      "name": "tap_is_an_ordinary_jump",
+      "arena": {
+        "half": 30.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 60,
+      "ceiling": 9.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.07,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 3.7000003,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 2.6000004,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2750001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 1.5000004,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2950001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.40000033,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2600001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.6999997,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.1700001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.7999997,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.0250001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -2.8999996,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.8250001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -3.9999995,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.5700002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -5.0999994,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.2600002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -6.1999993,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        }
+      ]
+    },
+    {
+      "name": "burn_to_empty_then_refill",
+      "arena": {
+        "half": 30.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 60,
+      "ceiling": 9.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 59,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 58,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.11,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.335,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 56,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.5600001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 55,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.7850001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.01,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 53,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.235,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 52,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.4599998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.6849997,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 50,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9099996,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 49,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.1349995,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.3599994,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 47,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.5849993,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 46,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.8099992,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.0349994,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 44,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.2599993,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 43,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.484999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.709999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 41,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.934999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 40,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.159999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.384999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 38,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.6099987,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 37,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.8349986,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 36,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.0599985,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 35,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.2849984,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 34,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.5099983,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 33,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.734998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 32,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.959998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 31,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.184998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 30,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.409998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 29,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.634998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 28,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.8599977,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 27,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.084998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 26,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.3099985,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 25,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.534999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 24,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.759999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 23,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.985,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 22,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 21,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 21,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 20,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 19,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 18,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 17,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 17,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 16,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 15,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 14,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 13,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 13,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 12,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 11,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 10,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 9,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 9,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 8,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 7,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 6,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 5,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 5,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 4,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 3,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 2,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 9.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 1,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 1,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.92,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.84,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.6,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.705,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -2.7,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.515,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -3.8000002,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 8.27,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -4.9,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.9700003,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -6.0,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.6150002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -7.1,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 7.2050004,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -8.2,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.7400002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -9.3,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 6.2200003,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -10.400001,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.6450005,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -11.500001,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 5.0150003,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -12.600001,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 4.3300004,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -13.700002,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.5900002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -14.800002,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.795,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -15.9000025,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.9449999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -17.000002,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.0399997,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -18.100002,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.079999566,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -19.200003,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 3,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 6,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 9,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 12,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 15,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 18,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 21,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 24,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 27,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 30,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 33,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 36,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        }
+      ]
+    },
+    {
+      "name": "flight_onto_gallery",
+      "arena": {
+        "half": 30.0,
+        "solids": [
+          {
+            "min_x": 5.0,
+            "max_x": 23.0,
+            "min_z": -4.0,
+            "max_z": 4.0,
+            "top": 4.5
+          }
+        ]
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 60,
+      "ceiling": 9.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.25,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.5,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 59,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.75,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 58,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 1.0,
+            "z": 0.0,
+            "y": 1.11,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 1.25,
+            "z": 0.0,
+            "y": 1.335,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 56,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 1.5,
+            "z": 0.0,
+            "y": 1.5600001,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 55,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 1.75,
+            "z": 0.0,
+            "y": 1.7850001,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 2.0,
+            "z": 0.0,
+            "y": 2.01,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 53,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 2.25,
+            "z": 0.0,
+            "y": 2.235,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 52,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 2.5,
+            "z": 0.0,
+            "y": 2.4599998,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 2.75,
+            "z": 0.0,
+            "y": 2.6849997,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 50,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 3.0,
+            "z": 0.0,
+            "y": 2.9099996,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 49,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 3.25,
+            "z": 0.0,
+            "y": 3.1349995,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 3.5,
+            "z": 0.0,
+            "y": 3.3599994,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 47,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 3.75,
+            "z": 0.0,
+            "y": 3.5849993,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 46,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.0,
+            "z": 0.0,
+            "y": 3.8099992,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.25,
+            "z": 0.0,
+            "y": 4.0349994,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 44,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.25,
+            "z": 0.0,
+            "y": 4.2599993,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 43,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.25,
+            "z": 0.0,
+            "y": 4.484999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.25,
+            "z": 0.0,
+            "y": 4.709999,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 41,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.5,
+            "z": 0.0,
+            "y": 4.934999,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 40,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 4.75,
+            "z": 0.0,
+            "y": 5.159999,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 5.0,
+            "z": 0.0,
+            "y": 5.329999,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 3.4,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 5.25,
+            "z": 0.0,
+            "y": 5.4449987,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 2.3000002,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 5.5,
+            "z": 0.0,
+            "y": 5.5049987,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 1.2000002,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 5.75,
+            "z": 0.0,
+            "y": 5.509999,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.10000014,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 6.0,
+            "z": 0.0,
+            "y": 5.4599986,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": -0.9999999,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 6.25,
+            "z": 0.0,
+            "y": 5.3549986,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": -2.1,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 6.5,
+            "z": 0.0,
+            "y": 5.1949987,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": -3.1999998,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 6.75,
+            "z": 0.0,
+            "y": 4.9799986,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": -4.2999997,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 7.0,
+            "z": 0.0,
+            "y": 4.7099986,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": -5.3999996,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 7.25,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 7.5,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 7.75,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 8.0,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 8.25,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 8.5,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 8.75,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 9.0,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 9.25,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 9.5,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 9.75,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 10.0,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 10.25,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 10.5,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 10.75,
+            "z": 0.0,
+            "y": 4.5,
+            "vx": 5.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        }
+      ]
+    },
+    {
+      "name": "head_strike_under_slab",
+      "arena": {
+        "half": 30.0,
+        "solids": [
+          {
+            "min_x": -3.0,
+            "max_x": 3.0,
+            "min_z": -3.0,
+            "max_z": 3.0,
+            "bottom": 4.0,
+            "top": 4.4
+          }
+        ]
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 60,
+      "ceiling": 9.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 59,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 58,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.11,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.335,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 56,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.5600001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 55,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.7850001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.01,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 53,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 52,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 50,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 49,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 47,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 46,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 44,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 43,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 41,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 40,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 38,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 37,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 36,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 35,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 34,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 33,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 32,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 31,
+          "thrusting": true
+        }
+      ]
+    },
+    {
+      "name": "authored_ceiling",
+      "arena": {
+        "half": 30.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 60,
+      "ceiling": 3.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 60,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 59,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 58,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.11,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 57,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.335,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 56,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.5600001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 55,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.7850001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 54,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.01,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 53,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.235,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 52,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.4599998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 51,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.6849997,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 50,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9099996,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.5,
+            "yaw": 0.0
+          },
+          "fuel": 49,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 48,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 47,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 46,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 45,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 44,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 44,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 43,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 42,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 41,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 40,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 40,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 39,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 38,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 37,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 36,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 36,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 35,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 34,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 33,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 32,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 32,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 31,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.925,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.100000024,
+            "yaw": 0.0
+          },
+          "fuel": 30,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.96,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.70000005,
+            "yaw": 0.0
+          },
+          "fuel": 29,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 3.0,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.0,
+            "yaw": 0.0
+          },
+          "fuel": 28,
+          "thrusting": true
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.945,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.1,
+            "yaw": 0.0
+          },
+          "fuel": 28,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 2.9199998,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.5,
+            "yaw": 0.0
+          },
+          "fuel": 27,
+          "thrusting": true
+        }
+      ]
+    },
+    {
+      "name": "empty_pack_cannot_lift",
+      "arena": {
+        "half": 30.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "fuel": 0,
+      "ceiling": 9.0,
+      "speed": 5.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "expected": [
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.35,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 7.0,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.645,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 5.9,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.885,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 4.8,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.07,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 3.7000003,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 2.6000004,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2750001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 1.5000004,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2950001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": 0.40000033,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.2600001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -0.6999997,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.1700001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -1.7999997,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 1.0250001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -2.8999996,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.8250001,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -3.9999995,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        },
+        {
+          "state": {
+            "x": 0.0,
+            "z": 0.0,
+            "y": 0.5700002,
+            "vx": 0.0,
+            "vz": 0.0,
+            "vy": -5.0999994,
+            "yaw": 0.0
+          },
+          "fuel": 0,
+          "thrusting": false
+        }
+      ]
+    }
+  ]
+}

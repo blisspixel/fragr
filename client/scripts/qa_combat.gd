@@ -144,7 +144,7 @@ static func visible_target(snapshot: Dictionary, player_id: String, solids: Arra
 	var distance: float = max_distance * max_distance
 	for actor: Dictionary in snapshot.get("players", []):
 		# The campaign has both Union hostiles and a free companion.
-		if not ActorState.is_union(actor) or int(actor["hp"]) <= 0:
+		if not ActorState.is_hostile(actor) or int(actor["hp"]) <= 0:
 			continue
 		if not allowed_names.is_empty() and actor.get("name", "") not in allowed_names:
 			continue
@@ -203,7 +203,7 @@ func _observe(snapshot: Dictionary) -> void:
 		participant_died = true
 	_track_first_crawler_leap(snapshot, participant)
 	for actor: Dictionary in snapshot.get("players", []):
-		if not ActorState.is_union(actor):
+		if not ActorState.is_hostile(actor):
 			continue
 		if int(actor["hp"]) <= 0 and actor.has("name") and not confirmed_deaths.has(str(actor["name"])):
 			confirmed_deaths[str(actor["name"])] = tick
@@ -236,7 +236,7 @@ func _observe(snapshot: Dictionary) -> void:
 					"weapon": str(trace.get("weapon", "")), "target_id": str(shot.get("target_id", "")),
 					"target": str(shot.get("target", "")), "hit": shot.get("hit") == true,
 					"damage": int(shot.get("damage", 0)), "killed": shot.get("killed") == true})
-			elif not shooter.is_empty() and ActorState.is_union(shooter) \
+			elif not shooter.is_empty() and ActorState.is_hostile(shooter) \
 				and (_kind == "union" or shooter["campaign"]["kind"] == _kind):
 				enemy_shots += 1
 
@@ -364,7 +364,7 @@ static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, 
 	var arena: Dictionary = {"half": half, "solids": solids}
 	var input: Dictionary = MoveStep.make_input(false, false, left, not left, yaw)
 	for _step: int in range(8):
-		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		if peers.is_empty():
 			body = proposed
 		else:
@@ -527,7 +527,7 @@ static func valid_approach_focus(spec: Dictionary) -> bool:
 
 static func approach_focus_point(snapshot: Dictionary, name: String) -> Vector3:
 	for actor: Dictionary in snapshot.get("players", []):
-		if actor.get("name") == name and ActorState.is_union(actor) and int(actor.get("hp", 0)) > 0:
+		if actor.get("name") == name and ActorState.is_hostile(actor) and int(actor.get("hp", 0)) > 0:
 			return Vector3(float(actor.x), float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + AimAssist.BODY_HEIGHT * 0.5, float(actor.z))
 	return Vector3.INF
 
@@ -706,7 +706,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var approach_index: int = 0
 	# A corpse from the preceding room cannot satisfy this encounter's claim.
 	for actor: Dictionary in manager.get("latest_snapshot").get("players", []):
-		if ActorState.is_union(actor) and int(actor["hp"]) <= 0:
+		if ActorState.is_hostile(actor) and int(actor["hp"]) <= 0:
 			_initial_dead[str(actor["id"])] = true
 	while Time.get_ticks_msec() < deadline and alive and not participant_died:
 		var control_now: int = Time.get_ticks_msec()

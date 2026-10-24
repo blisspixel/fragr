@@ -1,10 +1,22 @@
 {
-  "version": 1,
+  "version": 3,
   "dt": 0.05,
-  "top_speed": 5.0,
+  "constants": {
+    "radius": 0.5,
+    "top_speed": 6.0,
+    "ground_accel": 15.0,
+    "friction": 12.0,
+    "stop_speed": 2.0,
+    "air_accel": 2.0,
+    "air_speed_cap": 7.5,
+    "gravity": 22.0,
+    "jump_speed": 7.0,
+    "dodge_speed": 9.0,
+    "dodge_up": 3.5
+  },
   "cases": [
     {
-      "name": "instant_start_stop",
+      "name": "start_and_stop",
       "arena": {
         "half": 25.0,
         "solids": []
@@ -18,8 +30,17 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
         {
           "forward": true,
           "back": false,
@@ -114,52 +135,79 @@
       "stride": 1,
       "expected": [
         {
-          "x": 0.25,
+          "x": 0.22500001,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 4.5,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.5,
+          "x": 0.52500004,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.75,
+          "x": 0.82500005,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 1.0,
+          "x": 1.125,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 1.25,
+          "x": 1.425,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 1.25,
+          "x": 1.7249999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.8449999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.3999999,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.8929999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 0.95999986,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.8929999,
           "z": 0.0,
           "y": 0.0,
           "vx": 0.0,
@@ -168,7 +216,7 @@
           "yaw": 0.0
         },
         {
-          "x": 1.25,
+          "x": 1.8929999,
           "z": 0.0,
           "y": 0.0,
           "vx": 0.0,
@@ -177,26 +225,264 @@
           "yaw": 0.0
         },
         {
-          "x": 1.25,
+          "x": 1.8929999,
           "z": 0.0,
           "y": 0.0,
           "vx": 0.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "counter_strafe",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 6.0,
+      "inputs": [
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
         },
         {
-          "x": 1.25,
-          "z": 0.0,
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": -9.8350625e-9,
+          "z": 0.22500001,
           "y": 0.0,
-          "vx": 0.0,
-          "vz": 0.0,
+          "vx": -1.9670125e-7,
+          "vz": 4.5,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 1.25,
-          "z": 0.0,
+          "x": -2.2948479e-8,
+          "z": 0.52500004,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -3.6061895e-8,
+          "z": 0.82500005,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -4.9175313e-8,
+          "z": 1.125,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -6.228873e-8,
+          "z": 1.425,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -7.540214e-8,
+          "z": 1.7249999,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -9.048257e-8,
+          "z": 1.6199999,
+          "y": 0.0,
+          "vx": -3.0160857e-7,
+          "vz": -2.1000001,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.0634981e-7,
+          "z": 1.3529999,
+          "y": 0.0,
+          "vx": -3.1734467e-7,
+          "vz": -5.34,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.2114174e-7,
+          "z": 1.053,
+          "y": 0.0,
+          "vx": -2.9583867e-7,
+          "vz": -6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.2705851e-7,
+          "z": 0.93299997,
+          "y": 0.0,
+          "vx": -1.18335464e-7,
+          "vz": -2.3999999,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.2942522e-7,
+          "z": 0.885,
+          "y": 0.0,
+          "vx": -4.7334183e-8,
+          "vz": -0.95999986,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.2942522e-7,
+          "z": 0.885,
+          "y": 0.0,
+          "vx": -0.0,
+          "vz": -0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.2942522e-7,
+          "z": 0.885,
           "y": 0.0,
           "vx": 0.0,
           "vz": 0.0,
@@ -220,7 +506,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": true,
@@ -298,74 +584,74 @@
       "stride": 1,
       "expected": [
         {
-          "x": -0.06470477,
-          "z": 0.24148145,
+          "x": -0.058234286,
+          "z": 0.21733332,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.1646857,
+          "vz": 4.3466663,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.12940954,
-          "z": 0.4829629,
+          "x": -0.13588001,
+          "z": 0.5071111,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529144,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.1941143,
-          "z": 0.7244444,
+          "x": -0.21352571,
+          "z": 0.7968888,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.25881907,
-          "z": 0.9659258,
+          "x": -0.29117143,
+          "z": 1.0866666,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.32352385,
-          "z": 1.2074072,
+          "x": -0.36881715,
+          "z": 1.3764443,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.38822863,
-          "z": 1.4488887,
+          "x": -0.44646287,
+          "z": 1.6662221,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.4529334,
-          "z": 1.6903701,
+          "x": -0.5241086,
+          "z": 1.9559999,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         },
         {
-          "x": -0.51763815,
-          "z": 1.9318515,
+          "x": -0.6017543,
+          "z": 2.2457776,
           "y": 0.0,
-          "vx": -1.2940953,
-          "vz": 4.829629,
+          "vx": -1.5529143,
+          "vz": 5.795555,
           "vy": 0.0,
           "yaw": 1.0471976
         }
@@ -408,7 +694,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": true,
@@ -558,146 +844,146 @@
       "stride": 1,
       "expected": [
         {
-          "x": 4.476777,
-          "z": -1.8232234,
+          "x": 4.4590993,
+          "z": -1.840901,
           "y": 0.0,
-          "vx": 3.535534,
-          "vz": 3.535534,
+          "vx": 3.1819804,
+          "vz": 3.1819804,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 4.653554,
-          "z": -1.6464467,
+          "x": 4.6712313,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
-          "vz": 3.535534,
+          "vx": 4.2426405,
+          "vz": 4.2426405,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 4.830331,
-          "z": -1.6464467,
+          "x": 4.8833632,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 4.2426405,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.0071077,
-          "z": -1.6464467,
+          "x": 5.127315,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 4.8790364,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.1838846,
-          "z": -1.6464467,
+          "x": 5.3839946,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.1335945,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.3606615,
-          "z": -1.6464467,
+          "x": 5.6457653,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.2354183,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.5374384,
-          "z": -1.6464467,
+          "x": 5.9095726,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.276148,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.7142153,
-          "z": -1.6464467,
+          "x": 6.1741943,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.2924395,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.890992,
-          "z": -1.6464467,
+          "x": 6.439142,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.298956,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.067769,
-          "z": -1.6464467,
+          "x": 6.7042203,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.301563,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.244546,
-          "z": -1.6464467,
+          "x": 6.969351,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.3026056,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.421323,
-          "z": -1.6464467,
+          "x": 7.234502,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.3030224,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.5980997,
-          "z": -1.6464467,
+          "x": 7.4996614,
+          "z": -1.628769,
           "y": 0.0,
-          "vx": 3.535534,
+          "vx": 5.3031893,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.7748766,
-          "z": -1.6464467,
+          "x": 7.7648244,
+          "z": -1.46967,
           "y": 0.0,
-          "vx": 3.535534,
-          "vz": 0.0,
+          "vx": 5.303256,
+          "vz": 3.1819804,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.9516535,
-          "z": -1.6464467,
+          "x": 7.998169,
+          "z": -1.2787508,
           "y": 0.0,
-          "vx": 3.535534,
-          "vz": 0.0,
+          "vx": 4.666896,
+          "vz": 3.8183856,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 7.1284304,
-          "z": -1.6464467,
+          "x": 8.218786,
+          "z": -1.0751039,
           "y": 0.0,
-          "vx": 3.535534,
-          "vz": 0.0,
+          "vx": 4.4123425,
+          "vz": 4.0729384,
           "vy": 0.0,
           "yaw": 0.0
         }
@@ -775,7 +1061,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": true,
@@ -1285,127 +1571,127 @@
       "stride": 4,
       "expected": [
         {
-          "x": 1.0,
+          "x": 1.125,
           "z": 0.0,
           "y": 0.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 2.0,
+          "x": 2.3249998,
           "z": 0.0,
           "y": 0.5,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 3.0,
-          "z": 0.0,
-          "y": 0.5,
-          "vx": 5.0,
-          "vz": 0.0,
-          "vy": 0.0,
-          "yaw": 0.0
-        },
-        {
-          "x": 4.0,
+          "x": 3.5249996,
           "z": 0.0,
           "y": 1.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 5.0,
+          "x": 4.725,
           "z": 0.0,
           "y": 1.5,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 6.0,
+          "x": 5.9250007,
           "z": 0.0,
           "y": 2.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 7.0,
+          "x": 7.1250014,
           "z": 0.0,
           "y": 2.5,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 8.0,
+          "x": 8.325002,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 9.0,
+          "x": 9.5250025,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 10.0,
+          "x": 10.725003,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 11.0,
+          "x": 11.925004,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 12.0,
+          "x": 13.125005,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 13.0,
+          "x": 14.325006,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 14.0,
+          "x": 15.525006,
           "z": 0.0,
           "y": 3.0,
-          "vx": 5.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 16.425005,
+          "z": 0.0,
+          "y": 3.0,
+          "vx": 0.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
@@ -1484,7 +1770,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": false,
@@ -1707,110 +1993,110 @@
       "expected": [
         {
           "x": 12.0,
-          "z": 0.5,
+          "z": 0.52500004,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 1.0,
+          "z": 1.125,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 1.5,
+          "z": 1.7249999,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 2.0,
+          "z": 2.3249998,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 2.5,
+          "z": 2.9249997,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 3.0,
+          "z": 3.5249996,
           "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
           "x": 12.0,
-          "z": 3.5,
-          "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
+          "z": 4.1249995,
+          "y": 2.945,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": -1.1,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 4.725,
+          "y": 2.67,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": -3.3000002,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 5.3250003,
+          "y": 2.175,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": -5.5,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 5.9250007,
+          "y": 1.4599999,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": -7.7,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 6.525001,
+          "y": 0.52499986,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": -9.900001,
+          "yaw": 0.0
+        },
+        {
+          "x": 12.0,
+          "z": 7.1250014,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
           "vy": 0.0,
-          "yaw": 0.0
-        },
-        {
-          "x": 12.0,
-          "z": 4.0,
-          "y": 3.0,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
-          "vy": 0.0,
-          "yaw": 0.0
-        },
-        {
-          "x": 12.0,
-          "z": 4.5,
-          "y": 2.835,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
-          "vy": -2.2,
-          "yaw": 0.0
-        },
-        {
-          "x": 12.0,
-          "z": 5.0,
-          "y": 2.45,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
-          "vy": -4.4,
-          "yaw": 0.0
-        },
-        {
-          "x": 12.0,
-          "z": 5.5,
-          "y": 1.8449999,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
-          "vy": -6.6,
-          "yaw": 0.0
-        },
-        {
-          "x": 12.0,
-          "z": 6.0,
-          "y": 1.0199999,
-          "vx": -2.1855695e-7,
-          "vz": 5.0,
-          "vy": -8.8,
           "yaw": 0.0
         }
       ]
@@ -1830,7 +2116,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": false,
@@ -2126,6 +2412,2058 @@
       ]
     },
     {
+      "name": "air_steer",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 6.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": true,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.22500001,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 4.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.52500004,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.82500005,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.425,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.7249999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 2.0249999,
+          "z": 0.0,
+          "y": 0.35,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 7.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 2.3249998,
+          "z": -0.030000001,
+          "y": 0.645,
+          "vx": 6.0,
+          "vz": -0.6,
+          "vy": 5.9,
+          "yaw": 0.0
+        },
+        {
+          "x": 2.6249998,
+          "z": -0.09,
+          "y": 0.885,
+          "vx": 6.0,
+          "vz": -1.2,
+          "vy": 4.8,
+          "yaw": 0.0
+        },
+        {
+          "x": 2.9249997,
+          "z": -0.18,
+          "y": 1.07,
+          "vx": 6.0,
+          "vz": -1.8000001,
+          "vy": 3.7000003,
+          "yaw": 0.0
+        },
+        {
+          "x": 3.2249997,
+          "z": -0.3,
+          "y": 1.2,
+          "vx": 6.0,
+          "vz": -2.4,
+          "vy": 2.6000004,
+          "yaw": 0.0
+        },
+        {
+          "x": 3.5249996,
+          "z": -0.45000002,
+          "y": 1.2750001,
+          "vx": 6.0,
+          "vz": -3.0,
+          "vy": 1.5000004,
+          "yaw": 0.0
+        },
+        {
+          "x": 3.8249996,
+          "z": -0.63,
+          "y": 1.2950001,
+          "vx": 6.0,
+          "vz": -3.6,
+          "vy": 0.40000033,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.1249995,
+          "z": -0.84,
+          "y": 1.2600001,
+          "vx": 6.0,
+          "vz": -4.2,
+          "vy": -0.6999997,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.417825,
+          "z": -1.0742606,
+          "y": 1.1700001,
+          "vx": 5.8565164,
+          "vz": -4.6852126,
+          "vy": -1.7999997,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.6962214,
+          "z": -1.3254989,
+          "y": 1.0250001,
+          "vx": 5.5679183,
+          "vz": -5.0247674,
+          "vy": -2.8999996,
+          "yaw": 0.0
+        },
+        {
+          "x": 4.9600363,
+          "z": -1.5920074,
+          "y": 0.8250001,
+          "vx": 5.2762966,
+          "vz": -5.330168,
+          "vy": -3.9999995,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.209306,
+          "z": -1.8721677,
+          "y": 0.5700002,
+          "vx": 4.9853864,
+          "vz": -5.603206,
+          "vy": -5.0999994,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.4489603,
+          "z": -2.160596,
+          "y": 0.2600002,
+          "vx": 4.793086,
+          "vz": -5.7685633,
+          "vy": -6.1999993,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.683015,
+          "z": -2.4535863,
+          "y": 0.0,
+          "vx": 4.6810946,
+          "vz": -5.8598084,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.7766366,
+          "z": -2.7535863,
+          "y": 0.0,
+          "vx": 1.8724377,
+          "vz": -6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.8140855,
+          "z": -3.0535862,
+          "y": 0.0,
+          "vx": 0.74897486,
+          "vz": -6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 5.829065,
+          "z": -3.3535862,
+          "y": 0.0,
+          "vx": 0.29958978,
+          "vz": -6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "strafe_jump_air_cap",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": -20.0,
+        "z": -10.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 6.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.07,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.14,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.21000001,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.28,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.35,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.42000002,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.49,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.56,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.63,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.7,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.77,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.84000003,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.91,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 0.98,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.05,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.12,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.19,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.26,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.33,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.4,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.47,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.54,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.61,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.6800001,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.75,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.82,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.89,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 1.96,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.03,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.1,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.17,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.24,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.31,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.38,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.45,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.52,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.59,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.66,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.73,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.8,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.8700001,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 2.94,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 3.01,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 3.08,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 3.15,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 3.22,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": true,
+          "yaw": 3.29,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 2,
+      "expected": [
+        {
+          "x": -19.475,
+          "z": -10.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -18.875002,
+          "z": -10.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -18.275003,
+          "z": -10.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -17.6129,
+          "z": -9.934928,
+          "y": 0.645,
+          "vx": 6.817815,
+          "vz": 0.8771634,
+          "vy": 5.9,
+          "yaw": 0.07
+        },
+        {
+          "x": -16.889973,
+          "z": -9.776903,
+          "y": 1.07,
+          "vx": 7.2798057,
+          "vz": 1.804004,
+          "vy": 3.7000003,
+          "yaw": 0.21000001
+        },
+        {
+          "x": -16.179907,
+          "z": -9.536365,
+          "y": 1.2750001,
+          "vx": 7.0329065,
+          "vz": 2.6054235,
+          "vy": 1.5000004,
+          "yaw": 0.35
+        },
+        {
+          "x": -15.501855,
+          "z": -9.216557,
+          "y": 1.2600001,
+          "vx": 6.68816,
+          "vz": 3.393895,
+          "vy": -0.6999997,
+          "yaw": 0.49
+        },
+        {
+          "x": -14.865683,
+          "z": -8.819951,
+          "y": 1.0250001,
+          "vx": 6.2447233,
+          "vz": 4.1537247,
+          "vy": -2.8999996,
+          "yaw": 0.63
+        },
+        {
+          "x": -14.281139,
+          "z": -8.350588,
+          "y": 0.5700002,
+          "vx": 5.7043967,
+          "vz": 4.869277,
+          "vy": -5.0999994,
+          "yaw": 0.77
+        },
+        {
+          "x": -13.757603,
+          "z": -7.814038,
+          "y": 0.0,
+          "vx": 5.0715594,
+          "vz": 5.5253315,
+          "vy": 0.0,
+          "yaw": 0.91
+        },
+        {
+          "x": -13.303824,
+          "z": -7.217341,
+          "y": 0.645,
+          "vx": 4.3530626,
+          "vz": 6.107442,
+          "vy": 5.9,
+          "yaw": 1.05
+        },
+        {
+          "x": -12.927696,
+          "z": -6.5688996,
+          "y": 1.07,
+          "vx": 3.558077,
+          "vz": 6.602279,
+          "vy": 3.7000003,
+          "yaw": 1.19
+        },
+        {
+          "x": -12.636034,
+          "z": -5.878342,
+          "y": 1.2750001,
+          "vx": 2.6978846,
+          "vz": 6.997958,
+          "vy": 1.5000004,
+          "yaw": 1.33
+        },
+        {
+          "x": -12.434383,
+          "z": -5.156357,
+          "y": 1.2600001,
+          "vx": 1.7856362,
+          "vz": 7.2843328,
+          "vy": -0.6999997,
+          "yaw": 1.47
+        },
+        {
+          "x": -12.326853,
+          "z": -4.4144993,
+          "y": 1.0250001,
+          "vx": 0.83606523,
+          "vz": 7.453254,
+          "vy": -2.8999996,
+          "yaw": 1.61
+        },
+        {
+          "x": -12.315982,
+          "z": -3.6649737,
+          "y": 0.5700002,
+          "vx": -0.1348308,
+          "vz": 7.498789,
+          "vy": -5.0999994,
+          "yaw": 1.75
+        },
+        {
+          "x": -12.402639,
+          "z": -2.9204006,
+          "y": 0.0,
+          "vx": -1.1101377,
+          "vz": 7.4173856,
+          "vy": 0.0,
+          "yaw": 1.89
+        },
+        {
+          "x": -12.5859585,
+          "z": -2.193568,
+          "y": 0.645,
+          "vx": -2.0723906,
+          "vz": 7.2079973,
+          "vy": 5.9,
+          "yaw": 2.03
+        },
+        {
+          "x": -12.863312,
+          "z": -1.497177,
+          "y": 1.07,
+          "vx": -3.0039542,
+          "vz": 6.8721385,
+          "vy": 3.7000003,
+          "yaw": 2.17
+        },
+        {
+          "x": -13.23032,
+          "z": -0.84358406,
+          "y": 1.2750001,
+          "vx": -3.887407,
+          "vz": 6.4138985,
+          "vy": 1.5000004,
+          "yaw": 2.31
+        },
+        {
+          "x": -13.680906,
+          "z": -0.24454677,
+          "y": 1.2600001,
+          "vx": -4.7059245,
+          "vz": 5.839889,
+          "vy": -0.6999997,
+          "yaw": 2.45
+        },
+        {
+          "x": -14.20738,
+          "z": 0.2890204,
+          "y": 1.0250001,
+          "vx": -5.4436474,
+          "vz": 5.1591406,
+          "vy": -2.8999996,
+          "yaw": 2.59
+        },
+        {
+          "x": -14.800562,
+          "z": 0.74727714,
+          "y": 0.5700002,
+          "vx": -6.0860333,
+          "vz": 4.3829484,
+          "vy": -5.0999994,
+          "yaw": 2.73
+        },
+        {
+          "x": -15.44994,
+          "z": 1.1216681,
+          "y": 0.0,
+          "vx": -6.6201816,
+          "vz": 3.5246608,
+          "vy": 0.0,
+          "yaw": 2.8700001
+        },
+        {
+          "x": -16.143854,
+          "z": 1.4051099,
+          "y": 0.645,
+          "vx": -7.0351253,
+          "vz": 2.5994313,
+          "vy": 5.9,
+          "yaw": 3.01
+        },
+        {
+          "x": -16.86971,
+          "z": 1.5921497,
+          "y": 1.07,
+          "vx": -7.3220825,
+          "vz": 1.623926,
+          "vy": 3.7000003,
+          "yaw": 3.15
+        },
+        {
+          "x": -17.614218,
+          "z": 1.6790926,
+          "y": 1.2750001,
+          "vx": -7.4746623,
+          "vz": 0.61599636,
+          "vy": 1.5000004,
+          "yaw": 3.29
+        },
+        {
+          "x": -18.361685,
+          "z": 1.7406924,
+          "y": 1.2600001,
+          "vx": -7.4746623,
+          "vz": 0.61599636,
+          "vy": -0.6999997,
+          "yaw": 0.0
+        },
+        {
+          "x": -19.109152,
+          "z": 1.8022921,
+          "y": 1.0250001,
+          "vx": -7.4746623,
+          "vz": 0.61599636,
+          "vy": -2.8999996,
+          "yaw": 0.0
+        },
+        {
+          "x": -19.856619,
+          "z": 1.8638918,
+          "y": 0.5700002,
+          "vx": -7.4746623,
+          "vz": 0.61599636,
+          "vy": -5.0999994,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "ground_dodge",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 6.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "dodge": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": true,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "dodge": true,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": false,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.22500001,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 4.5,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.52500004,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.82500005,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 0.45000002,
+          "y": 0.175,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": 3.5,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 0.90000004,
+          "y": 0.29500002,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": 2.4,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 1.35,
+          "y": 0.36,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": 1.3000001,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 1.8000001,
+          "y": 0.37,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": 0.20000005,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 2.25,
+          "y": 0.32500002,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": -0.9,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 2.7,
+          "y": 0.22500002,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": -2.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 3.15,
+          "y": 0.07000002,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": -3.1,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 3.6000001,
+          "y": 0.0,
+          "vx": -3.934025e-7,
+          "vz": 9.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 3.9,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.2000003,
+          "y": 0.0,
+          "vx": -2.6226832e-7,
+          "vz": 6.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.32,
+          "y": 0.0,
+          "vx": -1.0490732e-7,
+          "vz": 2.3999999,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": -4.1962927e-8,
+          "vz": 0.95999986,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": -0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 1.125,
+          "z": 4.368,
+          "y": 0.0,
+          "vx": 0.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "blast_momentum",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": -10.0,
+        "z": 0.0,
+        "y": 0.5,
+        "vx": 12.0,
+        "vz": 0.0,
+        "vy": 6.0,
+        "yaw": 0.0
+      },
+      "speed": 6.0,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": -9.4,
+          "z": 0.0,
+          "y": 0.745,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 4.9,
+          "yaw": 0.0
+        },
+        {
+          "x": -8.799999,
+          "z": 0.0,
+          "y": 0.935,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 3.8000002,
+          "yaw": 0.0
+        },
+        {
+          "x": -8.199999,
+          "z": 0.0,
+          "y": 1.07,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 2.7000003,
+          "yaw": 0.0
+        },
+        {
+          "x": -7.599999,
+          "z": 0.0,
+          "y": 1.1500001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 1.6000003,
+          "yaw": 0.0
+        },
+        {
+          "x": -6.999999,
+          "z": 0.0,
+          "y": 1.1750001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 0.50000024,
+          "yaw": 0.0
+        },
+        {
+          "x": -6.399999,
+          "z": 0.0,
+          "y": 1.1450001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -0.5999998,
+          "yaw": 0.0
+        },
+        {
+          "x": -5.799999,
+          "z": 0.0,
+          "y": 1.0600001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -1.6999998,
+          "yaw": 0.0
+        },
+        {
+          "x": -5.1999993,
+          "z": 0.0,
+          "y": 0.9200001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -2.7999997,
+          "yaw": 0.0
+        },
+        {
+          "x": -4.5999994,
+          "z": 0.0,
+          "y": 0.7250001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -3.8999996,
+          "yaw": 0.0
+        },
+        {
+          "x": -3.9999995,
+          "z": 0.0,
+          "y": 0.47500008,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -4.9999995,
+          "yaw": 0.0
+        },
+        {
+          "x": -3.3999996,
+          "z": 0.0,
+          "y": 0.1700001,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": -6.0999994,
+          "yaw": 0.0
+        },
+        {
+          "x": -2.7999997,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 12.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -2.4999998,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -2.1999998,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.8999999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.5999999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -1.3,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -0.99999994,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -0.6999999,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": -0.39999992,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 6.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
       "name": "ceiling_head_strike",
       "arena": {
         "half": 12.0,
@@ -2149,7 +4487,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 5.0,
+      "speed": 6.0,
       "inputs": [
         {
           "forward": false,
@@ -2459,7 +4797,7 @@
         "vy": 0.0,
         "yaw": 0.0
       },
-      "speed": 2.5,
+      "speed": 3.0,
       "inputs": [
         {
           "forward": true,
@@ -2537,73 +4875,239 @@
       "stride": 1,
       "expected": [
         {
-          "x": 0.125,
+          "x": 0.112500004,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 2.25,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.25,
+          "x": 0.26250002,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.375,
+          "x": 0.41250002,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.5,
+          "x": 0.5625,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.625,
+          "x": 0.7125,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.75,
+          "x": 0.86249995,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 0.875,
+          "x": 1.0124999,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0
         },
         {
-          "x": 1.0,
+          "x": 1.1624999,
           "z": 0.0,
           "y": 0.0,
-          "vx": 2.5,
+          "vx": 3.0,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        }
+      ]
+    },
+    {
+      "name": "crouch_speed",
+      "arena": {
+        "half": 25.0,
+        "solids": []
+      },
+      "start": {
+        "x": 0.0,
+        "z": 0.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vz": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "speed": 2.04,
+      "inputs": [
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        },
+        {
+          "forward": true,
+          "back": false,
+          "left": false,
+          "right": false,
+          "jump": false,
+          "yaw": 0.0,
+          "speed_scale": 1.0
+        }
+      ],
+      "stride": 1,
+      "expected": [
+        {
+          "x": 0.0765,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 1.53,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.1695,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 1.8599999,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.2715,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.3735,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.4755,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.5775,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.6795,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
+          "vz": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "x": 0.7815,
+          "z": 0.0,
+          "y": 0.0,
+          "vx": 2.04,
           "vz": 0.0,
           "vy": 0.0,
           "yaw": 0.0

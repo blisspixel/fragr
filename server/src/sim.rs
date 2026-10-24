@@ -11,8 +11,10 @@ mod death_lifecycle_tests;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
+mod kit;
 pub mod mine;
 mod modes;
+mod paver;
 mod playlist;
 mod spawn;
 pub(crate) mod walker;
@@ -29,11 +31,11 @@ use crate::protocol::{
     default_host_line, default_mode_name, empty_mvp_host_line, episode0_host_line_auditor,
     episode0_host_line_cold_open, episode0_host_line_fail, episode0_host_line_jammer,
     episode0_host_line_nods_tick, episode0_host_line_win, episode0_objective_chip,
-    episode0_unlock_teaser, killstreak_host_line, mvp_host_line, roster_host_line,
-    round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind,
-    CampaignActor, CampaignSupply, EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore,
-    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
-    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
+    episode0_unlock_teaser, mvp_host_line, roster_host_line, round_open_host_line,
+    rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind, CampaignActor, CampaignSupply,
+    EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore, PlayerState, Role, ServerMessage,
+    ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
+    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
 };
 use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
@@ -96,14 +98,25 @@ const RULE_BOT_WARMUP_TAUNT_EVERY: u32 = 20;
 pub const BOSS_MAX_HP: i32 = 200;
 /// Touch radius for mid-map pickup pads.
 pub const PICKUP_CLAIM_RADIUS: f32 = 1.75;
+/// A CTF bot fights an opponent it sees inside this distance when that
+/// opponent is near the point the bot guards.
+const CTF_ENGAGE_RANGE: f32 = 25.0;
+/// A defender fights only an opponent this close to its own flag stand, so
+/// a runner that wins the approach can still take the flag. Chasing a thief
+/// keeps the contact-range intercept.
+const CTF_HOLD_RADIUS: f32 = 6.0;
+/// A runner or escort clears opponents this close to the enemy flag or the
+/// carrier.
+const CTF_CLEAR_RADIUS: f32 = 10.0;
 /// How far above or below a pad's own floor a fighter may be and still claim
 /// it. Generous enough to take a pad while jumping over it, tight enough that
 /// a pad on a walkway is not free to whoever stands underneath.
 pub const PICKUP_CLAIM_HEIGHT: f32 = 2.0;
-/// Ticks until a claimed weapon pad respawns (~12s at 20 Hz).
-pub const PICKUP_RESPAWN_TICKS: u32 = 20 * 12;
-/// Ticks until a claimed health/armor pad respawns (~15s at 20 Hz).
+/// Ticks until a claimed team-mode health or armour pad respawns (15 s).
+/// Weapon clocks and the free-for-all sheet are `crate::rules`.
 pub const HEALTH_PICKUP_RESPAWN_TICKS: u32 = 20 * 15;
+/// Ammunition and explosive supply return after 10 s.
+pub const SUPPLY_PICKUP_RESPAWN_TICKS: u32 = 20 * 10;
 /// Max scrap armor (simple absorb-before-HP).
 pub const PLAYER_MAX_ARMOR: i32 = 100;
 /// Half-angle of an Auditor's frontal shield plate: 60 degrees either side.
@@ -120,7 +133,7 @@ pub const EP0_NODS_GOAL: u32 = 5;
 /// standing on the visible pad seizes; a 3.0 hub soft-locked first Calibration.
 pub const EP0_JAMMER_RADIUS: f32 = 6.5;
 
-/// The Contested Frequency map roster. Ids are stable and on the wire; the
+/// The Scrap League map roster. Ids are stable and on the wire; the
 /// layouts themselves live in `maps.rs`, which is the only place in the server
 /// that knows what a map looks like.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -151,7 +164,9 @@ impl MapKind {
 
     pub fn from_cli(raw: &str) -> Option<Self> {
         match raw.trim().to_ascii_lowercase().replace('_', "-").as_str() {
-            "1" | "arena" | "duel" | "arena-duel" => Some(Self::ArenaDuel),
+            "1" | "arena" | "duel" | "arena-duel" | "larak" | "lot" | "larak-lot" => {
+                Some(Self::ArenaDuel)
+            }
             "2" | "compliance" | "yard" | "compliance-yard" => Some(Self::ComplianceYard),
             "3" | "directive" | "substation" | "directive-17" | "directive-17-substation" => {
                 Some(Self::Directive17)
@@ -178,7 +193,7 @@ impl MapKind {
 
     pub fn name(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Arena Duel",
+            Self::ArenaDuel => "Larak Lot",
             Self::ComplianceYard => "Compliance Yard",
             Self::Directive17 => "Directive 17 Substation",
             Self::Sector9 => "Sector 9 Transit Hall",
@@ -192,7 +207,9 @@ impl MapKind {
     /// One line on what the map is for, so a picker is not six names.
     pub fn blurb(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Assembly floor. A hub inside a gantry ring, rail on the walkway.",
+            Self::ArenaDuel => {
+                "Car park. Plate on the roof, Rail down the low ramp, a cruiser hung over the Pit."
+            }
             Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
             Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
@@ -249,6 +266,11 @@ impl MapKind {
     pub(crate) fn pickups(self) -> Vec<ArenaPickup> {
         crate::maps::def(self).pickups.clone()
     }
+
+    /// The extra weapon pads a free-for-all lays on this map.
+    pub(crate) fn scrap_pads(self) -> Vec<ArenaPickup> {
+        crate::maps::def(self).scrap_pads.clone()
+    }
 }
 /// Test-only view of the solid test, so a test can find clear ground instead
 /// of hard-coding coordinates that move when a map is laid out again. Asks
@@ -285,6 +307,9 @@ fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
 pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     if map == MapKind::HoldfastAtoll {
         return crate::maps::holdfast::spawn(angle);
+    }
+    if map == MapKind::ArenaDuel {
+        return crate::maps::larak_lot::spawn(angle);
     }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
@@ -334,7 +359,7 @@ impl EpisodePhase {
     }
 }
 
-/// Contested Frequency Solo Broadcast Episode 0 runtime (off = MP unchanged).
+/// Scrap League Solo Broadcast Episode 0 runtime (off = MP unchanged).
 #[derive(Debug, Clone)]
 pub struct SoloBroadcastEp0 {
     pub enabled: bool,
@@ -425,10 +450,31 @@ pub const GOLDEN_RAIL_PICKUP_ID: &str = "golden_rail";
 #[derive(Debug, Clone, Default)]
 struct ReactionState {
     first_blood: bool,
+    /// The last call of any weight, and the last big (voiced) one.
     last_tick: Option<u64>,
+    last_big_tick: Option<u64>,
     /// Largest deficit each side has faced since it was last level.
     deficit: [u32; 2],
     last_standing: [bool; 2],
+    /// Each fighter's current multikill chain: frags and the last one's tick.
+    chains: HashMap<Uuid, (u32, u64)>,
+    /// Who led the last time anybody did.
+    leader: Option<Leader>,
+    /// Match point called for each side, or for the free-for-all.
+    match_point: [bool; 2],
+    match_point_fighter: bool,
+    sudden_death_called: bool,
+    /// Larak Lot: ticks of the round's recent frags, oldest first, and when
+    /// the Host last called the Larak Lot special.
+    lot_frags: std::collections::VecDeque<u64>,
+    lot_special: Option<u64>,
+}
+
+/// The front of a round, for the lead-change call.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Leader {
+    Side(Team),
+    Fighter(Uuid),
 }
 
 /// How a lives-limited round ended by elimination.
@@ -472,6 +518,18 @@ impl PickupKind {
         }
     }
 
+    /// A pad worth timing: a gun better than the common Flechette or the
+    /// sidearm, or plate.
+    pub fn is_power(self) -> bool {
+        match self {
+            PickupKind::Weapon(weapon) => {
+                !matches!(weapon, WeaponType::Flechette | WeaponType::Tack)
+            }
+            PickupKind::Armor => true,
+            _ => false,
+        }
+    }
+
     pub fn weapon(self) -> Option<WeaponType> {
         match self {
             PickupKind::Weapon(w) => Some(w),
@@ -499,6 +557,10 @@ pub struct ArenaPickup {
     pub respawn_timer: Option<u32>,
     /// An authored secret: optional, found by exploring, never required.
     pub secret: bool,
+    /// This pad's own respawn clock in ticks, when the map sets one. A map
+    /// built around item control times its power items rather than taking
+    /// the clock for the pad's kind.
+    pub clock: Option<u32>,
 }
 
 impl ArenaPickup {
@@ -538,13 +600,29 @@ impl ArenaPickup {
         }
     }
 
+    /// The pad's published return clock under this rule sheet: the clock the
+    /// server runs and the one rule bots learn the way a regular does. Bots
+    /// never read a live timer.
+    /// A map may author a pad's own clock (Larak Lot's Custody Plate); that
+    /// wins in every mode, then the rule sheet, then the kind's default.
+    pub(crate) fn clock(&self, rules: &crate::rules::RuleSet) -> u32 {
+        self.clock
+            .or_else(|| {
+                rules.pad_respawn_ticks(
+                    self.kind.weapon(),
+                    matches!(self.kind, PickupKind::Health | PickupKind::Armor),
+                )
+            })
+            .unwrap_or_else(|| self.respawn_ticks())
+    }
+
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
             PickupKind::Grenade { .. }
             | PickupKind::ProximityMine { .. }
-            | PickupKind::RemoteMine { .. } => 200,
-            PickupKind::Ammo { .. } => 200,
-            PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
+            | PickupKind::RemoteMine { .. }
+            | PickupKind::Ammo { .. } => SUPPLY_PICKUP_RESPAWN_TICKS,
+            PickupKind::Weapon(_) => crate::rules::FFA_WEAPON_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
         }
     }
@@ -587,6 +665,9 @@ pub struct GameState {
     remote_mines: Vec<remote_mine::RemoteMine>,
     explosion_results: Vec<crate::protocol::ExplosionResult>,
     projectile_serial: u32,
+    /// Participants actually damaged by a Paver work pulse, ever. Missions
+    /// compare against their own entry value.
+    pub(crate) paver_strip_hits: u64,
     /// Remaining ticks of Continuance compliance slow (0 = none).
     pub compliance_ticks_left: u32,
     /// Whether this Active round already fired its compliance ping.
@@ -607,7 +688,7 @@ pub struct GameState {
     pub roster_host_line: Option<String>,
     /// Dialed-in rule-bot callsigns for Warmup / RoundStart Host drama.
     pub roster_names: Vec<String>,
-    /// Active Contested Frequency scrap layout.
+    /// Active Scrap League scrap layout.
     pub map: crate::maps::RuntimeMap,
     /// When true, alternate map each start_round.
     pub map_rotate: bool,
@@ -635,6 +716,8 @@ pub struct GameState {
     reactions: ReactionState,
     /// Reactions called per kind across the session, so variants rotate.
     reaction_counts: [u32; HostReactionKind::ALL.len()],
+    /// The tick a level clock turned into sudden death this round.
+    pub(crate) sudden_death: Option<u64>,
 }
 
 pub struct Player {
@@ -655,6 +738,10 @@ pub struct Player {
     pub pending_action: Action,
     /// A press survives newer released input until one simulation tick observes it.
     jump_requested: bool,
+    /// A dodge press, latched like a jump.
+    dodge_requested: bool,
+    /// Ticks before the next dodge is allowed.
+    pub(crate) dodge_cooldown: u32,
     pub(crate) interaction_requested: bool,
     throw_requested: bool,
     grenade_cooldown: u32,
@@ -667,6 +754,11 @@ pub struct Player {
     remote_cooldown: u32,
     pub fire_cooldown: u32,
     pub(crate) repeater_cycle: repeater::RepeaterCycle,
+    /// Share of the weapon's dispersion cone the next participant shot uses.
+    /// Zero after a pause, so the first shot is exact.
+    pub(crate) bloom: f32,
+    /// Ticks since this fighter's last hitscan shot, saturating.
+    pub(crate) since_shot: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
     pub role: Role,
@@ -690,10 +782,17 @@ pub struct Player {
     last_received_seq: Option<u32>,
     movement_epoch: u64,
     last_movement_tick: Option<u64>,
-    last_move_vx: f32,
-    last_move_vz: f32,
+    /// Horizontal velocity the movement step carries into the next tick.
+    /// Participants keep momentum through it; it is the Ack's `vx`/`vz`.
+    pub(crate) vx: f32,
+    pub(crate) vz: f32,
     last_move_speed: f32,
     last_jump_input: bool,
+    /// A worn coalition jetpack and its fuel. Issued by a mission owner; the
+    /// live step burns and refills it.
+    pub(crate) jetpack: Option<crate::movement::jetpack::Pack>,
+    /// The last live step burned jetpack thrust.
+    pub(crate) jet_thrusting: bool,
     /// Side in a team mode.
     pub team: Option<Team>,
     /// Lives left this round when lives are limited, the current one included.
@@ -717,19 +816,22 @@ impl Player {
         self.jump_requested || self.pending_action.jump
     }
     fn reset_movement_baseline(&mut self) {
-        self.bot_senses = bot_senses::BotSenses::default();
+        // A new body forgets who it was fighting; it still knows the map.
+        self.bot_senses.forget_fighters();
         self.movement_epoch = self.movement_epoch.saturating_add(1);
         self.last_movement_tick = None;
-        self.last_move_vx = 0.0;
-        self.last_move_vz = 0.0;
+        self.vx = 0.0;
+        self.vz = 0.0;
         self.last_move_speed = 0.0;
         self.last_jump_input = false;
     }
 
     pub(crate) fn clear_input(&mut self) {
         self.repeater_cycle.reset();
+        self.bloom = 0.0;
         self.pending_action = Action::default();
         self.jump_requested = false;
+        self.dodge_requested = false;
         self.interaction_requested = false;
         self.throw_requested = false;
         self.place_requested = false;
@@ -789,6 +891,8 @@ impl Player {
             armor: 0,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -800,6 +904,8 @@ impl Player {
             remote_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             respawn_timer: None,
             just_fired: false,
             weapon: if policy == crate::protocol::EquipmentPolicy::Discovery {
@@ -823,10 +929,12 @@ impl Player {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -835,6 +943,12 @@ impl Player {
             ducking: false,
             body: crate::protocol::BodyKind::Human,
         }
+    }
+
+    /// Whether this body runs the arena fighter model: momentum, dodge, and
+    /// first-shot accuracy with bloom. `arena` is `GameState::arena_feel`.
+    pub(crate) fn fighter_model(&self, arena: bool) -> bool {
+        arena && self.is_participant()
     }
 
     /// Takes part in arena scoring: not a boss, not a campaign combatant.
@@ -1023,7 +1137,7 @@ impl GameState {
         Self {
             map: crate::maps::RuntimeMap::BuiltIn(map),
             map_rotate,
-            pickups: map.pickups(),
+            pickups: map.pickups().into_iter().chain(map.scrap_pads()).collect(),
             ..Self::default()
         }
     }
@@ -1105,6 +1219,7 @@ impl GameState {
         self.reset_ctf();
         self.reset_conquest();
         self.reactions = ReactionState::default();
+        self.sudden_death = None;
 
         let lives = self.config.rules.lives();
         let mut revive = Vec::new();
@@ -1132,6 +1247,19 @@ impl GameState {
         }
         for id in revive {
             self.do_respawn(id);
+        }
+        // A free-for-all round starts every fighter on the Pistol again; last
+        // round's Railgun stays in last round.
+        if self.sidearm_start() {
+            let ids: Vec<Uuid> = self
+                .players
+                .iter()
+                .filter(|p| p.contestant())
+                .map(|p| p.id)
+                .collect();
+            for id in ids {
+                self.issue_kit(id);
+            }
         }
         if sabotage {
             self.begin_sabotage_round();
@@ -1385,13 +1513,7 @@ impl GameState {
         if !self.admit_campaign_owner(id) {
             return;
         }
-        // A Sabotage joiner evens the sides, then joins the side behind on rounds.
-        let standings = self
-            .sabotage
-            .as_ref()
-            .map_or(self.team_scores, |sab| sab.score);
-        let team = (self.config.rules.teams() && !self.map.is_campaign())
-            .then(|| crate::rules::choose_team(self.team_counts(), standings));
+        let team = self.joining_team();
         let angle = (self.players.len() as f32) * (2.0 * PI / 8.0);
         // Warmup is placement for the opening fight. It needs the same cover
         // and clearance policy as a live join, even before weapons activate.
@@ -1421,10 +1543,12 @@ impl GameState {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         } else {
             player.team = team;
-            if let Some(weapon) = self.config.rules.only_weapon() {
-                player.inventory = crate::inventory::Inventory::restricted(weapon);
-                player.weapon = weapon;
-            }
+            // A join, and a reconnect, which is a new participant, start on
+            // the same kit as a respawn.
+            let (inventory, weapon) = self.fresh_inventory();
+            player.inventory = inventory;
+            player.weapon = weapon;
+            player.last_non_blade_weapon = weapon;
             // A fighter who joins a live round enters with one life.
             player.lives = self.config.rules.lives().map(|lives| {
                 if self.round_state == RoundState::Active {
@@ -1459,12 +1583,13 @@ impl GameState {
         player.armor = i32::from(placement.armor.unwrap_or(0));
         player.weapon = weapon;
         player.inventory.grant_weapon(weapon);
-        player.campaign = Some(CampaignActor::Union {
+        player.campaign = Some(CampaignActor::Hostile {
             kind: placement.kind,
             phase: EnemyPhase::Idle,
             phase_started: self.tick,
             phase_ends: self.tick,
             seated: placement.seated,
+            control: placement.control,
         });
         self.players.push(player);
         id
@@ -1614,6 +1739,7 @@ impl GameState {
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
             action.seat = action.seat.or(player.pending_action.seat);
             player.jump_requested |= action.jump;
+            player.dodge_requested |= action.dodge && !player.pending_action.dodge;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.place_requested |= action.place_mine && !player.pending_action.place_mine;
@@ -1676,7 +1802,9 @@ impl GameState {
             m16: self.map.m16_geometry(),
             m17: self.map.m17_geometry(),
             m18: self.map.m18_geometry(),
+            m19: self.map.m19_geometry(),
             walker: self.map.walker_geometry(),
+            m20: self.map.m20_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -1698,7 +1826,13 @@ impl GameState {
 
     /// The rule set for readers. Authored campaign maps have none.
     pub fn wire_rules(&self) -> Option<crate::protocol::MatchRules> {
-        (!self.map.is_authored()).then(|| self.config.rules.wire())
+        if self.map.is_authored() {
+            return None;
+        }
+        let kit = self.start_kit()?;
+        let mut rules = self.config.rules.wire(&self.config.sabotage);
+        rules.start_kit = kit.weapons();
+        Some(rules)
     }
 
     /// Replace the match rules and refit the pads they govern.
@@ -1710,9 +1844,18 @@ impl GameState {
         self.reset_pickups();
     }
 
+    /// Arena play (no campaign mission) uses the feel pass: participants run
+    /// the fighter model and fire first shots exact. A campaign mission keeps
+    /// the immediate 5 m/s step and the table cones its encounters, route
+    /// proofs and rules revision were tuned against.
+    pub(crate) fn arena_feel(&self) -> bool {
+        self.mission.is_none()
+    }
+
     /// One Ack per fighter whose client numbers its inputs. Built after a
     /// tick so the state it carries is the state that input produced.
     pub fn input_acks(&self) -> Vec<(Uuid, ServerMessage)> {
+        let arena_feel = self.arena_feel();
         let movement_open = self.round_state == RoundState::Active
             && !self.mission_departed()
             && !self.campaign_run_frozen();
@@ -1736,15 +1879,18 @@ impl GameState {
                             yaw: p.yaw,
                             pitch: p.pitch,
                             movement: Some(crate::protocol::MovementAck {
-                                version: 1,
+                                // 2 is the fighter model, 1 the immediate step.
+                                version: if p.fighter_model(arena_feel) { 2 } else { 1 },
                                 epoch: p.movement_epoch,
                                 applied,
                                 y: p.y,
-                                vx: if applied { p.last_move_vx } else { 0.0 },
+                                vx: if applied { p.vx } else { 0.0 },
                                 vy: p.vy,
-                                vz: if applied { p.last_move_vz } else { 0.0 },
+                                vz: if applied { p.vz } else { 0.0 },
                                 effective_speed: if applied { p.last_move_speed } else { 0.0 },
                                 jump_input: applied && p.last_jump_input,
+                                dodge_cooldown: p.dodge_cooldown,
+                                jet_fuel: p.jetpack.map(|pack| pack.fuel),
                             }),
                             respawn_ticks: p.respawn_timer.filter(|_| !p.eliminated),
                         },
@@ -1811,10 +1957,28 @@ impl GameState {
                     if self.round_ticks >= time_limit {
                         if self.solo_broadcast.enabled {
                             self.fail_episode("Calibration timed out".to_string());
-                        } else {
-                            self.end_round("Time limit reached".to_string());
+                            return;
                         }
-                        return;
+                        match self.sudden_death {
+                            // The clock stays stopped until somebody scores.
+                            Some(_) if !self.level_at_the_clock() => {
+                                self.end_round("Sudden death decided".to_string());
+                                return;
+                            }
+                            Some(since)
+                                if self.tick.saturating_sub(since)
+                                    >= u64::from(crate::rules::SUDDEN_DEATH_LIMIT_TICKS) =>
+                            {
+                                self.end_round("Level after sudden death".to_string());
+                                return;
+                            }
+                            Some(_) => {}
+                            None if self.level_at_the_clock() => self.begin_sudden_death(),
+                            None => {
+                                self.end_round("Time limit reached".to_string());
+                                return;
+                            }
+                        }
                     }
                 }
 
@@ -1843,6 +2007,7 @@ impl GameState {
                     self.finish_round(reason.to_string(), Some(standing));
                     return;
                 }
+                self.react_to_match_point();
             }
             RoundState::Ended => {
                 self.round_ticks += 1;
@@ -1933,6 +2098,7 @@ impl GameState {
         } else {
             MOVE_SPEED
         };
+        let arena_feel = self.arena_feel();
         // Sabotage muster: weapons are not live and nobody leaves the zone.
         self.hold_muster_fire();
         let muster = self.muster_hold();
@@ -1955,9 +2121,20 @@ impl GameState {
                 continue;
             }
             let jump_requested = std::mem::take(&mut player.jump_requested);
+            let dodge_requested = std::mem::take(&mut player.dodge_requested);
+            player.dodge_cooldown = player.dodge_cooldown.saturating_sub(1);
 
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
+            }
+            // The cone recovers once the trigger has rested a little longer
+            // than the weapon's cadence: a held trigger never recovers, a
+            // deliberate tap rhythm does.
+            player.since_shot = player.since_shot.saturating_add(1);
+            if player.since_shot
+                > player.weapon.cooldown_ticks() + crate::protocol::BLOOM_GRACE_TICKS
+            {
+                player.bloom = (player.bloom - crate::protocol::BLOOM_RECOVERY_PER_TICK).max(0.0);
             }
             player.grenade_cooldown = player.grenade_cooldown.saturating_sub(1);
             player.mine_cooldown = player.mine_cooldown.saturating_sub(1);
@@ -1987,6 +2164,7 @@ impl GameState {
                 if player.inventory.select(player.weapon, new_weapon) {
                     if player.weapon != new_weapon {
                         player.repeater_cycle.reset();
+                        player.bloom = 0.0;
                         player.inventory.cancel_reload();
                         if player.weapon != WeaponType::ArticleBlade {
                             player.last_non_blade_weapon = player.weapon;
@@ -2021,11 +2199,31 @@ impl GameState {
                 player.last_movement_tick = None;
                 continue;
             }
-            let move_speed = move_speed * crate::encounters::gait(player.campaign);
+            // Arena participants run the fighter model at the frozen top
+            // speed. Campaign bodies, the participant included, and authored
+            // actors keep the immediate step at the pace the encounters were
+            // tuned against.
+            let fighter = player.fighter_model(arena_feel);
+            let move_speed = if fighter {
+                move_speed
+            } else {
+                move_speed * crate::movement::ACTOR_REFERENCE_SPEED / MOVE_SPEED
+                    * crate::encounters::gait(player.campaign)
+            };
             if crate::combat::is_flying(player.campaign) {
                 continue;
             }
+            // Momentum only carries across consecutive moved ticks; a frozen,
+            // seated or respawned body starts again from rest.
+            let carried =
+                fighter && self.tick > 0 && player.last_movement_tick == Some(self.tick - 1);
+            let (carry_x, carry_z) = if carried {
+                (player.vx, player.vz)
+            } else {
+                (0.0, 0.0)
+            };
             let jump_input = action.jump || jump_requested;
+            let dodge_input = fighter && dodge_requested && player.dodge_cooldown == 0;
             // The ack keeps the pre-duck speed. Prediction applies the scale
             // again from the resolved stance, so baking it here would halve twice.
             let travel = if player.ducking {
@@ -2038,31 +2236,68 @@ impl GameState {
             } else {
                 crate::combat::target_height(player.campaign)
             };
-            let moved = crate::movement::water::live_step(
-                crate::movement::MoveState {
-                    x: player.x,
-                    z: player.z,
-                    y: player.y - PLAYER_FLOOR_Y,
-                    vx: 0.0,
-                    vz: 0.0,
-                    vy: player.vy,
-                    yaw: player.yaw,
-                },
-                &crate::movement::MoveInput {
-                    forward: action.forward,
-                    back: action.back,
-                    left: action.left,
-                    right: action.right,
-                    jump: jump_input,
-                    yaw: player.yaw,
-                    speed_scale: 1.0,
-                },
-                travel,
-                dt,
-                movement_arena,
-                body_height,
-                self.map.water_regions(),
-            );
+            let body = crate::movement::MoveState {
+                x: player.x,
+                z: player.z,
+                y: player.y - PLAYER_FLOOR_Y,
+                vx: carry_x,
+                vz: carry_z,
+                vy: player.vy,
+                yaw: player.yaw,
+            };
+            let input = crate::movement::MoveInput {
+                forward: action.forward,
+                back: action.back,
+                left: action.left,
+                right: action.right,
+                jump: jump_input,
+                dodge: dodge_input,
+                yaw: player.yaw,
+                speed_scale: 1.0,
+            };
+            if dodge_input
+                && crate::movement::water::dodge_applies(
+                    &body,
+                    &input,
+                    movement_arena,
+                    self.map.water_regions(),
+                )
+            {
+                player.dodge_cooldown = crate::movement::DODGE_COOLDOWN_TICKS;
+            }
+            // Campaign gear: a worn jetpack steps through its own fuel model
+            // (Planned Works); every other body takes its ordinary step.
+            let moved = if let Some(pack) = player.jetpack {
+                let (moved, pack, thrusting) = crate::movement::jetpack::live_step(
+                    body,
+                    &input,
+                    travel,
+                    dt,
+                    movement_arena,
+                    body_height,
+                    self.map.water_regions(),
+                    pack,
+                    self.map.jetpack_ceiling(),
+                );
+                player.jetpack = Some(pack);
+                player.jet_thrusting = thrusting;
+                moved
+            } else {
+                crate::movement::water::step(
+                    if fighter {
+                        crate::movement::water::Model::Fighter
+                    } else {
+                        crate::movement::water::Model::Actor
+                    },
+                    body,
+                    &input,
+                    travel,
+                    dt,
+                    movement_arena,
+                    body_height,
+                    self.map.water_regions(),
+                )
+            };
             let held = muster.zip(player.team).is_some_and(|(layout, team)| {
                 player.contestant()
                     && layout.in_muster(team.index(), player.x, player.z)
@@ -2075,8 +2310,8 @@ impl GameState {
             player.y = PLAYER_FLOOR_Y + moved.y;
             player.vy = moved.vy;
             player.last_movement_tick = Some(self.tick);
-            player.last_move_vx = if held { 0.0 } else { moved.vx };
-            player.last_move_vz = if held { 0.0 } else { moved.vz };
+            player.vx = if held { 0.0 } else { moved.vx };
+            player.vz = if held { 0.0 } else { moved.vz };
             player.last_move_speed = move_speed;
             player.last_jump_input = jump_input;
 
@@ -2265,7 +2500,7 @@ impl GameState {
                 }
                 if matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         kind: crate::protocol::EnemyKind::Jammer,
                         ..
                     })
@@ -2343,6 +2578,10 @@ impl GameState {
                 let shooter = &mut self.players[shooter_idx];
                 shooter.fire_cooldown = weapon.cooldown_ticks();
                 shooter.just_fired = true;
+                if shot.vehicle_id.is_none() {
+                    shooter.since_shot = 0;
+                    shooter.bloom = (shooter.bloom + weapon.bloom_per_shot()).min(1.0);
+                }
             }
             // Pellets group by struck fighter in firing order; pellets that hit
             // cover or run out of range share one miss result after them.
@@ -2512,7 +2751,7 @@ impl GameState {
         for (attacker, victim, trace) in crawler_contacts {
             let enforcer = matches!(
                 self.players[attacker].campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     kind: crate::protocol::EnemyKind::Enforcer,
                     ..
                 })
@@ -2537,6 +2776,8 @@ impl GameState {
             }
         }
 
+        // Strips work bodies where actual movement and contact left them.
+        self.tick_paver_strips();
         self.tick_grenades(dt);
         self.tick_assessor_canisters(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
         self.tick_rockets(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
@@ -2569,7 +2810,7 @@ impl GameState {
             let crawler = &self.players[attacker];
             let enforcer = matches!(
                 crawler.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     kind: crate::protocol::EnemyKind::Enforcer,
                     phase: EnemyPhase::Charging,
                     ..
@@ -2586,7 +2827,7 @@ impl GameState {
                 || (!enforcer
                     && !matches!(
                         crawler.campaign,
-                        Some(CampaignActor::Union {
+                        Some(CampaignActor::Hostile {
                             kind: crate::protocol::EnemyKind::Crawler,
                             phase: EnemyPhase::Leaping,
                             ..
@@ -2742,10 +2983,24 @@ impl GameState {
         if damage <= 1 || trace.weapon.ignores_armor() {
             return damage;
         }
+        // A Surveyor's closed shutter turns two thirds of a traced hit. Its
+        // open lens, while observing or projecting, takes the whole hit.
+        if let Some(CampaignActor::Hostile {
+            kind: crate::protocol::EnemyKind::Surveyor,
+            phase,
+            ..
+        }) = player.campaign
+        {
+            return if matches!(phase, EnemyPhase::Windup | EnemyPhase::Firing) {
+                damage
+            } else {
+                (damage + 2) / 3
+            };
+        }
         if crate::combat::is_assessor(player.campaign) {
             let recovery = matches!(
                 player.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Recovery,
                     ..
                 })
@@ -2807,7 +3062,7 @@ impl GameState {
             let normal = *normal;
             let recovery = matches!(
                 player.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Recovery,
                     ..
                 })
@@ -2818,7 +3073,7 @@ impl GameState {
         }
         if !matches!(
             player.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind: crate::protocol::EnemyKind::Auditor,
                 ..
             })
@@ -2979,6 +3234,15 @@ impl GameState {
             )
         };
 
+        if damage > 0 && !died && shooter_idx != victim_idx {
+            // The victim learns where the shot came from, and flinches.
+            let shooter = &self.players[shooter_idx];
+            let from = [shooter.x, shooter.y - PLAYER_FLOOR_Y, shooter.z];
+            let tick = self.tick;
+            self.players[victim_idx]
+                .bot_senses
+                .hurt_by(shooter_id, from, tick);
+        }
         if damage > 0 {
             let victim = &self.players[victim_idx];
             let feet = [victim.x, victim.y - PLAYER_FLOOR_Y, victim.z];
@@ -3083,55 +3347,54 @@ impl GameState {
                 killer_team: shooter_team,
                 victim_team,
             });
-            if !self.reactions.first_blood {
-                self.reactions.first_blood = true;
-                self.react(
-                    HostReactionKind::FirstBlood,
-                    Some(shooter_name.clone()),
-                    Some(target_name.clone()),
-                    shooter_team,
-                );
-            } else if ended_streak >= crate::rules::STREAK_WORTH_ENDING {
-                self.react(
-                    HostReactionKind::StreakEnded,
-                    Some(target_name.clone()),
-                    Some(shooter_name.clone()),
-                    victim_team,
-                );
-            }
-            if self.config.rules.mode() == crate::protocol::GameMode::Tdm {
-                if let (Some(side), Some(_)) = (shooter_team, victim_team) {
-                    self.note_team_frag(side);
+            let team_frag = match (shooter_team, victim_team) {
+                (Some(side), Some(_))
+                    if self.config.rules.mode() == crate::protocol::GameMode::Tdm =>
+                {
+                    Some(side)
                 }
-            }
-
-            // Killer streak (victim already reset). Host callouts at 2/3/5.
+                _ => None,
+            };
+            // Killer streak (victim already reset); at most one Host call.
             let killer_streak = {
                 let killer = &mut self.players[shooter_idx];
                 killer.killstreak = killer.killstreak.saturating_add(1);
                 killer.killstreak
             };
-            if let Some((tier, message)) = killstreak_host_line(killer_streak, &shooter_name) {
-                self.events.push(GameEvent::Killstreak {
-                    player: shooter_name.clone(),
-                    player_id: shooter_id,
-                    streak: killer_streak,
-                    tier,
-                    message,
-                });
-            }
+            self.react_to_frag(modes::FragFacts {
+                killer: shooter_id,
+                killer_name: shooter_name.clone(),
+                killer_team: shooter_team,
+                victim_name: target_name.clone(),
+                victim_team,
+                killer_streak,
+                ended_streak,
+                team_frag,
+            });
 
-            // Named rule bots: occasional Contested Frequency speak (off-tick).
+            // Named rule bots: an occasional callout (off-tick).
             if matches!(killer_streak, 2 | 3 | 5) {
                 self.maybe_rule_bot_taunt(
                     shooter_id,
                     BotTauntKind::Killstreak,
                     RULE_BOT_TAUNT_STREAK_PCT,
+                    None,
                 );
             } else {
-                self.maybe_rule_bot_taunt(shooter_id, BotTauntKind::Frag, RULE_BOT_TAUNT_FRAG_PCT);
+                // A frag taunt is said to the fighter it fragged.
+                self.maybe_rule_bot_taunt(
+                    shooter_id,
+                    BotTauntKind::Frag,
+                    RULE_BOT_TAUNT_FRAG_PCT,
+                    Some(target_id),
+                );
             }
-            self.maybe_rule_bot_taunt(target_id, BotTauntKind::Death, RULE_BOT_TAUNT_DEATH_PCT);
+            self.maybe_rule_bot_taunt(
+                target_id,
+                BotTauntKind::Death,
+                RULE_BOT_TAUNT_DEATH_PCT,
+                None,
+            );
 
             if victim_was_boss {
                 let boss_msg = if self.solo_broadcast.enabled {
@@ -3153,7 +3416,7 @@ impl GameState {
                 );
                 if self.solo_broadcast.enabled && self.solo_broadcast.phase == EpisodePhase::Auditor
                 {
-                    self.complete_episode("Auditor down. Frequency stays unmetered.".to_string());
+                    self.complete_episode("Auditor down. The league stays open.".to_string());
                 }
             } else {
                 self.note_nods_frag(shooter_id, target_id);
@@ -3187,6 +3450,8 @@ impl GameState {
         let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
         let spread = if crate::combat::is_notary(shooter.campaign) {
             0.0
+        } else if shooter.fighter_model(self.arena_feel()) && weapon != WeaponType::Scatter {
+            weapon.spread_radians() * shooter.bloom.clamp(0.0, 1.0)
         } else {
             weapon.spread_radians()
         };
@@ -3307,14 +3572,33 @@ impl GameState {
             impact,
         }
     }
+    /// Worn packs of living bodies, for the snapshot.
+    fn jetpack_states(&self) -> Vec<crate::protocol::JetpackState> {
+        self.players
+            .iter()
+            .filter(|p| p.hp > 0 && p.respawn_timer.is_none())
+            .filter_map(|p| {
+                p.jetpack.map(|pack| crate::protocol::JetpackState {
+                    player_id: p.id,
+                    fuel: pack.fuel,
+                    thrusting: p.jet_thrusting,
+                })
+            })
+            .collect()
+    }
+
     pub fn snapshot(&self) -> Snapshot {
         let sabotage = self.wire_sabotage();
+        let sudden_death = self.round_state == RoundState::Active && self.sudden_death.is_some();
         let round_time_left = if let Some(state) = sabotage
             .as_ref()
             .filter(|_| self.round_state == RoundState::Active)
         {
             // Muster, then the live clock, then the charge's own clock.
             Some(state.clock_ticks.div_ceil(20))
+        } else if sudden_death {
+            // The clock stopped level; the next score decides.
+            None
         } else if self.round_state == RoundState::Active {
             self.config
                 .time_limit_ticks
@@ -3374,6 +3658,7 @@ impl GameState {
                 .collect(),
             round_state: Some(format!("{:?}", self.round_state)),
             round_time_left,
+            sudden_death,
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
             projectiles: self.projectile_states(),
@@ -3383,6 +3668,9 @@ impl GameState {
             mines: self.mine_states(),
             remote_mines: self.remote_mine_states(),
             auditors: self.encounters.auditor_states(),
+            paver_strips: self.encounters.paver_strips(),
+            jetpacks: self.jetpack_states(),
+            surveyor_marks: self.encounters.surveyor_marks(),
             explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"
@@ -3553,7 +3841,7 @@ impl GameState {
         }
     }
 
-    /// Enable Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
+    /// Enable Scrap League Solo Broadcast Episode 0 (Calibration / Larak Lot).
     /// Relabels rule bots as NODS, disables timed Compliance Drone (Auditor is gated),
     /// and arms episode chrome. Safe to call once at boot.
     pub fn enable_solo_broadcast_ep0(&mut self) {
@@ -3834,8 +4122,12 @@ impl GameState {
             armor: 50,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -3863,10 +4155,12 @@ impl GameState {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -3950,6 +4244,13 @@ impl GameState {
             return;
         }
         self.add_sabotage_pads();
+        // Every free-for-all life starts on the Pistol, so the floor carries
+        // enough guns that no spawn is a long walk from one.
+        if self.config.rules.mode() == crate::protocol::GameMode::Ffa
+            && !self.solo_broadcast.enabled
+        {
+            self.pickups.extend(self.map.scrap_pads());
+        }
         if self.config.rules.has(Mutator::GoldenRail) {
             let pad = self
                 .pickups
@@ -4053,7 +4354,6 @@ impl GameState {
                 player.weapon = WeaponType::ArticleBlade;
             }
         }
-        let team_clock = self.config.rules.teams();
         for pad in &mut self.pickups {
             if let Some(timer) = pad.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -4147,10 +4447,7 @@ impl GameState {
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
-            let respawn = (!self.map.is_campaign()).then(|| match pad.kind {
-                PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
-                _ => pad.respawn_ticks(),
-            });
+            let respawn = (!self.map.is_campaign()).then(|| pad.clock(&self.config.rules));
             if claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
                 pad.respawn_timer = respawn;
@@ -4292,8 +4589,12 @@ impl GameState {
             armor: 0,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -4321,10 +4622,12 @@ impl GameState {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
+            jetpack: None,
+            jet_thrusting: false,
             team: None,
             lives: None,
             eliminated: false,
@@ -4431,9 +4734,15 @@ impl GameState {
             % 100
     }
 
-    /// Probabilistic Contested Frequency speak for a named rule bot.
+    /// Probabilistic callout for a named rule bot.
     /// Silent on miss / RateLimited / Rejected (no Error unicast spam for bots).
-    pub fn maybe_rule_bot_taunt(&mut self, player_id: Uuid, kind: BotTauntKind, chance_pct: u64) {
+    pub fn maybe_rule_bot_taunt(
+        &mut self,
+        player_id: Uuid,
+        kind: BotTauntKind,
+        chance_pct: u64,
+        to_id: Option<Uuid>,
+    ) {
         if !self.is_named_rule_bot(player_id) {
             return;
         }
@@ -4446,11 +4755,21 @@ impl GameState {
         if Self::taunt_roll(self.tick, player_id, salt) >= chance_pct {
             return;
         }
-        let _ = self.try_rule_bot_taunt(player_id, kind);
+        let _ = self.try_rule_bot_taunt_to(player_id, kind, to_id);
     }
 
     /// Always attempt a callsign-flavored speak (still respects SPEAK_COOLDOWN).
     pub fn try_rule_bot_taunt(&mut self, player_id: Uuid, kind: BotTauntKind) -> SpeakOutcome {
+        self.try_rule_bot_taunt_to(player_id, kind, None)
+    }
+
+    /// A callsign-flavored speak said to one fighter (`to_id`), or to the room.
+    pub fn try_rule_bot_taunt_to(
+        &mut self,
+        player_id: Uuid,
+        kind: BotTauntKind,
+        to_id: Option<Uuid>,
+    ) -> SpeakOutcome {
         if !self.is_named_rule_bot(player_id) {
             return SpeakOutcome::Rejected;
         }
@@ -4460,7 +4779,7 @@ impl GameState {
         };
         let salt = self.tick ^ (player_id.as_u128() as u64);
         let line = rule_bot_taunt_line(&name, kind, salt);
-        self.try_speak(player_id, &line)
+        self.try_speak_to(player_id, &line, to_id)
     }
 
     /// During Warmup, occasionally one dialed-in rule bot speaks a tuning-in line.
@@ -4482,11 +4801,23 @@ impl GameState {
             rule_bots[idx],
             BotTauntKind::Warmup,
             RULE_BOT_TAUNT_WARMUP_PCT,
+            None,
         );
     }
 
     /// Validate and emit an off-tick speak event.
     pub fn try_speak(&mut self, player_id: Uuid, raw_text: &str) -> SpeakOutcome {
+        self.try_speak_to(player_id, raw_text, None)
+    }
+
+    /// A callout said to one fighter (`to_id`), such as a frag taunt to its
+    /// victim. Same limits as `try_speak`.
+    pub fn try_speak_to(
+        &mut self,
+        player_id: Uuid,
+        raw_text: &str,
+        to_id: Option<Uuid>,
+    ) -> SpeakOutcome {
         let trimmed: String = raw_text.trim().chars().take(SPEAK_MAX_CHARS + 1).collect();
         if trimmed.is_empty() {
             return SpeakOutcome::Rejected;
@@ -4516,6 +4847,7 @@ impl GameState {
             player: name,
             player_id,
             text: trimmed,
+            to_id,
         });
         SpeakOutcome::Sent
     }
@@ -4559,11 +4891,16 @@ impl Default for GameState {
             remote_mines: Vec::new(),
             explosion_results: Vec::new(),
             projectile_serial: 0,
+            paver_strip_hits: 0,
             compliance_ticks_left: 0,
             compliance_fired: false,
             boss_id: None,
             boss_spawned: false,
-            pickups: MapKind::ArenaDuel.pickups(),
+            pickups: MapKind::ArenaDuel
+                .pickups()
+                .into_iter()
+                .chain(MapKind::ArenaDuel.scrap_pads())
+                .collect(),
             ended_host_line: None,
             ended_mvp: None,
             ended_mvp_frags: None,
@@ -4586,6 +4923,7 @@ impl Default for GameState {
             article_blade: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
+            sudden_death: None,
         }
     }
 }
@@ -4707,21 +5045,23 @@ impl BotController {
         }
     }
 
-    /// Capture-the-flag goals for a side with at least three rule bots.
-    /// Two-bot sides keep the older branch in `intent`.
+    /// Capture-the-flag goals for a side with at least three rule bots, with
+    /// the point this bot guards and how close an opponent must come to it:
+    /// the defender its own stand, the escort the carrier, a runner the flag
+    /// it came for. Two-bot sides keep the older branch in `ctf_intent`.
     fn ctf_support_intent(
         &self,
         state: &GameState,
         bot: &Player,
         team: Team,
         flags: &[ctf::Flag; 2],
-    ) -> BotIntent {
+    ) -> (BotIntent, Option<([f32; 3], f32)>) {
         let own = &flags[team.index()];
         let enemy = &flags[team.other().index()];
         let living =
             |player: &Player| player.hp > 0 && player.respawn_timer.is_none() && !player.detached;
         if !living(bot) {
-            return BotIntent::default();
+            return (BotIntent::default(), None);
         }
         let feet_of = |player: &Player| [player.x, player.y - PLAYER_FLOOR_Y, player.z];
         let carrier = enemy.carrier.and_then(|id| {
@@ -4798,10 +5138,173 @@ impl BotController {
                 }
             }
         }
-        BotIntent {
-            action,
-            goal: Some(crate::navigation::NavigationGoal { feet, combat }),
+        let guard = if carrying {
+            None
+        } else if defending {
+            Some((own.stand, CTF_HOLD_RADIUS))
+        } else if escorting {
+            carrier.map(|runner| (feet_of(runner), CTF_CLEAR_RADIUS))
+        } else {
+            Some((enemy.position, CTF_CLEAR_RADIUS))
+        };
+        (
+            BotIntent {
+                action,
+                goal: Some(crate::navigation::NavigationGoal { feet, combat }),
+            },
+            guard,
+        )
+    }
+
+    /// Capture-the-flag objective intent, or None without a side and flags.
+    fn ctf_intent(&self, state: &GameState, bot: &Player) -> Option<BotIntent> {
+        // Objective movement runs through the same bounded navigator as combat.
+        // It must work even when no enemy is in sight.
+        let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) else {
+            return None;
+        };
+        let own = &flags[team.index()];
+        let enemy = &flags[team.other().index()];
+        // A side of two keeps one defender and one flag runner.
+        // A larger side elects one defender and one escort.
+        let side_count = state
+            .bots
+            .iter()
+            .filter(|controller| {
+                state
+                    .players
+                    .iter()
+                    .any(|player| player.id == controller.player_id && player.team == Some(team))
+            })
+            .count();
+        if side_count >= 3 {
+            let (objective, guard) = self.ctf_support_intent(state, bot, team, flags);
+            return Some(self.ctf_combat(state, bot, guard, objective));
         }
+        // Keep one stable defender per side. The other rule bots stay
+        // on the flag route even when the roster grows.
+        let defender = state
+            .bots
+            .iter()
+            .find(|controller| {
+                state
+                    .players
+                    .iter()
+                    .any(|player| player.id == controller.player_id && player.team == Some(team))
+            })
+            .is_some_and(|controller| controller.player_id == bot.id);
+        let feet = if enemy.carrier == Some(bot.id) {
+            if own.dropped_at.is_some() {
+                own.position
+            } else if let Some(carrier) = own.carrier {
+                state
+                    .players
+                    .iter()
+                    .find(|p| p.id == carrier)
+                    .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                    .unwrap_or(own.stand)
+            } else {
+                own.stand
+            }
+        } else if own.dropped_at.is_some() {
+            own.position
+        } else if let Some(carrier) = own.carrier.filter(|_| defender) {
+            state
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                .unwrap_or(own.stand)
+        } else if defender {
+            own.stand
+        } else if enemy.carrier.is_none() {
+            enemy.position
+        } else {
+            own.stand
+        };
+        let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
+        let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
+        let mut action = Action {
+            forward: true,
+            ..Action::default()
+        };
+        if diff > 0.18 {
+            action.turn_right = true;
+        }
+        if diff < -0.18 {
+            action.turn_left = true;
+        }
+        let thief = own.carrier.and_then(|carrier| {
+            state
+                .players
+                .iter()
+                .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
+        });
+        // A carrier already pursuing its own flag thief can defend at
+        // the same contact range as the side's ordinary defender.
+        let intercept = (defender || enemy.carrier == Some(bot.id))
+            && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
+        if let Some(target) = thief.filter(|_| intercept) {
+            aim_contact(&mut action, bot, target);
+        }
+        let objective = BotIntent {
+            action,
+            goal: Some(crate::navigation::NavigationGoal {
+                feet,
+                combat: intercept,
+            }),
+        };
+        // The defender holds its own flag; the runner clears the flag it came
+        // for. The carrier only runs.
+        let guard = if enemy.carrier == Some(bot.id) {
+            None
+        } else if defender {
+            Some((own.stand, CTF_HOLD_RADIUS))
+        } else {
+            Some((enemy.position, CTF_CLEAR_RADIUS))
+        };
+        Some(self.ctf_combat(state, bot, guard, objective))
+    }
+
+    /// A CTF bot keeps its objective route and shoots what it actually sees
+    /// along it. With a `guard` point it turns and fights an opponent it sees
+    /// close to that point: a defender at its stand, an escort beside the
+    /// carrier, a runner at the flag it came for. Nobody chases a fight
+    /// elsewhere; measured on Sector 9, every bot
+    /// fighting whatever it saw inside 25 m cut 2v2 captures from 16 of 16
+    /// seeded rounds to 3. A contact-range intercept of the flag thief keeps
+    /// its own aim. All of it uses the shared delayed observations.
+    fn ctf_combat(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        guard: Option<([f32; 3], f32)>,
+        mut objective: BotIntent,
+    ) -> BotIntent {
+        if objective.goal.is_some_and(|goal| goal.combat) {
+            return objective;
+        }
+        let threat = guard.and_then(|(point, radius)| {
+            self.sensed_enemy(state, bot, CTF_ENGAGE_RANGE)
+                .filter(|(enemy, _)| (enemy.x - point[0]).hypot(enemy.z - point[2]) <= radius)
+        });
+        if threat.is_some() {
+            if let Some(fight) = self.sensed_fight(state, bot, None, true) {
+                return fight;
+            }
+        }
+        if let Some(combat) = self.sensed_objective_aim(state, bot) {
+            objective.action.yaw = combat.yaw;
+            objective.action.pitch = combat.pitch;
+            objective.action.weapon_swap = combat.weapon_swap;
+            objective.action.turn_left = false;
+            objective.action.turn_right = false;
+            objective.action.fire = combat.fire;
+        } else if self.uses_senses(state, bot) {
+            // A close aim helper must not restore a shot nobody saw.
+            objective.action.fire = false;
+        }
+        objective
     }
 
     pub fn update(&self, state: &GameState) -> Action {
@@ -4822,6 +5325,11 @@ impl BotController {
 
         if state.conquest.is_some() && bot.contestant() {
             return self.conquest_intent(state, bot);
+        }
+        if state.config.rules.mode() == crate::protocol::GameMode::Ctf && bot.contestant() {
+            if let Some(intent) = self.ctf_intent(state, bot) {
+                return intent;
+            }
         }
         if self.uses_senses(state, bot) {
             return self.sensed_intent(state, bot);
@@ -4846,101 +5354,6 @@ impl BotController {
             if dist < nearest_dist {
                 nearest_dist = dist;
                 nearest_target = Some(target);
-            }
-        }
-
-        // Objective movement runs through the same bounded navigator as combat.
-        // It must work even when no enemy is in sight.
-        if state.config.rules.mode() == crate::protocol::GameMode::Ctf && bot.contestant() {
-            if let (Some(team), Some(flags)) = (bot.team, state.flags.as_ref()) {
-                let own = &flags[team.index()];
-                let enemy = &flags[team.other().index()];
-                // A side of two keeps one defender and one flag runner.
-                // A larger side elects one defender and one escort.
-                let side_count = state
-                    .bots
-                    .iter()
-                    .filter(|controller| {
-                        state.players.iter().any(|player| {
-                            player.id == controller.player_id && player.team == Some(team)
-                        })
-                    })
-                    .count();
-                if side_count >= 3 {
-                    return self.ctf_support_intent(state, bot, team, flags);
-                }
-                // Keep one stable defender per side. The other rule bots stay
-                // on the flag route even when the roster grows.
-                let defender = state
-                    .bots
-                    .iter()
-                    .find(|controller| {
-                        state.players.iter().any(|player| {
-                            player.id == controller.player_id && player.team == Some(team)
-                        })
-                    })
-                    .is_some_and(|controller| controller.player_id == bot.id);
-                let feet = if enemy.carrier == Some(bot.id) {
-                    if own.dropped_at.is_some() {
-                        own.position
-                    } else if let Some(carrier) = own.carrier {
-                        state
-                            .players
-                            .iter()
-                            .find(|p| p.id == carrier)
-                            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                            .unwrap_or(own.stand)
-                    } else {
-                        own.stand
-                    }
-                } else if own.dropped_at.is_some() {
-                    own.position
-                } else if let Some(carrier) = own.carrier.filter(|_| defender) {
-                    state
-                        .players
-                        .iter()
-                        .find(|p| p.id == carrier)
-                        .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
-                        .unwrap_or(own.stand)
-                } else if defender {
-                    own.stand
-                } else if enemy.carrier.is_none() {
-                    enemy.position
-                } else {
-                    own.stand
-                };
-                let goal_angle = (feet[2] - bot.z).atan2(feet[0] - bot.x);
-                let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
-                let mut action = Action {
-                    forward: true,
-                    ..Action::default()
-                };
-                if diff > 0.18 {
-                    action.turn_right = true;
-                }
-                if diff < -0.18 {
-                    action.turn_left = true;
-                }
-                let thief = own.carrier.and_then(|carrier| {
-                    state
-                        .players
-                        .iter()
-                        .find(|p| p.id == carrier && p.hp > 0 && p.respawn_timer.is_none())
-                });
-                // A carrier already pursuing its own flag thief can defend at
-                // the same contact range as the side's ordinary defender.
-                let intercept = (defender || enemy.carrier == Some(bot.id))
-                    && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
-                if let Some(target) = thief.filter(|_| intercept) {
-                    aim_contact(&mut action, bot, target);
-                }
-                return BotIntent {
-                    action,
-                    goal: Some(crate::navigation::NavigationGoal {
-                        feet,
-                        combat: intercept,
-                    }),
-                };
             }
         }
 
@@ -5255,6 +5668,6 @@ mod live_status_tests {
         assert_eq!(live.bots, 0);
         assert_eq!(live.fighters, 2);
         assert_eq!(live.connections, 3);
-        assert_eq!(live.map, "Arena Duel");
+        assert_eq!(live.map, "Larak Lot");
     }
 }

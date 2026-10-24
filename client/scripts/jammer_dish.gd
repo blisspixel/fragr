@@ -179,6 +179,7 @@ static func build() -> Node3D:
 	var label := Label3D.new()
 	label.name = "DishLabel"
 	label.text = "SEIZE JAMMER"
+	MenuTheme.world_text(label)
 	label.font_size = LABEL_FONT
 	label.outline_size = 22
 	label.position = Vector3(0.0, LABEL_Y, 0.18)

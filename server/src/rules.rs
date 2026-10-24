@@ -1,10 +1,14 @@
 //! The rule set a server runs: a mode plus host mutators, validated once at
 //! start and carried in `MatchConfig`. The sim asks it questions; the wire
 //! shape readers see is `protocol::MatchRules`.
-use crate::protocol::{GameMode, MatchRules, Mutator, Team, TeamScores, WeaponType};
+use crate::protocol::{
+    EquipmentPolicy, GameMode, MatchRules, Mutator, Team, TeamScores, WeaponType,
+};
 
 mod sabotage;
-pub use sabotage::{match_outcome, round_slot, MatchOutcome, RoundSlot, SabotageConfig};
+pub use sabotage::{
+    match_outcome, match_point, round_slot, MatchOutcome, RoundSlot, SabotageConfig,
+};
 
 /// Lives each fighter has per round under Two Lives.
 pub const TWO_LIVES: u8 = 2;
@@ -13,10 +17,42 @@ pub const TEAM_FRAG_LIMIT: u32 = 25;
 pub const CTF_CAPTURE_LIMIT: u32 = 3;
 /// Weapon pads come back on the rule sheet's slower team clock.
 pub const TEAM_WEAPON_RESPAWN_TICKS: u32 = 20 * 30;
+/// Free-for-all pad clocks. Every life starts with the Pistol, so a gun on
+/// the floor is an appointment: the Rifle, Shotgun and Repeater return in
+/// 15 s, the long and heavy guns in 25 s, a spare Pistol in 8 s.
+pub const FFA_WEAPON_RESPAWN_TICKS: u32 = 20 * 15;
+pub const FFA_POWER_WEAPON_RESPAWN_TICKS: u32 = 20 * 25;
+pub const FFA_SIDEARM_RESPAWN_TICKS: u32 = 20 * 8;
+/// Free-for-all health and armour, the rule sheet's 25 s. Team modes keep
+/// the 15 s health and armour clock.
+pub const FFA_HEALTH_ARMOR_RESPAWN_TICKS: u32 = 20 * 25;
+
+/// The published pad clock: the one the server runs and the one a rule bot
+/// or a joined agent learns. `None` for kinds whose clock does not depend on
+/// the rule sheet (supply, and health or armour in team modes).
+pub fn pad_respawn_ticks(
+    teams: bool,
+    weapon: Option<WeaponType>,
+    health_or_armor: bool,
+) -> Option<u32> {
+    if teams {
+        return weapon.map(|_| TEAM_WEAPON_RESPAWN_TICKS);
+    }
+    if health_or_armor {
+        return Some(FFA_HEALTH_ARMOR_RESPAWN_TICKS);
+    }
+    weapon.map(|weapon| match weapon {
+        WeaponType::Tack => FFA_SIDEARM_RESPAWN_TICKS,
+        WeaponType::Rail | WeaponType::Sniper | WeaponType::Arc | WeaponType::Rocket => {
+            FFA_POWER_WEAPON_RESPAWN_TICKS
+        }
+        _ => FFA_WEAPON_RESPAWN_TICKS,
+    })
+}
 /// Ticks a fallen free-for-all fighter waits before the server tries to put
-/// them back (three seconds at 20 Hz). This is the one value to change for FFA
-/// pacing (#441); it does not move the team modes or the spawn shield.
-pub const FFA_RESPAWN_DELAY_TICKS: u32 = 60;
+/// them back: four seconds at 20 Hz (Nick, 2026-10-23). It moves neither the
+/// team modes nor the spawn shield.
+pub const FFA_RESPAWN_DELAY_TICKS: u32 = 80;
 /// The same wait for team modes that respawn (TDM, CTF, Conquest). Kept
 /// separate so FFA pacing can change without silently moving these.
 pub const TEAM_RESPAWN_DELAY_TICKS: u32 = 60;
@@ -25,12 +61,41 @@ pub const TEAM_RESPAWN_DELAY_TICKS: u32 = 60;
 /// pacing change would silently move campaign death timing as well. Mission
 /// recovery owns what happens next.
 pub const CAMPAIGN_RESPAWN_DELAY_TICKS: u32 = 60;
-/// No Host reaction lands within eight seconds of the last one.
+/// Host calls are rare. A big (voiced) call waits this long after the last
+/// big call, and a text caption this long after any call, so two voices
+/// never stack and the corner never chatters.
 pub const REACTION_GAP_TICKS: u64 = 20 * 8;
-/// A streak this long is worth a line when it ends.
-pub const STREAK_WORTH_ENDING: u32 = 3;
+/// Frags by one fighter each within three seconds of the last chain a
+/// multikill.
+pub const MULTIKILL_WINDOW_TICKS: u64 = 20 * 3;
 /// A side this far behind that draws level is a comeback.
 pub const COMEBACK_DEFICIT: u32 = 4;
+/// A free-for-all fighter needs this many frags before taking the lead is
+/// called, so the opening minute does not trade the lead every frag.
+pub const LEAD_CHANGE_MIN_FRAGS: u32 = 3;
+/// Sudden death after a level clock ends at the next score. A room where
+/// nobody scores for this long ends level so the rotation moves.
+pub const SUDDEN_DEATH_LIMIT_TICKS: u32 = 20 * 120;
+
+/// Frags without dying per spree tier: Rampage at one step, Riot at two and
+/// Untouchable at three. A streak that reached one step is worth a line when
+/// it ends. Team objective modes give fewer frags to go round, and a Sabotage
+/// fighter has one life per round.
+pub const fn spree_step(mode: GameMode) -> u32 {
+    match mode {
+        GameMode::Ffa | GameMode::Tdm => 5,
+        GameMode::Ctf | GameMode::Conquest => 4,
+        GameMode::Sabotage => 3,
+    }
+}
+/// Larak Lot: this many frags across the lot inside the window is a spike,
+/// "the Larak Lot special".
+pub const LOT_SPECIAL_FRAGS: usize = 4;
+/// The window a spike's frags land inside: four seconds.
+pub const LOT_SPECIAL_WINDOW_TICKS: u64 = 20 * 4;
+/// Once called, the special waits this long before it can be called again,
+/// so a busy lot hears it as an event rather than a refrain.
+pub const LOT_SPECIAL_COOLDOWN_TICKS: u64 = 20 * 45;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RuleSet {
@@ -74,6 +139,23 @@ impl RuleSet {
                 ));
             }
         }
+        if mutators.contains(&Mutator::FullArsenal) {
+            if mode != GameMode::Ffa {
+                return Err(format!(
+                    "full-arsenal changes the free-for-all start; {} keeps its own kit",
+                    mode.id()
+                ));
+            }
+            if let Some(m) = only
+                .first()
+                .or(mutators.iter().find(|m| **m == Mutator::GoldenRail))
+            {
+                return Err(format!(
+                    "{} already sets the starting weapons; drop full-arsenal",
+                    m.id()
+                ));
+            }
+        }
         if friendly_fire && !mode.teams() {
             return Err("friendly fire needs a team mode".into());
         }
@@ -93,6 +175,14 @@ impl RuleSet {
             mutators,
             friendly_fire,
         })
+    }
+
+    /// The `full-arsenal` free-for-all, for fixtures that measure the arcade
+    /// guns rather than the start kit.
+    #[cfg(test)]
+    pub(crate) fn arsenal() -> Self {
+        Self::new(GameMode::Ffa, &[Mutator::FullArsenal], false)
+            .expect("full-arsenal free-for-all is valid")
     }
 
     pub fn mode(&self) -> GameMode {
@@ -140,13 +230,42 @@ impl RuleSet {
         format!("{}: {}", self.mode.name(), twists.join(", "))
     }
 
-    pub fn wire(&self) -> MatchRules {
+    /// What a fresh life holds on an arena map under these rules. Campaign
+    /// maps carry their own equipment and never ask.
+    pub fn start_kit(&self, sabotage: &SabotageConfig) -> StartKit {
+        if self.mode == GameMode::Sabotage && sabotage.five_vs_five {
+            return StartKit::Found { sidearm: true };
+        }
+        if let Some(weapon) = self.only_weapon() {
+            return StartKit::Only(weapon);
+        }
+        match self.mode {
+            GameMode::Sabotage => StartKit::Found { sidearm: false },
+            GameMode::Ffa if !self.has(Mutator::GoldenRail) && !self.has(Mutator::FullArsenal) => {
+                StartKit::Found { sidearm: true }
+            }
+            _ => StartKit::Arsenal,
+        }
+    }
+
+    /// Ticks until a claimed pad returns, by what it holds. `None` for kinds
+    /// whose clock does not depend on the rule sheet.
+    pub fn pad_respawn_ticks(
+        &self,
+        weapon: Option<WeaponType>,
+        health_or_armor: bool,
+    ) -> Option<u32> {
+        pad_respawn_ticks(self.teams(), weapon, health_or_armor)
+    }
+
+    pub fn wire(&self, sabotage: &SabotageConfig) -> MatchRules {
         MatchRules {
             mode: self.mode,
             name: self.name(),
             mutators: self.mutators.clone(),
             friendly_fire: self.friendly_fire,
             lives: self.lives(),
+            start_kit: self.start_kit(sabotage).weapons(),
         }
     }
 
@@ -168,6 +287,57 @@ impl RuleSet {
             TEAM_FRAG_LIMIT
         } else {
             10
+        }
+    }
+}
+
+/// What every fresh arena life holds. "Nothing is issued, everything is
+/// liberated": in free-for-all that is the Pistol and Fists, and every
+/// stronger gun is owned only after its pad is taken.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StartKit {
+    /// A weapon-only mutator: that one weapon, unlimited, nothing to find.
+    Only(WeaponType),
+    /// Rifle, Shotgun and Railgun at spawn; weapon pads restock them.
+    Arsenal,
+    /// Owned equipment: Fists, plus the Pistol and its fifty Bullets when
+    /// `sidearm`. Pads grant the guns.
+    Found { sidearm: bool },
+}
+
+impl StartKit {
+    /// The weapons a fresh life can select, in wire order.
+    pub fn weapons(self) -> Vec<WeaponType> {
+        match self {
+            Self::Only(weapon) => vec![weapon],
+            Self::Arsenal => WeaponType::ALL
+                .into_iter()
+                .filter(|weapon| WeaponType::ARCADE.contains(weapon))
+                .collect(),
+            Self::Found { sidearm } => {
+                let mut weapons = vec![WeaponType::Fists];
+                if sidearm {
+                    weapons.push(WeaponType::Tack);
+                }
+                weapons
+            }
+        }
+    }
+
+    /// The weapon a fresh life holds.
+    pub fn selected(self) -> WeaponType {
+        match self {
+            Self::Only(weapon) => weapon,
+            Self::Arsenal => WeaponType::default(),
+            Self::Found { sidearm: true } => WeaponType::Tack,
+            Self::Found { sidearm: false } => WeaponType::Fists,
+        }
+    }
+
+    pub fn policy(self) -> EquipmentPolicy {
+        match self {
+            Self::Only(_) | Self::Arsenal => EquipmentPolicy::FullArsenal,
+            Self::Found { .. } => EquipmentPolicy::Discovery,
         }
     }
 }
@@ -229,7 +399,7 @@ mod tests {
         assert_eq!(rules.only_weapon(), Some(WeaponType::Rail));
         assert_eq!(rules.lives(), Some(2));
         assert_eq!(rules.default_frag_limit(), TEAM_FRAG_LIMIT);
-        let wire = rules.wire();
+        let wire = rules.wire(&SabotageConfig::default());
         assert!(wire.friendly_fire);
         assert_eq!(wire.lives, Some(2));
     }

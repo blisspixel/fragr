@@ -49,9 +49,16 @@ fn place(session: &mut GameSession, id: Uuid, feet: [f32; 3]) {
     player.clear_input();
 }
 fn clear_group(session: &mut GameSession, index: usize) {
-    let feet = session.state.map.encounters()[index].enemies[0].feet;
+    // By registration, not by post: a paced guard may have shifted its lane.
+    let members: Vec<Uuid> = session
+        .state
+        .players
+        .iter()
+        .filter(|p| p.is_campaign_enemy() && session.state.encounters.enemy_in_group(p.id, index))
+        .map(|p| p.id)
+        .collect();
     for p in &mut session.state.players {
-        if p.is_campaign_enemy() && (p.x - feet[0]).abs() < 0.1 && (p.z - feet[2]).abs() < 0.1 {
+        if members.contains(&p.id) {
             p.hp = 0;
         }
     }

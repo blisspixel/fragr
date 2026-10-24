@@ -27,6 +27,29 @@ var _score_chip: String = ""
 var golden: bool = false
 ## The callsign colour before a side took it over.
 var _own_color: Color = Color.WHITE
+## The one-line reason the colour picker rule last snapped this body's
+## composed colours, or empty when they passed as chosen.
+var body_scheme_note: String = ""
+## Light, not paint: a hot flash on a hit and the golden Railgun's glow. The
+## alpha is the emission energy.
+const HIT_GLOW: Color = Color(1.0, 0.72, 0.5, 0.9)
+## The same hot flash on a sprite strip, as an overbright warm multiply: red
+## light is the Union's tell, so a hit never washes a body red.
+const HIT_FLASH: Color = Color(1.6, 1.15, 0.8)
+const GOLDEN_GLOW: Color = Color(1.0, 0.82, 0.28, 0.45)
+## The nameplate edge (`_apply_plate_edge`): its cells, their size in metres at
+## plate scale 1, how far over the plate's centre it sits, and its ink rim. It
+## sits over the words because the plate grows with range: under them, the
+## grown edge would sink onto the fighter's head.
+const PLATE_EDGE_SIZE: Vector2i = Vector2i(28, 8)
+const PLATE_EDGE_PIXEL: float = 0.026
+## The free frame's accent band, in cells: thick enough to stay amber, not
+## ink, at 30 metres.
+const PLATE_EDGE_BAND: int = 2
+const PLATE_EDGE_RISE: float = 0.31
+const PLATE_EDGE_INK: Color = Color("0a0a0c")
+static var _plate_edge_textures: Dictionary[String, Texture2D] = {}
+var _plate_edge: Sprite3D = null
 ## The server-accepted body this pawn wears, or empty for an actor without
 ## one (Union actors, the arena boss, an older server's fighters).
 var body_kind: String = ""
@@ -47,6 +70,8 @@ var prediction_active: bool = false
 ## Resolved crouch from the server, or from local prediction while that owns the body.
 var ducking: bool = false
 var _body_rest_y: float = -0.15
+## Seconds left in the current flinch, zero when settled.
+var flinch_timer: float = 0.0
 var predicted_position: Vector3 = Vector3.ZERO
 var predicted_speed: float = 0.0
 var presentation_speed: float = 0.0
@@ -69,6 +94,11 @@ const NAMEPLATE_NEAR_DIST: float = 9.0
 ## How small a close nameplate may get, so it does not vanish at point blank.
 const NAMEPLATE_MIN_SCALE: float = 0.22
 const HIT_SCALE_BOOST: float = 1.12
+## A struck fighter recoils: the body leans back from its facing and gives a
+## little ground, then settles. Presentation only; the server owns the hit.
+const FLINCH_SECONDS: float = 0.24
+const FLINCH_LEAN: float = 0.2
+const FLINCH_SHOVE: float = 0.1
 
 var _far_cam_scale: float = 1.0
 ## Distant silhouettes may be enlarged for a broadcast overview, never while
@@ -110,8 +140,8 @@ const TELL_PITCH_MIN: float = 0.8
 const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
 const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
-## Union machines fall as machines; the Notary keeps its own crash.
-const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor"]
+## Machines fall as machines, Union or Inheritance; the Notary keeps its own crash.
+const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver", "surveyor"]
 
 var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
@@ -121,19 +151,10 @@ const HELD_PROFILE_SCALE: float = 32.0 / 80.0
 ## The scene's pixel size for a 32 pixel weapon icon.
 var weapon_pixel_size: float = 0.026
 var cyanex_texture: Texture2D
-var kragge_texture: Texture2D
 
-# Art bible muted brand tints (bone/gunmetal/rust/blood/ember + muted cyan/magenta).
-# Keep silhouettes readable: labels carry brand color; body stays near-white multiply.
+## Fixed colours of the named campaign units. None is Union red, Inheritance
+## cyan or off-white; `FactionPalette.label_color` still checks each.
 const BOT_COLORS = {
-	"Dead Air Dan": Color(0.75, 0.28, 0.22),
-	"Nightfall": Color(0.35, 0.58, 0.62),
-	"Static Kid": Color(0.82, 0.55, 0.22),
-	"Aunt Linda": Color(0.55, 0.48, 0.4),
-	"Scout Ant": Color(0.62, 0.32, 0.42),
-	"Crackpot": Color(0.45, 0.38, 0.5),
-	"Buzzkill": Color(0.769, 0.4, 0.18),
-	"Tin Foil Tina": Color(0.4, 0.62, 0.64),
 	"COMPLIANCE-DRONE": Color(0.55, 0.72, 0.35),
 	"AUDITOR": Color(0.72, 0.78, 0.28),
 	"NODS-01": Color(0.45, 0.48, 0.42),
@@ -147,14 +168,12 @@ const BOT_COLORS = {
 }
 
 
-# Hangar Candy / Kragge grit vs Cyanex / Night Watch signal.
-const KRAGGE_BOTS = ["Dead Air Dan", "Aunt Linda", "Buzzkill"]
-const CYANEX_BOTS = ["Nightfall", "Static Kid", "Scout Ant", "Crackpot", "Tin Foil Tina"]
 
 func _ready():
 	if body:
 		_body_rest_y = body.position.y
 	if label:
+		MenuTheme.world_text(label)
 		label.text = player_name
 	if muzzle:
 		muzzle.visible = false
@@ -174,7 +193,6 @@ func _ready():
 		weapon_pixel_size = weapon_sprite.pixel_size
 	
 	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
-	kragge_texture = load("res://assets/characters/64/kragge_idle_strip.png")
 
 var fire_streams = {}
 var hit_streams = {}
@@ -300,6 +318,9 @@ func _process(delta: float) -> void:
 		hit_flash_timer -= delta
 		if hit_flash_timer <= 0 and body:
 			_update_body_color(false)
+	if flinch_timer > 0.0:
+		flinch_timer = maxf(flinch_timer - delta, 0.0)
+		_apply_flinch(flinch_envelope(FLINCH_SECONDS - flinch_timer))
 	
 	if enemy_view != null and body:
 		enemy_view.advance(delta, travel)
@@ -330,20 +351,19 @@ func set_player_data(id: String, name: String):
 	player_id = id
 	player_name = name
 	
+	# Callsign colours light the plate and the free-for-all tape, so none may
+	# land on Union red, Inheritance cyan or matte off-white.
 	if BOT_COLORS.has(name):
-		player_color = BOT_COLORS[name]
+		player_color = FactionPalette.label_color(BOT_COLORS[name])
 	elif str(name).begins_with("NODS-"):
 		player_color = Color(0.44, 0.47, 0.4)
 	elif name == "AUDITOR":
 		player_color = Color(0.72, 0.78, 0.28)
 	else:
-		var color_val = float(abs(hash(id)) % 100) / 100.0
-		player_color = Color.from_hsv(color_val, 0.8, 0.9)
+		player_color = FactionPalette.callsign_color(id)
 	
-	if KRAGGE_BOTS.has(name):
-		body.texture = kragge_texture
-	else:
-		body.texture = cyanex_texture
+	# The legacy strip only stands in until the snapshot names a body kind.
+	body.texture = cyanex_texture
 	
 	# Continuance drone: taller billboard silhouette vs scrap fighters.
 	if str(name).begins_with("NODS-") and label:
@@ -365,7 +385,7 @@ func set_player_data(id: String, name: String):
 	target_yaw = 0.0
 
 func update_state(state: Dictionary, snapshot_tick: int = 0):
-	is_campaign_enemy = ActorState.is_union(state)
+	is_campaign_enemy = ActorState.is_hostile(state)
 	is_campaign_companion = ActorState.is_companion(state)
 	campaign_actor = state["campaign"] if is_campaign_enemy or is_campaign_companion else {}
 	if is_campaign_enemy:
@@ -622,8 +642,13 @@ func _update_body_color(hit: bool):
 	if not body:
 		return
 	
+	# Allegiance reads from livery and accent zones, never from a whole-body
+	# tint: no side's colour washes over another side's body, and a viewer's
+	# relation (OURS or THEIRS) reads from the plate, not from Union red.
+	var light: Color = Color(0, 0, 0, 0)
 	if hit:
-		body.modulate = Color(1.55, 0.35, 0.28)
+		body.modulate = HIT_FLASH
+		light = HIT_GLOW
 	elif is_campaign_companion:
 		body.modulate = Color.WHITE
 	elif is_campaign_enemy:
@@ -631,28 +656,43 @@ func _update_body_color(hit: bool):
 	elif golden:
 		# The golden Railgun's holder glows so everyone knows who to chase.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.GOLD, 0.6) * 1.25
-	elif team_relation == "mate":
-		# Brighten whoever is on the viewer's side, whichever faction that is.
-		body.modulate = Color(1.2, 1.16, 1.05)
-	elif team_relation == "foe":
-		body.modulate = Color.WHITE.lerp(MatchRules.THEIRS_MARK, 0.55)
-	elif not body_kind.is_empty() and team != "union":
-		# A free body keeps its own bone, leather, rust and ember, with or
-		# without a side: the coalition is who these people already are,
-		# and the side still reads from the plate and the side chip.
-		body.modulate = Color.WHITE
-	elif team != "":
-		# Sides read from the body, not only the plate: Union dark plate,
-		# coalition bone.
+		light = GOLDEN_GLOW
+	elif team == "union":
+		# A strip without accent zones (an older server's fighter, or a body
+		# whose live source failed) approximates the issued dark livery.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.team_body_color(team), 0.55)
+	elif team != "" or not body_kind.is_empty():
+		# Free bodies keep their own art, sided or not. The side reads from the
+		# plate and, on a live body, the amber tape.
+		body.modulate = Color.WHITE
 	else:
 		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
 	if character_view != null:
-		character_view.tint(body.modulate)
+		_dress_live_body()
+		character_view.glow(light)
 	if enemy_view != null and enemy_view.assessor_rig != null:
 		enemy_view.assessor_rig.set_hit(hit)
+	if enemy_view != null and enemy_view.paver_rig != null:
+		enemy_view.paver_rig.set_hit(hit)
+	if enemy_view != null and enemy_view.surveyor_rig != null:
+		enemy_view.surveyor_rig.set_hit(hit)
 	_apply_body_scale(hit)
+
+## The live body in its side's livery with its accent on the shoulder and arm
+## tape: the Union side in issued black and red, the free coalition in its own
+## art with amber tape, a sideless fighter with tape in its callsign colour.
+## The composed free body passes the colour picker rule first.
+func _dress_live_body() -> void:
+	var livery: String = FactionPalette.livery(team)
+	var accent: Color = FactionPalette.team_accent(team) if team != "" else player_color
+	if livery == "free":
+		var checked: Dictionary = FactionPalette.check({"base": character_view.base_color(), "accent": accent})
+		accent = checked["scheme"].get("accent", accent)
+		body_scheme_note = checked["reason"]
+	else:
+		body_scheme_note = ""
+	character_view.dress(livery, accent)
 
 func _update_notary_shadow() -> void:
 	if _notary_shadow == null:
@@ -801,6 +841,9 @@ func show_hit_feedback(weapon: String = ""):
 	
 	hit_flash_timer = 0.25
 	_update_body_color(true)
+	if not is_campaign_enemy and not is_campaign_companion and hp > 0:
+		# Campaign actors flinch through their own server Hit poses.
+		flinch_timer = FLINCH_SECONDS
 	
 	await get_tree().create_timer(0.12).timeout
 	if is_instance_valid(body):
@@ -818,6 +861,25 @@ func play_impact(weapon: String) -> void:
 	hit_sound.stream = stream
 	hit_sound.play()
 	impact_count += 1
+
+## Flinch weight from 0 to 1 at `elapsed` seconds into the recoil: a hard
+## snap in the first frames, then a settle back to rest by FLINCH_SECONDS.
+static func flinch_envelope(elapsed: float) -> float:
+	if elapsed <= 0.0 or elapsed >= FLINCH_SECONDS:
+		return 0.0
+	var t: float = elapsed / FLINCH_SECONDS
+	var settle: float = 1.0 - t
+	return minf(t * 6.0, 1.0) * settle * settle
+
+## Lean the visible body back from its facing and give a little ground. The
+## pawn faces local +X; a live body faces its own +Z under a quarter turn.
+func _apply_flinch(weight: float) -> void:
+	if character_view != null:
+		character_view.rotation.x = -FLINCH_LEAN * weight
+		character_view.position.x = -FLINCH_SHOVE * weight
+	elif body != null and enemy_view == null and latch_view == null:
+		# A camera-facing strip cannot lean, so it only gives ground.
+		body.position.x = -FLINCH_SHOVE * weight
 
 func _start_shotgun_cycle() -> void:
 	if _cycle_timer == null or cycle_sound == null or cycle_sound.stream == null \
@@ -942,9 +1004,13 @@ func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
 	is_local_fp = enabled
 	if body:
-		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") != "assessor"
+		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") not in ["assessor", "paver", "surveyor"]
 	if enemy_view != null and enemy_view.assessor_rig != null:
 		enemy_view.assessor_rig.visible = not enabled
+	if enemy_view != null and enemy_view.paver_rig != null:
+		enemy_view.paver_rig.visible = not enabled
+	if enemy_view != null and enemy_view.surveyor_rig != null:
+		enemy_view.surveyor_rig.visible = not enabled
 	if character_view != null:
 		character_view.visible = not enabled
 	if label:
@@ -971,10 +1037,13 @@ func set_team_relation(relation: String) -> void:
 func _apply_plate() -> void:
 	if label == null:
 		return
+	_apply_plate_edge()
 	var mark: String = MatchRules.relation_mark(team_relation)
 	if mark != "":
 		label.text = mark
-		label.modulate = MatchRules.OURS_MARK if team_relation == "mate" else MatchRules.THEIRS_MARK
+		# The words carry the relation; the colour stays the fighter's own
+		# side, so Union red never marks a free foe.
+		label.modulate = MatchRules.team_label_color(team)
 		return
 	var hp_display: String = str(hp) + " HP"
 	if hp < 30:
@@ -990,6 +1059,50 @@ func _apply_plate() -> void:
 		label.modulate = StanceChipScript.accent_color(true)
 	else:
 		label.modulate = player_color
+
+
+## The team overlay's nameplate edge: a bar over the plate in the side's
+## accent, solid for the Union and an open frame for the free coalition, the
+## same shapes as the HUD side marks, so the side still reads in grayscale and
+## for colour-blind players. It rides the plate, so it hides and scales with it.
+func _apply_plate_edge() -> void:
+	var texture: Texture2D = plate_edge_texture(team)
+	if texture == null:
+		if _plate_edge != null:
+			_plate_edge.visible = false
+		return
+	if _plate_edge == null:
+		_plate_edge = Sprite3D.new()
+		_plate_edge.name = "PlateEdge"
+		_plate_edge.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_plate_edge.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		_plate_edge.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		_plate_edge.shaded = false
+		_plate_edge.pixel_size = PLATE_EDGE_PIXEL
+		_plate_edge.position = Vector3(0, PLATE_EDGE_RISE, 0)
+		_plate_edge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		label.add_child(_plate_edge)
+	_plate_edge.texture = texture
+	_plate_edge.visible = true
+
+
+## The edge bar for a side, or null without one. Ink-rimmed so it reads on any
+## wall; Union red only for the Union side.
+static func plate_edge_texture(side: String) -> Texture2D:
+	if _plate_edge_textures.has(side):
+		return _plate_edge_textures[side]
+	var accent: Color = FactionPalette.team_accent(side)
+	if accent.a <= 0.0:
+		return null
+	var image: Image = Image.create(PLATE_EDGE_SIZE.x, PLATE_EDGE_SIZE.y, false, Image.FORMAT_RGBA8)
+	image.fill(PLATE_EDGE_INK)
+	image.fill_rect(Rect2i(Vector2i.ONE, PLATE_EDGE_SIZE - Vector2i(2, 2)), accent)
+	if side != "union":
+		var inset: int = 1 + PLATE_EDGE_BAND
+		image.fill_rect(Rect2i(Vector2i(inset, inset), PLATE_EDGE_SIZE - Vector2i(inset, inset) * 2), PLATE_EDGE_INK)
+	var texture: ImageTexture = ImageTexture.create_from_image(image)
+	_plate_edge_textures[side] = texture
+	return texture
 
 
 func set_nameplate_enabled(enabled: bool) -> void:

@@ -61,6 +61,22 @@ func _run() -> void:
 		var record: Dictionary = _record(4)
 		record["scope"]["rules"]["difficulty"] = tier
 		_check(PlayerRewards.eligible(record, "local", SERVER_HASH) == ["recall_notice_complete"], "ordinary tier qualifies equally: " + tier)
+	# Surviving the campaign's last level earns its own award; failing or a
+	# development room (no saved run) does not.
+	var survived: Dictionary = _record(5)
+	survived["map_id"] = M20MissionState.MAP_ID
+	survived["map_name"] = "Local Exception"
+	survived["scope"]["mission"] = MissionState.M20_ID
+	_check(PlayerRewards.eligible(survived, "local", SERVER_HASH) == ["local_exception_complete"], "the held refuge earns STILL HERE")
+	for spoiled: String in ["failed", "development", "wrong_map"]:
+		var record: Dictionary = survived.duplicate(true)
+		match spoiled:
+			"failed":
+				record["status"] = "failed"
+				record["scope"]["run"]["status"] = "failed"
+			"development": record["scope"]["run"] = null
+			"wrong_map": record["map_id"] = 1018
+		_check(not PlayerRewards.eligible(record, "local", SERVER_HASH).has("local_exception_complete"), "no survival award: " + spoiled)
 	for dimension: String in ["external", "unknown_hash", "agent", "development", "active", "failed", "old_rules", "wrong_map"]:
 		var record: Dictionary = complete.duplicate(true)
 		var origin: String = "local"
@@ -121,19 +137,28 @@ func _historical_rules_profile(current: Dictionary) -> void:
 
 func _persistence(complete: Dictionary, secret: Dictionary) -> void:
 	var path: String = "user://test-player-rewards-%d" % OS.get_process_id()
+	# Entries recorded before an award existed never earn it retroactively.
+	var earlier: Dictionary = {"version": PlayerRecords.VERSION, "generation": 1, "profile_id": "1".repeat(32),
+		"entries": [{"origin": "local", "record": complete, "server_sha256": SERVER_HASH}], "unlocks": [], "customization": PlayerRewards.DEFAULTS.duplicate()}
+	_write(path + ".1.json", earlier)
+	var original: String = FileAccess.get_file_as_string(path + ".1.json")
+	var reloaded: PlayerRecords = PlayerRecords.new(path)
+	_check(reloaded.error == OK and reloaded.entries.size() == 1 and reloaded.unlocks.is_empty(), "stored entries load without retroactive awards")
+	_check(reloaded.accept(secret, "local", SERVER_HASH) == OK, "new ingress commits through the two-slot writer")
+	_check(FileAccess.get_file_as_string(path + ".1.json") == original, "the previous committed generation survives unchanged")
+	reloaded = PlayerRecords.new(path)
+	_check(reloaded.unlocks.size() == 1 and reloaded.profile_id == "1".repeat(32), "unlock and profile survive JSON numeric roundtrip")
+	for slot: int in range(2):
+		DirAccess.remove_absolute("%s.%d.json" % [path, slot])
+	# An older record format is not migrated: it is set aside and replaced.
 	for version: int in [1, 2]:
-		var old_entry: Dictionary = {"origin": "local", "record": complete}
-		if version == 2:
-			old_entry["server_sha256"] = SERVER_HASH
-		var old: Dictionary = {"version": version, "generation": 1, "profile_id": "1".repeat(32), "entries": [old_entry]}
-		_write(path + ".1.json", old)
-		var original: String = FileAccess.get_file_as_string(path + ".1.json")
-		var migrated: PlayerRecords = PlayerRecords.new(path)
-		_check(migrated.error == OK and migrated.unlocks.is_empty(), "historical version loads without retroactive awards: " + str(version))
-		_check(migrated.accept(secret, "local", SERVER_HASH) == OK, "new ingress upgrades through the existing writer")
-		_check(FileAccess.get_file_as_string(path + ".1.json") == original, "migration preserves the exact previous committed generation")
-		migrated = PlayerRecords.new(path)
-		_check(migrated.unlocks.size() == 1 and migrated.profile_id == "1".repeat(32), "unlock and profile survive JSON numeric roundtrip")
+		_write(path + ".1.json", {"version": version, "generation": 7, "profile_id": "2".repeat(32), "entries": [{"origin": "local", "record": complete}]})
+		var fresh: PlayerRecords = PlayerRecords.new(path)
+		_check(fresh.error == OK and fresh.started_fresh and fresh.entries.is_empty() and fresh.unlocks.is_empty()
+			and fresh.profile_id != "2".repeat(32), "older format starts a fresh record: " + str(version))
+		_check(fresh.accept(complete, "local", SERVER_HASH) == OK, "a fresh record accepts new ingress")
+		fresh = PlayerRecords.new(path)
+		_check(fresh.error == OK and not fresh.started_fresh and fresh.entries.size() == 1, "the fresh record replaces the older file on reload")
 		for slot: int in range(2):
 			DirAccess.remove_absolute("%s.%d.json" % [path, slot])
 	var store: PlayerRecords = PlayerRecords.new(path)

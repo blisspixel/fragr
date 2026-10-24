@@ -1,8 +1,9 @@
 //! Sabotage: every round rule and its failure paths as seeded ticks on the
 //! authoritative sim, plus the Sector 9 layout and its measured routes.
 use crate::protocol::{
-    Action, ChargeStatus, GameEvent, GameMode, Mutator, ProgressKind, Role, SabotageEventKind,
-    SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team, WeaponType,
+    Action, ChargeStatus, GameEvent, GameMode, HostReactionKind, Mutator, ProgressKind, Role,
+    SabotageEventKind, SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team,
+    WeaponType,
 };
 use crate::rules::{RuleSet, SabotageConfig};
 use crate::sim::{
@@ -157,6 +158,33 @@ fn plant_at_a(state: &mut GameState) -> Uuid {
 }
 
 #[test]
+fn a_completed_plant_is_a_big_host_call_naming_the_planter() {
+    let (mut state, _) = two_a_side(quick());
+    state.take_events();
+    let id = carrier(&state);
+    put(&mut state, id, A);
+    hold_use(&mut state, id);
+    let needed = state.config.sabotage.plant_ticks;
+    let events = run(&mut state, needed + 1);
+    let planted = events.iter().find_map(|e| match e {
+        GameEvent::HostReaction {
+            kind: HostReactionKind::ChargePlanted,
+            player,
+            team,
+            big,
+            ..
+        } => Some((player.clone(), *team, *big)),
+        _ => None,
+    });
+    let name = state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .map(|p| p.name.clone());
+    assert_eq!(planted, Some((name, Some(Team::Coalition), true)));
+}
+
+#[test]
 fn muster_holds_a_mine_the_same_way_it_holds_a_throw() {
     let mut state = arena(quick());
     let id = join(&mut state, 1);
@@ -275,7 +303,18 @@ fn a_parked_body_is_not_a_sabotage_fight() {
     put(&mut state, ghost, [A[0] + 1.2, A[1], A[2]]);
     state.players.iter_mut().find(|p| p.id == bot).unwrap().yaw = 0.0;
     let controller = BotController::new(bot, BotBehavior::Compliance);
-    let live = controller.intent(&state);
+    // A Sabotage bot fights what it has seen, after a human reaction.
+    let start = state.tick;
+    let mut live = controller.intent(&state);
+    assert!(!live.action.fire, "nobody is fought before being seen");
+    for tick in start..start + 12 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&controller));
+        live = controller.intent(&state);
+        if live.action.fire {
+            break;
+        }
+    }
     assert!(
         live.action.fire,
         "a standing enemy at arm's length is a fight"
@@ -867,6 +906,65 @@ fn sides_swap_at_half_and_the_score_swaps_with_the_fighters() {
 }
 
 #[test]
+fn rule_bots_change_callsigns_when_the_half_changes_their_colors() {
+    let mut state = arena(SabotageConfig {
+        live_ticks: 20,
+        ..quick()
+    });
+    let names = [
+        "Formerly 4471",
+        "Handle 4471-K",
+        "Scout Ant",
+        "Kind Regards 07",
+    ];
+    let mut ids = Vec::new();
+    for (n, name) in names.into_iter().enumerate() {
+        let id = Uuid::from_u128(n as u128 + 1);
+        state.add_player(id, name.into(), Role::Agent);
+        let behavior = crate::roster::find(name).unwrap().behavior;
+        state.bots.push(BotController::new(id, behavior));
+        ids.push(id);
+    }
+    // A person is never renamed, whatever their name fits.
+    let person = join(&mut state, 9);
+    state.start_round();
+    let before: Vec<(Uuid, String)> = state
+        .players
+        .iter()
+        .map(|p| (p.id, p.name.clone()))
+        .collect();
+    for id in &ids {
+        let p = player(&state, *id);
+        let fits = crate::roster::find(&p.name)
+            .unwrap()
+            .allegiance
+            .fits(p.team);
+        assert!(fits, "first half: {} on {:?}", p.name, p.team);
+    }
+    let _ = time_out_rounds(&mut state, 4);
+    let events = run(&mut state, 5);
+    assert!(kinds(&events).contains(&SabotageEventKind::SidesSwapped));
+    let mut seen = std::collections::HashSet::new();
+    for (id, old) in &before {
+        let p = player(&state, *id);
+        assert!(seen.insert(p.name.to_ascii_lowercase()), "{} twice", p.name);
+        if *id == person {
+            assert_eq!(&p.name, old);
+            continue;
+        }
+        let fighter = crate::roster::find(&p.name).expect("roster callsign");
+        assert!(
+            fighter.allegiance.fits(p.team),
+            "{old} became {} on {:?}",
+            p.name,
+            p.team
+        );
+        // A league regular keeps her name; everyone else changed colors.
+        assert_eq!(p.name == *old, old == "Scout Ant", "{old} -> {}", p.name);
+    }
+}
+
+#[test]
 fn the_match_ends_at_the_target_and_a_new_match_starts_fresh() {
     let mut state = arena(SabotageConfig {
         live_ticks: 20,
@@ -908,15 +1006,29 @@ fn the_match_ends_at_the_target_and_a_new_match_starts_fresh() {
         .collect();
     assert!(results[0].sides_swap, "extra time swaps at its own half");
     let last = results.last().unwrap();
-    assert!(last.match_over);
-    assert_eq!(
-        last.match_winner, None,
-        "5-5 after the extra pair is a draw"
-    );
+    assert!(!last.match_over, "5-5 after the extra pair is not a draw");
+    assert!(!last.sides_swap, "the decider keeps the last sides");
+    assert!(state.sudden_death.is_none());
+    // Round 11 is sudden death: the clock goes to the Union uniform again.
+    let events = time_out_rounds(&mut state, 1);
+    let calls: Vec<(HostReactionKind, bool)> = events
+        .iter()
+        .filter_map(|e| match e {
+            GameEvent::HostReaction { kind, big, .. } => Some((*kind, *big)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(calls, [(HostReactionKind::SuddenDeath, true)]);
+    let (winner, decider) = round_end(&events).unwrap();
+    assert_eq!(decider.round, 11);
+    assert!(decider.match_over);
+    assert_eq!(decider.match_winner, Some(Team::Union));
+    assert_eq!(winner, Some(Team::Union));
+    assert_eq!((decider.score.union, decider.score.coalition), (6, 5));
     assert!(state
         .ended_host_line
         .as_deref()
-        .is_some_and(|line| line.contains("LEVEL AFTER EXTRA TIME")));
+        .is_some_and(|line| line.contains("TAKE THE MATCH")));
     run(&mut state, 5);
     let sab = state.sabotage.as_ref().unwrap();
     assert_eq!((sab.round, sab.score.union, sab.score.coalition), (1, 0, 0));
@@ -1279,9 +1391,15 @@ fn walk_ticks(from: [f32; 3], to: [f32; 3]) -> Option<u32> {
 #[test]
 fn sabotage_routes_meet_the_timing_targets() {
     let layout = MapKind::Sector9.sabotage_layout().unwrap();
+    // The targets were drawn for a 5 m/s run. The fighter now runs at
+    // TOP_SPEED, so measured walks are scaled back to that pace: what these
+    // pin is the layout's distances and their balance, which a faster run
+    // compresses evenly.
+    let pace = crate::movement::TOP_SPEED / 5.0;
     let seconds = |from: [f32; 3], to: [f32; 3]| {
         walk_ticks(from, to).unwrap_or_else(|| panic!("{from:?} -> {to:?} never arrives")) as f32
             / 20.0
+            * pace
     };
     let [a, b] = [layout.wire.sites[0].center, layout.wire.sites[1].center];
     // The attack reaches either site in 15 to 20 seconds from the yard on the

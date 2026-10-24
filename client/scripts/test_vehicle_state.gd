@@ -160,7 +160,7 @@ func _prediction() -> void:
 	snapshot["players"][1]["x"] = 20.0
 	snapshot["vehicles"][0]["driver"] = SELF
 	predict.accept_vehicles(snapshot, SELF)
-	var ack: Dictionary = {"seq": 0, "tick": 100, "movement": {"version": 1, "epoch": 1}}
+	var ack: Dictionary = {"seq": 0, "tick": 100, "movement": {"version": 2, "epoch": 1}}
 	predict.accept_driver_ack(ack, 1000000)
 	_check(predict.active(), "paired vehicle body and ACK activate shared bounded replay")
 	var action: Dictionary = {"seq": 1, "forward": true, "back": false, "left": false, "right": false, "jump": false, "yaw": 1.5}

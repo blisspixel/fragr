@@ -33,6 +33,12 @@ static func choose(entries: Array[Dictionary], reserved: Array = []) -> Array[St
 	return visible
 
 
+## True when the map's solids stand between the camera and a plate. Plates are
+## depth tested, so a wall would otherwise cut one in half on screen.
+static func hidden_by(eye: Vector3, plate: Vector3, solids: Array) -> bool:
+	return not solids.is_empty() and not AimAssist.line_of_sight(eye, plate, solids)
+
+
 ## Screen rect of a billboard label, grown slightly so neighbors do not touch it.
 static func project_label(view: Camera3D, label: Label3D) -> Rect2:
 	var font: Font = label.font if label.font != null else ThemeDB.fallback_font

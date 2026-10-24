@@ -1,4 +1,4 @@
-//! Foundry persistence and exact historical boundaries, separate from route play.
+//! Foundry persistence and saved boundaries, separate from route play.
 use super::*;
 use crate::mission::run_file::{M13Outcome, SavedStep};
 use crate::protocol::{AmmoPool, WeaponType, M13_WORKER_RESPONSES};
@@ -88,115 +88,83 @@ fn m13_promotion_retains_every_outcome_and_exact_entry_without_episode_refill() 
 }
 
 #[test]
-fn m13_v15_and_v16_preview_and_atomic_promotion_archive_exact_original_bytes() {
-    for version in [15, 16] {
-        let source = m12_tests::completed_habitat();
-        let mut historical = serde_json::to_value(&source).unwrap();
-        historical["version"] = version.into();
-        if version == 15 {
-            super::super::omit_historical_rockets(&mut historical);
-        }
-        let bytes = serde_json::to_vec_pretty(&historical).unwrap();
-        let directory =
-            std::env::temp_dir().join(format!("fragr-foundry-v{version}-{}", Uuid::new_v4()));
-        let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded, source);
-        assert_eq!(
-            fs::read(directory.join(RUN_NAME)).unwrap(),
-            bytes,
-            "preview never rewrites history"
-        );
-        assert!(store.needs_upgrade().unwrap());
-        let next = loaded
-            .promote_next(MissionId::WeightOfPermission, m09_tests::HASHES[12])
-            .unwrap();
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &next, |_| Err(io::Error::other(
-                "interrupted foundry edge"
-            )))
-            .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        let archive = store.archive_and_save(&loaded, &next).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap().unwrap(), next);
-        assert!(!store.needs_upgrade().unwrap());
-        assert_eq!(next.remaining_continues, 1);
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
+fn m13_locked_promotion_recovers_an_interrupted_replace_without_refill() {
+    let source = m12_tests::completed_habitat();
+    let directory = std::env::temp_dir().join(format!("fragr-foundry-edge-{}", Uuid::new_v4()));
+    let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
+    let loaded = store.load().unwrap().unwrap();
+    assert_eq!(loaded, source);
+    let next = loaded
+        .promote_next(MissionId::WeightOfPermission, m09_tests::HASHES[12])
+        .unwrap();
+    assert!(store
+        .save_with_sync(
+            &next,
+            |_| Err(io::Error::other("interrupted foundry edge")),
+            sync_directory,
+        )
+        .is_err());
+    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+    store.save(&next).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), next);
+    assert_eq!(next.remaining_continues, 1);
+    drop(store);
+    fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
-fn m13_historical_shapes_refuse_future_facts_and_actual_launcher_ownership() {
-    for version in [15, 16] {
-        let mut base = serde_json::to_value(m12_tests::completed_habitat()).unwrap();
-        base["version"] = version.into();
-        if version == 15 {
-            super::super::omit_historical_rockets(&mut base);
+fn m13_completed_habitat_refuses_premature_foundry_facts_and_launcher_ownership() {
+    let base = serde_json::to_value(m12_tests::completed_habitat()).unwrap();
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&base).unwrap(), m09_tests::HASHES),
+        RunProbe::Compatible(_)
+    ));
+    for missing in [true, false] {
+        let mut malformed = base.clone();
+        let counts = malformed["step"]["exit"]["equipment"]["ammo"]
+            .as_array_mut()
+            .unwrap();
+        if missing {
+            counts.retain(|count| count["pool"] != "rockets");
+        } else {
+            counts
+                .iter_mut()
+                .find(|count| count["pool"] == "rockets")
+                .unwrap()["rounds"] = 1.into();
         }
         assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&base).unwrap(), m09_tests::HASHES),
-            RunProbe::Compatible(_)
-        ));
-        if version == 16 {
-            for missing in [true, false] {
-                let mut malformed = base.clone();
-                let counts = malformed["step"]["exit"]["equipment"]["ammo"]
-                    .as_array_mut()
-                    .unwrap();
-                if missing {
-                    counts.retain(|count| count["pool"] != "rockets");
-                } else {
-                    counts
-                        .iter_mut()
-                        .find(|count| count["pool"] == "rockets")
-                        .unwrap()["rounds"] = 1.into();
-                }
-                assert!(matches!(
-                    RunStore::inspect_bytes(
-                        &serde_json::to_vec(&malformed).unwrap(),
-                        m09_tests::HASHES
-                    ),
-                    RunProbe::Incompatible
-                ));
-            }
-        }
-        for outcome in [
-            serde_json::Value::Null,
-            serde_json::to_value(completed_foundry().m13_outcome.unwrap()).unwrap(),
-        ] {
-            let mut forged = base.clone();
-            forged["m13_outcome"] = outcome;
-            assert!(matches!(
-                RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
-                RunProbe::Corrupt
-            ));
-        }
-        for selected in [true, false] {
-            let mut forged = base.clone();
-            if selected {
-                forged["step"]["exit"]["equipment"]["selected"] = "rocket".into();
-            } else {
-                forged["step"]["exit"]["equipment"]["weapons"]
-                    .as_array_mut()
-                    .unwrap()
-                    .push("rocket".into());
-            }
-            assert!(!matches!(
-                RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
-                RunProbe::Compatible(_)
-            ));
-        }
-        let mut future = serde_json::to_value(foundry_entry()).unwrap();
-        future["version"] = version.into();
-        if version == 15 {
-            super::super::omit_historical_rockets(&mut future);
-        }
-        assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&future).unwrap(), m09_tests::HASHES),
+            RunStore::inspect_bytes(&serde_json::to_vec(&malformed).unwrap(), m09_tests::HASHES),
             RunProbe::Incompatible
+        ));
+    }
+    let mut null = base.clone();
+    null["m13_outcome"] = serde_json::Value::Null;
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&null).unwrap(), m09_tests::HASHES),
+        RunProbe::Corrupt
+    ));
+    let mut premature = base.clone();
+    premature["m13_outcome"] =
+        serde_json::to_value(completed_foundry().m13_outcome.unwrap()).unwrap();
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&premature).unwrap(), m09_tests::HASHES),
+        RunProbe::Incompatible
+    ));
+    for selected in [true, false] {
+        let mut forged = base.clone();
+        if selected {
+            forged["step"]["exit"]["equipment"]["selected"] = "rocket".into();
+        } else {
+            forged["step"]["exit"]["equipment"]["weapons"]
+                .as_array_mut()
+                .unwrap()
+                .push("rocket".into());
+        }
+        assert!(!matches!(
+            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
+            RunProbe::Compatible(_)
         ));
     }
 }

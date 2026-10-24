@@ -25,6 +25,16 @@ static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 ## Street decking has no issued warning signal. Duplicate only this material
 ## so the same authored steel on the post and barriers keeps its red markings.
 static func ground(material: Material, surface: String, venue: String) -> Material:
+	if venue == "larak_lot" and material is ShaderMaterial:
+		# The Pit floor is the base ground: the bays that fell in, wet scrap
+		# concrete under the lightwell rather than the swept decks above it.
+		var pit: ShaderMaterial = material.duplicate() as ShaderMaterial
+		pit.set_shader_parameter("surface_color", Color("5c5852"))
+		var wet: Texture2D = EnvironmentTextures.texture_at(EnvironmentTextures.PRODUCTION + "scrap_floor.png")
+		if wet != null:
+			pit.set_shader_parameter("tile_floor", wet)
+			pit.set_shader_parameter("tile_floor_strength", 0.6)
+		return pit
 	if venue != "moon_town" or surface != "service_steel" or not material is ShaderMaterial:
 		return material
 	var deck: ShaderMaterial = material.duplicate() as ShaderMaterial
@@ -120,23 +130,62 @@ static func authored(surface: String, venue: String = "") -> Material:
 	elif venue == "mars_foundry":
 		bases = [Color("818276"), Color("c5bda7"), Color("394749"), Color("d78d47"), Color("465552")]
 		accents = [Color("636d65"), Color("7c8172"), Color("79928d"), Color("b05b22"), Color("99aaa1")]
+	elif venue == "waterworks":
+		# Weathered quay concrete, municipal green enamel, blue-grey works
+		# steel with oxide trim, and the refuge's painted tile.
+		bases = [Color("6f6d65"), Color("5f7d6c"), Color("4f5b61"), Color("a69a7d"), Color("4c5552")]
+		accents = [Color("66665c"), Color("3f5a4d"), Color("8a5636"), Color("7a6a50"), Color("8fa59c")]
 	elif venue in ["moon_port", "moon_town"]:
 		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
 		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
+	elif venue == "larak_lot":
+		# Mid-value cast concrete, black booth enamel whose only red is its
+		# seals, dark steel treads with yellow nosing, rust-brown wrecks and
+		# the stairwell's green tile.
+		bases = [Color("726c62"), Color("2e2f31"), Color("4c4f4e"), Color("6d5446"), Color("6f8a76")]
+		accents = [Color("6b665c"), Color("45484b"), Color("c9a23a"), Color("4f3a2f"), Color("4d6655")]
+	elif venue == "earth_intake":
+		# Bone enamel over the palette's institutional green band, dark issued
+		# steel with dark issued plates, green tile and cast street concrete.
+		bases = [Color("7d796f"), Color("d3cdb6"), Color("4a4d4c"), Color("8e9b88"), Color("343a3c")]
+		accents = [Color("62645a"), Color("4e5844"), Color("50524f"), Color("43543f"), Color("56575e")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
-	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
+	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry", "waterworks"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
 		material.set_shader_parameter("warning_color", accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "earth_intake":
+		# One restrained red pinline painted on the enamel. No surface emits red,
+		# so red light remains the Union attack tell (art bible faction table).
+		material.set_shader_parameter("warning_color", Color("8c1a1e"))
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)
+	if venue == "larak_lot":
+		# Paint, not light: the only glow in the lot is its fixtures and neon.
+		material.set_shader_parameter("trim_glow", 0.0)
+		material.set_shader_parameter("warning_color", Color("c9a23a"))
+		material.set_shader_parameter("deck_spacing", 1.5)
+		if surface == "records_tile":
+			# Wrecks are plate and rust, never a tiled wall.
+			material.set_shader_parameter("markings_enabled", false)
+			material.set_shader_parameter("tile_strength", 0.8)
+			material.set_shader_parameter("tile_floor_strength", 0.8)
+		elif surface == "concrete":
+			material.set_shader_parameter("panel_size", 4.0)
+			material.set_shader_parameter("tile_strength", 0.45)
+			material.set_shader_parameter("tile_floor_strength", 0.5)
 	if venue == "launch_works" and surface == "concrete":
 		# This venue uses dust and berm terrain. Keep
 		# its pixel grain without painting an institutional slab grid over it.
 		material.set_shader_parameter("markings_enabled", false)
 		material.set_shader_parameter("panel_contrast", 0.2)
-	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
+	if venue == "waterworks" and surface == "concrete":
+		# Long poured quay slabs, not an institutional two-metre grid.
+		material.set_shader_parameter("panel_size", 4.0)
+		material.set_shader_parameter("panel_contrast", 0.45)
+	if venue in ["low_water", "waterworks"] and surface in ["concrete", "enamel", "service_steel"]:
 		material.set_shader_parameter("detail_enabled", true)
 		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)
 	elif venue in ["moon_port", "moon_town"] and surface in ["concrete", "enamel", "service_steel"] \

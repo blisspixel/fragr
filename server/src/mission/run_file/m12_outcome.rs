@@ -11,12 +11,6 @@ pub(crate) struct M12Outcome {
     pub pumps_intact_at_route_secure: bool,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M12Outcome>, D::Error> {
-    M12Outcome::deserialize(decoder).map(Some)
-}
-
 impl M12Outcome {
     pub(super) fn capture(
         challenges: &crate::protocol::M12ChallengeState,

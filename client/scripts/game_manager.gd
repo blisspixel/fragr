@@ -46,6 +46,8 @@ var current_map_id := 1
 
 var is_human_player = false
 var radio = null
+## The Host's voiced calls on the Announcer bus, under AudioPlayers.
+var host_voice: HostVoice = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
@@ -88,6 +90,9 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
+## A dodge press waits here until an Action carries it, like a jump tap.
+var pending_dodge: bool = false
+var _dodge_was_down: bool = false
 var pending_fire: bool = false
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
@@ -105,6 +110,8 @@ var remote_place_armed: bool = true
 var pending_remote_trigger: bool = false
 var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
+var m01_intake: M01Intake
+var m20_hold: M20HoldStrip
 var m02_ward: M02Ward
 var m03_yard: M03Yard
 var m04_town: M04Town
@@ -121,6 +128,9 @@ var m15_stadium: M15Stadium
 var m16_avenue: M16Avenue
 var m17_office: M17Office
 var m18_transit: M18Transit
+var m19_works: M19Works
+var m20_waterworks: M20Waterworks
+var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
@@ -196,6 +206,7 @@ var pickup_sound: AudioStreamPlayer = null
 var dry_fire_sound: AudioStreamPlayer = null
 var hit_confirm_sound: AudioStreamPlayer = null
 var hit_confirm_stream: AudioStream = null
+var kill_confirm_sound: AudioStreamPlayer = null
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
@@ -239,6 +250,9 @@ func _ready():
 	_begin_world_load()
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
+	m20_hold = M20HoldStrip.new()
+	m20_hold.name = "M20HoldStrip"
+	hud.add_child(m20_hold)
 	mission_hud.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	mouse_capture = MouseCapture.new()
@@ -286,6 +300,9 @@ func _ready():
 	auditor_channels.name = "AuditorChannels"
 	auditor_channels.pawns = players
 	add_child(auditor_channels)
+	surveyor_marks = SurveyorMarks.new()
+	surveyor_marks.name = "SurveyorMarks"
+	add_child(surveyor_marks)
 	jammer_audio = JammerAudio.new()
 	jammer_audio.name = "JammerAudio"
 	add_child(jammer_audio)
@@ -303,6 +320,7 @@ func _ready():
 	records = PlayerRecords.for_tree(get_tree())
 	settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
+	hud.controls_hint_shown.connect(_on_controls_hint_shown)
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_traced)
 	net_client.stutter_trace = stutter_trace
@@ -343,6 +361,7 @@ func _ready():
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
+	_setup_host_voice()
 	_setup_frontend()
 	if pause_menu != null and str(boot.get("mode", "")) == "campaign":
 		pause_menu.local_campaign = true
@@ -352,6 +371,9 @@ func _ready():
 	# Cover is built from what the server sends, never from a second copy in
 	# the scene. See arena_cover.gd for why that matters.
 	arena_cover = ArenaCover.new()
+	m01_intake = M01Intake.new()
+	m01_intake.name = "M01Intake"
+	add_child(m01_intake)
 	m03_yard = M03Yard.new()
 	m03_yard.name = "M03Yard"
 	add_child(m03_yard)
@@ -409,6 +431,17 @@ func _ready():
 	m18_transit.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m18_transit)
+	m19_works = M19Works.new()
+	m19_works.name = "M19Works"
+	m19_works.players = players
+	m19_works.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m19_works)
+	m20_waterworks = M20Waterworks.new()
+	m20_waterworks.name = "M20Waterworks"
+	m20_waterworks.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m20_waterworks)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -508,6 +541,8 @@ func _on_map_info(info: Dictionary) -> void:
 		grenade_effects.reset()
 	if auditor_channels != null:
 		auditor_channels.reset()
+	if surveyor_marks != null:
+		surveyor_marks.clear()
 	pending_throw = false
 	throw_armed = false
 	pending_place = false
@@ -576,6 +611,10 @@ func _on_map_info(info: Dictionary) -> void:
 	# The venue decides the sky, and the venue is only known once the server
 	# has said which one this is.
 	_apply_arena_sky(str(info.get("map_name", "")))
+	if m01_intake != null:
+		m01_intake.configure_map(info)
+		if _venue_quiets_radio() and hud != null and hud.has_method("hide_radio"):
+			hud.hide_radio()
 	if m02_ward != null:
 		m02_ward.configure_map(info)
 	if m03_yard != null:
@@ -608,6 +647,10 @@ func _on_map_info(info: Dictionary) -> void:
 		m17_office.configure_map(info)
 	if m18_transit != null:
 		m18_transit.configure_map(info)
+	if m19_works != null:
+		m19_works.configure_map(info)
+	if m20_waterworks != null:
+		m20_waterworks.configure_map(info)
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -647,6 +690,16 @@ func _setup_frontend() -> void:
 	pause_menu.hosting_server = host != null and host.state == LocalHost.State.RUNNING and host.url == net_client.server_url
 	pause_menu.stop_server_requested.connect(_on_stop_server_requested)
 	add_child(pause_menu)
+	pause_menu.bind_radio(radio)
+
+## The play legend is a first-run hint: once a fighter has seen it, later
+## joins keep the status bar clear. A harness on the default settings file
+## keeps the fact in memory instead of writing a player's real settings.
+func _on_controls_hint_shown() -> void:
+	settings.set_value("gameplay", "controls_hint_seen", true)
+	if get_tree().get_meta("fragr_automated", false) and settings.storage_path == FragrSettings.PATH:
+		return
+	settings.save_to_disk()
 
 func _apply_preferences() -> void:
 	settings.apply()
@@ -704,16 +757,14 @@ func _event_cover_regions() -> Array[Rect2]:
 		regions.append_array(mission_hud.event_cover_regions())
 	return regions
 
-## Text on other canvas layers that shares the HUD's top band. The HUD lays its
-## corner, center facts and frag feed out below whatever crosses each column.
+## Text on other canvas layers that shares the top band: the frame counter.
+## The match HUD lays its corner, center facts and frag feed out below whatever
+## crosses each column; during a benchmark, the benchmark HUD does the same.
 func _top_band_reservations() -> Array[Rect2]:
 	var regions: Array[Rect2] = []
 	var frame_counter: PerformanceOverlay = get_node_or_null("PerformanceOverlay") as PerformanceOverlay
 	if frame_counter != null:
 		regions.append(frame_counter.occupied_region())
-	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
-	if run != null:
-		regions.append(run.occupied_region())
 	return regions
 
 func _refresh_ui_context(roster: Array) -> void:
@@ -759,6 +810,7 @@ func _on_opening_completed() -> void:
 	opening.queue_free()
 	opening = null
 	pending_jump = false
+	pending_dodge = false
 	pending_throw = false
 	throw_armed = false
 	pending_place = false
@@ -840,9 +892,14 @@ func _reveal_world_after_draw(generation: int) -> void:
 	if _benchmark:
 		_start_benchmark_run()
 
+## The benchmark shows its own readout. Match chrome (center facts, feeds,
+## vitals, crosshair, the followed fighter's viewmodel, radio cards) stays
+## hidden for the whole run, so the measured scene and the text over it are
+## the same for every preset.
 func _prepare_benchmark_presentation() -> void:
 	BenchmarkRun.present_uncapped()
 	hud.set_weapon_finish("standard")
+	hud.visible = false
 	if console != null:
 		console.set_open(false)
 		console.set_process_unhandled_input(false)
@@ -855,21 +912,31 @@ func _start_benchmark_run() -> void:
 		camera.set_process(false)
 		camera.set_process_input(false)
 		camera.set_process_unhandled_input(false)
+		# The orbit owns the pose: nobody is followed, hidden or highlighted.
+		camera.hand_over_pose()
 	var run: BenchmarkRun = BenchmarkRun.new()
 	run.name = "BenchmarkRun"
 	run.camera = camera
 	run.manager = self
 	run.preferences = settings
 	run.compare_all = _benchmark_compare
+	run.reserved_query = _top_band_reservations
 	run.finished.connect(_on_benchmark_finished)
 	run.dismissed.connect(_on_leave_requested)
+	run.again_requested.connect(_on_benchmark_again)
 	add_child(run)
 	run.begin()
 
 func _on_benchmark_finished(report: Dictionary) -> void:
 	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
 	if run != null:
-		run.show_score(report, settings)
+		run.show_results(report)
+
+## Run again goes back through the menu, so the same owned loopback host,
+## settings restore and world load run as on the first start.
+func _on_benchmark_again(compare_all: bool) -> void:
+	get_tree().set_meta(BenchmarkRun.AGAIN_META, compare_all)
+	_on_leave_requested()
 
 func _stop_benchmark_host() -> void:
 	BenchmarkRun.restore_presentation(settings)
@@ -955,6 +1022,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if console != null and console.is_open():
 		return
 	if _benchmark and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+		if run == null or run.final_report.is_empty():
+			get_tree().set_meta(BenchmarkRun.CANCELLED_META, true)
 		_on_leave_requested()
 		get_viewport().set_input_as_handled()
 		return
@@ -977,7 +1047,7 @@ func _release_match_audio() -> void:
 			voice.stop()
 			voice.stream = null
 
-## Contested Frequency radio lives under AudioPlayers and reads the audiogen manifest.
+## The background match radio lives under AudioPlayers and reads the audiogen manifest.
 func _setup_radio() -> void:
 	var radio_script = load("res://scripts/radio.gd")
 	if radio_script == null:
@@ -990,13 +1060,29 @@ func _setup_radio() -> void:
 	else:
 		add_child(radio)
 	radio.set_human_mode(is_human_player)
-	if hud and hud.has_method("show_radio"):
-		radio.track_started.connect(func(station, title): hud.show_radio(station, title))
-		radio.station_changed.connect(func(station, tagline, _has): hud.show_radio(station, tagline))
-	if hud and hud.has_method("show_station_card"):
-		radio.station_card.connect(func(card): hud.show_station_card(card))
+	# Recall Notice's building has no radio of its own; its card stays off screen.
+	if hud and hud.has_method("show_now_playing"):
+		radio.now_playing_changed.connect(func(info: Dictionary) -> void:
+			if not _venue_quiets_radio():
+				hud.show_now_playing(info))
 	if hud and hud.has_signal("host_spoke"):
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
+
+## Beside the radio, so leaving the match stops and clears it with the other
+## match voices, and a voiced call lowers the station while it speaks.
+func _setup_host_voice() -> void:
+	host_voice = HostVoice.new()
+	host_voice.name = "HostVoice"
+	var audio_parent: Node = get_node_or_null("AudioPlayers")
+	if audio_parent != null:
+		audio_parent.add_child(host_voice)
+	else:
+		add_child(host_voice)
+	if radio != null:
+		host_voice.spoke.connect(func(seconds: float) -> void: radio.duck(seconds))
+
+func _venue_quiets_radio() -> bool:
+	return m01_intake != null and m01_intake.active()
 
 func _resolve_boot() -> Dictionary:
 	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
@@ -1086,6 +1172,12 @@ func _load_audio_streams():
 		hit_confirm_sound.volume_db = -4.0
 		hit_confirm_sound.stream = hit_confirm_stream
 		audio_parent.add_child(hit_confirm_sound)
+		# Its own player, so the kill thud does not cut off the hit ding.
+		kill_confirm_sound = AudioStreamPlayer.new()
+		kill_confirm_sound.name = "KillConfirmSound"
+		kill_confirm_sound.bus = &"Effects"
+		kill_confirm_sound.stream = hit_confirm_stream
+		audio_parent.add_child(kill_confirm_sound)
 
 ## Tactile metallic audio feedback when the player lands a shot.
 func _play_hit_confirm_cue(damage: int) -> void:
@@ -1099,6 +1191,15 @@ func _play_hit_confirm_cue(damage: int) -> void:
 		hit_confirm_sound.pitch_scale = lerpf(0.95, 1.35, factor)
 		hit_confirm_sound.volume_db = -4.0
 	hit_confirm_sound.play()
+
+## Kill confirmation: the hit chime pitched down and louder, so a frag lands
+## as a distinct thud under the ordinary ding. Existing asset, no new sound.
+func _play_kill_confirm_cue() -> void:
+	if kill_confirm_sound == null or hit_confirm_stream == null:
+		return
+	kill_confirm_sound.pitch_scale = 0.62
+	kill_confirm_sound.volume_db = -1.0
+	kill_confirm_sound.play()
 
 ## Pickup feedback for the watched fighter. The event carries no ammunition
 ## pool, so the pad it came from says whether it was Cells.
@@ -1297,6 +1398,7 @@ func _try_continue(event: InputEvent) -> bool:
 			_continue_armed = false
 			_opening_release = true
 			pending_jump = false
+			pending_dodge = false
 			pending_interact = false
 			pending_throw = false
 			throw_armed = false
@@ -1437,6 +1539,8 @@ func _input(_event):
 		pending_remote_trigger = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
+	if is_human_player and InputMap.has_action("dodge") and _event.is_action_pressed("dodge") and not _event.is_echo():
+		pending_dodge = true
 	if is_human_player and _event.is_action_pressed("fire") and not _event.is_echo():
 		pending_fire = true
 	if is_human_player and _event.is_action_pressed("interact"):
@@ -1474,6 +1578,7 @@ func change_role(play: bool) -> void:
 	_frag_identity.clear()
 	_joined_ui_team = ""
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -1685,6 +1790,9 @@ func end_ack_probe() -> Dictionary:
 
 
 func _process(_delta):
+	if radio != null:
+		# A story scene owns the music; the station resumes where it paused.
+		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude))
 	_arm_continue()
 	_arm_onward()
 	if _opening_release and _opening_input_released():
@@ -1692,6 +1800,8 @@ func _process(_delta):
 		_submit_mission_readiness()
 	if mouse_capture != null:
 		mouse_capture.set_gameplay(not controls_blocked())
+	if radio != null and m01_intake != null:
+		radio.venue_db = m01_intake.radio_level_db(camera.global_position if camera is Node3D else Vector3.INF)
 	if is_human_player and net_client.connection_state != WebSocketPeer.STATE_OPEN and local_prediction.active():
 		_reset_prediction_for_connection("connection_lost")
 	if not is_human_player:
@@ -1751,6 +1861,7 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	_clear_predicted_pawn()
 	_adopt_local_spawn_snapshot = is_human_player
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -1764,7 +1875,11 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	remote_trigger_armed = false
 
 
+## The clock the local body was last drawn for, read by the feel probe.
+var presented_usec: int = 0
+
 func _apply_local_prediction(now_usec: int = -1) -> void:
+	presented_usec = now_usec
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if not is_instance_valid(pawn):
 		return
@@ -1822,6 +1937,16 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("jump") and not pending_jump:
 		jump_armed = true
 	action_state.jump = jump_armed and (pending_jump or Input.is_action_pressed("jump"))
+	# A held key latches once; the input event path above catches a tap
+	# shorter than one send.
+	var dodge_down: bool = InputMap.has_action("dodge") and Input.is_action_pressed("dodge")
+	if dodge_down and not _dodge_was_down:
+		pending_dodge = true
+	_dodge_was_down = dodge_down
+	if pending_dodge and _vehicle_seat().is_empty():
+		action_state["dodge"] = true
+	else:
+		action_state.erase("dodge")
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
 		throw_armed = true
@@ -1855,6 +1980,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_fire = false
 		pending_seat = ""
 		pending_jump = false
+		pending_dodge = false
 		pending_interact = false
 		pending_throw = false
 		throw_armed = false
@@ -1869,6 +1995,7 @@ func _send_local_action(now_usec: int) -> bool:
 		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines"]:
 			action_state[key] = false
 		action_state.erase("duck")
+		action_state.erase("dodge")
 		pending_weapon_swap = null
 	var duck_down: bool = (
 		not controls_blocked()
@@ -1927,6 +2054,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_seat = ""
 		pending_fire = false
 		pending_jump = false
+		pending_dodge = false
 		pending_interact = false
 		pending_throw = false
 		pending_place = false
@@ -1948,8 +2076,16 @@ func _present_local_fire(action: Dictionary, now_usec: int) -> void:
 		return
 	var pawn: Node = players.get(local_fp_pawn_id)
 	pawn.show_muzzle_flash(weapon.capitalize())
+	_show_fire_juice(weapon.capitalize())
+
+
+## The shooter's own fire presentation: the viewmodel kick and flash, and the
+## camera punch when this view is the shooter's first person.
+func _show_fire_juice(weapon_name: String) -> void:
 	if hud and hud.has_method("show_fire_juice"):
-		hud.show_fire_juice(weapon.capitalize())
+		hud.show_fire_juice(weapon_name)
+	if camera != null and camera.has_method("punch_for_weapon") and _vehicle_seat().is_empty():
+		camera.punch_for_weapon(weapon_name)
 
 func _local_fire_allowed() -> bool:
 	if not is_human_player or net_client == null or net_client.connection_state != WebSocketPeer.STATE_OPEN \
@@ -2014,6 +2150,10 @@ func _on_mission_received(state: Dictionary) -> void:
 		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
 		mission_hud.geometry = net_client.mission_geometry
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	if m01_intake != null:
+		m01_intake.apply_state(state)
+	if m20_hold != null:
+		m20_hold.apply(state, net_client.mission_geometry)
 	if m02_ward != null:
 		m02_ward.apply_state(state)
 	if m03_yard != null:
@@ -2046,6 +2186,10 @@ func _on_mission_received(state: Dictionary) -> void:
 		m17_office.apply_state(state)
 	if m18_transit != null:
 		m18_transit.apply_state(state)
+	if m19_works != null:
+		m19_works.apply_state(state)
+	if m20_waterworks != null:
+		m20_waterworks.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.set_campaign(not state.is_empty())
@@ -2163,6 +2307,7 @@ func _close_campaign_results() -> void:
 
 func _clear_story_input() -> void:
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -2290,7 +2435,7 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		arena_cover.apply_map_info(current_map_info)
 	_apply_arena_sky(map_name)
 	if map_name == "":
-		map_name = str(snapshot.get("map_name", "Arena Duel"))
+		map_name = str(snapshot.get("map_name", "Larak Lot"))
 	if hud and hud.has_method("set_map_name"):
 		hud.set_map_name(map_name)
 
@@ -2355,6 +2500,8 @@ func _clear_world() -> void:
 		grenade_effects.reset()
 	if auditor_channels != null:
 		auditor_channels.reset()
+	if surveyor_marks != null:
+		surveyor_marks.clear()
 	local_prediction.reset("disconnect", true)
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -2385,6 +2532,7 @@ func _clear_world() -> void:
 	if traveling_shots != null:
 		traveling_shots.clear_shots()
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -2400,6 +2548,10 @@ func _clear_world() -> void:
 	if mission_hud != null:
 		mission_hud.apply({}, "")
 		mission_hud.reset_notices()
+	if m01_intake != null:
+		m01_intake.clear_map()
+	if m20_hold != null:
+		m20_hold.apply({}, {})
 	if m02_ward != null:
 		m02_ward.clear_map()
 	if m03_yard != null:
@@ -2432,6 +2584,10 @@ func _clear_world() -> void:
 		m17_office.clear_map()
 	if m18_transit != null:
 		m18_transit.clear_map()
+	if m19_works != null:
+		m19_works.clear_map()
+	if m20_waterworks != null:
+		m20_waterworks.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.set_campaign(false)
@@ -2484,6 +2640,12 @@ func _on_snapshot_received(data):
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	if auditor_channels != null:
 		auditor_channels.apply(data)
+	if surveyor_marks != null:
+		surveyor_marks.apply_snapshot(data)
+	if m20_hold != null and data.get("tick") is float:
+		m20_hold.set_tick(int(data["tick"]))
+	if m20_waterworks != null:
+		m20_waterworks.apply_snapshot(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
@@ -2503,6 +2665,9 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m19_works != null and m19_works.active():
+		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
+		m19_works.apply_snapshot(data)
 	if conquest_hud != null:
 		conquest_hud.apply(data)
 		hud.observe_conquest(data)
@@ -2525,8 +2690,8 @@ func _on_snapshot_received(data):
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
-	var mode_name = str(data.get("mode_name", "Contested Frequency"))
-	var playlist = str(data.get("playlist", "Arena Duel"))
+	var mode_name = str(data.get("mode_name", "Scrap League"))
+	var playlist = str(data.get("playlist", "Larak Lot"))
 	var pressure = data.get("pressure", null)
 	var host_line = str(data.get("host_line", ""))
 	
@@ -2539,7 +2704,7 @@ func _on_snapshot_received(data):
 	else:
 		hud.set_pressure(str(pressure))
 	# Sticky Host chrome always. Flash once on Warmup / Active / Ended join so
-	# pre-round Contested Frequency drama is readable (RoundStart still fights).
+	# pre-round Scrap League drama is readable (RoundStart still fights).
 	var roster = _warmup_roster_callsigns(participant_list)
 	if host_line != "":
 		var flash = round_state == "Warmup" or round_state == "Active" or round_state == "Ended"
@@ -2568,7 +2733,8 @@ func _on_snapshot_received(data):
 		hud.set_episode_chrome(ep_id, ep_title, ep_obj, ep_prog, ep_phase)
 	hud.set_tick(tick)
 	hud.set_player_count(participant_list.size())
-	hud.set_round_info(round_state, round_time_left, frag_limit)
+	var level_clock: Variant = data.get("sudden_death")
+	hud.set_round_info(round_state, round_time_left, frag_limit, level_clock is bool and level_clock)
 	hud.sync_scores_from_players(participant_list)
 	_refresh_ui_context(participant_list)
 	hud.set_score_subject(str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id())
@@ -2638,7 +2804,8 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
-				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
+				# The benchmark draws fighters at their true size, as in play.
+				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person() and not _benchmark
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
@@ -2743,7 +2910,9 @@ func _update_nameplates() -> void:
 		if viewer_team != "" and str(id) != local_fp_pawn_id and int(marked.get("hp")) > 0:
 			relation = MatchRules.team_relation(viewer_team, str(marked.get("team")))
 		marked.set_team_relation(relation)
-	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	# A benchmark orbit is not a broadcast: callsigns and health would be text
+	# over the measured scene that only some presets happen to draw.
+	var watching: bool = not is_human_player and not camera.is_observing_first_person() and not _benchmark
 	var marking: bool = viewer_team != ""
 	var view: Camera3D = viewport.get_camera_3d()
 	if (not watching and not marking) or view == null:
@@ -2765,7 +2934,13 @@ func _update_nameplates() -> void:
 		if not is_instance_valid(pawn):
 			continue
 		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
-		if label == null or view.is_position_behind(label.global_position):
+		# A campaign machine or Union body is named by the server's authored
+		# id, an implementation detail that never reaches a player's screen.
+		if label == null or bool(pawn.get("is_campaign_enemy")) or view.is_position_behind(label.global_position):
+			pawn.set_nameplate_enabled(false)
+			continue
+		# A fighter the map's solids hide carries no plate.
+		if NameplateLayoutScript.hidden_by(view.global_position, label.global_position, camera.assist_solids):
 			pawn.set_nameplate_enabled(false)
 			continue
 		var area: Rect2 = NameplateLayoutScript.project_label(view, label)
@@ -2785,6 +2960,10 @@ func _update_nameplates() -> void:
 		entries.append({"id": str(id), "rect": area, "priority": priority,
 			"distance": view.global_position.distance_to(label.global_position)})
 	var reserved: Array[Rect2] = arena_flags.blocker_rects(view) if arena_flags != null else []
+	# HUD panels own their pixels: a nameplate that would draw under the
+	# FOLLOWING plate, the feed or a card hides instead.
+	if hud != null and hud.regions != null:
+		reserved.append_array(hud.regions.world_label_blockers())
 	var visible_ids: Array[String] = NameplateLayoutScript.choose(entries, reserved)
 	for id: Variant in players:
 		var pawn: Node = players[id]
@@ -2819,8 +2998,8 @@ func _on_event_received(data):
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
-		var mode_name = str(data.get("mode_name", "Contested Frequency"))
-		var playlist = str(data.get("playlist", "Arena Duel"))
+		var mode_name = str(data.get("mode_name", "Scrap League"))
+		var playlist = str(data.get("playlist", "Larak Lot"))
 		hud.set_league_identity(mode_name, playlist)
 		var shown_round: int = int(data.get("round_number", 0))
 		var sabotage_round: Variant = latest_snapshot.get("sabotage")
@@ -2900,6 +3079,11 @@ func _on_event_received(data):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
 	elif event_type == "pickup":
+		# The venue reacts to its power item for everyone watching, whoever
+		# took it (Larak Lot's light bar flares once on the Plate).
+		if str(data.get("pickup_id", "")) == LarakLot.PLATE_ID:
+			for lot: Node in get_tree().get_nodes_in_group(LarakLot.GROUP):
+				(lot as LarakLot).plate_claimed()
 		if not _shows_participant_notice(str(data.get("player_id", ""))):
 			return
 		var who = str(data.get("player", "?"))
@@ -2910,22 +3094,21 @@ func _on_event_received(data):
 		_play_pickup_cue(kind, str(data.get("pickup_id", "")))
 		if data.get("secret") == true:
 			hud.show_secret_found()
-	elif event_type == "killstreak":
-		var who = str(data.get("player", "?"))
-		var streak = int(data.get("streak", 0))
-		var tier = str(data.get("tier", ""))
-		var message = str(data.get("message", ""))
-		if hud and hud.has_method("show_killstreak"):
-			hud.show_killstreak(who, streak, tier, message)
-		if frag_sound and frag_sound.stream:
-			frag_sound.play()
 	elif event_type == "host_reaction":
+		# Multikills and sprees arrive here too: the caption, then the
+		# name-free voice when a recording fills that slot.
 		if hud.has_method("show_host_reaction"):
 			hud.show_host_reaction(data)
+		if host_voice != null and settings != null:
+			host_voice.speak(data, settings.announcer())
 	elif event_type == "speak":
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))
-		hud.show_speak(speaker, line)
+		var to_id: Variant = data.get("to_id")
+		var viewers: Array[String] = [_followed_player_id()]
+		if is_human_player and net_client.player_id != null:
+			viewers.append(str(net_client.player_id))
+		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers)
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():
@@ -2986,6 +3169,14 @@ func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 				winner_side = "union" if union_count > coalition_count else "coalition"
 		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium, winner_side, captures)
 
+## A pad's own positional cue is for everyone except the fighter standing on
+## it: that one already hears the pickup in their own ears.
+func _pad_cue_audible(pad_position: Vector3) -> bool:
+	if camera == null or not is_instance_valid(camera):
+		return true
+	var ear: Vector3 = camera.global_position
+	return Vector2(ear.x - pad_position.x, ear.z - pad_position.z).length() > 4.0
+
 func _sync_pickups(pickup_list):
 	var seen = {}
 	for pad in pickup_list:
@@ -3025,6 +3216,7 @@ func _sync_pickups(pickup_list):
 				dirty = true
 			if dirty:
 				pickups[pid]._apply_look()
+			pickups[pid].note_server_available(bool(pad.get("available", true)), _pad_cue_audible(pos))
 			pickups[pid].set_available(is_up)
 	for pid in pickups.keys():
 		if not seen.has(pid):
@@ -3312,6 +3504,7 @@ func _end_life_input() -> void:
 func _drop_life_presses() -> void:
 	pending_fire = false
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	interact_held = false
 	pending_throw = false
@@ -3352,6 +3545,7 @@ func _begin_new_life() -> void:
 	_drop_life_presses()
 	fire_armed = not Input.is_action_pressed("fire")
 	jump_armed = not Input.is_action_pressed("jump")
+	_dodge_was_down = InputMap.has_action("dodge") and Input.is_action_pressed("dodge")
 	throw_armed = not Input.is_action_pressed("throw_grenade")
 	place_armed = not Input.is_action_pressed("place_mine")
 	reload_armed = not InputMap.has_action("reload") or not Input.is_action_pressed("reload")
@@ -3378,7 +3572,12 @@ func _update_death_presentation(now_usec: int) -> void:
 	var target: Variant = camera.get_followed_target()
 	if is_instance_valid(target):
 		watching = str(target.get("player_name"))
-	hud.show_death_card(local_life.card_lines(now_usec, watching))
+	# The server keeps this life's private loadout until the respawn, so what
+	# it lists beyond the rules' start kit is exactly what death costs.
+	var carried: Array[String] = []
+	if not net_client.equipment.is_empty():
+		carried = _carried_weapons()
+	hud.show_death_card(local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried)))
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.
@@ -3395,7 +3594,7 @@ func _present_rocket_launches() -> void:
 			pawn.show_muzzle_flash("Rocket")
 		var followed_first_person: bool = owner == followed_id and not followed_id.is_empty() and camera != null and camera.is_observing_first_person()
 		if not predicted and (is_local or followed_first_person) and hud != null and hud.has_method("show_fire_juice"):
-			hud.show_fire_juice("Rocket")
+			_show_fire_juice("Rocket")
 
 func _process_shot_results(results, tick: int, captured_fp: bool = false, captured_xform: Transform3D = Transform3D.IDENTITY, captured_alive: bool = false) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
@@ -3405,6 +3604,8 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 	last_shot_tick = tick
 	if shot_effects != null:
 		shot_effects.ingest(tick, results)
+	if m01_intake != null:
+		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
 	var feedback_viewport: Viewport = get_viewport()
@@ -3468,13 +3669,17 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 			continue
 		# The local cue has already played; spectators still use server evidence.
 		if not predicted and not mounted and (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
-			hud.show_fire_juice(wpn)
+			_show_fire_juice(wpn)
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
 			hud.show_hit_marker(dmg, wpn)
 			if is_local:
 				_play_hit_confirm_cue(dmg)
+		# The shot that put a fighter down says so, louder than a hit.
+		if is_local and bool(shot.get("killed", false)) and hud and hud.has_method("show_kill_marker"):
+			hud.show_kill_marker()
+			_play_kill_confirm_cue()
 	if local_fire.reconcile(tick):
 		_cancel_local_fire_effect()
 

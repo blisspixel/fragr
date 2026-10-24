@@ -4,6 +4,9 @@
 //! the library so it is tested without touching the network.
 
 use clap::{Parser, Subcommand};
+use fragr_audiogen::casting::{
+    DesignParams, LibraryQuery, SaveVoiceParams, DEFAULT_DESIGN_FORMAT, DEFAULT_DESIGN_MODEL,
+};
 use fragr_audiogen::{
     parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command, Command, Error,
     Job, Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams,
@@ -148,8 +151,83 @@ enum Cmd {
         #[arg(long)]
         out: PathBuf,
     },
-    /// List the account's default voices with ids for casting.
+    /// List the account's default voices with ids. ElevenLabs states default voices expire on 2026-12-31.
     Voices,
+    /// Search the shared voice library (free). Prints id, owner, labels, notice period and rate.
+    Library {
+        /// Free-text search over names and descriptions.
+        #[arg(long)]
+        search: Option<String>,
+        #[arg(long)]
+        gender: Option<String>,
+        #[arg(long)]
+        age: Option<String>,
+        #[arg(long)]
+        accent: Option<String>,
+        #[arg(long)]
+        language: Option<String>,
+        /// Use case filter, for example narrative_story; repeatable.
+        #[arg(long = "use-case")]
+        use_cases: Vec<String>,
+        /// professional, famous or high_quality.
+        #[arg(long)]
+        category: Option<String>,
+        /// Only voices whose owner must give at least this many days notice before removal.
+        #[arg(long)]
+        min_notice_days: Option<u32>,
+        /// Include legacy custom-rate voices, which bill a credit multiplier.
+        #[arg(long)]
+        include_custom_rates: bool,
+        /// created_date, usage_character_count_1y, trending or cloned_by_count.
+        #[arg(long)]
+        sort: Option<String>,
+        #[arg(long, default_value_t = 30)]
+        page_size: u32,
+        #[arg(long, default_value_t = 0)]
+        page: u32,
+    },
+    /// Design a voice from a description, or remix an existing one, into previews (charges the preview text).
+    Design {
+        /// Candidate name; previews land at <out-dir>/<name>_<n>.mp3 with <name>.design.json.
+        #[arg(long)]
+        name: String,
+        /// What the voice should sound like.
+        #[arg(long)]
+        description: String,
+        /// Preview text, 100 to 1000 characters. Use a line the voice will actually speak.
+        #[arg(long)]
+        text: String,
+        /// Voice Design model.
+        #[arg(long, default_value = DEFAULT_DESIGN_MODEL)]
+        model: String,
+        /// Remix this voice (one the account owns: designed or cloned) instead of designing from nothing.
+        #[arg(long)]
+        remix: Option<String>,
+        #[arg(long)]
+        seed: Option<u64>,
+        /// Lower is freer, higher follows the description more literally.
+        #[arg(long)]
+        guidance_scale: Option<f64>,
+        /// -1 (quietest) to 1 (loudest).
+        #[arg(long)]
+        loudness: Option<f64>,
+        /// 0 to 1, eleven_ttv_v3 only.
+        #[arg(long)]
+        prompt_strength: Option<f64>,
+        #[arg(long, default_value = DEFAULT_DESIGN_FORMAT)]
+        format: String,
+    },
+    /// Save one design preview as an account voice (no credits; uses a voice slot).
+    SaveVoice {
+        /// generated_voice_id from a <name>.design.json record.
+        #[arg(long)]
+        generated_voice_id: String,
+        /// Account voice name.
+        #[arg(long)]
+        voice_name: String,
+        #[arg(long)]
+        description: String,
+    },
     /// Open the radio music review page: listen, then mark each track keep or reject.
     Review {
         #[command(flatten)]
@@ -321,6 +399,67 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
             }
         }
         Cmd::Voices => Command::Voices,
+        Cmd::Library {
+            search,
+            gender,
+            age,
+            accent,
+            language,
+            use_cases,
+            category,
+            min_notice_days,
+            include_custom_rates,
+            sort,
+            page_size,
+            page,
+        } => Command::Library(LibraryQuery {
+            search,
+            gender,
+            age,
+            accent,
+            language,
+            use_cases,
+            category,
+            min_notice_days,
+            include_custom_rates,
+            sort,
+            page_size,
+            page,
+        }),
+        Cmd::Design {
+            name,
+            description,
+            text,
+            model,
+            remix,
+            seed,
+            guidance_scale,
+            loudness,
+            prompt_strength,
+            format,
+        } => Command::Design {
+            name,
+            params: DesignParams {
+                description,
+                text,
+                model,
+                remix_voice_id: remix,
+                seed,
+                guidance_scale,
+                loudness,
+                prompt_strength,
+                format,
+            },
+        },
+        Cmd::SaveVoice {
+            generated_voice_id,
+            voice_name,
+            description,
+        } => Command::SaveVoice(SaveVoiceParams {
+            generated_voice_id,
+            voice_name,
+            description,
+        }),
         Cmd::Quota => Command::Quota,
         Cmd::Review { .. } | Cmd::Promote { .. } => {
             return Err(Error::InvalidArgument(
@@ -369,7 +508,16 @@ impl Transport for HttpTransport {
             .get(reqwest::header::CONTENT_TYPE)
             .and_then(|value| value.to_str().ok())
             .is_some_and(|value| value.contains("audio") || value.contains("octet-stream"));
-        let limit = if media { 20 * 1024 * 1024 } else { 256 * 1024 };
+        // Voice Design returns its previews as base64 inside JSON; library pages are large JSON.
+        let limit = if media {
+            20 * 1024 * 1024
+        } else if request.path.starts_with("/v1/text-to-voice") {
+            32 * 1024 * 1024
+        } else if request.path == "/v1/shared-voices" {
+            4 * 1024 * 1024
+        } else {
+            256 * 1024
+        };
         let declared = response.content_length();
         let body = read_capped(&mut response.take(limit as u64 + 1), declared, limit)?;
         Ok(Response { status, body })
@@ -491,7 +639,7 @@ fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
     // Dry runs never need a key. Quota always does.
     // Dry runs and the scripts converter never touch the network. Quota and voices always do.
     let needs_key = (!cli.dry_run && !matches!(cli.command, Cmd::Scripts { .. }))
-        || matches!(cli.command, Cmd::Quota | Cmd::Voices);
+        || matches!(cli.command, Cmd::Quota | Cmd::Voices | Cmd::Library { .. });
     let api_key = if needs_key {
         let from_env = match std::env::var(API_KEY_ENV) {
             Ok(value) => Some(value),
@@ -673,6 +821,73 @@ mod tests {
         }
         let voices = Cli::try_parse_from(["fragr-audiogen", "voices"]).unwrap();
         assert_eq!(to_command(voices.command).unwrap(), Command::Voices);
+    }
+
+    #[test]
+    fn parses_library_design_and_save_voice() {
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "library",
+            "--search",
+            "narrator",
+            "--use-case",
+            "narrative_story",
+            "--min-notice-days",
+            "365",
+        ])
+        .unwrap();
+        match to_command(cli.command).unwrap() {
+            Command::Library(query) => {
+                assert_eq!(query.search.as_deref(), Some("narrator"));
+                assert_eq!(query.use_cases, vec!["narrative_story".to_string()]);
+                assert_eq!(query.min_notice_days, Some(365));
+                assert_eq!(query.page_size, 30);
+                assert!(!query.include_custom_rates);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "--out-dir",
+            "/tmp/x",
+            "design",
+            "--name",
+            "narrator/a",
+            "--description",
+            "warm narrator",
+            "--text",
+            "line",
+            "--remix",
+            "abc123",
+            "--seed",
+            "4",
+        ])
+        .unwrap();
+        match to_command(cli.command).unwrap() {
+            Command::Design { name, params } => {
+                assert_eq!(name, "narrator/a");
+                assert_eq!(params.model, DEFAULT_DESIGN_MODEL);
+                assert_eq!(params.remix_voice_id.as_deref(), Some("abc123"));
+                assert_eq!(params.seed, Some(4));
+                assert_eq!(params.format, DEFAULT_DESIGN_FORMAT);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "save-voice",
+            "--generated-voice-id",
+            "gen1",
+            "--voice-name",
+            "narrator",
+            "--description",
+            "warm",
+        ])
+        .unwrap();
+        assert!(matches!(
+            to_command(cli.command).unwrap(),
+            Command::SaveVoice(params) if params.generated_voice_id == "gen1"
+        ));
     }
 
     #[test]

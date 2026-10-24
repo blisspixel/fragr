@@ -33,6 +33,18 @@ pub struct Navigator {
     avoidance_motion: Option<[bool; 4]>,
 }
 
+impl Navigator {
+    /// Current destination and next waypoint, for route diagnostics.
+    #[cfg(test)]
+    pub(crate) fn debug_route(&self) -> (Option<[f32; 3]>, Option<[f32; 3]>, usize) {
+        (
+            self.destination,
+            self.points.front().copied(),
+            self.points.len(),
+        )
+    }
+}
+
 impl Navigation {
     pub(crate) fn planning_arena(&self) -> &crate::movement::Arena {
         &self.arena
@@ -266,13 +278,14 @@ impl Navigator {
             left: action.left,
             right: action.right,
             jump: false,
+            dodge: false,
             yaw,
             speed_scale: 1.0,
         };
         let wanted = crate::movement::live_step_with_height(
             me.from,
             &input,
-            crate::movement::TOP_SPEED,
+            crate::movement::ACTOR_REFERENCE_SPEED,
             0.05,
             arena,
             me.height,
@@ -325,8 +338,8 @@ impl Navigator {
             // direction. Use it only after observed immobility for recovery
             // scoring; every candidate retains map/contact integration.
             let (wish_x, wish_z) = crate::movement::wish_dir(&input, yaw);
-            dx = wish_x * crate::movement::TOP_SPEED * 0.05;
-            dz = wish_z * crate::movement::TOP_SPEED * 0.05;
+            dx = wish_x * crate::movement::ACTOR_REFERENCE_SPEED * 0.05;
+            dz = wish_z * crate::movement::ACTOR_REFERENCE_SPEED * 0.05;
         }
         let length = dx.hypot(dz);
         if length < 0.01 {
@@ -345,10 +358,11 @@ impl Navigator {
                         left: candidate.left,
                         right: candidate.right,
                         jump: false,
+                        dodge: false,
                         yaw,
                         speed_scale: 1.0,
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     arena,
                     me.height,
@@ -698,10 +712,13 @@ mod tests {
         let enemy = Uuid::new_v4();
         state.add_player(me, "Meat Proxy".into(), Role::Agent);
         state.add_player(enemy, "Target".into(), Role::Agent);
-        state.players[0].x = -4.0;
-        state.players[0].z = 0.0;
-        state.players[1].x = 4.0;
-        state.players[1].z = 0.0;
+        // This small world is flat; stand both on its floor, not on a deck
+        // of the default map's spawn slots.
+        for (player, x) in state.players.iter_mut().zip([-4.0, 4.0]) {
+            player.x = x;
+            player.z = 0.0;
+            player.y = crate::sim::PLAYER_FLOOR_Y;
+        }
         let mut snapshot = state.snapshot();
         snapshot.tick = 1;
         let mut driver = Navigator::default();
@@ -948,10 +965,11 @@ mod tests {
                         left: action.left,
                         right: action.right,
                         jump: action.jump,
+                        dodge: false,
                         yaw: action.yaw.unwrap_or(from.yaw),
                         speed_scale: 1.0,
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     arena,
                     FIGHTER_HEIGHT,
@@ -1041,9 +1059,10 @@ mod tests {
                     right: action.right,
                     yaw: 0.0,
                     jump: false,
+                    dodge: false,
                     speed_scale: 1.0,
                 },
-                crate::movement::TOP_SPEED,
+                crate::movement::ACTOR_REFERENCE_SPEED,
                 0.05,
                 &arena,
                 mover.height,
@@ -1104,10 +1123,11 @@ mod tests {
                             left: action.left,
                             right: action.right,
                             jump: false,
+                            dodge: false,
                             yaw: body.from.yaw,
                             speed_scale: 1.0,
                         },
-                        crate::movement::TOP_SPEED,
+                        crate::movement::ACTOR_REFERENCE_SPEED,
                         0.05,
                         &arena,
                         body.height,
@@ -1183,7 +1203,7 @@ mod tests {
                     speed_scale: 1.0,
                     ..Default::default()
                 },
-                crate::movement::TOP_SPEED,
+                crate::movement::ACTOR_REFERENCE_SPEED,
                 0.05,
                 &arena,
                 me.height,
@@ -1256,7 +1276,7 @@ mod tests {
                         speed_scale: 1.0,
                         ..Default::default()
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     runtime.arena(),
                     mover.height,

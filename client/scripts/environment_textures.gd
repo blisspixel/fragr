@@ -10,6 +10,17 @@ const ISLAND_GROUND: String = "res://assets/environment/island-ground/"
 static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
+	if venue == "larak_lot":
+		# An old range's car park: cast decks, booth enamel the league painted
+		# over (its red trim gone, so no red band sits at head height behind
+		# a fight), dark steel treads, oxidized wrecks and the stairwell's
+		# green intake tile.
+		match surface:
+			"concrete": return EARTH + "earth_yard_cast_concrete.png" if horizontal else PRODUCTION + "yard_concrete.png"
+			"enamel": return PRODUCTION + ("union_concrete.png" if horizontal else "scrap_enamel.png")
+			"service_steel": return EARTH + ("earth_service_dark_tread.png" if horizontal else "earth_workshop_patched_steel.png")
+			"records_tile": return EARTH + "earth_scrapyard_oxidized_plate.png" if not horizontal else PRODUCTION + "scrap_steel.png"
+			"lift_panel": return EARTH + "earth_intake_green_tile.png" if not horizontal else PRODUCTION + "union_concrete.png"
 	if venue == "mars_foundry":
 		match surface:
 			"concrete": return PRODUCTION + "mars_floor.png"
@@ -59,6 +70,22 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"enamel": return PRODUCTION + ("low_water_ceramic.png" if horizontal else "low_water_enamel.png")
 			"records_tile": return PRODUCTION + "low_water_ceramic.png"
 			"service_steel", "lift_panel": return PRODUCTION + ("low_water_floor.png" if horizontal else "low_water_steel.png")
+	elif venue == "earth_intake":
+		# M01 civic intake (docs/design/earth.md): bone enamel walls, institutional
+		# green tile underfoot, dark tread in service runs, cast concrete outside.
+		match surface:
+			"concrete": return EARTH + ("earth_intake_green_tile.png" if horizontal else "earth_yard_cast_concrete.png")
+			"enamel": return EARTH + "earth_clinic_bone_plaster.png"
+			"records_tile": return EARTH + "earth_intake_green_tile.png"
+			"service_steel", "lift_panel": return EARTH + "earth_service_dark_tread.png" if horizontal else PRODUCTION + "union_steel.png"
+	elif venue == "waterworks":
+		# Cast quay concrete with its stains on walls and floors alike; the
+		# white Low Water plaster would read as daylight under the blue hour.
+		match surface:
+			"concrete": return EARTH + "earth_yard_cast_concrete.png"
+			"enamel": return PRODUCTION + ("yard_enamel.png" if horizontal else "low_water_enamel.png")
+			"records_tile": return PRODUCTION + "low_water_ceramic.png"
+			"service_steel", "lift_panel": return PRODUCTION + ("yard_floor.png" if horizontal else "yard_steel.png")
 	elif venue in ["earth_union", "earth_yard", "earth_scrap"]:
 		var prefix: String = {"earth_union": "union", "earth_yard": "yard", "earth_scrap": "scrap"}[venue]
 		match surface:

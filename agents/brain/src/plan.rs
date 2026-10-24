@@ -595,7 +595,7 @@ fn campaign_enemy_awake(other: &fragr_server::protocol::PlayerState) -> bool {
     use fragr_server::protocol::{CampaignActor, EnemyPhase};
     matches!(
         other.campaign,
-        Some(CampaignActor::Union { phase, .. })
+        Some(CampaignActor::Hostile { phase, .. })
             if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead)
     )
 }
@@ -822,12 +822,13 @@ mod tests {
         let mut partner = player("partner", ally, 1.0, 0.0, 100, "tack");
         partner.campaign = mine.campaign;
         let mut guard = player("clerk", foe, 8.0, 0.0, 60, "tack");
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
         let telemetry = telemetry_for(&snap, me);
@@ -854,12 +855,13 @@ mod tests {
         let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
         mine.campaign = Some(CampaignActor::Participant {});
         let mut guard = player("hidden", hidden, 10.0, 0.0, 60, "tack");
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let world = Navigation::new(Arena {
             half: 24.0,
@@ -952,12 +954,13 @@ mod tests {
         mine.campaign = Some(CampaignActor::Participant {});
         let guard_in = |phase: EnemyPhase, x: f32| {
             let mut guard = player("sweeper", foe, x, 0.0, 80, "flechette");
-            guard.campaign = Some(CampaignActor::Union {
+            guard.campaign = Some(CampaignActor::Hostile {
                 kind: EnemyKind::Sweeper,
                 phase,
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                control: Default::default(),
             });
             guard
         };
@@ -1019,12 +1022,13 @@ mod tests {
         mine.campaign = Some(CampaignActor::Participant {});
         let guard = |id: Uuid, x: f32, z: f32| {
             let mut guard = player("guard", id, x, z, 60, "tack");
-            guard.campaign = Some(CampaignActor::Union {
+            guard.campaign = Some(CampaignActor::Hostile {
                 kind: EnemyKind::Clerk,
                 phase: EnemyPhase::Idle,
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                control: Default::default(),
             });
             guard
         };
@@ -1091,12 +1095,13 @@ mod tests {
         mine.y = PLAYER_FLOOR_Y;
         let mut guard = player("guard", foe, 10.0, 0.0, 60, "tack");
         guard.y = PLAYER_FLOOR_Y;
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let world = Navigation::new(Arena {
             half: 24.0,
@@ -1104,12 +1109,13 @@ mod tests {
         })
         .unwrap();
         assert!(campaign_enemy_engageable(&world, &mine, &guard));
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Crawler,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         assert!(!campaign_enemy_engageable(&world, &mine, &guard));
     }

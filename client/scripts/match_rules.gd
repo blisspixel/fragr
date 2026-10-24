@@ -7,9 +7,18 @@ extends RefCounted
 ## this only reads and labels what it sent.
 
 const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest"]
-const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]
+const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives", "full-arsenal"]
 const TEAMS: Array[String] = ["union", "coalition"]
-const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
+## Every Host reaction kind the server sends (`HostReactionKind::ALL`).
+const REACTIONS: Array[String] = [
+	"first_blood", "streak_ended", "last_standing", "comeback", "golden_rail",
+	"double_frag", "triple_frag", "quad_frag", "frag_storm",
+	"rampage", "riot", "untouchable",
+	"lead_change", "flag_taken", "flag_captured", "charge_planted",
+	"match_point", "sudden_death", "larak_lot_special",
+]
+## Calls about a fighter or a side. A side call (no `player`) keys `_SIDE`.
+const SIDE_REACTIONS: Array[String] = ["lead_change", "match_point"]
 const REACTION_VARIANTS: int = 3
 const MAX_LIVES: int = 9
 
@@ -17,14 +26,12 @@ const MAX_LIVES: int = 9
 ## the red so a dark body still reads as a side.
 const UNION_LABEL: Color = Color("e23430")
 const UNION_BODY: Color = Color("56575e")
-## Free coalition: bone, leather and ember.
-const COALITION_LABEL: Color = Color("dc8c3c")
-const COALITION_BODY: Color = Color("e8e2d6")
+## Free coalition: personal colour under a warm amber team accent. Its flag
+## pole and pennant staff are worn leather, never bone or matte off-white,
+## which belong to Inheritance machines (FactionPalette).
+const COALITION_LABEL: Color = FactionPalette.FREE_AMBER
+const COALITION_BODY: Color = Color("8a5634")
 const GOLD: Color = Color(1.0, 0.82, 0.28)
-## First person reads sides relative to the viewer. The faction colours stay
-## on the score and on a spectator's plate.
-const OURS_MARK: Color = Color("f4f0e6")
-const THEIRS_MARK: Color = Color("e23430")
 
 
 ## A validated copy of `map_info.rules`, or empty when absent or malformed.
@@ -55,7 +62,37 @@ static func parse(value: Variant) -> Dictionary:
 		if number != floorf(number) or number < 1.0 or number > float(MAX_LIVES):
 			return {}
 		lives = int(number)
-	return {"mode": mode, "mutators": mutators, "friendly_fire": friendly_fire, "lives": lives}
+	# The weapons a fresh life holds. Anything else was found on the map.
+	var kit: Array[String] = []
+	var raw_kit: Variant = raw.get("start_kit", [])
+	if not raw_kit is Array:
+		return {}
+	for item: Variant in raw_kit:
+		if not item is String or not EquipmentState.WEAPONS.has(item) or kit.has(item):
+			return {}
+		kit.append(item)
+	return {"mode": mode, "mutators": mutators, "friendly_fire": friendly_fire, "lives": lives, "start_kit": kit}
+
+
+## Weapons carried now that the next life will not start with, in wire order.
+## Empty on a campaign map, where no rule set names a kit.
+static func lost_at_death(rules: Dictionary, carried: Array) -> Array[String]:
+	var lost: Array[String] = []
+	if rules.is_empty():
+		return lost
+	var kit: Array = rules.get("start_kit", [])
+	for weapon: String in EquipmentState.WEAPONS:
+		if carried.has(weapon) and not kit.has(weapon):
+			lost.append(weapon)
+	return lost
+
+
+## "PISTOL + FISTS" style list of weapon wire ids, in the order given.
+static func weapon_list(weapons: Array) -> String:
+	var names: PackedStringArray = []
+	for weapon: Variant in weapons:
+		names.append(EquipmentState.display_name(str(weapon)).to_upper())
+	return " + ".join(names)
 
 
 static func teams(rules: Dictionary) -> bool:
@@ -170,20 +207,42 @@ static func team_score_line(scores: Variant) -> String:
 	return _text("TEAM_SCORE_LINE").format({"union": union, "coalition": coalition})
 
 
-## The Host's words for a `host_reaction` event, or empty for an unknown one.
-static func reaction_line(data: Dictionary) -> String:
+## The kind of a `host_reaction` event, or empty for an unknown one.
+static func reaction_kind(data: Dictionary) -> String:
 	var kind: Variant = data.get("kind")
 	if not kind is String or not REACTIONS.has(kind):
 		return ""
+	return kind
+
+
+## The rotating variant of a `host_reaction` event, or -1 when malformed.
+static func reaction_variant(data: Dictionary) -> int:
 	var variant: int = _count(data.get("variant", 0))
-	if variant < 0 or variant >= REACTION_VARIANTS:
-		return ""
-	var key: String = "HOST_REACTION_%s_%d" % [str(kind).to_upper(), variant]
-	var line: String = _text(key)
-	if line == key:
+	return variant if variant >= 0 and variant < REACTION_VARIANTS else -1
+
+
+## A big moment the Host voices; every other reaction is a text caption.
+static func reaction_big(data: Dictionary) -> bool:
+	var big: Variant = data.get("big")
+	return big is bool and big
+
+
+## The Host's words for a `host_reaction` event, or empty for an unknown one.
+## Captions keep the names; the voiced clip never carries them.
+static func reaction_line(data: Dictionary) -> String:
+	var kind: String = reaction_kind(data)
+	var variant: int = reaction_variant(data)
+	if kind.is_empty() or variant < 0:
 		return ""
 	var player: Variant = data.get("player")
 	var other: Variant = data.get("other")
+	var stem: String = kind.to_upper()
+	if SIDE_REACTIONS.has(kind) and not player is String:
+		stem += "_SIDE"
+	var key: String = "HOST_REACTION_%s_%d" % [stem, variant]
+	var line: String = _text(key)
+	if line == key:
+		return ""
 	return line.format({
 		"player": str(player).to_upper() if player is String else "",
 		"other": str(other).to_upper() if other is String else "",

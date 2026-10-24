@@ -389,7 +389,11 @@ fn drive(
 fn launch_authority_every_group_clears_on_foot_with_present_absent_and_destroyed_jeep() {
     for fleet in ["present", "absent", "destroyed"] {
         let mut s = GameSession::with_authored_map(map());
-        s.state.seed(42);
+        // Seed-sensitive controller evidence, not a difficulty verdict. With
+        // the arena fighter model (#463) on this mission-free map and paced
+        // attack tokens (#468), seeds 1, 3, 41, 42 and 44 clear every group
+        // before a guard fires; 2, 4, 5, 6, 7 and 43 exercise the enemies.
+        s.state.seed(5);
         let id = Uuid::from_u128(1014);
         s.state.add_player(id, "Infantry".into(), Role::Agent);
         match fleet {

@@ -12,6 +12,8 @@ Generated files are owned by the project under the ElevenLabs terms for the acco
 
 The first effect set was synthesised procedurally and dedicated to the public domain under CC0 1.0 Universal. It has been replaced by generated effects with manifest entries; the old files remain in git history.
 
+The arena pad return cue is also original offline procedural audio. `bake_pad_return.gd` writes `pickup/pad_return.wav` and `pickup/pad_return-manifest.json` (format, seed, SHA-256); regenerate with `godot --headless --audio-driver Dummy --path client --script res://assets/audio/bake_pad_return.gd`. No external request, no charge. The same pad plays its pickup sound where it stands when somebody else takes it.
+
 The M02 Crawler scrabble is a new original offline procedural cue. `bake_crawler_scrabble.gd` writes the WAV and a deterministic `crawler_scrabble-manifest.json` with its format, fixed seed and SHA-256. Regenerate from the repository root with `godot --headless --path client --script res://assets/audio/bake_crawler_scrabble.gd` using Godot 4.7.2-stable. It makes no external request and has no generation charge. Its caption is localized and remains visible when audio is muted.
 
 The M02 ward and processing-floor machinery set is also original and baked offline. `m02/bake_soundscape.gd` writes four mono 24 kHz PCM WAVs and `m02/soundscape-manifest.json` with a fixed seed, purpose, length, loop flag, level measurements and SHA-256 for each file. Regenerate from the repository root with `godot --headless --path client --script res://assets/audio/m02/bake_soundscape.gd` using Godot 4.7.2-stable. The beds loop forward at their full length; the stop and release play once. No third-party recording, asset service, external request or generation charge is involved. The ward bed is set quieter than the mechanical stop and release, and the floor bed is set below the Crawler warning. Final mix balance still needs listening in a rendered M02 route.
@@ -56,6 +58,7 @@ request, asset charge or weapon-gunshot substitution.
 | `frag.wav` | Elimination stinger |
 | `round_start.wav`, `round_end.wav` | Round cues |
 | `crawler_scrabble.wav` | Spatial M02 Crawler warning cue |
+| `pickup/pad_return.wav` | Spatial arena pad return: a weapon, health or armour pad back on its clock |
 | `jammer/launch.wav` | Server-confirmed Jammer interference launch |
 | `notary/fan.wav`, `notary/shutter.wav`, `notary/crash.wav` | M04 spatial fan, resolved photograph and grounded wreck |
 | `m02/ward_machine_loop.wav`, `m02/ward_machine_stop.wav` | Correction ward machinery and its shutdown |

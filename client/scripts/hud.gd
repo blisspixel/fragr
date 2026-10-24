@@ -11,6 +11,8 @@ var death_card: DeathCard = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
+## The first-run controls hint went up for a fighter; the owner records it.
+signal controls_hint_shown
 
 @onready var status_label = $Panel/VBoxContainer/StatusLabel
 @onready var tick_label = $Panel/VBoxContainer/TickLabel
@@ -25,8 +27,8 @@ var frag_feed: FragFeed
 var objective_call: ObjectiveCall
 var event_cover_query: Callable
 var event_region_query: Callable
-## Top-band text owned by other canvas layers (frame counter, benchmark
-## banner): returns Array[Rect2] in canvas units. HudRegions lays the match
+## Top-band text owned by other canvas layers (the frame counter):
+## returns Array[Rect2] in canvas units. HudRegions lays the match
 ## facts, corner and frag feed out below whatever crosses their columns.
 var top_region_query: Callable
 var viewer_team: String = ""
@@ -49,10 +51,6 @@ var screen_flash = null
 @onready var health_bar = $Vitals/HealthBar
 @onready var armor_value = $Vitals/ArmorValue
 @onready var armor_bar = $Vitals/ArmorBar
-@onready var chrome_strip = $ChromeStrip
-@onready var on_air_badge = $OnAirBadge
-@onready var contested_frequency_badge = $ContestedFrequencyBadge
-@onready var hangar_candy_badge = $HangarCandyBadge
 var map_chip_label: Label = null
 ## Validated `map_info.rules`; empty on campaign maps and old servers.
 var match_rules: Dictionary = {}
@@ -96,21 +94,24 @@ var _leaderboard_scroll: ScrollContainer = null
 var _leaderboard_hint: Label = null
 var ghost_rival = ""
 var leader_name = ""
-var host_bumper_index = 0
-var league_mode_name = "Contested Frequency"
-var league_playlist = "Arena Duel"
-var map_label = "Arena Duel"
+var league_mode_name = "Scrap League"
+var league_playlist = "Larak Lot"
+var map_label = "Larak Lot"
 var pressure_id = ""
 var sticky_host_line = ""
 var host_line_seen = false
 var client_mode = "SPECTATING"
-## Milliseconds the control legend stays up after joining, then it gets out of the way.
+## Milliseconds the control legend stays up, then it gets out of the way. The
+## last second fades. A fighter sees it on their first join only (the
+## `gameplay/controls_hint_seen` setting); after that the controls live in
+## Settings > Controls and the match menu, never over the status bar. A
+## spectator gets the short watch legend (join, fighter, view) on each visit.
 const CONTROLS_HINT_MS: int = 8000
-
-## Broadcast ident (the top strip, ON AIR, the station badge). Off by default:
-## it is right for a let's-play capture and wrong for playing. See
-## _update_broadcast_chrome.
-var broadcast_chrome: bool = false
+const CONTROLS_HINT_FADE_MS: int = 1000
+## True until this install has shown a fighter the play legend once.
+var controls_hint_pending: bool = true
+## The join (its `mode_entered_ms`) that carries the play legend, or -1.
+var _play_hint_ms: int = -1
 
 ## Connection status, wall clock and head count. Debug furniture, off.
 var debug_telemetry: bool = false
@@ -126,20 +127,14 @@ var round_chrome_state = "Warmup"
 var round_seconds: int = 0
 var round_clock_known: bool = false
 var round_target: int = 0
+## The clock ran out level (or a level Sabotage match reached its decider).
+var sudden_death: bool = false
 var campaign_context: bool = false
 var regions: HudRegions
 var hud_style: HudStyle = HudStyle.new()
 var score_subject := HudScoreSubject.new()
 var result_subject: String = ""
 var _controls_visible: bool = false
-
-const HOST_BUMPERS = [
-	"HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE.",
-	"HOST: ARENA DUEL UNDER THE LIE. LIVE LAUGH FRAG.",
-	"HOST: CONTINUANCE WATCHES. YOU SHOOT.",
-	"HOST: SHALL NOT BE INFRINGED. OPEN WEIGHTS. OPEN FIRE.",
-	"HOST: PORT 6767 ENERGY. DENY EVERYTHING.",
-]
 
 var weapon_textures = {}
 var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE.duplicate()
@@ -175,6 +170,8 @@ var fp_bob_weight: float = 0.0
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
+## Settings > Audio > Announcer: which Host calls reach the voice row.
+var announcer: int = FragrSettings.ANNOUNCER_ON
 var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
@@ -184,6 +181,8 @@ var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
 var streak_flash_timer = 0.0
 var hit_marker_timer = 0.0
+## Seconds the marker's fade is measured against: a kill holds longer.
+var hit_marker_fade: float = 0.18
 var round_banner_remaining: float = 0.0
 var fp_kick_timer = 0.0
 ## Seconds the first-person muzzle flash stays up. Short: it is a flash, and a
@@ -221,7 +220,7 @@ const PLAYER_MAX_HP: int = 100
 const PLAYER_MAX_ARMOR: int = 100
 var floating_damage_nodes = []
 
-# Full-frame Warmup Contested Frequency TV bumper (unmissable scrap open).
+# Full-frame Warmup TV bumper (unmissable scrap open).
 var warmup_tv_veil = null
 var warmup_tv_league = null
 var warmup_tv_map = null
@@ -270,8 +269,10 @@ func _ready():
 		vitals.visible = false
 		vitals_seal_plate = SealCutPlateScript.new()
 		vitals_seal_plate.name = "VitalsSealPlate"
-		vitals_seal_plate.size = vitals.size
 		vitals.add_child(vitals_seal_plate)
+		# The plate is the status bar: it follows the vitals' own rect, so the
+		# armor readout added beside health sits on it, never past its edge.
+		vitals_seal_plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		vitals.move_child(vitals_seal_plate, 0)
 	stamp_card = StampCardScript.new()
 	stamp_card.name = "StampCard"
@@ -351,7 +352,7 @@ func _ready():
 		streak_flash.modulate.a = 0.0
 	if fp_weapon:
 		fp_weapon.visible = false
-	_update_broadcast_chrome("Warmup")
+	_refresh_map_chip_badge()
 	_bind_warmup_tv()
 
 func _theme_chrome_child(child: Node) -> void:
@@ -386,18 +387,29 @@ func _apply_chrome_roles() -> void:
 	for part: Node in $Crosshair.get_children():
 		if part is ColorRect:
 			(part as ColorRect).color = MenuTheme.INK if str(part.name).ends_with("Edge") else MenuTheme.BONE
-	var display_sizes: Dictionary = {
-		"RoundMessage": MenuTheme.DISPLAY_SMALL,
+	# Numerals keep the display face; every word card is the pixel type.
+	var numeral_sizes: Dictionary = {
 		"Vitals/HealthValue": MenuTheme.DISPLAY_MEDIUM,
 		"Vitals/ArmorValue": MenuTheme.DISPLAY_MEDIUM,
-		"WarmupTv/Center/MapTitle": MenuTheme.DISPLAY_MEDIUM,
-		"WarmupTv/Center/Countdown": MenuTheme.DISPLAY_LARGE,
 	}
-	for path: String in display_sizes:
+	for path: String in numeral_sizes:
 		var label: Label = get_node_or_null(path) as Label
 		if label != null:
-			label.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
-			label.add_theme_font_size_override("font_size", display_sizes[path])
+			MenuTheme.numeral(label, numeral_sizes[path])
+	# Word cards: the warm-up title and countdown at the large pixel size; the
+	# round and result card at 32, because it carries several wrapped lines.
+	var card_sizes: Dictionary = {
+		"RoundMessage": 32,
+		"WarmupTv/Center/MapTitle": MenuTheme.LARGE,
+		"WarmupTv/Center/Countdown": MenuTheme.LARGE,
+	}
+	for path: String in card_sizes:
+		var label: Label = get_node_or_null(path) as Label
+		if label != null:
+			MenuTheme.pixel_text(label, card_sizes[path], label.get_theme_color("font_color"), 4)
+	# Pixel type is drawn in capitals everywhere on the HUD, names included.
+	for node: Node in find_children("*", "Label", true, false):
+		(node as Label).uppercase = true
 	$Vitals/ArmorValue.add_theme_color_override("font_color", MenuTheme.CYAN)
 	round_label.add_theme_color_override("font_color", MenuTheme.EMBER)
 
@@ -586,7 +598,7 @@ func _place_use_plate() -> void:
 
 ## The round card for a decided Sabotage round, on the opaque backing.
 func show_sabotage_result(card: String, host_line: String) -> void:
-	host_spoke.emit(4.0)
+	host_duck(4.0, true)
 	if host_line != "":
 		sticky_host_line = host_line
 		host_line_seen = true
@@ -595,10 +607,11 @@ func show_sabotage_result(card: String, host_line: String) -> void:
 	_show_round_banner(card, 4.5, true)
 	if stamp_card != null:
 		var stamp_col: Color = MenuTheme.EMBER
+		# The winning side's own colour, never bone, which no side wears.
 		if card.find("UNION") != -1:
-			stamp_col = MatchRules.THEIRS_MARK
+			stamp_col = MatchRules.team_label_color("union")
 		elif card.find("FREE") != -1 or card.find("COALITION") != -1:
-			stamp_col = MatchRules.OURS_MARK
+			stamp_col = MatchRules.team_label_color("coalition")
 		stamp_card.trigger_stamp(round_message, stamp_col, reduced_motion)
 
 
@@ -705,6 +718,10 @@ func _refresh_mode_chip() -> void:
 			score_line += (" // " if not score_line.is_empty() else "") + clock
 		if not score_line.is_empty():
 			lines.append(score_line)
+	# The clock stopped level: the rule change is a fact, shown whatever the
+	# announcer setting says.
+	if sudden_death and round_chrome_state == "Active":
+		lines.append(tr("HUD_SUDDEN_DEATH_ROUND" if sabotage() else "HUD_SUDDEN_DEATH"))
 	if pressure_id == "compliance_drone":
 		lines.append("ARTICLE 7 ENFORCEMENT")
 	elif pressure_id == "compliance":
@@ -725,11 +742,14 @@ func _refresh_mode_chip() -> void:
 
 
 ## A Host beat from a `host_reaction` event, in the Host's corner voice.
+## Captions keep the names. A big moment lowers the radio; a text-only
+## caption does not, and Big moments only drops it.
 func show_host_reaction(data: Dictionary) -> void:
 	var line: String = MatchRules.reaction_line(data)
-	if line.is_empty():
+	var big: bool = MatchRules.reaction_big(data)
+	if line.is_empty() or not announcer_allows(big):
 		return
-	combat_feed.push(line, MenuTheme.EMBER, 2.0)
+	combat_feed.push(line, MenuTheme.EMBER, 2.0 if big else 0.0)
 
 
 func show_flag_event(data: Dictionary) -> void:
@@ -753,16 +773,6 @@ func _refresh_map_chip_badge() -> void:
 		# knows which map they are on; a spectator tuning in does not, so the
 		# chip belongs to the spectator view and to the round bumper.
 		map_chip_label.visible = map_label != "" and client_mode == "SPECTATING"
-	# Hide brand Hangar Candy art so it cannot impersonate the map chip.
-	if hangar_candy_badge:
-		hangar_candy_badge.visible = false
-	# chrome_strip_hud.png bakes Hangar Candy as a third top chip. During Solo
-	# Broadcast (Larak Lot) that reads as a second map name beside MapChipLabel.
-	# The strip is also spectator furniture, so it never comes back while a
-	# person is playing; this used to re-show it after the chrome decided not to.
-	if chrome_strip:
-		var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-		chrome_strip.visible = broadcast_chrome and not solo_larak and client_mode == "SPECTATING"
 
 
 func set_status(text: String):
@@ -787,14 +797,28 @@ func set_pressure(pressure: String):
 	pressure_id = pressure
 	_refresh_mode_label()
 
+## Show the legend again from now, as on a first join: the play legend for a
+## fighter, the watch legend for a spectator. Tour captures use it after an
+## ordinary join has kept the status bar clear.
+func replay_controls_hint() -> void:
+	mode_entered_ms = Time.get_ticks_msec()
+	if client_mode == "PLAYING":
+		_play_hint_ms = mode_entered_ms
+	_refresh_mode_label()
+
 func set_mode(mode: String):
-	if mode != client_mode:
+	var entered: bool = mode != client_mode
+	if entered:
 		mode_entered_ms = Time.get_ticks_msec()
 	client_mode = mode
+	if entered and mode == "PLAYING" and controls_hint_pending:
+		# Shown once per install; later joins and respawns stay clean.
+		_play_hint_ms = mode_entered_ms
+		controls_hint_pending = false
+		controls_hint_shown.emit()
 	_refresh_mode_label()
 	_refresh_telemetry_lines()
 	_refresh_map_chip_badge()
-	_update_broadcast_chrome(round_chrome_state)
 
 ## Connection status, wall clock, and head count are for whoever is debugging
 ## the client, not for anybody looking at the game. The round line already
@@ -819,9 +843,11 @@ func _refresh_mode_label():
 		mode_label.text = "SOLO BROADCAST" if not episode_title.is_empty() else client_mode
 	round_label.text = client_mode + " // " + round_chrome_state.to_upper()
 	_controls_revision = InputDevice.revision
-	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS
+	var watching: bool = client_mode == "SPECTATING"
+	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS \
+		and (watching or (client_mode == "PLAYING" and _play_hint_ms == mode_entered_ms))
 	if regions != null:
-		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
+		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if watching else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
 	_refresh_mode_chip()
 
 ## The legend is key and word pairs separated by wide gaps. The corner panel
@@ -830,7 +856,12 @@ func _refresh_mode_label():
 static func legend_line(plain: String) -> String:
 	var pairs: PackedStringArray = plain.split("   ", false)
 	for index: int in range(pairs.size()):
-		pairs[index] = pairs[index].strip_edges().replace(" ", " ").replace("-", "‑")
+		var pair: String = pairs[index].strip_edges()
+		# A pad's Menu button opening the menu reads "MENU", not "MENU MENU".
+		var words: PackedStringArray = pair.split(" ", false)
+		if words.size() == 2 and words[0].to_lower() == words[1].to_lower():
+			pair = words[0]
+		pairs[index] = pair.replace(" ", " ").replace("-", "‑")
 	return "   ".join(pairs)
 
 func set_tick(tick: int):
@@ -838,7 +869,8 @@ func set_tick(tick: int):
 		var seconds = tick / 20
 		tick_label.text = "Time: " + str(seconds) + "s"
 
-func set_round_info(state: String, time_left: Variant, frag_limit: int):
+func set_round_info(state: String, time_left: Variant, frag_limit: int, level_clock: bool = false):
+	sudden_death = level_clock and state == "Active"
 	# Retained state also clears the card after a late join or recorded replay,
 	# where the separate RoundStart notice may not have been observed.
 	if state != "Warmup" and warmup_tv_active:
@@ -852,7 +884,7 @@ func set_round_info(state: String, time_left: Variant, frag_limit: int):
 	round_clock_known = (time_left is int or time_left is float) and is_finite(float(time_left)) and float(time_left) >= 0.0
 	round_seconds = int(time_left) if round_clock_known else 0
 	round_target = frag_limit
-	_update_broadcast_chrome(state)
+	_refresh_map_chip_badge()
 	_refresh_mode_label()
 
 func set_player_count(count: int):
@@ -1123,12 +1155,11 @@ func show_episode_title_card(title: String, objective: String = ""):
 	var line = title.to_upper()
 	if objective != "":
 		line += "\n" + objective
-	line += "\nLARAK LOT // YOU'RE ON THE AIR"
+	line += "\nLARAK LOT // YOU'RE IN THE LEAGUE"
 	_show_round_banner(line, 3.2)
 
 func show_nods_tick(progress: String, host_line: String = ""):
-	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
-	flash_broadcast_chrome("host")
+	# Short Host beat per NODS clear. Not speak. Not killstreak length.
 	if not round_message:
 		return
 	var line = host_line
@@ -1149,7 +1180,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	round_banner_remaining = 0.0
 	if not round_message:
 		return
-	var line = host_line if host_line != "" else "HOST: Amen, fistbump. Frequency still unmetered."
+	var line = host_line if host_line != "" else "HOST: Amen, fistbump. The league stays open."
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
 	# Held until the next card: zero seconds never expires.
@@ -1257,9 +1288,9 @@ func show_critical_crossing(before: int, after: int) -> void:
 	_critical_pulse.tween_property(health_value, "scale", Vector2.ONE, 0.18)
 
 func apply_preferences(settings: FragrSettings) -> void:
-	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
+	announcer = settings.announcer()
 	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob")) and not reduced_motion
 	if reduced_motion:
 		_cancel_round_pulse()
@@ -1272,9 +1303,10 @@ func apply_preferences(settings: FragrSettings) -> void:
 			entry["motion_cancelled"] = true
 		_update_floating_damage(0.0)
 	reticle_colour = settings.reticle_colour()
+	controls_hint_pending = not bool(settings.get_value("gameplay", "controls_hint_seen"))
 	hud_style = HudStyle.from_settings(settings, hud_style.revision + 1)
 	_apply_hud_style()
-	_update_broadcast_chrome(round_chrome_state)
+	_refresh_map_chip_badge()
 	_refresh_telemetry_lines()
 	_refresh_mode_label()
 
@@ -1287,84 +1319,27 @@ func _apply_hud_style() -> void:
 			lbl.add_theme_font_size_override("font_size", body_sz)
 	if is_instance_valid(map_chip_label):
 		map_chip_label.add_theme_font_size_override("font_size", body_sz)
+	for line: Label in [radio_card_name, radio_card_title]:
+		if is_instance_valid(line):
+			line.add_theme_font_size_override("font_size", body_sz)
 	if regions != null and is_instance_valid(regions.hints):
 		regions.hints.add_theme_font_size_override("font_size", body_sz)
+	if is_instance_valid(combat_feed):
+		combat_feed.set_text_size(body_sz)
+	if is_instance_valid(frag_feed):
+		# Feed rows follow the HUD scale; large text would leave two names
+		# no room beside the weapon, so it reads at the scaled body size.
+		frag_feed.set_text_size(maxi(MenuTheme.BODY, int(round(float(MenuTheme.BODY) * hud_style.scale))))
 	if is_instance_valid(equipment_hud) and equipment_hud.has_method("apply_style"):
 		equipment_hud.call("apply_style", hud_style)
+	if vitals != null:
+		# The status bar grows from its bottom-left corner with the HUD scale,
+		# so health keeps the ammunition's numeral size (#412).
+		vitals.pivot_offset = Vector2(0.0, vitals.size.y)
+		vitals.scale = Vector2.ONE * hud_style.scale
 	if regions != null:
 		regions.layout()
 
-
-func _update_broadcast_chrome(state: String) -> void:
-	# The broadcast ident is off unless somebody asks for it.
-	#
-	# It was a 72 pixel strip pinned across the top of the screen with a red ON
-	# AIR box in it, and it was the highest-contrast thing in every spectator
-	# frame the visual QA tour has ever taken. The station is a thread through
-	# the world and not the world, and a network ident does not get to be the
-	# first thing the eye lands on in a screenshot of a shooter.
-	#
-	# It is kept rather than deleted because a broadcast overlay is genuinely
-	# right for a let's-play capture, where the viewer is watching a programme.
-	# It is simply not right for playing or for the README, so it is a setting
-	# that defaults to off instead of furniture that defaults to on.
-	var warm = state == "Warmup"
-	var live = state == "Active"
-	var ended = state == "Ended"
-	# Do not re-show the Hangar Candy strip during Solo Broadcast / Larak Lot.
-	var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-	var spectating = client_mode == "SPECTATING"
-	var strip_shown = (
-		broadcast_chrome
-		and chrome_strip != null
-		and not solo_larak
-		and spectating
-	)
-	if chrome_strip:
-		chrome_strip.visible = strip_shown
-		var a = 0.92 if live else (0.88 if warm else 0.7)
-		chrome_strip.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, a)
-	# The strip already bakes ON AIR and Contested Frequency, the same way it
-	# bakes Hangar Candy. Drawing the loose badges underneath it put both marks
-	# on screen twice, which the first visual QA tour caught. They are the
-	# fallback for when the strip is not up, not a second copy of it.
-	if on_air_badge:
-		on_air_badge.visible = broadcast_chrome and live and not strip_shown and spectating
-		if on_air_badge.visible:
-			on_air_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.95)
-	if contested_frequency_badge:
-		# Warm on Warmup / Host face; quieter while live so ON AIR owns the scrap.
-		contested_frequency_badge.visible = broadcast_chrome and not strip_shown and spectating
-		var ca = 0.95 if warm else (0.72 if live else 0.8)
-		contested_frequency_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, ca)
-	# Map chip is Snapshot map_name (see _refresh_map_chip_badge). Never re-show
-	# the Hangar Candy brand texture as if it were the map name.
-	if hangar_candy_badge:
-		hangar_candy_badge.visible = false
-	_refresh_map_chip_badge()
-
-func flash_broadcast_chrome(kind: String = "host") -> void:
-	# Brief badge lift on Host / Warmup bumper without neon wash.
-	var badge = contested_frequency_badge
-	# A flash must never be a way back in for chrome that is switched off. This
-	# line used to set visible unconditionally, so a Host bumper would put the
-	# red ON AIR box back on screen no matter what the rest of the file decided.
-	if not broadcast_chrome:
-		return
-	if kind == "on_air":
-		badge = on_air_badge
-		if on_air_badge:
-			on_air_badge.visible = true
-	elif kind == "hangar":
-		# Pulse the Snapshot map chip, not the retired Hangar Candy brand art.
-		_refresh_map_chip_badge()
-		badge = map_chip_label
-	if badge == null:
-		return
-	var base_a = badge.modulate.a
-	badge.modulate.a = minf(base_a + 0.15, 1.0)
-	var tween = create_tween()
-	tween.tween_property(badge, "modulate:a", base_a, 0.45)
 
 func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 	# Returns true when this call triggered the one-shot mid-join Host flash.
@@ -1379,20 +1354,41 @@ func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 	return false
 
 func show_host_join(host_line: String, duck: bool = true) -> void:
-	combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+	if announcer_allows(false):
+		combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
+
+## Off silences every Host call; Big moments only keeps the rare ones. The
+## facts themselves (frags, objectives, results, sudden death) never pass
+## through here.
+func announcer_allows(big_moment: bool) -> bool:
+	match announcer:
+		FragrSettings.ANNOUNCER_OFF:
+			return false
+		FragrSettings.ANNOUNCER_BIG_MOMENTS:
+			return big_moment
+	return true
+
+## Lower the radio for a Host call only when the announcer will make one. The
+## result or bumper card still shows; with the announcer off nobody speaks.
+func host_duck(seconds: float, big_moment: bool) -> void:
+	if announcer_allows(big_moment):
+		host_spoke.emit(seconds)
+
+## The plain arena intro when the server sent none: where, then go.
+func _plain_intro() -> String:
+	return "HOST: " + map_label.to_upper() + " IS LIVE."
 
 func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	round_banner_remaining = 0.0
-	host_spoke.emit(3.0)
+	host_duck(3.0, false)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
-	flash_broadcast_chrome("host")
-	# Unmissable full-frame Contested Frequency Warmup TV bumper.
+	# Unmissable full-frame Warmup TV bumper.
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).
 	if warmup_tv == null and round_message:
 		var line = host_line
 		if line == "":
-			line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+			line = _plain_intro()
 		var sub = "WARMUP // " + map_label.to_upper()
 		if secs_left > 0:
 			sub += " // GOES LIVE IN " + str(secs_left)
@@ -1422,11 +1418,13 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 		return
 	var line = host_line
 	if line == "":
-		line = "HOST: CONTESTED FREQUENCY. " + map_label.to_upper() + " TUNES IN."
+		line = _plain_intro()
 	warmup_tv_host_line = line
 	warmup_tv_secs = max(secs_left, 0)
 	if warmup_tv_league:
-		warmup_tv_league.text = league_mode_name.to_upper()
+		# The rules being played; the broadcaster's name is not the league's.
+		var rules_name: String = MatchRules.mode_text(match_rules)
+		warmup_tv_league.text = rules_name if not rules_name.is_empty() else league_mode_name.to_upper()
 	if warmup_tv_map:
 		warmup_tv_map.text = map_label.to_upper()
 	if warmup_tv_countdown:
@@ -1461,7 +1459,7 @@ func _set_warmup_roster(roster) -> void:
 	if warmup_tv_roster == null:
 		return
 	if names.size() == 0:
-		warmup_tv_roster.text = "SCRAP ROSTER TUNING IN"
+		warmup_tv_roster.text = "SCRAP ROSTER FILLING"
 		return
 	var upper = []
 	for n in names:
@@ -1477,15 +1475,16 @@ func show_round_start(round_number: int, host_line: String = "") -> void:
 	_conquest_owners.clear()
 	score_subject.clear()
 	result_subject = ""
+	# One source for the Host's words: the server's line, or the plain intro.
 	var line: String = host_line
 	if line.is_empty():
-		line = HOST_BUMPERS[host_bumper_index % HOST_BUMPERS.size()]
-		host_bumper_index += 1
+		line = _plain_intro() + " FIGHT!"
 	sticky_host_line = line
 	host_line_seen = true
 	_refresh_mode_label()
 	hide_warmup_tv()
-	combat_feed.push(line, MenuTheme.EMBER, 2.0)
+	if announcer_allows(false):
+		combat_feed.push(line, MenuTheme.EMBER, 2.0)
 	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
 	if vitals_seal_plate != null:
 		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
@@ -1510,14 +1509,18 @@ func show_boss_down(message: String, killer: String = "") -> void:
 	host_line_seen = true
 	pressure_id = ""
 	_refresh_mode_label()
-	combat_feed.push(tr("HUD_BOSS_DOWN").format({"killer": killer}), MenuTheme.EMBER)
+	var line: String = tr("HUD_BOSS_DOWN").format({"killer": killer}) if not killer.strip_edges().is_empty() else tr("HUD_BOSS_DOWN_UNCLAIMED")
+	combat_feed.push(line, MenuTheme.EMBER)
 
-func show_killstreak(player_name: String, streak: int, _tier: String, _message: String) -> void:
-	combat_feed.push(tr("HUD_STREAK").format({"player": player_name, "count": streak}), MenuTheme.EMBER)
-
-func show_speak(player: String, line: String) -> void:
-	if not line.is_empty():
-		combat_feed.push(player + ": " + line)
+## A callout in the corner voice. A line said to one fighter (`addressee`, the
+## speak event's `to_id`, such as a frag taunt's "deleted you") shows only
+## when that fighter is one of `viewers`: the local fighter or the fighter
+## whose eyes the camera is behind. Anyone else would read "you" as themselves.
+func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = []) -> bool:
+	if line.is_empty() or (not addressee.is_empty() and not viewers.has(addressee)):
+		return false
+	combat_feed.push(player + ": " + line)
+	return true
 
 func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
@@ -1525,8 +1528,8 @@ func show_venue_notice(line: String) -> void:
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
-	host_spoke.emit(4.0)
-	# Round-end MVP / podium Host drama (Contested Frequency voice).
+	host_duck(4.0, true)
+	# Round-end MVP / podium Host drama.
 	_standings.clear()
 	_standings_revision += 1
 	leader_name = mvp_name
@@ -1550,9 +1553,9 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		var end_col: Color = MenuTheme.EMBER
 		var win_str: String = str(winning_team).to_lower()
 		if win_str == "union":
-			end_col = MatchRules.THEIRS_MARK
+			end_col = MatchRules.team_label_color("union")
 		elif win_str == "coalition" or win_str == "free":
-			end_col = MatchRules.OURS_MARK
+			end_col = MatchRules.team_label_color("coalition")
 		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
 			var winner_side: String = MatchRules.valid_team(winning_team)
 			var result: String = tr("FLAG_ROUND_WINNER").format({"team": MatchRules.team_short(winner_side)}) if winner_side != "" else tr("FLAG_ROUND_DRAW")
@@ -1574,26 +1577,36 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 				message = "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP."
 		if reason != "":
 			message += "\n" + reason.to_upper()
-		# Podium: top three scrap scores.
+		# Podium: top three scrap scores. Each place is one unbreakable unit, so
+		# a wrap falls between places and never inside a callsign.
 		var lines = []
 		if typeof(podium) == TYPE_ARRAY:
 			var n = mini(3, podium.size())
 			for i in range(n):
 				var row = podium[i]
 				var nm = str(row.get("name", "?")) if typeof(row) == TYPE_DICTIONARY else str(row)
-				var sc = str(row.get("score", "?")) if typeof(row) == TYPE_DICTIONARY else ""
+				var sc = podium_score(row.get("score", "?")) if typeof(row) == TYPE_DICTIONARY else ""
 				var rank = str(i + 1)
-				if sc != "":
-					lines.append("#" + rank + " " + nm + " " + sc)
-				else:
-					lines.append("#" + rank + " " + nm)
+				var place: String = "#" + rank + " " + nm + (" " + sc if sc != "" else "")
+				lines.append(place.replace(" ", NBSP))
 		if lines.size() > 0:
-			message += "\nPODIUM: " + " | ".join(PackedStringArray(lines))
-		message += "\n" + league_mode_name.to_upper() + " // " + league_playlist.to_upper()
+			message += "\nPODIUM:   " + "   ".join(PackedStringArray(lines))
+		# The rules and the venue, not the broadcaster's name.
+		var rules_name: String = MatchRules.mode_text(match_rules)
+		message += "\n" + (rules_name + " // " if not rules_name.is_empty() else "") + map_label.to_upper()
 
-		_show_round_banner(message, 5.5)
+		# Backed like every other result: the card reads over light walls.
+		_show_round_banner(message, 5.5, true)
 		if stamp_card != null:
 			stamp_card.trigger_stamp(round_message, end_col, reduced_motion)
+
+const NBSP: String = "\u00a0"
+
+## A JSON score arrives as a float; a podium shows whole frags.
+static func podium_score(value: Variant) -> String:
+	if (value is float or value is int) and is_finite(float(value)) and float(value) == floorf(float(value)):
+		return str(int(value))
+	return str(value)
 
 ## Every card on the shared round label starts here: the previous card's
 ## stamp, pulse, transform and tint are retired before the new text shows, so
@@ -1623,9 +1636,29 @@ func _fit_round_message(backed: bool) -> void:
 	if regions != null:
 		regions.reset_card_shift()
 	if backed and round_backdrop != null:
+		# The plate is as wide as its longest line needs, between the classic
+		# 680 and the unbacked card's 1200, and as tall as the text wrapped at
+		# that width measures. A wrapped label's own minimum size still holds
+		# the previous width until the next layout, which let a long podium
+		# spill over the top of its plate.
+		var font: Font = round_message.get_theme_font("font")
+		var font_size: int = round_message.get_theme_font_size("font_size")
+		var shown: String = round_message.text.to_upper() if round_message.uppercase else round_message.text
+		var widest: float = 0.0
+		for line: String in shown.split("\n"):
+			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+		var half: float = roundf(clampf(widest * 0.5 + 40.0, 340.0, 600.0))
+		round_backdrop.offset_left = -half
+		round_backdrop.offset_right = half
 		round_message.offset_left = round_backdrop.offset_left + 28.0
 		round_message.offset_right = round_backdrop.offset_right - 28.0
-		var height: float = maxf(165.0, round_message.get_minimum_size().y + 36.0)
+		var wrap_width: float = round_message.offset_right - round_message.offset_left
+		var lines: float = 0.0
+		for line: String in shown.split("\n"):
+			var drawn: Vector2 = font.get_multiline_string_size(line, HORIZONTAL_ALIGNMENT_CENTER, wrap_width, font_size)
+			lines += maxf(1.0, roundf(drawn.y / font.get_height(font_size)))
+		var text_height: float = lines * font.get_height(font_size) + maxf(0.0, lines - 1.0) * round_message.get_theme_constant("line_spacing")
+		var height: float = maxf(165.0, maxf(text_height, round_message.get_minimum_size().y) + 36.0)
 		round_backdrop.offset_top = -25.0 - height
 		round_message.offset_top = round_backdrop.offset_top + 18.0
 		round_message.offset_bottom = round_backdrop.offset_bottom - 18.0
@@ -1714,6 +1747,7 @@ func _process(delta):
 	if _use_template != "" and _use_revision != InputDevice.revision:
 		_show_use_plate(_use_template)
 	_place_use_plate()
+	tick_radio_toast(delta)
 	if round_banner_remaining > 0.0:
 		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
 		if round_banner_remaining == 0.0:
@@ -1729,10 +1763,13 @@ func _process(delta):
 		var showing_leaders: bool = InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard")
 		scoreboard.visible = false
 		set_leaderboard_open(showing_leaders)
-	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and Time.get_ticks_msec() - mode_entered_ms >= CONTROLS_HINT_MS):
+	var hint_age: int = Time.get_ticks_msec() - mode_entered_ms
+	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and hint_age >= CONTROLS_HINT_MS):
 		_refresh_mode_label()
 	if regions != null:
+		regions.hints.modulate.a = clampf(float(CONTROLS_HINT_MS - hint_age) / float(CONTROLS_HINT_FADE_MS), 0.0, 1.0) if _controls_visible else 1.0
 		regions.layout()
+		regions.fit_backings()
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:
@@ -1752,10 +1789,11 @@ func _process(delta):
 		hit_marker_timer -= delta
 		if hit_marker:
 			hit_marker.visible = true
-			hit_marker.modulate.a = clampf(hit_marker_timer / 0.18, 0.0, 1.0)
+			hit_marker.modulate.a = clampf(hit_marker_timer / hit_marker_fade, 0.0, 1.0)
 		if hit_marker_timer <= 0 and hit_marker:
 			hit_marker.visible = false
 			hit_marker.modulate.a = 0.0
+			hit_marker.scale = Vector2.ONE
 	if fp_kick_timer > 0:
 		fp_kick_timer -= delta
 	fp_stab_timer = maxf(0.0, fp_stab_timer - delta)
@@ -1868,13 +1906,15 @@ func _build_fp_extras() -> void:
 		# their size, the symbols say which is which without a word.
 		health_icon = _vitals_icon("HealthIcon", WeaponArt.HUD_HEALTH, Vector2(0, 17))
 		armor_icon = _vitals_icon("ArmorIcon", WeaponArt.HUD_ARMOR, Vector2(232, 17))
-		vitals.offset_right = 488.0
+		# Wide enough for a three-digit armor readout and its bar, no wider:
+		# the plate is the status bar, not an empty shelf.
+		vitals.offset_right = 464.0
 		if health_value:
 			health_value.position = Vector2(62, 0)
 			health_value.size = Vector2(160, 84)
 		if armor_value:
 			armor_value.position = Vector2(294, 0)
-			armor_value.size = Vector2(160, 84)
+			armor_value.size = Vector2(140, 84)
 		for bar_name: String in ["HealthBar", "HealthBarBack", "ArmorBar", "ArmorBarBack"]:
 			var bar: ColorRect = vitals.get_node(bar_name)
 			bar.position = Vector2(232 if bar_name.begins_with("Armor") else 0, 92)
@@ -2200,7 +2240,9 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		# Spectator follow path still gets a brief marker.
 		pass
 	hit_marker_timer = 0.18
+	hit_marker_fade = 0.18
 	if hit_marker:
+		hit_marker.scale = Vector2.ONE
 		hit_marker.visible = true
 		var col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
 		if damage <= 0:
@@ -2228,6 +2270,21 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		_play_hit_chime(damage)
 		_spawn_floating_damage(damage, weapon_name)
 	# Fire presentation already owns recoil. A hit must not kick twice.
+
+## The shot that put a fighter down: the same four ticks, larger, in the
+## danger colour, held a little longer than a hit. Shape, not text, so it
+## reads at a glance and never tilts.
+func show_kill_marker() -> void:
+	if hit_marker == null:
+		return
+	hit_marker_timer = 0.45
+	hit_marker_fade = 0.3
+	hit_marker.visible = true
+	hit_marker.scale = Vector2.ONE * 1.6
+	hit_marker.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 1.0)
+	for mark: Node in hit_marker.get_children():
+		if mark is ColorRect:
+			(mark as ColorRect).color = MenuTheme.DANGER
 
 func _play_hit_chime(damage: int) -> void:
 	if not hit_confirm_sound and ResourceLoader.exists(HIT_CONFIRM_PATH):
@@ -2456,117 +2513,139 @@ func show_spawn_flash() -> void:
 		vitals_seal_plate.settle(viewer_team)
 
 
-var radio_label: Label = null
-var radio_tween: Tween = null
+## --- Now playing ---------------------------------------------------------------
+## Radio is small background flavour (VISION): one level two-line card at the
+## lower right naming the station and the song or the radio state. It appears
+## on a station, track or power change and leaves after a few seconds. No
+## badge and no controls line in combat; the controls live in the match menu.
 
-## Bottom-right radio toast: station on switch, title on each new track, then fade.
-func show_radio(station: String, title: String) -> void:
-	if radio_label == null:
-		radio_label = Label.new()
-		radio_label.name = "RadioLabel"
-		radio_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		radio_label.anchor_left = 1.0
-		radio_label.anchor_top = 1.0
-		radio_label.anchor_right = 1.0
-		radio_label.anchor_bottom = 1.0
-		radio_label.offset_left = -640.0
-		radio_label.offset_top = -116.0
-		radio_label.offset_right = -16.0
-		radio_label.offset_bottom = -16.0
-		radio_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		radio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		radio_label.max_lines_visible = 3
-		radio_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		radio_label.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_label.add_theme_constant_override("outline_size", 4)
-		add_child(radio_label)
-	var text := "ON AIR: " + station
-	if title != "":
-		text += "  //  " + title
-	radio_label.text = text
-	radio_label.modulate.a = 1.0
-	radio_label.visible = true
-	if radio_tween != null and radio_tween.is_valid():
-		radio_tween.kill()
-	radio_tween = create_tween()
-	radio_tween.tween_interval(3.5)
-	radio_tween.tween_property(radio_label, "modulate:a", 0.0, 1.0)
+const RADIO_TOAST_HOLD: float = 4.0
+const RADIO_TOAST_FADE: float = 0.6
 
-
-var radio_card: Control = null
-var radio_card_badge: ColorRect = null
-var radio_card_mark: Label = null
+var radio_card: PanelContainer = null
 var radio_card_name: Label = null
-var radio_card_tagline: Label = null
-var radio_card_tween: Tween = null
+var radio_card_title: Label = null
+var radio_toast_info: Dictionary = {}
+## Seconds since the toast was last shown; negative while hidden.
+var radio_toast_age: float = -1.0
 
-## Station card above the radio toast: badge, name, tagline. Shown on every
-## station switch and radio toggle, then fades.
-func show_station_card(card: Dictionary) -> void:
+## Clear the radio card at once, for a place with no radio.
+func hide_radio() -> void:
+	radio_toast_age = -1.0
+	if radio_card != null:
+		_set_radio_toast_alpha(0.0)
+
+## Lines shown for one radio state. Pure so tests can read every state.
+static func radio_toast_lines(info: Dictionary) -> Dictionary:
+	var station: String = str(info.get("station", "")).to_upper()
+	var title: String = str(info.get("title", ""))
+	match str(info.get("state", "")):
+		"playing":
+			return {"name": station, "detail": title, "muted": false}
+		"held":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_HELD").format({"title": title}), "muted": true}
+		"off":
+			return {"name": TranslationServer.translate("RADIO_STATE_OFF"), "detail": station, "muted": true}
+		"off_air":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_OFF_AIR"), "muted": true}
+		"unavailable":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_UNAVAILABLE"), "muted": true}
+		"idle":
+			return {"name": station, "detail": TranslationServer.translate("RADIO_STATE_IDLE"), "muted": true}
+	return {"name": TranslationServer.translate("RADIO_STATE_NONE"), "detail": "", "muted": true}
+
+func show_now_playing(info: Dictionary) -> void:
+	# The radio announces deferred; during scene exit the HUD may already be gone.
+	if not is_inside_tree():
+		return
+	_build_radio_toast()
+	radio_toast_info = info.duplicate()
+	var lines: Dictionary = radio_toast_lines(info)
+	radio_card_name.text = str(lines["name"])
+	radio_card_title.text = str(lines["detail"])
+	radio_card_title.add_theme_color_override("font_color", MenuTheme.MUTED if bool(lines["muted"]) else MenuTheme.BONE)
+	radio_card_title.visible = not radio_card_title.text.is_empty()
+	radio_toast_age = 0.0
+	_set_radio_toast_alpha(1.0)
+	# The card fits its text, so a short song does not carry an empty panel.
+	if regions != null:
+		regions.layout()
+
+## Pixels the toast needs for its current text, frame included. The card is
+## never wider than this, and never wider than its cap in `hud_regions.gd`.
+func radio_toast_content_width() -> float:
 	if radio_card == null:
-		radio_card = Control.new()
-		radio_card.name = "RadioCard"
-		radio_card.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		radio_card.anchor_left = 1.0
-		radio_card.anchor_top = 1.0
-		radio_card.anchor_right = 1.0
-		radio_card.anchor_bottom = 1.0
-		radio_card.offset_left = -640.0
-		radio_card.offset_top = -292.0
-		radio_card.offset_right = -16.0
-		radio_card.offset_bottom = -128.0
-		radio_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var back := ColorRect.new()
-		back.color = MenuTheme.INK
-		back.set_anchors_preset(Control.PRESET_FULL_RECT)
-		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		radio_card.add_child(back)
-		radio_card_badge = ColorRect.new()
-		radio_card_badge.position = Vector2(8, 8)
-		radio_card_badge.size = Vector2(78, 78)
-		radio_card_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		radio_card.add_child(radio_card_badge)
-		radio_card_mark = Label.new()
-		radio_card_mark.position = Vector2(8, 8)
-		radio_card_mark.size = Vector2(78, 78)
-		radio_card_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		radio_card_mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		radio_card_mark.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_mark.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_card_mark.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_card_mark.add_theme_constant_override("outline_size", 6)
-		radio_card.add_child(radio_card_mark)
-		radio_card_name = Label.new()
-		radio_card_name.position = Vector2(98, 12)
-		radio_card_name.size = Vector2(510, 62)
-		radio_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		radio_card_name.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_name.add_theme_color_override("font_color", MenuTheme.BONE)
-		radio_card_name.add_theme_color_override("font_outline_color", MenuTheme.INK)
-		radio_card_name.add_theme_constant_override("outline_size", 4)
-		radio_card.add_child(radio_card_name)
-		radio_card_tagline = Label.new()
-		radio_card_tagline.position = Vector2(98, 78)
-		radio_card_tagline.size = Vector2(510, 78)
-		radio_card_tagline.autowrap_mode = TextServer.AUTOWRAP_WORD
-		radio_card_tagline.add_theme_font_size_override("font_size", MenuTheme.BODY)
-		radio_card_tagline.add_theme_color_override("font_color", MenuTheme.MUTED)
-		radio_card.add_child(radio_card_tagline)
-		add_child(radio_card)
-	radio_card_badge.color = MenuTheme.BORDER
-	radio_card_mark.text = str(card.get("badge", "CF"))
-	radio_card_name.text = str(card.get("name", "RADIO")).to_upper()
-	var tagline := str(card.get("tagline", ""))
-	if not bool(card.get("enabled", true)):
-		tagline = "RADIO OFF"
-	elif not bool(card.get("has_tracks", true)):
-		tagline = "OFF THE AIR (no tracks yet)"
-	radio_card_tagline.text = tagline
-	radio_card.modulate.a = 1.0
-	radio_card.visible = true
-	if radio_card_tween != null and radio_card_tween.is_valid():
-		radio_card_tween.kill()
-	radio_card_tween = create_tween()
-	radio_card_tween.tween_interval(4.0)
-	radio_card_tween.tween_property(radio_card, "modulate:a", 0.0, 0.8)
+		return 0.0
+	var text_width: float = 0.0
+	for line: Label in [radio_card_name, radio_card_title]:
+		if not line.visible or line.text.is_empty():
+			continue
+		var font: Font = line.get_theme_font("font")
+		var size: int = line.get_theme_font_size("font_size")
+		# The pixel font draws capitals; measure them so nothing trims early.
+		text_width = maxf(text_width, font.get_string_size(line.text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x)
+	var frame: StyleBox = radio_card.get_theme_stylebox("panel")
+	return ceilf(text_width + (frame.get_minimum_size().x if frame != null else 0.0) + 6.0)
+
+## Advance the toast clock. Called from `_process`; tests call it directly.
+func tick_radio_toast(delta: float) -> void:
+	if radio_toast_age < 0.0 or radio_card == null:
+		return
+	radio_toast_age += maxf(delta, 0.0)
+	var alpha: float = radio_toast_alpha(radio_toast_age)
+	_set_radio_toast_alpha(alpha)
+	if alpha <= 0.0:
+		radio_toast_age = -1.0
+
+static func radio_toast_alpha(age: float) -> float:
+	if age < 0.0:
+		return 0.0
+	if age <= RADIO_TOAST_HOLD:
+		return 1.0
+	return clampf(1.0 - (age - RADIO_TOAST_HOLD) / RADIO_TOAST_FADE, 0.0, 1.0)
+
+func radio_toast_visible() -> bool:
+	return radio_card != null and radio_card.visible
+
+func _set_radio_toast_alpha(alpha: float) -> void:
+	radio_card.modulate.a = alpha
+	radio_card.visible = alpha > 0.0
+
+func _build_radio_toast() -> void:
+	if radio_card != null:
+		return
+	radio_card = PanelContainer.new()
+	radio_card.name = "RadioCard"
+	radio_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var frame: StyleBoxFlat = MenuTheme.panel(MenuTheme.alpha(MenuTheme.INK, 0.72), MenuTheme.BORDER)
+	frame.content_margin_left = 12
+	frame.content_margin_right = 12
+	frame.content_margin_top = 6
+	frame.content_margin_bottom = 6
+	radio_card.add_theme_stylebox_override("panel", frame)
+	# Level: the toast is read mid-fight and never tilts or stamps.
+	radio_card.rotation = 0.0
+	var text: VBoxContainer = VBoxContainer.new()
+	text.alignment = BoxContainer.ALIGNMENT_CENTER
+	text.add_theme_constant_override("separation", 2)
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	radio_card.add_child(text)
+	radio_card_name = _radio_line(MenuTheme.EMBER)
+	radio_card_title = _radio_line(MenuTheme.BONE)
+	text.add_child(radio_card_name)
+	text.add_child(radio_card_title)
+	add_child(radio_card)
+	if regions != null:
+		regions.layout()
+
+func _radio_line(colour: Color) -> Label:
+	var line: Label = Label.new()
+	line.max_lines_visible = 1
+	line.clip_text = true
+	line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Same body size as the rest of the HUD, so HUD scale and text size reach it.
+	line.add_theme_font_size_override("font_size", hud_style.body_font_size() if hud_style != null else MenuTheme.BODY)
+	line.add_theme_color_override("font_color", colour)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return line

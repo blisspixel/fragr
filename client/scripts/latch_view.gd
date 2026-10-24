@@ -151,6 +151,18 @@ func _texture_channel(channel: int) -> Vector4:
 		BaseMaterial3D.TEXTURE_CHANNEL_GRAYSCALE: return Vector4(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 0)
 		_: return Vector4(1, 0, 0, 0)
 
+## A scene may light the screen in warm phosphor: the optics, and a faint
+## glow behind them across the face. Planned Works' night tank uses it so a
+## free agent under a cool moon never reads as a pale machine.
+func set_face_phosphor(optics: Color, screen: Color, screen_energy: float) -> void:
+	var eyes: StandardMaterial3D = _material(optics, true)
+	_eyes.material_override = eyes
+	var face_glow: StandardMaterial3D = _material(DARK)
+	face_glow.emission_enabled = screen_energy > 0.0
+	face_glow.emission = screen
+	face_glow.emission_energy_multiplier = screen_energy
+	_screen.material_override = face_glow
+
 ## Optics remain independently expressive instead of relying on painted pixels.
 func set_screen_expression(openness: float) -> void:
 	_eyes.mesh = LatchFace.mesh(face.state, is_finite(openness) and openness < 0.3)

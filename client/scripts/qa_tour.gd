@@ -41,6 +41,16 @@ var _companion_route_file: String = ""
 var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
+## Authored walking routes to a pad that is not reachable in a straight line,
+## keyed by the pad's weapon (manifest `pad_routes`). Free-for-all lives
+## start on the Pistol, so a weapon state takes its gun from the floor first.
+var _pad_routes: Dictionary = {}
+## Lives a pad route may spend before the tour gives up on that gun. The
+## joined tour fighter never shoots back, and with five bots and the drone
+## on Larak Lot four lives were not always enough to reach the Rail.
+const PAD_ATTEMPTS: int = 8
+## The longest free-for-all pad clock (25 s) plus slack.
+const PAD_CLOCK_WAIT_MS: int = 27000
 var _m05_ride_report: Dictionary = {}
 var _grenade_strip_report: Dictionary = {}
 var _fire_strip_report: Array[Dictionary] = []
@@ -73,6 +83,8 @@ var _body_pawn: Node3D = null
 var _body_kind: String = ""
 var _body_team: String = ""
 var _body_frame_clear: bool = false
+## How far the "body" camera stands from its subject, in metres.
+var _body_distance: float = 3.0
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -120,6 +132,9 @@ func _run() -> void:
 	set_meta("fragr_settings_path", settings_path)
 	var capture_settings: FragrSettings = FragrSettings.new(settings_path)
 	capture_settings.set_value("video", "display_mode", 0)
+	# Stills show ordinary play; a state that needs the first-run controls
+	# legend asks for it with "controls_hint": "replay".
+	capture_settings.set_value("gameplay", "controls_hint_seen", true)
 	if capture_settings.save_to_disk() != OK:
 		push_error("qa_tour: could not create isolated capture settings")
 		quit(1)
@@ -130,6 +145,8 @@ func _run() -> void:
 		quit(1)
 		return
 	_combat_travel = tour.get("combat_travel", false)
+	var routes: Variant = tour.get("pad_routes", {})
+	_pad_routes = routes if routes is Dictionary else {}
 	# A custom SceneTree can inherit the project's fullscreen mode even when
 	# the launcher requests a resolution. Set the actual window explicitly.
 	root.mode = Window.MODE_WINDOWED
@@ -236,6 +253,18 @@ func _run() -> void:
 			if not _local_human_alive(_game_manager()):
 				push_error("qa_tour: %s never had a live joined fighter" % state_name)
 				_failed = true
+		if state.has("await_death") and _joined:
+			# The death card is photographed only after a real frag of the
+			# joined fighter, never a staged card.
+			var death_deadline: int = Time.get_ticks_msec() + roundi(float(state["await_death"]) * 1000.0)
+			while _local_human_alive(_game_manager()) and Time.get_ticks_msec() < death_deadline:
+				await create_timer(0.1).timeout
+			if _local_human_alive(_game_manager()):
+				push_error("qa_tour: %s never saw the joined fighter fragged" % state_name)
+				_failed = true
+			else:
+				# Let the card arrive before the still.
+				await create_timer(0.8).timeout
 		if state.get("radio_off", false):
 			var radio: Node = _game_manager().get("radio") if _game_manager() != null else null
 			if radio == null:
@@ -380,18 +409,7 @@ func _run() -> void:
 				quit(1)
 				return
 		if state.has("look_at"):
-			var target: Array = state["look_at"]
-			var camera: Node3D = _spectator_camera()
-			# Camera reconciliation can still trail the last combat sidestep.
-			# Ordinary input must aim from the current authoritative eye.
-			var origin: Vector3 = camera.global_position
-			if _joined:
-				var manager: Node = _game_manager()
-				var me: Dictionary = QaCombat.actor_by_id(manager.latest_snapshot, str(manager.net_client.player_id))
-				origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
-			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
-			camera.set("fp_yaw", atan2(direction.z, direction.x))
-			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
+			await _aim_at(state["look_at"])
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
 		if state.get("expect_prompt", false):
@@ -403,6 +421,10 @@ func _run() -> void:
 				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		# Where the player looks once the Use has landed, for a beat the
+		# interaction starts somewhere other than the panel itself.
+		if state.has("look_after_interact"):
+			await _aim_at(state["look_after_interact"])
 		if state.has("wait_ticks"):
 			await create_timer(float(state["wait_ticks"])*MoveStep.DT_LIVE).timeout
 		if state.has("expect_phase"):
@@ -436,6 +458,8 @@ func _run() -> void:
 			if _run_status() != str(state["await_run_status"]):
 				push_error("qa_tour: %s never reached run status %s" % [state_name, state["await_run_status"]])
 				_failed = true
+		if state.get("controls_hint", "") == "replay" and _game_manager() != null:
+			_game_manager().hud.replay_controls_hint()
 		if state.has("input_device"):
 			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
 		if state.get("overlay", "") == "match_menu":
@@ -467,6 +491,7 @@ func _run() -> void:
 					(label as Node3D).visible = false
 					hidden_copy.append(label as Node3D)
 		if state.get("camera", "") == "body":
+			_body_distance = clampf(float(state.get("body_distance", 3.0)), 1.5, 40.0)
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
 		# A held scope frames the still through the presentation-only overlay.
 		var scoped_still: bool = state.get("scope", false) == true
@@ -477,6 +502,17 @@ func _run() -> void:
 		# the human still for the menu-still delay would change the fight.
 		await create_timer(float(state.get("settle_seconds",
 			0.2 if state.has("expect_active_enemies") else 0.75))).timeout
+		# A live subject can fall during the settle, with no other of its kind
+		# standing: wait for one alive and in clear view, and settle again.
+		if state.get("camera", "") == "body" and not _body_frame_clear:
+			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
+			await create_timer(0.75).timeout
+		# A front-door still waits for a clear frame: no card, centre call or
+		# caption over the fight, and live fighters in view.
+		if state.has("await_clear_frame"):
+			if not await _await_clear_frame(int(state.get("clear_frame_fighters", 1)), float(state["await_clear_frame"]), float(state.get("clear_frame_face", 0.0)), float(state.get("clear_frame_max_pitch_degrees", 90.0))):
+				push_error("qa_tour: %s never reached a clear frame" % state_name)
+				_failed = true
 		if state.has("expect_m02_machine_playing"):
 			var ward: M02Ward = _game_manager().get("m02_ward") as M02Ward if _game_manager() != null else null
 			var playing: bool = ward != null and is_instance_valid(ward._ward_machine_sound) and ward._ward_machine_sound.playing
@@ -1210,7 +1246,7 @@ static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictiona
 	var found: Dictionary[String, String] = {}
 	for actor: Dictionary in snapshot.get("players", []):
 		if actor.get("name", "") in names and int(actor.get("hp", 0)) > 0 and \
-			ActorState.is_union(actor):
+			ActorState.is_hostile(actor):
 			found[str(actor["name"])] = str(actor["campaign"]["phase"])
 	return found
 
@@ -1701,6 +1737,110 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 func _find_hud() -> Node:
 	return get_root().find_child("HUD", true, false)
 
+## Wait until `_frame_clear` holds for a quarter second, so a call that is
+## about to land does not catch the still. A joined fighter with `face_within`
+## above zero turns toward the nearest live fighter inside that many metres,
+## and the frame then counts only fighters that close. A chase camera looking
+## down more steeply than `max_pitch_degrees` waits too, so the fighters read
+## as people rather than tops of heads. False at the timeout.
+func _await_clear_frame(min_fighters: int, timeout_seconds: float, face_within: float = 0.0, max_pitch_degrees: float = 90.0) -> bool:
+	var reach: float = face_within if face_within > 0.0 else 30.0
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	var clear_since: int = -1
+	while Time.get_ticks_msec() < deadline:
+		if _frame_clear(min_fighters, reach) and _view_pitch_degrees() <= max_pitch_degrees:
+			if clear_since < 0:
+				clear_since = Time.get_ticks_msec()
+			if Time.get_ticks_msec() - clear_since >= 250:
+				# A caption can land between the check and the drawn frame.
+				await RenderingServer.frame_post_draw
+				await RenderingServer.frame_post_draw
+				if _frame_clear(min_fighters, reach) and _view_pitch_degrees() <= max_pitch_degrees:
+					return true
+				clear_since = -1
+		else:
+			clear_since = -1
+			if face_within > 0.0 and _joined and _local_human_alive(_game_manager()):
+				var nearest: Node3D = null
+				var feet: Vector3 = _local_feet()
+				var eye: Vector3 = feet + Vector3.UP * MoveStep.EYE_HEIGHT
+				for pawn: Node3D in _live_fighters():
+					var gap: float = pawn.global_position.distance_to(feet)
+					if gap <= face_within and AimAssist.line_of_sight(eye, pawn.global_position + Vector3.UP, _view_solids()) \
+						and (nearest == null or gap < nearest.global_position.distance_to(feet)):
+						nearest = pawn
+				if nearest != null:
+					var chest: Vector3 = nearest.global_position + Vector3.UP * 1.2
+					await _aim_at([chest.x, chest.y, chest.z])
+		await create_timer(0.05).timeout
+	return false
+
+## How far the current view looks down, in degrees (0 is level).
+func _view_pitch_degrees() -> float:
+	var view: Camera3D = root.get_viewport().get_camera_3d()
+	if view == null:
+		return 90.0
+	return rad_to_deg(asin(clampf(view.global_transform.basis.z.y, -1.0, 1.0)))
+
+## Live fighters other than the joined player.
+func _live_fighters() -> Array[Node3D]:
+	var fighters: Array[Node3D] = []
+	var manager: Node = _game_manager()
+	if manager == null:
+		return fighters
+	var own: String = str(manager.net_client.player_id) if _joined else ""
+	for id: Variant in manager.players:
+		var pawn: Variant = manager.players[id]
+		if not pawn is Node3D or not is_instance_valid(pawn) or str(id) == own:
+			continue
+		var hp: Variant = (pawn as Node3D).get("hp")
+		if (hp is int or hp is float) and float(hp) > 0.0:
+			fighters.append(pawn as Node3D)
+	return fighters
+
+## Map solids the spectator camera already holds for line-of-sight checks.
+func _view_solids() -> Array:
+	var cam: Node = _spectator_camera()
+	var solids: Variant = cam.get("assist_solids") if cam != null else null
+	return solids if solids is Array else []
+
+## The HUD draws nothing over the fight (no warmup screen, round card, centre
+## call, combat feed caption or death card), a joined fighter is healthy, and
+## at least `min_fighters` live fighters other than the joined player stand
+## within `reach` metres in view with nothing solid in between.
+func _frame_clear(min_fighters: int, reach: float = 30.0) -> bool:
+	var hud: Node = _find_hud()
+	var manager: Node = _game_manager()
+	if hud == null or manager == null or bool(hud.get("warmup_tv_active")):
+		return false
+	if _joined:
+		var own: Variant = manager.players.get(str(manager.net_client.player_id))
+		var own_hp: Variant = (own as Node).get("hp") if own is Node and is_instance_valid(own) else null
+		if not (own_hp is int or own_hp is float) or float(own_hp) < 75.0:
+			return false
+	for cover_name: String in ["round_message", "round_backdrop", "death_card"]:
+		var cover: Variant = hud.get(cover_name)
+		if cover is CanvasItem and (cover as CanvasItem).is_visible_in_tree():
+			return false
+	var call: Variant = hud.get("objective_call")
+	if call is ObjectiveCall and not (call as ObjectiveCall).notices.active.is_empty():
+		return false
+	var feed: Variant = hud.get("combat_feed")
+	if feed is Control and (feed as Control).get_child_count() > 0:
+		return false
+	var view: Camera3D = root.get_viewport().get_camera_3d()
+	if view == null:
+		return false
+	var screen: Rect2 = root.get_visible_rect()
+	var seen: int = 0
+	for pawn: Node3D in _live_fighters():
+		var chest: Vector3 = pawn.global_position + Vector3.UP
+		if view.is_position_behind(chest) or view.global_position.distance_to(chest) > reach:
+			continue
+		if screen.has_point(view.unproject_position(chest)) and AimAssist.line_of_sight(view.global_position, chest, _view_solids()):
+			seen += 1
+	return seen >= min_fighters
+
 ## Join the match as a person rather than watching it. Without this the
 ## first-person states are photographs of the spectator camera, which is the
 ## one view a player never sees.
@@ -1721,7 +1861,9 @@ func _change_role(play: bool) -> void:
 		if is_instance_valid(gm.opening):
 			gm.opening.finish()
 			print("qa_tour: skipped campaign opening through the presenter")
-		var deadline: int = Time.get_ticks_msec() + 5000
+		# Admission follows world loading. A software renderer on a loaded
+		# host can take tens of seconds to build the first campaign world.
+		var deadline: int = Time.get_ticks_msec() + 60000
 		while gm._mission_controls_blocked() and Time.get_ticks_msec() < deadline:
 			await process_frame
 		if gm._mission_controls_blocked():
@@ -1729,19 +1871,135 @@ func _change_role(play: bool) -> void:
 			_failed = true
 	_joined = play
 
+## Owned guns from the private loadout. Empty for an arsenal without one.
+func _owned_weapons() -> Array:
+	var equipment: Dictionary = _game_manager().get("net_client").get("equipment")
+	return equipment.get("weapons", []) if not equipment.is_empty() else []
+
+## A free-for-all life owns only the Pistol and Fists. Take an unowned gun the
+## way a player does: walk to its pad (by the manifest route when a straight
+## line is blocked) and wait for the server's loadout to list it. Rivals are
+## live, so a death on the way starts the walk again from the next spawn. An
+## arsenal life, or a gun already owned, walks nowhere. True once owned.
+func _take_from_pad(weapon: String) -> bool:
+	var gm: Node = _game_manager()
+	var owned: Array = _owned_weapons()
+	if owned.is_empty() or owned.has(weapon.to_lower()):
+		return true
+	for attempt: int in range(PAD_ATTEMPTS):
+		if not await _wait_live_joined_fighter("pad " + weapon):
+			return false
+		var map_routes: Variant = _pad_routes.get(str(int(gm.get("latest_snapshot").get("map_id", 0))), {})
+		var route: Variant = _pad_route_from((map_routes as Dictionary).get(weapon, []) if map_routes is Dictionary else [], _local_feet())
+		var alive: bool = true
+		for point: Variant in (route if route is Array else []):
+			if point is Array and (point as Array).size() == 3:
+				await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
+			elif point is Dictionary and point.has("orbit") and point.has("to_degrees"):
+				await _orbit_to(float(point["orbit"]), deg_to_rad(float(point["to_degrees"])))
+			alive = _local_human_alive(gm)
+			if not alive:
+				break
+		if not alive:
+			print("qa_tour: fragged on the way to a %s pad (attempt %d)" % [weapon, attempt + 1])
+			continue
+		# The nearest pad to where the route left the fighter. A taken pad is
+		# an appointment, as for a player: wait out its clock rather than
+		# cross the map to another.
+		var pad: Node3D = null
+		var feet: Vector3 = _local_feet()
+		for node: Variant in gm.get("pickups").values():
+			if not is_instance_valid(node) or str(node.get("weapon_name")) != weapon:
+				continue
+			if pad == null or (node as Node3D).position.distance_to(feet) < pad.position.distance_to(feet):
+				pad = node
+		if pad == null:
+			await create_timer(0.5).timeout
+			continue
+		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
+		while is_instance_valid(pad) and not bool(pad.get("available")) and _local_human_alive(gm) and Time.get_ticks_msec() < back_by:
+			await create_timer(0.1).timeout
+		if not is_instance_valid(pad) or not _local_human_alive(gm):
+			continue
+		var floor_y: float = pad.position.y - 0.4
+		await _walk_to(Vector3(pad.position.x, floor_y, pad.position.z), false, "", true)
+		var deadline: int = Time.get_ticks_msec() + 2000
+		while not _owned_weapons().has(weapon.to_lower()) and Time.get_ticks_msec() < deadline:
+			await create_timer(0.05).timeout
+		if _owned_weapons().has(weapon.to_lower()):
+			print("qa_tour: took %s from %s on attempt %d" % [weapon, pad.get("pickup_id"), attempt + 1])
+			return true
+	push_error("qa_tour: the joined fighter never took a " + weapon + " from its pad")
+	_failed = true
+	return false
+
+## A manifest pad route is either one list of waypoints, or a list of
+## {near: [x, z], points: [...]} alternatives for a map whose spawns sit in
+## different quarters: the alternative whose `near` is closest to the
+## fighter's feet is walked. Anything else walks no route.
+func _pad_route_from(entry: Variant, feet: Vector3) -> Array:
+	if not entry is Array:
+		return []
+	var routes: Array = entry
+	if routes.is_empty() or not routes[0] is Dictionary:
+		return routes
+	var best: Array = []
+	var best_distance: float = INF
+	for alternative: Variant in routes:
+		if not alternative is Dictionary:
+			continue
+		var near: Variant = (alternative as Dictionary).get("near", [])
+		var points: Variant = (alternative as Dictionary).get("points", [])
+		if not near is Array or (near as Array).size() != 2 or not points is Array:
+			continue
+		var distance: float = Vector2(feet.x - float(near[0]), feet.z - float(near[1])).length()
+		if distance < best_distance:
+			best_distance = distance
+			best = points
+	return best
+
+## Walk out to a ring of this radius at the fighter's own bearing, then round
+## it to `target` in short chords: a floor route around a hub that a straight
+## line would cross. Stops quietly when the fighter is fragged on the way.
+func _orbit_to(radius: float, target: float) -> void:
+	var feet: Vector3 = _local_feet()
+	# Step off the spoke line first: a pillar can stand on it.
+	var angle: float = atan2(feet.z, feet.x) + 0.2
+	var start: float = Vector2(feet.x, feet.z).length()
+	if start > radius + 6.0:
+		if not await _walk_to(Vector3(cos(angle) * (start - 5.0), 0.0, sin(angle) * (start - 5.0)), false, "", true):
+			return
+	if not await _walk_to(Vector3(cos(angle) * radius, 0.0, sin(angle) * radius), false, "", true):
+		return
+	var turn: float = wrapf(target - angle, -PI, PI)
+	var steps: int = int(ceil(absf(turn) / deg_to_rad(25.0)))
+	for step: int in range(1, steps + 1):
+		var at: float = angle + turn * float(step) / float(steps)
+		if not await _walk_to(Vector3(cos(at) * radius, 0.0, sin(at) * radius), false, "", true):
+			return
+
 func _select_weapon(weapon: String) -> void:
 	var gm: Node = _game_manager()
-	# A round may close between the pose prerequisite and this request.
-	# Allow the normal eight-second results and two-second warmup to finish.
-	var deadline: int = Time.get_ticks_msec() + 16000
-	while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
-		# Only a living pawn in Active can accept a swap.
-		if _local_human_can_act(gm):
-			gm.set("pending_weapon_swap", weapon.to_lower())
-		await create_timer(0.1).timeout
-	if str(gm.call("_local_weapon_name")) != weapon:
-		push_error("qa_tour: server did not equip " + weapon)
-		_failed = true
+	# A found gun is lost at death, so a frag between the pad and the swap
+	# sends the fighter back for another.
+	for _attempt: int in range(PAD_ATTEMPTS):
+		if not await _take_from_pad(weapon):
+			break
+		# A round may close between the pose prerequisite and this request.
+		# Allow the normal eight-second results and two-second warmup to finish.
+		var deadline: int = Time.get_ticks_msec() + 16000
+		while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
+			var owned: Array = _owned_weapons()
+			if not owned.is_empty() and not owned.has(weapon.to_lower()):
+				break
+			# Only a living pawn in Active can accept a swap.
+			if _local_human_can_act(gm):
+				gm.set("pending_weapon_swap", weapon.to_lower())
+			await create_timer(0.1).timeout
+		if str(gm.call("_local_weapon_name")) == weapon:
+			return
+	push_error("qa_tour: server did not equip " + weapon)
+	_failed = true
 
 func _observed_state() -> Dictionary:
 	var gm: Node = _game_manager()
@@ -1989,8 +2247,9 @@ func _run_status() -> String:
 	return str((run as Dictionary).get("status", "")) if run is Dictionary else ""
 
 ## Switch prompts through the real input path: a key the game does not bind,
-## or a pull of the unbound left trigger. No pad is attached during a tour, so
-## the driver reports no name and the layout is positional unless the state
+## or a brief pull of the left trigger (scope, which acts only while held and
+## is released within the frame). No pad is attached during a tour, so the
+## driver reports no name and the layout is positional unless the state
 ## names one; a named layout is recorded in the manifest as forced.
 func _use_input_device(kind: String, layout: String) -> void:
 	if kind == "keyboard":
@@ -2142,7 +2401,7 @@ func _set_m05_departure_review(open_review: bool) -> void:
 
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")
-	var deadline: int = Time.get_ticks_msec() + 2000
+	var deadline: int = Time.get_ticks_msec() + 6000
 	var available: bool = false
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
@@ -2169,7 +2428,9 @@ func _use_mission_control(expected_phase: String) -> void:
 		await create_timer(0.15).timeout
 		Input.parse_input_event(press)
 		Input.parse_input_event(release)
-	deadline = Time.get_ticks_msec() + 2000
+	# A loaded capture host can take seconds to round-trip the Use; the server
+	# log is the authority on whether it landed, this only waits for it.
+	deadline = Time.get_ticks_msec() + 6000
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
 		var mission_state: Dictionary = mission.get("state", {})
@@ -2425,7 +2686,10 @@ func _jump_probe() -> void:
 		_failed = true
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
-func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "") -> void:
+## Walk the joined fighter to `goal`; true on arrival. A failed walk fails the
+## tour unless it is `guide_only`: a free-for-all pad route is walked under
+## fire and only steers, and the server's loadout is what the tour checks.
+func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "", guide_only: bool = false) -> bool:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
 	var walking_ms: int = 0
@@ -2441,6 +2705,8 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		var step_started: int = Time.get_ticks_msec()
 		await _record_companion_route()
 		if _combat_travel and _combat_probe.participant_died:
+			break
+		if guide_only and not _local_human_alive(_game_manager()):
 			break
 		var feet: Vector3 = _local_feet()
 		if not feet.is_finite():
@@ -2474,9 +2740,18 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	_walk_results.append(walk_result)
 	await create_timer(0.15).timeout
 	if not arrived:
-		var stopped: String = "participant died" if _combat_probe.participant_died else str(_local_feet())
+		# The combat probe's death flag is sticky across walks; ask the
+		# snapshot whether this fighter is down now, and say where it stands
+		# when it is not.
+		var alive: bool = _local_human_alive(_game_manager())
+		if guide_only:
+			if alive:
+				print("qa_tour: pad route waypoint %s not reached, stopped at %s" % [goal, _local_feet()])
+			return false
+		var stopped: String = str(_local_feet()) if alive else "participant died"
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, stopped, walking_ms, fighting_ms])
 		_failed = true
+	return arrived
 
 ## Walk an ordinary route into danger. Unlike `walk_to`, falling on the way is
 ## the expected end: returns true once the joined fighter is out of the round.
@@ -2612,6 +2887,20 @@ static func _correction_distribution(samples: Array[float]) -> Dictionary:
 		"p95": snappedf(ordered[int(ceilf(ordered.size() * 0.95)) - 1], 0.0001),
 		"p99": snappedf(ordered[int(ceilf(ordered.size() * 0.99)) - 1], 0.0001),
 		"max": snappedf(ordered.back(), 0.0001)}
+
+## Turns the view toward a world point, [x, y, z].
+func _aim_at(target: Array) -> void:
+	var camera: Node3D = _spectator_camera()
+	# Camera reconciliation can still trail the last combat sidestep.
+	# Ordinary input must aim from the current authoritative eye.
+	var origin: Vector3 = camera.global_position
+	if _joined:
+		var manager: Node = _game_manager()
+		var me: Dictionary = QaCombat.actor_by_id(manager.latest_snapshot, str(manager.net_client.player_id))
+		origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
+	var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
+	camera.set("fp_yaw", atan2(direction.z, direction.x))
+	await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 
 func _set_aim_pitch(pitch: float) -> void:
 	pitch = clampf(pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
@@ -2849,8 +3138,9 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 							if cam is Node3D:
 								var home: Vector3 = Vector3(float(stand[0]), float(stand[1]), float(stand[2]))
 								# Seven metres toward center is the Sector 9 framing.
-								# Arena Duel's perimeter wall sits at |x| = 56, so that
-								# step from x = 63 lands inside the wall. Stay in the room.
+								# A perimeter wall close behind a stand (the retired Arena
+								# Duel field had one at |x| = 56) would swallow that step
+								# from x = 63. Stay in the room.
 								var inward: float = 3.0 if absf(home.x) < 65.0 else 7.0
 								var n3: Node3D = cam
 								n3.global_position = home + Vector3(-side * inward, 4.0, 11.0)
@@ -2931,16 +3221,22 @@ func _live_body() -> Node3D:
 			return pawn
 	return null
 
-## Three metres from the fighter, preferring the arena centre and checking
-## the full body against the same authoritative solids as the real camera.
-static func body_camera_position(feet: Vector3, solids: Array) -> Vector3:
+## How far a body still's camera keeps from any solid, so no wall or crate
+## fills the side of the frame in front of the subject.
+const BODY_CAMERA_CLEARANCE: float = 1.0
+
+## Three metres from the fighter (or `distance`), preferring the arena centre
+## and checking the full body against the same authoritative solids as the
+## real camera, from a spot `margin` metres clear of every solid.
+static func body_camera_position(feet: Vector3, solids: Array, distance: float = 3.0,
+		margin: float = BODY_CAMERA_CLEARANCE) -> Vector3:
 	var toward: Vector3 = Vector3(-feet.x, 0, -feet.z)
 	toward = toward.normalized() if toward.length() > 0.5 else Vector3.BACK
 	for index: int in range(16):
 		var direction: Vector3 = toward.rotated(Vector3.UP, float(index) * TAU / 16.0)
 		var side: Vector3 = Vector3(-direction.z, 0, direction.x) * 0.45
-		var candidate: Vector3 = feet + direction * 3.0 + Vector3(0, 1.3, 0)
-		var clear: bool = true
+		var candidate: Vector3 = feet + direction * distance + Vector3(0, 1.3, 0)
+		var clear: bool = _clear_of_solids(candidate, solids, margin)
 		for height: float in [0.12, 0.95, 1.85]:
 			for offset: Vector3 in [Vector3.ZERO, side, -side]:
 				if not AimAssist.line_of_sight(candidate, feet + Vector3(0, height, 0) + offset, solids):
@@ -2948,6 +3244,20 @@ static func body_camera_position(feet: Vector3, solids: Array) -> Vector3:
 		if clear:
 			return candidate
 	return Vector3.INF
+
+## True when `point` stands at least `margin` metres outside every solid
+## that spans its height.
+static func _clear_of_solids(point: Vector3, solids: Array, margin: float) -> bool:
+	for entry: Variant in solids:
+		if not entry is Dictionary:
+			continue
+		var solid: Dictionary = entry
+		if point.y < float(solid.get("bottom", MoveStep.GROUND_Y)) or point.y > float(solid.get("top", MoveStep.WALL_TOP)):
+			continue
+		if point.x > float(solid.get("min_x", 0.0)) - margin and point.x < float(solid.get("max_x", 0.0)) + margin \
+				and point.z > float(solid.get("min_z", 0.0)) - margin and point.z < float(solid.get("max_z", 0.0)) + margin:
+			return false
+	return true
 
 ## Holds the accepted body rather than leaving a still behind as it moves,
 ## so the nearest wall is behind the subject rather than in front of it.
@@ -2959,8 +3269,27 @@ func _hold_body_camera() -> void:
 		_body_pawn = _live_body()
 	if _body_pawn == null or not cam is Node3D:
 		return
-	var feet: Vector3 = _body_pawn.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
-	var position: Vector3 = body_camera_position(feet, cam.get("assist_solids"))
+	# The subject from a spot clear of every crate, else another who matches
+	# from such a spot, and only then the subject from any clear sightline.
+	var subjects: Array[Node3D] = [_body_pawn]
+	var gm: Node = _game_manager()
+	for pawn: Variant in (gm.get("players") as Dictionary).values() if gm != null else []:
+		if is_instance_valid(pawn) and pawn != _body_pawn and pawn.get("body_kind") == _body_kind \
+				and int(pawn.get("hp")) > 0 and not bool(pawn.get("is_local_fp")) \
+				and (_body_team.is_empty() or pawn.get("team") == _body_team):
+			subjects.append(pawn as Node3D)
+	var feet: Vector3 = Vector3.INF
+	var position: Vector3 = Vector3.INF
+	for margin: float in [BODY_CAMERA_CLEARANCE, 0.0]:
+		for subject: Node3D in subjects:
+			var at: Vector3 = subject.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
+			position = body_camera_position(at, cam.get("assist_solids"), _body_distance, margin)
+			if position.is_finite():
+				_body_pawn = subject
+				feet = at
+				break
+		if position.is_finite():
+			break
 	if not position.is_finite():
 		return
 	var camera: Node3D = cam

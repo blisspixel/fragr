@@ -64,7 +64,7 @@ cargo run -p fragr-audiogen -- music --name music/match_01 \
   --length-ms 60000 --instrumental
 ```
 
-Spoken lines for the news station and the Host (v3 model, delivery tags such as `[sighs]` work):
+Spoken lines for the news station and the Host (the default model is `eleven_v3`; `eleven_v4` is also accepted at the same one credit per character, and delivery tags such as `[sighs]` work on both):
 
 ```bash
 cargo run -p fragr-audiogen -- voices
@@ -72,7 +72,7 @@ cargo run -p fragr-audiogen -- tts --name radio/news/generic-01-count --voice <v
   --text "[sighs] Good evening. The Continuance lost count again." --stability 0.5
 ```
 
-`voices` prints the account's default voices with ids for casting. Default voices retire at the end of 2026, so cast from that list rather than from ids copied out of old docs. Spec items of kind `tts` take `text`, `voice`, optional `model`, `stability`, `format`, `title`. The scripts for the news station live in `specs/radio-news-scripts.json`. Cast the speakers and convert them into a batch spec (no credits spent), then generate:
+`voices` prints the account's default voices with ids. ElevenLabs states that every default voice expires on 2026-12-31, so a lasting role needs a voice the account keeps: a designed voice saved to the account, or a shared library voice with a long notice period (see Casting below). Spec items of kind `tts` take `text`, `voice`, optional `model`, `stability`, `format`, `title`. The scripts for the news station live in `specs/radio-news-scripts.json`. Cast the speakers and convert them into a batch spec (no credits spent), then generate:
 
 ```bash
 cargo run -p fragr-audiogen -- scripts --scripts tools/audiogen/specs/radio-news-scripts.json \n  --voice host=<id> --voice tina=<id> --voice phil=<id> --voice caller=<id1>,<id2>,<id3> \n  --out tools/audiogen/specs/radio-news.json
@@ -87,6 +87,35 @@ Everything in a spec file (see `specs/sfx-core.json`):
 cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json
 cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json --only frag
 ```
+
+## Casting
+
+Search the shared voice library (a free GET; legacy custom-rate voices, which bill a credit multiplier, are excluded unless `--include-custom-rates` is passed):
+
+```bash
+cargo run -p fragr-audiogen -- library --search "narrator" --use-case narrative_story \
+  --min-notice-days 365 --sort cloned_by_count --page-size 30
+```
+
+Each row prints the voice id, owner id, category, labels, notice period, rate, and preview URL. A library voice's owner can withdraw it; the notice period is how long the account keeps access afterwards.
+
+Design a voice from a description, or remix one the account owns, into previews. Previews are candidates, so `--out-dir` is required and should sit outside `client/assets`. The request charges the preview text once for all previews, so it needs a finite `--max-credits` and leaves a pending receipt until the response is written:
+
+```bash
+cargo run -p fragr-audiogen -- --out-dir .agents/casting --max-credits 400 design \
+  --name narrator/warm-a --description "..." --text "<100 to 1000 characters of a real line>" --seed 1
+cargo run -p fragr-audiogen -- --out-dir .agents/casting --max-credits 400 design \
+  --name narrator/warm-a-remix --remix <owned_voice_id> --description "slower, closer" --text "..."
+```
+
+This writes `<name>_<n>.mp3` previews and `<name>.design.json` with each `generated_voice_id`. The default design model is `eleven_ttv_v3`; `eleven_multilingual_ttv_v2` is also accepted. Keep one saved voice per role so every later line stays in the same voice:
+
+```bash
+cargo run -p fragr-audiogen -- save-voice --generated-voice-id <id> --voice-name "fragr narrator" \
+  --description "..."
+```
+
+Saving charges no credits and uses one custom voice slot.
 
 Useful flags on every command: `--dry-run` prints the exact request and the credit estimate and writes nothing, `--overwrite` replaces existing files (the default is to skip them), `--out-dir` changes the destination, `--max-credits N` refuses to start a run whose estimate exceeds N.
 

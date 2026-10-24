@@ -19,19 +19,26 @@ func configure(person: String, color: Color) -> void:
 			add_child(rigid)
 			return
 		candidate.free()
-	if person in ["tern", "edda"]:
+	if person in ["tern", "edda", "free_human", "free_synthetic"]:
+		# Free citizens wear the player models in their own art. A free
+		# person's own colour is shoulder and arm tape, never a whole-body
+		# tint (faction readability contract), checked like a fighter's.
+		var body: String = person.trim_prefix("free_")
 		var candidate: SkinnedCharacter = SkinnedCharacter.new()
-		if candidate.configure(person):
+		if candidate.configure(body):
 			skin = candidate
-			skin.name = person.capitalize() + "Skin"
+			skin.name = body.capitalize() + "Skin"
 			add_child(skin)
+			if person.begins_with("free_"):
+				var checked: Dictionary = FactionPalette.check({"base": skin.base_color(), "accent": color})
+				skin.dress("free", checked["scheme"].get("accent", color))
 		else:
 			candidate.free()
 	if skin != null:
 		return
 	strip = Sprite3D.new()
 	strip.name = "CivilianStrip"
-	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice", "anonymous_synthetic"] else PlayerBody.HUMAN)) as Texture2D
+	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice", "anonymous_synthetic", "free_synthetic"] else PlayerBody.HUMAN)) as Texture2D
 	strip.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
 	strip.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 	strip.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y

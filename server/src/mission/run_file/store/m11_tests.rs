@@ -1,17 +1,13 @@
 //! Locked carry and finite retry fixtures, not a full combat playthrough.
 use super::*;
-use crate::mission::run_file::{M09Outcome, M11Outcome, SavedStep};
+use crate::mission::run_file::{M11Outcome, SavedStep};
 use crate::protocol::{
     Action, CampaignRunStatus, LookAt, MissionContinue, MissionReady, Role, WeaponType,
 };
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 
-fn completed_ship(known: bool) -> RunDocument {
-    let mut berth = m09_receipt_tests::completed_berth(true, true);
-    if !known {
-        berth.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-    }
-    let mut ship = berth
+fn completed_ship() -> RunDocument {
+    let mut ship = m09_receipt_tests::completed_berth(true, true)
         .promote_next(MissionId::CommonCarrier, m09_tests::HASHES[9])
         .unwrap();
     let SavedStep::MissionEntry { entry, .. } = &ship.step else {
@@ -44,12 +40,12 @@ fn map() -> std::sync::Arc<crate::maps::AuthoredMap> {
     .clone()
 }
 
-fn loaded(known: bool) -> (GameState, Uuid, RunDocument) {
+fn loaded() -> (GameState, Uuid, RunDocument) {
     let map = map();
     let hash = crate::maps::RuntimeMap::Authored(map.clone())
         .content_sha256()
         .unwrap();
-    let entry = completed_ship(known)
+    let entry = completed_ship()
         .promote_next(MissionId::RightOfSearch, hash)
         .unwrap();
     let mut state = GameState::with_authored_map(map);
@@ -166,220 +162,208 @@ fn use_target(state: &mut GameState, id: Uuid, target: crate::protocol::UseTarge
 }
 
 #[test]
-fn m11_locked_m10_edge_keeps_stock_history_and_does_not_refill() {
-    for known in [false, true] {
-        let ship = completed_ship(known);
-        let next = ship
-            .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
-            .unwrap();
-        assert_eq!(
-            (
-                next.remaining_continues,
-                next.level_start_continues,
-                next.attempt()
-            ),
-            (1, 1, 1)
-        );
-        assert_eq!(
-            (next.id, next.body, next.rules),
-            (ship.id, ship.body, ship.rules)
-        );
-        assert_eq!(
-            (
-                &next.m03_outcome,
-                &next.m04_outcome,
-                &next.m05_outcome,
-                &next.m06_outcome,
-                &next.m08_outcome,
-                &next.m09_outcome,
-                &next.m10_transit
-            ),
-            (
-                &ship.m03_outcome,
-                &ship.m04_outcome,
-                &ship.m05_outcome,
-                &ship.m06_outcome,
-                &ship.m08_outcome,
-                &ship.m09_outcome,
-                &ship.m10_transit
-            )
-        );
-        let SavedStep::AwaitingMission { exit, .. } = &ship.step else {
-            panic!("ship exit")
-        };
-        let SavedStep::MissionEntry { entry, .. } = &next.step else {
-            panic!("tender entry")
-        };
-        let mut expected = exit.clone();
-        expected.equipment.personal_claims.clear();
-        assert_eq!(*entry, expected);
-        assert_eq!(entry.equipment.remote_mines, 0);
-        assert!(entry.equipment.weapons.contains(&WeaponType::Repeater));
-        assert!(next.m11_outcome.is_none());
-        assert!(next
-            .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
-            .is_err());
-        let directory = std::env::temp_dir().join(format!("fragr-m11-edge-{}", Uuid::new_v4()));
-        let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        assert!(
-            RunStore::open_with_hashes(&directory, m09_tests::HASHES).is_err(),
-            "one actual writer owns the edge"
-        );
-        let mut value = serde_json::to_value(&ship).unwrap();
-        value["version"] = 13.into();
-        value["rules"]["revision"] = (3).into();
-        super::super::omit_historical_rockets(&mut value);
-        let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
-        bytes.extend_from_slice(b"\n \n");
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded, ship);
-        assert!(store.needs_upgrade().unwrap());
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &next, |_| Err(io::Error::other(
-                "interrupted M11 edge"
-            )))
-            .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        let archive = store.archive_and_save(&loaded, &next).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap().unwrap(), next);
-        assert!(!store.needs_upgrade().unwrap());
-        assert!(store.archive_and_save(&loaded, &next).is_err());
-        drop(store);
-        let reopened = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        assert_eq!(reopened.load().unwrap().unwrap(), next);
-        drop(reopened);
-        fs::remove_dir_all(directory).unwrap();
-    }
+fn m11_locked_m10_edge_keeps_stock_and_outcomes_and_does_not_refill() {
+    let ship = completed_ship();
+    let next = ship
+        .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
+        .unwrap();
+    assert_eq!(
+        (
+            next.remaining_continues,
+            next.level_start_continues,
+            next.attempt()
+        ),
+        (1, 1, 1)
+    );
+    assert_eq!(
+        (next.id, next.body, next.rules),
+        (ship.id, ship.body, ship.rules)
+    );
+    assert_eq!(
+        (
+            &next.m03_outcome,
+            &next.m04_outcome,
+            &next.m05_outcome,
+            &next.m06_outcome,
+            &next.m08_outcome,
+            &next.m09_outcome,
+            &next.m10_transit
+        ),
+        (
+            &ship.m03_outcome,
+            &ship.m04_outcome,
+            &ship.m05_outcome,
+            &ship.m06_outcome,
+            &ship.m08_outcome,
+            &ship.m09_outcome,
+            &ship.m10_transit
+        )
+    );
+    let SavedStep::AwaitingMission { exit, .. } = &ship.step else {
+        panic!("ship exit")
+    };
+    let SavedStep::MissionEntry { entry, .. } = &next.step else {
+        panic!("tender entry")
+    };
+    let mut expected = exit.clone();
+    expected.equipment.personal_claims.clear();
+    assert_eq!(*entry, expected);
+    assert_eq!(entry.equipment.remote_mines, 0);
+    assert!(entry.equipment.weapons.contains(&WeaponType::Repeater));
+    assert!(next.m11_outcome.is_none());
+    assert!(next
+        .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
+        .is_err());
+    let directory = std::env::temp_dir().join(format!("fragr-m11-edge-{}", Uuid::new_v4()));
+    let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
+    assert!(
+        RunStore::open_with_hashes(&directory, m09_tests::HASHES).is_err(),
+        "one actual writer owns the edge"
+    );
+    store.save(&ship).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), ship);
+    assert!(store
+        .save_with_sync(
+            &next,
+            |_| Err(io::Error::other("interrupted M11 edge")),
+            sync_directory,
+        )
+        .is_err());
+    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+    store.save(&next).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), next);
+    drop(store);
+    let reopened = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
+    assert_eq!(reopened.load().unwrap().unwrap(), next);
+    drop(reopened);
+    fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
 fn m11_live_find_and_continue_restore_zero_entry_remote_and_clear_devices() {
-    for known in [false, true] {
-        let (mut state, id, entry) = loaded(known);
-        assert_eq!(state.campaign_run_document().unwrap().unwrap(), entry);
-        claim_armory(&mut state, id);
-        let p = state.players.iter().find(|p| p.id == id).unwrap();
-        assert_eq!(p.inventory.remote_mines(), 4);
-        state.set_action(
-            id,
-            Action {
-                place_remote_mine: true,
-                ..Default::default()
-            },
-        );
-        tick(&mut state);
-        assert_eq!(state.snapshot().remote_mines.len(), 1);
-        assert_eq!(
-            state
-                .players
-                .iter()
-                .find(|p| p.id == id)
-                .unwrap()
-                .inventory
-                .remote_mines(),
-            3
-        );
-        assert_eq!(
-            state.campaign_run_document().unwrap().unwrap(),
-            entry,
-            "mission-start document does not rewrite finite entry after discovery"
-        );
-        let tick_before = state.tick;
-        state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
-        tick(&mut state);
-        assert!(state.snapshot().remote_mines.is_empty());
-        let pending = state.campaign_run_document().unwrap().unwrap();
-        let SavedStep::PendingContinue { mission, .. } = &pending.step else {
-            panic!("actual pending continue")
-        };
-        assert_eq!(*mission, MissionId::RightOfSearch);
-        let mut reopened = GameState::with_authored_map(map());
-        reopened.load_campaign_run(&pending).unwrap();
-        let reopened_id = Uuid::new_v4();
-        reopened.add_player(reopened_id, "Tender reopened continue".into(), Role::Human);
-        reopened
-            .mission_state()
+    let (mut state, id, entry) = loaded();
+    assert_eq!(state.campaign_run_document().unwrap().unwrap(), entry);
+    claim_armory(&mut state, id);
+    let p = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(p.inventory.remote_mines(), 4);
+    state.set_action(
+        id,
+        Action {
+            place_remote_mine: true,
+            ..Default::default()
+        },
+    );
+    tick(&mut state);
+    assert_eq!(state.snapshot().remote_mines.len(), 1);
+    assert_eq!(
+        state
+            .players
+            .iter()
+            .find(|p| p.id == id)
             .unwrap()
-            .validate(reopened.tick)
-            .unwrap();
-        assert_eq!(reopened.campaign_run_document().unwrap().unwrap(), pending);
-        assert!(reopened.continue_mission(
-            reopened_id,
-            MissionContinue {
-                id: MissionId::RightOfSearch,
-                run_id: entry.id,
-                attempt: 1
-            }
-        ));
-        assert_eq!(
-            reopened
-                .players
-                .iter()
-                .find(|p| p.id == reopened_id)
-                .unwrap()
-                .inventory
-                .remote_mines(),
-            0
-        );
-        let retry = MissionContinue {
+            .inventory
+            .remote_mines(),
+        3
+    );
+    assert_eq!(
+        state.campaign_run_document().unwrap().unwrap(),
+        entry,
+        "mission-start document does not rewrite finite entry after discovery"
+    );
+    let tick_before = state.tick;
+    state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    tick(&mut state);
+    assert!(state.snapshot().remote_mines.is_empty());
+    let pending = state.campaign_run_document().unwrap().unwrap();
+    let SavedStep::PendingContinue { mission, .. } = &pending.step else {
+        panic!("actual pending continue")
+    };
+    assert_eq!(*mission, MissionId::RightOfSearch);
+    let mut reopened = GameState::with_authored_map(map());
+    reopened.load_campaign_run(&pending).unwrap();
+    let reopened_id = Uuid::new_v4();
+    reopened.add_player(reopened_id, "Tender reopened continue".into(), Role::Human);
+    reopened
+        .mission_state()
+        .unwrap()
+        .validate(reopened.tick)
+        .unwrap();
+    assert_eq!(reopened.campaign_run_document().unwrap().unwrap(), pending);
+    assert!(reopened.continue_mission(
+        reopened_id,
+        MissionContinue {
             id: MissionId::RightOfSearch,
             run_id: entry.id,
-            attempt: 1,
-        };
-        assert!(state.continue_mission(id, retry));
-        assert!(!state.continue_mission(id, retry));
-        assert!(state.tick > tick_before);
-        let saved = state.campaign_run_document().unwrap().unwrap();
-        assert_eq!(
-            (
-                saved.remaining_continues,
-                saved.level_start_continues,
-                saved.attempt()
-            ),
-            (0, 1, 2)
-        );
-        assert_eq!(
-            (&saved.step, &saved.m09_outcome, &saved.m10_transit),
-            (&entry.step, &entry.m09_outcome, &entry.m10_transit)
-        );
-        assert!(saved.m11_outcome.is_none());
-        let p = state.players.iter().find(|p| p.id == id).unwrap();
-        assert_eq!(p.inventory.remote_mines(), 0);
-        assert_eq!((p.hp, p.armor), (43, 22));
-        assert_eq!(
-            state.mission_state().unwrap().m11.unwrap().challenges,
-            Default::default()
-        );
-        state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
-        tick(&mut state);
-        assert_eq!(
-            state.mission_state().unwrap().run.unwrap().status,
-            CampaignRunStatus::Failed
-        );
-        assert!(!state.continue_mission(
-            id,
-            MissionContinue {
-                id: MissionId::RightOfSearch,
-                run_id: entry.id,
-                attempt: 2
-            }
-        ));
-        assert_eq!(
-            state
-                .campaign_run_document()
-                .unwrap()
-                .unwrap()
-                .remaining_continues,
-            0
-        );
-    }
+            attempt: 1
+        }
+    ));
+    assert_eq!(
+        reopened
+            .players
+            .iter()
+            .find(|p| p.id == reopened_id)
+            .unwrap()
+            .inventory
+            .remote_mines(),
+        0
+    );
+    let retry = MissionContinue {
+        id: MissionId::RightOfSearch,
+        run_id: entry.id,
+        attempt: 1,
+    };
+    assert!(state.continue_mission(id, retry));
+    assert!(!state.continue_mission(id, retry));
+    assert!(state.tick > tick_before);
+    let saved = state.campaign_run_document().unwrap().unwrap();
+    assert_eq!(
+        (
+            saved.remaining_continues,
+            saved.level_start_continues,
+            saved.attempt()
+        ),
+        (0, 1, 2)
+    );
+    assert_eq!(
+        (&saved.step, &saved.m09_outcome, &saved.m10_transit),
+        (&entry.step, &entry.m09_outcome, &entry.m10_transit)
+    );
+    assert!(saved.m11_outcome.is_none());
+    let p = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(p.inventory.remote_mines(), 0);
+    assert_eq!((p.hp, p.armor), (43, 22));
+    assert_eq!(
+        state.mission_state().unwrap().m11.unwrap().challenges,
+        Default::default()
+    );
+    state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    tick(&mut state);
+    assert_eq!(
+        state.mission_state().unwrap().run.unwrap().status,
+        CampaignRunStatus::Failed
+    );
+    assert!(!state.continue_mission(
+        id,
+        MissionContinue {
+            id: MissionId::RightOfSearch,
+            run_id: entry.id,
+            attempt: 2
+        }
+    ));
+    assert_eq!(
+        state
+            .campaign_run_document()
+            .unwrap()
+            .unwrap()
+            .remaining_continues,
+        0
+    );
 }
 
 #[test]
 fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
-    let (mut state, id, _) = loaded(true);
+    let (mut state, id, _) = loaded();
     claim_armory(&mut state, id);
     arrive(&mut state, id, 0);
     clear(&mut state, 0);
@@ -452,13 +436,6 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         RunStore::inspect_bytes(&serde_json::to_vec(&missing).unwrap(), hashes),
         RunProbe::Incompatible
     ));
-    let mut historical = serde_json::to_value(&completed).unwrap();
-    historical["version"] = 13.into();
-    historical["rules"]["revision"] = (3).into();
-    assert!(matches!(
-        RunStore::inspect_bytes(&serde_json::to_vec(&historical).unwrap(), hashes),
-        RunProbe::Corrupt
-    ));
     assert!(GameState::with_authored_map(map())
         .load_campaign_run(&completed)
         .is_err());
@@ -466,12 +443,16 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         serde_json::from_str::<MissionId>("\"all_systems_normal\"").unwrap(),
         MissionId::AllSystemsNormal
     );
-    assert!(serde_json::from_str::<MissionId>("\"planned_works\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"local_exception\"").unwrap(),
+        MissionId::LocalException
+    );
+    assert!(serde_json::from_str::<MissionId>("\"still_here\"").is_err());
 }
 
 #[test]
-fn m11_saved_boundary_refuses_null_forged_outcome_pre_find_and_historical_entry() {
-    let ship = completed_ship(true);
+fn m11_saved_boundary_refuses_null_forged_outcome_and_pre_find_charges() {
+    let ship = completed_ship();
     let next = ship
         .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
         .unwrap();
@@ -492,22 +473,6 @@ fn m11_saved_boundary_refuses_null_forged_outcome_pre_find_and_historical_entry(
     for count in [1, 6, 7] {
         let mut forged = serde_json::to_value(&next).unwrap();
         forged["step"]["entry"]["equipment"]["remote_mines"] = count.into();
-        assert!(!matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
-            RunProbe::Compatible(_)
-        ));
-    }
-    for version in 2..=13 {
-        let mut forged = serde_json::to_value(&next).unwrap();
-        forged["version"] = version.into();
-        forged["rules"]["revision"] = (if version <= 4 {
-            2
-        } else if version < super::super::RUN_FILE_VERSION {
-            3
-        } else {
-            crate::protocol::CAMPAIGN_RULES_REVISION
-        })
-        .into();
         assert!(!matches!(
             RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
             RunProbe::Compatible(_)

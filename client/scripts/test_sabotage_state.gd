@@ -135,6 +135,9 @@ func _run() -> void:
 	end["sabotage"]["match_over"] = true
 	end["sabotage"]["match_winner"] = "coalition"
 	_check(SabotageState.result_text(end, "").contains("TAKES THE MATCH"), "the card closes the match")
+	end["sabotage"].erase("match_winner")
+	_check(SabotageState.result_text(end, "").is_empty(), "a decided match always names its winner: there is no draw")
+	end["sabotage"]["match_winner"] = "coalition"
 	end["winning_team"] = "nobody"
 	_check(SabotageState.result_text(end, "").is_empty(), "a malformed result shows no card")
 

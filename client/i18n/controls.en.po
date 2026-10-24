@@ -91,6 +91,9 @@ msgstr "JUMP"
 msgid "ACTION_DUCK"
 msgstr "CROUCH (HOLD)"
 
+msgid "ACTION_DODGE"
+msgstr "DODGE"
+
 msgid "ACTION_TURN_LEFT"
 msgstr "TURN LEFT"
 
@@ -175,14 +178,76 @@ msgstr "NEXT FIGHTER (WATCHING)"
 msgid "ACTION_TOGGLE_FOLLOW"
 msgstr "CAMERA VIEW (WATCHING)"
 
+msgid "ACTION_RADIO_PREV_STATION"
+msgstr "RADIO: PREVIOUS STATION"
+
 msgid "ACTION_RADIO_NEXT_STATION"
-msgstr "STATION"
+msgstr "RADIO: NEXT STATION"
 
 msgid "ACTION_RADIO_NEXT_TRACK"
-msgstr "SKIP TRACK"
+msgstr "RADIO: SKIP TRACK"
 
 msgid "ACTION_RADIO_TOGGLE"
-msgstr "PLAY/PAUSE"
+msgstr "RADIO: ON/OFF"
+
+msgid "BIND_RADIO_NOTE"
+msgstr "On a gamepad, hold the next-station button to skip the track and hold the previous-station button to switch the radio off or on, unless those have buttons of their own."
+
+# Radio: now-playing toast and the match menu music area.
+
+msgid "RADIO_STATE_OFF"
+msgstr "RADIO OFF"
+
+msgid "RADIO_STATE_OFF_AIR"
+msgstr "Off the air. No tracks yet."
+
+msgid "RADIO_STATE_UNAVAILABLE"
+msgstr "Track unavailable. Skip or change station."
+
+msgid "RADIO_STATE_IDLE"
+msgstr "Between tracks."
+
+msgid "RADIO_STATE_HELD"
+msgstr "{title} (paused for the scene)"
+
+msgid "RADIO_STATE_NONE"
+msgstr "No radio in this match."
+
+msgid "MENU_MUSIC_HEADER"
+msgstr "MUSIC / RADIO"
+
+msgid "MENU_RADIO_NOW_PLAYING"
+msgstr "Now playing: {title}"
+
+msgid "MENU_RADIO_DUCKED"
+msgstr "(lowered for the Host)"
+
+msgid "MENU_RADIO_OFF_NOTE"
+msgstr "Switching on starts a fresh track on this station."
+
+msgid "MENU_RADIO_PREV"
+msgstr "PREV STATION"
+
+msgid "MENU_RADIO_NEXT"
+msgstr "NEXT STATION"
+
+msgid "MENU_RADIO_SKIP"
+msgstr "SKIP TRACK"
+
+msgid "MENU_RADIO_OFF"
+msgstr "RADIO OFF"
+
+msgid "MENU_RADIO_ON"
+msgstr "RADIO ON"
+
+msgid "MENU_RADIO_HOLD"
+msgstr "HOLD {input}"
+
+msgid "MENU_MUSIC_VOLUME"
+msgstr "MUSIC VOLUME"
+
+msgid "MENU_MUSIC_VOLUME_ZERO"
+msgstr "Music volume is zero: the radio is still playing, silently."
 
 # Look page.
 
@@ -240,7 +305,7 @@ msgstr "Mouse: raw counts, never smoothed or assisted. {cm} cm per turn at 800 C
 # Prompts. Braced names become the key or pad glyph for the device in use.
 
 msgid "HUD_CONTROLS_PLAY"
-msgstr "{fire} fire   {interact} opens   {jump} jump   hold {duck} crouch   {weapon_next} weapon   {pause} menu"
+msgstr "{fire} fire   {reload} reload   {interact} use   {jump} jump   hold {duck} crouch   {weapon_next} weapon   {pause} menu"
 
 msgid "HUD_CONTROLS_WATCH"
 msgstr "{join} join   {cycle} fighter   {view} view   {pause} menu"
@@ -255,10 +320,10 @@ msgid "MENU_NAV_PAD"
 msgstr "D-PAD + {accept}   /   {back} BACK"
 
 msgid "LOADING_CONTROLS_KEYS"
-msgstr "{move_forward} {move_left} {move_back} {move_right} / arrows: move        Mouse / {turn_left} {turn_right}: turn\n{fire}: fire        {interact}: use panel        {jump}: jump        Hold {duck}: crouch\n{strafe} + arrows: strafe        {look_up} {look_down}: look        Wheel / 1-6: weapons\n{scope} / Z: scope        {reload}: reload        {pause}: menu        Tilde: console\nC: station        N: skip track        M: play/pause"
+msgstr "{move_forward} {move_left} {move_back} {move_right} / arrows: move        Mouse / {turn_left} {turn_right}: turn\n{fire}: fire        {interact}: use panel        {jump}: jump        Hold {duck}: crouch\n{strafe} + arrows: strafe        {look_up} {look_down}: look        Wheel / 1-6: weapons\n{scope}: scope        {reload}: reload        {pause}: menu        Tilde: console\n{radio_prev} {radio_next}: radio station        {skip}: skip track        {radio_power}: radio on/off"
 
 msgid "LOADING_CONTROLS_PAD"
-msgstr "Left stick moves        Right stick looks        {fire} fires        {interact} opens the panel you are looking at        {jump} jumps\n{weapon_prev} {weapon_next} change weapon        {speak} taunts        {pause} for the menu"
+msgstr "Left stick moves        Right stick looks        {fire} fires        {scope} scopes        {jump} jumps        {duck} crouches\n{reload} reloads        {interact} uses        {weapon_prev} {weapon_next} change weapon        {grenade} grenade        {pause} menu\n{radio_prev} {radio_next} radio station, hold {radio_next} to skip, hold {radio_prev} for on/off"
 
 msgid "LOADING_BEGIN"
 msgstr "Any key or button to begin"
@@ -316,3 +381,27 @@ msgstr "HIGH CONTRAST"
 
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
 msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast."
+
+msgid "BIND_LAYOUT_REFUSED"
+msgstr "Your saved controls were made for an older default layout, so they were not loaded. These are the current defaults. Save to keep them, or rebind."
+
+msgid "SETTINGS_ANNOUNCER"
+msgstr "ANNOUNCER"
+
+msgid "SETTINGS_ANNOUNCER_VOLUME"
+msgstr "ANNOUNCER VOLUME"
+
+msgid "MENU_ANNOUNCER_VOLUME"
+msgstr "VOLUME"
+
+msgid "SETTINGS_ANNOUNCER_ON"
+msgstr "ON"
+
+msgid "SETTINGS_ANNOUNCER_BIG"
+msgstr "BIG MOMENTS ONLY"
+
+msgid "SETTINGS_ANNOUNCER_OFF"
+msgstr "OFF"
+
+msgid "SETTINGS_AUDIO_NOTE"
+msgstr "Announcer: On shows every Host call and voices the big ones. Big moments only keeps first blood, triple frags and up, sprees, ended sprees, comebacks, last one standing, captures, plants, match point and sudden death. Off silences the Host. Frags, objectives and results always show.\nChanges apply when saved. Zero volume mutes the bus."

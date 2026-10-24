@@ -6,7 +6,7 @@ use super::{
     ArenaPickup, GameState, PickupKind, Player, RoundState, Standing, PLAYER_FLOOR_Y, PLAYER_MAX_HP,
 };
 use crate::protocol::{
-    ChargeState, ChargeStatus, EquipmentPolicy, GameEvent, GameMode, ProgressKind,
+    ChargeState, ChargeStatus, GameEvent, GameMode, HostReactionKind, ProgressKind,
     SabotageEventKind, SabotagePhase, SabotageProgress, SabotageReason, SabotageResult,
     SabotageState, SiteId, SupplyClaim, Team, TeamScores, WeaponType,
 };
@@ -145,34 +145,8 @@ impl GameState {
         self.config.rules.mode() == GameMode::Sabotage && self.map.sabotage_layout().is_some()
     }
 
-    /// Discovery equipment in Sabotage, with profile-owned fresh starts;
-    /// otherwise the map's own policy.
-    pub(crate) fn equipment_policy(&self) -> EquipmentPolicy {
-        if self.sabotage.is_some() {
-            EquipmentPolicy::Discovery
-        } else {
-            self.map.equipment_policy()
-        }
-    }
-
     pub(super) fn reset_sabotage(&mut self) {
         self.sabotage = self.sabotage_active().then(Sabotage::new);
-    }
-
-    /// The fresh arsenal a fighter starts a life with under these rules.
-    fn fresh_inventory(&self) -> (crate::inventory::Inventory, WeaponType) {
-        if self.sabotage_active() && self.sabotage.is_some() && self.config.sabotage.five_vs_five {
-            let mut inventory = crate::inventory::Inventory::new(EquipmentPolicy::Discovery);
-            inventory.grant_weapon(WeaponType::Tack);
-            return (inventory, WeaponType::Tack);
-        }
-        match self.config.rules.only_weapon() {
-            Some(weapon) => (crate::inventory::Inventory::restricted(weapon), weapon),
-            None => (
-                crate::inventory::Inventory::new(EquipmentPolicy::Discovery),
-                WeaponType::Fists,
-            ),
-        }
     }
 
     /// The static layout readers receive in `MapInfo`.
@@ -206,6 +180,13 @@ impl GameState {
                     player.team = Some(team.other());
                 }
             }
+            // A rule bot whose callsign cannot wear its new colors signs on
+            // under one that can; league regulars keep theirs.
+            for index in 0..self.players.len() {
+                if let Some(team) = self.players[index].team {
+                    self.rename_transferred_bot(index, team);
+                }
+            }
             sab.score = TeamScores {
                 union: sab.score.coalition,
                 coalition: sab.score.union,
@@ -226,6 +207,10 @@ impl GameState {
             SiteId::B
         };
         let score = sab.score;
+        if round_slot(self.config.sabotage.format, sab.round).sudden_death {
+            tracing::info!(target: crate::logging::FEED_TARGET, "SUDDEN DEATH: round {} decides the match", sab.round);
+            self.sudden_death = Some(self.tick);
+        }
         self.sabotage = Some(sab);
         if swap {
             self.sabotage_event(SabotageEventKind::SidesSwapped, None, None, score);
@@ -453,6 +438,7 @@ impl GameState {
             available: true,
             respawn_timer: None,
             secret: false,
+            clock: None,
         });
     }
 
@@ -677,6 +663,14 @@ impl GameState {
             sab.phase = SabotagePhase::Planted;
             sab.phase_started = self.tick;
             self.push_sabotage(sab, SabotageEventKind::Planted, Some(carrier), Some(site));
+            let planter = self
+                .players
+                .iter()
+                .find(|p| p.id == carrier)
+                .map(|p| (p.name.clone(), p.team));
+            if let Some((name, team)) = planter {
+                self.react(HostReactionKind::ChargePlanted, Some(name), None, team);
+            }
             return;
         }
         if let (true, true, Some(site)) = (able, still, site) {
@@ -831,13 +825,12 @@ impl GameState {
             match_over,
             match_winner: match outcome {
                 MatchOutcome::Won(team) => Some(team),
-                _ => None,
+                MatchOutcome::Continue => None,
             },
         };
         sab.result = Some(result);
         let text = match (outcome, reason) {
             (MatchOutcome::Won(_), _) => "Match decided",
-            (MatchOutcome::Draw, _) => "Match drawn",
             (_, SabotageReason::Elimination) => "Side eliminated",
             (_, SabotageReason::Detonation) => "Charge detonated",
             (_, SabotageReason::Defused) => "Charge defused",
@@ -850,9 +843,6 @@ impl GameState {
     pub(super) fn sabotage_host_line(&self, winner: Option<Team>) -> Option<String> {
         let result = self.sabotage.as_ref()?.result.as_ref()?;
         let winner = winner?;
-        if result.match_over && result.match_winner.is_none() {
-            return Some(crate::protocol::sabotage_draw_host_line(result.score));
-        }
         Some(crate::protocol::sabotage_round_host_line(
             winner,
             result.reason,
@@ -1000,12 +990,16 @@ mod five_start_owner_tests {
     #[test]
     fn five_seats_fresh_inventory_requires_real_sabotage_owner() {
         let mut arena = GameState::with_map(crate::sim::MapKind::Sector9, false);
+        let (_, ffa_selected) = arena.fresh_inventory();
         arena.config.sabotage.five_vs_five = true;
         assert_eq!(arena.config.rules.mode(), GameMode::Ffa);
         assert!(arena.sabotage.is_none());
+        // Outside Sabotage the five-seat flag changes nothing: free-for-all
+        // keeps its own Pistol start.
         let (inventory, selected) = arena.fresh_inventory();
-        assert_eq!(selected, WeaponType::Fists);
-        assert!(!inventory.owns(WeaponType::Tack));
+        assert_eq!(selected, ffa_selected);
+        assert_eq!(selected, WeaponType::Tack);
+        assert!(!inventory.owns(WeaponType::Rail));
 
         let map = crate::maps::AuthoredMap::read(
             include_str!("../../maps/m06_port_of_entry.json").as_bytes(),

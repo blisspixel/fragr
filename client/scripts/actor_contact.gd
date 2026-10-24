@@ -156,7 +156,7 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archiv
 		if not _alive(health) or not actor.get("collidable", true) or not _active(actor, mission) or not VehicleState.occupied(snapshot, actor["id"]).is_empty():
 			continue
 		var height: float = MoveStep.DUCK_HEIGHT if actor.get("ducking", false) else MoveStep.BODY_HEIGHT
-		if ActorState.is_union(actor):
+		if ActorState.is_hostile(actor):
 			if actor["campaign"]["kind"] == "crawler":
 				height = 0.8
 			elif actor["campaign"]["kind"] == "notary":
@@ -164,7 +164,7 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archiv
 			elif actor["campaign"]["kind"] == "assessor":
 				height = 1.2
 		var body: Dictionary = stationary(str(actor["id"]), Vector3(float(actor["x"]), float(actor["y"]) - FLOOR_OFFSET, float(actor["z"])), height)
-		if ActorState.is_union(actor) and actor["campaign"]["kind"] == "assessor":
+		if ActorState.is_hostile(actor) and actor["campaign"]["kind"] == "assessor":
 			body["radius"] = 1.3
 		bodies.append(body)
 	if not _append_civilians(mission, bodies, archive_neutrals, residents):

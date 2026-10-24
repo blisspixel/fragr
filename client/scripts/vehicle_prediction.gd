@@ -53,9 +53,9 @@ func accept_driver_ack(ack: Dictionary, now_usec: int) -> void:
 	# or accepted as a pawn ACK and grants no authority to the predicted body.
 	var body: Dictionary = {"seq": ack["seq"], "tick": incoming_tick,
 		"x": position.x, "z": position.z, "yaw": yaw,
-		"movement": {"version": 1, "epoch": ack["movement"]["epoch"], "applied": true,
+		"movement": {"version": 2, "epoch": ack["movement"]["epoch"], "applied": true,
 			"y": position.y + FLOOR_OFFSET, "vx": cos(yaw) * speed, "vz": sin(yaw) * speed,
-			"vy": row["vy"], "effective_speed": absf(speed), "jump_input": false}}
+			"vy": row["vy"], "effective_speed": absf(speed), "jump_input": false, "dodge_cooldown": 0}}
 	accept_ack(body, now_usec)
 	for sample_tick: int in vehicle_samples.keys():
 		if sample_tick <= incoming_tick:
@@ -104,8 +104,8 @@ func presented_motion(now_usec: int) -> Dictionary:
 	if not active():
 		return {}
 	var position: Vector3 = presented_position(now_usec) - Vector3(0, FLOOR_OFFSET, 0)
-	var pose: Dictionary = _visual_pose if not _visual_pose.is_empty() else state
-	return {"position": position, "yaw": float(pose["yaw"])}
+	var pose: Dictionary = presented_pose(now_usec)
+	return {"position": position, "yaw": float(pose.get("yaw", state["yaw"]))}
 
 static func _blockers(snapshot: Dictionary, identity: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -121,7 +121,7 @@ static func _blockers(snapshot: Dictionary, identity: int) -> Array[Dictionary]:
 		if occupants.has(actor.get("id")) or float(actor.get("hp", 0)) <= 0.0 or not actor.get("collidable", true):
 			continue
 		var height: float = MoveStep.DUCK_HEIGHT if actor.get("ducking", false) else MoveStep.BODY_HEIGHT
-		if ActorState.is_union(actor):
+		if ActorState.is_hostile(actor):
 			if actor["campaign"]["kind"] == "crawler":
 				height = 0.8
 			elif actor["campaign"]["kind"] == "notary":

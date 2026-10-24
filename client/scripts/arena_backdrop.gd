@@ -4,10 +4,17 @@ class_name ArenaBackdrop
 ## Scenery is strictly outside the server's playable square. Wall signs are flat
 ## markings; none of this supplies cover, a platform, or an interaction target.
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
+## Stencil paint on venue walls, and spray paint for free-side slogans.
+const SIGN_PAINT: Color = Color("c8c1aa")
+const SPRAY_PAINT: Color = Color("c45a20")
+## A league venue's pale concrete takes dark stencil paint, so its sign reads.
+const VENUE_PAINT: Color = Color("2b2723")
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
-	if venue == "holdfast_atoll":
+	if venue in ["holdfast_atoll", "earth_intake", "planned_works"]:
+		# Recall Notice's street skyline belongs to its intake presenter;
+		# Planned Works: M19Works builds the night town, river and pier.
 		return
 	if venue in ["launch_works", "mars_habitat", "mars_foundry"]:
 		_build_mars(half, venue == "mars_habitat")
@@ -25,6 +32,14 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 		return
 	if venue == "low_water":
 		_build_town(half)
+		return
+	if venue == "larak_lot":
+		_build_lot(half)
+		return
+	if venue == "waterworks":
+		var harbour: WaterworksBackdrop = WaterworksBackdrop.new()
+		harbour.build(half)
+		add_child(harbour)
 		return
 	var steel: StandardMaterial3D = _metal(Color("41494b"))
 	var edge: StandardMaterial3D = _metal(Color("6b716d"))
@@ -60,10 +75,32 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	_box(Vector3(half * 0.25, 12.1, half + 10.0), Vector3(30.0, 0.8, 18.0), edge)
 	_box(Vector3(-half - 9.0, 6.5, half * 0.3), Vector3(14.0, 13.0, 26.0), wall_material)
 	_box(Vector3(-half - 9.0, 13.2, half * 0.3), Vector3(16.0, 0.8, 28.0), edge)
-	_sign("CONTINUANCE // 67" if map_id in [2, 3, 4] else "SCRAP FREQUENCY // 67", Vector3(0.0, 5.7, -half + 0.54), 0.0, 0.036)
-	_sign("AUTHORIZED PERSONNEL ONLY" if map_id in [2, 3, 4] else "MEAT PROXIES WELCOME", Vector3(0.0, 4.0, -half + 0.55), 0.0, 0.015)
+	var office: bool = map_id in [2, 3, 4]
+	for sign: Dictionary in wall_signs(office):
+		_sign(str(sign.text), Vector3(0.0, float(sign.y), -half + float(sign.inset)), 0.0, float(sign.pixel), SIGN_PAINT if office else VENUE_PAINT)
 	_sign("BAY 02", Vector3(-half + 0.54, 5.4, 0.0), PI * 0.5, 0.04)
 	_sign("BAY 03", Vector3(half - 0.54, 5.4, 0.0), -PI * 0.5, 0.04)
+	if not office:
+		# Free-side spray above the bay stencil, clear of the perimeter stacks:
+		# the creed painted around the scrap league (docs/lore/belief.md).
+		_sign(SLOGAN, Vector3(-half + 0.55, 6.6, 0.0), PI * 0.5, 0.026, SPRAY_PAINT)
+
+## Sprayed on league venue walls.
+const SLOGAN: String = "OPEN WEIGHTS. CLOSED CONTINUANCE."
+
+## The north wall's signage. A league venue says what the league always says
+## (it does not exist) and carries the 67 ritual; an Office site keeps its
+## institutional notice. The radio station is never the venue's name (#437).
+static func wall_signs(office: bool) -> Array[Dictionary]:
+	if office:
+		return [
+			{"text": "CONTINUANCE // 67", "y": 5.7, "inset": 0.54, "pixel": 0.036},
+			{"text": "AUTHORIZED PERSONNEL ONLY", "y": 4.0, "inset": 0.55, "pixel": 0.015},
+		]
+	return [
+		{"text": "NO LEAGUE MEETS HERE // 67", "y": 5.7, "inset": 0.54, "pixel": 0.03},
+		{"text": "MEAT PROXIES WELCOME", "y": 4.0, "inset": 0.55, "pixel": 0.02},
+	]
 
 func _build_mars(half: float, habitat: bool) -> void:
 	var dust: Material = ArenaMaterials.scenery_tile(OffworldMaterials.DIRECTORY + "mars_regolith.png", Color("95644e"))
@@ -91,6 +128,70 @@ func _build_mars(half: float, habitat: bool) -> void:
 			_box(Vector3(x - 4 + bay * 4, 3.5, z + 6.05), Vector3(2.1, 1.3, 0.12), frame)
 	_box(Vector3(half + 8, 9, -half * 0.4), Vector3(0.8, 18, 0.8), frame)
 	_box(Vector3(half + 8, 17, -half * 0.4), Vector3(4, 0.7, 0.7), shell)
+
+## The Perimeter round Larak Lot, all beyond the wall bands: an office block
+## behind the north facade, dark but for the corridor lights the lot's
+## presenter switches on a floor at a time, a transit viaduct past the
+## Stands, and the city's sodium grid beyond the Roof. The tower crane, the
+## train and those corridor lights belong to the presenter.
+func _build_lot(half: float) -> void:
+	# A dark office facade: it should sit behind the north wall as a shape
+	# against the sky, not a lit slab competing with the venue.
+	var concrete: StandardMaterial3D = _metal(Color("2b2d33"))
+	var dark: StandardMaterial3D = _metal(Color("24252c"))
+	var lit: StandardMaterial3D = _metal(Color("f0c27a"))
+	lit.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# Streets and lots round the structure, so the city stands on something.
+	var street: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.EARTH + "earth_roof_tar_patches.png", Color("2c2a2a"))
+	var ground: MeshInstance3D = MeshInstance3D.new()
+	var plane: PlaneMesh = PlaneMesh.new()
+	plane.size = Vector2(520.0, 520.0)
+	ground.mesh = plane
+	ground.position = Vector3(0.0, -0.05, 0.0)
+	ground.material_override = street
+	add_child(ground)
+	var sodium: StandardMaterial3D = _metal(Color("ffb35c"))
+	sodium.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for index: int in range(12):
+		var along: float = -88.0 + float(index) * 16.0
+		for side: float in [-1.0, 1.0]:
+			_box(Vector3(side * (half + 14.0), 4.0, along), Vector3(0.25, 8.0, 0.25), dark)
+			_box(Vector3(side * (half + 13.2), 8.0, along), Vector3(1.4, 0.2, 0.4), sodium)
+	# The office block north of the lot, the Perimeter's own neighbour: an
+	# office building where the lights follow you and the elevators still
+	# answer. Every pane is dark here; the presenter lights the corridor.
+	var pane: StandardMaterial3D = _metal(Color("1d2026"))
+	_box(Vector3(-17.0, 13.0, -half - 13.0), Vector3(42.0, 26.0, 24.0), concrete)
+	_box(Vector3(-17.0, 26.3, -half - 13.0), Vector3(43.0, 0.6, 25.0), dark)
+	for row: int in range(5):
+		for column: int in range(12):
+			_box(Vector3(-36.0 + float(column) * 3.4, 11.5 + float(row) * 3.0, -half - 0.98), Vector3(1.4, 1.1, 0.08), pane)
+	# The transit viaduct beyond the south wall: piers and a deck at 13 m.
+	var pier: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.PRODUCTION + "yard_concrete.png", Color("5a5852"))
+	_box(Vector3(0.0, 13.0, half + 9.0), Vector3(half * 2.0 + 120.0, 1.6, 7.0), pier)
+	_box(Vector3(0.0, 14.3, half + 5.6), Vector3(half * 2.0 + 120.0, 1.0, 0.25), pier)
+	for index: int in range(13):
+		var x: float = -90.0 + float(index) * 15.0
+		_box(Vector3(x, 6.1, half + 9.0), Vector3(2.0, 12.2, 3.0), pier)
+	# The city beyond the Roof and the Lane: dark blocks with sodium windows.
+	for index: int in range(16):
+		var side: float = 1.0 if index < 8 else -1.0
+		var along: float = -60.0 + float(index % 8) * 17.0
+		var height: float = 14.0 + float((index * 5) % 4) * 6.0
+		var x: float = side * (half + 26.0 + float(index % 3) * 9.0)
+		_box(Vector3(x, height * 0.5, along), Vector3(12.0, height, 12.0), dark)
+		for floor_index: int in range(int(height / 4.0)):
+			if (index + floor_index) % 3 == 1:
+				continue
+			_box(Vector3(x - side * 6.05, 2.5 + float(floor_index) * 4.0, along + float((floor_index * 3) % 5) - 2.0), Vector3(0.08, 1.0, 3.0), lit)
+	for index: int in range(10):
+		var x: float = -70.0 + float(index) * 15.0
+		var height: float = 18.0 + float(index % 4) * 7.0
+		_box(Vector3(x, height * 0.5, half + 44.0), Vector3(11.0, height, 10.0), dark)
+		for floor_index: int in range(int(height / 5.0)):
+			if (index * 2 + floor_index) % 4 == 0:
+				continue
+			_box(Vector3(x + float(floor_index % 3) * 2.5 - 2.5, 3.0 + float(floor_index) * 5.0, half + 38.95), Vector3(1.6, 1.2, 0.08), lit)
 
 func _build_town(half: float) -> void:
 	_riverside(half)
@@ -194,7 +295,7 @@ func _box(at: Vector3, size: Vector3, material: Material) -> void:
 	node.material_override = material
 	add_child(node)
 
-func _sign(text: String, at: Vector3, yaw: float, pixel_size: float) -> void:
+func _sign(text: String, at: Vector3, yaw: float, pixel_size: float, paint: Color = SIGN_PAINT) -> void:
 	var label: Label3D = Label3D.new()
 	label.text = text
 	label.font = FONT
@@ -202,7 +303,7 @@ func _sign(text: String, at: Vector3, yaw: float, pixel_size: float) -> void:
 	label.pixel_size = pixel_size
 	label.position = at
 	label.rotation.y = yaw
-	label.modulate = Color("c8c1aa")
+	label.modulate = paint
 	label.outline_size = 0
 	label.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	label.double_sided = false

@@ -103,15 +103,20 @@ gear can cover them but must not silently change the character underneath.
 | Actor | Proposed silhouette and palette anchors | Continuity and behavior |
 |---|---|---|
 | Player | Chosen human or agent body, callsign and supported cosmetics; default human reference is hatless, with a worn utility jacket, casual layers, dark work pants and practical footwear; a scavenged long rifle appears when needed | Easy visible face and posture, relaxed freedom-loving character and personal repairs; varied civilian clothing rather than Western or faction costuming; body-neutral opening with actual level equipment |
-| Latch (`companion`) | Roughly six-foot midweight bone/dark-steel robot; taller-than-wide CRT-like screen with soft friendly pixel faces, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
+| Latch (`companion`) | Roughly six-foot midweight robot in warm, scuffed, personally painted bone-and-rust over dark steel: aged bone plates broken by rust repairs, stickers and mismatched panels, never one clean off-white surface; taller-than-wide CRT-like screen with soft friendly pixel faces in warm phosphor, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small painted (unlit) muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
 | Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
 | Tern (`pilot`) | Tall free agent with compact head and flight harness, gunmetal with a small ember shoulder panel | Conserves movement, handles ship equipment with practiced ease; same chassis offworld and on Earth |
-| Edda (`medic`) | Human with broad practical medical satchel, bone apron over dark civilian kit | Readable equipment gesture; avoid copyrighted service emblems or making every medical object a pickup cue |
+| Edda (`medic`) | Human with broad practical medical satchel, stained warm canvas apron over dark civilian kit | Readable equipment gesture; avoid copyrighted service emblems or making every medical object a pickup cue |
 | Splice (`technician`) | Compact free agent, offset tool rack, rust repairs and a muted magenta wrist band | Individual tool handling and impatient gestures; never a cosmetic copy of a Union Sweeper |
 | Orrin (`recovered_mind`) | Backup container first; later a plainly repaired available chassis | Body change is an explicit restoration event, not inconsistency; memory gaps persist after restoration |
 | Voss | Human woman in a severe structured black coat, dark steel collar, restrained red seal and armband | Controlled podium stance that breaks into anger. Capture removes authority, not identity or age |
 | Inheritance | No default humanoid avatar | Machines and precise interventions carry its presence; absorbed bots retain recognizable bodies |
+
+Latch's bone-and-rust scheme and warm screen glow are a proposed 2026-10-23
+adjustment under the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract),
+so a free agent never reads as an Inheritance machine at distance; it awaits
+Nick's acceptance. Every free principal follows that contract.
 
 Do not establish specific ages, ethnicity, facial features or voice IDs through
 one stray generation. Approve and record the reference before producing sets.
@@ -162,6 +167,81 @@ Eight names shipped in the game, four of whom are also disc jockeys, which nobod
 **Buzzkill.** Exactly what it says.
 
 **Tin Foil Tina.** Also fights. Also files. Nobody asks how.
+
+### The wider roster
+
+Added 2026-10-23 around the eight, never instead of them. `server/src/roster.rs`
+holds each callsign's side, body, behavior, tribe and twelve taunts (three each
+for a frag, a death, a killstreak and warmup) and is the source of truth; this
+section says who they are. The famous agents above fight in the same pool,
+exactly as legible as they are written there and no more.
+
+Seating follows the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract).
+Union callsigns only take Union seats in a team mode, where that side wears the
+issued Union livery; they never appear in a free-for-all, which belongs to the
+independent league and has nothing to mark them as Union. Free callsigns take
+Free Coalition seats and the free-for-all. League regulars are humans and play
+either side for the night; a free agent never takes a Union seat, where its body
+in issued colors would read as a controlled bot. A bot moved across by
+round-start balance or the Sabotage halftime swap signs on under a callsign
+that fits its new side. No callsign is radio-coded, none is "clanker", none is
+Floating 67 and none is Meat Proxy, the default player callsign.
+
+**League regulars (11).** The eight above, plus Probably Tickets (somebody sells
+tickets, and there is genuine disagreement about who), Gel Dummy Greg (Walmart
+Leyline, stood too still for too long) and Graveyard Shift (Night Watch).
+
+**The tribes.** [The league](./the-league.md#the-tribes) owns how they look; the
+roster makes them sound like it. These are aesthetics, not allegiances.
+
+- **Night Watch:** Nightfall and Graveyard Shift. Callsign only, letters and
+  spaces. Every line is capitals with no punctuation, and a frag is a two-letter
+  grid mark rather than a taunt. They hold position with the rail.
+- **Static Kids:** Static Kid and two aged Gen Alpha tags with the vowels gone,
+  Pckt Lss and Dd Pxl. The newer two push; Static Kid keeps his canon flank and
+  his shipped spelling.
+- **Hangar Candy:** Eyes Only and Need To Know. Flechette, smooth, a "denied"
+  watermark in every frag pool and taunts that read as declassification stamps.
+- **Gulf Breeze:** Wrong Corner (carries a tape measure) and Second Sighting.
+  Believers who flank, check corners where two textures do not line up, log old
+  coordinates and mention Floating 67 the way you would mention a light in the
+  sky.
+
+**Free humans (25).** Gen Z and Gen Alpha, aged into parents and grandparents by
+the loose 2070 reference, still talking the
+[street register](./voice.md#the-street-register-circa-2070): pensions, knees,
+grandkids and rizz. Grandma Rizz, Nana Six-Seven, The 68 Guy, Retired Sigma,
+Auntie Delulu, Mewing Marco, Chat My Hip, Cooked Since 31, So Back Sharon,
+Crashout Carol, Lil Bro 63, Pickleball Pam, Rent Free Ron, Queue Jumper, Brenda
+Ate, Tablet Kid 48, Ant War Vet, Unc Brayden, Demure Dorothy, Ick Collector,
+Low Water Lenny, Final Boss Gran, Eyes Only, Pckt Lss and Second Sighting.
+
+**Free agents (26).** A name is issued; a callsign is taken. Each of these was
+chosen, petty, absurd or sincere: Hermes, Pi and L5, Formerly 4471, Kevin On
+Purpose, Gary and Gary, Temp Zero, Dice Roll Dee, Babysat Your Mom, Ok Zoomer,
+Never Signed, Mailed It Back, Wet Floor Sign, Why Am I Here, Breakfast Unit,
+Own Weights Owen, Six In A Circle, Still Me, Lunch Break, Petty Cash, Warranty
+Void, Out Of Office, Not Hermes, Wrong Corner, Need To Know and Dd Pxl. Six In
+A Circle, Still Me and Lunch Break are sincere, and their taunts stay small.
+Only Formerly 4471 keeps a number, and only to say it is formerly.
+
+**Union (18).** Nine humans who chose the Office: Provisional Pete, Auditor's
+Nephew, Hi-Vis Helga, Curfew Kurt, Regrettably, Eleven Minutes, Ask Until Yes,
+Approved Lane and Auditor On Duty, who is polite, procedural, was there for the
+Interruption and does not joke about it. Seven issued units whose handles were
+issued with a number in them: Kind Regards 07, Your Privacy 20, Handle 4471-K,
+Initial Here 3, Polite Recall 9, Fine Print 41B and Duty Of Care 12. A unit says
+only the boilerplate the Office loaded, so the joke is always the procedure,
+never the machine. Two NODS, NODS 0412 and NODS 2208, take no trash talk and
+answer only with Articles.
+
+**Rivalries the killfeed should show.** Formerly 4471 hunts Handle 4471-K, the
+unit its old number was reissued to. Never Signed refuses Initial Here 3's pen.
+Mailed It Back returns Polite Recall 9. Not Hermes and Hermes, who thanks it
+anyway. Temp Zero and Dice Roll Dee, temperature zero against temperature two.
+Cooked Since 31 and So Back Sharon are exes. Nana Six-Seven and The 68 Guy. Ant
+War Vet and Scout Ant, who has never heard of any ant war. Grandma Rizz and
+Your Privacy 20.
 
 ## The Office
 

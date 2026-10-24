@@ -1,5 +1,5 @@
 {
-  "comment": "Map-independent live combat inspection. Select the host map through FRAGR_QA_MAP; this capture never substitutes geometry or enemies.",
+  "comment": "Map-independent live combat inspection. Select the host map through FRAGR_QA_MAP; this capture never substitutes geometry or enemies. Weapon states need FRAGR_QA_MUTATORS=full-arsenal off Arena Duel, where no pad route is authored.",
   "width": 1280,
   "height": 720,
   "states": [

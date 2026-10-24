@@ -138,8 +138,10 @@ func _run() -> void:
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M03_ID, "M02 completion previews the pending M03 destination")
 	awaiting["mission"] = MissionState.M04_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M04_ID, "M03 completion previews the available M04 destination")
-	awaiting["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M15 completion previews the pending M16 destination")
+	awaiting["mission"] = LocalMatch.CAMPAIGN_COMPLETE
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.CAMPAIGN_COMPLETE, "Local Exception completion previews the pending Still Here epilogue")
+	awaiting["mission"] = MissionState.M20_ID
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M20_ID, "Planned Works completion previews playable Local Exception")
 	awaiting["mission"] = MissionState.M15_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M15_ID, "M14 completion previews playable M15")
 	awaiting["mission"] = MissionState.M14_ID
@@ -150,8 +152,8 @@ func _run() -> void:
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M08_ID, "M07 completion previews the playable M08 destination")
 	m02_preview["mission"] = MissionState.M08_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M08_ID, "M08 entry is a valid saved resume")
-	m02_preview["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "M16 cannot claim a playable saved entry")
+	m02_preview["mission"] = LocalMatch.CAMPAIGN_COMPLETE
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "the pending epilogue cannot claim a playable saved entry")
 	m02_preview["mission"] = MissionState.M15_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M15_ID, "M15 accepts its supported saved entry")
 	m02_preview["mission"] = MissionState.M14_ID

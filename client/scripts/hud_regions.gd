@@ -8,7 +8,7 @@ extends RefCounted
 ## match facts, and the frag feed with notices on the right. The side columns
 ## shrink before the center falls under its floor, so no HUD scale or text size
 ## puts two columns over the same pixels. Text owned by other canvas layers on
-## the same canvas (the frame counter, the benchmark banner) arrives through
+## the same canvas (the frame counter) arrives through
 ## `hud.top_region_query` as reserved rectangles, and each column starts below
 ## any reservation that crosses its span. Nothing is shrunk to fit under them.
 
@@ -21,12 +21,20 @@ const CENTER_CEILING: float = 720.0
 var hud: CanvasLayer
 var context: VBoxContainer
 var hints: Label
+## Plates behind text that sits over the world: the corner facts, the centered
+## match facts and the bottom-left context. Each hugs its labels' drawn text.
+var backings: Dictionary[String, Panel] = {}
 var conquest: ConquestHud
 var vehicle: VehicleHud
 var _layout_key: Array = []
 ## Vertical shift currently applied to the round card, so placement can be
 ## recomputed without accumulating.
 var card_shift: float = 0.0
+## Now-playing toast in logical units before HUD scale: two text rows.
+const RADIO_CARD_W: float = 440.0
+const RADIO_CARD_H: float = 76.0
+## The narrowest card, so a two-word station still reads as a card.
+const RADIO_CARD_MIN_W: float = 240.0
 
 func _init(owner: CanvasLayer) -> void:
 	hud = owner
@@ -38,9 +46,18 @@ func _init(owner: CanvasLayer) -> void:
 	hints = Label.new()
 	hints.name = "ControlsHint"
 	hints.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hints.add_theme_constant_override("outline_size", 4)
-	hints.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	MenuTheme.pixel_text(hints, MenuTheme.BODY, MenuTheme.BONE, 4)
 	context.add_child(hints)
+	for key: String in ["corner", "center", "context"]:
+		var plate: Panel = Panel.new()
+		plate.name = key.capitalize() + "Backing"
+		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		plate.add_theme_stylebox_override("panel", MenuTheme.backing())
+		plate.visible = false
+		# Under every HUD sibling, so no later reorder can put it over text.
+		plate.z_index = -1
+		hud.add_child(plate)
+		backings[key] = plate
 	hud.weapon_label.reparent(context)
 	hud.map_chip_label.reparent(context)
 	for diagnostic: Label in [hud.status_label, hud.tick_label, hud.player_count_label]:
@@ -58,6 +75,37 @@ func _init(owner: CanvasLayer) -> void:
 	hud.round_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	hud.scoreboard.hide()
 
+## The labels each plate backs.
+func backed_labels(key: String) -> Array[Label]:
+	match key:
+		"corner":
+			return [hud.mode_label, hud.round_label]
+		"center":
+			return [hud.mode_chip_label]
+	var labels: Array[Label] = []
+	for child: Node in context.get_children():
+		if child is Label:
+			labels.append(child)
+	return labels
+
+## Fit every plate to the drawn text it backs; a plate with nothing visible
+## to back hides. Runs every frame because wrapped text settles after layout.
+func fit_backings() -> void:
+	for key: String in backings:
+		var plate: Panel = backings[key]
+		var box: Rect2 = Rect2()
+		for label: Label in backed_labels(key):
+			var bounds: Rect2 = text_bounds(label)
+			if bounds.has_area():
+				box = bounds if not box.has_area() else box.merge(bounds)
+		plate.visible = box.has_area()
+		if box.has_area():
+			var style: StyleBox = plate.get_theme_stylebox("panel")
+			var grown: Rect2 = Rect2(box.position - Vector2(style.content_margin_left, style.content_margin_top),
+				box.size + Vector2(style.content_margin_left + style.content_margin_right, style.content_margin_top + style.content_margin_bottom))
+			plate.position = grown.position.round()
+			plate.size = grown.size.round()
+
 func layout() -> void:
 	var view: Vector2 = hud.get_viewport().get_visible_rect().size
 	# Cards take priority without discarding the accepted match facts below them.
@@ -69,23 +117,21 @@ func layout() -> void:
 		conquest.set_covered(covered)
 	var vehicle_rect: Rect2 = vehicle.occupied_region() if is_instance_valid(vehicle) else Rect2()
 	var origin: float = 16.0
-	for decoration: Control in [hud.chrome_strip, hud.on_air_badge, hud.contested_frequency_badge]:
-		if decoration != null and decoration.visible:
-			origin = maxf(origin, decoration.position.y + decoration.size.y + 16.0)
 	hud.weapon_label.visible = not hud.weapon_label.text.is_empty() and hud.client_mode == "SPECTATING"
 	hints.visible = not hints.text.is_empty()
 	var hud_scale: float = hud.hud_style.scale if hud != null and "hud_style" in hud and hud.hud_style != null else 1.0
 	var text_scale: float = float(hud.hud_style.body_font_size()) / float(MenuTheme.BODY) if hud != null and "hud_style" in hud and hud.hud_style != null else hud_scale
 	var reserved: Array[Rect2] = reserved_regions()
 	var key: Array = [view, origin, hud.sabotage(), hud.campaign_context, hud_scale, text_scale, hud.mode_chip_label.text,
-		hud.mode_chip_label.get_minimum_size(), context.get_combined_minimum_size(), hints.text,
+		hud.mode_chip_label.get_minimum_size(), segment_width(hud.mode_chip_label), corner_need(), context.get_combined_minimum_size(), hints.text,
 		hud.weapon_label.text, hud.weapon_label.visible, hud.map_chip_label.text, hud.map_chip_label.visible,
-		hud.radio_label, hud.radio_card, conquest, vehicle_rect, hud.frag_feed.reserved_height, reserved,
+		hud.radio_card, hud.radio_toast_content_width(), conquest, vehicle_rect, hud.frag_feed.reserved_height, reserved,
 		hud.round_message.visible, hud.round_message.text, hud.round_backdrop != null and hud.round_backdrop.visible]
 	if key == _layout_key:
 		return
 	_layout_key = key
-	var band: Dictionary = top_band(view.x, hud_scale, text_scale)
+	# A covered center (a card is up) claims no more than its text floor.
+	var band: Dictionary = top_band(view.x, hud_scale, text_scale, 0.0 if covered else segment_width(hud.mode_chip_label), corner_need())
 	var panel: Control = hud.get_node("Panel")
 	var panel_w: float = band.left_width
 	panel.position = Vector2(20, column_top(origin, 20.0, panel_w, reserved))
@@ -94,6 +140,12 @@ func layout() -> void:
 	var center_x: float = (view.x - width) * 0.5
 	var center_origin: float = column_top(origin, center_x, width, reserved)
 	var top: float = center_origin + (60.0 if hud.sabotage() else 0.0)
+	var chip_font: Font = hud.mode_chip_label.get_theme_font("font")
+	var chip_size: int = hud.mode_chip_label.get_theme_font_size("font_size")
+	var wrapped: String = wrap_segments(hud.mode_chip_label.text, chip_font, chip_size, width, hud.mode_chip_label.uppercase)
+	if wrapped != hud.mode_chip_label.text:
+		hud.mode_chip_label.text = wrapped
+		_layout_key = []
 	hud.mode_chip_label.position = Vector2(center_x, top)
 	hud.mode_chip_label.size = Vector2(width, 0)
 	hud.mode_chip_label.size.y = hud.mode_chip_label.get_minimum_size().y
@@ -101,7 +153,9 @@ func layout() -> void:
 		hud.sabotage_hud.set_header_origin(center_origin)
 	if conquest != null:
 		conquest.set_header_rect(Rect2(center_x, top + hud.mode_chip_label.size.y + 8, width, 280))
-	context.size = Vector2(minf(view.x * 0.45, 480.0 * hud_scale), 0)
+	# Wide enough that "[UNION] FOLLOWING: <16-character callsign> [DEF]"
+	# stays one line at the standard size.
+	context.size = Vector2(minf(view.x * 0.45, 640.0 * hud_scale), 0)
 	context.size.y = context.get_combined_minimum_size().y
 	context.position = Vector2(24, view.y - (164.0 * hud_scale) - context.size.y)
 	var feed_w: float = band.right_width
@@ -113,26 +167,33 @@ func layout() -> void:
 	var radio_bottom: float = view.y - (248.0 * hud_scale)
 	if vehicle_rect.has_area():
 		radio_bottom = minf(radio_bottom, vehicle_rect.position.y - 16.0)
-	if hud.radio_label != null:
-		hud.radio_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		hud.radio_label.position = Vector2(view.x - minf(view.x - 16.0, 640.0 * hud_scale), radio_bottom - (100.0 * hud_scale))
-		hud.radio_label.size = Vector2(minf(view.x - 32.0, 624.0 * hud_scale), 100.0 * hud_scale)
+	# Now-playing toast: one small level card, background flavour only. It is
+	# as wide as its text, between a floor and a cap, and as tall as two lines.
+	var radio_width: float = minf(view.x - 32.0, RADIO_CARD_W * hud_scale)
+	var radio_height: float = RADIO_CARD_H * hud_scale
+	if hud.radio_card != null:
+		radio_width = minf(radio_width, maxf(RADIO_CARD_MIN_W * hud_scale, hud.radio_toast_content_width()))
+		radio_height = maxf(radio_height, hud.radio_card.get_combined_minimum_size().y)
+	var radio_left: float = view.x - 16.0 - radio_width
 	if hud.radio_card != null:
 		hud.radio_card.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		hud.radio_card.position = Vector2(view.x - minf(view.x - 16.0, 640.0 * hud_scale), radio_bottom - (276.0 * hud_scale))
-		hud.radio_card.size = Vector2(minf(view.x - 32.0, 624.0 * hud_scale), 164.0 * hud_scale)
+		hud.radio_card.position = Vector2(radio_left, radio_bottom - radio_height)
+		hud.radio_card.size = Vector2(radio_width, radio_height)
 	if hud.campaign_context:
 		hud.combat_feed.set_limit(3)
 		hud.combat_feed.set_region(Rect2(24, context.position.y - (246.0 * hud_scale), minf(view.x * 0.45, 480.0 * hud_scale), 230.0 * hud_scale))
 	else:
 		var voice_top: float = frag_top + hud.frag_feed.reserved_height + 12.0
 		var card_on_right: bool = hud.radio_card != null
-		if card_on_right and radio_bottom - (292.0 * hud_scale) - voice_top < 132.0:
+		var toast_h: float = radio_height + (16.0 * hud_scale)
+		if card_on_right and radio_bottom - toast_h - voice_top < 132.0:
 			hud.radio_card.position = Vector2(24, origin + 144.0)
 			card_on_right = false
-		var voice_bottom: float = radio_bottom - ((292.0 if card_on_right else 116.0 if hud.radio_label != null else 16.0) * hud_scale)
+		var voice_bottom: float = radio_bottom - (toast_h if card_on_right else 16.0 * hud_scale)
 		var available: float = maxf(0.0, voice_bottom - voice_top)
-		hud.combat_feed.set_limit(clampi(int((available + 4.0) / 66.0), 0, 3))
+		# One backed corner line wraps to at most three lines of body text.
+		var entry: float = 3.0 * MenuTheme.FONT.get_height(hud.combat_feed.text_size) + 12.0
+		hud.combat_feed.set_limit(clampi(int((available + 4.0) / entry), 0, 3))
 		hud.combat_feed.set_region(Rect2(view.x - feed_w - 16.0, voice_top, feed_w, available))
 	place_card(view, reserved)
 
@@ -150,7 +211,7 @@ func _shift_card(amount: float) -> void:
 			node.offset_bottom += amount
 
 ## Keep the shared round card inside the space its neighbours leave. Above it:
-## the corner facts and any reserved top text (frame counter, benchmark banner)
+## the corner facts and any reserved top text (the frame counter)
 ## that cross its span. Below it: the bottom-left context when they share
 ## columns, otherwise the band reserved for vitals. A tall card (a long podium,
 ## wrapped names, large text) moves the least distance that fits; a backed card
@@ -209,14 +270,24 @@ static func fit_shift(top: float, bottom: float, low: float, high: float) -> flo
 
 ## Column widths for a canvas width, HUD scale and text scale (the body font
 ## size over the standard 24). The corner takes up to 460 and the feed up to
-## 560 logical units per 100 percent HUD scale. The center's floor follows the
-## text it holds, so large text keeps a few words per line instead of a tall
-## column running toward the crosshair. When the sides would leave the center
-## under that floor, both give up width and the center stays centered.
-static func top_band(view_width: float, hud_scale: float, text_scale: float = -1.0) -> Dictionary:
+## 560 logical units per 100 percent HUD scale; a frag row that cannot fit
+## both callsigns abbreviates them on purpose (`FragFeed.abbreviate`). The center's
+## floor follows the text it holds, so large text keeps a few words per line
+## instead of a tall column running toward the crosshair, and it never falls
+## under `segment` (the widest match fact that must not break, at most half
+## the view, so the corner facts keep their room). When the sides would leave the center under that
+## floor, both give up width and the center stays centered.
+static func top_band(view_width: float, hud_scale: float, text_scale: float = -1.0, segment: float = 0.0, corner: float = 0.0) -> Dictionary:
 	if text_scale <= 0.0:
 		text_scale = hud_scale
 	var floor_width: float = minf(CENTER_FLOOR * text_scale, view_width * 0.5)
+	if segment > floor_width:
+		# A whole fact may widen the center, but never past the room the
+		# corner's own two lines need (`corner`, its widest drawn line).
+		var room: float = view_width * 0.5
+		if corner > 0.0:
+			room = minf(room, view_width - 2.0 * (20.0 + corner + GAP))
+		floor_width = maxf(floor_width, minf(segment, room))
 	# Each side owns its edge margin (20 left, 16 right) and one gap.
 	var side_cap: float = (view_width - floor_width) * 0.5 - GAP
 	var left: float = minf(minf(view_width * 0.45, 460.0 * hud_scale), side_cap - 20.0)
@@ -225,6 +296,57 @@ static func top_band(view_width: float, hud_scale: float, text_scale: float = -1
 	var ceiling: float = maxf(floor_width, minf(CENTER_CEILING, view_width - 1200.0))
 	var center: float = clampf(view_width - 2.0 * side, floor_width, ceiling)
 	return {"left_width": left, "center_width": center, "right_width": right}
+
+## The corner panel's widest line, drawn, plus its inner margins.
+func corner_need() -> float:
+	var widest: float = 0.0
+	for label: Label in [hud.mode_label, hud.round_label]:
+		if label == null or label.text.is_empty():
+			continue
+		var shown: String = label.text.to_upper() if label.uppercase else label.text
+		widest = maxf(widest, label.get_theme_font("font").get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x)
+	return ceilf(widest + 20.0) if widest > 0.0 else 0.0
+
+## Match facts are " // " segments, and a line may wrap only between them
+## (see `wrap_segments`). The widest segment of a label's text, drawn in its
+## own font and size, is the narrowest the center can be without breaking one
+## fact across two lines.
+static func segment_width(label: Label) -> float:
+	if label == null or label.text.is_empty():
+		return 0.0
+	var font: Font = label.get_theme_font("font")
+	var size: int = label.get_theme_font_size("font_size")
+	var widest: float = 0.0
+	for line: String in label.text.split("\n"):
+		for segment: String in line.split(" // "):
+			var shown: String = segment.to_upper() if label.uppercase else segment
+			widest = maxf(widest, font.get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x)
+	return ceilf(widest)
+
+## Break each line that is wider than `width` between its " // " segments
+## only; the separator at a break is dropped. "MEAT PROXY: 0 //" over
+## "FIRST TO 10 // 2:40" read as two broken facts, so a fact stays whole.
+## Lines fill from the end, so the score leads and the target and clock stay
+## together rather than leaving a lone clock. Idempotent, so placing the same
+## text twice is stable.
+static func wrap_segments(text: String, font: Font, size: int, width: float, upper: bool = true) -> String:
+	var out: PackedStringArray = []
+	for line: String in text.split("\n"):
+		var segments: PackedStringArray = line.split(" // ")
+		var lines: PackedStringArray = []
+		var current: String = ""
+		for index: int in range(segments.size() - 1, -1, -1):
+			var segment: String = segments[index]
+			var joined: String = segment if current.is_empty() else segment + " // " + current
+			var measured: String = joined.to_upper() if upper else joined
+			if current.is_empty() or font.get_string_size(measured, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= width:
+				current = joined
+			else:
+				lines.insert(0, current)
+				current = segment
+		lines.insert(0, current)
+		out.append_array(lines)
+	return "\n".join(out)
 
 ## The first y at or below `top` that clears every reservation crossing the
 ## horizontal span from x to x + width.
@@ -250,6 +372,41 @@ func reserved_regions() -> Array[Rect2]:
 		if value is Rect2 and (value as Rect2).has_area() and (value as Rect2).is_finite():
 			regions.append(value)
 	return regions
+
+## Viewport rectangles the HUD currently draws plates or text over: the corner,
+## center and context backings, frag feed rows, the centre call, the death
+## card, combat feed lines, the weapon plate, the round card, the leaderboard,
+## the use prompt, the radio card and the warmup screen. World labels (fighter nameplates) are hidden where they
+## would touch one, so a callsign never draws under or over a HUD panel.
+func world_label_blockers() -> Array[Rect2]:
+	var drawn: Array[Rect2] = []
+	# Untyped on purpose: plates of several Control types share one pass.
+	var plates: Array = []
+	plates.append_array(backings.values())
+	plates.append_array([hud.get("weapon_icon_bg"), hud.get("round_backdrop"), hud.get("_leaderboard"),
+		hud.get("_use_plate"), hud.get("radio_card"), hud.get("warmup_tv")])
+	# Holders whose plates are their children: feed rows, the centre call and
+	# the death card.
+	for holder_name: String in ["frag_feed", "objective_call", "death_card"]:
+		var holder: Variant = hud.get(holder_name)
+		if holder is Control and (holder as Control).is_visible_in_tree():
+			plates.append_array((holder as Control).get_children())
+	for plate: Variant in plates:
+		if plate is Control and (plate as Control).is_visible_in_tree():
+			drawn.append((plate as Control).get_global_rect())
+	var lines: Array = [hud.get("round_message")]
+	var combat: Variant = hud.get("combat_feed")
+	if combat is Control and (combat as Control).is_visible_in_tree():
+		lines.append_array((combat as Control).get_children())
+	for line: Variant in lines:
+		if line is Label:
+			drawn.append(text_bounds(line as Label).grow(4.0))
+	var to_view: Transform2D = hud.get_final_transform()
+	var blockers: Array[Rect2] = []
+	for rect: Rect2 in drawn:
+		if rect.has_area() and rect.is_finite():
+			blockers.append(to_view * rect)
+	return blockers
 
 ## Drawn text bounds in canvas coordinates: the widest line from the label's
 ## own font and size (capped by its width when it wraps), aligned as the label

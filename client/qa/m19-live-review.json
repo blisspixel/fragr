@@ -1,0 +1,8 @@
+{
+  "comment": "Planned Works live review: a spectator watches the free local agent (scripted bot) play; m19_live_review.gd takes stills at the level's moments. Observations only, not fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "m19_watch", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "none", "allow_empty_roster": true, "settle_seconds": 330.0}
+  ]
+}

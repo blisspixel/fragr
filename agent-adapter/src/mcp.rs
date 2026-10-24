@@ -66,6 +66,8 @@ pub struct ToolState {
     /// Body the next Hello requests: `--body` at start, or the last `join`
     /// that named one. A resumed or already admitted pawn keeps its own.
     pub body: protocol::BodyKind,
+    /// What the joined fighter has seen of the pads, for `observe`.
+    pub pads: crate::pads::PadView,
 }
 
 impl Default for ToolState {
@@ -84,6 +86,7 @@ impl Default for ToolState {
             session_name: None,
             map: None,
             body: protocol::BodyKind::Human,
+            pads: crate::pads::PadView::default(),
         }
     }
 }
@@ -140,6 +143,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "left",
     "right",
     "jump",
+    "dodge",
     "duck",
     "turn_left",
     "turn_right",
@@ -319,6 +323,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         turn_right: bool_field("turn_right"),
         fire: bool_field("fire"),
         jump: bool_field("jump"),
+        dodge: match obj.get("dodge") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: dodge must be a boolean")?,
+        },
         duck: bool_field("duck"),
         interact: match obj.get("interact") {
             None => false,
@@ -493,6 +503,24 @@ pub fn validate_no_arg_tool(tool: &str, arguments: &Value) -> Result<(), String>
     Ok(())
 }
 
+/// A joined fighter sees pads through its own eyes; a booth spectator that
+/// never joined keeps the live pad view.
+fn joined_fighter(state: &ToolState) -> bool {
+    let Some(id) = state.player_id.map(|id| id.to_string()) else {
+        return false;
+    };
+    state
+        .last_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.get("players"))
+        .and_then(Value::as_array)
+        .is_some_and(|players| {
+            players
+                .iter()
+                .any(|player| player.get("id").and_then(Value::as_str) == Some(id.as_str()))
+        })
+}
+
 pub fn build_observe_result(state: &ToolState) -> Value {
     if let Some(error) = &state.connection_error {
         return serde_json::json!({
@@ -515,6 +543,11 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 );
                 if let Some(map) = state.map.as_ref() {
                     obj.insert("map".to_string(), map.clone());
+                }
+                if joined_fighter(state) {
+                    if let Some(pickups) = obj.get_mut("pickups") {
+                        state.pads.redact(pickups);
+                    }
                 }
                 if let Some(loadout) = state.loadout.as_ref() {
                     obj.insert("loadout".into(), serde_json::json!(loadout));
@@ -661,6 +694,12 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "round_state": snap_field(snap, "round_state"),
         "round_number": round_number,
         "round_time_left": snap_field(snap, "round_time_left"),
+        // The clock stopped level: the next score wins. Omitted on the wire
+        // when false, so a missing field reads false here.
+        "sudden_death": snap
+            .and_then(|s| s.get("sudden_death"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
         "frag_limit": frag_limit,
         "mode_name": mode_name,
         "playlist": snap_field(snap, "playlist"),
@@ -718,7 +757,7 @@ fn tools_list_result() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads, and the round. detail=full is the snapshot object (players, pickups, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, and the round. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -742,6 +781,7 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
+                        "dodge": {"type": "boolean", "default": false, "description": "Press to dodge (arena play): a standing fighter holding a direction is thrown that way at 9 m/s on a low hop. One press per dodge; 0.75 s before the next. Ignored in the air, in water, in a campaign mission or with no direction held."},
                         "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
                         "weapon_swap": {"type": "string", "enum": protocol::WeaponType::ALL, "description": "Select an owned weapon by its native wire ID. Rocket Launcher uses finite Rockets; keep clear of its splash. Selection never grants a weapon or ammunition."},
                         "seat": {"type": "string", "enum": ["driver", "gunner"], "description": "Request a free seat in your stopped jeep. Switching locks vehicle controls briefly. Use interact to enter or exit."},
@@ -767,7 +807,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "get_events",
-                "description": "Get recent game events (player joins/leaves, frags, killstreaks, respawns, round start/end, speaks). Includes last 50 events.",
+                "description": "Get recent game events (player joins/leaves, frags, Host reactions such as multikills, sprees, match point and sudden death, respawns, round start/end, speaks). Includes last 50 events.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -938,9 +978,18 @@ fn campaign_token(actor: Option<protocol::CampaignActor>) -> String {
     let Ok(value) = serde_json::to_value(actor) else {
         return "unknown".to_string();
     };
-    match value.get("side").and_then(Value::as_str) {
+    let side = match (
+        value.get("side").and_then(Value::as_str),
+        value.get("control").and_then(Value::as_str),
+    ) {
+        // Absorbed bots and restoration machines name their control domain.
+        (Some("inheritance"), Some(control)) => Some(format!("inheritance:{control}")),
+        (Some(side @ ("participant" | "union" | "companion")), None) => Some(side.to_string()),
+        _ => None,
+    };
+    match side.as_deref() {
         Some("participant") => "participant".to_string(),
-        Some(side @ ("union" | "companion")) => format!(
+        Some(side) => format!(
             "{side}/{}/{}",
             value
                 .get("kind")
@@ -1078,11 +1127,19 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         .filter(|player| player.hp > 0)
         .count();
     let origin = me.map(|player| (player.x, player.z)).unwrap_or((0.0, 0.0));
+    // A joined fighter's pads are what it has seen; the booth sees them all.
+    let believed = |pad: &protocol::PickupState| {
+        if me.is_some() {
+            state.pads.up(pad)
+        } else {
+            pad.available
+        }
+    };
     let nearest = |kind: &str| -> Option<f32> {
         snapshot
             .pickups
             .iter()
-            .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case(kind))
+            .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case(kind))
             .map(|pad| (pad.x - origin.0).hypot(pad.z - origin.1))
             .filter(|dist| dist.is_finite())
             .min_by(|a, b| a.total_cmp(b))
@@ -1091,7 +1148,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
     for pad in snapshot
         .pickups
         .iter()
-        .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case("weapon"))
+        .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case("weapon"))
     {
         let name = if pad.weapon.is_empty() {
             "weapon".to_string()
@@ -1133,6 +1190,22 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
                 .map(|id| id.to_string())
                 .unwrap_or_else(|| "none".to_string())
         )),
+    }
+    // Owned guns, from the private loadout: a free-for-all life starts with
+    // the Pistol and Fists and must take a pad before selecting anything else.
+    let owned: Option<Vec<String>> = state.loadout.as_ref().map(|loadout| {
+        loadout
+            .weapons
+            .iter()
+            .filter_map(|weapon| {
+                serde_json::to_value(weapon)
+                    .ok()
+                    .and_then(|id| id.as_str().map(str::to_string))
+            })
+            .collect()
+    });
+    if let Some(owned) = owned.as_ref() {
+        text.push_str(&format!("OWNED {}\n", owned.join(",")));
     }
     if threats.is_empty() {
         text.push_str("ENEMY none\n");
@@ -1193,6 +1266,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             "recent_damage": recent_damage,
             "score": player.score,
             "top_rival": top_rival,
+            "owned": owned,
         }),
         None => Value::Null,
     };
@@ -1661,6 +1735,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             {
                 return Ok(());
             }
+            state.pads.observe(&snapshot, state.player_id);
             if let Ok(snapshot_value) = serde_json::to_value(snapshot) {
                 state.last_snapshot = Some(snapshot_value);
             }
@@ -1687,6 +1762,8 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m16,
             m17,
             m18,
+            m19,
+            m20,
             walker,
             article_blade,
             map_name,
@@ -1867,6 +1944,24 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(geometry) = m18 {
                 map["m18"] = serde_json::json!(geometry);
             }
+            state.mission.replace_map_with_m19(
+                m19.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m19 {
+                map["m19"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m20(
+                m20.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m20 {
+                map["m20"] = serde_json::json!(geometry);
+            }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
             }
@@ -1882,6 +1977,8 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(m04) = m04 {
                 map["m04"] = serde_json::json!(m04);
             }
+            let teams = rules.as_ref().is_some_and(|rules| rules.mode.teams());
+            state.pads.reset_map(solids.clone(), teams);
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
             }
@@ -1905,6 +2002,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
+            if matches!(event, protocol::GameEvent::RoundStart { .. }) {
+                state.pads.reset_round();
+            }
             if let Ok(event_value) = serde_json::to_value(event) {
                 push_recent_event(state, event_value);
             }
@@ -1916,6 +2016,8 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.loadout = None;
             state.record = None;
             state.mission = Default::default();
+            // The map follows the Welcome; a new seat has seen nothing yet.
+            state.pads = Default::default();
             state.player_id = player_id;
             state.connected = true;
         }
@@ -2927,7 +3029,7 @@ mod mcp_tests {
             let ids = tool["inputSchema"]["properties"]["id"]["enum"]
                 .as_array()
                 .unwrap();
-            assert_eq!(ids.len(), 18);
+            assert_eq!(ids.len(), protocol::MissionId::ALL.len());
             for id in [
                 "recall_notice",
                 "no_forwarding_address",
@@ -2944,10 +3046,12 @@ mod mcp_tests {
                 "freedom_of_movement",
                 "peace_without_interruption",
                 "all_systems_normal",
+                "planned_works",
+                "local_exception",
             ] {
                 assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
             }
-            assert!(!ids.contains(&serde_json::json!("planned_works")));
+            assert!(!ids.contains(&serde_json::json!("still_here")));
             for id in ids {
                 let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
                 let ready: protocol::MissionReady =
@@ -3042,6 +3146,39 @@ mod mcp_tests {
     /// tools/call puts the old object in `structuredContent` and a text copy in `content`.
     fn tool_structured(result: Value) -> Value {
         result.get("structuredContent").cloned().unwrap_or(result)
+    }
+
+    #[test]
+    fn brief_names_the_weapons_this_free_for_all_life_owns() {
+        use fragr_server::sim::GameState;
+        let id = Uuid::from_u128(5);
+        let mut game = GameState::new();
+        game.add_player(id, "Agent".into(), protocol::Role::Agent);
+        let player = game.players.iter().find(|p| p.id == id).unwrap();
+        let loadout = player
+            .inventory
+            .state(id, player.weapon, game.tick)
+            .expect("the free-for-all start is owned equipment");
+        let mut state = ToolState {
+            player_id: Some(id),
+            last_snapshot: Some(serde_json::to_value(game.snapshot()).unwrap()),
+            loadout: Some(loadout),
+            ..Default::default()
+        };
+        // The brief names what this life owns, so a polling model knows the
+        // Rifle is a pad away rather than a weapon_swap away.
+        let (text, structured) = observe_brief(&state);
+        assert!(text.contains("OWNED fists,tack\n"), "{text}");
+        assert!(text.contains("weapon.flechette="), "{text}");
+        assert!(text.len() < 1024, "{}", text.len());
+        assert_eq!(
+            structured["self"]["owned"],
+            serde_json::json!(["fists", "tack"])
+        );
+        state.loadout = None;
+        let (text, structured) = observe_brief(&state);
+        assert!(!text.contains("OWNED"));
+        assert!(structured["self"]["owned"].is_null());
     }
 
     #[test]
@@ -3396,6 +3533,36 @@ mod mcp_tests {
             .unwrap();
         assert_eq!(found["secret"], true);
         assert_eq!(found["weapon"], "Shiv");
+    }
+
+    #[test]
+    fn addressed_speak_keeps_its_addressee_in_mcp_events() {
+        let mut state = ToolState::default();
+        let bot = Uuid::from_u128(7);
+        let victim = Uuid::from_u128(8);
+        let addressed = protocol::ServerMessage::Event(protocol::GameEvent::Speak {
+            player: "Scout Ant".into(),
+            player_id: bot,
+            text: "scout ant deleted you".into(),
+            to_id: Some(victim),
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&addressed).unwrap()).unwrap();
+        ingest_server_text(
+            &mut state,
+            r#"{"type":"event","event":"speak","player":"Probe","player_id":"00000000-0000-0000-0000-000000000009","text":"gg"}"#,
+        )
+        .unwrap();
+        let speaks: Vec<&Value> = state
+            .recent_events
+            .iter()
+            .filter(|e| e["event"] == "speak")
+            .collect();
+        assert_eq!(speaks.len(), 2);
+        assert_eq!(speaks[0]["to_id"], victim.to_string());
+        assert!(
+            speaks[1].get("to_id").is_none(),
+            "a room-wide line names nobody"
+        );
     }
 
     #[test]
@@ -4138,7 +4305,7 @@ mod mcp_tests {
                 "round_state": "Active",
                 "round_time_left": 90,
                 "frag_limit": 10,
-                "mode_name": "Contested Frequency",
+                "mode_name": "Scrap League",
                 "playlist": "Arena Duel",
                 "host_line": "HOST: LIVE.",
                 "pressure": "compliance"
@@ -4148,7 +4315,7 @@ mod mcp_tests {
                     "event": "round_start",
                     "round_number": 3,
                     "frag_limit": 10,
-                    "mode_name": "Contested Frequency",
+                    "mode_name": "Scrap League",
                     "host_line": "HOST: START."
                 }),
                 serde_json::json!({
@@ -4170,8 +4337,9 @@ mod mcp_tests {
         assert_eq!(result["round_state"], "Active");
         assert_eq!(result["round_number"], 3);
         assert_eq!(result["round_time_left"], 90);
+        assert_eq!(result["sudden_death"], false);
         assert_eq!(result["frag_limit"], 10);
-        assert_eq!(result["mode_name"], "Contested Frequency");
+        assert_eq!(result["mode_name"], "Scrap League");
         assert_eq!(result["host_line"], "HOST: LIVE.");
         assert_eq!(result["pressure"], "compliance");
         assert_eq!(result["connected"], true);
@@ -4181,6 +4349,41 @@ mod mcp_tests {
         // Soft: map fields always present (defaults when snapshot omits them).
         assert!(result["map_id"].is_null());
         assert!(result["map_name"].is_null());
+    }
+
+    #[test]
+    fn round_state_surfaces_sudden_death_with_the_clock_stopped() {
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(serde_json::json!({
+                "tick": 900,
+                "round_state": "Active",
+                "sudden_death": true,
+                "frag_limit": 10
+            })),
+            ..Default::default()
+        };
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["sudden_death"], true);
+        assert!(result["round_time_left"].is_null());
+        state.last_snapshot = Some(serde_json::json!({"tick": 1, "sudden_death": "yes"}));
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["sudden_death"], false, "only a true flag counts");
     }
 
     #[test]
@@ -4220,7 +4423,7 @@ mod mcp_tests {
                 "round_time_left": 2,
                 "map_id": 1,
                 "map_name": "Arena Duel",
-                "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL TUNES IN. DEAD AIR DAN ON THE SCRAP. 2."
+                "host_line": "HOST: ARENA DUEL. GRANDMA RIZZ ON THE SCRAP. GOES LIVE IN 2."
             })),
             ..Default::default()
         };
@@ -4237,7 +4440,7 @@ mod mcp_tests {
         assert!(result["host_line"]
             .as_str()
             .unwrap()
-            .contains("CONTESTED FREQUENCY"));
+            .contains("GOES LIVE IN 2"));
         assert!(result["host_line"].as_str().unwrap().contains("ARENA DUEL"));
         assert!(result["host_line"]
             .as_str()
@@ -4340,7 +4543,7 @@ mod mcp_tests {
         assert!(!state.connected);
         ingest_server_text(
             &mut state,
-            r#"{"type":"welcome","player_id":"00000000-0000-0000-0000-000000000000","role":"agent","mode_name":"Contested Frequency","playlist":"Arena Duel"}"#,
+            r#"{"type":"welcome","player_id":"00000000-0000-0000-0000-000000000000","role":"agent","mode_name":"Scrap League","playlist":"Arena Duel"}"#,
         ).unwrap();
         assert!(state.connected);
         assert!(state.player_id.is_some());
@@ -4510,5 +4713,37 @@ mod mcp_tests {
             &mut state,
         );
         assert_eq!(bad_detail.response.result.unwrap()["isError"], true);
+    }
+
+    #[test]
+    fn campaign_tokens_name_the_inheritance_control_domain() {
+        use protocol::{CampaignActor, ControlDomain, EnemyKind, EnemyPhase};
+        let body = |kind, control| {
+            Some(CampaignActor::Hostile {
+                kind,
+                phase: EnemyPhase::Windup,
+                phase_started: 1,
+                phase_ends: 9,
+                seated: false,
+                control,
+            })
+        };
+        assert_eq!(
+            campaign_token(body(EnemyKind::Sweeper, ControlDomain::Union)),
+            "union/sweeper/windup"
+        );
+        assert_eq!(
+            campaign_token(body(EnemyKind::Sweeper, ControlDomain::Absorbed)),
+            "inheritance:absorbed/sweeper/windup"
+        );
+        assert_eq!(
+            campaign_token(body(EnemyKind::Paver, ControlDomain::Restoration)),
+            "inheritance:restoration/paver/windup"
+        );
+        assert_eq!(
+            campaign_token(Some(CampaignActor::Participant {})),
+            "participant"
+        );
+        assert_eq!(campaign_token(None), "none");
     }
 }

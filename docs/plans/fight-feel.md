@@ -20,7 +20,7 @@ Campaign Clerks, Sweepers and Heavy Sweepers stop planting between bursts. A tra
 - The client plays the walk cycle when that recovery actually moves. A still recovery keeps the settle pose.
 - Head band, standing fighters: impact from 1.45 m above the feet through the top of the volume. That is above the 1.22 m chest and includes an eye-level ray at 1.6 m. Crawler and Notary: the top quarter only, so centre mass is a body shot.
 - The bonus is 2x per pellet, saturating, inside the victim damage sum. Fists and the Shiv stay flat. Armour, the Auditor plate and Licence to Kill still apply after the sum.
-- Radio defaults: C station, N skip track, M play/pause. The d-pad is not radio. Scope stays right mouse and Z, hold, Sniper Rifle only. The loading card and the console say so.
+- Radio defaults at the time: C station, N skip track, M play/pause, and the d-pad was not radio. #442 superseded this: X and C turn the dial, N skips, M switches it on or off, and D-pad left and right are the radio on a pad (`docs/PLAYING.md`). Scope stays right mouse and Z, hold, Sniper Rifle only. The loading card and the console say so.
 
 ## Verification
 

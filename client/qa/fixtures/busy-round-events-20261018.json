@@ -24,8 +24,8 @@
       "event": {
         "event": "round_start",
         "frag_limit": 10.0,
-        "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL. DEAD AIR DAN, NIGHTFALL, STATIC KID, +7 ON THE SCRAP. FIGHT!",
-        "mode_name": "Contested Frequency",
+        "host_line": "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL, STATIC KID, +7 ON THE SCRAP. FIGHT!",
+        "mode_name": "Scrap League",
         "players": [
           "Dead Air Dan",
           "Nightfall",

@@ -250,9 +250,9 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	manager._process(0.001)
 	_expect(not network.sent.back().has("interact"), "release is observed while controls are blocked")
 	var button: InputEventJoypadButton = InputEventJoypadButton.new()
-	button.button_index = JOY_BUTTON_B
+	button.button_index = JOY_BUTTON_Y
 	button.pressed = true
-	_expect(button.is_action_pressed("interact") and not button.is_action_pressed("fire"), "B uses without shooting")
+	_expect(button.is_action_pressed("interact") and not button.is_action_pressed("fire"), "Y or Triangle uses without shooting")
 	var display: MissionHud = MissionHud.new()
 	root.add_child(display)
 	display.apply(state, PLAYER)

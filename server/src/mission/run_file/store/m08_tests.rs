@@ -7,6 +7,7 @@ use crate::sim::GameState;
 const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
     [103; 32], [104; 32], [105; 32], [106; 32], [107; 32], [108; 32], [109; 32], [110; 32],
+    [111; 32], [250; 32],
 ];
 
 fn completed_town() -> RunDocument {
@@ -22,30 +23,17 @@ fn completed_town() -> RunDocument {
     document
 }
 
-fn v8_bytes(document: &RunDocument) -> Vec<u8> {
-    let mut value = serde_json::to_value(document).unwrap();
-    value["version"] = 8.into();
-    value["rules"]["revision"] = (3).into();
-    super::super::remove_historical_mines(&mut value);
-    // Preserve noncanonical formatting to prove the archive is the source.
-    let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
-    bytes.extend_from_slice(b"\n  \n");
-    bytes
-}
-
 #[test]
-fn v8_town_exit_promotes_exact_gear_and_outcomes_into_m08_without_refill() {
+fn town_exit_promotes_exact_gear_and_outcomes_into_m08_without_refill() {
     let directory = std::env::temp_dir().join(format!("fragr-m08-carry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
     let source = completed_town();
-    let bytes = v8_bytes(&source);
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
     let preview = RunStore::preview_with_hashes(&directory, HASHES)
         .unwrap()
         .unwrap();
     assert_eq!(preview, source);
-    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    assert!(store.needs_upgrade().unwrap());
     let promoted = preview
         .promote_next(MissionId::CustodianOfRecord, HASHES[7])
         .unwrap();
@@ -88,25 +76,14 @@ fn v8_town_exit_promotes_exact_gear_and_outcomes_into_m08_without_refill() {
         (0, 0)
     );
     assert!(store
-        .archive_and_save_before_replace(&preview, &promoted, |_| Err(io::Error::other(
-            "injected replacement failure"
-        )))
+        .save_with_sync(
+            &promoted,
+            |_| Err(io::Error::other("injected replacement failure")),
+            sync_directory,
+        )
         .is_err());
     assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archive = store.archive_and_save(&preview, &promoted).unwrap();
-    assert_eq!(fs::read(&archive).unwrap(), bytes);
-    assert_eq!(
-        fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("run.prior-"))
-            .count(),
-        1
-    );
-    assert!(!store.needs_upgrade().unwrap());
+    store.save(&promoted).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), promoted);
     assert!(promoted
         .promote_next(MissionId::CustodianOfRecord, HASHES[7])
@@ -119,83 +96,20 @@ fn v8_town_exit_promotes_exact_gear_and_outcomes_into_m08_without_refill() {
 }
 
 #[test]
-fn historical_equipment_refuses_forged_mines_and_preserves_exact_counts() {
-    let source = RunDocument::new(
-        Uuid::new_v4(),
-        crate::protocol::CampaignRules::new(crate::protocol::CampaignDifficulty::Standard),
-        HASHES[0],
-    );
-    for version in 2..=8 {
-        let mut value = serde_json::to_value(&source).unwrap();
-        value["version"] = version.into();
-        value["rules"]["revision"] = (if version <= 4 {
-            2
-        } else if version < super::super::RUN_FILE_VERSION {
-            3
-        } else {
-            crate::protocol::CAMPAIGN_RULES_REVISION
-        })
-        .into();
-        if version <= 5 {
-            super::super::remove_historical_grenades(&mut value);
-        } else {
-            super::super::remove_historical_mines(&mut value);
-        }
-        if version <= 4 {
-            value["rules"]["revision"] = 2.into();
-        }
-        if version == 2 {
-            let fields = value.as_object_mut().unwrap();
-            fields.remove("body");
-            fields.remove("level_start_continues");
-        }
-        if version >= 6 {
-            value["step"]["entry"]["equipment"]["grenades"] = 3.into();
-        }
-        let RunProbe::Compatible(read) =
-            RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), HASHES)
-        else {
-            panic!("valid historical version {version}")
-        };
-        let SavedStep::MissionEntry { entry, .. } = &read.step else {
-            panic!("missing entry")
-        };
-        assert_eq!(entry.equipment.proximity_mines, 0);
-        assert_eq!(entry.equipment.grenades, if version >= 6 { 3 } else { 0 });
-        for field in ["proximity_mines", "mines", "future_equipment"] {
-            let mut forged = value.clone();
-            forged["step"]["entry"]["equipment"][field] = 0.into();
-            assert!(
-                matches!(
-                    RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), HASHES),
-                    RunProbe::Corrupt
-                ),
-                "version {version} refuses {field} even at zero"
-            );
-        }
-        if version >= 6 {
-            value["step"]["entry"]["equipment"]
-                .as_object_mut()
-                .unwrap()
-                .remove("grenades");
-            assert!(matches!(
-                RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), HASHES),
-                RunProbe::Corrupt
-            ));
-        }
-    }
-}
-
-#[test]
-fn v8_refuses_playable_m08_and_current_counts_remain_strict() {
+fn m08_entry_mine_counts_remain_strict() {
     let source = completed_town();
     let promoted = source
         .promote_next(MissionId::CustodianOfRecord, HASHES[7])
         .unwrap();
-    assert!(matches!(
-        RunStore::inspect_bytes(&v8_bytes(&promoted), HASHES),
-        RunProbe::Incompatible
-    ));
+    let value = serde_json::to_value(&promoted).unwrap();
+    for field in ["mines", "future_equipment"] {
+        let mut forged = value.clone();
+        forged["step"]["entry"]["equipment"][field] = 0.into();
+        assert!(matches!(
+            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), HASHES),
+            RunProbe::Corrupt
+        ));
+    }
     let mut value = serde_json::to_value(&promoted).unwrap();
     for malformed in [
         serde_json::json!(-1),
@@ -360,7 +274,7 @@ fn live_m08_retry_restores_entry_mines_and_completion_saves_actual_exit() {
     let completed = state.campaign_run_document().unwrap().unwrap();
     assert_eq!(
         completed.m08_outcome,
-        Some(crate::mission::run_file::M08Outcome::Recorded {
+        Some(crate::mission::run_file::M08Outcome {
             custody_released: false,
             recovered_mind_secured: false,
             captives_evacuated: false,

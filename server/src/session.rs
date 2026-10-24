@@ -101,7 +101,7 @@ impl GameSession {
     }
 
     /// Night list: every arena's navigation is ready, and the first show is
-    /// Arena Duel free-for-all. Map rotation stays off.
+    /// Larak Lot free-for-all. Map rotation stays off.
     pub fn with_playlist() -> Self {
         crate::maps::prepare_navigation(MapKind::ArenaDuel, true);
         let mut state = GameState::with_map(MapKind::ArenaDuel, false);
@@ -150,26 +150,18 @@ impl GameSession {
         self.population_enforced = true;
     }
 
-    /// Contested Frequency scrap-league rule-bot roster (callsigns + sticky behaviors).
-    pub fn rule_bot_roster() -> &'static [(&'static str, crate::sim::BotBehavior)] {
-        &[
-            ("Dead Air Dan", crate::sim::BotBehavior::Aggressive),
-            ("Nightfall", crate::sim::BotBehavior::Defensive),
-            ("Static Kid", crate::sim::BotBehavior::Flanker),
-            ("Aunt Linda", crate::sim::BotBehavior::Balanced),
-            ("Scout Ant", crate::sim::BotBehavior::Flanker),
-            ("Crackpot", crate::sim::BotBehavior::Defensive),
-            ("Buzzkill", crate::sim::BotBehavior::Aggressive),
-            ("Tin Foil Tina", crate::sim::BotBehavior::Balanced),
-        ]
+    /// The scrap-league rule-bot roster: callsign, side, body, behavior, taunts.
+    pub fn rule_bot_roster() -> &'static [crate::roster::Fighter] {
+        crate::roster::ROSTER
     }
 
     /// Spawn named scrap bots into the arena (same configs as the production binary).
-    /// Raises `min_bots` to at least the resulting rule-bot count so solo stays stocked.
+    /// Each seat takes a roster callsign that fits the side it joins, never
+    /// one already in use. Raises `min_bots` to at least the resulting
+    /// rule-bot count so solo stays stocked.
     /// Refreshes sticky Warmup Host roster intro for mid-join.
     pub fn spawn_bots(&mut self, count: usize) {
         let slots = self.configure_sabotage_seats();
-        let bot_configs = Self::rule_bot_roster();
 
         let start_index = self.bots.len();
         for i in 0..count {
@@ -182,20 +174,20 @@ impl GameSession {
             };
             let bot_id = self.state.new_entity_id();
             let config_index = start_index + i;
-            let (bot_name, behavior) = bot_configs
-                .get(config_index % bot_configs.len())
-                .copied()
-                .unwrap_or(("Scrap Bot", crate::sim::BotBehavior::Balanced));
-            let display_name = if config_index < bot_configs.len() {
-                bot_name.to_string()
-            } else {
-                format!("{bot_name}-{}", config_index / bot_configs.len() + 1)
-            };
+            let taken: Vec<&str> = self.state.players.iter().map(|p| p.name.as_str()).collect();
+            // Peek, never draw: naming a seat must not shift the match's stream.
+            let (fighter, display_name) = crate::roster::pick(
+                config_index,
+                self.state.joining_team(),
+                self.state.rng_state,
+                &taken,
+            );
+            let behavior = fighter.behavior;
             self.state.add_player_with_body(
                 bot_id,
                 display_name.clone(),
                 Role::Agent,
-                protocol::BodyKind::for_roster_slot(config_index),
+                fighter.body,
             );
             if !self.state.players.iter().any(|player| player.id == bot_id) {
                 continue;
@@ -914,7 +906,7 @@ impl GameSession {
                 .is_some_and(|p| {
                     matches!(
                         p.campaign,
-                        Some(protocol::CampaignActor::Union {
+                        Some(protocol::CampaignActor::Hostile {
                             phase: protocol::EnemyPhase::Windup
                                 | protocol::EnemyPhase::Firing
                                 | protocol::EnemyPhase::Leaping
@@ -1601,6 +1593,15 @@ mod session_tests {
         assert!(!msgs.is_empty());
     }
 
+    fn bot_names(session: &GameSession) -> Vec<String> {
+        session
+            .bots
+            .iter()
+            .filter_map(|bot| session.state.players.iter().find(|p| p.id == bot.player_id))
+            .map(|p| p.name.clone())
+            .collect()
+    }
+
     #[test]
     fn spawn_bots_adds_named_agents() {
         let mut session = GameSession::new();
@@ -1608,56 +1609,99 @@ mod session_tests {
         assert_eq!(session.state.players.len(), 4);
         assert_eq!(session.bots.len(), 4);
         assert_eq!(session.min_bots, 4);
-        let names: Vec<_> = session
-            .state
-            .players
-            .iter()
-            .map(|p| p.name.as_str())
-            .collect();
-        assert!(names.contains(&"Dead Air Dan"));
-        assert!(names.contains(&"Nightfall"));
-        assert!(names.contains(&"Static Kid"));
-        assert!(names.contains(&"Aunt Linda"));
-        assert!(session
-            .state
-            .roster_host_line
-            .as_ref()
-            .is_some_and(|h| h.contains("DEAD AIR DAN") && h.contains("ON THE SCRAP")));
+        let names = bot_names(&session);
+        for (slot, (name, bot)) in names.iter().zip(&session.bots).enumerate() {
+            let fighter = crate::roster::find(name).expect("roster callsign");
+            assert_eq!(fighter.name, name, "no suffix while names remain");
+            assert_eq!(bot.behavior, fighter.behavior);
+            assert_eq!(bot.behavior, crate::roster::FILL_BEHAVIORS[slot]);
+            let player = session.state.players.iter().find(|p| p.id == bot.player_id);
+            assert_eq!(player.unwrap().body, fighter.body);
+        }
+        let host = session.state.roster_host_line.clone().unwrap();
+        assert!(host.contains(&names[0].to_uppercase()) && host.contains("ON THE SCRAP"));
     }
 
     #[test]
-    fn spawn_bots_roster_is_contested_frequency_callsigns() {
-        let roster: Vec<_> = GameSession::rule_bot_roster()
-            .iter()
-            .map(|(n, _)| *n)
-            .collect();
-        assert_eq!(roster.len(), 8);
+    fn spawn_bots_names_are_seeded_and_never_repeat() {
+        let lineup = |seed: u64| {
+            let mut session = GameSession::new();
+            session.state.seed(seed);
+            session.spawn_bots(62);
+            bot_names(&session)
+        };
+        // Free-for-all seats the sixty-two free and league callsigns; Union
+        // names wait for Union seats, where the side wears Union livery.
+        let names = lineup(5);
+        assert_eq!(names, lineup(5), "same seed, same lineup");
+        let unique: std::collections::HashSet<_> = names.iter().collect();
+        assert_eq!(unique.len(), 62);
+        assert!(names.iter().all(|n| crate::roster::find(n)
+            .is_some_and(|f| f.name == n && f.allegiance != crate::roster::Allegiance::Union)));
+        let mut session = GameSession::new();
+        session.spawn_bots(70);
+        let names = bot_names(&session);
+        let unique: std::collections::HashSet<_> = names.iter().collect();
+        assert_eq!(unique.len(), 70, "overflow seats take a suffix: {names:?}");
+    }
+
+    #[test]
+    fn spawn_bots_skip_callsigns_people_already_use() {
+        let mut probe = GameSession::new();
+        probe.spawn_bots(1);
+        let first = bot_names(&probe).remove(0);
+        let mut session = GameSession::new();
+        session
+            .state
+            .add_player(Uuid::new_v4(), first.to_lowercase(), Role::Human);
+        session.spawn_bots(1);
+        let bot = bot_names(&session).remove(0);
+        assert!(
+            !bot.eq_ignore_ascii_case(&first),
+            "{bot} took a person's name"
+        );
+    }
+
+    #[test]
+    fn rule_bot_roster_is_the_roster_table() {
+        let roster = GameSession::rule_bot_roster();
+        assert_eq!(roster.len(), 80);
         assert!(!roster
             .iter()
-            .any(|n| n.starts_with("Bot") || *n == "Rusher"));
-        assert!(roster.contains(&"Buzzkill"));
-        assert!(roster.contains(&"Tin Foil Tina"));
+            .any(|f| f.name.starts_with("Bot") || f.name == "Rusher"));
+        for canon in [
+            "Dead Air Dan",
+            "Aunt Linda",
+            "Buzzkill",
+            "Hermes",
+            "Pi",
+            "L5",
+        ] {
+            assert!(roster.iter().any(|f| f.name == canon), "{canon}");
+        }
     }
 
     #[test]
     fn warmup_snapshot_host_line_names_scrap_roster() {
         let mut session = GameSession::new();
         session.spawn_bots(4);
+        let first = bot_names(&session).remove(0).to_uppercase();
         assert_eq!(session.state.round_state, crate::sim::RoundState::Warmup);
         let snap = session.state.snapshot();
         assert!(
             snap.host_line.contains("ON THE SCRAP"),
-            "Warmup mid-join should name dialed-in scrap bots: {}",
+            "Warmup mid-join should name the scrap bots: {}",
             snap.host_line
         );
-        assert!(snap.host_line.contains("DEAD AIR DAN"));
+        assert!(snap.host_line.contains(&first));
         assert!(
-            snap.host_line.contains("CONTESTED FREQUENCY"),
-            "Warmup should sell Contested Frequency bumper: {}",
+            snap.host_line.starts_with("HOST: LARAK LOT."),
+            "Warmup should open with the plain arena intro: {}",
             snap.host_line
         );
+        assert!(!snap.host_line.contains("FREQUENCY"), "{}", snap.host_line);
         assert!(
-            snap.host_line.contains("ARENA DUEL"),
+            snap.host_line.contains("LARAK LOT"),
             "Warmup Host line should name the map: {}",
             snap.host_line
         );
@@ -1678,7 +1722,7 @@ mod session_tests {
             .expect("RoundStart");
         assert!(start.contains("ON THE SCRAP"));
         assert!(start.contains("FIGHT!"));
-        assert!(start.contains("ARENA DUEL"));
+        assert!(start.contains("LARAK LOT"));
     }
 
     #[test]

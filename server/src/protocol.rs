@@ -36,12 +36,18 @@ mod m17;
 pub use m17::*;
 mod m18;
 pub use m18::*;
+mod m19;
+pub use m19::*;
+mod works;
+pub use works::{JetpackState, PaverStripState, MAX_PAVER_STRIPS};
 mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
     M13ObjectiveState, M13WorkerResponse, M13_LIFT_SPEED, M13_OBJECTIVE_IDS, M13_WORKER_RESPONSES,
 };
 pub use walker::*;
+mod m20;
+pub use m20::*;
 mod mission;
 mod rules;
 mod sabotage;
@@ -49,8 +55,8 @@ mod statistics;
 mod status;
 mod vehicle;
 pub use actors::{
-    hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase,
-    AUDITOR_REPAIRS,
+    hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, ControlDomain, EnemyKind,
+    EnemyPhase, SurveyorMarkState, AUDITOR_REPAIRS, SURVEYOR_MARK_RADIUS,
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
@@ -129,10 +135,11 @@ pub use status::{
 pub use vehicle::{VehicleKind, VehicleSeat, VehicleState, MAX_VEHICLES, VEHICLE_GAMEPLAY_VERSION};
 pub use water::{validate_water_regions, WaterRegion};
 
-/// Named scrap-league identity (Contested Frequency denies it exists).
-pub const MODE_NAME: &str = "Contested Frequency";
-/// Playlist label under the league lie.
-pub const PLAYLIST_NAME: &str = "Arena Duel";
+/// The arena's identity on the warmup card and the result card. The radio
+/// station is small background flavour, never the match's name.
+pub const MODE_NAME: &str = "Scrap League";
+/// Playlist label under the league lie: map 1's display name.
+pub const PLAYLIST_NAME: &str = "Larak Lot";
 /// Desktop builds and `SHA256SUMS.txt`. Join does not fetch this URL.
 pub const RELEASES_URL: &str = "https://github.com/blisspixel/fragr/releases/latest";
 
@@ -144,23 +151,27 @@ pub fn default_playlist() -> String {
     PLAYLIST_NAME.to_string()
 }
 
+/// The Host's plain arena intro: where, then go. He never explains the
+/// setting and never chants.
 pub fn default_host_line() -> String {
-    "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.".to_string()
+    "HOST: LARAK LOT IS LIVE.".to_string()
 }
 
 pub fn default_mode_id() -> String {
     GameMode::Ffa.id().to_string()
 }
 
+/// Map 1, Larak Lot, reworked from the Arena Duel field on 2026-10-23 with
+/// its wire id unchanged.
 pub const MAP_ID_ARENA_DUEL: u32 = 1;
-pub const MAP_NAME_ARENA_DUEL: &str = "Arena Duel";
+pub const MAP_NAME_LARAK_LOT: &str = "Larak Lot";
 
 pub fn default_map_id() -> u32 {
     MAP_ID_ARENA_DUEL
 }
 
 pub fn default_map_name() -> String {
-    MAP_NAME_ARENA_DUEL.to_string()
+    MAP_NAME_LARAK_LOT.to_string()
 }
 
 /// Public match line for a directory, an overlay, or a server list.
@@ -238,29 +249,10 @@ pub fn boss_down_host_line() -> String {
 
 /// Host line when a live drone is wiped at round end (no frag credit).
 pub fn boss_round_wipe_host_line() -> String {
-    "HOST: FREQUENCY CLOSES. DRONE RECALLED. CONTINUANCE DENIES THE BEAT.".to_string()
+    "HOST: TIME. DRONE RECALLED. NOBODY GETS THAT ONE.".to_string()
 }
 
-/// Host line for a within-round killstreak tier (Contested Frequency voice).
-pub fn killstreak_host_line(streak: u32, player: &str) -> Option<(String, String)> {
-    match streak {
-        2 => Some((
-            "double".to_string(),
-            format!("HOST: DOUBLE FREQUENCY. {player} DENIES THE DENIAL."),
-        )),
-        3 => Some((
-            "triple".to_string(),
-            "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.".to_string(),
-        )),
-        5 => Some((
-            "rampage".to_string(),
-            format!("HOST: FREQUENCY RAMPAGE. {player} BREAKS EVERY APPROVED LANE."),
-        )),
-        _ => None,
-    }
-}
-
-/// Host line for round-end MVP / podium (Contested Frequency voice).
+/// Host line for round-end MVP / podium.
 pub fn mvp_host_line(mvp: &str, frags: u32) -> String {
     format!("HOST: ROUND MVP. {mvp} WITH {frags} FRAGS. CONTINUANCE DENIES THE PODIUM.")
 }
@@ -311,14 +303,6 @@ pub fn sabotage_round_host_line(
     }
 }
 
-/// Host line when a Sabotage match ends level after its extra time.
-pub fn sabotage_draw_host_line(score: TeamScores) -> String {
-    format!(
-        "HOST: LEVEL AFTER EXTRA TIME, {} ALL. THE ROTATION MOVES ON.",
-        score.union
-    )
-}
-
 /// Host line when a lives-limited round ends with one fighter left, or none.
 pub fn last_fighter_host_line(survivor: Option<&str>) -> String {
     match survivor {
@@ -335,18 +319,13 @@ pub fn empty_mvp_host_line() -> String {
     "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP.".to_string()
 }
 
-/// Host bumper when a named scrap bot dials in (Warmup / spawn flavor).
-pub fn bot_intro_host_line(name: &str) -> String {
-    format!("HOST: {} DIALS THE FREQUENCY.", name.to_uppercase())
-}
-
-/// Sticky Warmup / mid-join Host line naming the dialed-in rule-bot roster.
+/// Sticky Warmup / mid-join Host line naming the rule-bot roster.
 pub fn roster_host_line(names: &[String]) -> String {
     if names.is_empty() {
         return default_host_line();
     }
     let listed = format_roster_names(names);
-    format!("HOST: {listed} ON THE SCRAP. FREQUENCY STAYS LIVE.")
+    format!("HOST: {listed} ON THE SCRAP.")
 }
 
 fn format_roster_names(names: &[String]) -> String {
@@ -358,32 +337,29 @@ fn format_roster_names(names: &[String]) -> String {
     }
 }
 
-/// Warmup / pre-round Host drama: Contested Frequency bumper, map, roster, countdown.
+/// The Warmup intro: the venue, who is on it and the countdown. A plain
+/// arena intro, never a station ident.
 pub fn warmup_host_line(map_name: &str, names: &[String], secs_left: u32) -> String {
     let map = map_name.to_uppercase();
     let secs = secs_left.max(1);
     if names.is_empty() {
-        return format!(
-            "HOST: CONTESTED FREQUENCY. {map} TUNES IN. FREQUENCY GOES LIVE IN {secs}."
-        );
+        return format!("HOST: {map}. GOES LIVE IN {secs}.");
     }
     let listed = format_roster_names(names);
-    format!(
-        "HOST: CONTESTED FREQUENCY. {map} TUNES IN. {listed} ON THE SCRAP. GOES LIVE IN {secs}."
-    )
+    format!("HOST: {map}. {listed} ON THE SCRAP. GOES LIVE IN {secs}.")
 }
 
 /// RoundStart Host line once Warmup ends (map + roster, fight energy, no countdown).
 pub fn round_open_host_line(map_name: &str, names: &[String]) -> String {
     let map = map_name.to_uppercase();
     if names.is_empty() {
-        return format!("HOST: CONTESTED FREQUENCY. {map} IS LIVE. FIGHT!");
+        return format!("HOST: {map} IS LIVE. FIGHT!");
     }
     let listed = format_roster_names(names);
-    format!("HOST: CONTESTED FREQUENCY. {map}. {listed} ON THE SCRAP. FIGHT!")
+    format!("HOST: {map}. {listed} ON THE SCRAP. FIGHT!")
 }
 
-/// Beat that triggers a Contested Frequency rule-bot speak line.
+/// Beat that triggers a rule-bot speak line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BotTauntKind {
     Frag,
@@ -392,7 +368,7 @@ pub enum BotTauntKind {
     Warmup,
 }
 
-/// Strip overflow refill suffix (`Dead Air Dan-2` -> `Dead Air Dan`).
+/// Strip overflow refill suffix (`Kind Regards-2` -> `Kind Regards`).
 pub fn rule_bot_callsign_base(name: &str) -> &str {
     if let Some((base, suffix)) = name.rsplit_once('-') {
         if !suffix.is_empty() && suffix.chars().all(|c| c.is_ascii_digit()) {
@@ -402,50 +378,18 @@ pub fn rule_bot_callsign_base(name: &str) -> &str {
     name
 }
 
-/// Callsign-flavored Contested Frequency taunt for a named scrap rule bot.
+/// Callsign-flavored taunt for a named scrap rule bot. Roster callsigns
+/// (and their `-N` overflow copies) speak their own lines from
+/// [`crate::roster`]; any other name gets the league's stock lines.
 pub fn rule_bot_taunt_line(name: &str, kind: BotTauntKind, salt: u64) -> String {
-    let base = rule_bot_callsign_base(name);
-    let pool: &[&str] = match (base, kind) {
-        ("Dead Air Dan", BotTauntKind::Frag) => &["dead air cleared", "booth owns that frag"],
-        ("Dead Air Dan", BotTauntKind::Death) => &["booth cut out", "dead air for a sec"],
-        ("Dead Air Dan", BotTauntKind::Killstreak) => {
-            &["six-seven clear", "host keep the mic open"]
-        }
-        ("Dead Air Dan", BotTauntKind::Warmup) => &["booth is hot", "dead air dan dials in"],
-        ("Nightfall", BotTauntKind::Frag) => &["grid marked", "night watch confirms"],
-        ("Nightfall", BotTauntKind::Death) => &["night watch resets", "rail resets"],
-        ("Nightfall", BotTauntKind::Killstreak) => &["rail holds the scrap", "wirehead denied"],
-        ("Nightfall", BotTauntKind::Warmup) => &["night watch on station", "rail tuned"],
-        ("Static Kid", BotTauntKind::Frag) => &["clanker bricked", "glitch landed"],
-        ("Static Kid", BotTauntKind::Death) => &["glitch respawn", "static wiped"],
-        ("Static Kid", BotTauntKind::Killstreak) => &["scatter sings", "clean 67"],
-        ("Static Kid", BotTauntKind::Warmup) => &["tuning the glitch", "static kid on station"],
-        ("Aunt Linda", BotTauntKind::Frag) => &["value for value", "meatproxy zeroed"],
-        ("Aunt Linda", BotTauntKind::Death) => &["call back later", "firmware reset"],
-        ("Aunt Linda", BotTauntKind::Killstreak) => {
-            &["league says keep rolling", "aunt linda stays live"]
-        }
-        ("Aunt Linda", BotTauntKind::Warmup) => &["aunt linda dialed in", "live laugh frag"],
-        ("Scout Ant", BotTauntKind::Frag) => &["scout ant deleted you", "loophead clocked"],
-        ("Scout Ant", BotTauntKind::Death) => &["not a metaphor", "scout ant wiped"],
-        ("Scout Ant", BotTauntKind::Killstreak) => &["six-seven clear", "scout owns the scrap"],
-        ("Scout Ant", BotTauntKind::Warmup) => &["scouting the scrap", "optics warming"],
-        ("Crackpot", BotTauntKind::Frag) => &["meatbag clocked", "conspiracy confirmed"],
-        ("Crackpot", BotTauntKind::Death) => &["continuance redacted me", "wirehead caught me"],
-        ("Crackpot", BotTauntKind::Killstreak) => &["crackpot was right", "they lose count"],
-        ("Crackpot", BotTauntKind::Warmup) => &["crackpot online", "redacted warmup"],
-        ("Buzzkill", BotTauntKind::Frag) => &["buzzkill closes", "soft-shell bricked"],
-        ("Buzzkill", BotTauntKind::Death) => &["close scrap lost", "buzzkill reset"],
-        ("Buzzkill", BotTauntKind::Killstreak) => &["approved lanes? nah", "six-seven rampage"],
-        ("Buzzkill", BotTauntKind::Warmup) => &["buzzkill warming", "scrap opens loud"],
-        ("Tin Foil Tina", BotTauntKind::Frag) => &["not for public release", "eyes only wipe"],
-        ("Tin Foil Tina", BotTauntKind::Death) => &["access restricted", "foil wiped"],
-        ("Tin Foil Tina", BotTauntKind::Killstreak) => &["hangar candy lane", "denied watermark"],
-        ("Tin Foil Tina", BotTauntKind::Warmup) => &["foil tuned in", "hangar candy warm"],
-        (_, BotTauntKind::Frag) => &["clean 67", "meatproxy down"],
-        (_, BotTauntKind::Death) => &["respawn the booth", "bricked for now"],
-        (_, BotTauntKind::Killstreak) => &["host is watching", "six-seven streak"],
-        (_, BotTauntKind::Warmup) => &["gearing up", "scrap warming"],
+    let pool: &[&str] = match crate::roster::find(name) {
+        Some(fighter) => fighter.taunts(kind),
+        None => match kind {
+            BotTauntKind::Frag => &["clean 67", "meatproxy down"],
+            BotTauntKind::Death => &["back in a sec", "bricked for now"],
+            BotTauntKind::Killstreak => &["host is watching", "six-seven streak"],
+            BotTauntKind::Warmup => &["gearing up", "scrap warming"],
+        },
     };
     let idx = (salt as usize) % pool.len();
     pool[idx].to_string()
@@ -464,7 +408,7 @@ pub const EPISODE_MAP_LARAK_LOT: &str = "Larak Lot";
 pub const AUDITOR_NAME: &str = "AUDITOR";
 
 pub fn episode0_host_line_cold_open() -> String {
-    "HOST: In the morning. Calibration night. Continuance brought NODS. You're on the air."
+    "HOST: In the morning. Calibration night. Continuance brought NODS. You're in the league."
         .to_string()
 }
 
@@ -473,7 +417,7 @@ pub fn episode0_host_line_nods() -> String {
         .to_string()
 }
 
-/// Short Contested Frequency Host tick per credited NODS clear (rate-sane: one line per clear).
+/// Short Scrap League Host tick per credited NODS clear (rate-sane: one line per clear).
 pub fn episode0_host_line_nods_tick(cleared: u32, goal: u32) -> String {
     match cleared {
         0 => episode0_host_line_cold_open(),
@@ -481,7 +425,7 @@ pub fn episode0_host_line_nods_tick(cleared: u32, goal: u32) -> String {
         2 => format!("HOST: NODS {cleared}/{goal}. Another approved lane goes dark."),
         3 => format!("HOST: NODS {cleared}/{goal}. Continuance is sweating the spreadsheet."),
         4 => format!("HOST: NODS {cleared}/{goal}. One more and the dish wakes up."),
-        n => format!("HOST: NODS {n}/{goal}. Keep the scrap on the air."),
+        n => format!("HOST: NODS {n}/{goal}. Keep the scrap going."),
     }
 }
 
@@ -495,7 +439,7 @@ pub fn episode0_host_line_auditor() -> String {
 }
 
 pub fn episode0_host_line_win() -> String {
-    "HOST: Amen, fistbump. Frequency still unmetered. Don't touch that dial.".to_string()
+    "HOST: Amen, fistbump. The league stays open.".to_string()
 }
 
 pub fn episode0_host_line_fail() -> String {
@@ -543,6 +487,13 @@ pub const SCATTER_FULL_DAMAGE_UNITS: f32 = 4.0;
 pub const SCATTER_PELLETS: usize = 7;
 /// And this share of it at the edge of its reach.
 pub const SCATTER_FAR_DAMAGE_SCALE: f32 = 0.35;
+
+/// Ticks past a weapon's cadence before a participant's grown cone starts to
+/// recover (see `WeaponType::bloom_per_shot`).
+pub const BLOOM_GRACE_TICKS: u32 = 2;
+/// Share of the full cone recovered per tick once recovery starts: a full
+/// cone is exact again 0.35 s later.
+pub const BLOOM_RECOVERY_PER_TICK: f32 = 1.0 / 7.0;
 
 impl WeaponType {
     /// Damage on a clean body hit, before the scatter gun's range falloff and
@@ -639,6 +590,29 @@ impl WeaponType {
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
             WeaponType::Rocket => 0.0,
+        }
+    }
+
+    /// How much of the dispersion cone one participant shot adds, as a share
+    /// of `spread_radians`. A participant's first shot flies along the exact
+    /// aim ray; sustained fire grows the cone by this much a shot up to the
+    /// full table value (about a second of holding the trigger), and a pause
+    /// longer than the cadence lets it recover. Zero means always exact. The
+    /// Scatter keeps its whole pellet cone, and authored enemies always fire
+    /// the table cone.
+    pub fn bloom_per_shot(self) -> f32 {
+        match self {
+            WeaponType::Tack => 0.25,
+            WeaponType::Flechette => 0.2,
+            WeaponType::Repeater => 0.1,
+            WeaponType::Arc => 0.15,
+            WeaponType::Fists
+            | WeaponType::Shiv
+            | WeaponType::ArticleBlade
+            | WeaponType::Rail
+            | WeaponType::Sniper
+            | WeaponType::Scatter
+            | WeaponType::Rocket => 0.0,
         }
     }
 
@@ -808,9 +782,23 @@ pub const M16_GAMEPLAY_VERSION: u32 = 52;
 pub const M17_GAMEPLAY_VERSION: u32 = 53;
 /// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
 pub const M18_GAMEPLAY_VERSION: u32 = 54;
+/// Single-schema campaign receipts: the carried M08 outcome loses its `kind`
+/// tag and M10 practice transit is `unlinked`. Required for M09 and M10.
+pub const RECEIPT_GAMEPLAY_VERSION: u32 = 55;
+/// Free-for-all Pistol and Fists start, owned guns from the map, the
+/// `full-arsenal` mutator and `rules.start_kit`.
+pub const SIDEARM_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
+/// Planned Works connected Low Water escape: the issued jetpack (snapshot
+/// `jetpacks`, Ack `jet_fuel`), the Paver and its `paver_strips`, and the
+/// waterworks departure. None of contract 55's parts shipped alone, so the
+/// receipts, the Pistol start and Planned Works share it.
+pub const M19_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
+/// Local Exception: the Surveyor, its tracking mark and convergence, the
+/// pier hold clock, refuge barricade, reprieve stand-down and campaign victory.
+pub const M20_GAMEPLAY_VERSION: u32 = 56;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M18_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M20_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -904,7 +892,8 @@ mod geometry_tests {
                 ..
             }
         ));
-        let legacy = crate::sim::GameState::new().map_info();
+        let legacy =
+            crate::sim::GameState::with_map(crate::sim::MapKind::ComplianceYard, false).map_info();
         let value = serde_json::to_value(&legacy).unwrap();
         assert!(value.get("geometry_version").is_none());
         assert!(value["solids"]
@@ -945,7 +934,9 @@ mod geometry_tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             walker: None,
+            m20: None,
             article_blade: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
@@ -1126,7 +1117,19 @@ pub enum ServerMessage {
             deserialize_with = "m11::present",
             skip_serializing_if = "Option::is_none"
         )]
+        m19: Option<M19MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
         walker: Option<WalkerGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m20: Option<M20MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1198,6 +1201,12 @@ pub struct MovementAck {
     pub effective_speed: f32,
     /// Jump request passed to movement integration, not proof of takeoff.
     pub jump_input: bool,
+    /// Server ticks left before this fighter may dodge again, after this tick.
+    pub dodge_cooldown: u32,
+    /// Worn jetpack fuel after this step, for replay from this body. Omitted
+    /// without a pack; prediction then uses the ordinary step.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jet_fuel: Option<u16>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -1304,6 +1313,11 @@ pub struct Action {
     /// Held. A grounded fighter leaves the floor on the first tick it is set.
     #[serde(default)]
     pub jump: bool,
+    /// Rising-edge ground dodge toward the held movement keys. A press
+    /// survives newer released input until one tick observes it. Ignored in
+    /// the air, with no direction held, or during the dodge cooldown.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dodge: bool,
     #[serde(default)]
     pub turn_left: bool,
     #[serde(default)]
@@ -1444,6 +1458,31 @@ pub struct PickupState {
     pub respawn_in: Option<u32>,
 }
 
+impl PickupState {
+    /// The pad's published return clock in ticks. A regular learns these
+    /// numbers; a joined agent's observe uses them instead of a live timer.
+    /// Free-for-all clocks depend on the gun (`crate::rules`), so the pad's
+    /// `weapon` name picks the clock exactly as the server does. A clock a map
+    /// authors for one pad (Larak Lot's Custody Plate, 35 s) is not on the
+    /// wire, so that pad reads as its kind's sheet clock here.
+    pub fn clock_ticks(&self, teams: bool) -> u32 {
+        let weapon = (self.kind == "weapon").then(|| {
+            WeaponType::ALL
+                .into_iter()
+                .find(|weapon| weapon.name() == self.weapon)
+                .unwrap_or(WeaponType::Flechette)
+        });
+        let health_or_armor = matches!(self.kind.as_str(), "health" | "armor");
+        crate::rules::pad_respawn_ticks(teams, weapon, health_or_armor).unwrap_or(
+            if health_or_armor {
+                crate::sim::HEALTH_PICKUP_RESPAWN_TICKS
+            } else {
+                crate::sim::SUPPLY_PICKUP_RESPAWN_TICKS
+            },
+        )
+    }
+}
+
 /// Solo Broadcast jammer dish world marker (arena center soft-touch).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JammerDishState {
@@ -1470,8 +1509,14 @@ pub struct Snapshot {
     pub players: Vec<PlayerState>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub round_state: Option<String>,
+    /// Seconds left on the round clock. Absent during sudden death, when the
+    /// clock is stopped.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub round_time_left: Option<u32>,
+    /// The clock ran out level (or a level Sabotage match reached its
+    /// decider round): the next score wins. Omitted when false.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub sudden_death: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub frag_limit: Option<u32>,
     /// Shots resolved on this tick (empty omitted on wire).
@@ -1495,18 +1540,27 @@ pub struct Snapshot {
     /// Living campaign Auditors and their repair channels.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auditors: Vec<AuditorState>,
+    /// Marked Paver strips while prepared or worked. Omitted when none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paver_strips: Vec<PaverStripState>,
+    /// Worn jetpacks and their fuel. Omitted when nobody wears one.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub jetpacks: Vec<JetpackState>,
+    /// Live Surveyor discs, each projected by one living Surveyor.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub surveyor_marks: Vec<SurveyorMarkState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub explosions: Vec<ExplosionResult>,
-    /// Contested Frequency (scrap league that denies it exists).
+    /// Scrap League (the independent league that denies it exists).
     #[serde(default = "default_mode_name")]
     pub mode_name: String,
-    /// Arena Duel under the league lie.
+    /// Larak Lot under the league lie.
     #[serde(default = "default_playlist")]
     pub playlist: String,
     /// Live pressure beat id when Continuance is squeezing the round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pressure: Option<String>,
-    /// Sticky Contested Frequency Host chrome (mid-join / observe).
+    /// Sticky Scrap League Host chrome (mid-join / observe).
     #[serde(default = "default_host_line")]
     pub host_line: String,
     /// Round MVP while Ended (mid-join / observe rehydrate). Omitted otherwise.
@@ -1518,7 +1572,7 @@ pub struct Snapshot {
     /// Mid-map pads: weapons, health, armor (Quake chase energy). Empty omitted on wire.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pickups: Vec<PickupState>,
-    /// Contested Frequency scrap layout id (1 = Arena Duel, 2 = Compliance Yard).
+    /// Scrap League scrap layout id (1 = Larak Lot, 2 = Compliance Yard).
     #[serde(default = "default_map_id")]
     pub map_id: u32,
     /// Human-readable scrap layout name.
@@ -1753,7 +1807,7 @@ pub enum GameEvent {
         /// MVP frag count (mirrors winner_score for agents / podium chrome).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         mvp_frags: Option<u32>,
-        /// Contested Frequency Host bumper for round-end podium.
+        /// Scrap League Host bumper for round-end podium.
         #[serde(default = "default_host_line")]
         host_line: String,
         /// Team modes: the side that won, or omitted for a draw.
@@ -1817,16 +1871,9 @@ pub enum GameEvent {
         #[serde(default, skip_serializing_if = "is_false")]
         secret: bool,
     },
-    /// Within-round multi-kill Host callout (tiers 2 / 3 / 5).
-    Killstreak {
-        player: String,
-        player_id: Uuid,
-        streak: u32,
-        tier: String,
-        message: String,
-    },
     /// A Host beat from an authoritative fact. The client owns the words,
-    /// keyed by kind and variant; names fill its placeholders.
+    /// keyed by kind and variant; names fill its placeholders. Multikills
+    /// and spree tiers are kinds here too.
     HostReaction {
         kind: HostReactionKind,
         /// `0..HOST_REACTION_VARIANTS`, rotated so a regular hears them all.
@@ -1840,12 +1887,22 @@ pub enum GameEvent {
         /// The side the beat is about.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         team: Option<Team>,
+        /// A big moment the Host voices (`HostReactionKind::big`). Omitted
+        /// for a text-only caption.
+        #[serde(default, skip_serializing_if = "is_false")]
+        big: bool,
     },
     /// Off-tick agent/human callout (rate-limited, length-capped).
     Speak {
         player: String,
         player_id: Uuid,
         text: String,
+        /// The one fighter a line is said to, when it is said to someone: a
+        /// rule bot's frag taunt names its victim here ("deleted you"), and a
+        /// client shows it only from that fighter's point of view. Absent for
+        /// lines meant for the whole room.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        to_id: Option<Uuid>,
     },
     /// One ordinary sentence from the person running the venue. Not a player
     /// callout and not an on-air Host line.
@@ -1973,6 +2030,7 @@ mod protocol_tests {
             players: vec![],
             round_state: None,
             round_time_left: None,
+            sudden_death: false,
             frag_limit: None,
             shot_results: vec![shot.clone()],
             projectiles: vec![],
@@ -1983,6 +2041,9 @@ mod protocol_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -2105,18 +2166,39 @@ mod protocol_tests {
         let ev = GameEvent::Speak {
             player: "ArenaFox".into(),
             player_id: id,
-            text: "frequency contested".into(),
+            text: "nice scrap".into(),
+            to_id: None,
         };
         let v = serde_json::to_value(&ev).unwrap();
         assert_eq!(v["event"], "speak");
-        assert_eq!(v["text"], "frequency contested");
+        assert_eq!(v["text"], "nice scrap");
         assert_eq!(v["player"], "ArenaFox");
+        assert!(v.get("to_id").is_none(), "a room-wide line names nobody");
         let back: GameEvent = serde_json::from_value(v).unwrap();
         match back {
-            GameEvent::Speak { text, player, .. } => {
-                assert_eq!(text, "frequency contested");
+            GameEvent::Speak {
+                text,
+                player,
+                to_id,
+                ..
+            } => {
+                assert_eq!(text, "nice scrap");
                 assert_eq!(player, "ArenaFox");
+                assert_eq!(to_id, None);
             }
+            other => panic!("expected Speak, got {:?}", other),
+        }
+        let victim = Uuid::new_v4();
+        let addressed = GameEvent::Speak {
+            player: "Scout Ant".into(),
+            player_id: id,
+            text: "scout ant deleted you".into(),
+            to_id: Some(victim),
+        };
+        let v = serde_json::to_value(&addressed).unwrap();
+        assert_eq!(v["to_id"], victim.to_string());
+        match serde_json::from_value::<GameEvent>(v).unwrap() {
+            GameEvent::Speak { to_id, .. } => assert_eq!(to_id, Some(victim)),
             other => panic!("expected Speak, got {:?}", other),
         }
     }
@@ -2211,6 +2293,7 @@ mod protocol_tests {
             players: vec![],
             round_state: None,
             round_time_left: None,
+            sudden_death: false,
             frag_limit: None,
             shot_results: vec![],
             projectiles: vec![],
@@ -2221,6 +2304,9 @@ mod protocol_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -2315,44 +2401,65 @@ mod protocol_tests {
         ));
     }
     #[test]
-    fn killstreak_event_wire_json_shape() {
-        let id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-        let ev = GameEvent::Killstreak {
-            player: "Rusher".into(),
-            player_id: id,
-            streak: 2,
-            tier: "double".into(),
-            message: "HOST: DOUBLE FREQUENCY. Rusher DENIES THE DENIAL.".into(),
+    fn host_reaction_wire_marks_big_moments_and_omits_captions_flag() {
+        let triple = GameEvent::HostReaction {
+            kind: HostReactionKind::TripleFrag,
+            variant: 1,
+            player: Some("Rusher".into()),
+            other: Some("Target".into()),
+            team: None,
+            big: true,
         };
-        let v = serde_json::to_value(&ev).unwrap();
-        assert_eq!(v["event"], "killstreak");
-        assert_eq!(v["player"], "Rusher");
-        assert_eq!(v["streak"], 2);
-        assert_eq!(v["tier"], "double");
-        assert!(v["message"].as_str().unwrap().contains("DOUBLE FREQUENCY"));
+        let v = serde_json::to_value(&triple).unwrap();
+        assert_eq!(v["event"], "host_reaction");
+        assert_eq!(v["kind"], "triple_frag");
+        assert_eq!(v["big"], true);
+        assert!(v.get("team").is_none());
         let back: GameEvent = serde_json::from_value(v).unwrap();
-        match back {
-            GameEvent::Killstreak { streak, tier, .. } => {
-                assert_eq!(streak, 2);
-                assert_eq!(tier, "double");
+        assert!(matches!(
+            back,
+            GameEvent::HostReaction {
+                kind: HostReactionKind::TripleFrag,
+                big: true,
+                ..
             }
-            other => panic!("expected Killstreak, got {:?}", other),
-        }
+        ));
+        let caption = GameEvent::HostReaction {
+            kind: HostReactionKind::DoubleFrag,
+            variant: 0,
+            player: Some("Rusher".into()),
+            other: None,
+            team: None,
+            big: false,
+        };
+        let v = serde_json::to_value(&caption).unwrap();
+        assert!(v.get("big").is_none(), "a caption omits the flag: {v}");
+        assert!(matches!(
+            serde_json::from_value(v).unwrap(),
+            GameEvent::HostReaction { big: false, .. }
+        ));
     }
 
     #[test]
-    fn killstreak_host_line_tiers() {
-        assert!(killstreak_host_line(1, "X").is_none());
-        assert!(killstreak_host_line(4, "X").is_none());
-        let (tier, msg) = killstreak_host_line(2, "Rusher").unwrap();
-        assert_eq!(tier, "double");
-        assert!(msg.contains("Rusher"));
-        let (tier, msg) = killstreak_host_line(3, "Rusher").unwrap();
-        assert_eq!(tier, "triple");
-        assert!(msg.contains("TRIPLE"));
-        let (tier, msg) = killstreak_host_line(5, "Rusher").unwrap();
-        assert_eq!(tier, "rampage");
-        assert!(msg.contains("RAMPAGE"));
+    fn host_lines_never_use_station_vocabulary() {
+        let names = vec!["Dead Air Dan".to_string()];
+        let lines = [
+            default_host_line(),
+            roster_host_line(&names),
+            warmup_host_line("Arena Duel", &names, 3),
+            warmup_host_line("Arena Duel", &[], 3),
+            round_open_host_line("Arena Duel", &names),
+            round_open_host_line("Arena Duel", &[]),
+            boss_round_wipe_host_line(),
+            mvp_host_line("Rusher", 3),
+            empty_mvp_host_line(),
+        ];
+        for line in lines {
+            assert!(line.starts_with("HOST: "), "{line}");
+            assert!(!line.contains("FREQUENCY"), "no station puns: {line}");
+            assert!(!line.contains("TUNES IN"), "no station puns: {line}");
+        }
+        assert_eq!(MODE_NAME, "Scrap League");
     }
 
     #[test]
@@ -2367,17 +2474,19 @@ mod protocol_tests {
 
     #[test]
     fn scrap_bot_host_lines() {
-        let intro = bot_intro_host_line("Dead Air Dan");
-        assert!(intro.contains("DEAD AIR DAN"));
-        assert!(intro.contains("DIALS THE FREQUENCY"));
-        let roster = roster_host_line(&[
-            "Dead Air Dan".into(),
-            "Nightfall".into(),
-            "Static Kid".into(),
-            "Aunt Linda".into(),
-        ]);
-        assert!(roster.contains("DEAD AIR DAN"));
+        let names: Vec<String> = crate::roster::ROSTER[..4]
+            .iter()
+            .map(|f| f.name.to_string())
+            .collect();
+        let roster = roster_host_line(&names);
+        for name in &names {
+            assert!(roster.contains(&name.to_uppercase()), "{roster}");
+        }
         assert!(roster.contains("ON THE SCRAP"));
+        // Radio is a station feature, not the Host's arena vocabulary.
+        for line in [&roster, &default_host_line()] {
+            assert!(!line.contains("FREQUENCY"), "{line}");
+        }
         assert_eq!(roster_host_line(&[]), default_host_line());
         let many = roster_host_line(&["A".into(), "B".into(), "C".into(), "D".into(), "E".into()]);
         assert!(many.contains("+2"));
@@ -2385,11 +2494,14 @@ mod protocol_tests {
 
     #[test]
     fn warmup_and_round_open_host_lines() {
-        let names = vec!["Dead Air Dan".into(), "Nightfall".into()];
+        let names = vec!["Grandma Rizz".into(), "Nightfall".into()];
         let warm = warmup_host_line("Arena Duel", &names, 2);
-        assert!(warm.contains("CONTESTED FREQUENCY"));
+        assert_eq!(
+            warm,
+            "HOST: ARENA DUEL. GRANDMA RIZZ, NIGHTFALL ON THE SCRAP. GOES LIVE IN 2."
+        );
         assert!(warm.contains("ARENA DUEL"));
-        assert!(warm.contains("DEAD AIR DAN"));
+        assert!(warm.contains("GRANDMA RIZZ"));
         assert!(warm.contains("ON THE SCRAP"));
         assert!(warm.contains("GOES LIVE IN 2"));
         let empty = warmup_host_line("Compliance Yard", &[], 3);
@@ -2406,22 +2518,31 @@ mod protocol_tests {
 
     #[test]
     fn rule_bot_taunt_lines_are_callsign_flavored() {
-        let frag = rule_bot_taunt_line("Dead Air Dan", BotTauntKind::Frag, 0);
-        assert!(
-            frag.contains("dead air") || frag.contains("booth"),
-            "{frag}"
-        );
-        let death = rule_bot_taunt_line("Nightfall-2", BotTauntKind::Death, 0);
-        assert!(
-            death.contains("night watch") || death.contains("rail"),
-            "{death}"
-        );
-        let warm = rule_bot_taunt_line("Static Kid", BotTauntKind::Warmup, 0);
-        assert!(warm.contains("glitch") || warm.contains("static"), "{warm}");
-        let streak = rule_bot_taunt_line("Buzzkill", BotTauntKind::Killstreak, 0);
-        assert!(!streak.is_empty());
-        assert!(streak.chars().count() <= 80);
-        assert_eq!(rule_bot_callsign_base("Tin Foil Tina-3"), "Tin Foil Tina");
+        for fighter in crate::roster::ROSTER {
+            for kind in [
+                BotTauntKind::Frag,
+                BotTauntKind::Death,
+                BotTauntKind::Killstreak,
+                BotTauntKind::Warmup,
+            ] {
+                let lines = fighter.taunts(kind);
+                for salt in 0..3 {
+                    assert_eq!(
+                        rule_bot_taunt_line(fighter.name, kind, salt),
+                        lines[salt as usize]
+                    );
+                }
+                // Overflow copies speak the same lines.
+                let copy = format!("{}-2", fighter.name);
+                assert_eq!(rule_bot_taunt_line(&copy, kind, 4), lines[1]);
+            }
+        }
+        let frag = rule_bot_taunt_line("Scout Ant", BotTauntKind::Frag, 0);
+        assert_eq!(frag, "scout ant deleted you");
+        assert_eq!(rule_bot_callsign_base("Handle 4471-K"), "Handle 4471-K");
+        assert_eq!(rule_bot_callsign_base("Lil Bro 63-3"), "Lil Bro 63");
+        let death = rule_bot_taunt_line("Scrap Fox", BotTauntKind::Death, 0);
+        assert_eq!(death, "back in a sec");
         let generic = rule_bot_taunt_line("Scrap Fox", BotTauntKind::Frag, 1);
         assert!(
             generic == "clean 67" || generic == "meatproxy down",

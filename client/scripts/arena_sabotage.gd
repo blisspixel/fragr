@@ -104,8 +104,9 @@ func set_layout(layout: Dictionary) -> void:
 			label.text = SabotageState.site_name(id, layout)
 			label.position.y = PLATE_HEIGHT + 0.65
 			label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			label.font_size = 28
-			label.pixel_size = 0.018
+			MenuTheme.world_text(label)
+			label.font_size = 32
+			label.pixel_size = 0.016
 			label.modulate = SabotageArt.BONE
 			label.outline_modulate = SabotageArt.SHADOW
 			root.add_child(label)

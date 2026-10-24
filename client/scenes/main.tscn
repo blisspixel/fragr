@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ba4u2t3o17x7x"]
+[gd_scene load_steps=9 format=3 uid="uid://ba4u2t3o17x7x"]
 
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/net_client.gd" id="2_net"]
@@ -7,10 +7,6 @@
 [ext_resource type="Script" path="res://scripts/spectator_cam.gd" id="4_camera"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="5_hud"]
 [ext_resource type="Script" path="res://scripts/combat_feed.gd" id="10_feed"]
-[ext_resource type="Texture2D" path="res://assets/ui/chrome_strip_hud.png" id="6_chrome"]
-[ext_resource type="Texture2D" path="res://assets/ui/on_air_badge.png" id="7_onair"]
-[ext_resource type="Texture2D" path="res://assets/ui/contested_frequency_badge.png" id="8_cf"]
-[ext_resource type="Texture2D" path="res://assets/ui/hangar_candy_badge.png" id="9_hangar"]
 
 [sub_resource type="StyleBoxFlat" id="PanelStyleBox_Weapon"]
 border_width_left = 2
@@ -81,7 +77,7 @@ theme_override_constants/outline_size = 6
 [node name="ModeLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
-text = "CONTESTED FREQUENCY // ARENA DUEL\nSPECTATING (J: Join, F: Cycle Cam, ESC: Mouse)"
+text = "SCRAP LEAGUE // ARENA DUEL\nSPECTATING (J: Join, F: Cycle Cam, ESC: Mouse)"
 theme_override_constants/outline_size = 6
 
 [node name="RoundLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
@@ -106,74 +102,9 @@ theme_override_constants/outline_size = 6
 [node name="Scoreboard" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
-text = "SCRAP LEAGUE\nCONTESTED FREQUENCY\n(waiting for scrap)"
+text = "SCRAP LEAGUE\n(waiting for scrap)"
 theme_override_constants/outline_size = 6
 
-
-[node name="ChromeStrip" type="TextureRect" parent="HUD"]
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 360.0
-offset_top = 8.0
-offset_right = -16.0
-offset_bottom = 80.0
-grow_horizontal = 2
-mouse_filter = 2
-texture_filter = 0
-texture = ExtResource("6_chrome")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 1, 1, 0.88)
-
-[node name="OnAirBadge" type="TextureRect" parent="HUD"]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -130.0
-offset_top = 88.0
-offset_right = -16.0
-offset_bottom = 140.0
-grow_horizontal = 0
-mouse_filter = 2
-texture_filter = 0
-texture = ExtResource("7_onair")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 1, 1, 0.92)
-visible = false
-
-[node name="ContestedFrequencyBadge" type="TextureRect" parent="HUD"]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -250.0
-offset_top = 88.0
-offset_right = -140.0
-offset_bottom = 140.0
-grow_horizontal = 0
-mouse_filter = 2
-texture_filter = 0
-texture = ExtResource("8_cf")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 1, 1, 0.9)
-visible = true
-
-[node name="HangarCandyBadge" type="TextureRect" parent="HUD"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -72.0
-offset_right = 130.0
-offset_bottom = -16.0
-grow_vertical = 0
-mouse_filter = 2
-texture_filter = 0
-texture = ExtResource("9_hangar")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 1, 1, 0.82)
 
 [node name="CombatFeed" type="VBoxContainer" parent="HUD"]
 anchor_left = 1.0
@@ -226,10 +157,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -140.0
-offset_top = -140.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = -160.0
+offset_top = -160.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 0
 grow_vertical = 0
 texture_filter = 0
@@ -243,10 +174,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -146.0
-offset_top = -146.0
-offset_right = -4.0
-offset_bottom = -4.0
+offset_left = -166.0
+offset_top = -166.0
+offset_right = -24.0
+offset_bottom = -24.0
 visible = false
 grow_horizontal = 0
 grow_vertical = 0
@@ -519,7 +450,7 @@ alignment = 1
 [node name="LeagueLabel" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
 theme_override_constants/outline_size = 6
-text = "CONTESTED FREQUENCY"
+text = "SCRAP LEAGUE"
 horizontal_alignment = 1
 
 [node name="MapTitle" type="Label" parent="HUD/WarmupTv/Center"]
@@ -545,7 +476,7 @@ autowrap_mode = 3
 [node name="HostLine" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
 theme_override_constants/outline_size = 6
-text = "HOST: CONTESTED FREQUENCY"
+text = "HOST: ARENA DUEL IS LIVE."
 horizontal_alignment = 1
 autowrap_mode = 3
 

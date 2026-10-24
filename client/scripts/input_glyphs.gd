@@ -39,6 +39,13 @@ const TOKENS: Dictionary = {
 	"cycle": "cycle_cam",
 	"view": "toggle_follow",
 	"radio": "radio_next_station",
+	"radio_prev": "radio_prev_station",
+	"radio_next": "radio_next_station",
+	"skip": "radio_next_track",
+	"radio_power": "radio_toggle",
+	"scope": "scope",
+	"reload": "reload",
+	"duck": "duck",
 }
 
 ## 5x7 bitmaps for the few letters a glyph carries.
@@ -81,8 +88,18 @@ static func pad_name(token: String, layout: String) -> String:
 		JOY_BUTTON_RIGHT_SHOULDER: return "R1" if layout == "shapes" else "RB"
 		JOY_BUTTON_LEFT_STICK: return "L3" if layout == "shapes" else "LS"
 		JOY_BUTTON_RIGHT_STICK: return "R3" if layout == "shapes" else "RS"
-		JOY_BUTTON_BACK: return "SELECT" if layout != "letters" else "VIEW"
-		JOY_BUTTON_START: return "START" if layout != "letters" else "MENU"
+		# Each family's printed name: View and Menu on Xbox, Create and Options
+		# on a DualSense (Share on a DualShock 4 sits in the same place).
+		JOY_BUTTON_BACK:
+			match layout:
+				"letters": return "VIEW"
+				"shapes": return "CREATE"
+			return "SELECT"
+		JOY_BUTTON_START:
+			match layout:
+				"letters": return "MENU"
+				"shapes": return "OPTIONS"
+			return "START"
 		JOY_BUTTON_GUIDE: return "HOME"
 		JOY_BUTTON_DPAD_UP: return "D-UP"
 		JOY_BUTTON_DPAD_DOWN: return "D-DOWN"

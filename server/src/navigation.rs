@@ -713,7 +713,7 @@ pub(crate) mod tests {
                 tick,
                 true,
             );
-            state = movement::step(
+            state = movement::fighter_step(
                 state,
                 &MoveInput {
                     forward: action.forward,
@@ -723,6 +723,7 @@ pub(crate) mod tests {
                     yaw: action.yaw.unwrap_or(state.yaw),
                     ..MoveInput::default()
                 },
+                movement::TOP_SPEED,
                 0.05,
                 &navigation.arena,
             );
@@ -832,7 +833,7 @@ pub(crate) mod tests {
     #[test]
     fn ctf_bases_are_walkable_on_the_validated_maps() {
         use crate::sim::MapKind;
-        for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+        for map in [MapKind::Directive17, MapKind::Sector9] {
             let stands = map.ctf_stands().expect("validated CTF map");
             let navigation = Navigation::new(Arena {
                 half: map.half_extent(),

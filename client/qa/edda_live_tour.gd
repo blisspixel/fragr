@@ -128,7 +128,7 @@ func _write_manifest(tour: Dictionary) -> void:
 	if file == null:
 		_failed = true
 		return
-	file.store_string(JSON.stringify({"schema":1, "mission":_mission, "carry":"eligible" if _eligible else "omitted", "scope":"labelled historical finite carry, canonical native promotion, ordinary input; frames may be off-camera", "native_sha256":_owned.server_sha256, "source_sha256":FileAccess.get_sha256(SkinnedCharacter.SOURCES.edda), "samples":_samples, "motion_frames":_frames}, "\t") + "\n")
+	file.store_string(JSON.stringify({"schema":1, "mission":_mission, "carry":"eligible" if _eligible else "omitted", "scope":"labelled finite carry, canonical native promotion, ordinary input; frames may be off-camera", "native_sha256":_owned.server_sha256, "source_sha256":FileAccess.get_sha256(SkinnedCharacter.SOURCES.edda), "samples":_samples, "motion_frames":_frames}, "\t") + "\n")
 	file.close()
 
 func _retire_scene() -> void:
@@ -162,17 +162,17 @@ func _write_fixture(directory: String) -> bool:
 	var map_path: String = "res://../server/maps/m08_custodian_of_record.json" if _mission == "m09" else "res://../server/maps/m09_passenger_manifest.json"
 	for byte: int in FileAccess.get_sha256(map_path).hex_decode():
 		hash.append(byte)
-	var fixture: Dictionary = {"version":9 if _mission == "m09" else (12 if _eligible else 11), "id":"40000000-0000-4000-8000-00000000edda", "starting_continues":3, "remaining_continues":1, "level_start_continues":1, "body":"synthetic", "rules":{"difficulty":"standard", "revision":3}, "content_sha256":hash,
-		"m03_outcome":{"liberated_cars":["roof_car"]}, "m04_outcome":{"rescued_patients":["edda_team_a"] if _eligible or _mission == "m10" else [], "photos_completed":2},
+	var fixture: Dictionary = {"version":RunFixture.VERSION, "id":"40000000-0000-4000-8000-00000000edda", "starting_continues":3, "remaining_continues":1, "level_start_continues":1, "body":"synthetic", "rules":{"difficulty":"standard", "revision":MissionState.RULES_REVISION}, "content_sha256":hash,
+		"m03_outcome":{"liberated_cars":["roof_car"]}, "m04_outcome":{"rescued_patients":["edda_team_a"] if _eligible else [], "photos_completed":2},
 		"m05_outcome":{"released_workers":["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers":["splice"]}, "m06_outcome":{"prisoner_route_marked":true},
 		"step":{"kind":"awaiting_mission", "completed_mission":"custodian_of_record" if _mission == "m09" else "passenger_manifest", "next_mission":"passenger_manifest" if _mission == "m09" else "common_carrier",
-			"exit":{"hp":39, "armor":17, "equipment":{"selected":"sniper", "weapons":["fists", "flechette", "scatter", "sniper"], "ammo":[{"pool":"bullets", "rounds":76}, {"pool":"shells", "rounds":32}, {"pool":"cells", "rounds":1}], "grenades":2, "proximity_mines":3, "personal_claims":["cold_cabinet"]}}}}
+			"exit":{"hp":39, "armor":17, "equipment":{"selected":"sniper", "weapons":["fists", "flechette", "scatter", "sniper"], "ammo":[{"pool":"bullets", "rounds":76}, {"pool":"shells", "rounds":32}, {"pool":"cells", "rounds":1}, {"pool":"rockets", "rounds":0}], "grenades":2, "proximity_mines":3, "remote_mines":0, "personal_claims":["cold_cabinet"]}}}}
+	fixture.m08_outcome = {"custody_released":true, "recovered_mind_secured":true, "captives_evacuated":true}
 	if _mission == "m10":
-		fixture.m08_outcome = {"kind":"recorded", "custody_released":true, "recovered_mind_secured":true, "captives_evacuated":true}
-		if _eligible:
-			fixture.m09_outcome = {"kind":"recorded", "released_crew":["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure":[]}
+		var released: Array = ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"] if _eligible else ["tern", "berth_crew_a", "berth_crew_b", "splice"]
+		fixture.m09_outcome = {"released_crew":released, "aboard_at_departure":[]}
 	var source: String = JSON.stringify(fixture) + "\n  \n"
-	for filename: String in [directory.path_join("run.json"), directory.get_base_dir().path_join("historical-input.json")]:
+	for filename: String in [directory.path_join("run.json"), directory.get_base_dir().path_join("input-run.json")]:
 		var file: FileAccess = FileAccess.open(filename, FileAccess.WRITE)
 		if file == null or not file.store_string(source):
 			return false

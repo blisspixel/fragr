@@ -16,14 +16,25 @@ func _initialize() -> void:
 		return
 	_check(MovementAck.validation_error(legacy) == "", "legacy Ack remains valid")
 	_check(not MovementAck.has_replay_body(legacy), "legacy Ack has no replay body")
-	var full_value: Variant = JSON.parse_string('{"type":"ack","seq":4,"tick":10,"x":1.0,"z":2.0,"yaw":0.5,"pitch":0.0,"movement":{"version":1,"epoch":2,"applied":true,"y":1.5,"vx":0.0,"vy":6.0,"vz":3.0,"effective_speed":5.0,"jump_input":true}}')
+	var full_value: Variant = JSON.parse_string('{"type":"ack","seq":4,"tick":10,"x":1.0,"z":2.0,"yaw":0.5,"pitch":0.0,"movement":{"version":2,"epoch":2,"applied":true,"y":1.5,"vx":0.0,"vy":6.0,"vz":3.0,"effective_speed":5.0,"jump_input":true,"dodge_cooldown":4}}')
 	_check(full_value is Dictionary, "full Ack parses from JSON")
 	if not full_value is Dictionary:
 		quit(1)
 		return
 	var full: Dictionary = full_value
 	_check(MovementAck.validation_error(full) == "", "finite parsed 3D Ack is valid")
-	_check(MovementAck.has_replay_body(full), "version 1 is replay capable")
+	_check(MovementAck.has_replay_body(full), "version 2 is replay capable")
+	var no_cooldown: Dictionary = full.duplicate(true)
+	no_cooldown["movement"].erase("dodge_cooldown")
+	_check(MovementAck.validation_error(no_cooldown) != "", "a version 2 body must carry the dodge cooldown")
+	var long_cooldown: Dictionary = full.duplicate(true)
+	long_cooldown["movement"]["dodge_cooldown"] = MoveStep.DODGE_COOLDOWN_TICKS + 1
+	_check(MovementAck.validation_error(long_cooldown) != "", "a cooldown past the rule is invalid")
+	var immediate: Dictionary = full.duplicate(true)
+	immediate["movement"]["version"] = 1.0
+	immediate["movement"].erase("dodge_cooldown")
+	_check(MovementAck.validation_error(immediate) == "" and MovementAck.has_replay_body(immediate),
+		"a campaign's immediate-step version 1 body is replayed without a dodge cooldown")
 	var repeated: Dictionary = full.duplicate(true)
 	repeated["tick"] = 11.0
 	_check(MovementAck.validation_error(repeated, full) == "", "same seq on a newer tick is valid")
@@ -73,7 +84,7 @@ func _initialize() -> void:
 	wrap_after["tick"] = 11.0
 	_check(MovementAck.validation_error(wrap_after, wrap_before) == "", "u32 wrap advances")
 	var future: Dictionary = full.duplicate(true)
-	future["movement"]["version"] = 2.0
+	future["movement"]["version"] = 3.0
 	_check(MovementAck.validation_error(future) == "", "future schema falls back")
 	_check(not MovementAck.has_replay_body(future), "future schema is not replayed")
 	if failures.is_empty():

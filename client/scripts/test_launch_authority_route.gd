@@ -30,7 +30,7 @@ func _initialize() -> void:
 					arrived = true
 					break
 				var yaw: float = atan2(goal[2] - state.z, goal[0] - state.x)
-				state = MoveStep.live_step(state, MoveStep.make_input(true, false, false, false, yaw), MoveStep.TOP_SPEED, MoveStep.DT_LIVE, world)
+				state = MoveStep.live_step(state, MoveStep.make_input(true, false, false, false, yaw), MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, world)
 				if capture.name == "launch_apron_resupply":
 					assert(not _contains(final_region, Vector3(state.x, state.y, state.z)), "Pre-final resupply crossed gantry activation")
 			if not arrived:

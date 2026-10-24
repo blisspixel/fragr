@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "id": "l20_still_here",
+  "title_key": "MISSION_M20_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "LINE", "caption_key": "STORY_M20_DEPARTURE_LINE", "timing": "reader", "hold": 1},
+    {"id": "CROSSING", "caption_key": "STORY_M20_DEPARTURE_CROSSING", "timing": "reader", "hold": 1},
+    {"id": "UNLOCKED", "caption_key": "STORY_M20_DEPARTURE_UNLOCKED", "timing": "reader", "hold": 1}
+  ]
+}

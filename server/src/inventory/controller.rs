@@ -14,6 +14,19 @@ fn usable(loadout: &LoadoutState, weapon: WeaponType) -> bool {
     loadout.owns(weapon) && loadout.shots(weapon).is_none_or(|shots| shots > 0)
 }
 
+/// Metres a Pistol-only fighter will walk for a gun with a rival in range.
+const UPGRADE_DETOUR: f32 = 8.0;
+
+/// A gun worth leaving the Pistol for.
+fn is_upgrade(weapon: WeaponType) -> bool {
+    weapon.ammo_pool().is_some() && !matches!(weapon, WeaponType::Tack)
+}
+
+/// The free-for-all start: nothing carried but the Pistol and melee.
+fn sidearm_only(loadout: &LoadoutState) -> bool {
+    loadout.owns(WeaponType::Tack) && !loadout.weapons.iter().any(|w| is_upgrade(*w))
+}
+
 /// The best melee in hand: a found Shiv, otherwise fists.
 fn melee(loadout: &LoadoutState) -> WeaponType {
     if loadout.owns(WeaponType::Shiv) {
@@ -265,7 +278,7 @@ pub fn control_action_with_target_filter(
                 && (target.armor > 0
                     || matches!(
                         target.campaign,
-                        Some(crate::protocol::CampaignActor::Union {
+                        Some(crate::protocol::CampaignActor::Hostile {
                             kind: crate::protocol::EnemyKind::Auditor
                                 | crate::protocol::EnemyKind::Assessor,
                             ..
@@ -318,6 +331,46 @@ pub fn control_action_with_target_filter(
     }
 
     let melee_only = selected.ammo_pool().is_none();
+    // A free-for-all life starts on the Pistol. Holding nothing stronger, it
+    // goes and takes a gun from a contested pad: always when nobody is in
+    // the Pistol's reach, and even with a fight on when the pad
+    // is a few steps away. An objective keeps its priority, and a campaign
+    // participant keeps its mission's own pacing.
+    if !has_objective
+        && me.campaign.is_none()
+        && snapshot.sabotage.is_none()
+        && !melee_only
+        && sidearm_only(loadout)
+    {
+        let distance_to = |p: &PickupState| (p.x - me.x).hypot(p.z - me.z);
+        let gun = snapshot
+            .pickups
+            .iter()
+            .filter(|p| {
+                p.available
+                    && p.claim == SupplyClaim::Contested
+                    && p.kind == "weapon"
+                    && weapon_from_name(&p.weapon)
+                        .is_some_and(|w| !loadout.owns(w) && is_upgrade(w))
+            })
+            .min_by(|a, b| distance_to(a).total_cmp(&distance_to(b)));
+        let crowded = nearest.is_some_and(|target| {
+            (target.x - me.x).hypot(target.z - me.z) <= WeaponType::Tack.range_units()
+        });
+        if let Some(gun) = gun.filter(|gun| !crowded || distance_to(gun) <= UPGRADE_DETOUR) {
+            return Action {
+                forward: true,
+                weapon_swap: action.weapon_swap,
+                look_at: Some(LookAt {
+                    x: Some(gun.x),
+                    y: Some(gun.y),
+                    z: Some(gun.z),
+                    player_id: None,
+                }),
+                ..Action::default()
+            };
+        }
+    }
     if melee_only || (nearest.is_none() && !has_objective) {
         let supply = snapshot
             .pickups

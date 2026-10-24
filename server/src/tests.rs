@@ -3,8 +3,8 @@ use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
     default_host_line, default_map_id, default_map_name, default_mode_name, default_playlist,
     mvp_host_line, round_open_host_line, warmup_host_line, Action, ClientMessage, GameEvent,
-    PlayerScore, PlayerState, Role, ServerMessage, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
-    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
+    HostReactionKind, PlayerScore, PlayerState, Role, ServerMessage, Snapshot, WeaponType,
+    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
 };
 #[cfg(test)]
 use crate::session::GameSession;
@@ -121,7 +121,7 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
 #[cfg(test)]
 use crate::sim::{
     BotBehavior, BotController, EpisodePhase, GameState, MapKind, MatchConfig, RoundState,
-    BOSS_MAX_HP, HEALTH_PICKUP_RESPAWN_TICKS, PICKUP_RESPAWN_TICKS,
+    BOSS_MAX_HP,
 };
 
 #[cfg(test)]
@@ -480,6 +480,7 @@ fn test_protocol_snapshot_serialization() {
         }],
         round_state: Some("Active".to_string()),
         round_time_left: Some(60),
+        sudden_death: false,
         frag_limit: Some(10),
         shot_results: vec![],
         projectiles: vec![],
@@ -490,6 +491,9 @@ fn test_protocol_snapshot_serialization() {
         mines: Vec::new(),
         remote_mines: Vec::new(),
         auditors: Vec::new(),
+        paver_strips: Vec::new(),
+        jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -527,6 +531,7 @@ fn test_protocol_snapshot_empty_players() {
         players: vec![],
         round_state: None,
         round_time_left: None,
+        sudden_death: false,
         frag_limit: None,
         shot_results: vec![],
         projectiles: vec![],
@@ -537,6 +542,9 @@ fn test_protocol_snapshot_empty_players() {
         mines: Vec::new(),
         remote_mines: Vec::new(),
         auditors: Vec::new(),
+        paver_strips: Vec::new(),
+        jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -885,7 +893,8 @@ fn test_sim_dead_player_excluded_from_snapshot() {
 
 #[test]
 fn test_sim_arena_boundary_clamping() {
-    let mut state = GameState::new();
+    // Open ground runs to the edge here; Larak Lot's shell is walls.
+    let mut state = GameState::with_map(LANE_MAP, false);
     state.start_round();
 
     let player_id = Uuid::new_v4();
@@ -896,7 +905,9 @@ fn test_sim_arena_boundary_clamping() {
         .iter()
         .position(|p| p.id == player_id)
         .unwrap();
-    state.players[idx].x = 100.0;
+    state.players[idx].x = 1000.0;
+    state.players[idx].z = 0.0;
+    state.players[idx].y = crate::sim::PLAYER_FLOOR_Y;
 
     state.set_action(
         player_id,
@@ -910,7 +921,7 @@ fn test_sim_arena_boundary_clamping() {
 
     // The bound is the arena's own half extent, not a number copied from it,
     // so widening the map does not silently turn this assertion off.
-    let half = crate::sim::MapKind::ArenaDuel.half_extent();
+    let half = LANE_MAP.half_extent();
     assert!(
         state.players[idx].x <= half,
         "walked past the edge: {} > {half}",
@@ -1312,8 +1323,8 @@ fn test_sim_all_bot_behaviors_coverage() {
 }
 
 #[test]
-fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
-    use crate::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
+fn fighter_step_matches_one_authoritative_tick_with_jump_and_compliance() {
+    use crate::movement::{fighter_step, MoveInput, MoveState, TOP_SPEED};
     use crate::sim::PLAYER_FLOOR_Y;
 
     let mut state = GameState::new();
@@ -1333,7 +1344,7 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
         ..Action::default()
     };
     let player = &state.players[0];
-    let predicted = live_step(
+    let predicted = fighter_step(
         MoveState {
             x: player.x,
             z: player.z,
@@ -1351,6 +1362,7 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
             // An earlier tap is latched even when the selected action has
             // released jump before this 20 Hz movement step.
             jump: true,
+            dodge: false,
             yaw,
             speed_scale: 1.0,
         },
@@ -1375,7 +1387,10 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
         ("vy", actual.vy, predicted.vy),
         ("yaw", actual.yaw, predicted.yaw),
     ] {
-        assert!((a - b).abs() <= 1e-6, "{label}: sim {a} vs live step {b}");
+        assert!(
+            (a - b).abs() <= 1e-6,
+            "{label}: sim {a} vs fighter step {b}"
+        );
     }
 }
 
@@ -1591,8 +1606,10 @@ fn test_hitscan_damage() {
 
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].yaw = 0.0;
 
     let initial_hp = state.players[target_idx].hp;
@@ -1637,9 +1654,11 @@ fn test_frag_and_respawn() {
 
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[target_idx].hp = 20;
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].yaw = 0.0;
 
     state.set_action(
@@ -1658,7 +1677,7 @@ fn test_frag_and_respawn() {
     );
     assert!(target.hp <= 0, "Target HP should be zero or negative");
 
-    for _ in 0..65 {
+    for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + 5 {
         state.tick(0.05);
     }
 
@@ -1752,11 +1771,13 @@ fn test_round_ends_on_frag_limit() {
 
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].yaw = 0.0;
 
     for frag_count in 0..2 {
         state.players[target_idx].x = 5.0;
         state.players[target_idx].z = 0.0;
+        state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
         state.players[target_idx].hp = 25;
         state.players[target_idx].respawn_timer = None;
         state.players[shooter_idx].fire_cooldown = 0;
@@ -1893,7 +1914,7 @@ fn test_weapon_type_stats() {
 }
 
 #[test]
-fn test_weapon_default_is_flechette() {
+fn test_weapon_default_is_the_pistol_in_free_for_all() {
     use crate::protocol::WeaponType;
 
     let mut state = GameState::new();
@@ -1902,14 +1923,48 @@ fn test_weapon_default_is_flechette() {
     state.add_player(player_id, "TestPlayer".to_string(), Role::Human);
 
     let player = state.players.iter().find(|p| p.id == player_id).unwrap();
-    assert_eq!(player.weapon, WeaponType::Flechette);
+    assert_eq!(player.weapon, WeaponType::Tack);
+    assert!(player.inventory.owns(WeaponType::Fists));
+    assert!(!player.inventory.owns(WeaponType::Flechette));
+
+    let mut arsenal = GameState::arsenal();
+    arsenal.add_player(player_id, "TestPlayer".to_string(), Role::Human);
+    assert_eq!(arsenal.players[0].weapon, WeaponType::Flechette);
+}
+
+#[test]
+fn test_weapon_swap_to_an_unowned_gun_is_refused() {
+    use crate::protocol::WeaponType;
+
+    let mut state = GameState::new();
+    state.start_round();
+    let player_id = Uuid::new_v4();
+    state.add_player(player_id, "Swapper".to_string(), Role::Human);
+    state.set_action(
+        player_id,
+        Action {
+            weapon_swap: Some(WeaponType::Rail),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Tack);
+    state.set_action(
+        player_id,
+        Action {
+            weapon_swap: Some(WeaponType::Fists),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Fists);
 }
 
 #[test]
 fn test_weapon_swap_action() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let player_id = Uuid::new_v4();
@@ -1949,7 +2004,7 @@ fn test_weapon_swap_action() {
 #[test]
 fn weapon_choice_survives_input_bursts_and_is_consumed_once() {
     use crate::protocol::WeaponType;
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Meat Proxy".into(), Role::Human);
@@ -1989,7 +2044,7 @@ fn weapon_choice_survives_input_bursts_and_is_consumed_once() {
 fn test_rail_higher_damage_than_flechette() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2049,7 +2104,7 @@ fn test_rail_higher_damage_than_flechette() {
 fn test_scatter_hits_harder_than_flechette_up_close() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2138,7 +2193,7 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
 fn test_rail_longer_cooldown() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2177,7 +2232,7 @@ fn test_rail_longer_cooldown() {
 fn test_scatter_fires_faster_than_rail() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2290,7 +2345,7 @@ fn test_weapon_snapshot_includes_weapon_name() {
     state.add_player(player_id, "TestPlayer".to_string(), Role::Human);
 
     let snapshot = state.snapshot();
-    assert_eq!(snapshot.players[0].weapon, "Flechette");
+    assert_eq!(snapshot.players[0].weapon, "Tack");
 
     let idx = state
         .players
@@ -2485,12 +2540,12 @@ fn test_server_round_event_wire_json_shape() {
         start_json
     );
     assert!(
-        start_json.contains(r#""mode_name":"Contested Frequency""#),
+        start_json.contains(r#""mode_name":"Scrap League""#),
         "{}",
         start_json
     );
     assert!(
-        start_json.contains(r#""playlist":"Arena Duel""#),
+        start_json.contains(r#""playlist":"Larak Lot""#),
         "{}",
         start_json
     );
@@ -2827,6 +2882,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             players: vec![],
             round_state: Some("active".into()),
             round_time_left: Some(100),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -2837,6 +2893,9 @@ async fn test_net_ws_action_forwarded_for_agent() {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -3103,7 +3162,7 @@ fn test_look_at_world_xz_sets_yaw() {
 
 #[test]
 fn test_shot_results_hit_and_hit_event() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -3123,9 +3182,13 @@ fn test_shot_results_hit_and_hit_event() {
         .unwrap();
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].yaw = 0.0;
+    // An exact first shot at eye level is a head shot; aim at the chest.
+    state.players[shooter_idx].pitch = -0.1;
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
 
     let hp_before = state.players[target_idx].hp;
 
@@ -3178,7 +3241,7 @@ fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
     use crate::sim::PLAYER_FLOOR_Y;
 
     let shoot = |pitch: Option<f32>, weapon: WeaponType, gap: f32| -> i32 {
-        let mut state = GameState::new();
+        let mut state = GameState::arsenal();
         state.start_round();
         let shooter_id = Uuid::new_v4();
         let target_id = Uuid::new_v4();
@@ -3286,18 +3349,18 @@ fn test_shot_results_miss() {
 }
 
 #[test]
-fn test_snapshot_carries_contested_frequency_mode_identity() {
+fn test_snapshot_carries_scrap_league_mode_identity() {
     let state = GameState::new();
     let snap = state.snapshot();
-    assert_eq!(snap.mode_name, "Contested Frequency");
-    assert_eq!(snap.playlist, "Arena Duel");
+    assert_eq!(snap.mode_name, "Scrap League");
+    assert_eq!(snap.playlist, "Larak Lot");
     assert!(snap.pressure.is_none());
-    let expected_warm = warmup_host_line("Arena Duel", &[], 2);
+    let expected_warm = warmup_host_line("Larak Lot", &[], 2);
     assert_eq!(snap.host_line, expected_warm);
     assert_eq!(snap.round_time_left, Some(2));
     let json = serde_json::to_value(&snap).unwrap();
-    assert_eq!(json["mode_name"], "Contested Frequency");
-    assert_eq!(json["playlist"], "Arena Duel");
+    assert_eq!(json["mode_name"], "Scrap League");
+    assert_eq!(json["playlist"], "Larak Lot");
     assert!(json.get("pressure").is_none() || json["pressure"].is_null());
     assert_eq!(json["host_line"], expected_warm);
 }
@@ -3453,8 +3516,8 @@ fn test_welcome_includes_mode_identity() {
         duck: false,
     };
     let json = serde_json::to_value(&welcome).unwrap();
-    assert_eq!(json["mode_name"], "Contested Frequency");
-    assert_eq!(json["playlist"], "Arena Duel");
+    assert_eq!(json["mode_name"], "Scrap League");
+    assert_eq!(json["playlist"], "Larak Lot");
 }
 
 #[test]
@@ -3475,10 +3538,10 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
     };
     state.add_player(Uuid::new_v4(), "Late".to_string(), Role::Human);
 
-    // Warmup: Contested Frequency countdown Host drama sticky on Snapshot.
+    // Warmup: Scrap League countdown Host drama sticky on Snapshot.
     let warm = state.snapshot();
     assert!(warm.pressure.is_none());
-    let expected_warm = warmup_host_line("Arena Duel", &[], 1); // warmup_ticks=2 -> 1s ceil
+    let expected_warm = warmup_host_line("Larak Lot", &[], 1); // warmup_ticks=2 -> 1s ceil
     assert_eq!(warm.host_line, expected_warm);
     assert_eq!(warm.round_time_left, Some(1));
     let warm_json = serde_json::to_value(&warm).unwrap();
@@ -3515,8 +3578,8 @@ fn test_snapshot_host_line_defaults_when_absent_on_wire() {
     let raw = r#"{
         "tick": 1,
         "players": [],
-        "mode_name": "Contested Frequency",
-        "playlist": "Arena Duel"
+        "mode_name": "Scrap League",
+        "playlist": "Larak Lot"
     }"#;
     let snap: Snapshot = serde_json::from_str(raw).expect("legacy snapshot");
     assert_eq!(snap.host_line, default_host_line());
@@ -3646,11 +3709,11 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
 
 #[test]
 fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     let shooter = Uuid::new_v4();
     state.add_player(shooter, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
-        rules: Default::default(),
+        rules: crate::rules::RuleSet::arsenal(),
         capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
@@ -3670,11 +3733,11 @@ fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
     // Point Rusher at boss and dump damage with Rail-level hits.
     {
         let boss = state.players.iter().find(|p| p.id == boss_id).unwrap();
-        let bx = boss.x;
-        let bz = boss.z;
+        let (bx, by, bz) = (boss.x, boss.y, boss.z);
         let rusher = state.players.iter_mut().find(|p| p.id == shooter).unwrap();
         rusher.x = bx - 5.0;
         rusher.z = bz;
+        rusher.y = by;
         rusher.yaw = 0.0; // facing +x toward boss
         rusher.weapon = WeaponType::Rail;
         rusher.pending_action = Action {
@@ -3770,23 +3833,37 @@ fn test_boss_down_wire_json_and_compliance_ai_acts() {
 fn test_sim_pickups_present_in_snapshot() {
     let state = GameState::new();
     let snap = state.snapshot();
-    assert_eq!(snap.pickups.len(), 6);
+    // Larak Lot's ten pads are its own free-for-all supply; it lays no
+    // extra scrap pads.
+    assert_eq!(snap.pickups.len(), 10);
     let ids: Vec<_> = snap.pickups.iter().map(|p| p.id.as_str()).collect();
-    assert!(ids.contains(&"pad_rail"));
-    assert!(ids.contains(&"pad_scatter"));
-    assert!(ids.contains(&"pad_flechette"));
-    assert!(ids.contains(&"pad_health_n"));
-    assert!(ids.contains(&"pad_health_s"));
-    assert!(ids.contains(&"pad_armor"));
+    for id in [
+        "larak_custody_plate",
+        "larak_rail",
+        "larak_scatter_booths",
+        "larak_scatter_stairb",
+        "larak_flechette_pit",
+        "larak_flechette_lane",
+        "larak_armor_bridge",
+        "larak_health_toll",
+        "larak_health_stands",
+        "larak_health_crane",
+    ] {
+        assert!(ids.contains(&id), "{id}");
+    }
     assert!(snap.pickups.iter().all(|p| p.available));
     let health = snap
         .pickups
         .iter()
-        .find(|p| p.id == "pad_health_n")
+        .find(|p| p.id == "larak_health_toll")
         .unwrap();
     assert_eq!(health.kind, "health");
     assert_eq!(health.amount, Some(40));
-    let armor = snap.pickups.iter().find(|p| p.id == "pad_armor").unwrap();
+    let armor = snap
+        .pickups
+        .iter()
+        .find(|p| p.id == "larak_armor_bridge")
+        .unwrap();
     assert_eq!(armor.kind, "armor");
     assert_eq!(armor.amount, Some(25));
 }
@@ -3829,7 +3906,7 @@ fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_rail");
+    stand_on_pad(&mut state, id, "larak_rail");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.weapon = WeaponType::Flechette;
     }
@@ -3845,19 +3922,23 @@ fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
                 weapon,
                 pickup_id,
                 ..
-            } if kind == "weapon" && weapon == "Rail" && pickup_id == "pad_rail"
+            } if kind == "weapon" && weapon == "Rail" && pickup_id == "larak_rail"
         )),
         "expected pickup event, got {:?}",
         events
     );
-    let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    let rail = state.pickups.iter().find(|p| p.id == "larak_rail").unwrap();
     assert!(!rail.available);
-    assert_eq!(rail.respawn_timer, Some(PICKUP_RESPAWN_TICKS));
+    // Larak Lot's Rail is a free-for-all power pad on the rule sheet's 25 s.
+    assert_eq!(
+        rail.respawn_timer,
+        Some(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS)
+    );
 }
 
 #[test]
 fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Proxy".into(), Role::Human);
@@ -3868,7 +3949,7 @@ fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
         .unwrap();
     assert_eq!(before.ammo(crate::protocol::AmmoPool::Cells), 16);
     assert_eq!(before.shots(WeaponType::Rail), Some(4));
-    stand_on_pad(&mut state, id, "pad_rail");
+    stand_on_pad(&mut state, id, "larak_rail");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.weapon = WeaponType::Flechette;
     }
@@ -3889,7 +3970,7 @@ fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
         Some(4),
         "the pad fills the bag, and R still loads the gun"
     );
-    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    let pad = state.pickups.iter().find(|p| p.id == "larak_rail").unwrap();
     assert!(!pad.available);
 }
 
@@ -3911,7 +3992,7 @@ fn a_full_arcade_bag_leaves_the_weapon_pad() {
         .unwrap();
     assert_eq!(full.ammo(crate::protocol::AmmoPool::Cells), 100);
     assert_eq!(full.shots(WeaponType::Rail), Some(4));
-    stand_on_pad(&mut state, id, "pad_rail");
+    stand_on_pad(&mut state, id, "larak_rail");
     state.tick(0.05);
     let player = state.players.iter().find(|p| p.id == id).unwrap();
     assert_eq!(player.weapon, WeaponType::Flechette);
@@ -3921,7 +4002,7 @@ fn a_full_arcade_bag_leaves_the_weapon_pad() {
         .unwrap();
     assert_eq!(after.ammo(crate::protocol::AmmoPool::Cells), 100);
     assert_eq!(after.shots(WeaponType::Rail), Some(4));
-    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    let pad = state.pickups.iter().find(|p| p.id == "larak_rail").unwrap();
     assert!(pad.available, "a full bag does not eat the pad");
 }
 
@@ -3931,22 +4012,22 @@ fn test_sim_pickup_respawns_after_timer() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_rail");
+    stand_on_pad(&mut state, id, "larak_rail");
     state.tick(0.05);
     assert!(
         !state
             .pickups
             .iter()
-            .find(|p| p.id == "pad_rail")
+            .find(|p| p.id == "larak_rail")
             .unwrap()
             .available
     );
     // Move off pad so we do not re-claim instantly.
     park_away_from_pads(&mut state, id);
-    for _ in 0..PICKUP_RESPAWN_TICKS {
+    for _ in 0..crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS {
         state.tick(0.05);
     }
-    let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    let rail = state.pickups.iter().find(|p| p.id == "larak_rail").unwrap();
     assert!(rail.available, "rail pad should respawn");
     assert!(rail.respawn_timer.is_none());
 }
@@ -3957,13 +4038,13 @@ fn test_sim_pickup_reset_on_round_start() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_rail");
+    stand_on_pad(&mut state, id, "larak_rail");
     state.tick(0.05);
     assert!(
         !state
             .pickups
             .iter()
-            .find(|p| p.id == "pad_rail")
+            .find(|p| p.id == "larak_rail")
             .unwrap()
             .available
     );
@@ -3978,7 +4059,7 @@ fn test_sim_health_pad_heals_and_emits_kind() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_health_n");
+    stand_on_pad(&mut state, id, "larak_health_toll");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.hp = 40;
     }
@@ -3994,7 +4075,7 @@ fn test_sim_health_pad_heals_and_emits_kind() {
                 amount: Some(40),
                 pickup_id,
                 ..
-            } if kind == "health" && pickup_id == "pad_health_n"
+            } if kind == "health" && pickup_id == "larak_health_toll"
         )),
         "expected health pickup event, got {:?}",
         events
@@ -4002,10 +4083,13 @@ fn test_sim_health_pad_heals_and_emits_kind() {
     let pad = state
         .pickups
         .iter()
-        .find(|p| p.id == "pad_health_n")
+        .find(|p| p.id == "larak_health_toll")
         .unwrap();
     assert!(!pad.available);
-    assert_eq!(pad.respawn_timer, Some(HEALTH_PICKUP_RESPAWN_TICKS));
+    assert_eq!(
+        pad.respawn_timer,
+        Some(crate::rules::FFA_HEALTH_ARMOR_RESPAWN_TICKS)
+    );
 }
 
 #[test]
@@ -4014,7 +4098,7 @@ fn test_sim_health_pad_skipped_at_full_hp() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_health_n");
+    stand_on_pad(&mut state, id, "larak_health_toll");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.hp = 100;
     }
@@ -4022,18 +4106,18 @@ fn test_sim_health_pad_skipped_at_full_hp() {
     let pad = state
         .pickups
         .iter()
-        .find(|p| p.id == "pad_health_n")
+        .find(|p| p.id == "larak_health_toll")
         .unwrap();
     assert!(pad.available, "full HP should not claim health pad");
 }
 
 #[test]
 fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_armor");
+    stand_on_pad(&mut state, id, "larak_armor_bridge");
     state.tick(0.05);
     let player = state.players.iter().find(|p| p.id == id).unwrap();
     assert_eq!(player.armor, 25);
@@ -4046,7 +4130,7 @@ fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
                 amount: Some(25),
                 pickup_id,
                 ..
-            } if kind == "armor" && pickup_id == "pad_armor"
+            } if kind == "armor" && pickup_id == "larak_armor_bridge"
         )),
         "expected armor pickup event, got {:?}",
         events
@@ -4057,6 +4141,7 @@ fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.x = 0.0;
         p.z = 0.0;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
         p.yaw = 0.0;
         p.armor = 10;
         p.hp = 100;
@@ -4064,7 +4149,10 @@ fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
     if let Some(p) = state.players.iter_mut().find(|p| p.id == shooter) {
         p.x = -5.0;
         p.z = 0.0;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
         p.yaw = 0.0;
+        // An exact first shot at eye level is a head shot; aim at the chest.
+        p.pitch = -0.1;
         p.weapon = WeaponType::Flechette;
         p.pending_action.fire = true;
     }
@@ -4080,7 +4168,7 @@ fn test_sim_health_pad_respawns_after_timer() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_health_n");
+    stand_on_pad(&mut state, id, "larak_health_toll");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.hp = 50;
     }
@@ -4089,18 +4177,18 @@ fn test_sim_health_pad_respawns_after_timer() {
         !state
             .pickups
             .iter()
-            .find(|p| p.id == "pad_health_n")
+            .find(|p| p.id == "larak_health_toll")
             .unwrap()
             .available
     );
     park_away_from_pads(&mut state, id);
-    for _ in 0..HEALTH_PICKUP_RESPAWN_TICKS {
+    for _ in 0..crate::rules::FFA_HEALTH_ARMOR_RESPAWN_TICKS {
         state.tick(0.05);
     }
     let pad = state
         .pickups
         .iter()
-        .find(|p| p.id == "pad_health_n")
+        .find(|p| p.id == "larak_health_toll")
         .unwrap();
     assert!(pad.available, "health pad should respawn");
 }
@@ -4111,7 +4199,7 @@ fn test_sim_weapon_pads_still_claim_with_health_pads_present() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_scatter");
+    stand_on_pad(&mut state, id, "larak_scatter_booths");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.weapon = WeaponType::Flechette;
     }
@@ -4173,34 +4261,27 @@ fn test_sim_choke_hitscan_blocked_by_low_wall() {
     let target = Uuid::new_v4();
     state.add_player(shooter, "Shooter".into(), Role::Agent);
     state.add_player(target, "Victim".into(), Role::Agent);
-    // The walkway the rail pad sits on is taller than eye height, so two
-    // fighters on the floor either side of it cannot see each other. Where it
-    // is comes from the map rather than from a remembered coordinate.
-    let rail = state
-        .pickups
-        .iter()
-        .find(|p| p.id == "pad_rail")
-        .map(|p| (p.x, p.z, p.floor))
-        .unwrap();
-    assert!(
-        rail.2 > crate::movement::EYE_HEIGHT,
-        "the rail walkway has to be taller than a fighter to block a shot"
-    );
-    let facing = if rail.1 < 0.0 {
-        std::f32::consts::FRAC_PI_2
-    } else {
-        -std::f32::consts::FRAC_PI_2
-    };
-    let away = if rail.1 < 0.0 { -6.0 } else { 6.0 };
+    // The Stack of crushed cars in Larak Lot's Pit is taller than eye height,
+    // so two fighters on the Pit floor either side of it cannot see each
+    // other. Where it is comes from the map rather than a remembered number.
+    let stack = MapKind::ArenaDuel
+        .solids()
+        .into_iter()
+        .find(|s| s.bottom == 0.0 && s.top > 3.0 && s.top < 3.5 && s.covers(6.0, 5.5))
+        .expect("the Stack");
+    assert!(stack.top > crate::movement::EYE_HEIGHT);
+    let lane_z = (stack.min_z + stack.max_z) * 0.5;
     if let Some(p) = state.players.iter_mut().find(|p| p.id == shooter) {
-        p.x = rail.0;
-        p.z = rail.1 + away;
-        p.yaw = facing;
+        p.x = stack.min_x - 2.0;
+        p.z = lane_z;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
+        p.yaw = 0.0;
         p.weapon = WeaponType::Rail;
     }
     if let Some(p) = state.players.iter_mut().find(|p| p.id == target) {
-        p.x = rail.0;
-        p.z = rail.1 - away;
+        p.x = stack.max_x + 1.0;
+        p.z = lane_z;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
         p.hp = 100;
     }
     let hp_before = state.players.iter().find(|p| p.id == target).unwrap().hp;
@@ -4218,7 +4299,7 @@ fn test_sim_choke_hitscan_blocked_by_low_wall() {
 
 #[test]
 fn test_sim_choke_hitscan_clear_lane_still_hits() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let shooter = Uuid::new_v4();
     let target = Uuid::new_v4();
@@ -4228,12 +4309,14 @@ fn test_sim_choke_hitscan_clear_lane_still_hits() {
         // Open lane along +x through hub (no wall on x axis at z=0 between -5 and 5).
         p.x = -5.0;
         p.z = 0.0;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
         p.yaw = 0.0;
         p.weapon = WeaponType::Flechette;
     }
     if let Some(p) = state.players.iter_mut().find(|p| p.id == target) {
         p.x = 5.0;
         p.z = 0.0;
+        p.y = crate::sim::PLAYER_FLOOR_Y;
         p.hp = 100;
     }
     let hp_before = state.players.iter().find(|p| p.id == target).unwrap().hp;
@@ -4255,7 +4338,7 @@ fn test_sim_choke_health_pad_still_claimable_from_hub() {
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
-    stand_on_pad(&mut state, id, "pad_health_n");
+    stand_on_pad(&mut state, id, "larak_health_toll");
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
         p.hp = 40;
     }
@@ -4346,8 +4429,8 @@ fn force_hitscan_frag(state: &mut GameState, shooter_id: Uuid, target_id: Uuid) 
 }
 
 #[test]
-fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
-    let mut state = GameState::new();
+fn test_spree_calls_the_mode_tier_once_and_resets_on_death() {
+    let mut state = GameState::arsenal();
     state.config.compliance_ping_ticks = None;
     state.config.boss_spawn_ticks = None;
     state.config.frag_limit = Some(99);
@@ -4359,10 +4442,10 @@ fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
     state.add_player(target_id, "Target".to_string(), Role::Agent);
     let _ = state.take_events();
 
-    let mut seen_tiers: Vec<String> = Vec::new();
+    let mut calls: Vec<(u32, HostReactionKind, bool)> = Vec::new();
     for n in 1..=5 {
         // Wait out respawn if target died last frag.
-        for _ in 0..100 {
+        for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + crate::sim::SPAWN_SHIELD_TICKS + 20 {
             let tidx = state
                 .players
                 .iter()
@@ -4397,31 +4480,23 @@ fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
             .unwrap();
         assert_eq!(state.players[sidx].killstreak, n, "streak after kill {}", n);
         for e in &events {
-            if let GameEvent::Killstreak {
-                streak,
-                tier,
-                message,
-                player,
-                ..
+            if let GameEvent::HostReaction {
+                kind, player, big, ..
             } = e
             {
-                assert_eq!(player, "Rusher");
-                assert_eq!(*streak, n);
-                assert!(message.starts_with("HOST:"));
-                seen_tiers.push(tier.clone());
+                assert_eq!(player.as_deref(), Some("Rusher"));
+                calls.push((n, *kind, *big));
             }
         }
-        if n == 1 || n == 4 {
-            assert!(
-                !events
-                    .iter()
-                    .any(|e| matches!(e, GameEvent::Killstreak { .. })),
-                "no killstreak event at streak {}",
-                n
-            );
-        }
     }
-    assert_eq!(seen_tiers, vec!["double", "triple", "rampage"]);
+    // Kills a respawn apart are no multikill; free-for-all sprees step at five.
+    assert_eq!(
+        calls,
+        vec![
+            (1, HostReactionKind::FirstBlood, true),
+            (5, HostReactionKind::Rampage, true)
+        ]
+    );
 
     // Victim death resets victim streak; kill Rusher with Target to reset Rusher.
     let sidx = state
@@ -4430,7 +4505,7 @@ fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
         .position(|p| p.id == shooter_id)
         .unwrap();
     assert_eq!(state.players[sidx].killstreak, 5);
-    for _ in 0..70 {
+    for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + crate::sim::SPAWN_SHIELD_TICKS + 20 {
         let tidx = state
             .players
             .iter()
@@ -4480,7 +4555,8 @@ fn test_weapon_range_units_distinct() {
 fn test_scatter_misses_beyond_range() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::with_map(LANE_MAP, false);
+    state.config.rules = crate::rules::RuleSet::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -4504,9 +4580,11 @@ fn test_scatter_misses_beyond_range() {
     let (lane_z, span) = clear_lane(20.0);
     state.players[shooter_idx].x = -span / 2.0;
     state.players[shooter_idx].z = lane_z;
+    state.players[shooter_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[shooter_idx].yaw = 0.0;
     state.players[target_idx].x = -span / 2.0 + 16.0;
     state.players[target_idx].z = lane_z;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
 
     state.players[shooter_idx].weapon = WeaponType::Scatter;
     state.players[shooter_idx].fire_cooldown = 0;
@@ -4544,7 +4622,7 @@ fn test_scatter_misses_beyond_range() {
 fn test_bot_rail_holds_long_lane() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::with_map(LANE_MAP, false);
     state.start_round();
 
     let bot_id = Uuid::new_v4();
@@ -4563,10 +4641,12 @@ fn test_bot_rail_holds_long_lane() {
     let (lane_z, span) = clear_lane(25.0);
     state.players[bot_idx].x = -span * 0.5;
     state.players[bot_idx].z = lane_z;
+    state.players[bot_idx].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[bot_idx].yaw = 0.0;
     // Target inside Rail preferred band (~25u).
     state.players[target_idx].x = span * 0.5;
     state.players[target_idx].z = lane_z;
+    state.players[target_idx].y = crate::sim::PLAYER_FLOOR_Y;
 
     let bot = BotController::new(bot_id, BotBehavior::Defensive);
     for tick in 0..2 {
@@ -4759,6 +4839,9 @@ fn test_round_end_empty_mvp_host_line() {
 fn test_map_kind_cli_and_names() {
     assert_eq!(MapKind::from_cli("1"), Some(MapKind::ArenaDuel));
     assert_eq!(MapKind::from_cli("arena"), Some(MapKind::ArenaDuel));
+    assert_eq!(MapKind::from_cli("larak"), Some(MapKind::ArenaDuel));
+    assert_eq!(MapKind::from_cli("Larak_Lot"), Some(MapKind::ArenaDuel));
+    assert_eq!(MapKind::from_cli("lot"), Some(MapKind::ArenaDuel));
     assert_eq!(MapKind::from_cli("2"), Some(MapKind::ComplianceYard));
     assert_eq!(
         MapKind::from_cli("compliance-yard"),
@@ -4767,7 +4850,7 @@ fn test_map_kind_cli_and_names() {
     assert_eq!(MapKind::from_cli("nope"), None);
     assert_eq!(MapKind::ArenaDuel.id(), 1);
     assert_eq!(MapKind::ComplianceYard.id(), 2);
-    assert_eq!(MapKind::ArenaDuel.name(), "Arena Duel");
+    assert_eq!(MapKind::ArenaDuel.name(), "Larak Lot");
     assert_eq!(MapKind::ComplianceYard.name(), "Compliance Yard");
     assert_eq!(MapKind::ArenaDuel.next(), MapKind::ComplianceYard);
     assert_eq!(MapKind::ComplianceYard.next(), MapKind::Directive17);
@@ -4815,7 +4898,7 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
     let snap = state.snapshot();
     assert_eq!(snap.map_id, 2);
     assert_eq!(snap.map_name, "Compliance Yard");
-    assert_eq!(state.pickups.len(), 6);
+    assert_eq!(state.pickups.len(), 8);
 
     // Hub must stay clear for drone (circle at 0,0 not blocked).
     for obs in MapKind::ComplianceYard.obstacles() {
@@ -4838,7 +4921,7 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
 fn test_sim_map_rotate_each_start_round() {
     let mut state = GameState::with_map(MapKind::ArenaDuel, true);
     assert_eq!(state.map, MapKind::ArenaDuel);
-    state.start_round(); // round 1, stay Arena Duel
+    state.start_round(); // round 1, stay on Larak Lot
     assert_eq!(state.round_number, 1);
     assert_eq!(state.map, MapKind::ArenaDuel);
     state.end_round("test".into());
@@ -4862,9 +4945,9 @@ fn test_protocol_snapshot_map_defaults_round_trip() {
     let json = serde_json::json!({
         "tick": 1,
         "players": [],
-        "mode_name": "Contested Frequency",
-        "playlist": "Arena Duel",
-        "host_line": "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
+        "mode_name": "Scrap League",
+        "playlist": "Larak Lot",
+        "host_line": "HOST: LARAK LOT IS LIVE."
     });
     let snap: Snapshot = serde_json::from_value(json).unwrap();
     assert_eq!(snap.map_id, default_map_id());
@@ -4880,14 +4963,14 @@ fn test_warmup_host_drama_roster_map_countdown() {
 
     let snap = state.snapshot();
     assert_eq!(snap.round_time_left, Some(2));
-    assert!(snap.host_line.contains("CONTESTED FREQUENCY"));
-    assert!(snap.host_line.contains("ARENA DUEL"));
+    assert!(snap.host_line.starts_with("HOST: LARAK LOT."));
+    assert!(!snap.host_line.contains("FREQUENCY"));
     assert!(snap.host_line.contains("DEAD AIR DAN"));
     assert!(snap.host_line.contains("ON THE SCRAP"));
     assert!(snap.host_line.contains("2."));
     assert_eq!(
         snap.host_line,
-        warmup_host_line("Arena Duel", &state.roster_names, 2)
+        warmup_host_line("Larak Lot", &state.roster_names, 2)
     );
 
     // Advance one second of Warmup; countdown should drop.
@@ -4914,9 +4997,55 @@ fn test_warmup_host_drama_roster_map_countdown() {
         .expect("RoundStart");
     assert_eq!(
         start,
-        round_open_host_line("Arena Duel", &["Dead Air Dan".into(), "Nightfall".into()])
+        round_open_host_line("Larak Lot", &["Dead Air Dan".into(), "Nightfall".into()])
     );
     assert!(start.contains("FIGHT!"));
+}
+
+#[test]
+fn rule_bot_frag_taunt_is_said_to_its_victim() {
+    use crate::protocol::BotTauntKind;
+
+    let mut state = GameState::new();
+    let bot_id = Uuid::new_v4();
+    let victim = Uuid::new_v4();
+    state.add_player(bot_id, "Scout Ant".to_string(), Role::Agent);
+    state.add_player(victim, "Meat Proxy".to_string(), Role::Human);
+    state
+        .bots
+        .push(BotController::new(bot_id, BotBehavior::Aggressive));
+    // A certain roll: the frag path's addressing, not its odds, is under test.
+    state.maybe_rule_bot_taunt(bot_id, BotTauntKind::Frag, 100, Some(victim));
+    let addressed: Vec<Option<Uuid>> = state
+        .take_events()
+        .into_iter()
+        .filter_map(|e| match e {
+            GameEvent::Speak {
+                player_id, to_id, ..
+            } if player_id == bot_id => Some(to_id),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        addressed,
+        vec![Some(victim)],
+        "a frag taunt names its victim"
+    );
+
+    // Room-wide lines (a death, a warmup, a person's own callout) name nobody.
+    state.tick += crate::sim::SPEAK_COOLDOWN_TICKS;
+    state.maybe_rule_bot_taunt(bot_id, BotTauntKind::Death, 100, None);
+    state.tick += crate::sim::SPEAK_COOLDOWN_TICKS;
+    let _ = state.try_speak(victim, "nice scrap");
+    let room: Vec<Option<Uuid>> = state
+        .take_events()
+        .into_iter()
+        .filter_map(|e| match e {
+            GameEvent::Speak { to_id, .. } => Some(to_id),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(room, vec![None, None]);
 }
 
 #[test]
@@ -4945,8 +5074,10 @@ fn rule_bot_taunt_emits_speak_and_respects_cooldown() {
         .collect();
     assert_eq!(speaks.len(), 1);
     assert_eq!(speaks[0].0, "Dead Air Dan");
-    assert!(!speaks[0].1.is_empty());
-    assert!(speaks[0].1.chars().count() <= 80);
+    let lines = crate::roster::find("Dead Air Dan")
+        .unwrap()
+        .taunts(BotTauntKind::Frag);
+    assert!(lines.contains(&speaks[0].1.as_str()), "{}", speaks[0].1);
 
     assert_eq!(
         state.try_rule_bot_taunt(bot_id, BotTauntKind::Death),
@@ -5020,10 +5151,10 @@ fn warmup_rule_bot_taunt_path_can_emit_speak() {
             _ => None,
         })
         .expect("Warmup Speak");
-    assert!(
-        line.contains("glitch") || line.contains("static") || line.contains("tuning"),
-        "{line}"
-    );
+    let lines = crate::roster::find("Static Kid")
+        .unwrap()
+        .taunts(BotTauntKind::Warmup);
+    assert!(lines.contains(&line.as_str()), "{line}");
 
     state.tick += 1;
     assert_eq!(
@@ -5069,7 +5200,7 @@ fn test_sim_respawn_lands_far_from_living_fighters() {
 #[test]
 fn test_sim_spawn_shield_blocks_damage_for_one_second() {
     use crate::sim::SPAWN_SHIELD_TICKS;
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let shooter = Uuid::new_v4();
     let target = Uuid::new_v4();
@@ -5285,7 +5416,7 @@ fn solo_broadcast_ep0_win_path() {
 
     session
         .state
-        .complete_episode("Auditor down. Frequency stays unmetered.".to_string());
+        .complete_episode("Auditor down. The league stays open.".to_string());
     assert_eq!(session.state.solo_broadcast.phase, EpisodePhase::Won);
     let events = session.state.take_events();
     assert!(
@@ -5476,10 +5607,12 @@ fn note_nods_frag_via_lethal_hitscan_path() {
     };
     state.players[ai].x = 0.0;
     state.players[ai].z = 0.0;
+    state.players[ai].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[ai].yaw = 0.0;
     state.players[ai].weapon = WeaponType::Rail;
     state.players[vi].x = 4.0;
     state.players[vi].z = 0.0;
+    state.players[vi].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[vi].hp = 50; // one Rail (75) kills
 
     assert_eq!(state.solo_broadcast.nods_cleared, 0);
@@ -5518,12 +5651,14 @@ fn note_nods_frag_via_lethal_hitscan_path() {
         (bi, ni)
     };
     state.players[bi].x = 0.0;
-    state.players[bi].z = 8.0;
+    state.players[bi].z = 2.0;
+    state.players[bi].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[bi].yaw = 0.0;
     state.players[bi].weapon = WeaponType::Rail;
     state.players[bi].fire_cooldown = 0;
     state.players[ni].x = 4.0;
-    state.players[ni].z = 8.0;
+    state.players[ni].z = 2.0;
+    state.players[ni].y = crate::sim::PLAYER_FLOOR_Y;
     state.players[ni].hp = 50;
     state.set_action(
         bot_killer,
@@ -5678,7 +5813,8 @@ fn solo_broadcast_off_leaves_mp_snapshot_clean() {
     assert!(snap.episode_objective.is_none());
     assert!(snap.episode_progress.is_none());
     assert!(snap.episode_phase.is_none());
-    assert_ne!(snap.map_name, EPISODE_MAP_LARAK_LOT);
+    // Map 1 is Larak Lot in every mode now; the episode face adds nothing.
+    assert_eq!(snap.map_name, crate::sim::MapKind::ArenaDuel.name());
 }
 
 #[test]
@@ -5892,7 +6028,7 @@ fn movement_ack_reports_one_selected_step_and_earlier_jump_latch() {
             ..Default::default()
         },
     );
-    let expected = crate::movement::live_step(
+    let expected = crate::movement::fighter_step(
         crate::movement::MoveState {
             x: state.players[0].x,
             z: state.players[0].z,
@@ -5930,7 +6066,7 @@ fn movement_ack_reports_one_selected_step_and_earlier_jump_latch() {
         (*x, *z, movement.y),
         (state.players[0].x, state.players[0].z, state.players[0].y)
     );
-    assert_eq!(movement.version, 1);
+    assert_eq!(movement.version, 2);
     assert!(movement.applied);
     assert!(
         movement.jump_input,
@@ -5991,7 +6127,8 @@ fn numbered_human_actions_reject_stale_duplicate_and_mixed_samples() {
     assert!(!state.players[0].interaction_requested);
     assert_eq!(state.players[0].pending_action.weapon_swap, None);
     state.tick(0.05);
-    assert_eq!(state.players[0].x, crate::movement::TOP_SPEED * 0.05);
+    let first_step = crate::movement::GROUND_ACCEL * 0.05 * crate::movement::TOP_SPEED * 0.05;
+    assert!((state.players[0].x - first_step).abs() < 1e-6);
     assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
     assert!(matches!(
         state.input_acks()[0].1,
@@ -6015,7 +6152,8 @@ fn numbered_human_actions_reject_stale_duplicate_and_mixed_samples() {
         },
     );
     state.tick(0.05);
-    assert!((state.players[0].x - crate::movement::TOP_SPEED * 0.05).abs() < 1e-6);
+    // The input reset dropped the earlier run's momentum: x holds still.
+    assert!((state.players[0].x - first_step).abs() < 1e-6);
     assert!(
         state.players[0].z > 0.0,
         "a fresh sample advances after input reset"
@@ -6279,7 +6417,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         z: -2.0,
         yaw: 0.5,
         movement: Some(crate::protocol::MovementAck {
-            version: 1,
+            version: 2,
             epoch: 2,
             applied: true,
             y: 1.5,
@@ -6288,6 +6426,8 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
             vz: 5.0,
             effective_speed: 5.0,
             jump_input: false,
+            dodge_cooldown: 3,
+            jet_fuel: None,
         }),
         respawn_ticks: Some(37),
     };
@@ -6300,15 +6440,20 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
 }
 
 /// A straight, unobstructed east-west lane in the arena: a shooter position
-/// and a target position `span` apart with nothing between them.
+/// and a target position `span` apart with nothing between them, on
+/// `LANE_MAP`. Callers build their state on that map.
 ///
 /// Tests used to hard-code a lane along the south edge. When the arena grew
 /// and its cover was laid out again, a pillar landed exactly on the target's
 /// old position and two shooting tests started reporting that a rail could not
 /// hit anything. A test that asserts something about weapons should find its
 /// own clear ground rather than assume the map never moves.
+/// A roster map with long flat ground. Larak Lot, the default map, is a car
+/// park of decks and short sightlines; weapon range belongs on open ground.
+const LANE_MAP: MapKind = MapKind::ReclamationGulch;
+
 fn clear_lane(span: f32) -> (f32, f32) {
-    let map = crate::sim::MapKind::ArenaDuel;
+    let map = LANE_MAP;
     let half = map.half_extent();
     let mut z = -(half - 4.0);
     while z < half - 4.0 {
@@ -6338,13 +6483,13 @@ fn dispersion_is_dispersion_not_free_aim() {
 
     // A lane the map itself says is clear, so only the weapon decides.
     let lane = |offset: f32| {
-        let mut state = GameState::new();
+        let mut state = GameState::with_map(LANE_MAP, false);
         state.seed(11);
         state.config = crate::sim::MatchConfig {
             warmup_ticks: 1,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            ..crate::sim::MatchConfig::default()
+            ..crate::sim::MatchConfig::arsenal()
         };
         state.start_round();
         let shooter = Uuid::new_v4();
@@ -6501,15 +6646,24 @@ fn the_scatter_gun_falls_off_with_distance() {
 mod jump_tests {
     use super::*;
 
+    /// Larak Lot spawns stand on its decks. These tests are about the jump,
+    /// so they start on the Pit floor at the origin.
+    fn on_the_pit_floor(state: &mut GameState) {
+        state.players[0].x = 0.0;
+        state.players[0].z = 0.0;
+        state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+    }
+
     #[test]
     fn a_human_walks_up_the_arena_stairs_without_jumping() {
+        // Stair B: nine half-metre treads from the Impound up to the Roof.
         let mut state = GameState::new();
         let id = Uuid::new_v4();
         state.add_player(id, "Walker".into(), Role::Human);
         state.start_round();
-        state.players[0].x = 7.0;
-        state.players[0].z = -4.0;
-        state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+        state.players[0].x = 34.0;
+        state.players[0].z = 12.0;
+        state.players[0].y = crate::sim::PLAYER_FLOOR_Y + 1.5;
         state.set_action(
             id,
             Action {
@@ -6518,18 +6672,18 @@ mod jump_tests {
                 ..Action::default()
             },
         );
-        for _ in 0..60 {
+        for _ in 0..90 {
             state.tick(0.05);
         }
         let player = &state.players[0];
         assert!(
-            player.z < -18.0,
+            player.z < -9.0,
             "stopped at ({}, {}, {})",
             player.x,
             player.y,
             player.z
         );
-        assert!((player.y - crate::sim::PLAYER_FLOOR_Y - 2.6).abs() < 0.01);
+        assert!((player.y - crate::sim::PLAYER_FLOOR_Y - 6.0).abs() < 0.01);
     }
 
     fn jumping() -> Action {
@@ -6545,6 +6699,7 @@ mod jump_tests {
         let id = Uuid::new_v4();
         state.add_player(id, "Tapper".into(), Role::Human);
         state.start_round();
+        on_the_pit_floor(&mut state);
         state.set_action(id, jumping());
         state.set_action(id, Action::default());
         state.tick(0.05);
@@ -6563,6 +6718,7 @@ mod jump_tests {
         let id = Uuid::new_v4();
         state.add_player(id, "Jumper".to_string(), Role::Human);
         state.start_round();
+        on_the_pit_floor(&mut state);
         let floor = crate::sim::PLAYER_FLOOR_Y;
 
         state.set_action(id, jumping());
@@ -6609,6 +6765,7 @@ mod jump_tests {
         let id = Uuid::new_v4();
         state.add_player(id, "Holder".to_string(), Role::Human);
         state.start_round();
+        on_the_pit_floor(&mut state);
         state.set_action(id, jumping());
         let mut peak: f32 = 0.0;
         for _ in 0..120 {
@@ -6629,6 +6786,7 @@ mod jump_tests {
         let id = Uuid::new_v4();
         state.add_player(id, "Faller".to_string(), Role::Human);
         state.start_round();
+        on_the_pit_floor(&mut state);
         state.set_action(id, jumping());
         state.tick(0.05);
         state.tick(0.05);
@@ -6643,7 +6801,16 @@ mod jump_tests {
         state.tick(0.05);
         state.tick(0.05);
         assert_eq!(state.players[0].vy, 0.0, "respawned still falling");
-        assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
+        // Standing on the floor of whichever spawn slot it was given.
+        let p = &state.players[0];
+        let feet = p.y - crate::sim::PLAYER_FLOOR_Y;
+        let floor = crate::maps::support_height(
+            MapKind::ArenaDuel,
+            p.x,
+            p.z,
+            feet + crate::movement::STEP_UP,
+        );
+        assert_eq!(feet, floor);
     }
 }
 
@@ -6653,7 +6820,7 @@ mod map_roster {
     use super::*;
     use crate::maps;
     use crate::movement::{STEP_UP, WALL_TOP};
-    use crate::sim::{PickupKind, PLAYER_FLOOR_Y};
+    use crate::sim::PLAYER_FLOOR_Y;
 
     #[test]
     fn every_map_validates() {
@@ -6677,6 +6844,12 @@ mod map_roster {
             let extent = map.half_extent() * 2.0;
             if map == MapKind::LowWater {
                 assert_eq!(extent, 84.0, "Low Water retains its authored town bounds");
+                continue;
+            }
+            if map == MapKind::ArenaDuel {
+                // Larak Lot: a 72 x 56 m car park inside its wall bands, the
+                // small-map tier for two to eight fighters.
+                assert_eq!(extent, 76.0, "Larak Lot keeps its compact car park");
                 continue;
             }
             assert!(
@@ -6730,6 +6903,22 @@ mod map_roster {
                         "low_water_clinic_health",
                         "low_water_market_health",
                         "low_water_trench_armor",
+                    ],
+                    0.0,
+                )
+            } else if map == MapKind::ArenaDuel {
+                (
+                    &[
+                        "larak_custody_plate",
+                        "larak_rail",
+                        "larak_scatter_booths",
+                        "larak_scatter_stairb",
+                        "larak_flechette_pit",
+                        "larak_flechette_lane",
+                        "larak_armor_bridge",
+                        "larak_health_toll",
+                        "larak_health_stands",
+                        "larak_health_crane",
                     ],
                     0.0,
                 )
@@ -6813,15 +7002,15 @@ mod map_roster {
 
     #[test]
     fn a_fighter_walks_off_the_gantry_and_falls_to_the_floor() {
-        // Coordinates come from the map, not from memory: the rail pad says
-        // where the walkway is and how high it is.
+        // Coordinates come from the map, not from memory: the Bridge armour
+        // says where the Bridge is and how high it is.
         let map = MapKind::ArenaDuel;
-        let rail = map
+        let pad = map
             .pickups()
             .into_iter()
-            .find(|p| p.kind == PickupKind::Weapon(WeaponType::Rail))
-            .expect("every map has a rail pad");
-        assert!(rail.floor > STEP_UP, "Arena Duel's rail is on the walkway");
+            .find(|p| p.id == "larak_armor_bridge")
+            .expect("Larak Lot's Bridge carries armour");
+        assert!(pad.floor > STEP_UP, "the Bridge is a deck over the Pit");
 
         let mut state = GameState::with_map(map, false);
         state.config = MatchConfig {
@@ -6833,21 +7022,21 @@ mod map_roster {
         state.start_round();
         let id = Uuid::new_v4();
         state.add_player(id, "Walker".into(), Role::Human);
-        let toward_middle = (-rail.z).atan2(-rail.x);
+        let toward_middle = (-pad.z).atan2(-pad.x);
         if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-            p.x = rail.x;
-            p.z = rail.z;
-            p.y = PLAYER_FLOOR_Y + rail.floor;
+            p.x = pad.x;
+            p.z = pad.z;
+            p.y = PLAYER_FLOOR_Y + pad.floor;
             p.yaw = toward_middle;
         }
         state.tick(0.05);
         let standing = state.players.iter().find(|p| p.id == id).unwrap().y;
         assert!(
-            (standing - (PLAYER_FLOOR_Y + rail.floor)).abs() < 1e-4,
-            "standing still on the walkway stays on it, y={standing}"
+            (standing - (PLAYER_FLOOR_Y + pad.floor)).abs() < 1e-4,
+            "standing still on the Bridge stays on it, y={standing}"
         );
 
-        for _ in 0..60 {
+        for _ in 0..34 {
             state.set_action(
                 id,
                 Action {
@@ -6861,11 +7050,11 @@ mod map_roster {
         let player = state.players.iter().find(|p| p.id == id).unwrap();
         assert!(
             (player.y - PLAYER_FLOOR_Y).abs() < 1e-3,
-            "walking off the walkway lands on the floor, y={}",
+            "walking off the Bridge lands on the Pit floor, y={}",
             player.y
         );
         assert!(
-            (player.x - rail.x).hypot(player.z - rail.z) > 8.0,
+            (player.x - pad.x).hypot(player.z - pad.z) > 8.0,
             "walking off a deck must continue beyond the inflated edge: ({}, {})",
             player.x,
             player.z
@@ -6874,6 +7063,7 @@ mod map_roster {
 
     #[test]
     fn a_pad_on_a_deck_is_not_claimable_from_the_floor() {
+        // Larak Lot's Bridge armour lies three metres over the Pit floor.
         let map = MapKind::ArenaDuel;
         let config = MatchConfig {
             warmup_ticks: 1,
@@ -6881,49 +7071,31 @@ mod map_roster {
             compliance_ping_ticks: None,
             ..MatchConfig::default()
         };
-        let mut state = GameState::with_map(map, false);
-        state.config = config.clone();
-        state.start_round();
-        let id = Uuid::new_v4();
-        state.add_player(id, "Reacher".into(), Role::Human);
-        let armor = state
-            .pickups
-            .iter()
-            .find(|p| p.id == "pad_armor")
-            .map(|p| (p.x, p.z))
-            .unwrap();
-        if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-            p.x = armor.0;
-            p.z = armor.1;
-            p.y = PLAYER_FLOOR_Y;
-            p.armor = 0;
-        }
-        state.tick(0.05);
-        assert!(
-            state.players.iter().find(|p| p.id == id).unwrap().armor > 0,
-            "a pad on the floor is claimed from the floor"
-        );
-
-        // The same pad three metres up is not, because the fighter is not on
-        // the surface it lies on.
-        let mut high = GameState::with_map(map, false);
-        high.config = config;
-        high.start_round();
-        let id2 = Uuid::new_v4();
-        high.add_player(id2, "Reacher".into(), Role::Human);
-        if let Some(pad) = high.pickups.iter_mut().find(|p| p.id == "pad_armor") {
-            pad.floor = 3.0;
-            pad.y = 3.4;
-        }
-        if let Some(p) = high.players.iter_mut().find(|p| p.id == id2) {
-            p.x = armor.0;
-            p.z = armor.1;
-            p.y = PLAYER_FLOOR_Y;
-            p.armor = 0;
-        }
-        high.tick(0.05);
+        let armor_after = |floor: f32| {
+            let mut state = GameState::with_map(map, false);
+            state.config = config.clone();
+            state.start_round();
+            let id = Uuid::new_v4();
+            state.add_player(id, "Reacher".into(), Role::Human);
+            let pad = state
+                .pickups
+                .iter()
+                .find(|p| p.id == "larak_armor_bridge")
+                .map(|p| (p.x, p.z, p.floor))
+                .unwrap();
+            assert!(pad.2 > 2.5);
+            if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+                p.x = pad.0;
+                p.z = pad.1;
+                p.y = PLAYER_FLOOR_Y + floor.min(pad.2);
+                p.armor = 0;
+            }
+            state.tick(0.05);
+            state.players.iter().find(|p| p.id == id).unwrap().armor
+        };
+        assert!(armor_after(f32::INFINITY) > 0, "taken on the Bridge itself");
         assert_eq!(
-            high.players.iter().find(|p| p.id == id2).unwrap().armor,
+            armor_after(0.0),
             0,
             "a pad above the fighter's head is not claimed by walking under it"
         );
@@ -6949,7 +7121,7 @@ mod map_roster {
             warmup_ticks: 1,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            ..MatchConfig::default()
+            ..MatchConfig::arsenal()
         };
         state.start_round();
         let shooter = Uuid::new_v4();
@@ -7080,7 +7252,8 @@ mod vertical_aim {
     use crate::sim::{BotBehavior, BotController, PLAYER_FLOOR_Y};
 
     fn pair(shooter_height: f32, target_height: f32) -> (GameState, Uuid, Uuid) {
-        let mut state = GameState::new();
+        let mut state = GameState::with_map(LANE_MAP, false);
+        state.config.rules = crate::rules::RuleSet::arsenal();
         state.seed(42);
         state.start_round();
         let shooter = Uuid::new_v4();
@@ -7451,6 +7624,7 @@ mod auditor;
 mod duck;
 mod encounters;
 mod enforcer;
+mod feel;
 mod heavy_turret;
 mod jammer;
 mod m01;
@@ -7461,5 +7635,6 @@ mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;
+mod surveyor;
 mod tick_trace;
 mod traveling_shot;

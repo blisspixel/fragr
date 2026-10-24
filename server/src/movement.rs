@@ -1,31 +1,72 @@
-//! Shared body integration and two input steps, mirrored in
-//! `client/scripts/movement.gd`. The live server uses immediate horizontal
-//! velocity; the older pure step uses acceleration. Neither mirror implies
-//! live client prediction.
+//! Shared body integration and the two input steps, mirrored in
+//! `client/scripts/movement.gd`. Arena participants move with `fighter_step`:
+//! persistent velocity, friction, ground and air acceleration, the dodge.
+//! Campaign bodies, the participant included, and authored actors keep
+//! `live_step`, which sets horizontal velocity at once (`GameState::arena_feel`
+//! chooses).
 //! Pure data in, pure data out, with no engine calls or randomness.
 //!
-//! Each model has separate golden vectors. This module generates them, its
-//! tests assert the committed files still match, and the headless Godot
-//! harness checks the GDScript mirror within a tolerance. Change a model,
-//! regenerate only its vectors, and review the diff like code.
+//! The fighter model has two golden files, one at the live 20 Hz step and one
+//! at 60 Hz. This module generates them, its tests assert the committed files
+//! still match, and the headless Godot harness checks the GDScript mirror
+//! within a tolerance. Change the model, regenerate the vectors, and review
+//! the diff like code.
 
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 
 pub mod contact;
+pub mod jetpack;
 pub mod water;
 
 #[cfg(test)]
 mod enclosed_tests;
 
+// Fighter feel, frozen 2026-10-23 (docs/plans/feel-pass-20261023.md).
+// Nick's decision: arena speed and air control with Counter-Strike crisp
+// starts and stops. The formulas are Quake 3's and Source's (friction drop of
+// max(speed, STOP_SPEED) * FRICTION * dt, accelerate toward the wish speed by
+// at most ACCEL * dt * wishspeed along the wish direction). The values are
+// ours, chosen for a 20 Hz step: one tick reaches three quarters of top speed,
+// three ticks reach all of it, a released key rests within three ticks (a
+// 0.17 m slide), and a counter-strafe stops and reverses in one. The client
+// mirror and both golden files record every constant in this block, and
+// docs/protocol.md "Movement" lists them with their meaning.
+
+/// Ground top speed in metres per second. Counter-Strike's knife is 6.35,
+/// Quake 3 is 8.13; the arena maps were built around 5.
+pub const TOP_SPEED: f32 = 6.0;
+/// Ground acceleration, per second, scaled by the wish speed.
+pub const GROUND_ACCEL: f32 = 15.0;
+/// Ground friction, per second. Quake 3 uses 6 and CS:GO 5.2 at far higher
+/// step rates; a 20 Hz step needs more to stop as crisply.
+pub const FRICTION: f32 = 12.0;
+/// Below this speed friction acts as if moving this fast, so the last of a
+/// slide ends at once rather than creeping. Kept under the crouch walk (2.04)
+/// so a crouched fighter still reaches its pace in three ticks; at 2.5 the
+/// floor's grip ate nearly all of the crouch's acceleration.
+pub const STOP_SPEED: f32 = 2.0;
+/// Air acceleration, per second, scaled by the wish speed. Quake 3 uses 1.
+/// Twice that steers a jump and lets a turning strafe gain a little speed.
+pub const AIR_ACCEL: f32 = 2.0;
+/// Air acceleration never pushes horizontal speed past this. Faster momentum
+/// from a blast is kept, never added to.
+pub const AIR_SPEED_CAP: f32 = 7.5;
+/// Ground dodge: a grounded fighter with a direction held and the dodge key
+/// pressed is thrown that way at this horizontal speed, half again top speed
+/// (Unreal Tournament's ratio), on a low hop.
+pub const DODGE_SPEED: f32 = 9.0;
+/// The dodge hop's upward speed: about 0.3 s in the air and 2.9 m covered.
+pub const DODGE_UP: f32 = 3.5;
+/// Server ticks before another dodge is allowed. The caller owns the count
+/// (it rides in the movement Ack) so the pure step stays stateless.
+pub const DODGE_COOLDOWN_TICKS: u32 = 15;
+/// The campaign pace. Authored actors' gaits are shares of it, and a campaign
+/// participant keeps the immediate step at it, so the arena's faster run does
+/// not change an encounter its route proofs were tuned against.
+pub const ACTOR_REFERENCE_SPEED: f32 = 5.0;
 /// Fighter collision radius in units.
 pub const RADIUS: f32 = 0.5;
-/// Ground top speed in units per second.
-pub const TOP_SPEED: f32 = 5.0;
-/// Time constant for speeding up, seconds.
-pub const TAU_ACCEL: f32 = 0.06;
-/// Time constant for slowing down, seconds.
-pub const TAU_DECEL: f32 = 0.04;
 /// The movement step length at the 60 Hz rate the tick migration adopts.
 pub const DT_60HZ: f32 = 1.0 / 60.0;
 /// Current authoritative movement step length. Keep separate from the
@@ -60,10 +101,9 @@ pub const DUCK_EYE_HEIGHT: f32 = 1.15;
 pub const DUCK_SPEED_SCALE: f32 = 0.34;
 pub const MAX_HALF_EXTENT: f32 = 256.0;
 pub const MAX_SOLIDS: usize = 2048;
-/// Downward acceleration in units per second squared. Chosen with the jump
-/// below so a hop clears about 1.1 units and lasts a little under half a
-/// second, which is the Quake-ish arc this game's speed wants rather than the
-/// floatier one a slower game can afford.
+/// Downward acceleration in units per second squared. With the jump below,
+/// the live 20 Hz step clears 1.3 units and lands 0.7 s later (1.1 units at
+/// fine steps): a Quake-ish arc rather than a floaty one.
 pub const GRAVITY: f32 = 22.0;
 /// Upward speed applied on a jump, in units per second.
 pub const JUMP_SPEED: f32 = 7.0;
@@ -111,9 +151,16 @@ pub struct MoveInput {
     /// already started.
     #[serde(default)]
     pub jump: bool,
+    /// Ground dodge this step. The caller has already applied the cooldown.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dodge: bool,
     pub yaw: f32,
     #[serde(default = "one")]
     pub speed_scale: f32,
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 fn one() -> f32 {
@@ -128,6 +175,7 @@ impl Default for MoveInput {
             left: false,
             right: false,
             jump: false,
+            dodge: false,
             yaw: 0.0,
             speed_scale: 1.0,
         }
@@ -446,11 +494,11 @@ pub fn wish_dir(input: &MoveInput, yaw: f32) -> (f32, f32) {
     }
 }
 
-/// The current authoritative input-to-body step. `speed` is the effective
-/// units-per-second speed already chosen by the simulation, including its
-/// compliance and body-gait modifiers. Horizontal velocity changes at once;
-/// no acceleration is applied. The caller supplies the yaw selected for this
-/// server tick and owns jump-edge latching and the world-y/feet conversion.
+/// The authored-actor step. `speed` is the effective units-per-second speed
+/// already chosen by the simulation, including its gait modifiers.
+/// Horizontal velocity changes at once; no acceleration is applied. The
+/// caller supplies the yaw selected for this server tick and owns jump-edge
+/// latching and the world-y/feet conversion. Participants use `fighter_step`.
 pub fn live_step(
     state: MoveState,
     input: &MoveInput,
@@ -487,47 +535,129 @@ pub fn live_step_with_height(
     )
 }
 
-/// Advance one fighter by `dt` seconds. The order of operations is the
-/// contract the GDScript mirror keeps: yaw, wish, velocity approach, the floor
-/// under the old position, integrate, clamp, axis-separated slide with
-/// velocity zeroed on the blocked axis, then the vertical against the floor
-/// under the new position.
+/// One participant step of `dt` seconds at wish speed `speed` (already scaled
+/// for compliance and crouch by the caller; `input.speed_scale` scales it
+/// again for the 60 Hz vectors). The order is the contract the GDScript
+/// mirror keeps: yaw and wish; grounded test on the old position; ground
+/// friction unless jumping; ground acceleration when grounded and not
+/// jumping, otherwise capped air acceleration; then `integrate`, which owns
+/// collision, the blocked-axis velocity, step, jump, gravity and landing.
 ///
-/// On flat ground with nothing low enough to stand on, every heightfield term
-/// collapses: `support` is `GROUND_Y`, the step-down allowance is implied by
-/// the grounded test that precedes it, and the arithmetic is the same to the
-/// last bit as the version that had no heightfield in it. That is what keeps
-/// the committed golden vectors valid across this change.
-pub fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> MoveState {
+/// A jump on the landing step skips friction and accelerates as in the air,
+/// as Quake's `PM_WalkMove` hands a jump to `PM_AirMove`. That keeps a held
+/// jump's speed without letting the ground's large acceleration add to it.
+pub fn fighter_step(
+    state: MoveState,
+    input: &MoveInput,
+    speed: f32,
+    dt: f32,
+    arena: &Arena,
+) -> MoveState {
+    fighter_step_with_height(state, input, speed, dt, arena, BODY_HEIGHT)
+}
+
+pub fn fighter_step_with_height(
+    state: MoveState,
+    input: &MoveInput,
+    speed: f32,
+    dt: f32,
+    arena: &Arena,
+    height: f32,
+) -> MoveState {
     let yaw = normalize_yaw(input.yaw);
-    let (wx, wz) = wish_dir(input, yaw);
+    let wish = wish_dir(input, yaw);
     let scale = if input.speed_scale.is_finite() {
         input.speed_scale.clamp(0.0, 1.0)
     } else {
         1.0
     };
-    let target_x = wx * TOP_SPEED * scale;
-    let target_z = wz * TOP_SPEED * scale;
-
-    let current_speed = (state.vx * state.vx + state.vz * state.vz).sqrt();
-    let target_speed = (target_x * target_x + target_z * target_z).sqrt();
-    let tau = if target_speed > current_speed {
-        TAU_ACCEL
+    let wish_speed = if speed.is_finite() {
+        speed.max(0.0) * scale
     } else {
-        TAU_DECEL
+        0.0
     };
-    let blend = (dt / tau).min(1.0);
-    integrate(
+    let dt = if dt.is_finite() { dt.max(0.0) } else { 0.0 };
+    let mut velocity = if state.vx.is_finite() && state.vz.is_finite() {
+        (state.vx, state.vz)
+    } else {
+        (0.0, 0.0)
+    };
+    let floor = arena.support_height(state.x, state.z, state.y);
+    let on_floor = grounded(state.y, floor, state.vy);
+    let mut launch = input.jump.then_some(JUMP_SPEED);
+    if on_floor && input.dodge && wish != (0.0, 0.0) {
+        velocity = (wish.0 * DODGE_SPEED, wish.1 * DODGE_SPEED);
+        launch = Some(DODGE_UP);
+    } else if on_floor && !input.jump {
+        velocity = friction(velocity, dt);
+        velocity = accelerate(velocity, wish, wish_speed, GROUND_ACCEL, dt);
+    } else {
+        let before = velocity.0.hypot(velocity.1);
+        velocity = accelerate(velocity, wish, wish_speed, AIR_ACCEL, dt);
+        let limit = before.max(AIR_SPEED_CAP);
+        let after = velocity.0.hypot(velocity.1);
+        if after > limit {
+            velocity = (velocity.0 * limit / after, velocity.1 * limit / after);
+        }
+    }
+    launch_with_height(
         MoveState {
-            vx: state.vx + (target_x - state.vx) * blend,
-            vz: state.vz + (target_z - state.vz) * blend,
+            vx: velocity.0,
+            vz: velocity.1,
             yaw,
             ..state
         },
-        input.jump,
+        launch,
         dt,
         arena,
+        height,
     )
+}
+
+/// Whether `fighter_step` would dodge on this input from this state: standing,
+/// a direction held, and the (cooldown-checked) dodge bit set. Callers use it
+/// to start their cooldown.
+pub fn dodge_applies(state: &MoveState, input: &MoveInput, arena: &Arena) -> bool {
+    input.dodge
+        && wish_dir(input, normalize_yaw(input.yaw)) != (0.0, 0.0)
+        && grounded(
+            state.y,
+            arena.support_height(state.x, state.z, state.y),
+            state.vy,
+        )
+}
+
+/// Quake and Source ground friction: lose `max(speed, STOP_SPEED) *
+/// FRICTION * dt`, never below rest.
+pub fn friction(velocity: (f32, f32), dt: f32) -> (f32, f32) {
+    let speed = velocity.0.hypot(velocity.1);
+    if speed < 0.01 {
+        return (0.0, 0.0);
+    }
+    let drop = speed.max(STOP_SPEED) * FRICTION * dt;
+    let kept = (speed - drop).max(0.0) / speed;
+    (velocity.0 * kept, velocity.1 * kept)
+}
+
+/// Quake and Source acceleration: add up to `accel * dt * wish_speed` along
+/// the wish direction, but never past `wish_speed` measured along it.
+pub fn accelerate(
+    velocity: (f32, f32),
+    wish: (f32, f32),
+    wish_speed: f32,
+    accel: f32,
+    dt: f32,
+) -> (f32, f32) {
+    if wish == (0.0, 0.0) || wish_speed <= 0.0 {
+        return velocity;
+    }
+    let current = velocity.0 * wish.0 + velocity.1 * wish.1;
+    let room = wish_speed - current;
+    if room <= 0.0 {
+        return velocity;
+    }
+    let add = (accel * dt * wish_speed).min(room);
+    (velocity.0 + wish.0 * add, velocity.1 + wish.1 * add)
 }
 
 /// Resolve an already chosen velocity against the map, then apply jumping and
@@ -542,6 +672,18 @@ pub fn integrate(state: MoveState, jump: bool, dt: f32, arena: &Arena) -> MoveSt
 pub fn integrate_with_height(
     state: MoveState,
     jump: bool,
+    dt: f32,
+    arena: &Arena,
+    height: f32,
+) -> MoveState {
+    launch_with_height(state, jump.then_some(JUMP_SPEED), dt, arena, height)
+}
+
+/// `integrate_with_height` with the upward speed a grounded body leaves the
+/// floor at, if any: a jump's or a dodge's.
+pub fn launch_with_height(
+    state: MoveState,
+    launch: Option<f32>,
     dt: f32,
     arena: &Arena,
     height: f32,
@@ -595,8 +737,8 @@ pub fn integrate_with_height(
     if on_ground {
         y = support;
         vy = 0.0;
-        if jump {
-            vy = JUMP_SPEED;
+        if let Some(up) = launch {
+            vy = up;
         }
     } else {
         vy -= GRAVITY * dt;
@@ -629,37 +771,41 @@ pub fn integrate_with_height(
     }
 }
 
-/// One golden case: an arena, a start, inputs, and the state expected after
-/// every `stride` steps (so a long case stays small on disk).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GoldenCase {
-    pub name: String,
-    pub arena: Arena,
-    pub start: MoveState,
-    pub inputs: Vec<MoveInput>,
-    pub stride: usize,
-    pub expected: Vec<MoveState>,
-}
-
-/// The golden file: the constants the vectors were made with, and the cases.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GoldenFile {
-    pub version: u32,
-    pub dt: f32,
+/// The fighter constants a golden file was generated with. Both files carry
+/// them, and both test harnesses refuse vectors made with other values.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct FeelConstants {
     pub radius: f32,
     pub top_speed: f32,
-    pub tau_accel: f32,
-    pub tau_decel: f32,
-    pub cases: Vec<GoldenCase>,
+    pub ground_accel: f32,
+    pub friction: f32,
+    pub stop_speed: f32,
+    pub air_accel: f32,
+    pub air_speed_cap: f32,
+    pub gravity: f32,
+    pub jump_speed: f32,
+    pub dodge_speed: f32,
+    pub dodge_up: f32,
 }
 
-/// Where the vectors live, shared with the Godot harness.
-pub const GOLDEN_PATH: &str = "client/golden/move_vectors.json";
-/// Independent vectors for the current 20 Hz immediate-velocity server path.
-pub const LIVE_GOLDEN_PATH: &str = "client/golden/live_move_vectors.json";
+pub const FEEL: FeelConstants = FeelConstants {
+    radius: RADIUS,
+    top_speed: TOP_SPEED,
+    ground_accel: GROUND_ACCEL,
+    friction: FRICTION,
+    stop_speed: STOP_SPEED,
+    air_accel: AIR_ACCEL,
+    air_speed_cap: AIR_SPEED_CAP,
+    gravity: GRAVITY,
+    jump_speed: JUMP_SPEED,
+    dodge_speed: DODGE_SPEED,
+    dodge_up: DODGE_UP,
+};
 
+/// One golden case: an arena, a start, a wish speed, inputs, and the state
+/// expected after every `stride` steps (so a long case stays small on disk).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LiveGoldenCase {
+pub struct GoldenCase {
     pub name: String,
     pub arena: Arena,
     pub start: MoveState,
@@ -669,31 +815,39 @@ pub struct LiveGoldenCase {
     pub expected: Vec<MoveState>,
 }
 
+/// A golden file: its step length, the constants, and the cases.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LiveGoldenFile {
+pub struct GoldenFile {
     pub version: u32,
     pub dt: f32,
-    pub top_speed: f32,
-    pub cases: Vec<LiveGoldenCase>,
+    pub constants: FeelConstants,
+    pub cases: Vec<GoldenCase>,
 }
 
-fn live_case(
+pub const GOLDEN_VERSION: u32 = 3;
+/// The fighter model at 60 Hz, shared with the Godot harness.
+pub const GOLDEN_PATH: &str = "client/golden/move_vectors.json";
+/// The fighter model at the live 20 Hz server step.
+pub const LIVE_GOLDEN_PATH: &str = "client/golden/live_move_vectors.json";
+
+fn golden_case(
     name: &str,
     arena: &Arena,
     start: MoveState,
     speed: f32,
     inputs: Vec<MoveInput>,
     stride: usize,
-) -> LiveGoldenCase {
+    dt: f32,
+) -> GoldenCase {
     let mut state = start;
     let mut expected = Vec::new();
     for (i, input) in inputs.iter().enumerate() {
-        state = live_step(state, input, speed, DT_LIVE, arena);
+        state = fighter_step(state, input, speed, dt, arena);
         if (i + 1) % stride == 0 {
             expected.push(state);
         }
     }
-    LiveGoldenCase {
+    GoldenCase {
         name: name.to_string(),
         arena: arena.clone(),
         start,
@@ -704,9 +858,12 @@ fn live_case(
     }
 }
 
-/// Selected paths include immediate starts/stops, yaw, collision, height,
-/// jump, overhead clearance and the live compliance speed modifier.
-pub fn live_golden_cases() -> LiveGoldenFile {
+/// Live 20 Hz vectors: start and stop, counter-strafe, yaw, collision,
+/// height, jump, air steering, a turning strafe jump against the air cap, a
+/// ground dodge, blast momentum above the cap, overhead clearance, compliance
+/// and crouch speeds.
+pub fn live_golden_cases() -> GoldenFile {
+    let dt = DT_LIVE;
     let flat = Arena {
         half: 25.0,
         solids: Vec::new(),
@@ -717,100 +874,179 @@ pub fn live_golden_cases() -> LiveGoldenFile {
         half: 12.0,
         solids: vec![Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.1, 3.0)],
     };
-    let mut start_stop = hold(keys(true, false, false, false, 0.0), 5);
+    let mut start_stop = hold(keys(true, false, false, false, 0.0), 6);
     start_stop.extend(hold(MoveInput::default(), 5));
+    let mut counter = hold(keys(false, false, false, true, 0.0), 6);
+    counter.extend(hold(keys(false, false, true, false, 0.0), 3));
+    counter.extend(hold(MoveInput::default(), 4));
     let mut jump = hold(MoveInput::default(), 16);
     jump[0].jump = true;
+    let mut steer = hold(keys(true, false, false, false, 0.0), 6);
+    let mut takeoff = keys(true, false, false, false, 0.0);
+    takeoff.jump = true;
+    steer.push(takeoff);
+    steer.extend(hold(keys(false, false, true, false, 0.0), 16));
+    // Forward and right held with jump, the view turning right a little each
+    // tick: the turning strafe that gains speed until the air cap.
+    let mut strafe_jump = hold(keys(true, false, false, false, 0.0), 6);
+    for tick in 0..48 {
+        let mut input = keys(true, false, false, true, 0.07 * tick as f32);
+        input.jump = true;
+        strafe_jump.push(input);
+    }
+    strafe_jump.extend(hold(MoveInput::default(), 6));
+    // Run forward, dodge right, land, then a dodge bit with no direction
+    // held, which must do nothing but stand.
+    let mut dodge = hold(keys(true, false, false, false, 0.0), 4);
+    let mut side = keys(false, false, false, true, 0.0);
+    side.dodge = true;
+    dodge.push(side);
+    dodge.extend(hold(keys(false, false, false, true, 0.0), 9));
+    dodge.extend(hold(MoveInput::default(), 4));
+    dodge.push(MoveInput {
+        dodge: true,
+        ..MoveInput::default()
+    });
+    dodge.extend(hold(MoveInput::default(), 2));
+    let blast = MoveState {
+        vx: 12.0,
+        vy: 6.0,
+        ..at_y(-10.0, 0.0, 0.5, 0.0)
+    };
     let cases = vec![
-        live_case(
-            "instant_start_stop",
+        golden_case(
+            "start_and_stop",
             &flat,
             at(0.0, 0.0, 0.0),
             TOP_SPEED,
             start_stop,
             1,
+            dt,
         ),
-        live_case(
+        golden_case(
+            "counter_strafe",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            counter,
+            1,
+            dt,
+        ),
+        golden_case(
             "diagonal_yaw",
             &flat,
             at(0.0, 0.0, 0.0),
             TOP_SPEED,
             hold(keys(true, false, false, true, PI / 3.0), 8),
             1,
+            dt,
         ),
-        live_case(
+        golden_case(
             "wall_slide",
             &obstacle,
             at(4.3, -2.0, 0.0),
             TOP_SPEED,
             hold(keys(true, false, false, true, 0.0), 16),
             1,
+            dt,
         ),
-        live_case(
+        golden_case(
             "stair_climb_and_deck",
             &terrace,
             at(0.0, 0.0, 0.0),
             TOP_SPEED,
             hold(keys(true, false, false, false, 0.0), 56),
             4,
+            dt,
         ),
-        live_case(
+        golden_case(
             "deck_edge_fall",
             &terrace,
             at_y(12.0, 0.0, 3.0, 0.0),
             TOP_SPEED,
             hold(keys(false, false, false, true, 0.0), 24),
             2,
+            dt,
         ),
-        live_case(
+        golden_case(
             "jump_arc",
             &flat,
             at(0.0, 0.0, 0.0),
             TOP_SPEED,
             jump.clone(),
             1,
+            dt,
         ),
-        live_case(
+        golden_case(
+            "air_steer",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            steer,
+            1,
+            dt,
+        ),
+        golden_case(
+            "strafe_jump_air_cap",
+            &flat,
+            at(-20.0, -10.0, 0.0),
+            TOP_SPEED,
+            strafe_jump,
+            2,
+            dt,
+        ),
+        golden_case(
+            "ground_dodge",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            dodge,
+            1,
+            dt,
+        ),
+        golden_case(
+            "blast_momentum",
+            &flat,
+            blast,
+            TOP_SPEED,
+            hold(keys(true, false, false, false, 0.0), 20),
+            1,
+            dt,
+        ),
+        golden_case(
             "ceiling_head_strike",
             &ceiling,
             at(0.0, 0.0, 0.0),
             TOP_SPEED,
             jump,
             1,
+            dt,
         ),
-        live_case(
+        golden_case(
             "compliance_half_speed",
             &flat,
             at(0.0, 0.0, 0.0),
             TOP_SPEED * 0.5,
             hold(keys(true, false, false, false, 0.0), 8),
             1,
+            dt,
+        ),
+        golden_case(
+            "crouch_speed",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED * DUCK_SPEED_SCALE,
+            hold(keys(true, false, false, false, 0.0), 8),
+            1,
+            dt,
         ),
     ];
-    LiveGoldenFile {
-        version: 1,
-        dt: DT_LIVE,
-        top_speed: TOP_SPEED,
+    GoldenFile {
+        version: GOLDEN_VERSION,
+        dt,
+        constants: FEEL,
         cases,
     }
-}
-
-fn run_case(
-    arena: &Arena,
-    start: MoveState,
-    inputs: &[MoveInput],
-    dt: f32,
-    stride: usize,
-) -> Vec<MoveState> {
-    let mut state = start;
-    let mut out = Vec::new();
-    for (i, input) in inputs.iter().enumerate() {
-        state = step(state, input, dt, arena);
-        if (i + 1) % stride == 0 {
-            out.push(state);
-        }
-    }
-    out
 }
 
 fn at(x: f32, z: f32, yaw: f32) -> MoveState {
@@ -840,6 +1076,7 @@ fn keys(forward: bool, back: bool, left: bool, right: bool, yaw: f32) -> MoveInp
         left,
         right,
         jump: false,
+        dodge: false,
         yaw,
         speed_scale: 1.0,
     }
@@ -861,11 +1098,6 @@ pub fn golden_arena() -> Arena {
 /// The reference arena for the heightfield cases: a flight of six steps
 /// climbing east from x=2 onto a deck, and a second deck with nothing leading
 /// to it, so a case can walk up, walk down, and fall off an edge.
-///
-/// It is a separate arena from `golden_arena` on purpose. Putting a step into
-/// the flat one would move the expected states of every case that already
-/// exists, and the point of the golden file is that those do not move unless
-/// the model moved.
 pub fn golden_terrace_arena() -> Arena {
     let mut solids = Vec::new();
     // Six 1.2 metre treads rising half a metre each, from x=2 to x=9.2.
@@ -882,136 +1114,116 @@ pub fn golden_terrace_arena() -> Arena {
     Arena { half: 25.0, solids }
 }
 
-/// Build the golden file from the current model.
+/// The 60 Hz vectors: the same model at the step a tick migration would use,
+/// over the collision and heightfield cases that pin the shared integration.
 pub fn golden_cases(dt: f32) -> GoldenFile {
     let arena = golden_arena();
     let terrace = golden_terrace_arena();
     let mut cases = Vec::new();
-    let push_in = |name: &str,
-                   arena: &Arena,
-                   start: MoveState,
-                   inputs: Vec<MoveInput>,
-                   stride: usize,
-                   out: &mut Vec<GoldenCase>| {
-        let expected = run_case(arena, start, &inputs, dt, stride);
-        out.push(GoldenCase {
-            name: name.to_string(),
-            arena: arena.clone(),
-            start,
-            inputs,
-            stride,
-            expected,
-        });
-    };
-    {
-        let mut push = |name: &str, start: MoveState, inputs: Vec<MoveInput>, stride: usize| {
-            let expected = run_case(&arena, start, &inputs, dt, stride);
-            cases.push(GoldenCase {
-                name: name.to_string(),
-                arena: arena.clone(),
-                start,
-                inputs,
-                stride,
-                expected,
-            });
+    let mut push =
+        |name: &str, arena: &Arena, start: MoveState, inputs: Vec<MoveInput>, stride: usize| {
+            cases.push(golden_case(
+                name, arena, start, TOP_SPEED, inputs, stride, dt,
+            ));
         };
 
-        push(
-            "straight_run",
-            at(0.0, -5.0, 0.0),
-            hold(keys(true, false, false, false, 0.0), 40),
-            1,
-        );
-        push(
-            "diagonal_run_normalised",
-            at(-5.0, -5.0, 0.7),
-            hold(keys(true, false, false, true, 0.7), 40),
-            1,
-        );
-        let mut start_stop = hold(keys(true, false, false, false, 1.2), 30);
-        start_stop.extend(hold(keys(false, false, false, false, 1.2), 30));
-        push("start_and_stop", at(-8.0, 2.0, 1.2), start_stop, 1);
-        push(
-            "slide_along_wall_x",
-            at(-3.0, 8.0, 0.3),
-            hold(keys(true, false, false, false, 0.3), 60),
-            1,
-        );
-        push(
-            "slide_along_wall_z",
-            at(4.2, -4.0, PI / 2.0 + 0.2),
-            hold(keys(true, false, false, false, PI / 2.0 + 0.2), 60),
-            1,
-        );
-        push(
-            "corner_stop",
-            at(-14.0, -14.0, PI / 4.0),
-            hold(keys(true, false, false, false, PI / 4.0), 60),
-            1,
-        );
-        push(
-            "arena_edge_clamp",
-            at(20.0, 20.0, PI / 4.0),
-            hold(keys(true, false, false, false, PI / 4.0), 80),
-            1,
-        );
-        let mut wrap = hold(keys(true, false, false, false, -0.05), 10);
-        wrap.extend(hold(keys(true, false, false, false, 2.0 * PI + 0.05), 10));
-        wrap.extend(hold(keys(true, false, false, false, 3.0 * PI), 10));
-        push("yaw_wrap", at(0.0, 0.0, 0.0), wrap, 1);
-        let mut slow = hold(keys(true, false, false, false, 2.5), 20);
-        for input in slow.iter_mut().skip(10) {
-            input.speed_scale = 0.5;
-        }
-        push("compliance_slow", at(5.0, -15.0, 2.5), slow, 1);
-        let mut long = Vec::with_capacity(1000);
-        for i in 0..1000usize {
-            let phase = (i / 50) % 4;
-            let yaw = 0.017 * i as f32;
-            long.push(match phase {
-                0 => keys(true, false, false, false, yaw),
-                1 => keys(true, false, true, false, yaw),
-                2 => keys(false, false, false, true, yaw),
-                _ => keys(false, true, false, false, yaw),
-            });
-        }
-        push("long_wander_1000", at(2.0, 2.0, 0.0), long, 100);
-        // One tick of jump held, then nothing, so the arc is gravity's and not the
-        // key's. Every checkpoint pins a height, which is what holds the GDScript
-        // mirror to the same curve.
-        let mut hop = Vec::with_capacity(40);
-        let mut first = keys(true, false, false, false, 0.0);
-        first.jump = true;
-        hop.push(first);
-        hop.extend(hold(keys(true, false, false, false, 0.0), 39));
-        push("jump_arc", at(0.0, 0.0, 0.0), hop, 4);
+    push(
+        "straight_run",
+        &arena,
+        at(0.0, -5.0, 0.0),
+        hold(keys(true, false, false, false, 0.0), 40),
+        1,
+    );
+    push(
+        "diagonal_run_normalised",
+        &arena,
+        at(-5.0, -5.0, 0.7),
+        hold(keys(true, false, false, true, 0.7), 40),
+        1,
+    );
+    let mut start_stop = hold(keys(true, false, false, false, 1.2), 30);
+    start_stop.extend(hold(keys(false, false, false, false, 1.2), 30));
+    push("start_and_stop", &arena, at(-8.0, 2.0, 1.2), start_stop, 1);
+    push(
+        "slide_along_wall_x",
+        &arena,
+        at(-3.0, 8.0, 0.3),
+        hold(keys(true, false, false, false, 0.3), 60),
+        1,
+    );
+    push(
+        "slide_along_wall_z",
+        &arena,
+        at(4.2, -4.0, PI / 2.0 + 0.2),
+        hold(keys(true, false, false, false, PI / 2.0 + 0.2), 60),
+        1,
+    );
+    push(
+        "corner_stop",
+        &arena,
+        at(-14.0, -14.0, PI / 4.0),
+        hold(keys(true, false, false, false, PI / 4.0), 60),
+        1,
+    );
+    push(
+        "arena_edge_clamp",
+        &arena,
+        at(20.0, 20.0, PI / 4.0),
+        hold(keys(true, false, false, false, PI / 4.0), 80),
+        1,
+    );
+    let mut wrap = hold(keys(true, false, false, false, -0.05), 10);
+    wrap.extend(hold(keys(true, false, false, false, 2.0 * PI + 0.05), 10));
+    wrap.extend(hold(keys(true, false, false, false, 3.0 * PI), 10));
+    push("yaw_wrap", &arena, at(0.0, 0.0, 0.0), wrap, 1);
+    let mut slow = hold(keys(true, false, false, false, 2.5), 20);
+    for input in slow.iter_mut().skip(10) {
+        input.speed_scale = 0.5;
     }
+    push("compliance_slow", &arena, at(5.0, -15.0, 2.5), slow, 1);
+    let mut long = Vec::with_capacity(1000);
+    for i in 0..1000usize {
+        let phase = (i / 50) % 4;
+        let yaw = 0.017 * i as f32;
+        long.push(match phase {
+            0 => keys(true, false, false, false, yaw),
+            1 => keys(true, false, true, false, yaw),
+            2 => keys(false, false, false, true, yaw),
+            _ => keys(false, true, false, false, yaw),
+        });
+    }
+    push("long_wander_1000", &arena, at(2.0, 2.0, 0.0), long, 100);
+    // One step of jump held, then forward only, so the arc is gravity's and
+    // not the key's. Every checkpoint pins a height.
+    let mut hop = Vec::with_capacity(40);
+    let mut first = keys(true, false, false, false, 0.0);
+    first.jump = true;
+    hop.push(first);
+    hop.extend(hold(keys(true, false, false, false, 0.0), 39));
+    push("jump_arc", &arena, at(0.0, 0.0, 0.0), hop, 4);
 
     // The heightfield cases. Each one pins `y` at every checkpoint, which is
     // the only thing holding the GDScript mirror to the same staircase.
-    push_in(
+    push(
         "stair_climb",
         &terrace,
         at(0.0, 0.0, 0.0),
         hold(keys(true, false, false, false, 0.0), 200),
         20,
-        &mut cases,
     );
-    push_in(
+    push(
         "stair_descend",
         &terrace,
         at_y(13.2, 0.0, 3.0, PI),
         hold(keys(true, false, false, false, PI), 200),
         20,
-        &mut cases,
     );
-    push_in(
+    push(
         "deck_edge_fall",
         &terrace,
         at_y(13.2, 0.0, 3.0, PI / 2.0),
         hold(keys(true, false, false, false, PI / 2.0), 120),
         10,
-        &mut cases,
     );
     let ledge = Arena {
         half: 12.0,
@@ -1028,13 +1240,12 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
         ("stair_fractional_above", 0.00001),
         ("stair_fractional_below", -0.00001),
     ] {
-        push_in(
+        push(
             name,
             &fractional,
             at_y(2.0, 0.0, 2.6 / 6.0 + error, 0.0),
             hold(keys(true, false, false, false, 0.0), 60),
             10,
-            &mut cases,
         );
     }
     for (name, yaw) in [
@@ -1043,13 +1254,12 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
         ("ledge_escape_west", PI),
         ("ledge_escape_north", PI * 1.5),
     ] {
-        push_in(
+        push(
             name,
             &ledge,
             at_y(0.0, 0.0, 2.0, yaw),
             hold(keys(true, false, false, false, yaw), 90),
             10,
-            &mut cases,
         );
     }
 
@@ -1057,13 +1267,12 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
         half: 12.0,
         solids: vec![Solid::from_center_volume(0.0, 0.0, 2.0, 2.0, 2.4, 3.0)],
     };
-    push_in(
+    push(
         "balcony_underpass",
         &balcony,
         at(-4.0, 0.0, 0.0),
         hold(keys(true, false, false, false, 0.0), 120),
         1,
-        &mut cases,
     );
     for (name, yaw) in [
         ("balcony_exit_east", 0.0),
@@ -1071,13 +1280,12 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
         ("balcony_exit_west", PI),
         ("balcony_exit_north", PI * 1.5),
     ] {
-        push_in(
+        push(
             name,
             &balcony,
             at_y(0.0, 0.0, 3.0, yaw),
             hold(keys(true, false, false, false, yaw), 90),
             1,
-            &mut cases,
         );
     }
     let ceiling = Arena {
@@ -1087,7 +1295,7 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
     for (name, x) in [("ceiling_head_strike", 0.0), ("ceiling_edge_contact", 2.4)] {
         let mut hop = hold(MoveInput::default(), 60);
         hop[0].jump = true;
-        push_in(name, &ceiling, at(x, 0.0, 0.0), hop, 1, &mut cases);
+        push(name, &ceiling, at(x, 0.0, 0.0), hop, 1);
     }
     for (name, bottom) in [("ceiling_step_blocked", 2.2), ("ceiling_step_clear", 2.3)] {
         let stair = Arena {
@@ -1097,23 +1305,19 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
                 Solid::from_center_top(1.0, 0.0, 1.0, 1.0, 0.5),
             ],
         };
-        push_in(
+        push(
             name,
             &stair,
             at(-0.25, 0.0, 0.0),
             hold(keys(true, false, false, false, 0.0), 40),
             1,
-            &mut cases,
         );
     }
 
     GoldenFile {
-        version: 2,
+        version: GOLDEN_VERSION,
         dt,
-        radius: RADIUS,
-        top_speed: TOP_SPEED,
-        tau_accel: TAU_ACCEL,
-        tau_decel: TAU_DECEL,
+        constants: FEEL,
         cases,
     }
 }
@@ -1122,6 +1326,114 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
 mod tests {
     use super::*;
     use std::path::Path;
+
+    /// The fighter at top speed, for the collision and heightfield tests.
+    fn step(state: MoveState, input: &MoveInput, dt: f32, arena: &Arena) -> MoveState {
+        fighter_step(state, input, TOP_SPEED, dt, arena)
+    }
+
+    fn flat() -> Arena {
+        Arena {
+            half: 25.0,
+            solids: Vec::new(),
+        }
+    }
+
+    /// Steps at the live rate until horizontal speed is under 1 mm/s.
+    fn ticks_to_rest(mut state: MoveState, input: &MoveInput, arena: &Arena) -> (usize, f32) {
+        let start = state.x;
+        let mut ticks = 0;
+        while state.vx.hypot(state.vz) > 0.001 && ticks < 100 {
+            state = fighter_step(state, input, TOP_SPEED, DT_LIVE, arena);
+            ticks += 1;
+        }
+        (ticks, state.x - start)
+    }
+
+    #[test]
+    fn live_feel_starts_and_stops_like_the_plan_says() {
+        let arena = flat();
+        let go = keys(true, false, false, false, 0.0);
+        let first = fighter_step(at(0.0, 0.0, 0.0), &go, TOP_SPEED, DT_LIVE, &arena);
+        assert!(
+            (first.vx - GROUND_ACCEL * DT_LIVE * TOP_SPEED).abs() < 1e-5,
+            "one tick reaches three quarters: {first:?}"
+        );
+        let mut running = first;
+        for _ in 0..2 {
+            running = fighter_step(running, &go, TOP_SPEED, DT_LIVE, &arena);
+        }
+        assert!((running.vx - TOP_SPEED).abs() < 1e-4, "{running:?}");
+        let (ticks, slide) = ticks_to_rest(running, &MoveInput::default(), &arena);
+        assert_eq!(ticks, 3, "a released key rests within three ticks");
+        assert!(slide > 0.1 && slide < 0.2, "slide {slide}");
+        // Counter-strafe: the opposite key cancels the run in one tick.
+        let back = keys(false, true, false, false, 0.0);
+        let countered = fighter_step(running, &back, TOP_SPEED, DT_LIVE, &arena);
+        assert!(countered.vx < 0.0, "{countered:?}");
+    }
+
+    #[test]
+    fn a_held_jump_keeps_speed_and_air_strafing_stops_at_the_cap() {
+        let arena = Arena {
+            half: 200.0,
+            solids: Vec::new(),
+        };
+        let mut s = at(-150.0, 0.0, 0.0);
+        let go = keys(true, false, false, false, 0.0);
+        for _ in 0..6 {
+            s = fighter_step(s, &go, TOP_SPEED, DT_LIVE, &arena);
+        }
+        let mut peak: f32 = 0.0;
+        let mut landings = 0;
+        for tick in 0..400 {
+            let mut input = keys(true, false, false, true, 0.07 * tick as f32);
+            input.jump = true;
+            let before = s;
+            s = fighter_step(s, &input, TOP_SPEED, DT_LIVE, &arena);
+            if before.vy == 0.0 && before.y == GROUND_Y && s.vy > 0.0 && tick > 0 {
+                landings += 1;
+                // The landing tick hops again without ground friction.
+                assert!(
+                    s.vx.hypot(s.vz) >= before.vx.hypot(before.vz) - 1e-4,
+                    "{before:?} -> {s:?}"
+                );
+            }
+            peak = peak.max(s.vx.hypot(s.vz));
+        }
+        assert!(landings > 5, "{landings}");
+        assert!(
+            peak > TOP_SPEED + 0.5,
+            "a turning strafe gains speed: {peak}"
+        );
+        assert!(peak <= AIR_SPEED_CAP + 1e-4, "never past the cap: {peak}");
+        // Faster blast momentum is carried, never added to.
+        let blast = MoveState {
+            vx: 12.0,
+            vy: 4.0,
+            ..at_y(0.0, 0.0, 2.0, 0.0)
+        };
+        let carried = fighter_step(blast, &go, TOP_SPEED, DT_LIVE, &arena);
+        assert!((carried.vx - 12.0).abs() < 1e-5, "{carried:?}");
+    }
+
+    #[test]
+    fn crouch_and_compliance_cap_the_wish_speed() {
+        let arena = flat();
+        let go = keys(true, false, false, false, 0.0);
+        let mut s = at(0.0, 0.0, 0.0);
+        for _ in 0..10 {
+            s = fighter_step(s, &go, TOP_SPEED * DUCK_SPEED_SCALE, DT_LIVE, &arena);
+        }
+        assert!((s.vx - TOP_SPEED * DUCK_SPEED_SCALE).abs() < 1e-4);
+        let nan = fighter_step(s, &go, f32::NAN, f32::NAN, &arena);
+        assert!(nan.x.is_finite() && nan.vx.is_finite());
+        let bad = MoveState { vx: f32::NAN, ..s };
+        assert_eq!(
+            fighter_step(bad, &MoveInput::default(), TOP_SPEED, DT_LIVE, &arena).vx,
+            0.0
+        );
+    }
 
     #[test]
     fn low_crawler_passes_under_a_beam_that_blocks_a_standing_fighter() {
@@ -1229,7 +1541,7 @@ mod tests {
         }
         assert!((s.vx - TOP_SPEED).abs() < 1e-3, "{s:?}");
         assert!(
-            s.x > 2.0 && s.x < 2.5,
+            s.x > 2.7 && s.x < 3.0,
             "about half a second of running: {s:?}"
         );
         let stop = keys(false, false, false, false, 0.0);
@@ -1319,7 +1631,7 @@ mod tests {
         };
         let go = keys(true, false, false, false, 0.0);
         let mut s = at(0.0, 0.0, 0.0);
-        for _ in 0..55 {
+        for _ in 0..48 {
             s = step(s, &go, DT_60HZ, &arena);
         }
         assert!(s.x > 4.0, "walked onto the step: {s:?}");
@@ -1432,11 +1744,10 @@ mod tests {
             )
         });
         let file: GoldenFile = serde_json::from_str(&text).expect("golden json");
-        assert_eq!(file.version, 2);
+        assert_eq!(file.version, GOLDEN_VERSION);
         assert_eq!(file.dt, DT_60HZ);
         assert_eq!(
-            (file.radius, file.top_speed, file.tau_accel, file.tau_decel),
-            (RADIUS, TOP_SPEED, TAU_ACCEL, TAU_DECEL),
+            file.constants, FEEL,
             "constants changed; regenerate the vectors"
         );
         let fresh = golden_cases(DT_60HZ);
@@ -1474,10 +1785,11 @@ mod tests {
                 path.display()
             )
         });
-        let file: LiveGoldenFile = serde_json::from_str(&text).expect("live golden json");
+        let file: GoldenFile = serde_json::from_str(&text).expect("live golden json");
+        assert_eq!((file.version, file.dt), (GOLDEN_VERSION, DT_LIVE));
         assert_eq!(
-            (file.version, file.dt, file.top_speed),
-            (1, DT_LIVE, TOP_SPEED)
+            file.constants, FEEL,
+            "constants changed; regenerate the vectors"
         );
         let fresh = live_golden_cases();
         assert_eq!(fresh.cases.len(), file.cases.len());
@@ -1519,12 +1831,55 @@ mod tests {
                 .find(|case| case.name == name)
                 .unwrap_or_else(|| panic!("missing live case {name}"))
         };
-        let stop = find("instant_start_stop");
-        assert_eq!(stop.expected[0].x, TOP_SPEED * DT_LIVE);
-        assert_eq!(stop.expected[5].x, stop.expected[4].x);
-        assert_eq!(stop.expected[5].vx, 0.0);
+        let stop = find("start_and_stop");
+        let first = GROUND_ACCEL * DT_LIVE * TOP_SPEED;
+        assert!((stop.expected[0].vx - first).abs() < 1e-5);
+        assert!((stop.expected[5].vx - TOP_SPEED).abs() < 1e-4);
+        assert!(stop.expected[5].vx > stop.expected[6].vx);
+        assert_eq!(stop.expected[8].vx, 0.0, "rests three ticks after release");
+        assert_eq!(stop.expected[9].x, stop.expected[8].x);
+        let counter = find("counter_strafe");
+        assert!(counter.expected[5].vz > TOP_SPEED - 1e-4);
+        assert!(
+            counter.expected[6].vz < 0.0,
+            "the opposite key reverses at once"
+        );
         let slow = find("compliance_half_speed");
-        assert_eq!(slow.expected[0].x, TOP_SPEED * 0.5 * DT_LIVE);
+        assert!((slow.expected.last().unwrap().vx - TOP_SPEED * 0.5).abs() < 1e-4);
+        let crouch = find("crouch_speed");
+        assert!((crouch.expected.last().unwrap().vx - TOP_SPEED * DUCK_SPEED_SCALE).abs() < 1e-4);
+        let steer = find("air_steer");
+        assert!(steer
+            .expected
+            .iter()
+            .any(|state| state.y > 0.0 && state.vz < -0.5));
+        let strafe = find("strafe_jump_air_cap");
+        let fastest = strafe
+            .expected
+            .iter()
+            .fold(0.0f32, |most, state| most.max(state.vx.hypot(state.vz)));
+        assert!(
+            fastest > TOP_SPEED && fastest <= AIR_SPEED_CAP + 1e-4,
+            "{fastest}"
+        );
+        let blast = find("blast_momentum");
+        assert!(
+            blast.expected[0].vx > AIR_SPEED_CAP,
+            "blast speed is carried"
+        );
+        let dodge = find("ground_dodge");
+        assert!(
+            (dodge.expected[4].vz - DODGE_SPEED).abs() < 1e-5,
+            "{:?}",
+            dodge.expected[4]
+        );
+        assert!(dodge.expected[4].y > 0.0 && dodge.expected[4].vy > 0.0);
+        let still = &dodge.expected[dodge.expected.len() - 3];
+        assert_eq!(
+            (still.vx, still.vz, still.y),
+            (0.0, 0.0, 0.0),
+            "no direction, no dodge"
+        );
         let wall = find("wall_slide");
         assert!(wall
             .expected

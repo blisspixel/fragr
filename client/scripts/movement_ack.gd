@@ -1,7 +1,13 @@
 class_name MovementAck
 extends RefCounted
 ## Validates the optional 3D body block on a human Ack. An absent or newer
-## block leaves the existing snapshot path usable; version 1 must be complete.
+## block leaves the existing snapshot path usable; a known version must be
+## complete. Version 2 is the arena fighter model: the velocity is momentum the
+## next tick carries, and the dodge cooldown rides along. Version 1 is the
+## immediate step a campaign mission keeps.
+
+const FIGHTER: int = 2
+const IMMEDIATE: int = 1
 
 const MAX_EXACT_INTEGER: int = 9007199254740991
 const MAX_SEQUENCE: int = 4294967295
@@ -25,7 +31,7 @@ static func _finite_range(value: Variant, low: float, high: float) -> bool:
 static func has_replay_body(data: Dictionary) -> bool:
 	var body: Variant = data.get("movement")
 	return body is Dictionary and _integer(body.get("version"), MAX_EXACT_INTEGER) \
-		and int(body["version"]) == 1
+		and int(body["version"]) in [IMMEDIATE, FIGHTER]
 
 
 static func validation_error(data: Dictionary, previous: Dictionary = {}) -> String:
@@ -46,8 +52,8 @@ static func validation_error(data: Dictionary, previous: Dictionary = {}) -> Str
 	var body: Variant = data["movement"]
 	if not body is Dictionary or not _integer(body.get("version"), MAX_EXACT_INTEGER):
 		return INVALID
-	if int(body["version"]) != 1:
-		return "" # A future schema is an authoritative-snapshot fallback.
+	if int(body["version"]) not in [IMMEDIATE, FIGHTER]:
+		return "" # Another schema is an authoritative-snapshot fallback.
 	if not _integer(body.get("epoch"), MAX_EXACT_INTEGER) or int(body["epoch"]) < 1:
 		return INVALID
 	if not body.get("applied") is bool or not body.get("jump_input") is bool:
@@ -56,6 +62,11 @@ static func validation_error(data: Dictionary, previous: Dictionary = {}) -> Str
 		if not _finite_range(body.get(field), -MAX_BODY_VALUE, MAX_BODY_VALUE):
 			return INVALID
 	if not _finite_range(body.get("effective_speed"), 0.0, MoveStep.TOP_SPEED):
+		return INVALID
+	if int(body["version"]) == FIGHTER and not _integer(body.get("dodge_cooldown"), MoveStep.DODGE_COOLDOWN_TICKS):
+		return INVALID
+	# A worn jetpack's fuel after this step, for replay. Absent without a pack.
+	if body.has("jet_fuel") and not _integer(body["jet_fuel"], JetMovement.FUEL_MAX):
 		return INVALID
 	if not bool(body["applied"]) and (float(body["vx"]) != 0.0 or float(body["vz"]) != 0.0 \
 			or float(body["effective_speed"]) != 0.0 or bool(body["jump_input"])):

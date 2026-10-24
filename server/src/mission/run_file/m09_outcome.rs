@@ -2,13 +2,10 @@
 use super::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub(crate) enum M09Outcome {
-    Recorded {
-        released_crew: Vec<String>,
-        aboard_at_departure: Vec<String>,
-    },
-    HistoricalUnrecorded {},
+#[serde(deny_unknown_fields)]
+pub(crate) struct M09Outcome {
+    pub released_crew: Vec<String>,
+    pub aboard_at_departure: Vec<String>,
 }
 
 impl M09Outcome {
@@ -16,7 +13,7 @@ impl M09Outcome {
         crew: &[crate::protocol::M09CrewState],
         boarding: &crate::protocol::Region3,
     ) -> Self {
-        Self::Recorded {
+        Self {
             released_crew: crew.iter().map(|c| c.id.clone()).collect(),
             aboard_at_departure: crew
                 .iter()
@@ -27,13 +24,10 @@ impl M09Outcome {
     }
 
     pub(super) fn validate(&self, document: &RunDocument) -> Result<(), &'static str> {
-        let Self::Recorded {
+        let Self {
             released_crew,
             aboard_at_departure,
-        } = self
-        else {
-            return Ok(());
-        };
+        } = self;
         let edda = document
             .m04_outcome
             .as_ref()

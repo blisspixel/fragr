@@ -261,7 +261,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 );
                 assert!(guards.iter().all(|p| matches!(
                     p.campaign,
-                    Some(fragr_server::protocol::CampaignActor::Union {
+                    Some(fragr_server::protocol::CampaignActor::Hostile {
                         phase: fragr_server::protocol::EnemyPhase::Idle,
                         ..
                     })

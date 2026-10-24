@@ -1,4 +1,4 @@
-//! Civic Pressure Valve connected stadium persistence, historical archives and mission-entry retry.
+//! Civic Pressure Valve connected stadium persistence, promotion and mission-entry retry.
 use super::*;
 use crate::mission::run_file::{M15Outcome, SavedStep};
 use crate::protocol::{AmmoPool, CampaignActor, WeaponType};
@@ -93,56 +93,33 @@ fn m15_promotion_retains_all_receipts_and_exact_stock_with_refill() {
 }
 
 #[test]
-fn m15_v18_preview_and_promotion_archive_exact_bytes_and_keep_interrupted_source() {
+fn m15_locked_promotion_keeps_the_source_when_interrupted() {
     let source = m14_tests::completed_launch();
-    let mut historical = serde_json::to_value(&source).unwrap();
-    historical["version"] = 18.into();
-    let bytes = serde_json::to_vec_pretty(&historical).unwrap();
-    let directory = std::env::temp_dir().join(format!("fragr-stadium-v18-{}", Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!("fragr-stadium-edge-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
     let loaded = store.load().unwrap().unwrap();
     assert_eq!(loaded, source);
-    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    assert!(store.needs_upgrade().unwrap());
     let next = loaded
         .promote_next(MissionId::CivicPressureValve, m09_tests::HASHES[14])
         .unwrap();
     assert!(store
-        .archive_and_save_before_replace(&loaded, &next, |_| Err(io::Error::other(
-            "interrupted stadium edge"
-        )))
+        .save_with_sync(
+            &next,
+            |_| Err(io::Error::other("interrupted stadium edge")),
+            sync_directory,
+        )
         .is_err());
     assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archive = store.archive_and_save(&loaded, &next).unwrap();
-    assert_eq!(fs::read(archive).unwrap(), bytes);
+    store.save(&next).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), next);
-    assert!(!store.needs_upgrade().unwrap());
     drop(store);
     fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
-fn m15_historical_decoder_refuses_future_mission_and_even_null_outcomes() {
-    let mut historical = serde_json::to_value(m14_tests::completed_launch()).unwrap();
-    historical["version"] = 18.into();
-    for receipt in [
-        serde_json::Value::Null,
-        serde_json::to_value(completed_stadium().m15_outcome.unwrap()).unwrap(),
-    ] {
-        let mut forged = historical.clone();
-        forged["m15_outcome"] = receipt;
-        assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
-            RunProbe::Corrupt
-        ));
-    }
-    let mut future = serde_json::to_value(stadium_entry()).unwrap();
-    future["version"] = 18.into();
-    assert!(matches!(
-        RunStore::inspect_bytes(&serde_json::to_vec(&future).unwrap(), m09_tests::HASHES),
-        RunProbe::Incompatible
-    ));
+fn m15_entry_refuses_null_and_premature_outcomes() {
     let mut current = serde_json::to_value(stadium_entry()).unwrap();
     current["m15_outcome"] = serde_json::Value::Null;
     assert!(matches!(

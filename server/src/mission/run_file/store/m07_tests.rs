@@ -8,6 +8,7 @@ use crate::protocol::{BodyKind, CampaignDifficulty, CampaignRules, EquipmentPoli
 const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
     [103; 32], [104; 32], [105; 32], [106; 32], [107; 32], [108; 32], [109; 32], [110; 32],
+    [111; 32], [250; 32],
 ];
 
 pub(super) fn exit(sniper: bool) -> SavedEntry {
@@ -70,29 +71,19 @@ pub(super) fn completed_port() -> RunDocument {
     document
 }
 
-fn version_seven_bytes(document: &RunDocument) -> Vec<u8> {
-    let mut value = serde_json::to_value(document).unwrap();
-    value["version"] = 7.into();
-    value["rules"]["revision"] = (3).into();
-    super::super::remove_historical_mines(&mut value);
-    serde_json::to_vec_pretty(&value).unwrap()
-}
-
 fn open(directory: &Path) -> RunStore {
     RunStore::open_with_hashes(directory, HASHES).unwrap()
 }
 
 #[test]
-fn version_seven_port_exit_upgrades_and_promotes_into_m07_without_a_refill() {
-    let directory = std::env::temp_dir().join(format!("fragr-m07-migration-{}", Uuid::new_v4()));
+fn completed_port_promotes_into_m07_without_a_refill() {
+    let directory = std::env::temp_dir().join(format!("fragr-m07-promotion-{}", Uuid::new_v4()));
     let source = completed_port();
-    let bytes = version_seven_bytes(&source);
     let store = open(&directory);
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
     let loaded = store.load().unwrap().unwrap();
-    assert_eq!(loaded, source, "version 7 reads as the same run");
-    assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
-    assert!(store.needs_upgrade().unwrap());
+    assert_eq!(loaded, source);
     let promoted = loaded
         .promote_next(MissionId::DeclaredGoods, HASHES[6])
         .unwrap();
@@ -121,18 +112,14 @@ fn version_seven_port_exit_upgrades_and_promotes_into_m07_without_a_refill() {
     );
     assert!(entry.equipment.personal_claims.is_empty());
     assert!(!entry.equipment.weapons.contains(&WeaponType::Sniper));
-    let failed = store.archive_and_save_before_replace(&source, &promoted, |_| {
-        Err(io::Error::other("injected replace failure"))
-    });
+    let failed = store.save_with_sync(
+        &promoted,
+        |_| Err(io::Error::other("injected replace failure")),
+        sync_directory,
+    );
     assert!(failed.is_err());
     assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archive = store.archive_and_save(&source, &promoted).unwrap();
-    assert_eq!(
-        fs::read(archive).unwrap(),
-        bytes,
-        "exact prior bytes archived"
-    );
-    assert!(!store.needs_upgrade().unwrap());
+    store.save(&promoted).unwrap();
     assert!(promoted
         .promote_next(MissionId::DeclaredGoods, HASHES[6])
         .is_err());
@@ -144,24 +131,10 @@ fn version_seven_port_exit_upgrades_and_promotes_into_m07_without_a_refill() {
 }
 
 #[test]
-fn version_seven_cannot_claim_m07_or_a_sniper_and_m07_entry_refuses_one() {
+fn completed_m06_and_m07_entry_refuse_a_sniper() {
     let source = completed_port();
-    let mut forged: serde_json::Value =
-        serde_json::from_slice(&version_seven_bytes(&source)).unwrap();
-    forged["step"] = serde_json::json!({
-        "kind": "mission_entry", "mission": "declared_goods",
-        "entry": serde_json::to_value(exit(false)).unwrap()
-    });
-    super::super::remove_historical_mines(&mut forged);
-    let bytes = serde_json::to_vec(&forged).unwrap();
-    assert!(matches!(
-        RunStore::inspect_bytes(&bytes, HASHES),
-        RunProbe::Incompatible
-    ));
-    let mut sniper: serde_json::Value =
-        serde_json::from_slice(&version_seven_bytes(&source)).unwrap();
+    let mut sniper = serde_json::to_value(&source).unwrap();
     sniper["step"]["exit"] = serde_json::to_value(exit(true)).unwrap();
-    super::super::remove_historical_mines(&mut sniper);
     let bytes = serde_json::to_vec(&sniper).unwrap();
     assert!(matches!(
         RunStore::inspect_bytes(&bytes, HASHES),

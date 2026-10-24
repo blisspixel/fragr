@@ -17,6 +17,12 @@ Run repeated samples before interpreting a small performance difference.
 cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert
 ```
 
+The CPU fixture runs free-for-all under the `full-arsenal` mutator, so every
+bot is armed from the first tick as before the Pistol start (2026-10-23) and
+CPU timings stay comparable. Its recorded rules now name that mutator, so a
+trace hash from a build before the change does not match one after it; compare
+timings, not hashes, across that line.
+
 `--bench-check` compares SHA-256 hashes of the complete header, tick, and score
 records across two runs. Stable offline entity IDs also cover dynamically spawned
 drones. Normal live sessions retain UUIDv4. Equality proves repeatable observable
@@ -71,7 +77,9 @@ Recording still affects caches and wall-clock load, so compare like configuratio
 ## Local spectator fan-out
 
 The playtest harness has a separate live WebSocket matrix for 4 or 16 fighters
-and 1, 8, or 16 spectators on Arena Duel and Tripoint Works, all at seed 42:
+and 1, 8, or 16 spectators on map 1 and Tripoint Works, all at seed 42. Map 1
+has been Larak Lot since 2026-10-23; matrix rows recorded before that date ran
+on the retired Arena Duel field and are not comparable:
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
@@ -124,23 +132,74 @@ comparison below captures its own bounded in-memory snapshot sequence.
 
 Choose **Benchmark** from the main menu to measure the current preset or compare
 Performance, Balanced and High. It first records 28 seconds of an owned local
-ten-bot Arena Duel match, then stops that host. Every preset replays the same
+ten-bot Larak Lot match, then stops that host. Every preset replays the same
 authoritative snapshots and time-based camera path. Eight warm-up seconds are
 discarded, followed by twenty scored seconds. V-sync and the frame cap are
 temporarily disabled; completion, cancellation and failure restore the user's
 settings without saving the temporary graphics draft.
 
-The result shows average FPS, one 1% low, p50/p95/p99/maximum frame time and
-slow-frame counts. The 1% low is 1000 divided by the mean milliseconds of the
-slowest `ceil(frame_count * 0.01)` frames. Monotonic whole-frame intervals
-measure visible cadence, not GPU execution time. The JSON and CSV also retain
-the adapter, renderer, engine, resolutions, applied settings, sample count and
-replay digest. Use **Open results folder** to find the local artifacts. No raw
-participant or network recording is saved.
+The camera is a scripted orbit that follows nobody: no fighter is hidden for an
+eye view and no viewmodel is drawn. The match HUD is hidden for the whole run,
+for every preset alike. The benchmark's own readout (`BenchmarkHud`) names the
+step (recording, loading, warming up, measuring), shows overall progress against
+the nominal content time (28 s plus 28 s per preset; loading between presets is
+not counted, so the remaining time reads "about"), and a live frame rate and
+frame time over roughly the last second, refreshed four times a second. While a
+preset is scored it also shows that preset's running average (scored frames over
+scored seconds). Live figures are labelled live and are never the result. A
+refresh restyles the step chips only when the step changes, so the readout's
+script cost stays small inside the measured frames; `qa_benchmark.gd` prints
+that cost on the host it runs on. The
+readout starts below the player's frame counter when that counter is on, using
+the same reserved-region rule as the match HUD. Esc cancels; the Benchmark page
+then says the run was cancelled and nothing was saved.
+
+A completed result leads with **Benchmark complete** and, per preset, average
+FPS, one 1% low, the 99th percentile frame time and frames at or above 33 ms,
+then one frame-time timeline: every scored frame, one row per preset on a shared
+scale named in its heading, with 60 and 30 FPS guides. Rows shrink with the
+window so the cards, the whole timeline and the actions share one screen at
+1280x720 and above. **Details** holds p50/p95/p99.9/maximum frame time, the
+0.1% low, frames at or above 50 ms, hitches against the trailing second, the 3D
+render size, system, the shared Display settings, what each preset changes
+(MSAA, shadow atlas, light fixture shadows, ambient occlusion, glow, read from
+the same `RenderQuality` rules that applied them), definitions and the last
+compatible run. Run again, Copy summary, Open results folder and Back to menu
+stay on screen without scrolling. Focus stays on those actions for mouse,
+keyboard and pad alike; up and down (arrows, D-pad, stick) and page up and down
+scroll the figures and Details. A stopped run (settings changed, window
+resized, frames stopped for two seconds, a preset or the match did not load)
+says **Benchmark stopped** with one card: the reason, the step it stopped
+during, any presets that finished (their figures are not kept), that nothing was
+saved and that settings were restored. It has no figures.
+
+The 1% low is 1000 divided by the mean milliseconds of the slowest
+`ceil(frame_count * 0.01)` frames. Average FPS is frame count over measured time.
+Monotonic whole-frame intervals measure visible cadence, not GPU execution time,
+display latency or input latency. Report schema 3 keeps every scored interval in
+whole microseconds (`runs[].frame_us`); `FrameStats` on those values reproduces
+every displayed figure and the timeline. The JSON and CSV also retain the
+adapter, renderer, engine, build, resolutions, applied settings, sample count
+and replay digest. Use **Open results folder** to find the local artifacts. No
+raw participant or network recording is saved.
 
 Compared presets within a run receive the same fight; a new run records a new
+fight. A result is compared with an earlier one only when their `compatibility`
+keys match: schema, workload id, metric version, engine and build, OS, display
+server, renderer, driver, adapter, graphics API, output size, and each preset's
+3D render size and settings. The display server is in the key because
+presentation is part of what is measured: on one Linux host, each of eight X11
+(XWayland) runs stalled for 0.2 to 0.8 s at the same two points of every
+preset, one inside the scored window, before the frame's first physics step;
+one native Wayland run, which the compositor also sized differently, had no
+scored frame over 0.15 s. The workload id changes whenever the measured scene
+changes (hiding the match HUD was such a change), so older results never
+compare as equal.
+Matching keys rule out unlike runs; they do not make two recordings the same
 fight. Repeated runs and a representative workload matter before judging small
-differences. This Arena Duel scene does not establish 64-player capacity or
+differences. The report records `scene_revision`: revision 2 is Larak Lot with
+an orbit 31 m out and 17 m up; revision 1 circled the retired Arena Duel field
+and its scores are not comparable. This scene does not establish 64-player capacity or
 island performance. Headless checks cover arithmetic and lifecycle, not hardware
 frame rates. A frame rate is not a CI gate. The server `--bench` results above
 remain separate CPU measurements. The

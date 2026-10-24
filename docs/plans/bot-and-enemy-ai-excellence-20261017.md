@@ -1,6 +1,6 @@
 # Bot and Enemy AI Excellence: Tactical Squads, Dynamic Companions, and Fun-First Combat
 
-Status: **planned**, 2026-10-17. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
+Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) is implemented on `wave2/bot-ai`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
 
 ## 1. Executive Summary and Current Architecture Audit
 
@@ -121,3 +121,29 @@ An in-depth codebase audit of fragr's simulation and encounter systems reveals a
 - Total external spend: **$0**. Reuses existing synthesis, samples, and offline audio tools.
 - Authority: The Rust server remains 100% authoritative over perception rays, attack tokens, damage, and companion movement. Godot client only presents visual glints, sprite flinches, and audio cues.
 - Zero AI attribution. Nick Seal strictly author.
+
+## 6. Progress
+
+**First slice, 2026-10-24 (`wave2/bot-ai`, Refs #432).** Implemented, not merged.
+
+- Every arcade mode's rule bots, CTF and Sabotage included, see through the shared senses: 120 degree cone, sight range, cover and hulls, 200 to 400 ms reaction, bounded aim error and turn rate. A hit reveals where the shot came from, not where the shooter went, and spoils the victim's aim for six ticks. CTF bots keep their route and shoot what they see along it; they fight only near the point they guard (defender at its stand, escort beside the carrier, runner at the flag it came for).
+- Rule bots and joined MCP agents know pads only from what they have seen, with the published return clocks; nobody reads a live timer. A bot leaves for a returning pad when the walk plus two seconds would get it there, holds the pad sweeping the approaches, and each personality keeps a habit pad. Found Sniper, Repeater and Rocket join the personalities' weapon lanes.
+- Campaign ranged attackers share two tokens per participant, with tell starts at least ten ticks apart; a denied guard shifts across its lane for twelve ticks. Turrets and marksmen keep tracking but tell only with a free token. Melee charges are not paced.
+- Struck arcade fighters recoil visibly in the client (lean back and give ground, 0.24 s); campaign actors keep their server Hit poses.
+
+Measured with `fragr-playtest --bot-survey --seed 1 --survey-seeds 6 --time-limit-seconds 150` (six seeded 150 s rounds per row, rule bots only, no sockets), before and after:
+
+| Scenario | Frags/min | Spawn deaths per spawn | Power pad appointments | Pad contest | Objective |
+|---|---|---|---|---|---|
+| FFA Arena Duel, 6 | 17.8 to 15.9 | 0.027 to 0.015 | 0% to 5% | 2.2% to 4.2% | |
+| FFA Directive 17, 8 | 26.7 to 27.5 | 0.045 to 0.044 | 1.5% to 2% | 2.5% to 1.7% | |
+| TDM Low Water, 8 | 22.7 to 24.3 | 0.016 to 0.030 | 3.9% to 14% | 7.9% to 8.2% | |
+| CTF Sector 9, 8 | 1.3 to 6.7 | 0 to 0 | no pads taken | | 3 to 10 captures |
+| Sabotage Sector 9, 8 | 3.8 to 5.2 | 0 to 0 | | | |
+| Conquest Holdfast, 8 | 2.6 to 3.1 | 0 to 0 | | | 24 to 22 sites held |
+
+A three-Clerk room against a stationary participant over 400 ticks fires 21 shots with pacing against 36 without, and its worst second drops from three tells to two (`a_waking_room_holds_two_tells_at_a_time_and_every_guard_still_fires`).
+
+Seeded campaign route controllers are seed-sensitive. Over eight seeds each, the M14 infantry routes completed 7 of 24 runs before pacing and 17 of 24 with it; the late carried-kit routes and the M02 Severe side-ward route completed on as many seeds before as after, on different seeds. Those tests now name their seed and record the survey. This is controller evidence, not a difficulty verdict. `CAMPAIGN_RULES_REVISION` is unchanged because no tell duration changed.
+
+Still open: dormant guard cones and reaction before activation, infantry audio and glint tells, squad roles, companion etiquette and covering fire, barks, bot personalities beyond pad habits, CTF bots seeking pads, and a pad contest index near the 15% the multiplayer research asks for (that needs the Tack and Fists kit and power items worth fighting over). Human play and Windows rendering were not run.

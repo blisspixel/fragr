@@ -106,13 +106,14 @@ func _run() -> void:
 	_check(legend == "CTRL fire   F use   ] weapon   ESC menu",
 		"the legend only wraps between key and word pairs: " + legend)
 	_check(hud.legend_line("HOLD L-CTRL crouch") == "HOLD L‑CTRL crouch", "a hyphenated binding stays inside its prompt pair")
+	_check(hud.legend_line("RB weapon   MENU menu") == "RB" + String.chr(0xa0) + "weapon   MENU", "a pad Menu button that opens the menu is named once")
 	game.is_human_player = false
 	_check(game._shows_participant_notice("watched") and not game._shows_participant_notice("self"), "spectator notices follow the actual watched identity")
 	camera.target = null
 	_check(not game._shows_participant_notice("watched"), "free camera has no participant pickup notices")
 	game.is_human_player = true
 	game._on_event_received({"event":"frag", "killer":"Other", "victim":"Victim"})
-	game._on_event_received({"event":"killstreak", "player":"Other", "player_id":"other", "streak":3, "tier":"triple", "message":"A loud announcement"})
+	game._on_event_received({"event":"host_reaction", "kind":"triple_frag", "variant":0, "player":"Other", "big":true})
 	hud.show_speak("Agent", "Free weights.")
 	hud.show_compliance_ping("Pressure")
 	hud.show_boss_spawn("Drone", "Compliance drone")

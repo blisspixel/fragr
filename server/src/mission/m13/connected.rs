@@ -118,6 +118,7 @@ impl GameState {
             Vec::new()
         };
         Some(MissionState {
+            m20: None,
             id: MissionId::WeightOfPermission,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,
@@ -142,6 +143,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             m13: Some(M13ObjectiveState {
                 completed,
                 current,

@@ -70,7 +70,8 @@ fn enter_drive_stop_switch_and_exit_share_the_normal_action_channel() {
             ..Default::default()
         },
     );
-    for _ in 0..30 {
+    // Larak Lot's Pit is twenty metres across: check speed before the wall.
+    for _ in 0..10 {
         state.tick(0.05);
     }
     assert!(state.vehicles[0].state.position[0] > 1.0);
