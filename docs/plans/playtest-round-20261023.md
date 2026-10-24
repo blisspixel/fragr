@@ -46,6 +46,14 @@ the wave 1 measurements.
 - **No tilted text:** status, result and signature-moment text renders on a
   level baseline. `StampCard` keeps no text rotation in any motion setting; the
   stamp feel comes from border, weight, colour and settle, not angle (#437).
+- **No backward save compatibility before 1.0** (2026-10-23): nobody plays yet.
+  Collapse the run file to one current schema and delete the historical
+  migrations and exact-byte archives. Older saves are refused with a clear
+  message.
+- **Build it fully and exceptionally well:** the golden slice comes first, from
+  boot through menu, join, fight, die, respawn and result, on one hero FFA map
+  and campaign Level 1. It sets the quality bar. Levels 19 and 20 and the rest
+  of the campaign and modes are then built to that bar; nothing is cut.
 - **Asset credits:** use the funded Higgsfield balance and the included Meshy
   and ElevenLabs credits fully, Meshy first because its monthly credits reset
   on 2026-11-03. Spend only on assets that will be integrated and visible.
