@@ -68,6 +68,13 @@ func _frame_stats() -> void:
 	_near(float(summary["over_33_share"]), 0.050 / 1.04, "a frame at or above 33 ms counts its whole duration")
 	_check(int(summary["over_33_count"]) == 1, "the one hitch is a slow frame")
 	_check(int(summary["stutter_count"]) == 1, "one hitch against the trailing second counts once")
+	# The saved report keeps every FrameStats field, so each stays pinned.
+	_near(float(summary["smoothness"]), 1.04, "smoothness is the 99th percentile over the median")
+	_near(float(summary["low_1_time_fps"]), 20.0, "1 percent low by time uses the slowest duration")
+	_near(float(summary["low_1_percentile_fps"]), 1.0 / 0.0104, "1 percent low by percentile inverts the 99th")
+	_near(float(summary["over_50_share"]), 0.050 / 1.04, "a frame at 50 ms counts as a stall")
+	_near(float(summary["stutter_max_ms"]), 40.0, "the largest jump is the step into the hitch")
+	_near(float(summary["mad_ms"]), 0.0, "one hitch does not move the median absolute deviation")
 	var dirty: PackedFloat32Array = PackedFloat32Array([0.0, -0.2, NAN, INF])
 	var empty: Dictionary = FrameStats.report(dirty)
 	_check(int(empty["count"]) == 0 and int(empty["dropped"]) == 4 and float(empty["fps"]) == 0.0, "a clock that did not advance yields no FPS and no NaN")
@@ -80,6 +87,12 @@ func _camera() -> void:
 	_check((origin["position"] as Vector3).is_equal_approx(Vector3(BenchmarkCamera.RADIUS, BenchmarkCamera.HEIGHT, 0.0)), "the orbit starts on the positive X side")
 	_check((quarter["position"] as Vector3).is_equal_approx(Vector3(0.0, BenchmarkCamera.HEIGHT, BenchmarkCamera.RADIUS)), "five seconds is a quarter turn")
 	_check((BenchmarkCamera.pose(5.0)["position"] as Vector3).is_equal_approx(quarter["position"]), "the same timestamp is the same pose")
+	_check((quarter["look"] as Vector3).is_equal_approx(BenchmarkCamera.LOOK), "the camera looks at the arena")
+	var body: Node3D = Node3D.new()
+	root.add_child(body)
+	BenchmarkCamera.apply(body, 5.0)
+	_check(body.global_position.is_equal_approx(quarter["position"]), "applying the pose moves the camera")
+	body.free()
 
 func _measurement() -> void:
 	var run: BenchmarkRun = BenchmarkRun.new()
@@ -259,6 +272,13 @@ func _results_view() -> void:
 		_check(button != null and not view.find_child("Body", true, false).is_ancestor_of(button), "%s sits outside the scrolled body" % action)
 	(view.find_child("BenchmarkDetails", true, false) as Button).pressed.emit()
 	_check(details.visible, "details open on request")
+	var detail_copy: String = ""
+	for label: Node in details.find_children("*", "Label", true, false):
+		detail_copy += (label as Label).text + "\n"
+	_check(detail_copy.contains("Performance preset: no MSAA") and detail_copy.contains("Balanced preset: MSAA 2x") and detail_copy.contains("High preset: MSAA 4x"), "details name what each preset changes")
+	_check(detail_copy.contains("Forward+ renderer") and not detail_copy.contains("forward_plus"), "details name the renderer in player words")
+	_check(RenderQuality.preset_features(2, "forward_plus", {"upscaling": 2, "pixel_scale": 0}, Vector2i(1920, 1080)).begins_with("no MSAA"), "FSR 2 turns MSAA off, and the description says so")
+	_check(RenderQuality.preset_features(1, "mobile", {}, Vector2i(1920, 1080)).contains("ambient occlusion off"), "no ambient occlusion where the renderer has none")
 	var timeline: BenchmarkChart = view.find_child("Timeline", true, false) as BenchmarkChart
 	_check(timeline != null and timeline.ceiling_ms >= maxf(40.0, float(report["runs"][2]["p95_ms"]) * 2.0) and timeline.ceiling_ms > 1000.0 / 30.0, "the timeline scale holds twice the slowest p95 and both guides")
 	var spans: PackedVector2Array = BenchmarkChart.envelope(report["runs"][0]["frame_us"], 100, 20.0)
@@ -351,6 +371,12 @@ func _menu() -> void:
 	await menu._show("main")
 	var benchmark_button: Button = menu.find_child("Benchmark", true, false) as Button
 	_check(benchmark_button != null and benchmark_button.text == "BENCHMARK", "the main menu has Benchmark")
+	var first: Button = null
+	for child: Node in (menu.get("_root") as Node).get_children():
+		if child is Button:
+			first = child as Button
+			break
+	_check(first != null and first.text == "SINGLE PLAYER", "Benchmark does not take the first focus")
 	await menu._show("benchmark")
 	var run_button: Button = menu.find_child("RunBenchmark", true, false) as Button
 	_check(run_button != null and run_button.text == "RUN CURRENT PRESET (BALANCED)", "the benchmark page names the current preset: " + (run_button.text if run_button != null else ""))

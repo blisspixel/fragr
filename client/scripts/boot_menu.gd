@@ -1019,7 +1019,7 @@ func _page_benchmark() -> void:
 			["Takes", "%s only: about %s. All three: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
 			["While it runs", "V-sync and the frame cap are off. Esc cancels. Your settings come back."],
 			["Results", "Average FPS, 1% low and frame-time spikes, saved as JSON and CSV."],
-			["This computer", "%s, %s, %d x %d." % [adapter if not adapter.is_empty() else "Graphics adapter not reported", RenderingServer.get_current_rendering_method(), size.x, size.y]]]:
+			["This computer", "%s, %s, %d x %d." % [adapter if not adapter.is_empty() else "Graphics adapter not reported", RenderQuality.renderer_name(RenderingServer.get_current_rendering_method()), size.x, size.y]]]:
 		var key: Label = Label.new()
 		key.text = str(row[0]).to_upper()
 		key.add_theme_font_size_override("font_size", MenuTheme.BODY)

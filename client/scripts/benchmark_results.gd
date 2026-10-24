@@ -63,7 +63,7 @@ func _ready() -> void:
 	var body: VBoxContainer = VBoxContainer.new()
 	body.name = "Body"
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 18)
+	body.add_theme_constant_override("separation", 12)
 	_scroll.add_child(body)
 	if complete:
 		if previous.is_empty() and not directory.is_empty():
@@ -94,27 +94,31 @@ func _ready() -> void:
 func _summary(body: VBoxContainer) -> void:
 	var runs: Array = report["runs"]
 	var first: Dictionary = runs[0]
-	var frames: int = 0
-	for row: Dictionary in runs:
-		frames += int(row.get("count", 0))
 	var size_text: String = "%d x %d" % [int(first["output_size"][0]), int(first["output_size"][1])]
-	_label(body, "Arena Duel, ten bots, one recorded fight replayed for each preset. %d s scored per preset after %d s of warm-up. %s frames at %s. Your settings are restored." % [
-		int(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)), int(report.get("warmup_seconds", BenchmarkRun.PRIME_SECONDS)), _thousands(frames), size_text], MenuTheme.BODY, MenuTheme.BONE)
+	# One line each at 1080p, so the cards, the whole timeline and the actions
+	# share one screen there; smaller windows scroll the body, never the actions.
+	_label(body, "One recorded Arena Duel fight per preset. %d s scored after %d s warm-up. %s." % [
+		int(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)), int(report.get("warmup_seconds", BenchmarkRun.PRIME_SECONDS)), size_text], MenuTheme.BODY, MenuTheme.BONE).name = "Scope"
 	var cards: HFlowContainer = HFlowContainer.new()
 	cards.name = "Presets"
 	cards.alignment = FlowContainer.ALIGNMENT_CENTER
 	cards.add_theme_constant_override("h_separation", 20)
-	cards.add_theme_constant_override("v_separation", 20)
+	cards.add_theme_constant_override("v_separation", 16)
 	body.add_child(cards)
 	for index: int in runs.size():
 		_card(cards, runs[index], index)
-	_label(body, "FPS: higher is better. Milliseconds: lower is better. The 1% low is the average of the slowest 1% of frames, as FPS. 33 MS+ counts frames that took 33 ms or longer.", MenuTheme.BODY, MenuTheme.MUTED)
-	_label(body, "FRAME TIME, EVERY SCORED FRAME", MenuTheme.BODY, MenuTheme.EMBER)
+	_label(body, "Higher FPS is better. Lower MS is better. Definitions are under Details.", MenuTheme.BODY, MenuTheme.MUTED).name = "Direction"
+	var heading: Label = _label(body, "", MenuTheme.BODY, MenuTheme.EMBER)
+	heading.name = "TimelineHeading"
 	var chart: BenchmarkChart = BenchmarkChart.new()
 	chart.name = "Timeline"
 	chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Rows shrink with the window so the timeline fits beside the cards at 1080p.
+	chart.row_height = clampf(roundf(_view_height() * 0.075), BenchmarkChart.MIN_ROW_HEIGHT, BenchmarkChart.ROW_HEIGHT)
 	chart.set_runs(runs, float(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)))
 	body.add_child(chart)
+	# The scale is named once, in the heading, where no guide label can meet it.
+	heading.text = "FRAME TIME, EVERY SCORED FRAME // EACH ROW 0 TO %d MS" % int(chart.ceiling_ms)
 	_details = VBoxContainer.new()
 	_details.name = "DetailsPanel"
 	_details.visible = false
@@ -129,8 +133,8 @@ func _card(parent: Container, row: Dictionary, index: int) -> void:
 	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.SURFACE, MenuTheme.EDGE)
 	plate.content_margin_left = 24
 	plate.content_margin_right = 24
-	plate.content_margin_top = 18
-	plate.content_margin_bottom = 18
+	plate.content_margin_top = 14
+	plate.content_margin_bottom = 14
 	card.add_theme_stylebox_override("panel", plate)
 	parent.add_child(card)
 	var column: VBoxContainer = VBoxContainer.new()
@@ -141,9 +145,14 @@ func _card(parent: Container, row: Dictionary, index: int) -> void:
 	stripe.custom_minimum_size = Vector2(0.0, 8.0)
 	column.add_child(stripe)
 	_label(column, str(row["preset"]).to_upper(), MenuTheme.BODY, MenuTheme.BONE)
-	var average: Label = _label(column, "%d FPS" % roundi(float(row["fps"])), MenuTheme.DISPLAY_MEDIUM, MenuTheme.BONE, true)
+	# The headline figure carries its own caption on its baseline row.
+	var lead: HBoxContainer = HBoxContainer.new()
+	lead.add_theme_constant_override("separation", 16)
+	column.add_child(lead)
+	var average: Label = _label(lead, "%d FPS" % roundi(float(row["fps"])), MenuTheme.DISPLAY_MEDIUM, MenuTheme.BONE, true)
 	average.name = "Average"
-	_label(column, "AVERAGE", MenuTheme.BODY, MenuTheme.MUTED)
+	var caption: Label = _label(lead, "AVERAGE", MenuTheme.BODY, MenuTheme.MUTED)
+	caption.size_flags_vertical = Control.SIZE_SHRINK_END
 	var grid: GridContainer = GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 24)
@@ -157,7 +166,6 @@ func _card(parent: Container, row: Dictionary, index: int) -> void:
 		key.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var value: Label = _label(grid, pair[1], MenuTheme.BODY, MenuTheme.BONE)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_label(column, "%s FRAMES IN %.1f S" % [_thousands(int(row["count"])), float(row["elapsed_s"])], MenuTheme.BODY, MenuTheme.MUTED)
 	var earlier: Dictionary = _previous_row(int(row.get("quality", -1)))
 	if not earlier.is_empty() and float(earlier.get("fps", 0.0)) > 0.0:
 		var change: float = (float(row["fps"]) - float(earlier["fps"])) / float(earlier["fps"]) * 100.0
@@ -195,17 +203,24 @@ func _build_details(panel: VBoxContainer, runs: Array) -> void:
 			if figure[2] == "world_size":
 				text = "%d x %d" % [int(row["world_size"][0]), int(row["world_size"][1])]
 			elif str(figure[1]) == "%d":
-				text = str(int(row.get(figure[2], 0)))
+				text = _thousands(int(row.get(figure[2], 0)))
 			else:
 				text = str(figure[1]) % float(row.get(figure[2], 0.0))
 			_label(table, text, MenuTheme.BODY, MenuTheme.BONE).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Graphics: %s. %s renderer, %s, API %s." % [report.get("adapter", ""), report.get("renderer", ""), report.get("driver", ""), report.get("graphics_api", "")])
+	var renderer: String = str(report.get("renderer", ""))
+	lines.append("Graphics: %s. %s renderer, %s, API %s." % [report.get("adapter", ""), RenderQuality.renderer_name(renderer), report.get("driver", ""), report.get("graphics_api", "")])
 	lines.append("Engine %s, %s build, %s." % [report.get("engine", ""), report.get("build", ""), report.get("os", "")])
+	# The Display settings are the same for every preset; what each preset
+	# changes is named from the rules that applied it.
+	lines.append("Display settings for every preset: %s." % _settings_text(runs[0].get("settings", {})))
 	for row: Dictionary in runs:
-		lines.append("%s settings: %s." % [row["preset"], _settings_text(row.get("settings", {}))])
+		var settings: Dictionary = row.get("settings", {}) if row.get("settings") is Dictionary else {}
+		var output: Vector2i = Vector2i(int(row["output_size"][0]), int(row["output_size"][1])) if row.get("output_size") is Array and (row["output_size"] as Array).size() == 2 else Vector2i.ZERO
+		lines.append("%s preset: %s." % [row["preset"], RenderQuality.preset_features(int(row.get("quality", 1)), renderer, settings, output)])
 	lines.append("Measured: the interval between drawn frames with V-sync and the frame cap off. It is not GPU time, display latency or input latency, and it is not a server or player-capacity test.")
-	lines.append("1%% low: %s. Percentiles: %s." % [report.get("low_1_definition", ""), report.get("percentile_definition", "")])
+	lines.append("1% low: the average of the slowest 1% of frames, as FPS. 33 MS+ counts frames that took 33 ms or longer.")
+	lines.append("Formulas: 1%% low %s. Percentiles: %s." % [report.get("low_1_definition", ""), report.get("percentile_definition", "")])
 	var capture: Dictionary = report.get("capture", {}) if report.get("capture") is Dictionary else {}
 	lines.append("Recorded fight: %d snapshots, SHA-256 %s. Every preset replayed it. A new run records a new fight." % [int(capture.get("snapshots", 0)), str(capture.get("sha256", "")).left(16)])
 	if previous.is_empty():
@@ -261,7 +276,7 @@ func _save_line() -> String:
 	var save_error: String = str(report.get("save_error", ""))
 	if not save_error.is_empty():
 		return save_error + " The figures above are still correct for this run."
-	return "Saved as JSON and CSV in your benchmark folder."
+	return "Saved as JSON and CSV in your benchmark folder. Your settings are restored."
 
 ## Plain text for the clipboard: the run, the system and each preset's four figures.
 func summary_text() -> String:
@@ -269,7 +284,7 @@ func summary_text() -> String:
 	lines.append("fragr benchmark, %s UTC" % str(report.get("created_utc", "")).replace("T", " "))
 	lines.append("Arena Duel, ten bots, recorded fight, %d s scored per preset after %d s warm-up" % [int(report.get("score_seconds", 0)), int(report.get("warmup_seconds", 0))])
 	var first: Dictionary = report["runs"][0]
-	lines.append("%s, %s, %s, %d x %d, engine %s %s" % [report.get("adapter", ""), report.get("renderer", ""), report.get("os", ""),
+	lines.append("%s, %s, %s, %d x %d, engine %s %s" % [report.get("adapter", ""), RenderQuality.renderer_name(str(report.get("renderer", ""))), report.get("os", ""),
 		int(first["output_size"][0]), int(first["output_size"][1]), report.get("engine", ""), report.get("build", "")])
 	for row: Dictionary in report["runs"]:
 		lines.append("%s: %d fps average, 1%% low %d fps, p99 %.1f ms, %d frames at 33 ms or more" % [row["preset"], roundi(float(row["fps"])),
@@ -279,6 +294,10 @@ func summary_text() -> String:
 func _copy_summary() -> void:
 	DisplayServer.clipboard_set(summary_text())
 	_notice.text = "Summary copied."
+
+## Canvas height the page lays out in (the stretched view, not the window).
+func _view_height() -> float:
+	return get_viewport().get_visible_rect().size.y if is_inside_tree() else float(BenchmarkChart.ROW_HEIGHT) / 0.075
 
 static func _thousands(value: int) -> String:
 	var digits: String = str(absi(value))

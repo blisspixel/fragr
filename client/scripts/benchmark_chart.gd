@@ -10,7 +10,9 @@ extends Control
 ## and 33.3 ms (30 FPS); the scale always shows both.
 
 const ROW_HEIGHT: float = 116.0
-const ROW_GAP: float = 14.0
+## Below this the guide labels and the scale label would meet.
+const MIN_ROW_HEIGHT: float = 72.0
+const ROW_GAP: float = 10.0
 const LABEL_WIDTH: float = 250.0
 const AXIS_HEIGHT: float = 40.0
 const SCALE_WIDTH: float = 120.0
@@ -22,6 +24,8 @@ const GUIDES: Array[Vector2] = [Vector2(1000.0 / 60.0, 60.0), Vector2(1000.0 / 3
 const SERIES: Array[Color] = [MenuTheme.EMBER, MenuTheme.CYAN, MenuTheme.BONE]
 
 var runs: Array = []
+## Plot height of one preset row; the results page fits it to the window.
+var row_height: float = ROW_HEIGHT
 var ceiling_ms: float = 50.0
 var seconds: float = 20.0
 var font_size: int = MenuTheme.BODY
@@ -34,7 +38,7 @@ func set_runs(value: Array, window_seconds: float) -> void:
 	runs = value
 	seconds = maxf(window_seconds, 0.001)
 	ceiling_ms = ceiling_for(value)
-	custom_minimum_size.y = float(value.size()) * (ROW_HEIGHT + ROW_GAP) + AXIS_HEIGHT
+	custom_minimum_size.y = float(value.size()) * (row_height + ROW_GAP) + AXIS_HEIGHT
 	queue_redraw()
 
 static func ceiling_for(value: Array) -> float:
@@ -81,12 +85,12 @@ func _draw() -> void:
 	var line_h: float = font.get_height(font_size)
 	for index: int in runs.size():
 		var row: Dictionary = runs[index] if runs[index] is Dictionary else {}
-		var top: float = float(index) * (ROW_HEIGHT + ROW_GAP)
-		var plot: Rect2 = Rect2(plot_x, top, plot_w, ROW_HEIGHT)
+		var top: float = float(index) * (row_height + ROW_GAP)
+		var plot: Rect2 = Rect2(plot_x, top, plot_w, row_height)
 		var colour: Color = series_color(index)
 		draw_rect(plot, MenuTheme.INSET)
-		draw_rect(Rect2(0.0, top, 8.0, ROW_HEIGHT), colour)
-		draw_string(font, Vector2(20.0, top + (ROW_HEIGHT + line_h) * 0.5 - 4.0), str(row.get("preset", "")).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, LABEL_WIDTH - 28.0, font_size, MenuTheme.BONE)
+		draw_rect(Rect2(0.0, top, 8.0, row_height), colour)
+		draw_string(font, Vector2(20.0, top + (row_height + line_h) * 0.5 - 4.0), str(row.get("preset", "")).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, LABEL_WIDTH - 28.0, font_size, MenuTheme.BONE)
 		for guide: Vector2 in GUIDES:
 			var gy: float = _y(plot, guide.x)
 			_dashed(Vector2(plot.position.x, gy), Vector2(plot.end.x, gy), MenuTheme.MUTED)
@@ -113,9 +117,7 @@ func _draw() -> void:
 		if slowest.size() >= 2:
 			draw_polyline(slowest, colour, 2.0)
 		draw_rect(plot, MenuTheme.EDGE, false, 2.0)
-		if index == 0:
-			draw_string(font, Vector2(plot.end.x + 10.0, plot.position.y + line_h * 0.8), "%d MS" % int(ceiling_ms), HORIZONTAL_ALIGNMENT_LEFT, SCALE_WIDTH - 12.0, font_size, MenuTheme.MUTED)
-	var axis_y: float = float(runs.size()) * (ROW_HEIGHT + ROW_GAP)
+	var axis_y: float = float(runs.size()) * (row_height + ROW_GAP)
 	var marks: int = 4
 	for mark: int in range(marks + 1):
 		var at: float = seconds * float(mark) / float(marks)
