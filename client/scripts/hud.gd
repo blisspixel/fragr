@@ -2623,6 +2623,12 @@ var radio_toast_info: Dictionary = {}
 ## Seconds since the toast was last shown; negative while hidden.
 var radio_toast_age: float = -1.0
 
+## Clear the radio card at once, for a place with no radio.
+func hide_radio() -> void:
+	radio_toast_age = -1.0
+	if radio_card != null:
+		_set_radio_toast_alpha(0.0)
+
 ## Lines shown for one radio state. Pure so tests can read every state.
 static func radio_toast_lines(info: Dictionary) -> Dictionary:
 	var station: String = str(info.get("station", "")).to_upper()

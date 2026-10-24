@@ -374,7 +374,7 @@ fn populated_status(clients: usize) -> LiveStatus {
     }
     tracker.refresh(now + ms(1300), &samples);
     let mut live = LiveStatus {
-        map: "Recall Notice: intake prototype".into(),
+        map: "Recall Notice".into(),
         kind: "campaign".into(),
         tick: u64::from(u32::MAX),
         round: 999,

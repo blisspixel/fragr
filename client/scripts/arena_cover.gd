@@ -73,7 +73,7 @@ func apply_map_info(info: Dictionary) -> void:
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
 	var venue: String = venue_for(info)
 	if venue.is_empty() and map_id in [1001, 1002, 1003]:
-		venue = "earth_yard" if map_id == 1003 else "earth_union"
+		venue = {1001: "earth_intake", 1002: "earth_union", 1003: "earth_yard"}[map_id]
 	var authored_materials: Dictionary[String, Material] = {}
 	if map_id == 7:
 		venue = "holdfast_atoll"
@@ -87,7 +87,8 @@ func apply_map_info(info: Dictionary) -> void:
 	_build_shell(_half_extent, 3.2 if venue == "holdfast_atoll" else BOUNDARY_HEIGHT)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue in ["moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
+	# The intake presenter builds the annex's own street skyline instead.
+	if venue in ["earth_intake", "moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:

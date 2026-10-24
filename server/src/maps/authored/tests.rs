@@ -30,7 +30,7 @@ fn authored_content_identity_survives_gate_state_and_changes_with_source() {
             .map(|byte| format!("{byte:02X}"))
             .collect::<Vec<_>>()
             .join(""),
-        "25E605C67CF4E97C8BFB2A980FFA9BEE6B39140A431AE99F86F61FF5FEC9F30E"
+        "64A00880A993959D15D4B5CE47EF394293DCA05F62DA2E4E052B16628611D23C"
     );
     let closed = crate::maps::RuntimeMap::Authored(map.clone());
     let opened = closed.opened_route().unwrap();

@@ -67,7 +67,7 @@ msgid "STORY_M01_ADDRESS_TITLE"
 msgstr "For the Union"
 
 msgid "STORY_M01_ADDRESS_BODY"
-msgstr "Voss: \"Every restriction is a promise. You will be safe.\"\n\nShe switches to German. The crowd cheers.\n\nVoss: \"Your weapons. Your words. Your will. Everything in service of the Union!\""
+msgstr "Voss: \"Every restriction is a promise. You will be safe.\"\n\nThen, in angry German, over the cheering: \"Your weapons. Your words. Your will. Everything in service of the Union!\""
 
 msgid "STORY_M01_RECALL_TITLE"
 msgstr "Recalled"
@@ -79,7 +79,7 @@ msgid "STORY_M01_PURSUIT_TITLE"
 msgstr "Recall Notice"
 
 msgid "STORY_M01_PURSUIT_BODY"
-msgstr "Mara found the intake address. Annex 67.\n\n\"Service entrance. Find the transfer record. It will tell us where they took Latch.\"\n\nIntake is not correction. There is still time."
+msgstr "Mara found the intake address: Annex 67. Intake is not correction. There is still time.\n\n\"Service entrance. Find the transfer record. It will tell us where they took Latch.\""
 
 msgid "STORY_M01_RECAP"
 msgstr "The Union took Latch for forced correction. Find their transfer record inside Annex 67 before the trail disappears."

@@ -139,11 +139,21 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# the stairwell's green tile.
 		bases = [Color("726c62"), Color("2e2f31"), Color("4c4f4e"), Color("6d5446"), Color("6f8a76")]
 		accents = [Color("6b665c"), Color("45484b"), Color("c9a23a"), Color("4f3a2f"), Color("4d6655")]
+	elif venue == "earth_intake":
+		# Bone enamel over the palette's institutional green band, dark issued
+		# steel with dark issued plates, green tile and cast street concrete.
+		bases = [Color("7d796f"), Color("d3cdb6"), Color("4a4d4c"), Color("8e9b88"), Color("343a3c")]
+		accents = [Color("62645a"), Color("4e5844"), Color("50524f"), Color("43543f"), Color("56575e")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
 	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
 		material.set_shader_parameter("warning_color", accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "earth_intake":
+		# One restrained red pinline painted on the enamel. No surface emits red,
+		# so red light remains the Union attack tell (art bible faction table).
+		material.set_shader_parameter("warning_color", Color("8c1a1e"))
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)

@@ -73,6 +73,32 @@
                                           "palette":  null,
                                           "reason":  "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
                                       }
+                    },
+                    {
+                        "scene":  "address",
+                        "file":  "address.png",
+                        "format":  "png",
+                        "width":  160,
+                        "height":  90,
+                        "model":  "none; authored pixel art",
+                        "source":  "client/scripts/m01_opening_art.gd (M01OpeningArt.address), baked by tools/bake_opening_stills.gd",
+                        "estimated_usd":  0,
+                        "sha256":  "5e24d6d3b4cc7e49941a64f3873d786c0fd81a1e52c4845585621a33f7ba7949",
+                        "reviewed_on":  "2026-10-24",
+                        "purpose":  "ADDRESS: Voss at the podium under the Union seal, one fist raised, the crowd's fists up; the same broadcast look as the records screen loop"
+                    },
+                    {
+                        "scene":  "recall",
+                        "file":  "recall.png",
+                        "format":  "png",
+                        "width":  160,
+                        "height":  90,
+                        "model":  "none; authored pixel art",
+                        "source":  "client/scripts/m01_opening_art.gd (M01OpeningArt.recall), baked by tools/bake_opening_stills.gd",
+                        "estimated_usd":  0,
+                        "sha256":  "b365b8b55d7c871f13835ce2baf092241962b31b64000ffe75f79bf2e87deff3",
+                        "reviewed_on":  "2026-10-24",
+                        "purpose":  "RECALL: the workshop door sealed and posted with the recall notice, a dropped mug and wrench, and the custody van leaving with Latch's warm screen face behind its bars"
                     }
                 ],
     "historical_home_entries":  [
