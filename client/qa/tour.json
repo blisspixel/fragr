@@ -58,7 +58,8 @@
       "camera": "first_person",
       "input_device": "pad",
       "pad_layout": "letters",
-      "note": "The joined player's legend after a left trigger pull: pad names from live bindings. Letter layout forced, no pad attached."
+      "controls_hint": "replay",
+      "note": "The joined player's first-run legend after a left trigger pull: pad names from live bindings. Letter layout forced, no pad attached."
     },
     {
       "name": "hud_legend_keyboard",
