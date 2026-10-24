@@ -9,7 +9,8 @@
 # nested rootful Xwayland on :97), rendered on the GPU.
 #
 # Usage: tools/qa_tour.sh [--publish] [output directory]
-#   --publish also runs a short team deathmatch pass, copies the approved
+#   --publish also runs a short team deathmatch pass and a Recall Notice
+#   arrival pass on the Level 1 map file, copies the approved
 #   stills into docs/screenshots/ (what the README shows) and removes any
 #   published tour_* still this run did not produce. Run it after any change a
 #   player would see.
@@ -232,6 +233,15 @@ if [ "${PUBLISH:-0}" = "1" ]; then
   run_client "$TEAM_DIR" "res://qa/team_tour.json"
   stop_server
 
+  # The README's Recall Notice still comes from the Level 1 map file on every
+  # publish, so it carries the current level art and campaign HUD.
+  M01_DIR="$OUT_DIR/m01"
+  mkdir -p "$M01_DIR"
+  start_server "$M01_DIR/server.log" --bind "127.0.0.1:$SERVER_PORT" --bots 0 --seed 42 \
+    --map-file "$ROOT/server/maps/m01-recall-notice.json"
+  run_client "$M01_DIR" "res://qa/readme_m01.json"
+  stop_server
+
   published=0
   kept=()
   shopt -s nullglob
@@ -239,6 +249,7 @@ if [ "${PUBLISH:-0}" = "1" ]; then
     [ -z "$state" ] && continue
     source_dir="$OUT_DIR"
     [ "$pass" = "team" ] && source_dir="$TEAM_DIR"
+    [ "$pass" = "m01" ] && source_dir="$M01_DIR"
     # State names survive additions to the tour; ordinal filenames do not.
     matches=("$source_dir/"*"_${state}.png")
     if [ "${#matches[@]}" -eq 1 ]; then
@@ -266,6 +277,7 @@ main|campaign_difficulty|tour_difficulty_16x9.png
 main|service_record|tour_records_16x9.png
 team|team_first_person|tour_team_first_person_16x9.png
 team|team_spectator|tour_team_spectator_16x9.png
+m01|recall_notice_arrival|m01_intake_16x9.png
 SHOTS
   # Every published tour still is one this run produced. A tour_* file the
   # tour no longer makes is removed, so a stale capture cannot ship again.

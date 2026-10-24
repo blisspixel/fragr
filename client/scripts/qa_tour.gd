@@ -45,8 +45,10 @@ var _walk_results: Array[Dictionary] = []
 ## keyed by the pad's weapon (manifest `pad_routes`). Free-for-all lives
 ## start on the Pistol, so a weapon state takes its gun from the floor first.
 var _pad_routes: Dictionary = {}
-## Lives a pad route may spend before the tour gives up on that gun.
-const PAD_ATTEMPTS: int = 4
+## Lives a pad route may spend before the tour gives up on that gun. The
+## joined tour fighter never shoots back, and with five bots and the drone
+## on Larak Lot four lives were not always enough to reach the Rail.
+const PAD_ATTEMPTS: int = 8
 ## The longest free-for-all pad clock (25 s) plus slack.
 const PAD_CLOCK_WAIT_MS: int = 27000
 var _m05_ride_report: Dictionary = {}
@@ -505,6 +507,12 @@ func _run() -> void:
 		if state.get("camera", "") == "body" and not _body_frame_clear:
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
 			await create_timer(0.75).timeout
+		# A front-door still waits for a clear frame: no card, centre call or
+		# caption over the fight, and live fighters in view.
+		if state.has("await_clear_frame"):
+			if not await _await_clear_frame(int(state.get("clear_frame_fighters", 1)), float(state["await_clear_frame"]), float(state.get("clear_frame_face", 0.0)), float(state.get("clear_frame_max_pitch_degrees", 90.0))):
+				push_error("qa_tour: %s never reached a clear frame" % state_name)
+				_failed = true
 		if state.has("expect_m02_machine_playing"):
 			var ward: M02Ward = _game_manager().get("m02_ward") as M02Ward if _game_manager() != null else null
 			var playing: bool = ward != null and is_instance_valid(ward._ward_machine_sound) and ward._ward_machine_sound.playing
@@ -1728,6 +1736,110 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 
 func _find_hud() -> Node:
 	return get_root().find_child("HUD", true, false)
+
+## Wait until `_frame_clear` holds for a quarter second, so a call that is
+## about to land does not catch the still. A joined fighter with `face_within`
+## above zero turns toward the nearest live fighter inside that many metres,
+## and the frame then counts only fighters that close. A chase camera looking
+## down more steeply than `max_pitch_degrees` waits too, so the fighters read
+## as people rather than tops of heads. False at the timeout.
+func _await_clear_frame(min_fighters: int, timeout_seconds: float, face_within: float = 0.0, max_pitch_degrees: float = 90.0) -> bool:
+	var reach: float = face_within if face_within > 0.0 else 30.0
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	var clear_since: int = -1
+	while Time.get_ticks_msec() < deadline:
+		if _frame_clear(min_fighters, reach) and _view_pitch_degrees() <= max_pitch_degrees:
+			if clear_since < 0:
+				clear_since = Time.get_ticks_msec()
+			if Time.get_ticks_msec() - clear_since >= 250:
+				# A caption can land between the check and the drawn frame.
+				await RenderingServer.frame_post_draw
+				await RenderingServer.frame_post_draw
+				if _frame_clear(min_fighters, reach) and _view_pitch_degrees() <= max_pitch_degrees:
+					return true
+				clear_since = -1
+		else:
+			clear_since = -1
+			if face_within > 0.0 and _joined and _local_human_alive(_game_manager()):
+				var nearest: Node3D = null
+				var feet: Vector3 = _local_feet()
+				var eye: Vector3 = feet + Vector3.UP * MoveStep.EYE_HEIGHT
+				for pawn: Node3D in _live_fighters():
+					var gap: float = pawn.global_position.distance_to(feet)
+					if gap <= face_within and AimAssist.line_of_sight(eye, pawn.global_position + Vector3.UP, _view_solids()) \
+						and (nearest == null or gap < nearest.global_position.distance_to(feet)):
+						nearest = pawn
+				if nearest != null:
+					var chest: Vector3 = nearest.global_position + Vector3.UP * 1.2
+					await _aim_at([chest.x, chest.y, chest.z])
+		await create_timer(0.05).timeout
+	return false
+
+## How far the current view looks down, in degrees (0 is level).
+func _view_pitch_degrees() -> float:
+	var view: Camera3D = root.get_viewport().get_camera_3d()
+	if view == null:
+		return 90.0
+	return rad_to_deg(asin(clampf(view.global_transform.basis.z.y, -1.0, 1.0)))
+
+## Live fighters other than the joined player.
+func _live_fighters() -> Array[Node3D]:
+	var fighters: Array[Node3D] = []
+	var manager: Node = _game_manager()
+	if manager == null:
+		return fighters
+	var own: String = str(manager.net_client.player_id) if _joined else ""
+	for id: Variant in manager.players:
+		var pawn: Variant = manager.players[id]
+		if not pawn is Node3D or not is_instance_valid(pawn) or str(id) == own:
+			continue
+		var hp: Variant = (pawn as Node3D).get("hp")
+		if (hp is int or hp is float) and float(hp) > 0.0:
+			fighters.append(pawn as Node3D)
+	return fighters
+
+## Map solids the spectator camera already holds for line-of-sight checks.
+func _view_solids() -> Array:
+	var cam: Node = _spectator_camera()
+	var solids: Variant = cam.get("assist_solids") if cam != null else null
+	return solids if solids is Array else []
+
+## The HUD draws nothing over the fight (no warmup screen, round card, centre
+## call, combat feed caption or death card), a joined fighter is healthy, and
+## at least `min_fighters` live fighters other than the joined player stand
+## within `reach` metres in view with nothing solid in between.
+func _frame_clear(min_fighters: int, reach: float = 30.0) -> bool:
+	var hud: Node = _find_hud()
+	var manager: Node = _game_manager()
+	if hud == null or manager == null or bool(hud.get("warmup_tv_active")):
+		return false
+	if _joined:
+		var own: Variant = manager.players.get(str(manager.net_client.player_id))
+		var own_hp: Variant = (own as Node).get("hp") if own is Node and is_instance_valid(own) else null
+		if not (own_hp is int or own_hp is float) or float(own_hp) < 75.0:
+			return false
+	for cover_name: String in ["round_message", "round_backdrop", "death_card"]:
+		var cover: Variant = hud.get(cover_name)
+		if cover is CanvasItem and (cover as CanvasItem).is_visible_in_tree():
+			return false
+	var call: Variant = hud.get("objective_call")
+	if call is ObjectiveCall and not (call as ObjectiveCall).notices.active.is_empty():
+		return false
+	var feed: Variant = hud.get("combat_feed")
+	if feed is Control and (feed as Control).get_child_count() > 0:
+		return false
+	var view: Camera3D = root.get_viewport().get_camera_3d()
+	if view == null:
+		return false
+	var screen: Rect2 = root.get_visible_rect()
+	var seen: int = 0
+	for pawn: Node3D in _live_fighters():
+		var chest: Vector3 = pawn.global_position + Vector3.UP
+		if view.is_position_behind(chest) or view.global_position.distance_to(chest) > reach:
+			continue
+		if screen.has_point(view.unproject_position(chest)) and AimAssist.line_of_sight(view.global_position, chest, _view_solids()):
+			seen += 1
+	return seen >= min_fighters
 
 ## Join the match as a person rather than watching it. Without this the
 ## first-person states are photographs of the spectator camera, which is the

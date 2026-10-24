@@ -53,7 +53,10 @@
       "name": "combat_follow",
       "at_seconds": 9,
       "camera": "follow",
-      "note": "Optional chase view and readable fighter silhouettes."
+      "await_clear_frame": 60,
+      "clear_frame_fighters": 2,
+      "clear_frame_max_pitch_degrees": 38,
+      "note": "README still: chase view with readable fighter silhouettes, taken once no card, centre call or caption covers the fight and two live fighters stand within 30 m in view."
     },
     {
       "name": "body_human",
@@ -75,6 +78,8 @@
       "camera": "first_person",
       "join": "human",
       "weapon": "Tack",
+      "await_clear_frame": 45,
+      "clear_frame_face": 30,
       "note": "Actual human join, saved callsign, the free-for-all Pistol start, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
       "profile_body": "synthetic"
     },
