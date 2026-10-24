@@ -96,6 +96,38 @@ Batch runs work in waves: `--prefix radio/rock/` selects a folder, `--limit 5` g
 
 Spec items may carry a `title` (recorded in the manifest and shown by the in-game radio) and, for music, `length_range_ms: [lo, hi]` instead of `length_ms`; the tool then picks a fixed length per track name inside the range, so a spec of 2 to 6 minute tracks stays varied and reproducible.
 
+## Review radio music
+
+The in-game radio is a side feature: seven music stations and the news and chat station listed in `client/assets/audio/radio/stations.json`. New takes are generated into ignored candidate folders first. The `review` command opens a local page for listening to them next to the shipped tracks and marking each one keep or reject. It needs no key, spends no credits, and talks to nothing but loopback.
+
+Generate candidates with an out dir whose `radio/<station>/` folders sit beside an `audiogen-manifest.json`, for example a batch spec with `"out_dir": ".agents/asset-round-20261023/audio"` and names such as `radio/rock/neon-rain`. Then run from the repository root:
+
+```bash
+cargo run -p fragr-audiogen -- review
+```
+
+It binds `127.0.0.1:6780` (`--port 0` picks a free port), prints the URL and opens the default browser (`--no-open` skips that). Each station tab shows keepers against the target of 30 (`--target`), rejected and unreviewed counts. Every track shows its source (shipped or candidate), title, duration, file, model and prompt from the nearest manifest.
+
+| Key | Action |
+|---|---|
+| `K` / `R` | Keep / reject, then move to the next unreviewed track when auto-advance is on |
+| `U` | Undo the last mark; with nothing to undo, unmark the current track |
+| `Space` | Play or pause |
+| `J` / `L` | Next / previous track |
+| `Left` / `Right` | Seek 5 seconds, 30 with `Shift` |
+| `1` to `9` | Jump to a station |
+
+Click the waveform to seek. Decisions are written on every mark to `.agents/asset-round-20261023/music-review.json` (`--decisions`), so closing the page or restarting the command loses nothing. Shipped tracks come from `client/assets/audio/radio/<station>/` (`--radio-dir`); candidates from `.agents/asset-round-20261023/audio/radio/<station>/` (`--candidates`). The server serves only audio files it listed from those two roots, answers only `Host: 127.0.0.1` or `localhost` on its own port, and accepts decisions only as same-origin JSON.
+
+When the listening is done, preview the promotion:
+
+```bash
+cargo run -p fragr-audiogen -- promote
+cargo run -p fragr-audiogen -- promote --apply
+```
+
+Without `--apply` it only prints the plan. With it, each candidate keeper is copied to `client/assets/audio/radio/<station>/NN-slug.<ext>`, numbered after the station's highest existing track (on the news station a candidate named `ad-...`, `caller-...` and so on joins that series, so `ad-moon-soap` ships as `ad-09-moon-soap.mp3`), and gets an entry in `client/assets/audio/audiogen-manifest.json` copied from its candidate manifest entry (prompt, model, format, title, length), which is the record `radio.gd` reads. Rejected shipped tracks are deleted with their `.import` sidecar and manifest entry. A keeper without a candidate manifest entry has no provenance and blocks the run. A station that loses tracks may not end below 12 (`--min-tracks`, the radio's no-repeat window) unless `--force` is passed. Promoted candidates are recorded in the decisions file and hidden from the page, so a second run copies nothing twice. Afterwards run the Godot import (`tools/godot_check.sh`) to create `.import` files, check `git status client/assets/audio`, and stage with `git add -A client/assets/audio`. Promotion does not commit; the distribution basis in [Licensing of the output](#licensing-of-the-output) still applies.
+
 ## What it writes
 
 - The audio file at `<out-dir>/<name>.<ext>`. `pcm_*` formats become `.wav`, `mp3_*` become `.mp3`.
