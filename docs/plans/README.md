@@ -24,6 +24,7 @@ Plans whose recorded status is proposed, planned, in flight or otherwise open. M
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`audiogen-voice-design-20261023.md`](./audiogen-voice-design-20261023.md) | **implemented**, [#456](https://github.com/blisspixel/fragr/pull/456) | Library search, Voice Design and remix previews, save-voice and `eleven_v4` in `tools/audiogen`, ahead of the 2026-12-31 default voice expiry. Fake-transport tests only; no paid call. |
 | [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **in flight**, implemented locally | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, ceremonial gate departure and Episode IV refill to 3 continues. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |
