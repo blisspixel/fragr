@@ -162,7 +162,7 @@ func _preview_results() -> void:
 	port.size_2d_override_stretch = true
 	port.transparent_bg = false
 	root.add_child(port)
-	var stopped: Dictionary = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "interrupted": "scoring", "finished_presets": ["Performance"], "runs": [],
+	var stopped: Dictionary = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "interrupted": "scoring", "interrupted_preset": "Balanced", "finished_presets": ["Performance"], "runs": [],
 		"error": "The window size changed. Run again to compare the same resolution."}
 	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(2560, 1080)]:
 		port.size = size
@@ -217,6 +217,8 @@ func _preview_results() -> void:
 			for button: Node in view.find_child("Actions", true, false).get_children():
 				_check_inside(port, button as Control, "%s %s %s" % [tag, state[0], button.name])
 			# Opening details scrolls the cards away on purpose; check them unscrolled.
+			if state[0] == "stopped":
+				_check_inside(port, view.find_child("StoppedCard", true, false) as Control, tag + " stopped card")
 			var cards: Node = view.find_child("Presets", true, false) if not state[2] else null
 			if cards != null:
 				for card: Node in cards.get_children():

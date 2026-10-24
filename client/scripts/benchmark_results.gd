@@ -11,6 +11,9 @@ extends CanvasLayer
 signal dismissed
 signal again_requested
 
+## Widest the stopped card grows; narrower windows keep a side margin.
+const STOPPED_WIDTH: float = 1100.0
+
 var report: Dictionary = {}
 var directory: String = ""
 var saved_basename: String = ""
@@ -55,22 +58,26 @@ func _ready() -> void:
 	mark.custom_minimum_size = Vector2(0.0, 6.0)
 	page.add_child(mark)
 	page.move_child(mark, 1)
-	_scroll = ScrollContainer.new()
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_scroll.follow_focus = true
-	page.add_child(_scroll)
-	var body: VBoxContainer = VBoxContainer.new()
-	body.name = "Body"
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 12)
-	_scroll.add_child(body)
 	if complete:
+		_scroll = ScrollContainer.new()
+		_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_scroll.follow_focus = true
+		page.add_child(_scroll)
+		var body: VBoxContainer = VBoxContainer.new()
+		body.name = "Body"
+		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		body.add_theme_constant_override("separation", 12)
+		_scroll.add_child(body)
 		if previous.is_empty() and not directory.is_empty():
 			previous = BenchmarkRun.previous_compatible(directory, report, saved_basename)
 		_summary(body)
 	else:
-		_stopped(body)
+		var center: CenterContainer = CenterContainer.new()
+		center.name = "Body"
+		center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		page.add_child(center)
+		_stopped(center)
 	var actions: HBoxContainer = HBoxContainer.new()
 	actions.name = "Actions"
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -254,13 +261,61 @@ static func _settings_text(settings: Variant) -> String:
 	parts.append("field of view %d" % roundi(float(values.get("vertical_fov", 75.0))))
 	return ", ".join(parts)
 
-func _stopped(body: VBoxContainer) -> void:
-	_label(body, str(report.get("error", "The benchmark stopped.")), MenuTheme.BODY, MenuTheme.BONE).name = "Reason"
+## A stopped run: why, where, what finished, and that nothing was kept, in
+## one card in the middle of the page with the actions under it.
+func _stopped(parent: Container) -> void:
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "StoppedCard"
+	card.custom_minimum_size = Vector2(minf(STOPPED_WIDTH, _view_width() - 112.0), 0.0)
+	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.SURFACE, MenuTheme.EDGE)
+	plate.content_margin_left = 32
+	plate.content_margin_right = 32
+	plate.content_margin_top = 20
+	plate.content_margin_bottom = 24
+	card.add_theme_stylebox_override("panel", plate)
+	parent.add_child(card)
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 14)
+	card.add_child(column)
+	var stripe: ColorRect = ColorRect.new()
+	stripe.color = MenuTheme.DANGER
+	stripe.custom_minimum_size = Vector2(0.0, 8.0)
+	column.add_child(stripe)
+	_label(column, str(report.get("error", "The benchmark stopped.")), MenuTheme.BODY, MenuTheme.BONE).name = "Reason"
+	var grid: GridContainer = GridContainer.new()
+	grid.name = "Facts"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 32)
+	grid.add_theme_constant_override("v_separation", 10)
+	column.add_child(grid)
 	var finished: Array = report.get("finished_presets", []) if report.get("finished_presets") is Array else []
-	var line: String = "Nothing was scored or saved. Your settings are restored."
-	if not finished.is_empty():
-		line = "Finished before it stopped: %s. A stopped run keeps no result. Your settings are restored." % ", ".join(PackedStringArray(finished))
-	_label(body, line, MenuTheme.BODY, MenuTheme.MUTED)
+	var finished_names: PackedStringArray = PackedStringArray()
+	for preset: Variant in finished:
+		finished_names.append(str(preset))
+	for fact: Array in [["STOPPED DURING", stopped_during(report)],
+			["FINISHED", ", ".join(finished_names) + ". Its figures are not kept." if not finished_names.is_empty() else "No preset finished."],
+			["SAVED", "Nothing. A stopped run keeps no result."],
+			["SETTINGS", "Restored to what you had before the run."]]:
+		_label(grid, fact[0], MenuTheme.BODY, MenuTheme.EMBER)
+		var value: Label = _label(grid, fact[1], MenuTheme.BODY, MenuTheme.BONE)
+		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label(column, "Run again records a new fight. Keep the game window visible and the same size until it finishes.", MenuTheme.BODY, MenuTheme.MUTED).name = "Next"
+
+## The step a stopped run was on, in the words the live readout used.
+static func stopped_during(document: Dictionary) -> String:
+	var preset: String = str(document.get("interrupted_preset", ""))
+	match str(document.get("interrupted", "")):
+		"capturing":
+			return "Recording the fight."
+		"preparing":
+			return "Loading %s." % preset if not preset.is_empty() else "Loading a preset."
+		"priming":
+			return "Warming up %s." % preset if not preset.is_empty() else "Warming up."
+		"scoring":
+			return "Measuring %s." % preset if not preset.is_empty() else "Measuring."
+		_:
+			return "Starting."
 
 func _toggle_details() -> void:
 	_details.visible = not _details.visible
@@ -294,6 +349,9 @@ func summary_text() -> String:
 func _copy_summary() -> void:
 	DisplayServer.clipboard_set(summary_text())
 	_notice.text = "Summary copied."
+
+func _view_width() -> float:
+	return get_viewport().get_visible_rect().size.x if is_inside_tree() else STOPPED_WIDTH + 112.0
 
 ## Canvas height the page lays out in (the stretched view, not the window).
 func _view_height() -> float:

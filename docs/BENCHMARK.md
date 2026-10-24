@@ -138,7 +138,10 @@ the nominal content time (28 s plus 28 s per preset; loading between presets is
 not counted, so the remaining time reads "about"), and a live frame rate and
 frame time over roughly the last second, refreshed four times a second. While a
 preset is scored it also shows that preset's running average (scored frames over
-scored seconds). Live figures are labelled live and are never the result. The
+scored seconds). Live figures are labelled live and are never the result. A
+refresh restyles the step chips only when the step changes, so the readout's
+script cost stays small inside the measured frames; `qa_benchmark.gd` prints
+that cost on the host it runs on. The
 readout starts below the player's frame counter when that counter is on, using
 the same reserved-region rule as the match HUD. Esc cancels; the Benchmark page
 then says the run was cancelled and nothing was saved.
@@ -156,7 +159,9 @@ the same `RenderQuality` rules that applied them), definitions and the last
 compatible run. Run again, Copy summary, Open results folder and Back to menu
 stay on screen without scrolling. A stopped run (settings changed, window
 resized, frames stopped for two seconds, a preset or the match did not load)
-says **Benchmark stopped** with the reason and has no figures.
+says **Benchmark stopped** with one card: the reason, the step it stopped
+during, any presets that finished (their figures are not kept), that nothing was
+saved and that settings were restored. It has no figures.
 
 The 1% low is 1000 divided by the mean milliseconds of the slowest
 `ceil(frame_count * 0.01)` frames. Average FPS is frame count over measured time.

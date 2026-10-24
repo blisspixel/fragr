@@ -515,8 +515,11 @@ func _fail(message: String) -> void:
 	var finished_presets: Array = []
 	for row: Dictionary in results:
 		finished_presets.append(row.get("preset"))
+	var stopped_preset: String = ""
+	if interrupted in ["preparing", "priming", "scoring"] and preset_index < presets.size():
+		stopped_preset = preset_label(presets[preset_index])
 	final_report = {"schema_version": SCHEMA_VERSION, "state": "failed", "error": message, "interrupted": interrupted,
-		"finished_presets": finished_presets, "runs": []}
+		"interrupted_preset": stopped_preset, "finished_presets": finished_presets, "runs": []}
 	finished.emit(final_report)
 
 static func csv(document: Dictionary) -> String:

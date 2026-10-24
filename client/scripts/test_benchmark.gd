@@ -173,7 +173,8 @@ func _measurement() -> void:
 	for _frame: int in range(20):
 		stopped.advance(0.5)
 	stopped._fail("Settings changed during the benchmark. Run again for a consistent comparison.")
-	_check(failed.size() == 1 and failed[0]["state"] == "failed" and (failed[0]["runs"] as Array).is_empty() and failed[0]["interrupted"] == "scoring", "an interrupted run reports where it stopped and no result")
+	_check(failed.size() == 1 and failed[0]["state"] == "failed" and (failed[0]["runs"] as Array).is_empty() and failed[0]["interrupted"] == "scoring" and failed[0]["interrupted_preset"] == "Balanced", "an interrupted run reports where it stopped and no result")
+	_check(BenchmarkResults.stopped_during(failed[0]) == "Measuring Balanced." and BenchmarkResults.stopped_during({"interrupted": "capturing"}) == "Recording the fight." and BenchmarkResults.stopped_during({}) == "Starting.", "a stopped run names the step it was on")
 	stopped.queue_free()
 	await process_frame
 
@@ -204,6 +205,18 @@ func _hud_layout() -> void:
 	_check((hud.find_child("Totals", true, false) as Label).text == "1:04 ELAPSED // ABOUT 0:48 LEFT", "totals read elapsed and an estimate")
 	_check((hud.find_child("Scored", true, false) as Label).text == "141 FPS AVERAGE\n2810 FRAMES SCORED", "the running summary is frames over scored time")
 	_inspect_type(hud, "hud")
+	# Chips restyle only when the step moves, and then they follow it.
+	var chip_colour: Callable = func(index: int) -> Color: return ((hud.find_child("Step%d" % index, true, false) as PanelContainer).get_child(0) as Label).get_theme_color("font_color")
+	_check(chip_colour.call(1) == MenuTheme.BONE and chip_colour.call(2) == MenuTheme.MUTED, "the current step chip is lit")
+	progress["step"] = 2
+	hud.show_progress(progress)
+	_check(chip_colour.call(1) == MenuTheme.MUTED and chip_colour.call(2) == MenuTheme.BONE, "the lit chip follows the step")
+	progress["state"] = "priming"
+	hud.show_progress(progress)
+	_check((hud.find_child("Scored", true, false) as Label).text == "NOT SCORED YET" and (hud.find_child("Scored", true, false) as Label).get_theme_color("font_color") == MenuTheme.MUTED, "the running summary waits for scoring")
+	progress["state"] = "scoring"
+	progress["step"] = 1
+	hud.show_progress(progress)
 	var cases: Array = [
 		[Vector2i(1920, 1080), HudStyle.new(1.0, FragrSettings.TEXT_STANDARD)],
 		[Vector2i(1920, 1080), HudStyle.new(1.5, FragrSettings.TEXT_LARGE)],
@@ -303,6 +316,8 @@ func _results_view() -> void:
 	_check((stopped.find_child("Outcome", true, false) as Label).text == "BENCHMARK STOPPED", "a stopped run says stopped")
 	_check(stopped.find_child("Presets", true, false) == null and stopped.find_child("BenchmarkCopy", true, false) == null, "a stopped run shows no figures or copy")
 	_check(stopped.find_child("BenchmarkAgain", true, false) != null and stopped.find_child("BenchmarkBack", true, false) != null, "a stopped run can run again or go back")
+	var stopped_facts: Node = stopped.find_child("Facts", true, false)
+	_check(stopped_facts != null and stopped_facts.get_child_count() == 8 and (stopped_facts.get_child(3) as Label).text.begins_with("Performance."), "a stopped run lists where it stopped, what finished, that nothing was saved and the restore")
 	_inspect_type(stopped, "stopped")
 	stopped.queue_free()
 	var unsaved: BenchmarkResults = BenchmarkResults.new()

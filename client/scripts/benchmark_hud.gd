@@ -68,6 +68,11 @@ var _bucket_seconds: float = 0.0
 var _buckets: Array[Vector2] = []
 var _layout_key: Array = []
 var _refit_pending: bool = false
+## What the step chips and the scored line last showed. Restyling a chip or
+## recolouring a label rebuilds its theme cache, so a refresh restyles only
+## when the step or the scored state actually changed.
+var _steps_key: Array = []
+var _scored_live: int = -1
 
 func _ready() -> void:
 	name = "BenchmarkHud"
@@ -129,6 +134,7 @@ func apply_style(next: HudStyle) -> void:
 	_hint.add_theme_font_size_override("normal_font_size", body)
 	for chip: Node in _steps.get_children():
 		((chip as PanelContainer).get_child(0) as Label).add_theme_font_size_override("font_size", body)
+	_steps_key = []
 	_layout_key = []
 	_render_hint()
 	_relayout()
@@ -190,15 +196,18 @@ func _render_live() -> void:
 	var frames: int = int(_view.get("scored_frames", 0))
 	var seconds: float = float(_view.get("scored_s", 0.0))
 	_scored_caption.text = "THIS PRESET SO FAR"
-	if str(_view.get("state", "")) == "scoring" and frames > 0 and seconds > 0.0:
-		_scored.text = "%d FPS AVERAGE\n%d FRAMES SCORED" % [roundi(float(frames) / seconds), frames]
-		_scored.add_theme_color_override("font_color", MenuTheme.BONE)
-	else:
-		_scored.text = "NOT SCORED YET"
-		_scored.add_theme_color_override("font_color", MenuTheme.MUTED)
+	var scoring: bool = str(_view.get("state", "")) == "scoring" and frames > 0 and seconds > 0.0
+	_scored.text = "%d FPS AVERAGE\n%d FRAMES SCORED" % [roundi(float(frames) / seconds), frames] if scoring else "NOT SCORED YET"
+	if _scored_live != int(scoring):
+		_scored_live = int(scoring)
+		_scored.add_theme_color_override("font_color", MenuTheme.BONE if scoring else MenuTheme.MUTED)
 
 func _render_steps(steps: Variant, current: int) -> void:
 	var names: PackedStringArray = steps if steps is PackedStringArray else PackedStringArray()
+	var key: Array = [names, current, style.body_font_size()]
+	if key == _steps_key and _steps.get_child_count() == names.size():
+		return
+	_steps_key = key
 	if _steps.get_child_count() != names.size():
 		for child: Node in _steps.get_children():
 			_steps.remove_child(child)
