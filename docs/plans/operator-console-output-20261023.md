@@ -1,6 +1,6 @@
 # Operator console output (#438)
 
-Status: **in flight** (2026-10-23, branch `wave1/operator-console`).
+Status: **implemented** (2026-10-23, branch `wave1/operator-console`; Windows evidence outstanding).
 
 ## Goal
 
@@ -157,6 +157,11 @@ Logs are under the lane's ignored `.agents/` directory.
 | Unit tests (`logging`, `operator`, `preflight`, `desk`, CLI) | Pass: filter audiences through the real formatter, output resolution matrix, card and pulse rendering, pulse clock, scope ordering and failure paths |
 | `cargo clippy -p fragr-server --lib --bins --target x86_64-pc-windows-gnu -D warnings` | Pass (compile check of the Windows-only VT path; not linked or run) |
 | `cargo fmt --check`, workspace clippy `-D warnings`, `cargo deny check licenses bans sources` | Pass |
+| `cargo test --workspace --locked --no-fail-fast` (load average about 65 on 16 cores, six lanes) | 9 failures, all readiness or timing deadlines: adapter `scripted_bot_uses_raised_geometry...` (4 s), three `geometry_owned_local_*` (30 s), `four_readers_share_one_start...`, five `local_child` (10 s child readiness). Every other crate and test passed |
+| Isolated reruns of those failures (load 41 to 57) | Adapter test 3 of 3 pass; the four lib tests pass; `local_child` 18 of 18 pass. Base `e4cec37` `local_child` also 18 of 18 at similar load. None touches the overview path: local children keep the plain log |
+
+Status after this round: **implemented** locally on `wave1/operator-console`;
+CI on the PR is the next gate.
 
 The desk was exercised through piped stdin in the integration test; an
 interactive typed session under a pseudo terminal was not captured.
