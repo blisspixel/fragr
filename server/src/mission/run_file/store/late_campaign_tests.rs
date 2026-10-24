@@ -1,4 +1,4 @@
-//! Connected avenue, office and recovery saves retain exact historical bytes.
+//! Connected avenue, office and recovery saves carry outcomes forward.
 use super::*;
 use crate::mission::run_file::{M16Outcome, M17Outcome, M18Outcome, SavedStep};
 
@@ -57,24 +57,20 @@ fn completed(mut entry: RunDocument) -> RunDocument {
 }
 
 #[test]
-fn late_campaign_promotion_archives_v19_v20_v21_and_refills_only_episode_v() {
+fn late_campaign_promotion_carries_outcomes_and_refills_only_episode_v() {
     let mut source = m15_tests::completed_stadium();
     source.remaining_continues = 1;
-    for (version, mission, outcome) in [
-        (19, MissionId::FreedomOfMovement, "m16_outcome"),
-        (20, MissionId::PeaceWithoutInterruption, "m17_outcome"),
-        (21, MissionId::AllSystemsNormal, "m18_outcome"),
+    for (mission, outcome) in [
+        (MissionId::FreedomOfMovement, "m15_outcome"),
+        (MissionId::PeaceWithoutInterruption, "m16_outcome"),
+        (MissionId::AllSystemsNormal, "m17_outcome"),
     ] {
         let directory = std::env::temp_dir().join(format!("fragr-late-save-{}", Uuid::new_v4()));
         let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        let mut historical = serde_json::to_value(&source).unwrap();
-        historical["version"] = version.into();
-        let bytes = serde_json::to_vec_pretty(&historical).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        store.save(&source).unwrap();
+        let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
         let loaded = store.load().unwrap().unwrap();
         assert_eq!(loaded, source);
-        assert!(store.needs_upgrade().unwrap());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
         let next = loaded
             .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
             .unwrap();
@@ -113,25 +109,26 @@ fn late_campaign_promotion_archives_v19_v20_v21_and_refills_only_episode_v() {
         }
         assert_eq!(before, after, "earlier choices remain unchanged");
         assert!(store
-            .archive_and_save_before_replace(&loaded, &next, |_| Err(io::Error::other(
-                "interrupted late promotion"
-            )))
+            .save_with_sync(
+                &next,
+                |_| Err(io::Error::other("interrupted late promotion")),
+                sync_directory,
+            )
             .is_err());
         assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        let archive = store.archive_and_save(&loaded, &next).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
+        store.save(&next).unwrap();
         assert_eq!(store.load().unwrap().unwrap(), next);
-        assert!(!store.needs_upgrade().unwrap());
 
-        historical[outcome] = serde_json::Value::Null;
+        // A carried outcome is never optional once its mission is complete.
+        let mut forged = serde_json::to_value(&next).unwrap();
+        forged[outcome] = serde_json::Value::Null;
         assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&historical).unwrap(), m09_tests::HASHES),
+            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
             RunProbe::Corrupt
         ));
-        let mut future = serde_json::to_value(&next).unwrap();
-        future["version"] = version.into();
+        forged.as_object_mut().unwrap().remove(outcome);
         assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&future).unwrap(), m09_tests::HASHES),
+            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
             RunProbe::Incompatible
         ));
         source = completed(next);

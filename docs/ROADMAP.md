@@ -31,8 +31,8 @@ The restored [level 7](plans/l07-declared-goods-prototype.md) passes its complet
 29-state rendered route: all 25 guards, actual window cancellation and departure.
 That route ends at 15 HP with one Cell, retaining a pacing concern.
 The [durable archive carry](plans/m07-m08-save-carry.md) continues into level 8,
-Custodian of Record, without a continue refill. Version 9 retains actual mine
-counts and strictly upgrades historical v2-v8 documents with exact-byte archives.
+Custodian of Record, without a continue refill. The save retains actual mine
+counts.
 Owned client checks prove actual mine placement and mission-entry restoration.
 The [level 8 prototype](plans/l08-custodian-of-record-prototype.md) retains its
 Proximity Mine and repairing Auditor, with a separate practice entry. The

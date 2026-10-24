@@ -112,7 +112,7 @@ func _run() -> void:
 	if not await _saved_transition(owned):
 		return
 	if failures == 0:
-		print("test_m05_local: PASS development isolation and v5 saved M04-M05 carry, arrival/readiness release, v8 archive and owned cleanup")
+		print("test_m05_local: PASS development isolation, saved M04-M05 carry, arrival/readiness release, atomic promotion and owned cleanup")
 	quit(0 if failures == 0 else 1)
 
 func _saved_transition(owned: LocalMatch) -> bool:
@@ -120,34 +120,34 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	var digest: Array[int] = []
 	for index: int in range(0, hash.length(), 2):
 		digest.append(hash.substr(index, 2).hex_to_int())
-	_check(digest.size() == 32, "legacy fixture binds actual unchanged M03 content")
+	_check(digest.size() == 32, "fixture binds actual unchanged M03 content")
 	var fixture: Dictionary = {
-		"version": 5, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
-		"level_start_continues": 2, "body": "synthetic", "rules": {"difficulty": "severe", "revision": 3},
+		"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
+		"level_start_continues": 2, "body": "synthetic", "rules": {"difficulty": "severe", "revision": MissionState.RULES_REVISION},
 		"content_sha256": digest, "m03_outcome": {"liberated_cars": ["platform_car", "roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"step": {"kind": "awaiting_mission", "completed_mission": "notice_to_vacate", "next_mission": "no_forwarding_address",
 			"exit": {"hp": 61, "armor": 7, "equipment": {"selected": "flechette", "weapons": ["fists", "flechette", "scatter"],
-				"ammo": [{"pool": "bullets", "rounds": 29}, {"pool": "shells", "rounds": 8}, {"pool": "cells", "rounds": 0}],
-				"personal_claims": ["m03_rifle"]}}}}
-	var legacy_bytes: String = JSON.stringify(fixture) + "\n"
-	var legacy: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
-	_check(legacy != null, "isolated compatible v5 transition is writable")
-	if legacy == null:
+				"ammo": [{"pool": "bullets", "rounds": 29}, {"pool": "shells", "rounds": 8}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 0, "proximity_mines": 0, "remote_mines": 0, "personal_claims": ["m03_rifle"]}}}}
+	var saved_source: String = JSON.stringify(fixture) + "\n"
+	var saved_file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
+	_check(saved_file != null, "isolated saved transition is writable")
+	if saved_file == null:
 		quit(1)
 		return false
-	legacy.store_string(legacy_bytes)
-	legacy.close()
+	saved_file.store_string(saved_source)
+	saved_file.close()
 	_check(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "saved transition boot menu loads")
 	await process_frame
 	await process_frame
 	current_scene._show("single")
-	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "real preview accepts historical pending M04-M05 save"):
+	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "real preview accepts the pending M04-M05 save"):
 		return false
 	var preview: Dictionary = owned.run_preview
 	_check(preview["mission"] == MissionState.M05_ID and preview["body"] == "synthetic" and int(preview["continues"]) == 1,
 		"preview retains destination, body and spent continue allowance")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == legacy_bytes, "read-only menu preview preserves exact legacy bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == saved_source, "read-only menu preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("NoForwardingAddressSaved") as Button
 	_check(resume != null and not resume.disabled, "saved M05 transition offers its actual resume button")
 	if resume == null:
@@ -174,12 +174,12 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	var player: Dictionary = _local_player(game)
 	var equipment: Dictionary = game.net_client.equipment
 	_check(state["rules"]["difficulty"] == "severe" and int(state["rules"]["revision"]) == MissionState.RULES_REVISION,
-		"historical rules upgrade explicitly to current wire: " + str(state["rules"]))
+		"saved rules reach the current wire: " + str(state["rules"]))
 	_check(state["run"]["id"] == RUN_ID and int(state["run"]["continues"]) == 1 and int(state["attempt"]) == 1,
 		"destination preserves run identity and allowance with a fresh mission attempt")
 	_check(state["m05"]["carried_recall_cars"] == ["platform_car", "roof_car"], "actual M03 optional choices reach M05 wire")
 	_check(state["m05"]["carried_patients"] == ["edda_team_a"] and int(state["m05"]["carried_photos"]) == 2, "actual M04 patient and photo outcomes reach M05 unchanged")
-	_check(int(equipment["grenades"]) == 0, "v5 has no invented historical grenade stock")
+	_check(int(equipment["grenades"]) == 0, "carry invents no grenade stock")
 	_check(int(player["hp"]) == 61 and int(player["armor"]) == 7 and game.net_client.accepted_body == "synthetic", "actual HP, armor and body carry exactly")
 	_check(equipment["selected"] == "flechette" and equipment["weapons"] == ["fists", "flechette", "scatter"], "actual carried gun ownership and selection are exact")
 	_check(EquipmentState.ammo(equipment, "bullets") == 29 and EquipmentState.ammo(equipment, "shells") == 8 and EquipmentState.ammo(equipment, "cells") == 0,
@@ -189,20 +189,14 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M05 child stops cleanly before inspecting disk"):
 		return false
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 22 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
-		"actual child atomically persists upgraded v8 identity and current rules")
+	_check(saved is Dictionary and saved["version"] == RunFixture.VERSION and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
+		"actual child atomically persists the run identity and current rules")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M05_ID \
 			and saved["m03_outcome"]["liberated_cars"] == fixture["m03_outcome"]["liberated_cars"] \
 			and saved["m04_outcome"]["rescued_patients"] == fixture["m04_outcome"]["rescued_patients"] \
-			and int(saved["m04_outcome"]["photos_completed"]) == 2, "v8 entry retains authored outcomes: " + JSON.stringify(saved))
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-") and filename.ends_with(".json"):
-			archives.append(filename)
-	_check(archives.size() == 1, "legacy transition creates exactly one prior archive")
-	if archives.size() == 1:
-		_check(FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == legacy_bytes, "archive preserves exact original v5 source bytes")
+			and int(saved["m04_outcome"]["photos_completed"]) == 2, "entry retains authored outcomes: " + JSON.stringify(saved))
+	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	current_scene.queue_free()
 	await process_frame
 	await create_timer(0.5).timeout

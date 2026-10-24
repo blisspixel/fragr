@@ -295,7 +295,6 @@ async fn run_server_impl(
         let store = RunStore::open_with_hashes(&local_run.directory, hashes)?;
         if local_run.resume {
             let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
-            let source = saved.clone();
             let target = session
                 .state
                 .map
@@ -308,11 +307,13 @@ async fn run_server_impl(
                 if target == crate::protocol::MissionId::RecallNotice {
                     return Err("a saved transition cannot return to M01".into());
                 }
+                // Entering the next mission is the one gameplay transition a
+                // resume writes: carried outcomes, refills and entry stock.
                 saved = saved.promote_next(
                     target,
                     hashes[crate::mission::run_file::store::stage_index(target)],
                 )?;
-                store.archive_and_save(&source, &saved)?;
+                store.save(&saved)?;
             } else if saved.stage_mission() != target {
                 return Err("saved campaign run names another mission".into());
             }
@@ -322,9 +323,6 @@ async fn run_server_impl(
                     | crate::mission::run_file::SavedStep::PendingContinue { .. }
             ) {
                 return Err("saved campaign run is not playable".into());
-            }
-            if store.needs_upgrade()? {
-                store.archive_and_save(&source, &saved)?;
             }
             session.state.load_campaign_run(&saved)?;
             last_run_document = Some(saved);
@@ -347,7 +345,7 @@ async fn run_server_impl(
                 mission.rules,
                 content_sha256,
             );
-            store.start_new(&initial)?;
+            store.save(&initial)?;
             last_run_document = Some(initial);
         }
         let _ = local_run

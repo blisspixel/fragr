@@ -1,7 +1,7 @@
 extends RefCounted
 class_name FragrSettings
 
-## Canonical, validated preferences. Unimplemented historical keys are ignored.
+## Canonical, validated preferences. Unknown keys are ignored.
 signal changed
 
 const PATH: String = "user://settings.cfg"
@@ -155,10 +155,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 		if typeof(fallback) == TYPE_INT:
 			value = int(value)
 	elif path == "video/display_mode":
-		if not value is int or value not in [0, 1, 2]:
+		if not value is int or value not in [0, 2]:
 			value = fallback
-		elif value == 1:
-			value = 2 # Legacy exclusive request uses portable fullscreen now.
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback

@@ -13,12 +13,6 @@ pub(crate) struct M15Outcome {
     pub fallen_entrants: Vec<u8>,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M15Outcome>, D::Error> {
-    M15Outcome::deserialize(decoder).map(Some)
-}
-
 impl M15Outcome {
     pub(super) fn capture(state: &M15ObjectiveState, tick: u64) -> Result<Self, &'static str> {
         state.validate(MissionPhase::Departed, tick)?;

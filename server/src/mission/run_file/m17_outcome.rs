@@ -12,12 +12,6 @@ pub(crate) struct M17Outcome {
     pub voss_captured: bool,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M17Outcome>, D::Error> {
-    M17Outcome::deserialize(decoder).map(Some)
-}
-
 impl M17Outcome {
     pub(super) fn capture(state: &M17ObjectiveState, tick: u64) -> Result<Self, &'static str> {
         state.validate(MissionPhase::Departed, tick)?;

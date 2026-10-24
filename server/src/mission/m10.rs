@@ -125,7 +125,7 @@ impl GameState {
                 current,
                 transit: solo
                     .and_then(|s| s.carried_transit.clone())
-                    .unwrap_or(crate::protocol::M10Transit::HistoricalUnrecorded {}),
+                    .unwrap_or(crate::protocol::M10Transit::Unlinked {}),
                 pilot: g.pilot,
                 passengers: g
                     .passengers

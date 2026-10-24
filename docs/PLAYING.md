@@ -295,24 +295,12 @@ The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 18 saves; desktop v0.75.0 writes version 12.
-Supported historical saves upgrade
-strictly, retaining exact original bytes in a content-addressed
-`run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1
-saves remain incompatible. A changed mission content hash or rules revision can
-also prevent resuming; the old file stays until you choose to archive it.
-The current stair correction registers exact old and replacement map identities
-for levels 8, 9, 10 and 12. An existing entry or pending continue can upgrade
-to its exact installed replacement without changing health, equipment,
-rescues or continues. Its exact original file is archived first. Completed and
-closed history keeps the original map identity.
-
-To recover an archive, close the game, keep a copy of `run.json`, and copy the
-archive back as `run.json`. It must still match the installed mission and rules.
-Keep client and server from the same release. Migration and compatibility
-details belong to the [run file plan](plans/campaign-run-file.md),
-[carry plan](plans/m01-m02-run-carry.md) and
-[Passenger Manifest plan](plans/m09-passenger-manifest-prototype.md).
+A build reads only its own save format. A save from a different build, or one
+whose mission content has since changed, cannot be continued: the menu says so
+and offers a new run, which replaces the old file. A damaged file is reported
+the same way. Saves are never converted between builds. Keep client and server
+from the same release. The format is described under
+[Campaign run file](protocol.md#campaign-run-file).
 
 The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,

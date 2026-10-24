@@ -134,7 +134,7 @@ fn m10_safe_entry_readiness_does_not_start_fights_or_clone_crew() {
     assert!(f.passengers.is_empty());
     assert!(matches!(
         f.transit,
-        crate::protocol::M10Transit::HistoricalUnrecorded {}
+        crate::protocol::M10Transit::Unlinked {}
     ));
     assert_eq!(f.pilot, s.state.map.m10_geometry().unwrap().pilot);
     place(&mut s, id, [0.0, 2.0, -12.0]);
@@ -328,7 +328,13 @@ fn m10_controller_requires_fresh_map_bound_facts_and_keeps_carried_history() {
         match mutation {
             0 => f.pilot[0] += 0.5,
             1 => f.current = Some(g.objectives[1].clone()),
-            _ => f.carried_archive = Some(crate::protocol::M08Outcome::HistoricalUnrecorded {}),
+            _ => {
+                f.carried_archive = Some(crate::protocol::M08Outcome {
+                    custody_released: true,
+                    recovered_mind_secured: false,
+                    captives_evacuated: false,
+                })
+            }
         }
         assert!(client.observe(s.state.tick, bad).is_err());
     }

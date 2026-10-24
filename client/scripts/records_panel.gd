@@ -110,7 +110,12 @@ func _select_kind(kind: String) -> void:
 		"records": _filtered.size(), "kills": PlayerRecord.sum_combat(counts, "kills"),
 		"deaths": int(counts["deaths"]), "time": _time(int(counts["alive_ticks"])),
 	})
-	_notice.text = tr("RECORD_RETENTION").format({"count": PlayerRecords.LIMIT}) if records.error == OK else tr("RECORD_SAVE_ERROR")
+	if records.error != OK:
+		_notice.text = tr("RECORD_SAVE_ERROR")
+	elif records.started_fresh:
+		_notice.text = tr("RECORD_STARTED_FRESH")
+	else:
+		_notice.text = tr("RECORD_RETENTION").format({"count": PlayerRecords.LIMIT})
 	_show_record(0)
 
 func _show_record(index: int) -> void:

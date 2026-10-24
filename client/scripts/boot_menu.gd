@@ -106,7 +106,6 @@ func _ready() -> void:
 	if not _local_match.run_preview_changed.is_connected(_on_run_preview_changed):
 		_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build(MenuTheme.Context.FRONT_END)
-	UserDataMigration.run_for(get_tree())
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
@@ -417,7 +416,7 @@ func _page_single() -> void:
 			_label(tr("RUN_ABANDONED"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"incompatible", "corrupt":
-			_label(tr("RUN_UNREADABLE"))
+			_label(tr("RUN_INCOMPATIBLE" if status == "incompatible" else "RUN_CORRUPT"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		_:
 			_label(tr("RUN_CHECKING" if status == "loading" else "RUN_PREVIEW_UNAVAILABLE"))

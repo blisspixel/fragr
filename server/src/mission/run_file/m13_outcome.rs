@@ -22,12 +22,6 @@ fn present_workers<'de, D: serde::Deserializer<'de>>(
     <[M13WorkerResponse; 3]>::deserialize(decoder).map(Some)
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M13Outcome>, D::Error> {
-    M13Outcome::deserialize(decoder).map(Some)
-}
-
 impl M13Outcome {
     pub(super) fn capture(state: &M13ObjectiveState) -> Result<Self, &'static str> {
         state.validate(MissionPhase::Departed, state.lift.tick)?;

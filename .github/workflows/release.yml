@@ -19,7 +19,6 @@ on:
       - client/scripts/local_match.gd
       - client/scripts/local_process.gd
       - tools/bake_icon.gd
-      - client/scripts/user_data_migration.gd
       - tools/licenses/**
       - deny.toml
       - Cargo.lock

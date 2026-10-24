@@ -668,8 +668,9 @@ Severe exposes a fall as an optional challenge; zero falls never blocks a
 prompt, controller or departure. All departures require every
 ready living participant aboard and a fresh aimed Use. Retry restores the closed
 world, entry inventory and guards, preserving carried history and cast.
-`carried_archive` is the immutable tagged v10 M08 outcome described below;
-it is absent in independent development parties and never blocks boarding.
+`carried_archive` is the immutable M08 outcome
+`{custody_released,recovered_mind_secured,captives_evacuated}` from the run
+file; it is absent in independent development parties and never blocks boarding.
 
 M07 carries `m07` exactly for `declared_goods`, mutually exclusive with
 other mission envelopes. Its strict facts are
@@ -2503,100 +2504,17 @@ from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
 
-The desktop menu supplies `--run-mode new|resume`. New starts at M01, archives
-prior run bytes under a unique name and saves the initial run before readiness.
-Resume locks and validates the versioned run against the exact authored
-content bytes and campaign rules before readiness. An M01 exit waiting for M02
-is checked against the M01 content it names, then promoted once to an M02 entry
-under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
-refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v13 after validating their historical revision
-2 rules and exact content hash. The upgrade promotes rules to revision 3 with
-exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v13 with zero historical grenades. Strict v6 documents preserve
-their real grenade counts and M05 release/boarding outcomes; they cannot forge
-playable M06 or its future route outcome. Old shapes reject grenade
-fields and forged M05 stages. Exact source bytes are archived before replacement;
-v1 magazine-era saves remain incompatible. A second
-child cannot own the same file. Omitting `--run-mode` retains independent
-development behavior. The read-only `--local-run-preview` identifies the saved
-mission, instead of using the launcher's guessed map. It prints one bounded
-JSON status line for the menu: `missing`, `ready` (mission, difficulty, attempt,
-continues, pending_continue, nullable body), `failed`, `abandoned`,
-`awaiting_mission` (mission, difficulty, continues, nullable body),
-`incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
-M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
-M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
-`declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
-M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
-M09, M10 and the bounded M11 `right_of_search` prototype are supported. The next pending mission is M12 `terms_of_cooperation`.
-Version 14 retains completed
-M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
-pending M04 edge and throughout M04 entry, retry and terminal states. Completed
-M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
-the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
-`m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
-pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
-IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v14 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 through 14 require actual `proximity_mines` from zero
-to four. Historical v2 through v8 equipment never has a mine field; an explicit
-strict upgrade assigns zero, rather than accepting a forged historical count.
-M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
-edge and throughout M07 entry, retry and terminal states. Earlier outcomes
-persist through every later edge. An M07 exit and later stages may carry the
-Sniper Rifle; an M07 entry never does. M08 entry, continue and retry restore
-the mission-entry equipment anchor, including its independent mine count.
-M08 completion stores actual remaining counts at its M09 edge. The locked
-promotion carries HP, armor, equipment, grenades and mines without an episode
-refill; only old-map personal supply claims clear. M09 retry restores that
-entry anchor and retains all earlier outcomes. Completion stores the actual
-exit at pending M10; no Episode III refill or playable M10 is implied.
-Version 12 retains version 10's required `m08_outcome` at that completed edge. Native
-completion emits `{"kind":"recorded","custody_released":bool,
-"recovered_mind_secured":bool,"captives_evacuated":bool}` from actual mission
-progress. Evacuation requires release. The cabinet fact says a copy was
-secured; it makes no claim that a mind was restored or is the same person.
-Strict v9 completion upgrades to `{"kind":"historical_unrecorded"}` because
-its old shape never recorded those choices. Earlier or unfinished stages
-have no M08 outcome. Both tagged forms refuse extra fields. Historical
-absence never becomes invented false values, counts or a mission gate.
-At completed M09's pending-M10 edge, version 12 requires private `m09_outcome`.
-Native completion captures `{"kind":"recorded","released_crew":[...],
-"aboard_at_departure":[...]}` once at the accepted physical departure. Released
-crew follow the actual canonical present roster: Tern and two berth crew,
-plus Edda only with the authored recorded clinic rescue and Splice only with
-actual recorded workshop evacuation. Aboard-at-departure is an ordered unique
-subset whose real feet were inside the hatch region at confirmation. Later
-body observations cannot rewrite it or the finite player exit.
-Strict v10/v11 completed-M09 upgrades retain `{"kind":"historical_unrecorded"}`;
-missing old choices do not become invented crew or empty boarding counts.
-Both old readers refuse `m09_outcome`, even null, and both tagged current forms
-refuse extra fields. Earlier/unfinished M09 has no crew outcome. This receipt
-does not mark transit complete, grant any arrival or implement M10; released
-crew's distinct short transition belongs to the future canonical promotion.
-No live M09 wire field, capability or optional crew wait gate changes here.
-Episode II continues refill
-only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v13 and cannot forge an M07 stage or a carried
-Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
-Sniper, then promote into M08 without a refill. V8 refuses playable M08.
-Strict v9 preserves all actual equipment and earlier outcomes. Its exact
-shape refuses `m08_outcome`, even null, and any playable M09 stage before upgrade.
-Strict v10/v11 upgrade through their exact historical shape, preserving recorded or
-historically unrecorded M08 outcomes and actual equipment counts. Versions 2
-through 11 refuse Repeater selection or ownership, including forged historical
-fields. Historical v12 likewise refuses Repeater ownership throughout supported
-stages through M09 and the pending M10 edge; no authored M10 find is implied.
-Every writable upgrade archives the exact old bytes under the existing lock;
-format migration grants no gun, ammunition, grenade, mine or continue refill.
-Read-only preview preserves source bytes; writable migration archives exact
-bytes under the existing writer lock before atomic replacement. Unknown future
-versions, forged older M04/M05/M06/M07/M08 states and
-changed source hashes are rejected before replacement. An absent body on a legacy
-save is bound by the player's visible body choice on admission; a bound body
-remains the server-owned run identity despite later profile changes.
-The menu treats preview as advisory; launch validates again under the lock.
+The desktop menu supplies `--run-mode new|resume`. New starts at M01 and
+saves the initial run before readiness, replacing any previous file. Resume
+locks and validates the run, promotes a completed mission into the next one or
+reopens its entry, as described under [Campaign run file](#campaign-run-file).
+Omitting `--run-mode` retains independent development behavior. The read-only
+`--local-run-preview` identifies the saved mission, instead of using the
+launcher's guessed map. It prints one bounded JSON status line for the menu:
+`missing`, `ready` (mission, difficulty, attempt, continues, pending_continue,
+nullable body), `failed`, `abandoned`, `awaiting_mission` (next mission,
+difficulty, continues, nullable body), `incompatible`, or `corrupt`. The menu
+treats preview as advisory; launch validates again under the lock.
 
 The optional `--difficulty assisted|standard|severe` defaults to `standard` on
 a new run. A resume uses the saved difficulty and echoes it below. Bootstrap
@@ -2624,8 +2542,8 @@ bundled M03 prototype with capability 26 and no durable save. With
 `--run-mode resume`, it promotes a compatible completed M02 run under the same
 writer lock or reopens an M03 entry. Health, armor, body, weapons, ammunition,
 selected weapon and remaining continues carry unchanged; old-map claims clear.
-Retry restores the M03 entry, mast and car releases. A failed migration keeps
-the prior live file and exact content-addressed archive recoverable.
+Retry restores the M03 entry, mast and car releases. A failed promotion write
+leaves the previous run file in place.
 
 `--local-mission notice_to_vacate` without a run mode starts the independent
 bundled M04 prototype with capability 26 and no durable save. Resume promotes
@@ -2651,8 +2569,8 @@ bundled M06 prototype with capability 27 and no personal save. Resume promotes
 a completed M05 exit under the writer lock, preserving exact body, difficulty,
 HP, armor, equipment and Earth outcomes and clearing only old-map claims.
 That one promotion refills Episode II to three continues and a three-continue
-level baseline. Read-only preview, historical-format upgrade, Practice,
-reopening M06, retry, failure and abandonment do not grant another refill.
+level baseline. Read-only preview, Practice, reopening M06, retry, failure
+and abandonment do not grant another refill.
 The arrival scene precedes readiness only for the pending M05 entry; resuming
 an existing M06 attempt skips it. M06 completion saves `declared_goods` as a
 pending destination.
@@ -2677,8 +2595,7 @@ the supported `passenger_manifest` destination.
 `--local-mission passenger_manifest` without a run mode starts the independent
 bundled M09 development prototype with capability 34 and no personal save.
 Resume promotes completed M08 under the same lock without an episode refill.
-Actual inventory, body and archive outcomes carry; historical v9 choices remain
-explicitly unknown. Readiness does not activate the loading fight at spawn.
+Actual inventory, body and archive outcomes carry. Readiness does not activate the loading fight at spawn.
 Ordinary movement obtains the Tack before crossing its authored activation
 boundary. Completion saves pending `common_carrier`; the prototype promotes it under the same writer lock.
 
@@ -2690,6 +2607,93 @@ control records also stop it with an error. Control records are capped at 256 by
 This lease applies only to explicit local-child mode. Dedicated hosts retain
 their independent lifetime. The client gives shutdown three seconds, then
 disposes only the PID it created. No process-name or port-based cleanup is used.
+
+## Campaign run file
+
+A durable solo campaign is one local JSON document, `run.json`, in the
+directory named by `FRAGR_RUN_DIR` or the platform data folder
+(`$XDG_DATA_HOME/fragr/runs` or `~/.local/share/fragr/runs`,
+`~/Library/Application Support/fragr/runs`, `%LOCALAPPDATA%\fragr\runs`). `server/src/mission/run_file.rs` owns the
+document and its validation; `run_file/store.rs` owns disk access. The file is
+private to the local child and never appears on the wire.
+
+**One schema, no migration.** The document carries `"version": 23`, the only
+version this build reads or writes. Any other version, older or newer, is
+refused as `incompatible` before its shape is read. Nothing is upgraded,
+archived or carried forward from earlier formats. A change to the serialized
+shape bumps the number; a number is never reused, so a stale file can never be
+mistaken for a current one. Player-facing text says the save is from a
+different build and that starting a new run replaces it.
+
+**Reading.** At most 64 KiB is read. Bytes that are not JSON, lack an integer
+`version`, or do not decode strictly as the current shape are `corrupt`.
+Unknown fields are refused everywhere, and a carried outcome that is present
+must hold a value: `null` is refused, never read as absent. A document that
+decodes but fails validation is `incompatible`. Validation binds the run to the
+SHA-256 of the bundled mission content its stage names, the current campaign
+rules revision (4), a nonnil id and a coherent continue allowance
+(`remaining <= level_start <= starting = 3`). It also checks that every
+carried outcome is present exactly when its mission has been completed, and
+that saved equipment owns no weapon or device before the mission that grants
+it: the Sniper Rifle from completed M07, proximity mines from M08, the
+Repeater from completed M10, remote mines from completed M11, the Arc from
+completed M12 and the Rocket Launcher from completed M13. Changed mission
+content therefore makes a saved run incompatible rather than rebinding it.
+
+**Writing.** Only a local child with `--run-mode` opens the store, and it holds
+an exclusive lock on `run.lock` for its lifetime; a second child cannot open
+the same directory. Every write validates the document first, writes a unique
+temporary file, syncs it, renames it over `run.json` and syncs the directory.
+A failure before the rename leaves the previous file untouched and removes the
+temporary; a failure after it reports that the new run is live but its
+durability is uncertain. No other file is created. New Run, mission promotion,
+continues and terminal states all use this one path, so New Run simply
+replaces whatever was there, including an incompatible or corrupt file.
+
+**Shape.**
+
+```json
+{"version":23,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+ "level_start_continues":3,"body":"synthetic",
+ "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
+ "step":{"kind":"mission_entry","mission":"recall_notice",
+   "entry":{"hp":100,"armor":0,"equipment":{"selected":"fists","weapons":["fists"],
+     "ammo":[{"pool":"bullets","rounds":0},{"pool":"shells","rounds":0},
+             {"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
+     "grenades":0,"proximity_mines":0,"remote_mines":0,"personal_claims":[]}}}}
+```
+
+`step.kind` is `mission_entry`, `pending_continue`, `failed`, `abandoned` or
+`awaiting_mission` (`completed_mission`, `next_mission`, `exit`). An entry is
+the retry anchor: HP, armor and exact equipment as the mission began. Every
+equipment count is written explicitly. `failed` requires zero remaining
+continues and `pending_continue` at least one. `attempt` is derived as
+`level_start_continues - remaining_continues + 1`.
+
+**Carried outcomes.** Each mission's optional choices are recorded once at its
+completed edge and carried unchanged through every later stage:
+`m03_outcome` (`liberated_cars`), `m04_outcome` (`rescued_patients`,
+`photos_completed`), `m05_outcome` (`released_workers`, `evacuated_workers`),
+`m06_outcome` (`prisoner_route_marked`), `m08_outcome` (`custody_released`,
+`recovered_mind_secured`, `captives_evacuated`), `m09_outcome`
+(`released_crew`, `aboard_at_departure`), `m10_transit`
+(`{"kind":"recorded","arrived_crew":[...]}`, equal to the M09 release),
+`m11_outcome` through `m18_outcome` (each mission's portable challenge
+receipts). They are captured from authoritative mission progress, never
+inferred from presentation, and validated against the actual roster.
+
+**Promotion.** Resuming a run that is `awaiting_mission` into the mission it
+names promotes it once under the lock: the exit becomes the new entry with
+old-map personal supply claims cleared, the content hash moves to the new
+mission and `level_start_continues` becomes the continues that remain.
+Entering M06, M10, M15 and M18 starts Episodes II, III, IV and V and refills
+continues to three; no other edge refills anything. A promoted entry cannot be
+promoted again, and a resume that names a different mission is refused without
+writing. M18 completion waits at `planned_works`, which is not yet playable.
+
+**Retry.** Continue restores the saved entry anchor and spends one continue
+without rewinding ticks, input sequence or inventory revisions. Read-only
+`--local-run-preview` never writes; launch validates again under the lock.
 
 ## Future Considerations (Post-Slice 1)
 
@@ -2846,8 +2850,9 @@ separate from wire capabilities. Local files and external hosts are not an
 authenticated public ranking or achievement authority. No background telemetry
 or paid runtime generation is involved.
 
-Local history document version 3 retains version 1 and 2 entries. A new local entry
-may also carry `server_sha256`, the lowercase SHA-256 of the owned server
+Local history document version 3 is the only format read. An older document
+is set aside and a fresh record starts, with a notice on the records screen; a
+newer one is preserved and blocks writes. A local entry may carry `server_sha256`, the lowercase SHA-256 of the owned server
 executable measured before launch. This is local provenance, never a network
 record field or an authenticated identity. Compatible human mission bests
 require that exact build, mission, map id, rules and difficulty, with durable
@@ -2862,8 +2867,8 @@ participant `record` and owned `server_sha256`. The Recall Notice award requires
 map 1001, the actual complete mission/run and a human durable local participant.
 The authored-secret award requires that participant's positive authoritative
 total secret count. Revision 3 or later campaign rules qualify, on every ordinary
-difficulty. External, development and agent records do not qualify. Historical
-loading creates no awards. Repeated ingress cannot duplicate an award ID, and
+difficulty. External, development and agent records do not qualify. Loading
+stored entries never creates awards. Repeated ingress cannot duplicate an award ID, and
 proofs survive history eviction and failed runs. Unknown IDs, malformed proofs
 and unearned selections fail validation. The existing two-generation writer
 preserves the preceding valid profile on failed replacement. These fields are
@@ -2890,26 +2895,17 @@ current `pilot`, the actual `passengers` subset and optional `carried_archive`.
 Four ordered native encounter clears and actual arrival precede fresh physical
 confirmation by every ready living participant aboard. Crew waiting and
 optional difficulty challenges do not gate confirmation. Current Tern is the
-ship's pilot even when historical transit facts are unknown; this is a current
-appearance, never a fabricated recorded release or evacuation. Optional Edda
+ship's pilot in every case. Practice play without a campaign run sends
+`transit: {"kind":"unlinked"}` and no passengers; this never fabricates a
+recorded release or evacuation. Optional Edda
 and Splice markers require actual Recorded arrivals. A secured cabinet does
 not establish restored Orrin or continuity of a person.
 
-Strict local save version 13 preserves immutable v12 `m09_outcome` and adds
-`m10_transit` only with actual M10 entry and subsequent states. `Recorded`
-arrivals equal the already-recorded actual released crew set. The original
-`aboard_at_departure` subset remains unchanged. `HistoricalUnrecorded` retains
-unknown old history, never empty invented arrivals or eligibility-derived
-travel. This canonical locked M09-to-M10 promotion completes boarding during
-the short transition, clears old-map personal claim IDs and refills Episode III
-continues to three once. Actual HP, armor, body, selection, weapons, ammunition,
-grenades and mines carry unchanged; retry anchors that M10 entry.
-
-The exact strict v12 reader and v10/v11 and earlier readers retain byte
-archives. Historical M10 stages, new transit fields, null future fields and
-Repeater ownership refuse. Current M10 entry cannot forge a gun from completed
-M09; only actual completed M10 equipment may carry the Repeater onward.
-M10 completion promotes through the locked `right_of_search` entry. Full played combat,
+The locked M09-to-M10 promotion records `m10_transit` arrivals equal to the
+actual M09 release, clears old-map personal claim IDs and refills Episode III
+continues to three once. Actual HP, armor, body, selection, weapons,
+ammunition, grenades and mines carry unchanged; retry anchors that M10 entry.
+Only completed M10 equipment may carry the Repeater onward. Full played combat,
 actual Repeater source/cues and final ship presentation remain acceptance gates.
 
 ### Right of Search and deliberate charges (capability 38)
@@ -2968,16 +2964,13 @@ strike, recovery and interruptible hit/death states. The client selects its
 own directional atlas and paired normals. Cosmetic scan distortion during
 approach never changes server position, hit boxes, visibility or damage.
 
-Historical run-file version 14 upgraded exact historical v2 through v13 documents
-with zero invented Remote Mines and archives the original bytes. M10 completion
-promotes to M11 under the existing writer lock, clears old personal supply
-claims, preserves actual finite equipment and crew history, and grants no
-episode refill. Retry restores that exact entry and clears live devices without
-rewinding tick, sequence or inventory revisions. Only actual completed M11
-equipment may carry remote charges onward. Completion stores `m11_outcome`
+M10 completion promotes to M11 under the writer lock, clears old personal
+supply claims, preserves actual finite equipment and crew history, and grants
+no episode refill. Retry restores that exact entry and clears live devices
+without rewinding tick, sequence or inventory revisions. Only actual completed
+M11 equipment may carry remote charges onward. Completion stores `m11_outcome`
 with release, records, single-blast count and elapsed `bridge_response_ticks`,
-then retained pending `terms_of_cooperation`. The version-15 boundary
-and connected M12 work are described below. Version 18 is the current document.
+then waits at `terms_of_cooperation`.
 
 ### Arc, current records and strict saves (capability 42)
 
@@ -3005,33 +2998,9 @@ or out-of-range values refuse authoring. This is actual spawned armor, consumed
 by ordinary guns and bypassed by Arc. Earlier omitted placements retain their
 existing combat balance.
 
-Run-file version 15 uses campaign rules revision 4. Exact v2-v4
-readers require their original rules revision 2 and exact v5-v14 readers require
-revision 3, then explicitly upgrade the live run to revision 4 under the
-existing writer lock. The content-addressed archive retains the original bytes.
-Every pre-v15 reader rejects selected or owned Arc, even with zero Cells, and
-retains its original supported stage bounds. Historical records and earned
-award proofs keep their original rules revisions rather than acquiring new
-timing claims.
-
-The local geometry reader separately registers exact mission, predecessor and
-successor SHA-256 pairs for the October 8 M08, M09, M10 and M12 stair correction.
-Each pair is inactive unless the expected canonical source equals its exact
-registered successor. The full historical decoder first validates the actual
-predecessor identity, supported stage, original rules and complete finite state.
-M09 also registers its exact continuous-guard intermediate source, which first
-exists at document version 15; earlier historical versions cannot claim it.
-Only `mission_entry` and `pending_continue` normalize the content identity;
-their remaining values stay exact, and a pending continue still spends normally.
-The writer re-reads under its existing lock, archives the exact original bytes
-and atomically replaces the run, including a same-version 15 entry. Preview
-does not write. Completed `awaiting_mission`, failed and abandoned history
-retains the original content identity. A completed predecessor can promote by
-the existing edge; it never becomes evidence that the successor was completed.
-Unknown predecessors, wrong stages and unregistered successor changes remain
-incompatible. No live map or retry-anchor replacement occurs. Exact identities
-and owning evidence are in the
-[geometry upgrade plan](plans/campaign-geometry-upgrades-20261008.md).
+Saved runs use campaign rules revision 4. No saved stage before completed M12
+may select or own the Arc, even with zero Cells. Retained participant records
+and earned award proofs keep the rules revision they were recorded under.
 
 M11 completion promotes once to the exact M12 entry, retaining HP, armor, body,
 actual finite equipment, remaining continues and prior outcomes, including the
@@ -3160,12 +3129,8 @@ radius-4 explosion hit exceeds 100 combined damage. An empty rockets pool is
 removed before delivery to those readers. Record revision 4 is current.
 Revision 3 remains the nine-column Arc record and refuses rocket facts.
 
-Historical local run-file version 16 is an exact version-15 reader plus a
-zero `rockets` count, and it archives the original bytes under the existing
-writer lock. A version-15 document that already selects the launcher, owns it,
-or names the rockets pool is incompatible. Version 16 has no campaign launcher,
-so a version-16 save that owns it or carries nonzero rockets is refused.
-Version 17 permits it only in completed M13 equipment after actual discovery.
+Saved equipment always lists the `rockets` pool. Only completed M13 equipment
+may own the launcher or carry nonzero rockets; earlier stages are refused.
 Campaign rules stay at revision 4. The optional M12 secret remains separate.
 
 ### The Weight of Permission (capability 47)
@@ -3204,14 +3169,11 @@ erasing the earlier boarding receipt. Supported riders move with the deck and
 any obstruction refuses the whole step. Clients render its accepted position;
 an elapsed animation does not establish arrival or departure.
 
-Run-file version 17 retains strict historical v2-v16 decoding and exact original
-byte archives. Future mission identities, invented launcher ownership and extra
-fields do not become valid through migration. M13 retries restore its actual
-entry resources and initial foundry state through the existing reset owner.
-The portable `m13_outcome` contains worker choices, actual arrival flags,
-effective hazard loss and the support-position receipt. Completed M13 retains
-pending `launch_authority`; version 18 promotes it into the connected M14 entry
-without refilling continues.
+M13 retries restore its actual entry resources and initial foundry state
+through the existing reset owner. The portable `m13_outcome` contains worker
+choices, actual arrival flags, effective hazard loss and the support-position
+receipt. Completed M13 waits at `launch_authority` and promotes into the
+connected M14 entry without refilling continues.
 
 ### Continuance Walker foundation (capability 48)
 
@@ -3328,17 +3290,12 @@ drift or stale intact facts. A retry can restore the registered intact world.
 Final departure requires every ready living participant physically aboard and a
 fresh valid Use at the gantry control.
 
-Run-file version 18 strictly upgrades historical v2-v17 documents and archives
-the exact original bytes before replacement under the existing writer lock.
 M13 completion promotes to M14 with actual equipment, all earlier outcomes and
 remaining continues. The M14 entry retains the found Arc and Rocket Launcher,
 including finite stock. Continue restores that entry and the intact encounter,
 jeep and Walker without rewinding process ticks or inventory revisions. Completed
-M14 adds `m14_outcome` with the four portable challenge booleans and retains
-pending `civic_pressure_valve` in the historical version-18 boundary. Current
-version-22 saves promote it into M15 with the Episode IV refill. Historical
-version 17 refuses M14 entries and even a null
-`m14_outcome` field rather than silently accepting future facts.
+M14 adds `m14_outcome` with the four portable challenge booleans and promotes
+into M15 with the Episode IV refill.
 
 ### Connected late campaign (capabilities 51 through 54)
 
@@ -3389,10 +3346,7 @@ fresh Use. M16 bus prompts can occur at stages 2 through 5; M17 Kessel prompts
 can remain available after its optional stage. The client names the nearby
 registered control instead of inferring it solely from the ordered objective.
 
-Run-file versions 19, 20, 21 and 22 introduced M15, M16, M17 and M18 respectively.
-Current saves strictly upgrade v2-v21 documents, archive the exact original bytes
-under the existing writer lock and retain actual finite entry resources and prior
-outcomes. M15 and M18 begin Episodes IV and V with three continues; M16 and M17
-do not refill. M18 completion retains pending `planned_works`; M19 and M20 are
-not playable mission identities. Historical documents reject future mission
-entries and future outcome fields, including null values.
+Promotion into each late mission retains actual finite entry resources and
+prior outcomes. M15 and M18 begin Episodes IV and V with three continues; M16
+and M17 do not refill. M18 completion waits at `planned_works`; M19 and M20
+are not playable mission identities.

@@ -52,12 +52,8 @@ fn completed_workshop() -> RunDocument {
     document
 }
 
-fn historical_bytes(document: &RunDocument) -> Vec<u8> {
-    let mut value = serde_json::to_value(document).unwrap();
-    value["version"] = 6.into();
-    value["rules"]["revision"] = (3).into();
-    super::super::remove_historical_mines(&mut value);
-    serde_json::to_vec_pretty(&value).unwrap()
+fn bytes(document: &RunDocument) -> Vec<u8> {
+    serde_json::to_vec_pretty(document).unwrap()
 }
 
 fn probe(bytes: &[u8]) -> RunProbe {
@@ -69,17 +65,15 @@ fn open(directory: &Path) -> RunStore {
 }
 
 #[test]
-fn historical_v6_preview_keeps_counts_then_atomic_promotion_refills_once() {
-    let directory = std::env::temp_dir().join(format!("fragr-m06-migration-{}", Uuid::new_v4()));
+fn completed_workshop_promotion_keeps_counts_and_refills_episode_ii_once() {
+    let directory = std::env::temp_dir().join(format!("fragr-m06-promotion-{}", Uuid::new_v4()));
     let source = completed_workshop();
-    let bytes = historical_bytes(&source);
     let store = open(&directory);
-    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
     let loaded = store.load().unwrap().unwrap();
     assert_eq!(loaded, source);
     assert_eq!(loaded.remaining_continues, 0);
-    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    assert!(store.needs_upgrade().unwrap());
     assert!(open_lock_refused(&directory));
     let promoted = loaded
         .promote_next(MissionId::PortOfEntry, HASHES[5])
@@ -107,15 +101,14 @@ fn historical_v6_preview_keeps_counts_then_atomic_promotion_refills_once() {
     assert_eq!(entry.equipment.selected, exit.equipment.selected);
     assert_eq!(entry.equipment.weapons, exit.equipment.weapons);
     assert_eq!(entry.equipment.ammo, exit.equipment.ammo);
-    let failed = store.archive_and_save_before_replace(&source, &promoted, |_| {
-        Err(io::Error::other("injected replace failure"))
-    });
+    let failed = store.save_with_sync(
+        &promoted,
+        |_| Err(io::Error::other("injected replace failure")),
+        sync_directory,
+    );
     assert!(failed.is_err());
     assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-    let archive = store.archive_and_save(&source, &promoted).unwrap();
-    assert_eq!(fs::read(archive).unwrap(), bytes);
-    assert!(!store.needs_upgrade().unwrap());
-    assert!(store.archive_and_save(&source, &promoted).is_err());
+    store.save(&promoted).unwrap();
     assert!(promoted
         .promote_next(MissionId::PortOfEntry, HASHES[5])
         .is_err());
@@ -135,9 +128,9 @@ fn open_lock_refused(directory: &Path) -> bool {
 }
 
 #[test]
-fn v6_rejects_future_mission_outcome_and_malformed_equipment_without_rewriting() {
+fn completed_workshop_rejects_future_outcomes_and_malformed_equipment() {
     let original: serde_json::Value =
-        serde_json::from_slice(&historical_bytes(&completed_workshop())).unwrap();
+        serde_json::from_slice(&bytes(&completed_workshop())).unwrap();
     let mut future = original.clone();
     future["step"]["completed_mission"] = "port_of_entry".into();
     future["step"]["next_mission"] = "declared_goods".into();
@@ -145,20 +138,18 @@ fn v6_rejects_future_mission_outcome_and_malformed_equipment_without_rewriting()
         probe(&serde_json::to_vec(&future).unwrap()),
         RunProbe::Incompatible
     ));
-    for (path, forged) in [
-        (
-            "m06_outcome",
-            serde_json::json!({"prisoner_route_marked": true}),
-        ),
-        ("unexpected", serde_json::json!(true)),
-    ] {
-        let mut value = original.clone();
-        value[path] = forged;
-        assert!(matches!(
-            probe(&serde_json::to_vec(&value).unwrap()),
-            RunProbe::Corrupt
-        ));
-    }
+    let mut premature = original.clone();
+    premature["m06_outcome"] = serde_json::json!({"prisoner_route_marked": true});
+    assert!(matches!(
+        probe(&serde_json::to_vec(&premature).unwrap()),
+        RunProbe::Incompatible
+    ));
+    let mut unexpected = original.clone();
+    unexpected["unexpected"] = serde_json::json!(true);
+    assert!(matches!(
+        probe(&serde_json::to_vec(&unexpected).unwrap()),
+        RunProbe::Corrupt
+    ));
     let mut missing = original.clone();
     missing["step"]["exit"]["equipment"]
         .as_object_mut()

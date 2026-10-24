@@ -32,17 +32,6 @@ fn world(stage: u8) -> RuntimeMap {
     RuntimeMap::Authored(AuthoredMap::read(source(stage).as_slice()).unwrap())
 }
 
-fn predecessor(stage: u8) -> RuntimeMap {
-    RuntimeMap::Authored(
-        AuthoredMap::load(
-            &Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("src/mission/run_file/store/fixtures/stair-predecessors-20261008")
-                .join(filename(stage)),
-        )
-        .unwrap(),
-    )
-}
-
 fn body(feet: [f32; 3]) -> MoveState {
     MoveState {
         x: feet[0],
@@ -196,22 +185,11 @@ fn m08_all_four_enclosed_flights_keep_both_directions_and_refuse_sideways_drops(
 }
 
 #[test]
-fn m08_old_halfway_side_drop_is_refused_and_the_bottom_descent_replaces_it() {
-    let old = predecessor(8);
+fn m08_halfway_side_drop_is_refused_and_the_bottom_descent_replaces_it() {
     let current = world(8);
     let from = [8.5, 3.0, 28.5];
     let to = [0.0, 0.0, 27.0];
-    let (dropped, _) = toward(old.arena(), body(from), to, 120);
-    assert!(
-        near(dropped, to),
-        "predecessor must reproduce the old three-metre sideways shortcut"
-    );
     refuses(current.arena(), from, to, 6.0..11.0);
-    assert!(line_of_sight(
-        [8.5, 4.6, 28.5],
-        [0.0, 4.6, 28.5],
-        &old.arena().solids
-    ));
     assert!(!line_of_sight(
         [8.5, 4.6, 28.5],
         [0.0, 4.6, 28.5],
@@ -281,8 +259,7 @@ fn m09_office_stair_turn_and_protected_landing_keep_the_actual_room_connection()
             [-35.0, 3.6, -30.5],
             &stage.arena().solids
         ));
-        // The predecessor's office landing is ground filled. Preserve the
-        // real loading-yard route along its lower frontage.
+        // Preserve the real loading-yard route along the lower frontage.
         walk(
             stage.arena(),
             &[
@@ -296,21 +273,12 @@ fn m09_office_stair_turn_and_protected_landing_keep_the_actual_room_connection()
 }
 
 #[test]
-fn m09_charge_transfer_keeps_the_original_opening_and_adjacent_guard_cover() {
-    let old = predecessor(9);
-    let continuous = RuntimeMap::Authored(
-        AuthoredMap::load(
-            &Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("src/mission/run_file/store/fixtures/stair-predecessors-20261008")
-                .join("m09_passenger_manifest_enclosed.json"),
-        )
-        .unwrap(),
-    );
+fn m09_charge_transfer_keeps_its_opening_and_adjacent_guard_cover() {
     let current = world(9);
     let opened = current.prepared_m09_world().unwrap();
     let from = [-19.0, 4.0, -31.0];
     let below = [-15.5, 0.0, -31.0];
-    for stage in [&old, &current, &opened] {
+    for stage in [&current, &opened] {
         walk(stage.arena(), &[from, below]);
         assert!(line_of_sight(
             [-19.0, 4.6, -31.0],
@@ -318,12 +286,6 @@ fn m09_charge_transfer_keeps_the_original_opening_and_adjacent_guard_cover() {
             &stage.arena().solids
         ));
     }
-    refuses(continuous.arena(), from, below, -20.0..-18.5);
-    assert!(!line_of_sight(
-        [-19.0, 4.6, -31.0],
-        [-16.0, 4.6, -31.0],
-        &continuous.arena().solids
-    ));
     for stage in [&current, &opened] {
         assert!(!line_of_sight(
             [-19.0, 4.6, -33.5],
@@ -420,54 +382,6 @@ fn m12_bridge_flights_and_all_four_protected_edges_match_authoritative_cover() {
             line_of_sight([0.0, 1.8, 2.4], [0.0, 1.8, 0.0], &arena.solids),
             "actual stair mouth stays open to rays"
         );
-    }
-}
-
-fn numeric_equal(left: &Value, right: &Value) -> bool {
-    match (left, right) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| numeric_equal(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, a)| b.get(key).is_some_and(|b| numeric_equal(a, b)))
-        }
-        _ => left == right,
-    }
-}
-
-#[test]
-fn enclosure_changes_only_append_the_bounded_registered_solids() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    for (stage, prefix, added) in [(8, 144, 9), (9, 132, 7), (10, 123, 6), (12, 114, 18)] {
-        let old: Value = serde_json::from_slice(
-            &std::fs::read(
-                root.join("src/mission/run_file/store/fixtures/stair-predecessors-20261008")
-                    .join(filename(stage)),
-            )
-            .unwrap(),
-        )
-        .unwrap();
-        let mut current: Value = serde_json::from_slice(&source(stage)).unwrap();
-        assert_eq!(
-            old["solids"].as_array().unwrap().len(),
-            prefix,
-            "registered predecessor count"
-        );
-        assert_eq!(
-            current["solids"].as_array().unwrap().len(),
-            prefix + added,
-            "exact bounded addition count"
-        );
-        let first = current["solids"].as_array().unwrap()[..prefix].to_vec();
-        assert!(
-            numeric_equal(&Value::Array(first), &old["solids"]),
-            "an original solid or host index changed in M{stage:02}"
-        );
-        current["solids"] = old["solids"].clone();
-        assert!(numeric_equal(&current,&old),"an unrelated objective, spawn, supply, encounter or presentation contract changed in M{stage:02}");
     }
 }
 
