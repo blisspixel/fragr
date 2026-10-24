@@ -50,7 +50,7 @@ const DEFAULTS: Dictionary = {
 	# project default; otherwise three slots, see input_bindings.gd.
 	"bindings": {
 		"move_forward": "", "move_back": "", "move_left": "", "move_right": "",
-		"strafe": "", "jump": "", "duck": "", "turn_left": "", "turn_right": "",
+		"strafe": "", "jump": "", "dodge": "", "duck": "", "turn_left": "", "turn_right": "",
 		"look_up": "", "look_down": "", "center_view": "", "fire": "", "reload": "",
 		"interact": "", "throw_grenade": "", "place_mine": "", "place_remote_mine": "", "trigger_remote_mines": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
 		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "scope": "",
@@ -207,7 +207,7 @@ func load_from_disk() -> void:
 			var fallback: Variant = (DEFAULTS[section] as Dictionary)[key]
 			set_value(section, key, cfg.get_value(section, key, fallback))
 	# New or changed defaults take only inputs nobody already claimed.
-	for added: String in ["throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "weapon_6", "scope", "reload", "duck", "toggle_follow"]:
+	for added: String in ["throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "weapon_6", "scope", "reload", "duck", "dodge", "toggle_follow"]:
 		if not cfg.has_section_key("bindings", added) or cfg.get_value("bindings", added, "") == "":
 			InputBindings.adopt_unclaimed_defaults(self, added)
 
