@@ -19,6 +19,8 @@ var coverage_query: Callable
 var _covered: bool = false
 var _was_hidden: bool = false
 var _limit: int = LIMIT
+## Body size from the HUD style; the corner voice follows the HUD scale.
+var text_size: int = MenuTheme.BODY
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -29,6 +31,7 @@ func set_campaign(active: bool) -> void:
 	alignment = BoxContainer.ALIGNMENT_END if active else BoxContainer.ALIGNMENT_BEGIN
 	for entry: Entry in _entries:
 		entry.label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		entry.label.max_lines_visible = 2 if active else 3
 
 func clear() -> void:
 	while not _entries.is_empty():
@@ -56,6 +59,11 @@ func _refresh_coverage() -> bool:
 	_was_hidden = hidden
 	return hidden
 
+func set_text_size(value: int) -> void:
+	text_size = value
+	for entry: Entry in _entries:
+		entry.label.add_theme_font_size_override("font_size", text_size)
+
 func set_region(rect: Rect2) -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	position = rect.position
@@ -70,14 +78,14 @@ func push(text: String, colour: Color = MenuTheme.BONE, host_seconds: float = 0.
 	var label: Label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.text = line.left(200)
-	label.add_theme_font_override("font", MenuTheme.FONT)
-	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
-	label.add_theme_color_override("font_color", MenuTheme.readable_text(colour))
-	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
-	label.add_theme_constant_override("outline_size", 3)
+	MenuTheme.pixel_text(label, text_size, MenuTheme.readable_text(colour), 3)
+	# Every corner line has its own plate, so it reads over light geometry.
+	label.add_theme_stylebox_override("normal", MenuTheme.backing())
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.max_lines_visible = 2
+	# Three lines keep a long Host call whole in the arena's voice lane; the
+	# campaign's lane above the context reserves two per notice.
+	label.max_lines_visible = 2 if _campaign else 3
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	add_child(label)
 	var entry := Entry.new(label)

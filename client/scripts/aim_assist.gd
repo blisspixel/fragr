@@ -86,13 +86,19 @@ static func aim_at(origin: Vector3, target: Vector3) -> Vector2:
 ## combat::line_of_sight over the same MapInfo solids, so help never reaches
 ## through cover the server would stop a shot on.
 static func line_of_sight(origin: Vector3, target: Vector3, solids: Array) -> bool:
+	if not (target - origin).is_finite():
+		return false
+	return first_hit(origin, target, solids) < 0.0
+
+## Distance from `origin` to the first solid on the way to `target`, or -1.0
+## when the segment is clear. Same slab test as `line_of_sight`.
+static func first_hit(origin: Vector3, target: Vector3, solids: Array) -> float:
 	var delta: Vector3 = target - origin
 	var length: float = delta.length()
-	if not delta.is_finite():
-		return false
-	if length <= 0.0:
-		return true
+	if not delta.is_finite() or length <= 0.0:
+		return -1.0
 	var direction: Vector3 = delta / length
+	var nearest: float = -1.0
 	for entry: Variant in solids:
 		if not entry is Dictionary:
 			continue
@@ -100,9 +106,9 @@ static func line_of_sight(origin: Vector3, target: Vector3, solids: Array) -> bo
 		var low: Vector3 = Vector3(float(solid.get("min_x", 0.0)), float(solid.get("bottom", MoveStep.GROUND_Y)), float(solid.get("min_z", 0.0)))
 		var high: Vector3 = Vector3(float(solid.get("max_x", 0.0)), float(solid.get("top", MoveStep.WALL_TOP)), float(solid.get("max_z", 0.0)))
 		var hit: float = _slab_distance(origin, direction, low, high, length)
-		if hit >= 0.0 and hit < length:
-			return false
-	return true
+		if hit >= 0.0 and hit < length and (nearest < 0.0 or hit < nearest):
+			nearest = hit
+	return nearest
 
 static func _slab_distance(origin: Vector3, direction: Vector3, low: Vector3, high: Vector3, range_limit: float) -> float:
 	var near: float = 0.0

@@ -18,9 +18,7 @@ func _ready() -> void:
 	_plate.resized.connect(_place_plate)
 	_copy = Label.new()
 	_copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_copy.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
-	_copy.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL)
-	_copy.add_theme_color_override("font_color", MenuTheme.BONE)
+	MenuTheme.pixel_text(_copy, 32, MenuTheme.BONE, 3)
 	_copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_plate.add_child(_copy)

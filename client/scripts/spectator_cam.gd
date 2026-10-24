@@ -317,10 +317,17 @@ func _follow_target(delta: float = 1.0 / 60.0) -> void:
 				0
 			)
 
-		var cam_pos = target_pos + offset.rotated(Vector3.UP, target.rotation.y)
-		position = position.lerp(cam_pos, follow_weight(0.1, delta))
-
 		var look_target = target_pos + Vector3(0, 1.5, 0)
+		# Cover between the fighter's body and the boom pulls the camera in,
+		# so the view never shows a crate top with the followed fighter hidden
+		# behind it. The pawn's origin is the server reference, 1.5 m above
+		# its feet, so the body probe sits below it.
+		var body: Vector3 = target_pos + Vector3(0, CHASE_BODY_PROBE, 0)
+		var cam_pos: Vector3 = chase_clear_position(body, target_pos + offset.rotated(Vector3.UP, target.rotation.y), assist_solids)
+		position = position.lerp(cam_pos, follow_weight(0.1, delta))
+		if not AimAssist.line_of_sight(body, global_position, assist_solids):
+			global_position = cam_pos
+
 		var desired_transform = global_transform.looking_at(look_target, Vector3.UP)
 		global_transform = global_transform.interpolate_with(desired_transform, follow_weight(0.15, delta))
 	else:
@@ -469,6 +476,35 @@ func _process_death_view(delta: float) -> void:
 		global_transform = global_transform.interpolate_with(desired, follow_weight(0.2, delta))
 
 ## Preserve the existing 60 Hz chase speed at every rendering cadence.
+## The room the camera keeps off a cover face, and its closest approach.
+const CHASE_COVER_PAD: float = 0.5
+const CHASE_NEAREST: float = 0.8
+## Mid-body, from the pawn's server reference point (1.5 m above its feet).
+const CHASE_BODY_PROBE: float = -0.6
+## Boom elevations tried, lowest first, when cover blocks the usual one.
+const CHASE_LIFT_DEGREES: Array[float] = [40.0, 55.0, 70.0, 85.0]
+
+## The chase camera's spot on its boom from `look` to `desired`. Cover on the
+## boom first raises the boom at full length, lowest clear angle first, so the
+## view stays a chase view; only cover tall enough to block every angle pulls
+## the camera in.
+static func chase_clear_position(look: Vector3, desired: Vector3, solids: Array) -> Vector3:
+	var hit: float = AimAssist.first_hit(look, desired, solids)
+	if hit < 0.0:
+		return desired
+	var boom: Vector3 = desired - look
+	var length: float = boom.length()
+	var flat: Vector3 = Vector3(boom.x, 0.0, boom.z)
+	var behind: Vector3 = flat.normalized() if flat.length() > 0.001 else Vector3.BACK
+	var raised: Vector3 = desired
+	for degrees: float in CHASE_LIFT_DEGREES:
+		var angle: float = deg_to_rad(degrees)
+		raised = look + (behind * cos(angle) + Vector3.UP * sin(angle)) * length
+		if AimAssist.first_hit(look, raised, solids) < 0.0:
+			return raised
+	var blocked: float = AimAssist.first_hit(look, raised, solids)
+	return look + (raised - look).normalized() * maxf(CHASE_NEAREST, blocked - CHASE_COVER_PAD)
+
 static func follow_weight(weight_at_60_hz: float, delta: float) -> float:
 	return 1.0 - pow(1.0 - clampf(weight_at_60_hz, 0.0, 1.0), maxf(delta, 0.0) * 60.0)
 

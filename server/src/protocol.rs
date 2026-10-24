@@ -1846,6 +1846,12 @@ pub enum GameEvent {
         player: String,
         player_id: Uuid,
         text: String,
+        /// The one fighter a line is said to, when it is said to someone: a
+        /// rule bot's frag taunt names its victim here ("deleted you"), and a
+        /// client shows it only from that fighter's point of view. Absent for
+        /// lines meant for the whole room.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        to_id: Option<Uuid>,
     },
     /// One ordinary sentence from the person running the venue. Not a player
     /// callout and not an on-air Host line.
@@ -2105,18 +2111,39 @@ mod protocol_tests {
         let ev = GameEvent::Speak {
             player: "ArenaFox".into(),
             player_id: id,
-            text: "frequency contested".into(),
+            text: "nice scrap".into(),
+            to_id: None,
         };
         let v = serde_json::to_value(&ev).unwrap();
         assert_eq!(v["event"], "speak");
-        assert_eq!(v["text"], "frequency contested");
+        assert_eq!(v["text"], "nice scrap");
         assert_eq!(v["player"], "ArenaFox");
+        assert!(v.get("to_id").is_none(), "a room-wide line names nobody");
         let back: GameEvent = serde_json::from_value(v).unwrap();
         match back {
-            GameEvent::Speak { text, player, .. } => {
-                assert_eq!(text, "frequency contested");
+            GameEvent::Speak {
+                text,
+                player,
+                to_id,
+                ..
+            } => {
+                assert_eq!(text, "nice scrap");
                 assert_eq!(player, "ArenaFox");
+                assert_eq!(to_id, None);
             }
+            other => panic!("expected Speak, got {:?}", other),
+        }
+        let victim = Uuid::new_v4();
+        let addressed = GameEvent::Speak {
+            player: "Scout Ant".into(),
+            player_id: id,
+            text: "scout ant deleted you".into(),
+            to_id: Some(victim),
+        };
+        let v = serde_json::to_value(&addressed).unwrap();
+        assert_eq!(v["to_id"], victim.to_string());
+        match serde_json::from_value::<GameEvent>(v).unwrap() {
+            GameEvent::Speak { to_id, .. } => assert_eq!(to_id, Some(victim)),
             other => panic!("expected Speak, got {:?}", other),
         }
     }
