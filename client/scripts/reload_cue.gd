@@ -27,7 +27,7 @@ const CANCELLED_USEC: int = 900000
 const UNAVAILABLE_USEC: int = 900000
 
 ## Status line translation keys by phase or unavailable reason.
-const STATUS_KEYS: Dictionary = {
+const STATUS_KEYS: Dictionary[String, String] = {
 	"pending": "HUD_RELOAD_PENDING",
 	"active": "HUD_RELOAD_ACTIVE",
 	"complete": "HUD_RELOAD_COMPLETE",

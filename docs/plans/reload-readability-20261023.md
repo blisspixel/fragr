@@ -111,9 +111,10 @@ None. No wire, MCP, or settings shape changes.
   receipts, and HUD status and bar with reduced motion.
 - `test_rocket.gd` and `test_viewmodel.gd`: motion for every magazine gun,
   Arc frame unchanged, reduced motion mutes motion but not the HUD line.
-- `test_equipment.gd`: the game manager sends one reload, plays one start and
-  one completion sound, nothing on duplicates, cancel, death, vehicle or
-  disconnect.
+- `test_reload_cue.gd` also drives the real `game_manager.gd`: one sent
+  reload edge, one start and one completion sound, nothing on duplicates,
+  cancel, death, vehicle or disconnect. (`test_equipment.gd` was rerun
+  unchanged as a regression check.)
 - `tools/godot_check.sh` full run.
 - Rendered Linux captures of start, middle and end frames for common guns
   under `.agents/`, inspected.
