@@ -1,0 +1,75 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "walker-hull-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/11424542-7cb4-45c9-9e2c-94dd03c56ef1.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 15000,
+      "pose_mode": ""
+    },
+    {
+      "id": "walker-artillery-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/7cd1a74a-57b8-42da-9dd1-5c45ce028910.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "duffel-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a8d1cf8b-62c4-4749-8483-bc6166e9abb9.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "hard-luggage-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/859fe88e-35c1-4685-b87d-2b131ba395bc.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "stretcher-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/6f2a9359-88ca-4c42-ab3d-5c5672290798.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "meal-stove-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/38b8c014-7c71-4253-a6e4-76bdf2e1f6d2.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "rooftop-tank-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/39b94a13-20bd-4422-8407-53aeb69b58c0.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    }
+  ]
+}

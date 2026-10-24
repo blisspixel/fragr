@@ -32,3 +32,6 @@ art/**/*_preview.png
 
 # Subagent worktrees are checkouts, not content.
 .claude/worktrees/
+
+# Generated model candidates awaiting review; picks are promoted into client/art.
+client/art/model-candidates/

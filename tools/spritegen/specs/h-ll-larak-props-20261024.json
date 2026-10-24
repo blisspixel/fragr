@@ -1,0 +1,88 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-LL/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, readable text, graffiti lettering, serial numbers, logos, brand names, watermark, signature, human faces, eyes, people, driver, operator, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, pink paint, insignia, emblem, flag, eagle, cross symbol, real military markings, police livery, red and blue light bar, Union black and red livery, bright red body, off-white or bone dominant body, cyan glow, skulls, gore, blood",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "ll_toll_booth_a",
+   "subject": "One old parking-structure toll booth, about 2 metres wide, 4 metres long and 2.8 metres tall: a narrow steel cashier cabin standing on a raised concrete kerb island, a wraparound band of dark opaque tinted windows on all sides, a flat overhanging roof cap in dark grey steel, a sliding side door, a small cash drawer hatch, dented kick panels, a short hazard-striped yellow and black bollard at the kerb nose. The original faded grey-green enamel (#5E6A62) is mostly sprayed over by a fight league in loose hand-sprayed blocks and drips of ember orange (#CF6F2A) and mustard (#D6A23E), abstract shapes only, no lettering. On one side a small round black seal disc with a thin deep-red rim, cut straight through by one knife slash. Decades old, scuffed, patched, still standing, no text"
+  },
+  {
+   "id": "ll_toll_booth_b",
+   "subject": "One old parking-structure toll booth, about 2 metres wide, 4 metres long and 2.8 metres tall: a narrow steel cashier cabin standing on a raised concrete kerb island, a wraparound band of dark opaque tinted windows on all sides, a flat overhanging roof cap in dark grey steel, a sliding side door, a small cash drawer hatch, dented kick panels, a short hazard-striped yellow and black bollard at the kerb nose. The original faded grey-green enamel (#5E6A62) is mostly sprayed over by a fight league in loose hand-sprayed blocks and drips of ember orange (#CF6F2A) and mustard (#D6A23E), abstract shapes only, no lettering. On one side a small round black seal disc with a thin deep-red rim, cut straight through by one knife slash. Decades old, scuffed, patched, still standing, no text"
+  },
+  {
+   "id": "ll_bookmaker_kiosk_a",
+   "subject": "One improvised bookmaker's betting kiosk at an underground fight venue, about 4 metres wide, 3 metres deep and 2.8 metres tall: a squat steel hut converted from an old car-park cashier kiosk, a wide front serving hatch with a worn wooden counter ledge and a roll-up steel shutter half raised, a stained warm canvas awning (#B49A68) with two ember stripes over the hatch, a blank empty dark slate board beside the hatch, a sagging string of warm bulbs, a steel cash lockbox and loose paper slips on the counter. Worn hand-painted league ember orange (#CF6F2A) and rust brown (#7C4529) over grey steel, bolted repairs, blank stickers. No text, no letters, no numbers"
+  },
+  {
+   "id": "ll_bookmaker_kiosk_b",
+   "subject": "One improvised bookmaker's betting kiosk at an underground fight venue, about 4 metres wide, 3 metres deep and 2.8 metres tall: a squat steel hut converted from an old car-park cashier kiosk, a wide front serving hatch with a worn wooden counter ledge and a roll-up steel shutter half raised, a stained warm canvas awning (#B49A68) with two ember stripes over the hatch, a blank empty dark slate board beside the hatch, a sagging string of warm bulbs, a steel cash lockbox and loose paper slips on the counter. Worn hand-painted league ember orange (#CF6F2A) and rust brown (#7C4529) over grey steel, bolted repairs, blank stickers. No text, no letters, no numbers"
+  },
+  {
+   "id": "ll_car_stack_a",
+   "subject": "One compact pile of three crushed, flattened scrap cars stacked on top of the burnt-out chassis of an old tow truck, forming a rough rectangular block about 4.4 metres wide, 5 metres long and 3.2 metres tall: each car flattened to about 0.7 metres high, mixed faded civilian paints (dull teal #5F7A78, brown #6D5446, olive #7A6A48, dark grey #44464A), rust bleeding through, crumpled roofs, broken glass, the tow truck's short burnt boom and hook sticking out at one end, the tow truck below charred black and rust brown. No markings, no lights, no text"
+  },
+  {
+   "id": "ll_car_stack_b",
+   "subject": "One compact pile of three crushed, flattened scrap cars stacked on top of the burnt-out chassis of an old tow truck, forming a rough rectangular block about 4.4 metres wide, 5 metres long and 3.2 metres tall: each car flattened to about 0.7 metres high, mixed faded civilian paints (dull teal #5F7A78, brown #6D5446, olive #7A6A48, dark grey #44464A), rust bleeding through, crumpled roofs, broken glass, the tow truck's short burnt boom and hook sticking out at one end, the tow truck below charred black and rust brown. No markings, no lights, no text"
+  },
+  {
+   "id": "ll_burned_sedan_a",
+   "subject": "One burnt-out wreck of a small four-door civilian sedan, boxy practical circa-2070 design, about 4.4 metres long, 2 metres wide and 1.4 metres tall: fire-blackened charred body with brown rust bloom (#3B2F29, #8A7464), blistered paint, empty window frames, melted tyres on bare steel rims, crumpled bonnet, dark dead lamps. No markings, no text"
+  },
+  {
+   "id": "ll_burned_sedan_b",
+   "subject": "One burnt-out wreck of a small four-door civilian sedan, boxy practical circa-2070 design, about 4.4 metres long, 2 metres wide and 1.4 metres tall: fire-blackened charred body with brown rust bloom (#3B2F29, #8A7464), blistered paint, empty window frames, melted tyres on bare steel rims, crumpled bonnet, dark dead lamps. No markings, no text"
+  },
+  {
+   "id": "ll_clamped_sedan_a",
+   "subject": "One ordinary parked four-door civilian sedan, boxy practical circa-2070 design, about 4.4 metres long, 2 metres wide and 1.35 metres tall, dull teal-grey paint (#5F7A78) faded and dusty, one dented door, dark tinted windows, a heavy hazard-yellow wheel clamp locked onto the front wheel, a blank paper tag tucked under the wiper, a flat rear tyre, dark unlit lamps. No text"
+  },
+  {
+   "id": "ll_clamped_sedan_b",
+   "subject": "One ordinary parked four-door civilian sedan, boxy practical circa-2070 design, about 4.4 metres long, 2 metres wide and 1.35 metres tall, dull teal-grey paint (#5F7A78) faded and dusty, one dented door, dark tinted windows, a heavy hazard-yellow wheel clamp locked onto the front wheel, a blank paper tag tucked under the wiper, a flat rear tyre, dark unlit lamps. No text"
+  },
+  {
+   "id": "ll_pay_machine_a",
+   "subject": "One wall-mounted car-park pay station, about 0.8 metres wide, 1.6 metres tall and only 0.3 metres deep: a slim upright cabinet in scratched grey-blue steel enamel (#6E7A80) with a darker steel bezel, a small dim amber screen (#FFB347) near the top, a coin slot, a card slot, a ticket mouth, a chunky button pad, a blank riveted rectangular approval plate in bare steel mid-front (empty and unmarked, where a procurement signature is pasted later), a dented kick plate, a padlocked service door seam. Decades old, grimy, still powered. No text"
+  },
+  {
+   "id": "ll_pay_machine_b",
+   "subject": "One wall-mounted car-park pay station, about 0.8 metres wide, 1.6 metres tall and only 0.3 metres deep: a slim upright cabinet in scratched grey-blue steel enamel (#6E7A80) with a darker steel bezel, a small dim amber screen (#FFB347) near the top, a coin slot, a card slot, a ticket mouth, a chunky button pad, a blank riveted rectangular approval plate in bare steel mid-front (empty and unmarked, where a procurement signature is pasted later), a dented kick plate, a padlocked service door seam. Decades old, grimy, still powered. No text"
+  },
+  {
+   "id": "ll_coffee_machine_a",
+   "subject": "One old office coffee machine from about 2009, standing flat against a wall, about 0.7 metres wide, 1.6 metres tall and shallow (about 0.35 metres deep): a slim upright cabinet in tired brown-grey enamel (#5D5A54) with a dark smoked front panel, a recessed cup bay with a chrome spout and drip grate, a column of chunky square selection buttons, a coin slot, a small blank rectangular approval plate (empty and unmarked) on the front, old coffee drips and stains, a strip of tape across the cup bay. No text, no logo"
+  },
+  {
+   "id": "ll_coffee_machine_b",
+   "subject": "One old office coffee machine from about 2009, standing flat against a wall, about 0.7 metres wide, 1.6 metres tall and shallow (about 0.35 metres deep): a slim upright cabinet in tired brown-grey enamel (#5D5A54) with a dark smoked front panel, a recessed cup bay with a chrome spout and drip grate, a column of chunky square selection buttons, a coin slot, a small blank rectangular approval plate (empty and unmarked) on the front, old coffee drips and stains, a strip of tape across the cup bay. No text, no logo"
+  },
+  {
+   "id": "ll_stands_bell_a",
+   "subject": "One scavenged old brass school bell on a heavy black iron wall bracket: the bell about 0.6 metres across the mouth, the bracket arm about 0.8 metres long on a bolted iron back plate, a pivot yoke and lever, a frayed hemp pull rope hanging about 1.5 metres down from the lever with a knotted end. Brass worn dark and rubbed bright where hands touch, no paint, no text"
+  },
+  {
+   "id": "ll_stands_bell_b",
+   "subject": "One scavenged old brass school bell on a heavy black iron wall bracket: the bell about 0.6 metres across the mouth, the bracket arm about 0.8 metres long on a bolted iron back plate, a pivot yoke and lever, a frayed hemp pull rope hanging about 1.5 metres down from the lever with a knotted end. Brass worn dark and rubbed bright where hands touch, no paint, no text"
+  },
+  {
+   "id": "ll_crane_hook_a",
+   "subject": "One heavy tower-crane hook block, about 1 metre wide and 1.4 metres tall including the hook: a hazard-yellow (#C9A23A) steel sheave block with black diagonal stripes on its cheek plates, two cable sheaves at the top, a large forged dark steel hook below with a safety latch on a swivel, and a ring of six small square work flood lamps bolted around the block on short steel brackets, lamps unlit with warm white lenses. Grease, scrapes, chipped paint. No text"
+  },
+  {
+   "id": "ll_crane_hook_b",
+   "subject": "One heavy tower-crane hook block, about 1 metre wide and 1.4 metres tall including the hook: a hazard-yellow (#C9A23A) steel sheave block with black diagonal stripes on its cheek plates, two cable sheaves at the top, a large forged dark steel hook below with a safety latch on a swivel, and a ring of six small square work flood lamps bolted around the block on short steel brackets, lamps unlit with warm white lenses. Grease, scrapes, chipped paint. No text"
+  }
+ ]
+}

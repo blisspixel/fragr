@@ -1,0 +1,226 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1a/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "paver_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One broad low Inheritance restoration machine called a Paver, a road-works machine about 3 metres wide, 4 metres long and 1.5 metres tall, flat broad matte bone-white body like a smooth paving stone, on four short stout ink-black legs ending in broad flat pads. A large front work head on a thick ink-black boom: a wide rectangular tool housing with a downward-facing projector strip and a row of tamping plates, two small muted cyan indicators. Exposed ink-black mechanical joints. Few seams, no identifiers, unsettling order, not a military vehicle, no red, no face The broad bone-white shell stays low and wide; the front work head and its projector strip are the dominant read.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/1348731d-358b-4e63-8a8d-7d8a6e255aa5.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "paver_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One broad low Inheritance restoration machine called a Paver, a road-works machine about 3 metres wide, 4 metres long and 1.5 metres tall, flat broad matte bone-white body like a smooth paving stone, on four short stout ink-black legs ending in broad flat pads. A large front work head on a thick ink-black boom: a wide rectangular tool housing with a downward-facing projector strip and a row of tamping plates, two small muted cyan indicators. Exposed ink-black mechanical joints. Few seams, no identifiers, unsettling order, not a military vehicle, no red, no face The broad bone-white shell stays low and wide; the front work head and its projector strip are the dominant read.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/1348731d-358b-4e63-8a8d-7d8a6e255aa5.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "surveyor_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One elevated Inheritance observation machine called a Surveyor, about 4 metres tall. A compact matte bone-white sensor head dominated by one oversized circular lens assembly with ink-black iris shutter blades half open, a thin projector ring around the lens, sparse muted cyan indicators, carried on a tall slender ink-black telescoping mast standing on a broad stable tripod of three bone-white folded legs with ink-black joints. Continuous surfaces, few seams, no identifiers, calm and watchful, no red, no face, no eyes besides the lens",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8c14cbcc-af5c-4d6a-8540-e7b66b4e375f.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "surveyor_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One elevated Inheritance observation machine called a Surveyor, about 4 metres tall. A compact matte bone-white sensor head dominated by one oversized circular lens assembly with ink-black iris shutter blades half open, a thin projector ring around the lens, sparse muted cyan indicators, carried on a tall slender ink-black telescoping mast standing on a broad stable tripod of three bone-white folded legs with ink-black joints. Continuous surfaces, few seams, no identifiers, calm and watchful, no red, no face, no eyes besides the lens",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8c14cbcc-af5c-4d6a-8540-e7b66b4e375f.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "collector_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One narrow Inheritance restoration machine called a Collector, about 2.2 metres tall and 0.7 metres wide, a narrow continuous matte off-white upright body with very few seams and no identifiers, walking on two long ink-black jointed legs, one long precise ink-black work arm ending in a broad gripping and prying tool extended forward in a committed working pose, leaning deliberately into the work, a small muted cyan work indicator. Calm, deliberate, uncanny order, not a Union soldier, no red, no head, no face Make the two ink-black legs sturdier with clear thigh, knee and shin segments and broad feet so they read at a distance.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b4ec99c4-97be-4bea-81c0-17eb837dee57.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "collector_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One narrow Inheritance restoration machine called a Collector, about 2.2 metres tall and 0.7 metres wide, a narrow continuous matte off-white upright body with very few seams and no identifiers, walking on two long ink-black jointed legs, one long precise ink-black work arm ending in a broad gripping and prying tool extended forward in a committed working pose, leaning deliberately into the work, a small muted cyan work indicator. Calm, deliberate, uncanny order, not a Union soldier, no red, no head, no face Make the two ink-black legs sturdier with clear thigh, knee and shin segments and broad feet so they read at a distance.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b4ec99c4-97be-4bea-81c0-17eb837dee57.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "jetpack_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One personally adapted industrial flight pack, a jetpack worn on the back, about 70 centimetres tall: tubular gunmetal steel back frame, two clear downward thrust nozzles with heat-darkened steel bells at the bottom, two dented bone-enamel fuel cylinders between them with brass valve handwheels and braided hoses, worn brown leather shoulder straps and waist belt, one replaced rust-coloured side panel, a small round analog gauge without numbers, hand-made coalition repairs and clamps. No wearer",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8db1bb0f-ca85-405a-85cc-f29862a57cd8.png"
+    ]
+   },
+   "view": "One isolated complete object in rear three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "jetpack_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One personally adapted industrial flight pack, a jetpack worn on the back, about 70 centimetres tall: tubular gunmetal steel back frame, two clear downward thrust nozzles with heat-darkened steel bells at the bottom, two dented bone-enamel fuel cylinders between them with brass valve handwheels and braided hoses, worn brown leather shoulder straps and waist belt, one replaced rust-coloured side panel, a small round analog gauge without numbers, hand-made coalition repairs and clamps. No wearer",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8db1bb0f-ca85-405a-85cc-f29862a57cd8.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "assessor_hull_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. The hull only of a heavy Union armoured quad-fan drone called an Assessor, 2.6 metres across, compact boxy black armoured fuselage with chamfered issued steel plates, four round empty fan ducts mounted at the corners, each duct an open armoured ring with no blades inside, a thick armoured belly, a red narrow optic band at the front, exposed slatted rear vents, a stubby folded gimbal launcher pod under the nose. Union black, gunmetal and restrained red seals, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a71f6977-07fb-412b-9eaf-b3b90732f0ae.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "assessor_hull_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. The hull only of a heavy Union armoured quad-fan drone called an Assessor, 2.6 metres across, compact boxy black armoured fuselage with chamfered issued steel plates, four round empty fan ducts mounted at the corners, each duct an open armoured ring with no blades inside, a thick armoured belly, a red narrow optic band at the front, exposed slatted rear vents, a stubby folded gimbal launcher pod under the nose. Union black, gunmetal and restrained red seals, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a71f6977-07fb-412b-9eaf-b3b90732f0ae.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "motorcycle_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One original practical circa-2070 civilian courier motorcycle, exactly two wheels with clear separate spoked hubs, robust road-trail proportions, low narrow fuel and battery tank, exposed fork and swingarm, one dark leather saddle, handlebar with two grips, two foot pegs, chain guard, rear cargo rack with a tan tool pouch, small round protected headlamp. Restrained bone enamel mudguards, dark gunmetal engine and frame, one warm rust repaired side cover. No rider, freestanding on its side stand",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5177e949-08ea-4984-a021-597b1fda5f0b.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "motorcycle_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One original practical circa-2070 civilian courier motorcycle, exactly two wheels with clear separate spoked hubs, robust road-trail proportions, low narrow fuel and battery tank, exposed fork and swingarm, one dark leather saddle, handlebar with two grips, two foot pegs, chain guard, rear cargo rack with a tan tool pouch, small round protected headlamp. Restrained bone enamel mudguards, dark gunmetal engine and frame, one warm rust repaired side cover. No rider, freestanding on its side stand",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5177e949-08ea-4984-a021-597b1fda5f0b.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "walker_hull_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. The isolated torso body only of a large Union walking machine called the Continuance Walker, no legs attached: a massive boxy armoured body 6 metres wide, 4 metres deep and 3 metres tall, black and dark steel with slightly lighter issued armour plates, a restrained red issued band across the front face, two recessed red optic slits, two short squat artillery mortar mouths on the roof, ribbed drive housings on the sides, four reinforced hip sockets on the underside corners. Industrial weight, regimented manufacture, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/cae8bc9a-1252-4b56-a7bb-2f99ea9f3259.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "walker_hull_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. The isolated torso body only of a large Union walking machine called the Continuance Walker, no legs attached: a massive boxy armoured body 6 metres wide, 4 metres deep and 3 metres tall, black and dark steel with slightly lighter issued armour plates, a restrained red issued band across the front face, two recessed red optic slits, two short squat artillery mortar mouths on the roof, ribbed drive housings on the sides, four reinforced hip sockets on the underside corners. Industrial weight, regimented manufacture, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/cae8bc9a-1252-4b56-a7bb-2f99ea9f3259.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "walker_leg_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One isolated stout columnar mechanical leg of a heavy Union walker, 3 metres tall, upright: wide square footpad with toe plates, short ankle, thick armoured lower leg, round knee joint, reinforced upper section with a flat top mounting flange, a polished steel hydraulic piston and actuator sleeve on one side, a slatted vent with red-painted shutter. Black steel and lighter grey issued armour plates, regimented manufacture, no body attached, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4e58733f-b078-4c14-ac40-7f052813313c.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "walker_leg_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One isolated stout columnar mechanical leg of a heavy Union walker, 3 metres tall, upright: wide square footpad with toe plates, short ankle, thick armoured lower leg, round knee joint, reinforced upper section with a flat top mounting flange, a polished steel hydraulic piston and actuator sleeve on one side, a slatted vent with red-painted shutter. Black steel and lighter grey issued armour plates, regimented manufacture, no body attached, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4e58733f-b078-4c14-ac40-7f052813313c.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "sentry_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One foldable civilian-built portable tripod turret device about 1.1 metres tall, deployed on a folding three-legged tripod of gunmetal tube, a chunky pivoting cradle with a visible traverse gear ring and elevation arc, a compact boxy receiver with one short perforated tube at the front, a large square supply can clipped to the left side, a carrying handle on top. Warm worn bone and rust-red repaired paint, tool marks, practical workshop build. No screen face, not Union issue",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b2bc44e5-cf2f-44a9-aaf1-677d5c5bc53e.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "sentry_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One foldable civilian-built portable tripod turret device about 1.1 metres tall, deployed on a folding three-legged tripod of gunmetal tube, a chunky pivoting cradle with a visible traverse gear ring and elevation arc, a compact boxy receiver with one short perforated tube at the front, a large square supply can clipped to the left side, a carrying handle on top. Warm worn bone and rust-red repaired paint, tool marks, practical workshop build. No screen face, not Union issue",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b2bc44e5-cf2f-44a9-aaf1-677d5c5bc53e.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  },
+  {
+   "id": "walker_artillery_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One isolated roof-mounted artillery module of a large Union walking machine: a squat heavy mortar with a short wide round barrel mouth pointing upward at an angle, held in an armoured trunnion cradle on a flat round turntable base plate, recoil cylinders on both sides, a red issued band on the cradle. Union black and dark steel with lighter issued plates, no machine attached, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4980598f-0bfa-4904-b8d7-bf54a057fbda.png"
+    ]
+   },
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "walker_artillery_mturn",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One isolated roof-mounted artillery module of a large Union walking machine: a squat heavy mortar with a short wide round barrel mouth pointing upward at an angle, held in an armoured trunnion cradle on a flat round turntable base plate, recoil cylinders on both sides, a red issued band on the cradle. Union black and dark steel with lighter issued plates, no machine attached, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4980598f-0bfa-4904-b8d7-bf54a057fbda.png"
+    ]
+   },
+   "view": "Orthographic turnaround reference sheet of this one object: three views side by side in one row at the same scale and same ground line, front view, side view and back view, evenly spaced with clear magenta gaps between them, no perspective distortion",
+   "negative": "words, letters, numbers, labels, captions, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, environment, floor, ground shadow, cropped silhouette, overlapping views, different objects, design changes between views, glossy toy plastic, neon, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts"
+  }
+ ]
+}

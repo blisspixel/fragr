@@ -1,0 +1,25 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1b/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "rooftop_tank_m34_v2",
+   "subject": "Exactly the same maintained domestic rooftop water tank as the reference image, keeping its colours: a galvanized corrugated grey steel drum with two broad dark green painted bands around the top and bottom and a green painted rim, a lid with a small hatch and handle, one riveted patch plate and a corrugated repair, an outlet tap near the bottom, standing on a four-legged dark timber stand with green painted cross bracing. Same design, proportions and colours as the reference, refined with crisper construction",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/cb5734e7-e7cc-466b-96eb-d9550b26a9bd.png"
+    ]
+   }
+  }
+ ]
+}

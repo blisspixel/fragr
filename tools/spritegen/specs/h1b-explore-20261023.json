@@ -1,0 +1,148 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1b/explore",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "low",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "turnstile_x1",
+   "subject": "One practical circa-2070 public transit turnstile gate unit for an evacuation concourse: a waist-high stainless and faded bone-enamel cabinet body about 1.1 metres tall and 1.4 metres long, a three-arm rotating steel barrier on one side showing the clear access direction, a slanted top with a blank card reader plate and a small dull green arrow lamp, scuffed kick plate, bolted floor flange. Repeated civic hardware, no text"
+  },
+  {
+   "id": "turnstile_x2",
+   "subject": "One circa-2070 waist-high concourse turnstile: a boxy bone-enamel and brushed steel pedestal cabinet with rounded ends, a single swinging full-width steel paddle barrier on a hinge post, a sloped control top with a blank reader panel and a small indicator lamp, worn handrail, rubber bumpers, practical municipal manufacture, no text"
+  },
+  {
+   "id": "turnstile_x3",
+   "subject": "One circa-2070 transit turnstile: a pair-style gate cabinet of dark gunmetal with faded institutional green side panels, a rotating tripod barrier with three steel arms, a rounded steel top cap with a blank pad, recessed base with floor bolts, dents and repainted repairs, no text"
+  },
+  {
+   "id": "tram_motor_x1",
+   "subject": "One practical replacement electric traction motor for a neighbourhood tram, a heavy cylindrical gunmetal motor casing about 1.2 metres long with cooling fins, a gearbox housing on one end with an exposed output pinion, two heavy lifting eyes on top, a bolted cable terminal box with three thick insulated cable stubs, a bone-enamel end cap, sitting on a simple steel skid frame, restrained rust and repair weld"
+  },
+  {
+   "id": "tram_motor_x2",
+   "subject": "One tram traction motor unit removed for replacement: a squat drum-shaped dark steel motor with ribbed cooling body, a faded olive enamel band, a side terminal block with copper lugs and capped cables, lifting lugs on top, a mounting cradle with four feet, grease marks and replaced bolts"
+  },
+  {
+   "id": "tram_motor_x3",
+   "subject": "One heavy practical tram drive motor and gearbox assembly on a wooden and steel shipping skid: long finned gunmetal motor body, a big gear housing with an inspection cover, two lifting shackles, a blank steel plate, cable terminal box with insulated leads, warm rust repair patch"
+  },
+  {
+   "id": "civilian_tram_x1",
+   "subject": "One maintained circa-2070 neighbourhood tram car, a single short articulated-free car about 9 metres long with rounded ends, large clear windows along the side, two wide folding passenger doors, faded bone and muted teal paint with one replaced rust-red panel, a roof pantograph collector and roof equipment boxes, low steel bogies with visible wheels, small headlamps, personal repair patches. No text, no route number"
+  },
+  {
+   "id": "civilian_tram_x2",
+   "subject": "One small practical circa-2070 street tram car, boxy with chamfered ends, a full row of square passenger windows, central double doors with handrails, faded cream and olive two-tone paint with mismatched repaired panels, roof pantograph, under-floor bogies with wheels, bumpers, no text or numbers"
+  },
+  {
+   "id": "civilian_tram_x3",
+   "subject": "One repaired circa-2070 neighbourhood tram, compact single car with sloped front windscreen, long window band, two boarding doors with steps, worn warm bone paint and a muted green waist stripe, a hand-painted repaired panel, roof pantograph and cable trunk, visible wheels and bogies, no text"
+  },
+  {
+   "id": "duffel_x1",
+   "subject": "One angular packed canvas duffel bag about 70 centimetres long, olive drab cloth with uneven lumpy packed form, two worn brown leather carry handles and a long shoulder strap with a steel buckle, a zip along the top, two personal sewn-on patches without text, a strapped rolled blanket on one end, resting on the ground"
+  },
+  {
+   "id": "duffel_x2",
+   "subject": "One heavy packed travel duffel bag, faded rust-orange canvas with dark gunmetal straps, cinched by two compression belts with buckles, bulging uneven contents, a padded shoulder strap, a mended tear, small plain cloth patches, resting on its side"
+  },
+  {
+   "id": "duffel_x3",
+   "subject": "One worn civilian kit bag, cylindrical duffel of faded blue-grey canvas with a drawstring top and brown leather base, one carry handle and shoulder strap, packed unevenly, a tied-on enamel mug and a sewn patch without text, resting on the ground"
+  },
+  {
+   "id": "hard_luggage_x1",
+   "subject": "One maintained personal hard-shell suitcase about 70 centimetres tall, faded bone enamel shell with dark gunmetal corner caps and ribs, a retractable steel handle, two sturdy latches, small wheels, a leather side handle, one scuffed repaired corner, standing upright"
+  },
+  {
+   "id": "hard_luggage_x2",
+   "subject": "One old-fashioned hard travel case, rectangular rigid trunk-style suitcase with faded teal-green shell, brass corner guards and two brass latches, a brown leather top handle, dents and a mended strap, lying flat"
+  },
+  {
+   "id": "hard_luggage_x3",
+   "subject": "One rugged hard-shell equipment case used as luggage, dark olive moulded shell with deep ribs, two big flip latches, a folding carry handle, a personal painted stripe in rust, scuffed edges, standing on its end"
+  },
+  {
+   "id": "pier_crane_cab_x1",
+   "subject": "One practical harbour pier crane operator cab and winch head, isolated from the tower: a boxy steel cab about 3 metres wide with large front and side windows showing an operator seat and two control levers inside, a winch drum housing behind it with wound cable, a short jib root hinge, faded safety-yellow and bone paint with rust streaks, external ladder and walkway rail, no text"
+  },
+  {
+   "id": "pier_crane_cab_x2",
+   "subject": "One harbour crane cab module: an angular steel operator cabin with a tilted front window, visible seat and console inside, a side door with a grab handle, a big exposed cable winch drum and gearbox mounted on the same slewing platform behind the cab, railing around the platform, weathered orange-ochre and gunmetal paint, no text"
+  },
+  {
+   "id": "pier_crane_cab_x3",
+   "subject": "One isolated pier crane head: rounded-corner operator cab with wraparound glass, interior seat and joysticks, sheltered under a roof canopy, mounted beside a winch house with a large drum and cable sheave, a hinge bracket where the jib attaches, salt-worn bone and muted teal paint, rust, no text"
+  },
+  {
+   "id": "edda_lamp_x1",
+   "subject": "One personally maintained handheld task lamp belonging to a clinic medic, about 45 centimetres tall: a sturdy brass and gunmetal storm-lantern style frame with a protective wire cage around a warm glowing glass chimney, a folding carry handle wrapped in worn leather, a small brass adjustment wheel, a weighted base with a repaired dent and a strip of cloth tape, restrained warm amber light, standing on its base"
+  },
+  {
+   "id": "edda_lamp_x2",
+   "subject": "One medic's portable work lamp, about 40 centimetres tall: a compact rugged battery lamp with a bone-enamel body, a round protected lens with a steel guard grid glowing soft warm light, a sturdy top carry handle, a rotary switch, a hand-sewn leather strap, scratched paint and a small mended crack, standing upright"
+  },
+  {
+   "id": "edda_lamp_x3",
+   "subject": "One personally cared-for hand lamp, about 45 centimetres tall: a tall cylindrical warm-glowing glass lantern in a dark steel cage with four guard bars, a brass top cap with a ring handle, a fuel or battery base in faded ember-orange enamel with a hand-painted repair, restrained warm amber glow, standing upright"
+  },
+  {
+   "id": "sluice_actuator_x1",
+   "subject": "One substantial waterworks sluice gate actuator: a heavy cast gearbox housing on a square mounting pedestal, a large spoked steel handwheel on its side for manual operation, an electric motor bolted to the gearbox, a threaded vertical gate stem rising from the top inside a protective tube, painted faded blue-grey with rust and grease, service mounting bolts, no text"
+  },
+  {
+   "id": "sluice_actuator_x2",
+   "subject": "One industrial sluice gate drive unit: a squat dark green painted gearbox on a steel base plate, an electric drive motor with cooling fins, a big red-brown handwheel for manual override, a tall rising stem cover, inspection hatch, service flange bolts, weathered and maintained, no text"
+  },
+  {
+   "id": "sluice_actuator_x3",
+   "subject": "One waterworks gate actuator column: a tall pedestal with a gear head on top, a large horizontal handwheel crowning it, a side-mounted motor and limit switch box, a vertical stem guard, faded ochre and gunmetal paint, lubrication nipples, no text"
+  },
+  {
+   "id": "valve_manifold_x1",
+   "subject": "One readable industrial water valve manifold: three large pipes in a row joined by a horizontal header pipe, each with a big gate valve and a round handwheel on top in different faded colours, flanged pipe ports with bolts at the ends, a small pressure gauge without numbers, steel support stands, painted blue-grey with rust, no text"
+  },
+  {
+   "id": "valve_manifold_x2",
+   "subject": "One compact pipe valve manifold skid: a short thick header pipe with four branch outlets each closed by a butterfly valve with a lever handle, flanged inlet and outlet ports, a gauge dial without numbers, mounted on a steel frame base, faded green paint and galvanized steel, no text"
+  },
+  {
+   "id": "valve_manifold_x3",
+   "subject": "One waterworks valve group: two parallel horizontal pipes linked by vertical crossovers, three tall rising-stem gate valves with large handwheels, flanged service ports pointing outwards, pipe saddles on concrete feet, worn bone and rust-red paint, no text"
+  },
+  {
+   "id": "filter_skid_x1",
+   "subject": "One portable maintained water filtering unit on a steel service frame skid about 2 metres long: two tall cylindrical filter vessels with domed tops and clamp lids, connecting pipework with valves, a small electric pump at one end, a pressure gauge without numbers, lifting eyes on the frame corners, faded bone and blue-grey paint, tidy repairs, no text"
+  },
+  {
+   "id": "filter_skid_x2",
+   "subject": "One compact water filter skid: three vertical cartridge filter housings in a row on a welded steel frame, inlet and outlet flanged pipes, a control box with a blank panel, a small pump motor, forklift pockets in the base, faded green and gunmetal paint, no text"
+  },
+  {
+   "id": "filter_skid_x3",
+   "subject": "One movable filtration rig: a rectangular steel frame with a big horizontal filter drum, pipe manifold with valves, a hand pump lever, a hose reel, pressure dial without numbers, worn ochre paint with replaced bolts, no text"
+  },
+  {
+   "id": "stretcher_x1",
+   "subject": "One practical folding field stretcher for evacuating injured people: two long steel poles with worn wooden handle grips at both ends, a taut olive canvas bed, folding steel spreader bars, four short feet, two cloth securing straps with buckles, a folded grey blanket on it, scuffed and repaired, lying flat on the ground"
+  },
+  {
+   "id": "stretcher_x2",
+   "subject": "One civilian clinic stretcher, a lightweight aluminium pole stretcher with bone-coloured canvas, red-brown fabric straps, short folding legs, rubber grip handles at each corner, a small sewn pocket, worn and clean, lying flat"
+  },
+  {
+   "id": "stretcher_x3",
+   "subject": "One improvised evacuation stretcher made from two gunmetal pipes and heavy rust-orange canvas lashed with rope, wooden spreaders at each end, leather hand loops, a folded blanket and a small clinic satchel on it, lying flat"
+  }
+ ]
+}

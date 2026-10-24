@@ -1,0 +1,23 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-2/frames",
+ "params": {
+  "quality": "high",
+  "resolution": "2k",
+  "aspect_ratio": "4:3",
+  "enhance_prompt": false
+ },
+ "style": "Use case: stylized-concept. Asset: production first-person weapon sprite frame for an original retro 3D FPS, an edit of the reference frame. Match the reference exactly: its deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, palette, perspective, canvas framing and worn full-finger brown leather work gloves with dark rust jacket cuffs",
+ "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep both hands where they are unless the description moves one. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference",
+ "frames": [
+  {
+   "id": "repeater_spin_v2",
+   "subject": "The same heavy rotary REPEATER with six barrels in a ribbed rotor sleeve, grey-green receiver with vent slots, curved box magazine on the left and two brown leather gloves, exactly as in the reference. Spinning down right after a long burst, no muzzle flash: the six barrel tips at the far end glow hot dull ember orange and pale yellow, the barrel cluster rotated a half step so the barrels sit in new positions, three short curved stepped-pixel motion arcs in pale grey wrapped around the rotor sleeve showing rotation, two small chunky grey smoke puffs drifting up from the barrel tips. Gun and hands otherwise identical.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png"
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-5/seal",
+ "style": "Original flat graphic emblem for a fictional authoritarian bureaucratic world government in a retro pixel-art game, a decal source. Severe, orderly, institutional and unmistakably authoritarian: heavy symmetrical geometry like an official state seal or rubber stamp. Bold simple shapes with thick clean edges, flat solid colours only: near-black #1E1E22, deep Union red #8C1A1E and bone #E8E2D6. No gradients, no shading, no texture, readable when reduced to 64 pixels",
+ "view": "Straight-on flat front view, one emblem centred, filling about 80 percent of the frame, perfectly mirror-symmetrical left to right",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no border, no frame around the image. No text, letters, numbers, inscriptions, logos or watermark",
+ "negative": "words, letters, numbers, text, inscriptions, ribbon banner, eagle, bird, wings, swastika, hooked cross, sun wheel, radial runes, lightning bolts, runes, iron cross, maltese cross, skull, death's head, oak leaves, laurel wreath, ring of stars, stars, hammer and sickle, fasces, axe, crown, cogwheel, gear, real flag, real coat of arms, real national or party insignia, copied logo, hand, salute, faces, eyes, people, animals, 3D render, bevel, metallic sheen, photograph, gradient, drop shadow, magenta inside the emblem",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "union_seal_c_v2",
+   "subject": "The Union level seal: a solid deep-red disc with a thick near-black inner ring and a thin bone outer edge, at the centre a bold bone balance mark: one long perfectly level horizontal beam resting on a single short central column with a broad stepped base, and two identical heavy solid bone square weights sitting at the two ends of the beam",
+   "negative": "words, letters, numbers, text, inscriptions, ribbon banner, eagle, bird, wings, swastika, hooked cross, sun wheel, radial runes, lightning bolts, runes, iron cross, maltese cross, skull, death's head, oak leaves, laurel wreath, ring of stars, stars, hammer and sickle, fasces, axe, crown, cogwheel, gear, real flag, real coat of arms, real national or party insignia, copied logo, hand, salute, faces, eyes, people, animals, 3D render, bevel, metallic sheen, photograph, gradient, drop shadow, magenta inside the emblem, Chinese or Japanese characters, kanji, torii gate, letter-like glyph, scales of justice with pans"
+  }
+ ]
+}

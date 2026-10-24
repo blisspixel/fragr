@@ -1,0 +1,51 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-2/frames",
+ "params": {
+  "quality": "high",
+  "resolution": "2k",
+  "aspect_ratio": "4:3",
+  "enhance_prompt": false
+ },
+ "style": "Use case: stylized-concept. Asset: production first-person weapon sprite frame for an original retro 3D FPS, an edit of the reference frame. Match the reference exactly: its deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, palette, perspective, canvas framing and worn full-finger brown leather work gloves with dark rust jacket cuffs",
+ "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep both hands where they are unless the description moves one. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference",
+ "frames": [
+  {
+   "id": "repeater_fire",
+   "subject": "The same heavy rotary REPEATER with six barrels in a ribbed rotor sleeve, grey-green receiver with vent slots, curved box magazine on the left and two brown leather gloves, exactly as in the reference. At the instant of sustained firing: a compact bright muzzle flash at the far barrel cluster drawn in stepped pixel clusters, ember orange with a pale yellow-white core, jagged star-shaped edges, staying well inside the canvas above the barrels; the rotor sleeve's barrels are blurred into a few stepped motion streaks to show spinning; the gun kicked back very slightly. No smoke cloud covering the gun.",
+   "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep both hands where they are unless the description moves one. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference. Muzzle flash fully inside canvas with clear empty corners",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png"
+    ]
+   }
+  },
+  {
+   "id": "repeater_spin",
+   "subject": "The same heavy rotary REPEATER with six barrels in a ribbed rotor sleeve, grey-green receiver with vent slots, curved box magazine on the left and two brown leather gloves, exactly as in the reference. Spinning down after firing, no muzzle flash: the barrel cluster turned partway so the barrels sit between their previous positions, a few short stepped pixel motion arcs around the rotor sleeve, one faint wisp of grey pixel smoke from the barrel tips, the barrel tips glowing faint dull ember from heat.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png"
+    ]
+   }
+  },
+  {
+   "id": "repeater_reload_out",
+   "subject": "The same heavy rotary REPEATER with six barrels in a ribbed rotor sleeve, grey-green receiver with vent slots, curved box magazine on the left and two brown leather gloves, exactly as in the reference. Reload, magazine out: the left glove has let go of the vertical foregrip and pulls the curved box magazine down and outward away from the left side of the receiver, the magazine clearly separated and visible at the lower left, the foregrip now empty. Right glove unchanged.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png"
+    ]
+   }
+  },
+  {
+   "id": "repeater_reload_seat",
+   "subject": "The same heavy rotary REPEATER with six barrels in a ribbed rotor sleeve, grey-green receiver with vent slots, curved box magazine on the left and two brown leather gloves, exactly as in the reference. Reload, seat: the left glove pushes a fresh curved box magazine up into its well on the left side of the receiver, the magazine just seated, left glove flat against its base at the lower left, foregrip empty for this moment. Right glove unchanged.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png"
+    ]
+   }
+  }
+ ]
+}

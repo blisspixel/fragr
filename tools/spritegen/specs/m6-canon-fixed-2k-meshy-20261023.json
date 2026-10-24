@@ -1,0 +1,65 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "assessor-hull-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/87298262-2281-4a6a-becd-ce3213ec7ba5.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 15000,
+      "pose_mode": ""
+    },
+    {
+      "id": "walker-leg-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/942b71ad-b73a-4a17-8bc0-b869777843e2.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    },
+    {
+      "id": "jetpack-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a58a9125-3b3b-4b27-a6d4-3a296b73bd44.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    },
+    {
+      "id": "sentry-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e9ee888a-9617-40dc-bd29-c554459eee28.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    },
+    {
+      "id": "motorcycle-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/6c00957e-bfd8-4bc8-a53f-ebcc3af34b42.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "civilian-tram-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/43c2d739-d622-4cc7-9953-edda2077c804.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 15000,
+      "pose_mode": ""
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-2/pickup",
+ "params": {
+  "quality": "medium",
+  "resolution": "2k",
+  "aspect_ratio": "1:1",
+  "enhance_prompt": false,
+  "image_urls": [
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png",
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+  ]
+ },
+ "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the established chunky pixel style of the second and third reference images, crisp stepped pixel clusters, dark outlines, limited palette of charcoal gunmetal, muted grey-green enamel, rust and ember with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+ "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 24 pixel sprite scaled up",
+ "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no hands, no text, no letters, no numbers, no watermark, no border",
+ "frames": [
+  {
+   "id": "repeater_pickup_a",
+   "subject": "the same heavy rotary REPEATER gun as the first reference image seen from its left side: six-barrel rotor cluster in a ribbed sleeve at the right end with a rust clamp ring, broad boxy grey-green receiver with vent slots, curved box magazine hanging below the middle, vertical foregrip and rear pistol grip below, short carry handle on top"
+  },
+  {
+   "id": "repeater_pickup_b",
+   "subject": "the same heavy rotary REPEATER gun as the first reference image in plain side view: long six-barrel rotating cluster with a ribbed rotor sleeve and front clamp ring on the right, a deep boxy charcoal and grey-green receiver with a ribbed feed housing, curved box magazine below, pistol grip and foregrip, chunky readable silhouette"
+  }
+ ]
+}

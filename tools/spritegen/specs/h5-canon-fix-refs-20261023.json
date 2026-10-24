@@ -1,0 +1,116 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-5/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "assessor_hull_fix",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, fan rings and launcher pod, refined with crisper construction. The hull only of a heavy Union armoured quad-fan drone called an Assessor, 2.6 metres across: Union black armoured fuselage, chamfered issued plates only one step lighter in dark steel, fan duct rings in the same dark steel (not light grey), two separate round red optic lenses side by side on the front plate (two distinct lenses, not a band), a blank riveted rectangular type-approval plate and a blank round seal boss on each flank, exposed slatted rear vents, a stubby folded gimbal launcher pod under the nose. No painted chevrons or triangles. Black, dark steel and restrained red only, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/3bcf0fa4-432f-48c7-a5e3-9f14e7e7073b.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, light grey armour, pale plates, red stripes, chevrons, triangles, light bar",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "walker_leg_fix",
+   "subject": "Exactly the same object as the first reference image: keep its design, proportions and parts, refined with crisper construction and cleaner material separation; match the armour colours of the walker hull in the second reference image. One isolated stout columnar mechanical leg of a heavy Union walker, 3 metres tall, upright: wide square footpad with toe plates, short ankle, thick armoured lower leg, round knee joint, reinforced upper section with a flat top mounting flange, a dark steel hydraulic piston and actuator sleeve on one side, regimented manufacture, no body attached, no text. Union black armour matching the walker hull, plates only one step lighter in dark steel, no light-grey or pale armour; a blank riveted type-approval plate on the shin; the vent shutter in deep Union red",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a36d9d96-a222-442e-b8b5-c291620993a8.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/08595921-5323-47a7-92da-77a558c02003.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, light grey armour, pale plates, polished chrome",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "jetpack_fix",
+   "subject": "Exactly the same pack layout as the reference image, refined: one personally adapted coalition flight pack from an evacuation concourse store, a jetpack about 70 centimetres tall, rear three-quarter view. Two vertical steel fuel cylinders hand-painted in faded ember orange and olive, mismatched replacement end caps, a few blank stickers, a small exposed turbine housing between them, two heat-darkened plain steel thrust bells (no glass), braided fuel lines, padded brown leather back plate and harness with buckles, a simple round fuel gauge without numbers beside a small warm amber lamp, a hand-wired local control lever on a hose, visible clamps and welds. No wearer, no flame",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/1b608adb-1180-4704-9f6b-a9b0cf11346d.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, steampunk, brass handwheels, glass nozzles, bone or off-white enamel body, red panel, red light, cyan light, antenna",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "sentry_fix",
+   "subject": "Exactly the same object as the reference image: keep its tripod, gear ring, cradle, receiver and side ammunition box, refined with crisper construction. A foldable civilian-built portable automatic sentry from a free community workshop, about 1.1 metres tall, in faded ochre and olive workshop paint with ember-orange repair panels, stickers without text and weld beads. Add a small hand-wired local control box on the cradle with a toggle switch, a physical key and a short cable to the receiver, and one small warm amber status lamp. No antenna, no dish, no wireless module, no red paint, no red or cyan light, no screen face, not Union issue",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2f50cb3d-043c-4cbe-9fb7-fd63024f704a.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, red paint, red lamp, black and red, antenna, radio dish, off-white body",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "motorcycle_fix",
+   "subject": "Exactly the same motorcycle as the reference image: keep its original frame, tank-box and rear rack, refined with crisper construction. One circa-2070 civilian courier motorcycle owned and kept running by a free rider, exactly two spoked wheels clearly separate from the forks, a battery-and-fuel box hand-painted in faded ember orange with one muted olive repair panel (no bone or cream panel), dark gunmetal frame and plain covers, dark leather saddle, rear rack with a strapped tool case and bedroll, small square headlamp with warm amber-white glass, scuffed paint, wire-tied repairs, stickers without text. No rider, freestanding on its side stand",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/c151c462-37e8-4e2c-9a24-0b6ad4fb44e1.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, badge, emblem, engine logo, bone or off-white bodywork, black and red scheme, real motorcycle model",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "civilian_tram_fix",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions and parts, refined with crisper construction and cleaner material separation. One maintained circa-2070 neighbourhood tram car, a single short car about 9 metres long with rounded ends, two wide folding passenger doors, a roof pantograph collector and roof equipment boxes, low steel bogies with visible wheels, small headlamps. No text, no route number. Low Water's own neighbourhood tram, repainted by community vote: the body hand-repainted in muted green (#699087) with visible brush edges, only a narrow strip of the old faded cream left under the roof line, one replaced panel in rust (#B26743), not bright red; personal repair patches. All windows opaque dark smoky glass, no see-through windows",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ef878773-2412-46a2-a38d-fa4e2c1d2581.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, bright red panel, see-through windows, magenta in windows, cream body",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "tram_motor_fix",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions and parts, refined with crisper construction and cleaner material separation. One practical replacement electric traction motor for a neighbourhood tram, a heavy cylindrical gunmetal motor casing about 1.2 metres long with cooling fins, a gearbox housing on one end with an exposed output pinion, two heavy lifting eyes on top, a bolted cable terminal box with three thick insulated cable stubs, sitting on a simple steel skid frame. Rebuilt by hand four times: mismatched replacement cooling-fin sections, the end cap in a different faded olive enamel (not bone), a hand-wired terminal box with taped cable stubs, a strip of muted magenta repair tape, chalk marks, a blank cardboard luggage tag tied to one lifting eye (its text is added in engine), grease and weld repairs",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/54c7015c-d6a8-4629-8893-8857bb8c18f2.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, bone end cap, factory-new finish, writing on the tag",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "turnstile_fix",
+   "subject": "Exactly the same gate as the reference image, refined with crisper construction. A circa-2070 Union-era transit control gate for an evacuation concourse: a cabinet frame in institutional green enamel (#4E5844) and dark steel, a three-arm rotating steel barrier, a top with a blank registry card reader and a small unlit lamp, a blank riveted type-approval plate and a blank round seal boss on the side, repeated identical bolts, scuffed kick plate, bolted floor flange. Issued civic manufacture, no bone or off-white enamel, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ab9794e8-7680-49b6-854a-2244c3015cb9.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, bone enamel, off-white cabinet, cream panels, stainless dominant body",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  },
+  {
+   "id": "filter_skid_fix",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions and parts, refined with crisper construction and cleaner material separation. One portable maintained water filtering unit on a steel service frame skid about 2 metres long: the tall cylindrical filter vessels with domed tops and clamp lids, connecting pipework with valves, a small electric pump at one end, a pressure gauge without numbers, lifting eyes on the frame corners, muted green filter vessels with galvanized grey caps and faded blue-grey pipework, a crew-maintained skid with a hand-labelled (blank) tag and one patched pipe, no cream or off-white, tidy repairs, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/160d2298-d66a-4e35-b309-d32d1010101f.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, cream vessels, off-white vessels, bone paint",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  }
+ ]
+}

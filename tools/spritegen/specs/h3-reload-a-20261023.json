@@ -1,0 +1,68 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-3/a",
+ "params": {
+  "quality": "high",
+  "resolution": "2k",
+  "aspect_ratio": "4:3",
+  "enhance_prompt": false
+ },
+ "style": "Use case: stylized-concept. Asset: production first-person weapon reload sprite frame for an original retro 3D FPS, an edit of the reference frame. Match the reference exactly: its deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, palette, perspective, canvas framing and worn full-finger brown leather work gloves with dark rust jacket cuffs",
+ "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep the right hand exactly where it is; only the left hand and the named reload part move. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference. No muzzle flash, no smoke, no motion blur",
+ "frames": [
+  {
+   "id": "tack_reload_out",
+   "subject": "The same compact repaired pistol held in the same place by the right glove. Reload, magazine out: the left glove has let go of the grip and pulls the empty pistol magazine straight down out of the bottom of the grip, the dark steel magazine half withdrawn and clearly visible below the grip, left glove holding its base.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/195f75f1-86ff-4a9e-ae42-8b167ea40279.png"
+    ]
+   }
+  },
+  {
+   "id": "tack_reload_seat",
+   "subject": "The same compact repaired pistol held in the same place by the right glove. Reload, seat: the left glove palm pushes a fresh dark steel magazine up into the bottom of the grip, the magazine base plate just below the grip, the left hand flat under it, slide forward.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/195f75f1-86ff-4a9e-ae42-8b167ea40279.png"
+    ]
+   }
+  },
+  {
+   "id": "flechette_reload_out",
+   "subject": "The same grey-green rifle seen from behind exactly as in the reference, same position. Reload, magazine out: the left glove has moved from the side of the receiver to below it and pulls a curved dark steel box magazine down and out from under the receiver, the magazine visible emerging at the lower left beside the receiver.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5c73c631-e082-4f4b-93fd-897018757954.png"
+    ]
+   }
+  },
+  {
+   "id": "flechette_reload_seat",
+   "subject": "The same grey-green rifle seen from behind exactly as in the reference, same position. Reload, seat: the left glove pushes a fresh curved dark steel box magazine up into the magazine well under the receiver, only the lower part of the magazine and the left hand visible at the lower left of the receiver, the right glove unchanged.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5c73c631-e082-4f4b-93fd-897018757954.png"
+    ]
+   }
+  },
+  {
+   "id": "scatter_reload_shell",
+   "subject": "The same double-tube pump shotgun seen from behind exactly as in the reference, same position. Reload, shell feed: the left glove has moved off the pump and holds one red shotgun shell with a brass base at the loading port on the lower left side of the receiver, the shell about to be thumbed in.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/9940b155-d667-4dcb-8ebf-d2fa62621c71.png"
+    ]
+   }
+  },
+  {
+   "id": "scatter_reload_push",
+   "subject": "The same double-tube pump shotgun seen from behind exactly as in the reference, same position. Reload, shell pushed: the left glove thumb presses a red shotgun shell with a brass base halfway into the loading port on the lower left side of the receiver, only the brass end of the shell still visible.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/9940b155-d667-4dcb-8ebf-d2fa62621c71.png"
+    ]
+   }
+  }
+ ]
+}
