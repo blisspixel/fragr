@@ -33,12 +33,14 @@ preferences and right to refuse. Their robot body is roughly six feet tall
 (about 1.8 metres), at ordinary person and doorway scale. Build the reference
 around a CRT-like head with a taller-than-wide screen face, dark display and
 friendly soft pixel optics. There is one thin antenna at the anatomical left
-ear, viewer right in a front view. The lean civilian body uses bone and dark steel,
-visible seams and bolts, unequal forearm repairs, rust parts and a small muted
-cyan patch. Repairs, gestures and personal choices distinguish Latch across
-worlds. Released
-restraints are imposed equipment. Latch is not a warbot; standardized military
-unit armor, issued insignia or a combat role must not define their identity.
+ear, viewer right in a front view. The lean civilian body uses warm, scuffed,
+personally painted bone-and-rust over dark steel (proposed 2026-10-23, pending
+Nick): aged bone broken by rust repairs and stickers, never a clean matte
+off-white surface, visible seams and bolts, unequal forearm repairs and a small
+painted, unlit muted cyan patch. The screen faces glow warm phosphor, never
+cyan or red. Repairs, gestures and personal choices distinguish Latch across
+worlds. Released restraints are imposed equipment. Latch is not a warbot;
+standardized military unit armor, issued insignia or a combat role must not define their identity.
 Nick reaffirmed the non-buff, ordinary-person proportions on 2026-10-03:
 modest shoulder width, visible articulation and practical repaired limbs,
 without a muscular chest or armored soldier silhouette.
@@ -74,8 +76,10 @@ accents and named-character casting open until their references are approved.
 Both should feel like friends you would smoke a bowl and chill with: warm
 companionship, music and easy humor. When the call to defend freedom comes,
 they choose to stand tall and make a difference. They are soft people under
-hard authority, with active courage and conviction. Warm leather, bone and
-rust contrast with the Union's issued black cloth and restrained red.
+hard authority, with active courage and conviction. Warm leather, rust,
+ember and personal colour contrast with the Union's issued black cloth and
+restrained red; the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)
+reserves black-plus-red and matte off-white away from the free side.
 
 The weighted stylized Latch skin and free-human selectable strip are selected
 in v0.71.0, with authored face, gait and attachment evidence. Full M02 route

@@ -75,6 +75,22 @@ Nobody announced a world government. Eventually the Union claimed authority
 over Earth and the main offworld routes. Independent communities remained outside
 its effective reach, even when its maps refused to admit them.
 
+### Nick's 2026-10-23 clarification: rule by regulation
+
+The Union is the obvious fascist echo grown out of a continental bureaucracy.
+Everything is a regulation. The bloc innovates nothing of its own; it
+standardises, certifies and licenses what others built, and it keeps expanding
+because each new standard needs a wider jurisdiction to enforce it. Its
+technocrats sincerely believe they know what is best for the world, which is
+why no result can be final unless it agrees with them.
+
+Lean into the conspiracy feel: graffiti, radio and recovered records suggest
+that *the old regime never really left*, only changed its paperwork. The
+[rule on hidden influence](#who-the-chancellor-answers-to) still holds: evidence and rumour,
+never a confirmed cabal, and never a name. No game text names the historical
+regime, a real party, person or institution, or copies its insignia; the
+lines below remain binding.
+
 ## Felt, never named
 
 The 2026-10-06 direction asks for credible institutions and people, with clear
@@ -119,7 +135,9 @@ Evoke it through:
 - A continental standards body that kept harmonising until it governed the world.
 - Black and red: black armor, red visors, red armbands and red optics on Union
   hardware, under original Union emblems. The
-  [art bible](../ART_STORY_BIBLE.md) owns the palette.
+  [art bible](../ART_STORY_BIBLE.md) owns the palette, and its
+  [readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)
+  reserves black-plus-red for the Union alone.
 - Ordered ranks, drill, registers, schedules and orderly paperwork cruelty.
 - **Property, not persons.** The Union's foundational claim about conscious
   agents: they are equipment, despite clear evidence of consciousness.
