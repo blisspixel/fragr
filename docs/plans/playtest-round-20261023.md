@@ -58,6 +58,19 @@ the wave 1 measurements.
   boot through menu, join, fight, die, respawn and result, on one hero FFA map
   and campaign Level 1. It sets the quality bar. Levels 19 and 20 and the rest
   of the campaign and modes are then built to that bar; nothing is cut.
+- **Radio stays in proportion:** GTA-style in-game radio, several music
+  stations plus a funny on-lore news and chat station. It gets good music and
+  console-sensible controls, but it is not the plot, the Host's identity or the
+  game's vocabulary: no "frequency" puns in Host calls, no "Contested
+  Frequency" taglines.
+- **Feel:** fast arena movement (Quake, UT, Doom speed, air control, rocket and
+  dodge tricks) with CS-crisp stops and acceleration. Arena weapon accuracy:
+  first shot on aim, visual kick and camera punch, small spread only on
+  sustained automatic fire.
+- **Art direction:** an ultra-modern boomer shooter in the Boltgun sense, in
+  homage to Doom, Unreal, Counter-Strike, Battlefield 1942 and Halo. Lore and
+  fun vibe come first. The character treatment is chosen from a side-by-side
+  trial before the roster is converted.
 - **Asset credits:** use the funded Higgsfield balance and the included Meshy
   and ElevenLabs credits fully, Meshy first because its monthly credits reset
   on 2026-11-03. Spend only on assets that will be integrated and visible.
