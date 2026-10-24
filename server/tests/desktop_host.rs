@@ -21,7 +21,7 @@ async fn enter(
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 role,
-                name: "Dead Air Dan".into(),
+                name: "Kind Regards".into(),
                 body: None,
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 gameplay_version: ready.gameplay_version,

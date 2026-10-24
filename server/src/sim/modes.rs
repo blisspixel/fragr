@@ -17,6 +17,18 @@ impl GameState {
         counts
     }
 
+    /// The side the next admitted participant takes, or `None` without
+    /// sides. A Sabotage joiner evens the sides, then joins the side behind
+    /// on rounds. Rule-bot fill reads this to name a seat before admission.
+    pub(crate) fn joining_team(&self) -> Option<crate::protocol::Team> {
+        let standings = self
+            .sabotage
+            .as_ref()
+            .map_or(self.team_scores, |sab| sab.score);
+        (self.config.rules.teams() && !self.map.is_campaign())
+            .then(|| crate::rules::choose_team(self.team_counts(), standings))
+    }
+
     /// Whether a hit from `shooter` damages `victim`: campaign allegiance
     /// first, then sides, where friendly fire decides.
     pub(super) fn damage_lands(&self, shooter: usize, victim: usize) -> bool {
@@ -47,10 +59,16 @@ impl GameState {
             };
             let bots: Vec<Uuid> = self.bots.iter().map(|b| b.player_id).collect();
             let on_big = |p: &super::Player| p.contestant() && p.team == Some(big);
+            let is_bot = |p: &super::Player| bots.contains(&p.id);
+            // A league regular crosses sides without a name change.
+            let fits_small = |p: &super::Player| {
+                crate::roster::find(&p.name).is_none_or(|f| f.allegiance.fits(Some(small)))
+            };
             let Some(index) = self
                 .players
                 .iter()
-                .rposition(|p| on_big(p) && bots.contains(&p.id))
+                .rposition(|p| on_big(p) && is_bot(p) && fits_small(p))
+                .or_else(|| self.players.iter().rposition(|p| on_big(p) && is_bot(p)))
                 .or_else(|| self.players.iter().rposition(on_big))
             else {
                 break;
@@ -58,6 +76,7 @@ impl GameState {
             let id = self.players[index].id;
             self.drop_flag_from(id);
             self.drop_charge_from(id);
+            self.rename_transferred_bot(index, small);
             let player = &mut self.players[index];
             player.team = Some(small);
             let (id, name, placed) = (
@@ -70,6 +89,32 @@ impl GameState {
                 self.do_respawn(id);
             }
         }
+    }
+
+    /// A rule bot moved onto a side its callsign cannot sit on (a free
+    /// agent onto Union seats, or the reverse) takes a fitting callsign, so
+    /// the killfeed never shows Formerly 4471 wearing Union colors.
+    fn rename_transferred_bot(&mut self, index: usize, team: Team) {
+        let id = self.players[index].id;
+        let Some(behavior) = self
+            .bots
+            .iter()
+            .find(|bot| bot.player_id == id)
+            .map(|bot| bot.behavior)
+        else {
+            return;
+        };
+        let taken: Vec<&str> = self.players.iter().map(|p| p.name.as_str()).collect();
+        let current = self.players[index].name.as_str();
+        let Some((fighter, name)) =
+            crate::roster::transfer(current, behavior, team, self.rng_state, &taken)
+        else {
+            return;
+        };
+        tracing::info!("TEAM BALANCE: {current} signs on as {name}");
+        let player = &mut self.players[index];
+        player.name = name;
+        player.body = fighter.body;
     }
 
     /// Call a Host beat. The client owns the words; the server sends the

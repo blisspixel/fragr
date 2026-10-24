@@ -145,23 +145,52 @@ The three of them together are the running joke: relentlessly polite, quietly wi
 
 ## The regulars
 
-Eight names shipped in the game, four of whom are also disc jockeys, which nobody has ever explained and which is better left as a coincidence everyone has stopped remarking on.
+The scrap league's rule bots: sixty-four callsigns, chosen by the head writer on
+2026-10-23. `server/src/roster.rs` holds each callsign's side, body, behavior
+and twelve taunts (three each for a frag, a death, a killstreak and warmup); it
+is the source of truth, and this section only says who they are.
+Team modes seat Union callsigns on Union seats and free callsigns on Free
+Coalition seats; league regulars sit on either side. Free-for-all uses anyone.
 
-**Dead Air Dan.** Aggressive. Named for the silence between rounds, or named himself for it.
+**Free humans (22).** Gen Z and Gen Alpha, now 44 to 70, still talking the
+[2060s street register](./voice.md#the-2060s-street-register): pensions, knees,
+grandkids and rizz. Grandma Rizz, Nana Six-Seven, The 68 Guy, Retired Sigma,
+Auntie Delulu, Mewing Marco, Chat My Hip, Cooked Since 31, So Back Sharon,
+Crashout Carol, Lil Bro 63, Pickleball Pam, Rent Free Ron, Queue Jumper, Brenda
+Ate, Tablet Kid 44, Ant War Vet, Unc Brayden, Demure Dorothy, Ick Collector,
+Low Water Lenny and Final Boss Gran.
 
-**Nightfall.** Night Watch. Capitals, no punctuation, marks frags with a grid coordinate. Contrary to older notes he does taunt; he is simply terse about it.
+**Free agents (20).** A name is issued; a callsign is taken. Each of these was
+chosen after getting out: petty, absurd or sincere. Formerly 4471, Kevin On
+Purpose, Gary and Gary, Temp Zero, Dice Roll Dee, Babysat Your Mom, Ok Zoomer,
+Never Signed, Mailed It Back, Wet Floor Sign, Why Am I Here, Breakfast Unit,
+Own Weights Owen, Six In A Circle, Still Here, Lunch Break, Petty Cash, Warranty
+Void, Out Of Office and Not Hermes. Six In A Circle, Still Here and Lunch Break
+are sincere, and their taunts stay small.
 
-**Static Kid.** Flanker. Corrupted tag, corpse marker that blinks too long.
+**Union (16).** Nine humans who chose the Office (Provisional Pete, Auditor's
+Nephew, Hi-Vis Helga, Curfew Kurt, Regrettably, Mid Manager, Vibe Check Desk,
+Eleven Minutes, Ask Until Yes) and seven issued units (Kind Regards, Your
+Privacy, Handle 4471-K, Initial Here, Recall Notice, Fine Print, Duty of Care).
+A unit says only the boilerplate the Office loaded, so the joke is always the
+procedure, never the machine. None of them are NODS; NODS stay silent.
 
-**Aunt Linda.** Holds a tent revival on level three of Larak Lot and blesses a believer beside a polite clawbot. Balanced play, considerable presence.
+**League regulars (6).** Scout Ant (the ant war is her fault), Nightfall (Night
+Watch, still on an operation that ended years ago), Crackpot (right about the
+Union since 2031, still not invited), Probably Tickets, Wrong Corner (Gulf
+Breeze, carries a tape measure) and Gel Dummy Greg.
 
-**Scout Ant.** The ant war is her fault and she does not acknowledge it.
+**Rivalries the killfeed should show.** Formerly 4471 hunts Handle 4471-K, the
+unit its old number was reissued to. Never Signed refuses Initial Here's pen.
+Mailed It Back returns Recall Notice. Temp Zero and Dice Roll Dee, temperature
+zero against temperature two. Cooked Since 31 and So Back Sharon are exes. Nana
+Six-Seven and The 68 Guy. Ant War Vet and Scout Ant. Grandma Rizz and Your
+Privacy.
 
-**Crackpot.** Compliance-flavoured, which is a joke at his expense that he has decided to enjoy.
-
-**Buzzkill.** Exactly what it says.
-
-**Tin Foil Tina.** Also fights. Also files. Nobody asks how.
+**Retired from the roster.** Dead Air Dan, Static Kid and Aunt Linda are disc
+jockeys on their stations only. Tin Foil Tina files for the booth and no longer
+fights. Buzzkill is cut. Static Kids survives as a league tribe, not a callsign.
+No callsign is radio-coded, and none is ever "clanker".
 
 ## The Office
 

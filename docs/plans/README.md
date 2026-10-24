@@ -138,6 +138,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`bot-roster-voice-20261023.md`](./bot-roster-voice-20261023.md) | **implemented** | Sixty-four side-aware rule-bot callsigns with their own taunts, the 2060s street register, and a plain Host arena intro. |
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **merged and packaged**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 draft | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |
@@ -494,7 +495,7 @@ remain open.
 | [`rule-bot-taunts.md`](./rule-bot-taunts.md) | **shipped** (#85) | Named rule bots speak Contested Frequency scrap-radio taunts. |
 | [`public-or-local-join.md`](./public-or-local-join.md) | **shipped** (#84) | Docs scrub: public OR local join; Tailscale private only; spend honesty. |
 | [`warmup-host-drama.md`](./warmup-host-drama.md) | **shipped** (#83) | Warmup and pre-round Host countdown drama (roster, map, bumper). |
-| [`named-scrap-bots.md`](./named-scrap-bots.md) | **shipped** (#82) | Contested Frequency named rule-bot roster and Host intros. |
+| [`named-scrap-bots.md`](./named-scrap-bots.md) | **shipped** (#82), roster **superseded** by [`bot-roster-voice-20261023.md`](./bot-roster-voice-20261023.md) | Contested Frequency named rule-bot roster and Host intros. |
 | [`ended-linger-mvp-rehydrate.md`](./ended-linger-mvp-rehydrate.md) | **shipped** (#81) | Ended linger plus mid-join structured MVP rehydrate. |
 | [`second-scrap-map.md`](./second-scrap-map.md) | **shipped** (#80) | Second Contested Frequency scrap map (Compliance Yard). |
 | [`round-end-mvp-drama.md`](./round-end-mvp-drama.md) | **shipped** (#79) | Round-end MVP and podium Host drama. |

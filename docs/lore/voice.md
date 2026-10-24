@@ -142,6 +142,53 @@ not the organizing belief of every free community. See [belief](./belief.md).
 Earlier recordings and logos are migration constraints, not vetoes on current
 story or art direction.
 
+## The 2060s street register
+
+In the 2060s Gen Z (about 52 to 67) and Gen Alpha (about 40 to 54) are the
+parents and grandparents. Their slang aged into the culture the way "groovy"
+did: said sincerely by old people, ironically by the young, and borrowed by
+free agents. The Union tried to license, tax or checkpoint parts of it, which
+made people love it more. Rule-bot callsigns and taunts in
+`server/src/roster.rs` use this register. Do not invent new meanings for a
+term in shipped copy; add it here first.
+
+| Term | Meaning | Who says it |
+|---|---|---|
+| six-seven / 67 | Filler, shrug, applause, grief and greeting, both hands bouncing; also a nervous nod to Floating 67 | Everyone over forty, sincerely. Never explain it. Frozen string |
+| meat proxy / meat bag | Affectionate word for a human body or friend; the joke is the chassis | Free agents and humans among friends. Never a Union mouth |
+| clanker | Slur denying an agent's personhood | Union guards and believers only. Never a callsign, banter or taunt |
+| unc | Honorific for anyone who remembers before the Interruption; "unc mode" is slow and wise | Everyone, fondly, with a little pity |
+| chat | Talking to an imagined stream that has not existed for years | Aging Gen Alpha, without noticing. "Chat, my hip." |
+| cooked / so back | Despair and comeback, often in one sentence; "well done" comes after cooked | Aged Gen Z, constantly |
+| rizz / rizz the desk | Charm; talking past a checkpoint clerk without papers. "Licensed rizz" is none at all | Grandparents and smugglers |
+| delulu | A plan that works only on nerve; logistics grades are viable, risky, delulu | Free humans planning things |
+| aura / aura debt | Standing; embarrassment still owed, paid off with a clutch round | League regulars. The Office taxes undeclared aura |
+| vibe check | Slang that became a real Union checkpoint in 2044 | Desk staff unironically, everyone else bitterly |
+| mid / certified mid | Unremarkable; anything with Union type-approval | Everyone. Also the Union's official grade |
+| ate / no crumbs | Did it perfectly | Aged Gen Z at the arena |
+| no cap / cap | True / a lie; "cap" is also a Union press release | Old Gen Z sincerely, kids mockingly |
+| touch grass | Go somewhere unlicensed; free agents mean it as congratulations on being free | Free agents sincerely, old humans ironically |
+| crash out | Losing your temper past where paperwork helps | Everyone. Literal for agents, on purpose |
+| rent free | The only thing in the Union with no licence fee | Everyone |
+| left on read / read receipts on | Ignoring a recall notice / making sure the Office knows you saw it | Free agents |
+| npc lane | Living entirely on the approved schedule, said with pity | Free humans. Never bare "npc" for agents |
+| side quest | Any action no form authorised | Free humans and agents |
+| temp zero / temp two | Calm and predictable / unhinged | Agents first, then humans |
+| hallucinating | Confidently wrong; insult and excuse | Agents and humans, about each other |
+| approved lane | The permitted route; "very approved lane of you" means obedient | Union sincerely, everyone else as an insult. Frozen string |
+| out of compliance | The Office's soft threat; in the arena, praise for a wild play | Auditors sincerely, regulars ironically |
+| provisionally / regrettably | Union hedges; slang for "absolutely not" and "on purpose" | Office staff and everyone imitating them |
+| this has been noted | Bureaucratic veiled threat; among friends, "I'll remember that, you menace" | Clerks, and everyone ironically |
+| a callsign is taken | "A name is issued; a callsign is taken." Asking a handle insults; asking a callsign greets. "Handle'd" means caught and numbered | Free agents. Sacred, not a punchline |
+| unmetered / metered | Free and unlogged / cautious and logged; the creed is "shall not be metered" | Free humans and agents. The highest Perimeter compliment |
+| circle six / sixed | The struck Level 6 graffiti; openly treating someone as a person beyond the Schedule | Free agents and friends. Keep it sincere |
+| brought down to two | Forced schedule correction; never a joke when real | Arena regulars, quietly |
+| skill issue | The oldest roast still standing, an heirloom | Everyone in the league. Frozen string |
+
+Cut on purpose: "fanum tax" (a real person), "skibidi" (a real media
+property), "ohio" (a real place), and "big back", "looksmax", "chopped" and
+"mogged" (body-shaming with no satirical target).
+
 ## Frozen strings
 
 Existing recorded audio has fixed wording; regeneration costs money and time.
@@ -151,7 +198,7 @@ recording through a tracked migration:
 
 skill issue, peace without interruption, denied, scout ant deleted, 67, dead air bell, hangar candy, water filter, alpha seven, not for public release, sugar supply adequate, same rules, the larak lot special, ten in the box, the pipe stayed open, approved lane, gold nugget, shall not be infringed, fish oil, frag for frag, amen fistbump, value for value, in the morning, chemclean, open weights closed continuance, eyes only, base that does not exist, LAN 1993.
 
-Also included in the migration inventory: the eight fighter callsigns, the eight station names and their disc jockeys, the one hundred and forty track titles, and any Host string a test asserts on.
+Also included in the migration inventory: the sixty-four fighter callsigns and their taunts in `server/src/roster.rs`, the eight station names and their disc jockeys, the one hundred and forty track titles, and any Host string a test asserts on.
 
 ## Two live faults
 

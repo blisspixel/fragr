@@ -287,8 +287,8 @@ mod tests {
         assert!(matches!(parse_line("status"), Ok(Parsed::Who)));
         assert!(matches!(parse_line("list"), Ok(Parsed::Who)));
         assert!(matches!(parse_line("help"), Ok(Parsed::Help)));
-        match parse_line("kick Dead Air Dan").unwrap() {
-            Parsed::Kick { name } => assert_eq!(name, "Dead Air Dan"),
+        match parse_line("kick Kind Regards").unwrap() {
+            Parsed::Kick { name } => assert_eq!(name, "Kind Regards"),
             other => panic!("kick: {other:?}"),
         }
         match parse_line("say doors at the bell").unwrap() {
@@ -346,7 +346,7 @@ mod tests {
         let names = vec![
             "Ann".into(),
             "Anne".into(),
-            "Dead Air Dan".into(),
+            "Kind Regards".into(),
             "Patch".into(),
             "Patch #2".into(),
         ];
@@ -355,8 +355,8 @@ mod tests {
             Some(("Anne", "camping"))
         );
         assert_eq!(
-            split_ban_query("Dead Air Dan", &names),
-            Some(("Dead Air Dan", ""))
+            split_ban_query("Kind Regards", &names),
+            Some(("Kind Regards", ""))
         );
         assert_eq!(
             split_ban_query("Patch #2 the rail", &names),

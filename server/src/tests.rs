@@ -4864,7 +4864,7 @@ fn test_protocol_snapshot_map_defaults_round_trip() {
         "players": [],
         "mode_name": "Contested Frequency",
         "playlist": "Arena Duel",
-        "host_line": "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
+        "host_line": "HOST: WELCOME TO THE SCRAP. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
     });
     let snap: Snapshot = serde_json::from_value(json).unwrap();
     assert_eq!(snap.map_id, default_map_id());
@@ -4875,14 +4875,13 @@ fn test_protocol_snapshot_map_defaults_round_trip() {
 fn test_warmup_host_drama_roster_map_countdown() {
     let mut state = GameState::new();
     state.config.warmup_ticks = 40; // 2s
-    state.set_roster_host_line_from_names(&["Dead Air Dan".into(), "Nightfall".into()]);
+    state.set_roster_host_line_from_names(&["Kind Regards".into(), "Nightfall".into()]);
     assert_eq!(state.round_state, RoundState::Warmup);
 
     let snap = state.snapshot();
     assert_eq!(snap.round_time_left, Some(2));
-    assert!(snap.host_line.contains("CONTESTED FREQUENCY"));
-    assert!(snap.host_line.contains("ARENA DUEL"));
-    assert!(snap.host_line.contains("DEAD AIR DAN"));
+    assert!(snap.host_line.starts_with("HOST: WELCOME TO ARENA DUEL."));
+    assert!(snap.host_line.contains("KIND REGARDS"));
     assert!(snap.host_line.contains("ON THE SCRAP"));
     assert!(snap.host_line.contains("2."));
     assert_eq!(
@@ -4914,7 +4913,7 @@ fn test_warmup_host_drama_roster_map_countdown() {
         .expect("RoundStart");
     assert_eq!(
         start,
-        round_open_host_line("Arena Duel", &["Dead Air Dan".into(), "Nightfall".into()])
+        round_open_host_line("Arena Duel", &["Kind Regards".into(), "Nightfall".into()])
     );
     assert!(start.contains("FIGHT!"));
 }
@@ -4926,7 +4925,7 @@ fn rule_bot_taunt_emits_speak_and_respects_cooldown() {
 
     let mut state = GameState::new();
     let bot_id = Uuid::new_v4();
-    state.add_player(bot_id, "Dead Air Dan".to_string(), Role::Agent);
+    state.add_player(bot_id, "Kind Regards".to_string(), Role::Agent);
     state
         .bots
         .push(BotController::new(bot_id, BotBehavior::Aggressive));
@@ -4944,9 +4943,11 @@ fn rule_bot_taunt_emits_speak_and_respects_cooldown() {
         })
         .collect();
     assert_eq!(speaks.len(), 1);
-    assert_eq!(speaks[0].0, "Dead Air Dan");
-    assert!(!speaks[0].1.is_empty());
-    assert!(speaks[0].1.chars().count() <= 80);
+    assert_eq!(speaks[0].0, "Kind Regards");
+    let lines = crate::roster::find("Kind Regards")
+        .unwrap()
+        .taunts(BotTauntKind::Frag);
+    assert!(lines.contains(&speaks[0].1.as_str()), "{}", speaks[0].1);
 
     assert_eq!(
         state.try_rule_bot_taunt(bot_id, BotTauntKind::Death),
@@ -5002,7 +5003,7 @@ fn warmup_rule_bot_taunt_path_can_emit_speak() {
     let mut state = GameState::new();
     state.config.warmup_ticks = 200;
     let bot_id = Uuid::new_v4();
-    state.add_player(bot_id, "Static Kid".to_string(), Role::Agent);
+    state.add_player(bot_id, "Ok Zoomer".to_string(), Role::Agent);
     state
         .bots
         .push(BotController::new(bot_id, BotBehavior::Flanker));
@@ -5020,10 +5021,10 @@ fn warmup_rule_bot_taunt_path_can_emit_speak() {
             _ => None,
         })
         .expect("Warmup Speak");
-    assert!(
-        line.contains("glitch") || line.contains("static") || line.contains("tuning"),
-        "{line}"
-    );
+    let lines = crate::roster::find("Ok Zoomer")
+        .unwrap()
+        .taunts(BotTauntKind::Warmup);
+    assert!(lines.contains(&line.as_str()), "{line}");
 
     state.tick += 1;
     assert_eq!(

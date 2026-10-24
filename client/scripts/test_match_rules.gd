@@ -80,12 +80,12 @@ func _check_labels() -> void:
 func _check_reactions() -> void:
 	for kind: String in MatchRules.REACTIONS:
 		for variant: int in range(MatchRules.REACTION_VARIANTS):
-			var line: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "player": "Dead Air Dan", "other": "Nightfall", "team": "union"})
+			var line: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "player": "Kind Regards", "other": "Nightfall", "team": "union"})
 			_check(line.begins_with("HOST: "), "every reaction is keyed: %s %d -> %s" % [kind, variant, line])
 			_check(not line.contains("{"), "every placeholder fills: " + line)
 			_check(not line.contains(char(0x2014)) and not line.contains(char(0x2013)), "no long dashes: " + line)
-	var first: String = MatchRules.reaction_line({"kind": "first_blood", "variant": 0.0, "player": "Dead Air Dan"})
-	_check(first == "HOST: FIRST BLOOD. DEAD AIR DAN. SOMEBODY HAD TO.", "first blood line: " + first)
+	var first: String = MatchRules.reaction_line({"kind": "first_blood", "variant": 0.0, "player": "Kind Regards"})
+	_check(first == "HOST: FIRST BLOOD. KIND REGARDS. SOMEBODY HAD TO.", "first blood line: " + first)
 	var comeback: String = MatchRules.reaction_line({"kind": "comeback", "variant": 0, "team": "coalition"})
 	_check(comeback == "HOST: THE FREE COALITION CLAWS IT BACK. LEVEL GAME.", "comeback names the side: " + comeback)
 	for bad: Dictionary in [{}, {"kind": "ace"}, {"kind": "first_blood", "variant": 3}, {"kind": "first_blood", "variant": -1}, {"kind": 4}]:
@@ -108,9 +108,9 @@ func _check_hud() -> void:
 	hud.call("set_match_rules", MatchRules.parse({"mode": "tdm", "mutators": ["rail-only"]}))
 	hud.call("set_team_scores", {"union": 3, "coalition": 5})
 	hud.call("sync_scores_from_players", [
-		{"name": "Dead Air Dan", "score": 2, "team": "union"},
+		{"name": "Kind Regards", "score": 2, "team": "union"},
 		{"name": "Nightfall", "score": 4, "team": "coalition", "behavior": "Defensive"},
-		{"name": "Static Kid", "score": 1, "team": "coalition"},
+		{"name": "Temp Zero", "score": 1, "team": "coalition"},
 	])
 	_check(chip.visible and chip.text == "UNION 3 : 5 FREE COALITION\nRAIL ONLY" and hud.mode_label.text == "TEAM DEATHMATCH", "center carries side score and modifiers; corner names the mode: " + chip.text)
 	var board: String = hud.get("scoreboard").text
@@ -118,7 +118,7 @@ func _check_hud() -> void:
 	_check(lines.size() == 4, "side score plus three rows: " + board)
 	_check(lines[0] == "UNION 3 : 5 FREE COALITION", "side score leads the scoreboard: " + lines[0])
 	_check(lines[1] == "1.*[FREE] Nightfall [DEF]: 4", "leader row carries the side chip: " + lines[1])
-	_check(lines[2] == "2. [UNION] Dead Air Dan: 2", "second row: " + lines[2])
+	_check(lines[2] == "2. [UNION] Kind Regards: 2", "second row: " + lines[2])
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ctf", "mutators": []}))
 	hud.call("set_league_identity", "Contested Frequency", "Arena Duel")
 	var league_line: String = hud.get("mode_label").text
@@ -128,9 +128,9 @@ func _check_hud() -> void:
 		{"team": "coalition", "status": "dropped", "return_ticks": 39, "position": [10.0, 0.0, -10.0]},
 	]
 	hud.call("set_ctf_state", flags, {"union": 1.0, "coalition": 2.0}, 3.0,
-		[{"id": "a1", "name": "Dead Air Dan", "x": 0.0, "y": 0.0, "z": 0.0}], "a1")
+		[{"id": "a1", "name": "Kind Regards", "x": 0.0, "y": 0.0, "z": 0.0}], "a1")
 	_check(chip.text.contains("CAPTURES U 1 : 2 FREE / 3 TO WIN"), "ctf score and win target: " + chip.text)
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan\nFREE FLAG DOWN 2S, 14M NE"), "carrier and dropped bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Kind Regards\nFREE FLAG DOWN 2S, 14M NE"), "carrier and dropped bearing: " + chip.text)
 	_check(hud.get("scoreboard").text.begins_with("FRAGS (CAPTURES WIN)"), "fighter frag rows are secondary to captures")
 	await process_frame
 	var ctf_chip_bounds: Rect2 = chip.get_global_rect()
@@ -141,15 +141,15 @@ func _check_hud() -> void:
 		{"team": "coalition", "status": "home", "stand": [70.0, 0.0, 0.0], "position": [70.0, 0.0, 0.0]},
 	]
 	hud.call("set_ctf_state", home_flags, {"union": 1.0, "coalition": 2.0}, 3.0, [
-		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
+		{"id": "a1", "name": "Grandma Rizz", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
 		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
 	], "a1")
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan\nFREE FLAG HOME 70M E"), "carrier return bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Grandma Rizz\nFREE FLAG HOME 70M E"), "carrier return bearing: " + chip.text)
 	hud.call("set_ctf_state", home_flags, {"union": 1.0, "coalition": 2.0}, 3.0, [
-		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
+		{"id": "a1", "name": "Grandma Rizz", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
 		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
 	], "b2")
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan, 14M S\nFREE FLAG HOME"), "chase bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Grandma Rizz, 14M S\nFREE FLAG HOME"), "chase bearing: " + chip.text)
 	await process_frame
 	var compass_bounds: Rect2 = chip.get_global_rect()
 	_check(ctf_panel_bounds.encloses(compass_bounds), "a compass line still fits the centered region")
@@ -178,7 +178,7 @@ func _check_hud() -> void:
 	_check(pennant.visible and pennant_words.text == "UNION FLAG", "returning to first person keeps the carried flag")
 	hud.call("set_fp_juice", false)
 	hud.call("set_fp_carried_flag", "")
-	hud.call("show_round_end", "Dead Air Dan", "Capture limit reached", 8, "", [], "coalition", {"union": 1.0, "coalition": 3.0})
+	hud.call("show_round_end", "Kind Regards", "Capture limit reached", 8, "", [], "coalition", {"union": 1.0, "coalition": 3.0})
 	var round_banner: Label = hud.get("round_message")
 	_check(round_banner.text.begins_with("FREE TAKES THE ROUND\nCAPTURES: UNION 1 : 3 FREE"), "ctf winner follows captures instead of mvp frags: " + round_banner.text)
 	var result_card: Panel = hud.get_node("RoundBackdrop")
@@ -187,7 +187,7 @@ func _check_hud() -> void:
 	_check(result_style != null and is_equal_approx(result_style.bg_color.a, 1.0), "the result card hides the flag behind the words")
 	await process_frame
 	_check(result_card.get_global_rect().encloses(round_banner.get_global_rect()), "the result words stay on the card")
-	hud.call("show_round_end", "Dead Air Dan", "Clock expired", 8, "", [], null, {"union": 1.0, "coalition": 1.0})
+	hud.call("show_round_end", "Kind Regards", "Clock expired", 8, "", [], null, {"union": 1.0, "coalition": 1.0})
 	_check(round_banner.text.begins_with("ROUND DRAW: FLAGS DEADLOCKED\nCAPTURES: UNION 1 : 1 FREE"), "equal captures announce a draw: " + round_banner.text)
 	hud.call("set_own_lives", 2)
 	_check(not chip.text.contains("LIVES"), "no lives line without limited lives")
@@ -203,13 +203,13 @@ func _check_hud() -> void:
 	_check(chip.text == "TWO LIVES\nLIVES 1" and hud.mode_label.text == "FREE FOR ALL", "lives line under two lives: " + chip.text)
 	hud.call("set_own_lives", 0)
 	_check(chip.text.ends_with("OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."), "an eliminated player is told why: " + chip.text)
-	hud.call("sync_scores_from_players", [{"name": "Dead Air Dan", "score": 2}])
+	hud.call("sync_scores_from_players", [{"name": "Kind Regards", "score": 2}])
 	_check(not hud.get("scoreboard").text.contains("[UNION]"), "free-for-all rows carry no side")
 	hud.call("sync_scores_from_players", [
-		{"name": "Dead Air Dan", "score": 4},
+		{"name": "Kind Regards", "score": 4},
 		{"name": "Nightfall", "score": 3},
-		{"name": "Static Kid", "score": 2},
-		{"name": "Aunt Linda", "score": 1},
+		{"name": "Temp Zero", "score": 2},
+		{"name": "Grandma Rizz", "score": 1},
 		{"name": "Meat Proxy", "score": 5, "deaths": 1, "attacks": 3, "connects": 2, "heads": 1, "damage": 40},
 		{"name": "Probe", "score": 0},
 	])
@@ -237,7 +237,7 @@ func _check_hud() -> void:
 	await _check_large_board(hud)
 	hud.call("set_leaderboard_open", false)
 	_check(not leaders_panel.visible, "releasing tab hides the board")
-	hud.call("show_host_reaction", {"kind": "golden_rail", "variant": 2, "player": "Aunt Linda"})
+	hud.call("show_host_reaction", {"kind": "golden_rail", "variant": 2, "player": "Grandma Rizz"})
 	hud.call("set_match_rules", {})
 	_check(not chip.visible, "a campaign map clears the chip")
 	hud.call("set_followed_weapon", "Rail", "Nightfall", "", "coalition")
@@ -331,14 +331,14 @@ func _check_pawn() -> void:
 	var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
 	root.add_child(pawn)
 	await process_frame
-	pawn.call("set_player_data", "a1", "Dead Air Dan")
+	pawn.call("set_player_data", "a1", "Kind Regards")
 	var own: Color = pawn.get("player_color")
-	var state: Dictionary = {"id": "a1", "name": "Dead Air Dan", "x": 0.0, "y": 1.5, "z": 0.0, "yaw": 0.0, "hp": 100, "armor": 0, "score": 1, "weapon": "Rail", "team": "union"}
+	var state: Dictionary = {"id": "a1", "name": "Kind Regards", "x": 0.0, "y": 1.5, "z": 0.0, "yaw": 0.0, "hp": 100, "armor": 0, "score": 1, "weapon": "Rail", "team": "union"}
 	pawn.call("update_state", state, 1)
 	_check(pawn.get("team") == "union", "pawn reads its side")
 	_check(pawn.get("player_color") == MatchRules.UNION_LABEL, "Union fighters wear Union red")
 	var label: Label3D = pawn.get_node("Label3D")
-	_check(label.text.begins_with("[UNION] Dead Air Dan"), "nameplate leads with the side: " + label.text)
+	_check(label.text.begins_with("[UNION] Kind Regards"), "nameplate leads with the side: " + label.text)
 	var body: Sprite3D = pawn.get_node("Body")
 	_check(body.modulate.get_luminance() < 0.8, "Union body reads dark: " + str(body.modulate))
 	state["team"] = "coalition"

@@ -4220,7 +4220,7 @@ mod mcp_tests {
                 "round_time_left": 2,
                 "map_id": 1,
                 "map_name": "Arena Duel",
-                "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL TUNES IN. DEAD AIR DAN ON THE SCRAP. 2."
+                "host_line": "HOST: WELCOME TO ARENA DUEL. KIND REGARDS ON THE SCRAP. GOES LIVE IN 2."
             })),
             ..Default::default()
         };
@@ -4237,8 +4237,7 @@ mod mcp_tests {
         assert!(result["host_line"]
             .as_str()
             .unwrap()
-            .contains("CONTESTED FREQUENCY"));
-        assert!(result["host_line"].as_str().unwrap().contains("ARENA DUEL"));
+            .contains("WELCOME TO ARENA DUEL"));
         assert!(result["host_line"]
             .as_str()
             .unwrap()

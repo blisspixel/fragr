@@ -375,6 +375,7 @@ mod tests {
     fn who_lists_the_room_and_the_public_status_does_not() {
         let mut session = GameSession::new();
         session.spawn_bots(1);
+        let bot = session.state.players[0].name.clone();
         sit(&mut session, "Patch", Role::Human, peer(7));
         let client_id = Uuid::new_v4();
         session.apply_command(GameCommand::NoteSeat {
@@ -391,7 +392,7 @@ mod tests {
         let text = session.desk(DeskVerb::Who).text().to_string();
         assert!(text.contains("Patch  human  0  203.0.113.7"), "{text}");
         assert!(text.contains("Booth  spectator  0  203.0.113.9"), "{text}");
-        assert!(text.contains("Dead Air Dan  roster"), "{text}");
+        assert!(text.contains(&format!("{bot}  roster")), "{text}");
         let status = serde_json::to_string(&session.state.live_status(2)).unwrap();
         assert!(!status.contains("Patch"), "{status}");
         assert!(!status.contains("203.0.113"), "{status}");
@@ -402,6 +403,7 @@ mod tests {
     fn stats_reads_the_sheet_and_leaves_the_address_off_it() {
         let mut session = GameSession::new();
         session.spawn_bots(1);
+        let bot = session.state.players[0].name.clone();
         sit(&mut session, "Meat Proxy", Role::Human, peer(7));
         let (humans, fighters) = session.state.participant_counts();
         let live = session.state.live_status(1);
@@ -422,10 +424,10 @@ mod tests {
         assert!(text.contains("peak fighters 2"), "{text}");
         assert!(text.contains("1  Arena Duel"), "{text}");
         assert!(text.contains("ffa"), "{text}");
-        assert!(text.contains("Dead Air Dan"), "{text}");
+        assert!(text.contains(&bot), "{text}");
         assert!(!text.contains("203.0.113"), "{text}");
         let public = serde_json::to_string(&session.sheet.totals()).unwrap();
-        assert!(!public.contains("Dead"), "{public}");
+        assert!(!public.contains(&bot), "{public}");
         assert!(!public.contains("Meat"), "{public}");
         assert!(!public.contains("203.0.113"), "{public}");
         assert!(!public.contains("mvp"), "{public}");
@@ -435,6 +437,7 @@ mod tests {
     fn kick_removes_a_live_fighter_and_refuses_the_card() {
         let mut session = GameSession::new();
         session.spawn_bots(1);
+        let bot = session.state.players[0].name.clone();
         let (client_id, player_id) = sit(&mut session, "Patch", Role::Human, peer(7));
         let token = session.resume.arm(player_id, Role::Human);
         assert!(session.resume.holds(player_id), "the pawn can still resume");
@@ -468,9 +471,7 @@ mod tests {
             }),
             DeskOutcome::Text(text) if text.contains("Nobody here")
         ));
-        let roster = session.desk(DeskVerb::Kick {
-            name: "Dead Air Dan".into(),
-        });
+        let roster = session.desk(DeskVerb::Kick { name: bot.clone() });
         assert!(
             matches!(roster, DeskOutcome::Text(ref text) if text.contains("on the card")),
             "{roster:?}"
@@ -479,7 +480,7 @@ mod tests {
             .state
             .players
             .iter()
-            .any(|player| player.name == "Dead Air Dan"));
+            .any(|player| player.name == bot));
     }
 
     #[test]

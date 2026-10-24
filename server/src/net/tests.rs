@@ -117,7 +117,7 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
         ),
     ] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"agent", "name":"Dead Air Dan", "geometry_version":2, "gameplay_version":version,"ticket":ticket}).to_string())).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"agent", "name":"Kind Regards", "geometry_version":2, "gameplay_version":version,"ticket":ticket}).to_string())).await.unwrap();
         let message = timeout(Duration::from_secs(2), socket.next())
             .await
             .unwrap()
