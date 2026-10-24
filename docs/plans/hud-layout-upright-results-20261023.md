@@ -148,9 +148,11 @@ second fix in `stamp_card.gd`.
 ## Open questions for Nick
 
 1. Benchmark: should match chrome (center facts, feed) be hidden during a
-   benchmark rather than pushed below the banner? Issue item 2 prefers hiding.
-   Hiding changes the measured scene relative to earlier reports, so this lane
-   kept it visible and pushed it down. Nothing is shrunk.
+   benchmark rather than pushed below the banner? **Decided in wave 2 (#439):
+   hidden.** The match HUD is hidden for the whole benchmark and the benchmark
+   HUD replaces the banner. It clears the frame counter through the same
+   reserved-region rule (`HudRegions.column_top`). The measured scene changed, so
+   the result's workload id changed and older results do not compare.
 2. At 150 percent HUD with large text the corner round line ellipsizes
    (`SPECTATING //...`), hiding the round state; it also happens on main, at
    every 16:9 size, because the corner is one line by the #412 rule

@@ -130,15 +130,47 @@ discarded, followed by twenty scored seconds. V-sync and the frame cap are
 temporarily disabled; completion, cancellation and failure restore the user's
 settings without saving the temporary graphics draft.
 
-The result shows average FPS, one 1% low, p50/p95/p99/maximum frame time and
-slow-frame counts. The 1% low is 1000 divided by the mean milliseconds of the
-slowest `ceil(frame_count * 0.01)` frames. Monotonic whole-frame intervals
-measure visible cadence, not GPU execution time. The JSON and CSV also retain
-the adapter, renderer, engine, resolutions, applied settings, sample count and
-replay digest. Use **Open results folder** to find the local artifacts. No raw
-participant or network recording is saved.
+The camera is a scripted orbit that follows nobody: no fighter is hidden for an
+eye view and no viewmodel is drawn. The match HUD is hidden for the whole run,
+for every preset alike. The benchmark's own readout (`BenchmarkHud`) names the
+step (recording, loading, warming up, measuring), shows overall progress against
+the nominal content time (28 s plus 28 s per preset; loading between presets is
+not counted, so the remaining time reads "about"), and a live frame rate and
+frame time over roughly the last second, refreshed four times a second. While a
+preset is scored it also shows that preset's running average (scored frames over
+scored seconds). Live figures are labelled live and are never the result. The
+readout starts below the player's frame counter when that counter is on, using
+the same reserved-region rule as the match HUD. Esc cancels; the Benchmark page
+then says the run was cancelled and nothing was saved.
+
+A completed result leads with **Benchmark complete** and, per preset, average
+FPS, one 1% low, the 99th percentile frame time and frames at or above 33 ms,
+then one frame-time timeline: every scored frame, one row per preset on a shared
+scale, with 60 and 30 FPS guides. **Details** holds p50/p95/p99.9/maximum frame
+time, the 0.1% low, frames at or above 50 ms, hitches against the trailing
+second, the 3D render size, system, settings, definitions and the last
+compatible run. Run again, Copy summary, Open results folder and Back to menu
+stay on screen without scrolling. A stopped run (settings changed, window
+resized, frames stopped for two seconds, a preset or the match did not load)
+says **Benchmark stopped** with the reason and has no figures.
+
+The 1% low is 1000 divided by the mean milliseconds of the slowest
+`ceil(frame_count * 0.01)` frames. Average FPS is frame count over measured time.
+Monotonic whole-frame intervals measure visible cadence, not GPU execution time,
+display latency or input latency. Report schema 3 keeps every scored interval in
+whole microseconds (`runs[].frame_us`); `FrameStats` on those values reproduces
+every displayed figure and the timeline. The JSON and CSV also retain the
+adapter, renderer, engine, build, resolutions, applied settings, sample count
+and replay digest. Use **Open results folder** to find the local artifacts. No
+raw participant or network recording is saved.
 
 Compared presets within a run receive the same fight; a new run records a new
+fight. A result is compared with an earlier one only when their `compatibility`
+keys match: schema, workload id, metric version, engine and build, OS, renderer,
+driver, adapter, graphics API, output size, and each preset's 3D render size and
+settings. The workload id changes whenever the measured scene changes (hiding
+the match HUD was such a change), so older results never compare as equal.
+Matching keys rule out unlike runs; they do not make two recordings the same
 fight. Repeated runs and a representative workload matter before judging small
 differences. This Arena Duel scene does not establish 64-player capacity or
 island performance. Headless checks cover arithmetic and lifecycle, not hardware
