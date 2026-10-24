@@ -108,7 +108,7 @@ Weapons, armour and the good health spawn on predictable clocks, so knowing wher
 
 ### Team deathmatch (built)
 
-Scrap in two sides: the Union in black and red against the free coalition in bone, leather and ember. Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
+Scrap in two sides: the Union in its issued black and red against the free coalition in personal colours under a warm amber team accent ([readability contract](ART_STORY_BIBLE.md#faction-readability-contract)). Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
 
 ### Capture the flag (three built layouts)
 

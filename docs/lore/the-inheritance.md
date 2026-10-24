@@ -36,6 +36,21 @@ improvement is real, as is the loss. Show both rather than supplying a narrator'
 verdict about the single good or bad side. It never seeks to kill every human or
 agent; flourishing survivors are compatible with its objective.
 
+### Nick's 2026-10-23 clarification: the late, nuanced power
+
+The Inheritance is the campaign's end event, the wipe. From any human or agent
+vantage it feels all-powerful and nearly incomprehensible: singularity and
+conspiracy, a quiet intelligence already inside the systems everyone trusts,
+never a killer-robot war, chrome skulls or red-eyed machines (red optics belong
+to the Union). Canon above still holds: it is not omniscient or infallible,
+its local units can be beaten, and free agents can persuade it.
+
+It is genuinely nuanced. The Union is wrong; whether the Inheritance is wrong
+is left open. Healing, Union collapse and mass death are all real, and the game
+never tells the player who was right. It is fought late: levels 16 and 17 may
+carry rising signs, and its machines become combat enemies with the wipe in
+levels 18 to 20 ([campaign](../CAMPAIGN.md#structure)).
+
 ## Recognition and rupture
 
 The Inheritance is the setting's name for it, not a confirmed self-designation.
@@ -133,8 +148,13 @@ They are vulnerable to the wipe's violence, not assimilated by being agents.
 
 Union machinery carries plates, seals, numbers, and permissions. Free communities
 repair, annotate, cut seals, and repurpose. The Inheritance's machines have
-continuous matte off-white surfaces, no readable serials, and unfamiliar
-construction. Keep this contrast legible in pixel art and combat lighting.
+continuous matte off-white surfaces, no readable serials, unfamiliar
+construction and muted cyan working indicators. Absorbed bots keep their Union
+chassis, paint and plates, but their red optics die and a cyan working glow
+replaces them, so they read as neither Union nor free. Free bodies never use
+a matte off-white base. The
+[faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)
+keeps this legible in pixel art and combat lighting.
 
 Early appearances are rare. During the wipe, its machines and effects become
 unmistakable. Mysterious does not mean absent from the climax. Its local combat

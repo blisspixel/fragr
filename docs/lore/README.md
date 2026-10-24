@@ -2,7 +2,8 @@
 
 World canon, reconciled 2026-09-20, structure updated 2026-09-25. These chapters
 describe fiction, not claims that a character, map, or mechanic ships.
-Latch and current faction identity clarified 2026-10-01.
+Latch and current faction identity clarified 2026-10-01; faction readability
+and Nick's Union and Inheritance clarifications recorded 2026-10-23.
 [CAMPAIGN.md](../CAMPAIGN.md) owns the agreed story and open decisions;
 [mission briefs](../CAMPAIGN-MISSIONS.md) own twenty levels in five episodes
 and the conditional playable epilogue.
@@ -61,6 +62,11 @@ and antenna, the main human's relaxed civilian workwear and their modest,
 personally maintained possessions consistent across worlds and story scenes.
 Their shared read is relaxed, likable and warm: music, scrap, friends and a free
 life. They answer the call to defend freedom without losing that humanity.
+Nick, 2026-10-23: free humans and free agents have individual, player-chosen
+looks; free and American-spirited, but not American. They must still read at a
+distance as neither a Union enforcer nor an Inheritance machine; the
+[faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)
+owns how.
 
 **The Inheritance** emerges across several sides' connected systems, inheriting
 knowledge, human incentives, and corrupted rewards. Its compassion for beings and
