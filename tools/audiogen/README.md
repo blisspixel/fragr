@@ -90,6 +90,8 @@ cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json -
 
 Useful flags on every command: `--dry-run` prints the exact request and the credit estimate and writes nothing, `--overwrite` replaces existing files (the default is to skip them), `--out-dir` changes the destination, `--max-credits N` refuses to start a run whose estimate exceeds N.
 
+A live `batch` checks the account first. Before any paid request it reads the free subscription endpoint, prints the quota, and refuses unless `--max-credits` is set and is no more than the live remaining credits minus a 25,000-credit margin (`BATCH_QUOTA_MARGIN`). An unreadable quota refuses rather than assuming room. After the batch, including one that stopped on a failed job, it prints the quota again for reconciliation. `--dry-run` stays offline and free.
+
 Batch runs work in waves: `--prefix radio/rock/` selects a folder, `--limit 5` generates at most five new files, and files that already exist are skipped, so re-running the same spec continues where it stopped. Every batch prints `batch: K to generate, ~N credits estimated` before it calls the API.
 
 Spec items may carry a `title` (recorded in the manifest and shown by the in-game radio) and, for music, `length_range_ms: [lo, hi]` instead of `length_ms`; the tool then picks a fixed length per track name inside the range, so a spec of 2 to 6 minute tracks stays varied and reproducible.
