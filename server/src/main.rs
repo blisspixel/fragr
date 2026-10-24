@@ -1,6 +1,9 @@
 use clap::{CommandFactory, FromArgMatches, Parser};
-use fragr_server::logging::{init_logging, ColorChoice};
+use fragr_server::logging::{
+    ansi_for_stream, init_logging, init_overview_logging, ColorChoice, OutputMode,
+};
 use fragr_server::run::{run_server, ServerOptions};
+use std::io::IsTerminal;
 use std::path::PathBuf;
 
 // Eq is out because a threshold is a float; PartialEq still serves the tests.
@@ -161,8 +164,28 @@ struct Args {
     )]
     color: ColorChoice,
 
+    /// Terminal output for a dedicated server: auto, overview, or log.
+    /// Auto shows the operator overview when stdout and stderr are a
+    /// terminal, and the full event log when redirected or run as a service.
+    /// Log prints every frag, pickup and STATUS line. RUST_LOG still applies.
+    #[arg(
+        long,
+        value_enum,
+        help_heading = "Hosting and access",
+        conflicts_with_all = [
+            "desktop_host",
+            "ready_line",
+            "local_mission",
+            "local_run_preview",
+            "bench",
+            "bench_verify_trace"
+        ]
+    )]
+    output: Option<OutputMode>,
+
     /// Print the status report (tick time, bytes, budget use) this often, in
-    /// seconds. Zero turns it off.
+    /// seconds. The overview prints its one-line status at this cadence
+    /// instead. Zero turns the periodic report off.
     #[arg(long, default_value_t = 60, help_heading = "Hosting and access")]
     status_every_s: u64,
 
@@ -192,8 +215,8 @@ struct Args {
     #[arg(long, help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     allow_list: Option<PathBuf>,
 
-    /// Local venue desk on this terminal: who, kick, ban, say, and stats.
-    /// Closing the input leaves the match running.
+    /// Local venue desk on this terminal: status, who, kick, ban, say, stats,
+    /// shows, next and map. Type help. Closing the input leaves the match running.
     #[arg(
         long,
         default_value_t = false,
@@ -233,8 +256,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         return Err("--desktop-host requires an explicit --bind address".into());
     }
     // In benchmark mode the JSON report is the only thing on stdout, so logs
-    // go to stderr and only warnings survive.
-    init_logging(args.bench.is_some() || args.local_run_preview, args.color);
+    // go to stderr and only warnings survive. A parent-owned child keeps the
+    // plain log: its stdout carries machine readiness, not an operator card.
+    let dedicated = !args.desktop_host
+        && !args.ready_line
+        && args.local_mission.is_none()
+        && !args.local_run_preview
+        && args.bench.is_none()
+        && args.bench_verify_trace.is_none();
+    let overview = dedicated && args.output.unwrap_or_default().resolve_overview();
+    if overview {
+        init_overview_logging(args.color);
+    } else {
+        init_logging(args.bench.is_some() || args.local_run_preview, args.color);
+    }
     if args.local_run_preview {
         let preview =
             fragr_server::local::preview_run(fragr_server::protocol::MissionId::RecallNotice)?;
@@ -390,6 +425,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         origin_allow: admission.origins,
         spectator_tickets: admission.spectator_tickets,
         human_summary: !args.ready_line && !args.desktop_host,
+        overview: overview.then(|| fragr_server::operator::Style {
+            ansi: ansi_for_stream(args.color, std::io::stdout().is_terminal()),
+        }),
     };
     let started = if args.ready_line {
         fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
@@ -493,6 +531,44 @@ mod tests {
 
         let args = Args::try_parse_from(["fragr-server", "--color", "never"]).expect("color never");
         assert_eq!(args.color, ColorChoice::Never);
+    }
+
+    #[test]
+    fn output_is_a_dedicated_choice_and_parent_owned_children_refuse_it() {
+        let args = Args::try_parse_from(["fragr-server"]).unwrap();
+        assert_eq!(args.output, None, "auto is the unspoken default");
+        for (word, mode) in [
+            ("auto", OutputMode::Auto),
+            ("overview", OutputMode::Overview),
+            ("log", OutputMode::Log),
+        ] {
+            let args = Args::try_parse_from(["fragr-server", "--output", word]).unwrap();
+            assert_eq!(args.output, Some(mode));
+        }
+        assert!(Args::try_parse_from(["fragr-server", "--output", "tui"]).is_err());
+        assert!(
+            Args::try_parse_from(["fragr-server", "--output", "overview", "--console"]).is_ok()
+        );
+        for refused in [
+            &["fragr-server", "--output", "log", "--ready-line"][..],
+            &["fragr-server", "--output", "log", "--desktop-host"][..],
+            &["fragr-server", "--output", "log", "--bench", "4"][..],
+            &["fragr-server", "--output", "log", "--local-run-preview"][..],
+            &[
+                "fragr-server",
+                "--output",
+                "overview",
+                "--local-mission",
+                "recall_notice",
+            ][..],
+        ] {
+            assert!(Args::try_parse_from(refused).is_err(), "{refused:?}");
+        }
+        let mut help = Vec::new();
+        Args::command().write_help(&mut help).unwrap();
+        let help = String::from_utf8(help).unwrap();
+        assert!(help.contains("--output <OUTPUT>"), "{help}");
+        assert!(help.contains("status, who, kick"), "{help}");
     }
 
     #[test]
@@ -1137,6 +1213,7 @@ mod tests {
                     origin_allow: Vec::new(),
                     spectator_tickets: false,
                     human_summary: false,
+                    overview: None,
                 },
                 async move {
                     let _ = shutdown_rx.await;

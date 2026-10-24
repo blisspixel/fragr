@@ -922,7 +922,7 @@ impl NetServer {
             }
             Err(error) => return Err(error),
         };
-        tracing::info!("WebSocket server listening on {}", addr);
+        tracing::info!(target: crate::logging::STARTUP_TARGET, "WebSocket server listening on {}", addr);
 
         Ok(Self {
             listener,

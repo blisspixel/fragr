@@ -104,6 +104,9 @@ pub struct ServerOptions {
     pub spectator_tickets: bool,
     /// Dedicated server summary line for humans after preflight checks complete.
     pub human_summary: bool,
+    /// Operator overview on stdout (ready card and pulse lines) in place of
+    /// the STATUS JSON log line. `None` keeps the plain log stream.
+    pub overview: Option<crate::operator::Style>,
 }
 
 impl Default for ServerOptions {
@@ -130,6 +133,7 @@ impl Default for ServerOptions {
             origin_allow: Vec::new(),
             spectator_tickets: false,
             human_summary: false,
+            overview: None,
         }
     }
 }
@@ -566,13 +570,15 @@ async fn run_server_impl(
         },
     )?;
     tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
         "Status preflight: {probe_addr} answered. {map}, {kind}.",
         map = facts.map,
         kind = facts.kind
     );
-    crate::preflight::log_join_checks(bound).await;
+    let joins = crate::preflight::join_checks(bound).await;
+    let desk_wanted = options.console && options.authored.is_none() && !options.campaign_run;
     if options.human_summary {
-        let addr = crate::preflight::primary_join_addr(bound);
+        let addr = joins.primary(bound);
         let map_name = session.state.map.name();
         let mode_name = if session.state.map.is_authored() {
             "Campaign"
@@ -581,6 +587,41 @@ async fn run_server_impl(
         };
         println!("ready ws://{addr} {map_name} {mode_name} Ctrl-C stops");
     }
+    if let Some(style) = options.overview {
+        let facts = crate::operator::ReadyFacts {
+            version: env!("FRAGR_CLI_VERSION").to_string(),
+            map: session.state.map.name().to_string(),
+            rules: if session.state.map.is_authored() {
+                "Campaign".to_string()
+            } else {
+                session.state.config.rules.name()
+            },
+            campaign: options.authored.is_some() || options.campaign_run,
+            playlist,
+            map_rotate: rotate,
+            bot_policy: options.bot_policy,
+            bots: options.bots,
+            fill_target: options.fill_target,
+            joins: joins.clone(),
+            ticketed: options.join_secret.is_some(),
+            spectator_tickets: options.spectator_tickets && options.join_secret.is_some(),
+            ban_list: options.access.ban_list.is_some(),
+            allow_list: options.access.allow_list.is_some(),
+            connection_cap: crate::net::connection_cap(),
+            address_cap: crate::net::address_cap(),
+            desk: match (options.console, desk_wanted) {
+                (false, _) => crate::operator::DeskState::Off,
+                (true, true) => crate::operator::DeskState::On,
+                (true, false) => crate::operator::DeskState::Unavailable,
+            },
+            status_every_s: options.status_every_s,
+            lan_beacon: crate::announce::should_announce(bound),
+        };
+        print!("{}", crate::operator::ready_card(&facts, style));
+    }
+    let mut pulse = options
+        .overview
+        .map(|_| crate::operator::PulseClock::new(options.status_every_s));
     let _beacon = crate::announce::should_announce(bound)
         .then(|| AbortOnDrop(tokio::spawn(crate::announce::broadcast_loop(bound.port()))));
     if let Some(tx) = ready {
@@ -588,11 +629,16 @@ async fn run_server_impl(
     }
 
     if !session.state.map.is_authored() {
-        tracing::info!("Rules: {}", session.state.config.rules.name());
+        tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
+            "Rules: {}",
+            session.state.config.rules.name()
+        );
     }
     session.spawn_bots(options.bots);
     if options.authored.is_none() && !options.campaign_run {
         tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
             "{}",
             crate::preflight::population_note(
                 session.bots.len(),
@@ -606,6 +652,7 @@ async fn run_server_impl(
         tracing::info!("Solo Broadcast Episode 0 armed (Calibration / Larak Lot)");
     }
     tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
         "Map: {} (id {}){}",
         session.state.map.name(),
         session.state.map.id(),
@@ -621,17 +668,26 @@ async fn run_server_impl(
     let mut tick_interval = tokio::time::interval(TICK);
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     let mut stats = crate::bench::TickStats::new();
-    let mut status_interval = (options.status_every_s > 0).then(|| {
-        let mut i = tokio::time::interval(Duration::from_secs(options.status_every_s));
-        i.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        i
-    });
-    tracing::info!("Simulation seed: {}", options.seed);
+    // The overview's pulse replaces the STATUS JSON line on a terminal.
+    let mut status_interval =
+        (options.status_every_s > 0 && options.overview.is_none()).then(|| {
+            let mut i = tokio::time::interval(Duration::from_secs(options.status_every_s));
+            i.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            i
+        });
+    tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
+        "Simulation seed: {}",
+        options.seed
+    );
 
-    tracing::info!("Game loop starting (20 Hz tick)");
+    tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
+        "Game loop starting (20 Hz tick)"
+    );
 
     let mut desk_rx = None;
-    let desk_task = if options.console && options.authored.is_none() && !options.campaign_run {
+    let desk_task = if desk_wanted {
         match spawn_venue_desk(options.access.ban_list.clone()) {
             Ok((calls, task)) => {
                 desk_rx = Some(calls);
@@ -674,7 +730,8 @@ async fn run_server_impl(
                     let now = std::time::Instant::now();
                     let clients_lock = clients.lock().await;
                     let connections = clients_lock.len();
-                    if tracker.due(now) {
+                    let refreshed = tracker.due(now);
+                    if refreshed {
                         let samples: Vec<crate::metrics::ClientSample<'_>> = clients_lock
                             .iter()
                             .map(|client| crate::metrics::ClientSample {
@@ -691,6 +748,12 @@ async fn run_server_impl(
                     // The tracker does not know the match. The sheet does.
                     if let Some(ops) = next.ops.as_mut() {
                         ops.night = session.sheet.totals();
+                    }
+                    // Once a second, with the snapshot `/status` serves.
+                    if let (Some(clock), Some(style), true) = (pulse.as_mut(), options.overview, refreshed) {
+                        if clock.due(now, &next) {
+                            println!("{}", crate::operator::pulse_line(&next, crate::metrics::process_uptime(), style));
+                        }
                     }
                     if let Ok(mut slot) = live.try_write() {
                         *slot = next;
@@ -725,7 +788,19 @@ async fn run_server_impl(
             }
 
             Some(call) = async { desk_rx.as_mut().expect("guarded").recv().await }, if desk_rx.is_some() => {
-                let outcome = session.desk(call.verb);
+                let outcome = match call.verb {
+                    crate::desk::DeskVerb::Status => {
+                        let who = session.desk(crate::desk::DeskVerb::Who);
+                        let snapshot = live.read().await.clone();
+                        let style = crate::operator::Style { ansi: false };
+                        crate::desk::DeskOutcome::Text(crate::operator::desk_status(
+                            &crate::operator::pulse_line(&snapshot, crate::metrics::process_uptime(), style),
+                            &joins,
+                            who.text(),
+                        ))
+                    }
+                    verb => session.desk(verb),
+                };
                 if let crate::desk::DeskOutcome::Close { client_id, banned, .. } = &outcome {
                     let clients_lock = clients.lock().await;
                     if let Some(client) = clients_lock.iter().find(|client| client.id == *client_id) {
@@ -798,7 +873,7 @@ fn spawn_venue_desk(
         })?;
     let task = tokio::spawn(async move {
         println!(
-            "Venue desk. who, kick <name>, ban <name> [reason], say <sentence>, stats. Closing this input leaves the match running."
+            "Venue desk. help, status, who, kick <name>, ban <name> [reason], say <sentence>, stats, shows, next, map <map> <mode>. Closing this input leaves the match running."
         );
         let mut out = std::io::stdout();
         crate::desk::serve(line_rx, call_tx, ban_list, &mut out).await;

@@ -16,6 +16,7 @@ pub mod mission;
 pub mod movement;
 pub mod navigation;
 pub mod net;
+pub mod operator;
 mod preflight;
 pub mod protocol;
 pub mod resume;
