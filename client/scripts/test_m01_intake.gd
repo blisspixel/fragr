@@ -37,7 +37,7 @@ func _run() -> void:
 	intake.configure_map(_info(1001, -9.0))
 	_expect(intake.get_child_count() == 0 and not intake.is_processing(), "unrecognized layouts stay bare")
 	intake.configure_map(_info())
-	for room: String in ["Skyline", "Street", "Bay", "Hall", "Service", "Records"]:
+	for room: String in ["Skyline", "Street", "Bay", "Hall", "Service", "Reception", "Records", "Transfer"]:
 		_expect(room in intake.rooms and intake.has_node(room), "room dressed: " + room)
 	_expect(intake.lamps >= 14, "warm service lamps shape the rooms, found %d" % intake.lamps)
 	var warm: int = 0
@@ -86,6 +86,43 @@ func _run() -> void:
 	_expect(intake.broken, "the same attempt keeps the broken screen")
 	intake.apply_state({"id": MissionState.ID, "attempt": 2})
 	_expect(not intake.broken, "a continue restores the building's loop")
+	var feeds: Array[Node] = intake.find_children("CustodyFeed", "MeshInstance3D", true, false)
+	_expect(feeds.size() == 1, "transfer control carries the custody lift feed")
+	var feed_at: Vector3 = (feeds[0] as Node3D).position
+	# On the back wall (x -12 to -5), beside the file monitor (x -8.3 to -6.7)
+	# and low enough to stay in view from the record console.
+	_expect(feed_at.z > 26.0 and feed_at.x < -9.3 and feed_at.x > -11.0 and feed_at.y > 5.5 and feed_at.y < 6.3, "the feed hangs beside the record console, clear of the file monitor")
+	_expect(intake.find_children("Copy_WORLD_M01_CUSTODY_FEED", "Label3D", true, false).size() == 1, "the feed is labelled with its destination")
+	_expect(intake.feed_frame() == 0 and not intake.transport_left, "the custody car waits at the landing before the record")
+	intake.apply_state({"id": MissionState.ID, "attempt": 2, "phase": "find_transfer"})
+	intake.apply_state({"id": MissionState.ID, "attempt": 2, "phase": "reach_lift"})
+	_expect(intake.transport_left and intake.feed_frame() == 0, "reading the record starts the car's departure after a beat")
+	intake._advance_feed(M01Intake.FEED_DELAY_SECONDS + M01Intake.FEED_STEP_SECONDS * 3.0 + 0.01)
+	_expect(intake.feed_frame() == 3, "the car sinks one feed frame per step")
+	# Opening the lift gate repeats MapInfo; the rebuilt building keeps what
+	# this attempt did to it.
+	intake.break_screen()
+	intake.configure_map(_info())
+	_expect(intake.feed_frame() == 3 and intake.transport_left and intake.broken, "a repeated MapInfo keeps the leaving car and the broken screen")
+	intake._advance_feed(M01Intake.FEED_STEP_SECONDS + 0.01)
+	_expect(intake.feed_frame() == 4, "the car keeps sinking after the rebuild")
+	intake._advance_feed(60.0)
+	_expect(intake.feed_frame() == M01IntakeArt.FEED_FRAMES - 1, "the shaft ends empty")
+	intake.apply_state({"id": MissionState.ID, "attempt": 2, "phase": "departed"})
+	_expect(intake.feed_frame() == M01IntakeArt.FEED_FRAMES - 1, "departure keeps the empty shaft")
+	intake.apply_state({"id": MissionState.ID, "attempt": 3, "phase": "find_transfer"})
+	_expect(not intake.transport_left and intake.feed_frame() == 0, "a continue brings the car back to the landing")
+	var last: Image = M01IntakeArt.custody_feed((M01IntakeArt.FEED_FRAMES - 1) * M01IntakeArt.FEED_DROP_STEP)
+	var first: Image = M01IntakeArt.custody_feed(0)
+	_expect(first.get_pixel(31, 18) != last.get_pixel(31, 18), "the car and Latch are in the first frame and gone from the last")
+	var hoist: AudioStreamWAV = M01Intake.motor_stream()
+	_expect(hoist.data.size() > 0 and hoist.loop_mode == AudioStreamWAV.LOOP_DISABLED, "the hoist plays once")
+	var late: M01Intake = M01Intake.new()
+	root.add_child(late)
+	late.configure_map(_info())
+	late.apply_state({"id": MissionState.ID, "attempt": 1, "phase": "reach_lift"})
+	_expect(late.transport_left and late.feed_frame() == M01IntakeArt.FEED_FRAMES - 1, "joining after the record shows the shaft already empty")
+	late.queue_free()
 	intake.clear_map()
 	await process_frame
 	_expect(intake.get_child_count() == 0 and intake.lamps == 0 and not intake.is_processing(), "clearing the map removes every dressing node")
@@ -93,5 +130,5 @@ func _run() -> void:
 	intake.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_m01_intake: PASS authored guard, six dressed rooms, warm local lamps, merged props, looped address and surviving caption")
+		print("test_m01_intake: PASS authored guard, eight dressed rooms, warm local lamps, merged props, looped address, surviving caption and the custody car leaving")
 	quit(0 if failures == 0 else 1)

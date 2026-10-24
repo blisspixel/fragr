@@ -29,17 +29,24 @@ stalls and a recall notice pasted over an old home-helper advert; the bay holds
 stock-tagged belongings, Latch's basket and ledger, confiscation bins and the
 faint confiscated radio; the hall's records screen loops Voss's address under
 the official caption track, labelled as such, and breaks to static when shot
-while *Continuity assured.* stays over the noise; transfer control shows Latch's
-file photo. Warm caged service lamps work under the cold institutional strips.
-`client/qa/m01-golden.json` frames every room and `m01-golden-guards.json` the
-placed guards. Still open: the Turn beat (no transport is seen leaving from
-transfer control), Address and Recall opening stills, Clerk and Sweeper art,
-fresh-player pacing and GPU performance.
+while *Continuity assured.* stays over the noise; a wall clock, dropped number
+tickets and form pigeonholes keep the public rooms in use. Transfer control
+shows Latch's file photo on the record console and, beside it, the custody lift
+camera: Latch waits behind the car's bars, and once the record is read the car
+sinks toward the correction ward with a hoist clunk (the Turn). A continue
+brings the car back to the landing; a player who joins after the record sees
+the empty shaft. Warm caged service lamps work under the cold institutional
+strips. The opening's ADDRESS and RECALL pages show authored pixel stills (Voss
+at the podium; the sealed workshop door and the custody van with Latch behind
+its bars). `client/qa/m01-golden.json` frames every room,
+`m01-golden-guards.json` the placed guards and `m01-records.json` the full
+route through the Turn. Still open: painted Clerk and Sweeper art beyond the
+current atlases, opening narration, fresh-player pacing and GPU performance.
 
 The current [map document](../../server/maps/m01-recall-notice.json) connects the
 route below with both walking stairs, the balcony underpass and indoor spawns.
 Normal-session tests traverse both approaches. `client/qa/m01.json` covers intake
-and stairs; `m01-facility.json` inspects the opening's details. The fourteen-state
+and stairs; `m01-facility.json` inspects the opening's details. The fifteen-state
 `m01-records.json` exercises the full draft and record/lift controls. It tracks
 named guards across rooms, including early defeats, and fails on player death.
 Passing automation does not establish fresh-player pacing or fun.
@@ -85,7 +92,8 @@ subtitles, original insignia and deliberate fascist parallels. A minor bureaucra
 absurdity may precede the seizure; do not play the violation itself as a joke.
 
 `CampaignOpening` implements the five keyed text beats in
-`client/i18n/story.en.po`; optional voice and movie resources remain unbuilt.
+`client/i18n/story.en.po`, each over a still; optional voice and movie
+resources remain unbuilt.
 Use those same beats for future scene edits and keep essential words out of
 baked image/video text.
 An animated version uses the same character references, palette, coarse surfaces
@@ -250,8 +258,8 @@ burst cycle, with the counters as islands to break line of sight.
    glass the prisoner lift's light, the landmark you will ride down.
 5. **Set piece.** The records mezzanine crossfire, with the Rifle found on the
    stair landing before it. Then reception: two Clerks and a Sweeper.
-6. **Turn.** Transfer control's glass: the transport leaves as you watch. The
-   record says where it goes: the correction ward, one level down.
+6. **Turn.** Transfer control's custody lift camera: Latch's car leaves as you
+   watch. The record says where it goes: the correction ward, one level down.
 7. **Climax.** Sorting and dispatch, then three transfer guards at the final
    threshold, with resupply in the dispatch cabinets.
 8. **Exit.** The lift. No fight inside it.

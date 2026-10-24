@@ -17,10 +17,10 @@
     {"name":"reception","camera":"overview","camera_position":[-15.5,4.65,14],"camera_look_at":[-16,4.2,21],"allow_empty_roster":true,"note":"Records reception counter and its two onward routes."},
     {"name":"stacks","camera":"overview","camera_position":[-25,4.65,17.5],"camera_look_at":[-36,4.6,23],"allow_empty_roster":true,"note":"File islands, never a maze."},
     {"name":"stacks_boxes","camera":"overview","camera_position":[-31,4.65,23.5],"camera_look_at":[-34.5,4.2,20.5],"allow_empty_roster":true,"note":"Archive boxes on the stack faces, read at walking distance."},
-    {"name":"sorting_west","camera":"overview","camera_position":[-37,4.65,31],"camera_look_at":[-27,4.5,37],"allow_empty_roster":true,"note":"Sorting floor from the stacks."},
+    {"name":"sorting_west","camera":"overview","camera_position":[-41.5,4.65,31],"camera_look_at":[-27,4.4,37],"allow_empty_roster":true,"note":"Sorting floor from the stacks."},
     {"name":"sorting_east","camera":"overview","camera_position":[-17.5,4.65,31.5],"camera_look_at":[-28,4.5,37],"allow_empty_roster":true,"note":"Sorting floor from the bypass."},
     {"name":"dispatch","camera":"overview","camera_position":[-11,4.65,36],"camera_look_at":[-3,4.5,34],"allow_empty_roster":true,"note":"Dispatch desk and the final threshold."},
-    {"name":"transfer_control","camera":"overview","camera_position":[-3,4.65,28.5],"camera_look_at":[-7.5,4.2,23],"allow_empty_roster":true,"note":"Latch's file on the record console."},
+    {"name":"transfer_control","camera":"overview","camera_position":[-3,4.65,18.5],"camera_look_at":[-8.6,4.9,26],"allow_empty_roster":true,"note":"The record console beside the custody lift feed: Latch waits behind the bars until the record is read."},
     {"name":"transfer_console","camera":"overview","camera_position":[-7.5,4.75,20.8],"camera_look_at":[-7.5,3.9,23.2],"allow_empty_roster":true,"note":"Close on the record console."},
     {"name":"lift_gate","camera":"overview","camera_position":[-3,4.65,22],"camera_look_at":[8,4.5,22],"allow_empty_roster":true,"note":"The custody lift as the exit landmark."}
   ]

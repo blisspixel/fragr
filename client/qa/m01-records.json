@@ -16,7 +16,8 @@
     {"name":"service_bypass","camera":"first_person","walk_to":[[-17.3,3,27],[-21,3,27],[-16,3,26]],"combat":{"kind":"sweeper","evade_tells":true,"required":["bypass_sentry"]},"look_at":[-21,4.8,27],"note":"The doorway crossing clears bypass_north_screen east of its face, not straight through it."},
     {"name":"dispatch","camera":"first_person","walk_to":[[-18,3,27],[-21,3,27],[-15,3,27],[-18,3,27],[-17.3,3,31],[-28,3,31],[-41.5,3,31],[-41.5,3,40],[-32,3,40],[-32,3,38.5],[-22,3,38.5],[-22,3,41],[-22,3,36],[-11,3,36]],"combat":{"kind":"union","evade_tells":true,"required":["dispatch_sweeper","dispatch_officer","dispatch_guard"]},"look_at":[-7,4.5,34]},
     {"name":"transfer_control","camera":"first_person","walk_to":[[-11,3,39],[-11,3,42],[-3,3,42],[-10.5,3,42],[-11,3,39],[-11,3,32],[-3,3,32],[-3,3,28]],"combat":{"kind":"union","evade_tells":true,"required":["transfer_clerk","transfer_sweeper_west","transfer_sweeper_east"]},"look_at":[-7.5,3.6,22.988]},
-    {"name":"record_recovered","camera":"first_person","walk_to":[[-3,3,28],[-3,3,22],[-7.5,3,21.5]],"look_at":[-7.5,3.6,22.988],"interact":"reach_lift"},
+    {"name":"record_recovered","camera":"first_person","walk_to":[[-3,3,28],[-3,3,22],[-7.5,3,21.5]],"look_at":[-7.5,3.6,22.988],"interact":"reach_lift","look_after_interact":[-9.1,5.15,25.0],"strip_frames":12,"strip_interval_seconds":0.6,"note":"The Turn as the player sees it: reading the record at the console, the custody lift feed beside the monitor shows the car sink toward the correction ward."},
+    {"name":"transport_leaves","camera":"first_person","look_at":[-10.9,6.15,26.72],"note":"After the Turn: the custody lift feed holds the empty shaft."},
     {"name":"departure","camera":"first_person","walk_to":[[-3,3,22],[7,3,22],[9.5,3,24.5]],"look_at":[9.5,4.4,25.988],"interact":"departed"}
   ]
 }

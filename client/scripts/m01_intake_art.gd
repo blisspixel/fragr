@@ -422,6 +422,113 @@ static func frontage_glow() -> Texture2D:
 	_cache["frontage_glow"] = made
 	return made
 
+## Rows the custody car sinks per feed frame, and the frame count from the car
+## at the landing to the empty shaft.
+const FEED_DROP_STEP: int = 2
+const FEED_FRAMES: int = 26
+
+## The custody lift camera, frame by frame: the car waits at the landing with
+## Latch behind its bars, then sinks out of shot toward the correction ward.
+## The last frame is the empty shaft.
+static func custody_frames() -> Array[Texture2D]:
+	var frames: Array[Texture2D] = []
+	for index: int in range(FEED_FRAMES):
+		var key: String = "custody_%d" % index
+		if not _cache.has(key):
+			var made: ImageTexture = ImageTexture.create_from_image(custody_feed(index * FEED_DROP_STEP))
+			made.resource_name = "m01_" + key
+			_cache[key] = made
+		frames.append(_cache[key])
+	return frames
+
+## One custody camera frame with the car `drop` rows below the landing. Latch
+## keeps their canonical look: a tall CRT head with a warm phosphor face, one
+## antenna on the viewer's right, scuffed bone and rust plates and unequal
+## forearm repairs. The restraint band and the cage are issued equipment.
+static func custody_feed(drop: int) -> Image:
+	var shaft: Color = Color("1b1e21")
+	var image: Image = _image(64, 48, shaft)
+	# Shaft walls, guide rails and the cast slab joints, lit from the landing.
+	_rect(image, 0, 0, 9, 48, Color("2a2d30"))
+	_rect(image, 55, 0, 9, 48, Color("2a2d30"))
+	for y: int in [14, 30, 46]:
+		_rect(image, 0, y, 9, 1, Color("383b3e"))
+		_rect(image, 55, y, 9, 1, Color("383b3e"))
+	_rect(image, 10, 0, 2, 48, GUNMETAL)
+	_rect(image, 52, 0, 2, 48, GUNMETAL)
+	for y: int in range(0, 48):
+		if _noise(3, y, 61) > 0.8:
+			_put(image, 4, y, Color("232629"))
+	# Hoist cables from the head of the shaft down to the car's crosshead.
+	var top: int = 6 + drop
+	for x: int in [26, 38]:
+		_rect(image, x, 0, 1, mini(top, 48), Color("0f1012"))
+	if top < 48:
+		_custody_car(image, top)
+	# The landing sill stays at the top of shot.
+	_rect(image, 0, 0, 64, 3, UNION_STEEL)
+	_rect(image, 0, 3, 64, 1, Color("45464c"))
+	# Amber run lamp in the corner: lit while the car moves and after.
+	if drop > 0:
+		for row: int in range(4):
+			_rect(image, 3 + row, 6 + row, 7 - row * 2, 1, PHOSPHOR)
+	else:
+		_rect(image, 4, 6, 3, 3, PHOSPHOR.darkened(0.5))
+	# Camera scanlines.
+	for y: int in range(1, 48, 2):
+		for x: int in range(64):
+			image.set_pixel(x, y, image.get_pixel(x, y).darkened(0.2))
+	return image
+
+static func _custody_car(image: Image, top: int) -> void:
+	var steel: Color = UNION_STEEL
+	var bar: Color = Color("4a4b52")
+	# Crosshead with the issued seal, then the dark car interior.
+	_rect(image, 13, top, 38, 3, steel)
+	_diamond(image, 32, top + 1, 2, UNION_RED, BONE)
+	_rect(image, 14, top + 3, 36, 37, Color("121315"))
+	# Latch, standing, seen from the camera over the cage door: warm, scuffed,
+	# personally painted bone-and-rust over dark steel, never one clean pale
+	# surface (docs/lore/cast.md, the faction readability contract).
+	var bone: Color = Color("a48d68")
+	var bone_shade: Color = Color("776349")
+	var head: int = top + 8
+	_rect(image, 26, head, 11, 13, bone)
+	_rect(image, 26, head + 11, 11, 2, bone_shade)
+	_rect(image, 34, head + 9, 3, 3, RUST)
+	_rect(image, 26, head, 2, 3, RUST.lightened(0.1))
+	_rect(image, 28, head + 2, 7, 8, Color("0b0a06"))
+	_put(image, 29, head + 5, PHOSPHOR)
+	_put(image, 33, head + 5, PHOSPHOR)
+	_rect(image, 30, head + 8, 3, 1, PHOSPHOR.darkened(0.3))
+	for step: int in range(5):
+		_put(image, 36 + int(float(step) * 0.5), head - step, bone_shade)
+	_put(image, 38, head - 5, PHOSPHOR.darkened(0.2))
+	_rect(image, 29, head + 13, 5, 2, STEEL)
+	_rect(image, 23, head + 15, 17, 14, bone)
+	_rect(image, 23, head + 15, 17, 1, bone.lightened(0.12))
+	_rect(image, 35, head + 17, 4, 5, RUST)
+	_rect(image, 24, head + 23, 5, 4, RUST.darkened(0.1))
+	# A hand-cut sticker and the small painted muted cyan patch: personal marks.
+	_rect(image, 26, head + 17, 2, 2, Color("c45a20"))
+	_rect(image, 30, head + 20, 2, 2, Color("4f6f68"))
+	_put(image, 25, head + 18, Color("2b2a33"))
+	_put(image, 33, head + 24, Color("2b2a33"))
+	# Unequal forearms held in front, the issued restraint band across both,
+	# with its Union seal tab in red.
+	_rect(image, 21, head + 21, 3, 9, bone_shade)
+	_rect(image, 39, head + 20, 4, 10, Color("6d5238"))
+	_rect(image, 22, head + 26, 20, 2, UNION_BLACK)
+	_rect(image, 31, head + 26, 2, 2, UNION_RED)
+	_rect(image, 24, head + 29, 15, 2, STEEL)
+	# Floor plate, then the cage bars over everything.
+	_rect(image, 13, top + 40, 38, 2, steel)
+	for x: int in range(15, 50, 3):
+		_rect(image, x, top + 3, 1, 37, bar)
+	_rect(image, 13, top + 3, 1, 37, steel)
+	_rect(image, 50, top + 3, 1, 37, steel)
+	_rect(image, 14, top + 20, 36, 1, bar)
+
 static func _glow_of(source: Image) -> Image:
 	var glow: Image = _image(source.get_width(), source.get_height(), Color.BLACK)
 	for y: int in range(source.get_height()):

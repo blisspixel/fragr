@@ -39,6 +39,16 @@ static var _hum: AudioStreamWAV = null
 const MOOD_BEATS: Array[float] = [2.4, 2.2, 1.6, 2.0]
 const MOOD_ORDER: Array[int] = [0, 1, 2, 1]
 const CAPTION_SECONDS: float = 3.6
+## The Turn: once the record is read, the custody lift camera beside the
+## console shows Latch's car sink toward the correction ward. A beat to look
+## over, then one feed frame per step.
+const FEED_DELAY_SECONDS: float = 1.2
+const FEED_STEP_SECONDS: float = 0.25
+## Where the feed hangs on transfer control's back wall: beside the record
+## console, low enough to sit in view while the record is read and clear of
+## the file monitor from the console, so the Turn plays where the player looks.
+const FEED_POINT: Vector3 = Vector3(-10.9, 6.15, 26.72)
+static var _motor: AudioStreamWAV = null
 
 var _shape: RefCounted = Geometry.new()
 var _screen_materials: Array[StandardMaterial3D] = []
@@ -52,6 +62,15 @@ var _beat: int = 0
 var _attempt: int = -1
 ## True once a shot has broken the looped address. Reset by a new attempt.
 var broken: bool = false
+## True once this attempt's record is read and the custody car has left (or
+## is leaving). Reset by a new attempt.
+var transport_left: bool = false
+var _feed_material: StandardMaterial3D = null
+var _feed_frames: Array[Texture2D] = []
+var _feed_step: int = 0
+var _feed_clock: float = 0.0
+var _feed_running: bool = false
+var _motor_player: AudioStreamPlayer3D = null
 ## Count of lamps and dressed rooms, for tests and the QA manifest.
 var lamps: int = 0
 var rooms: Array[String] = []
@@ -64,6 +83,12 @@ func clear_map() -> void:
 	_screen_materials.clear()
 	_caption = null
 	broken = false
+	transport_left = false
+	_feed_material = null
+	_feed_frames.clear()
+	_feed_step = 0
+	_feed_running = false
+	_motor_player = null
 	_attempt = -1
 	lamps = 0
 	rooms.clear()
@@ -95,6 +120,13 @@ static func authored(info: Dictionary) -> bool:
 	return found == wanted.size()
 
 func configure_map(info: Dictionary) -> void:
+	# The server repeats MapInfo when the lift gate opens. A rebuild of the
+	# same building keeps what this attempt already did to it: a broken
+	# screen stays broken and a car already leaving keeps sinking.
+	var kept: Dictionary = {}
+	if active() and authored(info):
+		kept = {"attempt": _attempt, "broken": broken, "left": transport_left,
+			"step": _feed_step, "clock": _feed_clock, "running": _feed_running}
 	clear_map()
 	if not authored(info):
 		return
@@ -109,6 +141,18 @@ func configure_map(info: Dictionary) -> void:
 	_build_room_tone()
 	ArenaSky.mark_world(self)
 	set_process(true)
+	if not kept.is_empty():
+		_attempt = int(kept["attempt"])
+		if bool(kept["broken"]):
+			break_screen()
+		transport_left = bool(kept["left"])
+		_feed_step = int(kept["step"])
+		_feed_clock = float(kept["clock"])
+		_feed_running = bool(kept["running"])
+		_show_feed()
+		if _feed_running and _feed_step >= 1 and _motor_player.is_inside_tree():
+			# The hoist was already running; pick the sound up mid-descent.
+			_motor_player.play(float(_feed_step - 1) * FEED_STEP_SECONDS)
 
 func active() -> bool:
 	return not rooms.is_empty()
@@ -170,12 +214,90 @@ func apply_state(state: Dictionary) -> void:
 	if state.get("id") != MissionState.ID:
 		return
 	var attempt: int = int(state.get("attempt", 1))
-	if _attempt >= 0 and attempt != _attempt and broken:
-		# A continue restores the building; the loop resumes with it.
-		broken = false
-		_caption_index = 0
-		_set_caption(CAPTIONS[0])
+	var first_seen: bool = _attempt < 0
+	if _attempt >= 0 and attempt != _attempt:
+		# A continue restores the building: the loop resumes and the custody
+		# car waits at the landing again.
+		if broken:
+			broken = false
+			_caption_index = 0
+			_set_caption(CAPTIONS[0])
+		_reset_feed()
+		first_seen = true
 	_attempt = attempt
+	var phase: String = str(state.get("phase", ""))
+	if phase in ["reach_lift", "departed"] and not transport_left:
+		transport_left = true
+		if first_seen or _feed_frames.is_empty():
+			# Joined or resumed after the record: the shaft is already empty.
+			_feed_step = maxi(_feed_frames.size() - 1, 0)
+			_show_feed()
+		else:
+			_feed_running = true
+			_feed_clock = -FEED_DELAY_SECONDS
+	elif phase in ["briefing", "find_transfer"] and transport_left:
+		_reset_feed()
+
+func _reset_feed() -> void:
+	transport_left = false
+	_feed_running = false
+	_feed_step = 0
+	_feed_clock = 0.0
+	_show_feed()
+	if _motor_player != null and _motor_player.is_inside_tree():
+		_motor_player.stop()
+
+func _show_feed() -> void:
+	if _feed_material != null and _feed_step < _feed_frames.size():
+		_feed_material.albedo_texture = _feed_frames[_feed_step]
+		_feed_material.emission_texture = _feed_frames[_feed_step]
+
+## The feed's current frame, for tests: 0 at the landing, last when empty.
+func feed_frame() -> int:
+	return _feed_step
+
+func _advance_feed(delta: float) -> void:
+	if not _feed_running:
+		return
+	_feed_clock += delta
+	while _feed_clock >= FEED_STEP_SECONDS and _feed_step < _feed_frames.size() - 1:
+		_feed_clock -= FEED_STEP_SECONDS
+		_feed_step += 1
+		if _feed_step == 1 and _motor_player != null and _motor_player.is_inside_tree():
+			_motor_player.play()
+		_show_feed()
+	if _feed_step >= _feed_frames.size() - 1:
+		_feed_running = false
+
+## The car leaving: a release clunk, then a low hoist motor that winds down.
+## Built once in memory, played from the feed so it draws the eye up.
+static func motor_stream() -> AudioStreamWAV:
+	if _motor != null:
+		return _motor
+	var rate: int = 22050
+	var count: int = int(rate * 3.2)
+	var data: PackedByteArray = PackedByteArray()
+	data.resize(count * 2)
+	var phase: float = 0.0
+	for index: int in range(count):
+		var t: float = float(index) / float(rate)
+		var clunk: float = 0.0
+		if t < 0.14:
+			var grit: float = float(((index * 1103515245 + 12345) >> 8) & 0xffff) / 32768.0 - 1.0
+			clunk = (grit * 0.5 + sin(TAU * 70.0 * t)) * pow(1.0 - t / 0.14, 2.0)
+		var pitch: float = lerpf(96.0, 58.0, clampf(t / 3.2, 0.0, 1.0))
+		phase += TAU * pitch / float(rate)
+		var envelope: float = clampf(t / 0.35, 0.0, 1.0) * clampf((3.2 - t) / 1.2, 0.0, 1.0)
+		var motor: float = (0.5 * sin(phase) + 0.22 * sin(phase * 2.0) + 0.08 * signf(sin(phase * 3.0))) * envelope
+		var value: float = clunk * 0.8 + motor * 0.55
+		data.encode_s16(index * 2, int(clampf(value, -1.0, 1.0) * 32767.0))
+	var stream: AudioStreamWAV = AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = rate
+	stream.stereo = false
+	stream.data = data
+	_motor = stream
+	return stream
 
 ## Server-confirmed shot traces. A solid impact on the records screen breaks
 ## the loop to static; the caption keeps scrolling over the noise.
@@ -206,6 +328,7 @@ func break_screen() -> void:
 	_show(_static[0])
 
 func _process(delta: float) -> void:
+	_advance_feed(delta)
 	if _screen_materials.is_empty():
 		return
 	_clock += delta
@@ -737,6 +860,14 @@ func _build_hall() -> void:
 	var board: StandardMaterial3D = _mat("number_board", Color("141416"), 0.2, 0.6)
 	_shape.block(props, "NowServingBoard", Vector3(0.12, 1.0, 2.6), board, Vector3(-11.9, 3.5, -4.0))
 	_sign(room, "WORLD_M01_NOW_SERVING", Vector2(2.3, 0.85), Vector3(-11.83, 3.5, -4.0), "east", Color("f0b860"))
+	_wall_clock(props, Vector3(-11.97, 4.62, -4.0), "east")
+	# Dropped number tickets along the lanes: the queue was here this morning.
+	var ticket: StandardMaterial3D = _mat("number_ticket", Color("d8cfae"), 0.0, 0.95)
+	for index: int in range(14):
+		var x: float = -4.4 + float((index * 7) % 11) * 0.75
+		var z: float = -11.3 + float((index * 5) % 9) * 0.62
+		var slip: MeshInstance3D = _shape.block(props, "NumberTicket", Vector3(0.07, 0.004, 0.12), ticket, Vector3(x, 0.014, z))
+		slip.rotation.y = float(index) * 1.3
 	# Issued banners on the tall hall walls.
 	var rod: StandardMaterial3D = _mat("lamp_cage", Color("2f3030"), 0.4, 0.6)
 	for entry: Array in [[Vector3(-11.97, 5.1, -9.0), "east"], [Vector3(-11.97, 5.1, 2.0), "east"], [Vector3(11.97, 5.1, -9.0), "west"], [Vector3(11.97, 5.1, 4.6), "west"]]:
@@ -809,15 +940,13 @@ func _build_service() -> void:
 
 # --- records wing ------------------------------------------------------------
 
+## The records wing in three merged rooms (reception, the stacks to dispatch,
+## transfer control), so no single merged mesh spans more lamps than the
+## Compatibility renderer lights per object.
 func _build_records() -> void:
+	_build_reception()
 	var room: Node3D = _room("Records")
 	var props: Node3D = _props(room)
-	# Reception counter work.
-	_papers(props, Vector3(-17.6, 4.2, 19.2), 3, 5)
-	_stamp(props, Vector3(-15.6, 4.2, 19.3))
-	_desk_lamp(room, Vector3(-14.5, 4.2, 19.6), Vector3(-15.6, 4.2, 19.3))
-	_poster(room, Vector3(-19.5, 4.75, 15.48), "north", "WORLD_M01_POSTER_ARTICLE")
-	_picture(room, "ReceptionSeal", M01IntakeArt.texture("emblem"), Vector2(1.0, 1.0), Vector3(-13.02, 5.6, 25.0), "west", 0.0)
 	# File stacks: rows of archive boxes on the faces without locker fronts.
 	var kraft: StandardMaterial3D = _mat("archive_box", Color("b49a6e"), 0.0, 0.9)
 	var grey: StandardMaterial3D = _mat("archive_box_grey", Color("9a978c"), 0.0, 0.9)
@@ -850,8 +979,11 @@ func _build_records() -> void:
 			var piece: MeshInstance3D = _shape.block(props, "EffectsBag", Vector3(0.26, 0.07, 0.34), bag, at + Vector3(-0.45 + float(bag_index) * 0.3, 0.09, float(bag_index % 2) * 0.15 - 0.07))
 			piece.rotation.y = float(bag_index - index) * 0.15
 	_sign(room, "WORLD_M01_SORT_CLASSES", Vector2(3.6, 0.9), Vector3(-37.0, 4.6, 32.955), "north", M01IntakeArt.BONE)
-	_shape.block(props, "SortBoard", Vector3(3.8, 1.1, 0.04), _mat("sign_plate_green", Color("2f3a30"), 0.2, 0.7), Vector3(-37.0, 4.6, 33.0))
+	_shape.block(props, "SortBoard", Vector3(3.8, 1.1, 0.04), _mat("sort_board_green", Color("4e5844"), 0.1, 0.8), Vector3(-37.0, 4.6, 32.99))
 	_lamp(room, Vector3(-28.0, 6.4, 36.0), 2.0, 6.5, 8.0)
+	# Work light over the sort board and the bypass end of the floor.
+	_lamp(room, Vector3(-37.0, 6.6, 31.6), 1.7, 5.5, 8.0)
+	_lamp(room, Vector3(-18.0, 6.4, 37.5), 1.7, 6.0, 8.0)
 	_picture(room, "SortingSeal", M01IntakeArt.texture("emblem"), Vector2(1.6, 1.6), Vector3(-20.0, 5.6, 42.98), "north", 0.0)
 	for x: float in [-22.4, -17.6]:
 		_picture(room, "SortingBanner", M01IntakeArt.texture("banner"), Vector2(1.2, 4.0), Vector3(x, 5.6, 42.97), "north", 0.0)
@@ -863,7 +995,35 @@ func _build_records() -> void:
 	var log_cover: StandardMaterial3D = _mat("ledger_cover_black", Color("1e1e22"), 0.0, 0.8)
 	_shape.block(props, "DispatchLog", Vector3(0.5, 0.03, 0.36), log_cover, Vector3(-7.0, 4.165, 37.4))
 	_desk_lamp(room, Vector3(-6.4, 4.15, 38.6), Vector3(-7.0, 4.15, 37.4))
-	# Transfer control: Latch's file photo and record on the console monitor.
+	_finish(room)
+	_build_transfer()
+
+func _build_reception() -> void:
+	var room: Node3D = _room("Reception")
+	var props: Node3D = _props(room)
+	# Counter work under a desk lamp.
+	_papers(props, Vector3(-17.6, 4.2, 19.2), 3, 5)
+	_stamp(props, Vector3(-15.6, 4.2, 19.3))
+	_desk_lamp(room, Vector3(-14.5, 4.2, 19.6), Vector3(-15.6, 4.2, 19.3))
+	_poster(room, Vector3(-19.5, 4.75, 15.48), "north", "WORLD_M01_POSTER_ARTICLE")
+	_picture(room, "ReceptionSeal", M01IntakeArt.texture("emblem"), Vector2(1.0, 1.0), Vector3(-13.02, 5.6, 25.0), "west", 0.0)
+	# The back screen: pigeonholes of waiting forms behind the counter.
+	var cubby: StandardMaterial3D = _mat("pigeonhole", Color("3b3d38"), 0.2, 0.7)
+	var form: StandardMaterial3D = _mat("form_green", Color("b8c4a6"), 0.0, 0.95)
+	var paper: StandardMaterial3D = _mat("paper", Color("e3dccb"), 0.0, 0.95)
+	_shape.block(props, "PigeonholeBack", Vector3(3.4, 1.1, 0.05), cubby, Vector3(-16.0, 5.3, 19.97))
+	for row: int in range(3):
+		for column: int in range(8):
+			var at: Vector3 = Vector3(-17.5 + float(column) * 0.43, 4.86 + float(row) * 0.36, 19.9)
+			_shape.block(props, "PigeonholeShelf", Vector3(0.4, 0.025, 0.14), cubby, at + Vector3(0, -0.14, 0))
+			if (row * 8 + column) % 5 != 2:
+				_shape.block(props, "WaitingForms", Vector3(0.3, 0.05 + float((row + column) % 3) * 0.025, 0.12), form if (row + column) % 4 == 0 else paper, at + Vector3(0, -0.1, 0))
+	_finish(room)
+
+func _build_transfer() -> void:
+	var room: Node3D = _room("Transfer")
+	var props: Node3D = _props(room)
+	# Latch's file photo and record on the console monitor.
 	var housing: StandardMaterial3D = _mat("terminal_housing", Color("bdb6a0"), 0.1, 0.7)
 	var screen_back: StandardMaterial3D = _mat("terminal_screen_back", Color("141210"), 0.0, 0.6)
 	_shape.block(props, "FileMonitor", Vector3(1.55, 0.86, 0.5), housing, Vector3(-7.5, 4.65, 23.55))
@@ -886,4 +1046,58 @@ func _build_records() -> void:
 	# the exit landmark from transfer control.
 	_lamp(room, Vector3(1.8, 7.25, 19.6), 1.4, 6.0, -1.0, Color(1.0, 0.62, 0.3))
 	_lamp(room, Vector3(1.8, 7.25, 24.4), 1.4, 6.0, -1.0, Color(1.0, 0.62, 0.3))
+	_build_custody_feed(room, props)
+	# Transfer control's own wall: the Union seal and the office clock, so the
+	# room where people are scheduled reads as an office, not a void.
+	_picture(room, "TransferSeal", M01IntakeArt.texture("emblem"), Vector2(1.3, 1.3), Vector3(-11.98, 5.7, 19.0), "east", 0.0)
+	_wall_clock(props, Vector3(-11.97, 5.7, 21.6), "east")
 	_finish(room)
+
+## The custody lift camera above the record console. It shows the car waiting
+## with Latch behind its bars until the record is read, then the car sinking
+## toward the correction ward (docs/campaign/m01-recall-notice.md, the Turn).
+func _build_custody_feed(room: Node3D, props: Node3D) -> void:
+	var housing: StandardMaterial3D = _mat("feed_housing", Color("2c2d32"), 0.4, 0.55)
+	var bracket: StandardMaterial3D = _mat("lamp_bracket", Color("2f3030"), 0.4, 0.6)
+	_shape.block(props, "FeedHousing", Vector3(1.86, 1.42, 0.22), housing, FEED_POINT + Vector3(0, 0, 0.14))
+	_feed_frames = M01IntakeArt.custody_frames()
+	var screen: MeshInstance3D = _picture(room, "CustodyFeed", _feed_frames[0], Vector2(1.6, 1.2), FEED_POINT, "north", 0.95)
+	_feed_material = screen.material_override as StandardMaterial3D
+	_feed_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	var plate: StandardMaterial3D = _mat("sign_plate_black", Color("1e1e22"), 0.2, 0.7)
+	_shape.block(props, "FeedPlate", Vector3(1.86, 0.3, 0.04), plate, FEED_POINT + Vector3(0, 0.88, 0.2))
+	_sign(room, "WORLD_M01_CUSTODY_FEED", Vector2(1.74, 0.26), FEED_POINT + Vector3(0, 0.88, 0.17), "north", Color("f0b860"))
+	var glow: OmniLight3D = OmniLight3D.new()
+	glow.name = "FeedGlow"
+	glow.position = FEED_POINT + Vector3(0, -0.2, -0.8)
+	glow.light_color = M01IntakeArt.PHOSPHOR
+	glow.light_energy = 0.5
+	glow.omni_range = 3.0
+	glow.omni_attenuation = 1.8
+	glow.shadow_enabled = false
+	room.add_child(glow)
+	_motor_player = AudioStreamPlayer3D.new()
+	_motor_player.name = "CustodyHoist"
+	_motor_player.stream = motor_stream()
+	_motor_player.position = FEED_POINT
+	_motor_player.bus = &"Effects"
+	_motor_player.volume_db = -10.0
+	_motor_player.unit_size = 3.0
+	_motor_player.max_distance = 18.0
+	room.add_child(_motor_player)
+
+## A plain issued wall clock: bone face, dark rim and hands at ten to seven.
+func _wall_clock(props: Node3D, at: Vector3, face: String) -> void:
+	var basis: Basis = MapDecoration.face_basis(face)
+	var out: Vector3 = basis.z
+	var rim: StandardMaterial3D = _mat("clock_rim", Color("1e1e22"), 0.4, 0.5)
+	var dial: StandardMaterial3D = _mat("clock_face", Color("e3dccb"), 0.0, 0.8)
+	var body: MeshInstance3D = _shape.cylinder(props, "ClockRim", 0.3, 0.06, rim, at + out * 0.03, 16)
+	body.basis = Basis(Quaternion(Vector3.BACK, out))
+	var plate: MeshInstance3D = _shape.cylinder(props, "ClockFace", 0.26, 0.01, dial, at + out * 0.065, 16)
+	plate.basis = Basis(Quaternion(Vector3.BACK, out))
+	var hand: Vector3 = at + out * 0.075
+	var up: Vector3 = Vector3.UP
+	var side: Vector3 = basis.x
+	_shape.rod(props, "ClockHand", hand, hand + (up * 0.5 - side * 0.866) * 0.13, 0.012, rim, 4)
+	_shape.rod(props, "ClockHand", hand, hand + (up * 0.67 + side * 0.74) * 0.21, 0.008, rim, 4)
