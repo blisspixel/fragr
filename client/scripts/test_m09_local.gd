@@ -2,7 +2,7 @@ extends SceneTree
 
 const RUN_ID: String = "40000000-0000-4000-8000-000000000009"
 ## The only run-file version the server reads or writes.
-const RUN_FILE_VERSION: int = 23
+const RUN_FILE_VERSION: int = RunFixture.VERSION
 var failures: int = 0
 var run_directory: String = ""
 var settings_path: String = ""
