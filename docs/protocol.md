@@ -1729,7 +1729,8 @@ Union bot taken at the wipe, keeping its chassis and learned attacks) or
 `restoration` (an Inheritance restoration machine). Control must fit the body:
 only Union machines (`sweeper`, `heavy_sweeper`, `turret`, `crawler`,
 `jammer`, `notary`, `ranged_sweeper`, `assessor`) can be absorbed, Union people
-never are, and only a `paver` is restoration and never `union`. An Inheritance
+never are, and only a `paver` or a `surveyor` (capability 56) is restoration and
+never `union`. An Inheritance
 body never carries `seated`. Both sides are equally hostile to participants;
 clients and agents must not infer control from a kind or appearance. Authored
 encounter placements carry the same optional `control` (absent means `union`),
@@ -3428,8 +3429,9 @@ Current saves strictly upgrade v2-v21 documents, archive the exact original byte
 under the existing writer lock and retain actual finite entry resources and prior
 outcomes. M15 and M18 begin Episodes IV and V with three continues; M16 and M17
 do not refill. M18 completion now promotes into `planned_works` without a
-refill; M19 completion retains pending `local_exception`, which is not a playable
-mission identity. Historical documents reject future mission entries and future
+refill; M19 completion promotes into `local_exception` without a refill, and
+M20 completion retains pending `still_here`, which is not a playable mission
+identity. Historical documents reject future mission entries and future
 outcome fields, including null values. Planned Works needs no version bump: v22
 gains the optional `m19_outcome` {`crossing_cleared`, `paver_interrupted`,
 `strip_struck`, `latch_departed`}.
@@ -3487,3 +3489,100 @@ for every wearer (fuel 0 to 60 ticks). Holding Jump while airborne thrusts
 support refills 3 per tick. The Ack `movement` block adds `jet_fuel` for a
 wearer so prediction replays the same step; vectors are in
 `client/golden/jetpack_vectors.json`.
+
+### Local Exception and Surveyor marks (capability 56)
+
+`local_exception` is the campaign's last mission: map 1020, floor 56,
+`MapInfo.m20`. Humans, agents and spectators below 56 are refused before
+Welcome or MapInfo, and shared arcade rooms require the aggregate capability.
+Rules stay 4.
+
+`MapInfo.m20` registers five ordered arrival `objectives`
+(`sluice_crossing`, `crew_crossing`, `pier_arrival`, `pier_hold`, `last_six`),
+the refuge gate `departure` Use target and its `boarding` region, the
+`refuge_line` region, `harbour_display` (an index into the presentation
+decorations whose kind is `m20_harbour_display`), the clock `breath_ticks`,
+`turn_ticks` and `hold_ticks`, and `gate_open`. The clock starts
+`breath_ticks` after the quay arrival; the turn lands `turn_ticks` later and
+the reprieve `hold_ticks` after the start. The last span is exactly six
+minutes (7200 ticks). The world changes once: when the gate opens, a new
+MapInfo with `gate_open: true` lowers the gate leaf and its flat decoration.
+Readers accept only that one transition and refuse any other geometry change.
+
+`MissionState.m20` carries the exact completed prefix and `current` until
+departure (`party_departed` omits it), three `crew` members
+(`working`, `crossing`, `arrived` with finite `feet`), optional
+`pier_reached_at`, `refuge_integrity` (0..100), `display_lit`, optional
+`reprieve_at` and `latch` feet, `gate_open`, the `refuge` count and named
+people (`persons`, `edda`, `splice`, `orrin`, `sorrel`), the challenges
+`crew_crossed`, `mark_broken`, `refuge_held` and the derived `brief_completed`.
+Crew leave `working` only after the sluice crossing. The display lights only at
+the turn, the reprieve only on the authored tick, and Latch exists only after
+it. `persons` is 400 plus everyone the saved run freed (capped at 400 more); a
+development or shared room shows the base 400. Challenges never move
+backwards within an attempt. Brief: Assisted needs the crew across, Standard
+adds a broken Surveyor mark, Severe adds a refuge line that never fell.
+
+Pressure groups arrive on a hidden schedule inside the hold. A group waits
+while it would raise the walking machines on the map above 4, 6 or 8
+(Assisted, Standard, Severe); spotters on their towers and hovering units do
+not count. It also waits while a participant stands within 20 m of its
+ingress, or for up to 300 ticks while one can see it.
+
+The departure prompt requires all five objectives, the open gate and every
+party member ready, alive and aboard, followed by a fresh Use. Every Assisted
+30, Standard 20 or Severe 16 ticks, each walking machine standing in the refuge
+line wears one point (a Heavy Sweeper two). At zero the people pull back from
+the line and `refuge_held` is false; the level can still be survived. At the
+reprieve every live hostile projectile is cleared and every machine stops
+where it stands for 50 ticks, then walks off past the line; nothing harms a
+participant after it. The `passing_work` group appears only after the
+reprieve, already standing down, and walks past the refuge to the far exit.
+The gate opens when Latch reaches it, or 600 ticks after the reprieve.
+
+Every hostile body here is the Inheritance: Surveyors and Pavers are
+`{"side":"inheritance","control":"restoration"}` and every other machine is
+`"control":"absorbed"`; the map loader refuses a Union-controlled placement.
+The encounter order is fixed: `sluice_watch` holds the Surveyor alone,
+`crossing` (after it) adds a Paver on the service road among absorbed
+machines, and `sluice_follow` places one absorbed walker only once the lesson
+Surveyor's first disc has ended or it is down, while the sluice is still the
+current objective. Every later group but the last is scheduled pressure.
+
+`campaign.kind:"surveyor"` is the elevated spotter: 90 HP, equipment `fists`
+and never a shot. Phases are `idle`, `moving` (turning to a noticed
+participant), `windup` (the lens opening), `firing` (projecting the disc),
+`recovery`, `hit` and `dead`. Windup and recovery are 48/70, 36/56 and 28/44
+ticks for Assisted, Standard and Severe. With its lens closed, its shutter
+turns traced damage to a third (rounded up); any damaging hit while the lens
+is open staggers it for 30 ticks and ends the observation or the disc.
+
+`Snapshot.surveyor_marks`, omitted while empty, contains exact objects:
+
+```json
+{"id":"00000000-0000-0000-0000-000000000003","center":[-52.0,1.2,0.0],"radius":3.0,"since":140,"until":300,"tracking":true}
+```
+
+`id` is the owning Surveyor, which must be in `firing`. `radius` is 3.0,
+`since` cannot exceed the snapshot tick and `until` follows it. A disc lasts
+120, 160 or 200 ticks and tracks its participant at 1.4, 2.0 or 2.6 m/s, always
+under a walk. `tracking` is false while sight is lost; 30 ticks without sight
+ends it. Walking absorbed or restoration machines within 36 m converge on a
+live disc; a machine still under Union control never reads it. One standing
+within 6 m of the centre counts as arriving. A disc that ends by broken sight
+or a hit before any machine arrives is a broken mark. At most eight marks are
+accepted; unknown fields, duplicates or an owner that is not a firing Surveyor
+reject the snapshot fact. Centres are motion: a newer snapshot replaces them.
+
+Decoration kinds `m20_crossing_control`, `m20_harbour_display`,
+`m20_valve_six`, `m20_lamp_six`, `m20_crane_six`, `m20_refuge_notice`,
+`m20_pump_board` and `m20_tower_bridge` are valid only with `MapInfo.m20`.
+
+The run file keeps its one current schema; no field or version is added. A
+completed Planned Works (`AwaitingMission { completed_mission: planned_works,
+next_mission: "local_exception" }`) promotes into Local Exception with no
+continue refill, carrying every earlier receipt including `m18_outcome` and
+`m19_outcome`. Departure records the campaign's terminal survival as
+`AwaitingMission { completed_mission: local_exception, next_mission:
+"still_here" }`, which unlocks the epilogue; nothing promotes past it until
+Still Here exists, and `still_here` is not a mission identity.

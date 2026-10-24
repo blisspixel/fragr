@@ -592,8 +592,21 @@ route and work marks; `gate_open` flips with the prepared open world.
 yaw, length, half width, phase window and whether it is being worked. The
 shared controller steps out of a strip before it is worked, prefers a Paver
 preparing its strip over a nearer target, and flies an authored hop only with
-enough fuel; the walking route always remains. Completing M19 leaves pending,
-unplayable `local_exception`.
+enough fuel; the walking route always remains. Completing M19 promotes into
+`local_exception`.
+
+Connected M20 uses `local_exception` (minimum gameplay 56). `observe.map.m20`
+binds the five ordered arrivals, the refuge gate, the refuge line and the hold
+clock; `observe.mission.m20` reports the crew, quay arrival, barricade, display,
+reprieve, Latch and gate. `observe.snapshot.surveyor_marks` lists live Surveyor
+discs. Every hostile body in M20 observes as `side: "inheritance"`: Surveyors
+and Pavers with `control: "restoration"`, every other machine with
+`control: "absorbed"`; nothing in the finale answers the Union. The shared controller holds each objective, finds a sightline on a
+Surveyor its lesson is waiting on, fights back to its pier post rather than
+chasing, keeps a gun that reaches its target, detours to pier crates it needs
+(further when nearly dry) and leaves through the refuge gate once it opens. The scripted bot binds
+the same geometry. Completing M20 records the campaign's survival with the
+epilogue destination `still_here` pending.
 
 ### `mission_continue`
 
