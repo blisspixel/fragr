@@ -182,30 +182,57 @@ The client starts as a spectator when joining a multiplayer match. Press **J**
 to join, **L** to return to watching, **F** to change the watched fighter, and
 **V** to cycle eyes, chase and free camera. The match continues when you leave
 the fighter seat. **Esc** opens the match menu. All actions can be rebound in
-**Settings > Controls**; prompts follow the last device used.
+**Settings > Controls**; prompts follow the last device used. Custom controls
+saved for an older default layout are not carried over: the page says so,
+shows the current defaults and keeps them once you save.
 
-| Action | Keyboard only | Keyboard and mouse | Gamepad |
+Xbox and PlayStation pads share one layout; prompts use the names printed on
+the pad in hand (Xbox name first, PlayStation second below).
+
+| Action | Keyboard only | Keyboard and mouse | Gamepad (Xbox / PlayStation) |
 |---|---|---|---|
 | Move | Up and Down | W and S | Left stick |
 | Turn | Left and Right | Mouse, or Q and E | Right stick |
 | Strafe | Alt with arrows, or Comma and Period | A and D | Left stick |
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
-| Center view | End | End | Right stick click |
-| Fire | Right Ctrl | Left mouse | RT |
-| Crouch | Left Ctrl, hold | Left Ctrl, hold | D-pad left, hold |
-| Reload | R | R | D-pad down |
-| Scope | Z, hold | Right mouse or Z, hold | Left stick click |
-| Throw grenade | G | G or middle mouse | LT |
-| Use | Enter | F | B |
-| Jump | Space | Space | A |
-| Campaign continue | Enter | Enter | A after releasing held inputs |
-| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB |
-| Speak | T | T | Y |
-| Join or leave | J or L | J or L | A while watching, or match menu |
-| Spectator fighter and view | F and V | F and V | D-pad right and Y |
-| Radio station, skip track, play or pause | C, N, M | C, N, M | not bound |
-| Match menu | Esc | Esc | Start |
-| Leaderboard, the whole roster | Tab, hold | Tab, hold | Back |
+| Center view | End | End | not bound (rebindable) |
+| Fire | Right Ctrl | Left mouse | RT / R2 |
+| Scope | Z, hold | Right mouse or Z, hold | LT / L2, hold |
+| Jump | Space | Space | A / Cross |
+| Crouch | Left Ctrl, hold | Left Ctrl, hold | B / Circle, hold |
+| Reload | R | R | X / Square |
+| Use | Enter | F | Y / Triangle |
+| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB / L1 and R1 |
+| Vehicle seat swap | [ and ] | Wheel | LB and RB / L1 and R1 |
+| Throw grenade | G | G or middle mouse | D-pad up |
+| Place mine | B | B | D-pad down |
+| Remote mine, detonate | V, H | V, H | Left stick click, right stick click (LS, RS / L3, R3) |
+| Campaign continue | Enter | Enter | A / Cross after releasing held inputs |
+| Speak | T | T | not bound (rebindable) |
+| Join or leave | J or L | J or L | A / Cross while watching, or match menu |
+| Spectator fighter and view | F and V | F and V | X and Y / Square and Triangle |
+| Radio previous and next station | X and C | X and C | D-pad left and right |
+| Radio skip track | N | N | Hold D-pad right |
+| Radio on or off | M | M | Hold D-pad left |
+| Match menu | Esc | Esc | Menu / Options |
+| Leaderboard, the whole roster | Tab, hold | Tab, hold | View / Create, hold |
+| Menus: choose, back | Enter, Esc | Enter, Esc | A, B / Cross, Circle; D-pad moves |
+
+The radio is background music, like a car radio in a heist film: previous
+and next station wrap through a RADIO OFF stop. A small card at the lower right
+names the station and the song for a few seconds after every change, and
+nothing else of the radio stays on screen during play. The match menu has a
+**Music / Radio** area with the station, the full song title, buttons for every
+radio control with their current bindings, and the music volume. Switching the
+radio back on starts a fresh track; it does not resume inside a song.
+
+The **Announcer** setting, in the match menu and in Settings > Audio, chooses
+which Host calls reach the voice row: **On** (all of them), **Big moments only**
+(first blood, triple streaks and above, an ended streak, the last one standing,
+a comeback and the golden Railgun changing hands) or **Off**. Off also stops
+the radio dipping for the Host. Frags, objectives and result cards always show.
+Announcer volume sets the Host's own audio bus; the Host's calls are text
+today, so the slider has nothing to play until the voice is recorded.
 
 Hold Tab to list every fighter. While holding the board, use the weapon-cycle
 keys, wheel or controller bumpers to scroll a large roster. The board shows
@@ -221,7 +248,7 @@ In a team match, world nameplates mark
 someone on your side OURS and keep them bright. The other side is marked THEIRS
 and warms toward red. A spectator still reads UNION and FREE on the full plate.
 
-Hold Left Ctrl or D-pad left to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
+Hold Left Ctrl, or B or Circle on a pad, to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
@@ -237,7 +264,7 @@ Railgun and Arc. The Repeater foundation is not granted in current campaign
 maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
-the other guns on the same type. R or D-pad down reloads the gun in hand.
+the other guns on the same type. R, or X or Square on a pad, reloads the gun in hand.
 Under the count, the corner says RELOAD REQUESTED while the press travels,
 RELOADING with a filling bar once the server accepts it, then LOADED. A full
 gun, an empty bag, a melee weapon or a mode without magazines says so instead.
@@ -252,7 +279,7 @@ Walking over that gun adds a pickup to the bag. Death puts the spawn kit back.
 A weapon-only match still has one gun and no bag to run out of.
 Agents and campaign enemies still spend the single count. Stand near a mission
 panel and aim at it. The prompt under the crosshair names Use: F with a mouse,
-Enter on a keyboard, B on a pad. Q and E turn. Before that aim is true, the
+Enter on a keyboard, Y or Triangle on a pad. Q and E turn. Before that aim is true, the
 same spot says to aim at the panel. An open arena doorway is walked through.
 
 Grenades have a separate count, up to six, and do not replace the selected
@@ -348,11 +375,12 @@ platform achievements. Campaign-completion and gold awards remain planned.
 The boot menu and in-match menu share Controls, Look, Display, Graphics,
 Audio and Accessibility settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, an optional frame counter, sensitivity, stick
-response and separate master, radio and effects levels. The tilde key opens a
+response and separate master, effects, announcer, radio and story voice
+levels. The tilde key opens a
 console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
 counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
-play. Save applies a draft; Cancel discards it. The
+play and in the match menu. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
 
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup

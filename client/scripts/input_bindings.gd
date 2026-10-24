@@ -25,14 +25,26 @@ const ACTIONS: Array[String] = [
 	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
 	"scoreboard", "speak", "pause", "leave_match",
 	"join_as_human", "cycle_cam", "toggle_follow",
-	"radio_next_station", "radio_next_track", "radio_toggle",
+	"radio_prev_station", "radio_next_station", "radio_next_track", "radio_toggle",
 ]
 
 ## Where an action does anything. Two actions conflict only when their
 ## contexts overlap, so F can use a console while playing and change the
 ## watched fighter while spectating.
 const SPECTATE: Array[String] = ["join_as_human", "cycle_cam", "toggle_follow"]
-const EVERYWHERE: Array[String] = ["scoreboard", "pause", "radio_next_station", "radio_next_track", "radio_toggle"]
+const EVERYWHERE: Array[String] = ["scoreboard", "pause", "radio_prev_station", "radio_next_station", "radio_next_track", "radio_toggle"]
+## Actions that deliberately ship without a default gamepad button. Sticks
+## move and look, so the walk, turn and look keys need none; numbered slots
+## are reached with the bumpers; leaving uses the match menu; the radio skip
+## and power controls are holds on the D-pad station arms (`radio.gd`). Speak
+## and centre view are left for a player to bind because every comfortable
+## button already has a combat job. Every action has a keyboard default.
+const NO_PAD_DEFAULT: Array[String] = [
+	"move_forward", "move_back", "move_left", "move_right", "strafe",
+	"turn_left", "turn_right", "look_up", "look_down", "center_view",
+	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
+	"speak", "leave_match", "radio_next_track", "radio_toggle",
+]
 
 const SLOTS: int = 3
 const PAD_SLOT: int = 2
@@ -181,20 +193,6 @@ static func _deadzone(action: String) -> float:
 	if entry is Dictionary and ((entry as Dictionary).get("deadzone") is float or (entry as Dictionary).get("deadzone") is int):
 		return clampf(float((entry as Dictionary)["deadzone"]), 0.05, 0.95)
 	return 0.5
-
-## A newly introduced action must not steal a historical custom control.
-## Defaults for the other actions already participate in the same ownership.
-static func adopt_unclaimed_defaults(preferences: FragrSettings, action: String) -> void:
-	var fresh: Array[String] = default_slots(action)
-	for other: String in ACTIONS:
-		if other == action or not contexts_overlap(action, other):
-			continue
-		for token: String in slots_for(preferences, other):
-			if not token.is_empty():
-				for index: int in range(fresh.size()):
-					if fresh[index] == token:
-						fresh[index] = ""
-	store(preferences, action, fresh)
 
 ## Rebuild every rebindable action. Safe to call repeatedly.
 static func apply(preferences: FragrSettings) -> void:

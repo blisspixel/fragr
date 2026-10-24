@@ -35,17 +35,17 @@ static func run(tree: SceneTree, game: Node, until: Callable, check: Callable, l
 	trigger(0.0)
 	if not emptied:
 		return false
-	button(JOY_BUTTON_DPAD_DOWN, true)
+	button(JOY_BUTTON_X, true)
 	var reloading: bool = await until.call(func() -> bool:
 		for magazine: Dictionary in game.net_client.equipment.get("loaded", []):
 			if magazine.get("weapon") == weapon:
 				return magazine.has("ready_at")
 		return false, label + " pad reload starts the server timer")
 	if not reloading:
-		button(JOY_BUTTON_DPAD_DOWN, false)
+		button(JOY_BUTTON_X, false)
 		return false
 	var reloaded: bool = await until.call(func() -> bool: return EquipmentState.shots(game.net_client.equipment, weapon) > 0, label + " server refills the magazine")
-	button(JOY_BUTTON_DPAD_DOWN, false)
+	button(JOY_BUTTON_X, false)
 	if not reloaded:
 		return false
 	var loaded: int = EquipmentState.shots(game.net_client.equipment, weapon)
@@ -54,7 +54,7 @@ static func run(tree: SceneTree, game: Node, until: Callable, check: Callable, l
 	trigger(0.0)
 	if not refired:
 		return false
-	button(JOY_BUTTON_DPAD_LEFT, true)
+	button(JOY_BUTTON_B, true)
 	var crouched: bool = await until.call(func() -> bool: return pawn(game).get("ducking", false), label + " pad crouch reaches authoritative stance")
 	if crouched:
 		await tree.create_timer(0.2).timeout
@@ -64,7 +64,7 @@ static func run(tree: SceneTree, game: Node, until: Callable, check: Callable, l
 			await RenderingServer.frame_post_draw
 			check.call(DirAccess.make_dir_recursive_absolute(captures) == OK, "pad capture directory")
 			check.call(tree.root.get_texture().get_image().save_png(captures.path_join(label + ".png")) == OK, "pad capture saved")
-	button(JOY_BUTTON_DPAD_LEFT, false)
+	button(JOY_BUTTON_B, false)
 	if not crouched:
 		return false
 	return await until.call(func() -> bool: return not pawn(game).get("ducking", false), label + " released crouch stands on the server")

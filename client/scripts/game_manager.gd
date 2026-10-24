@@ -648,6 +648,7 @@ func _setup_frontend() -> void:
 	pause_menu.hosting_server = host != null and host.state == LocalHost.State.RUNNING and host.url == net_client.server_url
 	pause_menu.stop_server_requested.connect(_on_stop_server_requested)
 	add_child(pause_menu)
+	pause_menu.bind_radio(radio)
 
 ## The play legend is a first-run hint: once a fighter has seen it, later
 ## joins keep the status bar clear. A harness on the default settings file
@@ -987,7 +988,7 @@ func _release_match_audio() -> void:
 			voice.stop()
 			voice.stream = null
 
-## Contested Frequency radio lives under AudioPlayers and reads the audiogen manifest.
+## The background match radio lives under AudioPlayers and reads the audiogen manifest.
 func _setup_radio() -> void:
 	var radio_script = load("res://scripts/radio.gd")
 	if radio_script == null:
@@ -1000,11 +1001,8 @@ func _setup_radio() -> void:
 	else:
 		add_child(radio)
 	radio.set_human_mode(is_human_player)
-	if hud and hud.has_method("show_radio"):
-		radio.track_started.connect(func(station, title): hud.show_radio(station, title))
-		radio.station_changed.connect(func(station, tagline, _has): hud.show_radio(station, tagline))
-	if hud and hud.has_method("show_station_card"):
-		radio.station_card.connect(func(card): hud.show_station_card(card))
+	if hud and hud.has_method("show_now_playing"):
+		radio.now_playing_changed.connect(func(info: Dictionary) -> void: hud.show_now_playing(info))
 	if hud and hud.has_signal("host_spoke"):
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
 
@@ -1695,6 +1693,9 @@ func end_ack_probe() -> Dictionary:
 
 
 func _process(_delta):
+	if radio != null:
+		# A story scene owns the music; the station resumes where it paused.
+		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude))
 	_arm_continue()
 	_arm_onward()
 	if _opening_release and _opening_input_released():

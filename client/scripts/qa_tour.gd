@@ -2014,8 +2014,9 @@ func _run_status() -> String:
 	return str((run as Dictionary).get("status", "")) if run is Dictionary else ""
 
 ## Switch prompts through the real input path: a key the game does not bind,
-## or a pull of the unbound left trigger. No pad is attached during a tour, so
-## the driver reports no name and the layout is positional unless the state
+## or a brief pull of the left trigger (scope, which acts only while held and
+## is released within the frame). No pad is attached during a tour, so the
+## driver reports no name and the layout is positional unless the state
 ## names one; a named layout is recorded in the manifest as forced.
 func _use_input_device(kind: String, layout: String) -> void:
 	if kind == "keyboard":

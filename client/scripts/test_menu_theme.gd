@@ -97,17 +97,16 @@ func _run() -> void:
 	root.add_child(hud)
 	hud.set_process(false)
 	hud._spawn_floating_damage(100, "Rail")
-	hud.show_radio("CONTESTED FREQUENCY", "A retained track")
-	hud.show_station_card({"name": "CONTESTED FREQUENCY", "badge": "CF", "tagline": "The public airwaves remain open.", "color": "#ff00ff"})
+	hud.show_now_playing({"state": "playing", "station": "LARAK LOT ROCK", "badge": "LR", "title": "A retained track with a very long title that must trim inside the toast, never past the screen edge"})
 	hud.combat_feed.push(unicode_name + " joined", MenuTheme.DANGER)
 	await process_frame
 	_inspect_type(hud)
-	_check(hud.radio_card_badge.color == MenuTheme.BORDER, "station data does not inject a new chrome hue")
+	_check(hud.radio_card_name.get_theme_color("font_color") == MenuTheme.EMBER, "station data does not inject a new chrome hue")
 	_check(hud.combat_feed.get_child(0).get_theme_color("font_color") == MenuTheme.BONE, "danger marks do not turn small text below contrast")
 	for path: String in ["DamageFlash", "SpawnFlash", "StreakFlash"]:
 		_check((hud.get_node(path) as ColorRect).color.a == 0.0, "palette pass preserves prior effective flash opacity")
 	_check(hud.health_value.get_theme_font("font") == MenuTheme.DISPLAY_FONT, "actual health readout uses the display face")
-	_check(hud.radio_label.get_global_rect().end.x <= root.get_visible_rect().end.x, "long radio copy wraps inside the viewport")
+	_check(hud.radio_card.get_global_rect().end.x <= root.get_visible_rect().end.x and hud.radio_card_title.text_overrun_behavior == TextServer.OVERRUN_TRIM_ELLIPSIS, "a long title trims inside the toast")
 	hud.set_match_rules(MatchRules.parse({"mode": "ctf"}))
 	hud.show_round_end(unicode_name, "Capture limit", 10, "Round closed", [], "coalition", {"union": 2, "coalition": 3})
 	await process_frame

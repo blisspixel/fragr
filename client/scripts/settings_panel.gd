@@ -10,6 +10,8 @@ signal closed
 ## page holds sensitivity, stick shape and aim assist.
 const PAGES: Array[String] = ["CONTROLS", "LOOK", "DISPLAY", "GRAPHICS", "AUDIO", "ACCESSIBILITY"]
 const SLOT_HEADERS: Array[String] = ["BIND_HEADER_KEY", "BIND_HEADER_ALT", "BIND_HEADER_PAD"]
+## Radio controls a gamepad reaches by holding a station arm (`radio.gd`).
+const RADIO_HOLD_ARMS: Dictionary = {"radio_next_track": "radio_next_station", "radio_toggle": "radio_prev_station"}
 
 var preferences: FragrSettings
 var theme_context: MenuTheme.Context = MenuTheme.Context.GAMEPLAY
@@ -139,11 +141,13 @@ func show_page(page: String) -> void:
 			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
-			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider("EFFECTS", "audio", "effects", 0.0, 1.0, 0.05)
+			_option(tr("SETTINGS_ANNOUNCER"), "audio", "announcer", FragrSettings.announcer_labels(), FragrSettings.ANNOUNCER_MODES)
+			_slider(tr("SETTINGS_ANNOUNCER_VOLUME"), "audio", "announcer_volume", 0.0, 1.0, 0.05)
+			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider(tr("SETTINGS_VOICE"), "audio", "voice", 0.0, 1.0, 0.05)
 			_toggle(tr("SETTINGS_STORY_CAPTIONS"), "gameplay", "story_captions")
-			_note.text = "C: next station. N: next track. M: radio on/off.\nChanges apply when saved. Zero volume mutes the bus."
+			_note.text = tr("SETTINGS_AUDIO_NOTE")
 
 func focus_first() -> void:
 	(_tabs.get_child(0) as Button).grab_focus()
@@ -194,6 +198,14 @@ func _bindings_page() -> void:
 			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.pressed.connect(begin_capture.bind(action, slot))
 			row.add_child(button)
+	var radio_note: Label = Label.new()
+	radio_note.name = "RadioHoldNote"
+	radio_note.text = tr("BIND_RADIO_NOTE")
+	radio_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	radio_note.custom_minimum_size.x = 600
+	radio_note.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	radio_note.add_theme_color_override("font_color", _palette.muted)
+	_rows.add_child(radio_note)
 	var reset: Button = Button.new()
 	reset.name = "reset_bindings"
 	reset.text = tr("BIND_RESET")
@@ -203,7 +215,8 @@ func _bindings_page() -> void:
 	_rows.add_child(reset)
 	_device_revision = InputDevice.revision
 	_refresh_binding_labels()
-	_note.text = tr("BIND_NOTE")
+	# An older controls layout is refused, never migrated; say so until saved.
+	_note.text = tr("BIND_LAYOUT_REFUSED") if preferences.controls_refused else tr("BIND_NOTE")
 	_show_conflicts()
 
 func _binding_row(title: String) -> HBoxContainer:
@@ -230,6 +243,12 @@ func _refresh_binding_labels() -> void:
 			if button == null:
 				continue
 			button.text = InputGlyphs.token_name(slots[slot], InputDevice.pad_layout)
+			var arm: String = str(RADIO_HOLD_ARMS.get(action, ""))
+			if slot == InputBindings.PAD_SLOT and slots[slot].is_empty() and not arm.is_empty():
+				# The gesture that stands in for an empty pad slot.
+				var arm_token: String = InputBindings.slots_for(_draft, arm)[InputBindings.PAD_SLOT]
+				if not arm_token.is_empty():
+					button.text = tr("MENU_RADIO_HOLD").format({"input": InputGlyphs.token_name(arm_token, InputDevice.pad_layout)})
 			var conflict: bool = clashing.has(action + "#" + slots[slot])
 			button.add_theme_color_override("font_color", _palette.text)
 			if conflict:

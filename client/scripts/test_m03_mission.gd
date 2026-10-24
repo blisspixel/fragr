@@ -168,7 +168,7 @@ func _hud(message: Dictionary, freed: Dictionary, disabled: Dictionary, ready: D
 	_check(not display._card.visible and display.prompt_text == "F: TAKE THE TRAIN TO LOW WATER", "legal owner prompt replaces the staged objective")
 	InputDevice.force(InputDevice.Kind.GAMEPAD, "gamepad", "letters")
 	display._process(0.0)
-	_check(display.prompt_text == "B: TAKE THE TRAIN TO LOW WATER", "M03 prompt follows the current controller without new state")
+	_check(display.prompt_text == "Y: TAKE THE TRAIN TO LOW WATER", "M03 prompt follows the current controller without new state")
 	InputDevice.reset()
 	display._process(0.0)
 	display.apply(ready["state"], "")

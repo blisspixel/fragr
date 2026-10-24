@@ -30,6 +30,11 @@ var _layout_key: Array = []
 ## Vertical shift currently applied to the round card, so placement can be
 ## recomputed without accumulating.
 var card_shift: float = 0.0
+## Now-playing toast in logical units before HUD scale: two text rows.
+const RADIO_CARD_W: float = 440.0
+const RADIO_CARD_H: float = 76.0
+## The narrowest card, so a two-word station still reads as a card.
+const RADIO_CARD_MIN_W: float = 240.0
 
 func _init(owner: CanvasLayer) -> void:
 	hud = owner
@@ -123,7 +128,7 @@ func layout() -> void:
 	var key: Array = [view, origin, hud.sabotage(), hud.campaign_context, hud_scale, text_scale, hud.mode_chip_label.text,
 		hud.mode_chip_label.get_minimum_size(), segment_width(hud.mode_chip_label), corner_need(), context.get_combined_minimum_size(), hints.text,
 		hud.weapon_label.text, hud.weapon_label.visible, hud.map_chip_label.text, hud.map_chip_label.visible,
-		hud.radio_label, hud.radio_card, conquest, vehicle_rect, hud.frag_feed.reserved_height, reserved,
+		hud.radio_card, hud.radio_toast_content_width(), conquest, vehicle_rect, hud.frag_feed.reserved_height, reserved,
 		hud.round_message.visible, hud.round_message.text, hud.round_backdrop != null and hud.round_backdrop.visible]
 	if key == _layout_key:
 		return
@@ -165,24 +170,29 @@ func layout() -> void:
 	var radio_bottom: float = view.y - (248.0 * hud_scale)
 	if vehicle_rect.has_area():
 		radio_bottom = minf(radio_bottom, vehicle_rect.position.y - 16.0)
-	if hud.radio_label != null:
-		hud.radio_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		hud.radio_label.position = Vector2(view.x - minf(view.x - 16.0, 640.0 * hud_scale), radio_bottom - (100.0 * hud_scale))
-		hud.radio_label.size = Vector2(minf(view.x - 32.0, 624.0 * hud_scale), 100.0 * hud_scale)
+	# Now-playing toast: one small level card, background flavour only. It is
+	# as wide as its text, between a floor and a cap, and as tall as two lines.
+	var radio_width: float = minf(view.x - 32.0, RADIO_CARD_W * hud_scale)
+	var radio_height: float = RADIO_CARD_H * hud_scale
+	if hud.radio_card != null:
+		radio_width = minf(radio_width, maxf(RADIO_CARD_MIN_W * hud_scale, hud.radio_toast_content_width()))
+		radio_height = maxf(radio_height, hud.radio_card.get_combined_minimum_size().y)
+	var radio_left: float = view.x - 16.0 - radio_width
 	if hud.radio_card != null:
 		hud.radio_card.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		hud.radio_card.position = Vector2(view.x - minf(view.x - 16.0, 640.0 * hud_scale), radio_bottom - (276.0 * hud_scale))
-		hud.radio_card.size = Vector2(minf(view.x - 32.0, 624.0 * hud_scale), 164.0 * hud_scale)
+		hud.radio_card.position = Vector2(radio_left, radio_bottom - radio_height)
+		hud.radio_card.size = Vector2(radio_width, radio_height)
 	if hud.campaign_context:
 		hud.combat_feed.set_limit(3)
 		hud.combat_feed.set_region(Rect2(24, context.position.y - (246.0 * hud_scale), minf(view.x * 0.45, 480.0 * hud_scale), 230.0 * hud_scale))
 	else:
 		var voice_top: float = frag_top + hud.frag_feed.reserved_height + 12.0
 		var card_on_right: bool = hud.radio_card != null
-		if card_on_right and radio_bottom - (292.0 * hud_scale) - voice_top < 132.0:
+		var toast_h: float = radio_height + (16.0 * hud_scale)
+		if card_on_right and radio_bottom - toast_h - voice_top < 132.0:
 			hud.radio_card.position = Vector2(24, origin + 144.0)
 			card_on_right = false
-		var voice_bottom: float = radio_bottom - ((292.0 if card_on_right else 116.0 if hud.radio_label != null else 16.0) * hud_scale)
+		var voice_bottom: float = radio_bottom - (toast_h if card_on_right else 16.0 * hud_scale)
 		var available: float = maxf(0.0, voice_bottom - voice_top)
 		# One backed corner line wraps to at most three lines of body text.
 		var entry: float = 3.0 * MenuTheme.FONT.get_height(hud.combat_feed.text_size) + 12.0
