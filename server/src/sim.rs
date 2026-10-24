@@ -436,6 +436,10 @@ struct ReactionState {
     /// Largest deficit each side has faced since it was last level.
     deficit: [u32; 2],
     last_standing: [bool; 2],
+    /// Larak Lot: ticks of the round's recent frags, oldest first, and when
+    /// the Host last called the Larak Lot special.
+    lot_frags: std::collections::VecDeque<u64>,
+    lot_special: Option<u64>,
 }
 
 /// How a lives-limited round ended by elimination.
@@ -3118,6 +3122,7 @@ impl GameState {
                     self.note_team_frag(side);
                 }
             }
+            self.note_lot_frag(&shooter_name, shooter_team);
 
             // Killer streak (victim already reset). Host callouts at 2/3/5.
             let killer_streak = {

@@ -2427,6 +2427,7 @@ not apply. No reaction lands within eight seconds of the last one, except
 | `last_standing` | A lives-limited team round leaves a side of two or more with one fighter against two or more | `player` that fighter, `team` the side |
 | `comeback` | A side that trailed by four or more draws level | `team` the side |
 | `golden_rail` | Somebody takes the golden Railgun | `player` the holder, `team` their side |
+| `larak_lot_special` | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round | `player` the fighter whose frag tipped it, `team` their side |
 
 ## Implementation Notes
 

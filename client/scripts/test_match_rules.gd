@@ -88,6 +88,9 @@ func _check_reactions() -> void:
 	_check(first == "HOST: FIRST BLOOD. DEAD AIR DAN. SOMEBODY HAD TO.", "first blood line: " + first)
 	var comeback: String = MatchRules.reaction_line({"kind": "comeback", "variant": 0, "team": "coalition"})
 	_check(comeback == "HOST: THE FREE COALITION CLAWS IT BACK. LEVEL GAME.", "comeback names the side: " + comeback)
+	for variant: int in range(MatchRules.REACTION_VARIANTS):
+		var special: String = MatchRules.reaction_line({"kind": "larak_lot_special", "variant": variant, "player": "Nightfall"})
+		_check(special.contains("THE LARAK LOT SPECIAL"), "the frag spike keeps the league's own name: " + special)
 	for bad: Dictionary in [{}, {"kind": "ace"}, {"kind": "first_blood", "variant": 3}, {"kind": "first_blood", "variant": -1}, {"kind": 4}]:
 		_check(MatchRules.reaction_line(bad) == "", "unknown reactions stay silent: " + str(bad))
 

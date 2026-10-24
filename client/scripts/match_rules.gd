@@ -9,7 +9,7 @@ extends RefCounted
 const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest"]
 const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]
 const TEAMS: Array[String] = ["union", "coalition"]
-const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
+const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail", "larak_lot_special"]
 const REACTION_VARIANTS: int = 3
 const MAX_LIVES: int = 9
 

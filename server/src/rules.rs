@@ -31,6 +31,14 @@ pub const REACTION_GAP_TICKS: u64 = 20 * 8;
 pub const STREAK_WORTH_ENDING: u32 = 3;
 /// A side this far behind that draws level is a comeback.
 pub const COMEBACK_DEFICIT: u32 = 4;
+/// Larak Lot: this many frags across the lot inside the window is a spike,
+/// "the Larak Lot special".
+pub const LOT_SPECIAL_FRAGS: usize = 4;
+/// The window a spike's frags land inside: four seconds.
+pub const LOT_SPECIAL_WINDOW_TICKS: u64 = 20 * 4;
+/// Once called, the special waits this long before it can be called again,
+/// so a busy lot hears it as an event rather than a refrain.
+pub const LOT_SPECIAL_COOLDOWN_TICKS: u64 = 20 * 45;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RuleSet {
