@@ -10,17 +10,17 @@ use enemy::EnemyController;
 /// Share of top speed for a body. Participants and arcade fighters keep 1.0.
 pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
     match identity {
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: crate::protocol::EnemyKind::Crawler,
             phase: EnemyPhase::Leaping,
             ..
         }) => 1.15,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Enforcer,
             phase: EnemyPhase::Charging,
             ..
         }) => 1.6,
-        Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
+        Some(CampaignActor::Hostile { kind, .. }) => enemy::gait(kind),
         _ => 1.0,
     }
 }
@@ -194,6 +194,11 @@ impl Encounters {
             {
                 continue;
             }
+            if !state.m19_encounter_available(index)
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
             if matches!(self.groups[index], Group::Unplaced) {
                 let mut ids = Vec::with_capacity(definition.enemies.len());
                 for (member, placement) in definition.enemies.iter().enumerate() {
@@ -210,6 +215,7 @@ impl Encounters {
                             placement.seated,
                         )
                         .with_hover(placement.hover.clone())
+                        .with_control(placement.control)
                         .with_spine_march(
                             map.m11_objectives()
                                 .filter(|_| index == 0)
@@ -290,7 +296,7 @@ impl Encounters {
             .collect();
         state.players.retain(|player| {
             !matches!(player.campaign,
-            Some(CampaignActor::Union { phase: EnemyPhase::Dead, phase_ends, .. })
+            Some(CampaignActor::Hostile { phase: EnemyPhase::Dead, phase_ends, .. })
                 if state.tick >= phase_ends && !emitters.contains(&player.id))
         });
         self.enemies
@@ -339,6 +345,42 @@ impl Encounters {
                 channel_target: enemy.channel_target(),
             })
             .collect()
+    }
+
+    /// Marked Paver strips for the snapshot, while prepared or worked.
+    pub(crate) fn paver_strips(&self) -> Vec<crate::protocol::PaverStripState> {
+        self.enemies
+            .iter()
+            .filter_map(|(_, enemy)| {
+                let strip = enemy.paver_strip()?;
+                Some(crate::protocol::PaverStripState {
+                    owner_id: enemy.id,
+                    origin: strip.origin,
+                    yaw: strip.yaw,
+                    length: strip.length,
+                    half_width: strip.half_width,
+                    working: enemy.phase() == EnemyPhase::Firing,
+                    phase_started: enemy.phase_started(),
+                    phase_ends: enemy.phase_ends(),
+                })
+            })
+            .collect()
+    }
+
+    /// Strips whose work pulse lands on this tick, with their owner.
+    pub(crate) fn paver_pulses(&self, tick: u64) -> Vec<(Uuid, enemy::paver::Strip)> {
+        self.enemies
+            .iter()
+            .filter_map(|(_, enemy)| enemy.paver_pulse(tick).map(|strip| (enemy.id, strip)))
+            .collect()
+    }
+
+    /// Every preparation put out by damage since the encounters were placed.
+    pub(crate) fn paver_interruptions(&self) -> u32 {
+        self.enemies
+            .iter()
+            .map(|(_, enemy)| enemy.paver_interruptions())
+            .sum()
     }
 
     /// Auditor repair channels, before this tick's intents: snap, complete or

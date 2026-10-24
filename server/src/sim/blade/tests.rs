@@ -135,12 +135,13 @@ fn test_exact_nine_tick_cadence_and_twelve_uses_exhaustion() {
     sim.players[1].y = crate::sim::PLAYER_FLOOR_Y;
     sim.players[1].z = 10.0;
     sim.players[1].hp = 1000; // ample HP
-    sim.players[1].campaign = Some(CampaignActor::Union {
+    sim.players[1].campaign = Some(CampaignActor::Hostile {
         kind: EnemyKind::Sweeper,
         phase: EnemyPhase::Idle,
         phase_started: 0,
         phase_ends: 100,
         seated: false,
+        control: Default::default(),
     });
 
     sim.set_action(

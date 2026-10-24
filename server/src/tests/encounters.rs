@@ -89,7 +89,7 @@ fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
         .campaign
         .unwrap()
     {
-        CampaignActor::Union { phase, .. } => phase,
+        CampaignActor::Hostile { phase, .. } => phase,
         _ => panic!("expected enemy"),
     }
 }
@@ -130,7 +130,7 @@ fn crawler_scrabble_precedes_a_single_contact_and_recovery() {
             .find(|p| p.name == "crawler_one")
             .unwrap();
         let current = match crawler.campaign.unwrap() {
-            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Hostile { phase, .. } => phase,
             _ => panic!("expected Crawler"),
         };
         if current == EnemyPhase::Leaping {
@@ -191,7 +191,7 @@ fn crawler_contact_respects_the_existing_spawn_shield() {
             .find(|p| p.name == "crawler_one")
             .unwrap();
         let phase = match crawler.campaign.unwrap() {
-            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Hostile { phase, .. } => phase,
             _ => panic!("expected Crawler"),
         };
         leaped |= phase == EnemyPhase::Leaping;
@@ -693,7 +693,7 @@ fn last_departure_and_party_wipe_reset_once_and_allow_retry() {
     assert_ne!(second, third);
     assert!(matches!(
         session.state.players[1].campaign,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             ..
         })

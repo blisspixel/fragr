@@ -121,7 +121,7 @@ mod tests {
                 .state
                 .players
                 .iter()
-                .filter(|p| matches!(p.campaign, Some(CampaignActor::Union { .. })))
+                .filter(|p| matches!(p.campaign, Some(CampaignActor::Hostile { .. })))
                 .collect();
             file.sort_by(|a, b| a.z.total_cmp(&b.z));
             assert_eq!(file.len(), 3);
@@ -166,7 +166,7 @@ mod tests {
             .filter(|p| {
                 matches!(
                     p.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         kind: crate::protocol::EnemyKind::Clerk,
                         ..
                     })
@@ -183,7 +183,7 @@ mod tests {
             );
             assert!(matches!(
                 guard.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Moving,
                     ..
                 })
@@ -233,7 +233,7 @@ mod tests {
             committed |= session.state.players.iter().any(|p| {
                 matches!(
                     p.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Windup | EnemyPhase::Firing,
                         ..
                     })

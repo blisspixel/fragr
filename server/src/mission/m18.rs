@@ -161,6 +161,7 @@ impl GameState {
                 concourse_secured: p.concourse_secured,
                 brief_completed: p.challenges.brief_completed(run.rules.difficulty),
             }),
+            m19: None,
         })
     }
 

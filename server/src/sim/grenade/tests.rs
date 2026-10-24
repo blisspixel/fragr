@@ -85,12 +85,13 @@ fn blast_distance_uses_actual_cylinder_and_raised_notary_box() {
         closest_body_point_stance([3.0, 5.0, 0.0], [0.0; 3], None, true),
         [0.5, crate::movement::DUCK_HEIGHT, 0.0]
     );
-    let notary = crate::protocol::CampaignActor::Union {
+    let notary = crate::protocol::CampaignActor::Hostile {
         kind: crate::protocol::EnemyKind::Notary,
         phase: crate::protocol::EnemyPhase::Idle,
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        control: Default::default(),
     };
     let point = closest_body_point_stance([3.0, 0.0, 3.0], [0.0, 4.0, 0.0], Some(notary), false);
     assert_eq!(point, [0.65, 4.0, 0.65]);
@@ -493,7 +494,7 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
             if session.state.players.iter().any(|p| {
                 matches!(
                     p.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Windup,
                         ..
                     })
@@ -508,7 +509,7 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
             .iter()
             .position(|p| p.is_campaign_enemy())
             .unwrap();
-        let CampaignActor::Union {
+        let CampaignActor::Hostile {
             phase: EnemyPhase::Windup,
             phase_started,
             phase_ends,
@@ -530,7 +531,7 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
         assert_eq!(state.players[heavy].hp, 60);
         session.tick_messages(0.05);
         let state = &mut session.state;
-        let CampaignActor::Union {
+        let CampaignActor::Hostile {
             phase: EnemyPhase::Hit,
             phase_ends: stagger_end,
             ..
@@ -546,7 +547,7 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
         );
         session.tick_messages(0.05);
         assert!(
-            matches!(session.state.players[heavy].campaign, Some(CampaignActor::Union { phase: EnemyPhase::Hit, phase_ends, .. }) if phase_ends == stagger_end)
+            matches!(session.state.players[heavy].campaign, Some(CampaignActor::Hostile { phase: EnemyPhase::Hit, phase_ends, .. }) if phase_ends == stagger_end)
         );
     }
 }

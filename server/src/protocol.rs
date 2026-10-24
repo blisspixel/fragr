@@ -36,6 +36,10 @@ mod m17;
 pub use m17::*;
 mod m18;
 pub use m18::*;
+mod m19;
+pub use m19::*;
+mod works;
+pub use works::{JetpackState, PaverStripState, MAX_PAVER_STRIPS};
 mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
@@ -49,8 +53,8 @@ mod statistics;
 mod status;
 mod vehicle;
 pub use actors::{
-    hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase,
-    AUDITOR_REPAIRS,
+    hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, ControlDomain, EnemyKind,
+    EnemyPhase, AUDITOR_REPAIRS,
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
@@ -808,9 +812,13 @@ pub const M16_GAMEPLAY_VERSION: u32 = 52;
 pub const M17_GAMEPLAY_VERSION: u32 = 53;
 /// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
 pub const M18_GAMEPLAY_VERSION: u32 = 54;
+/// Planned Works connected Low Water escape: the issued jetpack (snapshot
+/// `jetpacks`, Ack `jet_fuel`), the Paver and its `paver_strips`, and the
+/// waterworks departure.
+pub const M19_GAMEPLAY_VERSION: u32 = 55;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M18_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M19_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -945,6 +953,7 @@ mod geometry_tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             walker: None,
             article_blade: None,
             map_id: 67,
@@ -1126,6 +1135,12 @@ pub enum ServerMessage {
             deserialize_with = "m11::present",
             skip_serializing_if = "Option::is_none"
         )]
+        m19: Option<M19MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
         walker: Option<WalkerGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1198,6 +1213,10 @@ pub struct MovementAck {
     pub effective_speed: f32,
     /// Jump request passed to movement integration, not proof of takeoff.
     pub jump_input: bool,
+    /// Worn jetpack fuel after this step, for replay from this body. Omitted
+    /// without a pack; prediction then uses the ordinary step.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jet_fuel: Option<u16>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -1495,6 +1514,12 @@ pub struct Snapshot {
     /// Living campaign Auditors and their repair channels.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auditors: Vec<AuditorState>,
+    /// Marked Paver strips while prepared or worked. Omitted when none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paver_strips: Vec<PaverStripState>,
+    /// Worn jetpacks and their fuel. Omitted when nobody wears one.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub jetpacks: Vec<JetpackState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub explosions: Vec<ExplosionResult>,
     /// Contested Frequency (scrap league that denies it exists).
@@ -1983,6 +2008,8 @@ mod protocol_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -2221,6 +2248,8 @@ mod protocol_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),

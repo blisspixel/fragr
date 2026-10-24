@@ -2724,6 +2724,8 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -3665,6 +3667,8 @@ mod combat_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -4495,12 +4499,13 @@ mod planner_tests {
         let mut partner = player("partner", ally, 1.0, 0.0, 100, "Tack");
         partner.campaign = mine.campaign;
         let mut guard = player("clerk", foe, 8.0, 0.0, 60, "Tack");
-        guard.campaign = Some(CampaignActor::Union {
+        guard.campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);
         let arena = Arena::default();
@@ -4584,6 +4589,8 @@ mod planner_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),
@@ -5398,6 +5405,8 @@ mod line_of_sight_tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
             playlist: "Arena Duel".to_string(),

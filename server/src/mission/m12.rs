@@ -180,7 +180,7 @@ impl GameState {
                             && p.hp <= 0
                             && matches!(
                                 p.campaign,
-                                Some(CampaignActor::Union {
+                                Some(CampaignActor::Hostile {
                                     kind: crate::protocol::EnemyKind::Clerk,
                                     ..
                                 })
@@ -308,6 +308,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         })
     }
     /// Materialize prepared aid jeeps atomically, only when their parked footprints are currently empty.

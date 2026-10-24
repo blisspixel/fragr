@@ -466,7 +466,7 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         serde_json::from_str::<MissionId>("\"all_systems_normal\"").unwrap(),
         MissionId::AllSystemsNormal
     );
-    assert!(serde_json::from_str::<MissionId>("\"planned_works\"").is_err());
+    assert!(serde_json::from_str::<MissionId>("\"local_exception\"").is_err());
 }
 
 #[test]

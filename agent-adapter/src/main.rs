@@ -764,7 +764,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, m19, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -784,6 +784,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m15(m15.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m19(m19.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1539,12 +1540,13 @@ mod tests {
     #[test]
     fn scripted_control_breaks_a_repair_channel_before_a_nearer_hostile() {
         let union = |phase| {
-            Some(protocol::CampaignActor::Union {
+            Some(protocol::CampaignActor::Hostile {
                 kind: protocol::EnemyKind::Auditor,
                 phase,
                 phase_started: 0,
                 phase_ends: 44,
                 seated: false,
+                control: Default::default(),
             })
         };
         let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
@@ -1578,12 +1580,13 @@ mod tests {
         let near = fighter(
             2,
             3.0,
-            Some(protocol::CampaignActor::Union {
+            Some(protocol::CampaignActor::Hostile {
                 kind: protocol::EnemyKind::Sweeper,
                 phase: protocol::EnemyPhase::Windup,
                 phase_started: 0,
                 phase_ends: 14,
                 seated: false,
+                control: Default::default(),
             }),
         );
         let channeling = fighter(3, 12.0, union(protocol::EnemyPhase::Channeling));
@@ -1655,6 +1658,8 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1712,6 +1717,8 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -1829,6 +1836,8 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -2199,6 +2208,8 @@ mod tests {
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
+            paver_strips: Vec::new(),
+            jetpacks: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
             playlist: protocol::default_playlist(),
@@ -2263,19 +2274,21 @@ mod tests {
         sim.add_player(far, "Far".into(), Role::Agent);
         sim.add_player(farther, "Yard".into(), Role::Agent);
         let mut snapshot = sim.snapshot();
-        let auditor_id = protocol::CampaignActor::Union {
+        let auditor_id = protocol::CampaignActor::Hostile {
             kind: protocol::EnemyKind::Auditor,
             phase: protocol::EnemyPhase::Channeling,
             phase_started: 0,
             phase_ends: 40,
             seated: false,
+            control: Default::default(),
         };
-        let clerk = protocol::CampaignActor::Union {
+        let clerk = protocol::CampaignActor::Hostile {
             kind: protocol::EnemyKind::Clerk,
             phase: protocol::EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         };
         for player in &mut snapshot.players {
             player.campaign = Some(if player.id == me {
@@ -3175,6 +3188,7 @@ fn main() -> ExitCode {
                 m16: None,
                 m17: None,
                 m18: None,
+                m19: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,
@@ -3368,6 +3382,7 @@ fn main() -> ExitCode {
                 m16: None,
                 m17: None,
                 m18: None,
+                m19: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,

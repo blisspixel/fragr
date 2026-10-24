@@ -14,7 +14,7 @@ pub const ASSESSOR_HALF_WIDTH: f32 = 1.3;
 pub fn is_assessor(identity: Option<CampaignActor>) -> bool {
     matches!(
         identity,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Assessor,
             ..
         })
@@ -37,7 +37,7 @@ pub fn is_flying(identity: Option<CampaignActor>) -> bool {
 pub fn is_notary(identity: Option<CampaignActor>) -> bool {
     matches!(
         identity,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Notary,
             ..
         })
@@ -48,7 +48,7 @@ pub fn is_notary(identity: Option<CampaignActor>) -> bool {
 pub fn channeling(identity: Option<CampaignActor>) -> bool {
     matches!(
         identity,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Auditor,
             phase: crate::protocol::EnemyPhase::Channeling,
             ..
@@ -56,11 +56,27 @@ pub fn channeling(identity: Option<CampaignActor>) -> bool {
     )
 }
 
-/// Engagement order shared by every controller: a channeling Auditor comes
-/// before any nearer hostile, so agents break a repair before it lands.
-/// Otherwise nearer is first. Compare keys with `engagement_before`.
+/// A Paver preparing its strip: damage now puts the strip out.
+pub fn preparing_strip(identity: Option<CampaignActor>) -> bool {
+    matches!(
+        identity,
+        Some(CampaignActor::Hostile {
+            kind: EnemyKind::Paver,
+            phase: crate::protocol::EnemyPhase::Windup,
+            ..
+        })
+    )
+}
+
+/// Engagement order shared by every controller: a channeling Auditor or a
+/// Paver preparing its strip comes before any nearer hostile, so agents break
+/// a repair or a strip before it lands. Otherwise nearer is first. Compare
+/// keys with `engagement_before`.
 pub fn engagement_key(identity: Option<CampaignActor>, distance: f32) -> (bool, f32) {
-    (!channeling(identity), distance)
+    (
+        !(channeling(identity) || preparing_strip(identity)),
+        distance,
+    )
 }
 
 pub fn engagement_before(a: (bool, f32), b: (bool, f32)) -> bool {
@@ -76,7 +92,7 @@ pub fn target_height(identity: Option<CampaignActor>) -> f32 {
     }
     if matches!(
         identity,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Crawler,
             ..
         })
@@ -96,7 +112,7 @@ pub fn eye_height(identity: Option<CampaignActor>) -> f32 {
     }
     if matches!(
         identity,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             kind: EnemyKind::Crawler,
             ..
         })
@@ -196,7 +212,7 @@ pub fn aim_height(identity: Option<CampaignActor>) -> f32 {
     if is_flying(identity)
         || matches!(
             identity,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind: EnemyKind::Crawler,
                 ..
             })
@@ -226,7 +242,7 @@ fn short_body(identity: Option<CampaignActor>) -> bool {
     is_flying(identity)
         || matches!(
             identity,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind: EnemyKind::Crawler,
                 ..
             })
@@ -561,12 +577,13 @@ mod tests {
     #[test]
     fn a_channeling_auditor_is_engaged_before_any_nearer_hostile() {
         let union = |kind, phase| {
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind,
                 phase,
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                control: Default::default(),
             })
         };
         let channel = union(EnemyKind::Auditor, crate::protocol::EnemyPhase::Channeling);
@@ -585,12 +602,13 @@ mod tests {
     #[test]
     fn fighter_shots_aim_at_the_chest() {
         let union = |kind| {
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 kind,
                 phase: crate::protocol::EnemyPhase::Idle,
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                control: Default::default(),
             })
         };
         assert_eq!(aim_height(None), TORSO_HEIGHT);
@@ -695,12 +713,13 @@ mod tests {
         );
         assert_eq!(stance_eye(None, true), crate::movement::DUCK_EYE_HEIGHT);
         assert_eq!(stance_eye(None, false), crate::movement::EYE_HEIGHT);
-        let crawler = Some(CampaignActor::Union {
+        let crawler = Some(CampaignActor::Hostile {
             kind: EnemyKind::Crawler,
             phase: crate::protocol::EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         assert_eq!(body_height(crawler, true), CRAWLER_HEIGHT);
         assert!(!head_hit_for(0.0, CRAWLER_HEIGHT * 0.5, crawler, true));

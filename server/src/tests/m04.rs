@@ -183,7 +183,7 @@ fn notary(s: &mut GameSession) -> Uuid {
         advance(s, 1);
         if matches!(
             body(s, id).campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 phase: EnemyPhase::Windup,
                 ..
             })
@@ -265,10 +265,10 @@ fn notary_each_tier_locks_hover_and_counts_only_first_actual_round() {
         assert_eq!(body(&s, drone).hp, 50);
         let origin = [body(&s, drone).x, body(&s, drone).y, body(&s, drone).z];
         let end = match body(&s, drone).campaign.unwrap() {
-            CampaignActor::Union { phase_ends, .. } => phase_ends,
+            CampaignActor::Hostile { phase_ends, .. } => phase_ends,
             _ => panic!(),
         };
-        if let CampaignActor::Union {
+        if let CampaignActor::Hostile {
             phase_started,
             kind,
             ..
@@ -304,7 +304,7 @@ fn notary_strafe_cover_and_hit_spoil_the_photograph() {
         let (mut s, id) = fixture(CampaignDifficulty::Standard);
         let drone = notary(&mut s);
         let end = match body(&s, drone).campaign.unwrap() {
-            CampaignActor::Union { phase_ends, .. } => phase_ends,
+            CampaignActor::Hostile { phase_ends, .. } => phase_ends,
             _ => panic!(),
         };
         if variant == 0 {
@@ -354,12 +354,13 @@ fn notary_real_raised_box_kill_falls_to_support_without_damage() {
 
 #[test]
 fn notary_shot_box_has_raised_underbody_and_wide_square_edges() {
-    let identity = Some(CampaignActor::Union {
+    let identity = Some(CampaignActor::Hostile {
         kind: EnemyKind::Notary,
         phase: EnemyPhase::Idle,
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        control: Default::default(),
     });
     let feet = [8.0, 4.0, 0.0];
     for (y, z, hit) in [
@@ -634,7 +635,7 @@ fn notary_launch_and_lethal_player_ray_commit_the_same_frame() {
     let (mut s, id) = fixture(CampaignDifficulty::Standard);
     let drone = notary(&mut s);
     let end = match body(&s, drone).campaign.unwrap() {
-        CampaignActor::Union { phase_ends, .. } => phase_ends,
+        CampaignActor::Hostile { phase_ends, .. } => phase_ends,
         _ => panic!(),
     };
     while s.state.tick + 1 < end {

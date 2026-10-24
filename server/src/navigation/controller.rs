@@ -33,6 +33,18 @@ pub struct Navigator {
     avoidance_motion: Option<[bool; 4]>,
 }
 
+impl Navigator {
+    /// Current destination and next waypoint, for route diagnostics.
+    #[cfg(test)]
+    pub(crate) fn debug_route(&self) -> (Option<[f32; 3]>, Option<[f32; 3]>, usize) {
+        (
+            self.destination,
+            self.points.front().copied(),
+            self.points.len(),
+        )
+    }
+}
+
 impl Navigation {
     pub(crate) fn planning_arena(&self) -> &crate::movement::Arena {
         &self.arena

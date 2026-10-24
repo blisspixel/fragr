@@ -28,6 +28,7 @@ pub(crate) mod m15;
 pub(crate) mod m16;
 pub(crate) mod m17;
 pub(crate) mod m18;
+pub(crate) mod m19;
 mod mission;
 mod supplies;
 mod vehicle_placements;
@@ -75,6 +76,8 @@ pub struct AuthoredMap {
     pub(super) m17_stage: u8,
     pub(super) m18: Option<Arc<m18::Prepared>>,
     pub(super) m18_stage: u8,
+    pub(super) m19: Option<Arc<m19::Prepared>>,
+    pub(super) m19_stage: u8,
     pub(super) walker: Option<Arc<walker::Prepared>>,
     pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
@@ -136,6 +139,8 @@ struct Document {
     m17: Option<m17::Definition>,
     #[serde(default)]
     m18: Option<m18::Definition>,
+    #[serde(default)]
+    m19: Option<m19::Definition>,
     #[serde(default)]
     walker: Option<walker::Definition>,
     #[serde(default)]
@@ -418,6 +423,9 @@ impl AuthoredMap {
             return Err(invalid(
                 "inspection glass belongs to an M02, M06, M07, M09, M10 or M11 solid",
             ));
+        }
+        if doc.m19.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m19()) {
+            return Err(invalid("M19 registered panels require Planned Works"));
         }
         if doc.m07.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m07()) {
             return Err(invalid("M07 registered panels require Declared Goods"));
@@ -991,6 +999,27 @@ impl AuthoredMap {
             })
             .transpose()?
             .map(Arc::new);
+        let m19 = doc
+            .m19
+            .map(|d| {
+                if doc.map_id != 1019
+                    || doc.name != "Planned Works"
+                    || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                    || !doc.vehicles.is_empty()
+                {
+                    return Err(invalid("M19 requires canonical Planned Works"));
+                }
+                d.prepare(
+                    &arena,
+                    &doc.encounters,
+                    &presentation,
+                    &solid_ids,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         if m13.as_ref().is_some_and(|p| p.geometry.is_some())
             && !supplies.iter().any(|s| {
@@ -1198,6 +1227,8 @@ impl AuthoredMap {
             m17_stage: 0,
             m18,
             m18_stage: 0,
+            m19,
+            m19_stage: 0,
             walker,
             shelter_open: false,
             hatch_open: false,

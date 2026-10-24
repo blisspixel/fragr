@@ -28,6 +28,7 @@ mod m15;
 mod m16;
 mod m17;
 pub(crate) mod m18;
+pub(crate) mod m19;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -65,6 +66,7 @@ pub(crate) struct MissionRun {
     pub(crate) m16: Option<m16::M16Progress>,
     pub(crate) m17: Option<m17::M17Progress>,
     pub(crate) m18: Option<m18::M18Progress>,
+    pub(crate) m19: Option<m19::M19Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -99,6 +101,7 @@ impl MissionRun {
             m16: map.m16_geometry().map(|_| m16::M16Progress::default()),
             m17: map.m17_geometry().map(|_| m17::M17Progress::default()),
             m18: map.m18_geometry().map(|_| m18::M18Progress::default()),
+            m19: map.m19_geometry().map(|_| m19::M19Progress::new(0)),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -287,6 +290,7 @@ impl GameState {
                 || run.m16.is_some()
                 || run.m17.is_some()
                 || run.m18.is_some()
+                || run.m19.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -317,6 +321,7 @@ impl GameState {
 
     pub(crate) fn reset_mission(&mut self) {
         let projectile_serial = self.current_projectile_serial();
+        let strip_hits = self.paver_strip_hits;
         let Some(run) = self.mission.as_mut().filter(|run| run.started) else {
             return;
         };
@@ -373,6 +378,10 @@ impl GameState {
             .initial_map
             .m18_geometry()
             .map(|_| m18::M18Progress::default());
+        run.m19 = run
+            .initial_map
+            .m19_geometry()
+            .map(|_| m19::M19Progress::new(strip_hits));
         run.m09 = run.initial_map.m09_geometry().map(|g| {
             m09::M09Progress::new(
                 &g,
@@ -404,6 +413,7 @@ impl GameState {
                 || run.m16.is_some()
                 || run.m17.is_some()
                 || run.m18.is_some()
+                || run.m19.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -421,6 +431,9 @@ impl GameState {
         run.started_at = (run.phase != MissionPhase::Briefing).then_some(self.tick);
         for player in &mut self.players {
             player.interaction_requested = false;
+            // Mission-issued gear returns to its store with the level.
+            player.jetpack = None;
+            player.jet_thrusting = false;
         }
         tracing::info!(attempt = run.attempt, "Mission reset to intake");
         self.ensure_m03_companion();
@@ -441,6 +454,9 @@ impl GameState {
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m19.is_some() {
+            return self.m19_mission_state();
+        }
         if run.m18.is_some() {
             return self.m18_mission_state();
         }
@@ -558,6 +574,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         })
     }
 
@@ -584,6 +601,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m19.is_some()) {
+            self.advance_m19();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m18.is_some()) {
             self.advance_m18();
             return;

@@ -8,6 +8,7 @@ use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod assessor;
 mod enforcer;
+pub(crate) mod paver;
 mod redactor;
 mod spine_patrol;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
@@ -102,6 +103,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Enforcer => (140, WeaponType::Fists),
         EnemyKind::Redactor => (90, WeaponType::Shiv),
         EnemyKind::Assessor => (240, WeaponType::Fists),
+        EnemyKind::Paver => (220, WeaponType::Fists),
     }
 }
 
@@ -119,6 +121,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::Auditor => 0.4,
         EnemyKind::Enforcer => 0.45,
         EnemyKind::Redactor => 0.6,
+        EnemyKind::Paver => 0.28,
     }
 }
 
@@ -131,7 +134,8 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Jammer
         | EnemyKind::Auditor
         | EnemyKind::RangedSweeper
-        | EnemyKind::Redactor => 1,
+        | EnemyKind::Redactor
+        | EnemyKind::Paver => 1,
         EnemyKind::Enforcer => 1,
         EnemyKind::Sweeper | EnemyKind::Notary | EnemyKind::Assessor => 3,
         EnemyKind::HeavySweeper => 4,
@@ -153,13 +157,18 @@ fn stun(kind: EnemyKind) -> u64 {
         EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
         EnemyKind::Assessor => 16,
+        EnemyKind::Paver => 16,
     }
 }
 
 fn armored(kind: EnemyKind) -> bool {
     matches!(
         kind,
-        EnemyKind::HeavySweeper | EnemyKind::Turret | EnemyKind::Enforcer | EnemyKind::Assessor
+        EnemyKind::HeavySweeper
+            | EnemyKind::Turret
+            | EnemyKind::Enforcer
+            | EnemyKind::Assessor
+            | EnemyKind::Paver
     )
 }
 
@@ -231,6 +240,14 @@ pub(super) struct EnemyController {
     redactor_approached: bool,
     /// Only the authored tender's three-Clerk file, before combat is noticed.
     spine_march: Option<spine_patrol::SpineMarch>,
+    /// Paver only: the strip fixed when its preparation began.
+    paver_strip: Option<paver::Strip>,
+    /// Paver only: damage landed on the body during the current preparation.
+    prep_damage: i32,
+    /// Paver only: preparations put out by damage, for mission receipts.
+    paver_interruptions: u32,
+    /// Who commands this body, from its authored placement.
+    control: crate::protocol::ControlDomain,
 }
 
 /// (windup, recovery) ticks. Health, damage, burst length, locked aim and
@@ -272,6 +289,11 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Assessor, CampaignDifficulty::Assisted) => (32, 50),
         (EnemyKind::Assessor, CampaignDifficulty::Standard) => (24, 40),
         (EnemyKind::Assessor, CampaignDifficulty::Severe) => (18, 32),
+        // The Paver's preparation is the whole reaction window: long enough on
+        // Severe to cross a 3.2 m strip or land two interrupting hits.
+        (EnemyKind::Paver, CampaignDifficulty::Assisted) => (44, 50),
+        (EnemyKind::Paver, CampaignDifficulty::Standard) => (34, 40),
+        (EnemyKind::Paver, CampaignDifficulty::Severe) => (28, 32),
     }
 }
 
@@ -444,16 +466,25 @@ impl EnemyController {
             redactor_approach_until: 0,
             redactor_approached: false,
             spine_march: None,
+            paver_strip: None,
+            prep_damage: 0,
+            paver_interruptions: 0,
+            control: if kind == EnemyKind::Paver {
+                crate::protocol::ControlDomain::Restoration
+            } else {
+                crate::protocol::ControlDomain::Union
+            },
         }
     }
 
     pub fn identity(&self) -> CampaignActor {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             kind: self.kind,
             phase: self.phase,
             phase_started: self.started,
             phase_ends: self.until,
             seated: self.seated,
+            control: self.control,
         }
     }
 
@@ -505,6 +536,7 @@ impl EnemyController {
         self.channel_target = None;
         if died {
             self.shots_left = 0;
+            self.paver_strip = None;
             self.enter(EnemyPhase::Dead, tick, 40);
             self.dead_until = self.until;
         } else if !armored(self.kind) {
@@ -638,6 +670,29 @@ impl EnemyController {
         // several pellets or trading shooters add up to one heavy hit.
         let damage = self.last_hp.saturating_sub(me.hp);
         self.last_hp = me.hp;
+        if self.kind == EnemyKind::Paver {
+            let arena = state.current_arena();
+            let grounded = me.hp > 0
+                && state
+                    .players
+                    .iter()
+                    .find(|p| p.id == self.id)
+                    .is_some_and(|p| {
+                        p.vy <= 0.0
+                            && (feet[1] - arena.support_height(feet[0], feet[2], feet[1] + 0.01))
+                                .abs()
+                                <= 0.02
+                    });
+            return self.paver(
+                &arena,
+                target,
+                feet,
+                grounded,
+                damage,
+                (windup, recovery),
+                tick,
+            );
+        }
         if armored(self.kind)
             && damage >= STAGGER_DAMAGE
             && self.stagger_ready
@@ -936,6 +991,11 @@ impl EnemyController {
 
     pub(super) fn with_hover(mut self, hover: Option<crate::maps::Hover>) -> Self {
         self.hover = hover;
+        self
+    }
+    /// The authored control domain; validation already matched it to the kind.
+    pub(super) fn with_control(mut self, control: crate::protocol::ControlDomain) -> Self {
+        self.control = control;
         self
     }
     pub(super) fn claim_notary_photo_target(&mut self) -> Option<Uuid> {
@@ -1468,12 +1528,13 @@ mod tests {
             .iter_mut()
             .find(|p| p.id == enemy_id)
             .unwrap()
-            .campaign = Some(CampaignActor::Union {
+            .campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Recovery,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         state
             .players
@@ -1632,19 +1693,19 @@ mod tests {
         let mut alarmed = seated();
         assert!(matches!(
             alarmed.identity(),
-            CampaignActor::Union { seated: true, .. }
+            CampaignActor::Hostile { seated: true, .. }
         ));
         alarmed.alarm([1.0, 0.0, 0.0], 1);
         assert!(matches!(
             alarmed.identity(),
-            CampaignActor::Union { seated: false, .. }
+            CampaignActor::Hostile { seated: false, .. }
         ));
 
         let mut struck = seated();
         struck.hit(1, false);
         assert!(matches!(
             struck.identity(),
-            CampaignActor::Union { seated: false, .. }
+            CampaignActor::Hostile { seated: false, .. }
         ));
     }
 
@@ -1698,12 +1759,13 @@ mod tests {
             },
         ));
         state.add_player(enemy_id, "Guard".into(), Role::Agent);
-        let campaign = CampaignActor::Union {
+        let campaign = CampaignActor::Hostile {
             kind,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         };
         for (id, x, z, actor) in [
             (player_id, player_x, player_z, CampaignActor::Participant {}),
@@ -1778,12 +1840,13 @@ mod tests {
             (
                 enemy_id,
                 0.0,
-                CampaignActor::Union {
+                CampaignActor::Hostile {
                     kind: EnemyKind::Clerk,
                     phase: EnemyPhase::Idle,
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    control: Default::default(),
                 },
             ),
             (player_id, 4.0, CampaignActor::Participant {}),

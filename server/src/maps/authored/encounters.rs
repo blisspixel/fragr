@@ -2,7 +2,7 @@
 use super::{identity, invalid, standing};
 use crate::movement::Arena;
 pub(crate) use crate::protocol::Region3 as EntryRegion;
-use crate::protocol::{EnemyKind, EquipmentPolicy};
+use crate::protocol::{ControlDomain, EnemyKind, EquipmentPolicy};
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::io;
@@ -32,6 +32,10 @@ pub(crate) struct EnemyPlacement {
     pub seated: bool,
     #[serde(default)]
     pub hover: Option<Hover>,
+    /// Who commands this body. Absent means the Union; a Paver is always
+    /// restoration and only Union machines can be absorbed.
+    #[serde(default)]
+    pub control: ControlDomain,
 }
 
 fn authored_armor<'de, D: serde::Deserializer<'de>>(decoder: D) -> Result<Option<u8>, D::Error> {
@@ -194,6 +198,12 @@ pub(super) fn validate(
                 }
                 (Some(_), _) => return Err(invalid("only flying equipment uses hover authoring")),
                 _ => {}
+            }
+            if !enemy.control.admits(enemy.kind) {
+                return Err(invalid(&format!(
+                    "enemy {}: {:?} cannot be under {:?} control",
+                    enemy.id, enemy.kind, enemy.control,
+                )));
             }
             if (enemy.seated && enemy.kind != EnemyKind::Clerk)
                 || (enemy.hover.is_none() && !standing(arena, enemy.feet))

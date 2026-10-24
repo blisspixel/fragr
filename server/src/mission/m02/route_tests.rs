@@ -320,7 +320,7 @@ impl Walker {
             .iter()
             .filter(|player| player.name.starts_with("guard_room_clerk_"))
         {
-            if let Some(CampaignActor::Union { seated, phase, .. }) = player.campaign {
+            if let Some(CampaignActor::Hostile { seated, phase, .. }) = player.campaign {
                 if seated && phase == EnemyPhase::Idle {
                     self.guard_room_seated.insert(player.name.clone());
                 } else if !seated {
@@ -332,7 +332,7 @@ impl Walker {
             player.name.starts_with("guard_room_clerk_")
                 && matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Moving
                             | EnemyPhase::Windup
                             | EnemyPhase::Firing
@@ -357,7 +357,7 @@ impl Walker {
                     "ward_clerk" | "ward_sweeper" | "machine_clerk"
                 ) && matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Moving
                             | EnemyPhase::Windup
                             | EnemyPhase::Firing
@@ -421,7 +421,7 @@ impl Walker {
                 .is_none_or(|ids| ids.contains(&player.id))
                 && matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Dead,
                         ..
                     })
@@ -516,7 +516,7 @@ impl Walker {
             combat.left = visible.iter().any(|enemy| {
                 matches!(
                     enemy.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Leaping,
                         ..
                     })
@@ -2591,7 +2591,7 @@ fn guard_room_arrival_shows_the_pickup_then_publishes_the_wake() {
     {
         assert!(matches!(
             player.campaign,
-            Some(CampaignActor::Union { seated: false, .. })
+            Some(CampaignActor::Hostile { seated: false, .. })
         ));
     }
 }

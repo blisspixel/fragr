@@ -797,12 +797,13 @@ fn m05_external_controller_reconstructs_live_tram_cover() {
         target.hp = 100;
         target.id = Uuid::from_u128(5051);
         target.name = "CoverProbe".into();
-        target.campaign = Some(crate::protocol::CampaignActor::Union {
+        target.campaign = Some(crate::protocol::CampaignActor::Hostile {
             kind: crate::protocol::EnemyKind::Clerk,
             phase: crate::protocol::EnemyPhase::Idle,
             phase_started: snapshot.tick,
             phase_ends: snapshot.tick,
             seated: false,
+            control: Default::default(),
         });
         target.x = 2.1;
         target.y = PLAYER_FLOOR_Y;

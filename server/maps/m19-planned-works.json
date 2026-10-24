@@ -1,0 +1,1040 @@
+{
+  "version": 1,
+  "map_id": 1019,
+  "name": "Planned Works",
+  "half_extent": 60,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "city_south_west", "min": [-60, 0, -60], "max": [-28, 9.6, -36], "surface": "concrete"},
+    {"id": "city_south", "min": [-28, 0, -60], "max": [60, 10.2, -40], "surface": "concrete"},
+    {"id": "repair_hall", "min": [10, 0, -40], "max": [42, 10.2, 12], "surface": "concrete"},
+    {"id": "city_east", "min": [42, 0, -40], "max": [60, 9.6, 12], "surface": "concrete"},
+    {"id": "market_east", "min": [42, 0, 12], "max": [46, 9.6, 38], "surface": "enamel"},
+    {"id": "trench_south_block", "min": [42, 0, 12], "max": [60, 9.6, 16], "surface": "concrete"},
+    {"id": "north_row_fill", "min": [-30, 0, 2], "max": [-28, 9.6, 12], "surface": "concrete"},
+    {"id": "conc_wall_s", "min": [-60, 0, -36], "max": [-28, 11, -34], "surface": "concrete"},
+    {"id": "conc_wall_n", "min": [-60, 0, 2], "max": [-28, 11, 4], "surface": "concrete"},
+    {"id": "conc_wall_w", "min": [-60, 0, -34], "max": [-58, 11, 2], "surface": "concrete"},
+    {"id": "conc_wall_e_s", "min": [-30, 0, -34], "max": [-28, 11, -20], "surface": "concrete"},
+    {"id": "conc_wall_e_n", "min": [-30, 0, -12], "max": [-28, 11, 2], "surface": "concrete"},
+    {"id": "conc_door_lintel", "min": [-30, 4.2, -20], "max": [-28, 11, -12], "surface": "concrete"},
+    {"id": "conc_roof", "min": [-60, 10, -36], "max": [-28, 10.6, 4], "surface": "concrete"},
+    {"id": "gallery_deck", "min": [-58, 4, -8], "max": [-36, 4.5, 2], "surface": "records_tile"},
+    {"id": "gallery_parapet_a", "min": [-54, 4.5, -8], "max": [-51, 5.6, -7.6], "surface": "service_steel"},
+    {"id": "gallery_parapet_b", "min": [-47, 4.5, -8], "max": [-36, 5.6, -7.6], "surface": "service_steel"},
+    {"id": "gallery_parapet_e", "min": [-36.4, 4.5, -7.6], "max": [-36, 5.6, -2], "surface": "service_steel"},
+    {"id": "gallery_pillar_a", "min": [-55, 0, -7.6], "max": [-54, 4, -6.8], "surface": "service_steel"},
+    {"id": "gallery_pillar_b", "min": [-40, 0, -7.6], "max": [-39, 4, -6.8], "surface": "service_steel"},
+    {"id": "service_stair_0", "min": [-58, 0, -17], "max": [-54, 0.5, -16], "surface": "service_steel"},
+    {"id": "service_stair_1", "min": [-58, 0, -16], "max": [-54, 1, -15], "surface": "service_steel"},
+    {"id": "service_stair_2", "min": [-58, 0, -15], "max": [-54, 1.5, -14], "surface": "service_steel"},
+    {"id": "service_stair_3", "min": [-58, 0, -14], "max": [-54, 2, -13], "surface": "service_steel"},
+    {"id": "service_stair_4", "min": [-58, 0, -13], "max": [-54, 2.5, -12], "surface": "service_steel"},
+    {"id": "service_stair_5", "min": [-58, 0, -12], "max": [-54, 3, -11], "surface": "service_steel"},
+    {"id": "service_stair_6", "min": [-58, 0, -11], "max": [-54, 3.5, -10], "surface": "service_steel"},
+    {"id": "service_stair_7", "min": [-58, 0, -10], "max": [-54, 4, -9], "surface": "service_steel"},
+    {"id": "service_stair_8", "min": [-58, 0, -9], "max": [-54, 4.5, -8], "surface": "service_steel"},
+    {"id": "broken_stair_0", "min": [-51, 0, -17], "max": [-47, 0.5, -16], "surface": "service_steel"},
+    {"id": "broken_stair_1", "min": [-51, 0, -16], "max": [-47, 1, -15], "surface": "service_steel"},
+    {"id": "broken_stair_2", "min": [-51, 0, -15], "max": [-47, 1.5, -14], "surface": "service_steel"},
+    {"id": "broken_stair_rubble", "min": [-50.5, 0, -13.7], "max": [-47.6, 0.35, -11.3], "surface": "concrete"},
+    {"id": "broken_stair_6", "min": [-51, 3, -11], "max": [-47, 3.5, -10], "surface": "service_steel"},
+    {"id": "broken_stair_7", "min": [-51, 3.5, -10], "max": [-47, 4, -9], "surface": "service_steel"},
+    {"id": "broken_stair_8", "min": [-51, 4, -9], "max": [-47, 4.5, -8], "surface": "service_steel"},
+    {"id": "stores_counter", "min": [-54, 0, -32], "max": [-48, 1.1, -30.6], "surface": "enamel"},
+    {"id": "stores_racks", "min": [-56, 0, -34], "max": [-46, 3.2, -33], "surface": "service_steel"},
+    {"id": "conc_bench_a", "min": [-40, 0, -28], "max": [-36, 0.9, -27], "surface": "enamel"},
+    {"id": "conc_bench_b", "min": [-40, 0, -16], "max": [-36, 0.9, -15], "surface": "enamel"},
+    {"id": "conc_luggage", "min": [-41, 0, -33], "max": [-39, 1.6, -31], "surface": "service_steel"},
+    {"id": "departure_board", "min": [-45.5, 0, -34], "max": [-44.5, 4.2, -13], "surface": "enamel"},
+    {"id": "conc_kiosk", "min": [-38, 0, -23], "max": [-36.5, 2.4, -21.5], "surface": "enamel"},
+    {"id": "turnstile_0", "min": [-34, 0, -34], "max": [-33, 1.1, -31], "surface": "service_steel"},
+    {"id": "turnstile_1", "min": [-34, 0, -29], "max": [-33, 1.1, -25], "surface": "service_steel"},
+    {"id": "turnstile_2", "min": [-34, 0, -23], "max": [-33, 1.1, -19], "surface": "service_steel"},
+    {"id": "turnstile_3", "min": [-34, 0, -17], "max": [-33, 1.1, -13], "surface": "service_steel"},
+    {"id": "turnstile_4", "min": [-34, 0, -11], "max": [-33, 1.1, -8], "surface": "service_steel"},
+    {"id": "north_row_a", "min": [-28, 0, -9], "max": [-17, 9.6, 12], "surface": "enamel"},
+    {"id": "north_pocket_back", "min": [-17, 0, -4], "max": [-14, 9.6, 12], "surface": "concrete"},
+    {"id": "north_row_b", "min": [-14, 0, -9], "max": [-4, 9.6, 12], "surface": "enamel"},
+    {"id": "south_row_a", "min": [-28, 0, -40], "max": [-12, 9.6, -23], "surface": "enamel"},
+    {"id": "south_pocket_back", "min": [-12, 0, -40], "max": [-9, 9.6, -28], "surface": "concrete"},
+    {"id": "south_row_b", "min": [-9, 0, -40], "max": [10, 9.6, -23], "surface": "enamel"},
+    {"id": "stalled_tram", "min": [-24, 0, -21], "max": [-15, 3.2, -18], "surface": "service_steel"},
+    {"id": "works_barrier_a", "min": [-12, 0, -13], "max": [-11, 1, -9], "surface": "enamel"},
+    {"id": "works_barrier_b", "min": [-4, 0, -23], "max": [-3, 1, -19], "surface": "enamel"},
+    {"id": "street_lamp_0", "min": [-19.15, 0, -9.75], "max": [-18.85, 6.4, -9.45], "surface": "service_steel"},
+    {"id": "street_lamp_1", "min": [-7.149999999999999, 0, -22.55], "max": [-6.850000000000001, 6.4, -22.25], "surface": "service_steel"},
+    {"id": "street_lamp_2", "min": [4.85, 0, -9.75], "max": [5.15, 6.4, -9.45], "surface": "service_steel"},
+    {"id": "lane_handcart", "min": [-2, 0, 0], "max": [0, 1.2, 2], "surface": "service_steel"},
+    {"id": "lane_crates", "min": [6, 0, 6], "max": [9, 1.6, 8], "surface": "service_steel"},
+    {"id": "stall_0", "min": [-2, 0, 18], "max": [2, 1, 19.5], "surface": "enamel"},
+    {"id": "awning_0", "min": [-3, 2.6, 17.5], "max": [3, 2.8, 21.5], "surface": "enamel"},
+    {"id": "stall_1", "min": [10, 0, 28], "max": [14, 1, 29.5], "surface": "enamel"},
+    {"id": "awning_1", "min": [9, 2.6, 27.5], "max": [15, 2.8, 31.5], "surface": "enamel"},
+    {"id": "stall_2", "min": [20, 0, 18], "max": [24, 1, 19.5], "surface": "enamel"},
+    {"id": "awning_2", "min": [19, 2.6, 17.5], "max": [25, 2.8, 21.5], "surface": "enamel"},
+    {"id": "stall_3", "min": [30, 0, 28], "max": [34, 1, 29.5], "surface": "enamel"},
+    {"id": "awning_3", "min": [29, 2.6, 27.5], "max": [35, 2.8, 31.5], "surface": "enamel"},
+    {"id": "vote_board", "min": [14, 0, 35], "max": [20, 3.2, 35.6], "surface": "enamel"},
+    {"id": "market_crates_a", "min": [4, 0, 15], "max": [6, 1.4, 17], "surface": "service_steel"},
+    {"id": "market_crates_b", "min": [32, 0, 20], "max": [34, 1.2, 22], "surface": "service_steel"},
+    {"id": "market_crates_c", "min": [-6, 0, 28], "max": [-4, 1.6, 32], "surface": "service_steel"},
+    {"id": "market_canvas_screen", "min": [36, 0, 32], "max": [37, 2.2, 36], "surface": "enamel"},
+    {"id": "market_well", "min": [21, 0, 24], "max": [24, 1, 27], "surface": "concrete"},
+    {"id": "lane_mouth_planter", "min": [8, 0, 13], "max": [11, 1.2, 14.2], "surface": "concrete"},
+    {"id": "lane_mouth_planter_b", "min": [-7, 0, 13], "max": [-4, 1.2, 14.2], "surface": "concrete"},
+    {"id": "market_board", "min": [39, 0, 18], "max": [39.6, 3, 24], "surface": "enamel"},
+    {"id": "court_divider_a", "min": [-10, 0, 12], "max": [-8, 3, 18], "surface": "enamel"},
+    {"id": "court_divider_b", "min": [-10, 0, 32], "max": [-8, 3, 38], "surface": "enamel"},
+    {"id": "meal_table", "min": [-22, 0, 24], "max": [-16, 0.9, 26], "surface": "enamel"},
+    {"id": "meal_bench_a", "min": [-22, 0, 22.799999999999997], "max": [-16, 0.5, 23.4], "surface": "enamel"},
+    {"id": "meal_bench_b", "min": [-22, 0, 26.6], "max": [-16, 0.5, 27.200000000000003], "surface": "enamel"},
+    {"id": "court_stair_0", "min": [-30, 0, 14], "max": [-27, 0.5, 15], "surface": "service_steel"},
+    {"id": "court_stair_1", "min": [-30, 0, 15], "max": [-27, 1, 16], "surface": "service_steel"},
+    {"id": "court_stair_2", "min": [-30, 0, 16], "max": [-27, 1.5, 17], "surface": "service_steel"},
+    {"id": "court_stair_3", "min": [-30, 0, 17], "max": [-27, 2, 18], "surface": "service_steel"},
+    {"id": "court_stair_4", "min": [-30, 0, 18], "max": [-27, 2.5, 19], "surface": "service_steel"},
+    {"id": "court_stair_5", "min": [-30, 0, 19], "max": [-27, 3, 20], "surface": "service_steel"},
+    {"id": "court_stair_6", "min": [-30, 0, 20], "max": [-27, 3.5, 21], "surface": "service_steel"},
+    {"id": "court_stair_7", "min": [-30, 0, 21], "max": [-27, 4, 22], "surface": "service_steel"},
+    {"id": "court_stair_8", "min": [-30, 0, 22], "max": [-27, 4.5, 23], "surface": "service_steel"},
+    {"id": "court_stair_9", "min": [-30, 0, 23], "max": [-27, 5, 24], "surface": "service_steel"},
+    {"id": "court_stair_10", "min": [-30, 0, 24], "max": [-27, 5.5, 25], "surface": "service_steel"},
+    {"id": "court_stair_11", "min": [-30, 0, 25], "max": [-27, 6, 26], "surface": "service_steel"},
+    {"id": "tenement_block", "min": [-60, 0, 4], "max": [-30, 9.6, 16], "surface": "enamel"},
+    {"id": "tank_roof", "min": [-60, 0, 16], "max": [-30, 6, 52], "surface": "concrete"},
+    {"id": "tank_roof_stairhouse", "min": [-58, 6, 42], "max": [-53, 7.8, 48], "surface": "enamel"},
+    {"id": "tank_roof_chimney_a", "min": [-36, 6, 18], "max": [-34, 7.4, 20], "surface": "concrete"},
+    {"id": "tank_roof_chimney_b", "min": [-54, 6, 32], "max": [-52, 7.4, 34], "surface": "concrete"},
+    {"id": "water_tank_a", "min": [-50, 6, 22], "max": [-46, 9.6, 26], "surface": "enamel"},
+    {"id": "water_tank_b", "min": [-42, 6, 36], "max": [-38, 9.6, 40], "surface": "enamel"},
+    {"id": "tank_roof_vent", "min": [-56, 6, 12], "max": [-54, 7, 14], "surface": "service_steel"},
+    {"id": "roof_west", "min": [-30, 0, 38], "max": [-2, 6, 52], "surface": "concrete"},
+    {"id": "roof_west_vent", "min": [-22, 6, 46], "max": [-20, 7.2, 48], "surface": "service_steel"},
+    {"id": "roof_west_parapet", "min": [-14, 6, 38], "max": [-8, 7, 38.5], "surface": "concrete"},
+    {"id": "roof_middle", "min": [4, 0, 38], "max": [24, 6.5, 52], "surface": "concrete"},
+    {"id": "roof_middle_heater", "min": [14, 6.5, 46], "max": [17, 7.6, 49], "surface": "service_steel"},
+    {"id": "workshop_wall_s_a", "min": [26, 0, 38], "max": [34, 5.6, 38.6], "surface": "concrete"},
+    {"id": "workshop_wall_s_b", "min": [38, 0, 38], "max": [46, 5.6, 38.6], "surface": "concrete"},
+    {"id": "workshop_door_s", "min": [34, 3, 38], "max": [38, 5.6, 38.6], "surface": "concrete"},
+    {"id": "workshop_wall_n_a", "min": [26, 0, 51.4], "max": [30, 5.6, 52], "surface": "concrete"},
+    {"id": "workshop_wall_n_b", "min": [33, 0, 51.4], "max": [46, 5.6, 52], "surface": "concrete"},
+    {"id": "workshop_door_n", "min": [30, 3, 51.4], "max": [33, 5.6, 52], "surface": "concrete"},
+    {"id": "workshop_wall_w", "min": [26, 0, 38.6], "max": [26.6, 5.6, 51.4], "surface": "concrete"},
+    {"id": "workshop_wall_e_a", "min": [45.4, 0, 38.6], "max": [46, 5.6, 42], "surface": "concrete"},
+    {"id": "workshop_wall_e_b", "min": [45.4, 0, 46], "max": [46, 5.6, 51.4], "surface": "concrete"},
+    {"id": "workshop_door_e", "min": [45.4, 3, 42], "max": [46, 5.6, 46], "surface": "concrete"},
+    {"id": "workshop_roof_s", "min": [26, 5.6, 38], "max": [46, 6, 43], "surface": "concrete"},
+    {"id": "workshop_roof_n", "min": [26, 5.6, 47], "max": [46, 6, 52], "surface": "concrete"},
+    {"id": "workshop_roof_w", "min": [26, 5.6, 43], "max": [32, 6, 47], "surface": "concrete"},
+    {"id": "workshop_roof_e", "min": [40, 5.6, 43], "max": [46, 6, 47], "surface": "concrete"},
+    {"id": "workshop_bench", "min": [28, 0, 39.2], "max": [32, 0.9, 40.6], "surface": "service_steel"},
+    {"id": "workshop_tram", "min": [38, 0, 47], "max": [44, 2.4, 50.4], "surface": "service_steel"},
+    {"id": "workshop_shelf", "min": [26.6, 0, 43.4], "max": [29, 3.2, 44], "surface": "service_steel"},
+    {"id": "workshop_partition", "min": [29, 0, 43.4], "max": [29.6, 3.2, 49.4], "surface": "service_steel"},
+    {"id": "workshop_stair_0", "min": [34, 0, 52], "max": [35, 0.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_1", "min": [35, 0, 52], "max": [36, 1, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_2", "min": [36, 0, 52], "max": [37, 1.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_3", "min": [37, 0, 52], "max": [38, 2, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_4", "min": [38, 0, 52], "max": [39, 2.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_5", "min": [39, 0, 52], "max": [40, 3, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_6", "min": [40, 0, 52], "max": [41, 3.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_7", "min": [41, 0, 52], "max": [42, 4, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_8", "min": [42, 0, 52], "max": [43, 4.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_9", "min": [43, 0, 52], "max": [44, 5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_10", "min": [44, 0, 52], "max": [45, 5.5, 55], "surface": "service_steel"},
+    {"id": "workshop_stair_11", "min": [45, 0, 52], "max": [46, 6, 55], "surface": "service_steel"},
+    {"id": "trench_wall_w_a", "min": [46, 0, 16], "max": [48, 10.5, 42], "surface": "concrete"},
+    {"id": "trench_wall_w_b", "min": [46, 0, 46], "max": [48, 10.5, 60], "surface": "concrete"},
+    {"id": "trench_door_lintel", "min": [46, 3, 42], "max": [48, 10.5, 46], "surface": "concrete"},
+    {"id": "trench_wall_e", "min": [58, 0, 16], "max": [60, 10.5, 60], "surface": "concrete"},
+    {"id": "trench_wall_s", "min": [48, 0, 16], "max": [58, 10.5, 18], "surface": "concrete"},
+    {"id": "trench_chassis", "min": [55, 0, 34], "max": [58, 2.4, 39], "surface": "service_steel"},
+    {"id": "trench_crates_a", "min": [48.5, 0, 45], "max": [50.5, 1.2, 47], "surface": "service_steel"},
+    {"id": "trench_crates_b", "min": [55, 0, 24], "max": [57, 1.2, 26], "surface": "service_steel"},
+    {"id": "waterworks_gate", "min": [48, 0, 52], "max": [58, 4.5, 53], "surface": "service_steel"},
+    {"id": "river_railing", "min": [-60, 0, 59.400000000000006], "max": [46, 1.1, 60], "surface": "service_steel"},
+    {"id": "riverbank_bench", "min": [-12, 0, 56], "max": [-8, 0.5, 56.8], "surface": "enamel"}
+  ],
+  "spawns": [
+    {"id": "concourse_entry", "feet": [-55, 0, -26], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "evacuation_concourse", "feet": [-48, 0, -20]},
+    {"id": "broken_stair_foot", "feet": [-49, 0, -19]},
+    {"id": "concourse_gallery", "feet": [-48, 4.5, -3]},
+    {"id": "tram_street_lamps", "feet": [-8, 0, -16]},
+    {"id": "low_water_market", "feet": [18, 0, 24]},
+    {"id": "shared_meal_table", "feet": [-19, 0, 29]},
+    {"id": "water_tank_roof", "feet": [-44, 6, 26]},
+    {"id": "roof_loop_west", "feet": [-12, 6, 44]},
+    {"id": "splice_workshop", "feet": [36, 0, 45]},
+    {"id": "trench_mouth_crates", "feet": [52, 0, 49]}
+  ],
+  "supplies": [
+    {"id": "stores_flechette", "feet": [-50, 0, -28], "grant": {"kind": "weapon", "weapon": "flechette"}, "claim": "personal"},
+    {"id": "stores_bullets", "feet": [-46.5, 0, -29], "grant": {"kind": "ammo", "pool": "bullets", "amount": 40}, "claim": "contested"},
+    {"id": "stores_health", "feet": [-55, 0, -28], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "gallery_scatter", "feet": [-56, 4.5, -2], "grant": {"kind": "weapon", "weapon": "scatter"}, "claim": "personal"},
+    {"id": "gallery_shells", "feet": [-52, 4.5, -1], "grant": {"kind": "ammo", "pool": "shells", "amount": 12}, "claim": "contested"},
+    {"id": "gallery_armor", "feet": [-48, 4.5, 0], "grant": {"kind": "armor", "amount": 25}, "claim": "contested"},
+    {"id": "pocket_repeater", "feet": [-15.5, 0, -6], "grant": {"kind": "weapon", "weapon": "repeater"}, "claim": "personal"},
+    {"id": "pocket_bullets", "feet": [-15.5, 0, -7.8], "grant": {"kind": "ammo", "pool": "bullets", "amount": 60}, "claim": "contested"},
+    {"id": "lane_health", "feet": [3, 0, 4], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "market_shells", "feet": [-5, 0, 16], "grant": {"kind": "ammo", "pool": "shells", "amount": 12}, "claim": "contested"},
+    {"id": "lane_armor", "feet": [-1, 0, 9], "grant": {"kind": "armor", "amount": 25}, "claim": "contested"},
+    {"id": "market_entry_health", "feet": [6, 0, 19], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "market_six_health_a", "feet": [40.8, 0, 20], "grant": {"kind": "health", "amount": 40}, "claim": "contested", "secret": true},
+    {"id": "market_six_health_b", "feet": [40.8, 0, 22], "grant": {"kind": "health", "amount": 40}, "claim": "contested", "secret": true},
+    {"id": "court_health", "feet": [-13, 0, 15], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "tank_roof_armor", "feet": [-44, 6, 30], "grant": {"kind": "armor", "amount": 50}, "claim": "contested"},
+    {"id": "roof_bullets", "feet": [-8, 6, 48], "grant": {"kind": "ammo", "pool": "bullets", "amount": 40}, "claim": "contested"},
+    {"id": "riverbank_health", "feet": [-28, 0, 56], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "splice_rocket", "feet": [27.8, 0, 45.4], "grant": {"kind": "weapon", "weapon": "rocket"}, "claim": "personal", "secret": true},
+    {"id": "splice_rockets", "feet": [27.8, 0, 47.2], "grant": {"kind": "ammo", "pool": "rockets", "amount": 6}, "claim": "contested", "secret": true},
+    {"id": "splice_armor", "feet": [27.8, 0, 49], "grant": {"kind": "armor", "amount": 50}, "claim": "contested", "secret": true},
+    {"id": "trench_health", "feet": [56.5, 0, 21], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "trench_bullets", "feet": [50, 0, 28], "grant": {"kind": "ammo", "pool": "bullets", "amount": 40}, "claim": "contested"}
+  ],
+  "decorations": [
+    {"solid": "stores_counter", "face": "south", "center": [0, 0.15], "size": [3, 0.6], "kind": "m19_stores_counter"},
+    {"solid": "trench_wall_e", "face": "west", "center": [19, -3.75], "size": [1.6, 1], "kind": "m19_waterworks"},
+    {"solid": "stores_racks", "face": "south", "center": [0, 0.4], "size": [6, 1.4], "kind": "m19_stores_sign"},
+    {"solid": "departure_board", "face": "west", "center": [0, 0.6], "size": [9, 2.2], "kind": "m19_concourse_board"},
+    {"solid": "departure_board", "face": "east", "center": [0, 0.6], "size": [9, 2.2], "kind": "m19_concourse_board"},
+    {"solid": "conc_wall_n", "face": "north", "center": [6, -4.3], "size": [4, 2.2], "kind": "lockers"},
+    {"solid": "conc_wall_n", "face": "north", "center": [-4, -4.3], "size": [4, 2.2], "kind": "lockers"},
+    {"solid": "repair_hall", "face": "west", "center": [-2, -2.1], "size": [5, 2.4], "kind": "m19_planned_works"},
+    {"solid": "roof_west", "face": "north", "center": [5, 0.6], "size": [4, 1.2], "kind": "m19_clinic_dark"},
+    {"solid": "vote_board", "face": "north", "center": [0, 0.3], "size": [4.4, 2.2], "kind": "m19_tram_vote"},
+    {"solid": "vote_board", "face": "south", "center": [2, -0.9], "size": [0.6, 0.6], "kind": "m19_floating_67"},
+    {"solid": "market_board", "face": "west", "center": [0, 0.2], "size": [4.6, 1.8], "kind": "m19_market_board"},
+    {"solid": "market_board", "face": "east", "center": [-1, -0.6], "size": [0.7, 0.7], "kind": "m19_market_six"},
+    {"solid": "water_tank_a", "face": "east", "center": [0, 0.4], "size": [3, 1], "kind": "m19_water_tank"},
+    {"solid": "workshop_partition", "face": "east", "center": [-1.6, 0.6], "size": [0.8, 0.8], "kind": "m19_service_six"},
+    {"solid": "trench_wall_w_a", "face": "east", "center": [-6, -2], "size": [4, 2], "kind": "m19_planned_works"},
+    {"solid": "court_divider_a", "face": "east", "center": [0, 0.2], "size": [3, 1.2], "kind": "m19_market_board"},
+    {"solid": "conc_roof", "face": "down", "center": [-8, -8], "size": [0.7, 6], "kind": "strip_light"},
+    {"solid": "conc_roof", "face": "down", "center": [4, -8], "size": [0.7, 6], "kind": "strip_light"},
+    {"solid": "conc_roof", "face": "down", "center": [-8, 4], "size": [0.7, 6], "kind": "strip_light"},
+    {"solid": "conc_roof", "face": "down", "center": [4, 4], "size": [0.7, 6], "kind": "strip_light"},
+    {"solid": "gallery_deck", "face": "down", "center": [-5, 0], "size": [0.6, 4], "kind": "strip_light"},
+    {"solid": "gallery_deck", "face": "down", "center": [6, 0], "size": [0.6, 4], "kind": "strip_light"},
+    {"solid": "workshop_roof_s", "face": "down", "center": [-4, 0], "size": [0.6, 3], "kind": "strip_light"},
+    {"solid": "workshop_roof_n", "face": "down", "center": [6, 0], "size": [0.6, 3], "kind": "strip_light"}
+  ],
+  "encounters": [
+    {
+      "id": "crossing_guard",
+      "regions": [
+        {
+          "min": [
+            -44,
+            0,
+            -34
+          ],
+          "max": [
+            -30,
+            4,
+            2
+          ]
+        },
+        {
+          "min": [
+            -44,
+            4,
+            -8
+          ],
+          "max": [
+            -36,
+            7,
+            2
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "crossing_sweeper_a",
+          "kind": "sweeper", "control": "absorbed",
+          "feet": [
+            -35,
+            0,
+            -30
+          ],
+          "yaw": 3.141593
+        },
+        {
+          "id": "crossing_sweeper_b",
+          "kind": "sweeper", "control": "absorbed",
+          "feet": [
+            -32,
+            0,
+            -15
+          ],
+          "yaw": 3.141593
+        },
+        {
+          "id": "crossing_heavy",
+          "kind": "heavy_sweeper", "control": "absorbed",
+          "feet": [
+            -31.5,
+            0,
+            -31
+          ],
+          "yaw": 3.141593
+        },
+        {
+          "id": "crossing_notary",
+          "kind": "notary", "control": "absorbed",
+          "feet": [
+            -35,
+            5,
+            -25
+          ],
+          "yaw": 3.141593,
+          "hover": {
+            "volume": {
+              "min": [
+                -38,
+                4.6,
+                -28
+              ],
+              "max": [
+                -32,
+                5.6,
+                -22
+              ]
+            },
+            "band": [
+              4.6,
+              5.6
+            ],
+            "patrol": [
+              [
+                -38,
+                5,
+                -25
+              ],
+              [
+                -32,
+                5,
+                -25
+              ],
+              [
+                -35,
+                5,
+                -27.5
+              ]
+            ],
+            "approach": [
+              -38,
+              0,
+              -33
+            ]
+          }
+        },
+        {
+          "id": "crossing_gallery_sweeper",
+          "kind": "sweeper", "control": "absorbed",
+          "feet": [
+            -38,
+            4.5,
+            -1
+          ],
+          "yaw": 3.141593
+        }
+      ]
+    },
+    {
+      "id": "street_paver",
+      "after": "crossing_guard",
+      "regions": [
+        {
+          "min": [
+            -28,
+            0,
+            -23
+          ],
+          "max": [
+            10,
+            4,
+            -9
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "lesson_paver",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            4,
+            0,
+            -16
+          ],
+          "yaw": 3.141593
+        }
+      ]
+    },
+    {
+      "id": "market_strip_crew",
+      "after": "street_paver",
+      "regions": [
+        {
+          "min": [
+            -8,
+            0,
+            12
+          ],
+          "max": [
+            42,
+            4,
+            38
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "market_paver_east",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            26,
+            0,
+            34
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "market_paver_west",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            0,
+            0,
+            34
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "market_heavy",
+          "kind": "heavy_sweeper", "control": "absorbed",
+          "feet": [
+            33,
+            0,
+            34.5
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "market_sweeper",
+          "kind": "sweeper", "control": "absorbed",
+          "feet": [
+            36,
+            0,
+            15
+          ],
+          "yaw": 3.141593
+        }
+      ]
+    },
+    {
+      "id": "roof_watch",
+      "after": "market_strip_crew",
+      "regions": [
+        {
+          "min": [
+            -32,
+            0,
+            36
+          ],
+          "max": [
+            46,
+            9,
+            60
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "roof_notary_gap",
+          "kind": "notary", "control": "absorbed",
+          "feet": [
+            1,
+            7.4,
+            45
+          ],
+          "yaw": 3.141593,
+          "hover": {
+            "volume": {
+              "min": [
+                -1,
+                7,
+                41
+              ],
+              "max": [
+                3,
+                7.8,
+                47
+              ]
+            },
+            "band": [
+              7,
+              7.8
+            ],
+            "patrol": [
+              [
+                1,
+                7.4,
+                41.5
+              ],
+              [
+                1,
+                7.4,
+                46
+              ]
+            ],
+            "approach": [
+              -4,
+              6,
+              44
+            ]
+          }
+        },
+        {
+          "id": "roof_notary_market",
+          "kind": "notary", "control": "absorbed",
+          "feet": [
+            16,
+            7.6,
+            34
+          ],
+          "yaw": 3.141593,
+          "hover": {
+            "volume": {
+              "min": [
+                11,
+                7.2,
+                32
+              ],
+              "max": [
+                21,
+                8,
+                36
+              ]
+            },
+            "band": [
+              7.2,
+              8
+            ],
+            "patrol": [
+              [
+                12,
+                7.6,
+                34
+              ],
+              [
+                20,
+                7.6,
+                34
+              ]
+            ],
+            "approach": [
+              16,
+              0,
+              26
+            ]
+          }
+        },
+        {
+          "id": "roof_paver",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            42,
+            6,
+            40.5
+          ],
+          "yaw": 3.141593
+        },
+        {
+          "id": "riverbank_sweeper",
+          "kind": "sweeper", "control": "absorbed",
+          "feet": [
+            14,
+            0,
+            55
+          ],
+          "yaw": 3.141593
+        }
+      ]
+    },
+    {
+      "id": "trench_works",
+      "after": "roof_watch",
+      "regions": [
+        {
+          "min": [
+            48,
+            0,
+            18
+          ],
+          "max": [
+            58,
+            4,
+            52
+          ]
+        },
+        {
+          "min": [
+            40,
+            0,
+            40
+          ],
+          "max": [
+            46,
+            4,
+            48
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "trench_paver_south",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            53,
+            0,
+            32
+          ],
+          "yaw": 1.570796
+        },
+        {
+          "id": "trench_paver_north",
+          "kind": "paver", "control": "restoration",
+          "feet": [
+            53,
+            0,
+            50
+          ],
+          "yaw": 4.712389
+        },
+        {
+          "id": "trench_heavy",
+          "kind": "heavy_sweeper", "control": "absorbed",
+          "feet": [
+            50.5,
+            0,
+            35.5
+          ],
+          "yaw": 1.570796
+        }
+      ]
+    }
+  ],
+  "m19": {
+    "objectives": [
+      {
+        "id": "concourse_stores",
+        "kind": "use"
+      },
+      {
+        "id": "broken_stair",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            -58,
+            4.3,
+            -7.6
+          ],
+          "max": [
+            -36,
+            6.5,
+            2
+          ]
+        },
+        "approach": [
+          -49,
+          4.5,
+          -6
+        ]
+      },
+      {
+        "id": "concourse_crossing",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            -30,
+            0,
+            -22
+          ],
+          "max": [
+            -24,
+            3,
+            -10
+          ]
+        },
+        "approach": [
+          -26,
+          0,
+          -16
+        ]
+      },
+      {
+        "id": "tram_street",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            -4,
+            0,
+            -14
+          ],
+          "max": [
+            10,
+            3,
+            0
+          ]
+        },
+        "approach": [
+          3,
+          0,
+          -6
+        ]
+      },
+      {
+        "id": "market_strips",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            -14,
+            0,
+            18
+          ],
+          "max": [
+            -6,
+            3,
+            32
+          ]
+        },
+        "approach": [
+          -11,
+          0,
+          25
+        ]
+      },
+      {
+        "id": "water_tanks",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            -54,
+            5.8,
+            18
+          ],
+          "max": [
+            -36,
+            8,
+            34
+          ]
+        },
+        "approach": [
+          -44,
+          6,
+          26
+        ]
+      },
+      {
+        "id": "roof_loop",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            26.6,
+            0,
+            38.6
+          ],
+          "max": [
+            45.4,
+            7,
+            51.4
+          ]
+        },
+        "approach": [
+          36,
+          0,
+          45
+        ]
+      },
+      {
+        "id": "tram_trench",
+        "kind": "arrival",
+        "arrival": {
+          "min": [
+            48,
+            0,
+            46
+          ],
+          "max": [
+            58,
+            3,
+            52
+          ]
+        },
+        "approach": [
+          50,
+          0,
+          49
+        ]
+      }
+    ],
+    "stores": {
+      "decoration": 0,
+      "approach": [
+        -51,
+        0,
+        -29.2
+      ]
+    },
+    "departure": {
+      "decoration": 1,
+      "approach": [
+        57,
+        0,
+        57
+      ]
+    },
+    "boarding": {
+      "min": [
+        48.5,
+        0,
+        53
+      ],
+      "max": [
+        57.5,
+        3,
+        59.400000000000006
+      ]
+    },
+    "jetpack_ceiling": 8.5,
+    "latch_route": [
+      [
+        -45.2,
+        6,
+        24
+      ],
+      [
+        -44,
+        6,
+        38
+      ],
+      [
+        -44,
+        6,
+        51.2
+      ],
+      [
+        -44,
+        0,
+        54.5
+      ],
+      [
+        -18,
+        0,
+        55
+      ],
+      [
+        12,
+        0,
+        55.5
+      ],
+      [
+        32,
+        0,
+        56.5
+      ],
+      [
+        45.5,
+        0,
+        58
+      ]
+    ],
+    "work_marks": [
+      {
+        "min": [
+          -26,
+          -17.8
+        ],
+        "max": [
+          8,
+          -14.2
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          -18,
+          -23
+        ],
+        "max": [
+          -16.8,
+          -9
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          0,
+          -23
+        ],
+        "max": [
+          1.1999999999999993,
+          -9
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          2,
+          -9
+        ],
+        "max": [
+          3.4000000000000004,
+          12
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          -6,
+          21.4
+        ],
+        "max": [
+          40,
+          22.6
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          6,
+          12
+        ],
+        "max": [
+          7.2,
+          38
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          28,
+          12
+        ],
+        "max": [
+          29.2,
+          38
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          -28,
+          24.200000000000003
+        ],
+        "max": [
+          -10,
+          25.799999999999997
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          -54,
+          20
+        ],
+        "max": [
+          -36,
+          21.200000000000003
+        ],
+        "y": 6
+      },
+      {
+        "min": [
+          -54,
+          32
+        ],
+        "max": [
+          -36,
+          33.2
+        ],
+        "y": 6
+      },
+      {
+        "min": [
+          -28,
+          44.4
+        ],
+        "max": [
+          -4,
+          45.6
+        ],
+        "y": 6
+      },
+      {
+        "min": [
+          6,
+          44.4
+        ],
+        "max": [
+          22,
+          45.6
+        ],
+        "y": 6.5
+      },
+      {
+        "min": [
+          28,
+          40
+        ],
+        "max": [
+          44,
+          41.2
+        ],
+        "y": 6
+      },
+      {
+        "min": [
+          51.4,
+          18
+        ],
+        "max": [
+          54.6,
+          52
+        ],
+        "y": 0
+      },
+      {
+        "min": [
+          -58,
+          54.599999999999994
+        ],
+        "max": [
+          44,
+          55.599999999999994
+        ],
+        "y": 0
+      }
+    ],
+    "jet_hops": [
+      {
+        "launch": [
+          -49,
+          1.5,
+          -14.5
+        ],
+        "landing": [
+          -49,
+          4.5,
+          -6
+        ]
+      }
+    ],
+    "waterworks_gate": "waterworks_gate"
+  }
+}

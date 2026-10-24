@@ -49,7 +49,7 @@ fn body(session: &GameSession, id: Uuid) -> &crate::sim::Player {
 
 fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
     match body(session, id).campaign.unwrap() {
-        CampaignActor::Union { phase, .. } => phase,
+        CampaignActor::Hostile { phase, .. } => phase,
         _ => panic!("expected Union actor"),
     }
 }
@@ -230,12 +230,13 @@ fn a_union_body_stops_the_pulse_without_friendly_damage() {
         .unwrap();
     player.x = 0.0;
     player.z = 2.0;
-    player.campaign = Some(CampaignActor::Union {
+    player.campaign = Some(CampaignActor::Hostile {
         kind: EnemyKind::Jammer,
         phase: EnemyPhase::Idle,
         phase_started: session.state.tick,
         phase_ends: session.state.tick,
         seated: false,
+        control: Default::default(),
     });
     advance(&mut session, 75);
     assert_eq!(body(&session, friendly).hp, 100);

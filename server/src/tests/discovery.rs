@@ -137,12 +137,13 @@ fn shared_controller_uses_owned_ammunition_and_recovers_from_empty_weapons() {
         .iter_mut()
         .find(|p| p.id == opponent)
         .unwrap()
-        .campaign = Some(crate::protocol::CampaignActor::Union {
+        .campaign = Some(crate::protocol::CampaignActor::Hostile {
         kind: crate::protocol::EnemyKind::Clerk,
         phase: crate::protocol::EnemyPhase::Idle,
         phase_started: close.tick,
         phase_ends: close.tick,
         seated: false,
+        control: Default::default(),
     });
     let action = control_action(id, &close, Some(&dry), Action::default());
     assert!(action.fire && action.forward && !action.back);
