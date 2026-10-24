@@ -167,9 +167,16 @@ func _run() -> void:
 			var drawn: float = font.get_string_size(name_label.text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x
 			_check(drawn <= name_label.size.x + 0.5 and not name_label.text.contains("…"), "a feed name fits its room without an ellipsis: " + name_label.text)
 		_check(row.get_global_rect().end.x <= feed.get_global_rect().end.x + 0.5, "a feed row stays inside the column")
-		var glyph: Control = row.get_node("Content/Weapon")
+		# The drawn art, not just its box, keeps room on both sides.
+		var art: TextureRect = row.get_node("Content/Weapon/Art")
 		var killer_label: Label = row.get_node("Content/Killer")
-		_check(glyph.position.x - (killer_label.position.x + killer_label.size.x) >= 8.0, "the weapon glyph has room after the killer")
+		var victim_label: Label = row.get_node("Content/Victim")
+		var art_rect: Rect2 = art.get_global_rect()
+		var drawn_width: float = art_rect.size.y * float(art.texture.get_width()) / float(art.texture.get_height())
+		var art_left: float = art_rect.position.x + maxf(0.0, (art_rect.size.x - drawn_width) * 0.5)
+		var art_right: float = art_left + minf(art_rect.size.x, drawn_width)
+		_check(art_left - killer_label.get_global_rect().end.x >= 16.0, "the weapon glyph has room after the killer")
+		_check(victim_label.get_global_rect().position.x - art_right >= 24.0, "the weapon glyph has room before the victim mark and name")
 	feed.queue_free()
 
 	# The armor readout sits on the status bar plate.
@@ -182,6 +189,10 @@ func _run() -> void:
 	for part: String in ["ArmorValue", "ArmorBar", "ArmorBarBack", "ArmorIcon", "HealthValue", "HealthIcon"]:
 		var readout: Control = vitals.get_node(part)
 		_check(plate_rect.encloses(readout.get_global_rect()), "%s sits on the status bar plate: %s in %s" % [part, readout.get_global_rect(), plate_rect])
+
+	# The spectator's weapon tile keeps the same corner gutter as the vitals.
+	var tile: Control = hud.get_node("WeaponIconBg")
+	_check(-tile.offset_right >= vitals.offset_left and -tile.offset_bottom >= -vitals.offset_bottom, "the spectator weapon tile sits on the HUD gutter, not on the screen edge")
 
 	# World text: nameplates and pickup tags use the pixel face.
 	var pawn: Node = load("res://scenes/player.tscn").instantiate()

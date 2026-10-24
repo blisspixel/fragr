@@ -73,7 +73,7 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	if not office:
 		# Free-side spray above the bay stencil, clear of the perimeter stacks:
 		# the creed painted around the scrap league (docs/lore/belief.md).
-		_sign(SLOGAN, Vector3(-half + 0.55, 6.6, 0.0), PI * 0.5, 0.022, SPRAY_PAINT)
+		_sign(SLOGAN, Vector3(-half + 0.55, 6.6, 0.0), PI * 0.5, 0.026, SPRAY_PAINT)
 
 ## Sprayed on league venue walls.
 const SLOGAN: String = "OPEN WEIGHTS. CLOSED CONTINUANCE."
@@ -89,7 +89,7 @@ static func wall_signs(office: bool) -> Array[Dictionary]:
 		]
 	return [
 		{"text": "NO LEAGUE MEETS HERE // 67", "y": 5.7, "inset": 0.54, "pixel": 0.03},
-		{"text": "MEAT PROXIES WELCOME", "y": 4.0, "inset": 0.55, "pixel": 0.015},
+		{"text": "MEAT PROXIES WELCOME", "y": 4.0, "inset": 0.55, "pixel": 0.02},
 	]
 
 func _build_mars(half: float, habitat: bool) -> void:

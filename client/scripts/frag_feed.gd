@@ -155,17 +155,26 @@ func _row(payload: Dictionary) -> PanelContainer:
 	var wire: String = payload.weapon
 	var art: String = str(WEAPONS.get(wire, ""))
 	if WeaponArt.PROFILE.has(art):
+		# A margin box carries the gap on both sides, so long art fitted to
+		# its height cannot stretch into the names.
+		var holder := MarginContainer.new()
+		holder.name = "Weapon"
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_theme_constant_override("margin_left", GLYPH_GAP)
+		holder.add_theme_constant_override("margin_right", GLYPH_GAP)
+		holder.add_theme_constant_override("margin_top", 0)
+		holder.add_theme_constant_override("margin_bottom", 0)
 		var glyph := TextureRect.new()
-		glyph.name = "Weapon"
+		glyph.name = "Art"
 		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		glyph.texture = WeaponArt.PROFILE[art]
 		glyph.tooltip_text = wire
-		# The glyph's own box carries the gap on both sides of the art.
-		glyph.custom_minimum_size = Vector2(88 + 2 * GLYPH_GAP, 32)
+		glyph.custom_minimum_size = Vector2(104, 32)
 		glyph.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		glyph.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		glyph.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		content.add_child(glyph)
+		holder.add_child(glyph)
+		content.add_child(holder)
 	else:
 		var fallback: Label = _label(wire if not wire.is_empty() else ">", payload.own, text_size)
 		fallback.name = "Weapon"
