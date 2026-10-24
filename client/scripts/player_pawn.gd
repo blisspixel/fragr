@@ -121,19 +121,10 @@ const HELD_PROFILE_SCALE: float = 32.0 / 80.0
 ## The scene's pixel size for a 32 pixel weapon icon.
 var weapon_pixel_size: float = 0.026
 var cyanex_texture: Texture2D
-var kragge_texture: Texture2D
 
 # Art bible muted brand tints (bone/gunmetal/rust/blood/ember + muted cyan/magenta).
 # Keep silhouettes readable: labels carry brand color; body stays near-white multiply.
 const BOT_COLORS = {
-	"Dead Air Dan": Color(0.75, 0.28, 0.22),
-	"Nightfall": Color(0.35, 0.58, 0.62),
-	"Static Kid": Color(0.82, 0.55, 0.22),
-	"Aunt Linda": Color(0.55, 0.48, 0.4),
-	"Scout Ant": Color(0.62, 0.32, 0.42),
-	"Crackpot": Color(0.45, 0.38, 0.5),
-	"Buzzkill": Color(0.769, 0.4, 0.18),
-	"Tin Foil Tina": Color(0.4, 0.62, 0.64),
 	"COMPLIANCE-DRONE": Color(0.55, 0.72, 0.35),
 	"AUDITOR": Color(0.72, 0.78, 0.28),
 	"NODS-01": Color(0.45, 0.48, 0.42),
@@ -147,9 +138,6 @@ const BOT_COLORS = {
 }
 
 
-# Hangar Candy / Kragge grit vs Cyanex / Night Watch signal.
-const KRAGGE_BOTS = ["Dead Air Dan", "Aunt Linda", "Buzzkill"]
-const CYANEX_BOTS = ["Nightfall", "Static Kid", "Scout Ant", "Crackpot", "Tin Foil Tina"]
 
 func _ready():
 	if body:
@@ -174,7 +162,6 @@ func _ready():
 		weapon_pixel_size = weapon_sprite.pixel_size
 	
 	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
-	kragge_texture = load("res://assets/characters/64/kragge_idle_strip.png")
 
 var fire_streams = {}
 var hit_streams = {}
@@ -340,10 +327,8 @@ func set_player_data(id: String, name: String):
 		var color_val = float(abs(hash(id)) % 100) / 100.0
 		player_color = Color.from_hsv(color_val, 0.8, 0.9)
 	
-	if KRAGGE_BOTS.has(name):
-		body.texture = kragge_texture
-	else:
-		body.texture = cyanex_texture
+	# The legacy strip only stands in until the snapshot names a body kind.
+	body.texture = cyanex_texture
 	
 	# Continuance drone: taller billboard silhouette vs scrap fighters.
 	if str(name).begins_with("NODS-") and label:

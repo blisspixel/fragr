@@ -625,7 +625,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "frag_limit": 10,
   "mode_name": "Contested Frequency",
   "playlist": "Arena Duel",
-  "host_line": "HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE. ARENA DUEL IS LIVE.",
+  "host_line": "HOST: WELCOME TO THE SCRAP. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.",
   "pressure": null,
   "mvp": null,
   "mvp_frags": null,

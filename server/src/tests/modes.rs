@@ -199,18 +199,21 @@ fn ctf_bot_session(seed: u64, order: Option<[u128; 4]>) -> GameSession {
         // body selection, team assignment and ordinary controller path.
         let mut names = Vec::new();
         for (slot, id) in ids.into_iter().enumerate() {
-            let (name, behavior) = GameSession::rule_bot_roster()[slot];
-            let id = allocated[usize::try_from(id).unwrap() - 1];
-            session.state.add_player_with_body(
-                id,
-                name.into(),
-                Role::Agent,
-                crate::protocol::BodyKind::for_roster_slot(slot),
+            let taken: Vec<&str> = names.iter().map(String::as_str).collect();
+            let (fighter, name) = crate::roster::pick(
+                slot,
+                session.state.joining_team(),
+                session.state.rng_state,
+                &taken,
             );
-            let controller = crate::sim::BotController::new(id, behavior);
+            let id = allocated[usize::try_from(id).unwrap() - 1];
+            session
+                .state
+                .add_player_with_body(id, name.clone(), Role::Agent, fighter.body);
+            let controller = crate::sim::BotController::new(id, fighter.behavior);
             session.bots.push(controller.clone());
             session.state.bots.push(controller);
-            names.push(name.to_owned());
+            names.push(name);
         }
         session.set_min_bots(4);
         session.state.set_roster_host_line_from_names(&names);
@@ -1098,7 +1101,40 @@ fn round_start_rebalances_rule_bots_before_people() {
         .find(|p| p.team == Some(Team::Union))
         .unwrap();
     assert!(session.bots.iter().any(|b| b.player_id == moved.id));
+    let fighter = crate::roster::find(&moved.name).expect("roster callsign");
+    assert!(
+        fighter.allegiance.fits(Some(Team::Union)),
+        "{} moved to Union seats",
+        moved.name
+    );
+    assert_eq!(moved.body, fighter.body);
     assert_eq!(player(&session.state, human).team, Some(Team::Coalition));
+}
+
+#[test]
+fn team_fill_names_each_seat_for_its_side() {
+    for mode in [GameMode::Tdm, GameMode::Ctf, GameMode::Conquest] {
+        for seed in [1, 42, 67] {
+            let mut session = GameSession::with_map(MapKind::Sector9, false);
+            session.state.seed(seed);
+            session.state.apply_config(config(rules(mode, &[])));
+            session.spawn_bots(16);
+            let mut names = std::collections::HashSet::new();
+            for bot in &session.bots {
+                let p = player(&session.state, bot.player_id);
+                let fighter = crate::roster::find(&p.name).expect("roster callsign");
+                assert!(
+                    fighter.allegiance.fits(p.team),
+                    "{mode:?} seed {seed}: {} on {:?}",
+                    p.name,
+                    p.team
+                );
+                assert_eq!(bot.behavior, fighter.behavior, "{}", p.name);
+                assert!(names.insert(p.name.clone()), "{} twice", p.name);
+            }
+            assert_eq!(session.state.team_counts(), [8, 8]);
+        }
+    }
 }
 
 #[test]

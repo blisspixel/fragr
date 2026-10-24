@@ -1953,7 +1953,7 @@ available to sound-muted players through the caption and visible attack tell.
   "previous_winner": "Bot1",
   "mode_name": "Contested Frequency",
   "playlist": "Arena Duel",
-  "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. FIGHT!"
+  "host_line": "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. FIGHT!"
 }
 ```
 
@@ -2470,7 +2470,7 @@ not apply. No reaction lands within eight seconds of the last one, except
 - **Collision**: Simple AABB with 0.5 unit radius
 
 ### Round System
-- **Warmup**: 2 seconds (40 ticks) with Contested Frequency Host countdown drama on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
+- **Warmup**: 2 seconds (40 ticks) with Host arena-welcome countdown drama on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
 - **Frag limit**: Default 10 kills; 25 side frags in team deathmatch. `--frag-limit` overrides either
 - **Time limit**: Default 180 seconds (3600 ticks)
 - **End delay**: 8 seconds (160 ticks) between rounds
