@@ -583,7 +583,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
 }
 
 #[tokio::test]
-async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
+async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
     let directory = std::env::temp_dir().join(format!("fragr-m06-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
     let source_hash = fragr_server::maps::RuntimeMap::Authored(
@@ -744,7 +744,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
 }
 
 #[tokio::test]
-async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
+async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
     let directory = std::env::temp_dir().join(format!("fragr-m05-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
     let source_hash = fragr_server::maps::RuntimeMap::Authored(
@@ -1444,7 +1444,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
     assert_eq!(ready.mission, MissionId::PassengerManifest);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1455,7 +1455,8 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                     role,
                     name: "Berth reader".into(),
                     geometry_version: 2,
-                    gameplay_version: 33,
+                    // The previous contract predates the untagged receipts.
+                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -1557,7 +1558,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
     assert_eq!(ready.mission, MissionId::CommonCarrier);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1568,7 +1569,8 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                     role,
                     name: "Ship reader".into(),
                     geometry_version: 2,
-                    gameplay_version: 35,
+                    // The previous contract predates the untagged receipts.
+                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
