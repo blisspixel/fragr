@@ -14,7 +14,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var paths: Dictionary[String, bool] = {}
-	for venue: String in ["earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port", "moon_town", "right_of_search", "holdfast_atoll"]:
+	for venue: String in ["earth_intake", "earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port", "moon_town", "right_of_search", "holdfast_atoll"]:
 		for surface: String in MapGeometry.SURFACES:
 			for horizontal: bool in [false, true]:
 				var path: String = EnvironmentTextures.path_for(surface, venue, horizontal)

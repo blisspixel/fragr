@@ -2501,6 +2501,15 @@ var radio_card_name: Label = null
 var radio_card_tagline: Label = null
 var radio_card_tween: Tween = null
 
+## Clear any radio toast or station card at once, for a place with no radio.
+func hide_radio() -> void:
+	for item: Control in [radio_label, radio_card]:
+		if item != null:
+			item.visible = false
+	for tween: Tween in [radio_tween, radio_card_tween]:
+		if tween != null and tween.is_valid():
+			tween.kill()
+
 ## Station card above the radio toast: badge, name, tagline. Shown on every
 ## station switch and radio toggle, then fades.
 func show_station_card(card: Dictionary) -> void:

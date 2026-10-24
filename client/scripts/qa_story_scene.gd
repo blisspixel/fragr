@@ -42,6 +42,9 @@ func _run() -> void:
 			printerr("qa_story_scene: unknown scene or shot out of range")
 			quit(2)
 			return
+	# A display without a window manager can hand the window an odd size; the
+	# capture is always the 16:9 review frame the tour uses.
+	root.size = Vector2i(1280, 720)
 	var player: ScenePlayer = ScenePlayer.new(manifest)
 	root.add_child(player)
 	await process_frame

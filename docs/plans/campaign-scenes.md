@@ -36,7 +36,7 @@ text whenever an asset is missing. Video is much later and has its own plan,
 |---|---|---|
 | Manifest format and validation | `client/scripts/story_scene.gd` | Strict JSON under `client/assets/story/scenes/<id>.json`; unknown fields, unsafe paths and out-of-range values are refused |
 | Scene player | `client/scripts/scene_player.gd` | Stills with nearest filtering and a subtle pan or zoom, keyed captions with speaker labels, narration on the `Voice` bus, optional music and ambience beds, a progress row |
-| M01 opening | `client/scripts/campaign_opening.gd`, `scenes/opening.json` | The five keyed beats on the shared player, reader paced until narration exists; HOME, CHOICE and PURSUIT show stills, ADDRESS and RECALL are text pages; unchanged readiness handoff through GameManager |
+| M01 opening | `client/scripts/campaign_opening.gd`, `scenes/opening.json` | The five keyed beats on the shared player, reader paced until narration exists; HOME and CHOICE share the painted workshop still, ADDRESS and RECALL show authored pixel stills, PURSUIT the painted annex; unchanged readiness handoff through GameManager |
 | Departure hook | `GameManager.play_departure_scene` | Once the server reports a mission `departed`, the local campaign plays the scene named in `StoryScene.AFTER_MISSION`, once per mission per session. It sends nothing to the server |
 | First interlude draft | `scenes/l01_l02.json`, keys in `story.en.po` | Recall Notice to Persons Unknown, three shots, text only |
 | M03/M04 transitions | `scenes/l03_l04.json`, `m04_arrival.json`, `l04_l05.json` | Six exact-caption neutral narration clips on Voice; M04 arrival has restrained runoff on Effects. Missing audio falls back to readable text; the final page waits for input |
@@ -344,9 +344,11 @@ and a README.
 
 The stills were reduced to 637 by 360 without quantizing against
 `docs/palette.json`; flat swatches destroyed the lighting in review. That is a
-recorded exception to step 3 above, not the rule for new stills. ADDRESS and
-RECALL play as text pages until their stills exist. The S1 batch therefore
-needs two opening images (Voss at the podium, the recall), not four.
+recorded exception to step 3 above, not the rule for new stills. Since
+2026-10-24 ADDRESS and RECALL play authored 160 by 90 pixel stills
+(`client/scripts/m01_opening_art.gd`, baked by `tools/bake_opening_stills.gd`)
+in the records screen's broadcast look, at no spend. A painted S1 pass may
+replace them with the same compositions; it is no longer a gap.
 
 **Narration.** No clip matches the current keyed copy, so none is wired and
 none landed; captions stay the source of truth. The takes were written for an

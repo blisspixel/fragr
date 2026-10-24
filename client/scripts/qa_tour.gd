@@ -380,18 +380,7 @@ func _run() -> void:
 				quit(1)
 				return
 		if state.has("look_at"):
-			var target: Array = state["look_at"]
-			var camera: Node3D = _spectator_camera()
-			# Camera reconciliation can still trail the last combat sidestep.
-			# Ordinary input must aim from the current authoritative eye.
-			var origin: Vector3 = camera.global_position
-			if _joined:
-				var manager: Node = _game_manager()
-				var me: Dictionary = QaCombat.actor_by_id(manager.latest_snapshot, str(manager.net_client.player_id))
-				origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
-			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
-			camera.set("fp_yaw", atan2(direction.z, direction.x))
-			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
+			await _aim_at(state["look_at"])
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
 		if state.get("expect_prompt", false):
@@ -403,6 +392,10 @@ func _run() -> void:
 				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		# Where the player looks once the Use has landed, for a beat the
+		# interaction starts somewhere other than the panel itself.
+		if state.has("look_after_interact"):
+			await _aim_at(state["look_after_interact"])
 		if state.has("wait_ticks"):
 			await create_timer(float(state["wait_ticks"])*MoveStep.DT_LIVE).timeout
 		if state.has("expect_phase"):
@@ -1721,7 +1714,9 @@ func _change_role(play: bool) -> void:
 		if is_instance_valid(gm.opening):
 			gm.opening.finish()
 			print("qa_tour: skipped campaign opening through the presenter")
-		var deadline: int = Time.get_ticks_msec() + 5000
+		# Admission follows world loading. A software renderer on a loaded
+		# host can take tens of seconds to build the first campaign world.
+		var deadline: int = Time.get_ticks_msec() + 60000
 		while gm._mission_controls_blocked() and Time.get_ticks_msec() < deadline:
 			await process_frame
 		if gm._mission_controls_blocked():
@@ -2142,7 +2137,7 @@ func _set_m05_departure_review(open_review: bool) -> void:
 
 func _use_mission_control(expected_phase: String) -> void:
 	var network: Node = _game_manager().get("net_client")
-	var deadline: int = Time.get_ticks_msec() + 2000
+	var deadline: int = Time.get_ticks_msec() + 6000
 	var available: bool = false
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
@@ -2169,7 +2164,9 @@ func _use_mission_control(expected_phase: String) -> void:
 		await create_timer(0.15).timeout
 		Input.parse_input_event(press)
 		Input.parse_input_event(release)
-	deadline = Time.get_ticks_msec() + 2000
+	# A loaded capture host can take seconds to round-trip the Use; the server
+	# log is the authority on whether it landed, this only waits for it.
+	deadline = Time.get_ticks_msec() + 6000
 	while Time.get_ticks_msec() < deadline:
 		var mission: Dictionary = network.get("mission")
 		var mission_state: Dictionary = mission.get("state", {})
@@ -2612,6 +2609,20 @@ static func _correction_distribution(samples: Array[float]) -> Dictionary:
 		"p95": snappedf(ordered[int(ceilf(ordered.size() * 0.95)) - 1], 0.0001),
 		"p99": snappedf(ordered[int(ceilf(ordered.size() * 0.99)) - 1], 0.0001),
 		"max": snappedf(ordered.back(), 0.0001)}
+
+## Turns the view toward a world point, [x, y, z].
+func _aim_at(target: Array) -> void:
+	var camera: Node3D = _spectator_camera()
+	# Camera reconciliation can still trail the last combat sidestep.
+	# Ordinary input must aim from the current authoritative eye.
+	var origin: Vector3 = camera.global_position
+	if _joined:
+		var manager: Node = _game_manager()
+		var me: Dictionary = QaCombat.actor_by_id(manager.latest_snapshot, str(manager.net_client.player_id))
+		origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
+	var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
+	camera.set("fp_yaw", atan2(direction.z, direction.x))
+	await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 
 func _set_aim_pitch(pitch: float) -> void:
 	pitch = clampf(pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)

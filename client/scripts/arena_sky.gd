@@ -184,6 +184,34 @@ static func facility() -> Preset:
 	return preset
 
 
+## Recall Notice's civic intake (docs/design/earth.md): bone enamel and green
+## tile under cold institutional strips, with warm service lamps where people
+## work. The ambient floor keeps the facility's readable base, a step cooler and
+## lower so the fixture pools and the warm lamps shape the rooms instead of one
+## flat wash. The night street outside the annex shows its own sky.
+static func intake() -> Preset:
+	var preset: Preset = facility()
+	preset.sky_top = Color(0.035, 0.043, 0.063)
+	preset.sky_horizon = Color(0.176, 0.153, 0.149)
+	preset.ground_horizon = Color(0.090, 0.086, 0.086)
+	preset.fog_color = Color(0.180, 0.196, 0.188)
+	preset.fog_density = 0.010
+	# A cooler, lower floor than the ward: about half the facility's
+	# luminance, so pools and shade read. The actor fill keeps enemies lit.
+	preset.ambient_color = Color(0.5, 0.53, 0.5)
+	preset.ambient_energy = 0.75
+	preset.practical_color = Color(0.86, 0.95, 0.88)  # institutional fluorescent
+	preset.practical_energy = 4.2
+	preset.practical_range = 13.0
+	preset.practical_attenuation = 1.3
+	preset.contrast = 1.1
+	preset.saturation = 1.0
+	return preset
+
+## The warm service lamp: a caged tungsten bulb over a counter, a stair or a
+## service door. Short reach and no shadow map, so a room can carry several.
+const SERVICE_LAMP_COLOR: Color = Color(1.0, 0.74, 0.46)
+
 ## Pick the venue's sky by map name.
 ##
 ## Matched loosely on the name the server sends, because MapInfo carries a
@@ -212,6 +240,8 @@ static func preset_for(map_name: String) -> Preset:
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
+	if key.begins_with("recall notice"):
+		return intake()
 	if key.contains("recall") or key.contains("persons unknown"):
 		return facility()
 	if key.contains("compliance") or key.contains("yard"):

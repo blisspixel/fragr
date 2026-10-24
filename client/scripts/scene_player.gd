@@ -251,7 +251,9 @@ func _layout(has_still: bool) -> void:
 		_panel.size_flags_vertical = Control.SIZE_SHRINK_END
 		_panel.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 		_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL)
-		_scroll.custom_minimum_size.y = 128
+		# Room for a story beat's two short paragraphs without scrolling; the
+		# scroll hint remains only for longer localized text.
+		_scroll.custom_minimum_size.y = 236
 	else:
 		_panel.custom_minimum_size = Vector2(1180, 760)
 		_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER

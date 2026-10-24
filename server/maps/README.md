@@ -28,7 +28,10 @@ stairs converge at records reception; file stacks and a service bypass lead to
 sorting, dispatch, transfer control and the custody lift. Enter with fists, find
 the pistol and the rifle and collect finite campaign supplies. Clerks and
 Sweepers share authoritative attack, hit and death states.
-Enemy artwork and animation remain provisional. The physical transfer record
+Enemy artwork and animation remain provisional. The street canopy covers only
+the annex door, so the service street opens to the sky; its two queue barriers
+and the bay's confiscation bins are registered solids rather than cosmetic
+props. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
 prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
