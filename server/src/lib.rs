@@ -26,6 +26,7 @@ pub mod session;
 mod sheet;
 pub mod sim;
 mod statistics;
+pub mod tick_trace;
 pub mod trace;
 pub mod vehicles;
 

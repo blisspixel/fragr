@@ -1820,6 +1820,7 @@ mod tests {
             spectator_tickets: false,
             human_summary: false,
             overview: None,
+            tick_trace: None,
         };
         tokio::spawn(async move {
             let _ = run_server(

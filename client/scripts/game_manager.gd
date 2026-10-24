@@ -304,7 +304,8 @@ func _ready():
 	settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
 	_apply_preferences()
-	net_client.snapshot_received.connect(_on_snapshot_received)
+	net_client.snapshot_received.connect(_on_snapshot_traced)
+	net_client.stutter_trace = stutter_trace
 	net_client.loadout_received.connect(_on_loadout_received)
 	net_client.record_received.connect(_on_record_received)
 	net_client.mission_received.connect(_on_mission_received)
@@ -633,8 +634,10 @@ func _setup_frontend() -> void:
 	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
 	frame_counter.name = "PerformanceOverlay"
 	frame_counter.preferences = settings
+	frame_counter.trace = stutter_trace
 	add_child(frame_counter)
 	hud.top_region_query = _top_band_reservations
+	performance_overlay = frame_counter
 
 	pause_menu = PauseMenu.new()
 	pause_menu.preferences = settings
@@ -913,6 +916,10 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	# Leaving the match must not lose a recording the player started.
+	if stutter_trace.recording:
+		var report: Dictionary = end_stutter_trace()
+		print("stutter trace saved on leave: ", report.get("path", ""))
 	_release_match_audio()
 	if _benchmark:
 		_stop_benchmark_host()
@@ -1502,6 +1509,11 @@ var input_seq: int = 0
 ## a replayable movement step and a full authoritative body state first.
 var last_ack: Dictionary = {}
 var ack_probe: InputAckProbe = InputAckProbe.new()
+## Opt-in stutter diagnosis (`stutter` console command, qa_stutter harness).
+var stutter_trace: StutterTrace = StutterTrace.new()
+var performance_overlay: PerformanceOverlay = null
+## Where the last stopped trace was written, for the console and harnesses.
+var stutter_trace_path: String = ""
 
 
 func _on_ack_received(data: Dictionary) -> void:
@@ -1516,6 +1528,142 @@ func _on_ack_received(data: Dictionary) -> void:
 		elif _vehicle_seat().is_empty():
 			local_prediction.accept_ack(data, now_usec)
 		_apply_local_prediction(now_usec)
+	if stutter_trace.recording:
+		var traced_usec: int = Time.get_ticks_usec()
+		stutter_trace.record_ack(data, traced_usec)
+		stutter_trace.observe_prediction(local_prediction, traced_usec)
+
+
+## Snapshots reach the match through here so a recording trace can time the
+## whole handler. Off, it is one boolean test before the ordinary handler.
+func _on_snapshot_traced(data: Dictionary) -> void:
+	if not stutter_trace.recording:
+		_on_snapshot_received(data)
+		return
+	var started: int = Time.get_ticks_usec()
+	_on_snapshot_received(data)
+	var finished: int = Time.get_ticks_usec()
+	stutter_trace.record_snapshot(data.get("tick"), started, finished - started)
+	stutter_trace.observe_prediction(local_prediction, finished)
+
+
+## Starts a stutter trace for this match. False when one is already running.
+func begin_stutter_trace() -> bool:
+	if stutter_trace.recording:
+		return false
+	stutter_trace.begin(Time.get_ticks_usec(), int(Time.get_unix_time_from_system() * 1000000.0), _stutter_context())
+	if performance_overlay != null:
+		performance_overlay.set_tracing(true)
+	return true
+
+
+## Stops the trace, writes it, and returns the report summary. An empty path
+## writes under user://diagnostics with a timestamped name.
+func end_stutter_trace(path: String = "") -> Dictionary:
+	if not stutter_trace.recording:
+		return {"error": "no stutter trace is recording"}
+	if performance_overlay != null:
+		performance_overlay.set_tracing(false)
+	var saved: Dictionary = stutter_trace.stop(Time.get_ticks_usec())
+	var target: String = path if not path.is_empty() else "user://diagnostics/stutter-%s.json" % \
+		Time.get_datetime_string_from_system(true, false).replace(":", "").replace("-", "")
+	var result: Error = StutterTrace.save(saved, target)
+	stutter_trace_path = ProjectSettings.globalize_path(target) if result == OK else ""
+	var report: Dictionary = StutterReport.analyze(saved)
+	report["path"] = stutter_trace_path
+	report["save_error"] = result
+	return report
+
+
+func _stutter_context() -> Dictionary:
+	var role: String = "human" if is_human_player else "spectator"
+	var window: Vector2i = get_window().size if get_window() != null else Vector2i.ZERO
+	return {
+		"engine": Engine.get_version_info().get("string", ""),
+		"gameplay_version": LocalHost.GAMEPLAY_VERSION,
+		"os": OS.get_name(),
+		"adapter": RenderingServer.get_video_adapter_name(),
+		"adapter_vendor": RenderingServer.get_video_adapter_vendor(),
+		"rendering_method": RenderingServer.get_current_rendering_method(),
+		"window": [window.x, window.y],
+		"screen_refresh_hz": DisplayServer.screen_get_refresh_rate(),
+		"vsync_mode": DisplayServer.window_get_vsync_mode(),
+		"max_fps": Engine.max_fps,
+		"video": _stutter_video_settings(),
+		"server_url": str(net_client.server_url),
+		"role": role,
+		"map_id": current_map_id,
+		"local_host": get_tree().root.get_node_or_null("LocalHost") != null,
+	}
+
+
+func _stutter_video_settings() -> Dictionary:
+	var values: Dictionary = {}
+	if settings == null:
+		return values
+	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "upscaling", "pixel_scale", "dither", "vertical_fov"]:
+		values[key] = settings.get_value("video", key)
+	return values
+
+
+## Camera mode, followed body and pose for the trace, then the remote pawns
+## whose interpolation had nothing newer to show this frame.
+func _note_stutter_view(now_usec: int) -> void:
+	var key: String = "none"
+	var pose: Vector4 = Vector4(NAN, NAN, NAN, NAN)
+	if is_instance_valid(camera):
+		var target: Variant = camera.get("fp_target")
+		var followed: String = str(target.get("player_id")) if target is Node and is_instance_valid(target) else ""
+		key = "%s:%s:%s:%s" % ["first_person" if bool(camera.get("fp_mode")) else "third_person",
+			followed, _vehicle_seat(), "human" if is_human_player else "spectator"]
+		var forward: Vector3 = -camera.global_transform.basis.z
+		pose = Vector4(camera.global_position.x, camera.global_position.y, camera.global_position.z, atan2(forward.z, forward.x))
+	var starved: int = 0
+	for id: Variant in players:
+		var pawn: Variant = players[id]
+		if not is_instance_valid(pawn) or bool(pawn.get("prediction_active")) \
+				or bool(pawn.get("is_campaign_enemy")) or bool(pawn.get("is_campaign_companion")):
+			continue
+		var presentation: Variant = pawn.get("remote_presentation")
+		if presentation is RemotePresentation and (presentation as RemotePresentation).starved:
+			starved += 1
+	stutter_trace.note_view(now_usec, key, pose, starved)
+	stutter_trace.observe_prediction(local_prediction, now_usec)
+
+
+## The console's `stutter` verb: start, stop [path], mark <label>, or status.
+func stutter_command(args: Array[String]) -> PackedStringArray:
+	var verb: String = args[0].to_lower() if not args.is_empty() else "status"
+	match verb:
+		"start":
+			if not begin_stutter_trace():
+				return PackedStringArray(["stutter trace already recording"])
+			return PackedStringArray(["stutter trace recording; play the moment, then: stutter stop"])
+		"mark":
+			if not stutter_trace.recording:
+				return PackedStringArray(["no stutter trace is recording"])
+			var label: String = " ".join(args.slice(1))
+			stutter_trace.mark(label, Time.get_ticks_usec())
+			return PackedStringArray(["marked " + (label if not label.is_empty() else "mark")])
+		"stop":
+			var report: Dictionary = end_stutter_trace(args[1] if args.size() > 1 else "")
+			if not str(report.get("error", "")).is_empty():
+				return PackedStringArray([str(report["error"])])
+			if int(report.get("save_error", OK)) != OK:
+				return PackedStringArray(["stutter trace could not be saved (%d)" % int(report["save_error"])])
+			var session: Dictionary = report["session"]
+			var frames: Dictionary = session["frames"]
+			var snaps: Dictionary = session["snapshots"]
+			return PackedStringArray([
+				"stutter trace saved: " + str(report["path"]),
+				"frames %d, p50 %s ms, p99 %s ms, max %s ms, %d spikes, %d hitches" % [frames["count"],
+					str(frames["p50_ms"]), str(frames["p99_ms"]), str(frames["max_ms"]), frames["spikes"], frames["hitches"]],
+				"snapshots %d, gap p99 %s ms, max %s ms, %d gaps over 75 ms" % [snaps["count"],
+					str(snaps["gap_p99_ms"]), str(snaps["gap_max_ms"]), snaps["gaps"]],
+			])
+		"status":
+			return PackedStringArray(["stutter trace " + ("recording" if stutter_trace.recording else "off")])
+	return PackedStringArray(["usage: stutter start | mark <label> | stop [path] | status"])
 
 
 func begin_ack_probe() -> bool:
@@ -1571,6 +1719,8 @@ func _process(_delta):
 		vehicle_prediction.decay_visual(_delta)
 		_apply_local_prediction(now_usec)
 	_update_vehicle_view()
+	if stutter_trace.recording:
+		_note_stutter_view(Time.get_ticks_usec())
 
 
 ## The Sniper Rifle's scope is presentation: held input narrows the local view

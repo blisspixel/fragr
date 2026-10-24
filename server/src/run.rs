@@ -107,6 +107,8 @@ pub struct ServerOptions {
     /// Operator overview on stdout (ready card and pulse lines) in place of
     /// the STATUS JSON log line. `None` keeps the plain log stream.
     pub overview: Option<crate::operator::Style>,
+    /// Opt-in per-tick timing file for stutter diagnosis (`tick_trace.rs`).
+    pub tick_trace: Option<PathBuf>,
 }
 
 impl Default for ServerOptions {
@@ -134,6 +136,7 @@ impl Default for ServerOptions {
             spectator_tickets: false,
             human_summary: false,
             overview: None,
+            tick_trace: None,
         }
     }
 }
@@ -499,6 +502,19 @@ async fn run_server_impl(
     if let Some(config) = options.match_config {
         session.state.apply_config(config);
     }
+    // Opened before the listener so a bad path fails the start, not the match.
+    let mut tick_trace = match options.tick_trace.as_deref() {
+        Some(path) => {
+            let trace =
+                crate::tick_trace::TickTrace::create(path, TICK, crate::metrics::build_info())
+                    .map_err(|error| -> Box<dyn std::error::Error + Send + Sync> {
+                        format!("Tick trace {} could not be opened: {error}", path.display()).into()
+                    })?;
+            tracing::info!("Tick trace: writing {}", path.display());
+            Some(trace)
+        }
+        None => None,
+    };
     let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
@@ -711,8 +727,9 @@ async fn run_server_impl(
 
     loop {
         tokio::select! {
-            _ = tick_interval.tick() => {
+            deadline = tick_interval.tick() => {
                 let started = std::time::Instant::now();
+                let started_unix = tick_trace.is_some().then(std::time::SystemTime::now);
                 let expired = session.resume.expire(session.state.tick);
                 for player_id in expired {
                     session.drop_expired_pawn(player_id);
@@ -722,14 +739,16 @@ async fn run_server_impl(
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
+                let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);
                 let fanout_started = std::time::Instant::now();
                 let delivery = broadcast_to_clients(&clients, &messages).await;
                 let broadcast_elapsed = fanout_started.elapsed();
+                let connections;
                 {
                     let now = std::time::Instant::now();
                     let clients_lock = clients.lock().await;
-                    let connections = clients_lock.len();
+                    connections = clients_lock.len();
                     let refreshed = tracker.due(now);
                     if refreshed {
                         let samples: Vec<crate::metrics::ClientSample<'_>> = clients_lock
@@ -766,6 +785,24 @@ async fn run_server_impl(
                 let finished = std::time::Instant::now();
                 tracker.record_overflows(finished, delivery.queue_overflows + unicast_delivery.queue_overflows);
                 tracker.record_tick(finished, finished.saturating_duration_since(started));
+                if let (Some(trace), Some(started_unix)) = (tick_trace.as_mut(), started_unix) {
+                    let deadline = deadline.into_std();
+                    let skipped = trace.deadline(deadline);
+                    trace.record(tick_sample(TickTraceInput {
+                        messages: &messages,
+                        fallback_tick: session.state.tick,
+                        started_unix,
+                        late: started.saturating_duration_since(deadline),
+                        skipped,
+                        sim: elapsed,
+                        measure: measured.saturating_sub(elapsed),
+                        fanout: fanout_elapsed,
+                        total: finished.saturating_duration_since(started),
+                        clients: connections,
+                        bytes,
+                        overflows: delivery.queue_overflows + unicast_delivery.queue_overflows,
+                    }));
+                }
                 if let Some(metrics) = &metrics {
                     let mut metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
                     metrics.session_ns.record(elapsed.as_nanos().min(u64::MAX as u128) as u64);
@@ -834,6 +871,18 @@ async fn run_server_impl(
             }
         }
     }
+    if let Some(trace) = tick_trace.take() {
+        match trace.finish() {
+            Ok(summary) => tracing::info!(
+                "Tick trace complete: {} ticks, {} over budget, {} skipped periods, {} dropped",
+                summary.ticks,
+                summary.over_budget,
+                summary.skipped_periods,
+                summary.dropped
+            ),
+            Err(error) => tracing::warn!("Tick trace did not finish cleanly: {error}"),
+        }
+    }
     drop(desk_task);
     drop(access_reload);
     // The listener belongs to this runner. Normal shutdown observes its
@@ -880,6 +929,50 @@ fn spawn_venue_desk(
         println!("Venue desk closed. The match keeps running.");
     });
     Ok((call_rx, task))
+}
+
+/// What the tick loop measured, before it becomes one trace record.
+struct TickTraceInput<'a> {
+    messages: &'a [crate::protocol::ServerMessage],
+    fallback_tick: u64,
+    started_unix: std::time::SystemTime,
+    late: Duration,
+    skipped: u64,
+    sim: Duration,
+    measure: Duration,
+    fanout: Duration,
+    total: Duration,
+    clients: usize,
+    bytes: usize,
+    overflows: u64,
+}
+
+/// The record names the Snapshot tick the clients receive, so a client trace
+/// joins on it. A tick without a Snapshot keeps the session's own counter.
+fn tick_sample(input: TickTraceInput<'_>) -> crate::tick_trace::TickSample {
+    use crate::tick_trace::micros;
+    let tick = input
+        .messages
+        .iter()
+        .find_map(|message| match message {
+            crate::protocol::ServerMessage::Snapshot(snapshot) => Some(snapshot.tick),
+            _ => None,
+        })
+        .unwrap_or(input.fallback_tick);
+    crate::tick_trace::TickSample {
+        tick,
+        unix_us: crate::tick_trace::unix_micros(input.started_unix),
+        late_us: micros(input.late),
+        skipped: input.skipped,
+        sim_us: micros(input.sim),
+        measure_us: micros(input.measure),
+        fanout_us: micros(input.fanout),
+        total_us: micros(input.total),
+        clients: u32::try_from(input.clients).unwrap_or(u32::MAX),
+        messages: u32::try_from(input.messages.len()).unwrap_or(u32::MAX),
+        bytes: u64::try_from(input.bytes).unwrap_or(u64::MAX),
+        overflows: input.overflows,
+    }
 }
 
 /// Ends an owned background task with the loop, including early error returns.

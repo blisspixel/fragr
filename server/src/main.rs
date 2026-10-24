@@ -189,6 +189,12 @@ struct Args {
     #[arg(long, default_value_t = 60, help_heading = "Hosting and access")]
     status_every_s: u64,
 
+    /// Write one NDJSON line per tick (lateness, skipped periods, simulation
+    /// and delivery time) for stutter diagnosis. `FRAGR_TICK_TRACE` sets an
+    /// absolute path when the host is launched by the client. Off by default.
+    #[arg(long, value_name = "PATH", help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "bench", "bench_verify_trace", "local_run_preview"])]
+    tick_trace: Option<PathBuf>,
+
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
@@ -428,6 +434,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         overview: overview.then(|| fragr_server::operator::Style {
             ansi: ansi_for_stream(args.color, std::io::stdout().is_terminal()),
         }),
+        tick_trace: match args.tick_trace {
+            Some(path) => Some(path),
+            None => fragr_server::tick_trace::path_from_env()?,
+        },
     };
     let started = if args.ready_line {
         fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
@@ -569,6 +579,33 @@ mod tests {
         let help = String::from_utf8(help).unwrap();
         assert!(help.contains("--output <OUTPUT>"), "{help}");
         assert!(help.contains("status, who, kick"), "{help}");
+    }
+
+    #[test]
+    fn tick_trace_is_off_by_default_and_refused_where_no_tick_loop_runs() {
+        let args = Args::try_parse_from(["fragr-server"]).expect("default args");
+        assert!(args.tick_trace.is_none());
+        let args = Args::try_parse_from(["fragr-server", "--tick-trace", "ticks.ndjson"])
+            .expect("hosted trace");
+        assert_eq!(args.tick_trace, Some(PathBuf::from("ticks.ndjson")));
+        for other in [
+            ["--bench", "16"],
+            ["--bench-verify-trace", "x.ndjson"],
+            ["--local-mission", "recall_notice"],
+        ] {
+            let mut alone = vec!["fragr-server"];
+            alone.extend(other);
+            assert!(
+                Args::try_parse_from(alone).is_ok(),
+                "{other:?} parses alone"
+            );
+            let mut argv = vec!["fragr-server", "--tick-trace", "ticks.ndjson"];
+            argv.extend(other);
+            assert!(
+                Args::try_parse_from(argv).is_err(),
+                "--tick-trace with {other:?} would be silently ignored"
+            );
+        }
     }
 
     #[test]
@@ -1214,6 +1251,7 @@ mod tests {
                     spectator_tickets: false,
                     human_summary: false,
                     overview: None,
+                    tick_trace: None,
                 },
                 async move {
                     let _ = shutdown_rx.await;
