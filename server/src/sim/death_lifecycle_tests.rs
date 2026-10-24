@@ -269,9 +269,9 @@ fn respawn_delay_is_a_rule_value_with_ffa_separate_from_team_modes() {
         };
         assert_eq!(rules.respawn_delay_ticks(), expected, "{mode:?}");
     }
-    // The current agreed pacing: three seconds at 20 Hz, distinct from the
-    // one-second spawn shield.
-    assert_eq!(FFA_RESPAWN_DELAY_TICKS, 60);
+    // Nick, 2026-10-23: four seconds at 20 Hz in free-for-all only. Team
+    // modes keep three. Both stay distinct from the one-second spawn shield.
+    assert_eq!(FFA_RESPAWN_DELAY_TICKS, 80);
     assert_eq!(TEAM_RESPAWN_DELAY_TICKS, 60);
     assert_ne!(FFA_RESPAWN_DELAY_TICKS, SPAWN_SHIELD_TICKS);
 }

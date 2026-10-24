@@ -180,10 +180,12 @@ players in it. That is the single biggest fault in the current roster.
 
 | Item | Respawn | Status |
 |---|---|---|
-| Weapon, free-for-all | 12 s | built |
-| Weapon, team modes | 30 s | proposed |
-| Health pad (+40) | 15 s | built |
-| Armour pad (+25) | 15 s today, 25 s proposed | built |
+| Weapon, free-for-all: Rifle, Shotgun, Repeater | 15 s | implemented for wave 2 |
+| Weapon, free-for-all: Railgun, Sniper Rifle, Arc, Rocket Launcher | 25 s | implemented for wave 2 |
+| Weapon, free-for-all: spare Pistol | 8 s | implemented for wave 2 |
+| Weapon, team modes | 30 s | built |
+| Health pad (+40) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
+| Armour pad (+25) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
 | Heavy plate (large armour) | 35 s | proposed |
 | Surplus (health over maximum, drains back) | 35 s | proposed |
 | Overtime (power item: triple damage for 20 s) | 120 s, first at 45 s, announced | proposed |
@@ -192,8 +194,12 @@ players in it. That is the single biggest fault in the current roster.
 - The best item sits on the worst ground: exposed to a lane, to fire from
   above, or at the bottom of something. Never where it is ideal to use.
 - Health sits on escape routes. Each armour is exposed to one lane.
-- The Tack pad is within two seconds of every spawn
-  ([every life starts empty](../MODES.md#every-life-starts-empty)).
+- Every free-for-all life starts with the Pistol and Fists (Nick,
+  2026-10-23), so the Tack-by-spawn pad is not needed. Instead every spawn is
+  within a fair walk of a stronger gun: 10 s on small maps, 12 s on Sector 9,
+  15 s on the large maps, checked by
+  `every_free_for_all_map_puts_a_gun_within_reach_of_every_spawn`. Maps lay
+  extra free-for-all gun pads (`scrap_pads`) to meet it.
 - Two big items 30 to 50 s of walking apart, so timing both is a plan.
 - Spectators see item clocks. Players learn them by ear: every big item has a
   respawn sound audible across the map.

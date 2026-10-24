@@ -333,6 +333,23 @@ pub(crate) fn encoded_payload_bytes<'a>(
         .try_fold(0, |total, encoded| encoded.map(|bytes| total + bytes.len()))
 }
 
+/// The controlled CPU fixture. It keeps its kit: every fighter armed from the
+/// first tick, so results stay comparable across the free-for-all Pistol
+/// start (docs/BENCHMARK.md).
+pub(crate) fn fixture_config() -> MatchConfig {
+    MatchConfig {
+        // A benchmark measures fighting, not the pauses around it.
+        warmup_ticks: 1,
+        rules: crate::rules::RuleSet::new(
+            crate::protocol::GameMode::Ffa,
+            &[crate::protocol::Mutator::FullArsenal],
+            false,
+        )
+        .expect("the benchmark rule set is valid"),
+        ..MatchConfig::default()
+    }
+}
+
 /// Run `ticks` ticks of a session with `bots` fighters and no network, timing
 /// every step. Deterministic for a given seed: the same seed gives the same
 /// match, which is what makes the numbers comparable between runs.
@@ -372,11 +389,7 @@ pub fn run_bench_with_trace(
     let mut session = GameSession::with_map(map, false);
     session.state.seed(seed);
     session.state.use_replay_ids();
-    session.state.config = MatchConfig {
-        // A benchmark measures fighting, not the pauses around it.
-        warmup_ticks: 1,
-        ..MatchConfig::default()
-    };
+    session.state.config = fixture_config();
     session.spawn_bots(bots);
     let mut stats = TickStats {
         scope: TimingScope::SessionAndEncoding,

@@ -1305,12 +1305,12 @@ fn rail_only_respawns_with_the_rail_and_fires_forever() {
     for _ in 0..3 {
         wait(&mut state, 25);
         assert_eq!(shoot(&mut state, a, b), WeaponType::Rail.damage());
-        wait(&mut state, 70);
+        wait(&mut state, crate::rules::FFA_RESPAWN_DELAY_TICKS + 10);
         let p = state.players.iter_mut().find(|p| p.id == b).unwrap();
         p.hp = 100;
     }
     kill(&mut state, a, b);
-    wait(&mut state, 70);
+    wait(&mut state, crate::rules::FFA_RESPAWN_DELAY_TICKS + 10);
     assert_eq!(player(&state, b).weapon, WeaponType::Rail);
 }
 
@@ -1428,7 +1428,7 @@ fn two_lives_eliminates_and_the_last_fighter_wins() {
     kill(&mut state, a, b);
     assert_eq!(player(&state, b).lives, Some(1));
     assert!(player(&state, b).respawn_timer.is_some());
-    wait(&mut state, 70);
+    wait(&mut state, crate::rules::FFA_RESPAWN_DELAY_TICKS + 10);
     kill(&mut state, a, b);
     assert!(player(&state, b).eliminated);
     wait(&mut state, 100);
@@ -1440,7 +1440,7 @@ fn two_lives_eliminates_and_the_last_fighter_wins() {
     assert_eq!(player(&state, late).lives, Some(1));
     kill(&mut state, a, late);
     kill(&mut state, a, c);
-    wait(&mut state, 70);
+    wait(&mut state, crate::rules::FFA_RESPAWN_DELAY_TICKS + 10);
     state.take_events();
     kill(&mut state, a, c);
     state.tick(0.05);

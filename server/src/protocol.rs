@@ -777,9 +777,13 @@ pub const M18_GAMEPLAY_VERSION: u32 = 54;
 /// Single-schema campaign receipts: the carried M08 outcome loses its `kind`
 /// tag and M10 practice transit is `unlinked`. Required for M09 and M10.
 pub const RECEIPT_GAMEPLAY_VERSION: u32 = 55;
+/// Free-for-all Pistol and Fists start, owned guns from the map, the
+/// `full-arsenal` mutator and `rules.start_kit`. Neither this nor the receipt
+/// contract shipped alone, so both are contract 55.
+pub const SIDEARM_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SIDEARM_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

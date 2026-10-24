@@ -664,8 +664,18 @@ companion actors carry none.
 `rules` is the server's rule set from `map_info` (or the last `round_start`
 before `map_info` arrives): `mode` (`ffa`, `tdm`, `ctf` or `sabotage`), `name`, `mutators`
 (`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
-`two-lives`), `friendly_fire` and `lives`, each omitted at its default. It is
-null only before either arrives or on a campaign map. `team_scores` is the
+`two-lives`, `full-arsenal`), `friendly_fire` and `lives`, each omitted at its
+default, and `start_kit`, always present: the weapons a fresh life holds. It is
+null only before either arrives or on a campaign map. In free-for-all
+`start_kit` is `["fists", "tack"]`: every life starts with the Pistol and Fists,
+and the Rifle, Shotgun and Railgun belong to whoever takes their pad.
+`observe` with `detail: full` carries your private `loadout`; read `weapons`
+there before `weapon_swap`. A life holding only the Pistol should go and take a
+gun: the scripted bot and the reference brain share one equipment helper that
+walks to the nearest unowned gun pad whenever no rival is inside the Pistol's
+reach (30 m), or with a fight on when that pad is a few steps away. An
+objective, Sabotage and a campaign mission keep their own priorities. Holding
+a found gun, the same helper fights. `team_scores` is the
 snapshot's side frags in team deathmatch, else null. In CTF, `flags` lists
 both stands and current flag state, `capture_scores` counts captures, and
 `capture_limit` is the win target. `observe` carries the same typed snapshot.
@@ -677,8 +687,9 @@ joining: in `tdm` a teammate shares your `team`, takes no damage unless
 `golden`. Under a weapon-only mutator, `weapon_swap` to another weapon is
 ignored. Death ends a life's input: `act` presses sent while you wait to
 respawn are dropped rather than queued, and a `fire` held at death or when the
-body returns does nothing until an `act` releases it. The respawn wait is three
-seconds in every arcade mode today. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
+body returns does nothing until an `act` releases it. The respawn wait is four
+seconds in free-for-all and three in team deathmatch, capture the flag and
+Conquest. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
 `player`, `other`, `team`, and `big` on a voiced big moment); the words live in
 the client. Multikills (`double_frag` to `frag_storm`, three-second chains) and
 mode-scaled sprees (`rampage`, `riot`, `untouchable`) are reaction kinds; there

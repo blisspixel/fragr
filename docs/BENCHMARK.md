@@ -17,6 +17,12 @@ Run repeated samples before interpreting a small performance difference.
 cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert
 ```
 
+The CPU fixture runs free-for-all under the `full-arsenal` mutator, so every
+bot is armed from the first tick as before the Pistol start (2026-10-23) and
+CPU timings stay comparable. Its recorded rules now name that mutator, so a
+trace hash from a build before the change does not match one after it; compare
+timings, not hashes, across that line.
+
 `--bench-check` compares SHA-256 hashes of the complete header, tick, and score
 records across two runs. Stable offline entity IDs also cover dynamically spawned
 drones. Normal live sessions retain UUIDv4. Equality proves repeatable observable

@@ -11,6 +11,19 @@ const MEMORY_TICKS: u64 = 40;
 const SIGHT_RANGE: f32 = 64.0;
 const AIM_ERROR: f32 = 0.055;
 const TURN_PER_TICK: f32 = 0.1;
+/// Where a dry bot turns, best first. Ownership decides: an arcade arsenal
+/// holds the first three; a free-for-all life holds the Pistol and whatever
+/// it took from the floor. Fists are not here, so a bot with no rounds left
+/// goes for a pad instead of punching across a room.
+const FALLBACK: [WeaponType; 7] = [
+    WeaponType::Flechette,
+    WeaponType::Rail,
+    WeaponType::Scatter,
+    WeaponType::Repeater,
+    WeaponType::Sniper,
+    WeaponType::Arc,
+    WeaponType::Tack,
+];
 
 #[derive(Debug, Clone, Copy)]
 struct Observation {
@@ -184,7 +197,7 @@ impl BotController {
         (bot.contestant() || self.behavior == BotBehavior::Compliance)
             && !state.map.is_campaign()
             && !state.solo_broadcast.enabled
-            && bot.inventory.policy() == EquipmentPolicy::FullArsenal
+            && (bot.inventory.policy() == EquipmentPolicy::FullArsenal || state.sidearm_start())
             && matches!(
                 state.config.rules.mode(),
                 GameMode::Ffa | GameMode::Tdm | GameMode::Conquest
@@ -206,7 +219,7 @@ impl BotController {
             && !bot.inventory.reloading()
             && !bot.inventory.can_reload(bot.weapon)
         {
-            WeaponType::ARCADE
+            FALLBACK
                 .into_iter()
                 .find(|weapon| bot.inventory.usable(*weapon) || bot.inventory.can_reload(*weapon))
         } else {
@@ -308,7 +321,7 @@ impl BotController {
             && !bot.inventory.reloading()
             && !bot.inventory.can_reload(bot.weapon)
         {
-            WeaponType::ARCADE
+            FALLBACK
                 .into_iter()
                 .find(|weapon| bot.inventory.usable(*weapon) || bot.inventory.can_reload(*weapon))
         } else {
@@ -342,7 +355,18 @@ impl BotController {
                 BotBehavior::Balanced if distance < 6.0 => WeaponType::Scatter,
                 _ => WeaponType::Flechette,
             };
-            if preferred != bot.weapon && bot.inventory.usable(preferred) {
+            // A gun this bot has not taken from the floor yet is no choice at
+            // all: it fights with the best one it owns, the Pistol last.
+            let preferred = if bot.inventory.usable(preferred) {
+                Some(preferred)
+            } else if bot.weapon == WeaponType::Tack {
+                FALLBACK
+                    .into_iter()
+                    .find(|weapon| bot.inventory.usable(*weapon))
+            } else {
+                None
+            };
+            if let Some(preferred) = preferred.filter(|weapon| *weapon != bot.weapon) {
                 swap = Some(preferred);
             }
         }

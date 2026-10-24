@@ -1128,6 +1128,18 @@ msgstr "A host you check, join, or save stays in this list."
 msgid "HOST_SABOTAGE"
 msgstr "5v5 Sabotage"
 
+msgid "HOST_KIT_SIDEARM"
+msgstr "Every life starts with the Pistol and Fists. The Rifle, Shotgun and Railgun wait on timed pads."
+
+msgid "HOST_KIT_ARSENAL"
+msgstr "Every life starts with the Rifle, Shotgun and Railgun. Pads restock them."
+
+msgid "HOST_KIT_ONE_WEAPON"
+msgstr "Everyone holds the one weapon, with nothing to pick up."
+
+msgid "HOST_KIT_SABOTAGE"
+msgstr "Fresh fighters start with the Pistol. Stronger guns are on the floor, and survivors keep what they carry."
+
 msgid "HOST_RUNNING"
 msgstr "Your %s match is running. Leaving to the menu keeps it running."
 

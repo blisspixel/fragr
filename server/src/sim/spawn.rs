@@ -205,6 +205,9 @@ impl GameState {
             .iter()
             .find(|p| p.id == player_id)
             .and_then(|p| p.team);
+        // A found arsenal is lost at death; the next life starts on the kit.
+        let owned = self.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery;
+        let fresh = owned.then(|| self.fresh_inventory());
         let Some((sx, sz, yaw, floor)) = self.select_spawn(player_id, team, None) else {
             if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
                 player.hp = 0;
@@ -234,13 +237,14 @@ impl GameState {
                 player.weapon = weapon;
             }
 
-            if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
-                let armed = player.inventory.armed();
-                player.inventory = crate::inventory::Inventory::new(self.map.equipment_policy());
-                if armed {
-                    player.inventory.arm_magazines();
+            if let Some((mut inventory, weapon)) = fresh {
+                if player.inventory.armed() {
+                    inventory.arm_magazines();
                 }
-                player.weapon = WeaponType::Fists;
+                // Revision and dry-fire counters keep counting forward.
+                player.inventory.restore_entry(&inventory);
+                player.weapon = weapon;
+                player.last_non_blade_weapon = weapon;
                 player.pending_action = Action::default();
                 player.jump_requested = false;
                 player.reload_requested = false;

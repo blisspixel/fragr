@@ -1148,6 +1148,22 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
                 .unwrap_or_else(|| "none".to_string())
         )),
     }
+    // Owned guns, from the private loadout: a free-for-all life starts with
+    // the Pistol and Fists and must take a pad before selecting anything else.
+    let owned: Option<Vec<String>> = state.loadout.as_ref().map(|loadout| {
+        loadout
+            .weapons
+            .iter()
+            .filter_map(|weapon| {
+                serde_json::to_value(weapon)
+                    .ok()
+                    .and_then(|id| id.as_str().map(str::to_string))
+            })
+            .collect()
+    });
+    if let Some(owned) = owned.as_ref() {
+        text.push_str(&format!("OWNED {}\n", owned.join(",")));
+    }
     if threats.is_empty() {
         text.push_str("ENEMY none\n");
     } else {
@@ -1207,6 +1223,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             "recent_damage": recent_damage,
             "score": player.score,
             "top_rival": top_rival,
+            "owned": owned,
         }),
         None => Value::Null,
     };
@@ -3056,6 +3073,39 @@ mod mcp_tests {
     /// tools/call puts the old object in `structuredContent` and a text copy in `content`.
     fn tool_structured(result: Value) -> Value {
         result.get("structuredContent").cloned().unwrap_or(result)
+    }
+
+    #[test]
+    fn brief_names_the_weapons_this_free_for_all_life_owns() {
+        use fragr_server::sim::GameState;
+        let id = Uuid::from_u128(5);
+        let mut game = GameState::new();
+        game.add_player(id, "Agent".into(), protocol::Role::Agent);
+        let player = game.players.iter().find(|p| p.id == id).unwrap();
+        let loadout = player
+            .inventory
+            .state(id, player.weapon, game.tick)
+            .expect("the free-for-all start is owned equipment");
+        let mut state = ToolState {
+            player_id: Some(id),
+            last_snapshot: Some(serde_json::to_value(game.snapshot()).unwrap()),
+            loadout: Some(loadout),
+            ..Default::default()
+        };
+        // The brief names what this life owns, so a polling model knows the
+        // Rifle is a pad away rather than a weapon_swap away.
+        let (text, structured) = observe_brief(&state);
+        assert!(text.contains("OWNED fists,tack\n"), "{text}");
+        assert!(text.contains("weapon.flechette="), "{text}");
+        assert!(text.len() < 1024, "{}", text.len());
+        assert_eq!(
+            structured["self"]["owned"],
+            serde_json::json!(["fists", "tack"])
+        );
+        state.loadout = None;
+        let (text, structured) = observe_brief(&state);
+        assert!(!text.contains("OWNED"));
+        assert!(structured["self"]["owned"].is_null());
     }
 
     #[test]

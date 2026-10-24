@@ -49,8 +49,20 @@ func _check_parse() -> void:
 	_check(ffa.get("mutators") == [] and ffa.get("lives") == 0 and not MatchRules.teams(ffa), "plain ffa parses with defaults")
 	for bad: Variant in [null, "tdm", {}, {"mode": "unknown"}, {"mode": 1}, {"mode": "ffa", "mutators": "rail-only"},
 			{"mode": "ffa", "friendly_fire": "yes"}, {"mode": "ffa", "lives": 0}, {"mode": "ffa", "lives": 1.5},
-			{"mode": "ffa", "lives": 99}, {"mode": "ffa", "lives": "2"}]:
+			{"mode": "ffa", "lives": 99}, {"mode": "ffa", "lives": "2"}, {"mode": "ffa", "start_kit": "tack"},
+			{"mode": "ffa", "start_kit": ["tack", "tack"]}, {"mode": "ffa", "start_kit": ["pistol"]}, {"mode": "ffa", "start_kit": [3]}]:
 		_check(MatchRules.parse(bad).is_empty(), "malformed rules are refused: " + str(bad))
+	# The start kit: what a fresh life holds, and so what a death costs.
+	var scrap: Dictionary = MatchRules.parse({"mode": "ffa", "name": "Free-for-all", "start_kit": ["fists", "tack"]})
+	_check(scrap.get("start_kit") == ["fists", "tack"], "the free-for-all kit parses: " + str(scrap.get("start_kit")))
+	_check(MatchRules.lost_at_death(scrap, ["fists", "tack", "rail", "flechette"]) == ["flechette", "rail"], "found guns are lost, in wire order")
+	_check(MatchRules.lost_at_death(scrap, ["fists", "tack"]) == [], "the kit itself is never lost")
+	_check(MatchRules.lost_at_death({}, ["rail"]) == [], "a campaign map names no loss")
+	var arsenal: Dictionary = MatchRules.parse({"mode": "ffa", "mutators": ["full-arsenal"], "start_kit": ["flechette", "scatter", "rail"]})
+	_check(arsenal.get("mutators") == ["full-arsenal"], "full arsenal is a known mutator")
+	_check(MatchRules.lost_at_death(arsenal, ["flechette", "scatter", "rail"]) == [], "an arsenal life loses nothing")
+	_check(MatchRules.chip_text(arsenal) == "FREE FOR ALL // FULL ARSENAL", "full arsenal chip: " + MatchRules.chip_text(arsenal))
+	_check(MatchRules.weapon_list(["flechette", "rail"]) == "RIFLE + RAILGUN", "player names, not wire ids: " + MatchRules.weapon_list(["flechette", "rail"]))
 
 
 func _check_labels() -> void:

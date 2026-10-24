@@ -11,6 +11,7 @@ mod death_lifecycle_tests;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
+mod kit;
 pub mod mine;
 mod modes;
 mod playlist;
@@ -100,9 +101,8 @@ pub const PICKUP_CLAIM_RADIUS: f32 = 1.75;
 /// it. Generous enough to take a pad while jumping over it, tight enough that
 /// a pad on a walkway is not free to whoever stands underneath.
 pub const PICKUP_CLAIM_HEIGHT: f32 = 2.0;
-/// Ticks until a claimed weapon pad respawns (~12s at 20 Hz).
-pub const PICKUP_RESPAWN_TICKS: u32 = 20 * 12;
-/// Ticks until a claimed health/armor pad respawns (~15s at 20 Hz).
+/// Ticks until a claimed team-mode health or armour pad respawns (15 s).
+/// Weapon clocks and the free-for-all sheet are `crate::rules`.
 pub const HEALTH_PICKUP_RESPAWN_TICKS: u32 = 20 * 15;
 /// Max scrap armor (simple absorb-before-HP).
 pub const PLAYER_MAX_ARMOR: i32 = 100;
@@ -248,6 +248,11 @@ impl MapKind {
 
     pub(crate) fn pickups(self) -> Vec<ArenaPickup> {
         crate::maps::def(self).pickups.clone()
+    }
+
+    /// The extra weapon pads a free-for-all lays on this map.
+    pub(crate) fn scrap_pads(self) -> Vec<ArenaPickup> {
+        crate::maps::def(self).scrap_pads.clone()
     }
 }
 /// Test-only view of the solid test, so a test can find clear ground instead
@@ -561,7 +566,7 @@ impl ArenaPickup {
             | PickupKind::ProximityMine { .. }
             | PickupKind::RemoteMine { .. } => 200,
             PickupKind::Ammo { .. } => 200,
-            PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
+            PickupKind::Weapon(_) => crate::rules::FFA_WEAPON_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
         }
     }
@@ -1065,7 +1070,7 @@ impl GameState {
         Self {
             map: crate::maps::RuntimeMap::BuiltIn(map),
             map_rotate,
-            pickups: map.pickups(),
+            pickups: map.pickups().into_iter().chain(map.scrap_pads()).collect(),
             ..Self::default()
         }
     }
@@ -1175,6 +1180,19 @@ impl GameState {
         }
         for id in revive {
             self.do_respawn(id);
+        }
+        // A free-for-all round starts every fighter on the Pistol again; last
+        // round's Railgun stays in last round.
+        if self.sidearm_start() {
+            let ids: Vec<Uuid> = self
+                .players
+                .iter()
+                .filter(|p| p.contestant())
+                .map(|p| p.id)
+                .collect();
+            for id in ids {
+                self.issue_kit(id);
+            }
         }
         if sabotage {
             self.begin_sabotage_round();
@@ -1458,10 +1476,12 @@ impl GameState {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         } else {
             player.team = team;
-            if let Some(weapon) = self.config.rules.only_weapon() {
-                player.inventory = crate::inventory::Inventory::restricted(weapon);
-                player.weapon = weapon;
-            }
+            // A join, and a reconnect, which is a new participant, start on
+            // the same kit as a respawn.
+            let (inventory, weapon) = self.fresh_inventory();
+            player.inventory = inventory;
+            player.weapon = weapon;
+            player.last_non_blade_weapon = weapon;
             // A fighter who joins a live round enters with one life.
             player.lives = self.config.rules.lives().map(|lives| {
                 if self.round_state == RoundState::Active {
@@ -1736,7 +1756,13 @@ impl GameState {
 
     /// The rule set for readers. Authored campaign maps have none.
     pub fn wire_rules(&self) -> Option<crate::protocol::MatchRules> {
-        (!self.map.is_authored()).then(|| self.config.rules.wire())
+        if self.map.is_authored() {
+            return None;
+        }
+        let kit = self.start_kit()?;
+        let mut rules = self.config.rules.wire(&self.config.sabotage);
+        rules.start_kit = kit.weapons();
+        Some(rules)
     }
 
     /// Replace the match rules and refit the pads they govern.
@@ -4083,6 +4109,13 @@ impl GameState {
             return;
         }
         self.add_sabotage_pads();
+        // Every free-for-all life starts on the Pistol, so the floor carries
+        // enough guns that no spawn is a long walk from one.
+        if self.config.rules.mode() == crate::protocol::GameMode::Ffa
+            && !self.solo_broadcast.enabled
+        {
+            self.pickups.extend(self.map.scrap_pads());
+        }
         if self.config.rules.has(Mutator::GoldenRail) {
             let pad = self
                 .pickups
@@ -4186,7 +4219,6 @@ impl GameState {
                 player.weapon = WeaponType::ArticleBlade;
             }
         }
-        let team_clock = self.config.rules.teams();
         for pad in &mut self.pickups {
             if let Some(timer) = pad.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -4280,9 +4312,14 @@ impl GameState {
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
-            let respawn = (!self.map.is_campaign()).then(|| match pad.kind {
-                PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
-                _ => pad.respawn_ticks(),
+            let respawn = (!self.map.is_campaign()).then(|| {
+                self.config
+                    .rules
+                    .pad_respawn_ticks(
+                        pad.kind.weapon(),
+                        matches!(pad.kind, PickupKind::Health | PickupKind::Armor),
+                    )
+                    .unwrap_or_else(|| pad.respawn_ticks())
             });
             if claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
@@ -4729,7 +4766,11 @@ impl Default for GameState {
             compliance_fired: false,
             boss_id: None,
             boss_spawned: false,
-            pickups: MapKind::ArenaDuel.pickups(),
+            pickups: MapKind::ArenaDuel
+                .pickups()
+                .into_iter()
+                .chain(MapKind::ArenaDuel.scrap_pads())
+                .collect(),
             ended_host_line: None,
             ended_mvp: None,
             ended_mvp_frags: None,

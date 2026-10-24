@@ -121,7 +121,7 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
 #[cfg(test)]
 use crate::sim::{
     BotBehavior, BotController, EpisodePhase, GameState, MapKind, MatchConfig, RoundState,
-    BOSS_MAX_HP, HEALTH_PICKUP_RESPAWN_TICKS, PICKUP_RESPAWN_TICKS,
+    BOSS_MAX_HP,
 };
 
 #[cfg(test)]
@@ -1664,7 +1664,7 @@ fn test_frag_and_respawn() {
     );
     assert!(target.hp <= 0, "Target HP should be zero or negative");
 
-    for _ in 0..65 {
+    for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + 5 {
         state.tick(0.05);
     }
 
@@ -1899,7 +1899,7 @@ fn test_weapon_type_stats() {
 }
 
 #[test]
-fn test_weapon_default_is_flechette() {
+fn test_weapon_default_is_the_pistol_in_free_for_all() {
     use crate::protocol::WeaponType;
 
     let mut state = GameState::new();
@@ -1908,14 +1908,48 @@ fn test_weapon_default_is_flechette() {
     state.add_player(player_id, "TestPlayer".to_string(), Role::Human);
 
     let player = state.players.iter().find(|p| p.id == player_id).unwrap();
-    assert_eq!(player.weapon, WeaponType::Flechette);
+    assert_eq!(player.weapon, WeaponType::Tack);
+    assert!(player.inventory.owns(WeaponType::Fists));
+    assert!(!player.inventory.owns(WeaponType::Flechette));
+
+    let mut arsenal = GameState::arsenal();
+    arsenal.add_player(player_id, "TestPlayer".to_string(), Role::Human);
+    assert_eq!(arsenal.players[0].weapon, WeaponType::Flechette);
+}
+
+#[test]
+fn test_weapon_swap_to_an_unowned_gun_is_refused() {
+    use crate::protocol::WeaponType;
+
+    let mut state = GameState::new();
+    state.start_round();
+    let player_id = Uuid::new_v4();
+    state.add_player(player_id, "Swapper".to_string(), Role::Human);
+    state.set_action(
+        player_id,
+        Action {
+            weapon_swap: Some(WeaponType::Rail),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Tack);
+    state.set_action(
+        player_id,
+        Action {
+            weapon_swap: Some(WeaponType::Fists),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.players[0].weapon, WeaponType::Fists);
 }
 
 #[test]
 fn test_weapon_swap_action() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let player_id = Uuid::new_v4();
@@ -1955,7 +1989,7 @@ fn test_weapon_swap_action() {
 #[test]
 fn weapon_choice_survives_input_bursts_and_is_consumed_once() {
     use crate::protocol::WeaponType;
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Meat Proxy".into(), Role::Human);
@@ -1995,7 +2029,7 @@ fn weapon_choice_survives_input_bursts_and_is_consumed_once() {
 fn test_rail_higher_damage_than_flechette() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2055,7 +2089,7 @@ fn test_rail_higher_damage_than_flechette() {
 fn test_scatter_hits_harder_than_flechette_up_close() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2144,7 +2178,7 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
 fn test_rail_longer_cooldown() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2183,7 +2217,7 @@ fn test_rail_longer_cooldown() {
 fn test_scatter_fires_faster_than_rail() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -2296,7 +2330,7 @@ fn test_weapon_snapshot_includes_weapon_name() {
     state.add_player(player_id, "TestPlayer".to_string(), Role::Human);
 
     let snapshot = state.snapshot();
-    assert_eq!(snapshot.players[0].weapon, "Flechette");
+    assert_eq!(snapshot.players[0].weapon, "Tack");
 
     let idx = state
         .players
@@ -3110,7 +3144,7 @@ fn test_look_at_world_xz_sets_yaw() {
 
 #[test]
 fn test_shot_results_hit_and_hit_event() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -3187,7 +3221,7 @@ fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
     use crate::sim::PLAYER_FLOOR_Y;
 
     let shoot = |pitch: Option<f32>, weapon: WeaponType, gap: f32| -> i32 {
-        let mut state = GameState::new();
+        let mut state = GameState::arsenal();
         state.start_round();
         let shooter_id = Uuid::new_v4();
         let target_id = Uuid::new_v4();
@@ -3655,11 +3689,11 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
 
 #[test]
 fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     let shooter = Uuid::new_v4();
     state.add_player(shooter, "Rusher".into(), Role::Agent);
     state.config = MatchConfig {
-        rules: Default::default(),
+        rules: crate::rules::RuleSet::arsenal(),
         capture_limit: None,
         frag_limit: Some(99),
         time_limit_ticks: Some(20 * 60),
@@ -3779,7 +3813,9 @@ fn test_boss_down_wire_json_and_compliance_ai_acts() {
 fn test_sim_pickups_present_in_snapshot() {
     let state = GameState::new();
     let snap = state.snapshot();
-    assert_eq!(snap.pickups.len(), 6);
+    // Six map pads plus the two free-for-all Shotgun pads.
+    assert_eq!(snap.pickups.len(), 8);
+    assert!(snap.pickups.iter().any(|p| p.id == "scrap_scatter_w"));
     let ids: Vec<_> = snap.pickups.iter().map(|p| p.id.as_str()).collect();
     assert!(ids.contains(&"pad_rail"));
     assert!(ids.contains(&"pad_scatter"));
@@ -3861,12 +3897,15 @@ fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
     );
     let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
     assert!(!rail.available);
-    assert_eq!(rail.respawn_timer, Some(PICKUP_RESPAWN_TICKS));
+    assert_eq!(
+        rail.respawn_timer,
+        Some(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS)
+    );
 }
 
 #[test]
 fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Proxy".into(), Role::Human);
@@ -3952,7 +3991,7 @@ fn test_sim_pickup_respawns_after_timer() {
     );
     // Move off pad so we do not re-claim instantly.
     park_away_from_pads(&mut state, id);
-    for _ in 0..PICKUP_RESPAWN_TICKS {
+    for _ in 0..crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS {
         state.tick(0.05);
     }
     let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
@@ -4014,7 +4053,10 @@ fn test_sim_health_pad_heals_and_emits_kind() {
         .find(|p| p.id == "pad_health_n")
         .unwrap();
     assert!(!pad.available);
-    assert_eq!(pad.respawn_timer, Some(HEALTH_PICKUP_RESPAWN_TICKS));
+    assert_eq!(
+        pad.respawn_timer,
+        Some(crate::rules::FFA_HEALTH_ARMOR_RESPAWN_TICKS)
+    );
 }
 
 #[test]
@@ -4038,7 +4080,7 @@ fn test_sim_health_pad_skipped_at_full_hp() {
 
 #[test]
 fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
@@ -4105,7 +4147,7 @@ fn test_sim_health_pad_respawns_after_timer() {
             .available
     );
     park_away_from_pads(&mut state, id);
-    for _ in 0..HEALTH_PICKUP_RESPAWN_TICKS {
+    for _ in 0..crate::rules::FFA_HEALTH_ARMOR_RESPAWN_TICKS {
         state.tick(0.05);
     }
     let pad = state
@@ -4229,7 +4271,7 @@ fn test_sim_choke_hitscan_blocked_by_low_wall() {
 
 #[test]
 fn test_sim_choke_hitscan_clear_lane_still_hits() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let shooter = Uuid::new_v4();
     let target = Uuid::new_v4();
@@ -4358,7 +4400,7 @@ fn force_hitscan_frag(state: &mut GameState, shooter_id: Uuid, target_id: Uuid) 
 
 #[test]
 fn test_spree_calls_the_mode_tier_once_and_resets_on_death() {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.config.compliance_ping_ticks = None;
     state.config.boss_spawn_ticks = None;
     state.config.frag_limit = Some(99);
@@ -4373,7 +4415,7 @@ fn test_spree_calls_the_mode_tier_once_and_resets_on_death() {
     let mut calls: Vec<(u32, HostReactionKind, bool)> = Vec::new();
     for n in 1..=5 {
         // Wait out respawn if target died last frag.
-        for _ in 0..100 {
+        for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + crate::sim::SPAWN_SHIELD_TICKS + 20 {
             let tidx = state
                 .players
                 .iter()
@@ -4433,7 +4475,7 @@ fn test_spree_calls_the_mode_tier_once_and_resets_on_death() {
         .position(|p| p.id == shooter_id)
         .unwrap();
     assert_eq!(state.players[sidx].killstreak, 5);
-    for _ in 0..70 {
+    for _ in 0..crate::rules::FFA_RESPAWN_DELAY_TICKS + crate::sim::SPAWN_SHIELD_TICKS + 20 {
         let tidx = state
             .players
             .iter()
@@ -4483,7 +4525,7 @@ fn test_weapon_range_units_distinct() {
 fn test_scatter_misses_beyond_range() {
     use crate::protocol::WeaponType;
 
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
 
     let shooter_id = Uuid::new_v4();
@@ -4818,7 +4860,7 @@ fn test_sim_compliance_yard_pad_claim_and_hub_clear() {
     let snap = state.snapshot();
     assert_eq!(snap.map_id, 2);
     assert_eq!(snap.map_name, "Compliance Yard");
-    assert_eq!(state.pickups.len(), 6);
+    assert_eq!(state.pickups.len(), 8);
 
     // Hub must stay clear for drone (circle at 0,0 not blocked).
     for obs in MapKind::ComplianceYard.obstacles() {
@@ -5120,7 +5162,7 @@ fn test_sim_respawn_lands_far_from_living_fighters() {
 #[test]
 fn test_sim_spawn_shield_blocks_damage_for_one_second() {
     use crate::sim::SPAWN_SHIELD_TICKS;
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.start_round();
     let shooter = Uuid::new_v4();
     let target = Uuid::new_v4();
@@ -6398,7 +6440,7 @@ fn dispersion_is_dispersion_not_free_aim() {
             warmup_ticks: 1,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            ..crate::sim::MatchConfig::default()
+            ..crate::sim::MatchConfig::arsenal()
         };
         state.start_round();
         let shooter = Uuid::new_v4();
@@ -7003,7 +7045,7 @@ mod map_roster {
             warmup_ticks: 1,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            ..MatchConfig::default()
+            ..MatchConfig::arsenal()
         };
         state.start_round();
         let shooter = Uuid::new_v4();
@@ -7134,7 +7176,7 @@ mod vertical_aim {
     use crate::sim::{BotBehavior, BotController, PLAYER_FLOOR_Y};
 
     fn pair(shooter_height: f32, target_height: f32) -> (GameState, Uuid, Uuid) {
-        let mut state = GameState::new();
+        let mut state = GameState::arsenal();
         state.seed(42);
         state.start_round();
         let shooter = Uuid::new_v4();

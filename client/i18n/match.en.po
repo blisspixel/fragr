@@ -231,6 +231,9 @@ msgstr "GOLDEN RAIL"
 msgid "MUTATOR_TWO_LIVES"
 msgstr "TWO LIVES"
 
+msgid "MUTATOR_FULL_ARSENAL"
+msgstr "FULL ARSENAL"
+
 msgid "RULES_FRIENDLY_FIRE"
 msgstr "FRIENDLY FIRE"
 
@@ -653,6 +656,9 @@ msgstr "RESPAWNING"
 
 msgid "HUD_DEATH_OUT"
 msgstr "OUT UNTIL THE NEXT ROUND"
+
+msgid "HUD_DEATH_LOST"
+msgstr "LOST {weapons}"
 
 msgid "HUD_RELOAD_PENDING"
 msgstr "RELOAD REQUESTED"

@@ -154,9 +154,11 @@ run_client() {
   if [ -n "${FRAGR_QA_POSITION:-}" ]; then
     run+=(--position "$FRAGR_QA_POSITION")
   fi
-  # A shared host can keep the tour off its sound card (FRAGR_QA_AUDIO_DRIVER=Dummy).
-  if [ -n "${FRAGR_QA_AUDIO_DRIVER:-}" ]; then
-    run+=(--audio-driver "$FRAGR_QA_AUDIO_DRIVER")
+  # A shared host can keep the tour off its sound card (FRAGR_QA_AUDIO_DRIVER=Dummy,
+  # or FRAGR_AUDIO_DRIVER); audio-level states then measure nothing.
+  local audio_driver="${FRAGR_QA_AUDIO_DRIVER:-${FRAGR_AUDIO_DRIVER:-}}"
+  if [ -n "$audio_driver" ]; then
+    run+=(--audio-driver "$audio_driver")
   fi
   local status
   if [ "$(uname -s)" != "Linux" ]; then

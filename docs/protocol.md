@@ -15,7 +15,8 @@ the first campaign launcher. The standalone Walker foundation requires 48 and
 connected Launch Authority requires 49. Article Blade requires 50, connected
 Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
 and All Systems Normal 54. Passenger Manifest and Common Carrier require 55,
-which carries the untagged M08 outcome and the `unlinked` M10 practice transit.
+which carries the untagged M08 outcome and the `unlinked` M10 practice transit;
+the free-for-all Pistol start with `rules.start_kit` is the same contract 55.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -843,7 +844,8 @@ World-point aim:
   Notaries, Crawlers, and bosses ignore it. Jump is unchanged.
 - `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"` | `"arc"` | `"rocket"`. MCP advertises and validates these native weapon IDs from the same typed arsenal. Selection requires ownership and grants no ammunition.
   The newest explicit choice survives later packets until one tick consumes it.
-  Discovery rejects unowned choices; full-arsenal maps permit their three guns.
+  Discovery equipment, including the free-for-all start, rejects unowned
+  choices; team modes and Full Arsenal permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
   cooldown or RNG draw.
 - `look_at`: (optional) Agent target aim. A shared-room human socket drops
@@ -1252,8 +1254,9 @@ Agents need this to tell a clear shot from a wall. Before it existed, the refere
 
 #### Loadout
 
-Discovery maps send `type: "loadout"` only to the owning human or agent when its
-equipment changes, including an initial state. It is never broadcast and never
+Discovery maps, Sabotage and the free-for-all start send `type: "loadout"` only
+to the owning human or agent when its equipment changes, including an initial
+state. It is never broadcast and never
 sent to spectators. An unarmed full-arsenal pawn sends no loadout. An armed
 arcade human receives the magazine guns, the finite spawn kit and `loaded`.
 A weapon-only mutator sends three zero counts instead, because that one gun
@@ -1592,7 +1595,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
   completed channel stands the bot up at half its spawn health in a 20-tick
   `recovery`. Clerks and Auditors are never repaired; a third repair never
   happens. A held disabled body's window never exceeds 100 ticks.
-- `players`: Array of visible player states. A fighter waiting to respawn is not in it. There is no corpse on the wire: the server drops a player from the snapshot the moment it dies and puts it back three seconds later at its spawn point, so absence is how death looks to an agent. Watch for the `frag` and `respawn` events rather than inferring death from a health value, and do not read a missing fighter as one that has left the match.
+- `players`: Array of visible player states. A fighter waiting to respawn is not in it. There is no corpse on the wire: the server drops a player from the snapshot the moment it dies and puts it back at its spawn point after the mode's respawn delay (four seconds in free-for-all, three in team modes), so absence is how death looks to an agent. Watch for the `frag` and `respawn` events rather than inferring death from a health value, and do not read a missing fighter as one that has left the match.
   - `id`: Player UUID
   - `name`: Display name
   - `x`, `y`, `z`: Position in world space (arena is ±25 units)
@@ -2181,7 +2184,8 @@ its full short match before the list moves. A playlist file is not on the wire.
   "name": "Team Deathmatch: Rail Only, Two Lives",
   "mutators": ["rail-only", "two-lives"],
   "friendly_fire": true,
-  "lives": 2
+  "lives": 2,
+  "start_kit": ["rail"]
 }
 ```
 
@@ -2189,8 +2193,14 @@ its full short match before the list moves. A playlist file is not on the wire.
   flag), or `sabotage` (round-based plant and defuse, below).
 - `name`: an English label for logs and agents. Clients key their own labels.
 - `mutators`: sorted, unique ids, omitted when none: `rail-only`,
-  `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`.
-  A Rust reader refuses an unknown id; the Godot client drops it.
+  `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`,
+  `full-arsenal`. A Rust reader refuses an unknown id; the Godot client drops it.
+- `start_kit`: always present. The weapons a fresh life holds, in wire order.
+  Anything else a fighter carries was taken from a pad and is lost at death.
+  Free-for-all sends `["fists", "tack"]`; team modes, Golden Rail and Full
+  Arsenal send `["flechette", "scatter", "rail"]`; a weapon-only mutator
+  sends its one weapon; Sabotage sends `["fists"]`, or `["fists", "tack"]`
+  in its five-seat format. The Godot client names a death's cost from it.
 - `friendly_fire`: present and true when team damage lands. Off by default.
 - `lives`: lives per fighter per round when limited (Two Lives sends 2,
   Sabotage sends 1).
@@ -2244,6 +2254,22 @@ not block a ground bay. No new action or snapshot field is added.
   the clock draws. The default capture limit is 3. `--frag-limit`
   and the Two Lives mutator are refused in CTF. The Compliance slow and Drone
   arena events do not run in CTF.
+- **Free-for-all start.** Every life, join, round start, playlist show and
+  reconnect starts with the Pistol (`tack`, 50 Bullets, a 12-round magazine for
+  a joined human) and Fists. Stronger guns are owned only after their pad is
+  taken: `weapon_swap` to an unowned gun is ignored, a newly found gun is
+  selected once, and a later pickup of a carried gun adds ammunition without
+  changing the selection. Equipment is discovery equipment, so the owner
+  receives a private `loadout` on every change. Death keeps that loadout
+  until the respawn, 80 ticks (4 s) later, replaces it with the kit. Pad
+  clocks: Rifle, Shotgun and Repeater 15 s, Railgun, Sniper Rifle, Arc and
+  Rocket Launcher 25 s, a Pistol pad 8 s, health and armour 25 s. Each built
+  map lays extra free-for-all weapon pads (ids beginning `scrap_` or `bay_`)
+  so that every spawn is a fair walk from a gun; team and objective modes
+  never carry them. Rule bots read the same ownership and route to pads.
+- **Full Arsenal.** Free-for-all only: every life starts with the Rifle,
+  Shotgun and Railgun as in team modes, and weapon pads restock. Refused with
+  another mode, a weapon-only mutator or Golden Rail.
 - **Sabotage.** See [Sabotage](#sabotage) below.
 - **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
   unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
@@ -2519,7 +2545,8 @@ in Sabotage.
   No automatic vertical aim or aim-assist cone is applied. Falloff uses traveled
   3D distance to the hit surface. Combat RNG results change from the previous
   horizontal-only model; existing recorded messages remain readable.
-- **Respawn delay**: 60 ticks (3 seconds)
+- **Respawn delay**: 80 ticks (4 seconds) in free-for-all; 60 ticks (3 seconds)
+  in team deathmatch, capture the flag and Conquest
 
 ### Movement
 Arena participants (humans, agents and rule bots outside a campaign mission)

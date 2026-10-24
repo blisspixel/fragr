@@ -282,7 +282,13 @@ A swap, death or vehicle seat cancels quietly. The held gun dips while
 reloading and one short sound marks the start and the finish.
 An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
-costs one shell. An arcade human spawns with the rifle, shotgun and railgun
+costs one shell. In free-for-all every life starts with the Pistol (12 in the
+gun, 38 behind it) and Fists. The Rifle, Shotgun and Railgun sit on timed
+pads: walk over one to own it, and it comes up loaded. Walking over a gun you
+already carry adds to the bag without changing what is in your hands. Death
+loses every gun you found; the death card names them, and the next life starts
+on the Pistol four seconds later. In team modes, and in a free-for-all hosted
+with Full Arsenal, an arcade human spawns with the rifle, shotgun and railgun
 already loaded, and a finite bag behind them: 60 more rifle rounds, 18 more
 shells and 12 more rail shots. The corner uses the same gun-then-bag pair.
 Walking over that gun adds a pickup to the bag. Death puts the spawn kit back.

@@ -69,6 +69,8 @@ var _host_selected_mode: String = "tdm"
 var _host_lan: CheckButton
 var _host_port: SpinBox
 var _host_mutator: OptionButton
+## One line naming what a fresh life holds under the chosen mode and mutator.
+var _host_kit_hint: Label
 var _host_friendly_fire: CheckButton
 var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
@@ -1154,6 +1156,8 @@ func _page_host() -> void:
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
+	_host_kit_hint = _label("")
+	_host_kit_hint.name = "HostKitHint"
 	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
 	for key: String in ["HOST_BOTS_FIXED", "HOST_BOTS_NONE", "HOST_BOTS_AUTO"]:
 		_host_bot_policy.add_item(tr(key))
@@ -1190,10 +1194,14 @@ func _page_host() -> void:
 	_host_mutator.add_item(tr("MUTATOR_RAIL_ONLY"))
 	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
 	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
+	_host_mutator.add_item(tr("MUTATOR_FULL_ARSENAL"))
 	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa"])
-	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives"].find(str(_host_settings.get("mutator", "")))
+	_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
+	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives", "full-arsenal"].find(str(_host_settings.get("mutator", "")))
 	if mutator_index > 0 and not _host_mutator.is_item_disabled(mutator_index):
 		_host_mutator.select(mutator_index)
+	_host_mutator.item_selected.connect(func(_index: int) -> void: _refresh_host_kit())
+	_refresh_host_kit()
 	_host_friendly_fire = CheckButton.new()
 	_host_friendly_fire.name = "HostFriendlyFire"
 	_host_friendly_fire.text = "Friendly Fire"
@@ -1238,6 +1246,10 @@ func _change_host_mode(_index: int) -> void:
 		_host_mutator.set_item_disabled(6, not finite_lives_allowed)
 		if not finite_lives_allowed and _host_mutator.selected == 6:
 			_host_mutator.select(0)
+		_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
+		if _host_selected_mode != "ffa" and _host_mutator.selected == 7:
+			_host_mutator.select(0)
+	_refresh_host_kit()
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	if _host_friendly_fire != null:
 		_host_friendly_fire.visible = _host_selected_mode != "ffa"
@@ -1296,7 +1308,25 @@ func _selected_mutator() -> String:
 		4: return "rail-only"
 		5: return "fists-only"
 		6: return "two-lives"
+		7: return "full-arsenal"
 	return ""
+
+## What every fresh life holds, said once under the mode: the free-for-all
+## Pistol start, a weapon-only mutator's one gun, or the arena arsenal.
+func _refresh_host_kit() -> void:
+	if _host_kit_hint == null:
+		return
+	var mutator: String = _selected_mutator()
+	var key: String = "HOST_KIT_ARSENAL"
+	match mutator:
+		"rail-only", "shotgun-only", "fists-only":
+			key = "HOST_KIT_ONE_WEAPON"
+		_:
+			if _host_selected_mode == "sabotage":
+				key = "HOST_KIT_SABOTAGE"
+			elif _host_selected_mode == "ffa" and mutator not in ["golden-rail", "full-arsenal"]:
+				key = "HOST_KIT_SIDEARM"
+	_host_kit_hint.text = tr(key)
 
 func _start_host() -> void:
 	var mut: String = _selected_mutator()

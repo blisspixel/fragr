@@ -838,6 +838,15 @@ impl RuntimeMap {
         }
     }
 
+    /// The extra weapon pads a free-for-all lays on this map. None on an
+    /// authored map, which places its own supplies.
+    pub(crate) fn scrap_pads(&self) -> Vec<ArenaPickup> {
+        match self {
+            Self::BuiltIn(kind) => kind.scrap_pads(),
+            Self::Authored(_) => Vec::new(),
+        }
+    }
+
     pub(crate) fn pickups(&self) -> Vec<ArenaPickup> {
         match self {
             Self::BuiltIn(kind) => kind.pickups(),

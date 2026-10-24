@@ -1024,6 +1024,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
+        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
         // M09 and M10 carry the single-schema campaign receipts, the highest
         // contract this binary speaks.
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {
