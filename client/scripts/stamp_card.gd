@@ -42,7 +42,26 @@ func trigger_stamp(label: Label, p_color: Color, reduced_motion: bool = false) -
 	visible = true
 	queue_redraw()
 
+## Remove the stamp and the transform it put on its label. The border is a
+## cached draw, so hiding the label alone left it on screen indefinitely.
+func retire() -> void:
+	if target_label != null and is_instance_valid(target_label):
+		target_label.rotation = 0.0
+		target_label.scale = Vector2.ONE
+	target_label = null
+	is_animating = false
+	settle_frames = 0
+	visible = false
+	queue_redraw()
+
+## A stamp lives exactly as long as its label is on screen.
+func label_gone() -> bool:
+	return target_label == null or not is_instance_valid(target_label) or not target_label.is_visible_in_tree()
+
 func _process(_delta: float) -> void:
+	if visible and label_gone():
+		retire()
+		return
 	if not is_animating:
 		return
 	if settle_frames > 0:
@@ -54,7 +73,7 @@ func _process(_delta: float) -> void:
 			queue_redraw()
 
 func _draw() -> void:
-	if target_label == null or not target_label.visible:
+	if label_gone():
 		return
 
 	# Draw worn-ink stamp border around the card / label bounds

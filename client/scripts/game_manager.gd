@@ -49,8 +49,8 @@ var radio = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
-## Killer to watch once an arcade death drops first person. Empty until then.
-var _death_watch_killer: String = ""
+## The joined arcade life: alive, down, awaiting respawn, or out (#441).
+var local_life: LocalLife = LocalLife.new()
 var _frag_identity := FragIdentity.new()
 var _joined_ui_team: String = ""
 # Mid-join Ended podium shown once per Ended phase.
@@ -89,6 +89,9 @@ var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
 var pending_fire: bool = false
+## A trigger or jump held into a new life stays dead until it is released.
+var fire_armed: bool = true
+var jump_armed: bool = true
 var pending_interact: bool = false
 var interact_held: bool = false
 var pending_throw: bool = false
@@ -1248,6 +1251,10 @@ func _input(_event):
 		return
 	if _event.is_action_released("interact"):
 		interact_held = false
+	if _event.is_action_released("fire"):
+		fire_armed = true
+	if _event.is_action_released("jump"):
+		jump_armed = true
 	if _event.is_action_released("throw_grenade"):
 		throw_armed = true
 	if _event.is_action_released("place_mine"):
@@ -1274,6 +1281,15 @@ func _input(_event):
 		return
 	if Input.is_action_pressed("scoreboard") and hud != null and hud.handle_leaderboard_input(_event):
 		get_viewport().set_input_as_handled()
+		return
+	if is_human_player and not local_life.alive():
+		# Down: gameplay presses are not queued into the next life. Leaving
+		# and speaking still work.
+		_drop_life_presses()
+		if Input.is_action_just_pressed("leave_match"):
+			change_role(false)
+		elif Input.is_action_just_pressed("speak"):
+			_send_speak_taunt()
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
@@ -1340,6 +1356,7 @@ func change_role(play: bool) -> void:
 	net_client.leave_match()
 	is_human_player = play
 	_clear_fp_state()
+	_reset_local_life()
 	pending_weapon_swap = null
 	await get_tree().create_timer(0.1).timeout
 	# The previous connection may have failed while its loading card was still
@@ -1367,6 +1384,7 @@ func _on_ack_received(data: Dictionary) -> void:
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
+		local_life.observe_ack(data, now_usec)
 		if _vehicle_seat() == "driver":
 			vehicle_prediction.accept_driver_ack(data, now_usec)
 		elif _vehicle_seat().is_empty():
@@ -1420,6 +1438,7 @@ func _process(_delta):
 	_local_fire_allowed_last_frame = fire_allowed
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
+		_update_death_presentation(now_usec)
 		local_prediction.advance(now_usec)
 		local_prediction.decay_visual(_delta)
 		vehicle_prediction.advance(now_usec)
@@ -1521,8 +1540,12 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.back = Input.is_action_pressed("move_back") or bool(pad.get("back", false))
 	action_state.left = Input.is_action_pressed("move_left") or (strafing and Input.is_action_pressed("turn_left")) or bool(pad.get("left", false))
 	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
-	action_state.fire = pending_fire or Input.is_action_pressed("fire")
-	action_state.jump = pending_jump or Input.is_action_pressed("jump")
+	if not Input.is_action_pressed("fire") and not pending_fire:
+		fire_armed = true
+	action_state.fire = fire_armed and (pending_fire or Input.is_action_pressed("fire"))
+	if not Input.is_action_pressed("jump") and not pending_jump:
+		jump_armed = true
+	action_state.jump = jump_armed and (pending_jump or Input.is_action_pressed("jump"))
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
 		throw_armed = true
@@ -1904,7 +1927,8 @@ func assist_targets() -> Array:
 func _has_local_input_target() -> bool:
 	# An open socket precedes the first snapshot. Sending the default camera aim
 	# in that interval overwrites the authored spawn facing before we adopt it.
-	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id):
+	if _adopt_local_spawn_snapshot or net_client.player_id == null or local_fp_pawn_id != str(net_client.player_id) \
+		or not local_life.alive():
 		return false
 	var pawn: Node = players.get(local_fp_pawn_id)
 	return is_instance_valid(pawn) and is_instance_valid(camera) and camera.fp_mode and camera.fp_target == pawn
@@ -2138,6 +2162,7 @@ func _clear_world() -> void:
 	if shot_effects != null:
 		shot_effects.clear()
 	_clear_fp_state()
+	_reset_local_life()
 	# Drop presentation nodes so rejoin does not keep stale pawns/pads.
 	for id in players.keys():
 		if is_instance_valid(players[id]):
@@ -2506,7 +2531,7 @@ func _on_event_received(data):
 			frag_sound.play()
 		
 		if is_human_player and _is_local_victim(victim_id):
-			_remember_own_frag(killer_id)
+			_on_local_frag(victim_id, killer_id, killer_name)
 		elif not is_human_player and killer_id != "" and camera:
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
@@ -2886,6 +2911,8 @@ func _refresh_fp_target() -> void:
 	var pawn = players[pid]
 	if not is_instance_valid(pawn):
 		return
+	if not local_life.alive():
+		_begin_new_life()
 	if local_fp_pawn_id != "" and local_fp_pawn_id != pid and players.has(local_fp_pawn_id):
 		var prev = players[local_fp_pawn_id]
 		if is_instance_valid(prev) and prev.has_method("set_local_fp"):
@@ -2972,7 +2999,9 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	# body stays in the snapshot at zero health and keeps its eyes.
 	if local_fp_pawn_id == pid and not _mission_map():
 		_clear_fp_state(true)
-		_watch_own_killer()
+		local_life.body_gone(int(latest_snapshot.get("tick", -1)))
+		_end_life_input()
+		_begin_death_view()
 
 ## The joined callsign, from the live pawn while it exists and from the
 ## connection after an arcade death has removed it.
@@ -2980,22 +3009,93 @@ func _is_local_victim(victim_id: String) -> bool:
 	return not victim_id.is_empty() and is_human_player and net_client != null \
 		and net_client.player_id != null and victim_id == str(net_client.player_id)
 
-func _remember_own_frag(killer_id: String) -> void:
-	_death_watch_killer = killer_id
-	_watch_own_killer()
+## The frag fact for this player's own death. It may land before or after the
+## snapshot that removes the body; either order ends this life's input now.
+func _on_local_frag(victim_id: String, killer_id: String, killer_name: String) -> void:
+	if _mission_map():
+		return
+	local_life.record_frag(victim_id, killer_id, killer_name, int(latest_snapshot.get("tick", -1)))
+	_end_life_input()
+	if local_fp_pawn_id.is_empty():
+		_begin_death_view()
 
-## Chase the killer only after first person has let go. Sabotage already
-## watches living teammates, so this does not take that view.
-func _watch_own_killer() -> void:
-	if _death_watch_killer == "" or _sabotage_watching_mates:
+## Stop the dead life's prediction, local fire and every queued press.
+func _end_life_input() -> void:
+	_reset_local_fire()
+	local_prediction.reset("death", true)
+	_clear_predicted_pawn()
+	_drop_life_presses()
+
+func _drop_life_presses() -> void:
+	pending_fire = false
+	pending_jump = false
+	pending_interact = false
+	interact_held = false
+	pending_throw = false
+	pending_place = false
+	pending_reload = false
+	pending_remote_place = false
+	pending_remote_trigger = false
+	pending_weapon_swap = null
+	pending_seat = ""
+	fire_armed = false
+	jump_armed = false
+	throw_armed = false
+	place_armed = false
+	reload_armed = false
+	remote_place_armed = false
+	remote_trigger_armed = false
+
+## Hold the dead eye, or chase the killer, until the server returns the body.
+## Sabotage keeps its own teammate watch for a fallen fighter.
+func _begin_death_view() -> void:
+	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
+		or local_life.alive():
 		return
-	if camera == null or not camera.has_method("lock_on_frag"):
+	if not local_fp_pawn_id.is_empty():
 		return
-	if bool(camera.get("fp_mode")):
+	if bool(camera.get("death_view")):
+		camera.death_chase_id = local_life.chase_id()
+	elif local_life.phase != LocalLife.Phase.OUT:
+		camera.begin_death_view(local_life.chase_id())
+
+## The body is back: a new life starts with no carried presses, and a trigger
+## or device still held from the last life must be released first.
+func _begin_new_life() -> void:
+	local_life.respawned()
+	if camera != null and camera.has_method("end_death_view"):
+		camera.end_death_view()
+	hud.hide_death_card()
+	_drop_life_presses()
+	fire_armed = not Input.is_action_pressed("fire")
+	jump_armed = not Input.is_action_pressed("jump")
+	throw_armed = not Input.is_action_pressed("throw_grenade")
+	place_armed = not Input.is_action_pressed("place_mine")
+	reload_armed = not InputMap.has_action("reload") or not Input.is_action_pressed("reload")
+	remote_place_armed = not Input.is_action_pressed("place_remote_mine")
+	remote_trigger_armed = not Input.is_action_pressed("trigger_remote_mines")
+
+func _reset_local_life() -> void:
+	local_life.reset()
+	if camera != null and camera.has_method("end_death_view"):
+		camera.end_death_view()
+	if hud != null and hud.has_method("hide_death_card"):
+		hud.hide_death_card()
+
+## The death card follows the server countdown and the camera's real view.
+func _update_death_presentation(now_usec: int) -> void:
+	if not is_human_player or local_life.alive() or camera == null:
 		return
-	var killer := _death_watch_killer
-	_death_watch_killer = ""
-	camera.lock_on_frag(killer, 2.0)
+	if local_life.phase == LocalLife.Phase.OUT and bool(camera.get("death_view")):
+		camera.end_death_view()
+	if hud.sabotage():
+		hud.hide_death_card()
+		return
+	var watching: String = ""
+	var target: Variant = camera.get_followed_target()
+	if is_instance_valid(target):
+		watching = str(target.get("player_name"))
+	hud.show_death_card(local_life.card_lines(now_usec, watching))
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.

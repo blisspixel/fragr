@@ -489,5 +489,32 @@ msgstr "CONTINUANCE WALKER\nDISABLED"
 msgid "HUD_AMMO_EMPTY"
 msgstr "EMPTY"
 
+msgid "HUD_DEATH_BY"
+msgstr "FRAGGED BY {killer}"
+
+msgid "HUD_DEATH_SOMEONE"
+msgstr "AN UNNAMED FIGHTER"
+
+msgid "HUD_DEATH_SELF"
+msgstr "SELF-INFLICTED"
+
+msgid "HUD_DEATH_DOWN"
+msgstr "YOU WENT DOWN"
+
+msgid "HUD_DEATH_WATCHING"
+msgstr "WATCHING {name}"
+
+msgid "HUD_DEATH_HOLDING"
+msgstr "YOUR LAST VIEW"
+
+msgid "HUD_DEATH_RESPAWN_IN"
+msgstr "RESPAWN IN {seconds}"
+
+msgid "HUD_DEATH_RESPAWNING"
+msgstr "RESPAWNING"
+
+msgid "HUD_DEATH_OUT"
+msgstr "OUT UNTIL THE NEXT ROUND"
+
 msgid "FLAG_STATUS_ROWS"
 msgstr "UNION FLAG {union}\nFREE FLAG {coalition}"
