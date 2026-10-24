@@ -27,6 +27,8 @@ Current provider documentation is inconsistent: the [sound effects overview](htt
 
 Distribution needs a separate check before committing generated WAVs. ElevenLabs' [August 2026 prohibited-use policy](https://elevenlabs.io/use-policy) forbids distributing Sound Effects output on a standalone basis, including isolated audio files. A public source repository exposes raw assets individually, so an ElevenLabs pilot should stay in ignored local diagnostics until the distribution basis for this repository is clear. The [Sound Effects terms](https://elevenlabs.io/sound-effects-terms) and account terms also apply. If that gate remains unclear, use original offline-baked effects with documented source and zero API spend. Preserve required third-party notices.
 
+**Rights decision, 2026-10-23.** Nick decided on 2026-10-23 that new ElevenLabs sound effects and music ship by committing them to the repository with provenance, on the same basis as the [October 2 sound pass](sound-pass-20261002.md) and [`client/assets/audio/README.md`](../../client/assets/audio/README.md): each committed file keeps its `audiogen-manifest.json` entry (prompt, model, format, duration, generation time) and its batch spec. That resolves this distribution gate for future ElevenLabs effects. A candidate still needs its listening, level and in-engine mix gates before it is committed, and the offline-baked ward set already shipped here is unaffected.
+
 ## Implementation order
 
 1. Record the current silence and caption behavior in a first-person M02 tour. Check the ward's machine animation, the server-owned stop, Latch's release and the side-bay release separately.

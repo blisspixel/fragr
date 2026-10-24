@@ -69,6 +69,13 @@ acceptance work under the existing roadmap's art rung.
   rigged GLB and basic walking/running outputs. Failed anatomy is not retried blindly.
 - [Pricing](https://docs.meshy.ai/en/api/pricing): textured 2K/4K generation is
   30 credits; Ultra geometry adds 5. This is API task pricing, not a subscription tier.
+  Rechecked 2026-10-23: unchanged. `meshy-7.1` mesh with 2K or 4K textures is 30,
+  the Ultra geometry surcharge (`geometry_resolution` `2k`/`4k`) is +5, `meshy-t2`
+  with 2K or 4K textures is 15, and rigging is 5. 8K textures (35, or 20 on t2)
+  stay outside the tool's accepted options. The page also notes that `lowpoly`
+  retires on 2026-10-30; the tool never selects it. `PRICING_DATE` stays
+  `2026-10-03` because it is part of each reservation identity and the prices
+  did not change.
 - [Plan guide](https://help.meshy.ai/en/articles/12062933-which-meshy-plan-is-right-for-you-free-vs-pro-vs-premium-vs-ultra):
   Premium $40/month, 3,000 monthly credits, first-month offer user-reported at $20.
   Budget at $0.02 per credit conservatively, the documented Pro retail ratio,
@@ -93,6 +100,15 @@ cargo run -p fragr-spritegen --locked -- meshy-check --required-credits 150
 cargo run -p fragr-spritegen --locked -- meshy-check --out art/raw/meshy-pilot-20261003 --required-credits 35 --report .agents/meshy-balance.json
 cargo run -p fragr-spritegen --locked -- meshy-gen --spec .agents/meshy-models.json --max-credits 150 --max-spend-usd 3
 ```
+
+`meshy-gen --max-credits` accepts 1 to 1,900 since 2026-10-23 (`MAX_CREDITS`,
+Nick's reported monthly allowance), replacing the earlier 1 to 250 range after
+the 2026-10-18 funded-balance ceiling decision. `--max-spend-usd` is still
+required and capped by the shared `HARD_CAP_USD` ($40), so a whole allowance at
+$0.02 per credit fits one explicit cap. The cap is an outer bound: the live
+whole-batch balance check, retained holds, the per-stage 250-credit reservation
+valuation and the 32-stage spec limit are unchanged, and each run's ceiling is
+set from its own preflight inside the live usable balance.
 
 Receipts use `create_new`, so an existing report is not replaced. Generation uses
 the existing locked `ledger.jsonl`. A conservative pending hold may count credits

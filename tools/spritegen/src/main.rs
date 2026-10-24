@@ -365,9 +365,7 @@ fn run(cli: Cli) -> Result<(), Error> {
             max_spend_usd,
         } => {
             check_budget(0.0, *max_spend_usd)?;
-            if *max_credits == 0 || *max_credits > 250 {
-                return Err(Error::Budget("credit cap must be 1 to 250".into()));
-            }
+            fragr_spritegen::meshy::check_credit_cap(*max_credits)?;
             let bytes = read_bounded(
                 std::fs::File::open(spec)
                     .map_err(|_| Error::Io("could not open model spec".into()))?,
@@ -639,7 +637,7 @@ mod tests {
                 "--spec",
                 "missing",
                 "--max-credits",
-                "251",
+                "1901",
                 "--max-spend-usd",
                 "3",
             ],

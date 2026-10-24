@@ -226,7 +226,7 @@ fn external_hold_is_durable_and_gates_check_and_generation() {
         "new output directory cannot bypass account carry"
     );
     let fake = Fake::new(vec![]);
-    assert!(run(&fake, &changed_output, 35, Some(5.01)).is_err());
+    assert!(run(&fake, &changed_output, 35, Some(crate::HARD_CAP_USD + 0.01)).is_err());
     assert!(
         fake.sent.borrow().is_empty(),
         "hard dollar ceiling precedes API"
@@ -458,9 +458,9 @@ fn caps_and_whole_batch_balance_precede_any_post() {
     let spec = spec(&dir, &["a", "b"]);
     for (credits, cap) in [
         (0, Some(5.0)),
-        (251, Some(5.0)),
+        (MAX_CREDITS + 1, Some(5.0)),
         (150, None),
-        (150, Some(6.0)),
+        (150, Some(crate::HARD_CAP_USD + 0.01)),
         (35, Some(5.0)),
         (150, Some(1.0)),
     ] {
@@ -474,6 +474,40 @@ fn caps_and_whole_batch_balance_precede_any_post() {
     let fake = Fake::new(vec![json!({"balance":100}), json!({"balance":34})]);
     assert!(run(&fake, &spec, 150, Some(3.0)).is_err());
     assert_eq!(fake.posts(), 0);
+}
+
+#[test]
+fn funded_cap_allows_a_batch_above_250_but_live_balance_and_stage_limits_still_gate() {
+    let dir = TestDir::new();
+    let ids: Vec<String> = (0..8).map(|i| format!("m{i}")).collect();
+    let refs: Vec<&str> = ids.iter().map(String::as_str).collect();
+    // Eight 35-credit stages: 280 fresh credits, $5.60, above the old 250 cap.
+    let eight = spec(&dir, &refs);
+    assert!(check_credit_cap(MAX_CREDITS).is_ok());
+    assert!(check_credit_cap(MAX_CREDITS + 1).is_err());
+    assert!(check_credit_cap(0).is_err());
+    // The run's own credit and dollar ceilings still refuse before any request.
+    for (credits, cap) in [(279, Some(10.0)), (280, Some(5.59))] {
+        let fake = Fake::new(vec![]);
+        assert!(matches!(
+            run(&fake, &eight, credits, cap),
+            Err(Error::Budget(_))
+        ));
+        assert!(fake.sent.borrow().is_empty());
+    }
+    // Inside both ceilings, the live whole-batch balance gate is reached and refuses.
+    let fake = Fake::new(vec![json!({"balance":279})]);
+    assert!(run(&fake, &eight, MAX_CREDITS, Some(10.0)).is_err());
+    assert_eq!(fake.sent.borrow().len(), 1);
+    assert_eq!(fake.posts(), 0);
+    // The 32-stage limit and 250-credit stage valuation are unchanged.
+    let ids: Vec<String> = (0..MAX_STAGES + 1).map(|i| format!("s{i}")).collect();
+    let refs: Vec<&str> = ids.iter().map(String::as_str).collect();
+    let fake = Fake::new(vec![]);
+    assert!(run(&fake, &spec(&dir, &refs), MAX_CREDITS, Some(40.0)).is_err());
+    assert!(fake.sent.borrow().is_empty());
+    assert_eq!(MAX_STAGES, 32);
+    assert_eq!(MAX_STAGE_CREDITS, 250);
 }
 
 #[test]

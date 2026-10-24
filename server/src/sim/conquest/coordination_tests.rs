@@ -327,7 +327,7 @@ fn actual_spawn_and_resolved_death_respawn_preserve_another_bots_capture() {
     assert_eq!(session.state.conquest.as_ref().unwrap().tickets.union, 199);
     assert_eq!(
         session.state.players[victim].respawn_timer,
-        Some(crate::sim::RESPAWN_DELAY_TICKS)
+        Some(crate::rules::TEAM_RESPAWN_DELAY_TICKS)
     );
     for progress in 41..=101 {
         session.tick_messages(0.05);

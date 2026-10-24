@@ -95,6 +95,10 @@ or bulk generation. A paid plan alone does not establish an Apache-2.0 grant.
 Keep the existing historical assets intact while resolving the distribution basis;
 do not silently rewrite their legal status or promise unrestricted reuse.
 
+**Rights decision, 2026-10-23.** Nick decided on 2026-10-23 that new ElevenLabs sound effects and music ship by committing them to the repository with provenance, on the same basis as the [October 2 sound pass](sound-pass-20261002.md) and [`client/assets/audio/README.md`](../../client/assets/audio/README.md): each committed file keeps its `audiogen-manifest.json` entry (prompt, model, format, duration, generation time) and its batch spec. New radio
+music may be committed on that basis after listening and station-identity review;
+the existing station library keeps its recorded status.
+
 ## Completion evidence
 
 Local pilot receipt: two talk clips (89.44 and 77.36 seconds) and two music clips

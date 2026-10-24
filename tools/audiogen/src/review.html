@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fragr music review</title>
+<style>
+:root {
+  --ink: #0a0a0c; --inset: #1e1e22; --surface: #2c2d32; --edge: #3a3836; --border: #5a554f;
+  --bone: #e8e2d6; --muted: #8c847a; --ember: #dc8c3c; --danger: #e23430; --success: #74884e; --cyan: #8cbec6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--bone); font: 15px/1.45 system-ui, sans-serif; }
+header { padding: 12px 16px; border-bottom: 1px solid var(--edge); display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+h1 { font-size: 18px; margin: 0; letter-spacing: 0.04em; }
+.muted { color: var(--muted); }
+#tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--edge); }
+.tab { background: var(--inset); color: var(--bone); border: 1px solid var(--edge); border-left: 4px solid var(--c, var(--border)); padding: 6px 10px; cursor: pointer; font: inherit; text-align: left; }
+.tab.on { background: var(--surface); border-color: var(--ember); border-left-color: var(--c, var(--ember)); }
+.tab small { display: block; color: var(--muted); font-size: 12px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 16px; padding: 16px; }
+@media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+#player { background: var(--surface); border: 1px solid var(--edge); padding: 14px; align-self: start; position: sticky; top: 8px; }
+#title { font-size: 20px; margin: 0 0 4px; }
+#meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; word-break: break-word; }
+#wave { width: 100%; height: 90px; background: var(--inset); border: 1px solid var(--edge); cursor: pointer; display: block; }
+#time { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button.act { background: var(--inset); color: var(--bone); border: 1px solid var(--border); padding: 8px 14px; font: inherit; cursor: pointer; }
+button.act:hover { border-color: var(--ember); }
+button.keep { border-color: var(--success); }
+button.reject { border-color: var(--danger); }
+#prompt { margin-top: 12px; background: var(--inset); border: 1px solid var(--edge); padding: 10px; font-size: 13px; max-height: 220px; overflow: auto; white-space: pre-wrap; }
+#keys { margin-top: 12px; font-size: 12px; color: var(--muted); }
+kbd { border: 1px solid var(--border); padding: 0 4px; color: var(--bone); background: var(--inset); }
+#list { list-style: none; margin: 0; padding: 0; }
+#list li { display: grid; grid-template-columns: 70px minmax(0, 1fr) 52px 84px; gap: 8px; padding: 7px 10px; border: 1px solid var(--edge); border-top: none; cursor: pointer; align-items: center; }
+#list li:first-child { border-top: 1px solid var(--edge); }
+#list li.cur { background: var(--surface); outline: 1px solid var(--ember); }
+#list li .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.src.candidate { color: var(--cyan); }
+.d { font-size: 12px; font-weight: 600; text-align: right; }
+.d.keep { color: var(--success); }
+.d.reject { color: var(--danger); }
+.d.none { color: var(--muted); font-weight: 400; }
+#err { color: var(--danger); padding: 0 16px; }
+label { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>fragr music review</h1>
+  <span class="muted" id="file"></span>
+  <label><input type="checkbox" id="filter"> unreviewed only</label>
+  <label><input type="checkbox" id="auto" checked> auto-advance</label>
+</header>
+<nav id="tabs"></nav>
+<div id="err"></div>
+<main>
+  <section id="player">
+    <h2 id="title">Loading</h2>
+    <div id="meta"></div>
+    <canvas id="wave" width="800" height="90"></canvas>
+    <div id="time"><span id="pos">0:00</span><span id="dur">0:00</span></div>
+    <div class="row">
+      <button class="act" id="play">Play</button>
+      <button class="act keep" id="keep">Keep (K)</button>
+      <button class="act reject" id="reject">Reject (R)</button>
+      <button class="act" id="undo">Undo (U)</button>
+    </div>
+    <div id="prompt"></div>
+    <div id="keys"><kbd>Space</kbd> play or pause, <kbd>K</kbd> keep, <kbd>R</kbd> reject, <kbd>U</kbd> undo the last mark (or unmark this track),
+      <kbd>J</kbd> next, <kbd>L</kbd> previous, <kbd>Left</kbd> and <kbd>Right</kbd> seek 5 s (<kbd>Shift</kbd> 30 s), <kbd>1</kbd> to <kbd>9</kbd> stations.</div>
+  </section>
+  <section><ul id="list"></ul></section>
+</main>
+<audio id="audio" preload="auto"></audio>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const audio = $("audio");
+let state = null, stationIdx = 0, current = null, history = [], waveFor = null, peaks = null;
+
+function fmt(s) {
+  if (!isFinite(s) || s < 0) return "0:00";
+  s = Math.floor(s);
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+function station() { return state.stations[stationIdx]; }
+function visible() {
+  const t = station().tracks;
+  return $("filter").checked ? t.filter((x) => !x.decision || (current && x.id === current.id)) : t;
+}
+function counts(st) {
+  let k = 0, r = 0, u = 0;
+  for (const t of st.tracks) { if (t.decision === "keep") k++; else if (t.decision === "reject") r++; else u++; }
+  return { k, r, u };
+}
+function renderTabs() {
+  const nav = $("tabs"); nav.textContent = "";
+  state.stations.forEach((st, i) => {
+    const c = counts(st);
+    const b = document.createElement("button");
+    b.className = "tab" + (i === stationIdx ? " on" : "");
+    if (st.color) b.style.setProperty("--c", st.color);
+    b.textContent = (i < 9 ? (i + 1) + ". " : "") + st.name;
+    const s = document.createElement("small");
+    s.textContent = "keep " + c.k + "/" + state.target + "  rejected " + c.r + "  unreviewed " + c.u;
+    b.appendChild(s);
+    b.onclick = () => selectStation(i);
+    nav.appendChild(b);
+  });
+}
+function renderList() {
+  const ul = $("list"); ul.textContent = "";
+  for (const t of visible()) {
+    const li = document.createElement("li");
+    if (current && t.id === current.id) li.className = "cur";
+    const src = document.createElement("span"); src.className = "src " + t.source; src.textContent = t.source;
+    const ti = document.createElement("span"); ti.className = "t"; ti.textContent = t.title; ti.title = t.file;
+    const du = document.createElement("span"); du.className = "muted"; du.textContent = t.duration_ms ? fmt(t.duration_ms / 1000) : "";
+    const d = document.createElement("span"); d.className = "d " + (t.decision || "none"); d.textContent = t.decision ? t.decision.toUpperCase() : "unreviewed";
+    li.append(src, ti, du, d);
+    li.onclick = () => load(t, true);
+    ul.appendChild(li);
+  }
+  const cur = ul.querySelector(".cur");
+  if (cur) cur.scrollIntoView({ block: "nearest" });
+}
+function renderPlayer() {
+  if (!current) { $("title").textContent = "No tracks on this station"; $("meta").textContent = ""; $("prompt").textContent = ""; return; }
+  $("title").textContent = current.title;
+  const bits = [current.source, current.file, (current.bytes / 1048576).toFixed(1) + " MB"];
+  if (current.model) bits.push(current.model);
+  if (current.manifest_key) bits.push(current.manifest_key); else bits.push("no manifest entry");
+  if (current.decision) bits.push(current.decision.toUpperCase());
+  $("meta").textContent = bits.join("  |  ");
+  $("prompt").textContent = current.prompt || "No prompt recorded.";
+}
+function render() { renderTabs(); renderList(); renderPlayer(); drawWave(); }
+function selectStation(i) {
+  if (!state || i < 0 || i >= state.stations.length) return;
+  stationIdx = i;
+  const first = visible()[0] || station().tracks[0] || null;
+  load(first, false);
+}
+function load(t, play) {
+  current = t;
+  peaks = null;
+  if (t) {
+    audio.src = "/audio/" + t.id.split("/").map(encodeURIComponent).join("/");
+    if (play) audio.play().catch(() => {});
+    loadWave(t);
+  } else {
+    audio.removeAttribute("src"); audio.load();
+  }
+  render();
+}
+function step(delta, play) {
+  const list = visible();
+  if (!list.length) return;
+  let i = current ? list.findIndex((x) => x.id === current.id) : -1;
+  i = i < 0 ? 0 : i + delta;
+  if (i < 0 || i >= list.length) return;
+  load(list[i], play);
+}
+function nextAfterMark() {
+  const list = station().tracks;
+  const i = list.findIndex((x) => x.id === current.id);
+  for (let j = i + 1; j < list.length; j++) if (!list[j].decision) return list[j];
+  for (let j = 0; j < i; j++) if (!list[j].decision) return list[j];
+  return null;
+}
+async function post(id, decision) {
+  const res = await fetch("/api/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
+  if (!res.ok) throw new Error(await res.text());
+}
+function findTrack(id) {
+  for (let s = 0; s < state.stations.length; s++) {
+    const t = state.stations[s].tracks.find((x) => x.id === id);
+    if (t) return { s, t };
+  }
+  return null;
+}
+let busy = false;
+async function mark(decision) {
+  if (!current || busy) return;
+  const t = current, before = t.decision || null;
+  if (before === decision) return;
+  busy = true;
+  try { await post(t.id, decision); } catch (e) { $("err").textContent = "Not saved: " + e.message; return; } finally { busy = false; }
+  $("err").textContent = "";
+  history.push({ id: t.id, before });
+  t.decision = decision;
+  if (decision && $("auto").checked) {
+    const next = nextAfterMark();
+    if (next) { load(next, !audio.paused || audio.ended); return; }
+  }
+  render();
+}
+async function undo() {
+  if (busy) return;
+  const last = history.pop();
+  if (!last) { if (current && current.decision) { await mark(null); history.pop(); } return; }
+  const hit = findTrack(last.id);
+  if (!hit) return;
+  busy = true;
+  try { await post(last.id, last.before); } catch (e) { $("err").textContent = "Not saved: " + e.message; history.push(last); return; } finally { busy = false; }
+  hit.t.decision = last.before;
+  stationIdx = hit.s;
+  load(hit.t, false);
+}
+async function loadWave(t) {
+  waveFor = t.id;
+  try {
+    const buf = await (await fetch("/audio/" + t.id.split("/").map(encodeURIComponent).join("/"))).arrayBuffer();
+    const ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 2, 44100);
+    const data = await ctx.decodeAudioData(buf);
+    if (waveFor !== t.id) return;
+    const ch = data.getChannelData(0), n = 400, size = Math.max(1, Math.floor(ch.length / n));
+    const out = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let m = 0; const end = Math.min(ch.length, (i + 1) * size); for (let j = i * size; j < end; j++) { const v = Math.abs(ch[j]); if (v > m) m = v; } out[i] = m; }
+    peaks = out;
+    drawWave();
+  } catch (e) { /* progress bar only */ }
+}
+function drawWave() {
+  const c = $("wave"), g = c.getContext("2d"), w = c.width, h = c.height;
+  g.fillStyle = "#1e1e22"; g.fillRect(0, 0, w, h);
+  const p = audio.duration ? audio.currentTime / audio.duration : 0;
+  if (peaks) {
+    const bw = w / peaks.length;
+    for (let i = 0; i < peaks.length; i++) {
+      const v = Math.max(1, peaks[i] * (h - 6));
+      g.fillStyle = (i / peaks.length) < p ? "#dc8c3c" : "#5a554f";
+      g.fillRect(i * bw, (h - v) / 2, Math.max(1, bw - 1), v);
+    }
+  } else {
+    g.fillStyle = "#5a554f"; g.fillRect(0, h / 2 - 2, w, 4);
+    g.fillStyle = "#dc8c3c"; g.fillRect(0, h / 2 - 2, w * p, 4);
+  }
+  g.fillStyle = "#e8e2d6"; g.fillRect(Math.floor(w * p), 0, 2, h);
+}
+function seek(delta) { if (audio.duration) audio.currentTime = Math.min(audio.duration, Math.max(0, audio.currentTime + delta)); }
+function toggle() { if (!current) return; if (audio.paused) audio.play().catch(() => {}); else audio.pause(); }
+
+$("wave").onclick = (e) => {
+  if (!audio.duration) return;
+  const r = e.target.getBoundingClientRect();
+  audio.currentTime = audio.duration * ((e.clientX - r.left) / r.width);
+};
+$("play").onclick = toggle;
+$("keep").onclick = () => mark("keep");
+$("reject").onclick = () => mark("reject");
+$("undo").onclick = undo;
+$("filter").onchange = () => render();
+audio.ontimeupdate = () => { $("pos").textContent = fmt(audio.currentTime); drawWave(); };
+audio.onloadedmetadata = () => {
+  $("dur").textContent = fmt(audio.duration);
+  if (current && !current.duration_ms) { current.duration_ms = Math.round(audio.duration * 1000); renderList(); }
+};
+audio.onplay = () => { $("play").textContent = "Pause"; };
+audio.onpause = () => { $("play").textContent = "Play"; };
+audio.onended = () => { if ($("auto").checked) step(1, true); };
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || !state) return;
+  const k = e.key;
+  // A held K or R must not mark a run of tracks; only seeking repeats.
+  if (e.repeat && k !== "ArrowLeft" && k !== "ArrowRight") { if (k === " ") e.preventDefault(); return; }
+  if (k === " ") { e.preventDefault(); if (document.activeElement) document.activeElement.blur(); toggle(); }
+  else if (k === "k" || k === "K") mark("keep");
+  else if (k === "r" || k === "R") mark("reject");
+  else if (k === "u" || k === "U") undo();
+  else if (k === "j" || k === "J") step(1, !audio.paused);
+  else if (k === "l" || k === "L") step(-1, !audio.paused);
+  else if (k === "ArrowRight") { e.preventDefault(); seek(e.shiftKey ? 30 : 5); }
+  else if (k === "ArrowLeft") { e.preventDefault(); seek(e.shiftKey ? -30 : -5); }
+  else if (k >= "1" && k <= "9") selectStation(Number(k) - 1);
+});
+fetch("/api/state").then((r) => r.ok ? r.json() : r.text().then((t) => { throw new Error(t); })).then((s) => {
+  state = s;
+  $("file").textContent = "decisions: " + s.decisions_file;
+  selectStation(0);
+}).catch((e) => { $("err").textContent = "Could not load: " + e.message; });
+</script>
+</body>
+</html>

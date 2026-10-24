@@ -363,6 +363,7 @@ mod tests {
                     z: 2.0,
                     yaw: 0.0,
                     movement: None,
+                    respawn_ticks: None,
                 };
                 assert_eq!(
                     crate::bench::encoded_payload_bytes(std::iter::once(&ack)).unwrap(),

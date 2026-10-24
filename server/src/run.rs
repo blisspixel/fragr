@@ -104,6 +104,11 @@ pub struct ServerOptions {
     pub spectator_tickets: bool,
     /// Dedicated server summary line for humans after preflight checks complete.
     pub human_summary: bool,
+    /// Operator overview on stdout (ready card and pulse lines) in place of
+    /// the STATUS JSON log line. `None` keeps the plain log stream.
+    pub overview: Option<crate::operator::Style>,
+    /// Opt-in per-tick timing file for stutter diagnosis (`tick_trace.rs`).
+    pub tick_trace: Option<PathBuf>,
 }
 
 impl Default for ServerOptions {
@@ -130,6 +135,8 @@ impl Default for ServerOptions {
             origin_allow: Vec::new(),
             spectator_tickets: false,
             human_summary: false,
+            overview: None,
+            tick_trace: None,
         }
     }
 }
@@ -495,6 +502,19 @@ async fn run_server_impl(
     if let Some(config) = options.match_config {
         session.state.apply_config(config);
     }
+    // Opened before the listener so a bad path fails the start, not the match.
+    let mut tick_trace = match options.tick_trace.as_deref() {
+        Some(path) => {
+            let trace =
+                crate::tick_trace::TickTrace::create(path, TICK, crate::metrics::build_info())
+                    .map_err(|error| -> Box<dyn std::error::Error + Send + Sync> {
+                        format!("Tick trace {} could not be opened: {error}", path.display()).into()
+                    })?;
+            tracing::info!("Tick trace: writing {}", path.display());
+            Some(trace)
+        }
+        None => None,
+    };
     let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
@@ -566,13 +586,15 @@ async fn run_server_impl(
         },
     )?;
     tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
         "Status preflight: {probe_addr} answered. {map}, {kind}.",
         map = facts.map,
         kind = facts.kind
     );
-    crate::preflight::log_join_checks(bound).await;
+    let joins = crate::preflight::join_checks(bound).await;
+    let desk_wanted = options.console && options.authored.is_none() && !options.campaign_run;
     if options.human_summary {
-        let addr = crate::preflight::primary_join_addr(bound);
+        let addr = joins.primary(bound);
         let map_name = session.state.map.name();
         let mode_name = if session.state.map.is_authored() {
             "Campaign"
@@ -581,6 +603,41 @@ async fn run_server_impl(
         };
         println!("ready ws://{addr} {map_name} {mode_name} Ctrl-C stops");
     }
+    if let Some(style) = options.overview {
+        let facts = crate::operator::ReadyFacts {
+            version: env!("FRAGR_CLI_VERSION").to_string(),
+            map: session.state.map.name().to_string(),
+            rules: if session.state.map.is_authored() {
+                "Campaign".to_string()
+            } else {
+                session.state.config.rules.name()
+            },
+            campaign: options.authored.is_some() || options.campaign_run,
+            playlist,
+            map_rotate: rotate,
+            bot_policy: options.bot_policy,
+            bots: options.bots,
+            fill_target: options.fill_target,
+            joins: joins.clone(),
+            ticketed: options.join_secret.is_some(),
+            spectator_tickets: options.spectator_tickets && options.join_secret.is_some(),
+            ban_list: options.access.ban_list.is_some(),
+            allow_list: options.access.allow_list.is_some(),
+            connection_cap: crate::net::connection_cap(),
+            address_cap: crate::net::address_cap(),
+            desk: match (options.console, desk_wanted) {
+                (false, _) => crate::operator::DeskState::Off,
+                (true, true) => crate::operator::DeskState::On,
+                (true, false) => crate::operator::DeskState::Unavailable,
+            },
+            status_every_s: options.status_every_s,
+            lan_beacon: crate::announce::should_announce(bound),
+        };
+        print!("{}", crate::operator::ready_card(&facts, style));
+    }
+    let mut pulse = options
+        .overview
+        .map(|_| crate::operator::PulseClock::new(options.status_every_s));
     let _beacon = crate::announce::should_announce(bound)
         .then(|| AbortOnDrop(tokio::spawn(crate::announce::broadcast_loop(bound.port()))));
     if let Some(tx) = ready {
@@ -588,11 +645,16 @@ async fn run_server_impl(
     }
 
     if !session.state.map.is_authored() {
-        tracing::info!("Rules: {}", session.state.config.rules.name());
+        tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
+            "Rules: {}",
+            session.state.config.rules.name()
+        );
     }
     session.spawn_bots(options.bots);
     if options.authored.is_none() && !options.campaign_run {
         tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
             "{}",
             crate::preflight::population_note(
                 session.bots.len(),
@@ -606,6 +668,7 @@ async fn run_server_impl(
         tracing::info!("Solo Broadcast Episode 0 armed (Calibration / Larak Lot)");
     }
     tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
         "Map: {} (id {}){}",
         session.state.map.name(),
         session.state.map.id(),
@@ -621,17 +684,26 @@ async fn run_server_impl(
     let mut tick_interval = tokio::time::interval(TICK);
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     let mut stats = crate::bench::TickStats::new();
-    let mut status_interval = (options.status_every_s > 0).then(|| {
-        let mut i = tokio::time::interval(Duration::from_secs(options.status_every_s));
-        i.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        i
-    });
-    tracing::info!("Simulation seed: {}", options.seed);
+    // The overview's pulse replaces the STATUS JSON line on a terminal.
+    let mut status_interval =
+        (options.status_every_s > 0 && options.overview.is_none()).then(|| {
+            let mut i = tokio::time::interval(Duration::from_secs(options.status_every_s));
+            i.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            i
+        });
+    tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
+        "Simulation seed: {}",
+        options.seed
+    );
 
-    tracing::info!("Game loop starting (20 Hz tick)");
+    tracing::info!(
+        target: crate::logging::STARTUP_TARGET,
+        "Game loop starting (20 Hz tick)"
+    );
 
     let mut desk_rx = None;
-    let desk_task = if options.console && options.authored.is_none() && !options.campaign_run {
+    let desk_task = if desk_wanted {
         match spawn_venue_desk(options.access.ban_list.clone()) {
             Ok((calls, task)) => {
                 desk_rx = Some(calls);
@@ -655,8 +727,9 @@ async fn run_server_impl(
 
     loop {
         tokio::select! {
-            _ = tick_interval.tick() => {
+            deadline = tick_interval.tick() => {
                 let started = std::time::Instant::now();
+                let started_unix = tick_trace.is_some().then(std::time::SystemTime::now);
                 let expired = session.resume.expire(session.state.tick);
                 for player_id in expired {
                     session.drop_expired_pawn(player_id);
@@ -666,15 +739,18 @@ async fn run_server_impl(
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
+                let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);
                 let fanout_started = std::time::Instant::now();
                 let delivery = broadcast_to_clients(&clients, &messages).await;
                 let broadcast_elapsed = fanout_started.elapsed();
+                let connections;
                 {
                     let now = std::time::Instant::now();
                     let clients_lock = clients.lock().await;
-                    let connections = clients_lock.len();
-                    if tracker.due(now) {
+                    connections = clients_lock.len();
+                    let refreshed = tracker.due(now);
+                    if refreshed {
                         let samples: Vec<crate::metrics::ClientSample<'_>> = clients_lock
                             .iter()
                             .map(|client| crate::metrics::ClientSample {
@@ -692,6 +768,12 @@ async fn run_server_impl(
                     if let Some(ops) = next.ops.as_mut() {
                         ops.night = session.sheet.totals();
                     }
+                    // Once a second, with the snapshot `/status` serves.
+                    if let (Some(clock), Some(style), true) = (pulse.as_mut(), options.overview, refreshed) {
+                        if clock.due(now, &next) {
+                            println!("{}", crate::operator::pulse_line(&next, crate::metrics::process_uptime(), style));
+                        }
+                    }
                     if let Ok(mut slot) = live.try_write() {
                         *slot = next;
                     }
@@ -703,6 +785,24 @@ async fn run_server_impl(
                 let finished = std::time::Instant::now();
                 tracker.record_overflows(finished, delivery.queue_overflows + unicast_delivery.queue_overflows);
                 tracker.record_tick(finished, finished.saturating_duration_since(started));
+                if let (Some(trace), Some(started_unix)) = (tick_trace.as_mut(), started_unix) {
+                    let deadline = deadline.into_std();
+                    let skipped = trace.deadline(deadline);
+                    trace.record(tick_sample(TickTraceInput {
+                        messages: &messages,
+                        fallback_tick: session.state.tick,
+                        started_unix,
+                        late: started.saturating_duration_since(deadline),
+                        skipped,
+                        sim: elapsed,
+                        measure: measured.saturating_sub(elapsed),
+                        fanout: fanout_elapsed,
+                        total: finished.saturating_duration_since(started),
+                        clients: connections,
+                        bytes,
+                        overflows: delivery.queue_overflows + unicast_delivery.queue_overflows,
+                    }));
+                }
                 if let Some(metrics) = &metrics {
                     let mut metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
                     metrics.session_ns.record(elapsed.as_nanos().min(u64::MAX as u128) as u64);
@@ -725,7 +825,19 @@ async fn run_server_impl(
             }
 
             Some(call) = async { desk_rx.as_mut().expect("guarded").recv().await }, if desk_rx.is_some() => {
-                let outcome = session.desk(call.verb);
+                let outcome = match call.verb {
+                    crate::desk::DeskVerb::Status => {
+                        let who = session.desk(crate::desk::DeskVerb::Who);
+                        let snapshot = live.read().await.clone();
+                        let style = crate::operator::Style { ansi: false };
+                        crate::desk::DeskOutcome::Text(crate::operator::desk_status(
+                            &crate::operator::pulse_line(&snapshot, crate::metrics::process_uptime(), style),
+                            &joins,
+                            who.text(),
+                        ))
+                    }
+                    verb => session.desk(verb),
+                };
                 if let crate::desk::DeskOutcome::Close { client_id, banned, .. } = &outcome {
                     let clients_lock = clients.lock().await;
                     if let Some(client) = clients_lock.iter().find(|client| client.id == *client_id) {
@@ -757,6 +869,18 @@ async fn run_server_impl(
                 tracing::info!("Server shutdown requested");
                 break;
             }
+        }
+    }
+    if let Some(trace) = tick_trace.take() {
+        match trace.finish() {
+            Ok(summary) => tracing::info!(
+                "Tick trace complete: {} ticks, {} over budget, {} skipped periods, {} dropped",
+                summary.ticks,
+                summary.over_budget,
+                summary.skipped_periods,
+                summary.dropped
+            ),
+            Err(error) => tracing::warn!("Tick trace did not finish cleanly: {error}"),
         }
     }
     drop(desk_task);
@@ -798,13 +922,57 @@ fn spawn_venue_desk(
         })?;
     let task = tokio::spawn(async move {
         println!(
-            "Venue desk. who, kick <name>, ban <name> [reason], say <sentence>, stats. Closing this input leaves the match running."
+            "Venue desk. help, status, who, kick <name>, ban <name> [reason], say <sentence>, stats, shows, next, map <map> <mode>. Closing this input leaves the match running."
         );
         let mut out = std::io::stdout();
         crate::desk::serve(line_rx, call_tx, ban_list, &mut out).await;
         println!("Venue desk closed. The match keeps running.");
     });
     Ok((call_rx, task))
+}
+
+/// What the tick loop measured, before it becomes one trace record.
+struct TickTraceInput<'a> {
+    messages: &'a [crate::protocol::ServerMessage],
+    fallback_tick: u64,
+    started_unix: std::time::SystemTime,
+    late: Duration,
+    skipped: u64,
+    sim: Duration,
+    measure: Duration,
+    fanout: Duration,
+    total: Duration,
+    clients: usize,
+    bytes: usize,
+    overflows: u64,
+}
+
+/// The record names the Snapshot tick the clients receive, so a client trace
+/// joins on it. A tick without a Snapshot keeps the session's own counter.
+fn tick_sample(input: TickTraceInput<'_>) -> crate::tick_trace::TickSample {
+    use crate::tick_trace::micros;
+    let tick = input
+        .messages
+        .iter()
+        .find_map(|message| match message {
+            crate::protocol::ServerMessage::Snapshot(snapshot) => Some(snapshot.tick),
+            _ => None,
+        })
+        .unwrap_or(input.fallback_tick);
+    crate::tick_trace::TickSample {
+        tick,
+        unix_us: crate::tick_trace::unix_micros(input.started_unix),
+        late_us: micros(input.late),
+        skipped: input.skipped,
+        sim_us: micros(input.sim),
+        measure_us: micros(input.measure),
+        fanout_us: micros(input.fanout),
+        total_us: micros(input.total),
+        clients: u32::try_from(input.clients).unwrap_or(u32::MAX),
+        messages: u32::try_from(input.messages.len()).unwrap_or(u32::MAX),
+        bytes: u64::try_from(input.bytes).unwrap_or(u64::MAX),
+        overflows: input.overflows,
+    }
 }
 
 /// Ends an owned background task with the loop, including early error returns.

@@ -663,7 +663,10 @@ lives-limited round, and while you are waiting to respawn. Read `rules` before
 joining: in `tdm` a teammate shares your `team`, takes no damage unless
 `friendly_fire` is true, and `observe` players carry `team`, `lives` and
 `golden`. Under a weapon-only mutator, `weapon_swap` to another weapon is
-ignored. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
+ignored. Death ends a life's input: `act` presses sent while you wait to
+respawn are dropped rather than queued, and a `fire` held at death or when the
+body returns does nothing until an `act` releases it. The respawn wait is three
+seconds in every arcade mode today. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
 `player`, `other`, `team`); the words live in the client. The full rule
 contract is in [`docs/protocol.md`](../docs/protocol.md#match-rules).
 
