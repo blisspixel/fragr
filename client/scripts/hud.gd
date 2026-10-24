@@ -2425,7 +2425,7 @@ func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
 		crawler_caption.push_scrabble()
 
-## The joined player's death card: two lines, or empty to clear it.
+## The joined player's death card: three lines, or empty to clear it.
 func show_death_card(lines: PackedStringArray) -> void:
 	if death_card != null:
 		death_card.present(lines)

@@ -51,9 +51,12 @@ shows the server's countdown. No result-card outline survives its card.
 
 Server (authoritative):
 - `rules.rs`: `FFA_RESPAWN_DELAY_TICKS = 60` and `TEAM_RESPAWN_DELAY_TICKS = 60`,
-  read through `RuleSet::respawn_delay_ticks()`. FFA pacing is one constant,
-  and changing it cannot move team modes, elimination or the 20-tick spawn
-  shield. The default is unchanged (3 s).
+  read through `RuleSet::respawn_delay_ticks()`, plus
+  `CAMPAIGN_RESPAWN_DELAY_TICKS = 60` for campaign maps (added in review:
+  campaign maps run under the default FFA rule sheet, so without it an FFA
+  pacing change would also have moved campaign death timing). FFA pacing is
+  one constant, and changing it cannot move team modes, campaign,
+  elimination or the 20-tick spawn shield. The default is unchanged (3 s).
 - Death (`resolve_fighter_hit_for`): `clear_input()` ends the dead life's
   held movement and queued presses. `fire_latched` keeps a trigger held at
   death latched until released.
@@ -126,7 +129,7 @@ as an exact integer in `[0, 12000]` at the Ack boundary. Agent-visible change:
 | `test_death_lifecycle.gd` (new harness) | PASS. Mutations (stamp never retires; fire not fenced) fail it |
 | Related harnesses: jump_input, spectator_camera, local_prediction, input_pacing, signature_moments, accessibility_hud, event_covers, grenade_controls, local_fire_feedback, status_bar, combat_feed | PASS |
 | `cargo llvm-cov` 90% floor | **not run** locally (host saturated by six lanes). New Rust is covered by 9 focused tests; CI enforces the floor |
-| `tools/godot_check.sh` | first run: 612 ok, 1 FAIL (`test_combat_feed`, which asserted the retired `lock_on_frag` death watch). Moved the test to the death-view contract (same intent: killer in either fact order, never in Sabotage) and restored the Sabotage-watch guard it caught. Final rerun: recorded in the PR handoff |
+| `tools/godot_check.sh` | first run: 612 ok, 1 FAIL (`test_combat_feed`, which asserted the retired `lock_on_frag` death watch). Moved the test to the death-view contract (same intent: killer in either fact order, never in Sabotage) and restored the Sabotage-watch guard it caught. Final implementer rerun: 613 ok. Independent review rerun: see the review section below |
 | Rendered residue repro `.agents/death/stamp_residue.gd` | before: border persists; after: none (`.agents/death/after/*.png`) |
 | Live real-server runs (`.agents/death/live_death.gd`, 6 and 10 bots, licence-to-kill, W and fire held) | see below |
 | Windows rendered reproduction | **not run** (Linux host) |
@@ -159,6 +162,50 @@ and off with a live death (the residue path is independent of flash mode;
    only, and the countdown follows automatically.
 2. Confirm that held movement should resume on respawn while held fire and
    jump need a release.
+
+## Independent review (2026-10-23)
+
+A separate reviewer read #441, the #437 comment and the full diff against
+`main` (`e4cec37`), and reran the checks below in a fresh worktree.
+
+Fixed in review:
+- **Campaign coupling.** `GameState` now gives campaign deaths
+  `CAMPAIGN_RESPAWN_DELAY_TICKS` rather than the FFA value they inherited
+  through the default rule sheet. Test:
+  `a_campaign_death_does_not_read_the_ffa_pacing_value`.
+- **Attribution.** The two implementation commits carried model coauthor
+  trailers, which the attribution lock in `AGENTS.md` forbids. Their
+  messages were rewritten without them. The code is unchanged.
+- The HUD `show_death_card` doc said two lines; the card has three.
+
+Reviewed and left as is (low severity, recorded so they are not lost):
+- **Out of lives.** In the `OUT` phase the death view ends and the ordinary
+  spectator camera takes over (follow, first person on a living fighter).
+  The card labels it `WATCHING <name>` / `OUT UNTIL THE NEXT ROUND`. A player
+  who had toggled free flight before can fly that camera with held keys,
+  which is the normal spectator behaviour for someone who is out.
+- **Obstructed respawn retry.** `do_respawn` with no safe spawn calls
+  `clear_input()`, which also clears a trigger latched at death. The Godot
+  client still fences fire until release, so only an unfenced agent that
+  holds fire through a crowded-spawn retry could fire on its first tick.
+- **Pinned camera.** `begin_death_view` does nothing while a spectator pin is
+  set, so a joined player with a stale pin keeps following that pin (still
+  labelled by the card).
+- This plan is not yet linked from `docs/plans/README.md`; the lane left the
+  index to the wave merge to avoid conflicts.
+
+Review reruns (logs under `.agents/review-death/`):
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | pass |
+| `cargo clippy --workspace --all-targets --locked -- -D warnings` | pass |
+| `cargo test -p fragr-server --locked death_lifecycle` (10 tests) | pass |
+| `cargo build -p fragr-server --release --locked` | pass |
+| `tools/godot_check.sh` | pass: `Godot checks: PASS`, 613 ok, 0 FAIL; `test_death_lifecycle: PASS` marker present |
+| `cargo test --workspace --locked --no-fail-fast` | pass: 2181 passed, 0 failed (load average about 12). The wall-clock failures in the implementer run did not recur |
+| `cargo llvm-cov` 90% floor | not run locally; CI enforces it |
+| Windows rendered reproduction, real gamepad | not run |
 
 ## Next step
 

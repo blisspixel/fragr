@@ -286,3 +286,24 @@ fn a_respawn_still_raises_the_separate_spawn_shield() {
         Some(SPAWN_SHIELD_TICKS)
     );
 }
+
+#[test]
+fn a_campaign_death_does_not_read_the_ffa_pacing_value() {
+    // Campaign maps run under the default rule sheet, which is FFA. The FFA
+    // pacing value must not reach a campaign body through it.
+    let map = crate::maps::AuthoredSource::Mission(crate::protocol::MissionId::CustodianOfRecord)
+        .load()
+        .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    assert!(state.map.is_campaign());
+    assert_eq!(state.config.rules.mode(), crate::protocol::GameMode::Ffa);
+    let id = Uuid::from_u128(441);
+    state.add_player(id, "Courier".to_string(), Role::Human);
+    let index = state.players.iter().position(|p| p.id == id).unwrap();
+    let (_, _, died) = state.resolve_fighter_hit(index, index, 1000, None);
+    assert!(died);
+    assert_eq!(
+        state.players[index].respawn_timer,
+        Some(crate::rules::CAMPAIGN_RESPAWN_DELAY_TICKS)
+    );
+}

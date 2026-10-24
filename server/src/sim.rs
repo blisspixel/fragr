@@ -2897,7 +2897,13 @@ impl GameState {
             });
         let mut ended_streak = 0;
         let mut lost_golden = false;
-        let respawn_delay = self.config.rules.respawn_delay_ticks();
+        // Campaign maps keep the default (FFA) rule sheet, so they take their
+        // own value: an FFA pacing change must not move campaign deaths.
+        let respawn_delay = if self.map.is_campaign() {
+            crate::rules::CAMPAIGN_RESPAWN_DELAY_TICKS
+        } else {
+            self.config.rules.respawn_delay_ticks()
+        };
         let (
             target_id,
             target_name,
