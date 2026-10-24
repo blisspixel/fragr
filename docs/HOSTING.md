@@ -103,6 +103,111 @@ their own floors.
 [Multiplayer mode details](plans/multiplayer-modes.md) cover the rule contract.
 The night list itself is [night playlist](plans/night-playlist.md).
 
+## Windows package: which program does what
+
+The Windows zip holds three programs in one folder. Keep them together:
+the game looks for `fragr-server.exe` beside itself.
+
+| Program | What it starts | What you see | What ends it |
+|---|---|---|---|
+| `fragr.exe` | The game: menus, campaign, and Multiplayer (watch, join, **Run a match**). | The game window. | Quitting the game. A match started with **Run a match** ends with the game or with **Stop server**. |
+| `fragr-server.exe` | A dedicated server. With no options: Arena Duel free-for-all, four fixed rule bots, TCP 6767 on every network address. | A console window with the operator overview. There is no game view. | Ctrl-C in that window, or closing the window. |
+| `fragr-agent-adapter.exe` | The MCP bridge an agent host starts over stdio. | Nothing useful on its own. | Its agent host. Do not double-click it. |
+
+Double-clicking `fragr-server.exe` serves at once. The bots fight inside the
+server process even though nothing is drawn; that is the dedicated server
+working, not a hidden game. Watching is a separate, optional step: start
+`fragr.exe`, choose **Multiplayer**, enter one of the addresses the server
+printed, then **Watch** or **Join**. Leaving a fighter seat, returning to the
+menu, or closing the game leaves a dedicated server running for everyone
+else. Windows may ask whether `fragr-server.exe` may use the network the
+first time it binds every address; allow private networks for a LAN night.
+
+If the window closes as soon as it opens, the server stopped at startup,
+usually because another program already holds TCP 6767. Run it from a
+terminal to read the one-line reason.
+
+Options need a terminal or a shortcut. In PowerShell, from the unzipped folder:
+
+```powershell
+.\fragr-server.exe --console
+.\fragr-server.exe --bind 0.0.0.0:6767 --mode tdm --bots 6 --console
+.\fragr-server.exe --bind 127.0.0.1:6767 --bots 0 --no-round-events
+```
+
+For a shortcut, open its Properties and append options after the quoted
+program path in **Target**, for example `--console`.
+
+What each way of leaving does:
+
+| You do this | Effect |
+|---|---|
+| Ctrl-C, or close the `fragr-server.exe` window | Stops the dedicated server. Everyone connected is disconnected. |
+| End the desk's input (Ctrl-Z then Enter on Windows, Ctrl-D elsewhere) | Closes the venue desk only. The match keeps running. |
+| L while fighting | Gives up the fighter seat. You keep watching; the server keeps running. |
+| Leave in the pause menu, return to the menu, or quit `fragr.exe` | Stops watching. A dedicated server keeps running. A **Run a match** server keeps running until **Stop server** or until the game quits. |
+| **Stop server** on the Run a match page | Ends the match that page started. |
+
+## The server terminal
+
+`fragr-server` picks its output with `--output auto|overview|log`. `auto`, the
+default, shows the **operator overview** when both its output streams are an
+interactive terminal (a double-clicked console window, Windows Terminal, a
+shell) and `TERM` is not `dumb`. Anything redirected, piped, run under a
+service manager, or in a container without a TTY gets the plain **log**.
+
+The overview prints the unchanged `ready ws://... Ctrl-C stops` line, then a
+card:
+
+```text
+ready ws://192.168.1.20:6767 Arena Duel Free-for-all Ctrl-C stops
+fragr dedicated server v0.90.0. No game window: the match runs in this process, and bots fight whether or not anyone watches.
+  Match   Arena Duel, Free-for-all. Bots: 4 fixed rule bots (--bots). People join beside them.
+  Join    LAN     ws://192.168.1.20:6767 answered here; computers on the same network
+          overlay ws://100.64.0.7:6767   answered here; only computers on that private overlay
+          local   ws://127.0.0.1:6767    answered here; this computer only
+          The join page on this network lists this server (UDP 6768 beacon). The beacon is not a join.
+          A check from this computer does not prove another computer can connect.
+  Admit   Open: no join ticket. Anyone who can reach the port may watch or join. Up to 64 connections, 32 per address; watchers count, bots do not.
+  Watch   Start fragr, open Multiplayer and join an address above. Watching and joining are optional.
+  Desk    Off. Restart with --console to type status, who, kick, ban, say, stats, shows, next and map here.
+  Stop    Ctrl-C, or close this window. Either ends the match for everyone connected.
+  Output  Overview. A status line follows every 60 s and when the room changes. Bot frags, pickups and spawns are hidden; --output log prints every event.
++00:00:01 running | Arena Duel, Free-for-all, before round 1 | 0 humans, 0 agents, 4 bots, 0 watching | tick warming up | ok
+```
+
+Join addresses are grouped by scope: LAN (private 10/8, 172.16/12,
+192.168/16), other, overlay (100.64/10, which includes Tailscale), and this
+computer. The ready line prefers a LAN address that answered, so an overlay
+never displaces it. "Answered here" is a probe from the host itself; the
+other computer's network and firewall still decide.
+
+Each status line comes from the same snapshot `GET /status` serves: uptime,
+map, mode, round, humans, agents, rule bots, watchers, the last minute's
+tick p99 against the 50 ms budget with the count of ticks over it, and
+health (`ok` or `degraded` with its reasons). It prints every
+`--status-every-s` seconds and whenever the people in the room, the show or
+the health changes. Joins, leaves, rounds, warnings and refused connections
+still print between status lines, stamped with uptime. Bot frags, pickups,
+bot spawns, Host reactions and the self-probe connection lines do not.
+
+`--output log` keeps every event, the module names and the STATUS JSON line,
+as before. Routine play-by-play is under the `fragr_server::feed` target and
+the startup narrative the card summarises under `fragr_server::startup`;
+`RUST_LOG` replaces either default filter, for example
+`RUST_LOG=info,fragr_server::feed=info` to see frags in the overview. To keep
+a file from Command Prompt: `fragr-server.exe --output log > server.log 2>&1`.
+The dedicated server writes no log file of its own.
+
+Colour follows `--color auto|always|never`, `NO_COLOR`, `FORCE_COLOR` and
+`TERM=dumb` (#415). Redirected output carries no escape sequences unless
+colour is forced. On Windows the server first switches the console to
+virtual terminal mode; a console that refuses gets plain text under `auto`.
+Nothing repaints the screen or moves the cursor, so a classic console, a
+screen reader and a log file all read the same lines. In the classic Windows
+console, selecting text pauses the program's output and can stall the
+server until the selection ends; Windows Terminal does not do this.
+
 ## A night for about 24, and a house of about 64
 
 Rule bots are fighters inside the process. They do not use a connection.
@@ -233,9 +338,10 @@ bad file at startup prevents the host from binding. Lists and per-address
 caps see a reverse proxy's address if the proxy hides real peer addresses.
 
 A dedicated arcade server started with `--console` opens a venue desk on
-that terminal: `who`, `kick <name>`, `ban <name> [reason]`,
+that terminal: `help`, `status`, `who`, `kick <name>`, `ban <name> [reason]`,
 `say <sentence>`, `stats`, `shows`, `next` and `map <map> <mode>`.
-`who` and `stats` are for the operator.
+`status` prints the current status line and the join addresses above the
+same table `who` prints. `who`, `status` and `stats` are for the operator.
 `who` is not added to `GET /status`. `stats` reads the night sheet: rounds
 finished, the busiest room, and the latest shows. That card may name a
 top score. `GET /status` adds only `ops.night` with `rounds_finished`,
@@ -303,9 +409,11 @@ modes still need fresh human matches to establish clarity and fun.
 | `--capture-limit <N>` | Captures to end a CTF round; valid only with `--mode ctf`. |
 | `--no-round-events` | Disable timed slowdowns and boss spawns. |
 | `--seed <N>` | Simulation seed, default 1. |
-| `--status-every-s <N>` | Status log interval; 0 disables it. |
+| `--status-every-s <N>` | Status interval: the STATUS JSON log line, or the overview's status line. 0 disables the periodic one. |
+| `--output <MODE>` | `auto` (default), `overview` or `log`. See [the server terminal](#the-server-terminal). |
+| `--color <WHEN>` | `auto` (default), `always` or `never`. |
 | `--ban-list <PATH>` / `--allow-list <PATH>` | Address lists described above. |
-| `--console` | Local venue desk on a dedicated arcade match. End of input does not stop the process. |
+| `--console` | Local venue desk on a dedicated arcade match, including `status`. End of input does not stop the process. |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |

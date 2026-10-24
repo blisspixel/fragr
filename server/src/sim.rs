@@ -3032,7 +3032,7 @@ impl GameState {
             // Campaign casualties have no arcade streaks, taunts or
             // participant scores. ShotResult remains the kill evidence.
             if self.players[shooter_idx].campaign.is_some() {
-                tracing::info!(shooter = %shooter_name, target = %target_name, "Campaign combatant down");
+                tracing::info!(target: crate::logging::FEED_TARGET, shooter = %shooter_name, target = %target_name, "Campaign combatant down");
                 return (hp_damage, armor_damage, died);
             }
             if teammates {
@@ -3047,7 +3047,7 @@ impl GameState {
                     killer_team: shooter_team,
                     victim_team,
                 });
-                tracing::info!("TEAM KILL: {} -> {}", shooter_name, target_name);
+                tracing::info!(target: crate::logging::FEED_TARGET, "TEAM KILL: {} -> {}", shooter_name, target_name);
                 return (hp_damage, armor_damage, died);
             }
             *self.scores.entry(shooter_id).or_insert(0) += 1;
@@ -3125,7 +3125,7 @@ impl GameState {
                     killer: Some(shooter_name.clone()),
                     message: boss_msg,
                 });
-                tracing::info!(
+                tracing::info!(target: crate::logging::FEED_TARGET,
                     "BOSS DOWN: {} fragged {} (score: {})",
                     shooter_name,
                     target_name,
@@ -3137,7 +3137,7 @@ impl GameState {
                 }
             } else {
                 self.note_nods_frag(shooter_id, target_id);
-                tracing::info!(
+                tracing::info!(target: crate::logging::FEED_TARGET,
                     "FRAG: {} -> {} (score: {})",
                     shooter_name,
                     target_name,
@@ -3866,7 +3866,7 @@ impl GameState {
             message: episode0_host_line_auditor(),
             hp: BOSS_MAX_HP,
         });
-        tracing::info!("Auditor spawned ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Auditor spawned ({})", id);
         Some(id)
     }
 
@@ -4231,7 +4231,7 @@ impl GameState {
                 pickup_id: pickup_id.clone(),
                 secret,
             });
-            tracing::info!("PICKUP: {} claimed {} ({})", name, label, pickup_id);
+            tracing::info!(target: crate::logging::FEED_TARGET, "PICKUP: {} claimed {} ({})", name, label, pickup_id);
         }
     }
 
@@ -4242,7 +4242,7 @@ impl GameState {
             message: compliance_host_line(),
             duration_ticks: self.config.compliance_duration_ticks,
         });
-        tracing::info!(
+        tracing::info!(target: crate::logging::FEED_TARGET,
             "Compliance ping fired (duration {} ticks)",
             self.config.compliance_duration_ticks
         );
@@ -4324,7 +4324,7 @@ impl GameState {
             message: boss_host_line(),
             hp: BOSS_MAX_HP,
         });
-        tracing::info!("Compliance Drone spawned ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Compliance Drone spawned ({})", id);
         Some(id)
     }
 
@@ -4354,7 +4354,7 @@ impl GameState {
             message: boss_round_wipe_host_line(),
         });
         self.clear_boss();
-        tracing::info!("Boss wiped on round end ({})", id);
+        tracing::info!(target: crate::logging::FEED_TARGET, "Boss wiped on round end ({})", id);
     }
 
     fn clear_boss(&mut self) {
