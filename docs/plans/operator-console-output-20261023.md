@@ -86,7 +86,7 @@ issue's needs, so the optional TUI from item 5 of #438 is not built.
   through `nu_ansi_term::enable_ansi_support` (already in the lockfile
   through `tracing-subscriber`, now a direct dependency at the same
   version). `auto` falls back to plain text when the console refuses;
-  `always` keeps colour. The card and pulse use the same gate on stdout.
+  `always` still asks for VT mode first and keeps colour either way. The card and pulse use the same gate on stdout.
 
 ## Non-goals
 
@@ -170,3 +170,34 @@ Not run here: any Windows execution (Windows Terminal, classic console,
 double-click, PowerShell redirect, VT refusal fallback), the packaged
 walkthrough, the Godot checks (no client change), coverage and the
 playtest/soak jobs.
+
+## Independent review round (2026-10-23, Linux host)
+
+Reviewed `310261d..fa01da2` against `origin/main` (`e4cec37`) and issue #438
+with its follow-up comment.
+
+Fixed in review:
+
+- `--color always` skipped the Windows VT switch entirely, because the
+  `always` check short-circuited before `console_accepts_ansi()`. A classic
+  console would then print raw `ESC[` text even when it accepts VT mode. The
+  gate now always asks the console when colour is wanted. Compile-checked
+  for `x86_64-pc-windows-gnu` only; not run on Windows.
+- The taken-port integration test now asserts the single error line it
+  claimed (and no escape bytes), not only the absence of the card.
+- The HOSTING.md leave table names both places **Stop server** appears
+  (the Run a match page and the pause menu while watching that match).
+
+Re-run in review (logs under `.agents/`): `cargo fmt --check`, workspace
+clippy `-D warnings`, Windows-target clippy for `fragr-server`,
+`cargo deny check licenses bans sources`, the `operator_output` integration
+test (6 of 6), the full `fragr-server` test suite, and a pseudo-terminal
+capture of the release binary under `auto` with a wildcard bind
+(`review-tty-auto.log`: card with LAN, overlay and local scopes in that order,
+pulses at 0, 10 and 20 s, the round line, no feed, probe or STATUS lines).
+
+Status after review: **implemented on Linux, Windows evidence outstanding.**
+Still not run: any Windows execution (Windows Terminal, classic console,
+double-click, PowerShell redirect, VT refusal fallback, Firewall prompt),
+the packaged walkthrough, coverage, and the playtest/soak jobs. CI on the PR
+is the gate for the workspace suite and the coverage floor.

@@ -274,6 +274,15 @@ fn a_taken_port_fails_with_one_line_and_no_card() {
     assert!(!stdout.contains("ready ws://"), "{stdout}");
     assert!(!stdout.contains("fragr dedicated server"), "{stdout}");
     assert!(stderr.contains(&port.to_string()), "{stderr}");
+    assert_eq!(
+        stderr
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .count(),
+        1,
+        "one error line, nothing else:\n{stderr}"
+    );
+    assert!(!stderr.contains('\x1b'), "{stderr}");
     drop(holder);
 }
 

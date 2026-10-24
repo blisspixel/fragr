@@ -143,14 +143,18 @@ where
 /// Whether escape sequences may be written to a stream with this terminal
 /// state. On Windows a classic console shows raw `ESC[` text unless virtual
 /// terminal processing is on, so `auto` asks the console first and falls back
-/// to plain text when it refuses. An explicit `always` keeps colour.
+/// to plain text when it refuses. An explicit `always` keeps colour, but it
+/// still asks the console for virtual terminal mode first, so a classic
+/// console that accepts renders colour instead of raw escape text.
 pub fn ansi_for_stream(choice: ColorChoice, is_terminal: bool) -> bool {
     let wanted = resolve_color_with(
         choice,
         |var| std::env::var_os(var).map(|s| s.to_string_lossy().into_owned()),
         is_terminal,
     );
-    wanted && (choice == ColorChoice::Always || console_accepts_ansi())
+    // Evaluated before the `always` check so the console switch is attempted
+    // whenever colour is wanted, not only under `auto`.
+    wanted && (console_accepts_ansi() || choice == ColorChoice::Always)
 }
 
 #[cfg(windows)]

@@ -146,7 +146,7 @@ What each way of leaving does:
 | End the desk's input (Ctrl-Z then Enter on Windows, Ctrl-D elsewhere) | Closes the venue desk only. The match keeps running. |
 | L while fighting | Gives up the fighter seat. You keep watching; the server keeps running. |
 | Leave in the pause menu, return to the menu, or quit `fragr.exe` | Stops watching. A dedicated server keeps running. A **Run a match** server keeps running until **Stop server** or until the game quits. |
-| **Stop server** on the Run a match page | Ends the match that page started. |
+| **Stop server** on the Run a match page, or in the pause menu while watching it | Ends the match that page started. |
 
 ## The server terminal
 
