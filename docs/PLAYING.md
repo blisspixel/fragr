@@ -233,6 +233,11 @@ maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
 the other guns on the same type. R or D-pad down reloads the gun in hand.
+Under the count, the corner says RELOAD REQUESTED while the press travels,
+RELOADING with a filling bar once the server accepts it, then LOADED. A full
+gun, an empty bag, a melee weapon or a mode without magazines says so instead.
+A swap, death or vehicle seat cancels quietly. The held gun dips while
+reloading and one short sound marks the start and the finish.
 An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
 costs one shell. An arcade human spawns with the rifle, shotgun and railgun
@@ -359,7 +364,7 @@ play. Save applies a draft; Cancel discards it. The
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
 bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,
 scope, accepted firing/reloading frames, actors and machinery keep their normal
-behavior. Your separate weapon-bob choice remains saved.
+behavior. The held gun's reload dip stops; the corner's reload line and bar stay. Your separate weapon-bob choice remains saved.
 
 Health is bone above 50, ember at 50 or below and red at 25 or below, with an
 exact number and a filled bar. A fresh critical injury pulses once unless

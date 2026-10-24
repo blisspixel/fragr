@@ -198,6 +198,26 @@ var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
 var scope_cue_count: int = 0
 var _dry_fire_seen: int = -1
+## Reload start and finish for the fighter this screen belongs to. No reload
+## clip has been produced, so two short reviewed handling sounds are reused:
+## the scope-out swish and tap as the gun comes down, the scope-in click as the
+## magazine seats. Pitch and level set them apart from the Sniper scope.
+const RELOAD_START_SOUND_PATH: String = "res://assets/audio/sniper/scope_out.wav"
+const RELOAD_COMPLETE_SOUND_PATH: String = "res://assets/audio/sniper/scope_in.wav"
+const RELOAD_START_DB: float = -10.0
+const RELOAD_START_PITCH: float = 0.94
+const RELOAD_COMPLETE_DB: float = -8.0
+const RELOAD_COMPLETE_PITCH: float = 1.08
+var reload_sound: AudioStreamPlayer = null
+var reload_start_stream: AudioStream = null
+var reload_complete_stream: AudioStream = null
+var reload_start_cue_count: int = 0
+var reload_complete_cue_count: int = 0
+## Whether the last action that reached the socket carried reload. The server
+## starts a reload only on that rising edge, so the client asks on it too.
+var _reload_sent_down: bool = false
+## Whether the reload presentation context was live on the last refresh.
+var _reload_context_live: bool = false
 
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
 const CRAWLER_SOUND_VOICES: int = 4
@@ -490,6 +510,7 @@ func _on_map_info(info: Dictionary) -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	_reset_reload_presentation()
 	pending_remote_place = false
 	remote_place_armed = false
 	pending_remote_trigger = false
@@ -1024,6 +1045,16 @@ func _load_audio_streams():
 		dry_fire_sound.volume_db = -6.0
 		dry_fire_sound.stream = load(DRY_FIRE_SOUND_PATH)
 		audio_parent.add_child(dry_fire_sound)
+	if reload_sound == null:
+		reload_sound = AudioStreamPlayer.new()
+		reload_sound.name = "ReloadSound"
+		reload_sound.bus = &"Effects"
+		reload_sound.volume_db = RELOAD_START_DB
+		audio_parent.add_child(reload_sound)
+		if ResourceLoader.exists(RELOAD_START_SOUND_PATH):
+			reload_start_stream = load(RELOAD_START_SOUND_PATH)
+		if ResourceLoader.exists(RELOAD_COMPLETE_SOUND_PATH):
+			reload_complete_stream = load(RELOAD_COMPLETE_SOUND_PATH)
 	if hit_confirm_sound == null and ResourceLoader.exists(HIT_CONFIRM_SOUND_PATH):
 		hit_confirm_stream = load(HIT_CONFIRM_SOUND_PATH)
 		hit_confirm_sound = AudioStreamPlayer.new()
@@ -1078,6 +1109,85 @@ func _play_scope_cue(was_scoped: bool, now_scoped: bool) -> void:
 	scope_sound.stream = load(path)
 	scope_sound.play()
 	scope_cue_count += 1
+
+## The HUD's reload cue, or null for a presenter without one.
+func _reload_cue() -> ReloadCue:
+	if hud == null:
+		return null
+	var equipment: Variant = hud.get("equipment_hud")
+	if not equipment is Object or not is_instance_valid(equipment):
+		return null
+	var cue: Variant = (equipment as Object).get("reload")
+	return cue if cue is ReloadCue else null
+
+## Present what one validated loadout says about the local reload. Only the
+## live first-person fighter hears or sees it; the cue deduplicates deadlines.
+func _present_reload_cues(loadout: Dictionary) -> void:
+	_refresh_reload_context()
+	var cue: ReloadCue = _reload_cue()
+	if cue == null or not _reload_context_live:
+		return
+	for event: String in cue.observe(loadout, Time.get_ticks_usec()):
+		match event:
+			"start":
+				_play_reload_sound(reload_start_stream, RELOAD_START_DB, RELOAD_START_PITCH)
+				reload_start_cue_count += 1
+				cue.presented(Time.get_ticks_usec())
+			"complete":
+				_play_reload_sound(reload_complete_stream, RELOAD_COMPLETE_DB, RELOAD_COMPLETE_PITCH)
+				reload_complete_cue_count += 1
+
+func _play_reload_sound(stream: AudioStream, volume_db: float, pitch: float) -> void:
+	if reload_sound == null or stream == null:
+		return
+	reload_sound.stream = stream
+	reload_sound.volume_db = volume_db
+	reload_sound.pitch_scale = pitch
+	reload_sound.play()
+
+## A live context is the joined fighter alive in first person on foot with a
+## private loadout. Leaving it clears the reload cue and stops its sound, so
+## swap, death, respawn, disconnect, map change and vehicles never leave a late
+## cue. Re-entering adopts whatever the last loadout shows, silently.
+func _refresh_reload_context() -> void:
+	var cue: ReloadCue = _reload_cue()
+	if cue == null or net_client == null:
+		return
+	var pawn: Variant = players.get(net_client.player_id)
+	var live: bool = is_human_player and not net_client.equipment.is_empty() \
+		and is_instance_valid(pawn) and int(pawn.hp) > 0 and hud.get("fp_juice_enabled") == true \
+		and _vehicle_seat().is_empty()
+	if live == _reload_context_live:
+		return
+	_reload_context_live = live
+	cue.reset()
+	if reload_sound != null and reload_sound.playing:
+		reload_sound.stop()
+	if live:
+		cue.observe(net_client.equipment, Time.get_ticks_usec())
+
+## Map change and disconnect: drop every reload cue, pose and sound at once.
+## The next live refresh adopts the new venue's loadout silently.
+func _reset_reload_presentation() -> void:
+	_reload_context_live = false
+	_reload_sent_down = false
+	if reload_sound != null and reload_sound.playing:
+		reload_sound.stop()
+	var cue: ReloadCue = _reload_cue()
+	if cue != null:
+		cue.reset()
+	var motion: Variant = hud.get("fp_reload_motion") if hud != null else null
+	if motion is WeaponArt.ReloadMotion:
+		(motion as WeaponArt.ReloadMotion).clear()
+
+## A reload request left this client: the rising edge reached the socket, or R
+## was pressed where guns have no magazines. A refusal the last loadout already
+## predicts shows one short silent line; otherwise the request is pending.
+func _note_reload_request() -> void:
+	_refresh_reload_context()
+	var cue: ReloadCue = _reload_cue()
+	if cue != null and _reload_context_live:
+		cue.request(net_client.equipment, Time.get_ticks_usec())
 
 ## The owner's dry trigger count only grows within one life; a held empty
 ## trigger repeats at the weapon's own cadence on the server.
@@ -1282,6 +1392,9 @@ func _input(_event):
 	if is_human_player and reload_armed and _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
 		pending_reload = true
 		reload_armed = false
+	elif is_human_player and not _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
+		# Nothing goes on the wire where guns have no magazines; say so once.
+		_note_reload_request()
 	if is_human_player and remote_place_armed and _event.is_action_pressed("place_remote_mine") and not _event.is_echo():
 		pending_remote_place = true
 	if is_human_player and remote_trigger_armed and _event.is_action_pressed("trigger_remote_mines") and not _event.is_echo():
@@ -1620,6 +1733,10 @@ func _send_local_action(now_usec: int) -> bool:
 		else:
 			ack_probe.failed_sends += 1
 	if net_client.last_send_ok:
+		var reload_sent: bool = bool(action_state.get("reload", false))
+		if reload_sent and not _reload_sent_down:
+			_note_reload_request()
+		_reload_sent_down = reload_sent
 		_present_local_fire(action_state, now_usec)
 		pending_seat = ""
 		pending_fire = false
@@ -2134,6 +2251,7 @@ func _clear_world() -> void:
 	pending_weapon_swap = null
 	latest_snapshot.clear()
 	hud.equipment_hud.apply({})
+	_reset_reload_presentation()
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -2156,6 +2274,7 @@ func _clear_world() -> void:
 func _on_loadout_received(data: Dictionary) -> void:
 	local_fire.observe_equipment(data)
 	hud.equipment_hud.apply(data)
+	_present_reload_cues(data)
 	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
 	_refresh_equipment_visibility()
@@ -2164,6 +2283,7 @@ func _refresh_equipment_visibility() -> void:
 	var pawn: Node = players.get(net_client.player_id)
 	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled and _vehicle_seat().is_empty()
+	_refresh_reload_context()
 
 func _on_snapshot_received(data):
 	_receiving_snapshot = true

@@ -1759,7 +1759,9 @@ func _process(delta):
 		fp_shot_age += delta
 	fp_throw_time += delta
 	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
-		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, delta, head_bob_enabled)
+		# Reload motion is an action pose like weapon kick, so only reduced
+		# motion stills it. Head bob off keeps it; the HUD line always shows.
+		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, delta, not reduced_motion)
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
@@ -1782,7 +1784,7 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = Vector2.ZERO if reduced_motion else fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * 0.55 * fp_reload_motion.depth) + bob + kick).round()
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick).round()
 	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
