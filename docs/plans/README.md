@@ -24,6 +24,13 @@ The [menu focus and Multiplayer structure](menu-focus-and-structure-20261023.md)
 round (#435, #436) is **implemented** on branch `wave1/menus` with local Linux
 evidence; Windows rendered evidence and a physical gamepad pass are still owed.
 
+Wave 1 of the October 23 playtest fixes is **integrated** on `wave1/integration`
+with the menus, HUD, reload, music review and tool ceiling rounds above and
+three more plans: the [FFA death lifecycle](ffa-death-lifecycle-20261023.md)
+(#441, PR #450), the [operator console output](operator-console-output-20261023.md)
+(#438, PR #446) and the [stutter diagnosis](stutter-diagnosis-20261023.md)
+(#434, PR #452). Linux evidence only; Windows and human play checks are still owed.
+
 The interface rules and polish milestone #411-#418 is completely **shipped** in
 v0.90.0, covering [UI palette and type](ui-palette-type-20261017.md) (#411, PR #420),
 [status bar](ui-status-bar-20261018.md) (#412, PR #421),
