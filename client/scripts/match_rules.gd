@@ -17,14 +17,12 @@ const MAX_LIVES: int = 9
 ## the red so a dark body still reads as a side.
 const UNION_LABEL: Color = Color("e23430")
 const UNION_BODY: Color = Color("56575e")
-## Free coalition: bone, leather and ember.
-const COALITION_LABEL: Color = Color("dc8c3c")
-const COALITION_BODY: Color = Color("e8e2d6")
+## Free coalition: personal colour under a warm amber team accent. Its flag
+## pole and pennant staff are worn leather, never bone or matte off-white,
+## which belong to Inheritance machines (FactionPalette).
+const COALITION_LABEL: Color = FactionPalette.FREE_AMBER
+const COALITION_BODY: Color = Color("8a5634")
 const GOLD: Color = Color(1.0, 0.82, 0.28)
-## First person reads sides relative to the viewer. The faction colours stay
-## on the score and on a spectator's plate.
-const OURS_MARK: Color = Color("f4f0e6")
-const THEIRS_MARK: Color = Color("e23430")
 
 
 ## A validated copy of `map_info.rules`, or empty when absent or malformed.

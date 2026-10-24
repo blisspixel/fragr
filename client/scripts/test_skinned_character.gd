@@ -206,10 +206,19 @@ func _alias_and_tint() -> void:
 	var first_material: StandardMaterial3D = _mesh(first).get_active_material(0) as StandardMaterial3D
 	var second_material: StandardMaterial3D = _mesh(second).get_active_material(0) as StandardMaterial3D
 	var original_color: Color = second_material.albedo_color
-	first.tint(Color(1.0, 0.2, 0.3))
-	_expect(first_material != second_material and second_material.albedo_color == original_color, "tint remains local to the actual instance")
-	first.tint(Color.WHITE)
-	_expect(first_material.albedo_color == original_color, "tint restoration uses source color")
+	var original_texture: Texture2D = second_material.albedo_texture
+	first.dress("union", Color.TRANSPARENT)
+	_expect(first_material != second_material and second_material.albedo_texture == original_texture \
+		and second_material.albedo_color == original_color, "livery remains local to the actual instance")
+	_expect(first_material.albedo_texture != original_texture, "issued livery recolours the art")
+	first.dress("free", FactionPalette.FREE_AMBER)
+	_expect(first_material.albedo_texture == original_texture and first_material.albedo_color == original_color,
+		"the free livery restores the authored art without a whole-body tint")
+	first.glow(Color(1.0, 0.8, 0.3, 0.5))
+	_expect(first_material.emission_energy_multiplier > 0.0 and not second_material.emission_enabled,
+		"glow lights only the dressed instance")
+	first.glow(Color.TRANSPARENT)
+	_expect(first_material.emission_energy_multiplier == 0.0, "glow turns off")
 	first.free()
 	second.free()
 
@@ -219,6 +228,9 @@ func _skin(view: Node3D) -> Dictionary:
 	var local: Transform3D = view.global_transform.affine_inverse()
 	for node: Node in view.find_children("*", "MeshInstance3D", true, false):
 		var mesh: MeshInstance3D = node as MeshInstance3D
+		# Faction tape and visor ride bone attachments; they are not skin.
+		if view is SkinnedCharacter and (view as SkinnedCharacter).accent_parts().has(mesh):
+			continue
 		var rig: Skeleton3D = mesh.get_node_or_null(mesh.skeleton) as Skeleton3D
 		if rig == null or mesh.skin == null:
 			return {"valid": false, "points": result, "bounds": AABB()}

@@ -73,9 +73,11 @@ re-implemented on current `main` rather than applied:
   figure is exactly the 1.8 metre hit volume, hand-height weapon, a gait that
   advances with distance walked, and a nameplate just over the head. A free
   body keeps its own colours in free-for-all and on the free coalition side of
-  a team match; the Union side keeps its dark tint and red plate so sides still
-  read apart. Fighters without a body (older servers, the boss) keep the legacy
-  strips.
+  a team match, with its accent on shoulder and arm tape; since the faction
+  readability contract (2026-10-23) the Union side wears the issued livery
+  with red armbands and a red visor instead of a dark tint
+  ([contract](../ART_STORY_BIBLE.md#faction-readability-contract)). Fighters
+  without a body (older servers, the boss) keep the legacy strips.
 
 ## Protocol
 
@@ -91,7 +93,7 @@ ignored and its Welcome has none.
 | `cargo test -p fragr-server --lib body` | wire allowlist and defaults, seeded parity for both roles (snapshots equal after removing only `body`, records equal, damage and a frag resolved), respawn keeps the body, bot slot bodies independent of name and role, both bodies on both sides for 4, 6 and 8 bots in a team match, boss and Union actors carry none, both bodies and roles admitted to Recall Notice with identical readiness, equipment and faction, team sides independent of body |
 | `cargo test -p fragr-server --test body_identity` | real sockets: all roles and bodies, spectator without body, watcher snapshot shows each body, invalid ids refused before Welcome, resume asking for another body keeps the pawn's own |
 | Adapter and brain tests | `join` body validation and persistence, `round_state.self_body`, `--body` parsing on both binaries, the brain's Hello carries its body |
-| `test_player_body.gd` | allowlist, Hello per role, Welcome and snapshot validation, older-server human fallback, pawn wearing, coalition and Union tints, gait frames, Union actors never wear a body, bake freshness against the manifest, no Union red and a light mean in both strips |
+| `test_player_body.gd` | allowlist, Hello per role, Welcome and snapshot validation, older-server human fallback, pawn wearing, free tape and Union livery without a whole-body tint, gait frames, Union actors never wear a body, bake freshness against the manifest, no Union red and a light mean in both strips |
 | `test_frontend.gd`, `test_settings.gd` | body choice, preview, save, cancel and narrowing of unknown stored values |
 | Tour `client/qa/tour.json` | `body_human`, `body_synthetic` close stills, the joined player's accepted body recorded as synthetic, the callsign page with the choice and preview |
 | Tour `client/qa/modes.json` with `FRAGR_QA_MODE=tdm` | coalition human, coalition synthetic and a Union-side synthetic |

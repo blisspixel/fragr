@@ -74,7 +74,10 @@ func _check_labels() -> void:
 	_check(MatchRules.team_label_color("union") == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition") == MatchRules.COALITION_LABEL, "side colours")
 	_check(MatchRules.team_label_color("union", true) == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition", true) == Color("e8e2d6"), "high contrast side colours")
 	_check(MatchRules.team_shape_mark("union") == "■" and MatchRules.team_shape_mark("coalition") == "□" and MatchRules.team_shape_mark("") == "", "shape marks for sides")
-	_check(MatchRules.team_body_color("union").get_luminance() < MatchRules.team_body_color("coalition").get_luminance(), "Union plate darker than coalition bone")
+	var free_pole: Color = MatchRules.team_body_color("coalition")
+	_check(not FactionPalette.is_off_white(free_pole) and free_pole.get_luminance() < 0.6 and free_pole.r > free_pole.b,
+		"the free flag pole is worn leather, never bone: " + free_pole.to_html(false))
+	_check(FactionPalette.free_accent_allowed(MatchRules.COALITION_LABEL), "the free cloth is a non-reserved warm accent")
 
 
 func _check_reactions() -> void:
@@ -169,6 +172,9 @@ func _check_hud() -> void:
 	hud.call("set_fp_carried_flag", "coalition")
 	_check(pennant.visible and pennant_words.text == "FREE FLAG", "coalition pennant uses the free words: " + pennant_words.text)
 	_check((pennant.get_node("Cloth") as ColorRect).color == MatchRules.COALITION_LABEL, "coalition pennant uses the free cloth")
+	var free_staff: Color = (pennant.get_node("Pole") as ColorRect).color
+	_check(free_staff == MatchRules.COALITION_BODY and not FactionPalette.is_off_white(free_staff),
+		"coalition pennant staff is leather, not bone: " + free_staff.to_html(false))
 	hud.call("set_fp_carried_flag", "office")
 	_check(not pennant.visible, "an unknown side does not invent a pennant")
 	hud.call("set_fp_carried_flag", "union")
@@ -344,14 +350,13 @@ func _check_pawn() -> void:
 	state["team"] = "coalition"
 	pawn.call("update_state", state, 2)
 	_check(pawn.get("player_color") == MatchRules.COALITION_LABEL, "a moved fighter changes colour")
-	_check(body.modulate.get_luminance() > 0.85, "coalition body reads bone: " + str(body.modulate))
+	_check(body.modulate == Color.WHITE, "a legacy coalition fighter keeps its own art, never washed to bone: " + str(body.modulate))
 	pawn.set_team_relation("mate")
-	_check(label.text == "OURS" and label.modulate == MatchRules.OURS_MARK, "a teammate is marked OURS: " + label.text)
-	_check(body.modulate.get_luminance() > 0.9, "a teammate stays bright: " + str(body.modulate))
-	pawn.body_kind = "clerk"
+	_check(label.text == "OURS" and label.modulate == MatchRules.COALITION_LABEL, "a teammate is marked OURS in its side colour: " + label.text)
+	_check(body.modulate == Color.WHITE, "a teammate is not tinted: " + str(body.modulate))
 	pawn.set_team_relation("foe")
-	_check(label.text == "THEIRS" and body.modulate.r > body.modulate.g, "the other side warms red on its own body: " + str(body.modulate))
-	pawn.body_kind = ""
+	_check(label.text == "THEIRS" and label.modulate == MatchRules.COALITION_LABEL and body.modulate == Color.WHITE,
+		"a free foe is never tinted or plated Union red: " + str(body.modulate))
 	pawn.set_team_relation("")
 	_check(label.text.begins_with("[FREE]"), "clearing the mark restores the side chip: " + label.text)
 	state.erase("team")

@@ -1,0 +1,116 @@
+{
+  "comment": "Faction readability contract (ART_STORY_BIBLE.md): live fighters at 5, 15 and 30 m in a TDM match. Run FRAGR_QA_MODE=tdm FRAGR_QA_MANIFEST=res://qa/faction-readability-tdm.json tools/qa_tour.sh, then review every still in colour and in grayscale.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "faction_coalition_human_05m",
+      "at_seconds": 6,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 5,
+      "note": "free coalition human: own art under ink-edged amber tape, at 5 m.",
+      "body_team": "coalition",
+      "scene": "res://scenes/main.tscn"
+    },
+    {
+      "name": "faction_coalition_human_15m",
+      "at_seconds": 7,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 15,
+      "note": "free coalition human: own art under ink-edged amber tape, at 15 m.",
+      "body_team": "coalition"
+    },
+    {
+      "name": "faction_coalition_human_30m",
+      "at_seconds": 8,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 30,
+      "note": "free coalition human: own art under ink-edged amber tape, at 30 m.",
+      "body_team": "coalition"
+    },
+    {
+      "name": "faction_coalition_synthetic_05m",
+      "at_seconds": 9,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 5,
+      "note": "free coalition agent: own art under ink-edged amber tape, at 5 m.",
+      "body_team": "coalition"
+    },
+    {
+      "name": "faction_coalition_synthetic_15m",
+      "at_seconds": 10,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 15,
+      "note": "free coalition agent: own art under ink-edged amber tape, at 15 m.",
+      "body_team": "coalition"
+    },
+    {
+      "name": "faction_coalition_synthetic_30m",
+      "at_seconds": 11,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 30,
+      "note": "free coalition agent: own art under ink-edged amber tape, at 30 m.",
+      "body_team": "coalition"
+    },
+    {
+      "name": "faction_union_synthetic_05m",
+      "at_seconds": 12,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 5,
+      "note": "Union side: issued black livery, red armbands, red visor, at 5 m.",
+      "body_team": "union"
+    },
+    {
+      "name": "faction_union_synthetic_15m",
+      "at_seconds": 13,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 15,
+      "note": "Union side: issued black livery, red armbands, red visor, at 15 m.",
+      "body_team": "union"
+    },
+    {
+      "name": "faction_union_synthetic_30m",
+      "at_seconds": 14,
+      "camera": "body",
+      "body": "synthetic",
+      "body_distance": 30,
+      "note": "Union side: issued black livery, red armbands, red visor, at 30 m.",
+      "body_team": "union"
+    },
+    {
+      "name": "faction_union_human_05m",
+      "at_seconds": 15,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 5,
+      "note": "Union side: issued black livery, red armbands, red visor, at 5 m.",
+      "body_team": "union"
+    },
+    {
+      "name": "faction_union_human_15m",
+      "at_seconds": 16,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 15,
+      "note": "Union side: issued black livery, red armbands, red visor, at 15 m.",
+      "body_team": "union"
+    },
+    {
+      "name": "faction_union_human_30m",
+      "at_seconds": 17,
+      "camera": "body",
+      "body": "human",
+      "body_distance": 30,
+      "note": "Union side: issued black livery, red armbands, red visor, at 30 m.",
+      "body_team": "union"
+    }
+  ]
+}
