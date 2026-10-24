@@ -146,9 +146,13 @@ then says the run was cancelled and nothing was saved.
 A completed result leads with **Benchmark complete** and, per preset, average
 FPS, one 1% low, the 99th percentile frame time and frames at or above 33 ms,
 then one frame-time timeline: every scored frame, one row per preset on a shared
-scale, with 60 and 30 FPS guides. **Details** holds p50/p95/p99.9/maximum frame
-time, the 0.1% low, frames at or above 50 ms, hitches against the trailing
-second, the 3D render size, system, settings, definitions and the last
+scale named in its heading, with 60 and 30 FPS guides. Rows shrink with the
+window so the cards, the whole timeline and the actions share one screen at
+1280x720 and above. **Details** holds p50/p95/p99.9/maximum frame time, the
+0.1% low, frames at or above 50 ms, hitches against the trailing second, the 3D
+render size, system, the shared Display settings, what each preset changes
+(MSAA, shadow atlas, light fixture shadows, ambient occlusion, glow, read from
+the same `RenderQuality` rules that applied them), definitions and the last
 compatible run. Run again, Copy summary, Open results folder and Back to menu
 stay on screen without scrolling. A stopped run (settings changed, window
 resized, frames stopped for two seconds, a preset or the match did not load)

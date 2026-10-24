@@ -148,8 +148,8 @@ second fix in `stamp_card.gd`.
 ## Open questions for Nick
 
 1. Benchmark: should match chrome (center facts, feed) be hidden during a
-   benchmark rather than pushed below the banner? **Decided in wave 2 (#439):
-   hidden.** The match HUD is hidden for the whole benchmark and the benchmark
+   benchmark rather than pushed below the banner? **Resolved in wave 2 by
+   #439, which asks to hide irrelevant match chrome: hidden.** The match HUD is hidden for the whole benchmark and the benchmark
    HUD replaces the banner. It clears the frame counter through the same
    reserved-region rule (`HudRegions.column_top`). The measured scene changed, so
    the result's workload id changed and older results do not compare.
