@@ -120,6 +120,9 @@ func _check_pawn() -> void:
 		"local movement feedback uses predicted velocity rather than a one-frame position jump")
 	pawn.call("clear_predicted_position")
 	_check(is_equal_approx(pawn.position.x, 1.0), "snapshot fallback snaps to retained authoritative position")
+	pawn.call("_update_body_color", true)
+	_check(not FactionPalette.is_red(body.modulate) and FactionPalette.is_warm_light(body.modulate),
+		"a hit flashes a strip warm, never a red wash")
 	pawn.set("hit_flash_timer", 0.0)
 	state["x"] = 0.0
 	state["hp"] = 100
@@ -146,14 +149,45 @@ func _check_pawn() -> void:
 	_check(is_equal_approx(body.position.y + 1.5, EnemyAnimation.CENTRE_HEIGHT), "feet on the floor")
 	_check((pawn.get_node("Label3D") as Label3D).position.y + 1.5 < 2.3, "the plate sits just over the head")
 	_check(body.modulate == Color.WHITE, "a free body keeps its own palette")
+	_check_live_dress(pawn, live)
 	state["team"] = "coalition"
 	pawn.call("update_state", state, 3)
 	_check(body.modulate == Color.WHITE, "the free coalition side keeps the free palette")
 	_check(pawn.get("player_color") == MatchRules.COALITION_LABEL, "the side still reads on the plate")
+	_check(live.livery == "free" and live.accent == FactionPalette.FREE_AMBER and _tape_shown(live),
+		"the free coalition wears warm amber tape over its own art")
+	_check(_untinted(live), "no whole-body tint on the free coalition side")
+	pawn.call("set_team_relation", "foe")
+	_check(_untinted(live) and body.modulate == Color.WHITE and live.accent == FactionPalette.FREE_AMBER,
+		"a free foe in first person is never washed toward Union red")
+	_check((pawn.get_node("Label3D") as Label3D).modulate == MatchRules.COALITION_LABEL,
+		"a free foe's THEIRS plate keeps the free side's amber")
+	_check(_edge_shape(pawn) == "open" and _edge_accent(pawn) == FactionPalette.FREE_AMBER,
+		"the free side's nameplate edge is an open amber frame, its side read by shape")
+	var edge_node: Sprite3D = pawn.get_node_or_null("Label3D/PlateEdge") as Sprite3D
+	_check(edge_node != null and edge_node.position.y > 0.0,
+		"the nameplate edge sits over the words, so a plate grown with range never covers the head")
+	pawn.call("set_team_relation", "mate")
+	_check(_untinted(live) and body.modulate == Color.WHITE, "a mate is not brightened by a body tint either")
+	pawn.call("set_team_relation", "")
 	state["team"] = "union"
 	pawn.call("update_state", state, 4)
-	_check(body.modulate.get_luminance() < 0.8, "the Union side still reads dark in a team match")
+	_check(body.modulate.get_luminance() < 0.8, "a strip on the Union side still approximates dark livery")
+	_check(live.livery == "union" and live.accent == FactionPalette.UNION_RED and _tape_shown(live)
+		and _visor_shown(live), "the Union side wears issued livery: red armbands and a red visor")
+	var issued: StandardMaterial3D = _live_material(live)
+	_check(issued.albedo_color == Color.WHITE and issued.albedo_texture != live._materials[issued],
+		"issued livery recolours the art, not a multiply over it")
+	pawn.call("set_team_relation", "foe")
+	_check((pawn.get_node("Label3D") as Label3D).modulate == MatchRules.UNION_LABEL,
+		"Union red marks an actual Union foe")
+	_check(_edge_shape(pawn) == "solid" and _edge_accent(pawn) == FactionPalette.UNION_RED,
+		"the Union side's nameplate edge is a solid red bar")
+	pawn.call("set_team_relation", "")
 	state.erase("team")
+	pawn.call("update_state", state, 4)
+	_check(live.livery == "free" and not _visor_shown(live) and _untinted(live), "leaving the side restores the free body")
+	_check(_edge_shape(pawn) == "", "a sideless fighter wears no team edge")
 	state["body"] = PlayerBody.HUMAN
 	state["name"] = "COMPLIANCE-DRONE"
 	pawn.call("update_state", state, 5)
@@ -196,6 +230,56 @@ func _check_pawn() -> void:
 	_check(str(enemy.get("body_kind")).is_empty(), "a Union actor never wears a participant body")
 	enemy.queue_free()
 	await process_frame
+
+## A sideless fighter: its own art, tape in its checked callsign colour.
+func _check_live_dress(pawn: Node3D, live: SkinnedCharacter) -> void:
+	var own: Color = pawn.get("player_color")
+	_check(not FactionPalette.is_red(own) and not FactionPalette.is_cyan(own) and not FactionPalette.is_off_white(own),
+		"a callsign colour avoids the reserved hues: " + own.to_html(false))
+	_check(live.livery == "free" and live.accent == own and _tape_shown(live) and not _visor_shown(live),
+		"a free-for-all body wears its callsign colour as tape, never a visor")
+	_check(_untinted(live), "a free-for-all body carries no whole-body tint")
+	_check(str(pawn.get("body_scheme_note")).is_empty(), "the composed body passes the colour picker rule as chosen")
+
+static func _live_material(live: SkinnedCharacter) -> StandardMaterial3D:
+	return live._materials.keys()[0] as StandardMaterial3D
+
+static func _untinted(live: SkinnedCharacter) -> bool:
+	for material: StandardMaterial3D in live._materials:
+		if material.albedo_color != Color.WHITE or material.albedo_texture != live._materials[material]:
+			return false
+	return true
+
+static func _tape_shown(live: SkinnedCharacter) -> bool:
+	var shown: int = 0
+	for part: MeshInstance3D in live.accent_parts():
+		if part.name == "AccentTape" and part.visible:
+			shown += 1
+	return shown == 2
+
+## "solid" or "open" for the shown nameplate edge, or empty when none shows.
+static func _edge_shape(pawn: Node3D) -> String:
+	var edge: Sprite3D = pawn.get_node_or_null("Label3D/PlateEdge") as Sprite3D
+	if edge == null or not edge.visible or edge.texture == null:
+		return ""
+	var image: Image = edge.texture.get_image()
+	var middle: Vector2i = image.get_size() / 2
+	if image.get_pixelv(middle).is_equal_approx(image.get_pixel(1, 1)):
+		return "solid"
+	return "open" if image.get_pixelv(middle).is_equal_approx(image.get_pixel(0, 0)) else "?"
+
+## The accent colour of the shown nameplate edge, one cell inside its ink rim.
+static func _edge_accent(pawn: Node3D) -> Color:
+	var edge: Sprite3D = pawn.get_node_or_null("Label3D/PlateEdge") as Sprite3D
+	if edge == null or edge.texture == null:
+		return Color(0, 0, 0, 0)
+	return edge.texture.get_image().get_pixel(1, 1)
+
+static func _visor_shown(live: SkinnedCharacter) -> bool:
+	for part: MeshInstance3D in live.accent_parts():
+		if part.name == "UnionVisor":
+			return part.visible
+	return false
 
 func _check_bake() -> void:
 	var folder: String = "res://assets/characters/free/"

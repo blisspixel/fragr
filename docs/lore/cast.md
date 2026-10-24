@@ -103,15 +103,20 @@ gear can cover them but must not silently change the character underneath.
 | Actor | Proposed silhouette and palette anchors | Continuity and behavior |
 |---|---|---|
 | Player | Chosen human or agent body, callsign and supported cosmetics; default human reference is hatless, with a worn utility jacket, casual layers, dark work pants and practical footwear; a scavenged long rifle appears when needed | Easy visible face and posture, relaxed freedom-loving character and personal repairs; varied civilian clothing rather than Western or faction costuming; body-neutral opening with actual level equipment |
-| Latch (`companion`) | Roughly six-foot midweight bone/dark-steel robot; taller-than-wide CRT-like screen with soft friendly pixel faces, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
+| Latch (`companion`) | Roughly six-foot midweight robot in warm, scuffed, personally painted bone-and-rust over dark steel: aged bone plates broken by rust repairs, stickers and mismatched panels, never one clean off-white surface; taller-than-wide CRT-like screen with soft friendly pixel faces in warm phosphor, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small painted (unlit) muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
 | Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
 | Tern (`pilot`) | Tall free agent with compact head and flight harness, gunmetal with a small ember shoulder panel | Conserves movement, handles ship equipment with practiced ease; same chassis offworld and on Earth |
-| Edda (`medic`) | Human with broad practical medical satchel, bone apron over dark civilian kit | Readable equipment gesture; avoid copyrighted service emblems or making every medical object a pickup cue |
+| Edda (`medic`) | Human with broad practical medical satchel, stained warm canvas apron over dark civilian kit | Readable equipment gesture; avoid copyrighted service emblems or making every medical object a pickup cue |
 | Splice (`technician`) | Compact free agent, offset tool rack, rust repairs and a muted magenta wrist band | Individual tool handling and impatient gestures; never a cosmetic copy of a Union Sweeper |
 | Orrin (`recovered_mind`) | Backup container first; later a plainly repaired available chassis | Body change is an explicit restoration event, not inconsistency; memory gaps persist after restoration |
 | Voss | Human woman in a severe structured black coat, dark steel collar, restrained red seal and armband | Controlled podium stance that breaks into anger. Capture removes authority, not identity or age |
 | Inheritance | No default humanoid avatar | Machines and precise interventions carry its presence; absorbed bots retain recognizable bodies |
+
+Latch's bone-and-rust scheme and warm screen glow are a proposed 2026-10-23
+adjustment under the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract),
+so a free agent never reads as an Inheritance machine at distance; it awaits
+Nick's acceptance. Every free principal follows that contract.
 
 Do not establish specific ages, ethnicity, facial features or voice IDs through
 one stray generation. Approve and record the reference before producing sets.

@@ -133,7 +133,8 @@ same discipline governs motion. Every submitted shot carries:
 | Rescue reveal, match cut | Confinement cuts to open space on matching motion or framing | The chained last-frame-to-first-frame technique above, used for its clearest payoff |
 
 **Faction color per shot.** The Union: black, dark steel and restrained red.
-The free side: bone, leather, rust and ember, with purple and cyan accents.
+The free side: individual personal colour, leather, rust and ember, with
+purple accents, never Union black-and-red or a matte off-white base.
 The Inheritance: matte bone over ink, with muted cyan. These are the same
 three rows as `ART-COLOR.md#faction-colour`, restated here as a shot-level
 checklist rather than a material spec.

@@ -93,8 +93,9 @@ Every fighter for themselves. Frag limit and clock. Unchanged, now named `ffa`.
 
 ### Team deathmatch, this PR
 
-- **Sides:** the Union (black and red) against the free coalition (bone,
-  leather and ember, per [ART_STORY_BIBLE.md](../ART_STORY_BIBLE.md)). Wire ids
+- **Sides:** the Union (issued black and red livery) against the free
+  coalition (personal colour under a warm amber team accent, per the
+  [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract)). Wire ids
   `union` and `coalition`.
 - **Balance:** every join, human, agent or rule bot, goes through the same
   `add_player` and lands on the smaller side (ties go to the side with fewer
