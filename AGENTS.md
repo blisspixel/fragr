@@ -161,6 +161,7 @@ Run `tools/qa_tour.sh --publish` before every release tag and in any PR that cha
 3. **Build and converge** through existing seams: baseline, implement, verify, look at the result, fix root causes, repeat. Never weaken the checker that caught a defect.
 4. **Update state** in the same PR: tests, `docs/protocol.md`, README run steps and `docs/ROADMAP.md` when a rung moves.
 
+- **Start and end tidy.** Nick runs several agent harnesses on this repo. At session start, list open PRs, remote and local branches and worktrees, and finish or close leftovers before new work. Lanes push to temporary branches and never open their own PRs; each wave ships as one PR from an integration branch. At session end GitHub holds only `main` (head branches auto-delete on merge), worktrees and merged local branches are removed, any unmerged work is a named branch with an open PR or a note saying why, `main` is green, and the README stills and the roadmap's next steps are current.
 - One clean `main`, always green. Branch, open a PR, pass CI, squash merge. `main` requires the `test` check.
 - Conventional commit prefixes (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:`). Subject under 72 characters; the body explains why.
 - Tag `vMAJOR.MINOR.PATCH` with release notes when a merge changes what a player or host sees.
