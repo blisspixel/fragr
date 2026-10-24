@@ -412,7 +412,10 @@ async fn sender_clones_close_only_after_all_are_gone_and_receiver_drop_refuses()
     assert!(matches!(rx.try_recv(), Err(TryRecvError::Empty)));
     clone.try_send(event()).unwrap();
     drop(clone);
-    assert!(matches!(rx.recv().await, Some(ServerMessage::Event(_))));
+    assert!(matches!(
+        rx.recv().await.map(|delivery| delivery.message),
+        Some(ServerMessage::Event(_))
+    ));
     assert!(rx.recv().await.is_none());
     let (tx, rx) = channel(1);
     tx.try_send(event()).unwrap();
@@ -425,7 +428,10 @@ async fn sender_clones_close_only_after_all_are_gone_and_receiver_drop_refuses()
 async fn waiting_receiver_wakes_on_send_and_final_sender_drop() {
     let (tx, mut rx) = channel(1);
     let receive = tokio::spawn(async move {
-        assert!(matches!(rx.recv().await, Some(ServerMessage::Event(_))));
+        assert!(matches!(
+            rx.recv().await.map(|delivery| delivery.message),
+            Some(ServerMessage::Event(_))
+        ));
         assert!(rx.recv().await.is_none());
     });
     tokio::task::yield_now().await;

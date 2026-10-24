@@ -19,33 +19,69 @@ use tokio::sync::mpsc;
 #[derive(Debug, Default)]
 pub struct RunMetrics {
     session_ns: crate::bench::Histogram,
+    broadcast_encode_ns: crate::bench::Histogram,
     fanout_ns: crate::bench::Histogram,
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
     pub replaced_worlds: u64,
+    writer: std::sync::Arc<crate::net::WriterProbe>,
+    tick_starts: std::collections::VecDeque<(u64, std::time::Instant)>,
 }
+
+/// Enough tick starts for a two minute row at 20 Hz, twice over.
+const TICK_STARTS_KEPT: usize = 4800;
 
 #[derive(Debug, serde::Serialize)]
 pub struct RunMetricsReport {
     pub session_ms: crate::bench::Summary,
+    /// Encoding every broadcast once on the tick task, which also counts its bytes.
+    pub broadcast_encode_ms: crate::bench::Summary,
     pub fanout_enqueue_ms: crate::bench::Summary,
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
     pub replaced_worlds: u64,
+    pub writer: crate::net::WriterReport,
 }
 
 impl RunMetrics {
     pub fn report(&self) -> RunMetricsReport {
         RunMetricsReport {
             session_ms: self.session_ns.summary(1e-6),
+            broadcast_encode_ms: self.broadcast_encode_ns.summary(1e-6),
             fanout_enqueue_ms: self.fanout_ns.summary(1e-6),
             queued_messages: self.queued_messages,
             queue_high_water: self.queue_high_water,
             queue_overflows: self.queue_overflows,
             replaced_worlds: self.replaced_worlds,
+            writer: self.writer.report(),
         }
+    }
+
+    /// Start a measured window. Live writers keep reporting into the same probe.
+    pub fn reset(&mut self) {
+        self.session_ns.clear();
+        self.broadcast_encode_ns.clear();
+        self.fanout_ns.clear();
+        self.queued_messages = 0;
+        self.queue_high_water = 0;
+        self.queue_overflows = 0;
+        self.replaced_worlds = 0;
+        self.writer.reset();
+        self.tick_starts.clear();
+    }
+
+    /// When each recent tick started, keyed by the Snapshot tick it built.
+    pub fn tick_starts(&self) -> impl Iterator<Item = (u64, std::time::Instant)> + '_ {
+        self.tick_starts.iter().copied()
+    }
+
+    fn record_tick_start(&mut self, tick: u64, started: std::time::Instant) {
+        if self.tick_starts.len() == TICK_STARTS_KEPT {
+            self.tick_starts.pop_front();
+        }
+        self.tick_starts.push_back((tick, started));
     }
 
     fn record_delivery(&mut self, delivery: DeliveryStats) {
@@ -541,6 +577,10 @@ async fn run_server_impl(
     }
     net_server.share_status(std::sync::Arc::clone(&live));
     net_server.share_resume(std::sync::Arc::clone(&session.resume));
+    if let Some(metrics) = &metrics {
+        let metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
+        net_server.set_writer_probe(std::sync::Arc::clone(&metrics.writer));
+    }
     session.resume.note_tick(session.state.tick);
     if let Some(secret) = options.join_secret.clone() {
         net_server.set_join_secret(secret);
@@ -806,7 +846,12 @@ async fn run_server_impl(
                 if let Some(metrics) = &metrics {
                     let mut metrics = metrics.lock().unwrap_or_else(|poison| poison.into_inner());
                     metrics.session_ns.record(elapsed.as_nanos().min(u64::MAX as u128) as u64);
+                    let encode = measured.saturating_sub(elapsed);
+                    metrics.broadcast_encode_ns.record(encode.as_nanos().min(u64::MAX as u128) as u64);
                     metrics.fanout_ns.record(fanout_elapsed.as_nanos().min(u64::MAX as u128) as u64);
+                    if let Some(tick) = snapshot_tick(&messages) {
+                        metrics.record_tick_start(tick, started);
+                    }
                     metrics.record_delivery(delivery);
                     metrics.record_delivery(unicast_delivery);
                 }
@@ -947,18 +992,19 @@ struct TickTraceInput<'a> {
     overflows: u64,
 }
 
+/// The tick number clients see on this tick's Snapshot, if it built one.
+fn snapshot_tick(messages: &[crate::protocol::ServerMessage]) -> Option<u64> {
+    messages.iter().find_map(|message| match message {
+        crate::protocol::ServerMessage::Snapshot(snapshot) => Some(snapshot.tick),
+        _ => None,
+    })
+}
+
 /// The record names the Snapshot tick the clients receive, so a client trace
 /// joins on it. A tick without a Snapshot keeps the session's own counter.
 fn tick_sample(input: TickTraceInput<'_>) -> crate::tick_trace::TickSample {
     use crate::tick_trace::micros;
-    let tick = input
-        .messages
-        .iter()
-        .find_map(|message| match message {
-            crate::protocol::ServerMessage::Snapshot(snapshot) => Some(snapshot.tick),
-            _ => None,
-        })
-        .unwrap_or(input.fallback_tick);
+    let tick = snapshot_tick(input.messages).unwrap_or(input.fallback_tick);
     crate::tick_trace::TickSample {
         tick,
         unix_us: crate::tick_trace::unix_micros(input.started_unix),

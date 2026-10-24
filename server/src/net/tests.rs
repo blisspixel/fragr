@@ -307,6 +307,7 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         Duration::from_secs(60),
         stop,
         crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+        None,
     ));
     timeout(Duration::from_secs(1), changed.changed())
         .await

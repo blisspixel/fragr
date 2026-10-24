@@ -58,15 +58,36 @@ pub struct FanoutRow {
     /// Relative arrival time against the earliest watcher for each tick.
     pub relative_snapshot_age_ms: Distribution,
     pub snapshot_interval_ms: Distribution,
-    /// Server timing and outbound queue samples are supplied by the run loop.
+    /// From the start of the server tick that built a Snapshot to a watcher
+    /// reading its text frame, before the watcher parses it. One process and
+    /// one clock, over loopback.
+    pub tick_to_watcher_ms: Distribution,
+    /// JSON encoding time per measured second: the tick task's broadcast
+    /// encode plus every session writer's own serialization.
+    pub serialization_ms_per_second: f64,
+    /// Server timing, outbound queue and session writer samples from the run loop.
     pub server_metrics: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct FanoutReport {
     pub schema: u32,
+    pub build: fragr_server::protocol::BuildInfo,
+    pub environment: fragr_server::bench::BenchEnvironment,
     pub seconds_per_row: u64,
     pub rows: Vec<FanoutRow>,
+}
+
+/// Total milliseconds a summary's samples represent.
+fn total_ms(summary: &fragr_server::bench::Summary) -> f64 {
+    summary.mean * summary.count as f64
+}
+
+fn serialization_ms_per_second(report: &fragr_server::run::RunMetricsReport, seconds: f64) -> f64 {
+    if seconds <= 0.0 {
+        return 0.0;
+    }
+    (total_ms(&report.broadcast_encode_ms) + total_ms(&report.writer.encode_ms)) / seconds
 }
 
 #[derive(Debug, Clone)]
@@ -148,6 +169,8 @@ async fn watcher_task(
             }
             continue;
         };
+        // Arrival is the frame read, not the end of this watcher's parse.
+        let read_at = Instant::now();
         if start.borrow().is_some() {
             result.text_bytes += text.len();
         }
@@ -163,7 +186,7 @@ async fn watcher_task(
                 if start.borrow().is_some() {
                     result.arrivals.push(Arrival {
                         tick: snapshot.tick,
-                        at: Instant::now(),
+                        at: read_at,
                     });
                 }
             }
@@ -182,6 +205,14 @@ async fn watcher_task(
     Ok(result)
 }
 
+/// What the in-process server measured over the same window.
+#[derive(Debug, Default)]
+struct ServerSide {
+    metrics: serde_json::Value,
+    serialization_ms_per_second: f64,
+    tick_starts: BTreeMap<u64, Instant>,
+}
+
 fn measure_arrivals(
     map: MapKind,
     fighters: usize,
@@ -189,7 +220,7 @@ fn measure_arrivals(
     seed: u64,
     seconds: f64,
     watcher_results: Vec<WatchResult>,
-    server_metrics: serde_json::Value,
+    server: ServerSide,
 ) -> FanoutRow {
     let mut earliest = BTreeMap::<u64, Instant>::new();
     for watcher in &watcher_results {
@@ -201,6 +232,7 @@ fn measure_arrivals(
         }
     }
     let mut ages = Vec::new();
+    let mut tick_ages = Vec::new();
     let mut intervals = Vec::new();
     let mut missing_ticks = 0;
     let mut text_bytes = 0;
@@ -214,6 +246,9 @@ fn measure_arrivals(
             snapshots += 1;
             if let Some(first) = earliest.get(&arrival.tick) {
                 ages.push(arrival.at.duration_since(*first).as_secs_f64() * 1000.0);
+            }
+            if let Some(started) = server.tick_starts.get(&arrival.tick) {
+                tick_ages.push(arrival.at.duration_since(*started).as_secs_f64() * 1000.0);
             }
             if let Some(prior) = previous {
                 missing_ticks += arrival.tick.saturating_sub(prior.tick + 1);
@@ -236,7 +271,9 @@ fn measure_arrivals(
         watcher_disconnects: disconnects,
         relative_snapshot_age_ms: Distribution::from_values(&ages),
         snapshot_interval_ms: Distribution::from_values(&intervals),
-        server_metrics,
+        tick_to_watcher_ms: Distribution::from_values(&tick_ages),
+        serialization_ms_per_second: server.serialization_ms_per_second,
+        server_metrics: server.metrics,
     }
 }
 
@@ -334,9 +371,10 @@ async fn one_row(
             "fighter disconnected before fanout measurement".into(),
         ));
     }
-    *metrics
+    metrics
         .lock()
-        .map_err(|_| Error::Server("fanout metrics lock poisoned".into()))? = RunMetrics::default();
+        .map_err(|_| Error::Server("fanout metrics lock poisoned".into()))?
+        .reset();
     let started = Instant::now();
     let _ = start_tx.send(Some(started));
     tokio::time::sleep(Duration::from_secs(seconds)).await;
@@ -349,13 +387,17 @@ async fn one_row(
             "fighter disconnected during fanout measurement".into(),
         ));
     }
-    let server_metrics = serde_json::to_value(
-        metrics
+    let server_side = {
+        let metrics = metrics
             .lock()
-            .map_err(|_| Error::Server("fanout metrics lock poisoned".into()))?
-            .report(),
-    )
-    .map_err(transport)?;
+            .map_err(|_| Error::Server("fanout metrics lock poisoned".into()))?;
+        let report = metrics.report();
+        ServerSide {
+            serialization_ms_per_second: serialization_ms_per_second(&report, elapsed),
+            metrics: serde_json::to_value(report).map_err(transport)?,
+            tick_starts: metrics.tick_starts().collect(),
+        }
+    };
     let _ = stop_tx.send(true);
     let mut watcher_results = Vec::new();
     for task in watcher_tasks {
@@ -386,7 +428,7 @@ async fn one_row(
         seed,
         elapsed,
         watcher_results,
-        server_metrics,
+        server_side,
     ))
 }
 
@@ -405,7 +447,9 @@ pub async fn matrix(seconds_per_row: u64) -> Result<FanoutReport, Error> {
         }
     }
     Ok(FanoutReport {
-        schema: 1,
+        schema: 2,
+        build: fragr_server::metrics::build_info(),
+        environment: fragr_server::bench::BenchEnvironment::current(),
         seconds_per_row,
         rows,
     })
@@ -454,22 +498,47 @@ mod tests {
                     disconnected: true,
                 },
             ],
-            serde_json::Value::Null,
+            ServerSide {
+                serialization_ms_per_second: 1.5,
+                // Tick 12 has no recorded start, so only tick 10 is timed.
+                tick_starts: BTreeMap::from([(10, at)]),
+                ..ServerSide::default()
+            },
         );
         assert_eq!(row.watcher_snapshots, 3);
         assert_eq!(row.watcher_text_bytes, 320);
         assert_eq!(row.missing_snapshot_ticks, 1);
         assert_eq!(row.watcher_disconnects, 1);
         assert_eq!(row.relative_snapshot_age_ms.max, 5.0);
+        assert_eq!(row.tick_to_watcher_ms.samples, 2);
+        assert_eq!(row.tick_to_watcher_ms.max, 5.0);
         let json = serde_json::to_value(FanoutReport {
-            schema: 1,
+            schema: 2,
+            build: fragr_server::metrics::build_info(),
+            environment: fragr_server::bench::BenchEnvironment::current(),
             seconds_per_row: 10,
             rows: vec![row],
         })
         .unwrap();
-        assert_eq!(json["schema"], 1);
+        assert_eq!(json["schema"], 2);
         assert_eq!(json["rows"][0]["missing_snapshot_ticks"], 1);
         assert_eq!(json["rows"][0]["relative_snapshot_age_ms"]["samples"], 3);
+        assert_eq!(json["rows"][0]["serialization_ms_per_second"], 1.5);
+        assert!(json["environment"]["available_parallelism"].is_number());
+    }
+
+    #[test]
+    fn serialization_rate_sums_tick_and_writer_encodes() {
+        let probe = fragr_server::net::WriterProbe::default();
+        let mut report = fragr_server::run::RunMetrics::default().report();
+        assert_eq!(serialization_ms_per_second(&report, 2.0), 0.0);
+        report.broadcast_encode_ms.mean = 0.5;
+        report.broadcast_encode_ms.count = 40;
+        report.writer = probe.report();
+        report.writer.encode_ms.mean = 0.25;
+        report.writer.encode_ms.count = 80;
+        assert_eq!(serialization_ms_per_second(&report, 2.0), 20.0);
+        assert_eq!(serialization_ms_per_second(&report, 0.0), 0.0);
     }
 
     #[test]
