@@ -80,6 +80,6 @@ fn peace_without_interruption_canonical_source_and_connected_loop() {
         serde_json::from_str::<MissionId>("\"peace_without_interruption\"").unwrap(),
         MissionId::PeaceWithoutInterruption
     );
-    assert_eq!(MissionId::ALL.len(), 19);
+    assert_eq!(MissionId::ALL.len(), 20);
     assert!(MissionId::ALL.contains(&MissionId::PeaceWithoutInterruption));
 }

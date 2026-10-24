@@ -28,7 +28,7 @@ outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
 Carrier, M11 Right of Search, M12 Terms of Cooperation, M13 The Weight of
 Permission, M14 Launch Authority, M15 Civic Pressure Valve, M16 Freedom of
-Movement, M17 Peace Without Interruption, M18 All Systems Normal, and M19 Planned Works. Saves retain mission-entry retries,
+Movement, M17 Peace Without Interruption, M18 All Systems Normal, M19 Planned Works and M20 Local Exception. Saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
 people from those actually evacuated or aboard. A save from another build is
 refused rather than converted. M12 adds the Arc, Assessor, shelter,
@@ -44,13 +44,15 @@ Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V co
 to 3, and departure into M19 Planned Works. M19 connects the concourse stores jetpack,
 the broken-stair jetpack lesson, the concourse crossing, the lone tram-street Paver lesson,
 the striped market, Latch's departure from the water tanks, the reverse roof loop and the
-tram trench to the waterworks hatch, with departure to pending M20 Local Exception. Its
+tram trench to the waterworks hatch, with departure into M20 Local Exception. Its
 jetpack is the prepared generated model; the Paver and the scene figures are placeholder
 forms behind one model path each.
 Its hostiles are absorbed bots and restoration Pavers by authoritative control domain;
 Collectors are omitted until that role exists.
-M20 and the epilogue remain unbuilt. The development graybox for level 20 is not a
-connected mission. Ordinary campaign supply and visual pursuit scale
+M20 connects the lone sluice Surveyor lesson, the waterworks crew crossing, the refuge pier
+hold with resupply crates and a six-minute last span, the reprieve the free agents win in the
+tower, and the refuge gate. Its completion records the campaign's survival and unlocks the
+Still Here epilogue, which is not built yet. Ordinary campaign supply and visual pursuit scale
 by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone
 [M12 habitat](plans/m12-habitat-development-20261008.md),
 [M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and
@@ -453,7 +455,8 @@ tram and freight departure, preserving released/physically aboard outcomes at
 Port of Entry. The version 18 run continues through M14, retaining actual
 completed outcomes, entry resources and the M06/M10 episode refills. Completed
 M13 promotes into M14 without a refill; completed M14 retains pending M15.
-Connected M15-M20, the epilogue and any cloud-save policy
+M20 promotes from a completed predecessor through one isolated adapter and records the
+campaign's terminal survival. Connected M19, the epilogue and any cloud-save policy
 remain unbuilt. Complete pacing and fresh-player acceptance stay open.
 
 ## Story presentation and localization

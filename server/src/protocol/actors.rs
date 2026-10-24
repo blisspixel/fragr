@@ -33,6 +33,10 @@ pub enum EnemyKind {
     /// in the open, then works everything inside it. A hard hit during the
     /// preparation puts the strip out.
     Paver,
+    /// Elevated off-white spotter. Its lens opens wide to observe one
+    /// participant, then projects a tracking disc that nearby machines
+    /// converge on. Lens closed, its shutter turns most traced damage.
+    Surveyor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -86,14 +90,20 @@ impl ControlDomain {
     /// personnel are never absorbed; only restoration machines are restoration.
     pub fn admits(self, kind: EnemyKind) -> bool {
         match self {
-            Self::Union => kind != EnemyKind::Paver,
+            Self::Union => !kind.is_restoration_machine(),
             Self::Absorbed => kind.is_union_machine(),
-            Self::Restoration => kind == EnemyKind::Paver,
+            Self::Restoration => kind.is_restoration_machine(),
         }
     }
 }
 
 impl EnemyKind {
+    /// The Inheritance's own restoration machines. They never answer to the
+    /// Union and are never absorbed.
+    pub fn is_restoration_machine(self) -> bool {
+        matches!(self, Self::Paver | Self::Surveyor)
+    }
+
     /// Union bots and equipment, as opposed to Union people and restoration
     /// machines. Only these can be absorbed.
     pub fn is_union_machine(self) -> bool {
@@ -305,6 +315,43 @@ pub struct AuditorState {
 /// Completed repairs one Auditor may make. Never a third.
 pub const AUDITOR_REPAIRS: u8 = 2;
 
+/// One living Surveyor's projected mark: a disc of light on the ground that
+/// tracks its observed participant at a bounded speed while sight holds.
+/// Nearby walking machines converge on the disc's current centre.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SurveyorMarkState {
+    /// The projecting Surveyor.
+    pub id: uuid::Uuid,
+    /// Grounded disc centre in world feet.
+    pub center: [f32; 3],
+    pub radius: f32,
+    /// Tick the disc was cast and the tick it lapses unless broken first.
+    pub since: u64,
+    pub until: u64,
+    /// The Surveyor currently sees its participant and the disc follows.
+    pub tracking: bool,
+}
+
+/// Disc radius in metres. Stepping clear of it is the first counter.
+pub const SURVEYOR_MARK_RADIUS: f32 = 3.0;
+
+impl SurveyorMarkState {
+    pub fn validate(&self, half: f32) -> Result<(), &'static str> {
+        if self.id.is_nil()
+            || !self.center.iter().all(|v| v.is_finite())
+            || self.center[0].abs() > half
+            || self.center[2].abs() > half
+            || !(0.0..=512.0).contains(&self.center[1])
+            || (self.radius - SURVEYOR_MARK_RADIUS).abs() > f32::EPSILON
+            || self.until <= self.since
+        {
+            return Err("invalid Surveyor mark");
+        }
+        Ok(())
+    }
+}
+
 impl CampaignActor {
     pub fn is_enemy(self) -> bool {
         matches!(self, Self::Hostile { .. })
@@ -464,7 +511,12 @@ mod tests {
             serde_json::to_value(sweeper).unwrap()["side"],
             serde_json::json!("union")
         );
-        for actor in [paver, absorbed, sweeper] {
+        let surveyor = body(EnemyKind::Surveyor, ControlDomain::Restoration);
+        assert_eq!(
+            serde_json::to_value(surveyor).unwrap()["control"],
+            serde_json::json!("restoration")
+        );
+        for actor in [paver, absorbed, sweeper, surveyor] {
             assert!(actor.is_enemy());
             assert!(hostile(Some(actor), Some(CampaignActor::Participant {})));
             let json = serde_json::to_string(&actor).unwrap();
@@ -474,6 +526,8 @@ mod tests {
         // never the Union's, and only restoration machines are restoration.
         for raw in [
             r#"{"side":"union","kind":"paver","phase":"idle","phase_started":0,"phase_ends":0}"#,
+            r#"{"side":"union","kind":"surveyor","phase":"idle","phase_started":0,"phase_ends":0}"#,
+            r#"{"side":"inheritance","control":"absorbed","kind":"surveyor","phase":"idle","phase_started":0,"phase_ends":0}"#,
             r#"{"side":"inheritance","control":"absorbed","kind":"clerk","phase":"idle","phase_started":0,"phase_ends":0}"#,
             r#"{"side":"inheritance","control":"absorbed","kind":"paver","phase":"idle","phase_started":0,"phase_ends":0}"#,
             r#"{"side":"inheritance","control":"restoration","kind":"sweeper","phase":"idle","phase_started":0,"phase_ends":0}"#,

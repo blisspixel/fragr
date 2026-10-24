@@ -284,6 +284,7 @@ impl GameState {
             }
         }
         Some(MissionState {
+            m20: None,
             id: MissionId::CivicPressureValve,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,

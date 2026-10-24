@@ -182,6 +182,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         auditors,
         paver_strips,
         jetpacks,
+        surveyor_marks,
         explosions,
         mode_name,
         playlist,
@@ -239,6 +240,14 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
             .iter()
             .zip(&new.jetpacks)
             .all(|(a, b)| a.player_id == b.player_id)
+        // A disc's centre is motion; its owner, lifetime and tracking are facts.
+        && surveyor_marks.len() == new.surveyor_marks.len()
+        && surveyor_marks
+            .iter()
+            .zip(&new.surveyor_marks)
+            .all(|(a, b)| {
+                a.id == b.id && a.since == b.since && a.until == b.until && a.tracking == b.tracking
+            })
         && mode_name == &new.mode_name
         && playlist == &new.playlist
         && pressure == &new.pressure

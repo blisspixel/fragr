@@ -94,7 +94,7 @@ func apply_map_info(info: Dictionary) -> void:
 	# The intake presenter builds the annex's own street skyline instead.
 	# Planned Works ends at the river railing; the presenter owns what lies past it.
 	var planned_works: bool = info.get("m19") is Dictionary
-	if planned_works or venue in ["earth_intake", "moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
+	if planned_works or venue in ["earth_intake", "moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry", "waterworks"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
@@ -103,6 +103,9 @@ func apply_map_info(info: Dictionary) -> void:
 		# The authored sealed hull supplies every usable floor. The generic
 		# outside arena plane would turn the command window into a courtyard.
 		get_node("MapFloor").visible = false
+	if venue == "waterworks":
+		# The fenced basins open onto the harbour at its real depth.
+		WaterworksBackdrop.split_floor(self, get_node("MapFloor") as MeshInstance3D)
 	var solids: Array = info.get("solids", [])
 	var walker_solids: Array[int] = []
 	if info.get("walker") is Dictionary:
@@ -165,6 +168,7 @@ static func venue_for(info: Dictionary) -> String:
 		"terms of cooperation": return "mars_habitat"
 		"the weight of permission (development)": return "mars_foundry"
 		"the weight of permission": return "mars_foundry"
+		"local exception": return "waterworks"
 	if info.get("m11") is Dictionary:
 		return "right_of_search"
 	if info.get("m10") is Dictionary:

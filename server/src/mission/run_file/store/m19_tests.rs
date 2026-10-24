@@ -1,5 +1,6 @@
 //! Planned Works joins the current save: completed M18 promotes without an
-//! episode refill and an actual departure records pending `local_exception`.
+//! episode refill and an actual departure records its works receipt and the
+//! edge into `local_exception`.
 use super::*;
 use crate::maps::{AuthoredSource, RuntimeMap};
 use crate::mission::run_file::{M16Outcome, M17Outcome, M18Outcome, M19Outcome, SavedStep};
@@ -47,6 +48,15 @@ fn complete(mut entry: RunDocument) -> RunDocument {
             });
             "planned_works"
         }
+        MissionId::PlannedWorks => {
+            entry.m19_outcome = Some(M19Outcome {
+                crossing_cleared: true,
+                paver_interrupted: true,
+                strip_struck: false,
+                latch_departed: true,
+            });
+            "local_exception"
+        }
         _ => unreachable!(),
     };
     entry.step = SavedStep::AwaitingMission {
@@ -73,6 +83,23 @@ fn completed_recovery() -> RunDocument {
             .unwrap();
     }
     source
+}
+
+/// A completed Planned Works with its receipt, awaiting Local Exception on
+/// the Episode V allowance it entered with.
+pub(super) fn completed_works() -> RunDocument {
+    let source = completed_recovery();
+    let entry = source
+        .promote_next(
+            MissionId::PlannedWorks,
+            m09_tests::HASHES[stage_index(MissionId::PlannedWorks)],
+        )
+        .unwrap();
+    let mut done = complete(entry);
+    done.remaining_continues = 2;
+    done.validate(m09_tests::HASHES[stage_index(MissionId::PlannedWorks)])
+        .unwrap();
+    done
 }
 
 #[test]
@@ -212,8 +239,14 @@ fn an_actual_waterworks_departure_saves_the_works_receipt_and_pending_m20() {
         *next_mission = "planned_works".into();
     }
     assert!(wrong.validate(hash).is_err());
-    // The pending finale is not yet a playable promotion.
+    // The completed works enter only the finale.
     for mission in CAMPAIGN_MISSIONS {
-        assert!(saved.promote_next(mission, hash).is_err());
+        assert_eq!(
+            saved
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .is_ok(),
+            mission == MissionId::LocalException,
+            "{mission:?}"
+        );
     }
 }

@@ -72,6 +72,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::PeaceWithoutInterruption => "peace_without_interruption",
                         MissionId::AllSystemsNormal => "all_systems_normal",
                         MissionId::PlannedWorks => "planned_works",
+                        MissionId::LocalException => "local_exception",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -1034,8 +1035,8 @@ mod tests {
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
         assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
-        // M09 and M10 carry the single-schema campaign receipts, the highest
-        // contract this binary speaks.
+        // M09 and M10 carry the single-schema campaign receipts (contract 55,
+        // below the Local Exception contract this binary now tops out at).
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {
             let ready = Ready::new(
                 mission,
@@ -1048,7 +1049,7 @@ mod tests {
                 ready.gameplay_version,
                 crate::protocol::RECEIPT_GAMEPLAY_VERSION
             );
-            assert_eq!(ready.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+            assert!(ready.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
         }
         let m19 = Ready::new(
             MissionId::PlannedWorks,
@@ -1058,6 +1059,14 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m19.gameplay_version, crate::protocol::M19_GAMEPLAY_VERSION);
-        assert_eq!(m19.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        let m20 = Ready::new(
+            MissionId::LocalException,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m20.gameplay_version, crate::protocol::M20_GAMEPLAY_VERSION);
+        assert_eq!(m20.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
     }
 }

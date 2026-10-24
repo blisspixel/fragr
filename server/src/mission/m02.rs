@@ -159,6 +159,7 @@ impl GameState {
             Vec::new()
         };
         Some(MissionState {
+            m20: None,
             id: MissionId::PersonsUnknown,
             run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,

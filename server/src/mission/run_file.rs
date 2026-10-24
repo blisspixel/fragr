@@ -54,6 +54,9 @@ const M17_MISSION: &str = "peace_without_interruption";
 const M18_MISSION: &str = "all_systems_normal";
 const M19_MISSION: &str = "planned_works";
 const M20_MISSION: &str = "local_exception";
+/// The campaign's survival-gated epilogue, Still Here: the pending destination
+/// a completed Local Exception records. Nothing promotes past it yet.
+const STILL_HERE: &str = "still_here";
 const M08_MISSION: &str = "custodian_of_record";
 
 pub(crate) use crate::protocol::M08Outcome;
@@ -373,6 +376,7 @@ impl RunDocument {
             MissionId::PeaceWithoutInterruption => (MissionId::FreedomOfMovement, M17_MISSION),
             MissionId::AllSystemsNormal => (MissionId::PeaceWithoutInterruption, M18_MISSION),
             MissionId::PlannedWorks => (MissionId::AllSystemsNormal, M19_MISSION),
+            MissionId::LocalException => (MissionId::PlannedWorks, M20_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -402,6 +406,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) && self.m03_outcome.is_some())
@@ -490,6 +495,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -516,6 +522,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -541,6 +548,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -565,6 +573,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -584,6 +593,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -605,6 +615,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -626,6 +637,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) != self.m10_transit.is_some()
@@ -650,6 +662,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -668,6 +681,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -685,6 +699,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -701,6 +716,7 @@ impl RunDocument {
             MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -716,6 +732,7 @@ impl RunDocument {
             self.stage_mission(),
             MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) || matches!(&self.step, SavedStep::AwaitingMission {
@@ -732,6 +749,7 @@ impl RunDocument {
             MissionId::PeaceWithoutInterruption
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
+                | MissionId::LocalException
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::FreedomOfMovement, next_mission, ..
         } if next_mission == M17_MISSION);
@@ -743,7 +761,7 @@ impl RunDocument {
         }
         let completed_m17 = matches!(
             self.stage_mission(),
-            MissionId::AllSystemsNormal | MissionId::PlannedWorks
+            MissionId::AllSystemsNormal | MissionId::PlannedWorks | MissionId::LocalException
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PeaceWithoutInterruption, next_mission, ..
         } if next_mission == M18_MISSION);
@@ -753,8 +771,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m17_outcome {
             outcome.validate()?;
         }
-        let completed_m18 = self.stage_mission() == MissionId::PlannedWorks
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m18 = matches!(
+            self.stage_mission(),
+            MissionId::PlannedWorks | MissionId::LocalException
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::AllSystemsNormal, next_mission, ..
         } if next_mission == M19_MISSION);
         if completed_m18 != self.m18_outcome.is_some() {
@@ -763,7 +783,8 @@ impl RunDocument {
         if let Some(outcome) = &self.m18_outcome {
             outcome.validate()?;
         }
-        let completed_m19 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m19 = self.stage_mission() == MissionId::LocalException
+            || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PlannedWorks, next_mission, ..
         } if next_mission == M20_MISSION);
         if completed_m19 != self.m19_outcome.is_some() {
@@ -824,6 +845,7 @@ impl RunDocument {
                         | (MissionId::PeaceWithoutInterruption, M18_MISSION)
                         | (MissionId::AllSystemsNormal, M19_MISSION)
                         | (MissionId::PlannedWorks, M20_MISSION)
+                        | (MissionId::LocalException, STILL_HERE)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -840,6 +862,7 @@ impl RunDocument {
                         | MissionId::CivicPressureValve
                         | MissionId::FreedomOfMovement
                         | MissionId::PeaceWithoutInterruption
+                        | MissionId::LocalException
                         | MissionId::AllSystemsNormal
                         | MissionId::PlannedWorks
                 ) && !exit.equipment.weapons.contains(&WeaponType::Arc)
@@ -853,6 +876,7 @@ impl RunDocument {
                         | MissionId::CivicPressureValve
                         | MissionId::FreedomOfMovement
                         | MissionId::PeaceWithoutInterruption
+                        | MissionId::LocalException
                         | MissionId::AllSystemsNormal
                         | MissionId::PlannedWorks
                 ) && !exit.equipment.weapons.contains(&WeaponType::Rocket)
@@ -874,6 +898,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -889,6 +914,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -902,6 +928,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -914,6 +941,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -925,6 +953,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -935,6 +964,7 @@ impl RunDocument {
                             | MissionId::CivicPressureValve
                             | MissionId::FreedomOfMovement
                             | MissionId::PeaceWithoutInterruption
+                            | MissionId::LocalException
                             | MissionId::AllSystemsNormal
                             | MissionId::PlannedWorks
                     ),
@@ -955,6 +985,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) && !entry.equipment.weapons.contains(&WeaponType::Arc)
@@ -967,6 +998,7 @@ impl RunDocument {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
+                | MissionId::LocalException
                 | MissionId::AllSystemsNormal
                 | MissionId::PlannedWorks
         ) && !entry.equipment.weapons.contains(&WeaponType::Rocket)
@@ -987,6 +1019,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1002,6 +1035,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1014,6 +1048,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1025,6 +1060,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1035,6 +1071,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1044,6 +1081,7 @@ impl RunDocument {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ),
@@ -1154,6 +1192,7 @@ impl GameState {
                     MissionId::PeaceWithoutInterruption => M18_MISSION,
                     MissionId::AllSystemsNormal => M19_MISSION,
                     MissionId::PlannedWorks => M20_MISSION,
+                    MissionId::LocalException => STILL_HERE,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
@@ -1196,6 +1235,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1227,6 +1267,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1258,6 +1299,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1287,6 +1329,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1316,6 +1359,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1342,6 +1386,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1359,6 +1404,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1383,6 +1429,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1407,6 +1454,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1430,6 +1478,7 @@ impl GameState {
                     | MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1453,6 +1502,7 @@ impl GameState {
                 MissionId::CivicPressureValve
                     | MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1475,6 +1525,7 @@ impl GameState {
                 mission,
                 MissionId::FreedomOfMovement
                     | MissionId::PeaceWithoutInterruption
+                    | MissionId::LocalException
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
             ) {
@@ -1498,6 +1549,7 @@ impl GameState {
                 MissionId::PeaceWithoutInterruption
                     | MissionId::AllSystemsNormal
                     | MissionId::PlannedWorks
+                    | MissionId::LocalException
             ) {
                 solo.carried_avenue.clone()
             } else {
@@ -1516,7 +1568,7 @@ impl GameState {
                 )?)
             } else if matches!(
                 mission,
-                MissionId::AllSystemsNormal | MissionId::PlannedWorks
+                MissionId::AllSystemsNormal | MissionId::PlannedWorks | MissionId::LocalException
             ) {
                 solo.carried_office.clone()
             } else {
@@ -1533,7 +1585,7 @@ impl GameState {
                         .ok_or("completed M18 lacks progress")?,
                     self.tick,
                 )?)
-            } else if mission == MissionId::PlannedWorks {
+            } else if matches!(mission, MissionId::PlannedWorks | MissionId::LocalException) {
                 solo.carried_recovery.clone()
             } else {
                 None
@@ -1549,6 +1601,8 @@ impl GameState {
                         .ok_or("completed M19 lacks progress")?,
                     self.tick,
                 )?)
+            } else if mission == MissionId::LocalException {
+                solo.carried_works.clone()
             } else {
                 None
             },

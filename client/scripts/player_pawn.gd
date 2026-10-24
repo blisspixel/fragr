@@ -141,7 +141,7 @@ const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
 const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
 ## Machines fall as machines, Union or Inheritance; the Notary keeps its own crash.
-const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver"]
+const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver", "surveyor"]
 
 var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
@@ -675,6 +675,8 @@ func _update_body_color(hit: bool):
 		enemy_view.assessor_rig.set_hit(hit)
 	if enemy_view != null and enemy_view.paver_rig != null:
 		enemy_view.paver_rig.set_hit(hit)
+	if enemy_view != null and enemy_view.surveyor_rig != null:
+		enemy_view.surveyor_rig.set_hit(hit)
 	_apply_body_scale(hit)
 
 ## The live body in its side's livery with its accent on the shoulder and arm
@@ -1002,11 +1004,13 @@ func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
 	is_local_fp = enabled
 	if body:
-		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") not in ["assessor", "paver"]
+		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") not in ["assessor", "paver", "surveyor"]
 	if enemy_view != null and enemy_view.assessor_rig != null:
 		enemy_view.assessor_rig.visible = not enabled
 	if enemy_view != null and enemy_view.paver_rig != null:
 		enemy_view.paver_rig.visible = not enabled
+	if enemy_view != null and enemy_view.surveyor_rig != null:
+		enemy_view.surveyor_rig.visible = not enabled
 	if character_view != null:
 		character_view.visible = not enabled
 	if label:

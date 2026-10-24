@@ -20,6 +20,7 @@ const M17_ID: String = "peace_without_interruption"
 const M18_ID: String = "all_systems_normal"
 const M19_ID: String = "planned_works"
 const M12_ID: String = "terms_of_cooperation"
+const M20_ID: String = "local_exception"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
 ## Records keep their earned revision; current live facts require revision 4.
@@ -31,6 +32,8 @@ const ORDERED_IDS: Array[String] = [M03_ID, M04_ID, M05_ID, M06_ID, M07_ID, M08_
 
 ## Identity of an already validated MapInfo. Shared by entry and live controls.
 static func id_for_map(info: Dictionary) -> String:
+	if info.get("m20") is Dictionary:
+		return M20_ID
 	if info.get("mission") is Dictionary:
 		return str(info["mission"].get("id", ""))
 	if info.get("m02_objectives") != null:
@@ -122,6 +125,8 @@ static func late_contract_error(message: Dictionary, geometry: Dictionary, previ
 static func map_error(info: Dictionary) -> String:
 	if info.has("m19"):
 		return M19MissionState.map_error(info)
+	if info.has("m20"):
+		return M20MissionState.map_error(info)
 	if info.has("m18"):
 		return M18MissionState.map_error(info)
 	if info.has("m17"):
@@ -198,6 +203,8 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 	var claimed: Variant = message.get("state")
 	if geometry.get("id") == M19_ID or (claimed is Dictionary and claimed.get("id") == M19_ID):
 		return M19MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M20_ID or (claimed is Dictionary and claimed.get("id") == M20_ID):
+		return M20MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M18_ID or (claimed is Dictionary and claimed.get("id") == M18_ID):
 		return M18MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M17_ID or (claimed is Dictionary and claimed.get("id") == M17_ID):
@@ -364,6 +371,8 @@ static func m02_map_error(info: Dictionary) -> String:
 static func geometry_for(info: Dictionary) -> Dictionary:
 	if info.has("m19"):
 		return M19MissionState.geometry_for(info)
+	if info.has("m20"):
+		return M20MissionState.geometry_for(info)
 	if info.has("m18"):
 		return M18MissionState.geometry_for(info)
 	if info.has("m17"):

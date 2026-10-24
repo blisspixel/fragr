@@ -46,6 +46,8 @@ pub use m13::{
     M13ObjectiveState, M13WorkerResponse, M13_LIFT_SPEED, M13_OBJECTIVE_IDS, M13_WORKER_RESPONSES,
 };
 pub use walker::*;
+mod m20;
+pub use m20::*;
 mod mission;
 mod rules;
 mod sabotage;
@@ -54,7 +56,7 @@ mod status;
 mod vehicle;
 pub use actors::{
     hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, ControlDomain, EnemyKind,
-    EnemyPhase, AUDITOR_REPAIRS,
+    EnemyPhase, SurveyorMarkState, AUDITOR_REPAIRS, SURVEYOR_MARK_RADIUS,
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
@@ -791,9 +793,12 @@ pub const SIDEARM_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
 /// waterworks departure. None of contract 55's parts shipped alone, so the
 /// receipts, the Pistol start and Planned Works share it.
 pub const M19_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
+/// Local Exception: the Surveyor, its tracking mark and convergence, the
+/// pier hold clock, refuge barricade, reprieve stand-down and campaign victory.
+pub const M20_GAMEPLAY_VERSION: u32 = 56;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = SIDEARM_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M20_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -931,6 +936,7 @@ mod geometry_tests {
             m18: None,
             m19: None,
             walker: None,
+            m20: None,
             article_blade: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
@@ -1118,6 +1124,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         walker: Option<WalkerGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m20: Option<M20MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1534,6 +1546,9 @@ pub struct Snapshot {
     /// Worn jetpacks and their fuel. Omitted when nobody wears one.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub jetpacks: Vec<JetpackState>,
+    /// Live Surveyor discs, each projected by one living Surveyor.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub surveyor_marks: Vec<SurveyorMarkState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub explosions: Vec<ExplosionResult>,
     /// Contested Frequency (scrap league that denies it exists).
@@ -2028,6 +2043,7 @@ mod protocol_tests {
             auditors: Vec::new(),
             paver_strips: Vec::new(),
             jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -2290,6 +2306,7 @@ mod protocol_tests {
             auditors: Vec::new(),
             paver_strips: Vec::new(),
             jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),

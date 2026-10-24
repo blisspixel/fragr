@@ -45,6 +45,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::PeaceWithoutInterruption => 16,
         MissionId::AllSystemsNormal => 17,
         MissionId::PlannedWorks => 18,
+        MissionId::LocalException => 19,
     }
 }
 
@@ -607,6 +608,8 @@ mod m14_tests;
 #[cfg(test)]
 pub(super) mod m15_tests;
 #[cfg(test)]
-mod m19_tests;
+pub(super) mod m19_tests;
+#[cfg(test)]
+mod m20_tests;
 #[cfg(test)]
 mod stair_entry_tests;

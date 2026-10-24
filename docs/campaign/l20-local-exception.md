@@ -5,7 +5,25 @@ Shared [world direction](../design/earth.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** planned, accepted 2026-09-25, unbuilt. The last third of
+**Status:** connected, built 2026-10-23 and brought to the Episode V canon
+review on 2026-10-24 (issue #430; capability 56, map 1020,
+[protocol](../protocol.md#local-exception-and-surveyor-marks-capability-56)).
+A completed Planned Works promotes into it without a refill; surviving it
+records the campaign's survival and leaves Still Here pending. Every hostile
+body is the Inheritance on the wire: Surveyors and Pavers are restoration
+machines and every bot is absorbed. The first Surveyor teaches alone; one
+absorbed Sweeper follows once its first disc ends. A Paver stripes the
+service road and Pavers stripe the freight yard. Collectors are left out
+until that role exists; no stronger renamed Sweeper stands in for one. At the
+reprieve the harbour display's closure line becomes one precise exception
+line, the tower goes down to one lamp, every machine stops where it stands
+and then walks past the line, and a work front walks on to the next
+district. Severe currently adds a refuge line that never fell, not the
+brief's "every rescue from this episode alive" (no episode V rescue is
+tracked yet); this needs Nick's call and never gates the reprieve. The crane
+cab secret still waits on carrying the jetpack into this level. The free
+local agent survives it on Assisted, Standard and Severe in the route
+harness. Rendered review only, not fresh-player acceptance. Accepted 2026-09-25. The last third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 21
 to 33, the climax. Surviving it unlocks [Still Here](epilogue-still-here.md).

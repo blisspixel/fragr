@@ -63,7 +63,11 @@ fn planned_works_canonical_source_and_connected_loop() {
         serde_json::from_str::<MissionId>("\"planned_works\"").unwrap(),
         MissionId::PlannedWorks
     );
-    assert!(serde_json::from_str::<MissionId>("\"local_exception\"").is_err());
-    assert_eq!(MissionId::ALL.len(), 19);
-    assert_eq!(MissionId::ALL.last(), Some(&MissionId::PlannedWorks));
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"local_exception\"").unwrap(),
+        MissionId::LocalException
+    );
+    assert!(serde_json::from_str::<MissionId>("\"still_here\"").is_err());
+    assert_eq!(MissionId::ALL.len(), 20);
+    assert_eq!(MissionId::ALL.last(), Some(&MissionId::LocalException));
 }

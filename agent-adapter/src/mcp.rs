@@ -1763,6 +1763,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m17,
             m18,
             m19,
+            m20,
             walker,
             article_blade,
             map_name,
@@ -1951,6 +1952,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m19 {
                 map["m19"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m20(
+                m20.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m20 {
+                map["m20"] = serde_json::json!(geometry);
             }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
@@ -3019,7 +3029,7 @@ mod mcp_tests {
             let ids = tool["inputSchema"]["properties"]["id"]["enum"]
                 .as_array()
                 .unwrap();
-            assert_eq!(ids.len(), 19);
+            assert_eq!(ids.len(), protocol::MissionId::ALL.len());
             for id in [
                 "recall_notice",
                 "no_forwarding_address",
@@ -3037,10 +3047,11 @@ mod mcp_tests {
                 "peace_without_interruption",
                 "all_systems_normal",
                 "planned_works",
+                "local_exception",
             ] {
                 assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
             }
-            assert!(!ids.contains(&serde_json::json!("local_exception")));
+            assert!(!ids.contains(&serde_json::json!("still_here")));
             for id in ids {
                 let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
                 let ready: protocol::MissionReady =

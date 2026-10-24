@@ -100,6 +100,7 @@ impl GameState {
             Vec::new()
         };
         Some(MissionState {
+            m20: None,
             id: MissionId::PortOfEntry,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,

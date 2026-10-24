@@ -409,6 +409,8 @@ async fn run_server_impl(
     });
     let required_gameplay = if let Some(mission) = session.state.map.campaign_mission_id() {
         mission.gameplay_version()
+    } else if session.state.map.requires_surveyor_contract() {
+        crate::protocol::M20_GAMEPLAY_VERSION
     } else if session.state.map.requires_article_blade_contract() {
         crate::protocol::BLADE_GAMEPLAY_VERSION
     } else if session.state.map.m14_geometry().is_some() {

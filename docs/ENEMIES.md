@@ -26,9 +26,10 @@ M02 art-route and Auditor-range acceptance remain open. The
 [Continuance Walker foundation](plans/walker-foundation-20261015.md) now has
 a distinct shootable moving machine, committed warnings and finite traveling
 artillery in a standalone range. Connected M14, its later support phases and
-final art remain unbuilt. The Paver is built for level 19 under the authoritative
-`restoration` control domain, beside `absorbed` bots; the Collector and Surveyor
-remain unbuilt.
+final art remain unbuilt. The Paver is built for level 19 and the Surveyor for
+level 20 under the authoritative `restoration` control domain, beside
+`absorbed` bots; both use placeholder forms behind one model path, and the
+Collector remains unbuilt.
 Calibration's NODS
 and arcade "AUDITOR" label are separate arcade prototypes, not implementations
 of the proposed roster.
@@ -251,7 +252,7 @@ then mix it with an established role. Proposed progression:
 | Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Connected level 12 Martian habitat, in flight |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
 | Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 lunar custody archive, planned |
-| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | Level 19 connected with absorbed bots and Pavers, acceptance open; levels 18 and 20 planned |
+| Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | Levels 19 and 20 connected with absorbed bots, Pavers and Surveyors, acceptance open; level 18 planned |
 
 Each pairing needs routes that allow both answers, readable attack overlap and
 supplies for imperfect play. A room full of hitscan enemies does not reproduce

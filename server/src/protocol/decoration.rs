@@ -149,6 +149,20 @@ pub enum MapDecorationKind {
     M19ServiceSix,
     /// The waterworks hatch control at the trench mouth.
     M19Waterworks,
+    /// The refuge crossing's control, behind the level's one door.
+    M20CrossingControl,
+    /// The harbour display: dark until the one precise message.
+    M20HarbourDisplay,
+    /// Chalked sixes over the three Local Exception secrets.
+    M20ValveSix,
+    M20LampSix,
+    M20CraneSix,
+    /// Hand-painted refuge notice on the gate leaf.
+    M20RefugeNotice,
+    /// The sluice gauge board: the pumps still running for the refuge.
+    M20PumpBoard,
+    /// The footbridge door toward the waterworks tower.
+    M20TowerBridge,
 }
 
 impl MapDecorationKind {
@@ -185,6 +199,21 @@ impl MapDecorationKind {
                 | Self::M19WaterTank
                 | Self::M19ServiceSix
                 | Self::M19Waterworks
+        )
+    }
+
+    /// Registered panels that belong only to Local Exception.
+    pub fn is_m20(self) -> bool {
+        matches!(
+            self,
+            Self::M20CrossingControl
+                | Self::M20HarbourDisplay
+                | Self::M20ValveSix
+                | Self::M20LampSix
+                | Self::M20CraneSix
+                | Self::M20RefugeNotice
+                | Self::M20PumpBoard
+                | Self::M20TowerBridge
         )
     }
 
