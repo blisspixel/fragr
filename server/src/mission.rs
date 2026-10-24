@@ -45,6 +45,8 @@ mod late_routes;
 #[cfg(test)]
 mod readiness_tests;
 #[cfg(test)]
+pub(crate) mod route_skill;
+#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod wire_tests;

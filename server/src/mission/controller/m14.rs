@@ -1,6 +1,12 @@
 use super::*;
 use crate::protocol::{M14MapGeometry, WalkerPhase, WeaponType, M14_OBJECTIVE_IDS};
 
+/// Rocket splash reaches 4 m; a rocket is only fired when the first surface
+/// along its line is further than this.
+const ROCKET_STAND_OFF: f32 = 5.5;
+/// Clearance either side of and below the sight line a rocket body needs.
+const ROCKET_BODY: f32 = 0.3;
+
 impl MissionClient {
     pub(super) fn m14_visibility_solids(&self, snapshot: &Snapshot) -> Option<Vec<Solid>> {
         let g = self.m14_map.as_ref()?;
@@ -316,7 +322,44 @@ impl MissionClient {
                 let in_range = weapon.is_some_and(|weapon| {
                     (aim[0] - me.x).hypot(aim[2] - me.z) < weapon.range_units()
                 });
-                if target.is_none() || !in_range {
+                // A rocket that bursts inside its own splash on a leg or a
+                // pillar in front of the shooter hurts the shooter. Stand off
+                // until the first thing the rocket meets is clear of it.
+                let reach = [aim[0] - eye[0], aim[1] - eye[1], aim[2] - eye[2]];
+                let length = (reach[0] * reach[0] + reach[1] * reach[1] + reach[2] * reach[2])
+                    .sqrt()
+                    .max(0.001);
+                let safe = ROCKET_STAND_OFF / length;
+                // The rocket is a body, not a ray: a corner a hand's width off
+                // the sight line still catches it.
+                let horizontal = reach[0].hypot(reach[2]).max(0.001);
+                let side = [-reach[2] / horizontal, reach[0] / horizontal];
+                let point_blank = weapon == Some(WeaponType::Rocket)
+                    && (length <= ROCKET_STAND_OFF
+                        || [
+                            [0.0, 0.0],
+                            [ROCKET_BODY, 0.0],
+                            [-ROCKET_BODY, 0.0],
+                            [0.0, -ROCKET_BODY],
+                        ]
+                        .into_iter()
+                        .any(|[lateral, rise]| {
+                            let from = [
+                                eye[0] + side[0] * lateral,
+                                eye[1] + rise,
+                                eye[2] + side[1] * lateral,
+                            ];
+                            !crate::combat::line_of_sight(
+                                from,
+                                [
+                                    from[0] + reach[0] * safe,
+                                    from[1] + reach[1] * safe,
+                                    from[2] + reach[2] * safe,
+                                ],
+                                &actual,
+                            )
+                        }));
+                if target.is_none() || !in_range || point_blank {
                     return navigator.steer_with_visibility(
                         world,
                         feet,

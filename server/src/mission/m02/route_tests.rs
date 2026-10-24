@@ -153,6 +153,7 @@ struct Walker {
     /// switchback check is the lesson; an earlier sightline must not delete it.
     defer_first_crawler: bool,
     crawler_hits: Vec<(u64, String)>,
+    tells: crate::mission::route_skill::TellReader,
 }
 
 impl Walker {
@@ -191,6 +192,7 @@ impl Walker {
             teach_crawler_landings: false,
             defer_first_crawler: false,
             crawler_hits: Vec::new(),
+            tells: Default::default(),
         }
     }
 
@@ -495,15 +497,19 @@ impl Walker {
                     && !self.hold_stair_shot(&p.name)
                     // Engagement range, not every pixel down a long sightline.
                     && (p.x - me.x).hypot(p.z - me.z) < 24.0
-                    && crate::combat::line_of_sight(
-                        eye,
-                        [
-                            p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
-                            p.z,
-                        ],
-                        &session.state.map.arena().solids,
-                    )
+                    // A guard behind a counter still shows its chest and head.
+                    && [0.5, 0.85].into_iter().any(|share| {
+                        crate::combat::line_of_sight(
+                            eye,
+                            [
+                                p.x,
+                                p.y - PLAYER_FLOOR_Y
+                                    + crate::combat::target_height(p.campaign) * share,
+                                p.z,
+                            ],
+                            &session.state.map.arena().solids,
+                        )
+                    })
             })
             .collect();
         let mut combat = Action::default();
@@ -610,6 +616,7 @@ impl Walker {
         // This witness deliberately clears every authored guard before boarding.
         // A combat dodge must not finish its optional full-clear proof early at
         // the real, intentionally ungated departure boundary.
+        let action = self.tells.evade(&session.state, snapshot, self.id, action);
         let action = full_clear_dodge(&session.state, self.id, action);
         session.state.set_action(self.id, action);
     }
@@ -773,6 +780,25 @@ fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
                 && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
         }) {
             return alternate;
+        }
+    }
+    // A tell dodge that would cross into the exit reverses along its own
+    // axis instead of standing on the committed line.
+    if action.forward || action.back || action.left || action.right {
+        for (swap_lateral, swap_depth) in [(true, false), (false, true), (true, true)] {
+            let mut alternate = action.clone();
+            if swap_lateral {
+                (alternate.left, alternate.right) = (action.right, action.left);
+            }
+            if swap_depth {
+                (alternate.forward, alternate.back) = (action.back, action.forward);
+            }
+            if forecast(&alternate).is_some_and(|pose| {
+                !arrival.contains([pose.x, pose.y, pose.z])
+                    && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
+            }) {
+                return alternate;
+            }
         }
     }
     let mut held = action.clone();
@@ -1513,11 +1539,23 @@ fn dock_clear_and_immediate_departure_do_not_grant_unwalked_evacuation() {
     );
 }
 
+/// The walker reads tells, so the route holds across seeds. These include
+/// seeds that killed the tell-blind walker.
 #[test]
 fn severe_side_ward_route_survives_with_ordinary_supplies() {
-    // Seed-sensitive: over seeds 60 to 67 this route survives on three both
-    // before ranged attack pacing (64, 65, 67) and with it (61, 62, 65).
-    let mut session = session_seeded(61);
+    for seed in [60, 64, 70] {
+        severe_side_ward(seed);
+    }
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn severe_side_ward_seed_survey() {
+    crate::mission::route_skill::survey("M02 Severe side ward", 60..76, severe_side_ward);
+}
+
+fn severe_side_ward(seed: u64) {
+    let mut session = session_seeded(seed);
     session
         .state
         .set_campaign_difficulty(crate::protocol::CampaignDifficulty::Severe)
@@ -1550,7 +1588,13 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
     walker.walk_goal = None;
     walker.navigator.clear();
     ticks += walker.until(&mut session, 16000 - ticks, departed);
-    assert_eq!(walker.defeated.len(), ENEMIES);
+    assert_eq!(
+        walker.defeated.len(),
+        ENEMIES,
+        "{:?} attempt {}",
+        walker.defeated_names,
+        session.state.mission_state().unwrap().attempt
+    );
     assert_eq!(session.state.mission_state().unwrap().attempt, 1);
     assert!(session
         .state
