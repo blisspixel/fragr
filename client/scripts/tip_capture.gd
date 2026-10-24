@@ -99,7 +99,7 @@ func _capture_warmup_tv_bumper(out_dir: String) -> void:
 	if hud.has_method("set_map_name"):
 		hud.set_map_name("Larak Lot")
 	if hud.has_method("set_league_identity"):
-		hud.set_league_identity("Contested Frequency", "Larak Lot")
+		hud.set_league_identity("Scrap League", "Larak Lot")
 	if hud.has_method("set_episode_chrome"):
 		hud.set_episode_chrome(
 			"ep0",
@@ -115,7 +115,7 @@ func _capture_warmup_tv_bumper(out_dir: String) -> void:
 		"NODS-3",
 		"NODS-4",
 	]
-	var host_line: String = "HOST: WELCOME TO LARAK LOT. NODS-1, NODS-2, +2 ON THE SCRAP. GOES LIVE IN 2."
+	var host_line: String = "HOST: LARAK LOT. NODS-1, NODS-2, +2 ON THE SCRAP. GOES LIVE IN 2."
 	hud.show_warmup_bumper(host_line, 2, roster)
 	await create_timer(0.25).timeout
 	await RenderingServer.frame_post_draw
@@ -158,7 +158,7 @@ func _capture_calibration_larak(out_dir: String) -> void:
 	if hud.has_method("set_map_name"):
 		hud.set_map_name("Larak Lot")
 	if hud.has_method("set_league_identity"):
-		hud.set_league_identity("Contested Frequency", "Larak Lot")
+		hud.set_league_identity("Scrap League", "Larak Lot")
 	if "episode_title_shown" in hud:
 		hud.episode_title_shown = false
 	if hud.has_method("set_episode_chrome"):

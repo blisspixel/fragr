@@ -170,6 +170,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         players,
         round_state,
         round_time_left: _,
+        sudden_death,
         frag_limit,
         shot_results,
         projectiles,
@@ -219,6 +220,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
             .zip(&new.players)
             .all(|(a, b)| same_player_facts(a, b))
         && round_state == &new.round_state
+        && sudden_death == &new.sudden_death
         && frag_limit == &new.frag_limit
         && projectiles == &new.projectiles
         && grenades == &new.grenades

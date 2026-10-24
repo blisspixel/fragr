@@ -4,7 +4,9 @@
 use crate::protocol::{GameMode, MatchRules, Mutator, Team, TeamScores, WeaponType};
 
 mod sabotage;
-pub use sabotage::{match_outcome, round_slot, MatchOutcome, RoundSlot, SabotageConfig};
+pub use sabotage::{
+    match_outcome, match_point, round_slot, MatchOutcome, RoundSlot, SabotageConfig,
+};
 
 /// Lives each fighter has per round under Two Lives.
 pub const TWO_LIVES: u8 = 2;
@@ -25,12 +27,33 @@ pub const TEAM_RESPAWN_DELAY_TICKS: u32 = 60;
 /// pacing change would silently move campaign death timing as well. Mission
 /// recovery owns what happens next.
 pub const CAMPAIGN_RESPAWN_DELAY_TICKS: u32 = 60;
-/// No Host reaction lands within eight seconds of the last one.
+/// Host calls are rare. A big (voiced) call waits this long after the last
+/// big call, and a text caption this long after any call, so two voices
+/// never stack and the corner never chatters.
 pub const REACTION_GAP_TICKS: u64 = 20 * 8;
-/// A streak this long is worth a line when it ends.
-pub const STREAK_WORTH_ENDING: u32 = 3;
+/// Frags by one fighter each within three seconds of the last chain a
+/// multikill.
+pub const MULTIKILL_WINDOW_TICKS: u64 = 20 * 3;
 /// A side this far behind that draws level is a comeback.
 pub const COMEBACK_DEFICIT: u32 = 4;
+/// A free-for-all fighter needs this many frags before taking the lead is
+/// called, so the opening minute does not trade the lead every frag.
+pub const LEAD_CHANGE_MIN_FRAGS: u32 = 3;
+/// Sudden death after a level clock ends at the next score. A room where
+/// nobody scores for this long ends level so the rotation moves.
+pub const SUDDEN_DEATH_LIMIT_TICKS: u32 = 20 * 120;
+
+/// Frags without dying per spree tier: Rampage at one step, Riot at two and
+/// Untouchable at three. A streak that reached one step is worth a line when
+/// it ends. Team objective modes give fewer frags to go round, and a Sabotage
+/// fighter has one life per round.
+pub const fn spree_step(mode: GameMode) -> u32 {
+    match mode {
+        GameMode::Ffa | GameMode::Tdm => 5,
+        GameMode::Ctf | GameMode::Conquest => 4,
+        GameMode::Sabotage => 3,
+    }
+}
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RuleSet {

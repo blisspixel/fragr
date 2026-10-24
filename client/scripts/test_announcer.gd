@@ -74,10 +74,10 @@ func _reaches(call: Callable) -> bool:
 ## Which of five Host calls reach the voice row, in order.
 func _host_calls() -> Array[bool]:
 	return [
-		_reaches(func() -> void: hud.show_host_reaction({"kind": "first_blood", "variant": 0, "player": "Dead Air Dan", "other": "Nightfall", "team": "union"})),
-		_reaches(func() -> void: hud.show_host_reaction({"kind": "golden_rail", "variant": 0, "player": "Dead Air Dan", "team": "union"})),
-		_reaches(func() -> void: hud.show_killstreak("Nightfall", 2, "double", "")),
-		_reaches(func() -> void: hud.show_killstreak("Nightfall", 3, "triple", "")),
+		_reaches(func() -> void: hud.show_host_reaction({"kind": "first_blood", "variant": 0, "player": "Grandma Rizz", "other": "Nightfall", "team": "union", "big": true})),
+		_reaches(func() -> void: hud.show_host_reaction({"kind": "golden_rail", "variant": 0, "player": "Grandma Rizz", "team": "union"})),
+		_reaches(func() -> void: hud.show_host_reaction({"kind": "double_frag", "variant": 0, "player": "Nightfall"})),
+		_reaches(func() -> void: hud.show_host_reaction({"kind": "triple_frag", "variant": 0, "player": "Nightfall", "big": true})),
 		_reaches(func() -> void: hud.show_host_join("HOST: A NEW CHALLENGER")),
 	]
 
@@ -91,11 +91,10 @@ func _test_hud_gate() -> void:
 	prefs.set_value("audio", "announcer", FragrSettings.ANNOUNCER_BIG_MOMENTS)
 	hud.apply_preferences(prefs)
 	calls = _host_calls()
-	_check(calls == ([true, true, false, true, false] as Array[bool]), "Big moments only keeps first blood, the golden Railgun and the triple streak: " + str(calls))
-	# #431 names flag captures among big moments; the golden Railgun is the
-	# arena's one carried prize, so its call stays with the rare ones.
-	for kind: String in ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]:
-		_check(hud.announcer_allows(kind in hud.BIG_REACTIONS), kind + " is a big moment")
+	_check(calls == ([true, false, false, true, false] as Array[bool]), "Big moments only keeps the calls the server marks big (first blood, the triple frag): " + str(calls))
+	# The server's `big` flag is the one list of big moments; the client keeps
+	# no second list.
+	_check(MatchRules.reaction_big({"kind": "golden_rail", "big": true}) and not MatchRules.reaction_big({"kind": "first_blood"}) and not MatchRules.reaction_big({"kind": "first_blood", "big": "true"}), "a call is big only when the server says so")
 	_check(_ducks() == ([false, true] as Array[bool]), "Big moments only lowers the radio for a result, not the warmup bumper")
 	prefs.set_value("audio", "announcer", FragrSettings.ANNOUNCER_OFF)
 	hud.apply_preferences(prefs)

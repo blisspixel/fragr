@@ -356,9 +356,6 @@ msgstr "{killer} downs the drone."
 msgid "HUD_BOSS_DOWN_UNCLAIMED"
 msgstr "Drone down."
 
-msgid "HUD_STREAK"
-msgstr "{player}: {count} kill streak"
-
 msgid "HUD_PICKUP"
 msgstr "{player}: {item}"
 

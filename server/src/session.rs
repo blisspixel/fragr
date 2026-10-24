@@ -1695,8 +1695,8 @@ mod session_tests {
         );
         assert!(snap.host_line.contains(&first));
         assert!(
-            snap.host_line.starts_with("HOST: WELCOME TO ARENA DUEL."),
-            "Warmup should open with the arena welcome: {}",
+            snap.host_line.starts_with("HOST: ARENA DUEL."),
+            "Warmup should open with the plain arena intro: {}",
             snap.host_line
         );
         assert!(!snap.host_line.contains("FREQUENCY"), "{}", snap.host_line);

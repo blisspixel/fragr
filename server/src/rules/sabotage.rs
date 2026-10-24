@@ -1,5 +1,5 @@
 //! Sabotage match arithmetic: which half a round belongs to, when sides swap,
-//! what wins the match and when a level match is a draw. Pure functions of the
+//! what wins the match and when a level match goes to sudden death. Pure functions of the
 //! format and the round count, so every edge is a unit test rather than a
 //! long simulation.
 use crate::protocol::{SabotageFormat, Team, TeamScores};
@@ -57,6 +57,10 @@ pub struct RoundSlot {
     pub swap_after: bool,
     /// Round wins that take the match while this round is played.
     pub rounds_to_win: u32,
+    /// The match is level after its last extra period: this one round
+    /// decides it. Each Sabotage round has a winner, so there is never a
+    /// second.
+    pub sudden_death: bool,
 }
 
 /// The slot of the `round`-th round of a match, counting from 1.
@@ -71,11 +75,23 @@ pub fn round_slot(format: SabotageFormat, round: u32) -> RoundSlot {
             half_rounds: half,
             swap_after: round == half,
             rounds_to_win: half + 1,
+            sudden_death: false,
         };
     }
     let extra = format.extra_half_rounds();
     let into = round - regulation - 1;
     let period = into / (extra * 2) + 1;
+    if let Some(limit) = format.extra_periods().filter(|limit| period > *limit) {
+        // Level after every extra period: one round, same sides as the last.
+        return RoundSlot {
+            period: limit + 1,
+            half: 1,
+            half_rounds: 1,
+            swap_after: false,
+            rounds_to_win: half + limit * extra + 1,
+            sudden_death: true,
+        };
+    }
     let within = into % (extra * 2) + 1;
     RoundSlot {
         period,
@@ -83,15 +99,16 @@ pub fn round_slot(format: SabotageFormat, round: u32) -> RoundSlot {
         half_rounds: extra,
         swap_after: within == extra,
         rounds_to_win: half + (period - 1) * extra + extra + 1,
+        sudden_death: false,
     }
 }
 
-/// What a match is after a round.
+/// What a match is after a round. There is no draw: a match level after its
+/// last extra period plays a sudden death round.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MatchOutcome {
     Continue,
     Won(Team),
-    Draw,
 }
 
 /// The match after `played` rounds with `score` round wins by uniform.
@@ -100,25 +117,22 @@ pub fn match_outcome(format: SabotageFormat, played: u32, score: TeamScores) -> 
         return MatchOutcome::Continue;
     }
     let slot = round_slot(format, played);
-    for team in Team::ALL {
-        if score.get(team) >= slot.rounds_to_win {
-            return MatchOutcome::Won(team);
-        }
+    Team::ALL
+        .into_iter()
+        .find(|team| score.get(*team) >= slot.rounds_to_win)
+        .map_or(MatchOutcome::Continue, MatchOutcome::Won)
+}
+
+/// The side one round win from the match while `round` is played, if any.
+/// A sudden death round is everybody's match point, so it names nobody.
+pub fn match_point(format: SabotageFormat, round: u32, score: TeamScores) -> Option<Team> {
+    let slot = round_slot(format, round);
+    if slot.sudden_death {
+        return None;
     }
-    let regulation = format.half_rounds() * 2;
-    if played < regulation {
-        return MatchOutcome::Continue;
-    }
-    let period_rounds = format.extra_half_rounds() * 2;
-    let period_end = played == regulation || (played - regulation).is_multiple_of(period_rounds);
-    if !period_end || score.leader().is_some() {
-        return MatchOutcome::Continue;
-    }
-    let periods_played = (played - regulation) / period_rounds;
-    match format.extra_periods() {
-        Some(limit) if periods_played >= limit => MatchOutcome::Draw,
-        _ => MatchOutcome::Continue,
-    }
+    Team::ALL
+        .into_iter()
+        .find(|team| score.get(*team) + 1 >= slot.rounds_to_win)
 }
 
 #[cfg(test)]
@@ -188,7 +202,19 @@ mod tests {
             match_outcome(short, 10, score(6, 4)),
             MatchOutcome::Won(Team::Union)
         );
-        assert_eq!(match_outcome(short, 10, score(5, 5)), MatchOutcome::Draw);
+        // Level after the extra pair: no draw, one sudden death round.
+        assert_eq!(
+            match_outcome(short, 10, score(5, 5)),
+            MatchOutcome::Continue
+        );
+        assert_eq!(
+            match_outcome(short, 11, score(5, 6)),
+            MatchOutcome::Won(Team::Coalition)
+        );
+        assert_eq!(
+            match_outcome(short, 11, score(6, 5)),
+            MatchOutcome::Won(Team::Union)
+        );
         let full = SabotageFormat::Match;
         assert_eq!(
             match_outcome(full, 15, score(9, 6)),
@@ -211,6 +237,30 @@ mod tests {
             match_outcome(full, 28, score(14, 14)),
             MatchOutcome::Continue
         );
+    }
+
+    #[test]
+    fn a_level_short_match_plays_one_sudden_death_round_and_match_points_are_named() {
+        let short = SabotageFormat::Short;
+        let decider = round_slot(short, 11);
+        assert!(decider.sudden_death);
+        assert_eq!(
+            (decider.period, decider.half, decider.half_rounds),
+            (2, 1, 1)
+        );
+        assert!(!decider.swap_after, "the decider keeps the last sides");
+        assert_eq!(decider.rounds_to_win, 6);
+        assert!((1..=10).all(|round| !round_slot(short, round).sudden_death));
+        // The full match plays extra periods until decided instead.
+        assert!((1..=60).all(|round| !round_slot(SabotageFormat::Match, round).sudden_death));
+
+        assert_eq!(match_point(short, 1, score(0, 0)), None);
+        assert_eq!(match_point(short, 6, score(4, 1)), Some(Team::Union));
+        assert_eq!(match_point(short, 8, score(3, 4)), Some(Team::Coalition));
+        // 4-4 goes to the extra pair, where the target is six.
+        assert_eq!(match_point(short, 9, score(4, 4)), None);
+        assert_eq!(match_point(short, 10, score(5, 4)), Some(Team::Union));
+        assert_eq!(match_point(short, 11, score(5, 5)), None);
     }
 
     #[test]

@@ -1,8 +1,9 @@
 //! Sabotage: every round rule and its failure paths as seeded ticks on the
 //! authoritative sim, plus the Sector 9 layout and its measured routes.
 use crate::protocol::{
-    Action, ChargeStatus, GameEvent, GameMode, Mutator, ProgressKind, Role, SabotageEventKind,
-    SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team, WeaponType,
+    Action, ChargeStatus, GameEvent, GameMode, HostReactionKind, Mutator, ProgressKind, Role,
+    SabotageEventKind, SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team,
+    WeaponType,
 };
 use crate::rules::{RuleSet, SabotageConfig};
 use crate::sim::{
@@ -154,6 +155,33 @@ fn plant_at_a(state: &mut GameState) -> Uuid {
     );
     release(state, id);
     id
+}
+
+#[test]
+fn a_completed_plant_is_a_big_host_call_naming_the_planter() {
+    let (mut state, _) = two_a_side(quick());
+    state.take_events();
+    let id = carrier(&state);
+    put(&mut state, id, A);
+    hold_use(&mut state, id);
+    let needed = state.config.sabotage.plant_ticks;
+    let events = run(&mut state, needed + 1);
+    let planted = events.iter().find_map(|e| match e {
+        GameEvent::HostReaction {
+            kind: HostReactionKind::ChargePlanted,
+            player,
+            team,
+            big,
+            ..
+        } => Some((player.clone(), *team, *big)),
+        _ => None,
+    });
+    let name = state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .map(|p| p.name.clone());
+    assert_eq!(planted, Some((name, Some(Team::Coalition), true)));
 }
 
 #[test]
@@ -967,15 +995,29 @@ fn the_match_ends_at_the_target_and_a_new_match_starts_fresh() {
         .collect();
     assert!(results[0].sides_swap, "extra time swaps at its own half");
     let last = results.last().unwrap();
-    assert!(last.match_over);
-    assert_eq!(
-        last.match_winner, None,
-        "5-5 after the extra pair is a draw"
-    );
+    assert!(!last.match_over, "5-5 after the extra pair is not a draw");
+    assert!(!last.sides_swap, "the decider keeps the last sides");
+    assert!(state.sudden_death.is_none());
+    // Round 11 is sudden death: the clock goes to the Union uniform again.
+    let events = time_out_rounds(&mut state, 1);
+    let calls: Vec<(HostReactionKind, bool)> = events
+        .iter()
+        .filter_map(|e| match e {
+            GameEvent::HostReaction { kind, big, .. } => Some((*kind, *big)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(calls, [(HostReactionKind::SuddenDeath, true)]);
+    let (winner, decider) = round_end(&events).unwrap();
+    assert_eq!(decider.round, 11);
+    assert!(decider.match_over);
+    assert_eq!(decider.match_winner, Some(Team::Union));
+    assert_eq!(winner, Some(Team::Union));
+    assert_eq!((decider.score.union, decider.score.coalition), (6, 5));
     assert!(state
         .ended_host_line
         .as_deref()
-        .is_some_and(|line| line.contains("LEVEL AFTER EXTRA TIME")));
+        .is_some_and(|line| line.contains("TAKE THE MATCH")));
     run(&mut state, 5);
     let sab = state.sabotage.as_ref().unwrap();
     assert_eq!((sab.round, sab.score.union, sab.score.coalition), (1, 0, 0));

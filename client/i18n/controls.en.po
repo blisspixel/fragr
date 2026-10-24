@@ -401,4 +401,4 @@ msgid "SETTINGS_ANNOUNCER_OFF"
 msgstr "OFF"
 
 msgid "SETTINGS_AUDIO_NOTE"
-msgstr "Announcer picks which Host calls you get: all of them, only big moments (first blood, triple streaks, ended streaks, last one standing, comebacks, the golden Railgun), or none. Frags, objectives and results always show.\nChanges apply when saved. Zero volume mutes the bus."
+msgstr "Announcer: On shows every Host call and voices the big ones. Big moments only keeps first blood, triple frags and up, sprees, ended sprees, comebacks, last one standing, captures, plants, match point and sudden death. Off silences the Host. Frags, objectives and results always show.\nChanges apply when saved. Zero volume mutes the bus."

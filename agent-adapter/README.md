@@ -627,9 +627,9 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "round_number": 3,
   "round_time_left": 90,
   "frag_limit": 10,
-  "mode_name": "Contested Frequency",
+  "mode_name": "Scrap League",
   "playlist": "Arena Duel",
-  "host_line": "HOST: WELCOME TO THE SCRAP. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE.",
+  "host_line": "HOST: ARENA DUEL IS LIVE. FIGHT!",
   "pressure": null,
   "mvp": null,
   "mvp_frags": null,
@@ -671,8 +671,15 @@ ignored. Death ends a life's input: `act` presses sent while you wait to
 respawn are dropped rather than queued, and a `fire` held at death or when the
 body returns does nothing until an `act` releases it. The respawn wait is three
 seconds in every arcade mode today. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
-`player`, `other`, `team`); the words live in the client. The full rule
-contract is in [`docs/protocol.md`](../docs/protocol.md#match-rules).
+`player`, `other`, `team`, and `big` on a voiced big moment); the words live in
+the client. Multikills (`double_frag` to `frag_storm`, three-second chains) and
+mode-scaled sprees (`rampage`, `riot`, `untouchable`) are reaction kinds; there
+is no separate `killstreak` event. `lead_change`, `flag_taken`,
+`flag_captured`, `charge_planted`, `match_point` and `sudden_death` complete the
+set. `round_state` adds `sudden_death`, true when an active arcade round ran
+out of clock level: `round_time_left` is null because the clock has stopped,
+and the next score wins. The full rule contract is in
+[`docs/protocol.md`](../docs/protocol.md#match-rules).
 
 **Sabotage.** On a Sabotage server `round_state` adds four fields, each null
 elsewhere:

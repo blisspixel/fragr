@@ -1,6 +1,6 @@
 # Multiplayer Excellence: The Golden Era Benchmark
 
-Status: **planned**, 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
+Status: **in flight**, 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built; voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
 
 ---
 
@@ -95,7 +95,8 @@ Currently, Conquest tickets bleed silently on the HUD.
     - An audible low-frequency alarm siren (`siren_warning.wav`) plays every 4 seconds.
     - A rapid heartbeat thump reinforces the final tickets.
 
-### Pillar 7: Sudden Death / Golden Frag Overtime
+### Pillar 7: Sudden Death
+Not called overtime: that is the power item's name in the rule sheet ([multiplayer maps](multiplayer-maps.md#5-items-and-clocks)). Built as described in the [Host spine](#host-spine-431-wave-2) below; this was the original brief.
 Currently, matches that reach the time limit with tied scores simply terminate with `"Match drawn"`.
 - **Implementation:**
   - When the match clock expires while scores are tied, trigger `HostReactionKind::SuddenDeath`.
@@ -123,6 +124,44 @@ Classic multiplayer legends earned their immortality through unforgettable map l
     - *The Golden Rail:* One single golden Railgun in the map center. One-shot kill, illuminates through fog, drops on death.
     - *Proximity Party:* Pistols and Proximity Mines only. Trap doorways, blind corners, and spawn exits.
     - *Slappers Only:* Fists only, movement speed boosted to 1.25x. Rapid-fire comedic melee brawls.
+
+---
+
+## Host spine (#431, wave 2)
+
+Text and rules only; voice casting is Nick's and no audio was generated.
+
+**Direction (Nick, #431, 2026-10-23).** Host calls are rare: voice only big
+moments, captions for the rest, eight seconds or more between voices. No
+frequency puns and no station ident in match copy; the intro is a plain arena
+intro. Canon ([voice](../lore/voice.md), [cast](../lore/cast.md)): capitals and
+adrenaline when calling, never explains the setting, never chants. Players get
+an announcer setting (On, Big moments only, Off) and an announcer volume.
+
+**Rules as built.**
+- Every call is a `HostReactionKind` (`protocol/rules.rs`); `big()` marks the
+  voiced kinds. Multikills chain frags within three seconds (`double_frag`
+  caption, then `triple_frag`, `quad_frag`, `frag_storm` voiced). Sprees scale
+  by mode (`rules::spree_step`: 5 in FFA and TDM, 4 in CTF and Conquest, 3 in
+  Sabotage): `rampage`, `riot`, `untouchable` at one, two and three steps, and
+  `streak_ended` needs one step. `lead_change` and `flag_taken` are captions;
+  `flag_captured`, `charge_planted`, `match_point` and `sudden_death` are voiced.
+- Spacing (`sim/modes.rs`): a big call waits eight seconds after the last big
+  call, a caption eight seconds after any call; a frag makes at most one call,
+  the biggest; `sudden_death` and `golden_rail` are never held back.
+- Sudden death replaces the draw: a level clock with something scored stops and
+  the next score wins; two quiet minutes end level. A short Sabotage match level
+  after its extra pair plays one deciding round. Not called overtime, which is a
+  power item.
+- Client: captions keep names; `host_voice.gd` plays the name-free slot
+  `res://assets/audio/host/<kind>_<variant>.mp3` on the `Announcer` bus when a
+  recording exists, so recorded lines drop in without code. The setting uses
+  the same keys as PR #448.
+
+**Not done.** Casting and recordings (asset round E-1, E-2). Conquest lead and
+ticket calls (Pillar 6). Quad and frag storm rarely voice, because the triple
+just spoke inside the eight seconds; that is the rarity rule working, revisit
+after a listening pass.
 
 ---
 

@@ -1025,7 +1025,7 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - Rejected speaks emit no Speak event; the speaker receives a unicast `error` (`speak_rate_limited` or `speak_rejected`)
 - MCP adapter mirrors the cooldown and returns tool `isError` (never a success toast on a no-op)
 - Spectators cannot speak
-- Named server rule bots may emit occasional Contested Frequency Speak events on frag/death/Warmup/killstreak via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
+- Named server rule bots may emit occasional Speak taunts on frag, death, Warmup and a streak of 2, 3 or 5 via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
 
 #### Wire board
 
@@ -1433,7 +1433,7 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "type": "welcome",
   "player_id": "550e8400-e29b-41d4-a716-446655440000" | null,
   "role": "spectator" | "human" | "agent",
-  "mode_name": "Contested Frequency",
+  "mode_name": "Scrap League",
   "playlist": "Arena Duel",
   "body": "human" | "synthetic",
   "duck": true
@@ -1451,7 +1451,7 @@ Server response to `Hello`. Confirms connection and provides player ID.
 - `duck`: present and true only when this server accepts a held `Action.duck`
   and publishes the resolved stance. Omitted by older servers. Absence means
   the client must not send the key.
-- `mode_name`: Named scrap-league identity (default Contested Frequency)
+- `mode_name`: Named scrap-league identity (default Scrap League)
 - `playlist`: The current map's display name (default Arena Duel).
 
 #### Error
@@ -1521,7 +1521,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
       }
     }
   ],
-  "mode_name": "Contested Frequency",
+  "mode_name": "Scrap League",
   "playlist": "Arena Duel",
   "pressure": "compliance",
   "host_line": "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.",
@@ -1617,7 +1617,8 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
     actors and the arena boss, which keep their own authored identity. Fixed for
     the pawn's life: respawn, resume and continue keep it.
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
-- `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended.
+- `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended and during sudden death.
+- `sudden_death`: (optional) `true` while an Active round is in sudden death: an arcade clock ran out level after somebody scored, so the clock stopped and the next score wins, or a level Sabotage match is playing its one deciding round. Omitted when false. A quiet sudden death ends level after 120 s.
 - `frag_limit`: (optional) Frag limit for current round
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
@@ -1631,10 +1632,10 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
   admission; capability 23 introduced the Jammer's actor identity and delayed
   attack. Current discovery and campaign maps require 26. The client places bright markers at these
   server positions without predicting collision or damage.
-- `mode_name`: Contested Frequency (scrap league that denies it exists)
+- `mode_name`: Scrap League, the arena's identity on the warmup and result cards
 - `playlist`: The current map's display name; authored campaign snapshots retain their campaign label.
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
-- `host_line`: Sticky Contested Frequency Host chrome for mid-join / mid-round observe. League Host line by default while Active (no pressure). During Warmup, Contested Frequency bumper names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
+- `host_line`: Sticky Host line for mid-join / mid-round observe. The plain arena intro by default while Active (no pressure). During Warmup, the intro names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
 - `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in team deathmatch.
 - `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
 - `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
@@ -1954,7 +1955,7 @@ available to sound-muted players through the caption and visible attack tell.
   "time_limit": 180,
   "players": ["Bot1", "Bot2", "Bot3", "Bot4"],
   "previous_winner": "Bot1",
-  "mode_name": "Contested Frequency",
+  "mode_name": "Scrap League",
   "playlist": "Arena Duel",
   "host_line": "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. FIGHT!"
 }
@@ -2023,20 +2024,8 @@ and not the on-air Host. The text already begins `The venue: `.
 }
 ```
 
-**Killstreak Event:** (within-round multi-kill Host callout at streak 2 / 3 / 5)
-```json
-{
-  "type": "event",
-  "event": "killstreak",
-  "player": "Rusher",
-  "player_id": "550e8400-e29b-41d4-a716-446655440000",
-  "streak": 2,
-  "tier": "double",
-  "message": "HOST: DOUBLE FREQUENCY. Rusher DENIES THE DENIAL."
-}
-```
-
-Tiers: `double` (2), `triple` (3), `rampage` (5). Contested Frequency Host voice. Resets on death and round boundaries. Does not overwrite sticky Snapshot `host_line`.
+Multikills and killing sprees are `host_reaction` kinds (see
+[Host reactions](#host-reactions)); there is no separate streak event.
 
 **Pickup Event:** (player touched an available mid-map pad; weapon swap, heal, or armor scrap)
 ```json
@@ -2100,7 +2089,7 @@ Health example:
 }
 ```
 
-MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_line` sell Contested Frequency Host podium chrome. While the round is Ended, Snapshot carries sticky `host_line` plus structured `mvp` / `mvp_frags` for mid-join / observe / `round_state` rehydrate. Default Ended linger is 8 seconds (160 ticks at 20 Hz) so the podium can be read.
+MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_line` carry the Host's podium line. While the round is Ended, Snapshot carries sticky `host_line` plus structured `mvp` / `mvp_frags` for mid-join / observe / `round_state` rehydrate. Default Ended linger is 8 seconds (160 ticks at 20 Hz) so the podium can be read.
 
 **Player Joined Event:**
 ```json
@@ -2127,7 +2116,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `killstreak`, `host_reaction`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`)
 - `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
@@ -2136,8 +2125,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"union|coalition","player":name,"player_id":uuid,"capture_scores":{"union":n,"coalition":n}}`. `player` and `player_id` are omitted on automatic return. The flag field names the flag's owner side, which can differ from the carrier's side. Events follow authoritative combat and objective resolution for that tick.
 - `killer` / `victim`: Player names involved in frag
 - `killer_score`: Killer's score after the frag
-- `streak` / `tier` / `message`: Killstreak Host callout (tiers `double` / `triple` / `rampage`)
-- `mvp` / `mvp_frags` / `host_line`: Round-end MVP Host bumper (top score / frags; Contested Frequency voice)
+- `mvp` / `mvp_frags` / `host_line`: Round-end MVP Host bumper (top score / frags)
 - `shooter` / `target` / `shooter_id` / `target_id` / `damage` / `target_hp_after`: Hit event fields
 - `player`: Player name for respawn, join, or leave
 - `role`: Role of joining player ("spectator", "human", "agent")
@@ -2214,7 +2202,8 @@ not block a ground bay. No new action or snapshot field is added.
   enemies as threats. With friendly fire off, a shot stops on a teammate, who
   takes no damage (`shot_results` shows `hit: true`, `damage: 0`). A frag of an
   enemy adds one to the killer and one to the side; `frag_limit` is the side
-  limit. At the clock the higher side wins or the round is a draw. Weapon pads
+  limit. At the clock the higher side wins; a level score above zero goes to
+  sudden death (see `sudden_death` on the snapshot), and 0-0 is a draw. Weapon pads
   respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
   teammate as not hostile.
 - **Capture the flag.** A staged league scenario on Arena Duel, Directive 17,
@@ -2235,7 +2224,8 @@ not block a ground bay. No new action or snapshot field is added.
   cannot touch flags until the socket resumes. Dropped flags rest on the
   reachable support below the carrier rather than hanging in the air.
   Captures, not frags, decide the winner at the capture limit or clock. Equal
-  captures at the clock draw. The default capture limit is 3. `--frag-limit`
+  captures above zero go to sudden death, where the next capture wins; 0-0 at
+  the clock draws. The default capture limit is 3. `--frag-limit`
   and the Two Lives mutator are refused in CTF. The Compliance slow and Drone
   arena events do not run in CTF.
 - **Sabotage.** See [Sabotage](#sabotage) below.
@@ -2369,7 +2359,8 @@ Rules the server enforces, in tick order after combat:
   plant completing on the clock's last tick counts. A defuse completing on the
   detonation tick counts. A defuser killed on that tick does not.
 - **Format.** `short` (default): halves of 4, first to 5; at 4-4 one extra
-  pair, one round a side, then a draw. `match`: halves of 8, first to 9; at
+  pair, one round a side, then one sudden death round on the same sides (never
+  a draw). `match`: halves of 8, first to 9; at
   8-8 extra periods of two halves of 3, first to win 4 of the period,
   repeating while level. Sides swap after every half except entering an extra
   period. Frags carry across the rounds of a match. After a decided match the
@@ -2403,7 +2394,8 @@ winner and `winner` is omitted:
 `reason` is `elimination`, `detonation`, `defused` or `time`. `score` is by the
 uniform each side wore in that round. `sides_swap` is present when the next
 round swaps; `match_over` is present when this round decided the match, with
-`match_winner` naming the uniform that won it (absent for a draw). The card
+`match_winner` naming the uniform that won it (always present: there is no
+draw). The card
 holds 5 s, or 8 s before a swap or after a match.
 
 
@@ -2417,24 +2409,56 @@ holds 5 s, or 8 s before a swap or after a match.
   "variant": 1,
   "player": "Dead Air Dan",
   "other": "Nightfall",
-  "team": "union"
+  "team": "union",
+  "big": true
 }
 ```
 
 A Host beat from an authoritative fact. The server sends no words: the client
 renders `HOST_REACTION_<KIND>_<VARIANT>` from `client/i18n/match.en.po`, filling
-`{player}`, `{other}` and `{team}`. `variant` is 0 to 2 and rotates per kind
-across the session. `player`, `other` and `team` are each omitted when they do
-not apply. No reaction lands within eight seconds of the last one, except
-`golden_rail`.
+`{player}`, `{other}` and `{team}`; a `lead_change` or `match_point` without
+`player` is about a side and keys `HOST_REACTION_<KIND>_SIDE_<VARIANT>`.
+`variant` is 0 to 2 and rotates per kind across the session. `player`, `other`
+and `team` are each omitted when they do not apply.
 
-| `kind` | When | Names |
-|---|---|---|
-| `first_blood` | The first frag of a round | `player` the killer, `other` the victim, `team` the killer's side |
-| `streak_ended` | A fighter on a streak of three or more is killed (not on first blood) | `player` the streak's owner, `other` who ended it, `team` the owner's side |
-| `last_standing` | A lives-limited team round leaves a side of two or more with one fighter against two or more | `player` that fighter, `team` the side |
-| `comeback` | A side that trailed by four or more draws level | `team` the side |
-| `golden_rail` | Somebody takes the golden Railgun | `player` the holder, `team` their side |
+Host calls are rare. `big` (omitted when false) marks a big moment the Host
+voices; every other kind is a text caption. A big call lands only eight seconds
+or more after the last big call, and a caption only eight seconds or more after
+any call, so a caption never holds back a big moment and two voices never
+stack. `golden_rail` and `sudden_death` are information and are never held
+back. A scored frag makes at most one call, the first that applies of: first
+blood, a multikill of three or more, a comeback, a spree tier, an ended spree,
+a double, a new leader. A held-back match point is tried again each tick while
+the position holds.
+
+The client plays a big moment's recording from the name-free slot
+`res://assets/audio/host/<kind>_<variant>.mp3` on the `Announcer` bus when the
+player's announcer setting is On or Big moments only; a missing slot is
+silence and the caption still shows. Big moments only drops captions; Off
+drops every Host call. Frags, objectives, results and `sudden_death` on the
+snapshot are facts and always show.
+
+Multikill frags each land within three seconds (60 ticks) of the killer's
+previous one. A spree counts frags without dying in the round; its step is 5
+in free-for-all and team deathmatch, 4 in capture the flag and Conquest, and 3
+in Sabotage.
+
+| `kind` | `big` | When | Names |
+|---|---|---|---|
+| `first_blood` | yes | The first frag of a round | `player` the killer, `other` the victim, `team` the killer's side |
+| `double_frag` | no | A second frag in the multikill window | `player` the killer, `other` the victim, `team` the killer's side |
+| `triple_frag`, `quad_frag`, `frag_storm` | yes | A third, fourth and fifth frag in the window | As `double_frag` |
+| `rampage`, `riot`, `untouchable` | yes | A spree reaches one, two and three steps | As `double_frag` |
+| `streak_ended` | yes | A fighter on a spree of at least one step is killed (not on first blood) | `player` the streak's owner, `other` who ended it, `team` the owner's side |
+| `last_standing` | yes | A lives-limited team round leaves a side of two or more with one fighter against two or more | `player` that fighter, `team` the side |
+| `comeback` | yes | A side that trailed by four or more draws level | `team` the side |
+| `lead_change` | no | The front changes hands: a side in team deathmatch (three or more frags) or capture the flag, a fighter in free-for-all (three or more frags) | Free-for-all: `player` the new leader, `other` the one passed, `team` their side. Teams: `team` the side |
+| `flag_taken` | no | Somebody lifts the enemy flag | `player` the carrier, `team` their side |
+| `flag_captured` | yes | A capture scores | `player` the carrier, `team` the scoring side |
+| `charge_planted` | yes | A Sabotage plant completes | `player` the planter, `team` their side |
+| `match_point` | yes | Once per round each: a side one frag or capture from the limit, a Sabotage side one round win from the match, or the first free-for-all fighter one frag from the limit | Free-for-all: `player`, `team`. Otherwise `team` the side |
+| `sudden_death` | yes | The clock ran out level and stopped, or a level Sabotage match starts its deciding round | None |
+| `golden_rail` | no | Somebody takes the golden Railgun | `player` the holder, `team` their side |
 
 ## Implementation Notes
 
@@ -2479,7 +2503,7 @@ not apply. No reaction lands within eight seconds of the last one, except
 - **Collision**: Simple AABB with 0.5 unit radius
 
 ### Round System
-- **Warmup**: 2 seconds (40 ticks) with Host arena-welcome countdown drama on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
+- **Warmup**: 2 seconds (40 ticks) with the Host's plain arena intro and countdown on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
 - **Frag limit**: Default 10 kills; 25 side frags in team deathmatch. `--frag-limit` overrides either
 - **Time limit**: Default 180 seconds (3600 ticks)
 - **End delay**: 8 seconds (160 ticks) between rounds

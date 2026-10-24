@@ -228,9 +228,8 @@ radio back on starts a fresh track; it does not resume inside a song.
 
 The **Announcer** setting, in the match menu and in Settings > Audio, chooses
 which Host calls reach the voice row: **On** (all of them), **Big moments only**
-(first blood, triple streaks and above, an ended streak, the last one standing,
-a comeback and the golden Railgun changing hands) or **Off**. Off also stops
-the radio dipping for the Host. Frags, objectives and result cards always show.
+(the calls the server marks big, listed under Settings below) or **Off**. Off
+also stops the radio dipping for the Host. Frags, objectives and result cards always show.
 Announcer volume sets the Host's own audio bus; the Host's calls are text
 today, so the slider has nothing to play until the voice is recorded.
 
@@ -382,6 +381,22 @@ counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
 play and in the match menu. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
+
+The Host calls rarely: first blood, a triple frag or more inside three
+seconds, a spree, an ended spree, a comeback, the last one standing, a flag
+capture, a planted charge, match point and sudden death are the big moments.
+A double frag, a lead change, a lifted flag and the golden Railgun are text
+captions only. Voiced calls land at least eight seconds apart, and a caption
+waits eight seconds after any call. Settings > Audio >
+Announcer (also in the match menu) chooses On, Big moments only or
+Off, and Announcer volume sets the Host's own bus. Frags, objectives, results
+and the sudden death chip always show. Host calls are text until the voice is
+recorded; the volume has nothing to play until then.
+
+A clock that runs out level, after somebody has scored, goes to sudden death:
+the clock stops and the next score wins. A room where nobody scores for two
+more minutes ends level. A Sabotage match level after its extra pair plays one
+deciding round instead of a draw.
 
 Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
 bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,

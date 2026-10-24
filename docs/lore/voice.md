@@ -202,9 +202,19 @@ skill issue, peace without interruption, denied, scout ant deleted, 67, dead air
 
 Also included in the migration inventory: the eighty fighter callsigns and their taunts in `server/src/roster.rs`, the eight station names and their disc jockeys, the one hundred and forty track titles, and any Host string a test asserts on.
 
-## Two live faults
+## The Host's match calls
 
-There is a second copy of the Host bumper list in the client, which contradicts the rule that there is one source for these strings, and it still ships at least one line that was retired and one that uses an engineering map name in player-facing copy.
+The match call vocabulary is the keyed `HOST_REACTION_*` set in
+`client/i18n/match.en.po` plus the server's intro and result lines. Calls are
+rare: big moments are voiced, the rest are captions, voiced calls land at
+least eight seconds apart and a caption waits eight seconds after any call
+([protocol](../protocol.md#host-reactions)). The intro is a plain arena intro:
+the venue, who is on it, then go. No station ident and no frequency puns
+(DOUBLE FRAG, RAMPAGE, FLAG TAKEN, SUDDEN DEATH). Captions name the fighters;
+recordings are name-free, one per kind and variant. The client's second copy
+of the Host bumper list, with its retired and engineering-name lines, is gone.
+
+## One live fault
 
 There is a thirteen-line set of Host callouts in a telephony register in the design references that the game does not use and that conflicts with what ships. Adopt them or mark them superseded, but do not leave two vocabularies in the tree with no note saying which won.
 

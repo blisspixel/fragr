@@ -46,6 +46,8 @@ var current_map_id := 1
 
 var is_human_player = false
 var radio = null
+## The Host's voiced calls on the Announcer bus, under AudioPlayers.
+var host_voice: HostVoice = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
@@ -344,6 +346,7 @@ func _ready():
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
+	_setup_host_voice()
 	_setup_frontend()
 	if pause_menu != null and str(boot.get("mode", "")) == "campaign":
 		pause_menu.local_campaign = true
@@ -1005,6 +1008,19 @@ func _setup_radio() -> void:
 		radio.now_playing_changed.connect(func(info: Dictionary) -> void: hud.show_now_playing(info))
 	if hud and hud.has_signal("host_spoke"):
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
+
+## Beside the radio, so leaving the match stops and clears it with the other
+## match voices, and a voiced call lowers the station while it speaks.
+func _setup_host_voice() -> void:
+	host_voice = HostVoice.new()
+	host_voice.name = "HostVoice"
+	var audio_parent: Node = get_node_or_null("AudioPlayers")
+	if audio_parent != null:
+		audio_parent.add_child(host_voice)
+	else:
+		add_child(host_voice)
+	if radio != null:
+		host_voice.spoke.connect(func(seconds: float) -> void: radio.duck(seconds))
 
 func _resolve_boot() -> Dictionary:
 	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
@@ -2536,7 +2552,7 @@ func _on_snapshot_received(data):
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
-	var mode_name = str(data.get("mode_name", "Contested Frequency"))
+	var mode_name = str(data.get("mode_name", "Scrap League"))
 	var playlist = str(data.get("playlist", "Arena Duel"))
 	var pressure = data.get("pressure", null)
 	var host_line = str(data.get("host_line", ""))
@@ -2579,7 +2595,8 @@ func _on_snapshot_received(data):
 		hud.set_episode_chrome(ep_id, ep_title, ep_obj, ep_prog, ep_phase)
 	hud.set_tick(tick)
 	hud.set_player_count(participant_list.size())
-	hud.set_round_info(round_state, round_time_left, frag_limit)
+	var level_clock: Variant = data.get("sudden_death")
+	hud.set_round_info(round_state, round_time_left, frag_limit, level_clock is bool and level_clock)
 	hud.sync_scores_from_players(participant_list)
 	_refresh_ui_context(participant_list)
 	hud.set_score_subject(str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id())
@@ -2830,7 +2847,7 @@ func _on_event_received(data):
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
-		var mode_name = str(data.get("mode_name", "Contested Frequency"))
+		var mode_name = str(data.get("mode_name", "Scrap League"))
 		var playlist = str(data.get("playlist", "Arena Duel"))
 		hud.set_league_identity(mode_name, playlist)
 		var shown_round: int = int(data.get("round_number", 0))
@@ -2921,18 +2938,13 @@ func _on_event_received(data):
 		_play_pickup_cue(kind, str(data.get("pickup_id", "")))
 		if data.get("secret") == true:
 			hud.show_secret_found()
-	elif event_type == "killstreak":
-		var who = str(data.get("player", "?"))
-		var streak = int(data.get("streak", 0))
-		var tier = str(data.get("tier", ""))
-		var message = str(data.get("message", ""))
-		if hud and hud.has_method("show_killstreak"):
-			hud.show_killstreak(who, streak, tier, message)
-		if frag_sound and frag_sound.stream:
-			frag_sound.play()
 	elif event_type == "host_reaction":
+		# Multikills and sprees arrive here too: the caption, then the
+		# name-free voice when a recording fills that slot.
 		if hud.has_method("show_host_reaction"):
 			hud.show_host_reaction(data)
+		if host_voice != null and settings != null:
+			host_voice.speak(data, settings.announcer())
 	elif event_type == "speak":
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))
