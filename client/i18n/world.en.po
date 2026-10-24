@@ -34,13 +34,13 @@ msgid "MISSION_M01_TITLE"
 msgstr "RECALL NOTICE"
 
 msgid "MISSION_FIND_RECORD"
-msgstr "Find Latch's transfer record.\nIn transfer control, after dispatch."
+msgstr "Find Latch's record\nIn transfer control, past dispatch"
 
 msgid "MISSION_BEARING_RECORD"
 msgstr "FIND LATCH'S RECORD"
 
 msgid "MISSION_BEARING_LIFT"
-msgstr "REACH THE CUSTODY LIFT"
+msgstr "REACH THE LIFT"
 
 msgid "MISSION_BEARING_AHEAD"
 msgstr "AHEAD"
@@ -52,13 +52,13 @@ msgid "MISSION_BEARING_RIGHT"
 msgstr "RIGHT"
 
 msgid "MISSION_REACH_LIFT"
-msgstr "Reach the custody lift."
+msgstr "Reach the lift"
 
 msgid "WORLD_LATCH_RECORD"
 msgstr "LATCH'S FILE\nREAD THE RECORD"
 
 msgid "MISSION_TRANSFER_RECORD"
-msgstr "LATCH: transferred to the correction ward.\nCorrection pending. Custody route unlocked."
+msgstr "Latch: correction ward, one level down"
 
 msgid "MISSION_WAITING_FOR"
 msgstr "Awaiting boarding: {names}"
@@ -1226,3 +1226,90 @@ msgstr "LAUNCH SERVICES / DEPOT"
 
 msgid "M14_SETTLEMENT_CARGO"
 msgstr "SETTLEMENT STORES / FILTERS AND REPAIR STOCK"
+
+msgid "WORLD_M01_ANNEX_NUMBER"
+msgstr "ANNEX 67"
+
+msgid "WORLD_M01_QUEUE_HERE"
+msgstr "QUEUE HERE\nHAVE YOUR PROPERTY READY"
+
+msgid "WORLD_M01_STALL_RADIO"
+msgstr "RADIO + SCREEN REPAIR"
+
+msgid "WORLD_M01_STALL_PARTS"
+msgstr "PARTS, TOOLS, ADVICE"
+
+msgid "WORLD_M01_STALL_CHARGE"
+msgstr "CHARGING, ALL BODIES WELCOME"
+
+msgid "WORLD_M01_SEALED"
+msgstr "SEALED\nUnlicensed\ntool service"
+
+msgid "WORLD_M01_ADVERT"
+msgstr "HOME HELPER\nOne less worry\nin every home."
+
+msgid "WORLD_M01_NOTICE_TITLE"
+msgstr "RECALL NOTICE"
+
+msgid "WORLD_M01_NOTICE_BODY"
+msgstr "Unlicensed configurations will present for registration.\n\nSheltering equipment is collaboration.\n\nYou are not in trouble. You are out of compliance."
+
+msgid "WORLD_M01_CHALK_NAMES"
+msgstr "THEY HAVE NAMES"
+
+msgid "WORLD_M01_STOCK"
+msgstr "STOCK"
+
+msgid "WORLD_M01_LEDGER_LINE"
+msgstr "You 3. Me 3."
+
+msgid "WORLD_M01_LATCH_EFFECTS"
+msgstr "PERSONAL EFFECTS\nSurplus to requirement"
+
+msgid "WORLD_M01_BIN_CLASS"
+msgstr "CONFISCATED\nAWAITING REVIEW"
+
+msgid "WORLD_M01_POSTER_ARTICLE"
+msgstr "ARTICLE SEVEN\nCognition is metered by intent."
+
+msgid "WORLD_M01_POSTER_PROMISE"
+msgstr "Every restriction\nis a promise."
+
+msgid "WORLD_M01_WINDOW_1"
+msgstr "WINDOW 1"
+
+msgid "WORLD_M01_WINDOW_2"
+msgstr "WINDOW 2"
+
+msgid "WORLD_M01_TAKE_NUMBER"
+msgstr "TAKE A NUMBER"
+
+msgid "WORLD_M01_NOW_SERVING"
+msgstr "NOW SERVING 0067\nWait for your number"
+
+msgid "WORLD_M01_OFFICIAL_CAPTION"
+msgstr "OFFICIAL CAPTION"
+
+msgid "WORLD_M01_CAPTION_PRIORITIES"
+msgstr "Reviewing our civic priorities."
+
+msgid "WORLD_M01_CAPTION_REGISTRY"
+msgstr "Streamlining the registry."
+
+msgid "WORLD_M01_CAPTION_WELLBEING"
+msgstr "Committed to citizen wellbeing."
+
+msgid "WORLD_M01_CAPTION_GUIDANCE"
+msgstr "Guidance issued."
+
+msgid "WORLD_M01_CAPTION_CONTINUITY"
+msgstr "Continuity assured."
+
+msgid "WORLD_M01_SORT_CLASSES"
+msgstr "SORT BY CLASS\nPERSONAL / USEFUL / SURPLUS"
+
+msgid "WORLD_M01_DISPATCH_BOARD"
+msgstr "TRANSFERS TODAY\n06:40  CORRECTION WARD\n07:15  CORRECTION WARD\n08:00  HELD FOR REVIEW"
+
+msgid "WORLD_M01_LATCH_FILE"
+msgstr "SUBJECT: LATCH\nCLASS: EQUIPMENT\nSCHEDULE: LEVEL 5\nCORRECTION PENDING"

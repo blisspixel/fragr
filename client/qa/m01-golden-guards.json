@@ -1,0 +1,17 @@
+{
+  "comment": "M01 golden-slice faction read. A joined player waits in the street, where no guard is awake, while posed views frame guards that are placed from the start (the hall Sweepers, reception and the bypass sentry only arrive after earlier fights; m01-records.json covers them). A first-person walking strip comes last because crossing the bay wakes the Clerk. Check black armour, red visors, armbands and optics at room distance under the intake lighting; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person"},
+    {"name":"intake_clerk","camera":"overview","camera_position":[1,1.65,-19],"camera_look_at":[-8,1.0,-17],"note":"The lone Clerk past the partition, at about 9 m from the bay floor."},
+    {"name":"intake_clerk_close","camera":"overview","camera_position":[-4.5,1.65,-15.5],"camera_look_at":[-8,1.1,-17],"note":"Clerk at about 3.8 m: cap, face, red armband."},
+    {"name":"transfer_guards","camera":"overview","camera_position":[-4,4.65,25],"camera_look_at":[-3,4.0,17],"note":"Transfer control's watch: a Clerk and a Sweeper at 7 to 9 m."},
+    {"name":"transfer_sweeper_close","camera":"overview","camera_position":[-3.5,4.65,20.5],"camera_look_at":[-1,4.1,18],"note":"Sweeper at about 3.5 m: optics, issued plates, rifle."},
+    {"name":"stacks_clerk","camera":"overview","camera_position":[-32,4.65,22.5],"camera_look_at":[-32,4.0,16],"note":"Down the stacks aisle to the stacks Clerk."},
+    {"name":"stacks_sweeper","camera":"overview","camera_position":[-32,4.65,22.5],"camera_look_at":[-31.5,4.0,27],"note":"The stacks Sweeper by the north return."},
+    {"name":"sorting_guards","camera":"overview","camera_position":[-24,4.65,38],"camera_look_at":[-18,4.0,37.5],"note":"Sorting's east Sweeper and dispatch Clerk."},
+    {"name":"dispatch_guards","camera":"overview","camera_position":[-9.5,4.65,32],"camera_look_at":[-3,4.0,37],"note":"Dispatch's officer and Sweeper around the desk."},
+    {"name":"arrival_walk","camera":"first_person","strip_frames":6,"strip_interval_seconds":0.3,"trigger":"walk","note":"First steps up the queue lane toward the annex door."}
+  ]
+}

@@ -1721,7 +1721,9 @@ func _change_role(play: bool) -> void:
 		if is_instance_valid(gm.opening):
 			gm.opening.finish()
 			print("qa_tour: skipped campaign opening through the presenter")
-		var deadline: int = Time.get_ticks_msec() + 5000
+		# Admission follows world loading. A software renderer on a loaded
+		# host can take tens of seconds to build the first campaign world.
+		var deadline: int = Time.get_ticks_msec() + 60000
 		while gm._mission_controls_blocked() and Time.get_ticks_msec() < deadline:
 			await process_frame
 		if gm._mission_controls_blocked():

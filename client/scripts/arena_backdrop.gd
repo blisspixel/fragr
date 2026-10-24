@@ -7,7 +7,8 @@ const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
-	if venue == "holdfast_atoll":
+	if venue in ["holdfast_atoll", "earth_intake"]:
+		# Recall Notice's street skyline belongs to its intake presenter.
 		return
 	if venue in ["launch_works", "mars_habitat", "mars_foundry"]:
 		_build_mars(half, venue == "mars_habitat")

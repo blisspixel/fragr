@@ -26,6 +26,9 @@ var station_index := 0
 var enabled := true
 var human_mode := false
 var duck_timer := 0.0
+## A place's own level offset. Recall Notice has no radio of its own, so the
+## station is only faint from the confiscated set in its bay (0 elsewhere).
+var venue_db := 0.0
 var history: Dictionary = {}
 var player: AudioStreamPlayer
 var rng := RandomNumberGenerator.new()
@@ -256,7 +259,7 @@ func _apply_volume(delta: float, immediate: bool) -> void:
 		player.volume_db = MUTE_DB
 		return
 	var station := current_station()
-	var target := target_db(human_mode, duck_timer > 0.0, bool(station.get("ducks_in_combat", true)))
+	var target := target_db(human_mode, duck_timer > 0.0, bool(station.get("ducks_in_combat", true))) + venue_db
 	if immediate:
 		player.volume_db = target
 		return

@@ -22,6 +22,20 @@ through authored M02, M03 and M04 prototypes; their full mission acceptance is o
 Earth before the wipe. Full first-run target 8-10 minutes,
 to be measured. [Treatment](../CAMPAIGN-MISSIONS.md#level-1-recall-notice).
 
+The golden-slice pass (roadmap rung 2) dresses the built route through
+`client/scripts/m01_intake.gd`: the service street opens to a night sky between
+lived-in tenements, with a queue lane of registered barriers, sealed repair
+stalls and a recall notice pasted over an old home-helper advert; the bay holds
+stock-tagged belongings, Latch's basket and ledger, confiscation bins and the
+faint confiscated radio; the hall's records screen loops Voss's address under
+the official caption track, labelled as such, and breaks to static when shot
+while *Continuity assured.* stays over the noise; transfer control shows Latch's
+file photo. Warm caged service lamps work under the cold institutional strips.
+`client/qa/m01-golden.json` frames every room and `m01-golden-guards.json` the
+placed guards. Still open: the Turn beat (no transport is seen leaving from
+transfer control), Address and Recall opening stills, Clerk and Sweeper art,
+fresh-player pacing and GPU performance.
+
 The current [map document](../../server/maps/m01-recall-notice.json) connects the
 route below with both walking stairs, the balcony underpass and indoor spawns.
 Normal-session tests traverse both approaches. `client/qa/m01.json` covers intake

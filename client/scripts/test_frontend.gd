@@ -234,8 +234,8 @@ func _run() -> void:
 	menu._apply_status({"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2})
 	_check(menu._match_line.text == "Arena Duel. Arena. 4 fighters. 2 connections.", "a live arena enables the match line")
 	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "watch and join stay in the app after a match line")
-	menu._apply_status({"schema_version": 2, "kind": "campaign", "map": "Recall Notice: intake prototype", "fighters": 1, "connections": 1})
-	_check(menu._match_line.text.begins_with("Recall Notice: intake prototype. Mission."), "a mission host is named as a mission")
+	menu._apply_status({"schema_version": 2, "kind": "campaign", "map": "Recall Notice", "fighters": 1, "connections": 1})
+	_check(menu._match_line.text.begins_with("Recall Notice. Mission."), "a mission host is named as a mission")
 	var with_ops: Dictionary = {"schema_version": 2, "kind": "arena", "map": "Tripoint Works", "fighters": 8, "connections": 6, "health": {"status": "degraded", "reasons": ["outbound_drops"]}, "ops": {"version": 1, "tick": {"window": {"p99_ms": 1.5}}}}
 	menu._apply_status(with_ops)
 	_check(menu._match_line.text == "Tripoint Works. Arena. 8 fighters. 6 connections.", "additive health and ops fields keep the schema 2 match line")

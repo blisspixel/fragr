@@ -1,7 +1,7 @@
 {
   "version": 1,
   "map_id": 1001,
-  "name": "Recall Notice: intake prototype",
+  "name": "Recall Notice",
   "half_extent": 48.0,
   "ground": "concrete",
   "equipment": "discovery",
@@ -109,7 +109,7 @@
     {"id":"street_south","min":[-12,0,-39],"max":[12,6,-38],"surface":"concrete"},
     {"id":"street_west","min":[-13,0,-39],"max":[-12,6,-28],"surface":"concrete"},
     {"id":"street_east","min":[12,0,-39],"max":[13,6,-28],"surface":"concrete"},
-    {"id":"street_canopy","min":[-13,6,-39],"max":[13,6.5,-28],"surface":"concrete"},
+    {"id":"street_canopy","min":[-13,6,-31.5],"max":[13,6.5,-28],"surface":"concrete"},
     {"id":"bay_front_west","min":[-12,0,-28],"max":[-3,6,-27],"surface":"enamel"},
     {"id":"bay_front_east","min":[3,0,-28],"max":[12,6,-27],"surface":"enamel"},
     {"id":"bay_front_header","min":[-3,3.5,-28],"max":[3,6,-27],"surface":"enamel"},
@@ -221,7 +221,10 @@
     {"id":"dispatch_front_roof","min":[-13,8,28],"max":[3,8.5,30],"surface":"concrete"},
     {"id":"dispatch_desk","min":[-8,3,34],"max":[-6,4.15,40],"surface":"enamel"},
     {"id":"dispatch_screen","min":[-10,3,30],"max":[-6,5.8,31],"surface":"service_steel"},
-    {"id":"transfer_ledger_cabinet","min":[-11,3,15],"max":[-8,5.8,18],"surface":"service_steel"}
+    {"id":"transfer_ledger_cabinet","min":[-11,3,15],"max":[-8,5.8,18],"surface":"service_steel"},
+    {"id":"street_queue_west","min":[-3.75,0,-37],"max":[-3.6,1,-29.6],"surface":"service_steel"},
+    {"id":"street_queue_east","min":[3.6,0,-37],"max":[3.75,1,-29.6],"surface":"service_steel"},
+    {"id":"bay_confiscation_bins","min":[-11.9,0,-26.8],"max":[-10.4,0.95,-23.2],"surface":"service_steel"}
   ],
   "decorations": [
     {"solid":"bay_front_header","face":"north","center":[0,0],"size":[5.6,2.1],"kind":"property_sign"},

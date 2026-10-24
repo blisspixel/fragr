@@ -105,6 +105,7 @@ var remote_place_armed: bool = true
 var pending_remote_trigger: bool = false
 var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
+var m01_intake: M01Intake
 var m02_ward: M02Ward
 var m03_yard: M03Yard
 var m04_town: M04Town
@@ -352,6 +353,9 @@ func _ready():
 	# Cover is built from what the server sends, never from a second copy in
 	# the scene. See arena_cover.gd for why that matters.
 	arena_cover = ArenaCover.new()
+	m01_intake = M01Intake.new()
+	m01_intake.name = "M01Intake"
+	add_child(m01_intake)
 	m03_yard = M03Yard.new()
 	m03_yard.name = "M03Yard"
 	add_child(m03_yard)
@@ -576,6 +580,10 @@ func _on_map_info(info: Dictionary) -> void:
 	# The venue decides the sky, and the venue is only known once the server
 	# has said which one this is.
 	_apply_arena_sky(str(info.get("map_name", "")))
+	if m01_intake != null:
+		m01_intake.configure_map(info)
+		if _venue_quiets_radio() and hud != null and hud.has_method("hide_radio"):
+			hud.hide_radio()
 	if m02_ward != null:
 		m02_ward.configure_map(info)
 	if m03_yard != null:
@@ -990,13 +998,25 @@ func _setup_radio() -> void:
 	else:
 		add_child(radio)
 	radio.set_human_mode(is_human_player)
+	# Recall Notice's building has no radio of its own; its cards stay off screen.
 	if hud and hud.has_method("show_radio"):
-		radio.track_started.connect(func(station, title): hud.show_radio(station, title))
-		radio.station_changed.connect(func(station, tagline, _has): hud.show_radio(station, tagline))
+		radio.track_started.connect(func(station, title): _show_radio_line(station, title))
+		radio.station_changed.connect(func(station, tagline, _has): _show_radio_line(station, tagline))
 	if hud and hud.has_method("show_station_card"):
-		radio.station_card.connect(func(card): hud.show_station_card(card))
+		radio.station_card.connect(func(card): _show_station_card(card))
 	if hud and hud.has_signal("host_spoke"):
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
+
+func _venue_quiets_radio() -> bool:
+	return m01_intake != null and m01_intake.active()
+
+func _show_radio_line(station: Variant, line: Variant) -> void:
+	if not _venue_quiets_radio():
+		hud.show_radio(station, line)
+
+func _show_station_card(card: Variant) -> void:
+	if not _venue_quiets_radio():
+		hud.show_station_card(card)
 
 func _resolve_boot() -> Dictionary:
 	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
@@ -1692,6 +1712,8 @@ func _process(_delta):
 		_submit_mission_readiness()
 	if mouse_capture != null:
 		mouse_capture.set_gameplay(not controls_blocked())
+	if radio != null and m01_intake != null:
+		radio.venue_db = m01_intake.radio_level_db(camera.global_position if camera is Node3D else Vector3.INF)
 	if is_human_player and net_client.connection_state != WebSocketPeer.STATE_OPEN and local_prediction.active():
 		_reset_prediction_for_connection("connection_lost")
 	if not is_human_player:
@@ -2014,6 +2036,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
 		mission_hud.geometry = net_client.mission_geometry
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	if m01_intake != null:
+		m01_intake.apply_state(state)
 	if m02_ward != null:
 		m02_ward.apply_state(state)
 	if m03_yard != null:
@@ -2400,6 +2424,8 @@ func _clear_world() -> void:
 	if mission_hud != null:
 		mission_hud.apply({}, "")
 		mission_hud.reset_notices()
+	if m01_intake != null:
+		m01_intake.clear_map()
 	if m02_ward != null:
 		m02_ward.clear_map()
 	if m03_yard != null:
@@ -3405,6 +3431,8 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 	last_shot_tick = tick
 	if shot_effects != null:
 		shot_effects.ingest(tick, results)
+	if m01_intake != null:
+		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
 	var feedback_viewport: Viewport = get_viewport()

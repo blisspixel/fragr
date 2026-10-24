@@ -11,7 +11,7 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_arena_sky: " + message)
 
 func _run() -> void:
-	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice: intake prototype")
+	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice")
 	var scrap: ArenaSky.Preset = ArenaSky.preset_for("Arena Duel")
 	var yard: ArenaSky.Preset = ArenaSky.preset_for("Compliance Yard")
 	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
@@ -32,7 +32,12 @@ func _run() -> void:
 		"Low Water needs its own warm afternoon sky and light")
 	_check(not freight.interior and freight.sky_top != scrap.sky_top and freight.fog_density < scrap.fog_density,
 		"M03 lost its explicit open daylight sky")
-	_check(ward.ambient_color == recall.ambient_color and ward.interior, "the M02 ward fell through to an outdoor fill")
+	_check(ward.interior and ward.ambient_color != scrap.ambient_color, "the M02 ward fell through to an outdoor fill")
+	# M01 keeps a readable floor (energy times the tint's luminance) while its
+	# strips and warm lamps carry the pools; enemies keep the actor view fill.
+	var intake_floor: float = recall.ambient_energy * recall.ambient_color.get_luminance()
+	_check(recall.practical_energy > ward.practical_energy and intake_floor >= 0.3 and intake_floor < ward.ambient_energy * ward.ambient_color.get_luminance(),
+		"the M01 intake lost its fixture-led light plan or its readable floor")
 	_check(recall.interior and not scrap.interior and not yard.interior, "venue interiors are not matched explicitly")
 	_check(recall.ambient_color != scrap.ambient_color, "Recall Notice still uses the scrapyard fill")
 	_check(yard.ambient_color != scrap.ambient_color, "Compliance Yard lost its own sky")
