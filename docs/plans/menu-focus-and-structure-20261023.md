@@ -143,7 +143,8 @@ Linux host (Omarchy, Wayland with XWayland `DISPLAY=:0`), Godot
 | `test_menu_focus` | PASS |
 | `test_frontend`, `test_host_menu`, `test_multiplayer_layout`, `test_menu_theme` | PASS |
 | Rendered captures 1280x720, 1920x1080, 2560x1440 (main, multi, join, join selected, host, host options, settings, pause) | Inspected; one plate per frame, complete edges, hover frame distinct |
-| `tools/godot_check.sh` full suite | see status line below |
+| `tools/godot_check.sh` full suite | 612 ok, 1 FAIL: `test_keyboard_m01` (intake guard not defeated, 0 confirmed hits). The same harness also failed on the `e4cec37` client on this loaded host. A working-tree swap for that baseline overlapped the tail of the run, so every harness from `test_keyboard_m01` onward was rerun on the branch: 135 of 135 PASS, including `test_keyboard_m01` |
+| Rendered toggles (host options) | A switched-on switch no longer draws the accent frame |
 | Windows renders at 720p/1080p/1440p, OS scaling 125%/150% | **not run** (Linux host). Run `menu_focus_capture.gd` there with `--size` per resolution |
 | Physical gamepad | **not run**; pad covered by injected `InputEventJoypadButton` |
 
