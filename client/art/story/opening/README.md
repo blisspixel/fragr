@@ -8,8 +8,8 @@ and `control.png` as its two image references.
 
 | File | Why it is held |
 |---|---|
-| `recall.png` | The seizure at the workshop door, with Latch and the room on model. The officers wear grey-green cloth and white helmets; the Union is now black cloth, dark steel and restrained red ([art bible](../../../../docs/ART_STORY_BIBLE.md)). Regenerate with this image as the layout reference. |
-| `control.png` | A registration hall. The hall itself matches Union institutions (bone, institutional green, red seals), but the officers are off model the same way, and no current shot shows it. The ADDRESS shot needs Voss at the podium instead. |
+| `recall.png` | The seizure at the workshop door, with Latch and the room on model. The officers wear grey-green cloth and white helmets; the Union is now black cloth, dark steel and restrained red ([art bible](../../../../docs/ART_STORY_BIBLE.md)). The RECALL shot now plays the authored pixel still in `client/assets/story/stills/opening/recall.png`; this stays as a layout reference for a later painted version. |
+| `control.png` | A registration hall. The hall itself matches Union institutions (bone, institutional green, red seals), but the officers are off model the same way, and no current shot shows it. The ADDRESS shot plays the authored pixel still of Voss at the podium (`client/assets/story/stills/opening/address.png`). |
 | `resistance.png` | Free humans and free agents helping each other in a backroom. On tone, but no current opening beat uses it; a candidate reference for a later scene. |
 
 The wired stills are in `client/assets/story/stills/opening/`. The scene list
