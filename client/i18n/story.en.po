@@ -874,7 +874,7 @@ msgid "M17_NEXT_PENDING"
 msgstr "All Systems Normal is still being built. Your completed Forever Office run is kept."
 
 msgid "M17_WAITING"
-msgstr "Operatives assemble at the chamber approach."
+msgstr "Everyone's at the chamber approach."
 
 msgid "M17_DEPARTED"
 msgstr "The Forever Office has fallen. Departure confirmed."
@@ -940,7 +940,7 @@ msgid "M18_NEXT_PENDING"
 msgstr "Planned Works is still being built. Your completed transit evacuation run is kept."
 
 msgid "M18_WAITING"
-msgstr "Operatives assemble at the Recovery Square aid depot."
+msgstr "Everyone's at the Recovery Square aid depot."
 
 msgid "M18_DEPARTED"
 msgstr "Evacuation concourse cleared. Departure confirmed."
@@ -1067,3 +1067,108 @@ msgstr "Tern arrives with a repair invoice before the smoke clears. \"Liberation
 
 msgid "STORY_M14_DEPARTURE_EARTH"
 msgstr "The coalition fleet lifts for Earth. Repairs, shared meals and arguments over the cargo lists fill the journey. Nine days after Mars, the capital waits below."
+
+msgid "MISSION_M19_TITLE"
+msgstr "PLANNED WORKS"
+
+msgid "M19_PROTOTYPE_TITLE"
+msgstr "Planned Works: development mission"
+
+msgid "M19_LOCAL_STARTING"
+msgstr "Entering the evacuation concourse..."
+
+msgid "M19_RUN_DESCRIPTION"
+msgstr "Cross the concourse and Low Water to the waterworks before the work strips close."
+
+msgid "M19_NEXT_TITLE"
+msgstr "LOCAL EXCEPTION"
+
+msgid "M19_NEXT_PENDING"
+msgstr "Local Exception is still being built. Your completed Planned Works run is kept."
+
+msgid "STORY_M19_ARRIVAL"
+msgstr "The evacuation concourse, minutes later.\n\nThe only way to the pier runs through Low Water."
+
+msgid "M19_WAITING"
+msgstr "Everyone's at the concourse stores."
+
+msgid "M19_DEPARTED"
+msgstr "Through the waterworks. The pier is ahead."
+
+msgid "M19_OBJECTIVE_CONCOURSE_STORES"
+msgstr "Draw a jetpack at the concourse stores counter."
+
+msgid "M19_OBJECTIVE_BROKEN_STAIR"
+msgstr "The stair is broken. Jump, then hold {jump} in the air to reach the gallery."
+
+msgid "M19_OBJECTIVE_CONCOURSE_CROSSING"
+msgstr "Clear the concourse crossing to the street doors."
+
+msgid "M19_OBJECTIVE_TRAM_STREET"
+msgstr "Get down the tram street past the Paver."
+
+msgid "M19_OBJECTIVE_MARKET_STRIPS"
+msgstr "Cross the market through the work strips."
+
+msgid "M19_OBJECTIVE_WATER_TANKS"
+msgstr "Climb to the water tanks. Latch is up there."
+
+msgid "M19_OBJECTIVE_ROOF_LOOP"
+msgstr "Run the roofs to Splice's workshop. The streets go there too."
+
+msgid "M19_OBJECTIVE_TRAM_TRENCH"
+msgstr "Get through the tram trench before the strips close."
+
+msgid "M19_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Get everyone through the waterworks hatch."
+
+msgid "M19_USE_STORES"
+msgstr "{use} Draw jetpack"
+
+msgid "M19_USE_WATERWORKS"
+msgstr "{use} Through the waterworks"
+
+msgid "M19_JETPACK_ON"
+msgstr "JETPACK ON: hold {jump} in the air"
+
+msgid "M19_JET_GAUGE"
+msgstr "JET"
+
+msgid "M19_JET_THRUST"
+msgstr "THRUST"
+
+msgid "M19_JET_EMPTY"
+msgstr "EMPTY: LAND TO REFILL"
+
+msgid "M19_JET_HINT"
+msgstr "Jump, then hold {jump} in the air"
+
+msgid "M19_STRIP_FIRST"
+msgstr "WORK STRIP: step out or hit the Paver"
+
+msgid "M19_STRIP_PUT_OUT"
+msgstr "WORK STRIP PUT OUT"
+
+msgid "M19_CROSSING_CLEARED"
+msgstr "CONCOURSE CROSSING CLEAR"
+
+msgid "M19_PAVER_INTERRUPTED"
+msgstr "PAVER STOPPED MID-PREPARATION"
+
+msgid "M19_WATERWORKS_OPEN"
+msgstr "WATERWORKS HATCH OPEN"
+
+msgid "M19_CLERK_FORM"
+msgstr "Clerk, at the stretcher: \"Form, please. Your form?\""
+
+msgid "M19_LATCH_FILING"
+msgstr "Latch: \"Nobody's filing anymore.\""
+
+msgid "M19_LATCH_TANK_REACH"
+msgstr "Latch: \"Every one I didn't reach.\""
+
+msgid "M19_TERN_TANK_AGENTS"
+msgstr "Tern, on the channel: \"The free agents are going to talk to it.\""
+
+msgid "M19_LATCH_TANK_GOING"
+msgstr "Latch: \"I'm going. Hold them for me. Then we're even.\""

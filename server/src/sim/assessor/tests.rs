@@ -28,12 +28,13 @@ fn encounter() -> (crate::session::GameSession, Uuid) {
 }
 
 fn identity(kind: EnemyKind, phase: EnemyPhase) -> Option<CampaignActor> {
-    Some(CampaignActor::Union {
+    Some(CampaignActor::Hostile {
         kind,
         phase,
         phase_started: 0,
         phase_ends: 40,
         seated: false,
+        control: Default::default(),
     })
 }
 
@@ -441,7 +442,7 @@ fn assessor_lost_target_or_heavy_stagger_cancels_unlaunched_volley() {
                 .find(|p| p.id == owner)
                 .unwrap()
                 .campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 phase: EnemyPhase::Windup,
                 ..
             })
@@ -491,7 +492,7 @@ fn assessor_lost_target_or_heavy_stagger_cancels_unlaunched_volley() {
             .campaign
             .unwrap()
         {
-            CampaignActor::Union { phase, .. } => phase,
+            CampaignActor::Hostile { phase, .. } => phase,
             _ => panic!("drone identity lost"),
         };
         assert_eq!(
@@ -614,12 +615,12 @@ fn assessor_session_commits_three_real_rounds_six_ticks_apart_and_stops_at_thirt
             .iter()
             .find(|p| crate::combat::is_assessor(p.campaign))
             .unwrap();
-        if let Some(CampaignActor::Union { phase, .. }) = drone.campaign {
+        if let Some(CampaignActor::Hostile { phase, .. }) = drone.campaign {
             *phases.entry(format!("{phase:?}")).or_insert(0usize) += 1;
         }
         if matches!(
             drone.campaign,
-            Some(CampaignActor::Union {
+            Some(CampaignActor::Hostile {
                 phase: EnemyPhase::Windup | EnemyPhase::Firing,
                 ..
             })
@@ -786,7 +787,7 @@ fn assessor_landing_damage_reaches_the_registered_victim_controller_same_tick() 
                         .find(|p| p.id == victim)
                         .unwrap()
                         .campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Dead,
                         ..
                     })

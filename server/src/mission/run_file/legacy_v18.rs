@@ -83,6 +83,7 @@ impl RunDocumentBeforeStadium {
             m16_outcome: None,
             m17_outcome: None,
             m18_outcome: None,
+            m19_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 14 {
             return Err("M15 was not supported before version 19");

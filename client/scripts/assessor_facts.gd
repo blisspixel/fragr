@@ -16,7 +16,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 		return INVALID
 	var owners: Dictionary[String, bool] = {}
 	for actor: Variant in actors:
-		if actor is Dictionary and ActorState.is_union(actor) and actor["campaign"].get("kind") == "assessor":
+		if actor is Dictionary and ActorState.is_hostile(actor) and actor["campaign"].get("kind") == "assessor":
 			owners[str(actor.get("id", ""))] = true
 	var counts: Dictionary[String, int] = {}
 	var ids: Array[int] = []

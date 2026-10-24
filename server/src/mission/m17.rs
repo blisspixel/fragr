@@ -173,6 +173,7 @@ impl GameState {
                 brief_completed: p.challenges.brief_completed(run.rules.difficulty),
             }),
             m18: None,
+            m19: None,
         })
     }
 

@@ -38,6 +38,10 @@
 			"sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
 		},
 		{
+			"file": "jetpack.glb",
+			"sha256": "ad6fbf2ad93a75157069a29ee7b0f8db71a25cc83d95bae6ea0fd3a5ef8b78af"
+		},
+		{
 			"file": "latch.glb",
 			"sha256": "9c8b5ddd33b3f7e9d7d9fb04382e9aa8a95503ec6054d860ceda1d066c06197f"
 		},
@@ -99,7 +103,7 @@
 		"res://scripts/facility_geometry.gd": "cf169e96605f837b59695babda7675159dfb5829f4c0161af5dac152046f45c3",
 		"res://scripts/latch_face.gd": "dbae2a83d4414c8f67fc78fef5cf07d839a5767b2d1b96b18193248018436166",
 		"res://scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
-		"res://scripts/latch_view.gd": "334d7202d9eca643fd594996ac318bf39011b1ab36b581e397332c1c447a8378",
+		"res://scripts/latch_view.gd": "7cd50be21b5941dfd483b73edfddd6eaa02c81722797e250c52807e79436c3e7",
 		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	}
 }

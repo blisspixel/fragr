@@ -143,6 +143,7 @@ impl GameState {
             }),
             m17: None,
             m18: None,
+            m19: None,
         })
     }
 

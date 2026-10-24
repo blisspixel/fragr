@@ -189,7 +189,7 @@ impl Walkthrough {
                 .unwrap();
             let dry = loadout.shots(player.weapon) == Some(0);
             let telling = visible.iter().find_map(|enemy| match enemy.campaign {
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Windup | EnemyPhase::Firing,
                     phase_started,
                     ..
@@ -230,7 +230,7 @@ impl Walkthrough {
                     visible.iter().any(|enemy| {
                         matches!(
                             enemy.campaign,
-                            Some(CampaignActor::Union {
+                            Some(CampaignActor::Hostile {
                                 phase: EnemyPhase::Windup | EnemyPhase::Firing,
                                 ..
                             })
@@ -360,7 +360,7 @@ impl Walkthrough {
             }
             if matches!(
                 p.campaign,
-                Some(CampaignActor::Union {
+                Some(CampaignActor::Hostile {
                     phase: EnemyPhase::Dead,
                     ..
                 })
@@ -478,7 +478,7 @@ impl Walkthrough {
                 me.is_hostile_to(enemy)
                     && matches!(
                         enemy.campaign,
-                        Some(CampaignActor::Union {
+                        Some(CampaignActor::Hostile {
                             phase: EnemyPhase::Windup | EnemyPhase::Firing,
                             ..
                         })
@@ -550,7 +550,7 @@ impl Walkthrough {
             for player in &self.session.state.players {
                 if matches!(
                     player.campaign,
-                    Some(CampaignActor::Union {
+                    Some(CampaignActor::Hostile {
                         phase: EnemyPhase::Dead,
                         ..
                     })

@@ -674,7 +674,7 @@ fn m06_authored_turret_charges_fires_cancels_on_cover_and_takes_a_real_rear_flan
             .campaign
             .unwrap()
         {
-            CampaignActor::Union {
+            CampaignActor::Hostile {
                 phase,
                 phase_started,
                 phase_ends,

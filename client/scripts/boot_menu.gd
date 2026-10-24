@@ -452,7 +452,7 @@ func _page_single() -> void:
 				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("M18_NEXT_PENDING"))
+				_label(tr("M19_NEXT_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -473,7 +473,9 @@ func _page_single() -> void:
 	if status != "awaiting_mission" or _local_match.run_preview.get("mission") != LocalMatch.NEXT_MISSION:
 		var description: String = "MENU_M01_DESCRIPTION"
 		if status in ["ready", "awaiting_mission"]:
-			if _local_match.run_preview.get("mission") == MissionState.M18_ID:
+			if _local_match.run_preview.get("mission") == MissionState.M19_ID:
+				description = "M19_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M18_ID:
 				description = "M18_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M17_ID:
 				description = "M17_RUN_DESCRIPTION"
@@ -518,12 +520,12 @@ func _page_practice() -> void:
 	var selector: OptionButton = OptionButton.new()
 	selector.name = "DevelopmentMission"
 	selector.custom_minimum_size.y = 46.0
-	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE"]:
+	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE", "M19_PROTOTYPE_TITLE"]:
 		selector.add_item(tr(key))
 	selector.select(5)
 	_root.add_child(selector)
 	var launch: Button = _button(tr("M05_LAUNCH_PROTOTYPE"), func() -> void:
-		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]
+		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID]
 		_start_development(ids[selector.selected]))
 	launch.name = "LaunchDevelopmentMission"
 	launch.disabled = not can_start
@@ -559,6 +561,8 @@ func _saved_mission_title(mission_id: String) -> String:
 			return tr("MISSION_M09_TITLE")
 		MissionState.M10_ID:
 			return tr("MISSION_M10_TITLE")
+		MissionState.M19_ID:
+			return tr("MISSION_M19_TITLE")
 		MissionState.M18_ID:
 			return tr("MISSION_M18_TITLE")
 		MissionState.M17_ID:
@@ -576,7 +580,7 @@ func _saved_mission_title(mission_id: String) -> String:
 		MissionState.M11_ID:
 			return tr("MISSION_M11_TITLE")
 		LocalMatch.NEXT_MISSION:
-			return tr("M18_NEXT_TITLE")
+			return tr("M19_NEXT_TITLE")
 	return tr("MISSION_M01_TITLE")
 
 func _saved_mission_button(mission_id: String) -> String:
@@ -597,6 +601,8 @@ func _saved_mission_button(mission_id: String) -> String:
 			return "CustodianOfRecordSaved"
 		MissionState.M10_ID:
 			return "CommonCarrierSaved"
+		MissionState.M19_ID:
+			return "PlannedWorksSaved"
 		MissionState.M18_ID:
 			return "AllSystemsNormalSaved"
 		MissionState.M17_ID:
@@ -692,7 +698,7 @@ func _start_development_m04() -> void:
 	_on_local_state_changed()
 
 func _start_development(mission_id: String) -> void:
-	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]:
+	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID]:
 		return
 	_launch_pending = true
 	_campaign_run_mode = ""
@@ -705,7 +711,7 @@ func _start_campaign_resume() -> void:
 	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]):
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID]):
 		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
@@ -718,12 +724,14 @@ func _start_campaign_resume() -> void:
 static func _arrival_for_preview(preview: Dictionary) -> bool:
 	var mission_id: String = str(preview.get("mission", ""))
 	return preview.get("status") == "awaiting_mission" \
-		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] \
+		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID] \
 		and StoryScene.BEFORE_MISSION.has(mission_id)
 
 func _page_launch() -> void:
 	var title: String = _saved_mission_title(_local_match.mission)
-	if _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M18_ID:
+	if _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M19_ID:
+		title = tr("M19_PROTOTYPE_TITLE")
+	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M18_ID:
 		title = tr("M18_PROTOTYPE_TITLE")
 	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M17_ID:
 		title = tr("M17_PROTOTYPE_TITLE")
@@ -741,7 +749,9 @@ func _page_launch() -> void:
 		title = tr("M11_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M11_ID else tr("M10_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M10_ID else tr("M09_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M09_ID else tr("M07_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M07_ID else tr("M08_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M08_ID else tr("M06_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M06_ID else (tr("M05_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M05_ID else tr("M04_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M04_ID else ("M03_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M03_ID else "MISSION_M02_GRAYBOX")))
 	_label(title)
 	var preparing: String = "M11_LOCAL_STARTING" if _local_match.mission == MissionState.M11_ID else "M10_LOCAL_STARTING" if _local_match.mission == MissionState.M10_ID else "M09_LOCAL_STARTING" if _local_match.mission == MissionState.M09_ID else "M07_LOCAL_STARTING" if _local_match.mission == MissionState.M07_ID else "M08_LOCAL_STARTING" if _local_match.mission == MissionState.M08_ID else "M06_LOCAL_STARTING" if _local_match.mission == MissionState.M06_ID else ("M05_LOCAL_STARTING" if _local_match.mission == MissionState.M05_ID else "M04_LOCAL_STARTING" if _local_match.mission == MissionState.M04_ID else ("M03_LOCAL_STARTING" if _local_match.mission == MissionState.M03_ID else "LOCAL_SERVER_STARTING"))
-	if _local_match.mission == MissionState.M18_ID:
+	if _local_match.mission == MissionState.M19_ID:
+		preparing = "M19_LOCAL_STARTING"
+	elif _local_match.mission == MissionState.M18_ID:
 		preparing = "M18_LOCAL_STARTING"
 	elif _local_match.mission == MissionState.M17_ID:
 		preparing = "M17_LOCAL_STARTING"

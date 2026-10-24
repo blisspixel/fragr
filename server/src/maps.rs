@@ -101,6 +101,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::AllSystemsNormal => {
                 include_bytes!("../maps/m18-all-systems-normal.json")
             }
+            crate::protocol::MissionId::PlannedWorks => {
+                include_bytes!("../maps/m19-planned-works.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -160,6 +163,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::AllSystemsNormal) => {
                 AuthoredMap::read(include_bytes!("../maps/m18-all-systems-normal.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::PlannedWorks) => {
+                AuthoredMap::read(include_bytes!("../maps/m19-planned-works.json").as_slice())
             }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())

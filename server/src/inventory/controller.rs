@@ -265,7 +265,7 @@ pub fn control_action_with_target_filter(
                 && (target.armor > 0
                     || matches!(
                         target.campaign,
-                        Some(crate::protocol::CampaignActor::Union {
+                        Some(crate::protocol::CampaignActor::Hostile {
                             kind: crate::protocol::EnemyKind::Auditor
                                 | crate::protocol::EnemyKind::Assessor,
                             ..

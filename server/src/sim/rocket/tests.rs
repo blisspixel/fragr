@@ -325,12 +325,13 @@ fn plate_applies_to_direct_damage_only() {
         .unwrap();
     player.hp = 200;
     player.yaw = std::f32::consts::PI;
-    player.campaign = Some(CampaignActor::Union {
+    player.campaign = Some(CampaignActor::Hostile {
         kind: EnemyKind::Auditor,
         phase: EnemyPhase::Firing,
         phase_started: 0,
         phase_ends: 40,
         seated: false,
+        control: Default::default(),
     });
     launch_and_hold(&mut state, shooter);
     fly(&mut state, 20);

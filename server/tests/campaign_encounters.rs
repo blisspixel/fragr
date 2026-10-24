@@ -142,7 +142,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                         if snapshot.players.iter().any(|p| {
                             matches!(
                                 p.campaign,
-                                Some(CampaignActor::Union {
+                                Some(CampaignActor::Hostile {
                                     kind: EnemyKind::Clerk,
                                     ..
                                 })

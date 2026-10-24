@@ -329,6 +329,7 @@ impl GameState {
                 || run.m16.is_some()
                 || run.m17.is_some()
                 || run.m18.is_some()
+                || run.m19.is_some()
             {
                 MissionPhase::InProgress
             } else {

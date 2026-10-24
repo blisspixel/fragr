@@ -266,7 +266,7 @@ fn advance(
         let aim = |p: &fragr_server::sim::Player| [p.x, p.y - PLAYER_FLOOR_Y + 0.9, p.z];
         let eye = [from[0], from[1] + EYE_HEIGHT, from[2]];
         let target = state.players.iter().filter(|p| required.contains(&p.name.as_str()) && p.hp > 0)
-            .filter(|p| matches!(p.campaign, Some(CampaignActor::Union { phase, .. }) if phase != EnemyPhase::Idle && phase != EnemyPhase::Dead))
+            .filter(|p| matches!(p.campaign, Some(CampaignActor::Hostile { phase, .. }) if phase != EnemyPhase::Idle && phase != EnemyPhase::Dead))
             .find(|p| fragr_server::combat::line_of_sight(eye, aim(p), &state.current_arena().solids));
         let mut action = if let Some(target) = target {
             let point = aim(target);

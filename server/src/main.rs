@@ -681,7 +681,7 @@ mod tests {
         }
         assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
         assert!(
-            Args::try_parse_from(["fragr-server", "--local-mission", "planned_works"]).is_err()
+            Args::try_parse_from(["fragr-server", "--local-mission", "local_exception"]).is_err()
         );
     }
 

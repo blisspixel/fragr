@@ -304,7 +304,7 @@ fn m12_authority_requires_order_actual_arc_and_four_separate_encounter_clears() 
             .iter()
             .filter(|p| p
                 .campaign
-                .is_some_and(|c| matches!(c, CampaignActor::Union { .. })))
+                .is_some_and(|c| matches!(c, CampaignActor::Hostile { .. })))
             .count(),
         4,
         "future groups remain unplaced"
@@ -761,7 +761,7 @@ fn m12_actual_supported_identified_wreck_counts_only_its_resolved_registered_dea
             .find(|p| p.id == victim)
             .unwrap()
             .campaign,
-        Some(CampaignActor::Union {
+        Some(CampaignActor::Hostile {
             phase: crate::protocol::EnemyPhase::Dead,
             ..
         })
