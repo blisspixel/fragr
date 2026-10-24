@@ -218,7 +218,7 @@ impl GameSession {
             || trimmed.chars().count() > crate::sim::SPEAK_MAX_CHARS
             || trimmed.chars().any(char::is_control)
         {
-            return "That line does not go on the air.".into();
+            return "That line does not go out.".into();
         }
         if self
             .venue_said_tick
@@ -617,12 +617,12 @@ mod tests {
         );
         assert_eq!(
             session.desk(DeskVerb::Say { text: "\n".into() }).text(),
-            "That line does not go on the air."
+            "That line does not go out."
         );
         let long = "x".repeat(crate::sim::SPEAK_MAX_CHARS + 1);
         assert_eq!(
             session.desk(DeskVerb::Say { text: long }).text(),
-            "That line does not go on the air."
+            "That line does not go out."
         );
     }
 }

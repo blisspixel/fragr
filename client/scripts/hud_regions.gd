@@ -117,9 +117,6 @@ func layout() -> void:
 		conquest.set_covered(covered)
 	var vehicle_rect: Rect2 = vehicle.occupied_region() if is_instance_valid(vehicle) else Rect2()
 	var origin: float = 16.0
-	for decoration: Control in [hud.chrome_strip, hud.on_air_badge, hud.contested_frequency_badge]:
-		if decoration != null and decoration.visible:
-			origin = maxf(origin, decoration.position.y + decoration.size.y + 16.0)
 	hud.weapon_label.visible = not hud.weapon_label.text.is_empty() and hud.client_mode == "SPECTATING"
 	hints.visible = not hints.text.is_empty()
 	var hud_scale: float = hud.hud_style.scale if hud != null and "hud_style" in hud and hud.hud_style != null else 1.0

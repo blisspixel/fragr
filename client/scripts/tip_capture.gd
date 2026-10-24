@@ -83,7 +83,7 @@ func _run_capture() -> void:
 	quit(0)
 
 func _capture_warmup_tv_bumper(out_dir: String) -> void:
-	# Full-frame Contested Frequency Warmup TV: Larak Lot face, roster chips, GOES LIVE IN N.
+	# Full-frame Scrap League Warmup TV: Larak Lot face, roster chips, GOES LIVE IN N.
 	var gm: Node = _find_game_manager()
 	if gm == null:
 		push_warning("tip_capture: GameManager missing; skip Warmup TV bumper shot")

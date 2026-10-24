@@ -2704,7 +2704,7 @@ func _on_snapshot_received(data):
 	else:
 		hud.set_pressure(str(pressure))
 	# Sticky Host chrome always. Flash once on Warmup / Active / Ended join so
-	# pre-round Contested Frequency drama is readable (RoundStart still fights).
+	# pre-round Scrap League drama is readable (RoundStart still fights).
 	var roster = _warmup_roster_callsigns(participant_list)
 	if host_line != "":
 		var flash = round_state == "Warmup" or round_state == "Active" or round_state == "Ended"

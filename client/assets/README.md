@@ -43,9 +43,7 @@ Prompts, request IDs, costs and hashes: `art-pass-20261002-manifest.json`.
   `godot --headless --path client --script ../tools/bake_boot_splash.gd` from the
   repo root. The bake preserves decoded pixels. Engine startup uses aspect-fit
   scaling and nearest filtering; regenerate from the source when branding changes.
-- `on_air.png` `contested_frequency.png` `hangar_candy.png` `chrome-strip.png` - full plates
-- `on_air_badge.png` `contested_frequency_badge.png` `hangar_candy_badge.png` `chrome_strip_hud.png` - HUD crops (nearest)
-- Contested Frequency / Hangar Candy / ON AIR broadcast grit. Dull, not neon.
+- `on_air.png` `contested_frequency.png` `hangar_candy.png` `chrome-strip.png` - broadcast plates (Contested Frequency, ON AIR and the Hangar Candy sponsor), kept as reference art for the radio's own UI. Dull, not neon. The match HUD carries no radio ident; its badge crops were removed.
 
 ## factions/free_coalition
 

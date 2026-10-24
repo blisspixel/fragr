@@ -3349,7 +3349,7 @@ fn test_shot_results_miss() {
 }
 
 #[test]
-fn test_snapshot_carries_contested_frequency_mode_identity() {
+fn test_snapshot_carries_scrap_league_mode_identity() {
     let state = GameState::new();
     let snap = state.snapshot();
     assert_eq!(snap.mode_name, "Scrap League");
@@ -3538,7 +3538,7 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
     };
     state.add_player(Uuid::new_v4(), "Late".to_string(), Role::Human);
 
-    // Warmup: Contested Frequency countdown Host drama sticky on Snapshot.
+    // Warmup: Scrap League countdown Host drama sticky on Snapshot.
     let warm = state.snapshot();
     assert!(warm.pressure.is_none());
     let expected_warm = warmup_host_line("Larak Lot", &[], 1); // warmup_ticks=2 -> 1s ceil
@@ -5416,7 +5416,7 @@ fn solo_broadcast_ep0_win_path() {
 
     session
         .state
-        .complete_episode("Auditor down. Still unmetered.".to_string());
+        .complete_episode("Auditor down. The league stays open.".to_string());
     assert_eq!(session.state.solo_broadcast.phase, EpisodePhase::Won);
     let events = session.state.take_events();
     assert!(

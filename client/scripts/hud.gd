@@ -51,10 +51,6 @@ var screen_flash = null
 @onready var health_bar = $Vitals/HealthBar
 @onready var armor_value = $Vitals/ArmorValue
 @onready var armor_bar = $Vitals/ArmorBar
-@onready var chrome_strip = $ChromeStrip
-@onready var on_air_badge = $OnAirBadge
-@onready var contested_frequency_badge = $ContestedFrequencyBadge
-@onready var hangar_candy_badge = $HangarCandyBadge
 var map_chip_label: Label = null
 ## Validated `map_info.rules`; empty on campaign maps and old servers.
 var match_rules: Dictionary = {}
@@ -116,11 +112,6 @@ const CONTROLS_HINT_FADE_MS: int = 1000
 var controls_hint_pending: bool = true
 ## The join (its `mode_entered_ms`) that carries the play legend, or -1.
 var _play_hint_ms: int = -1
-
-## Broadcast ident (the top strip, ON AIR, the station badge). Off by default:
-## it is right for a let's-play capture and wrong for playing. See
-## _update_broadcast_chrome.
-var broadcast_chrome: bool = false
 
 ## Connection status, wall clock and head count. Debug furniture, off.
 var debug_telemetry: bool = false
@@ -229,7 +220,7 @@ const PLAYER_MAX_HP: int = 100
 const PLAYER_MAX_ARMOR: int = 100
 var floating_damage_nodes = []
 
-# Full-frame Warmup Contested Frequency TV bumper (unmissable scrap open).
+# Full-frame Warmup TV bumper (unmissable scrap open).
 var warmup_tv_veil = null
 var warmup_tv_league = null
 var warmup_tv_map = null
@@ -361,7 +352,7 @@ func _ready():
 		streak_flash.modulate.a = 0.0
 	if fp_weapon:
 		fp_weapon.visible = false
-	_update_broadcast_chrome("Warmup")
+	_refresh_map_chip_badge()
 	_bind_warmup_tv()
 
 func _theme_chrome_child(child: Node) -> void:
@@ -782,16 +773,6 @@ func _refresh_map_chip_badge() -> void:
 		# knows which map they are on; a spectator tuning in does not, so the
 		# chip belongs to the spectator view and to the round bumper.
 		map_chip_label.visible = map_label != "" and client_mode == "SPECTATING"
-	# Hide brand Hangar Candy art so it cannot impersonate the map chip.
-	if hangar_candy_badge:
-		hangar_candy_badge.visible = false
-	# chrome_strip_hud.png bakes Hangar Candy as a third top chip. During Solo
-	# Broadcast (Larak Lot) that reads as a second map name beside MapChipLabel.
-	# The strip is also spectator furniture, so it never comes back while a
-	# person is playing; this used to re-show it after the chrome decided not to.
-	if chrome_strip:
-		var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-		chrome_strip.visible = broadcast_chrome and not solo_larak and client_mode == "SPECTATING"
 
 
 func set_status(text: String):
@@ -838,7 +819,6 @@ func set_mode(mode: String):
 	_refresh_mode_label()
 	_refresh_telemetry_lines()
 	_refresh_map_chip_badge()
-	_update_broadcast_chrome(round_chrome_state)
 
 ## Connection status, wall clock, and head count are for whoever is debugging
 ## the client, not for anybody looking at the game. The round line already
@@ -904,7 +884,7 @@ func set_round_info(state: String, time_left: Variant, frag_limit: int, level_cl
 	round_clock_known = (time_left is int or time_left is float) and is_finite(float(time_left)) and float(time_left) >= 0.0
 	round_seconds = int(time_left) if round_clock_known else 0
 	round_target = frag_limit
-	_update_broadcast_chrome(state)
+	_refresh_map_chip_badge()
 	_refresh_mode_label()
 
 func set_player_count(count: int):
@@ -1175,12 +1155,11 @@ func show_episode_title_card(title: String, objective: String = ""):
 	var line = title.to_upper()
 	if objective != "":
 		line += "\n" + objective
-	line += "\nLARAK LOT // YOU'RE ON THE AIR"
+	line += "\nLARAK LOT // YOU'RE IN THE LEAGUE"
 	_show_round_banner(line, 3.2)
 
 func show_nods_tick(progress: String, host_line: String = ""):
-	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
-	flash_broadcast_chrome("host")
+	# Short Host beat per NODS clear. Not speak. Not killstreak length.
 	if not round_message:
 		return
 	var line = host_line
@@ -1201,7 +1180,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	round_banner_remaining = 0.0
 	if not round_message:
 		return
-	var line = host_line if host_line != "" else "HOST: Amen, fistbump. Still unmetered."
+	var line = host_line if host_line != "" else "HOST: Amen, fistbump. The league stays open."
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
 	# Held until the next card: zero seconds never expires.
@@ -1309,7 +1288,6 @@ func show_critical_crossing(before: int, after: int) -> void:
 	_critical_pulse.tween_property(health_value, "scale", Vector2.ONE, 0.18)
 
 func apply_preferences(settings: FragrSettings) -> void:
-	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
 	announcer = settings.announcer()
@@ -1328,7 +1306,7 @@ func apply_preferences(settings: FragrSettings) -> void:
 	controls_hint_pending = not bool(settings.get_value("gameplay", "controls_hint_seen"))
 	hud_style = HudStyle.from_settings(settings, hud_style.revision + 1)
 	_apply_hud_style()
-	_update_broadcast_chrome(round_chrome_state)
+	_refresh_map_chip_badge()
 	_refresh_telemetry_lines()
 	_refresh_mode_label()
 
@@ -1362,77 +1340,6 @@ func _apply_hud_style() -> void:
 	if regions != null:
 		regions.layout()
 
-
-func _update_broadcast_chrome(state: String) -> void:
-	# The broadcast ident is off unless somebody asks for it.
-	#
-	# It was a 72 pixel strip pinned across the top of the screen with a red ON
-	# AIR box in it, and it was the highest-contrast thing in every spectator
-	# frame the visual QA tour has ever taken. The station is a thread through
-	# the world and not the world, and a network ident does not get to be the
-	# first thing the eye lands on in a screenshot of a shooter.
-	#
-	# It is kept rather than deleted because a broadcast overlay is genuinely
-	# right for a let's-play capture, where the viewer is watching a programme.
-	# It is simply not right for playing or for the README, so it is a setting
-	# that defaults to off instead of furniture that defaults to on.
-	var warm = state == "Warmup"
-	var live = state == "Active"
-	var ended = state == "Ended"
-	# Do not re-show the Hangar Candy strip during Solo Broadcast / Larak Lot.
-	var solo_larak = map_label.strip_edges().to_lower() == "larak lot"
-	var spectating = client_mode == "SPECTATING"
-	var strip_shown = (
-		broadcast_chrome
-		and chrome_strip != null
-		and not solo_larak
-		and spectating
-	)
-	if chrome_strip:
-		chrome_strip.visible = strip_shown
-		var a = 0.92 if live else (0.88 if warm else 0.7)
-		chrome_strip.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, a)
-	# The strip already bakes ON AIR and Contested Frequency, the same way it
-	# bakes Hangar Candy. Drawing the loose badges underneath it put both marks
-	# on screen twice, which the first visual QA tour caught. They are the
-	# fallback for when the strip is not up, not a second copy of it.
-	if on_air_badge:
-		on_air_badge.visible = broadcast_chrome and live and not strip_shown and spectating
-		if on_air_badge.visible:
-			on_air_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.95)
-	if contested_frequency_badge:
-		# Warm on Warmup / Host face; quieter while live so ON AIR owns the scrap.
-		contested_frequency_badge.visible = broadcast_chrome and not strip_shown and spectating
-		var ca = 0.95 if warm else (0.72 if live else 0.8)
-		contested_frequency_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, ca)
-	# Map chip is Snapshot map_name (see _refresh_map_chip_badge). Never re-show
-	# the Hangar Candy brand texture as if it were the map name.
-	if hangar_candy_badge:
-		hangar_candy_badge.visible = false
-	_refresh_map_chip_badge()
-
-func flash_broadcast_chrome(kind: String = "host") -> void:
-	# Brief badge lift on Host / Warmup bumper without neon wash.
-	var badge = contested_frequency_badge
-	# A flash must never be a way back in for chrome that is switched off. This
-	# line used to set visible unconditionally, so a Host bumper would put the
-	# red ON AIR box back on screen no matter what the rest of the file decided.
-	if not broadcast_chrome:
-		return
-	if kind == "on_air":
-		badge = on_air_badge
-		if on_air_badge:
-			on_air_badge.visible = true
-	elif kind == "hangar":
-		# Pulse the Snapshot map chip, not the retired Hangar Candy brand art.
-		_refresh_map_chip_badge()
-		badge = map_chip_label
-	if badge == null:
-		return
-	var base_a = badge.modulate.a
-	badge.modulate.a = minf(base_a + 0.15, 1.0)
-	var tween = create_tween()
-	tween.tween_property(badge, "modulate:a", base_a, 0.45)
 
 func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 	# Returns true when this call triggered the one-shot mid-join Host flash.
@@ -1475,7 +1382,6 @@ func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	round_banner_remaining = 0.0
 	host_duck(3.0, false)
 	# Warmup / pre-round Host drama: roster + map bumper readable before RoundStart.
-	flash_broadcast_chrome("host")
 	# Unmissable full-frame Warmup TV bumper.
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).

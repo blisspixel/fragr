@@ -81,7 +81,7 @@ struct Args {
     #[arg(long, default_value_t = false, help_heading = "Match", conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
     playlist: bool,
 
-    /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
+    /// Scrap League Solo Broadcast Episode 0 (Calibration / Larak Lot).
     /// NODS clear + jammer dish + Auditor. MP unchanged when off.
     #[arg(long, default_value_t = false, help_heading = "Match")]
     solo_broadcast: bool,

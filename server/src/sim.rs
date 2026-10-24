@@ -133,7 +133,7 @@ pub const EP0_NODS_GOAL: u32 = 5;
 /// standing on the visible pad seizes; a 3.0 hub soft-locked first Calibration.
 pub const EP0_JAMMER_RADIUS: f32 = 6.5;
 
-/// The Contested Frequency map roster. Ids are stable and on the wire; the
+/// The Scrap League map roster. Ids are stable and on the wire; the
 /// layouts themselves live in `maps.rs`, which is the only place in the server
 /// that knows what a map looks like.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -359,7 +359,7 @@ impl EpisodePhase {
     }
 }
 
-/// Contested Frequency Solo Broadcast Episode 0 runtime (off = MP unchanged).
+/// Scrap League Solo Broadcast Episode 0 runtime (off = MP unchanged).
 #[derive(Debug, Clone)]
 pub struct SoloBroadcastEp0 {
     pub enabled: bool,
@@ -688,7 +688,7 @@ pub struct GameState {
     pub roster_host_line: Option<String>,
     /// Dialed-in rule-bot callsigns for Warmup / RoundStart Host drama.
     pub roster_names: Vec<String>,
-    /// Active Contested Frequency scrap layout.
+    /// Active Scrap League scrap layout.
     pub map: crate::maps::RuntimeMap,
     /// When true, alternate map each start_round.
     pub map_rotate: bool,
@@ -3416,7 +3416,7 @@ impl GameState {
                 );
                 if self.solo_broadcast.enabled && self.solo_broadcast.phase == EpisodePhase::Auditor
                 {
-                    self.complete_episode("Auditor down. Still unmetered.".to_string());
+                    self.complete_episode("Auditor down. The league stays open.".to_string());
                 }
             } else {
                 self.note_nods_frag(shooter_id, target_id);
@@ -3841,7 +3841,7 @@ impl GameState {
         }
     }
 
-    /// Enable Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
+    /// Enable Scrap League Solo Broadcast Episode 0 (Calibration / Larak Lot).
     /// Relabels rule bots as NODS, disables timed Compliance Drone (Auditor is gated),
     /// and arms episode chrome. Safe to call once at boot.
     pub fn enable_solo_broadcast_ep0(&mut self) {

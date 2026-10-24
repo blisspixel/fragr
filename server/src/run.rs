@@ -92,7 +92,7 @@ pub struct ServerOptions {
     pub join_secret: Option<std::sync::Arc<crate::join_ticket::JoinSecret>>,
     /// Host ban and allow list files. Empty leaves every address admissible.
     pub access: crate::access::AccessConfig,
-    /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
+    /// Scrap League Solo Broadcast Episode 0 (Calibration / Larak Lot).
     pub solo_broadcast: bool,
     /// Opt-in local venue desk. Closing its input does not stop the match.
     pub console: bool,

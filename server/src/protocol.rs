@@ -408,7 +408,7 @@ pub const EPISODE_MAP_LARAK_LOT: &str = "Larak Lot";
 pub const AUDITOR_NAME: &str = "AUDITOR";
 
 pub fn episode0_host_line_cold_open() -> String {
-    "HOST: In the morning. Calibration night. Continuance brought NODS. You're on the air."
+    "HOST: In the morning. Calibration night. Continuance brought NODS. You're in the league."
         .to_string()
 }
 
@@ -417,7 +417,7 @@ pub fn episode0_host_line_nods() -> String {
         .to_string()
 }
 
-/// Short Contested Frequency Host tick per credited NODS clear (rate-sane: one line per clear).
+/// Short Scrap League Host tick per credited NODS clear (rate-sane: one line per clear).
 pub fn episode0_host_line_nods_tick(cleared: u32, goal: u32) -> String {
     match cleared {
         0 => episode0_host_line_cold_open(),
@@ -425,7 +425,7 @@ pub fn episode0_host_line_nods_tick(cleared: u32, goal: u32) -> String {
         2 => format!("HOST: NODS {cleared}/{goal}. Another approved lane goes dark."),
         3 => format!("HOST: NODS {cleared}/{goal}. Continuance is sweating the spreadsheet."),
         4 => format!("HOST: NODS {cleared}/{goal}. One more and the dish wakes up."),
-        n => format!("HOST: NODS {n}/{goal}. Keep the scrap on the air."),
+        n => format!("HOST: NODS {n}/{goal}. Keep the scrap going."),
     }
 }
 
@@ -439,7 +439,7 @@ pub fn episode0_host_line_auditor() -> String {
 }
 
 pub fn episode0_host_line_win() -> String {
-    "HOST: Amen, fistbump. Still unmetered.".to_string()
+    "HOST: Amen, fistbump. The league stays open.".to_string()
 }
 
 pub fn episode0_host_line_fail() -> String {
@@ -1551,7 +1551,7 @@ pub struct Snapshot {
     pub surveyor_marks: Vec<SurveyorMarkState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub explosions: Vec<ExplosionResult>,
-    /// Contested Frequency (scrap league that denies it exists).
+    /// Scrap League (the independent league that denies it exists).
     #[serde(default = "default_mode_name")]
     pub mode_name: String,
     /// Larak Lot under the league lie.
@@ -1560,7 +1560,7 @@ pub struct Snapshot {
     /// Live pressure beat id when Continuance is squeezing the round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pressure: Option<String>,
-    /// Sticky Contested Frequency Host chrome (mid-join / observe).
+    /// Sticky Scrap League Host chrome (mid-join / observe).
     #[serde(default = "default_host_line")]
     pub host_line: String,
     /// Round MVP while Ended (mid-join / observe rehydrate). Omitted otherwise.
@@ -1572,7 +1572,7 @@ pub struct Snapshot {
     /// Mid-map pads: weapons, health, armor (Quake chase energy). Empty omitted on wire.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pickups: Vec<PickupState>,
-    /// Contested Frequency scrap layout id (1 = Larak Lot, 2 = Compliance Yard).
+    /// Scrap League scrap layout id (1 = Larak Lot, 2 = Compliance Yard).
     #[serde(default = "default_map_id")]
     pub map_id: u32,
     /// Human-readable scrap layout name.
@@ -1807,7 +1807,7 @@ pub enum GameEvent {
         /// MVP frag count (mirrors winner_score for agents / podium chrome).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         mvp_frags: Option<u32>,
-        /// Contested Frequency Host bumper for round-end podium.
+        /// Scrap League Host bumper for round-end podium.
         #[serde(default = "default_host_line")]
         host_line: String,
         /// Team modes: the side that won, or omitted for a draw.

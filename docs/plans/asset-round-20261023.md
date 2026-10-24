@@ -339,7 +339,7 @@ Approach: about $0.18 per subject (two low explorations and one medium). Use the
 | Field | Detail |
 |---|---|
 | id | radio-badges |
-| References | `client/assets/audio/radio/stations.json` (colours and taglines), `client/assets/ui/on_air_badge.png` |
+| References | `client/assets/audio/radio/stations.json` (colours and taglines), `client/assets/ui/on_air.png` |
 | Consumer | #442 now-playing panel (`pause_menu.gd`, `hud.gd`) |
 | Gate | Legible at badge size. Replaces the "LI" and "LR" text badges. |
 

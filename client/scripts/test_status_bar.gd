@@ -266,15 +266,15 @@ func _test_regions() -> void:
 	conquest.apply({})
 	hud.set_match_rules(MatchRules.parse({"mode":"sabotage"}))
 	hud.set_sabotage_state({"round":1, "score":{"union":1,"coalition":2}, "phase":"live", "clock_ticks":100, "alive":{"union":3,"coalition":2}}, "union", 600, false, false)
-	hud.broadcast_chrome = true
 	hud.set_map_name("Larak Lot")
 	hud.set_mode("SPECTATING")
 	hud.set_round_info("Active", 5, 0)
 	await _settle()
-	var bottom: float = hud.contested_frequency_badge.get_global_rect().end.y
-	_check(hud.sabotage_hud.header_origin >= bottom + 16 and hud.mode_chip_label.position.y >= bottom + 76, "fallback badge reserves its whole band for pips and center text")
-	_check(hud.combat_feed.position.y >= bottom + 16, "fallback band also clears notices")
-	await _capture("fixture-broadcast-sabotage")
+	# A watched match carries no radio ident (ON AIR, station badges): the
+	# pips own the top of the center column and the text sits below them.
+	_check(hud.get_node_or_null("OnAirBadge") == null and hud.get_node_or_null("ContestedFrequencyBadge") == null and hud.get_node_or_null("ChromeStrip") == null, "a watched match carries no radio ident")
+	_check(hud.sabotage_hud.header_origin == 16 and hud.mode_chip_label.position.y >= 16 + 60, "pips start at the top band and center text sits below them")
+	await _capture("fixture-spectating-sabotage")
 	hud._show_round_banner("Result card", 1.0, true)
 	await _settle()
 	_check(not hud.mode_chip_label.visible and not hud.sabotage_hud.visible, "result card has priority over Sabotage text and pips")
@@ -285,13 +285,9 @@ func _test_regions() -> void:
 	preferences.set_value("gameplay", "debug_telemetry", true)
 	hud.apply_preferences(preferences)
 	await _settle()
-	_check(hud.sabotage_hud.header_origin == 16, "preference alone hides decoration and returns header space without a snapshot")
+	_check(hud.sabotage_hud.header_origin == 16, "telemetry leaves the header at the top band")
 	_check(hud.status_label.visible and hud.status_label.get_parent() == hud.regions.context, "enabled telemetry has its own region outside the clipped corner")
 	_check(hud.get_node("Panel").get_global_rect().encloses(hud.round_label.get_global_rect()), "mode and round remain inside corner with telemetry enabled")
-	preferences.set_value("gameplay", "broadcast_chrome", true)
-	hud.apply_preferences(preferences)
-	await _settle()
-	_check(hud.sabotage_hud.header_origin >= bottom + 16, "preference alone shows fallback decoration and reserves its band")
 	hud.set_match_rules({})
 	_check(not hud.mode_chip_label.visible and hud.sabotage_score.is_empty() and hud.sabotage_line.is_empty(), "absent rules clear all retained match facts")
 
