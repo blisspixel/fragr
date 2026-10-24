@@ -400,7 +400,15 @@ fn run_review(
     no_open: bool,
     out: &mut dyn std::io::Write,
 ) -> Result<(), Error> {
-    let listener = std::net::TcpListener::bind(("127.0.0.1", port))?;
+    let listener = match std::net::TcpListener::bind(("127.0.0.1", port)) {
+        Ok(listener) => listener,
+        Err(err) if err.kind() == std::io::ErrorKind::AddrInUse => {
+            return Err(Error::InvalidArgument(format!(
+                "port {port} is busy (is a review page already running?); pass --port 0 for any free port"
+            )))
+        }
+        Err(err) => return Err(err.into()),
+    };
     let port = listener.local_addr()?.port();
     let server = review::ReviewServer::new(paths.config(), port)?;
     let tracks: usize = server
@@ -863,7 +871,18 @@ mod tests {
             "definitely-missing-stations.json",
         ])
         .unwrap();
-        assert!(matches!(run(cli, &mut Vec::new()), Err(Error::Io(_))));
+        let err = run(cli, &mut Vec::new()).unwrap_err();
+        assert!(
+            err.to_string().contains("definitely-missing-stations.json"),
+            "{err}"
+        );
+        // A second review on a busy port says so instead of a bare io error.
+        let busy = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = busy.local_addr().unwrap().port().to_string();
+        let cli = Cli::try_parse_from(["fragr-audiogen", "review", "--port", &port, "--no-open"])
+            .unwrap();
+        let err = run(cli, &mut Vec::new()).unwrap_err();
+        assert!(err.to_string().contains("--port 0"), "{err}");
     }
 
     #[test]

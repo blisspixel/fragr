@@ -258,7 +258,16 @@ fn duration_ms(entry: &ManifestEntry) -> Option<u64> {
 
 /// Read stations and both track sources. Candidates already promoted are hidden.
 pub fn scan_catalog(config: &ReviewConfig, decisions: &Decisions) -> Result<Catalog, Error> {
-    let text = fs::read_to_string(&config.stations_file)?;
+    let text = match fs::read_to_string(&config.stations_file) {
+        Ok(text) => text,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            return Err(Error::InvalidArgument(format!(
+                "no stations file at {}; run from the repo root or pass --stations",
+                config.stations_file.display()
+            )))
+        }
+        Err(err) => return Err(err.into()),
+    };
     let file: StationsFile = serde_json::from_str(&text).map_err(|err| {
         Error::Spec(format!(
             "unreadable stations file {}: {err}",
@@ -481,16 +490,31 @@ pub fn slugify(raw: &str) -> String {
     }
 }
 
-/// `NN-slug` stems use a leading number; this returns it.
-fn track_number(file: &str) -> Option<u32> {
-    let digits: String = file.chars().take_while(char::is_ascii_digit).collect();
-    digits.parse().ok()
+/// A shipped stem's numbering series and number: `NN-name` is the plain
+/// series (`None`), `ad-NN-name` the `ad` series, as the news station uses.
+fn series_number(file: &str) -> Option<(Option<String>, u32)> {
+    let stem = stem(file);
+    let digits: String = stem.chars().take_while(char::is_ascii_digit).collect();
+    if !digits.is_empty() {
+        return digits.parse().ok().map(|n| (None, n));
+    }
+    let (head, tail) = stem.split_once('-')?;
+    if head.is_empty() || !head.chars().all(|c| c.is_ascii_lowercase()) {
+        return None;
+    }
+    let digits: String = tail.chars().take_while(char::is_ascii_digit).collect();
+    let number = digits.parse().ok()?;
+    Some((Some(head.to_string()), number))
 }
 
-fn name_part(file: &str) -> String {
+/// A stem's series (when its first word is one of `series`) and its slug
+/// with that prefix and any track number removed.
+fn name_part(file: &str, series: &BTreeSet<String>) -> (Option<String>, String) {
     let stem = stem(file);
-    let rest = stem.trim_start_matches(|c: char| c.is_ascii_digit());
-    rest.trim_start_matches('-').to_string()
+    match stem.split_once('-') {
+        Some((head, tail)) if series.contains(head) => (Some(head.to_string()), slugify(tail)),
+        _ => (None, slugify(stem)),
+    }
 }
 
 fn extension(file: &str) -> String {
@@ -517,14 +541,20 @@ pub fn plan_promotion(
             .iter()
             .filter(|track| track.source == Source::Shipped)
             .collect();
-        let mut next = shipped
+        // Next free number in each series, so news keeps `ad-09-...` style names.
+        let mut next: BTreeMap<Option<String>, u32> = BTreeMap::new();
+        for (series, number) in shipped
             .iter()
-            .filter_map(|track| track_number(&track.file))
-            .max()
-            .unwrap_or(0)
-            + 1;
-        let mut taken: BTreeSet<String> =
-            shipped.iter().map(|track| name_part(&track.file)).collect();
+            .filter_map(|track| series_number(&track.file))
+        {
+            let slot = next.entry(series).or_insert(1);
+            *slot = (*slot).max(number + 1);
+        }
+        let series: BTreeSet<String> = next.keys().flatten().cloned().collect();
+        let mut taken: BTreeSet<String> = shipped
+            .iter()
+            .map(|track| name_part(&track.file, &series).1)
+            .collect();
         let mut station_plan = StationPlan {
             station: station.id.clone(),
             current: shipped.len(),
@@ -556,7 +586,7 @@ pub fn plan_promotion(
                 ));
                 continue;
             };
-            let base = slugify(stem(&track.file));
+            let (prefix, base) = name_part(&track.file, &series);
             let mut slug = base.clone();
             let mut suffix = 2;
             while taken.contains(&slug) {
@@ -564,8 +594,13 @@ pub fn plan_promotion(
                 suffix += 1;
             }
             taken.insert(slug.clone());
-            let dest_stem = format!("{next:02}-{slug}");
-            next += 1;
+            let slot = next.entry(prefix.clone()).or_insert(1);
+            let number = *slot;
+            *slot += 1;
+            let dest_stem = match &prefix {
+                Some(prefix) => format!("{prefix}-{number:02}-{slug}"),
+                None => format!("{number:02}-{slug}"),
+            };
             let dest_file = format!("{dest_stem}.{}", extension(&track.file));
             let manifest_key = format!("{radio_name}/{}/{dest_stem}", station.id);
             let mut entry = entry;
@@ -1423,6 +1458,60 @@ mod tests {
             .unwrap()
             .contains("provenance"));
         assert!(describe_plan(&plan, 0, false).contains("BLOCKED"));
+    }
+
+    #[test]
+    fn prefixed_series_keep_their_names() {
+        // The news station names segments `ad-01-...`, `bed-01-...`.
+        let fx = fixture("series");
+        let chill = fx.config.radio_dir.join("chill");
+        for file in ["ad-01-soap.mp3", "ad-02-gold.mp3", "bed-01-sting.mp3"] {
+            fs::write(chill.join(file), b"x").unwrap();
+        }
+        let cand = fx.config.candidates_dir.join("chill");
+        fs::create_dir_all(&cand).unwrap();
+        let mut round = load_manifest(fx.config.candidates_dir.parent().unwrap()).unwrap();
+        for stem in ["ad-moon-soap", "bed-07-hum", "fresh-take", "ad-03-soap"] {
+            fs::write(cand.join(format!("{stem}.mp3")), b"y").unwrap();
+            round.entries.insert(
+                format!("radio/chill/{stem}"),
+                entry(&format!("radio/chill/{stem}.mp3"), stem),
+            );
+        }
+        save_manifest(fx.config.candidates_dir.parent().unwrap(), &round).unwrap();
+        let mut decisions = Decisions::default();
+        for stem in ["ad-moon-soap", "bed-07-hum", "fresh-take", "ad-03-soap"] {
+            decisions.set(
+                &format!("candidate/chill/{stem}.mp3"),
+                Some(Decision::Keep),
+                1,
+            );
+        }
+        let catalog = scan_catalog(&fx.config, &decisions).unwrap();
+        let plan = plan_promotion(&fx.config, &catalog, &decisions);
+        let mut names: Vec<&str> = plan.stations[1]
+            .additions
+            .iter()
+            .map(|a| a.dest_file.as_str())
+            .collect();
+        names.sort();
+        assert_eq!(
+            names,
+            [
+                "01-fresh-take.mp3",
+                "ad-03-soap-2.mp3",
+                "ad-04-moon-soap.mp3",
+                "bed-02-hum.mp3"
+            ]
+        );
+    }
+
+    #[test]
+    fn missing_stations_file_names_the_path() {
+        let fx = fixture("missing-stations");
+        fs::remove_file(&fx.config.stations_file).unwrap();
+        let err = scan_catalog(&fx.config, &Decisions::default()).unwrap_err();
+        assert!(err.to_string().contains("--stations"), "{err}");
     }
 
     #[test]

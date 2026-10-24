@@ -183,11 +183,13 @@ function findTrack(id) {
   }
   return null;
 }
+let busy = false;
 async function mark(decision) {
-  if (!current) return;
+  if (!current || busy) return;
   const t = current, before = t.decision || null;
   if (before === decision) return;
-  try { await post(t.id, decision); } catch (e) { $("err").textContent = "Not saved: " + e.message; return; }
+  busy = true;
+  try { await post(t.id, decision); } catch (e) { $("err").textContent = "Not saved: " + e.message; return; } finally { busy = false; }
   $("err").textContent = "";
   history.push({ id: t.id, before });
   t.decision = decision;
@@ -198,11 +200,13 @@ async function mark(decision) {
   render();
 }
 async function undo() {
+  if (busy) return;
   const last = history.pop();
   if (!last) { if (current && current.decision) { await mark(null); history.pop(); } return; }
   const hit = findTrack(last.id);
   if (!hit) return;
-  try { await post(last.id, last.before); } catch (e) { $("err").textContent = "Not saved: " + e.message; history.push(last); return; }
+  busy = true;
+  try { await post(last.id, last.before); } catch (e) { $("err").textContent = "Not saved: " + e.message; history.push(last); return; } finally { busy = false; }
   hit.t.decision = last.before;
   stationIdx = hit.s;
   load(hit.t, false);
@@ -262,6 +266,8 @@ audio.onended = () => { if ($("auto").checked) step(1, true); };
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey || !state) return;
   const k = e.key;
+  // A held K or R must not mark a run of tracks; only seeking repeats.
+  if (e.repeat && k !== "ArrowLeft" && k !== "ArrowRight") { if (k === " ") e.preventDefault(); return; }
   if (k === " ") { e.preventDefault(); if (document.activeElement) document.activeElement.blur(); toggle(); }
   else if (k === "k" || k === "K") mark("keep");
   else if (k === "r" || k === "R") mark("reject");
