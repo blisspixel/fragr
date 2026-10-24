@@ -2,13 +2,13 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor", "paver"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor", "paver", "surveyor"]
 const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
 ## Union bots and equipment: the only bodies the Inheritance absorbs. Union
 ## people are never absorbed; only restoration machines are restoration.
 const MACHINE_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "ranged_sweeper", "assessor"]
-const RESTORATION_KINDS: Array[String] = ["paver"]
+const RESTORATION_KINDS: Array[String] = ["paver", "surveyor"]
 ## Hostile wire sides: the Union, and the Inheritance with its control domain.
 const HOSTILE_SIDES: Array[String] = ["union", "inheritance"]
 
@@ -131,6 +131,9 @@ static func validation_error(snapshot: Dictionary) -> String:
 		# A Paver prepares (windup) and works (firing) a strip; it never fires a gun.
 		if campaign["kind"] == "paver" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
 			return INVALID
+		# The Surveyor never fires: its "firing" phase is the projected disc.
+		if campaign["kind"] == "surveyor" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
+			return INVALID
 		if campaign.has("seated") and (campaign.size() != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \
 			or campaign["kind"] != "clerk" or campaign["phase"] != "idle"):
@@ -152,6 +155,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if campaign["kind"] == "assessor" and float(health) > 240.0:
 			return INVALID
 		if campaign["kind"] == "paver" and float(health) > 220.0:
+			return INVALID
+		if campaign["kind"] == "surveyor" and float(health) > 90.0:
 			return INVALID
 	return ""
 

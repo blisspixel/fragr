@@ -59,6 +59,14 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"enamel": return PRODUCTION + ("low_water_ceramic.png" if horizontal else "low_water_enamel.png")
 			"records_tile": return PRODUCTION + "low_water_ceramic.png"
 			"service_steel", "lift_panel": return PRODUCTION + ("low_water_floor.png" if horizontal else "low_water_steel.png")
+	elif venue == "waterworks":
+		# Cast quay concrete with its stains on walls and floors alike; the
+		# white Low Water plaster would read as daylight under the blue hour.
+		match surface:
+			"concrete": return EARTH + "earth_yard_cast_concrete.png"
+			"enamel": return PRODUCTION + ("yard_enamel.png" if horizontal else "low_water_enamel.png")
+			"records_tile": return PRODUCTION + "low_water_ceramic.png"
+			"service_steel", "lift_panel": return PRODUCTION + ("yard_floor.png" if horizontal else "yard_steel.png")
 	elif venue in ["earth_union", "earth_yard", "earth_scrap"]:
 		var prefix: String = {"earth_union": "union", "earth_yard": "yard", "earth_scrap": "scrap"}[venue]
 		match surface:

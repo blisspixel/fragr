@@ -99,11 +99,18 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m19_water_tank": "WORLD_M19_WATER_TANK",
 	"m19_service_six": "WORLD_M19_SERVICE_SIX",
 	"m19_waterworks": "WORLD_M19_WATERWORKS",
+	"m20_crossing_control": "WORLD_M20_CROSSING_CONTROL",
+	"m20_valve_six": "WORLD_M20_SIX",
+	"m20_lamp_six": "WORLD_M20_SIX",
+	"m20_crane_six": "WORLD_M20_SIX",
+	"m20_refuge_notice": "WORLD_M20_REFUGE_NOTICE",
+	"m20_pump_board": "WORLD_M20_PUMP_BOARD",
+	"m20_tower_bridge": "WORLD_M20_TOWER_BRIDGE",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
 ## Faces a mission presenter dresses itself; a plate here would hide them.
-const PRESENTER_ONLY: Array[String] = ["m07_window_figure"]
+const PRESENTER_ONLY: Array[String] = ["m07_window_figure", "m20_harbour_display"]
 
 ## Mission controls share the terminal kind with ordinary counters.
 ## `marked_terminal` is that registered decoration index, or -1.
@@ -161,7 +168,7 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m19_stores_counter", "m19_waterworks": return 3
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m19_stores_counter", "m19_waterworks", "m20_crossing_control": return 3
 		"gate_locked", "m08_seal_locked": return 7
 		"gate_open", "m08_seal_open": return 8
 		"m03_schedule_cancelled": return 7

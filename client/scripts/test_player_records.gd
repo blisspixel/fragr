@@ -180,8 +180,12 @@ func _run() -> void:
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M17 records bind the office mission")
 	berth["scope"]["mission"] = "all_systems_normal"
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M18 records bind the transit mission")
+	berth["scope"]["mission"] = "planned_works"
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M19 records bind the works mission")
 	berth["scope"]["mission"] = "local_exception"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M19 cannot forge a playable participant record")
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M20 records bind the refuge mission")
+	berth["scope"]["mission"] = "still_here"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "the pending epilogue cannot forge a playable participant record")
 	var habitat: Dictionary = current.duplicate(true)
 	habitat["map_id"] = 1012
 	habitat["map_name"] = "Terms of Cooperation"

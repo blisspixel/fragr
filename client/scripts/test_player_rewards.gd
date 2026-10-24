@@ -61,6 +61,22 @@ func _run() -> void:
 		var record: Dictionary = _record(4)
 		record["scope"]["rules"]["difficulty"] = tier
 		_check(PlayerRewards.eligible(record, "local", SERVER_HASH) == ["recall_notice_complete"], "ordinary tier qualifies equally: " + tier)
+	# Surviving the campaign's last level earns its own award; failing or a
+	# development room (no saved run) does not.
+	var survived: Dictionary = _record(5)
+	survived["map_id"] = M20MissionState.MAP_ID
+	survived["map_name"] = "Local Exception"
+	survived["scope"]["mission"] = MissionState.M20_ID
+	_check(PlayerRewards.eligible(survived, "local", SERVER_HASH) == ["local_exception_complete"], "the held refuge earns STILL HERE")
+	for spoiled: String in ["failed", "development", "wrong_map"]:
+		var record: Dictionary = survived.duplicate(true)
+		match spoiled:
+			"failed":
+				record["status"] = "failed"
+				record["scope"]["run"]["status"] = "failed"
+			"development": record["scope"]["run"] = null
+			"wrong_map": record["map_id"] = 1018
+		_check(not PlayerRewards.eligible(record, "local", SERVER_HASH).has("local_exception_complete"), "no survival award: " + spoiled)
 	for dimension: String in ["external", "unknown_hash", "agent", "development", "active", "failed", "old_rules", "wrong_map"]:
 		var record: Dictionary = complete.duplicate(true)
 		var origin: String = "local"

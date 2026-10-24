@@ -34,6 +34,7 @@ const AFTER_MISSION: Dictionary[String, String] = {
 	"common_carrier": "l10_l11",
 	"right_of_search": "l11_l12",
 	"launch_authority": "l14_l15",
+	"local_exception": "l20_still_here",
 }
 const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival", "port_of_entry": "m06_arrival", "declared_goods": "m07_arrival", "custodian_of_record": "m08_arrival", "passenger_manifest": "m09_arrival", "common_carrier": "m10_arrival", "right_of_search": "m11_arrival", "terms_of_cooperation": "m12_arrival", "weight_of_permission": "m13_arrival", "launch_authority": "m14_arrival", "civic_pressure_valve": "m15_arrival", "freedom_of_movement": "m16_arrival", "peace_without_interruption": "m17_arrival", "all_systems_normal": "m18_arrival", "planned_works": "m19_arrival"}
 

@@ -210,6 +210,8 @@ static func preset_for(map_name: String) -> Preset:
 		return moon_town()
 	if key.contains("planned works"):
 		return planned_works()
+	if key.contains("local exception"):
+		return waterworks()
 	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
@@ -370,6 +372,27 @@ static func planned_works() -> Preset:
 	preset.view_fill_range = 40.0
 	preset.contrast = 1.06
 	preset.saturation = 0.9
+	preset.glow_intensity = 0.55
+	return preset
+
+## Local Exception: the waterworks and the refuge pier at the last blue hour.
+## A cool low key keeps every silhouette, the fog leans indigo over the
+## harbour, and the warmth comes from the people's lamps and the tower.
+static func waterworks() -> Preset:
+	var preset: Preset = Preset.new(Color("1f2738"), Color("8b6253"),
+		Color("2f3540"), Color("4a5160"), 0.0065, Color("7f8aa0"), 0.42)
+	preset.key_color = Color("aebbd6")
+	preset.key_energy = 0.55
+	preset.scene_fill_energy = 0.08
+	preset.practical_color = Color("ffcf94")
+	preset.practical_energy = 3.0
+	preset.practical_range = 12.0
+	preset.practical_attenuation = 1.3
+	preset.accent_energy = 0.0
+	preset.view_fill_energy = 0.42
+	preset.view_fill_range = 50.0
+	preset.contrast = 1.07
+	preset.saturation = 0.94
 	preset.glow_intensity = 0.55
 	return preset
 

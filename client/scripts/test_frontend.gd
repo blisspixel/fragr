@@ -104,7 +104,7 @@ func _run() -> void:
 	_check(not menu._arrival_for_preview(existing_entry), "restart of an existing M04 entry never requests the arrival again")
 	_check(menu._arrival_for_preview({"status": "awaiting_mission", "mission": MissionState.M03_ID}) \
 		and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M03_ID}) \
-		and not menu._arrival_for_preview({"status": "awaiting_mission", "mission": LocalMatch.NEXT_MISSION}),
+		and not menu._arrival_for_preview({"status": "awaiting_mission", "mission": LocalMatch.CAMPAIGN_COMPLETE}),
 		"same arrival selection covers M02 to M03 without replaying existing or unavailable missions")
 	_check(_menu_text(column).contains("2 continues left") and _menu_text(column).contains("Run body: HUMAN"), "M04 carry displays retained allowance and saved body")
 	owned.run_preview["mission"] = MissionState.M06_ID
@@ -150,9 +150,12 @@ func _run() -> void:
 		owned.run_preview["mission"] = mission
 		menu._show("single")
 		_check(column.get_node_or_null(menu._saved_mission_button(mission)) != null and menu._arrival_for_preview(owned.run_preview), "completed predecessor offers " + mission)
-	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
+	owned.run_preview["mission"] = MissionState.M20_ID
 	menu._show("single")
-	_check(column.get_node_or_null("PlannedWorksSaved") == null and _menu_text(column).contains(tr("M19_NEXT_PENDING")), "pending M20 has no mission launch button")
+	_check(column.get_node_or_null("LocalExceptionSaved") != null and not menu._arrival_for_preview(owned.run_preview), "completed Planned Works offers Local Exception with no page in")
+	owned.run_preview["mission"] = LocalMatch.CAMPAIGN_COMPLETE
+	menu._show("single")
+	_check(column.get_node_or_null("LocalExceptionSaved") == null and _menu_text(column).contains(tr("M20_NEXT_PENDING")), "the completed campaign has no mission launch button and keeps Still Here pending")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -166,15 +169,15 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: LOCAL EXCEPTION") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M20 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: STILL HERE") and not _menu_text(column).contains("continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "the survived campaign previews pending Still Here and the saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
 		"pending M19 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 18 and development.get_item_text(16) == tr("M18_PROTOTYPE_TITLE") and development.get_item_text(17) == tr("M19_PROTOTYPE_TITLE") and development.get_item_text(4).contains("PORT OF ENTRY")
+	_check(development.item_count == 19 and development.get_item_text(16) == tr("M18_PROTOTYPE_TITLE") and development.get_item_text(17) == tr("M19_PROTOTYPE_TITLE") and development.get_item_text(18) == tr("M20_PROTOTYPE_TITLE") and development.get_item_text(4).contains("PORT OF ENTRY")
 		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD")
 		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE")
 		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") and development.get_item_text(10) == tr("M12_PROTOTYPE_TITLE") and development.get_item_text(11) == tr("M13_PROTOTYPE_TITLE") and development.get_item_text(12) == tr("M14_PROTOTYPE_TITLE") and development.get_item_text(13) == tr("M15_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the stadium")

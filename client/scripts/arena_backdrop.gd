@@ -27,6 +27,11 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	if venue == "low_water":
 		_build_town(half)
 		return
+	if venue == "waterworks":
+		var harbour: WaterworksBackdrop = WaterworksBackdrop.new()
+		harbour.build(half)
+		add_child(harbour)
+		return
 	var steel: StandardMaterial3D = _metal(Color("41494b"))
 	var edge: StandardMaterial3D = _metal(Color("6b716d"))
 	var accent_material: StandardMaterial3D = _metal(ArenaMaterials.accent(map_id))

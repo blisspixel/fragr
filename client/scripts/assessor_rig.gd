@@ -6,6 +6,8 @@ extends Node3D
 const METAL: Color = Color("3b4146")
 const PLATE: Color = Color("6f746a")
 const RED: Color = Color("d74932")
+## The red optics' own value drained to unlit oxblood under absorption.
+const DEAD_OPTIC: Color = Color("4a2420")
 const LIGHT: Color = Color("f1cda0")
 var fans: Array[Node3D] = []
 var optics: Array[MeshInstance3D] = []
@@ -106,10 +108,17 @@ func present(actor: Dictionary, tick: int, elapsed: float) -> void:
 	progress = clampf((float(tick - int(actor.get("phase_started", tick))) + minf(elapsed, 0.15) * 20.0) / duration, 0.0, 1.0)
 	var raised: float = progress if phase == "windup" else (1.0 if phase == "firing" else (1.0 - progress if phase == "recovery" else 0.0))
 	launcher.rotation.z = lerpf(0.9, -0.22, raised)
+	# An absorbed Assessor keeps its chassis and its countdown's shape and
+	# timing; only the light changes, from Union red to the Inheritance's
+	# muted working glow over dead optics.
+	var absorbed: bool = ActorState.control(actor) == "absorbed"
 	for index: int in range(optics.size()):
 		# Visible optic area grows through the locked countdown and closes at death.
 		optics[index].scale.y = 0.25 if phase == "dead" else (1.0 + raised * (1.0 if index == 0 else 0.6))
-		(optics[index].material_override as StandardMaterial3D).emission_energy_multiplier = 0.0 if phase == "dead" else (1.5 if phase == "windup" else 0.65)
+		var optic: StandardMaterial3D = optics[index].material_override as StandardMaterial3D
+		optic.albedo_color = DEAD_OPTIC if absorbed else RED
+		optic.emission = EnemyView.WORK_GLOW if absorbed else RED
+		optic.emission_energy_multiplier = 0.0 if phase == "dead" else (1.5 if phase == "windup" else 0.65)
 	for vent: MeshInstance3D in vents:
 		vent.scale.y = 1.0 if phase == "recovery" else 0.18
 		var material: StandardMaterial3D = vent.material_override as StandardMaterial3D

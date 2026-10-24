@@ -39,6 +39,7 @@ var _last_phase: String = ""
 var absorbed: bool = false
 var assessor_rig: AssessorRig
 var paver_rig: PaverRig
+var surveyor_rig: SurveyorRig
 
 func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	actor = state["campaign"]
@@ -55,6 +56,15 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		elapsed = 0.0
 	var kind: String = actor["kind"]
 	absorbed = ActorState.control(actor) == "absorbed"
+	if kind == "surveyor":
+		if surveyor_rig == null:
+			surveyor_rig = SurveyorRig.new()
+			surveyor_rig.position.y = -CAMERA.FP_SERVER_REFERENCE_Y
+			body.get_parent().add_child(surveyor_rig)
+		body.visible = false
+		_kind = kind
+		surveyor_rig.present(actor, tick, elapsed)
+		return
 	if kind == "assessor":
 		if assessor_rig == null:
 			assessor_rig = AssessorRig.new()
@@ -219,6 +229,8 @@ func advance(delta: float, distance: float) -> void:
 		assessor_rig.advance(delta)
 	if paver_rig != null:
 		paver_rig.advance(delta, distance >= 0.002 and distance < 2.0)
+	if surveyor_rig != null:
+		surveyor_rig.advance(delta)
 	shot_age += delta
 	var phase: String = str(actor.get("phase", ""))
 	stepping = distance >= 0.002 and distance < 2.0
@@ -238,6 +250,9 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 		return
 	if _kind == "paver" and paver_rig != null:
 		paver_rig.present(actor, tick, elapsed)
+		return
+	if _kind == "surveyor" and surveyor_rig != null:
+		surveyor_rig.present(actor, tick, elapsed)
 		return
 	if _kind == "redactor":
 		var material: ShaderMaterial = body.material_override as ShaderMaterial
