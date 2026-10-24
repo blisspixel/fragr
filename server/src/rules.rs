@@ -26,6 +26,29 @@ pub const FFA_SIDEARM_RESPAWN_TICKS: u32 = 20 * 8;
 /// Free-for-all health and armour, the rule sheet's 25 s. Team modes keep
 /// the 15 s health and armour clock.
 pub const FFA_HEALTH_ARMOR_RESPAWN_TICKS: u32 = 20 * 25;
+
+/// The published pad clock: the one the server runs and the one a rule bot
+/// or a joined agent learns. `None` for kinds whose clock does not depend on
+/// the rule sheet (supply, and health or armour in team modes).
+pub fn pad_respawn_ticks(
+    teams: bool,
+    weapon: Option<WeaponType>,
+    health_or_armor: bool,
+) -> Option<u32> {
+    if teams {
+        return weapon.map(|_| TEAM_WEAPON_RESPAWN_TICKS);
+    }
+    if health_or_armor {
+        return Some(FFA_HEALTH_ARMOR_RESPAWN_TICKS);
+    }
+    weapon.map(|weapon| match weapon {
+        WeaponType::Tack => FFA_SIDEARM_RESPAWN_TICKS,
+        WeaponType::Rail | WeaponType::Sniper | WeaponType::Arc | WeaponType::Rocket => {
+            FFA_POWER_WEAPON_RESPAWN_TICKS
+        }
+        _ => FFA_WEAPON_RESPAWN_TICKS,
+    })
+}
 /// Ticks a fallen free-for-all fighter waits before the server tries to put
 /// them back: four seconds at 20 Hz (Nick, 2026-10-23). It moves neither the
 /// team modes nor the spawn shield.
@@ -224,19 +247,7 @@ impl RuleSet {
         weapon: Option<WeaponType>,
         health_or_armor: bool,
     ) -> Option<u32> {
-        if self.teams() {
-            return weapon.map(|_| TEAM_WEAPON_RESPAWN_TICKS);
-        }
-        if health_or_armor {
-            return Some(FFA_HEALTH_ARMOR_RESPAWN_TICKS);
-        }
-        weapon.map(|weapon| match weapon {
-            WeaponType::Tack => FFA_SIDEARM_RESPAWN_TICKS,
-            WeaponType::Rail | WeaponType::Sniper | WeaponType::Arc | WeaponType::Rocket => {
-                FFA_POWER_WEAPON_RESPAWN_TICKS
-            }
-            _ => FFA_WEAPON_RESPAWN_TICKS,
-        })
+        pad_respawn_ticks(self.teams(), weapon, health_or_armor)
     }
 
     pub fn wire(&self, sabotage: &SabotageConfig) -> MatchRules {

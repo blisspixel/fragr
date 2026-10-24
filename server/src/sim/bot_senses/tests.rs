@@ -386,7 +386,8 @@ fn weapon_only_has_timed_magazines_and_mode_change_restores_single_count() {
     assert!(!state.players[0].inventory.usable(WeaponType::Rail));
     state.players[0].inventory.finish_reload(30);
     assert!(state.players[0].inventory.usable(WeaponType::Rail));
-    state.config.rules = crate::rules::RuleSet::new(GameMode::Ctf, &[], false).unwrap();
+    // Every arcade mode now senses; Solo Broadcast keeps the single count.
+    state.solo_broadcast.enabled = true;
     observe(&mut state, &bot, 32);
     assert!(!state.players[0].inventory.armed());
     assert!(state.players[0].bot_senses.target.is_none());
@@ -404,4 +405,261 @@ fn bot_senses_sees_vehicle_occupant_and_seated_bot_sees_target() {
 
     state.vehicles[0].state.driver = Some(bot.player_id);
     assert!(visible(&state, &state.players[0], &state.players[1]));
+}
+
+fn sides(state: &mut GameState, mode: GameMode) {
+    state.config.rules = crate::rules::RuleSet::new(mode, &[], false).unwrap();
+    state.players[0].team = Some(Team::Union);
+    state.players[1].team = Some(Team::Coalition);
+}
+
+#[test]
+fn ctf_and_sabotage_bots_need_sight_before_they_fight() {
+    for mode in [GameMode::Ctf, GameMode::Sabotage] {
+        let (mut state, bot) = pair(2);
+        sides(&mut state, mode);
+        assert!(bot.uses_senses(&state, &state.players[0]), "{mode:?}");
+        // Facing away: an opponent five metres behind is not there to fight.
+        state.players[0].yaw = PI;
+        for tick in 0..12 {
+            observe(&mut state, &bot, tick);
+            assert!(bot.sensed_enemy(&state, &state.players[0], 25.0).is_none());
+            assert!(!bot.guard_sensed_action(&state, bot.update(&state)).fire);
+        }
+        // Behind the east gantry: still nobody to fight.
+        state.players[0].yaw = 0.0;
+        state.players[1].x = 25.0;
+        for tick in 12..24 {
+            observe(&mut state, &bot, tick);
+            assert!(bot.sensed_enemy(&state, &state.players[0], 40.0).is_none());
+        }
+        // In view and in the clear: seen, then fought after a reaction.
+        state.players[1].x = 5.0;
+        observe(&mut state, &bot, 24);
+        observe(&mut state, &bot, 25);
+        let (seen, distance) = bot.sensed_enemy(&state, &state.players[0], 25.0).unwrap();
+        assert_eq!(seen.id, state.players[1].id);
+        assert!((distance - 10.0).abs() < 0.01);
+        assert!(bot.sensed_enemy(&state, &state.players[0], 8.0).is_none());
+        let fired = (26..40).any(|tick| {
+            observe(&mut state, &bot, tick);
+            bot.sensed_fight(&state, &state.players[0], None, false)
+                .is_some_and(|fight| fight.action.fire)
+        });
+        assert!(fired, "{mode:?}: a seen opponent is fought");
+    }
+}
+
+#[test]
+fn a_hit_from_out_of_view_turns_the_bot_toward_the_shot() {
+    let (mut state, bot) = pair(2);
+    state.pickups.clear();
+    state.players[0].yaw = PI;
+    for tick in 0..4 {
+        observe(&mut state, &bot, tick);
+    }
+    assert!(state.players[0].bot_senses.target.is_none());
+    let shooter = state.players[1].id;
+    let from = [state.players[1].x, 0.0, state.players[1].z];
+    state.players[0].bot_senses.hurt_by(shooter, from, 4);
+    // The shooter moves on; the clue is where the shot came from.
+    state.players[1].z = 12.0;
+    for tick in 5..8 {
+        observe(&mut state, &bot, tick);
+    }
+    let clue = state.players[0].bot_senses.target.unwrap();
+    assert!(!clue.visible);
+    assert_eq!(clue.feet, from);
+    assert_eq!(bot.sensed_threat(&state, &state.players[0]), Some(from));
+    let intent = bot.intent(&state);
+    assert!(!intent.action.fire, "a clue is never a shot");
+    assert_eq!(intent.goal.unwrap().feet, from);
+    // The clue fades.
+    observe(&mut state, &bot, 4 + HURT_MEMORY + 2);
+    observe(&mut state, &bot, 4 + HURT_MEMORY + 3);
+    assert!(bot.sensed_threat(&state, &state.players[0]).is_none());
+}
+
+#[test]
+fn a_fresh_hit_spoils_the_aim_for_a_few_ticks() {
+    let deviation = |hurt: bool| {
+        let (mut state, bot) = pair(2);
+        if hurt {
+            let shooter = state.players[1].id;
+            state.players[0]
+                .bot_senses
+                .hurt_by(shooter, [5.0, 0.0, 0.0], 0);
+        }
+        observe(&mut state, &bot, 0);
+        observe(&mut state, &bot, 1);
+        let observed = state.players[0].bot_senses.target.unwrap();
+        let (ideal, _) =
+            crate::combat::aim_at(fighter_eye(&state.players[0]), observed.chest).unwrap();
+        let action = bot.update(&state);
+        angle_difference(action.yaw.unwrap(), ideal).abs()
+    };
+    let steady = deviation(false);
+    let flinched = deviation(true);
+    assert!(steady > 0.0);
+    assert!(
+        flinched > steady * 2.0 || flinched >= TURN_PER_TICK - 0.0001,
+        "steady {steady}, flinched {flinched}"
+    );
+}
+
+fn full_bag(weapons: &[WeaponType]) -> crate::inventory::Inventory {
+    let mut bag = crate::inventory::Inventory::new(EquipmentPolicy::Discovery);
+    for weapon in weapons {
+        bag.grant_weapon(*weapon);
+    }
+    for pool in AmmoPool::ALL {
+        bag.grant_ammo(pool, 40);
+    }
+    bag
+}
+
+fn lone_bot_with_rail_pad(ahead: f32) -> (GameState, BotController, [f32; 3]) {
+    let (mut state, bot) = pair(2);
+    state.players.truncate(1);
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Flechette;
+    let feet = [state.players[0].x + ahead, 0.0, state.players[0].z];
+    state.pickups = vec![crate::sim::ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
+        id: "rail".into(),
+        kind: crate::sim::PickupKind::Weapon(WeaponType::Rail),
+        amount: 0,
+        x: feet[0],
+        y: 0.4,
+        z: feet[2],
+        floor: 0.0,
+        available: false,
+        respawn_timer: Some(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS),
+        secret: false,
+    }];
+    (state, bot, feet)
+}
+
+fn rail_eta(state: &GameState) -> Option<u64> {
+    state.players[0]
+        .bot_senses
+        .pad_eta(state, &state.players[0], 0)
+}
+
+#[test]
+fn a_taken_pad_is_known_only_once_seen_and_its_clock_is_learned() {
+    let (mut state, bot, _) = lone_bot_with_rail_pad(10.0);
+    // Facing away, the bot cannot know the Rail went.
+    state.players[0].yaw = PI;
+    for tick in 0..8 {
+        observe(&mut state, &bot, tick);
+    }
+    assert_eq!(rail_eta(&state), Some(0));
+    // Turned to it: empty, back on the published clock from now.
+    state.players[0].yaw = 0.0;
+    for tick in 8..16 {
+        observe(&mut state, &bot, tick);
+    }
+    let eta = rail_eta(&state).unwrap();
+    let clock = u64::from(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS);
+    assert!(eta > clock - 16 && eta <= clock, "eta {eta}");
+    // The live timer says something else; the bot's belief does not move.
+    state.pickups[0].respawn_timer = Some(5);
+    observe(&mut state, &bot, 16);
+    observe(&mut state, &bot, 17);
+    assert!(rail_eta(&state).unwrap() > 100);
+    // Unseen, the learned clock runs out and the pad is believed back.
+    // The Railgun is a free-for-all power pad on the 25 s clock.
+    let later = clock + 60;
+    state.players[0].yaw = PI;
+    for tick in later..later + 8 {
+        observe(&mut state, &bot, tick);
+    }
+    assert_eq!(rail_eta(&state), Some(0));
+    // A new body still knows the map; a new round puts every pad back.
+    state.players[0].yaw = 0.0;
+    for tick in later + 8..later + 16 {
+        observe(&mut state, &bot, tick);
+    }
+    assert!(rail_eta(&state).unwrap() > 0);
+    state.players[0].bot_senses.forget_fighters();
+    assert!(rail_eta(&state).unwrap() > 0);
+    state.round_number += 1;
+    assert_eq!(rail_eta(&state), Some(0));
+}
+
+#[test]
+fn a_bot_leaves_for_a_returning_rail_and_waits_on_it() {
+    let (mut state, bot, feet) = lone_bot_with_rail_pad(10.0);
+    for tick in 0..8 {
+        observe(&mut state, &bot, tick);
+    }
+    let back_at = 8 + rail_eta(&state).unwrap();
+    // Twelve seconds early is not an appointment: the bot roams.
+    let roam = bot.intent(&state);
+    assert_ne!(roam.goal.map(|goal| goal.feet), Some(feet));
+    // Inside the walk plus a little slack, it sets off before the return.
+    state.players[0].yaw = PI;
+    for tick in back_at - 70..back_at - 62 {
+        observe(&mut state, &bot, tick);
+    }
+    let set_off = bot.intent(&state);
+    assert_eq!(set_off.goal.unwrap().feet, feet);
+    assert!(
+        !state.pickups[0].available,
+        "it left before the pad came back"
+    );
+    // Standing on the empty pad, it holds and sweeps instead of wandering.
+    state.players[0].x = feet[0];
+    state.players[0].z = feet[2];
+    state.players[0].yaw = 0.0;
+    for tick in back_at - 20..back_at - 12 {
+        observe(&mut state, &bot, tick);
+    }
+    let waiting = bot.intent(&state);
+    assert!(waiting.goal.is_none());
+    assert!(waiting.action.turn_left || waiting.action.turn_right);
+    assert!(!waiting.action.forward);
+}
+
+#[test]
+fn personalities_take_found_guns_to_their_distances() {
+    let (mut state, _) = pair(2);
+    state.players[0].inventory = full_bag(&[
+        WeaponType::Flechette,
+        WeaponType::Sniper,
+        WeaponType::Repeater,
+        WeaponType::Rocket,
+    ]);
+    let bot = &state.players[0];
+    for weapon in [WeaponType::Sniper, WeaponType::Repeater, WeaponType::Rocket] {
+        assert!(bot.inventory.usable(weapon), "{weapon:?} in the bag");
+    }
+    assert_eq!(
+        preferred_weapon(BotBehavior::Defensive, bot, 40.0),
+        WeaponType::Sniper
+    );
+    assert_eq!(
+        preferred_weapon(BotBehavior::Aggressive, bot, 15.0),
+        WeaponType::Rocket
+    );
+    assert_eq!(
+        preferred_weapon(BotBehavior::Aggressive, bot, 5.0),
+        WeaponType::Repeater
+    );
+    assert_eq!(
+        preferred_weapon(BotBehavior::Flanker, bot, 15.0),
+        WeaponType::Flechette
+    );
+    // A Rocket is never fired into a body at arm's length.
+    let (mut state, bot) = pair(2);
+    state.players[0].inventory = full_bag(&[WeaponType::Rocket]);
+    state.players[0].weapon = WeaponType::Rocket;
+    state.players[1].x = -2.0;
+    for tick in 0..20 {
+        observe(&mut state, &bot, tick);
+        let observed = state.players[0].bot_senses.target.unwrap();
+        let fight = bot.observed_combat_intent(&state, &state.players[0], observed, None, false);
+        assert!(!fight.action.fire, "tick {tick}");
+    }
 }

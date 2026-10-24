@@ -48,6 +48,15 @@ struct Cli {
     /// wins for both sides and no stuck round when --assert is set.
     #[arg(long, conflicts_with_all = ["soak", "fanout_matrix", "ctf_route_smoke", "ctf_contested"])]
     sabotage_survey: bool,
+    /// Bots-only arcade survey: seeded rounds of server rule bots across free
+    /// for all, team, CTF and Conquest maps, without sockets. Reports frag
+    /// pace, spawn deaths, pad timing and contest, focus fire and hits landed
+    /// outside the shooter's view. --assert fails a silent or blind roster.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "ctf_route_smoke", "ctf_contested",
+        "sabotage_route_smoke", "sabotage_contested", "sabotage_survey", "traffic"
+    ])]
+    bot_survey: bool,
     /// Matches the survey plays, one per seed from --seed upward.
     #[arg(long, default_value_t = 16, value_parser = clap::value_parser!(u64).range(1..=1000))]
     survey_seeds: u64,
@@ -313,6 +322,38 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
     println!("unarmed when live: {}", tally(&report.unarmed_at_live));
 }
 
+fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
+    println!(
+        "bot survey: {} seeds, {:.0} s rounds",
+        report.seeds.len(),
+        report.round_seconds
+    );
+    for row in &report.scenarios {
+        let shots: Vec<String> = row
+            .shot_share
+            .iter()
+            .map(|(weapon, share)| format!("{weapon} {:.0}%", share * 100.0))
+            .collect();
+        println!(
+            "{}: {:.1} frags/min, {:.3} spawn deaths per spawn, {:.1}% volley hits, {} focus frags, {:.1}% hits outside view, {:.1}% blindside frags, {:.1} pickups/min, {} power returns, {:.0}% appointments, {:.1} s power wait, pad contest {:.1}%, {} objective, shots {}",
+            row.scenario,
+            row.frags_per_minute,
+            row.spawn_deaths_per_spawn,
+            row.volley_hit_share * 100.0,
+            row.focus_frags,
+            row.hits_outside_view_share * 100.0,
+            row.blindside_share * 100.0,
+            row.pickups_per_minute,
+            row.power_returns,
+            row.appointment_share * 100.0,
+            row.mean_power_wait_s,
+            row.pad_contest_index * 100.0,
+            row.objective_events,
+            shots.join(", ")
+        );
+    }
+}
+
 fn config_from(cli: &Cli) -> Result<Config, String> {
     if cli.ctf_route_smoke {
         return Ok(Config {
@@ -401,6 +442,37 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.bot_survey {
+        let config = fragr_playtest::bot_survey::BotSurveyConfig {
+            seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
+            round_ticks: cli.time_limit_seconds.saturating_mul(20),
+            ..fragr_playtest::bot_survey::BotSurveyConfig::default()
+        };
+        let report = fragr_playtest::bot_survey::run_bot_survey(&config);
+        if let Some(parent) = cli.report.parent() {
+            if !parent.as_os_str().is_empty() {
+                if let Err(error) = std::fs::create_dir_all(parent) {
+                    eprintln!("error: cannot create {}: {error}", parent.display());
+                    std::process::exit(2);
+                }
+            }
+        }
+        let json = serde_json::to_string_pretty(&report).expect("bot survey report serializes");
+        if let Err(error) = std::fs::write(&cli.report, format!("{json}\n")) {
+            eprintln!("error: cannot write {}: {error}", cli.report.display());
+            std::process::exit(2);
+        }
+        print_bot_survey(&report);
+        println!("report: {}", cli.report.display());
+        let problems = fragr_playtest::bot_survey::check_bot_survey(&report);
+        for problem in &problems {
+            println!("threshold: {problem}");
+        }
+        if cli.assert && !problems.is_empty() {
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.sabotage_survey {
         let config = fragr_playtest::sabotage::SurveyConfig {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),

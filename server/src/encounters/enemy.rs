@@ -12,6 +12,99 @@ mod redactor;
 mod spine_patrol;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
+/// Ranged attackers in a tell or a burst at one participant at once. A
+/// waking room staggers its volleys instead of landing them together.
+pub(crate) const RANGED_ATTACK_TOKENS: usize = 2;
+/// Ticks between the starts of two ranged attacks on one participant, so a
+/// second tell reads as a second threat rather than one wall of fire.
+pub(crate) const ATTACK_STAGGER_TICKS: u64 = 10;
+/// A guard denied a token shifts across its lane this long before it asks
+/// again.
+const TOKEN_YIELD_TICKS: u64 = 12;
+
+/// Ranged attack tokens per participant. Counts are rebuilt every tick from
+/// the attacks actually committed; the tick the latest attack on each
+/// participant began is kept across ticks for the stagger.
+#[derive(Debug)]
+pub(crate) struct AttackTokens {
+    held: std::collections::HashMap<Uuid, usize>,
+    started: std::collections::HashMap<Uuid, u64>,
+    limit: Option<usize>,
+}
+
+impl Default for AttackTokens {
+    fn default() -> Self {
+        Self::limited(RANGED_ATTACK_TOKENS)
+    }
+}
+
+impl AttackTokens {
+    #[cfg(test)]
+    pub(crate) fn unlimited() -> Self {
+        Self {
+            limit: None,
+            ..Self::limited(0)
+        }
+    }
+
+    pub(crate) fn limited(limit: usize) -> Self {
+        Self {
+            held: Default::default(),
+            started: Default::default(),
+            limit: Some(limit),
+        }
+    }
+
+    /// Forget this tick's counts; the stagger clock stays.
+    pub(crate) fn begin_tick(&mut self) {
+        self.held.clear();
+    }
+
+    /// Whether a new attack on `target` may begin at `tick`.
+    pub(crate) fn free(&self, target: Uuid, tick: u64) -> bool {
+        let Some(limit) = self.limit else {
+            return true;
+        };
+        self.held.get(&target).copied().unwrap_or(0) < limit
+            && self
+                .started
+                .get(&target)
+                .is_none_or(|latest| tick >= latest.saturating_add(ATTACK_STAGGER_TICKS))
+    }
+
+    /// An attack on `target` that began at `started`.
+    pub(crate) fn take(&mut self, target: Uuid, started: u64) {
+        *self.held.entry(target).or_default() += 1;
+        let latest = self.started.entry(target).or_default();
+        *latest = (*latest).max(started);
+    }
+
+    fn release(&mut self, target: Uuid) {
+        if let Some(count) = self.held.get_mut(&target) {
+            *count = count.saturating_sub(1);
+        }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn held(&self, target: Uuid) -> usize {
+        self.held.get(&target).copied().unwrap_or(0)
+    }
+
+    /// Account one controller's step at `tick`: the token it held before and
+    /// after.
+    pub(crate) fn settle(&mut self, before: Option<Uuid>, after: Option<Uuid>, tick: u64) {
+        if before == after {
+            return;
+        }
+        if let Some(target) = before {
+            self.release(target);
+        }
+        if let Some(target) = after {
+            self.take(target, tick);
+        }
+    }
+}
+
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
 /// a close Scatter blast or several pellets landing together qualify; a single
 /// pistol, rifle or fist hit does not.
@@ -204,6 +297,8 @@ pub(super) struct EnemyController {
     /// One stagger per attack cycle: rearmed when a windup begins.
     stagger_ready: bool,
     reposition_until: u64,
+    /// Denied an attack token, this guard shifts across its lane until here.
+    yield_until: u64,
     strafe_left: bool,
     seated: bool,
     /// A Crawler can connect once in each committed leap.
@@ -420,6 +515,7 @@ impl EnemyController {
             last_hp: body(kind).0,
             stagger_ready: true,
             reposition_until: 0,
+            yield_until: 0,
             strafe_left: false,
             seated,
             contact_used: false,
@@ -524,9 +620,31 @@ impl EnemyController {
         delta
     }
 
+    /// One pre-step observation without attack pacing (direct callers).
+    #[cfg(test)]
+    pub fn intent(&mut self, state: &GameState, snapshot: &Snapshot) -> BotIntent {
+        self.paced_intent(state, snapshot, &AttackTokens::unlimited())
+    }
+
+    /// Whether this controller is holding a ranged attack token: a tell or a
+    /// burst committed at a participant.
+    pub(super) fn holds_token(&self) -> Option<Uuid> {
+        (!matches!(self.kind, EnemyKind::Crawler | EnemyKind::Enforcer)
+            && matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing))
+        .then_some(self.target)
+        .flatten()
+    }
+
     /// One pre-step observation for every controller. Attack aim commits at the
     /// start of the tell, so a strafe during windup can evade the actual ray.
-    pub fn intent(&mut self, state: &GameState, snapshot: &Snapshot) -> BotIntent {
+    /// Ordinary infantry start a tell only while `tokens` has room on that
+    /// participant; the rest hold their lane and sidestep.
+    pub(super) fn paced_intent(
+        &mut self,
+        state: &GameState,
+        snapshot: &Snapshot,
+        tokens: &AttackTokens,
+    ) -> BotIntent {
         let Some(me) = snapshot
             .players
             .iter()
@@ -825,8 +943,11 @@ impl EnemyController {
             }
             return BotIntent { action, goal: None };
         }
+        // Turrets and marksmen keep tracking, but start a tell only with a
+        // free token, like the infantry below.
+        let may_attack = target.is_none_or(|target| tokens.free(target.id, tick));
         if turret {
-            return self.turret(target, eye, windup, tick, &centre);
+            return self.turret(target, eye, windup, tick, &centre, may_attack);
         }
         if marksman {
             let solids = &state.current_arena().solids;
@@ -835,7 +956,7 @@ impl EnemyController {
                     .into_iter()
                     .find(|point| line_of_sight(eye, *point, solids))
             });
-            return self.marksman(target, aim_point, eye, windup, tick);
+            return self.marksman(target, aim_point.filter(|_| may_attack), eye, windup, tick);
         }
         if self.kind == EnemyKind::Notary {
             if let Some(target) = target {
@@ -865,6 +986,26 @@ impl EnemyController {
                 return BotIntent { action, goal: None };
             }
             if distance <= body.weapon.range_units().min(ENGAGE_RANGE) {
+                let yielding = tick < self.yield_until;
+                if yielding || !tokens.free(target.id, tick) {
+                    // Two guns are already on this participant, or one just
+                    // began. Hold the lane and shift across it for a beat
+                    // rather than adding a simultaneous tell; a free token
+                    // after the shift starts one.
+                    if !yielding {
+                        self.yield_until = tick.saturating_add(TOKEN_YIELD_TICKS);
+                        self.strafe_left = !self.strafe_left;
+                    }
+                    if self.phase != EnemyPhase::Moving {
+                        self.enter(EnemyPhase::Moving, tick, 0);
+                    }
+                    let shuffle = !self.seated
+                        && state.campaign_rules().difficulty != CampaignDifficulty::Assisted;
+                    action.yaw = Some((target.z - me.z).atan2(target.x - me.x));
+                    action.left = shuffle && self.strafe_left;
+                    action.right = shuffle && !self.strafe_left;
+                    return BotIntent { action, goal: None };
+                }
                 if let Some(aim) = aim_at(eye, centre(target)) {
                     self.begin_windup(aim, tick, windup, &mut action);
                     return BotIntent { action, goal: None };
@@ -1231,6 +1372,7 @@ impl EnemyController {
         windup: u64,
         tick: u64,
         centre: &dyn Fn(&crate::protocol::PlayerState) -> [f32; 3],
+        may_attack: bool,
     ) -> BotIntent {
         let mut action = Action::default();
         let Some(target) = target else {
@@ -1247,7 +1389,7 @@ impl EnemyController {
         let bearing = (target.z - eye[2]).atan2(target.x - eye[0]);
         let remaining = self.face(&mut action, bearing, TURRET_TRACK_RATE);
         let distance = (target.x - eye[0]).hypot(target.z - eye[2]);
-        if remaining.abs() <= TURRET_LOCK && distance <= TURRET_ENGAGE_RANGE {
+        if may_attack && remaining.abs() <= TURRET_LOCK && distance <= TURRET_ENGAGE_RANGE {
             if let Some(aim) = aim_at(eye, centre(target)) {
                 self.begin_windup(aim, tick, windup, &mut action);
                 return BotIntent { action, goal: None };
@@ -1540,6 +1682,128 @@ mod tests {
         turret.enter(EnemyPhase::Recovery, 10, 30);
         let planted = turret.intent(&state, &state.snapshot());
         assert!(!planted.action.left && !planted.action.right && !planted.action.forward);
+    }
+
+    #[test]
+    fn a_waking_room_holds_two_tells_at_a_time_and_every_guard_still_fires() {
+        use crate::protocol::Role;
+
+        let mut state = GameState::new();
+        let player_id = Uuid::from_u128(0x0a10);
+        state.add_player(player_id, "Visitor".into(), Role::Human);
+        let mut guards = Vec::new();
+        for (index, z) in [-2.0_f32, 0.0, 2.0].into_iter().enumerate() {
+            let id = Uuid::from_u128(0x0a00 + index as u128);
+            state.add_player(id, format!("Clerk {index}"), Role::Agent);
+            guards.push((id, z));
+        }
+        let floor = state.players[0].y;
+        for player in state.players.iter_mut() {
+            player.y = floor;
+            if player.id == player_id {
+                player.x = 6.0;
+                player.z = 0.0;
+                player.campaign = Some(CampaignActor::Participant {});
+            } else {
+                let z = guards.iter().find(|(id, _)| *id == player.id).unwrap().1;
+                player.x = 0.0;
+                player.z = z;
+                player.campaign = Some(CampaignActor::Union {
+                    kind: EnemyKind::Clerk,
+                    phase: EnemyPhase::Idle,
+                    phase_started: 0,
+                    phase_ends: 0,
+                    seated: false,
+                });
+            }
+        }
+        state.spawn_shields.clear();
+        // One room run with or without pacing: tells per guard, shots, the
+        // most shots in any one second, the most attacks at once and the
+        // closest two overlapping tell starts.
+        let mut run = |limit: Option<usize>| {
+            let mut controllers: Vec<EnemyController> = guards
+                .iter()
+                .map(|(id, z)| {
+                    let mut guard =
+                        EnemyController::new(*id, EnemyKind::Clerk, [0.0, 0.0, *z], 0.0, 0, false);
+                    guard.last_hp = state.players.iter().find(|p| p.id == *id).unwrap().hp;
+                    guard
+                })
+                .collect();
+            let mut tells = [0_u32; 3];
+            let mut shot_ticks = Vec::new();
+            let mut most = 0;
+            let mut closest_overlap = u64::MAX;
+            let mut last_start: Option<u64> = None;
+            let mut tokens = limit.map_or_else(AttackTokens::unlimited, AttackTokens::limited);
+            for tick in 10..410 {
+                state.tick = tick;
+                let snapshot = state.snapshot();
+                tokens.begin_tick();
+                for guard in &controllers {
+                    if let Some(target) = guard.holds_token() {
+                        tokens.take(target, guard.phase_started());
+                    }
+                }
+                for (index, guard) in controllers.iter_mut().enumerate() {
+                    let before = guard.holds_token();
+                    let was = guard.phase;
+                    let attacking_before = before.is_some();
+                    let intent = guard.paced_intent(&state, &snapshot, &tokens);
+                    let others = tokens.held(player_id) - usize::from(attacking_before);
+                    tokens.settle(before, guard.holds_token(), tick);
+                    if guard.phase == EnemyPhase::Windup && was != EnemyPhase::Windup {
+                        tells[index] += 1;
+                        if others > 0 {
+                            if let Some(start) = last_start {
+                                closest_overlap = closest_overlap.min(tick - start);
+                            }
+                        }
+                        last_start = Some(tick);
+                    }
+                    if intent.action.fire {
+                        shot_ticks.push(tick);
+                    } else if !matches!(guard.phase, EnemyPhase::Windup | EnemyPhase::Firing) {
+                        assert!(!intent.action.fire, "only a committed burst fires");
+                    }
+                }
+                most = most.max(tokens.held(player_id));
+            }
+            let peak = shot_ticks
+                .iter()
+                .map(|start| {
+                    shot_ticks
+                        .iter()
+                        .filter(|t| (*start..start + 20).contains(*t))
+                        .count()
+                })
+                .max()
+                .unwrap_or(0);
+            (tells, shot_ticks.len(), peak, most, closest_overlap)
+        };
+        let (tells, shots, peak, most, closest) = run(Some(RANGED_ATTACK_TOKENS));
+        let (_, open_shots, open_peak, open_most, open_closest) = run(None);
+        assert_eq!(open_most, 3, "unpaced, the whole room raises at once");
+        assert_eq!(open_closest, 0, "unpaced, tells start on the same tick");
+        assert_eq!(most, RANGED_ATTACK_TOKENS, "the room uses both tokens");
+        assert!(
+            closest >= ATTACK_STAGGER_TICKS,
+            "overlapping tells {closest} ticks apart"
+        );
+        assert!(
+            tells.iter().all(|count| *count >= 2),
+            "every guard still gets turns: {tells:?}"
+        );
+        assert!(
+            peak < open_peak,
+            "the worst second is softer: {peak} vs {open_peak}"
+        );
+        assert!(
+            shots <= open_shots,
+            "pacing never adds fire: {shots} vs {open_shots}"
+        );
+        eprintln!("room shots paced {shots} peak {peak}; unpaced {open_shots} peak {open_peak}");
     }
 
     #[test]

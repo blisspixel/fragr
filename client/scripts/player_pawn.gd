@@ -70,6 +70,8 @@ var prediction_active: bool = false
 ## Resolved crouch from the server, or from local prediction while that owns the body.
 var ducking: bool = false
 var _body_rest_y: float = -0.15
+## Seconds left in the current flinch, zero when settled.
+var flinch_timer: float = 0.0
 var predicted_position: Vector3 = Vector3.ZERO
 var predicted_speed: float = 0.0
 var presentation_speed: float = 0.0
@@ -92,6 +94,11 @@ const NAMEPLATE_NEAR_DIST: float = 9.0
 ## How small a close nameplate may get, so it does not vanish at point blank.
 const NAMEPLATE_MIN_SCALE: float = 0.22
 const HIT_SCALE_BOOST: float = 1.12
+## A struck fighter recoils: the body leans back from its facing and gives a
+## little ground, then settles. Presentation only; the server owns the hit.
+const FLINCH_SECONDS: float = 0.24
+const FLINCH_LEAN: float = 0.2
+const FLINCH_SHOVE: float = 0.1
 
 var _far_cam_scale: float = 1.0
 ## Distant silhouettes may be enlarged for a broadcast overview, never while
@@ -311,6 +318,9 @@ func _process(delta: float) -> void:
 		hit_flash_timer -= delta
 		if hit_flash_timer <= 0 and body:
 			_update_body_color(false)
+	if flinch_timer > 0.0:
+		flinch_timer = maxf(flinch_timer - delta, 0.0)
+		_apply_flinch(flinch_envelope(FLINCH_SECONDS - flinch_timer))
 	
 	if enemy_view != null and body:
 		enemy_view.advance(delta, travel)
@@ -827,6 +837,9 @@ func show_hit_feedback(weapon: String = ""):
 	
 	hit_flash_timer = 0.25
 	_update_body_color(true)
+	if not is_campaign_enemy and not is_campaign_companion and hp > 0:
+		# Campaign actors flinch through their own server Hit poses.
+		flinch_timer = FLINCH_SECONDS
 	
 	await get_tree().create_timer(0.12).timeout
 	if is_instance_valid(body):
@@ -844,6 +857,25 @@ func play_impact(weapon: String) -> void:
 	hit_sound.stream = stream
 	hit_sound.play()
 	impact_count += 1
+
+## Flinch weight from 0 to 1 at `elapsed` seconds into the recoil: a hard
+## snap in the first frames, then a settle back to rest by FLINCH_SECONDS.
+static func flinch_envelope(elapsed: float) -> float:
+	if elapsed <= 0.0 or elapsed >= FLINCH_SECONDS:
+		return 0.0
+	var t: float = elapsed / FLINCH_SECONDS
+	var settle: float = 1.0 - t
+	return minf(t * 6.0, 1.0) * settle * settle
+
+## Lean the visible body back from its facing and give a little ground. The
+## pawn faces local +X; a live body faces its own +Z under a quarter turn.
+func _apply_flinch(weight: float) -> void:
+	if character_view != null:
+		character_view.rotation.x = -FLINCH_LEAN * weight
+		character_view.position.x = -FLINCH_SHOVE * weight
+	elif body != null and enemy_view == null and latch_view == null:
+		# A camera-facing strip cannot lean, so it only gives ground.
+		body.position.x = -FLINCH_SHOVE * weight
 
 func _start_shotgun_cycle() -> void:
 	if _cycle_timer == null or cycle_sound == null or cycle_sound.stream == null \

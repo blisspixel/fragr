@@ -666,12 +666,14 @@ fn drive_party_with_ids(
         // One death is injected at the lift. The magazine era also died twice
         // in combat, both times during a reload pause. One ammunition count
         // removed those. Clerks and Sweepers now sidestep and close between
-        // bursts, and this seeded controller dies once in that fight. It still
-        // departs with a continue left. Every death stays charged.
-        assert_eq!(deaths, 2, "{state:?}");
-        assert_eq!(state.attempt, 3);
+        // bursts, and this seeded controller died once in that fight. Ranged
+        // attack tokens now stagger that room's tells, and the same
+        // controller survives it; only the injected death remains. Every
+        // death stays charged.
+        assert_eq!(deaths, 1, "{state:?}");
+        assert_eq!(state.attempt, 2);
         let run = state.run.unwrap();
-        assert_eq!(run.continues, crate::protocol::CAMPAIGN_CONTINUES - 2);
+        assert_eq!(run.continues, crate::protocol::CAMPAIGN_CONTINUES - 1);
         assert_eq!(run.status, crate::protocol::CampaignRunStatus::Complete);
     }
     eprintln!(

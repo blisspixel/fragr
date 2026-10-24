@@ -336,8 +336,33 @@ fn shooting_a_dormant_group_wakes_existing_guards_without_waiting_for_its_depend
     assert_eq!(phase(&session, guards[1]), EnemyPhase::Hit);
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
     advance(&mut session, 6);
-    assert_eq!(phase(&session, guards[1]), EnemyPhase::Windup);
-    assert_eq!(phase(&session, guards[2]), EnemyPhase::Windup);
+    // Both woken guards attack, one tell at a time: the second shifts across
+    // its lane until the stagger has passed.
+    let telling = |session: &GameSession| {
+        [guards[1], guards[2]]
+            .into_iter()
+            .filter(|guard| phase(session, *guard) == EnemyPhase::Windup)
+            .count()
+    };
+    assert_eq!(telling(&session), 1);
+    assert!([guards[1], guards[2]]
+        .into_iter()
+        .any(|guard| phase(&session, guard) == EnemyPhase::Moving));
+    // Keep the participant standing through both bursts.
+    if let Some(player) = session.state.players.iter_mut().find(|p| p.id == id) {
+        player.hp = 1000;
+    }
+    let mut told = [false; 2];
+    for _ in 0..40 {
+        for (index, guard) in [guards[1], guards[2]].into_iter().enumerate() {
+            told[index] |= phase(&session, guard) == EnemyPhase::Windup;
+        }
+        if told == [true, true] {
+            break;
+        }
+        advance(&mut session, 1);
+    }
+    assert_eq!(told, [true, true], "the yielding guard takes its turn");
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
     assert_eq!(
         session
@@ -756,10 +781,13 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
             }
         }
     }
+    // Attack pacing staggers the two tells: the first sweeper fires after
+    // its full tell, the second only after the stagger has passed.
+    let mut firsts = Vec::new();
     for id in sweepers {
         let ticks: Vec<_> = shots.iter().filter(|s| s.0 == id).map(|s| s.1).collect();
         assert_eq!(ticks.len(), 3, "one burst, then recovery and a new tell");
-        assert_eq!(ticks[0] - started, 15);
+        firsts.push(ticks[0] - started);
         assert_eq!(
             ticks[1] - ticks[0],
             u64::from(WeaponType::Flechette.cooldown_ticks())
@@ -769,6 +797,12 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
             u64::from(WeaponType::Flechette.cooldown_ticks())
         );
     }
+    firsts.sort_unstable();
+    assert_eq!(firsts[0], 15);
+    assert!(
+        firsts[1] >= firsts[0] + crate::encounters::enemy::ATTACK_STAGGER_TICKS,
+        "{firsts:?}"
+    );
 }
 
 #[test]

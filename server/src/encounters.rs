@@ -42,6 +42,8 @@ pub(crate) struct Encounters {
     groups: Vec<Group>,
     enemies: Vec<(usize, EnemyController)>,
     waiting_for_party: bool,
+    /// Ranged attack pacing per participant, kept for its stagger clock.
+    tokens: enemy::AttackTokens,
 }
 
 impl Encounters {
@@ -480,6 +482,16 @@ impl Encounters {
         self.advance_repairs(state);
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
+        // Ranged tokens per participant: attacks already committed hold theirs.
+        let tokens = &mut self.tokens;
+        tokens.begin_tick();
+        for (group, enemy) in &self.enemies {
+            if matches!(self.groups[*group], Group::Active { .. }) {
+                if let Some(target) = enemy.holds_token() {
+                    tokens.take(target, enemy.phase_started());
+                }
+            }
+        }
         for (group, enemy) in &mut self.enemies {
             let Group::Active { ids, .. } = &self.groups[*group] else {
                 continue;
@@ -494,7 +506,9 @@ impl Encounters {
                 })
                 .count()
                 == 1;
-            let intent = enemy.intent(state, &snapshot);
+            let held = enemy.holds_token();
+            let intent = enemy.paced_intent(state, &snapshot, tokens);
+            tokens.settle(held, enemy.holds_token(), state.tick);
             if let Some(player) = state.players.iter_mut().find(|p| p.id == enemy.id) {
                 player.campaign = Some(enemy.identity());
             }

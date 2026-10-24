@@ -670,3 +670,51 @@ fn rule_bots_take_a_gun_from_the_floor_on_every_free_for_all_map() {
     }
     println!("{}", report.join("\n"));
 }
+
+/// The clock a joined agent learns from the wire (`PickupState::clock_ticks`)
+/// is the clock the server runs (`ArenaPickup::clock`), for every pad kind in
+/// free-for-all and team modes.
+#[test]
+fn the_wire_pad_clock_matches_the_server_clock() {
+    let mut kinds: Vec<PickupKind> = WeaponType::ALL
+        .into_iter()
+        .map(PickupKind::Weapon)
+        .collect();
+    kinds.extend([
+        PickupKind::Health,
+        PickupKind::Armor,
+        PickupKind::Grenade { count: 1 },
+        PickupKind::ProximityMine { count: 1 },
+        PickupKind::RemoteMine { count: 1 },
+        PickupKind::Ammo {
+            pool: AmmoPool::Bullets,
+            rounds: 10,
+        },
+    ]);
+    for rules in [
+        RuleSet::default(),
+        RuleSet::new(GameMode::Tdm, &[], false).unwrap(),
+    ] {
+        for kind in &kinds {
+            let pad = crate::sim::ArenaPickup {
+                claim: crate::protocol::SupplyClaim::Contested,
+                id: "pad".into(),
+                kind: *kind,
+                amount: 25,
+                x: 0.0,
+                y: 0.4,
+                z: 0.0,
+                floor: 0.0,
+                available: false,
+                respawn_timer: Some(1),
+                secret: false,
+            };
+            assert_eq!(
+                pad.to_state().clock_ticks(rules.teams()),
+                pad.clock(&rules),
+                "{kind:?} under {:?}",
+                rules.mode()
+            );
+        }
+    }
+}
