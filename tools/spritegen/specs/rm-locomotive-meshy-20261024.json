@@ -1,0 +1,15 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "locomotive-20261024-v2",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/db813113-cb73-436a-b0dc-1d9321c39fe0.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    }
+  ]
+}

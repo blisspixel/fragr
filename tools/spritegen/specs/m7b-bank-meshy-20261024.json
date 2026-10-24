@@ -1,0 +1,85 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "luggage-scanner-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/a3221460-2ce6-414e-8b00-705e7cf6325d.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "registration-console-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/91608c19-e513-42eb-9c7d-2b6296ce103e.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 7000,
+      "pose_mode": ""
+    },
+    {
+      "id": "impound-tug-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/3965fa1f-987b-4c64-bade-5ccefecdae1f.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 9000,
+      "pose_mode": ""
+    },
+    {
+      "id": "locomotive-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/db813113-cb73-436a-b0dc-1d9321c39fe0.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    },
+    {
+      "id": "recall-car-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/dc76f6e7-75f1-4ab1-bc2b-25f944bd2765.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 9000,
+      "pose_mode": ""
+    },
+    {
+      "id": "gantry-hoist-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2d5463a1-1683-4d02-856d-d49cc98cae24.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 7000,
+      "pose_mode": ""
+    },
+    {
+      "id": "broadcast-console-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/f64e8e8f-6d35-4670-8961-362cb8617ca9.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "restraint-frame-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e183d71a-36de-48e0-b1cb-f43067fe9346.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    }
+  ]
+}

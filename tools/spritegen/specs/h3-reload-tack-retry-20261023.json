@@ -1,0 +1,32 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-3/retry",
+ "params": {
+  "quality": "high",
+  "resolution": "2k",
+  "aspect_ratio": "4:3",
+  "enhance_prompt": false
+ },
+ "style": "Use case: stylized-concept. Asset: production first-person weapon reload sprite frame for an original retro 3D FPS, an edit of the reference frame. Match the reference exactly: its deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, palette, perspective, canvas framing and worn full-finger brown leather work gloves with dark rust jacket cuffs",
+ "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep the right hand exactly where it is; only the left hand and the named reload part move. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference. No muzzle flash, no smoke, no motion blur",
+ "frames": [
+  {
+   "id": "tack_reload_out_v2",
+   "subject": "The same compact repaired pistol at exactly the same size, angle and screen position as in the reference, still held up in front by the right glove which keeps its grip; the right forearm stays where it is. Reload, magazine out: the left glove has come off the grip and is lower and to the left, holding the empty dark steel pistol magazine that has just dropped out of the bottom of the grip, the magazine fully visible in the left glove between the grip and the bottom edge, clearly separated from the gun.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/195f75f1-86ff-4a9e-ae42-8b167ea40279.png"
+    ]
+   }
+  },
+  {
+   "id": "tack_reload_seat_v2",
+   "subject": "The same compact repaired pistol at exactly the same size, angle and screen position as in the reference, held by the right glove which keeps its grip; the right forearm stays where it is. Reload, seat: the left glove comes up from below and its palm pushes a fresh dark steel magazine into the bottom of the grip, the magazine base and the left hand clearly visible directly under the grip, the left fingers starting to wrap back around the right hand.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/195f75f1-86ff-4a9e-ae42-8b167ea40279.png"
+    ]
+   }
+  }
+ ]
+}

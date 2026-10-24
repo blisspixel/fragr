@@ -1,0 +1,128 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-4",
+ "params": {
+  "quality": "medium",
+  "resolution": "2k",
+  "aspect_ratio": "1:1",
+  "enhance_prompt": false,
+  "image_urls": [
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/911b47cb-7376-4baa-aee2-e45bdac2a97d.png",
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+   "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+  ]
+ },
+ "style": "retro pixel art weapon pickup sprite for a 1990s PC shooter in the established chunky pixel style of the second and third reference images (style only, never their objects), crisp stepped pixel clusters, dark outlines, limited palette of charcoal gunmetal, muted grey-green enamel, rust and ember with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+ "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 24 pixel sprite scaled up",
+ "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no hands, no people, no text, no letters, no numbers, no watermark, no border",
+ "frames": [
+  {
+   "id": "pk_rocket_a",
+   "subject": "the same sage-green shoulder-fired ROCKET LAUNCHER as the first reference image seen from its left side: a long sage-green launch tube with a charcoal heat shield section, a worn steel muzzle collar at the right end, a raised iron sight, a boxy firing unit with pistol grip and trigger below, a short front grip, a shoulder rest at the left end",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/243af2ee-311c-49ad-8109-ebd9f02c8e24.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_rocket_b",
+   "subject": "the same practical reusable ROCKET LAUNCHER as the first reference image in plain side view: long cylindrical sage-green tube, charcoal heat shield band, steel muzzle collar on the right, flared rear venturi on the left, iron sight post, firing grip and foregrip below the middle, a few big bolts",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/243af2ee-311c-49ad-8109-ebd9f02c8e24.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_golden_rail_a",
+   "subject": "the same RAIL accelerator as the first reference image seen from its left side, but entirely finished in polished warm gold and brass with ember-orange highlights and dark bronze recesses: long twin rail barrel with copper coil segments, broad receiver, side power cell canister, pistol grip, a legendary golden trophy version of the gun",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/22696eb9-7f1b-4c1d-b0d7-e1c1b8d7733f.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_golden_rail_b",
+   "subject": "the same RAIL accelerator as the first reference image in plain side view, plated in rich gold and brass with deep bronze shading and pale yellow glints: long rail barrel with exposed coil rings along it, stocky receiver, cell canister, grip and stock, unmistakably the one golden gun",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/22696eb9-7f1b-4c1d-b0d7-e1c1b8d7733f.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_tack_a",
+   "subject": "the same compact repaired PISTOL as the first reference image seen from its left side, muzzle right: grey-green and gunmetal slide with serrations, dark steel frame, trigger guard, brown wooden grip panel, a plain repaired plate, chunky readable silhouette",
+   "view": "exact flat side profile, muzzle pointing right, centred with even margins, drawn as a 36 by 26 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/195f75f1-86ff-4a9e-ae42-8b167ea40279.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_sniper_a",
+   "subject": "the same long scoped bolt RIFLE as the first reference image seen from its left side, muzzle right: long warm brown wooden stock and forestock, dark steel barrel, a dark steel scope on rings above the receiver, bolt handle, small box magazine below",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/864a82a5-d4a9-42df-9373-2abc91e148ef.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_sniper_b",
+   "subject": "the same long SNIPER rifle as the first reference image in plain side view: slim dark steel barrel with a muzzle brake on the right, rich brown wooden stock with cheek rest on the left, mounted scope with end caps, bolt, trigger guard and box magazine",
+   "view": "exact flat side profile, muzzle pointing right, the whole gun horizontal and centred with even margins, drawn as a 90 by 22 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/864a82a5-d4a9-42df-9373-2abc91e148ef.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/417ace9f-16f2-4fd6-a528-c844787054de.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4ca3558f-b37f-4eaf-84c7-8ba85bb45700.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_jetpack_a",
+   "subject": "the same personally adapted JETPACK as the first reference image as a pickup: two bone-enamel fuel cylinders with brass valve wheels in a dark tubular steel frame, two flared brass-steel nozzles at the bottom, worn brown leather straps folded at the sides, a rust-red side panel, resting upright on the floor",
+   "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, drawn as a 34 by 36 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/fea60eaa-2d94-4742-a856-bf3e78596fed.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b5917d00-73d5-4159-bb92-a54a54e36e0f.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/62121540-7a23-47dc-b7c1-765d5708b326.png"
+    ]
+   }
+  },
+  {
+   "id": "pk_jetpack_b",
+   "subject": "the same JETPACK as the first reference image as a chunky item pickup: twin cream fuel tanks, brass handwheels, dark steel back frame, twin nozzles, brown harness, standing upright on the floor, simplified into a bold readable silhouette",
+   "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins, drawn as a 34 by 36 pixel sprite scaled up",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/fea60eaa-2d94-4742-a856-bf3e78596fed.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b5917d00-73d5-4159-bb92-a54a54e36e0f.png",
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/62121540-7a23-47dc-b7c1-765d5708b326.png"
+    ]
+   }
+  }
+ ]
+}

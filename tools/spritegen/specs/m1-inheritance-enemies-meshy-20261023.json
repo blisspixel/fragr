@@ -1,0 +1,65 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "collector-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/0b884bad-e59a-4d8c-b8cf-896cdba02ce8.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "collector-20261023-v2",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/0b884bad-e59a-4d8c-b8cf-896cdba02ce8.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "paver-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/f191ed33-d7d3-431b-9105-5e25b9ccf614.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "paver-20261023-v2",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/f191ed33-d7d3-431b-9105-5e25b9ccf614.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "surveyor-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/70a4a934-07c6-477c-b5a5-d15fe44fd065.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    },
+    {
+      "id": "surveyor-20261023-v2",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/70a4a934-07c6-477c-b5a5-d15fe44fd065.png",
+      "geometry_resolution": "2k",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    }
+  ]
+}

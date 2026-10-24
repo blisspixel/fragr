@@ -1,0 +1,68 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-3/b",
+ "params": {
+  "quality": "high",
+  "resolution": "2k",
+  "aspect_ratio": "4:3",
+  "enhance_prompt": false
+ },
+ "style": "Use case: stylized-concept. Asset: production first-person weapon reload sprite frame for an original retro 3D FPS, an edit of the reference frame. Match the reference exactly: its deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, palette, perspective, canvas framing and worn full-finger brown leather work gloves with dark rust jacket cuffs",
+ "technical": "Keep the weapon body, its position, size, angle and every detail identical to the reference, and keep the right hand exactly where it is; only the left hand and the named reload part move. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge, same as the reference. No muzzle flash, no smoke, no motion blur",
+ "frames": [
+  {
+   "id": "rail_reload_out",
+   "subject": "The same grey-green rail accelerator seen from behind exactly as in the reference, same position. Reload, cell out: the left glove grips the cylindrical power cell canister on the right side of the gun and pulls it backward out of its housing, the cell canister partly withdrawn and clearly separated, the copper coil rail along the top now dark and unlit.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/22696eb9-7f1b-4c1d-b0d7-e1c1b8d7733f.png"
+    ]
+   }
+  },
+  {
+   "id": "rail_reload_seat",
+   "subject": "The same grey-green rail accelerator seen from behind exactly as in the reference, same position. Reload, cell seated: the left glove pushes a fresh cylindrical power cell canister fully forward into its housing on the right side of the gun, the copper coil rail along the top glowing warm ember as it recharges.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/22696eb9-7f1b-4c1d-b0d7-e1c1b8d7733f.png"
+    ]
+   }
+  },
+  {
+   "id": "sniper_reload_out",
+   "subject": "The same long scoped rifle with a wooden stock held exactly as in the reference, same position, same sleeves and gloves as the reference. Reload, cell out: the left glove has moved back from the forestock and pulls a small dark steel box magazine down out from under the receiver just ahead of the trigger guard, the magazine clearly visible below the stock.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/864a82a5-d4a9-42df-9373-2abc91e148ef.png"
+    ]
+   }
+  },
+  {
+   "id": "sniper_reload_seat",
+   "subject": "The same long scoped rifle with a wooden stock held exactly as in the reference, same position, same sleeves and gloves as the reference. Reload, seat: the left glove pushes a fresh small dark steel box magazine up into the receiver just ahead of the trigger guard, then rests near it, the magazine base plate flush under the stock.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/864a82a5-d4a9-42df-9373-2abc91e148ef.png"
+    ]
+   }
+  },
+  {
+   "id": "rocket_reload_out",
+   "subject": "The same sage-green rocket launcher on the shoulder exactly as in the reference, same position and angle, right glove on the firing grip. Reload, tube slide: the left glove has left the foregrip and holds a fresh olive-green rocket with a pointed nose and small fins at the near rear opening of the tube at lower right, the rocket nose just entering the tube.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/243af2ee-311c-49ad-8109-ebd9f02c8e24.png"
+    ]
+   }
+  },
+  {
+   "id": "rocket_reload_seat",
+   "subject": "The same sage-green rocket launcher on the shoulder exactly as in the reference, same position and angle, right glove on the firing grip. Reload, seat: the left glove palm pushes the olive-green rocket's finned tail flush into the near rear opening of the tube at lower right, only the tail fins still visible at the opening.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/243af2ee-311c-49ad-8109-ebd9f02c8e24.png"
+    ]
+   }
+  }
+ ]
+}

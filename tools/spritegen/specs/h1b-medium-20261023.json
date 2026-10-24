@@ -1,0 +1,151 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1b/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "turnstile_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One practical circa-2070 public transit turnstile gate unit for an evacuation concourse: a waist-high stainless and faded bone-enamel cabinet body about 1.1 metres tall and 1.4 metres long, a three-arm rotating steel barrier on one side showing the clear access direction, a slanted top with a blank card reader plate and a small dull green arrow lamp, scuffed kick plate, bolted floor flange. Repeated civic hardware, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/95b778c3-2479-46c2-b7db-360642280bc8.png"
+    ]
+   }
+  },
+  {
+   "id": "tram_motor_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One practical replacement electric traction motor for a neighbourhood tram, a heavy cylindrical gunmetal motor casing about 1.2 metres long with cooling fins, a gearbox housing on one end with an exposed output pinion, two heavy lifting eyes on top, a bolted cable terminal box with three thick insulated cable stubs, a bone-enamel end cap, sitting on a simple steel skid frame, restrained rust and repair weld",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e7757026-d252-47a8-9b76-a93e66e941c4.png"
+    ]
+   }
+  },
+  {
+   "id": "civilian_tram_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One maintained circa-2070 neighbourhood tram car, a single short articulated-free car about 9 metres long with rounded ends, large clear windows along the side, two wide folding passenger doors, faded bone and muted teal paint with one replaced rust-red panel, a roof pantograph collector and roof equipment boxes, low steel bogies with visible wheels, small headlamps, personal repair patches. No text, no route number All windows are opaque dark smoky glass, nothing visible through them.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/6d3c1e51-effe-4446-a87b-8576caabbc03.png"
+    ]
+   }
+  },
+  {
+   "id": "duffel_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One angular packed canvas duffel bag about 70 centimetres long, olive drab cloth with uneven lumpy packed form, two worn brown leather carry handles and a long shoulder strap with a steel buckle, a zip along the top, two personal sewn-on patches without text, a strapped rolled blanket on one end, resting on the ground",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/75a8a42b-9d62-4bf8-8fa8-715332fcc0dc.png"
+    ]
+   }
+  },
+  {
+   "id": "hard_luggage_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One old-fashioned hard travel case, rectangular rigid trunk-style suitcase with faded teal-green shell, brass corner guards and two brass latches, a brown leather top handle, dents and a mended strap, lying flat",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/b0cd9c7f-6e2e-4f19-b8b4-02a354ad325b.png"
+    ]
+   }
+  },
+  {
+   "id": "pier_crane_cab_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One harbour crane cab module: an angular steel operator cabin with a tilted front window, visible seat and console inside, a side door with a grab handle, a big exposed cable winch drum and gearbox mounted on the same slewing platform behind the cab, railing around the platform, weathered orange-ochre and gunmetal paint, no text Cab windows are opaque dark tinted glass with the seat silhouette faintly visible.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/52b84bde-4d08-4bc7-8bb9-d43b89cc8a0d.png"
+    ]
+   }
+  },
+  {
+   "id": "edda_lamp_a_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One personally maintained handheld task lamp belonging to a clinic medic, about 45 centimetres tall: a sturdy brass and gunmetal storm-lantern style frame with a protective wire cage around a warm glowing glass chimney, a folding carry handle wrapped in worn leather, a small brass adjustment wheel, a weighted base with a repaired dent and a strip of cloth tape, restrained warm amber light, standing on its base",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/fdcf5d0e-e680-4c03-8cfb-bfb808c86bdc.png"
+    ]
+   }
+  },
+  {
+   "id": "edda_lamp_b_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One personally cared-for hand lamp, about 45 centimetres tall: a tall cylindrical warm-glowing glass lantern in a dark steel cage with four guard bars, a brass top cap with a ring handle, a fuel or battery base in faded ember-orange enamel with a hand-painted repair, restrained warm amber glow, standing upright",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4cb5174e-c4bd-4109-8a8f-071bd43507ae.png"
+    ]
+   }
+  },
+  {
+   "id": "sluice_actuator_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One substantial waterworks sluice gate actuator: a heavy cast gearbox housing on a square mounting pedestal, a large spoked steel handwheel on its side for manual operation, an electric motor bolted to the gearbox, a threaded vertical gate stem rising from the top inside a protective tube, painted faded blue-grey with rust and grease, service mounting bolts, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/686036b3-1220-4c96-abec-3a2b00b9427c.png"
+    ]
+   }
+  },
+  {
+   "id": "valve_manifold_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One readable industrial water valve manifold: three large pipes in a row joined by a horizontal header pipe, each with a big gate valve and a round handwheel on top in different faded colours, flanged pipe ports with bolts at the ends, a small pressure gauge without numbers, steel support stands, painted blue-grey with rust, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5ce20dae-0ac4-4126-a138-39f6ae38c9d7.png"
+    ]
+   }
+  },
+  {
+   "id": "filter_skid_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One portable maintained water filtering unit on a steel service frame skid about 2 metres long: two tall cylindrical filter vessels with domed tops and clamp lids, connecting pipework with valves, a small electric pump at one end, a pressure gauge without numbers, lifting eyes on the frame corners, faded bone and blue-grey paint, tidy repairs, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ffe61134-85a4-473a-b4b2-401a53df205f.png"
+    ]
+   }
+  },
+  {
+   "id": "stretcher_m34",
+   "subject": "Exactly the same object as the reference image: keep its design, proportions, parts and colours, refined with crisper construction and cleaner material separation. One practical folding field stretcher for evacuating injured people: two long steel poles with worn wooden handle grips at both ends, a taut olive canvas bed, folding steel spreader bars, four short feet, two cloth securing straps with buckles, a folded grey blanket on it, scuffed and repaired, lying flat on the ground",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2fc1e064-7add-43af-ad39-57f7000746fb.png"
+    ]
+   }
+  },
+  {
+   "id": "rooftop_tank_m34",
+   "subject": "Exactly the same maintained domestic rooftop water tank as the reference image, the existing landmark design: galvanized corrugated steel drum with green painted bands, a lid with a small hatch and handle, a patched plate and a corrugated repair, an outlet tap, standing on a four-legged dark timber stand with green cross bracing. Keep the design, proportions and colours exactly, refined with crisper construction",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/cb5734e7-e7cc-466b-96eb-d9550b26a9bd.png"
+    ]
+   }
+  },
+  {
+   "id": "meal_stove_m34",
+   "subject": "Exactly the same repaired cooking stove as the reference image: broad cream enamel body, two-burner cast iron top with a back rail, oven door and lower firebox door with brass handles, brass knobs, side towel rail, dark iron plinth. Keep the design, proportions and colours exactly, refined with crisper construction",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/1dcf6517-9057-43e4-9e11-52b131060f39.png"
+    ]
+   }
+  },
+  {
+   "id": "supply_crate_m34",
+   "subject": "Exactly the same sturdy supply crate as the reference image: dark gunmetal frame with corner guards and carry handles, olive green ribbed side panels, a latch, stacked double-height construction, for a pier and freight yard. Keep the design, proportions and colours exactly, refined with crisper construction",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e63765f1-3832-4f3c-807c-5c801745f0e2.png"
+    ]
+   }
+  }
+ ]
+}

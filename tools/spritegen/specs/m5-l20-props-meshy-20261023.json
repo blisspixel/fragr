@@ -1,0 +1,65 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "edda-lamp-a-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/87df6d55-b84f-4dff-894a-03cf5c9d82b6.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "edda-lamp-b-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/4c4d7c90-75b7-499f-ac1e-330dc33e5d5c.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "supply-crate-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/26ea061e-6c8a-483e-9f9e-42f452a65cf2.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "sluice-actuator-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/15bc0104-58f6-4d3d-a456-1bfa62b1a8d1.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "valve-manifold-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/835726da-fb66-4476-b8bb-42c05daa0201.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "pier-crane-cab-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/d9560f49-4130-48bf-a73c-67b1d8beff1b.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    }
+  ]
+}

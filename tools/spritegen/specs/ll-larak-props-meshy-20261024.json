@@ -1,0 +1,95 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "ll-toll-booth-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8978eb7b-3f84-4ba0-8116-5d4ea448c058.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-bookmaker-kiosk-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/3ad3ce3b-9135-40d1-b2e2-ecbf5232bfdb.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-car-stack-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/63602b87-00dc-4046-8f7f-910da0af415b.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 10000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-burned-sedan-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e8b61e18-a5e8-43e7-99af-e78d15c7c311.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-clamped-sedan-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/8dfbee8f-52ce-48e7-92fe-3e4558f8f27f.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-pay-machine-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/576fed15-d745-418a-a98e-2901be3af047.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-coffee-machine-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/38fb294f-76b3-48fc-afcb-905af5eac549.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-stands-bell-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/574f4cdc-d7a4-4bef-bcc3-1d08c7c97947.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ll-crane-hook-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/085ce206-3b8e-4801-8c4a-a2c9d2856641.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    }
+  ]
+}

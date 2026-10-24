@@ -1,0 +1,35 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "tram-motor-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/1ee818e9-e0c1-41b0-a87f-dbed9346d746.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "turnstile-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/c9f4b847-0899-4e5e-98f1-4afcafc7c1e0.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 6000,
+      "pose_mode": ""
+    },
+    {
+      "id": "filter-skid-20261023-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5eb7716f-c294-4479-bedf-1a0994f1428e.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    }
+  ]
+}

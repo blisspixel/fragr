@@ -1,0 +1,85 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "casting-furnace-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/85c6f525-0bd3-4037-84fd-78d770fcadbc.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 9000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ingot-trolley-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/fb836cd1-ccf0-4729-9b94-e2b5bcec93e4.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 7000,
+      "pose_mode": ""
+    },
+    {
+      "id": "industrial-press-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/df7bf1a0-73ba-4514-afb4-9f826e2ec587.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 9000,
+      "pose_mode": ""
+    },
+    {
+      "id": "lathe-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/61b305f1-75a5-4a85-8ba3-d92ca845fe1d.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 9000,
+      "pose_mode": ""
+    },
+    {
+      "id": "growth-rack-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ac9a9d45-d92c-42c1-92d7-804de4955c83.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "ship-bunk-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/38f74e1d-5c16-4931-97c7-df87dd7b4c36.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    },
+    {
+      "id": "galley-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/804d6987-a248-436d-92e4-6131aed5a1b7.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 7000,
+      "pose_mode": ""
+    },
+    {
+      "id": "pilot-console-20261024-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/421a7e16-d95e-4390-8f59-486d43d9c33a.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 8000,
+      "pose_mode": ""
+    }
+  ]
+}

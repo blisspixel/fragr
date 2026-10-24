@@ -1,0 +1,32 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-5/seal",
+ "style": "Original flat graphic emblem for a fictional authoritarian bureaucratic world government in a retro pixel-art game, a decal source. Severe, orderly, institutional and unmistakably authoritarian: heavy symmetrical geometry like an official state seal or rubber stamp. Bold simple shapes with thick clean edges, flat solid colours only: near-black #1E1E22, deep Union red #8C1A1E and bone #E8E2D6. No gradients, no shading, no texture, readable when reduced to 64 pixels",
+ "view": "Straight-on flat front view, one emblem centred, filling about 80 percent of the frame, perfectly mirror-symmetrical left to right",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no border, no frame around the image. No text, letters, numbers, inscriptions, logos or watermark",
+ "negative": "words, letters, numbers, text, inscriptions, ribbon banner, eagle, bird, wings, swastika, hooked cross, sun wheel, radial runes, lightning bolts, runes, iron cross, maltese cross, skull, death's head, oak leaves, laurel wreath, ring of stars, stars, hammer and sickle, fasces, axe, crown, cogwheel, gear, real flag, real coat of arms, real national or party insignia, copied logo, hand, salute, faces, eyes, people, animals, 3D render, bevel, metallic sheen, photograph, gradient, drop shadow, magenta inside the emblem",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "union_seal_a",
+   "subject": "The Union register seal: a circular seal, a solid near-black disc with a thick deep-red outer ring studded with evenly spaced small square bone rivets, a thin bone inner ring, and at the centre a bone podium mark made of three stacked horizontal bars that widen downward like ordered tiers, a short bone vertical bar standing on top"
+  },
+  {
+   "id": "union_seal_b",
+   "subject": "The Union access plate: an upright octagonal near-black plate with a thick deep-red border band and a thin bone inner border, at the centre a bold bone square frame enclosing a deep-red keyhole-shaped slot, two small bone horizontal bars below the square like a signature line"
+  },
+  {
+   "id": "union_seal_c",
+   "subject": "The Union permission gate: a solid deep-red disc with a thick near-black inner ring and a thin bone outer edge, at the centre a bold bone gate symbol: two upright posts joined by a flat lintel, and one horizontal barrier bar closing the opening between them"
+  },
+  {
+   "id": "union_seal_d",
+   "subject": "The Union continuance stamp: a tall rectangular official stamp with a near-black field and a double deep-red border, at the centre an unbroken thick bone ring enclosing a solid deep-red square set on its corner, a row of small identical bone rectangles along the top and bottom edges like a registry index"
+  }
+ ]
+}

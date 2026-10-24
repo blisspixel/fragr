@@ -1,0 +1,88 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1a/explore",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "low",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "sentry_y1",
+   "subject": "One foldable civilian-built portable tripod turret device for defending a pier, deployed: three splayed welded steel tripod legs with small feet, a geared yaw collar, a pitch cradle holding a compact boxy mechanism with one short shrouded tube at the front, a clearly visible side-mounted square supply box with a linked feed chute, mechanical slew joints. Faded warm ochre and bone paint over gunmetal, hand-made repairs and work marks, about 1.2 metres tall. Workshop equipment, no screen, no face, no lens eye, not black and red"
+  },
+  {
+   "id": "sentry_y2",
+   "subject": "One foldable civilian-built portable tripod turret device about 1.1 metres tall, deployed on a folding three-legged tripod of gunmetal tube, a chunky pivoting cradle with a visible traverse gear ring and elevation arc, a compact boxy receiver with one short perforated tube at the front, a large square supply can clipped to the left side, a carrying handle on top. Warm worn bone and rust-red repaired paint, tool marks, practical workshop build. No screen face, not Union issue"
+  },
+  {
+   "id": "sentry_y3",
+   "subject": "One foldable civilian-built portable tripod turret device about 1.2 metres tall, deployed: low wide tripod of three angular steel legs, central yaw post with a geared slew ring, an open pitch yoke holding a short practical receiver and tube, an exposed curved feed chute from a bolted supply box, a small sensor block without any face. Faded warm olive and ochre paint, scuffed steel, individual repair welds. Not Union issue"
+  },
+  {
+   "id": "assessor_hull_x1",
+   "subject": "The hull only of a heavy Union armoured drone called an Assessor, about 2.6 metres long and 2.6 metres wide, 1.2 metres tall. A flat angular black armoured central body with four large empty circular fan wells at the four corners on short armoured struts, the wells open rings with no fans inside, armoured belly plate and sloped front plate in slightly lighter issued dark steel, two small red optic lenses at the front, louvred rear cooling vents, a folded launcher housing under the front. Union black, dark steel and lighter issued plates with restrained red. Regimented manufacture, no text"
+  },
+  {
+   "id": "assessor_hull_x2",
+   "subject": "The hull only of a heavy Union armoured quad-fan drone called an Assessor, 2.6 metres across, compact boxy black armoured fuselage with chamfered issued steel plates, four round empty fan ducts mounted at the corners, each duct an open armoured ring with no blades inside, a thick armoured belly, a red narrow optic band at the front, exposed slatted rear vents, a stubby folded gimbal launcher pod under the nose. Union black, gunmetal and restrained red seals, no text"
+  },
+  {
+   "id": "assessor_hull_x3",
+   "subject": "The hull only of a heavy Union armoured drone called an Assessor, about 2.6 metres across, a low wide black armoured body like a flattened shield with four empty circular fan wells cut into its corners, the wells empty with no fans, heavy armoured front and belly plates in lighter dark steel, two red optic slits, grilled rear exhaust vents, small red issued seal plates without text. Regimented Union manufacture, menacing through uniformity, no spikes"
+  },
+  {
+   "id": "motorcycle_x1",
+   "subject": "One original practical circa-2070 civilian courier motorcycle, exactly two wheels with clear separate spoked hubs, robust road-trail proportions, low narrow fuel and battery tank, exposed fork and swingarm, one dark leather saddle, handlebar with two grips, two foot pegs, chain guard, rear cargo rack with a tan tool pouch, small round protected headlamp. Restrained bone enamel mudguards, dark gunmetal engine and frame, one warm rust repaired side cover. No rider, freestanding on its side stand"
+  },
+  {
+   "id": "motorcycle_x2",
+   "subject": "One original circa-2070 civilian utility motorcycle, exactly two chunky treaded wheels each clearly separate from the frame, upright scrambler proportions, boxy battery housing in faded olive enamel, exposed gunmetal trellis frame, long dark leather bench seat, tall handlebar with mirrors, square headlamp cage, rear rack with a strapped crate, one replaced bone-coloured side panel. No rider, standing on its side stand"
+  },
+  {
+   "id": "motorcycle_x3",
+   "subject": "One original circa-2070 repaired civilian motorcycle, exactly two wheels with solid disc covers clearly separable from the forks, compact commuter frame, rounded bone-enamel tank and front fairing with a single round lamp, dark gunmetal engine block, brown leather seat, practical handlebar, rear luggage rack, rust-coloured patch panel and wire-tied repairs. No rider, freestanding on its side stand"
+  },
+  {
+   "id": "walker_hull_x1",
+   "subject": "The isolated torso body only of a large Union walking machine called the Continuance Walker, no legs attached: a massive boxy armoured body 6 metres wide, 4 metres deep and 3 metres tall, black and dark steel with slightly lighter issued armour plates, a restrained red issued band across the front face, two recessed red optic slits, two short squat artillery mortar mouths on the roof, ribbed drive housings on the sides, four reinforced hip sockets on the underside corners. Industrial weight, regimented manufacture, no text"
+  },
+  {
+   "id": "walker_hull_x2",
+   "subject": "The isolated torso body only of a large Union walking machine, no legs: a heavy chamfered armoured box 6 metres wide, 4 metres deep, 3 metres tall, Union black steel with lighter grey-steel plates and roof shoulder armour, a narrow red stripe band on the front apron, two red optic visors, two round artillery mortar sockets on top, side cooling ribs and drive housings, empty round leg joint sockets at the four lower corners. Purpose-built heavy machinery, no spikes, no text"
+  },
+  {
+   "id": "walker_hull_x3",
+   "subject": "The isolated torso body only of a large Union walking machine, no legs: a wide low armoured hull 6 metres wide and 4 metres deep, angular black steel with layered lighter issued plates, a front armoured apron with a red band and two red optic recesses, twin stubby artillery mortar tubes on the roof, louvred exposed vents along the sides, four heavy hip mounts at the bottom corners. Regimented Union manufacture, no text"
+  },
+  {
+   "id": "walker_leg_x1",
+   "subject": "One isolated mechanical leg of a large Union walking machine, 3 metres tall with a 1.2 metre square footprint: broad flat armoured foot, ankle joint block, armoured shin, large cylindrical knee joint drum, upper strut, an exposed hydraulic actuator piston along the back, a recovery vent panel with a red shutter, hip mounting plate at the top. Union black and dark steel with lighter issued plates, standing upright, no body attached, no text"
+  },
+  {
+   "id": "walker_leg_x2",
+   "subject": "One isolated stout columnar mechanical leg of a heavy Union walker, 3 metres tall, upright: wide square footpad with toe plates, short ankle, thick armoured lower leg, round knee joint, reinforced upper section with a flat top mounting flange, a polished steel hydraulic piston and actuator sleeve on one side, a slatted vent with red-painted shutter. Black steel and lighter grey issued armour plates, regimented manufacture, no body attached, no text"
+  },
+  {
+   "id": "walker_leg_x3",
+   "subject": "One isolated heavy mechanical leg for a large Union walking machine, 3 metres tall, upright, blocky and stout: broad armoured foot, ankle housing, angular armoured shin with a recessed glowing-off red vent shutter, chunky knee drum joint, upper strut ending in a top mounting socket, an exposed drive crank and piston. Union black, dark steel and lighter issued plates with restrained red, no body attached, no text"
+  },
+  {
+   "id": "walker_artillery_x1",
+   "subject": "One isolated roof-mounted artillery module of a large Union walking machine: a squat heavy mortar with a short wide round barrel mouth pointing upward at an angle, held in an armoured trunnion cradle on a flat round turntable base plate, recoil cylinders on both sides, a red issued band on the cradle. Union black and dark steel with lighter issued plates, no machine attached, no text"
+  },
+  {
+   "id": "walker_artillery_x2",
+   "subject": "One isolated twin-socket artillery launcher pod for the roof of a large Union walking machine: an angular black armoured box housing two short wide mortar tubes side by side angled upward, a flat mounting base, hydraulic elevation rams, small red warning band. Union black, dark steel, lighter issued plates, regimented manufacture, no machine attached, no text"
+  },
+  {
+   "id": "walker_artillery_x3",
+   "subject": "One isolated heavy artillery mortar mount for a Union walking machine roof: a short thick lathe-turned barrel with a flared muzzle collar, set in a round armoured ring mount with a hinged armoured shield, two recoil pistons, a red issued stripe. Union black and dark steel, standing alone on its flat base ring, no machine attached, no text"
+  }
+ ]
+}

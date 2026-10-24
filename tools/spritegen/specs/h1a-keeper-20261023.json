@@ -1,0 +1,43 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-1a/keeper",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "high",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "paver_keeper",
+   "subject": "Final conversion reference of exactly the same object as the reference image: keep its design, proportions, pose, parts and colours exactly, with the clearest possible part separation, crisp edges and even lighting on every surface including the underside. One broad low Inheritance restoration machine called a Paver, a road-works machine about 3 metres wide, 4 metres long and 1.5 metres tall, flat broad matte bone-white body like a smooth paving stone, on four short stout ink-black legs ending in broad flat pads. A large front work head on a thick ink-black boom: a wide rectangular tool housing with a downward-facing projector strip and a row of tamping plates, two small muted cyan indicators. Exposed ink-black mechanical joints. Few seams, no identifiers, unsettling order, not a military vehicle, no red, no face The broad bone-white shell stays low and wide; the front work head and its projector strip are the dominant read.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e292c014-fbab-440d-8a95-bce7a9607b6d.png"
+    ]
+   }
+  },
+  {
+   "id": "surveyor_keeper",
+   "subject": "Final conversion reference of exactly the same object as the reference image: keep its design, proportions, pose, parts and colours exactly, with the clearest possible part separation, crisp edges and even lighting on every surface including the underside. One elevated Inheritance observation machine called a Surveyor, about 4 metres tall. A compact matte bone-white sensor head dominated by one oversized circular lens assembly with ink-black iris shutter blades half open, a thin projector ring around the lens, sparse muted cyan indicators, carried on a tall slender ink-black telescoping mast standing on a broad stable tripod of three bone-white folded legs with ink-black joints. Continuous surfaces, few seams, no identifiers, calm and watchful, no red, no face, no eyes besides the lens",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/f7422ab2-5a7a-481e-88a1-aa93b24b9256.png"
+    ]
+   }
+  },
+  {
+   "id": "collector_keeper",
+   "subject": "Final conversion reference of exactly the same object as the reference image: keep its design, proportions, pose, parts and colours exactly, with the clearest possible part separation, crisp edges and even lighting on every surface including the underside. One narrow Inheritance restoration machine called a Collector, about 2.2 metres tall and 0.7 metres wide, a narrow continuous matte off-white upright body with very few seams and no identifiers, walking on two long ink-black jointed legs, one long precise ink-black work arm ending in a broad gripping and prying tool extended forward in a committed working pose, leaning deliberately into the work, a small muted cyan work indicator. Calm, deliberate, uncanny order, not a Union soldier, no red, no head, no face Make the two ink-black legs sturdier with clear thigh, knee and shin segments and broad feet so they read at a distance.",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/0e416954-6334-44e7-adbc-655a818484c0.png"
+    ]
+   }
+  }
+ ]
+}

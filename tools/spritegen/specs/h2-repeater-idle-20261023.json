@@ -1,0 +1,26 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/H-2/idle",
+  "params": {
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false,
+    "image_urls": [
+      "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/5c73c631-e082-4f4b-93fd-897018757954.png",
+      "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/9940b155-d667-4dcb-8ebf-d2fa62621c71.png"
+    ]
+  },
+  "style": "Use case: stylized-concept. Asset: production first-person weapon sprite for an original retro 3D FPS. Match the references' deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, limited palette of charcoal gunmetal, muted institutional grey-green enamel, rust and ember accents, the same centred looking-down-the-receiver perspective, and the same worn full-finger brown leather work gloves with dark rust jacket cuffs. Preserve modern detailed craft, not a primitive polygon render and not photographic textures",
+  "technical": "One weapon only. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no numbers, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge. Weapon centred horizontally, receiver in the lower middle, muzzle end in the upper middle with room above for a compact muzzle flash, clear empty magenta corners",
+  "frames": [
+    {
+      "id": "repeater_idle_a",
+      "subject": "Create a different weapon, not the rifle and not the shotgun: the REPEATER, a broad heavy sustained-fire rotary gun circa 2070, practical civilian-maintained machinery found aboard a cargo ship. Seen from the wielder's eyes directly behind the gun, looking down the top of the broad receiver which runs from the bottom centre toward the upper middle, foreshortened, with a modest visible right side plane, exactly like the references' viewpoint. At the far front a cluster of six short barrels held in a ribbed rotor sleeve with a front clamp ring, clearly a spinning assembly. A wide boxy charcoal receiver with muted grey-green enamel top cover, a slotted cooling vent row and a few substantial bolts, a ribbed feed housing on the left side fed by a detachable curved box magazine under the left side, a simple raised rear sight. Right brown leather glove on a pistol grip at lower right, left glove supporting a vertical foregrip handle at lower left. Restrained rust and ember accents on the rotor clamp and a small spin-motor housing. Calm ready pose, no flash, no smoke"
+    },
+    {
+      "id": "repeater_idle_b",
+      "subject": "Create a different weapon, not the rifle and not the shotgun: the REPEATER, a substantial sustained-fire rotary machine gun circa 2070, a workshop-maintained heavy gun. Seen from the wielder's eyes directly behind it, looking down the top of a wide receiver from the bottom centre toward the upper middle in foreshortened perspective with a modest right side plane, matching the references' viewpoint. Far front: a rotating cluster of six barrels inside a perforated charcoal heat shroud, a ring clamp at the muzzle end. Middle: a broad receiver with grey-green enamel side plates, an exposed geared spin motor housing on top, a carrying handle bar, cooling slots. A chunky detachable ammunition box magazine clipped under the left side with a short feed chute into the receiver. Both brown leather gloves grip: right on the rear pistol grip at lower right, left on a side handle at lower left. Gunmetal steel highlights, dark recesses, warm rust repairs. Calm ready pose, no flash, no smoke"
+    }
+  ]
+}

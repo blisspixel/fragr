@@ -1,0 +1,27 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "art/raw/H-5/medium",
+ "style": "Original modern retro first-person shooter asset reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral studio lighting showing every part. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "turnstile_fix_v2",
+   "subject": "Exactly the same gate as the reference image, refined with crisper construction. A circa-2070 Union-era transit control gate for an evacuation concourse: a cabinet frame in institutional green enamel (#4E5844) and dark steel, a three-arm rotating steel barrier, a top with a blank registry card reader and a small unlit deep-red lamp, on the side a blank riveted near-black type-approval plate edged in deep Union red and a blank round near-black seal boss with a thick deep Union red rim, repeated identical bolts, scuffed kick plate, bolted floor flange. Issued civic manufacture: a Union seal plate in black and red on institutional green, no bone or off-white enamel, no text",
+   "params": {
+    "image_urls": [
+     "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ab9794e8-7680-49b6-854a-2244c3015cb9.png"
+    ]
+   },
+   "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, rider, pilot, operator, passengers, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, neon, cyberpunk glow, dense scratches, photographic noise, copied franchise design, fantasy spikes, floating parts, magenta object parts, bone enamel, off-white cabinet, cream panels, stainless dominant body",
+   "view": "One isolated complete object in front three-quarter view from slightly above, entire silhouette visible with generous margins, centred. One object, one view, no collage"
+  }
+ ]
+}
