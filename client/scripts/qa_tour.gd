@@ -1210,7 +1210,7 @@ static func active_named_enemies(snapshot: Dictionary, names: Array) -> Dictiona
 	var found: Dictionary[String, String] = {}
 	for actor: Dictionary in snapshot.get("players", []):
 		if actor.get("name", "") in names and int(actor.get("hp", 0)) > 0 and \
-			ActorState.is_union(actor):
+			ActorState.is_hostile(actor):
 			found[str(actor["name"])] = str(actor["campaign"]["phase"])
 	return found
 

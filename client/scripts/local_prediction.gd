@@ -81,6 +81,8 @@ func configure_map(info: Dictionary) -> void:
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
 		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true), "water_regions": info.get("water_regions", []).duplicate(true)}
+		# A worn pack climbs only to the map's authored ceiling.
+		arena["jet_ceiling"] = float(info["m19"]["jetpack_ceiling"]) if info.get("m19") is Dictionary and M19MissionState.map_error(info).is_empty() else JetMovement.DEFAULT_CEILING
 
 
 func reset(reason: String, clear_measurements: bool = false) -> void:
@@ -140,12 +142,16 @@ static func newer_sequence(seq: int, before: int) -> bool:
 
 static func _body(ack: Dictionary) -> Dictionary:
 	var movement: Dictionary = ack["movement"]
-	return {
+	var body: Dictionary = {
 		"x": float(ack["x"]), "z": float(ack["z"]),
 		"y": float(movement["y"]) - FLOOR_OFFSET,
 		"vx": float(movement["vx"]), "vy": float(movement["vy"]),
 		"vz": float(movement["vz"]), "yaw": float(ack["yaw"]),
 	}
+	# A worn pack replays from the acknowledged fuel after that same step.
+	if movement.has("jet_fuel"):
+		body["fuel"] = int(movement["jet_fuel"])
+	return body
 
 
 static func world_position(pose: Dictionary) -> Vector3:
@@ -477,7 +483,12 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 	if ducking:
 		speed *= MoveStep.DUCK_SPEED_SCALE
 		height = MoveStep.DUCK_HEIGHT
-	var proposed: Dictionary = WaterMovement.live_step(pose, step["input"], speed, live_dt, world, height)
+	var proposed: Dictionary
+	if pose.has("fuel"):
+		proposed = JetMovement.live_step(pose, step["input"], speed, live_dt, world, height, int(pose["fuel"]),
+			float(world.get("jet_ceiling", JetMovement.DEFAULT_CEILING)), dt <= 0.0)
+	else:
+		proposed = WaterMovement.live_step(pose, step["input"], speed, live_dt, world, height)
 	proposed["ducking"] = ducking
 	var reach: float = speed * live_dt
 	var bodies: Array[Dictionary] = _near_contacts(pose, reach, step.get("blockers", []))
@@ -488,6 +499,9 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 	bodies.append({"key": step["body_key"], "from": from, "proposed": proposed, "height": height, "radius": MoveStep.RADIUS, "jump": bool(step["input"]["jump"])})
 	var accepted: Dictionary = ActorContact.resolve(bodies, live_dt, WaterMovement.supported_arena(world)).back()
 	accepted["ducking"] = ducking
+	for key: String in ["fuel", "thrusting"]:
+		if proposed.has(key):
+			accepted[key] = proposed[key]
 	if accepted["x"] != proposed["x"] or accepted["z"] != proposed["z"]:
 		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / live_dt
 		accepted["vz"] = (float(accepted["z"]) - float(pose["z"])) / live_dt

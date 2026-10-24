@@ -75,7 +75,7 @@ func apply(snapshot: Dictionary, listener: Vector3) -> int:
 	var played: int = 0
 	for index: int in range(mini(actors.size(), MAX_ACTORS)):
 		var actor: Variant = actors[index]
-		if not actor is Dictionary or not ActorState.is_union(actor) or actor["campaign"].get("kind") not in ["notary", "assessor"]:
+		if not actor is Dictionary or not ActorState.is_hostile(actor) or actor["campaign"].get("kind") not in ["notary", "assessor"]:
 			continue
 		var id: Variant = actor.get("id")
 		var position: Vector3 = JammerAudio._position(actor)

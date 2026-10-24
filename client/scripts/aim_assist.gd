@@ -59,7 +59,7 @@ static func enabled_for(level: Level, look_source: String) -> bool:
 ## Where a shot meets a body at a server position: the chest of a fighter,
 ## or the middle of a short Crawler, Notary or Assessor volume.
 static func aim_height(campaign: Dictionary = {}) -> float:
-	if str(campaign.get("side", "")) == "union" and str(campaign.get("kind", "")) in ["crawler", "notary", "assessor"]:
+	if str(campaign.get("side", "")) in ActorState.HOSTILE_SIDES and str(campaign.get("kind", "")) in ["crawler", "notary", "assessor"]:
 		return target_height(campaign) * 0.5
 	return TORSO_HEIGHT
 
@@ -67,7 +67,7 @@ static func body_centre(server_position: Vector3, campaign: Dictionary = {}) -> 
 	return server_position + Vector3(0.0, aim_height(campaign) - SERVER_REFERENCE_Y, 0.0)
 
 static func target_height(campaign: Dictionary) -> float:
-	if campaign.get("side") == "union":
+	if str(campaign.get("side", "")) in ActorState.HOSTILE_SIDES:
 		if campaign.get("kind") == "crawler":
 			return CRAWLER_HEIGHT
 		if campaign.get("kind") == "notary":

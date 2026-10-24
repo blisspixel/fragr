@@ -110,8 +110,8 @@ const TELL_PITCH_MIN: float = 0.8
 const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
 const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
-## Union machines fall as machines; the Notary keeps its own crash.
-const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor"]
+## Machines fall as machines, Union or Inheritance; the Notary keeps its own crash.
+const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver"]
 
 var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
@@ -365,7 +365,7 @@ func set_player_data(id: String, name: String):
 	target_yaw = 0.0
 
 func update_state(state: Dictionary, snapshot_tick: int = 0):
-	is_campaign_enemy = ActorState.is_union(state)
+	is_campaign_enemy = ActorState.is_hostile(state)
 	is_campaign_companion = ActorState.is_companion(state)
 	campaign_actor = state["campaign"] if is_campaign_enemy or is_campaign_companion else {}
 	if is_campaign_enemy:
@@ -652,6 +652,8 @@ func _update_body_color(hit: bool):
 		character_view.tint(body.modulate)
 	if enemy_view != null and enemy_view.assessor_rig != null:
 		enemy_view.assessor_rig.set_hit(hit)
+	if enemy_view != null and enemy_view.paver_rig != null:
+		enemy_view.paver_rig.set_hit(hit)
 	_apply_body_scale(hit)
 
 func _update_notary_shadow() -> void:
@@ -942,9 +944,11 @@ func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
 	is_local_fp = enabled
 	if body:
-		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") != "assessor"
+		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") not in ["assessor", "paver"]
 	if enemy_view != null and enemy_view.assessor_rig != null:
 		enemy_view.assessor_rig.visible = not enabled
+	if enemy_view != null and enemy_view.paver_rig != null:
+		enemy_view.paver_rig.visible = not enabled
 	if character_view != null:
 		character_view.visible = not enabled
 	if label:

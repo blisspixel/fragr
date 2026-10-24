@@ -80,6 +80,10 @@ func apply_map_info(info: Dictionary) -> void:
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
 			authored_materials[surface] = ArenaMaterials.authored(surface, venue)
+			# Planned Works is Low Water at night: the daylight plaster repairs
+			# read as pale ghosts under the moon, so its walls keep plain paint.
+			if info.get("m19") is Dictionary and authored_materials[surface] is ShaderMaterial:
+				(authored_materials[surface] as ShaderMaterial).set_shader_parameter("detail_enabled", false)
 		_materials[0] = ArenaMaterials.ground(authored_materials[presentation["ground"]], presentation["ground"], venue)
 	for child in get_children():
 		remove_child(child)
@@ -87,7 +91,9 @@ func apply_map_info(info: Dictionary) -> void:
 	_build_shell(_half_extent, 3.2 if venue == "holdfast_atoll" else BOUNDARY_HEIGHT)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue in ["moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
+	# Planned Works ends at the river railing; the presenter owns what lies past it.
+	var planned_works: bool = info.get("m19") is Dictionary
+	if planned_works or venue in ["moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
@@ -134,7 +140,7 @@ func apply_map_info(info: Dictionary) -> void:
 		terminal_key = "WORLD_M14_DEPARTURE_CONSOLE"
 	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal, terminal_key)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
-	backdrop.build(map_id, _half_extent, venue)
+	backdrop.build(map_id, _half_extent, "planned_works" if planned_works else venue)
 	add_child(backdrop)
 	var water: ArenaWater = ArenaWater.new()
 	water.build(info)
@@ -147,7 +153,7 @@ func apply_map_info(info: Dictionary) -> void:
 
 static func venue_for(info: Dictionary) -> String:
 	match str(info.get("map_name", "")).strip_edges().to_lower():
-		"low water": return "low_water"
+		"low water", "planned works": return "low_water"
 		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"

@@ -36,7 +36,7 @@ func _run() -> void:
 	_check(fan.bus == &"Effects" and fan.max_distance == NotaryAudio.DISTANCE and fan.volume_db == -20.0
 		and (fan.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD,
 		"fan stays quieter than cues, attenuates spatially and loops its offline sample")
-	_check(notices.size() == 1 and notices[0] == "DUCTED FANS ABOVE THE AWNINGS", "fan onset has a localized mute-safe caption")
+	_check(notices.size() == 1 and notices[0] == "DUCTED FANS OVERHEAD", "fan onset has a localized mute-safe caption")
 	var windup: Dictionary = _actor("drone", "windup", 5.5, 11)
 	windup["just_fired"] = true
 	_check(audio.apply(_snapshot(11, windup), listener) == 0 and audio.shutter_count == 0,
