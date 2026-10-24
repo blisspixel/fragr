@@ -1228,6 +1228,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                     .get(frag_ticks.len())
                     .copied()
                     .unwrap_or_default();
+                tracing::info!(victim_at = ?place.victim, killer_at = ?place.killer, tick = timed.tick, "DIAG frag");
                 frag_ticks.push(timed.tick);
                 per_agent.entry(killer.clone()).or_default().frags += 1;
                 let victim_report = per_agent.entry(victim.clone()).or_default();

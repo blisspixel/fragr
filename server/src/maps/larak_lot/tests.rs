@@ -874,3 +874,74 @@ fn larak_spawn_exposure() {
         );
     }
 }
+
+#[test]
+#[ignore = "scratch scan"]
+fn larak_scratch_spawn_scan() {
+    let solids = &world().solids;
+    let origin = distances([0.5, PIT, 0.5]);
+    let (rail, plate) = (feet(&pad(RAIL_ID)), feet(&pad(PLATE_ID)));
+    let weapons: Vec<_> = MapKind::ArenaDuel
+        .pickups()
+        .into_iter()
+        .filter(|p| matches!(p.kind, PickupKind::Weapon(_)))
+        .collect();
+    let mut rows: std::collections::BTreeMap<(i32, i32), String> = Default::default();
+    for &(x, z, f) in origin.keys() {
+        if (x - 1).rem_euclid(4) != 0 || (z - 1).rem_euclid(4) != 0 {
+            continue;
+        }
+        let at = [x as f32 / 2.0, f as f32 / 100.0, z as f32 / 2.0];
+        let mut c = String::new();
+        if world().ceiling_height(at[0], at[2], at[1]) - at[1] < BODY_HEIGHT + 0.6 {
+            c.push('h');
+        }
+        if sees(at, plate, solids) {
+            c.push('P');
+        }
+        if sees(at, rail, solids) {
+            c.push('R');
+        }
+        let field = distances(at);
+        if seconds_to(&field, plate) < 10.0 {
+            c.push('p');
+        }
+        if seconds_to(&field, rail) < 4.5 {
+            c.push('r');
+        }
+        let weapon = weapons
+            .iter()
+            .map(|w| seconds_to(&field, feet(w)))
+            .fold(f32::INFINITY, f32::min);
+        if weapon > 5.0 {
+            c.push('w');
+        }
+        let e = rows.entry((z, x)).or_default();
+        let tag = if c.is_empty() {
+            format!("{}", (at[1] / 1.5).round() as i32)
+        } else if c.contains('P') {
+            "P".into()
+        } else if c.contains('R') {
+            "R".into()
+        } else if c.contains('p') {
+            "p".into()
+        } else if c.contains('r') {
+            "r".into()
+        } else if c.contains('w') {
+            "w".into()
+        } else {
+            "h".into()
+        };
+        println!("CELL {} {} {} {}", at[0], at[2], at[1], c);
+        if e.is_empty() || tag.chars().all(|ch| ch.is_ascii_digit()) {
+            *e = tag;
+        }
+    }
+    for zi in (-55..=55).step_by(4) {
+        let mut line = format!("z{:+4} ", (zi as f32 / 2.0) as i32);
+        for xi in (-71..=71).step_by(4) {
+            line.push_str(rows.get(&(zi, xi)).map_or(" ", |s| s.as_str()));
+        }
+        println!("{line}");
+    }
+}

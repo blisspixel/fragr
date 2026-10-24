@@ -81,6 +81,13 @@ impl Provenance {
             if let Some(receipt) = self.positions.get_mut(&player.id) {
                 if receipt.off_field {
                     receipt.spawn = position;
+                    let near = snapshot
+                        .players
+                        .iter()
+                        .filter(|o| o.id != player.id && o.hp > 0)
+                        .map(|o| ((o.x - player.x).hypot(o.z - player.z), o.x, o.z))
+                        .fold((f32::MAX, 0.0, 0.0), |a, b| if b.0 < a.0 { b } else { a });
+                    tracing::info!(x = player.x, z = player.z, near = near.0, nx = near.1, nz = near.2, "DIAG spawn");
                 }
                 receipt.last = position;
                 receipt.off_field = false;
