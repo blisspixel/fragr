@@ -79,6 +79,6 @@ fn freedom_of_movement_canonical_source_and_connected_loop() {
         serde_json::from_str::<MissionId>("\"freedom_of_movement\"").unwrap(),
         MissionId::FreedomOfMovement
     );
-    assert_eq!(MissionId::ALL.len(), 19);
+    assert_eq!(MissionId::ALL.len(), 20);
     assert!(MissionId::ALL.contains(&MissionId::FreedomOfMovement));
 }

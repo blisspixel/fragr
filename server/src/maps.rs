@@ -32,6 +32,7 @@ pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
 mod low_water;
 pub(crate) use authored::m11::SpinePatrol;
+pub(crate) use authored::m20 as m20_authored;
 pub(crate) use authored::walker::overlaps as walker_solids_overlap;
 mod runtime;
 pub use authored::AuthoredMap;
@@ -107,6 +108,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
+            crate::protocol::MissionId::LocalException => {
+                include_bytes!("../maps/m20-local-exception.json")
+            }
         };
         sha2::Sha256::digest(bytes).into()
     }
@@ -172,6 +176,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::DeclaredGoods) => {
                 AuthoredMap::read(include_bytes!("../maps/m07_declared_goods.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::LocalException) => {
+                AuthoredMap::read(include_bytes!("../maps/m20-local-exception.json").as_slice())
             }
         }
     }

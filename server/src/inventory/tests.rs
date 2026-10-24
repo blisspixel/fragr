@@ -900,6 +900,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         auditors: vec![],
         paver_strips: Vec::new(),
         jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: vec![],
         mode_name: "FFA".into(),
         playlist: "Standard".into(),

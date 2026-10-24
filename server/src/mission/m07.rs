@@ -98,6 +98,7 @@ impl GameState {
         };
         let solo = run.solo.as_ref();
         Some(MissionState {
+            m20: None,
             m08: None,
             id: MissionId::DeclaredGoods,
             run: solo.map(|s| s.state),

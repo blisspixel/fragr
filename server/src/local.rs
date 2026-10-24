@@ -72,6 +72,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::PeaceWithoutInterruption => "peace_without_interruption",
                         MissionId::AllSystemsNormal => "all_systems_normal",
                         MissionId::PlannedWorks => "planned_works",
+                        MissionId::LocalException => "local_exception",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -1033,6 +1034,14 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m19.gameplay_version, crate::protocol::M19_GAMEPLAY_VERSION);
-        assert_eq!(m19.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        let m20 = Ready::new(
+            MissionId::LocalException,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m20.gameplay_version, crate::protocol::M20_GAMEPLAY_VERSION);
+        assert_eq!(m20.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
     }
 }

@@ -447,8 +447,9 @@ impl RunDocumentV6 {
             | MissionId::CivicPressureValve
             | MissionId::FreedomOfMovement
             | MissionId::PeaceWithoutInterruption
-            | MissionId::AllSystemsNormal
-            | MissionId::PlannedWorks => return Err("M08 was not supported by version 6"),
+            | MissionId::PlannedWorks
+            | MissionId::LocalException
+            | MissionId::AllSystemsNormal => return Err("M08 was not supported by version 6"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -801,8 +802,9 @@ impl RunDocumentV5 {
             | MissionId::CivicPressureValve
             | MissionId::FreedomOfMovement
             | MissionId::PeaceWithoutInterruption
-            | MissionId::AllSystemsNormal
-            | MissionId::PlannedWorks => return Err("M05 was not supported by version 5"),
+            | MissionId::PlannedWorks
+            | MissionId::LocalException
+            | MissionId::AllSystemsNormal => return Err("M05 was not supported by version 5"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -855,8 +857,11 @@ impl RunDocumentV4 {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
-                | MissionId::AllSystemsNormal
-                | MissionId::PlannedWorks => return Err("mission was not supported by version 4"),
+                | MissionId::PlannedWorks
+                | MissionId::LocalException
+                | MissionId::AllSystemsNormal => {
+                    return Err("mission was not supported by version 4")
+                }
             },
             SavedStep::AwaitingMission {
                 completed_mission, ..
@@ -878,8 +883,11 @@ impl RunDocumentV4 {
                 | MissionId::CivicPressureValve
                 | MissionId::FreedomOfMovement
                 | MissionId::PeaceWithoutInterruption
-                | MissionId::AllSystemsNormal
-                | MissionId::PlannedWorks => return Err("mission was not supported by version 4"),
+                | MissionId::PlannedWorks
+                | MissionId::LocalException
+                | MissionId::AllSystemsNormal => {
+                    return Err("mission was not supported by version 4")
+                }
             },
         };
         let mut document = RunDocument {
@@ -982,8 +990,9 @@ impl RunDocumentV3 {
             | MissionId::CivicPressureValve
             | MissionId::FreedomOfMovement
             | MissionId::PeaceWithoutInterruption
-            | MissionId::AllSystemsNormal
-            | MissionId::PlannedWorks => return Err("M05 was not supported by version 3"),
+            | MissionId::PlannedWorks
+            | MissionId::LocalException
+            | MissionId::AllSystemsNormal => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");

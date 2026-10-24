@@ -492,6 +492,7 @@ fn test_protocol_snapshot_serialization() {
         auditors: Vec::new(),
         paver_strips: Vec::new(),
         jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -541,6 +542,7 @@ fn test_protocol_snapshot_empty_players() {
         auditors: Vec::new(),
         paver_strips: Vec::new(),
         jetpacks: Vec::new(),
+        surveyor_marks: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
         playlist: default_playlist(),
@@ -2843,6 +2845,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             auditors: Vec::new(),
             paver_strips: Vec::new(),
             jetpacks: Vec::new(),
+            surveyor_marks: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
             playlist: default_playlist(),
@@ -7468,5 +7471,6 @@ mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;
+mod surveyor;
 mod tick_trace;
 mod traveling_shot;

@@ -122,6 +122,7 @@ impl GameState {
             })
         };
         Some(MissionState {
+            m20: None,
             id: MissionId::ScheduledService,
             run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,

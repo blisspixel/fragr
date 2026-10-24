@@ -159,6 +159,7 @@ impl GameState {
                 bodies.push(civilian(format!("m09/{}", crew.id), crew.feet));
             }
         }
+        self.append_m20_contacts(bodies);
     }
 }
 

@@ -1690,6 +1690,7 @@ impl GameState {
             m18: self.map.m18_geometry(),
             m19: self.map.m19_geometry(),
             walker: self.map.walker_geometry(),
+            m20: self.map.m20_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -2777,6 +2778,20 @@ impl GameState {
         if damage <= 1 || trace.weapon.ignores_armor() {
             return damage;
         }
+        // A Surveyor's closed shutter turns two thirds of a traced hit. Its
+        // open lens, while observing or projecting, takes the whole hit.
+        if let Some(CampaignActor::Hostile {
+            kind: crate::protocol::EnemyKind::Surveyor,
+            phase,
+            ..
+        }) = player.campaign
+        {
+            return if matches!(phase, EnemyPhase::Windup | EnemyPhase::Firing) {
+                damage
+            } else {
+                (damage + 2) / 3
+            };
+        }
         if crate::combat::is_assessor(player.campaign) {
             let recovery = matches!(
                 player.campaign,
@@ -3435,6 +3450,7 @@ impl GameState {
             auditors: self.encounters.auditor_states(),
             paver_strips: self.encounters.paver_strips(),
             jetpacks: self.jetpack_states(),
+            surveyor_marks: self.encounters.surveyor_marks(),
             explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
                 "Campaign development"

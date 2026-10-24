@@ -110,6 +110,7 @@ impl GameState {
             }
         }
         Some(MissionState {
+            m20: None,
             id: MissionId::FreedomOfMovement,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,

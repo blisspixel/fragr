@@ -62,6 +62,13 @@ impl Encounters {
         )
     }
 
+    /// A body the reprieve sent away: it no longer works the refuge line.
+    pub(crate) fn stood_down(&self, id: Uuid) -> bool {
+        self.enemies
+            .iter()
+            .any(|(_, enemy)| enemy.id == id && enemy.stood_down().is_some())
+    }
+
     pub(crate) fn is_active_enemy(&self, id: Uuid) -> bool {
         self.enemies.iter().any(|(group, enemy)| {
             enemy.id == id && matches!(self.groups.get(*group), Some(Group::Active { .. }))
@@ -152,6 +159,7 @@ impl Encounters {
                 || map.m16_geometry().is_some()
                 || map.m17_geometry().is_some()
                 || map.m18_geometry().is_some()
+                || map.m20_objectives().is_some()
                 || map.has_authored_vehicles())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
@@ -195,6 +203,11 @@ impl Encounters {
                 continue;
             }
             if !state.m19_encounter_available(index)
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
+            if !state.m20_encounter_available(index)
                 && matches!(self.groups[index], Group::Unplaced)
             {
                 continue;
@@ -280,6 +293,7 @@ impl Encounters {
             }
         }
         self.sync_identities(&mut state.players);
+        self.retire_stood_down(state);
         for (_, enemy) in &mut self.enemies {
             enemy.advance_hover(state);
         }
@@ -330,6 +344,213 @@ impl Encounters {
                 player.campaign = Some(enemy.identity());
             }
         }
+    }
+
+    /// Live Surveyor discs, for the snapshot.
+    pub(crate) fn surveyor_marks(&self) -> Vec<crate::protocol::SurveyorMarkState> {
+        self.enemies
+            .iter()
+            .filter_map(|(_, enemy)| {
+                enemy.mark().map(|mark| crate::protocol::SurveyorMarkState {
+                    id: enemy.id,
+                    center: mark.center,
+                    radius: enemy::surveyor::MARK_RADIUS,
+                    since: mark.since,
+                    until: mark.until,
+                    tracking: mark.tracking,
+                })
+            })
+            .collect()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn converging(&self, id: Uuid) -> bool {
+        self.enemies
+            .iter()
+            .any(|(_, enemy)| enemy.id == id && enemy.is_converging())
+    }
+
+    /// Whether a group's Surveyors have finished teaching alone: each has
+    /// cast a disc that has since ended, or is down.
+    pub(crate) fn surveyor_lesson_over(&self, state: &GameState, group: usize) -> bool {
+        match self.groups.get(group) {
+            Some(Group::Complete) => return true,
+            Some(Group::Active { .. }) => {}
+            _ => return false,
+        }
+        self.enemies
+            .iter()
+            .filter(|(index, enemy)| *index == group && enemy.kind() == EnemyKind::Surveyor)
+            .all(|(_, enemy)| {
+                enemy.lesson_given() || !state.players.iter().any(|p| p.id == enemy.id && p.hp > 0)
+            })
+    }
+
+    /// Discs broken since the last call: ended by broken sight or a hit
+    /// before any converging machine stood inside them.
+    pub(crate) fn drain_marks_broken(&mut self) -> u32 {
+        self.enemies
+            .iter_mut()
+            .map(|(_, enemy)| enemy.take_marks_broken())
+            .sum()
+    }
+
+    /// Convergence: every walking Inheritance machine of an active group near
+    /// a live disc is alarmed to its current centre. A machine still
+    /// answering to the Union never reads a restoration mark. A machine inside
+    /// the disc records the arrival, after which ending the disc no longer
+    /// breaks the mark.
+    fn advance_marks(&mut self, state: &GameState) {
+        let tick = state.tick.saturating_add(1);
+        let marks: Vec<(usize, enemy::surveyor::Mark)> = self
+            .enemies
+            .iter()
+            .enumerate()
+            .filter_map(|(index, (_, enemy))| enemy.mark().map(|mark| (index, mark)))
+            .collect();
+        for (owner, mark) in marks {
+            let mut arrived = mark.arrived;
+            for index in 0..self.enemies.len() {
+                let (group, ref machine) = self.enemies[index];
+                if index == owner
+                    || machine.control() == crate::protocol::ControlDomain::Union
+                    || enemy::gait(machine.kind()) <= 0.0
+                    || machine.stood_down().is_some()
+                    || !matches!(self.groups.get(group), Some(Group::Active { .. }))
+                {
+                    continue;
+                }
+                let Some(body) = state
+                    .players
+                    .iter()
+                    .find(|p| p.id == machine.id && p.hp > 0)
+                else {
+                    continue;
+                };
+                let feet = [body.x, body.y - PLAYER_FLOOR_Y, body.z];
+                let distance = (feet[0] - mark.center[0]).hypot(feet[2] - mark.center[2]);
+                if distance > enemy::surveyor::CONVERGE_RADIUS {
+                    continue;
+                }
+                if distance <= enemy::surveyor::ARRIVAL_RADIUS
+                    && (feet[1] - mark.center[1]).abs() <= 2.0
+                {
+                    arrived = true;
+                } else if (tick - mark.since).is_multiple_of(10) {
+                    self.enemies[index]
+                        .1
+                        .converge(mark.center, mark.until, tick);
+                }
+            }
+            if arrived && !mark.arrived {
+                self.enemies[owner].1.note_mark_arrival();
+                tracing::info!(surveyor = %self.enemies[owner].1.id, "Surveyor mark reached by a machine");
+            }
+        }
+    }
+
+    /// Send a group's walking machines to points on the refuge line, spread
+    /// deterministically by member so they arrive along the barricade.
+    pub(crate) fn march_group(&mut self, group: usize, points: &[[f32; 3]], tick: u64) {
+        if points.is_empty() {
+            return;
+        }
+        for (member, (_, enemy)) in self
+            .enemies
+            .iter_mut()
+            .filter(|(index, enemy)| {
+                *index == group && enemy::gait(enemy.kind()) > 0.0 && enemy.stood_down().is_none()
+            })
+            .enumerate()
+        {
+            enemy.march(points[(group * 3 + member) % points.len()], tick);
+        }
+    }
+
+    /// Re-issue the march to idle machines that stopped short of the line.
+    pub(crate) fn march_idle(&mut self, state: &GameState, groups: &[usize], tick: u64) {
+        for (group, enemy) in &mut self.enemies {
+            if !groups.contains(group)
+                || enemy::gait(enemy.kind()) <= 0.0
+                || enemy.stood_down().is_some()
+                || enemy.phase() != EnemyPhase::Idle
+                || !matches!(self.groups.get(*group), Some(Group::Active { .. }))
+            {
+                continue;
+            }
+            let point = enemy.marching_to();
+            if state.players.iter().any(|p| {
+                p.id == enemy.id && p.hp > 0 && (p.x - point[0]).hypot(p.z - point[2]) > 1.5
+            }) {
+                enemy.march(point, tick);
+            }
+        }
+    }
+
+    /// The reprieve: every Union body stops attacking and walks to the
+    /// nearer exit. Hovering bodies hold still until they are retired.
+    pub(crate) fn stand_down(&mut self, state: &mut GameState, exits: &[[f32; 3]], tick: u64) {
+        for (_, enemy) in &mut self.enemies {
+            let Some(body) = state.players.iter().find(|p| p.id == enemy.id) else {
+                continue;
+            };
+            let exit = exits
+                .iter()
+                .copied()
+                .min_by(|a, b| {
+                    (a[0] - body.x)
+                        .hypot(a[2] - body.z)
+                        .total_cmp(&(b[0] - body.x).hypot(b[2] - body.z))
+                })
+                .unwrap_or([body.x, body.y - PLAYER_FLOOR_Y, body.z]);
+            enemy.stand_down(exit, tick);
+        }
+        self.sync_identities(&mut state.players);
+    }
+
+    /// One group's machines stand down toward `exit` as they appear. The
+    /// reprieve's work front uses it: it never fights and walks on.
+    pub(crate) fn stand_down_group(
+        &mut self,
+        state: &mut GameState,
+        group: usize,
+        exit: [f32; 3],
+        tick: u64,
+    ) {
+        for (_, enemy) in self
+            .enemies
+            .iter_mut()
+            .filter(|(index, enemy)| *index == group && enemy.stood_down().is_none())
+        {
+            enemy.stand_down(exit, tick);
+        }
+        self.sync_identities(&mut state.players);
+    }
+
+    /// Stood-down machines leave the district: a walker at its exit, a
+    /// hovering body after a short hold, anything after a bounded wait.
+    fn retire_stood_down(&mut self, state: &mut GameState) {
+        let tick = state.tick;
+        let leaving: Vec<Uuid> = self
+            .enemies
+            .iter()
+            .filter_map(|(_, enemy)| {
+                let (since, exit) = enemy.stood_down()?;
+                let body = state.players.iter().find(|p| p.id == enemy.id)?;
+                let elapsed = tick.saturating_sub(since);
+                let walker = enemy::gait(enemy.kind()) > 0.0;
+                let arrived = (body.x - exit[0]).hypot(body.z - exit[2]) <= 2.0;
+                (body.hp > 0
+                    && (walker && arrived || !walker && elapsed >= 100 || elapsed >= 1_600))
+                    .then_some(enemy.id)
+            })
+            .collect();
+        if leaving.is_empty() {
+            return;
+        }
+        state.players.retain(|p| !leaving.contains(&p.id));
+        self.enemies
+            .retain(|(_, enemy)| !leaving.contains(&enemy.id));
     }
 
     /// Living Auditors' repair budgets and current channels, for the snapshot.
@@ -520,6 +741,7 @@ impl Encounters {
 
     pub fn intents(&mut self, state: &mut GameState) -> Vec<(Uuid, BotIntent)> {
         self.advance_repairs(state);
+        self.advance_marks(state);
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
         for (group, enemy) in &mut self.enemies {
@@ -602,6 +824,14 @@ impl Encounters {
 }
 
 impl GameState {
+    /// The reprieve's stand-down over the current encounter roster.
+    pub(crate) fn stand_down_encounters(&mut self, exits: &[[f32; 3]]) {
+        let mut encounters = std::mem::take(&mut self.encounters);
+        let tick = self.tick;
+        encounters.stand_down(self, exits, tick);
+        self.encounters = encounters;
+    }
+
     pub(crate) fn reset_campaign_encounters(&mut self) {
         let mut encounters = std::mem::take(&mut self.encounters);
         encounters.reset(self);

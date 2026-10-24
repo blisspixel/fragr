@@ -923,7 +923,7 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, m20, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         carrier_defense.clear();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
@@ -973,6 +973,11 @@ pub async fn run_bot(
                         if let Err(error) = mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M13 mission map: {error}")));break;}
                         if let Err(error) = mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M14 mission map: {error}")));break;}
                         if let Err(error) = mission_client.replace_map_with_m19(m19.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M19 mission map: {error}")));break;}
+                        // The campaign's last stage binds its pier geometry and hold clock.
+                        if let Err(error) = mission_client.replace_map_with_m20(m20.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid M20 mission map: {error}")));
+                            break;
+                        }
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
                             fragr_server::navigation::Navigation::shared(arena)
@@ -1415,6 +1420,7 @@ mod tests {
     fn terminal_campaign_state_stops_only_after_success_or_exhaustion() {
         let id = Uuid::from_u128(1);
         let mut state = MissionState {
+            m20: None,
             id: MissionId::RecallNotice,
             run: Some(CampaignRunState {
                 id: Uuid::from_u128(2),
@@ -1483,6 +1489,7 @@ mod tests {
             level_start_continues: 3,
         };
         let state = MissionState {
+            m20: None,
             id: MissionId::RecallNotice,
             run: Some(run),
             rules: CampaignRules::new(CampaignDifficulty::Standard),
@@ -1623,6 +1630,7 @@ mod tests {
     fn campaign_decision_state_carries_validated_stakes_and_equipment() {
         let id = Uuid::from_u128(1);
         let state = MissionState {
+            m20: None,
             id: MissionId::RecallNotice,
             run: Some(CampaignRunState {
                 id: Uuid::from_u128(2),
@@ -1748,6 +1756,7 @@ mod tests {
         align_campaign_enemy(&mut telemetry, id, &snap, &world, None);
         assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Exposed");
         let mission = MissionState {
+            m20: None,
             id: MissionId::RecallNotice,
             run: None,
             rules: CampaignRules::default(),
@@ -1981,6 +1990,7 @@ mod tests {
             MissionObjectiveAction, Region3,
         };
         let mut mission = MissionState {
+            m20: None,
             id: MissionId::NoForwardingAddress,
             run: None,
             rules: CampaignRules::default(),
