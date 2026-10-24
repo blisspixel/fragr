@@ -249,3 +249,44 @@ and logs.
 - Reproducible trace or bounded "not reproduced": **reproduced on Linux under
   CPU contention**; Windows **not run**; uncontended baseline **not obtained**.
 - Causally supported fix: **not claimed**; three narrowed hypotheses above.
+
+## Independent review, 2026-10-23
+
+A second reviewer read the whole diff against `origin/main` (unchanged since
+`e4cec37`), and the plan above. Lane scope holds: no encode-once, AOI, delta,
+lag-compensation, transport or HUD layout change, and nothing on the wire.
+Fixes applied in a follow-up commit:
+
+- `a_full_queue_drops_and_counts_instead_of_blocking_the_tick` accepted 47 to
+  49 drops. That range depended on how many records the writer thread drained
+  before it parked, so under load it could fail. The test now waits until the
+  writer is parked in its first write and asserts exactly 48 drops. It passed
+  30 repeated runs at load average about 18.
+- `StutterReport` scanned every poll and event for each slow frame, and every
+  frame for each late Snapshot. On a capped 200,000-frame trace under
+  contention, that cost would have stalled `stutter stop` and the save made on
+  leaving a match. Those lookups now binary-search the time-ordered arrays.
+  Poll times are now validated as never going back, which the search relies on
+  and which has a new refusal case in `test_stutter_trace.gd`.
+- `docs/BENCHMARK.md` said the flag "conflicts with modes that run no tick
+  loop". `--local-mission` does run one; it reads only `FRAGR_TICK_TRACE`. The
+  doc now names each conflict and says that every host process the client
+  starts truncates the same file.
+
+Reviewer verification (Linux, load average 17-19):
+
+| Command | Result |
+|---|---|
+| `cargo fmt --all -- --check` | pass |
+| `cargo clippy --workspace --all-targets --locked -- -D warnings` | pass |
+| `cargo test -p fragr-server --lib tick_trace` and `--bin fragr-server tick_trace` | pass (12 + 1) |
+| Queue-drop test repeated 30 times | pass every time |
+| `cargo build -p fragr-server --release --locked`, then `tools/godot_check.sh` (Godot 4.7.2) | **PASS**, including the `test_stutter_trace` and `test_performance_overlay` harnesses |
+| `cargo test --workspace --locked` | not re-run by the reviewer; CI decides on the three timeouts listed above |
+| Rendered `qa_stutter.gd` rerun | not re-run; the measurement table above is the implementer's evidence and was not reproduced in review |
+| Windows rendered reproduction, release-mode video review | **not run** |
+
+Status after review: diagnosis instrumentation implemented and tested; Linux
+evidence recorded under contention only. The acceptance in #434 is **not
+complete**: there is no uncontended baseline, no Windows trace, no causal fix
+and no before/after comparison on the affected path.

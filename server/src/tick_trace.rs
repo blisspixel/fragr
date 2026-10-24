@@ -329,8 +329,10 @@ mod tests {
     }
 
     /// Blocks inside its first write until released, so the queue fills.
+    /// `entered` is set once the writer is parked there.
     struct Gate {
         release: Arc<(Mutex<bool>, std::sync::Condvar)>,
+        entered: Arc<std::sync::atomic::AtomicBool>,
         sink: Shared,
     }
 
@@ -338,6 +340,8 @@ mod tests {
         fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
             let (lock, wake) = &*self.release;
             let mut open = lock.lock().unwrap();
+            self.entered
+                .store(true, std::sync::atomic::Ordering::SeqCst);
             while !*open {
                 open = wake.wait(open).unwrap();
             }
@@ -432,23 +436,35 @@ mod tests {
     fn a_full_queue_drops_and_counts_instead_of_blocking_the_tick() {
         let sink = Shared::default();
         let release = Arc::new((Mutex::new(false), std::sync::Condvar::new()));
+        let entered = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let gate = Gate {
             release: release.clone(),
+            entered: entered.clone(),
             sink: sink.clone(),
         };
         let mut trace =
             TickTrace::with_capacity(gate, Duration::from_millis(50), build(), UNIX_EPOCH, 2)
                 .unwrap();
-        // The writer blocks inside its first flush. Depending on how far it got
-        // before blocking, one to three records fit; every later one must be
-        // refused at once rather than wait for the disk.
+        // Wait until the writer has taken the header and is parked in its
+        // first flush, so the queue is empty and the count below is exact
+        // however the threads are scheduled.
+        let parked = Instant::now();
+        while !entered.load(std::sync::atomic::Ordering::SeqCst) {
+            assert!(
+                parked.elapsed() < Duration::from_secs(30),
+                "writer never reached its first write"
+            );
+            std::thread::yield_now();
+        }
+        // Two records fit the empty queue; every later one must be refused at
+        // once rather than wait for the disk.
         let started = Instant::now();
         for tick in 0..50 {
             trace.record(sample(tick, 100, 0));
         }
         assert!(started.elapsed() < Duration::from_secs(1), "record blocked");
         let dropped = trace.summary().dropped;
-        assert!((47..=49).contains(&dropped), "dropped {dropped}");
+        assert_eq!(dropped, 48);
         {
             let (lock, wake) = &*release;
             *lock.lock().unwrap() = true;

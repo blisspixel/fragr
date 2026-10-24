@@ -171,7 +171,11 @@ to count bytes), `fanout_us` (queuing broadcasts and unicasts, not socket
 completion) and `total_us`, plus clients, messages, bytes and queue
 overflows. A writer thread owns the file behind a bounded 1,024-record queue;
 a full queue drops and counts records rather than delay a tick. An unwritable
-path fails the start. The flag conflicts with modes that run no tick loop.
+path fails the start. The flag is refused beside `--bench`,
+`--bench-verify-trace` and `--local-run-preview`, which run no served tick
+loop, and beside `--local-mission`, which reads only `FRAGR_TICK_TRACE`. Every
+host process the client starts truncates the same file, so copy a trace before
+hosting or starting a mission again.
 
 **Client stutter trace version 1.** In a match, the console's `stutter start`,
 `stutter mark <label>` and `stutter stop [path]` record a bounded window and

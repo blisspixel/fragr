@@ -408,6 +408,11 @@ func _check_report_refuses_malformed_input() -> void:
 	var event: Dictionary = client.duplicate(true)
 	(event["events"] as Array).append({"kind": "mark"})
 	cases["event without time"] = event
+	var polls_back: Dictionary = client.duplicate(true)
+	for field: String in ["usec", "elapsed_us", "packets", "bytes"]:
+		var values: Array = polls_back["polls"][field]
+		values.append(0 if field == "usec" else 1)
+	cases["polls go back"] = polls_back
 	var missing: Dictionary = client.duplicate(true)
 	missing.erase("polls")
 	cases["missing group"] = missing

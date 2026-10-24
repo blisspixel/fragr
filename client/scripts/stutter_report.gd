@@ -262,22 +262,28 @@ static func _frame_causes(trace: Dictionary, index: int, median_us: float) -> Pa
 		var poll_usec: PackedInt64Array = polls["usec"]
 		var poll_elapsed: PackedInt64Array = polls["elapsed_us"]
 		var receive: int = 0
-		for poll: int in range(poll_usec.size()):
-			if poll_usec[poll] > begin and poll_usec[poll] <= end:
-				receive += poll_elapsed[poll]
+		# Poll times never go back (checked on read), so start at the first
+		# poll after `begin` instead of scanning the whole session per spike.
+		for poll: int in range(poll_usec.bsearch(begin, false), poll_usec.size()):
+			if poll_usec[poll] > end:
+				break
+			receive += poll_elapsed[poll]
 		causes.append("network_apply" if float(receive) >= CAUSE_SHARE * excess else "script")
 	var render: int = maxi((frames["render_cpu_us"] as PackedInt64Array)[index], (frames["render_gpu_us"] as PackedInt64Array)[index])
 	if float(render) >= CAUSE_SHARE * excess:
 		causes.append("render")
 	if causes.is_empty():
 		causes.append("unattributed")
-	for event: Dictionary in trace["events"]:
-		var at: int = int(event["usec"])
-		if at > begin and at <= end:
-			if event["kind"] == "camera" and not causes.has("camera_change"):
-				causes.append("camera_change")
-			elif event["kind"] == "prediction_reset" and not causes.has("prediction_reset"):
-				causes.append("prediction_reset")
+	var events: Array[Dictionary] = trace["events"]
+	var event_usec: PackedInt64Array = trace["event_usec"]
+	for at: int in range(event_usec.bsearch(begin, false), event_usec.size()):
+		if event_usec[at] > end:
+			break
+		var event: Dictionary = events[at]
+		if event["kind"] == "camera" and not causes.has("camera_change"):
+			causes.append("camera_change")
+		elif event["kind"] == "prediction_reset" and not causes.has("prediction_reset"):
+			causes.append("prediction_reset")
 	return causes
 
 
@@ -354,9 +360,7 @@ static func _gap_causes(trace: Dictionary, server_ticks: Dictionary, index: int)
 	var frames: Dictionary = trace["frames"]
 	var frame_usec: PackedInt64Array = frames["usec"]
 	var frame_interval: PackedInt64Array = frames["interval_us"]
-	for frame: int in range(frame_usec.size()):
-		if frame_usec[frame] <= before:
-			continue
+	for frame: int in range(frame_usec.bsearch(before, false), frame_usec.size()):
 		if frame_usec[frame] - frame_interval[frame] >= after:
 			break
 		if float(frame_interval[frame]) >= 0.5 * float(after - before):
@@ -532,6 +536,10 @@ static func _read_client(client: Dictionary) -> Dictionary:
 		events.append(copy)
 	events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["usec"]) < int(b["usec"]))
 	trace["events"] = events
+	var event_usec: PackedInt64Array = PackedInt64Array()
+	for event: Dictionary in events:
+		event_usec.append(int(event["usec"]))
+	trace["event_usec"] = event_usec
 	var times: PackedInt64Array = trace["frames"]["usec"]
 	for index: int in range(1, times.size()):
 		if times[index] <= times[index - 1]:
@@ -540,6 +548,10 @@ static func _read_client(client: Dictionary) -> Dictionary:
 	for index: int in range(1, arrivals.size()):
 		if arrivals[index] < arrivals[index - 1]:
 			return {"error": "client snapshot arrivals must not go back"}
+	var polls: PackedInt64Array = trace["polls"]["usec"]
+	for index: int in range(1, polls.size()):
+		if polls[index] < polls[index - 1]:
+			return {"error": "client poll times must not go back"}
 	trace["error"] = ""
 	return trace
 
