@@ -88,6 +88,9 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
+## A dodge press waits here until an Action carries it, like a jump tap.
+var pending_dodge: bool = false
+var _dodge_was_down: bool = false
 var pending_fire: bool = false
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
@@ -196,6 +199,7 @@ var pickup_sound: AudioStreamPlayer = null
 var dry_fire_sound: AudioStreamPlayer = null
 var hit_confirm_sound: AudioStreamPlayer = null
 var hit_confirm_stream: AudioStream = null
+var kill_confirm_sound: AudioStreamPlayer = null
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
@@ -759,6 +763,7 @@ func _on_opening_completed() -> void:
 	opening.queue_free()
 	opening = null
 	pending_jump = false
+	pending_dodge = false
 	pending_throw = false
 	throw_armed = false
 	pending_place = false
@@ -1086,6 +1091,12 @@ func _load_audio_streams():
 		hit_confirm_sound.volume_db = -4.0
 		hit_confirm_sound.stream = hit_confirm_stream
 		audio_parent.add_child(hit_confirm_sound)
+		# Its own player, so the kill thud does not cut off the hit ding.
+		kill_confirm_sound = AudioStreamPlayer.new()
+		kill_confirm_sound.name = "KillConfirmSound"
+		kill_confirm_sound.bus = &"Effects"
+		kill_confirm_sound.stream = hit_confirm_stream
+		audio_parent.add_child(kill_confirm_sound)
 
 ## Tactile metallic audio feedback when the player lands a shot.
 func _play_hit_confirm_cue(damage: int) -> void:
@@ -1099,6 +1110,15 @@ func _play_hit_confirm_cue(damage: int) -> void:
 		hit_confirm_sound.pitch_scale = lerpf(0.95, 1.35, factor)
 		hit_confirm_sound.volume_db = -4.0
 	hit_confirm_sound.play()
+
+## Kill confirmation: the hit chime pitched down and louder, so a frag lands
+## as a distinct thud under the ordinary ding. Existing asset, no new sound.
+func _play_kill_confirm_cue() -> void:
+	if kill_confirm_sound == null or hit_confirm_stream == null:
+		return
+	kill_confirm_sound.pitch_scale = 0.62
+	kill_confirm_sound.volume_db = -1.0
+	kill_confirm_sound.play()
 
 ## Pickup feedback for the watched fighter. The event carries no ammunition
 ## pool, so the pad it came from says whether it was Cells.
@@ -1297,6 +1317,7 @@ func _try_continue(event: InputEvent) -> bool:
 			_continue_armed = false
 			_opening_release = true
 			pending_jump = false
+			pending_dodge = false
 			pending_interact = false
 			pending_throw = false
 			throw_armed = false
@@ -1437,6 +1458,8 @@ func _input(_event):
 		pending_remote_trigger = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
+	if is_human_player and InputMap.has_action("dodge") and _event.is_action_pressed("dodge") and not _event.is_echo():
+		pending_dodge = true
 	if is_human_player and _event.is_action_pressed("fire") and not _event.is_echo():
 		pending_fire = true
 	if is_human_player and _event.is_action_pressed("interact"):
@@ -1474,6 +1497,7 @@ func change_role(play: bool) -> void:
 	_frag_identity.clear()
 	_joined_ui_team = ""
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -1751,6 +1775,7 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	_clear_predicted_pawn()
 	_adopt_local_spawn_snapshot = is_human_player
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -1764,7 +1789,11 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	remote_trigger_armed = false
 
 
+## The clock the local body was last drawn for, read by the feel probe.
+var presented_usec: int = 0
+
 func _apply_local_prediction(now_usec: int = -1) -> void:
+	presented_usec = now_usec
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if not is_instance_valid(pawn):
 		return
@@ -1822,6 +1851,16 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("jump") and not pending_jump:
 		jump_armed = true
 	action_state.jump = jump_armed and (pending_jump or Input.is_action_pressed("jump"))
+	# A held key latches once; the input event path above catches a tap
+	# shorter than one send.
+	var dodge_down: bool = InputMap.has_action("dodge") and Input.is_action_pressed("dodge")
+	if dodge_down and not _dodge_was_down:
+		pending_dodge = true
+	_dodge_was_down = dodge_down
+	if pending_dodge and _vehicle_seat().is_empty():
+		action_state["dodge"] = true
+	else:
+		action_state.erase("dodge")
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
 		throw_armed = true
@@ -1855,6 +1894,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_fire = false
 		pending_seat = ""
 		pending_jump = false
+		pending_dodge = false
 		pending_interact = false
 		pending_throw = false
 		throw_armed = false
@@ -1869,6 +1909,7 @@ func _send_local_action(now_usec: int) -> bool:
 		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines"]:
 			action_state[key] = false
 		action_state.erase("duck")
+		action_state.erase("dodge")
 		pending_weapon_swap = null
 	var duck_down: bool = (
 		not controls_blocked()
@@ -1927,6 +1968,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_seat = ""
 		pending_fire = false
 		pending_jump = false
+		pending_dodge = false
 		pending_interact = false
 		pending_throw = false
 		pending_place = false
@@ -1948,8 +1990,16 @@ func _present_local_fire(action: Dictionary, now_usec: int) -> void:
 		return
 	var pawn: Node = players.get(local_fp_pawn_id)
 	pawn.show_muzzle_flash(weapon.capitalize())
+	_show_fire_juice(weapon.capitalize())
+
+
+## The shooter's own fire presentation: the viewmodel kick and flash, and the
+## camera punch when this view is the shooter's first person.
+func _show_fire_juice(weapon_name: String) -> void:
 	if hud and hud.has_method("show_fire_juice"):
-		hud.show_fire_juice(weapon.capitalize())
+		hud.show_fire_juice(weapon_name)
+	if camera != null and camera.has_method("punch_for_weapon") and _vehicle_seat().is_empty():
+		camera.punch_for_weapon(weapon_name)
 
 func _local_fire_allowed() -> bool:
 	if not is_human_player or net_client == null or net_client.connection_state != WebSocketPeer.STATE_OPEN \
@@ -2163,6 +2213,7 @@ func _close_campaign_results() -> void:
 
 func _clear_story_input() -> void:
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -2385,6 +2436,7 @@ func _clear_world() -> void:
 	if traveling_shots != null:
 		traveling_shots.clear_shots()
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	pending_throw = false
 	throw_armed = false
@@ -3312,6 +3364,7 @@ func _end_life_input() -> void:
 func _drop_life_presses() -> void:
 	pending_fire = false
 	pending_jump = false
+	pending_dodge = false
 	pending_interact = false
 	interact_held = false
 	pending_throw = false
@@ -3352,6 +3405,7 @@ func _begin_new_life() -> void:
 	_drop_life_presses()
 	fire_armed = not Input.is_action_pressed("fire")
 	jump_armed = not Input.is_action_pressed("jump")
+	_dodge_was_down = InputMap.has_action("dodge") and Input.is_action_pressed("dodge")
 	throw_armed = not Input.is_action_pressed("throw_grenade")
 	place_armed = not Input.is_action_pressed("place_mine")
 	reload_armed = not InputMap.has_action("reload") or not Input.is_action_pressed("reload")
@@ -3395,7 +3449,7 @@ func _present_rocket_launches() -> void:
 			pawn.show_muzzle_flash("Rocket")
 		var followed_first_person: bool = owner == followed_id and not followed_id.is_empty() and camera != null and camera.is_observing_first_person()
 		if not predicted and (is_local or followed_first_person) and hud != null and hud.has_method("show_fire_juice"):
-			hud.show_fire_juice("Rocket")
+			_show_fire_juice("Rocket")
 
 func _process_shot_results(results, tick: int, captured_fp: bool = false, captured_xform: Transform3D = Transform3D.IDENTITY, captured_alive: bool = false) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
@@ -3468,13 +3522,17 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 			continue
 		# The local cue has already played; spectators still use server evidence.
 		if not predicted and not mounted and (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
-			hud.show_fire_juice(wpn)
+			_show_fire_juice(wpn)
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
 			hud.show_hit_marker(dmg, wpn)
 			if is_local:
 				_play_hit_confirm_cue(dmg)
+		# The shot that put a fighter down says so, louder than a hit.
+		if is_local and bool(shot.get("killed", false)) and hud and hud.has_method("show_kill_marker"):
+			hud.show_kill_marker()
+			_play_kill_confirm_cue()
 	if local_fire.reconcile(tick):
 		_cancel_local_fire_effect()
 

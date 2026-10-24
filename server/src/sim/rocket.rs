@@ -12,6 +12,8 @@ const SUBSTEPS: usize = 4;
 const DIRECT: i32 = 65;
 const SPLASH_PEAK: f32 = 45.0;
 const SPLASH_RADIUS: f32 = 4.0;
+/// A self-blast never throws a fighter faster than this horizontally.
+const BLAST_SPEED_CAP: f32 = 14.0;
 const MAX_LIVE: usize = 64;
 const MAX_PER_OWNER: usize = 8;
 
@@ -381,9 +383,33 @@ impl GameState {
                 let upward_ratio = ((player.y - position[1]) / dist_clamp).clamp(0.35, 1.0);
                 let force = (1.0 - (distance / SPLASH_RADIUS).min(1.0)) * SPLASH_PEAK * 0.18;
                 let impulse_y = upward_ratio * force;
+                // The rest of the push is horizontal, away from the blast, so
+                // a rocket fired at the floor behind a run throws it forward.
+                // The fighter step carries it through the air and friction
+                // takes it back on landing.
+                // Measured to the body's middle, so a blast at the feet behind
+                // a fighter pushes it forward as well as up.
+                let away_x = player.x - position[0];
+                let away_z = player.z - position[2];
+                let away = away_x.hypot(away_z);
+                let centre_y = player.y - PLAYER_FLOOR_Y + crate::movement::BODY_HEIGHT * 0.5;
+                let reach = away.hypot(centre_y - position[1]).max(0.2);
+                let impulse_h = away / reach * force;
+                let target_player = &mut self.players[target];
                 if impulse_y > 0.0 {
-                    let target_player = &mut self.players[target];
                     target_player.vy = (target_player.vy + impulse_y).min(24.0);
+                }
+                if impulse_h > 0.0 && away > 0.01 {
+                    let vx = target_player.vx + away_x / away * impulse_h;
+                    let vz = target_player.vz + away_z / away * impulse_h;
+                    let speed = vx.hypot(vz);
+                    let keep = if speed > BLAST_SPEED_CAP {
+                        BLAST_SPEED_CAP / speed
+                    } else {
+                        1.0
+                    };
+                    target_player.vx = vx * keep;
+                    target_player.vz = vz * keep;
                 }
             }
         }

@@ -42,6 +42,14 @@ fn walk(state: &mut GameState, id: Uuid, goal: [f32; 3], bound: u32) -> u32 {
         let here = feet(state, id);
         if (here[0] - goal[0]).hypot(here[2] - goal[2]) < 0.4 && (here[1] - goal[1]).abs() < 0.1 {
             state.set_action(id, Action::default());
+            // Let the fighter's slide finish, as a player stops before planting.
+            for _ in 0..4 {
+                let body = state.players.iter().find(|p| p.id == id).unwrap();
+                if body.vx == 0.0 && body.vz == 0.0 {
+                    break;
+                }
+                tick(state, 1);
+            }
             return elapsed;
         }
         let arena = state.walking_arena(crate::maps::arena(MapKind::LowWater));

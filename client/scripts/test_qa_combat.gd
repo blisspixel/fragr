@@ -590,7 +590,7 @@ func _check_engagement_distance() -> void:
 	body["y"] = 0.0
 	for _tick: int in range(45):
 		body = MoveStep.live_step(body, MoveStep.make_input(true, false, false, false, 0.0),
-			MoveStep.TOP_SPEED, MoveStep.DT_LIVE, {"half": 40.0, "solids": []})
+			MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, {"half": 40.0, "solids": []})
 	me["x"] = body["x"]
 	me["z"] = body["z"]
 	_check(QaCombat.visible_target(snapshot, "player", [], false, 10.0, ["held_sweeper"]).get("id") == "guard", "ordinary movement brings the same actual guard inside the engagement limit")
@@ -623,7 +623,7 @@ func _check_focused_route() -> void:
 		buttons = QaCombat.route_buttons(delta, yaw)
 		var action: Dictionary = MoveStep.make_input(buttons["move_forward"], buttons["move_back"],
 			buttons["move_left"], buttons["move_right"], yaw)
-		body = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		body = MoveStep.live_step(body, action, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		grounded = grounded and absf(float(body["y"]) - 3.0) < 0.01
 	_check(reached and grounded, "ordinary focused inputs reach the rear waypoint without walking off the real gallery footprint")
 
@@ -769,7 +769,7 @@ func _check_turret_peek() -> void:
 			var buttons: Dictionary[String, bool] = QaCombat.route_buttons(delta, yaw)
 			var action: Dictionary = MoveStep.make_input(buttons["move_forward"], buttons["move_back"],
 				buttons["move_left"], buttons["move_right"], yaw)
-			var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+			var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 			var bodies: Array[Dictionary] = [{"key": "human", "from": body, "proposed": proposed,
 				"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, turret]
 			body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]
@@ -837,7 +837,7 @@ func _check_m06_contact_dodge() -> void:
 	body["y"] = 3.0
 	for _tick: int in range(3):
 		var proposed: Dictionary = MoveStep.live_step(body, MoveStep.make_input(false, false, false, true, PI * 0.5),
-			MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+			MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		body = ActorContact.resolve([{"key": "human", "from": body, "proposed": proposed,
 			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, peer], MoveStep.DT_LIVE, arena)[0]
 	_check(float(body["y"]) < 2.8 and float(body["z"]) < 30.0,
@@ -944,7 +944,7 @@ func _walk_gallery_contact(start: Dictionary, goal: Vector3, turret: Dictionary,
 		if delta.length() < 0.2:
 			break
 		var action: Dictionary = MoveStep.make_input(true, false, false, false, atan2(delta.y, delta.x))
-		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		var bodies: Array[Dictionary] = [{"key": "human", "from": body, "proposed": proposed,
 			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}, turret]
 		body = ActorContact.resolve(bodies, MoveStep.DT_LIVE, arena)[0]

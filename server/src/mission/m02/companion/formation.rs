@@ -59,7 +59,7 @@ fn safe_yield(
                 speed_scale: 1.0,
                 ..Default::default()
             },
-            crate::movement::TOP_SPEED,
+            crate::movement::ACTOR_REFERENCE_SPEED,
             0.05,
             arena,
             me.height,

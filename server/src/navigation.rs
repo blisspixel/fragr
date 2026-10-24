@@ -713,7 +713,7 @@ pub(crate) mod tests {
                 tick,
                 true,
             );
-            state = movement::step(
+            state = movement::fighter_step(
                 state,
                 &MoveInput {
                     forward: action.forward,
@@ -723,6 +723,7 @@ pub(crate) mod tests {
                     yaw: action.yaw.unwrap_or(state.yaw),
                     ..MoveInput::default()
                 },
+                movement::TOP_SPEED,
                 0.05,
                 &navigation.arena,
             );

@@ -266,13 +266,14 @@ impl Navigator {
             left: action.left,
             right: action.right,
             jump: false,
+            dodge: false,
             yaw,
             speed_scale: 1.0,
         };
         let wanted = crate::movement::live_step_with_height(
             me.from,
             &input,
-            crate::movement::TOP_SPEED,
+            crate::movement::ACTOR_REFERENCE_SPEED,
             0.05,
             arena,
             me.height,
@@ -325,8 +326,8 @@ impl Navigator {
             // direction. Use it only after observed immobility for recovery
             // scoring; every candidate retains map/contact integration.
             let (wish_x, wish_z) = crate::movement::wish_dir(&input, yaw);
-            dx = wish_x * crate::movement::TOP_SPEED * 0.05;
-            dz = wish_z * crate::movement::TOP_SPEED * 0.05;
+            dx = wish_x * crate::movement::ACTOR_REFERENCE_SPEED * 0.05;
+            dz = wish_z * crate::movement::ACTOR_REFERENCE_SPEED * 0.05;
         }
         let length = dx.hypot(dz);
         if length < 0.01 {
@@ -345,10 +346,11 @@ impl Navigator {
                         left: candidate.left,
                         right: candidate.right,
                         jump: false,
+                        dodge: false,
                         yaw,
                         speed_scale: 1.0,
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     arena,
                     me.height,
@@ -948,10 +950,11 @@ mod tests {
                         left: action.left,
                         right: action.right,
                         jump: action.jump,
+                        dodge: false,
                         yaw: action.yaw.unwrap_or(from.yaw),
                         speed_scale: 1.0,
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     arena,
                     FIGHTER_HEIGHT,
@@ -1041,9 +1044,10 @@ mod tests {
                     right: action.right,
                     yaw: 0.0,
                     jump: false,
+                    dodge: false,
                     speed_scale: 1.0,
                 },
-                crate::movement::TOP_SPEED,
+                crate::movement::ACTOR_REFERENCE_SPEED,
                 0.05,
                 &arena,
                 mover.height,
@@ -1104,10 +1108,11 @@ mod tests {
                             left: action.left,
                             right: action.right,
                             jump: false,
+                            dodge: false,
                             yaw: body.from.yaw,
                             speed_scale: 1.0,
                         },
-                        crate::movement::TOP_SPEED,
+                        crate::movement::ACTOR_REFERENCE_SPEED,
                         0.05,
                         &arena,
                         body.height,
@@ -1183,7 +1188,7 @@ mod tests {
                     speed_scale: 1.0,
                     ..Default::default()
                 },
-                crate::movement::TOP_SPEED,
+                crate::movement::ACTOR_REFERENCE_SPEED,
                 0.05,
                 &arena,
                 me.height,
@@ -1256,7 +1261,7 @@ mod tests {
                         speed_scale: 1.0,
                         ..Default::default()
                     },
-                    crate::movement::TOP_SPEED,
+                    crate::movement::ACTOR_REFERENCE_SPEED,
                     0.05,
                     runtime.arena(),
                     mover.height,

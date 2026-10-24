@@ -2,14 +2,27 @@ class_name MoveStep
 extends RefCounted
 ## The shared movement step, mirrored line for line from server/src/movement.rs.
 ## Pure functions over dictionaries: no nodes, no physics server, no randomness.
-## The headless harness test_move_golden.gd checks both the accelerated 60 Hz
-## vectors and the current immediate-velocity 20 Hz live vectors.
-## LocalPrediction uses live_step; the accelerated mirror retains legacy vectors.
+## The headless harness test_move_golden.gd checks the fighter model against
+## both golden files (20 Hz live, 60 Hz). LocalPrediction runs fighter_step for
+## an arena participant (Ack version 2) and live_step, the immediate step, for
+## a campaign participant (version 1); authored actors use live_step too.
 
+## Fighter feel, frozen 2026-10-23. server/src/movement.rs owns these values
+## and their reasons; both golden files record them and the harness refuses
+## vectors made with anything else.
+const TOP_SPEED: float = 6.0
+const GROUND_ACCEL: float = 15.0
+const FRICTION: float = 12.0
+const STOP_SPEED: float = 2.0
+const AIR_ACCEL: float = 2.0
+const AIR_SPEED_CAP: float = 7.5
+const DODGE_SPEED: float = 9.0
+const DODGE_UP: float = 3.5
+const DODGE_COOLDOWN_TICKS: int = 15
+## The campaign pace: authored actors' gaits are shares of it, and a campaign
+## participant keeps the immediate step at it (Ack version 1).
+const ACTOR_REFERENCE_SPEED: float = 5.0
 const RADIUS: float = 0.5
-const TOP_SPEED: float = 5.0
-const TAU_ACCEL: float = 0.06
-const TAU_DECEL: float = 0.04
 const DT_60HZ: float = 1.0 / 60.0
 const DT_LIVE: float = 1.0 / 20.0
 const GROUND_Y: float = 0.0
@@ -36,7 +49,7 @@ static func make_state(x: float, z: float, yaw: float) -> Dictionary:
 
 
 static func make_input(forward: bool, back: bool, left: bool, right: bool, yaw: float, speed_scale: float = 1.0) -> Dictionary:
-	return {"forward": forward, "back": back, "left": left, "right": right, "jump": false, "yaw": yaw, "speed_scale": speed_scale}
+	return {"forward": forward, "back": back, "left": left, "right": right, "jump": false, "dodge": false, "yaw": yaw, "speed_scale": speed_scale}
 
 
 static func solid_from_center(cx: float, cz: float, half_x: float, half_z: float, top: float = WALL_TOP) -> Dictionary:
@@ -198,9 +211,8 @@ static func wish_dir(input: Dictionary, yaw: float) -> Vector2:
 	return Vector2.ZERO
 
 
-## Mirror of the current authoritative 20 Hz movement path. The caller has
-## already chosen effective speed, client yaw and any latched jump edge.
-## Horizontal velocity changes immediately, unlike the accelerated step.
+## The authored-actor step. The caller has already chosen effective speed,
+## yaw and any latched jump edge. Horizontal velocity changes immediately.
 static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary) -> Dictionary:
 	return live_step_with_height(state, input, speed, dt, arena, BODY_HEIGHT)
 
@@ -216,33 +228,76 @@ static func live_step_with_height(state: Dictionary, input: Dictionary, speed: f
 	return integrate_with_height(moving, bool(input.get("jump", false)), dt, arena, height)
 
 
-## Advance one fighter by dt seconds. Same order as the Rust step: yaw, wish,
-## velocity approach, the floor under the old position, integrate, clamp,
-## axis-separated slide with the blocked axis velocity zeroed, then the
-## vertical against the floor under the new position.
-static func step(state: Dictionary, input: Dictionary, dt: float, arena: Dictionary) -> Dictionary:
+## One participant step, mirroring movement::fighter_step_with_height: yaw
+## and wish; grounded test on the old position; a dodge, or ground friction
+## and acceleration unless jumping, or capped air acceleration; then the
+## shared integration. `speed` is the wish speed before `speed_scale`.
+static func fighter_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary) -> Dictionary:
+	return fighter_step_with_height(state, input, speed, dt, arena, BODY_HEIGHT)
+
+
+static func fighter_step_with_height(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary, height: float) -> Dictionary:
 	var yaw: float = normalize_yaw(float(input.get("yaw", 0.0)))
 	var wish: Vector2 = wish_dir(input, yaw)
 	var scale: float = float(input.get("speed_scale", 1.0))
-	if not is_finite(scale):
-		scale = 1.0
-	scale = clampf(scale, 0.0, 1.0)
-	var target_x: float = wish.x * TOP_SPEED * scale
-	var target_z: float = wish.y * TOP_SPEED * scale
-
-	var vx: float = float(state["vx"])
-	var vz: float = float(state["vz"])
-	var current_speed: float = sqrt(vx * vx + vz * vz)
-	var target_speed: float = sqrt(target_x * target_x + target_z * target_z)
-	var tau: float = TAU_ACCEL if target_speed > current_speed else TAU_DECEL
-	var blend: float = minf(dt / tau, 1.0)
-	vx = vx + (target_x - vx) * blend
-	vz = vz + (target_z - vz) * blend
+	scale = clampf(scale, 0.0, 1.0) if is_finite(scale) else 1.0
+	var wish_speed: float = maxf(speed, 0.0) * scale if is_finite(speed) else 0.0
+	dt = maxf(dt, 0.0) if is_finite(dt) else 0.0
+	var velocity: Vector2 = Vector2.ZERO
+	if is_finite(float(state["vx"])) and is_finite(float(state["vz"])):
+		velocity = Vector2(float(state["vx"]), float(state["vz"]))
+	var state_y: float = float(state.get("y", GROUND_Y))
+	var floor_y: float = arena_support_height(arena, float(state["x"]), float(state["z"]), state_y)
+	var on_floor: bool = grounded(state_y, floor_y, float(state.get("vy", 0.0)))
+	var jump: bool = bool(input.get("jump", false))
+	var launch: float = JUMP_SPEED if jump else -1.0
+	if on_floor and bool(input.get("dodge", false)) and wish != Vector2.ZERO:
+		velocity = wish * DODGE_SPEED
+		launch = DODGE_UP
+	elif on_floor and not jump:
+		velocity = friction(velocity, dt)
+		velocity = accelerate(velocity, wish, wish_speed, GROUND_ACCEL, dt)
+	else:
+		var before: float = velocity.length()
+		velocity = accelerate(velocity, wish, wish_speed, AIR_ACCEL, dt)
+		var limit: float = maxf(before, AIR_SPEED_CAP)
+		var after: float = velocity.length()
+		if after > limit:
+			velocity = velocity * (limit / after)
 	var moving: Dictionary = state.duplicate()
-	moving["vx"] = vx
-	moving["vz"] = vz
+	moving["vx"] = velocity.x
+	moving["vz"] = velocity.y
 	moving["yaw"] = yaw
-	return integrate(moving, bool(input.get("jump", false)), dt, arena)
+	return launch_with_height(moving, launch, dt, arena, height)
+
+
+## Mirror of movement::dodge_applies, for the caller's cooldown.
+static func dodge_applies(state: Dictionary, input: Dictionary, arena: Dictionary) -> bool:
+	if not bool(input.get("dodge", false)):
+		return false
+	if wish_dir(input, normalize_yaw(float(input.get("yaw", 0.0)))) == Vector2.ZERO:
+		return false
+	var state_y: float = float(state.get("y", GROUND_Y))
+	return grounded(state_y, arena_support_height(arena, float(state["x"]), float(state["z"]), state_y), float(state.get("vy", 0.0)))
+
+
+## Quake and Source ground friction.
+static func friction(velocity: Vector2, dt: float) -> Vector2:
+	var speed: float = velocity.length()
+	if speed < 0.01:
+		return Vector2.ZERO
+	var drop: float = maxf(speed, STOP_SPEED) * FRICTION * dt
+	return velocity * (maxf(speed - drop, 0.0) / speed)
+
+
+## Quake and Source acceleration toward the wish speed along the wish direction.
+static func accelerate(velocity: Vector2, wish: Vector2, wish_speed: float, accel: float, dt: float) -> Vector2:
+	if wish == Vector2.ZERO or wish_speed <= 0.0:
+		return velocity
+	var room: float = wish_speed - velocity.dot(wish)
+	if room <= 0.0:
+		return velocity
+	return velocity + wish * minf(accel * dt * wish_speed, room)
 
 
 ## Resolve chosen velocity, jumping and gravity through the same path as the
@@ -253,6 +308,12 @@ static func integrate(state: Dictionary, jump: bool, dt: float, arena: Dictionar
 
 ## Registered low actor profiles share the server's support and ceiling path.
 static func integrate_with_height(state: Dictionary, jump: bool, dt: float, arena: Dictionary, height: float) -> Dictionary:
+	return launch_with_height(state, JUMP_SPEED if jump else -1.0, dt, arena, height)
+
+
+## integrate_with_height with the upward speed a grounded body leaves the floor
+## at: a jump's, a dodge's, or a negative value for none.
+static func launch_with_height(state: Dictionary, launch: float, dt: float, arena: Dictionary, height: float) -> Dictionary:
 	var vx: float = float(state["vx"])
 	var vz: float = float(state["vz"])
 	var yaw: float = float(state["yaw"])
@@ -300,8 +361,8 @@ static func integrate_with_height(state: Dictionary, jump: bool, dt: float, aren
 	if on_ground:
 		y = support
 		vy = 0.0
-		if jump:
-			vy = JUMP_SPEED
+		if launch >= 0.0:
+			vy = launch
 	else:
 		vy -= GRAVITY * dt
 	var ceiling: float = arena_ceiling_height(arena, x, z, y, height)

@@ -219,10 +219,10 @@ office behind one public address stops at 32. Someone past that needs
 another address. Spectators count toward both caps. `GET /status` does
 not.
 
-A straight run is 5 m/s. The floors, side to side, are Compliance Yard
-110 m (about 22 s), Arena Duel 140 m (about 28 s), Directive 17 150 m
-(about 30 s), Sector 9 200 m (about 40 s), Reclamation Gulch 280 m
-(about 56 s), and Tripoint Works 320 m (about 64 s). A handful of
+A straight run is 6 m/s. The floors, side to side, are Compliance Yard
+110 m (about 18 s), Arena Duel 140 m (about 23 s), Directive 17 150 m
+(about 25 s), Sector 9 200 m (about 33 s), Reclamation Gulch 280 m
+(about 47 s), and Tripoint Works 320 m (about 53 s). A handful of
 fighters on the longer floors is a walk. The same people on Compliance
 Yard, Arena Duel, or Directive 17 is a scrap. The map rule sheet keeps
 a large battle at 16 to 32 until a map is drawn for it and the tick is

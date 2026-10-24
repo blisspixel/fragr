@@ -101,11 +101,14 @@ fn duck_slows_one_step_and_the_snapshot_omits_a_stand() {
         state.players.iter().find(|p| p.id == id).unwrap().x
     };
 
+    // One tick from rest covers the fighter model's first acceleration step:
+    // GROUND_ACCEL * dt of the wish speed, travelled for one tick.
+    let first = |speed: f32| crate::movement::GROUND_ACCEL * DT_LIVE * speed * DT_LIVE;
     let standing = step(false);
     let ducked = step(true);
-    assert!((standing - TOP_SPEED * DT_LIVE).abs() < 0.02, "{standing}");
+    assert!((standing - first(TOP_SPEED)).abs() < 0.02, "{standing}");
     assert!(
-        (ducked - TOP_SPEED * DUCK_SPEED_SCALE * DT_LIVE).abs() < 0.02,
+        (ducked - first(TOP_SPEED * DUCK_SPEED_SCALE)).abs() < 0.02,
         "{ducked}"
     );
 
@@ -214,6 +217,7 @@ fn a_low_slab_blocks_the_standing_body_and_keeps_a_duck() {
         left: false,
         right: false,
         jump: false,
+        dodge: false,
         yaw: 0.0,
         speed_scale: 1.0,
     };

@@ -166,6 +166,7 @@ func _run() -> void:
 	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
 	_check_chase_cadence(first)
+	_check_punch()
 	await _check_board_browsing(first, second)
 	var blocker: InputBlocker = InputBlocker.new()
 	root.add_child(blocker)
@@ -258,6 +259,26 @@ func _check_board_browsing(first: Fighter, second: Fighter) -> void:
 	InputMap.action_erase_event("toggle_follow", back)
 	camera.queue_free()
 	await process_frame
+
+
+## The camera punch is presentation: its peak is the asked-for angle, it has
+## the same shape at any frame rate, it settles, and it never moves the aim.
+func _check_punch() -> void:
+	var script: GDScript = load("res://scripts/spectator_cam.gd")
+	var peak: float = 0.0
+	var value: Vector2 = Vector2(0.0, 1.0 * script.PUNCH_OMEGA * exp(1.0))
+	for frame: int in range(240):
+		value = script.spring_step(value.x, value.y, script.PUNCH_OMEGA, 1.0 / 240.0)
+		peak = maxf(peak, value.x)
+	_check(absf(peak - 1.0) < 0.01, "a punch peaks at the angle asked for: %f" % peak)
+	var slow: Vector2 = Vector2(0.0, 3.0)
+	for frame: int in range(6):
+		slow = script.spring_step(slow.x, slow.y, script.PUNCH_OMEGA, 1.0 / 60.0)
+	var fast: Vector2 = Vector2(0.0, 3.0)
+	for frame: int in range(24):
+		fast = script.spring_step(fast.x, fast.y, script.PUNCH_OMEGA, 1.0 / 240.0)
+	_check(absf(slow.x - fast.x) < 0.00001, "the punch has one shape at 60 and 240 fps")
+	_check(absf(value.x) < 0.001, "a punch settles inside a second")
 
 
 func _check_chase_cadence(target: Fighter) -> void:

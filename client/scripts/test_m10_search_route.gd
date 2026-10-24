@@ -111,7 +111,7 @@ func _walk(start: Vector3, route: Array) -> Dictionary:
 				arrived = true
 				break
 			var yaw: float = atan2(goal[2]-state.z,goal[0]-state.x)
-			state = MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,_world)
+			state = MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,_world)
 			ticks += 1
 		if not arrived:
 			return {"reached":false,"visible":visible,"ticks":ticks,"prefixes":prefixes}
@@ -127,7 +127,7 @@ func _finish(start: Vector3, route: Array, index: int, spec: Dictionary) -> Dict
 		QaCombat.release_inputs()
 		index = _driver.finish_search_step(_manager,{"x":state.x,"y":state.y+1.5,"z":state.z},spec,route,index)
 		fired = fired or Input.is_action_pressed("fire")
-		state = MoveStep.live_step(state,MoveStep.make_input(Input.is_action_pressed("move_forward"),Input.is_action_pressed("move_back"),Input.is_action_pressed("move_left"),Input.is_action_pressed("move_right"),_camera.fp_yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,_world)
+		state = MoveStep.live_step(state,MoveStep.make_input(Input.is_action_pressed("move_forward"),Input.is_action_pressed("move_back"),Input.is_action_pressed("move_left"),Input.is_action_pressed("move_right"),_camera.fp_yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,_world)
 		ticks += 1
 	return {"reached":index == route.size(),"fired":fired,"ticks":ticks}
 

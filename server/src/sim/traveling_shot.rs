@@ -6,8 +6,8 @@ use crate::combat::Ray;
 use crate::protocol::ProjectileState;
 use uuid::Uuid;
 
-/// Half of `movement::TOP_SPEED`, so a walking fighter outruns the shot.
-pub(crate) const SPEED: f32 = crate::movement::TOP_SPEED * 0.5;
+/// Half the actor reference pace, so a walking fighter outruns the shot.
+pub(crate) const SPEED: f32 = crate::movement::ACTOR_REFERENCE_SPEED * 0.5;
 /// Not the damage of any current weapon, so a hit cannot be mistaken for a gun.
 pub(crate) const DAMAGE: i32 = 12;
 /// Four seconds at 20 Hz: 10 metres at `SPEED`.

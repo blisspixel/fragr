@@ -60,7 +60,7 @@ func _walk(start: Vector3, points: Array, with_crew: bool = false) -> Dictionary
 				arrived = true
 				break
 			var yaw: float = atan2(point[2]-body.z,point[0]-body.x)
-			var proposed: Dictionary = MoveStep.live_step(body,MoveStep.make_input(true,false,false,false,yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,_world)
+			var proposed: Dictionary = MoveStep.live_step(body,MoveStep.make_input(true,false,false,false,yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,_world)
 			if with_crew:
 				var actor: Dictionary = ActorContact.stationary("participant",Vector3(body.x,body.y,body.z))
 				actor.proposed = proposed

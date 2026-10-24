@@ -742,6 +742,7 @@ fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
                 left: candidate.left,
                 right: candidate.right,
                 jump: candidate.jump,
+                dodge: false,
                 yaw: candidate.yaw.unwrap_or(me.from.yaw),
                 speed_scale: 1.0,
             },

@@ -10,11 +10,21 @@ func _check(ok: bool, label: String) -> void:
 		failures.append(label)
 
 
-func _ack(seq: int, tick: int, epoch: int = 1, x: float = 0.0, applied: bool = true) -> Dictionary:
+func _ack(seq: int, tick: int, epoch: int = 1, x: float = 0.0, applied: bool = true, vx: float = 0.0) -> Dictionary:
 	return {"type": "ack", "seq": seq, "tick": tick, "x": x, "z": 0.0, "yaw": 0.0,
-		"movement": {"version": 1, "epoch": epoch, "applied": applied, "y": 1.5,
-			"vx": 0.0, "vy": 0.0, "vz": 0.0,
-			"effective_speed": 5.0 if applied else 0.0, "jump_input": false}}
+		"movement": {"version": 2, "epoch": epoch, "applied": applied, "y": 1.5,
+			"vx": vx if applied else 0.0, "vy": 0.0, "vz": 0.0,
+			"effective_speed": 5.0 if applied else 0.0, "jump_input": false, "dodge_cooldown": 0}}
+
+
+## The fighter after `ticks` live ticks of forward from rest at the origin, at
+## the 5 m/s these Acks report.
+static func _ahead(ticks: int) -> Dictionary:
+	var arena: Dictionary = {"half": 10.0, "solids": []}
+	var body: Dictionary = MoveStep.make_state(0.0, 0.0, 0.0)
+	for _tick: int in range(ticks):
+		body = MoveStep.fighter_step(body, MoveStep.make_input(true, false, false, false, 0.0), 5.0, MoveStep.DT_LIVE, arena)
+	return body
 
 
 func _action(seq: int, forward: bool = true, jump: bool = false) -> Dictionary:
@@ -36,7 +46,7 @@ func _check_contacts(map: Dictionary) -> void:
 	var tangent_step: Dictionary = {"input": tangent_input, "speed": 5.0, "body_key": LOCAL_ID,
 		"blockers": [tangent_obstacles["bodies"][1]]}
 	var tangent_arena: Dictionary = {"half": map["half_extent"], "solids": map["solids"].duplicate(true)}
-	var kernel: Dictionary = MoveStep.live_step(tangent_pose, tangent_input, 5.0, MoveStep.DT_LIVE, tangent_arena)
+	var kernel: Dictionary = MoveStep.fighter_step(tangent_pose, tangent_input, 5.0, MoveStep.DT_LIVE, tangent_arena)
 	var unchanged: Dictionary = LocalPrediction._contact_step(tangent_pose, tangent_step, tangent_arena)
 	_check(unchanged["x"] == kernel["x"] and unchanged["z"] == kernel["z"] and
 		unchanged["vx"] == kernel["vx"] and unchanged["vz"] == kernel["vz"],
@@ -60,7 +70,7 @@ func _check_contacts(map: Dictionary) -> void:
 	_check(predictor.steps.size() == 1 and absf(float(predictor.state["x"]) - 0.1) < 0.001,
 		"peer removal does not rewrite already captured speculative replay")
 	predictor.advance(1100000)
-	_check(absf(float(predictor.state["x"]) - 0.35) < 0.001,
+	_check(absf(float(predictor.state["x"]) - (0.1 + float(_ahead(1)["x"]))) < 0.001,
 		"new step uses authoritative removal and stops retaining the departed peer")
 	var slider: LocalPrediction = LocalPrediction.new()
 	slider.configure_map(map)
@@ -76,7 +86,7 @@ func _check_contacts(map: Dictionary) -> void:
 	inactive.accept_ack(_ack(0, 300), 3000000)
 	inactive.accept_snapshot(_snapshot(300, 1.1, false), LOCAL_ID, {}, 3000000)
 	inactive.record_action(_action(1), 3000001, true)
-	_check(absf(float(inactive.state["x"]) - 0.25) < 0.001,
+	_check(absf(float(inactive.state["x"]) - float(_ahead(1)["x"])) < 0.001,
 		"server noncollidable fact removes a living detached obstacle")
 	var stale: LocalPrediction = LocalPrediction.new()
 	stale.configure_map(map)
@@ -162,6 +172,72 @@ func _check_contacts(map: Dictionary) -> void:
 		"blocked speculative carry keeps old tram world rather than crossing a static body")
 
 
+## A closed loop against a model server on a fixed 50 ms grid: `latency` each
+## way, frames every `frame_usec` with a small wobble, Actions at most every
+## 8.3 ms like GameManager. Rest for three seconds so the clock settles, run
+## forward for 0.6 s, release at `release_usec`, and watch the drawn eye.
+func _closed_loop_stop(release_usec: int, frame_usec: int, latency: int) -> Dictionary:
+	var arena: Dictionary = {"half": 40.0, "solids": []}
+	var predictor: LocalPrediction = LocalPrediction.new()
+	predictor.configure_map({"map_id": 1, "geometry_version": 2, "half_extent": 40.0, "solids": []})
+	var body: Dictionary = MoveStep.make_state(0.0, 0.0, 0.0)
+	var server_tick: int = 100
+	var tick_usec: int = 1001234
+	var sent: Array[Array] = []
+	var acks: Array[Array] = [[tick_usec + latency, _loop_ack(0, server_tick, body)]]
+	var used_seq: int = 0
+	var used_forward: bool = false
+	var seq: int = 0
+	var last_send: int = -100000
+	var now: int = 1000000
+	var frame: int = 0
+	var last_x: float = 0.0
+	var release_x: float = NAN
+	var worst_back: float = 0.0
+	var peak: float = -1000.0
+	while now < release_usec + 500000:
+		frame += 1
+		var dt: int = frame_usec + ((frame * 7919) % 5 - 2) * 500
+		now += dt
+		while tick_usec + 50000 <= now:
+			tick_usec += 50000
+			server_tick += 1
+			for entry: Array in sent:
+				if int(entry[0]) <= tick_usec and int(entry[1]) > used_seq:
+					used_seq = int(entry[1])
+					used_forward = bool(entry[2])
+			body = MoveStep.fighter_step(body, MoveStep.make_input(used_forward, false, false, false, 0.0), 6.0, MoveStep.DT_LIVE, arena)
+			acks.append([tick_usec + latency, _loop_ack(used_seq, server_tick, body)])
+		while not acks.is_empty() and int(acks[0][0]) <= now:
+			predictor.accept_ack(acks.pop_front()[1], now)
+			predictor.presented_position(now)
+		var forward: bool = now >= release_usec - 600000 and now < release_usec
+		if now - last_send >= 8333 and not predictor.baseline.is_empty():
+			seq += 1
+			last_send = now
+			sent.append([now + latency, seq, forward])
+			predictor.record_action({"seq": seq, "forward": forward, "back": false, "left": false,
+				"right": false, "jump": false, "yaw": 0.0}, now, true)
+		predictor.advance(now)
+		predictor.decay_visual(float(dt) / 1000000.0)
+		var x: float = predictor.presented_position(now).x
+		if now >= release_usec:
+			if is_nan(release_x):
+				release_x = last_x
+			worst_back = minf(worst_back, x - last_x)
+			peak = maxf(peak, x)
+		last_x = x
+	return {"active": predictor.active(), "back": worst_back, "overshoot": peak - float(body["x"]),
+		"rest": last_x - float(body["x"]), "corrected": predictor.correction_max}
+
+
+func _loop_ack(seq: int, at_tick: int, body: Dictionary) -> Dictionary:
+	return {"type": "ack", "seq": seq, "tick": at_tick, "x": float(body["x"]), "z": float(body["z"]), "yaw": 0.0,
+		"movement": {"version": 2, "epoch": 1, "applied": true, "y": float(body["y"]) + LocalPrediction.FLOOR_OFFSET,
+			"vx": float(body["vx"]), "vy": float(body["vy"]), "vz": float(body["vz"]),
+			"effective_speed": 6.0, "jump_input": false, "dodge_cooldown": 0}}
+
+
 func _initialize() -> void:
 	var predictor: LocalPrediction = LocalPrediction.new()
 	var map: Dictionary = {"map_id": 1, "geometry_version": 2, "half_extent": 10.0,
@@ -171,17 +247,23 @@ func _initialize() -> void:
 	predictor.accept_ack(_ack(0, 10), 1000000)
 	_check(predictor.active(), "complete applied Ack enables replay")
 	predictor.record_action(_action(1), 1000001, true)
-	_check(is_equal_approx(predictor.presented_position().x, 0.25), "first Action predicts one 20 Hz step")
+	var one: float = float(_ahead(1)["x"])
+	var two: float = float(_ahead(2)["x"])
+	_check(one > 0.1 and one < 0.25, "the first tick from rest is an acceleration, not a jump to top speed")
+	_check(is_equal_approx(predictor.presented_position().x, one), "first Action predicts one 20 Hz step")
 	predictor.record_action(_action(2), 1010000, true)
-	_check(predictor.steps.size() == 1 and is_equal_approx(predictor.presented_position().x, 0.25),
+	_check(predictor.steps.size() == 1 and is_equal_approx(predictor.presented_position().x, one),
 		"120 per second samples do not each run a step")
 	predictor.advance(1050000)
-	_check(predictor.steps.size() == 2 and is_equal_approx(predictor.presented_position().x, 0.5),
+	_check(predictor.steps.size() == 2 and is_equal_approx(predictor.presented_position().x, two),
 		"held input advances once on next speculative tick")
-	predictor.accept_ack(_ack(2, 11, 1, 0.25), 1050001)
+	var shown_before_ack: Vector3 = predictor.presented_position(1050001)
+	predictor.accept_ack(_ack(2, 11, 1, one, true, float(_ahead(1)["vx"])), 1050001)
 	_check(predictor.active() and predictor.steps.size() == 1,
 		"Ack removes one tick and replays the future tick")
-	_check(is_equal_approx(predictor.presented_position().x, 0.5), "matching Ack preserves the presented body")
+	_check(absf(float(predictor.state["x"]) - two) < 0.0001 and predictor.correction_max < 0.0001
+		and predictor.presented_position(1050001).distance_to(shown_before_ack) < 0.0001,
+		"matching Ack preserves the predicted and the presented body")
 	predictor.accept_ack(_ack(2, 12, 1, 0.3), 1100000)
 	_check(predictor.correction_count == 2 and predictor.correction_max > 0.0,
 		"newer tick with repeated selected sequence records correction")
@@ -200,7 +282,7 @@ func _initialize() -> void:
 	var reverse: Dictionary = _action(2, false)
 	reverse["back"] = true
 	revised.record_action(reverse, 5010000, true)
-	_check(revised.steps.size() == 1 and is_equal_approx(revised.presented_position().x, -0.25),
+	_check(revised.steps.size() == 1 and is_equal_approx(float(revised.state["x"]), -float(_ahead(1)["x"])),
 		"newer Action revises the pending tick without adding a second step")
 	var released: LocalPrediction = LocalPrediction.new()
 	released.configure_map(map)
@@ -236,7 +318,7 @@ func _initialize() -> void:
 	predictor.accept_ack({"type": "ack", "seq": 4, "tick": 15, "x": 0.0, "z": 0.0, "yaw": 0.0}, 1250000)
 	_check(not predictor.active(), "old server Ack keeps snapshot fallback")
 	var future: Dictionary = _ack(4, 16)
-	future["movement"]["version"] = 2
+	future["movement"]["version"] = 3
 	predictor.accept_ack(future, 1300000)
 	_check(not predictor.active(), "future movement schema keeps snapshot fallback")
 	predictor.configure_map(map)
@@ -310,22 +392,135 @@ func _initialize() -> void:
 	smooth.record_action(_action(1), 7000001, true)
 	var committed_steps: int = smooth.steps.size()
 	var committed_x: float = smooth.presented_position().x
-	_check(is_equal_approx(smooth.presented_position(7000001).x, committed_x),
-		"the first render sample starts on the committed pose")
-	var midway: float = smooth.presented_position(7025001).x
-	_check(midway > committed_x + 0.1 and midway < committed_x + 0.15,
-		"walking advances inside the open tick")
+	var lag: int = LocalPrediction.PRESENT_LAG_USEC
+	_check(absf(smooth.presented_position(7000000 + lag).x) < 0.0001,
+		"the open tick is drawn from the state it starts at")
+	_check(absf(smooth.presented_position(7010000).x) < 0.0001,
+		"the eye runs half a tick behind the input clock")
+	var midway: float = smooth.presented_position(7025000 + lag).x
+	_check(absf(midway - committed_x * 0.5) < 0.0001,
+		"walking advances through the open tick on the prediction clock")
+	_check(absf(smooth.presented_position(7050000 + lag).x - committed_x) < 0.0001,
+		"the tick's end is the committed pose")
 	_check(smooth.steps.size() == committed_steps and is_equal_approx(smooth.presented_position().x, committed_x),
 		"render samples do not record a speculative step")
+	# A later Ack that disagrees moves the drawn eye by an offset that decays,
+	# never by a jump.
+	var drawn: Vector3 = smooth.presented_position(7050001)
+	smooth.accept_ack(_ack(1, 71, 1, committed_x + 0.2, true, 0.0), 7050001)
+	_check(smooth.presented_position(7050001).distance_to(drawn) < 0.0001,
+		"a correction does not move the drawn eye on its own frame")
+	_check(smooth.visual_offset.length() > 0.1, "the correction is held as an offset")
+	var held: float = smooth.visual_offset.length()
+	smooth.decay_visual(0.066)
+	_check(smooth.visual_offset.length() < held * 0.11, "the offset is about gone 66 ms later")
+	# A late Ack's arrival is a loose bound on the input cutoff: it never
+	# drags the schedule later.
+	var clock: LocalPrediction = LocalPrediction.new()
+	clock.configure_map(map)
+	clock.accept_ack(_ack(0, 90), 9000000)
+	clock.record_action(_action(1), 9000001, true)
+	clock.accept_ack(_ack(1, 91, 1, float(_ahead(1)["x"]), true, float(_ahead(1)["vx"])), 9080000)
+	_check(clock._start_usec(92) <= 9050000 and clock._start_usec(92) >= 9050000 - LocalPrediction.CLOCK_SLEW_USEC,
+		"a 30 ms late Ack does not drag the step schedule later")
+	# Once an Ack brackets the server's input cutoff between the send times of
+	# the Action its tick used and the next one, the schedule follows that.
+	var cut: LocalPrediction = LocalPrediction.new()
+	cut.configure_map(map)
+	cut.accept_ack(_ack(0, 100), 10000000)
+	cut.record_action(_action(1), 10000001, true)
+	cut.record_action(_action(2), 10040000, true)
+	cut.accept_ack(_ack(1, 101, 1, float(_ahead(1)["x"]), true, float(_ahead(1)["vx"])), 10050000)
+	_check(cut.clock_base() == (10000001 - 101 * 50000 + 10040000 - 101 * 50000) / 2,
+		"the input cutoff bracketed by two sends sets the schedule's target")
+	_check(cut._start_usec(102) == 10050000 - LocalPrediction.CLOCK_SLEW_USEC,
+		"the schedule slews toward a new target instead of jumping")
+	# A release inside the open tick lands the predicted body short of what was
+	# already drawn; the eye stands until the body catches up, never backwards.
+	var guard: LocalPrediction = LocalPrediction.new()
+	guard.configure_map(map)
+	guard.accept_ack(_ack(0, 110, 1, 0.0, true, 5.0), 11000000)
+	guard.record_action(_action(1), 11000001, true)
+	var last_x: float = guard.presented_position(11030000).x
+	guard.record_action(_action(2, false), 11030001, true)
+	var drawn_peak: float = last_x
+	var worst_step: float = 0.0
+	for at: int in range(11034001, 11140000, 4000):
+		guard.decay_visual(0.004)
+		guard.advance(at)
+		var x: float = guard.presented_position(at).x
+		worst_step = minf(worst_step, x - last_x)
+		drawn_peak = maxf(drawn_peak, x)
+		last_x = x
+	# Only the last centimetre settles back once the body is at rest.
+	_check(guard.active() and worst_step > -LocalPrediction.SETTLE_SPEED * 0.004 - 0.0001 and drawn_peak - last_x < 0.015,
+		"a release inside the open tick never pulls the eye backwards: step %f, settle %f" % [worst_step, drawn_peak - last_x])
+	# A release late in a tick from a full run: the half-tick lag never draws
+	# the eye past where the body comes to rest, so nothing settles back.
+	var late: LocalPrediction = LocalPrediction.new()
+	late.configure_map(map)
+	late.accept_ack(_ack(0, 130, 1, 0.0, true, 5.0), 13000000)
+	late.record_action(_action(1), 13000001, true)
+	late.record_action(_action(2, false), 13045000, true)
+	var late_x: float = late.presented_position(13045000).x
+	var late_peak: float = late_x
+	var late_back: float = 0.0
+	for at: int in range(13049000, 13146000, 4000):
+		late.decay_visual(0.004)
+		late.advance(at)
+		var x: float = late.presented_position(at).x
+		late_back = minf(late_back, x - late_x)
+		late_peak = maxf(late_peak, x)
+		late_x = x
+	_check(late.active() and late_back > -0.0001 and absf(late_peak - float(late.state["x"])) < 0.001 and absf(late_x - float(late.state["x"])) < 0.001,
+		"a late release stops the eye where the body stops: back %f, peak %f, rest %f" % [late_back, late_peak, float(late.state["x"])])
+	# Closed loop on a steady link, LAN to 80 ms round trip, 60 to 250 fps,
+	# released at every phase of a tick: the input clock puts every press and
+	# release in the tick the server uses, and the eye stops where the body
+	# stops without stepping back.
+	var loop_failures: Array[String] = []
+	for latency: int in [500, 20000, 40000]:
+		for frame_usec: int in [4000, 16000]:
+			for phase: int in range(0, 50000, 5000):
+				var loop: Dictionary = _closed_loop_stop(4500000 + phase, frame_usec, latency)
+				if not loop["active"] or float(loop["corrected"]) > 0.0001 or float(loop["back"]) < -0.0003 \
+						or float(loop["overshoot"]) > 0.0005 or absf(float(loop["rest"])) > 0.0005:
+					loop_failures.append("%d/%d/%d %s" % [latency, frame_usec, phase, str(loop)])
+	_check(loop_failures.is_empty(), "closed-loop stops land on the server's rest: %s" % str(loop_failures.slice(0, 3)))
+	# A correction past the snap distance is a teleport, drawn at once even at
+	# rest, never glided at the settle speed.
+	var still: LocalPrediction = LocalPrediction.new()
+	still.configure_map(map)
+	still.accept_ack(_ack(0, 120), 12000000)
+	still.record_action(_action(1, false), 12000001, true)
+	still.presented_position(12010000)
+	still.accept_ack(_ack(1, 121, 1, 3.0), 12050000)
+	still.record_action(_action(2, false), 12050001, true)
+	_check(absf(still.presented_position(12060000).x - 3.0) < 0.001, "a teleport is drawn at once")
 	var crouch: LocalPrediction = LocalPrediction.new()
 	crouch.configure_map(map)
 	crouch.accept_ack(_ack(0, 72), 7200000)
 	var ducked_action: Dictionary = _action(1)
 	ducked_action["duck"] = true
 	crouch.record_action(ducked_action, 7200001, true)
-	_check(absf(float(crouch.state["x"]) - 5.0 * MoveStep.DUCK_SPEED_SCALE * MoveStep.DT_LIVE) < 0.02,
+	_check(absf(float(crouch.state["x"]) - MoveStep.GROUND_ACCEL * MoveStep.DT_LIVE * 5.0 * MoveStep.DUCK_SPEED_SCALE * MoveStep.DT_LIVE) < 0.001,
 		"a ducked step is the short walk")
 	_check(crouch.presented_ducking(7200001), "the render pose starts short")
+	var dodger: LocalPrediction = LocalPrediction.new()
+	dodger.configure_map(map)
+	dodger.accept_ack(_ack(0, 74), 7400000)
+	var dodge_action: Dictionary = _action(1, false)
+	dodge_action["right"] = true
+	dodge_action["dodge"] = true
+	dodger.record_action(dodge_action, 7400001, true)
+	_check(absf(float(dodger.state["vz"]) - MoveStep.DODGE_SPEED) < 0.001 and float(dodger.state["vy"]) > 0.0
+		and int(dodger.state["dodge_cooldown"]) == MoveStep.DODGE_COOLDOWN_TICKS,
+		"a dodge press throws the predicted body and starts the cooldown")
+	var again: Dictionary = dodge_action.duplicate()
+	again["seq"] = 2
+	dodger.record_action(again, 7450000, true)
+	_check(not bool(dodger.steps.back()["input"]["dodge"]) or int(dodger.steps.back()["state_after"]["dodge_cooldown"]) == MoveStep.DODGE_COOLDOWN_TICKS - 1,
+		"a second press inside the cooldown does not dodge again")
 	crouch.record_action(_action(2), 7250001, true)
 	_check(not bool(crouch.state.get("ducking", true)), "release in the open stands")
 	var blocked: LocalPrediction = LocalPrediction.new()

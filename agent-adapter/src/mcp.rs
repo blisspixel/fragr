@@ -140,6 +140,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "left",
     "right",
     "jump",
+    "dodge",
     "duck",
     "turn_left",
     "turn_right",
@@ -319,6 +320,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         turn_right: bool_field("turn_right"),
         fire: bool_field("fire"),
         jump: bool_field("jump"),
+        dodge: match obj.get("dodge") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: dodge must be a boolean")?,
+        },
         duck: bool_field("duck"),
         interact: match obj.get("interact") {
             None => false,
@@ -742,6 +749,7 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
+                        "dodge": {"type": "boolean", "default": false, "description": "Press to dodge (arena play): a standing fighter holding a direction is thrown that way at 9 m/s on a low hop. One press per dodge; 0.75 s before the next. Ignored in the air, in water, in a campaign mission or with no direction held."},
                         "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
                         "weapon_swap": {"type": "string", "enum": protocol::WeaponType::ALL, "description": "Select an owned weapon by its native wire ID. Rocket Launcher uses finite Rockets; keep clear of its splash. Selection never grants a weapon or ammunition."},
                         "seat": {"type": "string", "enum": ["driver", "gunner"], "description": "Request a free seat in your stopped jeep. Switching locks vehicle controls briefly. Use interact to enter or exit."},

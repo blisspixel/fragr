@@ -383,7 +383,7 @@ fn aim_outside_the_sniper_cone_misses_a_far_body() {
 }
 
 #[test]
-fn at_fifty_five_metres_the_rail_cone_misses_where_the_sniper_never_does() {
+fn at_fifty_five_metres_a_participant_rail_and_sniper_both_stay_on_a_centred_body() {
     let mut rail_hits = 0;
     let mut sniper_hits = 0;
     const VOLLEY: usize = 60;
@@ -422,10 +422,11 @@ fn at_fifty_five_metres_the_rail_cone_misses_where_the_sniper_never_does() {
         sniper_hits, VOLLEY,
         "the Sniper cone stays on a centred body"
     );
-    assert!(
-        rail_hits < VOLLEY,
-        "the Rail cone leaves the body at 55 m: {rail_hits}/{VOLLEY}"
-    );
+    // A participant's Rail is exact in arena play. The table cone it used to
+    // fire, which a campaign mission still uses, is wider than a body there.
+    assert_eq!(rail_hits, VOLLEY, "a participant Rail is exact");
+    assert!(WeaponType::Rail.spread_radians().tan() * 55.0 > crate::movement::RADIUS);
+    assert!(WeaponType::Sniper.spread_radians().tan() * 55.0 < crate::movement::RADIUS);
 }
 
 #[test]
