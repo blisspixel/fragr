@@ -25,19 +25,21 @@ on 2026-09-19.
 
 ## What things cost
 
-Measured, per image, through the estimate endpoint on 2026-09-19.
+Measured, per image, through the free estimate endpoint on 2026-10-23 (`api-check` with the round's probe spec; ignored receipt `.agents/asset-round-20261023/hf-api-check.json`). The 2026-09-19 reading is kept for comparison: `marketing-studio/image` rose about 18%.
 
-| Model | Parameters | Cost | What it is for |
-|---|---|---|---|
-| `marketing-studio/image` | `low` / 2k | $0.019 | Exploration. The workhorse |
-| `marketing-studio/image` | `medium` / 2k | $0.100 | Promoting a keeper |
-| `marketing-studio/image` | `high` / 2k | $0.373 | Rarely worth it |
-| `higgsfield-ai/soul/v2/standard` | 720p | $0.004 | Photoreal people. Cheapest thing here |
-| `higgsfield-ai/soul/v2/standard` | 1080p | $0.006 | Photoreal people |
-| `recraft/v4.1/pro/text-to-image` | 2k png | $0.210 | Has real palette and background-colour fields |
-| `higgsfield-ai/soul/standard` | v1 | $0.094 | Superseded. Fifteen times the price of v2 for no gain |
+| Model | Parameters | Cost 2026-10-23 | Cost 2026-09-19 | What it is for |
+|---|---|---|---|---|
+| `marketing-studio/image` | `low` / 2k | $0.023 | $0.019 | Exploration. The workhorse |
+| `marketing-studio/image` | `medium` / 2k | $0.118 | $0.100 | Promoting a keeper |
+| `marketing-studio/image` | `high` / 2k | $0.439 | $0.373 | Edits that must hold an approved idle exactly |
+| `higgsfield-ai/soul/v2/standard` | 720p | $0.004 | $0.004 | Photoreal people. Cheapest thing here |
+| `higgsfield-ai/soul/v2/standard` | 1080p | $0.006 | $0.006 | Photoreal people |
+| `recraft/v4.1/pro/text-to-image` | 2k png | $0.210 | $0.210 | Has real palette and background-colour fields |
+| `higgsfield-ai/soul/standard` | v1 | not rechecked | $0.094 | Superseded. Fifteen times the price of v2 for no gain |
 
-The shape of the spend follows from that table: **explore wide at two cents and promote only keepers at ten**. Generating everything at `high` costs twenty times as much and, as the next section shows, does not buy a better sprite.
+Requests with reference `image_urls` price differently from the bare probe payload; the 2026-10-23 round budgets about $0.16 for a medium request with references and about $0.41 for a high edit, as estimates. Prices drift, so these rows are dated evidence: run `fragr-spritegen price` on the exact spec before every paid run.
+
+The shape of the spend follows from that table: **explore wide at about two cents and promote only keepers at about twelve**. Generating everything at `high` costs about twenty times as much and, as the next section shows, does not buy a better sprite.
 
 `marketing-studio/image` is the model for props and weapons. It generates isolated objects rather than scenes, and it edits: up to sixteen `image_urls` with `enhance_prompt` false keep a supplied picture's camera and framing while the prompt changes details.
 
@@ -80,7 +82,7 @@ The corollary matters too: reduction without palette quantisation produces mush 
 The same explicit approval discipline applies to image, audio, and decision-model calls.
 
 - **The whole run is priced before anything is generated.** If the total exceeds the cap, nothing is generated at all.
-- **`--max-spend-usd` is required for a live run and is itself capped** at `HARD_CAP_USD`, five dollars. A run that needs more than that should be split and approved a piece at a time.
+- **`--max-spend-usd` is required for a live run and is itself capped** at `HARD_CAP_USD`, forty dollars since 2026-10-23. Nick replaced the historical five-dollar per-run asset ceiling with the funded balances on 2026-10-18; the tool constant is the outer bound, and each run still names its own cap from its batch's exact preflight price, inside the live usable balance and the round ledger. Model runs share this ceiling through `USD_PER_CREDIT` (`meshy-gen --max-credits` 1 to 1,900).
 - **A locked, synced request ledger** sits beside the output. A reservation is
   written before submission, followed by the accepted request ID, validated status URL, completed URLs,
   and downloaded filenames. Rerunning polls an existing request and refreshes its
@@ -227,8 +229,9 @@ markers, large output and preserved verbose failure evidence.
 
 Nick reported a $100 API top-up and $105.88 available on 2026-10-03, approving
 that total for Higgsfield asset work. It supersedes the historical $50 ceiling
-only for that scope. Keep the $5 per-run tool ceiling, reconcile reservations,
-and leave top-ups and overages disabled. Funding is not consumption.
+only for that scope. Reconcile reservations and leave top-ups and overages
+disabled. Funding is not consumption. The $5 per-run tool ceiling kept here
+was superseded on 2026-10-18 by the funded balances (see the ceiling rule above).
 
 ### Run it
 

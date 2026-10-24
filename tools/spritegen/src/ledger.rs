@@ -589,7 +589,7 @@ mod tests {
     fn invalid_costs_and_requests_fail_before_a_record_is_written() {
         let dir = TestDir::new();
         let mut ledger = Ledger::open(&dir.0).unwrap();
-        for cost in [f64::NAN, f64::INFINITY, -0.1, 5.01] {
+        for cost in [f64::NAN, f64::INFINITY, -0.1, HARD_CAP_USD + 0.01] {
             let Event::Reserved { identity, .. } = reservation() else {
                 unreachable!()
             };

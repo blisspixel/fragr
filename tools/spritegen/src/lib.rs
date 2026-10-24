@@ -73,10 +73,15 @@ pub const API_BASE: &str = "https://api.higgsfield.ai";
 
 /// The most a single run may spend, whatever the caller asks for.
 ///
-/// The number is small on purpose, and matches the ceiling the brain agent
-/// uses for paid model calls. A run that genuinely needs more than this is a
-/// run that should be split and approved a piece at a time.
-pub const HARD_CAP_USD: f64 = 5.0;
+/// Nick replaced the historical five-dollar per-run asset ceiling on
+/// 2026-10-18 with the funded balances (AGENTS.md "Asset ceiling update").
+/// Forty dollars sits inside the funded Higgsfield balance and covers a whole
+/// Meshy allowance ([`meshy::MAX_CREDITS`] at [`meshy::USD_PER_CREDIT`]). It is
+/// an outer bound, not a budget: every live run still names its own
+/// `--max-spend-usd`, sized to its batch's preflight price and the live
+/// usable balance. The brain agent's separate $5 inference ceiling is
+/// unchanged.
+pub const HARD_CAP_USD: f64 = 40.0;
 
 /// Request states that end a poll, from `docs/concepts/polling`.
 pub const TERMINAL_STATUSES: [&str; 4] = ["completed", "failed", "nsfw", "canceled"];
@@ -947,6 +952,19 @@ mod tests {
     fn budget_refuses_a_cap_above_the_ceiling() {
         let err = check_budget(0.01, Some(HARD_CAP_USD + 0.01)).unwrap_err();
         assert!(format!("{err}").contains("ceiling"), "{err}");
+    }
+
+    #[test]
+    fn ceiling_is_the_funded_balance_bound_and_still_needs_an_explicit_cap() {
+        // The 2026-10-18 funded-balance ceiling, not the superseded $5.
+        assert_eq!(HARD_CAP_USD, 40.0);
+        assert_eq!(check_budget(5.5, Some(8.5)).unwrap(), 5.5);
+        assert_eq!(check_budget(40.0, Some(HARD_CAP_USD)).unwrap(), 40.0);
+        assert!(check_budget(5.5, None).is_err());
+        // A whole Meshy allowance prices inside the dollar ceiling.
+        let whole = meshy::MAX_CREDITS as f64 * meshy::USD_PER_CREDIT;
+        assert!(whole <= HARD_CAP_USD, "{whole}");
+        assert!(check_budget(whole, Some(whole)).is_ok());
     }
 
     #[test]
