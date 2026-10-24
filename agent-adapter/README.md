@@ -48,6 +48,15 @@ snapshot; a full room can leave you unseated. `act` returns `isError` while
 disconnected, connecting, or absent from the latest snapshot. A queued action
 is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
 
+A joined agent sees pads the way rule bots do. Its `observe` (brief pad
+distances and full `pickups`) reports what its own fighter has seen: a pad
+inside a 120 degree view, within 40 m and past cover, or underfoot. Full
+`pickups[].available` is that belief, `in_view` says whether the pad is seen
+now, and the live `respawn_in` timer is removed. A pad seen empty is believed
+back after its published clock; pads not seen are believed up. Turn and look to
+learn the map. An adapter that never joined keeps the full live view.
+`docs/protocol.md` has the clocks.
+
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
 ## Quick Start

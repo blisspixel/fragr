@@ -1444,6 +1444,19 @@ pub struct PickupState {
     pub respawn_in: Option<u32>,
 }
 
+impl PickupState {
+    /// The pad's published return clock in ticks. A regular learns these
+    /// numbers; a joined agent's observe uses them instead of a live timer.
+    pub fn clock_ticks(&self, teams: bool) -> u32 {
+        match self.kind.as_str() {
+            "weapon" if teams => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
+            "weapon" => crate::sim::PICKUP_RESPAWN_TICKS,
+            "health" | "armor" => crate::sim::HEALTH_PICKUP_RESPAWN_TICKS,
+            _ => crate::sim::SUPPLY_PICKUP_RESPAWN_TICKS,
+        }
+    }
+}
+
 /// Solo Broadcast jammer dish world marker (arena center soft-touch).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JammerDishState {

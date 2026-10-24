@@ -49,28 +49,34 @@ fn ranged(weapon: WeaponType) -> bool {
 
 /// The best usable weapon for a fight at `distance`.
 fn best_weapon(bot: &Player, distance: f32) -> WeaponType {
-    let order: [WeaponType; 6] = if distance < 10.0 {
+    let order: [WeaponType; 8] = if distance < 10.0 {
         [
             WeaponType::Scatter,
+            WeaponType::Repeater,
             WeaponType::Flechette,
             WeaponType::Tack,
             WeaponType::Rail,
+            WeaponType::Sniper,
             WeaponType::Shiv,
             WeaponType::Fists,
         ]
     } else if distance < 30.0 {
         [
             WeaponType::Flechette,
+            WeaponType::Repeater,
             WeaponType::Rail,
             WeaponType::Tack,
+            WeaponType::Sniper,
             WeaponType::Scatter,
             WeaponType::Shiv,
             WeaponType::Fists,
         ]
     } else {
         [
+            WeaponType::Sniper,
             WeaponType::Rail,
             WeaponType::Flechette,
+            WeaponType::Repeater,
             WeaponType::Tack,
             WeaponType::Scatter,
             WeaponType::Shiv,
@@ -89,6 +95,8 @@ fn armed(bot: &Player) -> bool {
         WeaponType::Flechette,
         WeaponType::Scatter,
         WeaponType::Rail,
+        WeaponType::Sniper,
+        WeaponType::Repeater,
     ]
     .into_iter()
     .any(|weapon| bot.inventory.usable(weapon))
@@ -149,7 +157,7 @@ impl BotController {
             .filter(|p| p.contestant() && p.team == Some(team))
             .position(|p| p.id == bot.id)
             .unwrap_or(0);
-        let enemy = nearest_visible_enemy(state, bot);
+        let enemy = self.sensed_enemy(state, bot, reach(bot));
         let swap = |intent: BotIntent, distance: f32| {
             let wanted = best_weapon(bot, distance);
             let mut intent = intent;
@@ -174,6 +182,13 @@ impl BotController {
         };
         let distance = enemy.map_or(20.0, |(_, d)| d);
         if let Some(intent) = objective {
+            // Shot from out of view on the way: turn to the shot before the
+            // next step. A carrier or a working bot keeps its job.
+            if enemy.is_none() && !intent.action.interact && sab_carrier(sab) != Some(bot.id) {
+                if let Some(threat) = self.sensed_threat(state, bot) {
+                    return swap(face(bot, threat), distance);
+                }
+            }
             return swap(intent, distance);
         }
         // Nobody in sight and nothing pressing: arm up or upgrade nearby.
@@ -204,9 +219,8 @@ impl BotController {
                 .filter(|hold| hold.kind == ProgressKind::Defuse)
                 .and_then(|hold| state.players.iter().find(|p| p.id == hold.player));
             if let Some(target) = defuser {
-                let dist = horizontal(feet(bot), feet(target));
-                if visible(state, bot, target) {
-                    return Some(self.fight(state, bot, target, dist, false));
+                if let Some((seen, dist)) = enemy.filter(|(seen, _)| seen.id == target.id) {
+                    return Some(self.fight(state, bot, seen, dist, false));
                 }
                 return Some(walk(bot, charge.position));
             }
@@ -345,8 +359,9 @@ impl BotController {
         Some(walk(bot, hold_spot(layout, site, spot)))
     }
 
-    /// Fight one visible enemy with this bot's personality. A holding fighter
-    /// strafes and shoots but does not walk in or back off.
+    /// Fight the enemy this bot is looking at with its personality, through
+    /// the shared delayed and bounded aim. A holding fighter strafes and
+    /// shoots but does not walk in or back off.
     fn fight(
         &self,
         state: &GameState,
@@ -355,23 +370,13 @@ impl BotController {
         dist: f32,
         hold: bool,
     ) -> BotIntent {
-        let target_angle = (target.z - bot.z).atan2(target.x - bot.x);
-        let angle_diff = (target_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
-        let eye = [
-            bot.x,
-            bot.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(bot.campaign, bot.ducking),
-            bot.z,
-        ];
-        let centre = crate::combat::aim_point_for(
-            [target.x, target.y - PLAYER_FLOOR_Y, target.z],
-            target.campaign,
-            target.ducking,
-        );
-        let action = Action {
-            pitch: crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch),
-            ..Action::default()
+        let wanted = best_weapon(bot, dist);
+        let swap = (wanted != bot.weapon).then_some(wanted);
+        let Some(mut intent) = self.sensed_fight(state, bot, swap, false) else {
+            // Outside the sensed path (a direct test caller): face the target
+            // and hold fire rather than shooting a body nobody saw.
+            return face(bot, feet(target));
         };
-        let mut intent = self.engage(state, bot, target, dist, angle_diff, action);
         // In clear sight and in reach, fight now. A navigator still walking an
         // objective route would hold the trigger until it searched again,
         // which handed every stationary defender the first shots.
@@ -383,6 +388,25 @@ impl BotController {
             }
         }
         intent
+    }
+}
+
+/// The attacker carrying the charge, if any.
+fn sab_carrier(sab: &Sabotage) -> Option<uuid::Uuid> {
+    sab.charge.as_ref().and_then(|charge| charge.carrier)
+}
+
+/// Stand and turn toward `point` at the shared bot turn rate.
+fn face(bot: &Player, point: [f32; 3]) -> BotIntent {
+    let goal_angle = (point[2] - bot.z).atan2(point[0] - bot.x);
+    let diff = (goal_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
+    BotIntent {
+        action: Action {
+            turn_right: diff > 0.18,
+            turn_left: diff < -0.18,
+            ..Action::default()
+        },
+        goal: None,
     }
 }
 
@@ -468,7 +492,11 @@ fn hold_spot(layout: &SabotageLayout, site: SiteId, slot: usize) -> [f32; 3] {
     spots[slot % spots.len()]
 }
 
+/// A defender sees an attacker: inside its 120 degree view and past cover.
+/// The defence's site call uses the same eyes as the fight.
 fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
+    let bearing = (target.z - bot.z).atan2(target.x - bot.x);
+    let facing = ((bearing - bot.yaw + PI).rem_euclid(2.0 * PI) - PI).abs();
     let eye = [
         bot.x,
         bot.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(bot.campaign, bot.ducking),
@@ -479,27 +507,17 @@ fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
         target.campaign,
         target.ducking,
     );
-    crate::combat::line_of_sight(eye, centre, &state.map.arena().solids)
+    facing <= std::f32::consts::FRAC_PI_3
+        && crate::combat::line_of_sight(eye, centre, &state.map.arena().solids)
 }
 
-/// The nearest standing enemy in clear sight and within fighting distance.
-fn nearest_visible_enemy<'a>(state: &'a GameState, bot: &Player) -> Option<(&'a Player, f32)> {
-    let reach = if armed(bot) {
+/// How far a bot starts a fight: a gun's reach, or arm's length unarmed.
+fn reach(bot: &Player) -> f32 {
+    if armed(bot) {
         ENGAGE_MAX
     } else {
-        // Unarmed, only a fight already at arm's length is worth taking.
         4.0
-    };
-    state
-        .players
-        .iter()
-        .filter(|p| {
-            p.standing() && state.contact_eligible(p) && p.team.is_some() && p.team != bot.team
-        })
-        .map(|p| (p, horizontal(feet(bot), feet(p))))
-        .filter(|(_, d)| *d <= reach)
-        .filter(|(p, _)| visible(state, bot, p))
-        .min_by(|a, b| a.1.total_cmp(&b.1))
+    }
 }
 
 /// The nearest pad that would arm or upgrade this bot, within `reach`.
@@ -511,7 +529,10 @@ fn supply(state: &GameState, bot: &Player, reach: f32, any: bool) -> Option<[f32
     state
         .pickups
         .iter()
-        .filter(|pad| pad.available)
+        .enumerate()
+        // What the bot believes from its own view, never a live pad state.
+        .filter(|(index, _)| bot.bot_senses.pad_eta(state, bot, *index) == Some(0))
+        .map(|(_, pad)| pad)
         .filter(|pad| pad.claim != SupplyClaim::Personal || !bot.inventory.claimed(&pad.id))
         .filter(|pad| match pad.kind {
             PickupKind::Weapon(weapon) if ranged(weapon) => {
