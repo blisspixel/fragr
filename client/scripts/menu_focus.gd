@@ -35,13 +35,13 @@ static func attach(node: Node) -> MenuFocus:
 	var existing: Variant = viewport.get_meta(META) if viewport.has_meta(META) else null
 	if is_instance_valid(existing) and existing is MenuFocus:
 		return existing as MenuFocus
-	var owner: MenuFocus = MenuFocus.new()
-	owner.name = "MenuFocus"
-	owner.process_mode = Node.PROCESS_MODE_ALWAYS
-	viewport.set_meta(META, owner)
+	var created: MenuFocus = MenuFocus.new()
+	created.name = "MenuFocus"
+	created.process_mode = Node.PROCESS_MODE_ALWAYS
+	viewport.set_meta(META, created)
 	# Callers attach from _ready, while the viewport may be adding children.
-	viewport.add_child.call_deferred(owner)
-	return owner
+	viewport.add_child.call_deferred(created)
+	return created
 
 ## A control the pointer may give focus to: an enabled, visible button that
 ## keyboard navigation can also reach.
@@ -92,16 +92,16 @@ func _follow_pointer() -> void:
 ## Move focus to the hovered control when the policy allows. Returns the
 ## control that owns focus afterwards.
 static func follow(viewport: Viewport) -> Control:
-	var owner: Control = viewport.gui_get_focus_owner()
+	var focused: Control = viewport.gui_get_focus_owner()
 	var hovered: Control = viewport.gui_get_hovered_control()
 	if not can_take_pointer_focus(hovered) or not fully_visible(hovered):
-		return owner
-	if owner == hovered:
+		return focused
+	if focused == hovered:
 		# A click can leave focus hidden. Pointing at it makes it visible.
 		if not hovered.has_focus(true):
 			hovered.grab_focus()
 		return hovered
-	if owner != null and holds_focus(owner):
-		return owner
+	if focused != null and holds_focus(focused):
+		return focused
 	hovered.grab_focus()
 	return hovered

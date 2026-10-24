@@ -66,6 +66,27 @@ func _run() -> void:
 	_check(menu._host_advanced.visible, "the disclosure stays open across a page rebuild")
 	menu._host_more.button_pressed = false
 	_check(not menu._host_advanced.visible, "the disclosure folds again")
+	# A failed start leaves the setup page with its reason, Start again and Back,
+	# and Multiplayer does not claim a running match.
+	owner.error_key = "LOCAL_SERVER_START_FAILED"
+	await menu._show("host")
+	var host_error: Label = menu._root.get_node_or_null("HostError") as Label
+	var failed_start: Button = menu._root.get_node_or_null("StartServer") as Button
+	_check(host_error != null and host_error.text == tr("LOCAL_SERVER_START_FAILED") and failed_start != null and not failed_start.disabled
+		and menu._root.get_node_or_null("HostBack") != null and menu.get_viewport().gui_get_focus_owner() != null,
+		"a failed start shows its reason beside a usable Start and Back")
+	await menu._show("multi")
+	_check(menu._root.get_node_or_null("RunningMatch") == null
+		and (menu._root.get_node("RunServer") as Button).text == tr("HOST_CREATE").to_upper(),
+		"after a failed start Multiplayer offers Run a match, not a running card")
+	owner.error_key = ""
+	# Leave the way a player does, through Run a match.
+	var run_again: Button = menu._root.get_node("RunServer") as Button
+	run_again.grab_focus()
+	run_again.pressed.emit()
+	await process_frame
+	await process_frame
+	_check(menu._page == "host" and menu._root.get_node_or_null("HostError") == null, "Run a match reopens setup without the old error")
 	menu._host_bots.value = 7
 	menu._host_bot_policy.select(2)
 	menu._host_bot_policy.item_selected.emit(2)

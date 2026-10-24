@@ -805,11 +805,19 @@ func _page_multi() -> void:
 		card.add_theme_color_override("font_color", _palette.accent)
 		_button(tr("HOST_YOUR_SERVER"), func() -> void: _show("host")).name = "RunServer"
 	_button(tr("JOIN_SECTION"), func() -> void: _show("join")).name = "FindMatch"
-	_label(tr("MULTI_FIND_NOTE")).name = "FindNote"
+	_choice_note(tr("MULTI_FIND_NOTE"), "FindNote")
 	if not running:
 		_button(tr("HOST_CREATE"), func() -> void: _show("host")).name = "RunServer"
-		_label(tr("MULTI_RUN_NOTE")).name = "RunNote"
+		_choice_note(tr("MULTI_RUN_NOTE"), "RunNote")
 	_button("Back", func() -> void: _show("main")).name = "MultiBack"
+
+## One line under a choice. Muted, so the choices read as the controls and
+## the notes as their explanation.
+func _choice_note(text: String, node_name: String) -> Label:
+	var note: Label = _label(text)
+	note.name = node_name
+	note.add_theme_color_override("font_color", _palette.muted)
+	return note
 
 func _mode_text(mode_key: String) -> String:
 	match mode_key:
@@ -1642,9 +1650,16 @@ func _fill_server_lists() -> void:
 	# Rows are rebuilt; the selected card and keyboard focus are not lost with them.
 	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
 	var focus_name: String = ""
-	if focused != null and (_nearby_box.is_ancestor_of(focused) or _saved_box.is_ancestor_of(focused)) \
-			and (_selected_card == null or not _selected_card.is_ancestor_of(focused)):
-		focus_name = str(focused.name)
+	var focus_box: VBoxContainer = null
+	# Moving the card out of a list drops focus inside it; hold that control.
+	var card_focus: Control = null
+	if focused != null and _selected_card != null and is_instance_valid(_selected_card) and _selected_card.is_ancestor_of(focused):
+		card_focus = focused
+	elif focused != null:
+		for box: VBoxContainer in [_nearby_box, _saved_box]:
+			if box.is_ancestor_of(focused):
+				focus_name = str(focused.name)
+				focus_box = box
 	if _selected_card != null and is_instance_valid(_selected_card) and _selected_card.get_parent() != _direct_slot:
 		_selected_card.reparent(_direct_slot, false)
 	_clear_box(_nearby_box)
@@ -1662,10 +1677,14 @@ func _fill_server_lists() -> void:
 		for row: Dictionary in saved:
 			_add_saved_row(str(row["address"]), bool(row["kept"]))
 	_place_selected_card()
-	if not focus_name.is_empty():
-		var again: Control = _saved_box.find_child(focus_name, true, false) as Control
+	if card_focus != null and is_instance_valid(card_focus) and card_focus.is_visible_in_tree():
+		card_focus.grab_focus()
+	elif not focus_name.is_empty():
+		# The same list first: an address can be both nearby and saved.
+		var again: Control = focus_box.find_child(focus_name, true, false) as Control
 		if again == null:
-			again = _nearby_box.find_child(focus_name, true, false) as Control
+			var other: VBoxContainer = _saved_box if focus_box == _nearby_box else _nearby_box
+			again = other.find_child(focus_name, true, false) as Control
 		if again != null:
 			again.grab_focus()
 		elif _scan_button != null and is_instance_valid(_scan_button):

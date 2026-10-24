@@ -200,6 +200,9 @@ func _run() -> void:
 		"Multiplayer first asks join or run, as two primary choices")
 	_check(column.find_child("HostAddress", true, false) == null and column.find_child("SavedList", true, false) == null
 		and column.find_child("StartServer", true, false) == null, "the choice page is not a flat list of address and host controls")
+	var find_note: Label = column.get_node_or_null("FindNote") as Label
+	_check(find_note != null and find_note.get_theme_color("font_color") == MenuTheme.MUTED
+		and find_match.get_theme_color("font_color") != MenuTheme.MUTED, "choice notes are quieter than the choices they explain")
 	_check(column.get_node_or_null("RunningMatch") == null, "an idle menu does not claim a server is running")
 	_check(menu.get_viewport().gui_get_focus_owner() == find_match, "the first choice owns focus on arrival")
 	find_match.pressed.emit()
@@ -320,9 +323,16 @@ func _run() -> void:
 	_check(menu._host_edit.text == "ws://192.0.2.10:6767", "choosing a saved host fills the address")
 	_check(menu._selected_card.get_parent() == saved_list and menu._selected_card.get_index() == use_saved.get_parent().get_index() + 1,
 		"a chosen server owns the card: its status and Watch and Join sit under its row")
+	var card_save: Button = menu._selected_card.find_child("SaveHost", true, false) as Button
+	card_save.grab_focus()
 	menu._fill_server_lists()
 	_check(menu._selected_card.get_parent() == saved_list and is_instance_valid(menu._watch_button),
 		"a list rebuild keeps the selected server card and its actions")
+	_check(menu.get_viewport().gui_get_focus_owner() == card_save,
+		"a list rebuild keeps keyboard focus on the selected card's action")
+	card_save.pressed.emit()
+	_check(menu.get_viewport().gui_get_focus_owner() == card_save and menu._selected_card.get_parent() == saved_list,
+		"saving the selected host from its card keeps focus on Save")
 	menu._host_edit.text = "192.0.2.12:6767"
 	menu._host_edit.text_changed.emit("192.0.2.12:6767")
 	_check(menu._selected_card.get_parent() == menu._direct_slot and menu._watch_button.disabled,
@@ -346,6 +356,17 @@ func _run() -> void:
 		hide_nearby.pressed.emit()
 	_check(menu._lan.is_empty() and _menu_text(column).contains(tr("JOIN_NEARBY_EMPTY")),
 		"hiding the last network host leaves the empty line")
+	# A scan that finds nothing settles to its own line, with the scan, the
+	# address and Back still usable.
+	var scan_button: Button = column.get_node("ScanNetwork") as Button
+	scan_button.grab_focus()
+	menu._scanning = true
+	menu._on_lan_scan_finished()
+	_check(menu._lan.is_empty() and _menu_text(column).contains(tr("JOIN_SCAN_EMPTY")) and not scan_button.disabled
+		and menu.get_viewport().gui_get_focus_owner() == scan_button and menu._scroll_back.visible
+		and menu._host_edit.editable and menu._selected_card.get_parent() == menu._direct_slot,
+		"a scan that finds nothing says so and leaves scan, address and Back usable")
+	menu._scan_settled = false
 	var page_was: String = menu._page
 	menu._page = "records"
 	menu._on_lan_found("8.8.8.8:6767")
