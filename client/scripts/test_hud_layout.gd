@@ -170,6 +170,12 @@ func _test_nameplate_blockers() -> void:
 		{"id": "clear", "rect": Rect2(560.0, 400.0, 180.0, 24.0), "priority": 2, "distance": 12.0},
 	]
 	_check(NameplateLayout.choose(plates, blockers) == ["clear"], "a nameplate under a HUD plate hides and a clear one stays")
+	hud.objective_call.push("COMPLIANCE-DRONE ON DECK.")
+	hud.objective_call._process(0.0)
+	await _settle()
+	var call_rect: Rect2 = hud.objective_call.occupied_region()
+	_check(call_rect.has_area() and hud.regions.world_label_blockers().any(func(rect: Rect2) -> bool: return rect.encloses(call_rect)), "the centre call blocks world labels: " + str(call_rect))
+	hud.objective_call.clear()
 	hud.weapon_label.text = ""
 	hud.map_chip_label.text = ""
 	await _settle()

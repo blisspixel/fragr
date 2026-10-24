@@ -374,9 +374,9 @@ func reserved_regions() -> Array[Rect2]:
 	return regions
 
 ## Viewport rectangles the HUD currently draws plates or text over: the corner,
-## center and context backings, frag feed rows, combat feed lines, the weapon
-## plate, the round card, the leaderboard, the use prompt, the radio card and
-## the warmup screen. World labels (fighter nameplates) are hidden where they
+## center and context backings, frag feed rows, the centre call, the death
+## card, combat feed lines, the weapon plate, the round card, the leaderboard,
+## the use prompt, the radio card and the warmup screen. World labels (fighter nameplates) are hidden where they
 ## would touch one, so a callsign never draws under or over a HUD panel.
 func world_label_blockers() -> Array[Rect2]:
 	var drawn: Array[Rect2] = []
@@ -385,9 +385,12 @@ func world_label_blockers() -> Array[Rect2]:
 	plates.append_array(backings.values())
 	plates.append_array([hud.get("weapon_icon_bg"), hud.get("round_backdrop"), hud.get("_leaderboard"),
 		hud.get("_use_plate"), hud.get("radio_card"), hud.get("warmup_tv")])
-	var feed: Variant = hud.get("frag_feed")
-	if feed is Control and (feed as Control).is_visible_in_tree():
-		plates.append_array((feed as Control).get_children())
+	# Holders whose plates are their children: feed rows, the centre call and
+	# the death card.
+	for holder_name: String in ["frag_feed", "objective_call", "death_card"]:
+		var holder: Variant = hud.get(holder_name)
+		if holder is Control and (holder as Control).is_visible_in_tree():
+			plates.append_array((holder as Control).get_children())
 	for plate: Variant in plates:
 		if plate is Control and (plate as Control).is_visible_in_tree():
 			drawn.append((plate as Control).get_global_rect())
