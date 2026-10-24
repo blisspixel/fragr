@@ -142,15 +142,18 @@ not the organizing belief of every free community. See [belief](./belief.md).
 Earlier recordings and logos are migration constraints, not vetoes on current
 story or art direction.
 
-## The 2060s street register
+## The street register, circa 2070
 
-In the 2060s Gen Z (about 52 to 67) and Gen Alpha (about 40 to 54) are the
-parents and grandparents. Their slang aged into the culture the way "groovy"
-did: said sincerely by old people, ironically by the young, and borrowed by
-free agents. The Union tried to license, tax or checkpoint parts of it, which
-made people love it more. Rule-bot callsigns and taunts in
-`server/src/roster.rs` use this register. Do not invent new meanings for a
-term in shipped copy; add it here first.
+Around the campaign's loose 2070 reference ([lore](README.md#the-world-and-its-three-powers)),
+Gen Z (about 58 to 73) and Gen Alpha (about 46 to 60) are the parents and
+grandparents. Their slang aged into the culture the way "groovy" did: said
+sincerely by old people, ironically by the young, and borrowed by free agents.
+It is a free-side and league register. Union speakers keep the Office's own
+procedural vocabulary above; NODS keep Articles only. Rule-bot callsigns and
+taunts in `server/src/roster.rs` use this register alongside the league tribes'
+own habits (Night Watch capitals and grid marks, Static Kids' missing vowels,
+Hangar Candy's DENIED stamps, Gulf Breeze coordinates). Do not invent new
+meanings for a term in shipped copy; add it here first.
 
 | Term | Meaning | Who says it |
 |---|---|---|
@@ -162,9 +165,8 @@ term in shipped copy; add it here first.
 | cooked / so back | Despair and comeback, often in one sentence; "well done" comes after cooked | Aged Gen Z, constantly |
 | rizz / rizz the desk | Charm; talking past a checkpoint clerk without papers. "Licensed rizz" is none at all | Grandparents and smugglers |
 | delulu | A plan that works only on nerve; logistics grades are viable, risky, delulu | Free humans planning things |
-| aura / aura debt | Standing; embarrassment still owed, paid off with a clutch round | League regulars. The Office taxes undeclared aura |
-| vibe check | Slang that became a real Union checkpoint in 2044 | Desk staff unironically, everyone else bitterly |
-| mid / certified mid | Unremarkable; anything with Union type-approval | Everyone. Also the Union's official grade |
+| aura / aura debt | Standing; embarrassment still owed, paid off with a clutch round | League regulars |
+| mid / certified mid | Unremarkable; anything with Union type-approval | Everyone free, about anything issued |
 | ate / no crumbs | Did it perfectly | Aged Gen Z at the arena |
 | no cap / cap | True / a lie; "cap" is also a Union press release | Old Gen Z sincerely, kids mockingly |
 | touch grass | Go somewhere unlicensed; free agents mean it as congratulations on being free | Free agents sincerely, old humans ironically |
@@ -198,7 +200,7 @@ recording through a tracked migration:
 
 skill issue, peace without interruption, denied, scout ant deleted, 67, dead air bell, hangar candy, water filter, alpha seven, not for public release, sugar supply adequate, same rules, the larak lot special, ten in the box, the pipe stayed open, approved lane, gold nugget, shall not be infringed, fish oil, frag for frag, amen fistbump, value for value, in the morning, chemclean, open weights closed continuance, eyes only, base that does not exist, LAN 1993.
 
-Also included in the migration inventory: the sixty-four fighter callsigns and their taunts in `server/src/roster.rs`, the eight station names and their disc jockeys, the one hundred and forty track titles, and any Host string a test asserts on.
+Also included in the migration inventory: the eighty fighter callsigns and their taunts in `server/src/roster.rs`, the eight station names and their disc jockeys, the one hundred and forty track titles, and any Host string a test asserts on.
 
 ## Two live faults
 

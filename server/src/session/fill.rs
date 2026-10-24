@@ -261,7 +261,7 @@ mod tests {
         crate::net::JoinIdentity {
             client_id: Uuid::from_u128(n),
             player_id: Uuid::from_u128(n + 100),
-            name: "Kind Regards".into(),
+            name: "Dead Air Dan".into(),
             role,
             body: BodyKind::Human,
         }

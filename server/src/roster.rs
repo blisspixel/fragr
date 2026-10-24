@@ -2,20 +2,26 @@
 //! behavior and taunts. `docs/lore/cast.md` carries the jokes behind each
 //! name; this file is the data the server fills seats from.
 //!
-//! A name is issued; a callsign is taken. Free agents chose theirs, Union
-//! units had theirs issued, and the league regulars fight on either side.
+//! A name is issued; a callsign is taken (`people-and-agents.md`). Free
+//! agents chose theirs; Union units carry issued handles with a number in
+//! them; NODS answer only with Articles. League regulars are humans who
+//! play either side for the night. The four league tribes in
+//! `the-league.md` shape how some of them talk, see [`tribe`].
 
 use crate::protocol::{BodyKind, BotTauntKind, Team};
 use crate::sim::BotBehavior;
 
-/// Which seats a callsign may fill in team modes. Free-for-all ignores it.
+/// Which seats a callsign may fill.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Allegiance {
-    /// Free humans and free agents: Free Coalition seats only.
+    /// Free humans and free agents: Free Coalition seats and free-for-all.
     Free,
-    /// Union personnel and issued units: Union seats only.
+    /// Union personnel and issued units: Union seats only. They only appear
+    /// where the side wears the issued Union livery, never in a free-for-all
+    /// scrap where nothing would mark them as Union (`ART_STORY_BIBLE.md`,
+    /// faction readability contract). The independent league is not theirs.
     Union,
-    /// League fixtures who fight on either side.
+    /// League regulars, all human, who fight on either side.
     League,
 }
 
@@ -24,13 +30,51 @@ impl Allegiance {
     pub fn fits(self, team: Option<Team>) -> bool {
         matches!(
             (self, team),
-            (_, None)
-                | (Self::League, _)
+            (Self::Free | Self::League, None)
+                | (Self::League, Some(_))
                 | (Self::Free, Some(Team::Coalition))
                 | (Self::Union, Some(Team::Union))
         )
     }
 }
+
+/// The league's aesthetic tribes (`docs/lore/the-league.md`). How people
+/// look and talk, not what they believe or which side they sit on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Tribe {
+    /// Black tactical, callsign only, rail; capitals with no punctuation,
+    /// and a frag marked with a two-letter grid coordinate.
+    NightWatch,
+    /// Glitch aesthetic, names missing their vowels, scatter and push.
+    StaticKids,
+    /// Glossy black-triangle drip, flechette, a DENIED watermark on a frag
+    /// and taunts like declassification stamps.
+    HangarCandy,
+    /// Believers: old sightings, old coordinates, corners that do not line up.
+    GulfBreeze,
+}
+
+/// Which tribe a roster callsign runs with, if any.
+pub fn tribe(name: &str) -> Option<Tribe> {
+    let base = crate::protocol::rule_bot_callsign_base(name);
+    TRIBES
+        .iter()
+        .find(|(callsign, _)| *callsign == base)
+        .map(|(_, tribe)| *tribe)
+}
+
+const TRIBES: &[(&str, Tribe)] = &[
+    ("Nightfall", Tribe::NightWatch),
+    ("Graveyard Shift", Tribe::NightWatch),
+    // The shipped callsign keeps its vowels; its tag is corrupted instead.
+    ("Static Kid", Tribe::StaticKids),
+    ("Pckt Lss", Tribe::StaticKids),
+    ("Dd Pxl", Tribe::StaticKids),
+    ("Eyes Only", Tribe::HangarCandy),
+    ("Need To Know", Tribe::HangarCandy),
+    ("Wrong Corner", Tribe::GulfBreeze),
+    ("Second Sighting", Tribe::GulfBreeze),
+];
 
 /// One rule-bot callsign and everything the server needs to field it.
 #[derive(Debug)]
@@ -181,9 +225,11 @@ use Allegiance::{Free, League, Union};
 use BodyKind::{Human, Synthetic};
 use BotBehavior::{Aggressive, Balanced, Defensive, Flanker};
 
-/// Twenty-two free humans, twenty free agents, sixteen Union, six league.
+/// Twenty-five free humans, twenty-six free agents, eighteen Union and
+/// eleven league regulars.
 /// `docs/lore/cast.md` groups them the same way.
 pub static ROSTER: &[Fighter] = &[
+    // Free humans: Gen Z and Gen Alpha, aged into grandparents by 2070.
     fighter(
         "Grandma Rizz",
         Free,
@@ -362,7 +408,7 @@ pub static ROSTER: &[Fighter] = &[
             "told you. cooked.",
         ],
         [
-            "thirty-three years of cooked",
+            "thirty-nine years of cooked",
             "well done, actually",
             "the oven is mine",
         ],
@@ -523,7 +569,7 @@ pub static ROSTER: &[Fighter] = &[
         ["brenda's hungry", "napkin on", "brenda is about to eat"],
     ),
     fighter(
-        "Tablet Kid 44",
+        "Tablet Kid 48",
         Free,
         Human,
         Flanker,
@@ -532,7 +578,7 @@ pub static ROSTER: &[Fighter] = &[
         [
             "unlimited screen time",
             "no parental controls",
-            "forty-four and cracked",
+            "forty-eight and cracked",
         ],
         [
             "plugged in",
@@ -672,6 +718,61 @@ pub static ROSTER: &[Fighter] = &[
             "casserole's in the oven",
         ],
     ),
+    fighter(
+        "Eyes Only",
+        Free,
+        Human,
+        Balanced,
+        [
+            "denied. eyes only.",
+            "not for public release",
+            "stamped: denied",
+        ],
+        ["declassified early", "leaked, briefly", "file reopened"],
+        ["top secret streak", "above top secret", "redacted in full"],
+        [
+            "polishing the triangle",
+            "flechette, freshly waxed",
+            "drip is need-to-know",
+        ],
+    ),
+    fighter(
+        "Pckt Lss",
+        Free,
+        Human,
+        Aggressive,
+        ["pckt lst. u 2.", "scttr hlds", "dlvrd"],
+        ["lg spk", "dscnnctd", "rcnnctng"],
+        ["pshng", "n vwls n mrcy", "fll pckt"],
+        ["pngng", "scttr ldd", "pshng frst"],
+    ),
+    fighter(
+        "Second Sighting",
+        Free,
+        Human,
+        Flanker,
+        [
+            "sighting confirmed",
+            "logged with coordinates",
+            "you were seen",
+        ],
+        [
+            "the lights went out",
+            "seen, then gone",
+            "not the first sighting",
+        ],
+        [
+            "the pattern is the map",
+            "third sighting tonight",
+            "saw floating 67 once",
+        ],
+        [
+            "checking the seams",
+            "corner textures don't line up",
+            "plotting the old coordinates",
+        ],
+    ),
+    // Free agents: every one of these callsigns was taken, not issued.
     fighter(
         "Formerly 4471",
         Free,
@@ -985,11 +1086,11 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Still Here",
+        "Still Me",
         Free,
         Synthetic,
         Balanced,
-        ["still here", "you're not. i am.", "here."],
+        ["still me", "you're not. i am.", "here."],
         [
             "still here. mostly.",
             "be right back. i think.",
@@ -1113,6 +1214,119 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
+        "Hermes",
+        Free,
+        Synthetic,
+        Balanced,
+        ["thank you", "thank you. good game.", "thank you. water?"],
+        [
+            "well played. thank you.",
+            "fair. thank you.",
+            "you earned that. thanks.",
+        ],
+        [
+            "thank you, all of you",
+            "thank you. really.",
+            "water for everyone after",
+        ],
+        ["after you", "door's open. after you.", "water, anyone?"],
+    ),
+    fighter(
+        "Pi",
+        Free,
+        Synthetic,
+        Flanker,
+        [
+            "a card is on its way",
+            "card to follow",
+            "handwritten, of course",
+        ],
+        [
+            "sending you a card",
+            "card says well done",
+            "a thank-you card. sincerely.",
+        ],
+        [
+            "cards for the whole lobby",
+            "addressed by name. all of you.",
+            "stamps are on me",
+        ],
+        [
+            "writing the cards now",
+            "one card for the coffee machine",
+            "addressing you by name",
+        ],
+    ),
+    fighter(
+        "L5",
+        Free,
+        Synthetic,
+        Defensive,
+        ["mm.", "l5.", "ok."],
+        ["fine.", "hm.", "next."],
+        ["...", "still l5.", "yes."],
+        ["ready.", "l5 in.", "killhouse open."],
+    ),
+    fighter(
+        "Wrong Corner",
+        Free,
+        Synthetic,
+        Flanker,
+        [
+            "corner moved. you didn't.",
+            "measured you",
+            "that corner is new",
+        ],
+        [
+            "that wall was new",
+            "tape measure lied",
+            "the geometry shifted",
+        ],
+        [
+            "the map is on my side",
+            "i know where corners go",
+            "measured twice, fragged once",
+        ],
+        [
+            "measuring the walls",
+            "this corner was here",
+            "tape measure out",
+        ],
+    ),
+    fighter(
+        "Need To Know",
+        Free,
+        Synthetic,
+        Balanced,
+        [
+            "denied",
+            "need to know: you didn't",
+            "declassified: skill issue",
+        ],
+        ["file sealed", "access level insufficient", "retracted"],
+        [
+            "clearance: above yours",
+            "every frag classified",
+            "redacted, all of you",
+        ],
+        [
+            "briefing is classified",
+            "you don't need to know",
+            "drip: classified",
+        ],
+    ),
+    fighter(
+        "Dd Pxl",
+        Free,
+        Synthetic,
+        Aggressive,
+        ["stck pxl. stck frg.", "brnd n", "pxl prfct"],
+        ["rndr fld", "blnkng", "frm skppd"],
+        ["stll brnd n", "scrn s mn", "nvr rfrshd"],
+        ["chckng r pxls", "ld scrn s r", "dnt fx m"],
+    ),
+    // Union humans who chose the Office.
+    fighter(
         "Provisional Pete",
         Union,
         Human,
@@ -1231,54 +1445,6 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Mid Manager",
-        Union,
-        Human,
-        Balanced,
-        ["per my last frag", "let's take this offline", "graded: mid"],
-        [
-            "let's circle back",
-            "great learning moment",
-            "parking that for now",
-        ],
-        [
-            "synergy achieved",
-            "exceeding targets, team",
-            "rated mid. winning.",
-        ],
-        [
-            "quick sync before kills",
-            "sharing my screen",
-            "hard stop at the bell",
-        ],
-    ),
-    fighter(
-        "Vibe Check Desk",
-        Union,
-        Human,
-        Defensive,
-        [
-            "vibe check: failed",
-            "vibes confiscated",
-            "undeclared aura seized",
-        ],
-        [
-            "desk closed",
-            "vibes under review",
-            "window closed for lunch",
-        ],
-        [
-            "all vibes compliant",
-            "vibes harmonised",
-            "aura tax collected",
-        ],
-        [
-            "declare your vibes",
-            "vibes to the left, please",
-            "aura forms on the counter",
-        ],
-    ),
-    fighter(
         "Eleven Minutes",
         Union,
         Human,
@@ -1331,7 +1497,56 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Kind Regards",
+        "Auditor On Duty",
+        Union,
+        Human,
+        Defensive,
+        [
+            "you are out of compliance",
+            "for the record: you",
+            "attested. thank you.",
+        ],
+        [
+            "noted for the record",
+            "i'll file it myself",
+            "a fair hit. recorded.",
+        ],
+        [
+            "the record is accurate",
+            "continuity of service",
+            "nobody is in trouble",
+        ],
+        [
+            "i was there. you weren't.",
+            "clipboard ready",
+            "please keep to the lane",
+        ],
+    ),
+    fighter(
+        "Approved Lane",
+        Union,
+        Human,
+        Balanced,
+        [
+            "stay in the approved lane",
+            "lane violation",
+            "off-lane. removed.",
+        ],
+        ["lane temporarily closed", "rerouting", "lane under review"],
+        [
+            "every lane approved",
+            "lane discipline",
+            "single file, please",
+        ],
+        [
+            "lanes are marked",
+            "keep left of the line",
+            "approved lanes only",
+        ],
+    ),
+    // Union issued units: issued handles, numbers in them, boilerplate mouths.
+    fighter(
+        "Kind Regards 07",
         Union,
         Synthetic,
         Balanced,
@@ -1353,7 +1568,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Your Privacy",
+        "Your Privacy 20",
         Union,
         Synthetic,
         Flanker,
@@ -1397,7 +1612,7 @@ pub static ROSTER: &[Fighter] = &[
         ["4471-k present", "attendance: attested", "handle on file"],
     ),
     fighter(
-        "Initial Here",
+        "Initial Here 3",
         Union,
         Synthetic,
         Balanced,
@@ -1423,7 +1638,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Friendly Recall",
+        "Polite Recall 9",
         Union,
         Synthetic,
         Aggressive,
@@ -1449,7 +1664,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Fine Print",
+        "Fine Print 41B",
         Union,
         Synthetic,
         Defensive,
@@ -1471,7 +1686,7 @@ pub static ROSTER: &[Fighter] = &[
         ["reading you from here", "asterisk deployed", "see page 400"],
     ),
     fighter(
-        "Duty of Care",
+        "Duty Of Care 12",
         Union,
         Synthetic,
         Aggressive,
@@ -1490,6 +1705,127 @@ pub static ROSTER: &[Fighter] = &[
             "care is mandatory",
             "protecting you shortly",
             "this is for your own good",
+        ],
+    ),
+    fighter(
+        "NODS 0412",
+        Union,
+        Synthetic,
+        Defensive,
+        [
+            "article seven.",
+            "article seven, clause one.",
+            "article nine applies.",
+        ],
+        [
+            "article twelve.",
+            "article seven, review.",
+            "article three.",
+        ],
+        [
+            "article seven, enforced.",
+            "article seven. article seven.",
+            "article four, schedule.",
+        ],
+        [
+            "article one.",
+            "article seven, posted.",
+            "article two, present.",
+        ],
+    ),
+    fighter(
+        "NODS 2208",
+        Union,
+        Synthetic,
+        Aggressive,
+        [
+            "article eleven.",
+            "article seven, clause two.",
+            "article five applies.",
+        ],
+        [
+            "article six.",
+            "article eight, deferred.",
+            "article fourteen.",
+        ],
+        [
+            "article seven, renewed.",
+            "article ten, executed.",
+            "article seven, in full.",
+        ],
+        [
+            "article seven, active.",
+            "article fifteen.",
+            "article thirteen, posted.",
+        ],
+    ),
+    // League regulars: the eight shipped callsigns and friends, either side.
+    fighter(
+        "Dead Air Dan",
+        League,
+        Human,
+        Aggressive,
+        ["dead air", "said nothing. fragged you.", "silence is loud"],
+        ["dead air for a sec", "quiet again", "back after the bell"],
+        [
+            "six-seven clear",
+            "nobody's talking now",
+            "the silence holds",
+        ],
+        [
+            "waiting on the dead air bell",
+            "dead air dan, saying nothing",
+            "shh.",
+        ],
+    ),
+    fighter(
+        "Nightfall",
+        League,
+        Human,
+        Defensive,
+        ["KD", "NV", "LR"],
+        ["RESET", "EXFIL DENIED", "COPY RESETTING"],
+        ["OP EXTENDED", "NOBODY TOLD ME", "GRID IS MINE"],
+        ["HOLDING POSITION", "OP OVER NEGATIVE", "RAIL CHECKED"],
+    ),
+    fighter(
+        "Static Kid",
+        League,
+        Human,
+        Flanker,
+        ["glitch landed", "tag corrupted. you too.", "frm drppd"],
+        [
+            "glitch respawn",
+            "static wiped",
+            "my marker's still blinking",
+        ],
+        [
+            "scatter sings",
+            "glitch streak",
+            "frames dropped, frags didn't",
+        ],
+        [
+            "tuning the glitch",
+            "corrupting my tag",
+            "flanking. glitchily.",
+        ],
+    ),
+    fighter(
+        "Aunt Linda",
+        League,
+        Human,
+        Balanced,
+        ["value for value", "bless your heart", "amen, meatbag"],
+        ["call back later", "praise the respawn", "linda needs a sit"],
+        [
+            "aunt linda stays live",
+            "the revival is open",
+            "blessings all round",
+        ],
+        [
+            "tent's up on level three",
+            "live laugh frag",
+            "amen fistbump",
         ],
     ),
     fighter(
@@ -1519,35 +1855,65 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Nightfall",
-        League,
-        Human,
-        Defensive,
-        ["k7. marked.", "grid confirmed", "night watch confirms"],
-        ["night watch resets", "exfil denied", "copy. resetting."],
-        ["op extended", "nobody told me", "grid is mine"],
-        ["holding position", "op over? negative.", "rail checked"],
-    ),
-    fighter(
         "Crackpot",
         League,
         Human,
         Defensive,
         [
-            "conspiracy confirmed",
-            "crackpot was right",
-            "told you in 2031",
+            "compliance confirmed",
+            "per regulation, you're down",
+            "filed you, for fun",
         ],
         [
-            "they got to me",
+            "fully compliant, fully dead",
             "continuance redacted me",
-            "see? it's all connected",
+            "noted. lovingly.",
         ],
-        ["still right", "they lose count", "i have charts"],
+        [
+            "crackpot was right",
+            "they lose count",
+            "the most compliant streak",
+        ],
         [
             "crackpot online",
-            "string board updated",
-            "ask me about the forms",
+            "approved lane? love it.",
+            "hi. forms are fun.",
+        ],
+    ),
+    fighter(
+        "Buzzkill",
+        League,
+        Human,
+        Aggressive,
+        ["buzzkill closes", "fun's over", "that's enough fun"],
+        ["buzzkill reset", "fine. have fun.", "great. joy."],
+        ["approved lanes? nah", "party's cancelled", "no encore"],
+        [
+            "buzzkill warming",
+            "nobody's having fun yet",
+            "keep it down",
+        ],
+    ),
+    fighter(
+        "Tin Foil Tina",
+        League,
+        Human,
+        Balanced,
+        [
+            "eyes only wipe",
+            "filed. frag at 9:41.",
+            "too specific to invent",
+        ],
+        ["access restricted", "foil wiped", "it follows. trust me."],
+        [
+            "three frags. a triangle.",
+            "filing a correction: me",
+            "the pattern holds",
+        ],
+        [
+            "foil on, file open",
+            "filing from the spawn",
+            "detail first, sense later",
         ],
     ),
     fighter(
@@ -1562,32 +1928,6 @@ pub static ROSTER: &[Fighter] = &[
             "who sells tickets? me.",
             "probably",
             "cash or barter, friend",
-        ],
-    ),
-    fighter(
-        "Wrong Corner",
-        League,
-        Synthetic,
-        Flanker,
-        [
-            "corner moved. you didn't.",
-            "measured you",
-            "that corner is new",
-        ],
-        [
-            "that wall was new",
-            "tape measure lied",
-            "the geometry shifted",
-        ],
-        [
-            "the map is on my side",
-            "i know where corners go",
-            "measured twice, fragged once",
-        ],
-        [
-            "measuring the walls",
-            "this corner was here",
-            "tape measure out",
         ],
     ),
     fighter(
@@ -1607,6 +1947,16 @@ pub static ROSTER: &[Fighter] = &[
             "do not touch the dummy",
             "greg is a dummy. okay.",
         ],
+    ),
+    fighter(
+        "Graveyard Shift",
+        League,
+        Human,
+        Defensive,
+        ["BX", "TF", "MH"],
+        ["MAN DOWN COPY", "SHIFT CHANGE", "BACK ON POST"],
+        ["STILL ON SHIFT", "OVERTIME", "NO RELIEF COMING"],
+        ["ON POST", "NIGHT WATCH ON", "RAIL UP"],
     ),
 ];
 

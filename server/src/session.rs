@@ -1627,16 +1627,17 @@ mod session_tests {
         let lineup = |seed: u64| {
             let mut session = GameSession::new();
             session.state.seed(seed);
-            session.spawn_bots(64);
+            session.spawn_bots(62);
             bot_names(&session)
         };
+        // Free-for-all seats the sixty-two free and league callsigns; Union
+        // names wait for Union seats, where the side wears Union livery.
         let names = lineup(5);
         assert_eq!(names, lineup(5), "same seed, same lineup");
         let unique: std::collections::HashSet<_> = names.iter().collect();
-        assert_eq!(unique.len(), 64);
-        assert!(names
-            .iter()
-            .all(|n| crate::roster::find(n).is_some_and(|f| f.name == n)));
+        assert_eq!(unique.len(), 62);
+        assert!(names.iter().all(|n| crate::roster::find(n)
+            .is_some_and(|f| f.name == n && f.allegiance != crate::roster::Allegiance::Union)));
         let mut session = GameSession::new();
         session.spawn_bots(70);
         let names = bot_names(&session);
@@ -1664,11 +1665,20 @@ mod session_tests {
     #[test]
     fn rule_bot_roster_is_the_roster_table() {
         let roster = GameSession::rule_bot_roster();
-        assert_eq!(roster.len(), 64);
+        assert_eq!(roster.len(), 80);
         assert!(!roster
             .iter()
             .any(|f| f.name.starts_with("Bot") || f.name == "Rusher"));
-        assert!(roster.iter().any(|f| f.name == "Scout Ant"));
+        for canon in [
+            "Dead Air Dan",
+            "Aunt Linda",
+            "Buzzkill",
+            "Hermes",
+            "Pi",
+            "L5",
+        ] {
+            assert!(roster.iter().any(|f| f.name == canon), "{canon}");
+        }
     }
 
     #[test]

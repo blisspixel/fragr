@@ -1938,7 +1938,7 @@ available to sound-muted players through the caption and visible attack tell.
   "previous_winner": "Bot1",
   "mode_name": "Contested Frequency",
   "playlist": "Arena Duel",
-  "host_line": "HOST: ARENA DUEL. GRANDMA RIZZ, NIGHTFALL ON THE SCRAP. FIGHT!"
+  "host_line": "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. FIGHT!"
 }
 ```
 
@@ -2391,7 +2391,7 @@ holds 5 s, or 8 s before a swap or after a match.
   "event": "host_reaction",
   "kind": "streak_ended",
   "variant": 1,
-  "player": "Grandma Rizz",
+  "player": "Dead Air Dan",
   "other": "Nightfall",
   "team": "union"
 }

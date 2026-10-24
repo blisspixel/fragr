@@ -99,10 +99,10 @@ func _check_pawn() -> void:
 	var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
 	root.add_child(pawn)
 	await process_frame
-	pawn.call("set_player_data", "a1", "Kind Regards")
+	pawn.call("set_player_data", "a1", "Dead Air Dan")
 	var body: Sprite3D = pawn.get_node("Body")
 	var legacy: Texture2D = body.texture
-	var state: Dictionary = {"id":"a1", "name":"Kind Regards", "x":0.0, "y":1.5, "z":0.0, "yaw":0.0,
+	var state: Dictionary = {"id":"a1", "name":"Dead Air Dan", "x":0.0, "y":1.5, "z":0.0, "yaw":0.0,
 		"hp":100, "armor":0, "score":0, "weapon":"Rail"}
 	pawn.call("update_state", state, 1)
 	_check(body.texture == legacy and str(pawn.get("body_kind")).is_empty(), "no body keeps the legacy look")

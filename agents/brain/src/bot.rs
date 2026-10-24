@@ -3230,8 +3230,8 @@ mod stream_tests {
 
     #[test]
     fn a_fighter_stream_is_in_range_and_reproduces() {
-        let mut a = seed_from_name("Grandma Rizz");
-        let mut b = seed_from_name("Grandma Rizz");
+        let mut a = seed_from_name("Static Kid");
+        let mut b = seed_from_name("Static Kid");
         for _ in 0..200 {
             let x = next_roll(&mut a);
             assert!((0.0..1.0).contains(&x), "roll out of range: {x}");
@@ -3245,8 +3245,8 @@ mod stream_tests {
 
     #[test]
     fn two_fighters_do_not_move_in_lockstep() {
-        let mut a = seed_from_name("Grandma Rizz");
-        let mut b = seed_from_name("Kevin On Purpose");
+        let mut a = seed_from_name("Static Kid");
+        let mut b = seed_from_name("Aunt Linda");
         let mut same = 0;
         for _ in 0..100 {
             if next_roll(&mut a) == next_roll(&mut b) {

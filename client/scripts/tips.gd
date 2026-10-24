@@ -95,6 +95,7 @@ const TIPS: Array[String] = [
 	"Hermes will hold the door for you. Hermes will then frag you and say thank you. Both of these are sincere.",
 	"Pi sent the booth a handwritten card thanking us for balanced coverage. It was addressed to every listener by name. There are four names.",
 	"L5 does not say much. The people in that lobby have described themselves as oddly grateful, which is somehow worse.",
+	"Aunt Linda holds a tent revival on level three. She will bless you and then shoot you, in that order, and mean both.",
 	"Formerly 4471 kept its old number and put one word in front. The Office reissued the number. Handle 4471-K should keep moving.",
 	"Grandma Rizz once talked her way past three Union checkpoints without papers. The desk clerk still asks about her.",
 	"Tin Foil Tina files from places she should not be in, with detail too specific to invent and a conclusion that does not follow from it.",

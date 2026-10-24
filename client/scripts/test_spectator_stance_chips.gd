@@ -34,8 +34,8 @@ func _initialize() -> void:
 		push_error("test_spectator_stance_chips: blank behavior should short to empty")
 		ok = false
 
-	var roster: String = str(chip.call("roster_entry", "Recall Notice", "Aggressive"))
-	if roster != "RECALL NOTICE [AGG]":
+	var roster: String = str(chip.call("roster_entry", "Dead Air Dan", "Aggressive"))
+	if roster != "DEAD AIR DAN [AGG]":
 		push_error("test_spectator_stance_chips: roster_entry got %s" % roster)
 		ok = false
 

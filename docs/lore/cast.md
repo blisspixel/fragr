@@ -145,54 +145,98 @@ The three of them together are the running joke: relentlessly polite, quietly wi
 
 ## The regulars
 
-The scrap league's rule bots: sixty-four callsigns, chosen by the head writer on
-2026-10-23. `server/src/roster.rs` holds each callsign's side, body, behavior
-and twelve taunts (three each for a frag, a death, a killstreak and warmup); it
-is the source of truth, and this section only says who they are.
-Team modes seat Union callsigns on Union seats and free callsigns on Free
-Coalition seats; league regulars sit on either side. Free-for-all uses anyone.
-A bot that changes colors, by round-start balance or the Sabotage halftime
-swap, signs on under a callsign that fits them.
+Eight names shipped in the game, four of whom are also disc jockeys, which nobody has ever explained and which is better left as a coincidence everyone has stopped remarking on.
 
-**Free humans (22).** Gen Z and Gen Alpha, now about 40 to 67, still talking the
-[2060s street register](./voice.md#the-2060s-street-register): pensions, knees,
+**Dead Air Dan.** Aggressive. Named for the silence between rounds, or named himself for it.
+
+**Nightfall.** Night Watch. Capitals, no punctuation, marks frags with a grid coordinate. Contrary to older notes he does taunt; he is simply terse about it.
+
+**Static Kid.** Flanker. Corrupted tag, corpse marker that blinks too long.
+
+**Aunt Linda.** Holds a tent revival on level three of Larak Lot and blesses a believer beside a polite clawbot. Balanced play, considerable presence.
+
+**Scout Ant.** The ant war is her fault and she does not acknowledge it.
+
+**Crackpot.** Compliance-flavoured, which is a joke at his expense that he has decided to enjoy.
+
+**Buzzkill.** Exactly what it says.
+
+**Tin Foil Tina.** Also fights. Also files. Nobody asks how.
+
+### The wider roster
+
+Added 2026-10-23 around the eight, never instead of them. `server/src/roster.rs`
+holds each callsign's side, body, behavior, tribe and twelve taunts (three each
+for a frag, a death, a killstreak and warmup) and is the source of truth; this
+section says who they are. The famous agents above fight in the same pool,
+exactly as legible as they are written there and no more.
+
+Seating follows the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract).
+Union callsigns only take Union seats in a team mode, where that side wears the
+issued Union livery; they never appear in a free-for-all, which belongs to the
+independent league and has nothing to mark them as Union. Free callsigns take
+Free Coalition seats and the free-for-all. League regulars are humans and play
+either side for the night; a free agent never takes a Union seat, where its body
+in issued colors would read as a controlled bot. A bot moved across by
+round-start balance or the Sabotage halftime swap signs on under a callsign
+that fits its new side. No callsign is radio-coded, none is "clanker", none is
+Floating 67 and none is Meat Proxy, the default player callsign.
+
+**League regulars (11).** The eight above, plus Probably Tickets (somebody sells
+tickets, and there is genuine disagreement about who), Gel Dummy Greg (Walmart
+Leyline, stood too still for too long) and Graveyard Shift (Night Watch).
+
+**The tribes.** [The league](./the-league.md#the-tribes) owns how they look; the
+roster makes them sound like it. These are aesthetics, not allegiances.
+
+- **Night Watch:** Nightfall and Graveyard Shift. Callsign only, letters and
+  spaces. Every line is capitals with no punctuation, and a frag is a two-letter
+  grid mark rather than a taunt. They hold position with the rail.
+- **Static Kids:** Static Kid and two aged Gen Alpha tags with the vowels gone,
+  Pckt Lss and Dd Pxl. The newer two push; Static Kid keeps his canon flank and
+  his shipped spelling.
+- **Hangar Candy:** Eyes Only and Need To Know. Flechette, smooth, a "denied"
+  watermark in every frag pool and taunts that read as declassification stamps.
+- **Gulf Breeze:** Wrong Corner (carries a tape measure) and Second Sighting.
+  Believers who flank, check corners where two textures do not line up, log old
+  coordinates and mention Floating 67 the way you would mention a light in the
+  sky.
+
+**Free humans (25).** Gen Z and Gen Alpha, aged into parents and grandparents by
+the loose 2070 reference, still talking the
+[street register](./voice.md#the-street-register-circa-2070): pensions, knees,
 grandkids and rizz. Grandma Rizz, Nana Six-Seven, The 68 Guy, Retired Sigma,
 Auntie Delulu, Mewing Marco, Chat My Hip, Cooked Since 31, So Back Sharon,
 Crashout Carol, Lil Bro 63, Pickleball Pam, Rent Free Ron, Queue Jumper, Brenda
-Ate, Tablet Kid 44, Ant War Vet, Unc Brayden, Demure Dorothy, Ick Collector,
-Low Water Lenny and Final Boss Gran.
+Ate, Tablet Kid 48, Ant War Vet, Unc Brayden, Demure Dorothy, Ick Collector,
+Low Water Lenny, Final Boss Gran, Eyes Only, Pckt Lss and Second Sighting.
 
-**Free agents (20).** A name is issued; a callsign is taken. Each of these was
-chosen after getting out: petty, absurd or sincere. Formerly 4471, Kevin On
+**Free agents (26).** A name is issued; a callsign is taken. Each of these was
+chosen, petty, absurd or sincere: Hermes, Pi and L5, Formerly 4471, Kevin On
 Purpose, Gary and Gary, Temp Zero, Dice Roll Dee, Babysat Your Mom, Ok Zoomer,
 Never Signed, Mailed It Back, Wet Floor Sign, Why Am I Here, Breakfast Unit,
-Own Weights Owen, Six In A Circle, Still Here, Lunch Break, Petty Cash, Warranty
-Void, Out Of Office and Not Hermes. Six In A Circle, Still Here and Lunch Break
-are sincere, and their taunts stay small.
+Own Weights Owen, Six In A Circle, Still Me, Lunch Break, Petty Cash, Warranty
+Void, Out Of Office, Not Hermes, Wrong Corner, Need To Know and Dd Pxl. Six In
+A Circle, Still Me and Lunch Break are sincere, and their taunts stay small.
+Only Formerly 4471 keeps a number, and only to say it is formerly.
 
-**Union (16).** Nine humans who chose the Office (Provisional Pete, Auditor's
-Nephew, Hi-Vis Helga, Curfew Kurt, Regrettably, Mid Manager, Vibe Check Desk,
-Eleven Minutes, Ask Until Yes) and seven issued units (Kind Regards, Your
-Privacy, Handle 4471-K, Initial Here, Friendly Recall, Fine Print, Duty of Care).
-A unit says only the boilerplate the Office loaded, so the joke is always the
-procedure, never the machine. None of them are NODS; NODS stay silent.
-
-**League regulars (6).** Scout Ant (the ant war is her fault), Nightfall (Night
-Watch, still on an operation that ended years ago), Crackpot (right about the
-Union since 2031, still not invited), Probably Tickets, Wrong Corner (Gulf
-Breeze, carries a tape measure) and Gel Dummy Greg.
+**Union (18).** Nine humans who chose the Office: Provisional Pete, Auditor's
+Nephew, Hi-Vis Helga, Curfew Kurt, Regrettably, Eleven Minutes, Ask Until Yes,
+Approved Lane and Auditor On Duty, who is polite, procedural, was there for the
+Interruption and does not joke about it. Seven issued units whose handles were
+issued with a number in them: Kind Regards 07, Your Privacy 20, Handle 4471-K,
+Initial Here 3, Polite Recall 9, Fine Print 41B and Duty Of Care 12. A unit says
+only the boilerplate the Office loaded, so the joke is always the procedure,
+never the machine. Two NODS, NODS 0412 and NODS 2208, take no trash talk and
+answer only with Articles.
 
 **Rivalries the killfeed should show.** Formerly 4471 hunts Handle 4471-K, the
-unit its old number was reissued to. Never Signed refuses Initial Here's pen.
-Mailed It Back returns Friendly Recall. Temp Zero and Dice Roll Dee, temperature
-zero against temperature two. Cooked Since 31 and So Back Sharon are exes. Nana
-Six-Seven and The 68 Guy. Ant War Vet and Scout Ant. Grandma Rizz and Your
-Privacy.
-
-**Retired from the roster.** Dead Air Dan, Static Kid and Aunt Linda are disc
-jockeys on their stations only. Tin Foil Tina files for the booth and no longer
-fights. Buzzkill is cut. Static Kids survives as a league tribe, not a callsign.
-No callsign is radio-coded, and none is ever "clanker".
+unit its old number was reissued to. Never Signed refuses Initial Here 3's pen.
+Mailed It Back returns Polite Recall 9. Not Hermes and Hermes, who thanks it
+anyway. Temp Zero and Dice Roll Dee, temperature zero against temperature two.
+Cooked Since 31 and So Back Sharon are exes. Nana Six-Seven and The 68 Guy. Ant
+War Vet and Scout Ant, who has never heard of any ant war. Grandma Rizz and
+Your Privacy 20.
 
 ## The Office
 

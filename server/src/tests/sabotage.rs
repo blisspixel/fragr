@@ -876,7 +876,7 @@ fn rule_bots_change_callsigns_when_the_half_changes_their_colors() {
         "Formerly 4471",
         "Handle 4471-K",
         "Scout Ant",
-        "Kind Regards",
+        "Kind Regards 07",
     ];
     let mut ids = Vec::new();
     for (n, name) in names.into_iter().enumerate() {
