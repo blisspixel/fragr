@@ -78,11 +78,11 @@ pub(crate) const SPAWNS: [[f32; 4]; 12] = [
     [-27.0, LEVEL_2, -15.0, FRAC_PI_2],      // S3 BOOTHS
     [-17.0, LEVEL_2, -23.0, 0.0],            // S4 SPIRAL foot
     [-3.0, LEVEL_3, -26.0, FRAC_PI_2],       // S5 SPIRAL landing
-    [-31.0, LEVEL_1, 25.0, 3.0 * FRAC_PI_2], // S6 LANE south
-    [-34.0, LEVEL_1, 20.0, 0.0],             // S7 LANE mid
+    [-27.5, LEVEL_1, 27.0, 3.0 * FRAC_PI_2], // S6 LANE south
+    [-35.0, LEVEL_1, 21.0, 0.0],             // S7 LANE van
     [-5.0, LEVEL_1, 25.0, 3.0 * FRAC_PI_2],  // S8 STANDS west
     [7.0, LEVEL_1, 23.0, 3.0 * FRAC_PI_2],   // S9 STANDS east
-    [19.0, LEVEL_1, 25.0, 3.0 * FRAC_PI_2],  // S10 IMPOUND south
+    [13.0, LEVEL_1, 26.0, 3.0 * FRAC_PI_2],  // S10 IMPOUND west
     [2.5, LEVEL_1, 24.5, 3.0 * FRAC_PI_2],   // S11 STANDS tote
     [25.0, LEVEL_1, 26.0, 3.0 * FRAC_PI_2],  // S12 IMPOUND cage
 ];

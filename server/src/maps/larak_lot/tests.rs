@@ -874,3 +874,175 @@ fn larak_spawn_exposure() {
         );
     }
 }
+
+/// Ticks for the rule bots' own navigator to walk `from` to `to` through the
+/// real tick (movement, collision, stairs and body avoidance), or none if it
+/// has not arrived within `limit` ticks.
+fn bot_walk_ticks(from: [f32; 3], to: [f32; 3], limit: u32) -> Option<u32> {
+    use crate::navigation::{NavigationGoal, Navigator};
+    use crate::sim::{GameState, PLAYER_FLOOR_Y};
+    let navigation = crate::maps::navigation(MapKind::ArenaDuel);
+    let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+    state.config.time_limit_ticks = None;
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    let id = uuid::Uuid::from_u128(1);
+    state.add_player(id, "Lot Walker".into(), crate::protocol::Role::Human);
+    state.start_round();
+    state.players[0].x = from[0];
+    state.players[0].y = from[1] + PLAYER_FLOOR_Y;
+    state.players[0].z = from[2];
+    let mut navigator = Navigator::default();
+    for tick in 0..limit {
+        let player = &state.players[0];
+        let here = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+        if (here[0] - to[0]).hypot(here[2] - to[2]) < 0.6 && (here[1] - to[1]).abs() < 0.2 {
+            return Some(tick);
+        }
+        let walking = state.walking_arena(world());
+        let action = navigator.steer_with_visibility(
+            navigation,
+            here,
+            NavigationGoal {
+                feet: to,
+                combat: false,
+            },
+            crate::protocol::Action {
+                forward: true,
+                ..Default::default()
+            },
+            u64::from(tick),
+            true,
+            &walking.solids,
+        );
+        let action = navigator.avoid_bodies(
+            &walking,
+            id,
+            &state.contact_bodies(),
+            action,
+            u64::from(tick),
+        );
+        state.set_action(id, action);
+        state.tick(0.05);
+        state.take_events();
+    }
+    None
+}
+
+/// The duel spine and the corner-to-corner routes the timing table names.
+fn spine() -> Vec<(String, [f32; 3], [f32; 3])> {
+    let (rail, plate) = (feet(&pad(RAIL_ID)), feet(&pad(PLATE_ID)));
+    vec![
+        ("SW Lane corner to NE Roof corner".into(), SW_LANE, NE_ROOF),
+        (
+            "NW Toll corner to SE Impound corner".into(),
+            NW_TOLL,
+            SE_IMPOUND,
+        ),
+        ("Rail to Plate (climb)".into(), rail, plate),
+        ("Plate to Rail (fall)".into(), plate, rail),
+    ]
+}
+
+/// The rule bots' navigator walks the duel spine and corner to corner through
+/// the real tick inside the 25 s gate the layout was built to, and reaches the
+/// Plate and the Rail from a slot in every quarter.
+#[test]
+fn larak_bots_walk_the_spine_and_reach_the_power_items() {
+    for (name, from, to) in spine() {
+        let ticks = bot_walk_ticks(from, to, 25 * 20)
+            .unwrap_or_else(|| panic!("a bot never finished {name} inside 25 s"));
+        assert!(
+            ticks > 8 * 20,
+            "{name}: {ticks} ticks is suspiciously short"
+        );
+    }
+    let (rail, plate) = (feet(&pad(RAIL_ID)), feet(&pad(PLATE_ID)));
+    for slot in [SPAWNS[0], SPAWNS[4], SPAWNS[5], SPAWNS[7], SPAWNS[9]] {
+        for (name, target) in [("Plate", plate), ("Rail", rail)] {
+            assert!(
+                bot_walk_ticks(spawn_feet(&slot), target, 30 * 20).is_some(),
+                "a bot from {slot:?} never reached the {name}"
+            );
+        }
+    }
+}
+
+/// Frags and spawn deaths (a death within two seconds of the victim's
+/// respawn, the playtest harness's window) for `bots` rule bots on map 1 over
+/// `seconds` of play with no frag or time limit.
+fn rule_bot_spawn_deaths(bots: usize, seconds: u32, seed: u64) -> (u32, u32) {
+    use crate::protocol::{GameEvent, ServerMessage};
+    let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
+    session.state.seed(seed);
+    session.state.config.frag_limit = None;
+    session.state.config.time_limit_ticks = None;
+    session.spawn_bots(bots);
+    session.state.start_round();
+    let mut respawned: HashMap<String, u64> = HashMap::new();
+    let (mut frags, mut spawn_deaths) = (0, 0);
+    for _ in 0..seconds * 20 {
+        for message in session.tick_messages(0.05) {
+            let now = session.state.tick;
+            match message {
+                ServerMessage::Event(GameEvent::Respawn { player }) => {
+                    respawned.insert(player, now);
+                }
+                ServerMessage::Event(GameEvent::Frag { victim, .. }) => {
+                    frags += 1;
+                    if respawned
+                        .get(&victim)
+                        .is_some_and(|at| now.saturating_sub(*at) <= 40)
+                    {
+                        spawn_deaths += 1;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    (frags, spawn_deaths)
+}
+
+/// Prints the rule bots' spawn-death rate on map 1 at two to eight fighters.
+#[test]
+#[ignore = "prints the rule-bot spawn-death probe"]
+fn larak_spawn_death_probe() {
+    for bots in [2, 4, 6, 8] {
+        let (mut frags, mut deaths) = (0, 0);
+        for seed in [42, 67, 1993] {
+            let (f, d) = rule_bot_spawn_deaths(bots, 180, seed);
+            frags += f;
+            deaths += d;
+        }
+        println!(
+            "{bots} bots: {deaths} spawn deaths / {frags} frags ({:.1}%)",
+            deaths as f32 * 100.0 / frags.max(1) as f32
+        );
+    }
+}
+
+/// Prints the timing table recorded in the plan: the layered Dijkstra lower
+/// bound beside the time the rule bots' navigator takes through the tick.
+#[test]
+#[ignore = "prints the bot-walked timing table"]
+fn larak_bot_timing_table() {
+    let (rail, plate) = (feet(&pad(RAIL_ID)), feet(&pad(PLATE_ID)));
+    let mut rows = spine();
+    let origin = [0.5, PIT, 0.5];
+    for p in MapKind::ArenaDuel.pickups() {
+        rows.push((format!("Pit origin to {}", p.id), origin, feet(&p)));
+    }
+    for (i, slot) in SPAWNS.iter().enumerate() {
+        rows.push((format!("S{} to Plate", i + 1), spawn_feet(slot), plate));
+        rows.push((format!("S{} to Rail", i + 1), spawn_feet(slot), rail));
+    }
+    println!("| Route | Lower bound | Bot walk |");
+    for (name, from, to) in rows {
+        let bound = seconds_to(&distances(from), to);
+        let walk = bot_walk_ticks(from, to, 60 * 20).map_or("stalled".to_string(), |t| {
+            format!("{:.1} s", t as f32 / 20.0)
+        });
+        println!("| {name} | {bound:.1} s | {walk} |");
+    }
+}

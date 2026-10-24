@@ -30,9 +30,14 @@ fn fixed_fits(world: &Arena, hulls: &[Solid], (x, z, _, floor): Spawn) -> bool {
         })
 }
 
-/// An opponent this close counts as a threat with no line of sight: two
-/// seconds of running plus a Scatter's reach would close it.
+/// An opponent this close counts three times over with no line of sight: a
+/// second of running plus a Scatter's reach closes it inside the shield.
 const SPAWN_CORNER_RANGE: f32 = 12.0;
+/// An opponent this close counts once with no line of sight: two seconds of
+/// running plus a Flechette's reach would close it inside the safe window.
+const SPAWN_NEAR_RANGE: f32 = 20.0;
+/// A lane this short counts double: every weapon reaches down it at once.
+const SPAWN_CLOSE_LANE: f32 = 30.0;
 
 /// Whether a living body already stands where this spawn would put one.
 fn occupied(others: &[Occupant], (sx, sz, _, floor): Spawn) -> bool {
@@ -193,8 +198,14 @@ impl GameState {
                     // An opponent just round the corner reaches the arrival
                     // inside the safe window whatever the walls say. On a
                     // compact map of decks this is the commoner spawn death,
-                    // so it counts on top of any open lane.
-                    let corner = usize::from(distance <= SPAWN_CORNER_RANGE);
+                    // so it counts on top of any open lane, and more the
+                    // closer it is: a body ten metres away round a pillar is
+                    // a worse arrival than a lane fifty metres long.
+                    let corner = if distance <= SPAWN_CORNER_RANGE {
+                        3
+                    } else {
+                        usize::from(distance <= SPAWN_NEAR_RANGE)
+                    };
                     // The longest weapon bounds relevant lanes even if the
                     // opponent swaps weapons immediately after this spawn.
                     let lane = distance <= SPAWN_THREAT_RANGE
@@ -207,7 +218,14 @@ impl GameState {
                                     &world.solids,
                                 )
                             });
-                    corner + usize::from(lane)
+                    let lane = if !lane {
+                        0
+                    } else if distance <= SPAWN_CLOSE_LANE {
+                        2
+                    } else {
+                        1
+                    };
+                    corner + lane
                 })
                 .sum::<usize>();
             if best.is_none_or(|(was_clear, threats, gap)| {
