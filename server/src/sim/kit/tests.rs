@@ -75,7 +75,7 @@ fn select(state: &mut GameState, id: Uuid, weapon: WeaponType) {
 
 #[test]
 fn a_free_for_all_life_starts_with_the_pistol_and_fists_and_nothing_else() {
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let human = join(&mut state, 1, Role::Human);
     let agent = join(&mut state, 2, Role::Agent);
     state.arm_joined_magazines(human);
@@ -123,7 +123,7 @@ fn a_free_for_all_life_starts_with_the_pistol_and_fists_and_nothing_else() {
 
 #[test]
 fn a_weapon_pad_grants_the_gun_once_and_repeat_pickups_add_ammo_without_a_switch() {
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let id = join(&mut state, 1, Role::Human);
     state.arm_joined_magazines(id);
     stand_on(&mut state, id, "pad_flechette");
@@ -211,7 +211,7 @@ fn free_for_all_pad_clocks_are_appointments_and_team_clocks_are_unchanged() {
     );
     assert_eq!(team.pad_respawn_ticks(None, true), None);
 
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let id = join(&mut state, 1, Role::Human);
     for (pad, ticks) in [
         ("pad_rail", crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS),
@@ -226,7 +226,7 @@ fn free_for_all_pad_clocks_are_appointments_and_team_clocks_are_unchanged() {
 
 #[test]
 fn death_loses_the_found_guns_and_the_next_life_starts_on_the_kit_after_four_seconds() {
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let victim = join(&mut state, 1, Role::Human);
     let killer = join(&mut state, 2, Role::Agent);
     state.arm_joined_magazines(victim);
@@ -265,7 +265,7 @@ fn death_loses_the_found_guns_and_the_next_life_starts_on_the_kit_after_four_sec
 
 #[test]
 fn a_round_restart_and_a_reconnect_both_start_on_the_kit() {
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let id = join(&mut state, 1, Role::Human);
     stand_on(&mut state, id, "pad_scatter");
     state.tick(DT);
@@ -428,7 +428,7 @@ fn a_joined_human_receives_the_kit_privately_and_spectators_receive_nothing() {
 /// helper. On the Pistol it goes and gets a gun, and holding one it fights.
 #[test]
 fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
-    let mut state = ffa(MapKind::ArenaDuel);
+    let mut state = ffa(MapKind::ComplianceYard);
     let agent = join(&mut state, 1, Role::Agent);
     let rival = join(&mut state, 2, Role::Agent);
     park(&mut state, agent);
@@ -507,7 +507,7 @@ fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
         Some(rival)
     );
     // Holding the Shotgun, the same intent is a fight again.
-    stand_on(&mut state, agent, "scrap_scatter_w");
+    stand_on(&mut state, agent, "scrap_scatter_s");
     state.tick(DT);
     assert!(fighter(&state, agent).inventory.owns(WeaponType::Scatter));
     let action =
@@ -518,7 +518,7 @@ fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
 #[test]
 fn free_for_all_supply_pads_are_laid_only_in_free_for_all() {
     for (map, modes) in [
-        (MapKind::ArenaDuel, vec![GameMode::Tdm, GameMode::Ctf]),
+        (MapKind::ComplianceYard, vec![GameMode::Tdm, GameMode::Ctf]),
         (
             MapKind::Sector9,
             vec![GameMode::Tdm, GameMode::Ctf, GameMode::Sabotage],
@@ -708,6 +708,7 @@ fn the_wire_pad_clock_matches_the_server_clock() {
                 available: false,
                 respawn_timer: Some(1),
                 secret: false,
+                clock: None,
             };
             assert_eq!(
                 pad.to_state().clock_ticks(rules.teams()),

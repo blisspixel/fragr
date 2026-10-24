@@ -163,7 +163,9 @@ impl MapKind {
 
     pub fn from_cli(raw: &str) -> Option<Self> {
         match raw.trim().to_ascii_lowercase().replace('_', "-").as_str() {
-            "1" | "arena" | "duel" | "arena-duel" => Some(Self::ArenaDuel),
+            "1" | "arena" | "duel" | "arena-duel" | "larak" | "lot" | "larak-lot" => {
+                Some(Self::ArenaDuel)
+            }
             "2" | "compliance" | "yard" | "compliance-yard" => Some(Self::ComplianceYard),
             "3" | "directive" | "substation" | "directive-17" | "directive-17-substation" => {
                 Some(Self::Directive17)
@@ -190,7 +192,7 @@ impl MapKind {
 
     pub fn name(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Arena Duel",
+            Self::ArenaDuel => "Larak Lot",
             Self::ComplianceYard => "Compliance Yard",
             Self::Directive17 => "Directive 17 Substation",
             Self::Sector9 => "Sector 9 Transit Hall",
@@ -204,7 +206,9 @@ impl MapKind {
     /// One line on what the map is for, so a picker is not six names.
     pub fn blurb(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Assembly floor. A hub inside a gantry ring, rail on the walkway.",
+            Self::ArenaDuel => {
+                "Car park. Plate on the roof, Rail down the low ramp, a cruiser hung over the Pit."
+            }
             Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
             Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
@@ -302,6 +306,9 @@ fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
 pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     if map == MapKind::HoldfastAtoll {
         return crate::maps::holdfast::spawn(angle);
+    }
+    if map == MapKind::ArenaDuel {
+        return crate::maps::larak_lot::spawn(angle);
     }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
@@ -456,6 +463,10 @@ struct ReactionState {
     match_point: [bool; 2],
     match_point_fighter: bool,
     sudden_death_called: bool,
+    /// Larak Lot: ticks of the round's recent frags, oldest first, and when
+    /// the Host last called the Larak Lot special.
+    lot_frags: std::collections::VecDeque<u64>,
+    lot_special: Option<u64>,
 }
 
 /// The front of a round, for the lead-change call.
@@ -545,6 +556,10 @@ pub struct ArenaPickup {
     pub respawn_timer: Option<u32>,
     /// An authored secret: optional, found by exploring, never required.
     pub secret: bool,
+    /// This pad's own respawn clock in ticks, when the map sets one. A map
+    /// built around item control times its power items rather than taking
+    /// the clock for the pad's kind.
+    pub clock: Option<u32>,
 }
 
 impl ArenaPickup {
@@ -587,12 +602,16 @@ impl ArenaPickup {
     /// The pad's published return clock under this rule sheet: the clock the
     /// server runs and the one rule bots learn the way a regular does. Bots
     /// never read a live timer.
+    /// A map may author a pad's own clock (Larak Lot's Custody Plate); that
+    /// wins in every mode, then the rule sheet, then the kind's default.
     pub(crate) fn clock(&self, rules: &crate::rules::RuleSet) -> u32 {
-        rules
-            .pad_respawn_ticks(
-                self.kind.weapon(),
-                matches!(self.kind, PickupKind::Health | PickupKind::Armor),
-            )
+        self.clock
+            .or_else(|| {
+                rules.pad_respawn_ticks(
+                    self.kind.weapon(),
+                    matches!(self.kind, PickupKind::Health | PickupKind::Armor),
+                )
+            })
             .unwrap_or_else(|| self.respawn_ticks())
     }
 
@@ -5576,6 +5595,6 @@ mod live_status_tests {
         assert_eq!(live.bots, 0);
         assert_eq!(live.fighters, 2);
         assert_eq!(live.connections, 3);
-        assert_eq!(live.map, "Arena Duel");
+        assert_eq!(live.map, "Larak Lot");
     }
 }

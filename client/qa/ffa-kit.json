@@ -1,20 +1,15 @@
 {
-  "comment": "Free-for-all Pistol start on Arena Duel (wave 2 FFA kit lane). Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/ffa-kit.json, FRAGR_QA_BOTS=2 and the default free-for-all server. Pad routes orbit at 37 m, outside the pillar ring and the gantry stairs. The joined human starts on the Pistol and Fists, takes the Shotgun and the Railgun from their pads, then walks into the hub until a rival frags it so the death card names what the life lost. Inspection only; not a tour publish.",
+  "comment": "Free-for-all Pistol start on map 1, now Larak Lot (wave 2 FFA kit lane). Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/ffa-kit.json, FRAGR_QA_BOTS=2 and the default free-for-all server. The Arena Duel orbit routes were retired with that field; the fighter walks straight to the nearest pad until Larak routes are authored. The joined human starts on the Pistol and Fists, takes the Shotgun and the Railgun from their pads, then walks into the hub until a rival frags it so the death card names what the life lost. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
-  "pad_routes": {
-    "1": {
-      "Scatter": [{"orbit": 37.0, "to_degrees": 10.0}],
-      "Rail": [{"orbit": 37.0, "to_degrees": -75.0}, [7.0, 0.0, -35.0], [7.0, 2.6, -20.0]]
-    }
-  },
+  "pad_routes": {},
   "states": [
     {
       "name": "kit_overview",
       "scene": "res://scenes/main.tscn",
       "at_seconds": 5,
       "camera": "overview",
-      "note": "Arena Duel from above with the free-for-all pads laid. From this height the pad items read only as small marks; the first-person states show taking them."
+      "note": "Larak Lot from above with its pads. From this height the pad items read only as small marks; the first-person states show taking them."
     },
     {
       "name": "kit_first_person",

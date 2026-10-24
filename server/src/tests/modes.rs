@@ -60,7 +60,7 @@ fn sector9_sabotage_broadcast_names_the_running_match() {
     let snap = state.snapshot();
     assert_eq!(snap.playlist, MapKind::Sector9.name());
     assert!(snap.host_line.contains("SECTOR 9") && snap.host_line.contains("SABOTAGE"));
-    assert!(!snap.host_line.contains("ARENA DUEL"));
+    assert!(!snap.host_line.contains("LARAK LOT"));
     assert!(state.events.iter().any(|event| matches!(event, GameEvent::RoundStart { playlist, .. } if playlist == MapKind::Sector9.name())));
 }
 
@@ -687,7 +687,7 @@ fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
 
 #[test]
 fn ctf_validated_maps_place_stands_and_score_a_carry_home() {
-    for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+    for map in [MapKind::Directive17, MapKind::Sector9] {
         let stands = map.ctf_stands().expect("validated CTF map");
         let mut state = arena(map, rules(GameMode::Ctf, &[]));
         state.config.frag_limit = None;
@@ -2035,4 +2035,88 @@ fn a_scoreless_clock_ends_and_a_quiet_sudden_death_ends_level() {
             _ => None,
         });
     assert_eq!(end, Some(("Level after sudden death".to_string(), None)));
+}
+
+fn lot_specials(state: &mut GameState) -> usize {
+    reactions(&events(state))
+        .into_iter()
+        .filter(|kind| *kind == HostReactionKind::LarakLotSpecial)
+        .count()
+}
+
+fn lot_frag_at(state: &mut GameState, tick: u64) -> usize {
+    state.tick = tick;
+    if state.note_lot_frag() {
+        state.call_lot_special(Some("F1".into()), None);
+    }
+    lot_specials(state)
+}
+
+#[test]
+fn larak_lot_calls_its_special_when_the_frag_count_spikes() {
+    use crate::rules::{LOT_SPECIAL_COOLDOWN_TICKS, LOT_SPECIAL_FRAGS, LOT_SPECIAL_WINDOW_TICKS};
+    // Real frags on the lot: first blood takes the Host's gap, then four
+    // quick frags by four fighters across the lot are the Larak Lot special.
+    // (Four by one fighter are a multikill, which outranks it.)
+    let mut lot = arena(MapKind::ArenaDuel, rules(GameMode::Ffa, &[]));
+    lot.config.frag_limit = Some(50);
+    let fighters: Vec<Uuid> = (1..=9)
+        .map(|n| join(&mut lot, n, if n == 1 { Role::Human } else { Role::Agent }))
+        .collect();
+    // Open the round first, and let its opening shields run out.
+    wait(&mut lot, 40);
+    kill(&mut lot, fighters[8], fighters[7]);
+    // Each shooter steps off the firing spot so the next one has it clear.
+    place(&mut lot, fighters[8], 0.0, 3.0);
+    wait(&mut lot, crate::rules::REACTION_GAP_TICKS as u32 + 20);
+    lot.take_events();
+    for (killer, victim) in [(0, 4), (1, 5), (2, 6), (3, 8)]
+        .into_iter()
+        .take(LOT_SPECIAL_FRAGS)
+    {
+        kill(&mut lot, fighters[killer], fighters[victim]);
+        place(&mut lot, fighters[killer], 0.0, -3.0 - killer as f32 * 1.5);
+    }
+    let beats = events(&mut lot);
+    assert!(
+        beats.iter().any(|e| matches!(
+            e,
+            GameEvent::HostReaction { kind: HostReactionKind::LarakLotSpecial, player: Some(p), .. }
+                if p == "F4"
+        )),
+        "four quick frags across the lot are the special: {beats:?}"
+    );
+
+    // The rule itself: a spike inside the window, a cooldown, and frags
+    // spread wider than the window never add up.
+    let mut lot = arena(MapKind::ArenaDuel, rules(GameMode::Ffa, &[]));
+    for i in 0..6 {
+        let tick = 1_000 + i * LOT_SPECIAL_WINDOW_TICKS;
+        assert_eq!(lot_frag_at(&mut lot, tick), 0, "spread frags stay quiet");
+    }
+    let start = 5_000;
+    for i in 0..LOT_SPECIAL_FRAGS as u64 - 1 {
+        assert_eq!(lot_frag_at(&mut lot, start + i * 10), 0);
+    }
+    assert_eq!(
+        lot_frag_at(&mut lot, start + 35),
+        1,
+        "the fourth frag in the window tips it"
+    );
+    let again = start + 200;
+    for i in 0..LOT_SPECIAL_FRAGS as u64 {
+        let calls = lot_frag_at(&mut lot, again + i * 5);
+        assert_eq!(calls, 0, "inside the cooldown it waits");
+    }
+    let later = start + 35 + LOT_SPECIAL_COOLDOWN_TICKS;
+    let called: usize = (0..LOT_SPECIAL_FRAGS as u64)
+        .map(|i| lot_frag_at(&mut lot, later + i * 5))
+        .sum();
+    assert_eq!(called, 1, "after the cooldown it calls again");
+
+    // Every other map stays quiet.
+    let mut other = arena(MapKind::Sector9, rules(GameMode::Ffa, &[]));
+    for i in 0..8 {
+        assert_eq!(lot_frag_at(&mut other, 2_000 + i * 5), 0);
+    }
 }

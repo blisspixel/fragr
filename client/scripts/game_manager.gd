@@ -2384,7 +2384,7 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		arena_cover.apply_map_info(current_map_info)
 	_apply_arena_sky(map_name)
 	if map_name == "":
-		map_name = str(snapshot.get("map_name", "Arena Duel"))
+		map_name = str(snapshot.get("map_name", "Larak Lot"))
 	if hud and hud.has_method("set_map_name"):
 		hud.set_map_name(map_name)
 
@@ -2621,7 +2621,7 @@ func _on_snapshot_received(data):
 	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
 	var mode_name = str(data.get("mode_name", "Scrap League"))
-	var playlist = str(data.get("playlist", "Arena Duel"))
+	var playlist = str(data.get("playlist", "Larak Lot"))
 	var pressure = data.get("pressure", null)
 	var host_line = str(data.get("host_line", ""))
 	
@@ -2919,7 +2919,7 @@ func _on_event_received(data):
 	elif event_type == "round_start":
 		ended_podium_shown = false
 		var mode_name = str(data.get("mode_name", "Scrap League"))
-		var playlist = str(data.get("playlist", "Arena Duel"))
+		var playlist = str(data.get("playlist", "Larak Lot"))
 		hud.set_league_identity(mode_name, playlist)
 		var shown_round: int = int(data.get("round_number", 0))
 		var sabotage_round: Variant = latest_snapshot.get("sabotage")
@@ -2999,6 +2999,11 @@ func _on_event_received(data):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
 	elif event_type == "pickup":
+		# The venue reacts to its power item for everyone watching, whoever
+		# took it (Larak Lot's light bar flares once on the Plate).
+		if str(data.get("pickup_id", "")) == LarakLot.PLATE_ID:
+			for lot: Node in get_tree().get_nodes_in_group(LarakLot.GROUP):
+				(lot as LarakLot).plate_claimed()
 		if not _shows_participant_notice(str(data.get("player_id", ""))):
 			return
 		var who = str(data.get("player", "?"))

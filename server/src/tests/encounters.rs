@@ -663,6 +663,7 @@ fn live_and_dead_enemies_cannot_consume_participant_supplies() {
         available: true,
         respawn_timer: None,
         secret: false,
+        clock: None,
     });
     session.state.tick(0.05);
     assert!(session.state.pickups[0].available);

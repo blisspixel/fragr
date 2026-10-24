@@ -18,7 +18,7 @@ const SCORE_SECONDS: float = 20.0
 const CAPTURE_SECONDS: float = float(BenchmarkCapture.DURATION_TICKS) / 20.0
 const SCHEMA_VERSION: int = 3
 ## Bump when the measured scene changes, so older results never compare as equal.
-const WORKLOAD_ID: String = "arena-duel-tdm-10-bots-28s-orbit-match-hud-hidden"
+const WORKLOAD_ID: String = "larak-lot-r2-10-bots-28s-orbit-match-hud-hidden"
 ## Bump when what a frame interval measures, or how a figure is computed, changes.
 const METRIC_VERSION: int = 1
 ## A saved result larger than this is not read back for comparison.
@@ -408,8 +408,8 @@ func _preset_finished(summary: Dictionary) -> void:
 	set_process(false)
 	_restore()
 	final_report = {"schema_version": SCHEMA_VERSION, "state": "complete", "created_utc": Time.get_datetime_string_from_system(true),
-		"workload": {"id": WORKLOAD_ID, "description": "Arena Duel, ten bots, one recorded authoritative match replayed for each preset",
-			"map_id": 1, "bots": 10, "capture_seconds": CAPTURE_SECONDS, "camera": "orbit radius %d m, height %d m, one turn per %d s" % [
+		"workload": {"id": WORKLOAD_ID, "description": "Larak Lot, ten bots, one recorded authoritative match replayed for each preset",
+			"map_id": 1, "scene_revision": BenchmarkCamera.SCENE_REVISION, "bots": 10, "capture_seconds": CAPTURE_SECONDS, "camera": "orbit radius %d m, height %d m, one turn per %d s" % [
 				int(BenchmarkCamera.RADIUS), int(BenchmarkCamera.HEIGHT), int(BenchmarkCamera.ORBIT_SECONDS)], "match_hud": "hidden"},
 		"renderer": RenderingServer.get_current_rendering_method(), "driver": RenderingServer.get_current_rendering_driver_name(),
 		"adapter": RenderingServer.get_video_adapter_name(), "adapter_vendor": RenderingServer.get_video_adapter_vendor(),

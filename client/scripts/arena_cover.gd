@@ -122,6 +122,10 @@ func apply_map_info(info: Dictionary) -> void:
 		ocean.build(info)
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
+	if venue == "larak_lot":
+		var lot: LarakLot = LarakLot.new()
+		add_child(lot)
+		lot.build(info, _solid_views)
 	var marked_terminal: int = -1
 	var terminal_key: String = "WORLD_LATCH_RECORD"
 	var mission: Variant = info.get("mission")
@@ -148,6 +152,7 @@ func apply_map_info(info: Dictionary) -> void:
 static func venue_for(info: Dictionary) -> String:
 	match str(info.get("map_name", "")).strip_edges().to_lower():
 		"low water": return "low_water"
+		"larak lot": return "larak_lot"
 		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"

@@ -1,0 +1,14 @@
+{
+  "comment": "Larak Lot live review: a real server on map 1 with rule bots, its pads, the Repossession and the LARAK sign, from fixed overview cameras, a follow camera and a joined first-person fighter. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/larak_lot.json. Camera placement is presentation only; no player pose injection.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "larak_overview", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [31, 26, 33], "camera_look_at": [-4, 1, -4], "settle_seconds": 0.4, "note": "The car park from above the Impound: Pit, Stands, Toll, Roof and the hung cruiser."},
+    {"name": "larak_pit_from_stands", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "note": "The Pit stage under the Repossession, the Ledger Wall and the Bridge armour."},
+    {"name": "larak_roof_plate", "camera": "overview", "camera_position": [13, 7.6, -13], "camera_look_at": [31, 6.5, -22], "settle_seconds": 0.3, "note": "The Custody Plate in the valet circle under the LARAK sign."},
+    {"name": "larak_low_ramp_rail", "camera": "overview", "camera_position": [-11, 1.6, 6], "camera_look_at": [-22, 1, 6], "settle_seconds": 0.3, "note": "The Rail at the bottom of the Low Ramp tunnel."},
+    {"name": "larak_toll_booths", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "note": "The Toll plaza and the booth lanes with the Booths Scatter."},
+    {"name": "larak_follow", "camera": "follow", "settle_seconds": 1.0, "note": "A watched rule bot fighting on the decks."},
+    {"name": "larak_first_person", "join": "human", "camera": "first_person", "settle_seconds": 1.0, "note": "A joined fighter at its spawn slot, weapon and HUD up."}
+  ]
+}

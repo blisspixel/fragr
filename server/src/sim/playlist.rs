@@ -15,7 +15,8 @@ pub(crate) struct PlaylistSlot {
 }
 
 /// Scrap, then a team round, then an objective, and Sabotage last so a short
-/// match can finish before the night returns to Arena Duel.
+/// match can finish before the night returns to Larak Lot. Larak Lot is the
+/// FFA and Duel home; its flags moved to Sector 9 and Directive 17.
 pub(crate) const NIGHT: [PlaylistSlot; 8] = [
     PlaylistSlot {
         map: MapKind::ArenaDuel,
@@ -30,7 +31,7 @@ pub(crate) const NIGHT: [PlaylistSlot; 8] = [
         mode: GameMode::Tdm,
     },
     PlaylistSlot {
-        map: MapKind::ArenaDuel,
+        map: MapKind::Sector9,
         mode: GameMode::Ctf,
     },
     PlaylistSlot {
@@ -38,7 +39,7 @@ pub(crate) const NIGHT: [PlaylistSlot; 8] = [
         mode: GameMode::Tdm,
     },
     PlaylistSlot {
-        map: MapKind::Sector9,
+        map: MapKind::Directive17,
         mode: GameMode::Ctf,
     },
     PlaylistSlot {
@@ -312,6 +313,7 @@ mod tests {
         assert!(slot_playable(MapKind::ReclamationGulch, GameMode::Ctf).is_err());
         assert!(slot_playable(MapKind::TripointWorks, GameMode::Ctf).is_err());
         assert!(slot_playable(MapKind::ArenaDuel, GameMode::Sabotage).is_err());
+        assert!(slot_playable(MapKind::ArenaDuel, GameMode::Ctf).is_err());
         assert!(slot_playable(MapKind::Directive17, GameMode::Ctf).is_ok());
         assert!(slot_playable(MapKind::Sector9, GameMode::Sabotage).is_ok());
         assert_eq!(
@@ -320,9 +322,9 @@ mod tests {
                 (MapKind::ArenaDuel, GameMode::Ffa),
                 (MapKind::ComplianceYard, GameMode::Ffa),
                 (MapKind::Directive17, GameMode::Tdm),
-                (MapKind::ArenaDuel, GameMode::Ctf),
-                (MapKind::ReclamationGulch, GameMode::Tdm),
                 (MapKind::Sector9, GameMode::Ctf),
+                (MapKind::ReclamationGulch, GameMode::Tdm),
+                (MapKind::Directive17, GameMode::Ctf),
                 (MapKind::TripointWorks, GameMode::Ffa),
                 (MapKind::Sector9, GameMode::Sabotage),
             ]

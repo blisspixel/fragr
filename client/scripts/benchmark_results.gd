@@ -106,7 +106,7 @@ func _summary(body: VBoxContainer) -> void:
 	var size_text: String = "%d x %d" % [int(first["output_size"][0]), int(first["output_size"][1])]
 	# One line each at 1080p, so the cards, the whole timeline and the actions
 	# share one screen there; smaller windows scroll the body, never the actions.
-	_label(body, "One recorded Arena Duel fight per preset. %d s scored after %d s warm-up. %s." % [
+	_label(body, "One recorded Larak Lot fight per preset. %d s scored after %d s warm-up. %s." % [
 		int(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)), int(report.get("warmup_seconds", BenchmarkRun.PRIME_SECONDS)), size_text], MenuTheme.BODY, MenuTheme.BONE).name = "Scope"
 	var cards: HFlowContainer = HFlowContainer.new()
 	cards.name = "Presets"
@@ -361,7 +361,7 @@ func _save_line() -> String:
 func summary_text() -> String:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("fragr benchmark, %s UTC" % str(report.get("created_utc", "")).replace("T", " "))
-	lines.append("Arena Duel, ten bots, recorded fight, %d s scored per preset after %d s warm-up" % [int(report.get("score_seconds", 0)), int(report.get("warmup_seconds", 0))])
+	lines.append("Larak Lot, ten bots, recorded fight, %d s scored per preset after %d s warm-up" % [int(report.get("score_seconds", 0)), int(report.get("warmup_seconds", 0))])
 	var first: Dictionary = report["runs"][0]
 	lines.append("%s, %s, %s, %d x %d, engine %s %s" % [report.get("adapter", ""), RenderQuality.renderer_name(str(report.get("renderer", ""))), report.get("os", ""),
 		int(first["output_size"][0]), int(first["output_size"][1]), report.get("engine", ""), report.get("build", "")])

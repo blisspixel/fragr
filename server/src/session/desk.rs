@@ -424,7 +424,7 @@ mod tests {
         assert!(text.contains("rounds 1"), "{text}");
         assert!(text.contains("peak humans 1"), "{text}");
         assert!(text.contains("peak fighters 2"), "{text}");
-        assert!(text.contains("1  Arena Duel"), "{text}");
+        assert!(text.contains("1  Larak Lot"), "{text}");
         assert!(text.contains("ffa"), "{text}");
         assert!(text.contains(&bot), "{text}");
         assert!(!text.contains("203.0.113"), "{text}");

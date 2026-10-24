@@ -256,7 +256,15 @@ mod tests {
         let mut away = mine.clone();
         away.yaw = PI;
         assert!(!sees(&[], &away, &pad), "a pad behind the agent is not");
-        let wall = [Solid::from_center(pad.x - 3.0, pad.z, 0.2, 4.0)];
+        // Map 1's first pad (Larak Lot's Plate) sits on the Roof, so the wall
+        // stands taller than the pad rather than at the default wall height.
+        let wall = [Solid::from_center_top(
+            pad.x - 3.0,
+            pad.z,
+            0.2,
+            4.0,
+            pad.y + 4.0,
+        )];
         assert!(!sees(&wall, &mine, &pad), "a wall between hides the pad");
         let mut far = mine.clone();
         far.x = pad.x - 41.0;

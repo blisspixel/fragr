@@ -1015,7 +1015,7 @@ func _page_benchmark() -> void:
 	var size: Vector2i = get_window().size if is_inside_tree() else Vector2i.ZERO
 	var adapter: String = RenderingServer.get_video_adapter_name()
 	for row: Array in [
-			["Scene", "Arena Duel, ten bots. One recorded fight, replayed for each preset under an automated camera."],
+			["Scene", "Larak Lot, ten bots. One recorded fight, replayed for each preset under an automated camera."],
 			["Scored", "%d s per preset, after %d s of warm-up that is not scored." % [int(BenchmarkRun.SCORE_SECONDS), int(BenchmarkRun.PRIME_SECONDS)]],
 			["Takes", "%s only: about %s. All three: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
 			["While it runs", "V-sync and the frame cap are off. Esc cancels. Your settings come back."],
@@ -1285,14 +1285,14 @@ func _rebuild_host_maps() -> void:
 		_host_map.add_item("Holdfast Atoll", 7)
 		return
 	if _host_mode.selected == 4:
+		# Larak Lot is the FFA and Duel home; it has no flag stands.
 		_host_map.add_item("Directive 17", 3)
 		_host_map.add_item("Sector 9", 4)
-		_host_map.add_item("Arena Duel", 1)
-		var ctf_maps: Array[int] = [3, 4, 1]
+		var ctf_maps: Array[int] = [3, 4]
 		var sel_idx: int = ctf_maps.find(_host_settings["map_id"])
 		_host_map.select(sel_idx if sel_idx >= 0 else 0)
 		return
-	var names: Array[String] = ["Arena Duel", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
+	var names: Array[String] = ["Larak Lot", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
 	for index: int in names.size():
 		_host_map.add_item(names[index], index + 1)
 	var selected: int = int(_host_settings["map_id"]) - 1

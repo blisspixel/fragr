@@ -444,7 +444,7 @@ mod tests {
     fn facts() -> ReadyFacts {
         ReadyFacts {
             version: "0.90.0".into(),
-            map: "Arena Duel".into(),
+            map: "Larak Lot".into(),
             rules: "Free-for-all".into(),
             campaign: false,
             playlist: false,
@@ -528,7 +528,7 @@ mod tests {
         for needle in [
             "fragr dedicated server 0.90.0.",
             "No game window",
-            "Arena Duel, Free-for-all.",
+            "Larak Lot, Free-for-all.",
             "Bots: 4 fixed rule bots",
             "LAN     ws://192.168.44.46:6767",
             "answered here; computers on the same network",
@@ -644,7 +644,7 @@ mod tests {
         let line = pulse_line(&status(), Duration::ZERO, Style { ansi: false });
         assert_eq!(
             line,
-            "+01:02:03 running | Arena Duel, Team Deathmatch + rail-only, round 3 | 1 human, 0 agents, 4 bots, 2 watching | tick p99 0.8 of 50 ms, 0 over | ok"
+            "+01:02:03 running | Larak Lot, Team Deathmatch + rail-only, round 3 | 1 human, 0 agents, 4 bots, 2 watching | tick p99 0.8 of 50 ms, 0 over | ok"
         );
 
         let mut slow = status();
@@ -670,7 +670,7 @@ mod tests {
         let line = pulse_line(&fresh, Duration::from_secs(5), Style { ansi: false });
         assert!(line.starts_with("+00:00:05 running"), "{line}");
         assert!(
-            line.contains("Arena Duel, Free-for-all, before round 1"),
+            line.contains("Larak Lot, Free-for-all, before round 1"),
             "{line}"
         );
         assert!(line.contains("? watching"), "{line}");

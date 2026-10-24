@@ -226,6 +226,7 @@ impl GameState {
         let lead = self.note_lead();
         let step = crate::rules::spree_step(self.config.rules.mode());
         let first = !std::mem::replace(&mut self.reactions.first_blood, true);
+        let lot_spike = self.note_lot_frag();
         let by_killer = |kind: HostReactionKind| -> Call {
             (
                 kind,
@@ -249,13 +250,22 @@ impl GameState {
                 Some(frag.killer_name.clone()),
                 frag.victim_team,
             ))
+        } else if lot_spike {
+            // Frags spread across the lot; one fighter's run is a multikill.
+            Some(by_killer(HostReactionKind::LarakLotSpecial))
         } else if let Some(kind) = multikill {
             Some(by_killer(kind))
         } else {
             lead.map(|(player, other, team)| (HostReactionKind::LeadChange, player, other, team))
         };
-        if let Some((kind, player, other, team)) = call {
-            self.react(kind, player, other, team);
+        match call {
+            Some((HostReactionKind::LarakLotSpecial, player, _, team)) => {
+                self.call_lot_special(player, team);
+            }
+            Some((kind, player, other, team)) => {
+                self.react(kind, player, other, team);
+            }
+            None => {}
         }
     }
 
@@ -438,6 +448,40 @@ impl GameState {
                 self.reactions.match_point_fighter = true;
             }
         }
+    }
+
+    /// Larak Lot: count the frag, and say whether enough have landed across
+    /// the lot inside the window, off the special's cooldown, for the Host to
+    /// call the Larak Lot special. Every other map stays quiet.
+    pub(crate) fn note_lot_frag(&mut self) -> bool {
+        if self.map != super::MapKind::ArenaDuel {
+            return false;
+        }
+        let tick = self.tick;
+        let frags = &mut self.reactions.lot_frags;
+        frags.push_back(tick);
+        while frags
+            .front()
+            .is_some_and(|&at| at + crate::rules::LOT_SPECIAL_WINDOW_TICKS <= tick)
+        {
+            frags.pop_front();
+        }
+        frags.len() >= crate::rules::LOT_SPECIAL_FRAGS
+            && !self
+                .reactions
+                .lot_special
+                .is_some_and(|at| tick < at + crate::rules::LOT_SPECIAL_COOLDOWN_TICKS)
+    }
+
+    /// The Larak Lot special for the fighter whose frag tipped the spike. A
+    /// text caption under the usual spacing; once called it cools down.
+    pub(crate) fn call_lot_special(&mut self, killer: Option<String>, team: Option<Team>) -> bool {
+        let called = self.react(HostReactionKind::LarakLotSpecial, killer, None, team);
+        if called {
+            self.reactions.lot_special = Some(self.tick);
+            self.reactions.lot_frags.clear();
+        }
+        called
     }
 
     /// Lives-limited team rounds: one fighter left on a side against two or more.

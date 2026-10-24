@@ -1111,11 +1111,12 @@ also send `map_info` before shared progress, even when the map ID stays the same
 {
   "type": "map_info",
   "map_id": 1,
-  "map_name": "Arena Duel",
-  "half_extent": 70.0,
+  "map_name": "Larak Lot",
+  "half_extent": 38.0,
+  "geometry_version": 2,
   "solids": [
-    {"min_x": 5.75, "max_x": 8.25, "min_z": -8.25, "max_z": -5.75, "top": 4.5},
-    {"min_x": -8.6, "max_x": -5.4, "min_z": -7.2, "max_z": -5.2, "top": 0.5}
+    {"min_x": -36.0, "max_x": -10.0, "min_z": -28.0, "max_z": -4.0, "top": 3.0},
+    {"min_x": -10.0, "max_x": 10.0, "min_z": -8.0, "max_z": -5.0, "bottom": 2.6, "top": 3.0}
   ]
 }
 ```
@@ -1466,7 +1467,7 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "player_id": "550e8400-e29b-41d4-a716-446655440000" | null,
   "role": "spectator" | "human" | "agent",
   "mode_name": "Scrap League",
-  "playlist": "Arena Duel",
+  "playlist": "Larak Lot",
   "body": "human" | "synthetic",
   "duck": true
 }
@@ -1484,7 +1485,7 @@ Server response to `Hello`. Confirms connection and provides player ID.
   and publishes the resolved stance. Omitted by older servers. Absence means
   the client must not send the key.
 - `mode_name`: Named scrap-league identity (default Scrap League)
-- `playlist`: The current map's display name (default Arena Duel).
+- `playlist`: The current map's display name (default Larak Lot).
 
 #### Error
 
@@ -1554,7 +1555,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
     }
   ],
   "mode_name": "Scrap League",
-  "playlist": "Arena Duel",
+  "playlist": "Larak Lot",
   "pressure": "compliance",
   "host_line": "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.",
   "pickups": [
@@ -1672,7 +1673,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
 - `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
 - `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
-- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Arena Duel / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Touch claim is authoritative on the server; clients only render.
+- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Larak Lot's Custody Plate (`larak_custody_plate`) is an armor pad granting +100 until the Plate kind lands. A map may give a pad its own respawn clock (Larak Lot: Plate 35 s, Rail and Bridge armour 25 s, the rest 15 s); `respawn_in` always reports the pad's actual clock, and an own clock also holds in team modes. Touch claim is authoritative on the server; clients only render.
 
 **Notes:**
 - Ordinary dead fighters are omitted; campaign corpses remain for their bounded
@@ -1988,8 +1989,8 @@ available to sound-muted players through the caption and visible attack tell.
   "players": ["Bot1", "Bot2", "Bot3", "Bot4"],
   "previous_winner": "Bot1",
   "mode_name": "Scrap League",
-  "playlist": "Arena Duel",
-  "host_line": "HOST: ARENA DUEL. DEAD AIR DAN, NIGHTFALL ON THE SCRAP. FIGHT!"
+  "playlist": "Larak Lot",
+  "host_line": "HOST: LARAK LOT. GRANDMA RIZZ, NIGHTFALL ON THE SCRAP. FIGHT!"
 }
 ```
 
@@ -2245,8 +2246,8 @@ not block a ground bay. No new action or snapshot field is added.
   sudden death (see `sudden_death` on the snapshot), and 0-0 is a draw. Weapon pads
   respawn after 30 s in team modes. `PlayerState` hostility helpers treat a
   teammate as not hostile.
-- **Capture the flag.** A staged league scenario on Arena Duel, Directive 17,
-  or Sector 9. Each of those maps has a Union stand in the negative X back
+- **Capture the flag.** A staged league scenario on Directive 17 or Sector 9.
+  Larak Lot (map 1) is the FFA and Duel home and has no stands. Each of those maps has a Union stand in the negative X back
   third and a Coalition stand in the positive X back third. Compliance Yard,
   Reclamation Gulch and Tripoint Works have no stands, and a rotating playlist
   is refused. Touch the enemy flag to carry it. A
@@ -2483,7 +2484,7 @@ any call, so a caption never holds back a big moment and two voices never
 stack. `golden_rail` and `sudden_death` are information and are never held
 back. A scored frag makes at most one call, the first that applies of: first
 blood, a multikill of three or more, a comeback, a spree tier, an ended spree,
-a double, a new leader. A held-back match point is tried again each tick while
+the Larak Lot special, a double, a new leader. A held-back match point is tried again each tick while
 the position holds.
 
 The client plays a big moment's recording from the name-free slot
@@ -2514,6 +2515,7 @@ in Sabotage.
 | `match_point` | yes | Once per round each: a side one frag or capture from the limit, a Sabotage side one round win from the match, or the first free-for-all fighter one frag from the limit | Free-for-all: `player`, `team`. Otherwise `team` the side |
 | `sudden_death` | yes | The clock ran out level and stopped, or a level Sabotage match starts its deciding round | None |
 | `golden_rail` | no | Somebody takes the golden Railgun | `player` the holder, `team` their side |
+| `larak_lot_special` | no | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
 
 ## Implementation Notes
 

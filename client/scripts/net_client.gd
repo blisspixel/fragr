@@ -524,7 +524,7 @@ func _handle_message(text: String):
 			_mission_previous.clear()
 			player_id = data.get("player_id")
 			duck_supported = data.get("duck") == true
-			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Scrap League"), "/", data.get("playlist", "Arena Duel"))
+			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Scrap League"), "/", data.get("playlist", "Larak Lot"))
 		
 		"map_info":
 			var problem: String = MapGeometry.validation_error(data)

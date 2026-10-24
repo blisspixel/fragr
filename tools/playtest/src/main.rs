@@ -867,10 +867,11 @@ mod tests {
             config_from(&ctf_without_stands).is_err(),
             "Compliance Yard has no flag stands"
         );
+        // Map 1 is Larak Lot, the FFA and Duel home: no flag stands.
         let ctf_default = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
-        assert_eq!(
-            config_from(&ctf_default).unwrap().map,
-            fragr_server::sim::MapKind::ArenaDuel
+        assert!(
+            config_from(&ctf_default).is_err(),
+            "Larak Lot has no flag stands"
         );
         let ctf = Cli::try_parse_from([
             "fragr-playtest",

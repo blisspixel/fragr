@@ -536,6 +536,7 @@ fn lone_bot_with_rail_pad(ahead: f32) -> (GameState, BotController, [f32; 3]) {
         available: false,
         respawn_timer: Some(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS),
         secret: false,
+        clock: None,
     }];
     (state, bot, feet)
 }

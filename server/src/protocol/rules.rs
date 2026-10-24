@@ -282,10 +282,13 @@ pub enum HostReactionKind {
     MatchPoint,
     /// Level at the clock: the next score decides.
     SuddenDeath,
+    /// Larak Lot only: the frag count spikes across the lot, and the Host
+    /// calls it what the league calls it. Text only.
+    LarakLotSpecial,
 }
 
 impl HostReactionKind {
-    pub const ALL: [Self; 18] = [
+    pub const ALL: [Self; 19] = [
         Self::FirstBlood,
         Self::StreakEnded,
         Self::LastStanding,
@@ -304,6 +307,7 @@ impl HostReactionKind {
         Self::ChargePlanted,
         Self::MatchPoint,
         Self::SuddenDeath,
+        Self::LarakLotSpecial,
     ];
 
     /// Information rather than drama: never held back by the reaction gap.

@@ -132,8 +132,8 @@ pub use water::{validate_water_regions, WaterRegion};
 /// The arena's identity on the warmup card and the result card. The radio
 /// station is small background flavour, never the match's name.
 pub const MODE_NAME: &str = "Scrap League";
-/// Playlist label under the league lie.
-pub const PLAYLIST_NAME: &str = "Arena Duel";
+/// Playlist label under the league lie: map 1's display name.
+pub const PLAYLIST_NAME: &str = "Larak Lot";
 /// Desktop builds and `SHA256SUMS.txt`. Join does not fetch this URL.
 pub const RELEASES_URL: &str = "https://github.com/blisspixel/fragr/releases/latest";
 
@@ -148,22 +148,24 @@ pub fn default_playlist() -> String {
 /// The Host's plain arena intro: where, then go. He never explains the
 /// setting and never chants.
 pub fn default_host_line() -> String {
-    "HOST: ARENA DUEL IS LIVE.".to_string()
+    "HOST: LARAK LOT IS LIVE.".to_string()
 }
 
 pub fn default_mode_id() -> String {
     GameMode::Ffa.id().to_string()
 }
 
+/// Map 1, Larak Lot, reworked from the Arena Duel field on 2026-10-23 with
+/// its wire id unchanged.
 pub const MAP_ID_ARENA_DUEL: u32 = 1;
-pub const MAP_NAME_ARENA_DUEL: &str = "Arena Duel";
+pub const MAP_NAME_LARAK_LOT: &str = "Larak Lot";
 
 pub fn default_map_id() -> u32 {
     MAP_ID_ARENA_DUEL
 }
 
 pub fn default_map_name() -> String {
-    MAP_NAME_ARENA_DUEL.to_string()
+    MAP_NAME_LARAK_LOT.to_string()
 }
 
 /// Public match line for a directory, an overlay, or a server list.
@@ -877,7 +879,8 @@ mod geometry_tests {
                 ..
             }
         ));
-        let legacy = crate::sim::GameState::new().map_info();
+        let legacy =
+            crate::sim::GameState::with_map(crate::sim::MapKind::ComplianceYard, false).map_info();
         let value = serde_json::to_value(&legacy).unwrap();
         assert!(value.get("geometry_version").is_none());
         assert!(value["solids"]
@@ -1428,7 +1431,9 @@ impl PickupState {
     /// The pad's published return clock in ticks. A regular learns these
     /// numbers; a joined agent's observe uses them instead of a live timer.
     /// Free-for-all clocks depend on the gun (`crate::rules`), so the pad's
-    /// `weapon` name picks the clock exactly as the server does.
+    /// `weapon` name picks the clock exactly as the server does. A clock a map
+    /// authors for one pad (Larak Lot's Custody Plate, 35 s) is not on the
+    /// wire, so that pad reads as its kind's sheet clock here.
     pub fn clock_ticks(&self, teams: bool) -> u32 {
         let weapon = (self.kind == "weapon").then(|| {
             WeaponType::ALL
@@ -1509,7 +1514,7 @@ pub struct Snapshot {
     /// Contested Frequency (scrap league that denies it exists).
     #[serde(default = "default_mode_name")]
     pub mode_name: String,
-    /// Arena Duel under the league lie.
+    /// Larak Lot under the league lie.
     #[serde(default = "default_playlist")]
     pub playlist: String,
     /// Live pressure beat id when Continuance is squeezing the round.
@@ -1527,7 +1532,7 @@ pub struct Snapshot {
     /// Mid-map pads: weapons, health, armor (Quake chase energy). Empty omitted on wire.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pickups: Vec<PickupState>,
-    /// Contested Frequency scrap layout id (1 = Arena Duel, 2 = Compliance Yard).
+    /// Contested Frequency scrap layout id (1 = Larak Lot, 2 = Compliance Yard).
     #[serde(default = "default_map_id")]
     pub map_id: u32,
     /// Human-readable scrap layout name.

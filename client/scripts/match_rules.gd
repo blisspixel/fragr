@@ -15,7 +15,7 @@ const REACTIONS: Array[String] = [
 	"double_frag", "triple_frag", "quad_frag", "frag_storm",
 	"rampage", "riot", "untouchable",
 	"lead_change", "flag_taken", "flag_captured", "charge_planted",
-	"match_point", "sudden_death",
+	"match_point", "sudden_death", "larak_lot_special",
 ]
 ## Calls about a fighter or a side. A side call (no `player`) keys `_SIDE`.
 const SIDE_REACTIONS: Array[String] = ["lead_change", "match_point"]
