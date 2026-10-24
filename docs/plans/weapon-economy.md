@@ -9,9 +9,21 @@ Current-state note (2026-09-19): the broader economy remains proposed.
 increment: fists, found Tack/Flechette, finite ammunition, reload and individual
 introductory claims. Dry guns remain owned; carry limits, automatic discard,
 sidearm trickle and the remaining arsenal below are not implemented. Historical
-weapon-mix and timing measurements are not a current baseline. The six arcade
-maps retain their three unlimited guns. M01's authored placements replace generic
-pad-ring assumptions. Asset estimates do not authorize generation spend.
+weapon-mix and timing measurements are not a current baseline. M01's authored
+placements replace generic pad-ring assumptions. Asset estimates do not
+authorize generation spend.
+
+Current-state note (2026-10-23, wave 2): free-for-all now runs the gate this
+plan called "one line": every life starts with the Pistol (fifty Bullets) and
+Fists, the same `EquipmentPolicy::Discovery` inventory owns everything else,
+and a weapon pad grants its gun once and ammunition after that. The start is
+the Pistol rather than empty fists (Nick's decision), so the sidearm-by-spawn
+valve is replaced by a walk bound to the nearest gun, met with free-for-all
+supply pads. Clocks: 15 s for the Rifle and Shotgun, 25 s for the Railgun,
+health and armour. Team modes, Golden Rail, weapon-only mutators and the
+`full-arsenal` host mutator keep their kits. Pools, sidearm trickle, carry
+limits, the Shiv ladder and the four gates remain proposed. The gates still
+need the harness metrics named below before this economy is tuned.
 
 ## Bounded increment: M01 discovery
 

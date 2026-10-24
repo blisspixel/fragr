@@ -13,6 +13,8 @@ var _plate: PanelContainer
 var _headline: Label
 var _detail: Label
 var _timing: Label
+## The found weapons this life took with it. Hidden when nothing was lost.
+var _loss: Label
 
 
 func _ready() -> void:
@@ -36,6 +38,10 @@ func _ready() -> void:
 	_timing = _line(0, MenuTheme.EMBER)
 	_timing.name = "Timing"
 	rows.add_child(_timing)
+	_loss = _line(0, MenuTheme.MUTED)
+	_loss.name = "Loss"
+	_loss.visible = false
+	rows.add_child(_loss)
 	_plate.resized.connect(_place)
 	resized.connect(_place)
 	visible = false
@@ -55,7 +61,8 @@ func _line(display_size: int, colour: Color) -> Label:
 	return label
 
 
-## Show cause, view and timing; anything shorter hides the card.
+## Show cause, view and timing, then what was lost when a fourth line names
+## it; anything shorter hides the card.
 func present(lines: PackedStringArray) -> void:
 	if lines.size() < 3:
 		clear()
@@ -63,6 +70,8 @@ func present(lines: PackedStringArray) -> void:
 	_headline.text = lines[0]
 	_detail.text = lines[1]
 	_timing.text = lines[2]
+	_loss.text = lines[3] if lines.size() > 3 else ""
+	_loss.visible = not _loss.text.is_empty()
 	visible = true
 	_place()
 
@@ -73,6 +82,8 @@ func clear() -> void:
 		_headline.text = ""
 		_detail.text = ""
 		_timing.text = ""
+		_loss.text = ""
+		_loss.visible = false
 
 
 func headline() -> String:
@@ -85,6 +96,10 @@ func detail() -> String:
 
 func timing() -> String:
 	return _timing.text if _timing != null else ""
+
+
+func loss() -> String:
+	return _loss.text if _loss != null else ""
 
 
 func plate_rect() -> Rect2:
@@ -101,5 +116,6 @@ func _place() -> void:
 	_headline.custom_minimum_size.x = text_width
 	_detail.custom_minimum_size.x = text_width
 	_timing.custom_minimum_size.x = text_width
+	_loss.custom_minimum_size.x = text_width
 	_plate.size = Vector2(width, _plate.get_combined_minimum_size().y)
 	_plate.position = Vector2(roundf((view.x - _plate.size.x) * 0.5), roundf(view.y * TOP_FRACTION))

@@ -78,6 +78,7 @@ fn sector9_freight_dividers_stop_resolved_unshielded_shots() {
         let mut state = GameState::with_map(MapKind::Sector9, false);
         state.config.boss_spawn_ticks = None;
         state.config.compliance_ping_ticks = None;
+        state.config.rules = crate::rules::RuleSet::arsenal();
         let a = Uuid::from_u128(1);
         let b = Uuid::from_u128(2);
         state.add_player(a, "Shooter".into(), Role::Agent);
@@ -123,6 +124,7 @@ fn sector9_north_exit_protects_the_first_steps_then_rejoins_combat() {
     let mut state = GameState::with_map(MapKind::Sector9, false);
     state.config.boss_spawn_ticks = None;
     state.config.compliance_ping_ticks = None;
+    state.config.rules = crate::rules::RuleSet::arsenal();
     let shooter = Uuid::from_u128(1);
     let runner = Uuid::from_u128(2);
     state.add_player(shooter, "Across the bays".into(), Role::Agent);

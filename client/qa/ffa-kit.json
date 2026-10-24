@@ -1,0 +1,51 @@
+{
+  "comment": "Free-for-all Pistol start on Arena Duel (wave 2 FFA kit lane). Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/ffa-kit.json, FRAGR_QA_BOTS=2 and the default free-for-all server. Pad routes orbit at 37 m, outside the pillar ring and the gantry stairs. The joined human starts on the Pistol and Fists, takes the Shotgun and the Railgun from their pads, then walks into the hub until a rival frags it so the death card names what the life lost. Inspection only; not a tour publish.",
+  "width": 1280,
+  "height": 720,
+  "pad_routes": {
+    "1": {
+      "Scatter": [{"orbit": 37.0, "to_degrees": 10.0}],
+      "Rail": [{"orbit": 37.0, "to_degrees": -75.0}, [7.0, 0.0, -35.0], [7.0, 2.6, -20.0]]
+    }
+  },
+  "states": [
+    {
+      "name": "kit_overview",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 5,
+      "camera": "overview",
+      "note": "Arena Duel from above with the free-for-all pads laid. From this height the pad items read only as small marks; the first-person states show taking them."
+    },
+    {
+      "name": "kit_first_person",
+      "at_seconds": 8,
+      "camera": "first_person",
+      "join": "human",
+      "weapon": "Tack",
+      "note": "A fresh life holds the Pistol: corner count 12 in the gun, 38 behind it."
+    },
+    {
+      "name": "kit_scatter_taken",
+      "at_seconds": 10,
+      "camera": "first_person",
+      "weapon": "Scatter",
+      "note": "Walked to a Shotgun pad and took it; the server's loadout now lists it."
+    },
+    {
+      "name": "kit_rail_taken",
+      "at_seconds": 12,
+      "camera": "first_person",
+      "weapon": "Rail",
+      "note": "Climbed the north gantry and took the Railgun from its pad."
+    },
+    {
+      "name": "kit_death_card",
+      "at_seconds": 14,
+      "camera": "first_person",
+      "walk_into": [[0.0, 0.0, 0.0]],
+      "walk_into_wait_seconds": 90,
+      "settle_seconds": 1.2,
+      "note": "Down in the hub with the Shotgun and Railgun: the death card names the killer, the view, the four second countdown and LOST SHOTGUN + RAILGUN on a level baseline."
+    }
+  ]
+}

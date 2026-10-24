@@ -1024,6 +1024,6 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
     }
 }

@@ -808,9 +808,12 @@ pub const M16_GAMEPLAY_VERSION: u32 = 52;
 pub const M17_GAMEPLAY_VERSION: u32 = 53;
 /// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
 pub const M18_GAMEPLAY_VERSION: u32 = 54;
+/// Free-for-all Pistol and Fists start, owned guns from the map, the
+/// `full-arsenal` mutator and `rules.start_kit`.
+pub const SIDEARM_GAMEPLAY_VERSION: u32 = 55;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M18_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = SIDEARM_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

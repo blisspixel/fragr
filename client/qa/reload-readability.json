@@ -1,5 +1,5 @@
 {
-  "comment": "Issue #440 reload readability on the arcade arena. Run qa_arc_visual.gd with FRAGR_QA_MANIFEST pointing here against a zero-bot arcade server. Each gun fires one ordinary shot into the floor, then presses R; the strip samples the HUD reload line, bar, held-gun dip and cue counts from the accepted private deadline through the authoritative finish. Inspection only; not a tour publish.",
+  "comment": "Issue #440 reload readability on the arcade arena. Run qa_arc_visual.gd with FRAGR_QA_MANIFEST pointing here against a zero-bot arcade server started with `--mutator full-arsenal`, so every gun is owned from the first tick. Each gun fires one ordinary shot into the floor, then presses R; the strip samples the HUD reload line, bar, held-gun dip and cue counts from the accepted private deadline through the authoritative finish. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "states": [

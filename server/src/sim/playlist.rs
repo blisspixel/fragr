@@ -184,9 +184,9 @@ impl GameState {
         self.clear_grenades();
         self.clear_mines();
         self.clear_remote_mines();
-        // Sabotage carries a discovery arsenal. The next scrap show is the
-        // map's own kit. An armed human keeps magazines, so the bag does not
-        // fall back open after the match leaves Sector 9.
+        // Every show starts its fighters on that show's kit: the Pistol in a
+        // scrap, the arsenal in a team round, Sabotage's own start. An armed
+        // human keeps magazines, so the bag never falls back open.
         self.refit_show_loadouts();
         tracing::info!("Playlist -> {} {}", self.map.name(), slot.mode.name());
     }
@@ -261,31 +261,18 @@ impl GameState {
     }
 
     fn refit_show_loadouts(&mut self) {
-        let policy = self.equipment_policy();
-        let only = self.config.rules.only_weapon();
-        for player in &mut self.players {
-            if player.is_boss || player.campaign.is_some() {
-                continue;
+        let ids: Vec<uuid::Uuid> = self
+            .players
+            .iter()
+            .filter(|player| !player.is_boss && player.campaign.is_none())
+            .map(|player| player.id)
+            .collect();
+        for id in ids {
+            self.issue_kit(id);
+            if let Some(player) = self.players.iter_mut().find(|player| player.id == id) {
+                player.golden = false;
+                player.clear_input();
             }
-            let armed = player.inventory.armed();
-            let (mut inventory, weapon) = match (policy, only) {
-                (crate::protocol::EquipmentPolicy::Discovery, _) => (
-                    crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::Discovery),
-                    crate::protocol::WeaponType::Fists,
-                ),
-                (_, Some(weapon)) => (crate::inventory::Inventory::restricted(weapon), weapon),
-                _ => (
-                    crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::FullArsenal),
-                    crate::protocol::WeaponType::default(),
-                ),
-            };
-            if armed {
-                inventory.arm_magazines();
-            }
-            player.inventory.restore_entry(&inventory);
-            player.weapon = weapon;
-            player.golden = false;
-            player.clear_input();
         }
     }
 }
@@ -488,9 +475,12 @@ mod tests {
             .iter_mut()
             .find(|player| player.id == id)
             .unwrap();
-        assert_eq!(player.inventory.policy(), EquipmentPolicy::FullArsenal);
-        assert_eq!(player.weapon, WeaponType::Flechette);
-        assert!(player.inventory.try_fire(WeaponType::Rail));
+        // Back on the free-for-all Pistol: Sabotage finds do not carry over
+        // and the arsenal is a map pickup again.
+        assert_eq!(player.inventory.policy(), EquipmentPolicy::Discovery);
+        assert_eq!(player.weapon, WeaponType::Tack);
+        assert!(!player.inventory.try_fire(WeaponType::Rail));
+        assert!(player.inventory.try_fire(WeaponType::Tack));
     }
 
     #[test]
@@ -508,17 +498,16 @@ mod tests {
                 .find(|player| player.id == id)
                 .unwrap()
                 .inventory;
-            for _ in 0..80 {
-                if !inventory.try_fire(WeaponType::Flechette) {
-                    assert!(inventory.request_reload(WeaponType::Flechette, 1));
-                    inventory.finish_reload(
-                        1 + u64::from(WeaponType::Flechette.reload_ticks().unwrap()),
-                    );
-                    assert!(inventory.try_fire(WeaponType::Flechette));
+            let pistol = WeaponType::Tack;
+            for _ in 0..WeaponType::Tack.pickup_rounds() {
+                if !inventory.try_fire(pistol) {
+                    assert!(inventory.request_reload(pistol, 1));
+                    inventory.finish_reload(1 + u64::from(pistol.reload_ticks().unwrap()));
+                    assert!(inventory.try_fire(pistol));
                 }
             }
-            assert!(!inventory.try_fire(WeaponType::Flechette));
-            assert!(!inventory.request_reload(WeaponType::Flechette, 2));
+            assert!(!inventory.try_fire(pistol));
+            assert!(!inventory.request_reload(pistol, 2));
         }
         state.end_round("show over".into());
         state.start_round();
@@ -527,12 +516,11 @@ mod tests {
         assert!(player.inventory.armed());
         let loadout = player
             .inventory
-            .state(id, WeaponType::Flechette, state.tick)
+            .state(id, WeaponType::Tack, state.tick)
             .unwrap();
-        assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Bullets), 80);
-        assert_eq!(loadout.shots(WeaponType::Flechette), Some(20));
-        assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Shells), 24);
-        assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Cells), 16);
+        assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Bullets), 50);
+        assert_eq!(loadout.shots(WeaponType::Tack), Some(12));
+        assert_eq!(loadout.weapons, [WeaponType::Fists, WeaponType::Tack]);
     }
 
     #[test]

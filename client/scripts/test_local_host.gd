@@ -107,6 +107,14 @@ func _run() -> void:
 	var wrong_sabotage: Dictionary = _config(false, true)
 	wrong_sabotage["map_id"] = 1
 	_check(not LocalHost.valid_settings(wrong_sabotage), "Sabotage requires existing site map")
+	var arsenal: Dictionary = _config(false, false)
+	arsenal["mode"] = "ffa"
+	arsenal["map_id"] = 1
+	arsenal["mutator"] = "full-arsenal"
+	_check(LocalHost.valid_settings(arsenal) and "full-arsenal" in LocalHost.arguments_for(arsenal),
+		"a free-for-all host can restore the full arsenal start")
+	arsenal["mode"] = "tdm"
+	_check(not LocalHost.valid_settings(arsenal), "full arsenal is refused where a mode keeps its own kit")
 	var record: Dictionary = _ready_record(config)
 	for item: Dictionary in [{"key": "version", "value": 2}, {"key": "kind", "value": "campaign"},
 		{"key": "url", "value": "ws://0.0.0.0:32123"}, {"key": "url", "value": "wss://127.0.0.1:32123"},

@@ -65,9 +65,12 @@ static func valid_settings(value: Variant) -> bool:
 	if data.has("mutator") and data["mutator"] != null:
 		if not data["mutator"] is String:
 			return false
-		if not data["mutator"].is_empty() and data["mutator"] not in ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]:
+		if not data["mutator"].is_empty() and data["mutator"] not in MatchRules.MUTATORS:
 			return false
 		if data["mutator"] == "two-lives" and data["mode"] in ["sabotage", "ctf", "conquest"]:
+			return false
+		# Full Arsenal changes only the free-for-all start; other modes keep their kits.
+		if data["mutator"] == "full-arsenal" and data["mode"] != "ffa":
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false

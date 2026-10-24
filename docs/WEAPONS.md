@@ -33,10 +33,13 @@ extra weapons. The mechanics below still use the wire names.
 The canonical arsenal direction, pickup economy and sound roles. Current M01
 implements fists, found Tack and Flechette, owned selection and finite
 ammunition counts. The same inventory supports Scatter and Rail, tested
-through server fixtures but not placed in M01. Six arcade maps retain their
-full arsenal. A joined human reloads finite magazines from a spawn kit of
-80 bullets, 24 shells and 16 cells. Bots stay on the open count. A weapon-only
-mutator keeps one gun and no bag.
+through server fixtures but not placed in M01. Free-for-all (Nick, 2026-10-23)
+starts every life with the Pistol, its fifty Bullets and Fists; the Rifle,
+Shotgun and Railgun are owned only after their pad is taken, and death loses
+them. Team modes, Golden Rail and the `full-arsenal` host mutator keep the
+arena arsenal: a joined human reloads finite magazines from a spawn kit of 80
+bullets, 24 shells and 16 cells, and bots stay on the open count. A
+weapon-only mutator keeps one gun and no bag.
 Counted grenade projectiles are implemented in M05. The remaining arsenal,
 breakable weapons, competitive carry-limit proposal and sidearm trickle remain
 proposals. Implementation and evidence:
@@ -125,8 +128,8 @@ actual shot spends one shared Bullet; warmup spends none. Release, weapon
 change, inactivity, death, leave and attempt reset clear the private cycle.
 It keeps its own damage and weapon counters rather than aliasing Rifle.
 These numbers are a CPU prototype, pending an isolated played lesson. Maps
-granting it require capability 35 for humans, agents and spectators. Default
-full-arsenal arcade kits still contain their original three guns, and existing
+granting it require capability 35 for humans, agents and spectators. Arena
+arsenal kits still contain their original three guns, and existing
 campaign stages never grant it. Unknown gun art stays absent and unsupported
 fire cues clear the prior stream; another gun's body or sound is not a stand-in.
 See [the foundation](plans/repeater-foundation.md) and its
@@ -193,9 +196,11 @@ seams.
 
 Campaign weapons stay owned; ammunition availability changes what is useful in
 the next fight. A pickup should offer a clear new option or meaningful resupply,
-while a dry count encourages a deliberate switch. A joined arcade human now
-has that pressure inside a life: the spawn kit is finite, a weapon pad
-restocks the bag, and death puts the kit back. Bots and a weapon-only mutator
+while a dry count encourages a deliberate switch. A free-for-all life now has
+that pressure from the first second: it starts with the Pistol and Fists,
+every stronger gun is a timed pad, and death takes the found guns away. In
+team modes a joined human's arsenal kit is finite, a weapon pad restocks the
+bag, and death puts the kit back. Bots and a weapon-only mutator
 keep an open count. Campaign ownership is unchanged.
 
 Authored supply counts need evidence from ordinary play. The moment a new weapon
@@ -221,7 +226,7 @@ Three rules, and they are the point of the whole design.
 
 **The campaign has no weapon carry cap.** Every found weapon stays owned across
 connected missions and can be selected again after resupply. Nothing is dropped
-to make room. Current arcade full-arsenal maps also retain their explicit kit.
+to make room. Team modes and the `full-arsenal` mutator also retain their explicit kit.
 The older melee/sidearm/two-primary swap is a competitive-mode proposal, not an
 implemented rule or a campaign requirement.
 

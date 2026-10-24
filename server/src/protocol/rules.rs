@@ -98,16 +98,20 @@ pub enum Mutator {
     GoldenRail,
     /// Two lives each per round; the last fighter or side standing wins.
     TwoLives,
+    /// Free-for-all only: every life starts with the Rifle, Shotgun and
+    /// Railgun instead of the Pistol and Fists, and weapon pads restock.
+    FullArsenal,
 }
 
 impl Mutator {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::RailOnly,
         Self::ShotgunOnly,
         Self::FistsOnly,
         Self::LicenceToKill,
         Self::GoldenRail,
         Self::TwoLives,
+        Self::FullArsenal,
     ];
 
     /// The wire and command-line id.
@@ -119,6 +123,7 @@ impl Mutator {
             Self::LicenceToKill => "licence-to-kill",
             Self::GoldenRail => "golden-rail",
             Self::TwoLives => "two-lives",
+            Self::FullArsenal => "full-arsenal",
         }
     }
 
@@ -130,6 +135,7 @@ impl Mutator {
             Self::LicenceToKill => "Licence to Kill",
             Self::GoldenRail => "Golden Rail",
             Self::TwoLives => "Two Lives",
+            Self::FullArsenal => "Full Arsenal",
         }
     }
 
@@ -236,6 +242,10 @@ pub struct MatchRules {
     /// Lives per fighter per round. Omitted when unlimited.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lives: Option<u8>,
+    /// The weapons a fresh life holds under these rules, in wire order.
+    /// Anything else is found on the map and lost at death. Free-for-all
+    /// starts with `fists` and `tack`.
+    pub start_kit: Vec<WeaponType>,
 }
 
 /// A beat the Host calls from an authoritative fact. The client owns the
@@ -331,11 +341,12 @@ mod tests {
             mutators: vec![],
             friendly_fire: false,
             lives: None,
+            start_kit: vec![WeaponType::Fists, WeaponType::Tack],
         };
         let json = serde_json::to_value(&plain).unwrap();
         assert_eq!(
             json,
-            serde_json::json!({"mode": "ffa", "name": "Free-for-all"})
+            serde_json::json!({"mode": "ffa", "name": "Free-for-all", "start_kit": ["fists", "tack"]})
         );
         let twisted = MatchRules {
             mode: GameMode::Tdm,
@@ -343,6 +354,7 @@ mod tests {
             mutators: vec![Mutator::RailOnly, Mutator::TwoLives],
             friendly_fire: true,
             lives: Some(2),
+            start_kit: vec![WeaponType::Rail],
         };
         let json = serde_json::to_string(&twisted).unwrap();
         assert!(json.contains("\"mutators\":[\"rail-only\",\"two-lives\"]"));

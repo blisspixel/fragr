@@ -2986,6 +2986,14 @@ func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 				winner_side = "union" if union_count > coalition_count else "coalition"
 		hud.show_round_end(mvp_name, "MID-JOIN // ROUND ENDED", mvp_frags, host_line, podium, winner_side, captures)
 
+## A pad's own positional cue is for everyone except the fighter standing on
+## it: that one already hears the pickup in their own ears.
+func _pad_cue_audible(pad_position: Vector3) -> bool:
+	if camera == null or not is_instance_valid(camera):
+		return true
+	var ear: Vector3 = camera.global_position
+	return Vector2(ear.x - pad_position.x, ear.z - pad_position.z).length() > 4.0
+
 func _sync_pickups(pickup_list):
 	var seen = {}
 	for pad in pickup_list:
@@ -3025,6 +3033,7 @@ func _sync_pickups(pickup_list):
 				dirty = true
 			if dirty:
 				pickups[pid]._apply_look()
+			pickups[pid].note_server_available(bool(pad.get("available", true)), _pad_cue_audible(pos))
 			pickups[pid].set_available(is_up)
 	for pid in pickups.keys():
 		if not seen.has(pid):
@@ -3378,7 +3387,12 @@ func _update_death_presentation(now_usec: int) -> void:
 	var target: Variant = camera.get_followed_target()
 	if is_instance_valid(target):
 		watching = str(target.get("player_name"))
-	hud.show_death_card(local_life.card_lines(now_usec, watching))
+	# The server keeps this life's private loadout until the respawn, so what
+	# it lists beyond the rules' start kit is exactly what death costs.
+	var carried: Array[String] = []
+	if not net_client.equipment.is_empty():
+		carried = _carried_weapons()
+	hud.show_death_card(local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried)))
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.

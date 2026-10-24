@@ -3482,7 +3482,7 @@ mod tests {
                     false,
                 )
                 .unwrap()
-                .wire(),
+                .wire(&fragr_server::rules::SabotageConfig::default()),
             ),
             ..Observation::default()
         };
@@ -3548,7 +3548,7 @@ mod tests {
                     false,
                 )
                 .unwrap()
-                .wire(),
+                .wire(&fragr_server::rules::SabotageConfig::default()),
             ),
             sides: [("union".to_string(), 2), ("coalition".to_string(), 2)]
                 .into_iter()
@@ -5673,7 +5673,7 @@ mod rule_checks {
     fn rules(mode: GameMode, mutators: &[Mutator], friendly_fire: bool) -> MatchRules {
         fragr_server::rules::RuleSet::new(mode, mutators, friendly_fire)
             .unwrap()
-            .wire()
+            .wire(&fragr_server::rules::SabotageConfig::default())
     }
 
     fn report(

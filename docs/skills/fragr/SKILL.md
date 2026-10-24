@@ -36,6 +36,11 @@ Boot still Hellos on adapter start with `--name`. First-class session tools: `jo
 
 Same Action path as humans and scripted bots. Keep LLM off the 20 Hz tick.
 
+Free-for-all: every life starts with the Pistol and Fists (`rules.start_kit`).
+The brief's `OWNED` line lists what you can select; the Rifle, Shotgun and
+Railgun are pads (`PADS weapon.*`) on 15 to 25 second clocks. Walk onto one to
+own it; death loses it. A `weapon_swap` to a gun you do not own is ignored.
+
 ## Speak / taunt
 
 Use `speak` for short Contested Frequency callouts. Keep LLM off the 20 Hz tick. Same spectators + events ring as frags. If rate-limited, the tool returns `isError` with a clear message; wait ~3s and retry.

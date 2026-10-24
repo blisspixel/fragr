@@ -134,7 +134,7 @@ fn queued_jump_hits_the_underside_and_lands_on_the_same_floor() {
 fn active_shots_hit_below_the_balcony_but_not_through_its_deck() {
     let arena = balcony();
     for (target_feet, hits) in [([6.0, 0.0, 0.0], true), ([4.0, 3.0, 0.0], false)] {
-        let mut state = GameState::new();
+        let mut state = GameState::arsenal();
         state.pickups.clear();
         let shooter = player_at(&mut state, [2.0, 0.0, 0.0]);
         let target = player_at(&mut state, target_feet);
@@ -175,7 +175,7 @@ fn active_shots_hit_below_the_balcony_but_not_through_its_deck() {
 fn export_enclosed_capture() {
     let arena = room();
     let mut frames = walk_capture();
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.pickups.clear();
     let id = player_at(&mut state, [4.0, 0.0, 0.0]);
     state.set_action(
