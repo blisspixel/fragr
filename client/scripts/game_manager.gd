@@ -704,16 +704,14 @@ func _event_cover_regions() -> Array[Rect2]:
 		regions.append_array(mission_hud.event_cover_regions())
 	return regions
 
-## Text on other canvas layers that shares the HUD's top band. The HUD lays its
-## corner, center facts and frag feed out below whatever crosses each column.
+## Text on other canvas layers that shares the top band: the frame counter.
+## The match HUD lays its corner, center facts and frag feed out below whatever
+## crosses each column; during a benchmark, the benchmark HUD does the same.
 func _top_band_reservations() -> Array[Rect2]:
 	var regions: Array[Rect2] = []
 	var frame_counter: PerformanceOverlay = get_node_or_null("PerformanceOverlay") as PerformanceOverlay
 	if frame_counter != null:
 		regions.append(frame_counter.occupied_region())
-	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
-	if run != null:
-		regions.append(run.occupied_region())
 	return regions
 
 func _refresh_ui_context(roster: Array) -> void:
@@ -840,9 +838,14 @@ func _reveal_world_after_draw(generation: int) -> void:
 	if _benchmark:
 		_start_benchmark_run()
 
+## The benchmark shows its own readout. Match chrome (center facts, feeds,
+## vitals, crosshair, the followed fighter's viewmodel, radio cards) stays
+## hidden for the whole run, so the measured scene and the text over it are
+## the same for every preset.
 func _prepare_benchmark_presentation() -> void:
 	BenchmarkRun.present_uncapped()
 	hud.set_weapon_finish("standard")
+	hud.visible = false
 	if console != null:
 		console.set_open(false)
 		console.set_process_unhandled_input(false)
@@ -855,21 +858,31 @@ func _start_benchmark_run() -> void:
 		camera.set_process(false)
 		camera.set_process_input(false)
 		camera.set_process_unhandled_input(false)
+		# The orbit owns the pose: nobody is followed, hidden or highlighted.
+		camera.hand_over_pose()
 	var run: BenchmarkRun = BenchmarkRun.new()
 	run.name = "BenchmarkRun"
 	run.camera = camera
 	run.manager = self
 	run.preferences = settings
 	run.compare_all = _benchmark_compare
+	run.reserved_query = _top_band_reservations
 	run.finished.connect(_on_benchmark_finished)
 	run.dismissed.connect(_on_leave_requested)
+	run.again_requested.connect(_on_benchmark_again)
 	add_child(run)
 	run.begin()
 
 func _on_benchmark_finished(report: Dictionary) -> void:
 	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
 	if run != null:
-		run.show_score(report, settings)
+		run.show_results(report)
+
+## Run again goes back through the menu, so the same owned loopback host,
+## settings restore and world load run as on the first start.
+func _on_benchmark_again(compare_all: bool) -> void:
+	get_tree().set_meta(BenchmarkRun.AGAIN_META, compare_all)
+	_on_leave_requested()
 
 func _stop_benchmark_host() -> void:
 	BenchmarkRun.restore_presentation(settings)
@@ -955,6 +968,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if console != null and console.is_open():
 		return
 	if _benchmark and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+		if run == null or run.final_report.is_empty():
+			get_tree().set_meta(BenchmarkRun.CANCELLED_META, true)
 		_on_leave_requested()
 		get_viewport().set_input_as_handled()
 		return
@@ -2638,7 +2654,8 @@ func _on_snapshot_received(data):
 		for pawn in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_highlighted(pawn == followed)
-				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person()
+				# The benchmark draws fighters at their true size, as in play.
+				pawn.broadcast_scale_enabled = not is_human_player and not camera.is_observing_first_person() and not _benchmark
 	
 	_update_followed_weapon()
 	_sync_pickups(data.get("pickups", []))
@@ -2743,7 +2760,9 @@ func _update_nameplates() -> void:
 		if viewer_team != "" and str(id) != local_fp_pawn_id and int(marked.get("hp")) > 0:
 			relation = MatchRules.team_relation(viewer_team, str(marked.get("team")))
 		marked.set_team_relation(relation)
-	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	# A benchmark orbit is not a broadcast: callsigns and health would be text
+	# over the measured scene that only some presets happen to draw.
+	var watching: bool = not is_human_player and not camera.is_observing_first_person() and not _benchmark
 	var marking: bool = viewer_team != ""
 	var view: Camera3D = viewport.get_camera_3d()
 	if (not watching and not marking) or view == null:

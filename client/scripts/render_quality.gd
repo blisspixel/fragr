@@ -30,6 +30,38 @@ static func supports_ao(renderer: String) -> bool:
 static func supports_dual_paraboloid(renderer: String) -> bool:
 	return renderer in ["forward_plus", "mobile"]
 
+## The renderer's name as the engine's project settings print it.
+static func renderer_name(renderer: String) -> String:
+	match renderer:
+		"forward_plus":
+			return "Forward+"
+		"mobile":
+			return "Mobile"
+		"gl_compatibility":
+			return "Compatibility"
+		_:
+			return renderer
+
+## What a quality preset changes in the drawn frame, in player words. It reads
+## the same rules `apply`, `apply_environment` and `apply_practicals` use, so a
+## result can say how its presets differ instead of only naming them.
+static func preset_features(quality: int, renderer: String, video: Dictionary, output: Vector2i) -> String:
+	var pixels: int = pixel_factor(int(video.get("pixel_scale", 0)), output)
+	var fsr2: bool = pixels <= 1 and supports_fsr(renderer) and int(video.get("upscaling", 0)) == 2
+	var parts: PackedStringArray = PackedStringArray()
+	if quality <= 0 or fsr2:
+		parts.append("no MSAA")
+	else:
+		parts.append("MSAA %dx" % (2 if quality == 1 else 4))
+	parts.append("shadow atlas %d" % (1024 if quality <= 0 else (4096 if quality == 2 else 2048)))
+	parts.append("light fixture shadows %s" % ("on" if quality >= 1 else "off"))
+	if quality >= 1 and supports_ao(renderer):
+		parts.append("ambient occlusion %s" % ("low" if quality == 1 else "medium"))
+	else:
+		parts.append("ambient occlusion off")
+	parts.append("glow %s" % ("on" if quality >= 1 else "off"))
+	return ", ".join(parts)
+
 static func render_scale(height: int, output: Vector2i) -> float:
 	if height == 0 or output.y <= 0:
 		return 1.0
