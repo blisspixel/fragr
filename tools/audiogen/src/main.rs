@@ -5,8 +5,8 @@
 
 use clap::{Parser, Subcommand};
 use fragr_audiogen::{
-    parse_spec, read_capped, read_dotenv_key, resolve_api_key, run_command, Command, Error, Job,
-    Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams,
+    parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command, Command, Error,
+    Job, Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams,
     API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL, DEFAULT_SFX_FORMAT,
     DEFAULT_TTS_FORMAT, DEFAULT_TTS_MODEL,
 };
@@ -150,8 +150,65 @@ enum Cmd {
     },
     /// List the account's default voices with ids for casting.
     Voices,
+    /// Open the radio music review page: listen, then mark each track keep or reject.
+    Review {
+        #[command(flatten)]
+        paths: ReviewPaths,
+        /// Loopback port for the page (0 picks a free one).
+        #[arg(long, default_value_t = review::DEFAULT_PORT)]
+        port: u16,
+        /// Print the URL without opening a browser.
+        #[arg(long)]
+        no_open: bool,
+    },
+    /// Copy keepers into client/assets/audio/radio and remove rejected tracks. Dry run unless --apply.
+    Promote {
+        #[command(flatten)]
+        paths: ReviewPaths,
+        /// Refuse when a station that loses tracks would end with fewer than this.
+        #[arg(long, default_value_t = review::DEFAULT_MIN_TRACKS)]
+        min_tracks: usize,
+        /// Allow a station to drop below --min-tracks.
+        #[arg(long)]
+        force: bool,
+        /// Write the changes. Without this the plan is only printed.
+        #[arg(long)]
+        apply: bool,
+    },
     /// Show remaining credits for the configured key.
     Quota,
+}
+
+/// Where the review and promote commands read and write.
+#[derive(clap::Args, Debug, Clone, PartialEq)]
+struct ReviewPaths {
+    /// Station list.
+    #[arg(long, default_value = review::DEFAULT_STATIONS_FILE)]
+    stations: PathBuf,
+    /// Shipped station folders; its parent holds audiogen-manifest.json.
+    #[arg(long, default_value = review::DEFAULT_RADIO_DIR)]
+    radio_dir: PathBuf,
+    /// Candidate station folders (<dir>/<station>/*.mp3).
+    #[arg(long, default_value = review::DEFAULT_CANDIDATES_DIR)]
+    candidates: PathBuf,
+    /// Decisions file, written on every mark.
+    #[arg(long, default_value = review::DEFAULT_DECISIONS_FILE)]
+    decisions: PathBuf,
+    /// Keepers wanted per station, shown on the tabs.
+    #[arg(long, default_value_t = review::DEFAULT_TARGET)]
+    target: usize,
+}
+
+impl ReviewPaths {
+    fn config(self) -> review::ReviewConfig {
+        review::ReviewConfig {
+            stations_file: self.stations,
+            radio_dir: self.radio_dir,
+            candidates_dir: self.candidates,
+            decisions_file: self.decisions,
+            target: self.target,
+        }
+    }
 }
 
 /// `speaker=id` or `speaker=id1,id2` for the scripts command.
@@ -265,6 +322,11 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
         }
         Cmd::Voices => Command::Voices,
         Cmd::Quota => Command::Quota,
+        Cmd::Review { .. } | Cmd::Promote { .. } => {
+            return Err(Error::InvalidArgument(
+                "review and promote run locally, not through the generator".into(),
+            ))
+        }
     })
 }
 
@@ -314,7 +376,110 @@ impl Transport for HttpTransport {
     }
 }
 
+fn open_browser(url: &str) -> std::io::Result<()> {
+    let mut command = if cfg!(target_os = "windows") {
+        let mut command = std::process::Command::new("cmd");
+        command.args(["/C", "start", ""]);
+        command
+    } else if cfg!(target_os = "macos") {
+        std::process::Command::new("open")
+    } else {
+        std::process::Command::new("xdg-open")
+    };
+    command
+        .arg(url)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map(drop)
+}
+
+fn run_review(
+    paths: ReviewPaths,
+    port: u16,
+    no_open: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", port))?;
+    let port = listener.local_addr()?.port();
+    let server = review::ReviewServer::new(paths.config(), port)?;
+    let tracks: usize = server
+        .catalog
+        .stations
+        .iter()
+        .map(|station| station.tracks.len())
+        .sum();
+    let url = format!("http://127.0.0.1:{port}/");
+    writeln!(
+        out,
+        "review: {} stations, {tracks} tracks; decisions in {}",
+        server.catalog.stations.len(),
+        server.config.decisions_file.display()
+    )?;
+    writeln!(out, "review: open {url} (Ctrl+C to stop)")?;
+    out.flush()?;
+    if !no_open {
+        if let Err(err) = open_browser(&url) {
+            writeln!(
+                out,
+                "review: could not open a browser ({err}); open the URL by hand"
+            )?;
+        }
+    }
+    review::serve(listener, server)
+}
+
+fn run_promote(
+    paths: ReviewPaths,
+    min_tracks: usize,
+    force: bool,
+    apply: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let config = paths.config();
+    let mut decisions = review::load_decisions(&config.decisions_file)?;
+    let catalog = review::scan_catalog(&config, &decisions)?;
+    let plan = review::plan_promotion(&config, &catalog, &decisions);
+    write!(out, "{}", review::describe_plan(&plan, min_tracks, force))?;
+    if !apply {
+        writeln!(out, "dry run: nothing written; pass --apply to promote")?;
+        return Ok(());
+    }
+    if let Some(reason) = review::promotion_refusal(&plan, min_tracks, force) {
+        return Err(Error::InvalidArgument(format!(
+            "promotion refused: {reason}"
+        )));
+    }
+    if plan.stations.iter().all(|station| !station.changes()) {
+        return Ok(());
+    }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    review::apply_promotion(&config, &plan, &mut decisions, now)?;
+    writeln!(
+        out,
+        "promoted. Next: import in Godot (tools/godot_check.sh) to create .import files, then check `git status client/assets/audio` and stage with `git add -A client/assets/audio`"
+    )?;
+    Ok(())
+}
+
 fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
+    match cli.command {
+        Cmd::Review {
+            paths,
+            port,
+            no_open,
+        } => return run_review(paths, port, no_open, out),
+        Cmd::Promote {
+            paths,
+            min_tracks,
+            force,
+            apply,
+        } => return run_promote(paths, min_tracks, force, apply && !cli.dry_run, out),
+        _ => {}
+    }
     // Dry runs never need a key. Quota always does.
     // Dry runs and the scripts converter never touch the network. Quota and voices always do.
     let needs_key = (!cli.dry_run && !matches!(cli.command, Cmd::Scripts { .. }))
@@ -568,6 +733,137 @@ mod tests {
         assert!(String::from_utf8(out).unwrap().contains("with 1 items"));
         assert!(dir.join("out2.json").exists());
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn parses_review_and_promote() {
+        let cli =
+            Cli::try_parse_from(["fragr-audiogen", "review", "--port", "0", "--no-open"]).unwrap();
+        match cli.command {
+            Cmd::Review {
+                paths,
+                port,
+                no_open,
+            } => {
+                assert_eq!(port, 0);
+                assert!(no_open);
+                assert_eq!(paths.config(), review::ReviewConfig::default());
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "promote",
+            "--min-tracks",
+            "5",
+            "--force",
+            "--decisions",
+            "d.json",
+        ])
+        .unwrap();
+        match cli.command {
+            Cmd::Promote {
+                paths,
+                min_tracks,
+                force,
+                apply,
+            } => {
+                assert_eq!(min_tracks, 5);
+                assert!(force);
+                assert!(!apply);
+                assert_eq!(paths.decisions, PathBuf::from("d.json"));
+                let command = Cmd::Promote {
+                    paths,
+                    min_tracks,
+                    force,
+                    apply,
+                };
+                assert!(to_command(command).is_err());
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn promote_dry_run_and_apply_need_no_key() {
+        let dir = std::env::temp_dir().join(format!(
+            "fragr-audiogen-main-promote-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("audio/radio/rock")).unwrap();
+        std::fs::create_dir_all(dir.join("cand/radio/rock")).unwrap();
+        std::fs::write(
+            dir.join("audio/radio/stations.json"),
+            r#"{"stations": [{"id": "rock"}]}"#,
+        )
+        .unwrap();
+        std::fs::write(dir.join("audio/radio/rock/01-a.mp3"), b"a").unwrap();
+        std::fs::write(
+            dir.join("decisions.json"),
+            r#"{"version": 1, "decisions": {"shipped/rock/01-a.mp3": {"decision": "reject", "at_unix": 1}}}"#,
+        )
+        .unwrap();
+        let args = |extra: &[&str]| {
+            let mut args = vec![
+                "fragr-audiogen".to_string(),
+                "--api-key-file".into(),
+                "definitely-missing.key".into(),
+            ];
+            args.extend(extra.iter().map(|s| s.to_string()));
+            args.extend([
+                "promote".into(),
+                "--stations".into(),
+                dir.join("audio/radio/stations.json").display().to_string(),
+                "--radio-dir".into(),
+                dir.join("audio/radio").display().to_string(),
+                "--candidates".into(),
+                dir.join("cand/radio").display().to_string(),
+                "--decisions".into(),
+                dir.join("decisions.json").display().to_string(),
+            ]);
+            args
+        };
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&[])).unwrap(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("rock: 1 -> 0 tracks (+0 -1) REFUSED"),
+            "{text}"
+        );
+        assert!(text.contains("dry run"));
+        // The global --dry-run wins over --apply.
+        let mut with_apply = args(&["--dry-run"]);
+        with_apply.push("--apply".into());
+        run(Cli::try_parse_from(with_apply).unwrap(), &mut Vec::new()).unwrap();
+        let mut apply = args(&[]);
+        apply.push("--apply".into());
+        let err = run(Cli::try_parse_from(apply.clone()).unwrap(), &mut Vec::new()).unwrap_err();
+        assert!(err.to_string().contains("refused"), "{err}");
+        assert!(dir.join("audio/radio/rock/01-a.mp3").exists());
+        apply.push("--force".into());
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(apply.clone()).unwrap(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("promoted"));
+        assert!(!dir.join("audio/radio/rock/01-a.mp3").exists());
+        // Nothing left to do on a second pass.
+        run(Cli::try_parse_from(apply).unwrap(), &mut Vec::new()).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn review_reports_a_bad_layout() {
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "review",
+            "--port",
+            "0",
+            "--no-open",
+            "--stations",
+            "definitely-missing-stations.json",
+        ])
+        .unwrap();
+        assert!(matches!(run(cli, &mut Vec::new()), Err(Error::Io(_))));
     }
 
     #[test]

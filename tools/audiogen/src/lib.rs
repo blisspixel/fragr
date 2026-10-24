@@ -6,6 +6,8 @@
 //! real HTTP transport. Players never run this; it exists so developers can
 //! produce sound effects and music beds that are committed as ordinary assets.
 
+pub mod review;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
