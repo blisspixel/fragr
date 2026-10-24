@@ -24,7 +24,7 @@ func _initialize() -> void:
 					arrived=true
 					break
 				var yaw: float = atan2(goal[2]-state.z,goal[0]-state.x)
-				state=MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,world)
+				state=MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,world)
 				assert(not before_final or state.z<16.0,"Arc pre-final medical route crossed the final activation")
 			if not arrived:
 				push_error("Blocked Arc QA segment in %s toward %s at %s" % [capture.name,goal,state])

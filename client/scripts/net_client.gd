@@ -313,6 +313,9 @@ func send_action(action: Dictionary):
 	# Action rejects unknown fields and would drop movement with the key.
 	if action.get("duck", false) and duck_supported:
 		msg["duck"] = true
+	# Omitted unless pressed: one Action carries each dodge press.
+	if action.get("dodge", false):
+		msg["dodge"] = true
 	if action.get("place_remote_mine", false) and remote_supported:
 		msg["place_remote_mine"] = true
 	if action.get("trigger_remote_mines", false) and remote_supported:

@@ -149,7 +149,7 @@ func _check(condition: bool,message: String) -> void:
 		_failures.append(message)
 
 func _advance(body: Dictionary,input: Dictionary) -> Dictionary:
-	var proposed: Dictionary=MoveStep.live_step(body,input,MoveStep.TOP_SPEED,MoveStep.DT_LIVE,_arena)
+	var proposed: Dictionary=MoveStep.live_step(body,input,MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,_arena)
 	if _peers.is_empty():
 		return proposed
 	var bodies: Array[Dictionary]=[{"key":"participant","from":body,"proposed":proposed,"height":MoveStep.BODY_HEIGHT,"radius":MoveStep.RADIUS,"jump":false}]

@@ -19,7 +19,7 @@ class_name InputBindings
 
 ## Controls page order.
 const ACTIONS: Array[String] = [
-	"move_forward", "move_back", "move_left", "move_right", "strafe", "jump", "duck",
+	"move_forward", "move_back", "move_left", "move_right", "strafe", "jump", "dodge", "duck",
 	"turn_left", "turn_right", "look_up", "look_down", "center_view",
 	"fire", "reload", "scope", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "weapon_next", "weapon_prev",
 	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
@@ -43,7 +43,7 @@ const NO_PAD_DEFAULT: Array[String] = [
 	"move_forward", "move_back", "move_left", "move_right", "strafe",
 	"turn_left", "turn_right", "look_up", "look_down", "center_view",
 	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
-	"speak", "leave_match", "radio_next_track", "radio_toggle",
+	"speak", "leave_match", "radio_next_track", "radio_toggle", "dodge",
 ]
 
 const SLOTS: int = 3

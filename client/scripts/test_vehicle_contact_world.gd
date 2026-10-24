@@ -40,7 +40,7 @@ func _initialize() -> void:
 	predictor.accept_ack(helpers._ack(1, 101, 1, 0.1), 1050001)
 	_check(absf(float(predictor.state.x) - 0.1) < 0.001 and predictor.steps[0].vehicle_hulls[0] == old_hull, "a moved hull cannot rewrite an already retained input step")
 	predictor.advance(1100000)
-	_check(absf(float(predictor.state.x) - 0.35) < 0.001, "a new input step uses the new authoritative hull position")
+	_check(absf(float(predictor.state.x) - (0.1 + float(Fixture._ahead(1)["x"]))) < 0.001, "a new input step uses the new authoritative hull position")
 	_check(predictor.arena.solids.is_empty(), "transient hulls never mutate the retained map geometry")
 
 	var world: Dictionary = {"half": 20.0, "solids": [], "water_regions": [{"min": [-10.0, -10.0], "max": [10.0, 10.0], "level": 2.2, "depth": 2.2}]}

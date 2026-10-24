@@ -87,6 +87,10 @@ jump={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":32), Object(InputEventJoypadButton,"device":-1,"button_index":0)]
 }
+dodge={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194325,"location":1)]
+}
 duck={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326,"location":1), Object(InputEventJoypadButton,"device":-1,"button_index":1)]

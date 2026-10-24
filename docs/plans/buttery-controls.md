@@ -1,6 +1,6 @@
 # Plan: buttery controls
 
-**Status:** in flight (stage 1 shipped 2026-09-18; later-stage design requires revalidation against live 3D movement)
+**Status:** in flight (stage 1 shipped 2026-09-18; the 2026-10-23 [feel pass](feel-pass-20261023.md) moved arena play to one momentum fighter model with a smoothed, phase-locked local view; interpolation of others, lag compensation and transport remain)
 **Branch:** `feat/controls-*` (one PR per stage below)
 **Spend:** $0.
 
@@ -29,7 +29,7 @@ Review every `*_TICKS` constant in `server/src/sim.rs` and `server/src/protocol.
 
 - The server ticks at 20 Hz and every snapshot is the full JSON world (`server/src/run.rs`).
 - `client/scripts/game_manager.gd` paces Action sends to at most 120 per second and keeps one-shot inputs latched until a send. The server's inbound budget is 256 messages per second per session.
-- The 20 Hz sim selects the newest admitted continuous Action per tick; Ack sequences may skip or repeat. The optional v1 movement block supplies full post-tick body state and replay metadata. `server/src/movement.rs` and `client/scripts/movement.gd` share separate accelerated and immediate-velocity 3D goldens. Godot predicts only the local pawn with a bounded three-tick replay, while the server remains authoritative.
+- The 20 Hz sim selects the newest admitted continuous Action per tick; Ack sequences may skip or repeat. The movement block supplies full post-tick body state and replay metadata; its `version` says which model produced the body (2 the arena fighter model, 1 the campaign's immediate step). `server/src/movement.rs` and `client/scripts/movement.gd` mirror both, with fighter goldens at 20 Hz and 60 Hz. Godot predicts only the local pawn with a bounded three-tick replay on a clock phase-locked to the server's input cutoff, while the server remains authoritative.
 - The [Action-to-Ack baseline](human-action-ack-baseline.md) measures the selected-input path. The [moving-combat probe](websocket-moving-combat-probe.md) adds a continuous same-tick correction and fallback receipt. The [delayed-egress probe](websocket-delayed-egress.md) adds nine $0 Windows-to-WSL, one-host runs with 0, 40 and 80 ms server-egress delays. No two-machine or unsteered human feel gate has passed.
 
 ## Entry gate before the next controls stage
@@ -45,7 +45,7 @@ selecting 60 Hz movement or a new transport.
 
 1. **Client-owned yaw.** Every input carries an absolute yaw (f32). The server clamps only for sanity. Mouse motion is applied to the camera in the same frame it arrives and never waits on the network.
 2. **Prediction and reconciliation for the local pawn only.** Number sampled inputs, then define which input each authoritative movement tick consumes, including repeated samples and one-shot edges. Predict and replay those movement steps against complete authoritative Ack state. The sequence alone cannot identify one server step while the server coalesces Actions. Other fighters are never predicted.
-3. **One live move function, mirrored.** The existing pure Rust and GDScript steps include horizontal acceleration, 3D solids, step-up, jump and gravity, with shared golden vectors. Live Rust integration currently sets horizontal velocity immediately. The prediction change must mirror the live path or intentionally migrate both live paths to the same step, with matching golden cases and float tolerances. Do not use the accelerated pure step to predict immediate-velocity live play.
+3. **One live move function, mirrored.** Since the 2026-10-23 feel pass, arena participants run `fighter_step` (persistent velocity, friction, ground and air acceleration, dodge) live on the server and in replay, with golden vectors at 20 Hz and 60 Hz and the constants frozen in one block. A campaign mission keeps the immediate step, and the Ack version tells replay which one ran.
 4. **Timeline interpolation for others.** A ring of tick-stamped states, rendered at server time minus 100 ms at 20 Hz snapshots (150 ms while on TCP, because one loss stalls the stream), 33 to 50 ms once snapshots run at 60 Hz. Extrapolate at most 100 ms, then freeze. The exponential lerp goes away.
 5. **Lag compensation for hitscan.** The server rewinds targets by `clamp(RTT / 2 + interpolation delay, 0, 200 ms)` and keeps 250 ms of history. This matters even on a LAN: at 7 m/s a target moves 0.7 m during a 100 ms interpolation delay, more than a capsule radius.
 6. **Sim at 60 Hz, snapshots at 20 Hz.** Input granularity would drop from 50 ms to 16.7 ms and the rewind history would become finer. Measure CPU and traffic before adopting this cadence. Convert tick constants to time units; snapshots and acknowledgements must carry the tick and 3D state needed by interpolation and replay.
@@ -90,10 +90,10 @@ replay and fallbacks. Review vector changes as code.
 - `view_tick: u32` the server tick the client was rendering other fighters at when this input was sampled (for lag compensation). Absent means no rewind.
 
 A separate human-only unicast Ack already exists. Its current shape includes
-the optional movement v1 block:
+the movement block (version 2 in arena play, 1 in a campaign mission):
 
 ```json
-{"type":"ack","seq":4123,"tick":88210,"x":12.25,"z":-3.5,"yaw":1.2,"pitch":0.25,"movement":{"version":1,"epoch":1,"applied":true,"y":1.5,"vx":5.0,"vy":0.0,"vz":0.0,"effective_speed":5.0,"jump_input":false}}
+{"type":"ack","seq":4123,"tick":88210,"x":12.25,"z":-3.5,"yaw":1.2,"pitch":0.25,"movement":{"version":2,"epoch":1,"applied":true,"y":1.5,"vx":6.0,"vy":0.0,"vz":0.0,"effective_speed":6.0,"jump_input":false,"dodge_cooldown":0}}
 ```
 
 `seq` is the newest Action selected for that fighter at the 20 Hz server tick.
@@ -180,7 +180,7 @@ Gabriel Gambetta's client-server series; Valve's Source multiplayer networking a
 ## Success criteria
 
 - [x] Stage 1 shipped: yaw is client-owned and inputs are numbered, proven by the server tests (client yaw wins over the turn bits and steers the same tick, acks report the state the input produced, agents unchanged). The same-frame yaw harness lands with the QA tour's feel probes.
-- [ ] Live-step prediction and replay with golden vectors passing in both languages.
+- [x] Live-step prediction and replay with golden vectors passing in both languages (fighter model and immediate step, 2026-10-23 feel pass).
 - [ ] Others interpolate on a timeline; no lerp.
 - [ ] 60 Hz sim; constants in seconds.
 - [ ] Lag compensation bounded and tested.

@@ -23,7 +23,67 @@ pub(crate) fn append_support(arena: &mut Arena, regions: &[WaterRegion]) {
     }
 }
 
+/// Which horizontal model a body uses: participants accelerate and keep
+/// momentum, authored actors set their velocity at once.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Model {
+    Fighter,
+    Actor,
+}
+
+fn step_with(
+    model: Model,
+    state: MoveState,
+    input: &MoveInput,
+    speed: f32,
+    dt: f32,
+    arena: &Arena,
+    height: f32,
+) -> MoveState {
+    match model {
+        Model::Fighter => super::fighter_step_with_height(state, input, speed, dt, arena, height),
+        Model::Actor => super::live_step_with_height(state, input, speed, dt, arena, height),
+    }
+}
+
+/// Whether `step` would dodge: out of the water and `movement::dodge_applies`.
+pub fn dodge_applies(
+    state: &MoveState,
+    input: &MoveInput,
+    arena: &Arena,
+    regions: &[WaterRegion],
+) -> bool {
+    !regions.iter().any(|water| water.contains(state.x, state.z))
+        && super::dodge_applies(state, input, arena)
+}
+
+/// The authored-actor step with surface swimming. The water vectors pin it.
 pub fn live_step(
+    state: MoveState,
+    input: &MoveInput,
+    speed: f32,
+    dt: f32,
+    arena: &Arena,
+    height: f32,
+    regions: &[WaterRegion],
+) -> MoveState {
+    step(
+        Model::Actor,
+        state,
+        input,
+        speed,
+        dt,
+        arena,
+        height,
+        regions,
+    )
+}
+
+/// One body step of either model with surface swimming. The swim rules are
+/// the same for both; only the horizontal model underneath differs.
+#[allow(clippy::too_many_arguments)]
+pub fn step(
+    model: Model,
     mut state: MoveState,
     input: &MoveInput,
     speed: f32,
@@ -33,11 +93,22 @@ pub fn live_step(
     regions: &[WaterRegion],
 ) -> MoveState {
     if regions.is_empty() {
-        return super::live_step_with_height(state, input, speed, dt, arena, height);
+        return step_with(model, state, input, speed, dt, arena, height);
     }
     let water = regions
         .iter()
         .find(|water| water.contains(state.x, state.z));
+    // Nobody dodges off the water.
+    let dry;
+    let input = if water.is_some() && input.dodge {
+        dry = MoveInput {
+            dodge: false,
+            ..*input
+        };
+        &dry
+    } else {
+        input
+    };
     let swimming = water.is_some_and(|water| {
         state.y < water.level - 0.25
             && arena.support_height(state.x, state.z, state.y + super::STEP_UP)
@@ -61,7 +132,7 @@ pub fn live_step(
             state.vy = state.vy.max(0.0);
         }
     }
-    let mut moved = super::live_step_with_height(state, input, travel, dt, &supported, height);
+    let mut moved = step_with(model, state, input, travel, dt, &supported, height);
     if let Some(water) = regions
         .iter()
         .find(|water| water.contains(moved.x, moved.z))

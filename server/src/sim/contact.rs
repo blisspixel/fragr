@@ -103,8 +103,8 @@ impl GameState {
                     && dt.is_finite()
                     && (moved.x != body.proposed.x || moved.z != body.proposed.z)
                 {
-                    p.last_move_vx = (p.x - body.from.x) / dt;
-                    p.last_move_vz = (p.z - body.from.z) / dt;
+                    p.vx = (p.x - body.from.x) / dt;
+                    p.vz = (p.z - body.from.z) / dt;
                 }
             }
         }
@@ -202,7 +202,7 @@ mod tests {
         }
         assert!(game.players[0].x <= -0.9999);
         assert_eq!(game.players[1].x, 0.0);
-        assert!(game.players[0].last_move_vx.abs() < 0.001);
+        assert!(game.players[0].vx.abs() < 0.001);
         assert!(game.snapshot().players.iter().all(|p| p.collidable));
         game.players[1].detached = true;
         assert!(

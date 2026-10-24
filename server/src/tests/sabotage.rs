@@ -1380,9 +1380,15 @@ fn walk_ticks(from: [f32; 3], to: [f32; 3]) -> Option<u32> {
 #[test]
 fn sabotage_routes_meet_the_timing_targets() {
     let layout = MapKind::Sector9.sabotage_layout().unwrap();
+    // The targets were drawn for a 5 m/s run. The fighter now runs at
+    // TOP_SPEED, so measured walks are scaled back to that pace: what these
+    // pin is the layout's distances and their balance, which a faster run
+    // compresses evenly.
+    let pace = crate::movement::TOP_SPEED / 5.0;
     let seconds = |from: [f32; 3], to: [f32; 3]| {
         walk_ticks(from, to).unwrap_or_else(|| panic!("{from:?} -> {to:?} never arrives")) as f32
             / 20.0
+            * pace
     };
     let [a, b] = [layout.wire.sites[0].center, layout.wire.sites[1].center];
     // The attack reaches either site in 15 to 20 seconds from the yard on the

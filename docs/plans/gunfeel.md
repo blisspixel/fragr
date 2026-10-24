@@ -42,6 +42,15 @@ The order to fix them is first-person flash, then impact on the surface, then a 
 
 Every number has a reason and a source or an explicit "ours to tune". Damage is per shot, intervals in seconds, cones in radians, ranges in units.
 
+The 2026-10-23 [feel pass](feel-pass-20261023.md) settled the movement rows for
+arena play from Nick's decisions: a 6 m/s run with Quake and Source friction and
+acceleration (three ticks to full speed, a 0.17 m stop), air control, and a
+9 m/s ground dodge on its own key with a 0.75 s cooldown, frozen in
+`server/src/movement.rs`. It also replaced the always-on cone with a first shot
+down the exact aim ray and bloom on sustained fire. The table below keeps the
+2026-09-19 proposals for the rows still open; the campaign keeps 5 m/s and the
+table cones.
+
 | Parameter | Today | Target | Why |
 |---|---|---|---|
 | Top speed | 5.0 | 6.5 | Between Counter-Strike's rifle speed (5.46) and Quake 3's (8.13). Crossing the 50 unit arena drops from 10 s to 7.7 s. |
@@ -147,8 +156,8 @@ Input-to-photon latency needs a camera or a light sensor and stays a manual meas
 2. **Shipped.** Weapon table: damage, interval, cone, range, and the scatter gun's falloff. Time to kill measured before and after, above. Switch time and the constants block a sweep would need are still to come.
 3. **Shipped.** Seeded dispersion replaces the old forgiveness cone. The vertical aim increment extends it to a 3D cone and finite fighter bodies. Aim assistance remains unimplemented.
 4. Movement inaccuracy and the recovery constant; the split crosshair that shows it.
-5. Feedback: hit marker, muzzle flash, view kick, shake, bob, kill marker.
-6. Ground dodge with its cooldown and recovery penalty, in the shared movement step with golden vectors.
+5. Feedback: hit marker, muzzle flash, view kick, shake, bob, kill marker. **2026-10-23 feel pass:** the view kick is a per-weapon camera punch on a critically damped spring that never moves the aim, a hard landing dips the eye, and a kill shot shows a larger danger-coloured marker with its own thud ([feel pass](feel-pass-20261023.md)).
+6. Ground dodge with its cooldown and recovery penalty, in the shared movement step with golden vectors. **2026-10-23 feel pass, arena play:** a 9 m/s throw on a 3.5 m/s hop from a dedicated key (Left Shift), 15 tick cooldown carried in the movement Ack, in `fighter_step` and both golden files. The recovery penalty and double tap are not built.
 7. Field of view and gamepad curves in settings, swept by the feel probes.
 
 ## Success criteria
@@ -158,7 +167,7 @@ Input-to-photon latency needs a camera or a light sensor and stays a manual meas
 - [ ] Each weapon's kill distances peak in its own band. All three are used now, but the rail is still only two to four percent of shots because long fights are rare.
 - [x] Dispersion is physical aim variation, without an aim-assist cone. The vertical aim increment removes the unused `AIM_ASSIST_RADIANS` knob.
 - [ ] Every feedback timing implemented and visible in a tour still.
-- [ ] The dodge exists, is in the golden vectors, and the playtests prefer it.
+- [ ] The dodge exists, is in the golden vectors, and the playtests prefer it. (Exists and in the golden vectors for arena play since the 2026-10-23 feel pass; no playtest preference measured.)
 
 ## Sources
 

@@ -210,6 +210,7 @@ the pad in hand (Xbox name first, PlayStation second below).
 | Scope | Z, hold | Right mouse or Z, hold | LT / L2, hold |
 | Jump | Space | Space | A / Cross |
 | Crouch | Left Ctrl, hold | Left Ctrl, hold | B / Circle, hold |
+| Dodge (arena) | Left Shift | Left Shift | not bound (rebindable) |
 | Reload | R | R | X / Square |
 | Use | Enter | F | Y / Triangle |
 | Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB / L1 and R1 |

@@ -100,6 +100,34 @@ static func eye_lift(target: Object) -> float:
 	return FP_EYE_HEIGHT
 const TURN_ACCUM_THRESHOLD = 2.5
 
+## Camera punch: presentation only. A shot kicks the drawn view up (and rolls
+## it a little) on a critically damped spring and the view settles back; aim,
+## the yaw and pitch sent to the server, never moves, so the first shot and
+## every later one go where the player aimed. Degrees of pitch at the peak and
+## the roll as a share of it. Fast attack, ~25 ms to the peak, settled in about
+## 0.2 s: Quake's damage kick and Doom Eternal's gun punch are this shape.
+const PUNCH_OMEGA: float = 40.0
+const PUNCH_DEGREES: Dictionary = {
+	"Tack": 0.55, "Flechette": 0.4, "Repeater": 0.22, "Arc": 0.12,
+	"Rail": 1.5, "Sniper": 2.0, "Scatter": 1.7, "Rocket": 1.3,
+	"Article Blade": 0.6, "ArticleBlade": 0.6,
+}
+const PUNCH_ROLL_SHARE: float = 0.35
+## Landing dip: the eye drops with the impact and comes back, Quake's
+## 150 ms down and 300 ms up. Metres per metre-per-second of fall speed beyond
+## a hop's own landing, capped.
+const DIP_OMEGA: float = 9.0
+const DIP_PER_SPEED: float = 0.012
+const DIP_MAX: float = 0.12
+const DIP_FREE_SPEED: float = 6.0
+var _punch: Vector2 = Vector2.ZERO
+var _punch_rate: Vector2 = Vector2.ZERO
+var _punch_side: float = 1.0
+var _dip: float = 0.0
+var _dip_rate: float = 0.0
+var _eye_y: float = NAN
+var _eye_vy: float = 0.0
+
 func apply_preferences(preferences: FragrSettings) -> void:
 	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
 	if reduced_motion:
@@ -130,8 +158,24 @@ func _input(event: InputEvent) -> void:
 
 ## Keep the display-server state at the input boundary; headless has no capture.
 func accept_mouse_motion(event: InputEventMouseMotion, captured: bool) -> void:
-	if captured and not _controls_blocked():
+	if not captured or _controls_blocked():
+		return
+	# First-person aim turns the moment the motion arrives. Input events are
+	# handled before any node's process, so the Action this frame sends and the
+	# frame this frame draws both carry it; waiting for the camera's own
+	# process sent every flick one frame late. Raw counts, no smoothing and no
+	# acceleration.
+	if fp_mode:
+		_turn_by_counts(event.screen_relative)
+	else:
 		mouse_motion += event.screen_relative
+
+
+func _turn_by_counts(counts: Vector2) -> void:
+	var radians_per_count := _radians_per_count()
+	fp_yaw = wrapf(fp_yaw + counts.x * radians_per_count, 0.0, TAU)
+	fp_pitch -= counts.y * radians_per_count * (-1.0 if invert_y else 1.0)
+	fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 
 	# Escape belongs to the pause menu now. The mouse is released and recaptured
 	# by whatever opens over the match, so two things no longer fight for it.
@@ -511,10 +555,7 @@ static func follow_weight(weight_at_60_hz: float, delta: float) -> float:
 func _process_fp(delta):
 	# Local angles are sent as absolute authoritative aim in the next action.
 	if mouse_motion.length() > 0:
-		var radians_per_count := _radians_per_count()
-		fp_yaw = wrapf(fp_yaw + mouse_motion.x * radians_per_count, 0.0, TAU)
-		fp_pitch -= mouse_motion.y * radians_per_count * (-1.0 if invert_y else 1.0)
-		fp_pitch = clampf(fp_pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
+		_turn_by_counts(mouse_motion)
 		mouse_motion = Vector2.ZERO
 
 	# Keys and the right stick change the same local aim sent through Action.
@@ -573,11 +614,16 @@ func _process_fp(delta):
 	# Crossing an authoritative solid would put the view inside cover, so use
 	# the server eye immediately at that boundary.
 	global_position = camera_eye if AimAssist.line_of_sight(camera_eye, eye, assist_solids) else eye
+	_watch_landing(global_position.y, delta)
+	_settle_punch(delta)
+	global_position.y += _dip
 	# The server's yaw is not a Godot rotation. Assigning it straight to
 	# rotation.y pointed the camera ninety degrees away from where the server
 	# was moving the fighter, which is why holding forward read as strafing.
 	rotation.y = ServerYaw.camera_rotation_y(yaw)
-	rotation.x = fp_pitch
+	# The punch moves the drawn view only; fp_pitch is the aim.
+	rotation.x = clampf(fp_pitch + _punch.x, -PI / 2.0, PI / 2.0)
+	rotation.z = _punch.y
 
 
 ## The prediction seam has its own bounded correction offset. Running the old
@@ -643,6 +689,80 @@ func consume_turn_bits() -> Dictionary:
 		turn_accum = 0.0
 	return {"turn_left": left, "turn_right": right}
 
+## Kick the drawn first-person view for one of this player's own shots.
+func punch_for_weapon(weapon_name: String) -> void:
+	if not fp_mode:
+		return
+	punch_view(float(PUNCH_DEGREES.get(weapon_name, 0.0)))
+
+
+func punch_view(pitch_degrees: float) -> void:
+	if reduced_motion or pitch_degrees <= 0.0:
+		return
+	# An impulse whose spring peak is exactly the requested angle.
+	var gain: float = PUNCH_OMEGA * exp(1.0)
+	_punch_side = -_punch_side
+	_punch_rate += Vector2(deg_to_rad(pitch_degrees), deg_to_rad(pitch_degrees) * PUNCH_ROLL_SHARE * _punch_side) * gain
+
+
+## The drawn view's punch now, for harnesses: (pitch, roll) radians.
+func view_punch() -> Vector2:
+	return _punch
+
+
+func landing_dip() -> float:
+	return _dip
+
+
+## One exact step of a critically damped spring toward zero, so the shape is
+## the same at every frame rate: (value, rate) after `dt`.
+static func spring_step(value: float, rate: float, omega: float, dt: float) -> Vector2:
+	var decay: float = exp(-omega * dt)
+	var drive: float = rate + omega * value
+	return Vector2((value + drive * dt) * decay, (rate - drive * omega * dt) * decay)
+
+
+func _settle_punch(delta: float) -> void:
+	var pitch: Vector2 = spring_step(_punch.x, _punch_rate.x, PUNCH_OMEGA, delta)
+	var roll: Vector2 = spring_step(_punch.y, _punch_rate.y, PUNCH_OMEGA, delta)
+	_punch = Vector2(pitch.x, roll.x)
+	_punch_rate = Vector2(pitch.y, roll.y)
+	if _punch.length() < 0.00001 and _punch_rate.length() < 0.0001:
+		_punch = Vector2.ZERO
+		_punch_rate = Vector2.ZERO
+	var dip: Vector2 = spring_step(_dip, _dip_rate, DIP_OMEGA, delta)
+	_dip = dip.x
+	_dip_rate = dip.y
+	if absf(_dip) < 0.00001 and absf(_dip_rate) < 0.0001:
+		_dip = 0.0
+		_dip_rate = 0.0
+
+
+## Watches the drawn eye fall and land: a landing faster than a plain hop's
+## dips the eye by how much faster it came down.
+func _watch_landing(eye_y: float, delta: float) -> void:
+	if delta <= 0.0:
+		return
+	if is_nan(_eye_y):
+		_eye_y = eye_y
+		return
+	var vy: float = (eye_y - _eye_y) / delta
+	if _eye_vy < -2.0 and vy > -0.5 and not reduced_motion:
+		var depth: float = clampf((-_eye_vy - DIP_FREE_SPEED) * DIP_PER_SPEED, 0.0, DIP_MAX) + 0.015
+		_dip_rate -= depth * DIP_OMEGA * exp(1.0)
+	_eye_vy = vy
+	_eye_y = eye_y
+
+
+func _clear_punch() -> void:
+	_punch = Vector2.ZERO
+	_punch_rate = Vector2.ZERO
+	_dip = 0.0
+	_dip_rate = 0.0
+	_eye_y = NAN
+	_eye_vy = 0.0
+
+
 func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 	if enabled and not pinned_player_id.is_empty():
 		return
@@ -657,6 +777,8 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 		end_death_view()
 	fp_mode = enabled
 	fp_target = target
+	_clear_punch()
+	rotation.z = 0.0
 	if not enabled:
 		fp_pitch = 0.0
 		turn_accum = 0.0

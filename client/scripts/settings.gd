@@ -53,7 +53,7 @@ const DEFAULTS: Dictionary = {
 	# project default; otherwise three slots, see input_bindings.gd.
 	"bindings": {
 		"move_forward": "", "move_back": "", "move_left": "", "move_right": "",
-		"strafe": "", "jump": "", "duck": "", "turn_left": "", "turn_right": "",
+		"strafe": "", "jump": "", "dodge": "", "duck": "", "turn_left": "", "turn_right": "",
 		"look_up": "", "look_down": "", "center_view": "", "fire": "", "reload": "",
 		"interact": "", "throw_grenade": "", "place_mine": "", "place_remote_mine": "", "trigger_remote_mines": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
 		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "scope": "",
@@ -105,7 +105,7 @@ var _values: Dictionary = {}
 var storage_path: String
 ## The default input layout the stored bindings were made against. Bump it
 ## whenever a default binding moves; older custom bindings are then refused.
-const CONTROLS_LAYOUT: int = 20261023
+const CONTROLS_LAYOUT: int = 20261024
 ## The last load found custom bindings from another layout and dropped them.
 var controls_refused: bool = false
 

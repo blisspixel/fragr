@@ -1,5 +1,9 @@
 use super::*;
 
+/// These cases pin collision at the 5 m/s pace their distances were drawn
+/// for; the fighter's top speed is not what they test.
+const WALK: f32 = 5.0;
+
 fn balcony(bottom: f32, top: f32) -> Arena {
     Arena {
         half: 10.0,
@@ -25,7 +29,7 @@ fn legacy_solid_preserves_its_wire_shape() {
 fn walking_below_a_balcony_never_snaps_to_its_top() {
     let arena = balcony(2.4, 3.0);
     let mut state = at(-4.0, 0.0, 0.0);
-    state.vx = TOP_SPEED;
+    state.vx = WALK;
     for _ in 0..32 {
         state = integrate(state, false, 0.05, &arena);
         assert_eq!(state.y, GROUND_Y);
@@ -38,7 +42,7 @@ fn walking_below_a_balcony_never_snaps_to_its_top() {
 fn upper_floor_supports_walking_and_swept_landing() {
     let arena = balcony(2.4, 3.0);
     let mut state = at_y(-1.0, 0.0, 3.0, 0.0);
-    state.vx = TOP_SPEED;
+    state.vx = WALK;
     for _ in 0..8 {
         state = integrate(state, false, 0.05, &arena);
         assert_eq!(state.y, 3.0);
@@ -84,7 +88,7 @@ fn head_contact_includes_body_radius_at_a_slab_edge() {
 fn airborne_body_cannot_enter_the_side_of_a_slab() {
     let arena = balcony(2.4, 3.0);
     let mut state = at_y(-2.75, 0.0, 1.0, 0.0);
-    state.vx = TOP_SPEED;
+    state.vx = WALK;
     let moved = integrate(state, false, 0.05, &arena);
     assert_eq!(moved.x, state.x);
     assert_eq!(moved.vx, 0.0);
@@ -98,7 +102,7 @@ fn stepping_requires_clearance_at_the_new_foot_height() {
             .solids
             .push(Solid::from_center_top(1.0, 0.0, 1.0, 1.0, 0.5));
         let mut state = at(-0.25, 0.0, 0.0);
-        state.vx = TOP_SPEED;
+        state.vx = WALK;
         let moved = integrate(state, false, 0.05, &arena);
         assert_eq!(moved.x, if can_step { 0.0 } else { -0.25 });
         assert_eq!(moved.y, if can_step { 0.5 } else { 0.0 });
@@ -110,7 +114,7 @@ fn stepping_requires_clearance_at_the_new_foot_height() {
 fn insufficient_headroom_blocks_a_grounded_approach() {
     let arena = balcony(1.7, 3.0);
     let mut state = at(-2.75, 0.0, 0.0);
-    state.vx = TOP_SPEED;
+    state.vx = WALK;
     let moved = integrate(state, false, 0.05, &arena);
     assert_eq!(moved.x, state.x);
     assert_eq!(moved.y, GROUND_Y);

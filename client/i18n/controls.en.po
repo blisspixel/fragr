@@ -91,6 +91,9 @@ msgstr "JUMP"
 msgid "ACTION_DUCK"
 msgstr "CROUCH (HOLD)"
 
+msgid "ACTION_DODGE"
+msgstr "DODGE"
+
 msgid "ACTION_TURN_LEFT"
 msgstr "TURN LEFT"
 

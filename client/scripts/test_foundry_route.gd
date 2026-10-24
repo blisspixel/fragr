@@ -23,7 +23,7 @@ func _initialize() -> void:
 					arrived=true
 					break
 				var yaw: float = atan2(goal[2]-state.z,goal[0]-state.x)
-				state=MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.TOP_SPEED,MoveStep.DT_LIVE,world)
+				state=MoveStep.live_step(state,MoveStep.make_input(true,false,false,false,yaw),MoveStep.ACTOR_REFERENCE_SPEED,MoveStep.DT_LIVE,world)
 				assert(not before_gallery or state.z<27.0,"QA approach crossed final activation before explicit gallery push")
 			if not arrived:
 				push_error("Blocked foundry QA segment in %s toward %s at %s" % [capture.name,goal,state])

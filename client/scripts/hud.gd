@@ -190,6 +190,8 @@ var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
 var streak_flash_timer = 0.0
 var hit_marker_timer = 0.0
+## Seconds the marker's fade is measured against: a kill holds longer.
+var hit_marker_fade: float = 0.18
 var round_banner_remaining: float = 0.0
 var fp_kick_timer = 0.0
 ## Seconds the first-person muzzle flash stays up. Short: it is a flash, and a
@@ -1881,10 +1883,11 @@ func _process(delta):
 		hit_marker_timer -= delta
 		if hit_marker:
 			hit_marker.visible = true
-			hit_marker.modulate.a = clampf(hit_marker_timer / 0.18, 0.0, 1.0)
+			hit_marker.modulate.a = clampf(hit_marker_timer / hit_marker_fade, 0.0, 1.0)
 		if hit_marker_timer <= 0 and hit_marker:
 			hit_marker.visible = false
 			hit_marker.modulate.a = 0.0
+			hit_marker.scale = Vector2.ONE
 	if fp_kick_timer > 0:
 		fp_kick_timer -= delta
 	fp_stab_timer = maxf(0.0, fp_stab_timer - delta)
@@ -2331,7 +2334,9 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		# Spectator follow path still gets a brief marker.
 		pass
 	hit_marker_timer = 0.18
+	hit_marker_fade = 0.18
 	if hit_marker:
+		hit_marker.scale = Vector2.ONE
 		hit_marker.visible = true
 		var col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
 		if damage <= 0:
@@ -2359,6 +2364,21 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		_play_hit_chime(damage)
 		_spawn_floating_damage(damage, weapon_name)
 	# Fire presentation already owns recoil. A hit must not kick twice.
+
+## The shot that put a fighter down: the same four ticks, larger, in the
+## danger colour, held a little longer than a hit. Shape, not text, so it
+## reads at a glance and never tilts.
+func show_kill_marker() -> void:
+	if hit_marker == null:
+		return
+	hit_marker_timer = 0.45
+	hit_marker_fade = 0.3
+	hit_marker.visible = true
+	hit_marker.scale = Vector2.ONE * 1.6
+	hit_marker.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 1.0)
+	for mark: Node in hit_marker.get_children():
+		if mark is ColorRect:
+			(mark as ColorRect).color = MenuTheme.DANGER
 
 func _play_hit_chime(damage: int) -> void:
 	if not hit_confirm_sound and ResourceLoader.exists(HIT_CONFIRM_PATH):

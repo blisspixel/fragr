@@ -295,6 +295,14 @@ does not erase a short tap. The latch is consumed even while airborne or dead;
 holding jump cannot add upward thrust in the air. Geometry still decides which
 steps can be walked onto. See the shared action contract in `docs/protocol.md`.
 
+In arena play movement has momentum: a fighter reaches its 6 m/s run in three
+ticks and slides about 0.17 m to a stop when the keys are released, and an
+opposite key reverses it in one tick. `dodge` is a press, latched like a jump
+tap: a standing fighter holding a direction is thrown that way at 9 m/s on a
+low hop, with 0.75 s before the next. A slow agent loop that wants to stop on
+a mark should release its keys a step early. A campaign mission keeps the
+immediate 5 m/s step and has no dodge.
+
 Authored traversal maps use the same connection and action tools. `observe.map`
 includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.

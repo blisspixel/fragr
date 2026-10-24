@@ -480,6 +480,13 @@ pub const SCATTER_PELLETS: usize = 7;
 /// And this share of it at the edge of its reach.
 pub const SCATTER_FAR_DAMAGE_SCALE: f32 = 0.35;
 
+/// Ticks past a weapon's cadence before a participant's grown cone starts to
+/// recover (see `WeaponType::bloom_per_shot`).
+pub const BLOOM_GRACE_TICKS: u32 = 2;
+/// Share of the full cone recovered per tick once recovery starts: a full
+/// cone is exact again 0.35 s later.
+pub const BLOOM_RECOVERY_PER_TICK: f32 = 1.0 / 7.0;
+
 impl WeaponType {
     /// Damage on a clean body hit, before the scatter gun's range falloff and
     /// before a head band doubles a traced pellet. For the scatter gun this is
@@ -575,6 +582,29 @@ impl WeaponType {
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
             WeaponType::Rocket => 0.0,
+        }
+    }
+
+    /// How much of the dispersion cone one participant shot adds, as a share
+    /// of `spread_radians`. A participant's first shot flies along the exact
+    /// aim ray; sustained fire grows the cone by this much a shot up to the
+    /// full table value (about a second of holding the trigger), and a pause
+    /// longer than the cadence lets it recover. Zero means always exact. The
+    /// Scatter keeps its whole pellet cone, and authored enemies always fire
+    /// the table cone.
+    pub fn bloom_per_shot(self) -> f32 {
+        match self {
+            WeaponType::Tack => 0.25,
+            WeaponType::Flechette => 0.2,
+            WeaponType::Repeater => 0.1,
+            WeaponType::Arc => 0.15,
+            WeaponType::Fists
+            | WeaponType::Shiv
+            | WeaponType::ArticleBlade
+            | WeaponType::Rail
+            | WeaponType::Sniper
+            | WeaponType::Scatter
+            | WeaponType::Rocket => 0.0,
         }
     }
 
@@ -1137,6 +1167,8 @@ pub struct MovementAck {
     pub effective_speed: f32,
     /// Jump request passed to movement integration, not proof of takeoff.
     pub jump_input: bool,
+    /// Server ticks left before this fighter may dodge again, after this tick.
+    pub dodge_cooldown: u32,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -1243,6 +1275,11 @@ pub struct Action {
     /// Held. A grounded fighter leaves the floor on the first tick it is set.
     #[serde(default)]
     pub jump: bool,
+    /// Rising-edge ground dodge toward the held movement keys. A press
+    /// survives newer released input until one tick observes it. Ignored in
+    /// the air, with no direction held, or during the dodge cooldown.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dodge: bool,
     #[serde(default)]
     pub turn_left: bool,
     #[serde(default)]

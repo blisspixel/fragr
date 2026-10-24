@@ -674,6 +674,10 @@ pub struct Player {
     pub pending_action: Action,
     /// A press survives newer released input until one simulation tick observes it.
     jump_requested: bool,
+    /// A dodge press, latched like a jump.
+    dodge_requested: bool,
+    /// Ticks before the next dodge is allowed.
+    pub(crate) dodge_cooldown: u32,
     pub(crate) interaction_requested: bool,
     throw_requested: bool,
     grenade_cooldown: u32,
@@ -686,6 +690,11 @@ pub struct Player {
     remote_cooldown: u32,
     pub fire_cooldown: u32,
     pub(crate) repeater_cycle: repeater::RepeaterCycle,
+    /// Share of the weapon's dispersion cone the next participant shot uses.
+    /// Zero after a pause, so the first shot is exact.
+    pub(crate) bloom: f32,
+    /// Ticks since this fighter's last hitscan shot, saturating.
+    pub(crate) since_shot: u32,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
     pub role: Role,
@@ -709,8 +718,10 @@ pub struct Player {
     last_received_seq: Option<u32>,
     movement_epoch: u64,
     last_movement_tick: Option<u64>,
-    last_move_vx: f32,
-    last_move_vz: f32,
+    /// Horizontal velocity the movement step carries into the next tick.
+    /// Participants keep momentum through it; it is the Ack's `vx`/`vz`.
+    pub(crate) vx: f32,
+    pub(crate) vz: f32,
     last_move_speed: f32,
     last_jump_input: bool,
     /// Side in a team mode.
@@ -739,16 +750,18 @@ impl Player {
         self.bot_senses = bot_senses::BotSenses::default();
         self.movement_epoch = self.movement_epoch.saturating_add(1);
         self.last_movement_tick = None;
-        self.last_move_vx = 0.0;
-        self.last_move_vz = 0.0;
+        self.vx = 0.0;
+        self.vz = 0.0;
         self.last_move_speed = 0.0;
         self.last_jump_input = false;
     }
 
     pub(crate) fn clear_input(&mut self) {
         self.repeater_cycle.reset();
+        self.bloom = 0.0;
         self.pending_action = Action::default();
         self.jump_requested = false;
+        self.dodge_requested = false;
         self.interaction_requested = false;
         self.throw_requested = false;
         self.place_requested = false;
@@ -808,6 +821,8 @@ impl Player {
             armor: 0,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -819,6 +834,8 @@ impl Player {
             remote_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             respawn_timer: None,
             just_fired: false,
             weapon: if policy == crate::protocol::EquipmentPolicy::Discovery {
@@ -842,8 +859,8 @@ impl Player {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
             team: None,
@@ -854,6 +871,12 @@ impl Player {
             ducking: false,
             body: crate::protocol::BodyKind::Human,
         }
+    }
+
+    /// Whether this body runs the arena fighter model: momentum, dodge, and
+    /// first-shot accuracy with bloom. `arena` is `GameState::arena_feel`.
+    pub(crate) fn fighter_model(&self, arena: bool) -> bool {
+        arena && self.is_participant()
     }
 
     /// Takes part in arena scoring: not a boss, not a campaign combatant.
@@ -1628,6 +1651,7 @@ impl GameState {
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
             action.seat = action.seat.or(player.pending_action.seat);
             player.jump_requested |= action.jump;
+            player.dodge_requested |= action.dodge && !player.pending_action.dodge;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.place_requested |= action.place_mine && !player.pending_action.place_mine;
@@ -1724,9 +1748,18 @@ impl GameState {
         self.reset_pickups();
     }
 
+    /// Arena play (no campaign mission) uses the feel pass: participants run
+    /// the fighter model and fire first shots exact. A campaign mission keeps
+    /// the immediate 5 m/s step and the table cones its encounters, route
+    /// proofs and rules revision were tuned against.
+    pub(crate) fn arena_feel(&self) -> bool {
+        self.mission.is_none()
+    }
+
     /// One Ack per fighter whose client numbers its inputs. Built after a
     /// tick so the state it carries is the state that input produced.
     pub fn input_acks(&self) -> Vec<(Uuid, ServerMessage)> {
+        let arena_feel = self.arena_feel();
         let movement_open = self.round_state == RoundState::Active
             && !self.mission_departed()
             && !self.campaign_run_frozen();
@@ -1750,15 +1783,17 @@ impl GameState {
                             yaw: p.yaw,
                             pitch: p.pitch,
                             movement: Some(crate::protocol::MovementAck {
-                                version: 1,
+                                // 2 is the fighter model, 1 the immediate step.
+                                version: if p.fighter_model(arena_feel) { 2 } else { 1 },
                                 epoch: p.movement_epoch,
                                 applied,
                                 y: p.y,
-                                vx: if applied { p.last_move_vx } else { 0.0 },
+                                vx: if applied { p.vx } else { 0.0 },
                                 vy: p.vy,
-                                vz: if applied { p.last_move_vz } else { 0.0 },
+                                vz: if applied { p.vz } else { 0.0 },
                                 effective_speed: if applied { p.last_move_speed } else { 0.0 },
                                 jump_input: applied && p.last_jump_input,
+                                dodge_cooldown: p.dodge_cooldown,
                             }),
                             respawn_ticks: p.respawn_timer.filter(|_| !p.eliminated),
                         },
@@ -1966,6 +2001,7 @@ impl GameState {
         } else {
             MOVE_SPEED
         };
+        let arena_feel = self.arena_feel();
         // Sabotage muster: weapons are not live and nobody leaves the zone.
         self.hold_muster_fire();
         let muster = self.muster_hold();
@@ -1988,9 +2024,20 @@ impl GameState {
                 continue;
             }
             let jump_requested = std::mem::take(&mut player.jump_requested);
+            let dodge_requested = std::mem::take(&mut player.dodge_requested);
+            player.dodge_cooldown = player.dodge_cooldown.saturating_sub(1);
 
             if player.fire_cooldown > 0 {
                 player.fire_cooldown -= 1;
+            }
+            // The cone recovers once the trigger has rested a little longer
+            // than the weapon's cadence: a held trigger never recovers, a
+            // deliberate tap rhythm does.
+            player.since_shot = player.since_shot.saturating_add(1);
+            if player.since_shot
+                > player.weapon.cooldown_ticks() + crate::protocol::BLOOM_GRACE_TICKS
+            {
+                player.bloom = (player.bloom - crate::protocol::BLOOM_RECOVERY_PER_TICK).max(0.0);
             }
             player.grenade_cooldown = player.grenade_cooldown.saturating_sub(1);
             player.mine_cooldown = player.mine_cooldown.saturating_sub(1);
@@ -2020,6 +2067,7 @@ impl GameState {
                 if player.inventory.select(player.weapon, new_weapon) {
                     if player.weapon != new_weapon {
                         player.repeater_cycle.reset();
+                        player.bloom = 0.0;
                         player.inventory.cancel_reload();
                         if player.weapon != WeaponType::ArticleBlade {
                             player.last_non_blade_weapon = player.weapon;
@@ -2054,11 +2102,31 @@ impl GameState {
                 player.last_movement_tick = None;
                 continue;
             }
-            let move_speed = move_speed * crate::encounters::gait(player.campaign);
+            // Arena participants run the fighter model at the frozen top
+            // speed. Campaign bodies, the participant included, and authored
+            // actors keep the immediate step at the pace the encounters were
+            // tuned against.
+            let fighter = player.fighter_model(arena_feel);
+            let move_speed = if fighter {
+                move_speed
+            } else {
+                move_speed * crate::movement::ACTOR_REFERENCE_SPEED / MOVE_SPEED
+                    * crate::encounters::gait(player.campaign)
+            };
             if crate::combat::is_flying(player.campaign) {
                 continue;
             }
+            // Momentum only carries across consecutive moved ticks; a frozen,
+            // seated or respawned body starts again from rest.
+            let carried =
+                fighter && self.tick > 0 && player.last_movement_tick == Some(self.tick - 1);
+            let (carry_x, carry_z) = if carried {
+                (player.vx, player.vz)
+            } else {
+                (0.0, 0.0)
+            };
             let jump_input = action.jump || jump_requested;
+            let dodge_input = fighter && dodge_requested && player.dodge_cooldown == 0;
             // The ack keeps the pre-duck speed. Prediction applies the scale
             // again from the resolved stance, so baking it here would halve twice.
             let travel = if player.ducking {
@@ -2071,25 +2139,43 @@ impl GameState {
             } else {
                 crate::combat::target_height(player.campaign)
             };
-            let moved = crate::movement::water::live_step(
-                crate::movement::MoveState {
-                    x: player.x,
-                    z: player.z,
-                    y: player.y - PLAYER_FLOOR_Y,
-                    vx: 0.0,
-                    vz: 0.0,
-                    vy: player.vy,
-                    yaw: player.yaw,
+            let body = crate::movement::MoveState {
+                x: player.x,
+                z: player.z,
+                y: player.y - PLAYER_FLOOR_Y,
+                vx: carry_x,
+                vz: carry_z,
+                vy: player.vy,
+                yaw: player.yaw,
+            };
+            let input = crate::movement::MoveInput {
+                forward: action.forward,
+                back: action.back,
+                left: action.left,
+                right: action.right,
+                jump: jump_input,
+                dodge: dodge_input,
+                yaw: player.yaw,
+                speed_scale: 1.0,
+            };
+            if dodge_input
+                && crate::movement::water::dodge_applies(
+                    &body,
+                    &input,
+                    movement_arena,
+                    self.map.water_regions(),
+                )
+            {
+                player.dodge_cooldown = crate::movement::DODGE_COOLDOWN_TICKS;
+            }
+            let moved = crate::movement::water::step(
+                if fighter {
+                    crate::movement::water::Model::Fighter
+                } else {
+                    crate::movement::water::Model::Actor
                 },
-                &crate::movement::MoveInput {
-                    forward: action.forward,
-                    back: action.back,
-                    left: action.left,
-                    right: action.right,
-                    jump: jump_input,
-                    yaw: player.yaw,
-                    speed_scale: 1.0,
-                },
+                body,
+                &input,
                 travel,
                 dt,
                 movement_arena,
@@ -2108,8 +2194,8 @@ impl GameState {
             player.y = PLAYER_FLOOR_Y + moved.y;
             player.vy = moved.vy;
             player.last_movement_tick = Some(self.tick);
-            player.last_move_vx = if held { 0.0 } else { moved.vx };
-            player.last_move_vz = if held { 0.0 } else { moved.vz };
+            player.vx = if held { 0.0 } else { moved.vx };
+            player.vz = if held { 0.0 } else { moved.vz };
             player.last_move_speed = move_speed;
             player.last_jump_input = jump_input;
 
@@ -2376,6 +2462,10 @@ impl GameState {
                 let shooter = &mut self.players[shooter_idx];
                 shooter.fire_cooldown = weapon.cooldown_ticks();
                 shooter.just_fired = true;
+                if shot.vehicle_id.is_none() {
+                    shooter.since_shot = 0;
+                    shooter.bloom = (shooter.bloom + weapon.bloom_per_shot()).min(1.0);
+                }
             }
             // Pellets group by struck fighter in firing order; pellets that hit
             // cover or run out of range share one miss result after them.
@@ -3219,6 +3309,8 @@ impl GameState {
         let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
         let spread = if crate::combat::is_notary(shooter.campaign) {
             0.0
+        } else if shooter.fighter_model(self.arena_feel()) && weapon != WeaponType::Scatter {
+            weapon.spread_radians() * shooter.bloom.clamp(0.0, 1.0)
         } else {
             weapon.spread_radians()
         };
@@ -3871,8 +3963,12 @@ impl GameState {
             armor: 50,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -3900,8 +3996,8 @@ impl GameState {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
             team: None,
@@ -4329,8 +4425,12 @@ impl GameState {
             armor: 0,
             pending_action: Action::default(),
             jump_requested: false,
+            dodge_requested: false,
+            dodge_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
+            bloom: 0.0,
+            since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -4358,8 +4458,8 @@ impl GameState {
             last_received_seq: None,
             movement_epoch: 1,
             last_movement_tick: None,
-            last_move_vx: 0.0,
-            last_move_vz: 0.0,
+            vx: 0.0,
+            vz: 0.0,
             last_move_speed: 0.0,
             last_jump_input: false,
             team: None,

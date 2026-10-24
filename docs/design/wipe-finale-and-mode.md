@@ -131,8 +131,8 @@ claim that both modes are already built.
 
 Start with one authored rectangle approximately 180 by 160 metres, within the
 current half-extent bound. It is a prototype size, to be cut if travel feels empty.
-The current ordinary top speed is 5 m/s: district links of 35-90 metres mean
-roughly 7-18 unobstructed seconds, before cover, stairs and combat. The longest
+The campaign pace is 5 m/s and the arena run 6 m/s: district links of 35-90
+metres mean roughly 6-18 unobstructed seconds, before cover, stairs and combat. The longest
 diagonal is not an objective commute. Encounter placement and intermediate
 supplies must make every repeated route earn its length.
 
