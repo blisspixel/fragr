@@ -1,5 +1,5 @@
 extends Node
-## Contested Frequency radio: station list from stations.json, tracks from the
+## Match radio: station list from stations.json, tracks from the
 ## audiogen manifest, shuffle without repeats, ducking under Host lines and combat.
 ## Presentation only. Missing assets are fine: the radio stays silent.
 ##

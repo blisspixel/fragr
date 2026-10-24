@@ -978,7 +978,7 @@ func _release_match_audio() -> void:
 			voice.stop()
 			voice.stream = null
 
-## Contested Frequency radio lives under AudioPlayers and reads the audiogen manifest.
+## The background match radio lives under AudioPlayers and reads the audiogen manifest.
 func _setup_radio() -> void:
 	var radio_script = load("res://scripts/radio.gd")
 	if radio_script == null:

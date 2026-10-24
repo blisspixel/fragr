@@ -365,6 +365,8 @@ func commit_audio() -> void:
 func _process(_delta: float) -> void:
 	if _open and _music_revision != InputDevice.revision:
 		refresh_music()
+		# The footer names the resume binding of the device in hand, too.
+		_hint.text = InputGlyphs.plain(tr("MENU_PAUSE_HINT"))
 
 func is_open() -> bool:
 	return _open

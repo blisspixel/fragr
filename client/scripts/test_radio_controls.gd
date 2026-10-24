@@ -197,6 +197,7 @@ func _test_pause_menu() -> void:
 	menu._process(0.0)
 	_check((menu._music_buttons["radio_next_track"] as Button).text.contains("HOLD D-RIGHT"), "on a pad, skip reads as the D-pad hold: " + (menu._music_buttons["radio_next_track"] as Button).text)
 	_check((menu._music_buttons["radio_toggle"] as Button).text.contains("HOLD D-LEFT"), "and power as the other hold")
+	_check(not menu._hint.text.to_upper().contains("ESC") and menu._hint.text == InputGlyphs.plain(tr("MENU_PAUSE_HINT")), "the footer names the pad's resume button, not Esc: " + menu._hint.text)
 	for i: int in range(2):
 		await process_frame
 	var frame: Rect2 = menu._panel.get_global_rect()
