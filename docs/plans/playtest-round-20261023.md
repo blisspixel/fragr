@@ -43,6 +43,9 @@ the wave 1 measurements.
   and Slappers, custom host rules, campaign continuity and benchmark fixtures
   keep their own kits. Map supply coverage and bot pickup-seeking are part of
   the change, per the #431 comment.
+- **No tilted text:** status, result and signature-moment text renders on a
+  level baseline. `StampCard` keeps no text rotation in any motion setting; the
+  stamp feel comes from border, weight, colour and settle, not angle (#437).
 - **Asset credits:** use the funded Higgsfield balance and the included Meshy
   and ElevenLabs credits fully, Meshy first because its monthly credits reset
   on 2026-11-03. Spend only on assets that will be integrated and visible.
