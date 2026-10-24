@@ -7,6 +7,8 @@ mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
 #[cfg(test)]
+mod death_lifecycle_tests;
+#[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
 pub mod mine;
@@ -63,7 +65,6 @@ struct ResolvedShot {
     origin: [f32; 3],
     pellets: Vec<ResolvedPellet>,
 }
-pub(crate) const RESPAWN_DELAY_TICKS: u32 = 60;
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
@@ -1598,6 +1599,16 @@ impl GameState {
                     (None, None) => {}
                 }
             }
+            if player.respawn_timer.is_some() {
+                // Awaiting respawn: keep only the newest held state. Presses
+                // made while dead are not queued into the next life, and a
+                // trigger held now must be released after the respawn.
+                action.weapon_swap = None;
+                action.seat = None;
+                player.fire_latched = action.fire;
+                player.pending_action = action;
+                return;
+            }
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
@@ -1735,6 +1746,7 @@ impl GameState {
                                 effective_speed: if applied { p.last_move_speed } else { 0.0 },
                                 jump_input: applied && p.last_jump_input,
                             }),
+                            respawn_ticks: p.respawn_timer.filter(|_| !p.eliminated),
                         },
                     )
                 })
@@ -2885,6 +2897,13 @@ impl GameState {
             });
         let mut ended_streak = 0;
         let mut lost_golden = false;
+        // Campaign maps keep the default (FFA) rule sheet, so they take their
+        // own value: an FFA pacing change must not move campaign deaths.
+        let respawn_delay = if self.map.is_campaign() {
+            crate::rules::CAMPAIGN_RESPAWN_DELAY_TICKS
+        } else {
+            self.config.rules.respawn_delay_ticks()
+        };
         let (
             target_id,
             target_name,
@@ -2924,12 +2943,13 @@ impl GameState {
             victim.statistics.hurt(hp_damage, absorbed as u64, died);
             let victim_was_boss = victim.is_boss;
             if died {
-                victim.repeater_cycle.reset();
+                // The dead life's input ends here (#441). Held movement or a
+                // queued press must not drive the next body; a trigger still
+                // held at death stays latched until the client releases it.
+                let trigger_held = victim.pending_action.fire;
+                victim.clear_input();
+                victim.fire_latched = trigger_held;
                 victim.inventory.release_trigger();
-                victim.throw_requested = false;
-                victim.place_requested = false;
-                victim.remote_place_requested = false;
-                victim.remote_trigger_requested = false;
                 // Victim streak dies with them; boss does not respawn.
                 ended_streak = std::mem::take(&mut victim.killstreak);
                 lost_golden = std::mem::take(&mut victim.golden);
@@ -2943,7 +2963,7 @@ impl GameState {
                     victim.respawn_timer = None;
                     victim.eliminated = true;
                 } else {
-                    victim.respawn_timer = Some(RESPAWN_DELAY_TICKS);
+                    victim.respawn_timer = Some(respawn_delay);
                 }
             }
             (

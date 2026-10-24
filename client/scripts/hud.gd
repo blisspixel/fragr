@@ -7,6 +7,7 @@ const SealCutPlateScript = preload("res://scripts/seal_cut_plate.gd")
 const StampCardScript = preload("res://scripts/stamp_card.gd")
 var vitals_seal_plate = null
 var stamp_card = null
+var death_card: DeathCard = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -275,6 +276,8 @@ func _ready():
 	stamp_card = StampCardScript.new()
 	stamp_card.name = "StampCard"
 	add_child(stamp_card)
+	death_card = DeathCard.new()
+	add_child(death_card)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
@@ -1597,6 +1600,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 ## nothing from an earlier round, result or episode card leaks into this one.
 func _show_round_banner(text: String, seconds: float, backed: bool = false) -> void:
 	_cancel_round_pulse()
+	# A new banner is not the stamped result; callers that stamp do so after.
 	if stamp_card != null:
 		stamp_card.retire()
 	round_banner_remaining = seconds
@@ -2433,6 +2437,15 @@ func show_damage_flash() -> void:
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
 		crawler_caption.push_scrabble()
+
+## The joined player's death card: three lines, or empty to clear it.
+func show_death_card(lines: PackedStringArray) -> void:
+	if death_card != null:
+		death_card.present(lines)
+
+func hide_death_card() -> void:
+	if death_card != null:
+		death_card.clear()
 
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:
