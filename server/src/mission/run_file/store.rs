@@ -595,3 +595,5 @@ mod m13_tests;
 mod m14_tests;
 #[cfg(test)]
 pub(super) mod m15_tests;
+#[cfg(test)]
+mod stair_entry_tests;

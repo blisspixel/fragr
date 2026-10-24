@@ -6,7 +6,7 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-17: matching readers advertise gameplay 54 and geometry
+Current contract, 2026-10-23: matching readers advertise gameplay 55 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
@@ -14,7 +14,9 @@ Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
 the first campaign launcher. The standalone Walker foundation requires 48 and
 connected Launch Authority requires 49. Article Blade requires 50, connected
 Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
-and All Systems Normal 54. Numbered
+and All Systems Normal 54. Passenger Manifest and Common Carrier require 55,
+which carries the untagged M08 outcome and the `unlinked` M10 practice transit.
+Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -3302,7 +3304,7 @@ into M15 with the Episode IV refill.
 All four missions reuse `mission_ready`, `mission_continue`, ordinary `Action`
 and `MissionState`. Humans, agents and spectators must meet the mission floor
 before Welcome or MapInfo. `MissionId::gameplay_version` also supplies local
-readiness. Shared arcade rooms require the aggregate capability 54. Rules stay 4.
+readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4.
 
 | Mission | Map | Floor | MapInfo block | Changed world facts |
 |---|---:|---:|---|---|

@@ -808,9 +808,12 @@ pub const M16_GAMEPLAY_VERSION: u32 = 52;
 pub const M17_GAMEPLAY_VERSION: u32 = 53;
 /// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
 pub const M18_GAMEPLAY_VERSION: u32 = 54;
+/// Single-schema campaign receipts: the carried M08 outcome loses its `kind`
+/// tag and M10 practice transit is `unlinked`. Required for M09 and M10.
+pub const RECEIPT_GAMEPLAY_VERSION: u32 = 55;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M18_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

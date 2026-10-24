@@ -153,6 +153,7 @@ impl MissionId {
     /// Current connected-mission admission, shared by native and local readiness.
     pub const fn gameplay_version(self) -> u32 {
         match self {
+            Self::PassengerManifest | Self::CommonCarrier => super::RECEIPT_GAMEPLAY_VERSION,
             Self::AllSystemsNormal => super::M18_GAMEPLAY_VERSION,
             Self::PeaceWithoutInterruption => super::M17_GAMEPLAY_VERSION,
             Self::FreedomOfMovement => super::M16_GAMEPLAY_VERSION,

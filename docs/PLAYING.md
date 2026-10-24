@@ -258,7 +258,8 @@ an explicit retry; exhausting the allowance ends the run. **Continue Run**
 reopens the saved mission entry, including body, difficulty, health, armor,
 weapons, ammunition, grenades, mines and remaining continues. It does not resume
 a mid-mission position. Leaving for the menu retains that entry; **Start New
-Run** archives the previous run after confirmation.
+Run** replaces the saved run after confirmation. A save from a different build
+or a damaged file cannot be continued; the menu says which and offers a new run.
 
 Completing each built mission saves the next destination. Episode II refills
 continues once when entering Port of Entry after level 5. Source builds also
