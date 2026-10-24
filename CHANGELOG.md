@@ -4,6 +4,63 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.91.0 (2026-10-24)
+
+- Rebuild map 1 as Larak Lot, the free-for-all home: a five-level parking
+  structure the league settles debts in, with the Pit one level further down
+  than the sign admits, Aunt Linda's revival on level three, and Larak's
+  signature on everything that has stopped working.
+- Start free-for-all lives on the Pistol and Fists. Stronger guns are owned
+  only after taking their pad, on 15 to 25 second clocks, with health and armor
+  on 25 seconds. Free-for-all respawn is 4 seconds; other modes keep their own
+  rules. A `full-arsenal` host option restores the armed start.
+- Move faster and cleaner: 6 m/s arena running with crisp stops and air
+  control, a dodge, first shots exactly on aim, a little spread only on
+  sustained fire, camera punch that never moves the aim, and smooth correction
+  of the local view.
+- End the dead life at death. Held keys no longer walk or fire into the next
+  life, the death card names who fragged you and counts down with the server,
+  and the camera watches your killer instead of drifting.
+- Make reloads readable on every magazine gun, with status, a bar, a dipped
+  gun and one start and finish cue.
+- Keep HUD text in its own regions, level and in the pixel type. Corner voice
+  lines are backed, nameplates hide under HUD panels and behind cover, the
+  armor readout sits on its plate, and developer hints are gone from play.
+- Give menus one focus target across mouse, keyboard and pad, split Join from
+  Run a match, add Xbox and PlayStation layouts, a D-pad radio dial and an
+  announcer setting: On, Big moments only, or Off.
+- Keep the Host for big moments: multikills, spree tiers, streaks ended, flags
+  and sudden death instead of a drawn match, with no radio puns in the call.
+- Tell sides apart at a distance. Union hardware carries black and red with red
+  optics; free fighters wear their own colours with team tape; the Inheritance
+  reads matte off-white with cyan. Bot callsigns follow the league's regulars
+  and tribes, with Union handles on the Union side.
+- Let bots see before they fight, pace their volleys, flinch when hit and time
+  the pads. Joined agents see pads only as their fighter has seen them.
+- Connect Planned Works (Level 19) and Local Exception (Level 20), where the
+  wipe arrives: absorbed bots with dead red optics, restoration machines, the
+  Paver and Surveyor, a jetpack, and campaign survival recorded for the Still
+  Here epilogue, which is still to come.
+- Dress Recall Notice as a lived-in Union intake on a night street, with
+  queues, confiscation bins, a recall notice over an old helper advert and
+  Voss's address on the hall screen.
+- Redesign the benchmark journey, live readout and results, compare only like
+  displays, and show an operator overview in the dedicated server terminal.
+- Keep one campaign save format; saves from earlier builds are refused with a
+  clear message instead of migrated.
+
+Linux, macOS and Windows CI passed for every change. Windows human play and
+real controllers are still owed.
+
+## v0.90.0 (2026-10-19)
+
+- Add an Accessibility tab with screen flash levels, Reduced Motion, HUD
+  scaling and team colours, under a global flash budget.
+- Replace full-screen colour washes with seal-cut and stamped card moments.
+- Gate terminal colour with `--no-color` and `NO_COLOR`, add level roles and
+  hosting-first help, and print one listener line.
+- Refresh the README front door with three doors, the HUD and the game's voice.
+
 ## v0.89.0 (2026-10-18)
 
 - Keep five frag rows in their own queue for 4.5 seconds each. Taunts, Host
