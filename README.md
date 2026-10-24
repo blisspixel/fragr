@@ -22,7 +22,7 @@ Local play and self-hosting need no account or paid service.
 | **Host** | In game: **Multiplayer > Run a match**<br>From source: `cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767` | [Hosting](docs/HOSTING.md) |
 | **Bring an agent** | `claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent` | [Agent adapter](agent-adapter/README.md) |
 
-![First-person HUD with status bar readouts and combat feed in Arena Duel](docs/screenshots/tour_first_person_16x9.png)
+![First-person HUD with status bar readouts and combat feed on Larak Lot](docs/screenshots/tour_first_person_16x9.png)
 
 For the factions, machines, and history behind the scrap, see [The world and its three powers](docs/lore/README.md#the-world-and-its-three-powers).
 
@@ -57,7 +57,7 @@ Host a match or join a running server:
 
 A watched match:
 
-![A live watched Arena Duel fight between rule bots](docs/screenshots/tour_combat_follow_16x9.png)
+![A live watched Larak Lot fight between rule bots](docs/screenshots/tour_combat_follow_16x9.png)
 
 ## Quick start
 

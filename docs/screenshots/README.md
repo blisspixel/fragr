@@ -6,10 +6,24 @@ The older `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
 proof of good art. The README uses four stills: the boot menu, Recall Notice
-intake, multiplayer page and watched Arena Duel match. Refresh a selected still
+intake, multiplayer page and watched Larak Lot match. Refresh a selected still
 when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
+
+## October 24, 2026 wave 2 tour
+
+The wave-end publish for the wave 2 integration: map 1 is now Larak Lot, a
+free-for-all life starts on the Pistol and Fists, and the Host speaks rarely.
+The tour's weapon states take their guns from the pads, so `client/qa/tour.json`
+now carries Larak Lot routes for the Rail and the Shotgun, one per spawn
+quarter. The 34 arena states and both team states were captured at 1280x720 on
+a nested Xwayland display with OpenGL Compatibility on the GPU, and the 12
+changed stills were inspected at full size. The boot menu, multiplayer page,
+callsign page and difficulty page came out byte for byte the same. The
+watched-match and first-person stills caught the Continuance compliance drone
+event, whose banner sits over the centre of the frame. Presentation only; no
+Windows frames.
 
 ## October 24, 2026 wave 1 visual QA round
 
