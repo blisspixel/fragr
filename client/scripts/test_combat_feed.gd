@@ -106,6 +106,7 @@ func _run() -> void:
 	_check(legend == "CTRL fire   F use   ] weapon   ESC menu",
 		"the legend only wraps between key and word pairs: " + legend)
 	_check(hud.legend_line("HOLD L-CTRL crouch") == "HOLD L‑CTRL crouch", "a hyphenated binding stays inside its prompt pair")
+	_check(hud.legend_line("RB weapon   MENU menu") == "RB" + String.chr(0xa0) + "weapon   MENU", "a pad Menu button that opens the menu is named once")
 	game.is_human_player = false
 	_check(game._shows_participant_notice("watched") and not game._shows_participant_notice("self"), "spectator notices follow the actual watched identity")
 	camera.target = null

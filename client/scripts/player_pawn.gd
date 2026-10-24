@@ -166,6 +166,7 @@ func _ready():
 	if body:
 		_body_rest_y = body.position.y
 	if label:
+		MenuTheme.world_text(label)
 		label.text = player_name
 	if muzzle:
 		muzzle.visible = false

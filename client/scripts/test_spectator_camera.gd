@@ -173,6 +173,7 @@ func _run() -> void:
 	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
 	_check_chase_cadence(first)
+	_check_chase_cover()
 	await _check_board_browsing(first, second)
 	var blocker: InputBlocker = InputBlocker.new()
 	root.add_child(blocker)
@@ -266,6 +267,21 @@ func _check_board_browsing(first: Fighter, second: Fighter) -> void:
 	camera.queue_free()
 	await process_frame
 
+
+## Cover on the chase boom keeps the followed fighter in view (#437 stills
+## showed a crate top with the fighter hidden behind it).
+func _check_chase_cover() -> void:
+	var Cam: GDScript = load("res://scripts/spectator_cam.gd")
+	var look: Vector3 = Vector3(0, 1.5, 0)
+	var desired: Vector3 = Vector3(0, 7.0, 10.5)
+	_check(Cam.chase_clear_position(look, desired, []) == desired, "an open boom keeps its full chase spot")
+	var crate: Dictionary = {"min_x": -2.0, "max_x": 2.0, "min_z": 5.0, "max_z": 7.0, "bottom": 0.0, "top": 6.0}
+	var raised: Vector3 = Cam.chase_clear_position(look, desired, [crate])
+	_check(AimAssist.line_of_sight(look, raised, [crate]) and raised.y > desired.y and raised.y < look.y + desired.distance_to(look) * 0.9, "a crate on the boom raises the camera only as far as it needs")
+	var wall: Dictionary = {"min_x": -6.0, "max_x": 6.0, "min_z": 0.6, "max_z": 2.0, "bottom": 0.0, "top": 4.0}
+	var lifted: Vector3 = Cam.chase_clear_position(look, desired, [wall])
+	_check(AimAssist.line_of_sight(look, lifted, [wall]) and lifted.y > 4.0, "cover right behind the fighter lifts the camera over it")
+	_check(AimAssist.first_hit(look, desired, [crate]) > 0.0 and AimAssist.first_hit(look, desired, []) < 0.0, "first hit reports the nearest solid or none")
 
 func _check_chase_cadence(target: Fighter) -> void:
 	var reference: Vector3 = Vector3.ZERO

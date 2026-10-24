@@ -4919,6 +4919,52 @@ fn test_warmup_host_drama_roster_map_countdown() {
 }
 
 #[test]
+fn rule_bot_frag_taunt_is_said_to_its_victim() {
+    use crate::protocol::BotTauntKind;
+
+    let mut state = GameState::new();
+    let bot_id = Uuid::new_v4();
+    let victim = Uuid::new_v4();
+    state.add_player(bot_id, "Scout Ant".to_string(), Role::Agent);
+    state.add_player(victim, "Meat Proxy".to_string(), Role::Human);
+    state
+        .bots
+        .push(BotController::new(bot_id, BotBehavior::Aggressive));
+    // A certain roll: the frag path's addressing, not its odds, is under test.
+    state.maybe_rule_bot_taunt(bot_id, BotTauntKind::Frag, 100, Some(victim));
+    let addressed: Vec<Option<Uuid>> = state
+        .take_events()
+        .into_iter()
+        .filter_map(|e| match e {
+            GameEvent::Speak {
+                player_id, to_id, ..
+            } if player_id == bot_id => Some(to_id),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        addressed,
+        vec![Some(victim)],
+        "a frag taunt names its victim"
+    );
+
+    // Room-wide lines (a death, a warmup, a person's own callout) name nobody.
+    state.tick += crate::sim::SPEAK_COOLDOWN_TICKS;
+    state.maybe_rule_bot_taunt(bot_id, BotTauntKind::Death, 100, None);
+    state.tick += crate::sim::SPEAK_COOLDOWN_TICKS;
+    let _ = state.try_speak(victim, "nice scrap");
+    let room: Vec<Option<Uuid>> = state
+        .take_events()
+        .into_iter()
+        .filter_map(|e| match e {
+            GameEvent::Speak { to_id, .. } => Some(to_id),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(room, vec![None, None]);
+}
+
+#[test]
 fn rule_bot_taunt_emits_speak_and_respects_cooldown() {
     use crate::protocol::BotTauntKind;
     use crate::sim::{SpeakOutcome, SPEAK_COOLDOWN_TICKS};

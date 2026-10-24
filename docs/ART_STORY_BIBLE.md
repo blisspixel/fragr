@@ -308,7 +308,9 @@ them; keep accents purposeful and silhouettes distinct from their background.
 | Vegetation shadow / leaf | `#3A4C2E`, `#74884E` |
 
 Bone-white outlined titles and compact pixel-readable body type. Current menu
-fonts and their required licenses live in `client/assets/fonts/`. No neon floods,
+fonts and their required licenses live in `client/assets/fonts/`. In a match,
+every word is the Silkscreen pixel face in capitals, on a level baseline, and
+sits on a dark backing over the world; the display face draws only numerals. No neon floods,
 photoreal military treatment, smooth mobile UI, or tiny noisy detail masquerading
 as pixel art. Accent colors identify teams, pickups, heat, or landmarks.
 

@@ -122,6 +122,9 @@ func _run() -> void:
 	set_meta("fragr_settings_path", settings_path)
 	var capture_settings: FragrSettings = FragrSettings.new(settings_path)
 	capture_settings.set_value("video", "display_mode", 0)
+	# Stills show ordinary play; a state that needs the first-run controls
+	# legend asks for it with "controls_hint": "replay".
+	capture_settings.set_value("gameplay", "controls_hint_seen", true)
 	if capture_settings.save_to_disk() != OK:
 		push_error("qa_tour: could not create isolated capture settings")
 		quit(1)
@@ -238,6 +241,18 @@ func _run() -> void:
 			if not _local_human_alive(_game_manager()):
 				push_error("qa_tour: %s never had a live joined fighter" % state_name)
 				_failed = true
+		if state.has("await_death") and _joined:
+			# The death card is photographed only after a real frag of the
+			# joined fighter, never a staged card.
+			var death_deadline: int = Time.get_ticks_msec() + roundi(float(state["await_death"]) * 1000.0)
+			while _local_human_alive(_game_manager()) and Time.get_ticks_msec() < death_deadline:
+				await create_timer(0.1).timeout
+			if _local_human_alive(_game_manager()):
+				push_error("qa_tour: %s never saw the joined fighter fragged" % state_name)
+				_failed = true
+			else:
+				# Let the card arrive before the still.
+				await create_timer(0.8).timeout
 		if state.get("radio_off", false):
 			var radio: Node = _game_manager().get("radio") if _game_manager() != null else null
 			if radio == null:
@@ -438,6 +453,8 @@ func _run() -> void:
 			if _run_status() != str(state["await_run_status"]):
 				push_error("qa_tour: %s never reached run status %s" % [state_name, state["await_run_status"]])
 				_failed = true
+		if state.get("controls_hint", "") == "replay" and _game_manager() != null:
+			_game_manager().hud.replay_controls_hint()
 		if state.has("input_device"):
 			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
 		if state.get("overlay", "") == "match_menu":

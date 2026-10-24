@@ -3399,6 +3399,36 @@ mod mcp_tests {
     }
 
     #[test]
+    fn addressed_speak_keeps_its_addressee_in_mcp_events() {
+        let mut state = ToolState::default();
+        let bot = Uuid::from_u128(7);
+        let victim = Uuid::from_u128(8);
+        let addressed = protocol::ServerMessage::Event(protocol::GameEvent::Speak {
+            player: "Scout Ant".into(),
+            player_id: bot,
+            text: "scout ant deleted you".into(),
+            to_id: Some(victim),
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&addressed).unwrap()).unwrap();
+        ingest_server_text(
+            &mut state,
+            r#"{"type":"event","event":"speak","player":"Probe","player_id":"00000000-0000-0000-0000-000000000009","text":"gg"}"#,
+        )
+        .unwrap();
+        let speaks: Vec<&Value> = state
+            .recent_events
+            .iter()
+            .filter(|e| e["event"] == "speak")
+            .collect();
+        assert_eq!(speaks.len(), 2);
+        assert_eq!(speaks[0]["to_id"], victim.to_string());
+        assert!(
+            speaks[1].get("to_id").is_none(),
+            "a room-wide line names nobody"
+        );
+    }
+
+    #[test]
     fn optional_frag_provenance_reaches_mcp_events_and_legacy_events_stay_optional() {
         let mut state = ToolState::default();
         let killer = Uuid::from_u128(1);

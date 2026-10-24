@@ -4,11 +4,15 @@
 #
 # Needs a real framebuffer. On Windows run it from Git Bash and it uses the
 # console binary directly. On Linux it wraps the run in Xvfb, because bare
-# --headless has no framebuffer and every still comes back empty.
+# --headless has no framebuffer and every still comes back empty. Without Xvfb,
+# FRAGR_QA_DISPLAY names an existing 1280x720 X display instead (for example a
+# nested rootful Xwayland on :97), rendered on the GPU.
 #
 # Usage: tools/qa_tour.sh [--publish] [output directory]
-#   --publish also copies the approved stills into docs/screenshots/, which is
-#   what the README shows. Run it after any change a player would see.
+#   --publish also runs a short team deathmatch pass, copies the approved
+#   stills into docs/screenshots/ (what the README shows) and removes any
+#   published tour_* still this run did not produce. Run it after any change a
+#   player would see.
 # Default output: .agents/qa/<stamp>/ (gitignored), with a `latest` copy.
 set -uo pipefail
 
@@ -102,32 +106,83 @@ fi
 for mutator in ${FRAGR_QA_MUTATORS:-}; do
   SERVER_ARGS+=(--mutator "$mutator")
 done
-"$ROOT/target/release/fragr-server" "${SERVER_ARGS[@]}" >"$OUT_DIR/server.log" 2>&1 &
-SERVER_PID=$!
+SERVER_PID=""
 cleanup() {
-  kill "$SERVER_PID" >/dev/null 2>&1
+  [ -n "$SERVER_PID" ] && kill "$SERVER_PID" >/dev/null 2>&1
   [ -n "${XVFB_PID:-}" ] && kill "$XVFB_PID" >/dev/null 2>&1
   return 0
 }
 trap cleanup EXIT
 
-# Wait for the port rather than sleeping on faith. A tour against a server
-# that never started photographs an empty grey room and calls it a game, which
-# is exactly what happened the first time this ran.
-UP=0
-for _ in $(seq 1 50); do
-  if ! kill -0 "$SERVER_PID" 2>/dev/null; then break; fi
-  if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then exec 3>&- 3<&-; UP=1; break; fi
-  sleep 0.2
-done
-if [ "$UP" -ne 1 ]; then
-  echo "qa_tour: server never came up on port $SERVER_PORT" >&2
-  tail -5 "$OUT_DIR/server.log" >&2
-  exit 1
-fi
+# Start a tour server with the given arguments and wait for its port.
+# A tour against a server that never started photographs an empty grey room
+# and calls it a game, which is exactly what happened the first time this ran.
+start_server() {
+  local log="$1"
+  shift
+  "$ROOT/target/release/fragr-server" "$@" >"$log" 2>&1 &
+  SERVER_PID=$!
+  local up=0
+  for _ in $(seq 1 50); do
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then break; fi
+    if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then exec 3>&- 3<&-; up=1; break; fi
+    sleep 0.2
+  done
+  if [ "$up" -ne 1 ]; then
+    echo "qa_tour: server never came up on port $SERVER_PORT" >&2
+    tail -5 "$log" >&2
+    exit 1
+  fi
+}
+
+stop_server() {
+  [ -n "$SERVER_PID" ] && kill "$SERVER_PID" >/dev/null 2>&1
+  wait "$SERVER_PID" 2>/dev/null
+  SERVER_PID=""
+  # The next pass binds the same port; wait until this one has let it go.
+  for _ in $(seq 1 50); do
+    (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null || return 0
+    sleep 0.2
+  done
+}
+
+# Run the tour client once into a directory, with an optional manifest.
+run_client() {
+  local dir="$1" manifest="${2:-}"
+  local run=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
+       --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
+  if [ -n "${FRAGR_QA_POSITION:-}" ]; then
+    run+=(--position "$FRAGR_QA_POSITION")
+  fi
+  # A shared host can keep the tour off its sound card (FRAGR_QA_AUDIO_DRIVER=Dummy).
+  if [ -n "${FRAGR_QA_AUDIO_DRIVER:-}" ]; then
+    run+=(--audio-driver "$FRAGR_QA_AUDIO_DRIVER")
+  fi
+  local status
+  if [ "$(uname -s)" != "Linux" ]; then
+    FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+    status=$?
+  elif [ -n "${FRAGR_QA_DISPLAY:-}" ]; then
+    env -u WAYLAND_DISPLAY DISPLAY="$FRAGR_QA_DISPLAY" \
+      FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+    status=$?
+  else
+    env -u WAYLAND_DISPLAY DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
+      FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+    status=$?
+  fi
+  cat "$dir/client.log"
+  if [ "$status" -ne 0 ] || grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$dir/client.log"; then
+    echo "qa_tour: the tour failed (exit $status). Server log: $dir/server.log" >&2
+    exit 1
+  fi
+  if [ ! -s "$dir/contact.png" ] || [ ! -s "$dir/manifest.json" ]; then
+    echo "qa_tour: missing capture artifacts in $dir" >&2
+    exit 1
+  fi
+}
 
 export FRAGR_SERVER="$SERVER_URL"
-export FRAGR_QA_DIR="$OUT_DIR"
 
 # Import the project first. Running a script against a project Godot has never
 # imported gives a client with no textures: every scene that references one
@@ -143,39 +198,22 @@ if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/import.l
   exit 1
 fi
 
-RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
-     --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
-if [ -n "${FRAGR_QA_POSITION:-}" ]; then
-  RUN+=(--position "$FRAGR_QA_POSITION")
-fi
-
-if [ "$(uname -s)" != "Linux" ]; then
-  "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
-  STATUS=$?
-else
+if [ "$(uname -s)" = "Linux" ] && [ -z "${FRAGR_QA_DISPLAY:-}" ]; then
   command -v Xvfb >/dev/null 2>&1 || {
     echo "qa_tour: Xvfb needed on Linux for a framebuffer" >&2; exit 1; }
   DISPLAY_NUM="${DISPLAY_NUM:-99}"
   Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
   XVFB_PID=$!
   sleep 1
-  env -u WAYLAND_DISPLAY DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
-  STATUS=$?
 fi
 
-cat "$OUT_DIR/client.log"
-if [ "$STATUS" -ne 0 ] || grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/client.log"; then
-  echo "qa_tour: the tour failed (exit $STATUS). Server log: $OUT_DIR/server.log" >&2
-  exit 1
-fi
+start_server "$OUT_DIR/server.log" "${SERVER_ARGS[@]}"
+run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
+stop_server
 
 # A `latest` pointer so the critique step never has to know the stamp.
 # Remove only previous tour files, never recursively delete a computed path.
 mkdir -p "$ROOT/.agents/qa/latest"
-if [ ! -s "$OUT_DIR/contact.png" ] || [ ! -s "$OUT_DIR/manifest.json" ]; then
-  echo "qa_tour: missing capture artifacts in $OUT_DIR" >&2
-  exit 1
-fi
 if [ "$OUT_DIR" != "$ROOT/.agents/qa/latest" ]; then
   rm -f "$ROOT/.agents/qa/latest/"*.png "$ROOT/.agents/qa/latest/manifest.json"
   cp "$OUT_DIR"/*.png "$OUT_DIR"/manifest.json "$ROOT/.agents/qa/latest/" || exit 1
@@ -184,35 +222,58 @@ fi
 # `--publish` copies the approved tour into docs/screenshots/. The README
 # embeds four of those files. Do not add the rest back to the README.
 if [ "${PUBLISH:-0}" = "1" ]; then
+  # Team stills come from their own pass against a team deathmatch server, so
+  # they are regenerated with every publish instead of going stale.
+  TEAM_DIR="$OUT_DIR/team"
+  mkdir -p "$TEAM_DIR"
+  start_server "$TEAM_DIR/server.log" --bind "127.0.0.1:$SERVER_PORT" --bots "$BOTS" --map 1 --mode tdm
+  run_client "$TEAM_DIR" "res://qa/team_tour.json"
+  stop_server
+
   published=0
+  kept=()
   shopt -s nullglob
-  while IFS='|' read -r state dest; do
+  while IFS='|' read -r pass state dest; do
     [ -z "$state" ] && continue
+    source_dir="$OUT_DIR"
+    [ "$pass" = "team" ] && source_dir="$TEAM_DIR"
     # State names survive additions to the tour; ordinal filenames do not.
-    matches=("$OUT_DIR/"*"_${state}.png")
+    matches=("$source_dir/"*"_${state}.png")
     if [ "${#matches[@]}" -eq 1 ]; then
       cp "${matches[0]}" "$ROOT/docs/screenshots/$dest" || exit 1
+      kept+=("$dest")
       published=$((published + 1))
     else
       echo "qa_tour: expected one capture for $state, found ${#matches[@]}" >&2
       exit 1
     fi
   done <<'SHOTS'
-hud_first_person|tour_first_person_16x9.png
-combat_follow|tour_combat_follow_16x9.png
-body_human|tour_body_human_16x9.png
-body_synthetic|tour_body_synthetic_16x9.png
-arena_overview|tour_arena_overview_16x9.png
-shot_effects_strip|tour_shot_strip.png
-rail_impact_strip|tour_rail_impact_strip.png
-boot_menu|tour_menu_16x9.png
-multiplayer_menu|tour_multiplayer_16x9.png
-spectator_chase|tour_spectator_16x9.png
-profile_menu|tour_profile_16x9.png
-settings_menu|tour_settings_16x9.png
-campaign_difficulty|tour_difficulty_16x9.png
-service_record|tour_records_16x9.png
+main|hud_first_person|tour_first_person_16x9.png
+main|combat_follow|tour_combat_follow_16x9.png
+main|body_human|tour_body_human_16x9.png
+main|body_synthetic|tour_body_synthetic_16x9.png
+main|arena_overview|tour_arena_overview_16x9.png
+main|shot_effects_strip|tour_shot_strip.png
+main|rail_impact_strip|tour_rail_impact_strip.png
+main|boot_menu|tour_menu_16x9.png
+main|multiplayer_menu|tour_multiplayer_16x9.png
+main|spectator_chase|tour_spectator_16x9.png
+main|profile_menu|tour_profile_16x9.png
+main|settings_menu|tour_settings_16x9.png
+main|campaign_difficulty|tour_difficulty_16x9.png
+main|service_record|tour_records_16x9.png
+team|team_first_person|tour_team_first_person_16x9.png
+team|team_spectator|tour_team_spectator_16x9.png
 SHOTS
+  # Every published tour still is one this run produced. A tour_* file the
+  # tour no longer makes is removed, so a stale capture cannot ship again.
+  for existing in "$ROOT/docs/screenshots/"tour_*.png; do
+    name="$(basename "$existing")"
+    if [[ " ${kept[*]} " != *" $name "* ]]; then
+      rm -f "$existing"
+      echo "qa_tour: removed stale $name (no tour state produces it)"
+    fi
+  done
   echo "qa_tour: published $published stills into docs/screenshots/"
 fi
 

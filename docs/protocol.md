@@ -1972,6 +1972,12 @@ available to sound-muted players through the caption and visible attack tell.
 }
 ```
 
+Optional `to_id` names the one fighter a line is said to. A rule bot's frag
+taunt carries its victim's id (`"scout ant deleted you"` is said to that
+fighter). The Godot client shows an addressed line only when its viewer is that
+fighter or is watching through that fighter's eyes; a line without `to_id` is
+for the whole room.
+
 **Venue notice.** The person at a dedicated `--console` desk, not a player
 and not the on-air Host. The text already begins `The venue: `.
 

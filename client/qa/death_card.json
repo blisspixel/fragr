@@ -1,0 +1,22 @@
+{
+  "comment": "FFA death card after a real frag of the joined fighter: tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/death_card.json. The fighter stands in the open until a rule bot frags it.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "death_joined",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "first_person",
+      "join": "human",
+      "await_alive": 20,
+      "note": "Joined fighter on the floor before the frag."
+    },
+    {
+      "name": "death_card",
+      "camera": "first_person",
+      "await_death": 90,
+      "note": "Death card: pixel headline, killer and respawn countdown on its plate, upright."
+    }
+  ]
+}

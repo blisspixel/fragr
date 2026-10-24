@@ -3115,17 +3115,29 @@ impl GameState {
                 });
             }
 
-            // Named rule bots: occasional Contested Frequency speak (off-tick).
+            // Named rule bots: an occasional callout (off-tick).
             if matches!(killer_streak, 2 | 3 | 5) {
                 self.maybe_rule_bot_taunt(
                     shooter_id,
                     BotTauntKind::Killstreak,
                     RULE_BOT_TAUNT_STREAK_PCT,
+                    None,
                 );
             } else {
-                self.maybe_rule_bot_taunt(shooter_id, BotTauntKind::Frag, RULE_BOT_TAUNT_FRAG_PCT);
+                // A frag taunt is said to the fighter it fragged.
+                self.maybe_rule_bot_taunt(
+                    shooter_id,
+                    BotTauntKind::Frag,
+                    RULE_BOT_TAUNT_FRAG_PCT,
+                    Some(target_id),
+                );
             }
-            self.maybe_rule_bot_taunt(target_id, BotTauntKind::Death, RULE_BOT_TAUNT_DEATH_PCT);
+            self.maybe_rule_bot_taunt(
+                target_id,
+                BotTauntKind::Death,
+                RULE_BOT_TAUNT_DEATH_PCT,
+                None,
+            );
 
             if victim_was_boss {
                 let boss_msg = if self.solo_broadcast.enabled {
@@ -4425,9 +4437,15 @@ impl GameState {
             % 100
     }
 
-    /// Probabilistic Contested Frequency speak for a named rule bot.
+    /// Probabilistic callout for a named rule bot.
     /// Silent on miss / RateLimited / Rejected (no Error unicast spam for bots).
-    pub fn maybe_rule_bot_taunt(&mut self, player_id: Uuid, kind: BotTauntKind, chance_pct: u64) {
+    pub fn maybe_rule_bot_taunt(
+        &mut self,
+        player_id: Uuid,
+        kind: BotTauntKind,
+        chance_pct: u64,
+        to_id: Option<Uuid>,
+    ) {
         if !self.is_named_rule_bot(player_id) {
             return;
         }
@@ -4440,11 +4458,21 @@ impl GameState {
         if Self::taunt_roll(self.tick, player_id, salt) >= chance_pct {
             return;
         }
-        let _ = self.try_rule_bot_taunt(player_id, kind);
+        let _ = self.try_rule_bot_taunt_to(player_id, kind, to_id);
     }
 
     /// Always attempt a callsign-flavored speak (still respects SPEAK_COOLDOWN).
     pub fn try_rule_bot_taunt(&mut self, player_id: Uuid, kind: BotTauntKind) -> SpeakOutcome {
+        self.try_rule_bot_taunt_to(player_id, kind, None)
+    }
+
+    /// A callsign-flavored speak said to one fighter (`to_id`), or to the room.
+    pub fn try_rule_bot_taunt_to(
+        &mut self,
+        player_id: Uuid,
+        kind: BotTauntKind,
+        to_id: Option<Uuid>,
+    ) -> SpeakOutcome {
         if !self.is_named_rule_bot(player_id) {
             return SpeakOutcome::Rejected;
         }
@@ -4454,7 +4482,7 @@ impl GameState {
         };
         let salt = self.tick ^ (player_id.as_u128() as u64);
         let line = rule_bot_taunt_line(&name, kind, salt);
-        self.try_speak(player_id, &line)
+        self.try_speak_to(player_id, &line, to_id)
     }
 
     /// During Warmup, occasionally one dialed-in rule bot speaks a tuning-in line.
@@ -4476,11 +4504,23 @@ impl GameState {
             rule_bots[idx],
             BotTauntKind::Warmup,
             RULE_BOT_TAUNT_WARMUP_PCT,
+            None,
         );
     }
 
     /// Validate and emit an off-tick speak event.
     pub fn try_speak(&mut self, player_id: Uuid, raw_text: &str) -> SpeakOutcome {
+        self.try_speak_to(player_id, raw_text, None)
+    }
+
+    /// A callout said to one fighter (`to_id`), such as a frag taunt to its
+    /// victim. Same limits as `try_speak`.
+    pub fn try_speak_to(
+        &mut self,
+        player_id: Uuid,
+        raw_text: &str,
+        to_id: Option<Uuid>,
+    ) -> SpeakOutcome {
         let trimmed: String = raw_text.trim().chars().take(SPEAK_MAX_CHARS + 1).collect();
         if trimmed.is_empty() {
             return SpeakOutcome::Rejected;
@@ -4510,6 +4550,7 @@ impl GameState {
             player: name,
             player_id,
             text: trimmed,
+            to_id,
         });
         SpeakOutcome::Sent
     }

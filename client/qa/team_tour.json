@@ -1,0 +1,22 @@
+{
+  "comment": "Team deathmatch stills for the published tour. tools/qa_tour.sh --publish runs this pass against its own server started with --mode tdm, so the published team stills are regenerated with every publish and never go stale.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "team_spectator",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "follow",
+      "note": "Watched team match: side score strip, team-coloured fighters and pixel nameplates, backed corner text."
+    },
+    {
+      "name": "team_first_person",
+      "at_seconds": 10,
+      "camera": "first_person",
+      "join": "human",
+      "weapon": "Flechette",
+      "note": "Joined team fighter: the same status bar as free-for-all, side score strip and ally marks, no developer legend."
+    }
+  ]
+}

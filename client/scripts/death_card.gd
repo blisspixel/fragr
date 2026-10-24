@@ -6,8 +6,9 @@ extends Control
 
 ## Fraction of the view height from the top where the plate's top sits.
 const TOP_FRACTION: float = 0.56
-## Wide enough for a long callsign on one line; wrapping is the fallback.
-const PLATE_WIDTH: float = 760.0
+## Wide enough for "FRAGGED BY" and a 16-character callsign on one line at
+## the large pixel size; wrapping is the fallback for longer names.
+const PLATE_WIDTH: float = 960.0
 
 var _plate: PanelContainer
 var _headline: Label
@@ -27,13 +28,13 @@ func _ready() -> void:
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.alignment = BoxContainer.ALIGNMENT_CENTER
 	_plate.add_child(rows)
-	_headline = _line(MenuTheme.DISPLAY_SMALL, MenuTheme.DANGER)
+	_headline = _line(MenuTheme.LARGE, MenuTheme.DANGER)
 	_headline.name = "Headline"
 	rows.add_child(_headline)
-	_detail = _line(0, MenuTheme.BONE)
+	_detail = _line(MenuTheme.BODY, MenuTheme.BONE)
 	_detail.name = "Detail"
 	rows.add_child(_detail)
-	_timing = _line(0, MenuTheme.EMBER)
+	_timing = _line(MenuTheme.BODY, MenuTheme.EMBER)
 	_timing.name = "Timing"
 	rows.add_child(_timing)
 	_plate.resized.connect(_place)
@@ -41,17 +42,13 @@ func _ready() -> void:
 	visible = false
 
 
-func _line(display_size: int, colour: Color) -> Label:
+## Every line is the HUD's pixel type; the headline is the large size.
+func _line(size: int, colour: Color) -> Label:
 	var label: Label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_color_override("font_color", colour)
-	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
-	label.add_theme_constant_override("outline_size", 4)
-	if display_size > 0:
-		label.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
-		label.add_theme_font_size_override("font_size", display_size)
+	MenuTheme.pixel_text(label, size, colour, 4)
 	return label
 
 

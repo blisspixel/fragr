@@ -13,5 +13,10 @@ Its separate SIL Open Font License is in `silkscreen/OFL.txt`.
 antialiasing, subpixel positioning and hinting, and uses logical 24 or 48 px
 for even pixel steps at 720p, 1080p and 1440p. The original import remains the
 world-sign resource. System glyph fallback remains enabled for player-authored
-Unicode names and chat. Black Ops One owns display titles and large numerals
-at 48, 64 or 96 px. Neither face replaces the project-wide default font.
+Unicode names and chat. Black Ops One owns front-end display titles and the
+match HUD's large numerals (health, armor, ammunition) at 48, 64 or 96 px.
+Every word on the match HUD, including death, objective, round and result
+cards, is Silkscreen in capitals through `MenuTheme.pixel_text`; nameplates
+and other world tags use the same face through `MenuTheme.world_text`.
+`test_hud_type` holds that rule. Neither face replaces the project-wide
+default font.

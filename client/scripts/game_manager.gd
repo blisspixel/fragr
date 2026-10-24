@@ -303,6 +303,7 @@ func _ready():
 	records = PlayerRecords.for_tree(get_tree())
 	settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
+	hud.controls_hint_shown.connect(_on_controls_hint_shown)
 	_apply_preferences()
 	net_client.snapshot_received.connect(_on_snapshot_traced)
 	net_client.stutter_trace = stutter_trace
@@ -647,6 +648,15 @@ func _setup_frontend() -> void:
 	pause_menu.hosting_server = host != null and host.state == LocalHost.State.RUNNING and host.url == net_client.server_url
 	pause_menu.stop_server_requested.connect(_on_stop_server_requested)
 	add_child(pause_menu)
+
+## The play legend is a first-run hint: once a fighter has seen it, later
+## joins keep the status bar clear. A harness on the default settings file
+## keeps the fact in memory instead of writing a player's real settings.
+func _on_controls_hint_shown() -> void:
+	settings.set_value("gameplay", "controls_hint_seen", true)
+	if get_tree().get_meta("fragr_automated", false) and settings.storage_path == FragrSettings.PATH:
+		return
+	settings.save_to_disk()
 
 func _apply_preferences() -> void:
 	settings.apply()
@@ -2925,7 +2935,11 @@ func _on_event_received(data):
 	elif event_type == "speak":
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))
-		hud.show_speak(speaker, line)
+		var to_id: Variant = data.get("to_id")
+		var viewers: Array[String] = [_followed_player_id()]
+		if is_human_player and net_client.player_id != null:
+			viewers.append(str(net_client.player_id))
+		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers)
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():

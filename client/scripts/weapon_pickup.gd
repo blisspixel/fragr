@@ -63,6 +63,7 @@ func set_reduced_motion(enabled: bool) -> void:
 		icon.position.y = _sprite_rest_y
 
 func _ready() -> void:
+	MenuTheme.world_text(label)
 	_regular_mesh = body.mesh
 	_regular_body_position = body.position
 	_regular_label_position = label.position

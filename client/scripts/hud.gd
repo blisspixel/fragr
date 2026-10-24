@@ -11,6 +11,8 @@ var death_card: DeathCard = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
+## The first-run controls hint went up for a fighter; the owner records it.
+signal controls_hint_shown
 
 @onready var status_label = $Panel/VBoxContainer/StatusLabel
 @onready var tick_label = $Panel/VBoxContainer/TickLabel
@@ -104,8 +106,17 @@ var pressure_id = ""
 var sticky_host_line = ""
 var host_line_seen = false
 var client_mode = "SPECTATING"
-## Milliseconds the control legend stays up after joining, then it gets out of the way.
+## Milliseconds the control legend stays up, then it gets out of the way. The
+## last second fades. A fighter sees it on their first join only (the
+## `gameplay/controls_hint_seen` setting); after that the controls live in
+## Settings > Controls and the match menu, never over the status bar. A
+## spectator gets the short watch legend (join, fighter, view) on each visit.
 const CONTROLS_HINT_MS: int = 8000
+const CONTROLS_HINT_FADE_MS: int = 1000
+## True until this install has shown a fighter the play legend once.
+var controls_hint_pending: bool = true
+## The join (its `mode_entered_ms`) that carries the play legend, or -1.
+var _play_hint_ms: int = -1
 
 ## Broadcast ident (the top strip, ON AIR, the station badge). Off by default:
 ## it is right for a let's-play capture and wrong for playing. See
@@ -134,7 +145,7 @@ var result_subject: String = ""
 var _controls_visible: bool = false
 
 const HOST_BUMPERS = [
-	"HOST: THE LEAGUE DENIES EXISTENCE.",
+	"HOST: THE LEAGUE DENIES IT EXISTS. FIGHT ANYWAY.",
 	"HOST: ARENA DUEL UNDER THE LIE. LIVE LAUGH FRAG.",
 	"HOST: CONTINUANCE WATCHES. YOU SHOOT.",
 	"HOST: SHALL NOT BE INFRINGED. OPEN WEIGHTS. OPEN FIRE.",
@@ -270,8 +281,10 @@ func _ready():
 		vitals.visible = false
 		vitals_seal_plate = SealCutPlateScript.new()
 		vitals_seal_plate.name = "VitalsSealPlate"
-		vitals_seal_plate.size = vitals.size
 		vitals.add_child(vitals_seal_plate)
+		# The plate is the status bar: it follows the vitals' own rect, so the
+		# armor readout added beside health sits on it, never past its edge.
+		vitals_seal_plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		vitals.move_child(vitals_seal_plate, 0)
 	stamp_card = StampCardScript.new()
 	stamp_card.name = "StampCard"
@@ -386,18 +399,29 @@ func _apply_chrome_roles() -> void:
 	for part: Node in $Crosshair.get_children():
 		if part is ColorRect:
 			(part as ColorRect).color = MenuTheme.INK if str(part.name).ends_with("Edge") else MenuTheme.BONE
-	var display_sizes: Dictionary = {
-		"RoundMessage": MenuTheme.DISPLAY_SMALL,
+	# Numerals keep the display face; every word card is the pixel type.
+	var numeral_sizes: Dictionary = {
 		"Vitals/HealthValue": MenuTheme.DISPLAY_MEDIUM,
 		"Vitals/ArmorValue": MenuTheme.DISPLAY_MEDIUM,
-		"WarmupTv/Center/MapTitle": MenuTheme.DISPLAY_MEDIUM,
-		"WarmupTv/Center/Countdown": MenuTheme.DISPLAY_LARGE,
 	}
-	for path: String in display_sizes:
+	for path: String in numeral_sizes:
 		var label: Label = get_node_or_null(path) as Label
 		if label != null:
-			label.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
-			label.add_theme_font_size_override("font_size", display_sizes[path])
+			MenuTheme.numeral(label, numeral_sizes[path])
+	# Word cards: the warm-up title and countdown at the large pixel size; the
+	# round and result card at 32, because it carries several wrapped lines.
+	var card_sizes: Dictionary = {
+		"RoundMessage": 32,
+		"WarmupTv/Center/MapTitle": MenuTheme.LARGE,
+		"WarmupTv/Center/Countdown": MenuTheme.LARGE,
+	}
+	for path: String in card_sizes:
+		var label: Label = get_node_or_null(path) as Label
+		if label != null:
+			MenuTheme.pixel_text(label, card_sizes[path], label.get_theme_color("font_color"), 4)
+	# Pixel type is drawn in capitals everywhere on the HUD, names included.
+	for node: Node in find_children("*", "Label", true, false):
+		(node as Label).uppercase = true
 	$Vitals/ArmorValue.add_theme_color_override("font_color", MenuTheme.CYAN)
 	round_label.add_theme_color_override("font_color", MenuTheme.EMBER)
 
@@ -788,10 +812,25 @@ func set_pressure(pressure: String):
 	pressure_id = pressure
 	_refresh_mode_label()
 
+## Show the legend again from now, as on a first join: the play legend for a
+## fighter, the watch legend for a spectator. Tour captures use it after an
+## ordinary join has kept the status bar clear.
+func replay_controls_hint() -> void:
+	mode_entered_ms = Time.get_ticks_msec()
+	if client_mode == "PLAYING":
+		_play_hint_ms = mode_entered_ms
+	_refresh_mode_label()
+
 func set_mode(mode: String):
-	if mode != client_mode:
+	var entered: bool = mode != client_mode
+	if entered:
 		mode_entered_ms = Time.get_ticks_msec()
 	client_mode = mode
+	if entered and mode == "PLAYING" and controls_hint_pending:
+		# Shown once per install; later joins and respawns stay clean.
+		_play_hint_ms = mode_entered_ms
+		controls_hint_pending = false
+		controls_hint_shown.emit()
 	_refresh_mode_label()
 	_refresh_telemetry_lines()
 	_refresh_map_chip_badge()
@@ -820,9 +859,11 @@ func _refresh_mode_label():
 		mode_label.text = "SOLO BROADCAST" if not episode_title.is_empty() else client_mode
 	round_label.text = client_mode + " // " + round_chrome_state.to_upper()
 	_controls_revision = InputDevice.revision
-	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS
+	var watching: bool = client_mode == "SPECTATING"
+	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS \
+		and (watching or (client_mode == "PLAYING" and _play_hint_ms == mode_entered_ms))
 	if regions != null:
-		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
+		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if watching else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
 	_refresh_mode_chip()
 
 ## The legend is key and word pairs separated by wide gaps. The corner panel
@@ -831,7 +872,12 @@ func _refresh_mode_label():
 static func legend_line(plain: String) -> String:
 	var pairs: PackedStringArray = plain.split("   ", false)
 	for index: int in range(pairs.size()):
-		pairs[index] = pairs[index].strip_edges().replace(" ", " ").replace("-", "‑")
+		var pair: String = pairs[index].strip_edges()
+		# A pad's Menu button opening the menu reads "MENU", not "MENU MENU".
+		var words: PackedStringArray = pair.split(" ", false)
+		if words.size() == 2 and words[0].to_lower() == words[1].to_lower():
+			pair = words[0]
+		pairs[index] = pair.replace(" ", " ").replace("-", "‑")
 	return "   ".join(pairs)
 
 func set_tick(tick: int):
@@ -1150,7 +1196,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	round_banner_remaining = 0.0
 	if not round_message:
 		return
-	var line = host_line if host_line != "" else "HOST: Amen, fistbump. Frequency still unmetered."
+	var line = host_line if host_line != "" else "HOST: Amen, fistbump. Still unmetered."
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
 	# Held until the next card: zero seconds never expires.
@@ -1273,6 +1319,7 @@ func apply_preferences(settings: FragrSettings) -> void:
 			entry["motion_cancelled"] = true
 		_update_floating_damage(0.0)
 	reticle_colour = settings.reticle_colour()
+	controls_hint_pending = not bool(settings.get_value("gameplay", "controls_hint_seen"))
 	hud_style = HudStyle.from_settings(settings, hud_style.revision + 1)
 	_apply_hud_style()
 	_update_broadcast_chrome(round_chrome_state)
@@ -1290,8 +1337,19 @@ func _apply_hud_style() -> void:
 		map_chip_label.add_theme_font_size_override("font_size", body_sz)
 	if regions != null and is_instance_valid(regions.hints):
 		regions.hints.add_theme_font_size_override("font_size", body_sz)
+	if is_instance_valid(combat_feed):
+		combat_feed.set_text_size(body_sz)
+	if is_instance_valid(frag_feed):
+		# Feed rows follow the HUD scale; large text would leave two names
+		# no room beside the weapon, so it reads at the scaled body size.
+		frag_feed.set_text_size(maxi(MenuTheme.BODY, int(round(float(MenuTheme.BODY) * hud_style.scale))))
 	if is_instance_valid(equipment_hud) and equipment_hud.has_method("apply_style"):
 		equipment_hud.call("apply_style", hud_style)
+	if vitals != null:
+		# The status bar grows from its bottom-left corner with the HUD scale,
+		# so health keeps the ammunition's numeral size (#412).
+		vitals.pivot_offset = Vector2(0.0, vitals.size.y)
+		vitals.scale = Vector2.ONE * hud_style.scale
 	if regions != null:
 		regions.layout()
 
@@ -1427,7 +1485,9 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 	warmup_tv_host_line = line
 	warmup_tv_secs = max(secs_left, 0)
 	if warmup_tv_league:
-		warmup_tv_league.text = league_mode_name.to_upper()
+		# The rules being played; the broadcaster's name is not the league's.
+		var rules_name: String = MatchRules.mode_text(match_rules)
+		warmup_tv_league.text = rules_name if not rules_name.is_empty() else league_mode_name.to_upper()
 	if warmup_tv_map:
 		warmup_tv_map.text = map_label.to_upper()
 	if warmup_tv_countdown:
@@ -1462,7 +1522,7 @@ func _set_warmup_roster(roster) -> void:
 	if warmup_tv_roster == null:
 		return
 	if names.size() == 0:
-		warmup_tv_roster.text = "SCRAP ROSTER TUNING IN"
+		warmup_tv_roster.text = "SCRAP ROSTER FILLING"
 		return
 	var upper = []
 	for n in names:
@@ -1511,14 +1571,21 @@ func show_boss_down(message: String, killer: String = "") -> void:
 	host_line_seen = true
 	pressure_id = ""
 	_refresh_mode_label()
-	combat_feed.push(tr("HUD_BOSS_DOWN").format({"killer": killer}), MenuTheme.EMBER)
+	var line: String = tr("HUD_BOSS_DOWN").format({"killer": killer}) if not killer.strip_edges().is_empty() else tr("HUD_BOSS_DOWN_UNCLAIMED")
+	combat_feed.push(line, MenuTheme.EMBER)
 
 func show_killstreak(player_name: String, streak: int, _tier: String, _message: String) -> void:
 	combat_feed.push(tr("HUD_STREAK").format({"player": player_name, "count": streak}), MenuTheme.EMBER)
 
-func show_speak(player: String, line: String) -> void:
-	if not line.is_empty():
-		combat_feed.push(player + ": " + line)
+## A callout in the corner voice. A line said to one fighter (`addressee`, the
+## speak event's `to_id`, such as a frag taunt's "deleted you") shows only
+## when that fighter is one of `viewers`: the local fighter or the fighter
+## whose eyes the camera is behind. Anyone else would read "you" as themselves.
+func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = []) -> bool:
+	if line.is_empty() or (not addressee.is_empty() and not viewers.has(addressee)):
+		return false
+	combat_feed.push(player + ": " + line)
+	return true
 
 func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
@@ -1575,26 +1642,36 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 				message = "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP."
 		if reason != "":
 			message += "\n" + reason.to_upper()
-		# Podium: top three scrap scores.
+		# Podium: top three scrap scores. Each place is one unbreakable unit, so
+		# a wrap falls between places and never inside a callsign.
 		var lines = []
 		if typeof(podium) == TYPE_ARRAY:
 			var n = mini(3, podium.size())
 			for i in range(n):
 				var row = podium[i]
 				var nm = str(row.get("name", "?")) if typeof(row) == TYPE_DICTIONARY else str(row)
-				var sc = str(row.get("score", "?")) if typeof(row) == TYPE_DICTIONARY else ""
+				var sc = podium_score(row.get("score", "?")) if typeof(row) == TYPE_DICTIONARY else ""
 				var rank = str(i + 1)
-				if sc != "":
-					lines.append("#" + rank + " " + nm + " " + sc)
-				else:
-					lines.append("#" + rank + " " + nm)
+				var place: String = "#" + rank + " " + nm + (" " + sc if sc != "" else "")
+				lines.append(place.replace(" ", NBSP))
 		if lines.size() > 0:
-			message += "\nPODIUM: " + " | ".join(PackedStringArray(lines))
-		message += "\n" + league_mode_name.to_upper() + " // " + league_playlist.to_upper()
+			message += "\nPODIUM:   " + "   ".join(PackedStringArray(lines))
+		# The rules and the venue, not the broadcaster's name.
+		var rules_name: String = MatchRules.mode_text(match_rules)
+		message += "\n" + (rules_name + " // " if not rules_name.is_empty() else "") + map_label.to_upper()
 
-		_show_round_banner(message, 5.5)
+		# Backed like every other result: the card reads over light walls.
+		_show_round_banner(message, 5.5, true)
 		if stamp_card != null:
 			stamp_card.trigger_stamp(round_message, end_col, reduced_motion)
+
+const NBSP: String = "\u00a0"
+
+## A JSON score arrives as a float; a podium shows whole frags.
+static func podium_score(value: Variant) -> String:
+	if (value is float or value is int) and is_finite(float(value)) and float(value) == floorf(float(value)):
+		return str(int(value))
+	return str(value)
 
 ## Every card on the shared round label starts here: the previous card's
 ## stamp, pulse, transform and tint are retired before the new text shows, so
@@ -1624,9 +1701,29 @@ func _fit_round_message(backed: bool) -> void:
 	if regions != null:
 		regions.reset_card_shift()
 	if backed and round_backdrop != null:
+		# The plate is as wide as its longest line needs, between the classic
+		# 680 and the unbacked card's 1200, and as tall as the text wrapped at
+		# that width measures. A wrapped label's own minimum size still holds
+		# the previous width until the next layout, which let a long podium
+		# spill over the top of its plate.
+		var font: Font = round_message.get_theme_font("font")
+		var font_size: int = round_message.get_theme_font_size("font_size")
+		var shown: String = round_message.text.to_upper() if round_message.uppercase else round_message.text
+		var widest: float = 0.0
+		for line: String in shown.split("\n"):
+			widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+		var half: float = roundf(clampf(widest * 0.5 + 40.0, 340.0, 600.0))
+		round_backdrop.offset_left = -half
+		round_backdrop.offset_right = half
 		round_message.offset_left = round_backdrop.offset_left + 28.0
 		round_message.offset_right = round_backdrop.offset_right - 28.0
-		var height: float = maxf(165.0, round_message.get_minimum_size().y + 36.0)
+		var wrap_width: float = round_message.offset_right - round_message.offset_left
+		var lines: float = 0.0
+		for line: String in shown.split("\n"):
+			var drawn: Vector2 = font.get_multiline_string_size(line, HORIZONTAL_ALIGNMENT_CENTER, wrap_width, font_size)
+			lines += maxf(1.0, roundf(drawn.y / font.get_height(font_size)))
+		var text_height: float = lines * font.get_height(font_size) + maxf(0.0, lines - 1.0) * round_message.get_theme_constant("line_spacing")
+		var height: float = maxf(165.0, maxf(text_height, round_message.get_minimum_size().y) + 36.0)
 		round_backdrop.offset_top = -25.0 - height
 		round_message.offset_top = round_backdrop.offset_top + 18.0
 		round_message.offset_bottom = round_backdrop.offset_bottom - 18.0
@@ -1730,10 +1827,13 @@ func _process(delta):
 		var showing_leaders: bool = InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard")
 		scoreboard.visible = false
 		set_leaderboard_open(showing_leaders)
-	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and Time.get_ticks_msec() - mode_entered_ms >= CONTROLS_HINT_MS):
+	var hint_age: int = Time.get_ticks_msec() - mode_entered_ms
+	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and hint_age >= CONTROLS_HINT_MS):
 		_refresh_mode_label()
 	if regions != null:
+		regions.hints.modulate.a = clampf(float(CONTROLS_HINT_MS - hint_age) / float(CONTROLS_HINT_FADE_MS), 0.0, 1.0) if _controls_visible else 1.0
 		regions.layout()
+		regions.fit_backings()
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:
@@ -1869,13 +1969,15 @@ func _build_fp_extras() -> void:
 		# their size, the symbols say which is which without a word.
 		health_icon = _vitals_icon("HealthIcon", WeaponArt.HUD_HEALTH, Vector2(0, 17))
 		armor_icon = _vitals_icon("ArmorIcon", WeaponArt.HUD_ARMOR, Vector2(232, 17))
-		vitals.offset_right = 488.0
+		# Wide enough for a three-digit armor readout and its bar, no wider:
+		# the plate is the status bar, not an empty shelf.
+		vitals.offset_right = 464.0
 		if health_value:
 			health_value.position = Vector2(62, 0)
 			health_value.size = Vector2(160, 84)
 		if armor_value:
 			armor_value.position = Vector2(294, 0)
-			armor_value.size = Vector2(160, 84)
+			armor_value.size = Vector2(140, 84)
 		for bar_name: String in ["HealthBar", "HealthBarBack", "ArmorBar", "ArmorBarBack"]:
 			var bar: ColorRect = vitals.get_node(bar_name)
 			bar.position = Vector2(232 if bar_name.begins_with("Armor") else 0, 92)

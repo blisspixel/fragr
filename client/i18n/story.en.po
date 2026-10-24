@@ -351,7 +351,10 @@ msgid "HUD_BOSS_ARRIVED"
 msgstr "{name} on deck."
 
 msgid "HUD_BOSS_DOWN"
-msgstr "Drone down. {killer}"
+msgstr "{killer} downs the drone."
+
+msgid "HUD_BOSS_DOWN_UNCLAIMED"
+msgstr "Drone down."
 
 msgid "HUD_STREAK"
 msgstr "{player}: {count} kill streak"
