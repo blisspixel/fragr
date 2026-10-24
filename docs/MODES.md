@@ -5,7 +5,7 @@ The canonical list of modes. The roadmap sequences them, the plans build them, t
 **Implementation status, 2026-10-08:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
 launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
-flag plays on Arena Duel, Directive 17 and Sector 9
+flag plays on Directive 17 and Sector 9
 ([plan](plans/capture-the-flag.md)); a human match remains open. Sabotage plays
 on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
 Holdfast Atoll has a five-site vehicle Conquest prototype. Current local
@@ -115,7 +115,7 @@ Scrap in two sides: the Union in black and red against the free coalition in bon
 Two flags, one per side on a stand in its back third. Take theirs home while
 yours is home. A dropped friendly flag returns when an owner-side fighter
 touches it or after 20 seconds. The carrier can shoot. Captures decide the
-match, not frags. Arena Duel, Directive 17 and Sector 9 have registered stands
+match, not frags. Directive 17 and Sector 9 have registered stands
 and tested routes. Other arenas still need two-side route review. Human match
 acceptance remains open. Evidence lives in [the CTF plan](plans/capture-the-flag.md).
 

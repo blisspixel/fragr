@@ -60,6 +60,10 @@ class Preset extends RefCounted:
 	## The scene's DirectionalLight3D, and the arena's overhead omni fill.
 	var key_color: Color = Color(1.0, 0.86, 0.72)
 	var key_energy: float = 1.15
+	## Euler degrees for the key light, or zero to keep the scene's own aim.
+	var key_rotation_degrees: Vector3 = Vector3.ZERO
+	## False keeps the key out of the sky: a city glow is not a sun disc.
+	var key_in_sky: bool = true
 	var scene_fill_energy: float = 0.35
 	## Registered strip lights on the map's surfaces.
 	var practical_color: Color = Color("ffe7ba")
@@ -192,6 +196,8 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key.contains("larak"):
+		return larak_lot()
 	if key in ["launch authority", "launch authority (development)", "continuance walker (development)"]:
 		return mars_launch()
 	if key in ["terms of cooperation", "terms of cooperation (development)", "arc maintenance (development)"]:
@@ -349,6 +355,41 @@ static func low_water() -> Preset:
 	preset.saturation = 0.92
 	return preset
 
+## Larak Lot: a condemned car park at night. Deep indigo over a sodium haze,
+## a low cool city glow raking in from the south-west across the Roof and the
+## Pit, and warm sodium practicals in the covered bays: warm outside the
+## lightwells, cold inside the concrete. The floors stay mid-value so a body
+## never disappears into a corner, and the actor fill keeps black Union and
+## bone coalition armour readable at thirty metres.
+static func larak_lot() -> Preset:
+	var preset: Preset = Preset.new(
+		Color("1b1838"),             # deep indigo-violet
+		Color("8a5a3c"),             # sodium haze on the horizon
+		Color("2d2420"),
+		Color("4a3b37"),
+		0.0045,
+		Color("a3a2ba"),             # cool fill against warm practicals
+		0.6
+	)
+	preset.outdoor_embers = false
+	preset.key_color = Color("b9c6e6")  # cool city glow
+	preset.key_energy = 0.95
+	preset.key_in_sky = false
+	preset.key_rotation_degrees = Vector3(-24.0, -45.0, 0.0)
+	preset.scene_fill_energy = 0.0
+	preset.practical_color = Color("ffb35c")  # sodium
+	preset.practical_energy = 4.0
+	preset.practical_range = 15.0
+	preset.practical_attenuation = 1.2
+	preset.accent_energy = 1.6
+	preset.accent_range = 4.0
+	preset.view_fill_energy = 0.55
+	preset.view_fill_range = 32.0
+	preset.contrast = 1.1
+	preset.saturation = 1.0
+	preset.glow_intensity = 0.4
+	return preset
+
 static func freight_yard() -> Preset:
 	var preset: Preset = Preset.new(Color("537e9a"), Color("b8c4bc"),
 		Color("777a68"), Color("adb6a8"), 0.003, Color("d1d4ca"), 0.8)
@@ -440,6 +481,13 @@ static func apply_scene_lights(layout: Node, map_name: String) -> void:
 		key.light_color = preset.key_color
 		key.light_energy = preset.key_energy
 		key.visible = preset.key_energy > 0.0
+		if preset.key_rotation_degrees != Vector3.ZERO:
+			if not key.has_meta("authored_rotation"):
+				key.set_meta("authored_rotation", key.rotation_degrees)
+			key.rotation_degrees = preset.key_rotation_degrees
+		elif key.has_meta("authored_rotation"):
+			key.rotation_degrees = key.get_meta("authored_rotation")
+		key.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY if preset.key_in_sky else DirectionalLight3D.SKY_MODE_LIGHT_ONLY
 	var fill: OmniLight3D = layout.get_node_or_null("FillLight") as OmniLight3D
 	if fill != null:
 		fill.light_energy = preset.scene_fill_energy

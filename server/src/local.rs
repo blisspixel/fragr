@@ -663,8 +663,16 @@ mod tests {
                 vec![],
                 false,
                 false,
-                crate::sim::MapKind::ArenaDuel,
+                crate::sim::MapKind::Directive17,
                 true,
+            ),
+            (
+                GameMode::Ctf,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                false,
             ),
             (
                 GameMode::Ctf,

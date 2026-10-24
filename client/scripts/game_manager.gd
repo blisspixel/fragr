@@ -1986,7 +1986,7 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		arena_cover.apply_map_info(current_map_info)
 	_apply_arena_sky(map_name)
 	if map_name == "":
-		map_name = str(snapshot.get("map_name", "Arena Duel"))
+		map_name = str(snapshot.get("map_name", "Larak Lot"))
 	if hud and hud.has_method("set_map_name"):
 		hud.set_map_name(map_name)
 
@@ -2218,7 +2218,7 @@ func _on_snapshot_received(data):
 	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
 	var mode_name = str(data.get("mode_name", "Contested Frequency"))
-	var playlist = str(data.get("playlist", "Arena Duel"))
+	var playlist = str(data.get("playlist", "Larak Lot"))
 	var pressure = data.get("pressure", null)
 	var host_line = str(data.get("host_line", ""))
 	
@@ -2512,7 +2512,7 @@ func _on_event_received(data):
 	elif event_type == "round_start":
 		ended_podium_shown = false
 		var mode_name = str(data.get("mode_name", "Contested Frequency"))
-		var playlist = str(data.get("playlist", "Arena Duel"))
+		var playlist = str(data.get("playlist", "Larak Lot"))
 		hud.set_league_identity(mode_name, playlist)
 		var shown_round: int = int(data.get("round_number", 0))
 		var sabotage_round: Variant = latest_snapshot.get("sabotage")

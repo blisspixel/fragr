@@ -60,6 +60,17 @@ func _run() -> void:
 	_check(not ember.visible and is_equal_approx(key.light_energy, recall.key_energy), "interior kept the outdoor ember props or sun")
 	ArenaSky.apply_scene_lights(layout, "Arena Duel")
 	_check(ember.visible and is_equal_approx(key.light_energy, scrap.key_energy), "arena lost its ember props or sun")
+	var larak: ArenaSky.Preset = ArenaSky.preset_for("Larak Lot")
+	_check(not larak.interior and not larak.outdoor_embers and not larak.key_in_sky and larak.sky_top != scrap.sky_top \
+		and larak.view_fill_energy > 0.0 and larak.practical_color.r > larak.practical_color.b,
+		"Larak Lot needs its own night sky, sodium practicals and actor fill without a sun disc")
+	var authored: Vector3 = key.rotation_degrees
+	ArenaSky.apply_scene_lights(layout, "Larak Lot")
+	_check(not ember.visible and key.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_ONLY \
+		and key.rotation_degrees.is_equal_approx(larak.key_rotation_degrees), "Larak Lot kept the scrapyard sun or embers")
+	ArenaSky.apply_scene_lights(layout, "Arena Duel")
+	_check(key.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY and key.rotation_degrees.is_equal_approx(authored),
+		"leaving Larak Lot did not restore the authored key light")
 	ArenaSky.apply_scene_lights(layout, "Launch Authority (development)")
 	_check(not ember.visible and is_equal_approx(key.light_energy, launch.key_energy), "Mars retained unmotivated scrapyard ember lamps")
 

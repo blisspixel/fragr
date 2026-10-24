@@ -51,7 +51,7 @@ func _run() -> void:
 	await menu._show("host")
 	_check(menu._local_host == owner and menu._host_mode.selected == 0, "real menu resolves one existing root owner and defaults TDM")
 	_check(menu._host_map.item_count == 6 and menu._host_map.get_selected_id() == 1,
-		"TDM offers all six registered maps with Arena Duel default")
+		"TDM offers all six registered maps with Larak Lot default")
 	_check(not menu._host_lan.button_pressed and not menu._host_port.editable,
 		"hosting defaults to this computer rather than opening LAN")
 	_check(menu._host_bot_policy.selected == 0 and menu._host_bots.value == 4,

@@ -94,7 +94,7 @@ func _run() -> void:
 	var fast: Dictionary = {"count": 4, "elapsed_s": 20.0, "fps": 200.0, "mean_ms": 5.0, "median_ms": 5.0, "p99_ms": 6.0, "smoothness": 1.2, "low_1_count_fps": 150.0, "low_1_time_fps": 140.0, "low_1_percentile_fps": 160.0, "low_01_count_fps": 100.0, "low_01_time_fps": 90.0, "low_01_percentile_fps": 110.0, "over_33_share": 0.0, "over_50_share": 0.0, "stutter_count": 0, "stutter_max_ms": 1.0}
 	var lines: PackedStringArray = BenchmarkRun.presentation(fast, pace, "High", "Test Adapter")
 	var block: String = "\n".join(lines)
-	_check(block.contains("Arena Duel, ten bots, fixed camera. Preset: High."), "the score names the scene and preset")
+	_check(block.contains("Larak Lot, ten bots, fixed camera. Preset: High."), "the score names the scene and preset")
 	_check(block.contains(FrameStats.FAST_VERDICT), "the score includes the fast verdict")
 	_check(block.contains(BenchmarkRun.LIVE_NOTE), "the score says a live match is not the same fight twice")
 	_check(block.contains("1 percent low, worst frames by count: 150 fps."), "the count-based 1 percent low is labelled")

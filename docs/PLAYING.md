@@ -148,7 +148,7 @@ menu preserves the match; **Stop server** or closing the app ends your owned
 host.
 
 **Benchmark**, on the main menu, times the frames on this computer. It starts
-its own Arena Duel match with ten bots and a fixed camera, on a port this
+its own Larak Lot match with ten bots and a fixed camera, on a port this
 computer picks. A server you already left running for other people stays up.
 Vertical sync and the frame cap turn off for the run, then your settings
 return. The score separates fast even frames from hitches and from frames that
@@ -162,7 +162,7 @@ round, watch and try joining at the next round.
 Older releases require a separately started server. The host chooses
 the arena and rules. Spectators, humans, agents and rule bots share the same
 authoritative match. The current release includes free-for-all and team
-deathmatch, six arenas, capture the flag on Arena Duel, Directive 17 and Sector 9,
+deathmatch, six arenas, capture the flag on Directive 17 and Sector 9,
 and Sector 9 Sabotage (plant or defuse a charge, one life per round). The optional
 5v5 Sabotage profile starts fighters with a Pistol and finite Bullets; stronger
 weapons come from the map. See [5v5 host setup](../infra/docs/HOME-LAN.md#optional-5v5-sabotage).

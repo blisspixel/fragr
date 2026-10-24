@@ -218,7 +218,7 @@ open. `GET /status` on the game port is a host probe. The app keeps a local
 server list and hears LAN announcements; there is no public directory.
 Episode 0 remains separate from the twelve connected campaign prototypes.
 The main menu Benchmark compares three graphics presets against the same
-recorded Arena Duel fight and exports frame statistics. It does not establish
+recorded map 1 fight (Larak Lot since 2026-10-23, scene revision 2) and exports frame statistics. It does not establish
 public-server readiness or replace the planned nine-scene showcase. Frame caps,
 connection caps and the inbound message budget shipped in v0.35.0.
 
@@ -540,7 +540,10 @@ The immediate rung is advancing the connected campaign to Episode V:
 ground escape and wipe-survival briefs and conditional epilogue.
 The [multiplayer excellence plan](plans/multiplayer-excellence-20261017.md)
 specifies sensory juice, announcer barks, rocket jump blast physics, host UI mutators and Conquest tension
-benchmarked against classic multiplayer legends. The [bot and enemy AI excellence plan](plans/bot-and-enemy-ai-excellence-20261017.md)
+benchmarked against classic multiplayer legends. Under it, map 1 is now
+[Larak Lot](plans/larak-lot.md), implemented locally on 2026-10-23: a five-level
+car park that replaces the Arena Duel field as the FFA and Duel home, with
+measured spawns, per-pad clocks and the Repossession landmark; human play is open. The [bot and enemy AI excellence plan](plans/bot-and-enemy-ai-excellence-20261017.md)
 specifies telegraphed combat loops, attack tokens, visible enemy flinches, companion slot yielding and reload covering. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.
@@ -1065,7 +1068,7 @@ front of the body, and the empty stand dims, so the take reads at a glance
 ([plan](plans/ctf-flag-nameplate.md)). In first person that grip sits below the eye, so the carrier sees the side cloth and the stand words beside the weapon
 ([plan](plans/ctf-fp-carry.md)). A capture result sits on an opaque card, and the score stays readable in front of the home flag
 ([plan](plans/ctf-result-card.md)). While a fighter carries, the corner gives the distance and bearing back to that fighter's own stand, and a stolen flag gives the same compass to everyone else
-([plan](plans/ctf-return-bearing.md)). Arena Duel and Directive 17 now have validated flag stands on that same side axis. Compliance Yard, Reclamation Gulch and Tripoint Works stay off capture the flag
+([plan](plans/ctf-return-bearing.md)). Directive 17 has validated flag stands on that same side axis; Arena Duel's stands retired with the field when map 1 became Larak Lot (2026-10-23). Compliance Yard, Reclamation Gulch and Tripoint Works stay off capture the flag
 ([plan](plans/ctf-arena-routes.md)). Two-bot goals are unchanged. A controlled socket
 gate proves a complete capture, while contested matches test combat and flag
 replication. Neither gate establishes human or spectator clarity. See the

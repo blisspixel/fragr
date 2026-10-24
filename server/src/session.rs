@@ -101,7 +101,7 @@ impl GameSession {
     }
 
     /// Night list: every arena's navigation is ready, and the first show is
-    /// Arena Duel free-for-all. Map rotation stays off.
+    /// Larak Lot free-for-all. Map rotation stays off.
     pub fn with_playlist() -> Self {
         crate::maps::prepare_navigation(MapKind::ArenaDuel, true);
         let mut state = GameState::with_map(MapKind::ArenaDuel, false);
@@ -1657,7 +1657,7 @@ mod session_tests {
             snap.host_line
         );
         assert!(
-            snap.host_line.contains("ARENA DUEL"),
+            snap.host_line.contains("LARAK LOT"),
             "Warmup Host line should name the map: {}",
             snap.host_line
         );
@@ -1678,7 +1678,7 @@ mod session_tests {
             .expect("RoundStart");
         assert!(start.contains("ON THE SCRAP"));
         assert!(start.contains("FIGHT!"));
-        assert!(start.contains("ARENA DUEL"));
+        assert!(start.contains("LARAK LOT"));
     }
 
     #[test]

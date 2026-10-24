@@ -453,6 +453,7 @@ impl GameState {
             available: true,
             respawn_timer: None,
             secret: false,
+            clock: None,
         });
     }
 

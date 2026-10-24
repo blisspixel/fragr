@@ -138,6 +138,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`larak-lot.md`](./larak-lot.md) | **implemented** locally on `feat/larak-lot` (2026-10-23) | Map 1 becomes Larak Lot: a five-level car park round a collapsed Pit, Plate on the Roof, Rail down the Low Ramp, twelve measured spawns, per-pad clocks and the Repossession landmark. |
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **merged and packaged**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 draft | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |

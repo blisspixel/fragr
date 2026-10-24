@@ -30,6 +30,19 @@ fn fixed_fits(world: &Arena, hulls: &[Solid], (x, z, _, floor): Spawn) -> bool {
         })
 }
 
+/// An opponent this close counts as a threat with no line of sight: two
+/// seconds of running plus a Scatter's reach would close it.
+const SPAWN_CORNER_RANGE: f32 = 12.0;
+
+/// Whether a living body already stands where this spawn would put one.
+fn occupied(others: &[Occupant], (sx, sz, _, floor): Spawn) -> bool {
+    others.iter().any(|other| {
+        other.feet[1] + other.height > floor + CONTACT_EPSILON
+            && other.feet[1] < floor + BODY_HEIGHT - CONTACT_EPSILON
+            && (other.feet[0] - sx).hypot(other.feet[2] - sz) < PLAYER_RADIUS * 2.0
+    })
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -38,7 +51,7 @@ impl GameState {
     /// Cover matters even when the widest gap is inside another fighter's range.
     /// A lane only counts inside `SPAWN_THREAT_RANGE`: one longer than any
     /// weapon's reach must not push a respawn toward a closer covered corner.
-    pub(super) fn select_spawn(
+    pub(crate) fn select_spawn(
         &mut self,
         player_id: Uuid,
         team: Option<Team>,
@@ -103,8 +116,15 @@ impl GameState {
             .collect();
         // Keep the original bays whenever one still fits. A crowded motorpool
         // may block all of them, so try a small supported area in the same half.
-        // This work is bounded by 24 samples per fixed bay, not a map search.
-        if candidates.is_empty() {
+        // A map with a short explicit table (Larak Lot's twelve slots) can also
+        // have every bay standing occupied by more fighters than slots; then
+        // the same bounded search finds clear floor beside them rather than
+        // putting two bodies on one point. This work is bounded by 24 samples
+        // per fixed bay, not a map search.
+        // Authored maps keep their established party placement unchanged.
+        let crowded =
+            !self.map.is_authored() && candidates.iter().all(|spawn| occupied(&others, *spawn));
+        if candidates.is_empty() || crowded {
             let arena = self.current_arena();
             for (x, z, yaw, floor) in bases {
                 for radius in [2.0, 4.0, 6.0] {
@@ -132,7 +152,7 @@ impl GameState {
                             .water_regions()
                             .iter()
                             .any(|water| water.contains(sx, sz) && ground < water.level);
-                        if supported && !submerged {
+                        if supported && !submerged && !(crowded && occupied(&others, candidate)) {
                             candidates.push(candidate);
                         }
                     }
@@ -163,19 +183,21 @@ impl GameState {
                 .iter()
                 .map(|other| (other.feet[0] - sx).hypot(other.feet[2] - sz))
                 .fold(f32::MAX, f32::min);
-            let clear = others.iter().all(|other| {
-                other.feet[1] + other.height <= floor + CONTACT_EPSILON
-                    || other.feet[1] >= floor + BODY_HEIGHT - CONTACT_EPSILON
-                    || (other.feet[0] - sx).hypot(other.feet[2] - sz) >= PLAYER_RADIUS * 2.0
-            });
+            let clear = !occupied(&others, spawn);
             let exposed = others
                 .iter()
                 .filter(|other| other.hostile)
                 .map(|other| other.eye)
-                .filter(|&eye| {
+                .map(|eye| {
+                    let distance = (eye[0] - sx).hypot(eye[2] - sz);
+                    // An opponent just round the corner reaches the arrival
+                    // inside the safe window whatever the walls say. On a
+                    // compact map of decks this is the commoner spawn death,
+                    // so it counts on top of any open lane.
+                    let corner = usize::from(distance <= SPAWN_CORNER_RANGE);
                     // The longest weapon bounds relevant lanes even if the
                     // opponent swaps weapons immediately after this spawn.
-                    (eye[0] - sx).hypot(eye[2] - sz) <= SPAWN_THREAT_RANGE
+                    let lane = distance <= SPAWN_THREAT_RANGE
                         && [crate::combat::FIGHTER_HEIGHT * 0.5, EYE_HEIGHT]
                             .into_iter()
                             .any(|height| {
@@ -184,9 +206,10 @@ impl GameState {
                                     [sx, floor + height, sz],
                                     &world.solids,
                                 )
-                            })
+                            });
+                    corner + usize::from(lane)
                 })
-                .count();
+                .sum::<usize>();
             if best.is_none_or(|(was_clear, threats, gap)| {
                 (clear && !was_clear)
                     || (clear == was_clear

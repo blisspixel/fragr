@@ -548,7 +548,7 @@ fn difficulty_arcade_claim_keeps_the_authored_amount() {
     let (x, z, floor) = state
         .pickups
         .iter()
-        .find(|pad| pad.id == "pad_health_n")
+        .find(|pad| pad.id == "larak_health_toll")
         .map(|pad| (pad.x, pad.z, pad.floor))
         .unwrap();
     let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
@@ -565,6 +565,6 @@ fn difficulty_arcade_claim_keeps_the_authored_amount() {
             amount: Some(40),
             pickup_id,
             ..
-        } if pickup_id == "pad_health_n"
+        } if pickup_id == "larak_health_toll"
     )));
 }

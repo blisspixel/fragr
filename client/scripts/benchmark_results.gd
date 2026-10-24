@@ -27,7 +27,7 @@ func _ready() -> void:
 	if report.has("error"):
 		_label(column, str(report["error"]), MenuTheme.BODY)
 	else:
-		_label(column, "Arena Duel, ten bots. The same recorded match and camera for every preset.", MenuTheme.BODY)
+		_label(column, "Larak Lot, ten bots. The same recorded match and camera for every preset.", MenuTheme.BODY)
 		_label(column, "Average and 1% low: higher is better. Frame times and slow frames: lower is better.", MenuTheme.BODY)
 		var grid: GridContainer = GridContainer.new()
 		grid.columns = 8
