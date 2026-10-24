@@ -1312,8 +1312,8 @@ fn test_sim_all_bot_behaviors_coverage() {
 }
 
 #[test]
-fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
-    use crate::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
+fn fighter_step_matches_one_authoritative_tick_with_jump_and_compliance() {
+    use crate::movement::{fighter_step, MoveInput, MoveState, TOP_SPEED};
     use crate::sim::PLAYER_FLOOR_Y;
 
     let mut state = GameState::new();
@@ -1333,7 +1333,7 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
         ..Action::default()
     };
     let player = &state.players[0];
-    let predicted = live_step(
+    let predicted = fighter_step(
         MoveState {
             x: player.x,
             z: player.z,
@@ -1351,6 +1351,7 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
             // An earlier tap is latched even when the selected action has
             // released jump before this 20 Hz movement step.
             jump: true,
+            dodge: false,
             yaw,
             speed_scale: 1.0,
         },
@@ -1375,7 +1376,10 @@ fn live_step_matches_one_authoritative_tick_with_jump_and_compliance() {
         ("vy", actual.vy, predicted.vy),
         ("yaw", actual.yaw, predicted.yaw),
     ] {
-        assert!((a - b).abs() <= 1e-6, "{label}: sim {a} vs live step {b}");
+        assert!(
+            (a - b).abs() <= 1e-6,
+            "{label}: sim {a} vs fighter step {b}"
+        );
     }
 }
 
@@ -3124,6 +3128,8 @@ fn test_shot_results_hit_and_hit_event() {
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
     state.players[shooter_idx].yaw = 0.0;
+    // An exact first shot at eye level is a head shot; aim at the chest.
+    state.players[shooter_idx].pitch = -0.1;
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
 
@@ -4065,6 +4071,8 @@ fn test_sim_armor_pad_grants_armor_and_absorbs_damage() {
         p.x = -5.0;
         p.z = 0.0;
         p.yaw = 0.0;
+        // An exact first shot at eye level is a head shot; aim at the chest.
+        p.pitch = -0.1;
         p.weapon = WeaponType::Flechette;
         p.pending_action.fire = true;
     }
@@ -5892,7 +5900,7 @@ fn movement_ack_reports_one_selected_step_and_earlier_jump_latch() {
             ..Default::default()
         },
     );
-    let expected = crate::movement::live_step(
+    let expected = crate::movement::fighter_step(
         crate::movement::MoveState {
             x: state.players[0].x,
             z: state.players[0].z,
@@ -5930,7 +5938,7 @@ fn movement_ack_reports_one_selected_step_and_earlier_jump_latch() {
         (*x, *z, movement.y),
         (state.players[0].x, state.players[0].z, state.players[0].y)
     );
-    assert_eq!(movement.version, 1);
+    assert_eq!(movement.version, 2);
     assert!(movement.applied);
     assert!(
         movement.jump_input,
@@ -5991,7 +5999,8 @@ fn numbered_human_actions_reject_stale_duplicate_and_mixed_samples() {
     assert!(!state.players[0].interaction_requested);
     assert_eq!(state.players[0].pending_action.weapon_swap, None);
     state.tick(0.05);
-    assert_eq!(state.players[0].x, crate::movement::TOP_SPEED * 0.05);
+    let first_step = crate::movement::GROUND_ACCEL * 0.05 * crate::movement::TOP_SPEED * 0.05;
+    assert!((state.players[0].x - first_step).abs() < 1e-6);
     assert_eq!(state.players[0].y, crate::sim::PLAYER_FLOOR_Y);
     assert!(matches!(
         state.input_acks()[0].1,
@@ -6015,7 +6024,8 @@ fn numbered_human_actions_reject_stale_duplicate_and_mixed_samples() {
         },
     );
     state.tick(0.05);
-    assert!((state.players[0].x - crate::movement::TOP_SPEED * 0.05).abs() < 1e-6);
+    // The input reset dropped the earlier run's momentum: x holds still.
+    assert!((state.players[0].x - first_step).abs() < 1e-6);
     assert!(
         state.players[0].z > 0.0,
         "a fresh sample advances after input reset"
@@ -6279,7 +6289,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
         z: -2.0,
         yaw: 0.5,
         movement: Some(crate::protocol::MovementAck {
-            version: 1,
+            version: 2,
             epoch: 2,
             applied: true,
             y: 1.5,
@@ -6288,6 +6298,7 @@ fn action_wire_accepts_yaw_and_seq_and_still_accepts_neither() {
             vz: 5.0,
             effective_speed: 5.0,
             jump_input: false,
+            dodge_cooldown: 3,
         }),
         respawn_ticks: Some(37),
     };
@@ -7451,6 +7462,7 @@ mod auditor;
 mod duck;
 mod encounters;
 mod enforcer;
+mod feel;
 mod heavy_turret;
 mod jammer;
 mod m01;

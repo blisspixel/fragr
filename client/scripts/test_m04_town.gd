@@ -170,7 +170,7 @@ func _walk_patient_detour(start: Dictionary, goal: Vector3, patients: Array[Dict
 		if delta.length() < 0.2 and absf(float(body["y"]) - goal.y) < 0.03:
 			break
 		var action: Dictionary = MoveStep.make_input(true, false, false, false, atan2(delta.y, delta.x))
-		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		var bodies: Array[Dictionary] = [{"key": "human", "from": body, "proposed": proposed,
 			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}]
 		bodies.append_array(patients)

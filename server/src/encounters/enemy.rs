@@ -719,8 +719,10 @@ impl EnemyController {
             // avoidance and integration still owns walls, support and contact.
             let dx = destination[0] - feet[0];
             let dz = destination[2] - feet[2];
-            let half_step =
-                crate::movement::TOP_SPEED * gait(self.kind) * crate::movement::DT_LIVE * 0.5;
+            let half_step = crate::movement::ACTOR_REFERENCE_SPEED
+                * gait(self.kind)
+                * crate::movement::DT_LIVE
+                * 0.5;
             if dx.hypot(dz) > half_step {
                 action.forward = true;
                 action.yaw = Some(dz.atan2(dx));

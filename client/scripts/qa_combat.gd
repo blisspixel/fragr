@@ -364,7 +364,7 @@ static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, 
 	var arena: Dictionary = {"half": half, "solids": solids}
 	var input: Dictionary = MoveStep.make_input(false, false, left, not left, yaw)
 	for _step: int in range(8):
-		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, input, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		if peers.is_empty():
 			body = proposed
 		else:

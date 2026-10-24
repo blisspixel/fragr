@@ -158,7 +158,7 @@ func _freight_walk(start: Dictionary, goal: Vector3, key: String, guards: Array[
 			reached = true
 			break
 		var action: Dictionary = MoveStep.make_input(true, false, false, false, atan2(delta.y, delta.x))
-		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+		var proposed: Dictionary = MoveStep.live_step(body, action, MoveStep.ACTOR_REFERENCE_SPEED, MoveStep.DT_LIVE, arena)
 		var scene: Array[Dictionary] = [{"key": key, "from": body, "proposed": proposed,
 			"height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}]
 		scene.append_array(guards)

@@ -207,7 +207,7 @@ impl Definition {
             .validate(arena.half, &arena.solids, Some(presentation))
             .map_err(invalid)?;
         let patrol = self.spine_patrol;
-        let walking_step = crate::movement::TOP_SPEED
+        let walking_step = crate::movement::ACTOR_REFERENCE_SPEED
             * crate::encounters::enemy::gait(EnemyKind::Clerk)
             * crate::movement::DT_LIVE;
         if !(240..=800).contains(&patrol.cycle_ticks)

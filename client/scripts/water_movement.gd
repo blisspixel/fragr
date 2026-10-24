@@ -10,11 +10,21 @@ static func at(regions: Array, x: float, z: float) -> Dictionary:
 			return region
 	return {}
 
+## The authored-actor step with swimming. The water vectors pin it.
 static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary, height: float) -> Dictionary:
+	return step(state, input, speed, dt, arena, height, false)
+
+
+## Mirror of movement::water::step: the fighter model when `fighter`, the
+## authored-actor step otherwise, with the same swim rules around either.
+static func step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary, height: float, fighter: bool) -> Dictionary:
 	var regions: Array = arena.get("water_regions", [])
 	if regions.is_empty():
-		return MoveStep.live_step_with_height(state, input, speed, dt, arena, height)
+		return _body_step(state, input, speed, dt, arena, height, fighter)
 	var water: Dictionary = at(regions, float(state["x"]), float(state["z"]))
+	if not water.is_empty() and bool(input.get("dodge", false)):
+		input = input.duplicate()
+		input["dodge"] = false
 	var swimming: bool = not water.is_empty() and float(state["y"]) < float(water["level"]) - 0.25 and MoveStep.arena_support_height(arena, float(state["x"]), float(state["z"]), float(state["y"]) + MoveStep.STEP_UP) < float(water["level"]) - SWIM_DRAFT
 	# The same temporary support surfaces let ordinary collision own shore steps.
 	var supported: Dictionary = supported_arena(arena)
@@ -24,7 +34,7 @@ static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: fl
 		if float(state["y"]) < surface_feet and not MoveStep.arena_blocked_body_at(arena, float(state["x"]), float(state["z"]), surface_feet, surface_feet):
 			state["y"] = surface_feet
 			state["vy"] = maxf(float(state["vy"]), 0.0)
-	var moved: Dictionary = MoveStep.live_step_with_height(state, input, minf(speed, SWIM_SPEED) if swimming else speed, dt, supported, height)
+	var moved: Dictionary = _body_step(state, input, minf(speed, SWIM_SPEED) if swimming else speed, dt, supported, height, fighter)
 	water = at(regions, float(moved["x"]), float(moved["z"]))
 	if not water.is_empty():
 		var surface_feet: float = float(water["level"]) - SWIM_DRAFT
@@ -33,6 +43,19 @@ static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: fl
 			moved["y"] = surface_feet
 			moved["vy"] = 0.0
 	return moved
+
+## Mirror of movement::water::dodge_applies.
+static func dodge_applies(state: Dictionary, input: Dictionary, arena: Dictionary) -> bool:
+	if not at(arena.get("water_regions", []), float(state["x"]), float(state["z"])).is_empty():
+		return false
+	return MoveStep.dodge_applies(state, input, arena)
+
+
+static func _body_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary, height: float, fighter: bool) -> Dictionary:
+	if fighter:
+		return MoveStep.fighter_step_with_height(state, input, speed, dt, arena, height)
+	return MoveStep.live_step_with_height(state, input, speed, dt, arena, height)
+
 
 ## Contact reprojection must see the same buoyant support as initial walking.
 static func supported_arena(arena: Dictionary) -> Dictionary:

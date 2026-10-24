@@ -677,7 +677,9 @@ fn sensed_ordinary_attacks_clear_a_defender_then_finish_both_capture_stages() {
 
 #[test]
 fn retained_identity_one_shot_head_kill_still_finishes_both_capture_stages() {
-    let id = Uuid::from_u128(0xb56644a2_130f_41d8_b221_8f37b87f0892);
+    // Chosen again for the fighter model: identity steers sensed aim, and
+    // this one still opens with a single Scatter blast to the head.
+    let id = Uuid::from_u128(0xb56644a2_130f_41d8_b221_8f37b87f0000);
     let record = clear_sensed_defender(session_with_first_id(1, id));
     assert_eq!(record.player_id, id);
     assert_eq!(record.total.attacks(), 1);

@@ -821,6 +821,15 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
+  A jump on the landing tick skips ground friction, so holding jump keeps
+  the speed of a run; air control steers it but cannot push horizontal speed
+  past 7.5 m/s.
+- `dodge`: Optional boolean, omitted while false. A rising edge latches one
+  ground dodge like a jump tap: a standing arena participant holding a direction is
+  thrown that way at 9 m/s on a 3.5 m/s hop (about 0.3 s in the air and
+  2.9 m). With no direction held, in the air, in water, or within 15 ticks
+  (0.75 s) of the last dodge, the press does nothing. A campaign mission has
+  no dodge. The movement Ack carries the cooldown left.
 - `duck`: Optional held boolean, omitted while false. This server advertises
   the key with `Welcome.duck`. A client must not send it until that flag is
   present, because an older `Action` rejects unknown fields and would drop the
@@ -1343,15 +1352,16 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
   "yaw": 1.5707963,
   "pitch": 0.25,
   "movement": {
-    "version": 1,
+    "version": 2,
     "epoch": 2,
     "applied": true,
     "y": 1.8,
     "vx": 0.0,
     "vy": 6.0,
-    "vz": 5.0,
-    "effective_speed": 5.0,
-    "jump_input": true
+    "vz": 6.0,
+    "effective_speed": 6.0,
+    "jump_input": true,
+    "dodge_cooldown": 0
   }
 }
 ```
@@ -1368,9 +1378,10 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
 - `yaw`: authoritative horizontal facing after that tick
 - `pitch`: authoritative vertical facing after that tick, default zero when
   reading older messages/recordings
-- `movement.version`: 1 for this optional extension. An older Ack omits
-  `movement`; a newer client then uses authoritative snapshots. No new Action
-  field or global gameplay requirement is introduced by this outbound block.
+- `movement.version`: which step produced the body. 2 is the arena fighter
+  model with momentum and the dodge; 1 is the immediate step a campaign
+  mission keeps, where `dodge_cooldown` is always 0. A client that does not
+  know the version uses authoritative snapshots instead of replaying.
 - `movement.epoch`: per-pawn movement baseline revision. It advances on a
   round transition, respawn, input ownership reset, or campaign continue.
   A reconnect, role change, MapInfo, death, changed epoch or unapplied tick
@@ -1384,13 +1395,18 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
   as `Snapshot.players[].y`. The movement integrator uses feet height
   `y - PLAYER_FLOOR_Y` internally.
 - `movement.vx`, `vy`, `vz`: post-collision body velocities in world units per
-  second. The current live step replaces horizontal velocity immediately on
-  each active tick; these fields preserve the complete resulting state.
+  second. In version 2 horizontal velocity is momentum: the next consecutive
+  active tick starts from it (see Movement below), so a replaying client must
+  too, and a rocket's self-blast adds to it after the move. In version 1 the
+  next tick replaces it.
 - `movement.effective_speed`: pre-collision speed selected for that tick,
   including the compliance modifier, or zero when `applied` is false.
 - `movement.jump_input`: the latched or held jump request sent into the
   movement integrator for this tick. It is not proof of takeoff: an airborne
   body or low ceiling can prevent a new jump.
+- `movement.dodge_cooldown`: ticks left after this tick before a dodge is
+  allowed, 0 to 15. Each tick counts it down before the dodge test, and a
+  dodge sets it to 15.
 - `respawn_ticks`: (optional) present only while this fighter is down and
   awaiting an arcade respawn. The server attempts the respawn on tick
   `tick + respawn_ticks`; every Ack while down restates it, so a client
@@ -1406,7 +1422,7 @@ Snapshot. Snapshots carrying resolved shots or explosions remain in order
 before the same-tick Ack. A client must accept Snapshot before Ack, skipped
 world ticks, and a missing Ack after connection loss. Godot
 validates finite body numbers, exact JSON integer values, monotonic tick and
-epoch, and u32 sequence progression before exposing a version 1 Ack.
+epoch, and u32 sequence progression before exposing a version 2 Ack.
 
 
 ### Solo Broadcast episode fields (Snapshot)
@@ -2440,19 +2456,28 @@ not apply. No reaction lands within eight seconds of the last one, except
   - **Flechette** (default): Mid workhorse
     - Damage: 25 HP, four hits to kill
     - Cooldown: 4 ticks (0.20 s), so 0.60 s to kill
-    - Dispersion: 0.045 radians (2.6 degrees)
+    - Dispersion: none on the first shot, growing 0.2 of the full cone a
+      shot to 0.045 radians (2.6 degrees)
     - Range: 40 units
   - **Rail**: Long precision
     - Damage: 80 HP, two hits to kill
     - Cooldown: 20 ticks (1.00 s), so 1.00 s to kill
-    - Dispersion: 0.012 radians (0.7 degrees)
+    - Dispersion: none for a participant
     - Range: 60 units
   - **Scatter**: Close shred
-    - Damage: 40 HP, three hits to kill
-    - Cooldown: 9 ticks (0.45 s), so 0.90 s to kill
-    - Dispersion: 0.20 radians (11 degrees)
+    - Cooldown: 12 ticks (0.60 s)
+    - Dispersion: a 0.095 radian (5.4 degree) pellet cone on every shot
     - Range: 12 units
     - Falloff: full damage to 4 units, then linearly down to 35 percent at 12
+- **First shot exact, bloom on sustained fire**: a participant's shot flies
+  along the exact aim ray unless it follows the last one within the weapon's
+  cadence plus two ticks. Each shot adds a share of the full cone
+  (`WeaponType::bloom_per_shot`: Tack 0.25, Flechette 0.2, Repeater 0.1, Arc
+  0.15) up to the full table value, and the cone recovers over 0.35 s once the
+  trigger rests longer than that. Rail, Sniper and Rocket are always exact;
+  the Scatter keeps its pellet cone. Selecting another weapon starts it exact.
+  This is arena play: in a campaign mission every shot, the participant's
+  included, uses the full table cone its encounters were tuned against.
 - **Hitscan**: One unit 3D ray from the shooter's eye, 1.6 units above its feet.
   Two seeded samples select a uniform disk perpendicular to aim, projected inside
   the weapon's dispersion cone. The nearest finite fighter cylinder wins
@@ -2464,7 +2489,36 @@ not apply. No reaction lands within eight seconds of the last one, except
 - **Respawn delay**: 60 ticks (3 seconds)
 
 ### Movement
-- **Speed**: 5 units/second
+Arena participants (humans, agents and rule bots outside a campaign mission)
+run the fighter model in `server/src/movement.rs`, mirrored in
+`client/scripts/movement.gd` and pinned by both golden files. Its constants
+are frozen in one block at the top of `movement.rs`:
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `TOP_SPEED` | 6.0 m/s | Ground run (crouched 0.34 of it, compliance slow half) |
+| `GROUND_ACCEL` | 15 /s | Quake/Source accelerate: one 20 Hz tick reaches 75 percent of the wish speed, three reach all of it |
+| `FRICTION` | 12 /s | Quake/Source friction: a released run rests in three ticks after a 0.17 m slide |
+| `STOP_SPEED` | 2.0 m/s | Friction acts as if at least this fast, so a slide ends rather than creeps |
+| `AIR_ACCEL` | 2 /s | Air steering; a turning strafe jump gains a little speed |
+| `AIR_SPEED_CAP` | 7.5 m/s | Air control never pushes horizontal speed past this; faster blast momentum is kept |
+| `DODGE_SPEED`, `DODGE_UP` | 9 m/s, 3.5 m/s | Ground dodge throw and hop |
+| `DODGE_COOLDOWN_TICKS` | 15 | Ticks between dodges |
+| `GRAVITY`, `JUMP_SPEED` | 22 m/s², 7 m/s | At the 20 Hz step a 1.3 m hop of 0.7 s |
+
+Per tick: wish direction from the keys and yaw; on the ground a dodge, or
+friction then ground acceleration unless jumping; in the air (or on a jump's
+take-off tick) capped air acceleration; then the shared collision, step,
+jump, gravity and landing. Horizontal velocity carries across consecutive
+active ticks and resets after any tick that did not move the body. An
+opposite key stops and reverses a full run in one tick. A rocket's own blast
+pushes away horizontally as well as up, capped at 14 m/s.
+
+A campaign mission keeps the immediate step for every body: the participant
+at `ACTOR_REFERENCE_SPEED` (5 m/s), authored actors at that times their gait,
+the pace the encounters, route proofs and rules revision were tuned against.
+The rocket's horizontal push and the dodge are arena only as well.
+
 - **Turn speed**: 2 radians/second, used only when an input carries no `yaw`
 - **Facing**: a client-owned absolute `yaw` on the Action wins and is applied before the move
 - **Collision**: Simple AABB with 0.5 unit radius
