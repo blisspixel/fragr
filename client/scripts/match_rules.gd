@@ -7,7 +7,7 @@ extends RefCounted
 ## this only reads and labels what it sent.
 
 const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest"]
-const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]
+const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives", "full-arsenal"]
 const TEAMS: Array[String] = ["union", "coalition"]
 const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
 const REACTION_VARIANTS: int = 3
@@ -55,7 +55,37 @@ static func parse(value: Variant) -> Dictionary:
 		if number != floorf(number) or number < 1.0 or number > float(MAX_LIVES):
 			return {}
 		lives = int(number)
-	return {"mode": mode, "mutators": mutators, "friendly_fire": friendly_fire, "lives": lives}
+	# The weapons a fresh life holds. Anything else was found on the map.
+	var kit: Array[String] = []
+	var raw_kit: Variant = raw.get("start_kit", [])
+	if not raw_kit is Array:
+		return {}
+	for item: Variant in raw_kit:
+		if not item is String or not EquipmentState.WEAPONS.has(item) or kit.has(item):
+			return {}
+		kit.append(item)
+	return {"mode": mode, "mutators": mutators, "friendly_fire": friendly_fire, "lives": lives, "start_kit": kit}
+
+
+## Weapons carried now that the next life will not start with, in wire order.
+## Empty on a campaign map, where no rule set names a kit.
+static func lost_at_death(rules: Dictionary, carried: Array) -> Array[String]:
+	var lost: Array[String] = []
+	if rules.is_empty():
+		return lost
+	var kit: Array = rules.get("start_kit", [])
+	for weapon: String in EquipmentState.WEAPONS:
+		if carried.has(weapon) and not kit.has(weapon):
+			lost.append(weapon)
+	return lost
+
+
+## "PISTOL + FISTS" style list of weapon wire ids, in the order given.
+static func weapon_list(weapons: Array) -> String:
+	var names: PackedStringArray = []
+	for weapon: Variant in weapons:
+		names.append(EquipmentState.display_name(str(weapon)).to_upper())
+	return " + ".join(names)
 
 
 static func teams(rules: Dictionary) -> bool:

@@ -41,6 +41,14 @@ var _companion_route_file: String = ""
 var _failed: bool = false
 var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
+## Authored walking routes to a pad that is not reachable in a straight line,
+## keyed by the pad's weapon (manifest `pad_routes`). Free-for-all lives
+## start on the Pistol, so a weapon state takes its gun from the floor first.
+var _pad_routes: Dictionary = {}
+## Lives a pad route may spend before the tour gives up on that gun.
+const PAD_ATTEMPTS: int = 4
+## The longest free-for-all pad clock (25 s) plus slack.
+const PAD_CLOCK_WAIT_MS: int = 27000
 var _m05_ride_report: Dictionary = {}
 var _grenade_strip_report: Dictionary = {}
 var _fire_strip_report: Array[Dictionary] = []
@@ -130,6 +138,8 @@ func _run() -> void:
 		quit(1)
 		return
 	_combat_travel = tour.get("combat_travel", false)
+	var routes: Variant = tour.get("pad_routes", {})
+	_pad_routes = routes if routes is Dictionary else {}
 	# A custom SceneTree can inherit the project's fullscreen mode even when
 	# the launcher requests a resolution. Set the actual window explicitly.
 	root.mode = Window.MODE_WINDOWED
@@ -1729,19 +1739,110 @@ func _change_role(play: bool) -> void:
 			_failed = true
 	_joined = play
 
+## Owned guns from the private loadout. Empty for an arsenal without one.
+func _owned_weapons() -> Array:
+	var equipment: Dictionary = _game_manager().get("net_client").get("equipment")
+	return equipment.get("weapons", []) if not equipment.is_empty() else []
+
+## A free-for-all life owns only the Pistol and Fists. Take an unowned gun the
+## way a player does: walk to its pad (by the manifest route when a straight
+## line is blocked) and wait for the server's loadout to list it. Rivals are
+## live, so a death on the way starts the walk again from the next spawn. An
+## arsenal life, or a gun already owned, walks nowhere. True once owned.
+func _take_from_pad(weapon: String) -> bool:
+	var gm: Node = _game_manager()
+	var owned: Array = _owned_weapons()
+	if owned.is_empty() or owned.has(weapon.to_lower()):
+		return true
+	for attempt: int in range(PAD_ATTEMPTS):
+		if not await _wait_live_joined_fighter("pad " + weapon):
+			return false
+		var map_routes: Variant = _pad_routes.get(str(int(gm.get("latest_snapshot").get("map_id", 0))), {})
+		var route: Variant = (map_routes as Dictionary).get(weapon, []) if map_routes is Dictionary else []
+		var alive: bool = true
+		for point: Variant in (route if route is Array else []):
+			if point is Array and (point as Array).size() == 3:
+				await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
+			elif point is Dictionary and point.has("orbit") and point.has("to_degrees"):
+				await _orbit_to(float(point["orbit"]), deg_to_rad(float(point["to_degrees"])))
+			alive = _local_human_alive(gm)
+			if not alive:
+				break
+		if not alive:
+			print("qa_tour: fragged on the way to a %s pad (attempt %d)" % [weapon, attempt + 1])
+			continue
+		# The nearest pad to where the route left the fighter. A taken pad is
+		# an appointment, as for a player: wait out its clock rather than
+		# cross the map to another.
+		var pad: Node3D = null
+		var feet: Vector3 = _local_feet()
+		for node: Variant in gm.get("pickups").values():
+			if not is_instance_valid(node) or str(node.get("weapon_name")) != weapon:
+				continue
+			if pad == null or (node as Node3D).position.distance_to(feet) < pad.position.distance_to(feet):
+				pad = node
+		if pad == null:
+			await create_timer(0.5).timeout
+			continue
+		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
+		while is_instance_valid(pad) and not bool(pad.get("available")) and _local_human_alive(gm) and Time.get_ticks_msec() < back_by:
+			await create_timer(0.1).timeout
+		if not is_instance_valid(pad) or not _local_human_alive(gm):
+			continue
+		var floor_y: float = pad.position.y - 0.4
+		await _walk_to(Vector3(pad.position.x, floor_y, pad.position.z), false, "", true)
+		var deadline: int = Time.get_ticks_msec() + 2000
+		while not _owned_weapons().has(weapon.to_lower()) and Time.get_ticks_msec() < deadline:
+			await create_timer(0.05).timeout
+		if _owned_weapons().has(weapon.to_lower()):
+			print("qa_tour: took %s from %s on attempt %d" % [weapon, pad.get("pickup_id"), attempt + 1])
+			return true
+	push_error("qa_tour: the joined fighter never took a " + weapon + " from its pad")
+	_failed = true
+	return false
+
+## Walk out to a ring of this radius at the fighter's own bearing, then round
+## it to `target` in short chords: a floor route around a hub that a straight
+## line would cross. Stops quietly when the fighter is fragged on the way.
+func _orbit_to(radius: float, target: float) -> void:
+	var feet: Vector3 = _local_feet()
+	# Step off the spoke line first: a pillar can stand on it.
+	var angle: float = atan2(feet.z, feet.x) + 0.2
+	var start: float = Vector2(feet.x, feet.z).length()
+	if start > radius + 6.0:
+		if not await _walk_to(Vector3(cos(angle) * (start - 5.0), 0.0, sin(angle) * (start - 5.0)), false, "", true):
+			return
+	if not await _walk_to(Vector3(cos(angle) * radius, 0.0, sin(angle) * radius), false, "", true):
+		return
+	var turn: float = wrapf(target - angle, -PI, PI)
+	var steps: int = int(ceil(absf(turn) / deg_to_rad(25.0)))
+	for step: int in range(1, steps + 1):
+		var at: float = angle + turn * float(step) / float(steps)
+		if not await _walk_to(Vector3(cos(at) * radius, 0.0, sin(at) * radius), false, "", true):
+			return
+
 func _select_weapon(weapon: String) -> void:
 	var gm: Node = _game_manager()
-	# A round may close between the pose prerequisite and this request.
-	# Allow the normal eight-second results and two-second warmup to finish.
-	var deadline: int = Time.get_ticks_msec() + 16000
-	while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
-		# Only a living pawn in Active can accept a swap.
-		if _local_human_can_act(gm):
-			gm.set("pending_weapon_swap", weapon.to_lower())
-		await create_timer(0.1).timeout
-	if str(gm.call("_local_weapon_name")) != weapon:
-		push_error("qa_tour: server did not equip " + weapon)
-		_failed = true
+	# A found gun is lost at death, so a frag between the pad and the swap
+	# sends the fighter back for another.
+	for _attempt: int in range(PAD_ATTEMPTS):
+		if not await _take_from_pad(weapon):
+			break
+		# A round may close between the pose prerequisite and this request.
+		# Allow the normal eight-second results and two-second warmup to finish.
+		var deadline: int = Time.get_ticks_msec() + 16000
+		while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
+			var owned: Array = _owned_weapons()
+			if not owned.is_empty() and not owned.has(weapon.to_lower()):
+				break
+			# Only a living pawn in Active can accept a swap.
+			if _local_human_can_act(gm):
+				gm.set("pending_weapon_swap", weapon.to_lower())
+			await create_timer(0.1).timeout
+		if str(gm.call("_local_weapon_name")) == weapon:
+			return
+	push_error("qa_tour: server did not equip " + weapon)
+	_failed = true
 
 func _observed_state() -> Dictionary:
 	var gm: Node = _game_manager()
@@ -2425,7 +2526,10 @@ func _jump_probe() -> void:
 		_failed = true
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
-func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "") -> void:
+## Walk the joined fighter to `goal`; true on arrival. A failed walk fails the
+## tour unless it is `guide_only`: a free-for-all pad route is walked under
+## fire and only steers, and the server's loadout is what the tour checks.
+func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "", guide_only: bool = false) -> bool:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
 	var walking_ms: int = 0
@@ -2441,6 +2545,8 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		var step_started: int = Time.get_ticks_msec()
 		await _record_companion_route()
 		if _combat_travel and _combat_probe.participant_died:
+			break
+		if guide_only and not _local_human_alive(_game_manager()):
 			break
 		var feet: Vector3 = _local_feet()
 		if not feet.is_finite():
@@ -2474,9 +2580,18 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	_walk_results.append(walk_result)
 	await create_timer(0.15).timeout
 	if not arrived:
-		var stopped: String = "participant died" if _combat_probe.participant_died else str(_local_feet())
+		# The combat probe's death flag is sticky across walks; ask the
+		# snapshot whether this fighter is down now, and say where it stands
+		# when it is not.
+		var alive: bool = _local_human_alive(_game_manager())
+		if guide_only:
+			if alive:
+				print("qa_tour: pad route waypoint %s not reached, stopped at %s" % [goal, _local_feet()])
+			return false
+		var stopped: String = str(_local_feet()) if alive else "participant died"
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, stopped, walking_ms, fighting_ms])
 		_failed = true
+	return arrived
 
 ## Walk an ordinary route into danger. Unlike `walk_to`, falling on the way is
 ## the expected end: returns true once the joined fighter is out of the round.

@@ -2,6 +2,14 @@
   "comment": "Real match captures. Timing selects a moment, not a promised game phase. The output records the observed round, role, map, weapon, and camera. Inspect the images for quality.",
   "width": 1280,
   "height": 720,
+  "pad_routes_comment": "Free-for-all lives start on the Pistol, so a weapon state walks to its pad first. Routes by map id: Arena Duel rounds the field at 37 m, outside the pillar ring and the gantry stairs, and climbs the north gantry stair to the Railgun.",
+  "pad_routes": {
+    "1": {
+      "Flechette": [{"orbit": 36.5, "to_degrees": 47.0}],
+      "Scatter": [{"orbit": 37.0, "to_degrees": 10.0}],
+      "Rail": [{"orbit": 37.0, "to_degrees": -75.0}, [7.0, 0.0, -35.0], [7.0, 2.6, -20.0]]
+    }
+  },
   "states": [
     {
       "name": "boot_menu",
@@ -48,8 +56,8 @@
       "at_seconds": 12,
       "camera": "first_person",
       "join": "human",
-      "weapon": "Flechette",
-      "note": "Actual human join, saved callsign, gun silhouette, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
+      "weapon": "Tack",
+      "note": "Actual human join, saved callsign, the free-for-all Pistol start, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
       "profile_body": "synthetic"
     },
     {
@@ -68,43 +76,57 @@
       "note": "The same legend after a key press: keyboard names from live bindings."
     },
     {
-      "name": "rail_viewmodel",
+      "name": "shot_effects",
       "at_seconds": 15,
       "camera": "first_person",
-      "weapon": "Rail",
-      "aim_pitch": 0.0,
-      "note": "Server-confirmed rail selection and its distinct reticle."
-    },
-    {
-      "name": "shot_effects",
-      "at_seconds": 17,
-      "camera": "first_person",
-      "weapon": "Flechette",
+      "weapon": "Tack",
       "trigger": "fire",
       "strip_frames": 12,
       "probe": "FpMuzzle",
-      "note": "Twelve frames starting at an acknowledged shot. Inspect flash registration, recoil, and recovery."
+      "note": "Twelve frames starting at an acknowledged Pistol shot, the gun every free-for-all life starts with. Inspect flash registration, recoil, and recovery."
     },
     {
       "name": "scatter_viewmodel",
-      "at_seconds": 19,
+      "at_seconds": 17,
       "camera": "first_person",
       "weapon": "Scatter",
-      "note": "Server-confirmed scatter selection and reticle."
+      "note": "The Shotgun taken from its free-for-all pad, then server-confirmed selection and reticle."
     },
     {
       "name": "vertical_aim_up",
-      "at_seconds": 19,
+      "at_seconds": 17,
       "camera": "first_person",
       "aim_pitch": 0.4,
       "note": "Upward aim is confirmed in the authoritative snapshot before capture."
     },
     {
       "name": "vertical_aim_down",
-      "at_seconds": 19,
+      "at_seconds": 17,
       "camera": "first_person",
       "aim_pitch": -0.4,
       "note": "Downward aim follows the same action, camera, and server pitch contract."
+    },
+    {
+      "name": "scatter_pellets",
+      "at_seconds": 18,
+      "camera": "first_person",
+      "weapon": "Scatter",
+      "aim_pitch": -0.35,
+      "trigger": "fire",
+      "strip_frames": 8,
+      "strip_interval_seconds": 0.03,
+      "single_shot": true,
+      "probe": "ShotEffects",
+      "impact_kind": "solid",
+      "note": "Single acknowledged shotgun blast into the floor about five units ahead. Seven pellets should land as seven separate impacts inside a tight cone."
+    },
+    {
+      "name": "rail_viewmodel",
+      "at_seconds": 19,
+      "camera": "first_person",
+      "weapon": "Rail",
+      "aim_pitch": 0.0,
+      "note": "The Railgun taken from its pad on the north gantry, then server-confirmed selection and its distinct reticle."
     },
     {
       "name": "rail_impact",
@@ -119,21 +141,7 @@
       "expect_expiry": true,
       "probe": "ShotEffects",
       "impact_kind": "solid",
-      "note": "Single acknowledged local rail shot into the floor, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
-    },
-    {
-      "name": "scatter_pellets",
-      "at_seconds": 20.5,
-      "camera": "first_person",
-      "weapon": "Scatter",
-      "aim_pitch": -0.35,
-      "trigger": "fire",
-      "strip_frames": 8,
-      "strip_interval_seconds": 0.03,
-      "single_shot": true,
-      "probe": "ShotEffects",
-      "impact_kind": "solid",
-      "note": "Single acknowledged shotgun blast into the floor about five units ahead. Seven pellets should land as seven separate impacts inside a tight cone."
+      "note": "Single acknowledged local rail shot into the gantry deck, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
     },
     {
       "name": "return_to_spectator",

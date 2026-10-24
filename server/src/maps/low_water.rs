@@ -170,6 +170,7 @@ fn town() -> &'static Town {
                 spawn_radius: 34.0,
                 solids,
                 pickups,
+                scrap_pads: vec![],
             },
             presentation: MapPresentation {
                 ground: MapSurface::ServiceSteel,
@@ -187,6 +188,7 @@ pub(super) fn build() -> MapDef {
         spawn_radius: map.spawn_radius,
         solids: map.solids.clone(),
         pickups: map.pickups.clone(),
+        scrap_pads: vec![],
     }
 }
 

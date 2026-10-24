@@ -143,8 +143,13 @@ if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/import.l
   exit 1
 fi
 
-RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
-     --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
+RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}")
+# A host without a usable sound device (or a loaded CI box) can pass
+# FRAGR_AUDIO_DRIVER=Dummy; audio-level states then measure nothing.
+if [ -n "${FRAGR_AUDIO_DRIVER:-}" ]; then
+  RUN+=(--audio-driver "$FRAGR_AUDIO_DRIVER")
+fi
+RUN+=(--windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
 if [ -n "${FRAGR_QA_POSITION:-}" ]; then
   RUN+=(--position "$FRAGR_QA_POSITION")
 fi

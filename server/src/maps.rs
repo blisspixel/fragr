@@ -444,6 +444,10 @@ pub(crate) struct MapDef {
     pub(crate) spawn_radius: f32,
     pub(crate) solids: Vec<Solid>,
     pub(crate) pickups: Vec<ArenaPickup>,
+    /// Extra weapon pads a free-for-all lays down so every spawn is a fair
+    /// walk from a gun: every life starts on the Pistol. Team and objective
+    /// modes keep their own supply and never see these.
+    pub(crate) scrap_pads: Vec<ArenaPickup>,
 }
 
 // ---------------------------------------------------------------------------
@@ -759,6 +763,10 @@ fn arena_duel() -> MapDef {
             health_pad("pad_health_s", 25.0, -25.0, 0.0),
             armor_pad("pad_armor", 12.0, -12.0, 0.0),
         ],
+        scrap_pads: vec![
+            weapon_pad("scrap_scatter_w", WeaponType::Scatter, -26.0, -6.0, 0.0),
+            weapon_pad("scrap_scatter_e", WeaponType::Scatter, 26.0, 6.0, 0.0),
+        ],
     }
 }
 
@@ -845,6 +853,10 @@ fn compliance_yard() -> MapDef {
             health_pad("pad_health_n", -24.0, 0.0, 0.0),
             health_pad("pad_health_s", 24.0, 0.0, 0.0),
             armor_pad("pad_armor", 0.0, 6.0, 0.0),
+        ],
+        scrap_pads: vec![
+            weapon_pad("scrap_scatter_s", WeaponType::Scatter, 0.0, 14.0, 0.0),
+            weapon_pad("scrap_scatter_n", WeaponType::Scatter, 0.0, -14.0, 0.0),
         ],
     }
 }
@@ -939,6 +951,10 @@ fn directive_17() -> MapDef {
             health_pad("pad_health_n", -40.0, -40.0, deck_top),
             health_pad("pad_health_s", 40.0, 40.0, deck_top),
             armor_pad("pad_armor", 0.0, 7.0, 0.0),
+        ],
+        scrap_pads: vec![
+            weapon_pad("scrap_flechette_s", WeaponType::Flechette, -1.0, 34.0, 0.0),
+            weapon_pad("scrap_flechette_n", WeaponType::Flechette, 1.0, -34.0, 0.0),
         ],
     }
 }
@@ -1069,6 +1085,36 @@ fn sector_9() -> MapDef {
             health_pad("pad_health_n", -90.0, 0.0, 0.0),
             health_pad("pad_health_s", 90.0, 0.0, 0.0),
             armor_pad("pad_armor", 0.0, 14.0, 0.0),
+        ],
+        scrap_pads: vec![
+            weapon_pad(
+                "scrap_flechette_sw",
+                WeaponType::Flechette,
+                -15.05,
+                36.81,
+                0.0,
+            ),
+            weapon_pad(
+                "scrap_flechette_ne",
+                WeaponType::Flechette,
+                15.05,
+                -36.81,
+                0.0,
+            ),
+            weapon_pad(
+                "scrap_scatter_west_hall",
+                WeaponType::Scatter,
+                -80.8,
+                39.0,
+                0.0,
+            ),
+            weapon_pad(
+                "scrap_scatter_east_hall",
+                WeaponType::Scatter,
+                80.8,
+                -39.0,
+                0.0,
+            ),
         ],
     }
 }
@@ -1216,6 +1262,20 @@ fn reclamation_gulch() -> MapDef {
             health_pad("pad_health_n", -62.0, 0.0, 2.0),
             health_pad("pad_health_s", 62.0, 0.0, 2.0),
             armor_pad("pad_armor", 0.0, 20.0, 0.0),
+        ],
+        scrap_pads: vec![
+            weapon_pad("scrap_flechette_e", WeaponType::Flechette, 77.0, 5.0, 0.0),
+            weapon_pad("scrap_flechette_w", WeaponType::Flechette, -77.0, -5.0, 0.0),
+            weapon_pad("scrap_scatter_sw", WeaponType::Scatter, -95.0, 35.0, 0.0),
+            weapon_pad("scrap_scatter_ne", WeaponType::Scatter, 95.0, -35.0, 0.0),
+            weapon_pad("scrap_flechette_se", WeaponType::Flechette, 35.0, 35.0, 0.0),
+            weapon_pad(
+                "scrap_flechette_nw",
+                WeaponType::Flechette,
+                -35.0,
+                -35.0,
+                0.0,
+            ),
         ],
     }
 }
@@ -1367,6 +1427,20 @@ fn tripoint_works() -> MapDef {
             health_pad("pad_health_s", 0.0, -118.0, 0.0),
             armor_pad("pad_armor", -14.0, 0.0, 0.0),
         ],
+        scrap_pads: vec![
+            weapon_pad("scrap_flechette_0", WeaponType::Flechette, 0.0, 83.0, 0.0),
+            weapon_pad(
+                "scrap_flechette_1",
+                WeaponType::Flechette,
+                -71.9,
+                -41.5,
+                0.0,
+            ),
+            weapon_pad("scrap_flechette_2", WeaponType::Flechette, 71.9, -41.5, 0.0),
+            weapon_pad("scrap_scatter_0", WeaponType::Scatter, 10.2, -91.0, 0.0),
+            weapon_pad("scrap_scatter_1", WeaponType::Scatter, 73.7, 54.3, 0.0),
+            weapon_pad("scrap_scatter_2", WeaponType::Scatter, -83.9, 36.7, 0.0),
+        ],
     }
 }
 
@@ -1441,7 +1515,13 @@ pub(crate) fn validate(kind: MapKind) -> Vec<String> {
         problems.push(format!("{name}: the spawn ring is outside the boundary"));
     }
 
-    for pad in &def.pickups {
+    let mut ids = std::collections::HashSet::new();
+    for pad in def.pickups.iter().chain(&def.scrap_pads) {
+        if !ids.insert(pad.id.as_str()) {
+            problems.push(format!("{name}: pad id {} is used twice", pad.id));
+        }
+    }
+    for pad in def.pickups.iter().chain(&def.scrap_pads) {
         if pad.x.abs() + RADIUS > def.half_extent || pad.z.abs() + RADIUS > def.half_extent {
             problems.push(format!("{name}: pad {} is outside the boundary", pad.id));
         }
@@ -1563,7 +1643,7 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
         let v = reached[index(ix, iz)];
         (v >= 0.0).then_some(v)
     };
-    for pad in &def.pickups {
+    for pad in def.pickups.iter().chain(&def.scrap_pads) {
         match at(pad.x, pad.z) {
             None => problems.push(format!("{name}: pad {} is unreachable", pad.id)),
             Some(floor) if (floor - pad.floor).abs() > STEP_UP => problems.push(format!(

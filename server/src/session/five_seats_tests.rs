@@ -174,7 +174,7 @@ fn five_seats_eliminated_guard_also_blocks_generic_limited_life_actions_and_pick
         let id = session.state.players[0].id;
         let killer = session.state.players[1].id;
         assert!(session.state.hit_for_test(killer, id, 1000));
-        for _ in 0..70 {
+        for _ in 0..session.state.config.rules.respawn_delay_ticks() + 10 {
             session.state.tick(DT);
         }
         assert!(session.state.hit_for_test(killer, id, 1000));

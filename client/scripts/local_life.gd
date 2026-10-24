@@ -115,7 +115,8 @@ func chase_id() -> String:
 
 ## Three lines for the death card: what happened, what you see, and when
 ## you are back. `watching` is the name the camera is actually following.
-func card_lines(now_usec: int, watching: String) -> PackedStringArray:
+## A fourth names the found weapons `lost` with this life, when there were any.
+func card_lines(now_usec: int, watching: String, lost: Array[String] = []) -> PackedStringArray:
 	if phase == Phase.ALIVE:
 		return PackedStringArray()
 	var headline: String
@@ -138,4 +139,7 @@ func card_lines(now_usec: int, watching: String) -> PackedStringArray:
 			timing = TranslationServer.translate("HUD_DEATH_RESPAWN_IN").format({"seconds": seconds})
 		else:
 			timing = TranslationServer.translate("HUD_DEATH_RESPAWNING")
-	return PackedStringArray([headline, view, timing])
+	var lines: PackedStringArray = PackedStringArray([headline, view, timing])
+	if not lost.is_empty():
+		lines.append(TranslationServer.translate("HUD_DEATH_LOST").format({"weapons": MatchRules.weapon_list(lost)}))
+	return lines

@@ -1,5 +1,5 @@
 {
-  "comment": "Live input and acknowledged weapon selection, with close motion strips of the bottom edge. Run with zero bots and no round events.",
+  "comment": "Live input and acknowledged weapon selection, with close motion strips of the bottom edge. Run with zero bots, no round events and FRAGR_QA_MUTATORS=full-arsenal: a free-for-all life otherwise starts with only the Pistol and Fists.",
   "width": 1280,
   "height": 720,
   "states": [

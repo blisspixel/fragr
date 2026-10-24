@@ -6,9 +6,9 @@ use super::{
     ArenaPickup, GameState, PickupKind, Player, RoundState, Standing, PLAYER_FLOOR_Y, PLAYER_MAX_HP,
 };
 use crate::protocol::{
-    ChargeState, ChargeStatus, EquipmentPolicy, GameEvent, GameMode, ProgressKind,
-    SabotageEventKind, SabotagePhase, SabotageProgress, SabotageReason, SabotageResult,
-    SabotageState, SiteId, SupplyClaim, Team, TeamScores, WeaponType,
+    ChargeState, ChargeStatus, GameEvent, GameMode, ProgressKind, SabotageEventKind, SabotagePhase,
+    SabotageProgress, SabotageReason, SabotageResult, SabotageState, SiteId, SupplyClaim, Team,
+    TeamScores, WeaponType,
 };
 use crate::rules::{match_outcome, round_slot, MatchOutcome};
 use std::collections::HashSet;
@@ -145,34 +145,8 @@ impl GameState {
         self.config.rules.mode() == GameMode::Sabotage && self.map.sabotage_layout().is_some()
     }
 
-    /// Discovery equipment in Sabotage, with profile-owned fresh starts;
-    /// otherwise the map's own policy.
-    pub(crate) fn equipment_policy(&self) -> EquipmentPolicy {
-        if self.sabotage.is_some() {
-            EquipmentPolicy::Discovery
-        } else {
-            self.map.equipment_policy()
-        }
-    }
-
     pub(super) fn reset_sabotage(&mut self) {
         self.sabotage = self.sabotage_active().then(Sabotage::new);
-    }
-
-    /// The fresh arsenal a fighter starts a life with under these rules.
-    fn fresh_inventory(&self) -> (crate::inventory::Inventory, WeaponType) {
-        if self.sabotage_active() && self.sabotage.is_some() && self.config.sabotage.five_vs_five {
-            let mut inventory = crate::inventory::Inventory::new(EquipmentPolicy::Discovery);
-            inventory.grant_weapon(WeaponType::Tack);
-            return (inventory, WeaponType::Tack);
-        }
-        match self.config.rules.only_weapon() {
-            Some(weapon) => (crate::inventory::Inventory::restricted(weapon), weapon),
-            None => (
-                crate::inventory::Inventory::new(EquipmentPolicy::Discovery),
-                WeaponType::Fists,
-            ),
-        }
     }
 
     /// The static layout readers receive in `MapInfo`.
@@ -1000,12 +974,16 @@ mod five_start_owner_tests {
     #[test]
     fn five_seats_fresh_inventory_requires_real_sabotage_owner() {
         let mut arena = GameState::with_map(crate::sim::MapKind::Sector9, false);
+        let (_, ffa_selected) = arena.fresh_inventory();
         arena.config.sabotage.five_vs_five = true;
         assert_eq!(arena.config.rules.mode(), GameMode::Ffa);
         assert!(arena.sabotage.is_none());
+        // Outside Sabotage the five-seat flag changes nothing: free-for-all
+        // keeps its own Pistol start.
         let (inventory, selected) = arena.fresh_inventory();
-        assert_eq!(selected, WeaponType::Fists);
-        assert!(!inventory.owns(WeaponType::Tack));
+        assert_eq!(selected, ffa_selected);
+        assert_eq!(selected, WeaponType::Tack);
+        assert!(!inventory.owns(WeaponType::Rail));
 
         let map = crate::maps::AuthoredMap::read(
             include_str!("../../maps/m06_port_of_entry.json").as_bytes(),

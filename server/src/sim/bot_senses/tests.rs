@@ -3,7 +3,7 @@ use crate::protocol::{AmmoPool, Role, Team};
 use crate::sim::PLAYER_FLOOR_Y;
 
 fn pair(id: u128) -> (GameState, BotController) {
-    let mut state = GameState::new();
+    let mut state = GameState::arsenal();
     state.seed(42);
     state.start_round();
     let bot = BotController::new(Uuid::from_u128(id), BotBehavior::Balanced);
