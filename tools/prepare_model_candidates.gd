@@ -4,7 +4,23 @@ extends SceneTree
 ## Measures each raw source (faces, welded open edges, scale against its intended
 ## solid), applies the pixel treatment (palette-locked downsampled paint at a
 ## target texel density, nearest filtering, no ORM maps) and exports a prepared
-## GLB plus receipt. Makes no service request and selects nothing at runtime.
+## GLB plus receipt. Makes no service request.
+##
+## The same pass prepares a picked model for shipping when its catalog entry
+## says `ship`: the receipt carries the entry's provenance and marks the asset
+## runtime selected, and no review paint is written beside it. Optional local
+## cleanup, applied in this order and recorded in the receipt:
+##   `stretch`        fit each axis to `intended` instead of one uniform scale,
+##                    refused beyond `max_stretch_log` (default 0.15) on any axis
+##   `drop`           [[min x, y, z], [max x, y, z]] boxes in fitted metres (pivot
+##                    at the floor centre); a triangle whose centroid falls
+##                    inside one is removed
+##   `remap`          rows {"y": [lo, hi], "x": [from_lo, from_hi, to_lo, to_hi],
+##                    "z": [...]} move a band of the fitted mesh onto new
+##                    bounds, e.g. a cabin onto the footprint of its kerb
+##   `gain`           multiplies the paint before the palette lock
+##   `swatches`       shipped venue swatches the lock may also use
+##   `exclude_keys`, `exclude_classes`  ramps the lock may not use
 ##
 ## godot --headless --path client --script ../tools/prepare_model_candidates.gd -- \
 ##   <catalog.json> <raw dir> <prepared dir> [exact candidate id]
@@ -17,6 +33,11 @@ const PRESENTED_TEXTURE: int = 1024
 const SHADES: Array[float] = [0.7, 1.0, 1.2]
 # Shipped M05 paint-bench swatches (client/scripts/m05_town.gd), named by the canon review.
 const SHIPPED_EXTENSION: Dictionary = {"m05_rust": Color8(178, 103, 67), "m05_green": Color8(105, 144, 135), "m05_ochre": Color8(190, 161, 105)}
+# Shipped Larak Lot venue paint (client/scripts/larak_lot.gd: HAZARD_YELLOW and the
+# league colours). Opt-in per entry through `swatches`, never chosen otherwise.
+const VENUE_SWATCHES: Dictionary = {"larak_hazard": Color8(201, 162, 58), "larak_ember": Color8(207, 111, 42), "larak_mustard": Color8(214, 162, 62),
+	"larak_rust": Color8(124, 69, 41), "larak_canvas": Color8(180, 154, 104)}
+const MAX_STRETCH_LOG: float = 0.15
 const CLASSES: Dictionary = {
 	"ink": "dark", "union_black": "dark", "union_steel": "dark", "gunmetal_dark": "dark", "outline_purple": "dark",
 	"gunmetal": "steel", "gunmetal_light": "steel", "union_plate": "steel",
@@ -24,6 +45,7 @@ const CLASSES: Dictionary = {
 	"bone": "bone", "cyan_muted": "cyan", "cyan_light": "cyan",
 	"institutional_green": "green", "moss": "green", "leaf_muted": "green", "m05_green": "green",
 	"rust": "warm", "dust_rust": "warm", "dust_light": "warm", "ember": "warm", "ember_hot": "warm", "m05_rust": "warm", "m05_ochre": "warm",
+	"larak_hazard": "warm", "larak_ember": "warm", "larak_mustard": "warm", "larak_rust": "warm", "larak_canvas": "warm",
 	"magenta_muted": "magenta", "magenta_light": "magenta"}
 
 var _ramp_colors: Array[Color] = []
@@ -35,6 +57,7 @@ var _cache: Dictionary = {}
 # chosen, so near-miss greys cannot snap to another faction's accent.
 const EXCLUDED_BY_FACTION: Dictionary = {"inheritance": ["red", "magenta"], "union": ["cyan", "magenta"], "free": ["cyan"], "utility": ["cyan"]}
 var _excluded: Array = []
+var _excluded_keys: Array = []
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -63,7 +86,7 @@ func _run() -> void:
 		_fail("unknown candidate id")
 		return
 	await process_frame
-	print("prepare_model_candidates: PASS (%d prepared offline; grading and selection remain open)" % done)
+	print("prepare_model_candidates: PASS (%d prepared offline)" % done)
 	quit(0)
 
 func _load_palette(path: String) -> bool:
@@ -77,6 +100,8 @@ func _load_palette(path: String) -> bool:
 		bases[key] = Color8(int(rgba[0]), int(rgba[1]), int(rgba[2]))
 	for key: String in SHIPPED_EXTENSION:
 		bases[key] = SHIPPED_EXTENSION[key]
+	for key: String in VENUE_SWATCHES:
+		bases[key] = VENUE_SWATCHES[key]
 	for key: String in bases:
 		if not CLASSES.has(key):
 			_fail("palette key without faction class: " + key)
@@ -139,6 +164,13 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	var placed: PackedVector3Array = PackedVector3Array()
 	for vertex: Vector3 in vertices:
 		placed.append(basis * (vertex - pivot) * scale)
+	var cleanup: Dictionary = _cleanup(entry, placed, indices)
+	if cleanup.has("error"):
+		original.free()
+		_fail("%s: %s" % [id, cleanup["error"]])
+		return false
+	indices = cleanup["indices"]
+	placed = cleanup["placed"]
 	var world_area: float = 0.0
 	var uv_area: float = 0.0
 	for slot: int in range(0, indices.size(), 3):
@@ -154,6 +186,13 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	_excluded = (EXCLUDED_BY_FACTION.get(entry["faction"], []) as Array).duplicate()
 	for name: String in entry.get("allow_classes", []):
 		_excluded.erase(name)
+	for name: String in entry.get("exclude_classes", []):
+		if not name in _excluded:
+			_excluded.append(name)
+	_excluded_keys = (entry.get("exclude_keys", []) as Array).duplicate()
+	for key: String in VENUE_SWATCHES:
+		if not key in entry.get("swatches", []):
+			_excluded_keys.append(key)
 	_cache.clear()
 	var source_paint: Image = material.albedo_texture.get_image()
 	if source_paint.is_compressed() and source_paint.decompress() != OK:
@@ -167,6 +206,12 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	# Lock at 512 so neighbouring UV islands do not average together, then point
 	# sample down to the texel-density target so each texel keeps one ramp value.
 	paint.resize(512, 512, Image.INTERPOLATE_LANCZOS)
+	var gain: float = float(entry.get("gain", 1.0))
+	if not is_equal_approx(gain, 1.0):
+		for y: int in range(paint.get_height()):
+			for x: int in range(paint.get_width()):
+				var lit: Color = paint.get_pixel(x, y)
+				paint.set_pixel(x, y, Color(minf(lit.r * gain, 1.0), minf(lit.g * gain, 1.0), minf(lit.b * gain, 1.0), lit.a))
 	_lock(paint)
 	paint.resize(size, size, Image.INTERPOLATE_NEAREST)
 	var keys: PackedStringArray = _keys(paint)
@@ -205,14 +250,16 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	body.mesh = surface.commit()
 	body.material_override = prepared
 	result.add_child(body)
-	var output: String = out_dir.path_join(id + ".glb")
+	var ship: bool = bool(entry.get("ship", false))
+	var output: String = out_dir.path_join(str(entry.get("output", id)) + ".glb")
 	var exporter: GLTFDocument = GLTFDocument.new()
 	exporter.image_format = "PNG"
 	var exported: GLTFState = GLTFState.new()
 	var success: bool = exporter.append_from_scene(result, exported) == OK and exporter.write_to_filesystem(exported, output) == OK and Metadata.clean(output)
-	var locked: Image = paint.duplicate()
-	success = success and locked.save_png(out_dir.path_join(id + "-paint.png")) == OK
-	var prepared_bounds: AABB = _bounds(placed)
+	if not ship:
+		var locked: Image = paint.duplicate()
+		success = success and locked.save_png(out_dir.path_join(id + "-paint.png")) == OK
+	var prepared_bounds: AABB = _used_bounds(placed, indices)
 	var receipt: Dictionary = {"schema": 1, "id": id, "faction": entry["faction"], "raw_file": entry["file"], "raw_sha256": entry["sha256"],
 		"prepared_sha256": FileAccess.get_sha256(output) if success else "", "triangles": indices.size() / 3, "vertices": raw_vertices.size(),
 		"topology": topology, "raw_bounds_units": [bounds.size.x, bounds.size.y, bounds.size.z],
@@ -220,7 +267,13 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 		"surface_area_m2": world_area, "uv_coverage": uv_area, "paint_source_px": [source_paint.get_width(), source_paint.get_height()],
 		"paint_locked_px": size, "paint_presented_px": PRESENTED_TEXTURE, "texels_per_metre": float(size) * sqrt(uv_area / maxf(world_area, 0.000001)),
 		"palette": "docs/palette.json x shades %s + shipped M05 rust/green/ochre" % [SHADES], "excluded_classes": _excluded, "texture_filter": "nearest", "orm_maps": false,
-		"normal_map_px": mini(size * 2, 512) if material.normal_texture != null else 0, "faction_colour": colour, "runtime_selected": false}
+		"normal_map_px": mini(size * 2, 512) if material.normal_texture != null else 0, "faction_colour": colour, "runtime_selected": ship}
+	if not (cleanup["applied"] as Dictionary).is_empty():
+		receipt["cleanup"] = cleanup["applied"]
+	if entry.get("swatches") is Array:
+		receipt["palette"] += " + venue swatches %s" % [entry["swatches"]]
+	if entry.get("provenance") is Dictionary:
+		receipt["provenance"] = entry["provenance"]
 	var file: FileAccess = FileAccess.open(output + ".json", FileAccess.WRITE)
 	if success and file != null:
 		file.store_string(JSON.stringify(receipt, "\t") + "\n")
@@ -235,13 +288,79 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 		print("prepared %s: %d tris, open edges %d (%d loops), %d px paint, %.1f texel/m, %s" % [id, indices.size() / 3, topology["boundary_edges"], topology["boundary_loops"], size, receipt["texels_per_metre"], colour["verdict"]])
 	return success
 
+## Local cleanup on the fitted mesh, in the order the header lists. Returns the
+## kept indices and what was applied, or an error.
+func _cleanup(entry: Dictionary, placed: PackedVector3Array, indices: PackedInt32Array) -> Dictionary:
+	var applied: Dictionary = {}
+	if bool(entry.get("stretch", false)):
+		if not entry.get("intended") is Array:
+			return {"error": "stretch needs intended dimensions"}
+		var box: AABB = _used_bounds(placed, indices)
+		var limit: float = float(entry.get("max_stretch_log", MAX_STRETCH_LOG))
+		var factors: Vector3 = Vector3.ONE
+		for axis: int in range(3):
+			factors[axis] = float(entry["intended"][axis]) / box.size[axis]
+			if absf(log(factors[axis])) > limit + 0.0001:
+				return {"error": "stretch %.3f on axis %d is beyond %.2f" % [factors[axis], axis, limit]}
+		for index: int in range(placed.size()):
+			placed[index] = Vector3(placed[index].x * factors.x, placed[index].y * factors.y, placed[index].z * factors.z)
+		applied["stretch_xyz"] = [factors.x, factors.y, factors.z]
+	if entry.get("drop") is Array:
+		var kept: PackedInt32Array = PackedInt32Array()
+		var dropped: int = 0
+		for slot: int in range(0, indices.size(), 3):
+			var centre: Vector3 = (placed[indices[slot]] + placed[indices[slot + 1]] + placed[indices[slot + 2]]) / 3.0
+			var inside: bool = false
+			for box: Array in entry["drop"]:
+				var low: Vector3 = Vector3(box[0][0], box[0][1], box[0][2])
+				var high: Vector3 = Vector3(box[1][0], box[1][1], box[1][2])
+				if centre.x >= low.x and centre.y >= low.y and centre.z >= low.z and centre.x <= high.x and centre.y <= high.y and centre.z <= high.z:
+					inside = true
+					break
+			if inside:
+				dropped += 1
+			else:
+				kept.append_array([indices[slot], indices[slot + 1], indices[slot + 2]])
+		if kept.is_empty():
+			return {"error": "drop removed every triangle"}
+		indices = kept
+		applied["drop"] = entry["drop"]
+		applied["dropped_triangles"] = dropped
+	if entry.get("remap") is Array:
+		for row: Dictionary in entry["remap"]:
+			var band: Array = row["y"]
+			for index: int in range(placed.size()):
+				var point: Vector3 = placed[index]
+				if point.y < float(band[0]) or point.y > float(band[1]):
+					continue
+				for axis: String in ["x", "z"]:
+					if row.get(axis) is Array:
+						var span: Array = row[axis]
+						var from_size: float = float(span[1]) - float(span[0])
+						if absf(from_size) < 0.0001:
+							return {"error": "empty remap span"}
+						var t: float = (point[axis] - float(span[0])) / from_size
+						point[axis] = lerpf(float(span[2]), float(span[3]), t)
+				placed[index] = point
+		applied["remap"] = entry["remap"]
+	for key: String in ["gain", "swatches", "exclude_keys", "exclude_classes"]:
+		if entry.has(key):
+			applied[key] = entry[key]
+	return {"indices": indices, "placed": placed, "applied": applied}
+
+func _used_bounds(points: PackedVector3Array, indices: PackedInt32Array) -> AABB:
+	var result: AABB = AABB(points[indices[0]], Vector3.ZERO)
+	for index: int in indices:
+		result = result.expand(points[index])
+	return result
+
 func _fit(repo: String, entry: Dictionary, bounds: AABB) -> Dictionary:
-	var map: Variant = JSON.parse_string(FileAccess.get_file_as_string(repo.path_join("server/maps/%s.json" % entry["map"])))
-	if not map is Dictionary:
-		return {}
 	var target: Vector3 = Vector3.ZERO
 	var slot_box: AABB = AABB()
 	var has_slot: bool = entry.get("slot") is Array
+	var map: Variant = JSON.parse_string(FileAccess.get_file_as_string(repo.path_join("server/maps/%s.json" % entry["map"]))) if has_slot else null
+	if has_slot and not map is Dictionary:
+		return {}
 	if has_slot:
 		var first: bool = true
 		for solid: Dictionary in map["solids"]:
@@ -307,7 +426,7 @@ func _lock(image: Image) -> PackedStringArray:
 				var lab: Vector3 = _oklab(pixel)
 				var nearest: float = INF
 				for slot: int in range(_ramp_lab.size()):
-					if CLASSES[_ramp_names[slot]] in _excluded:
+					if CLASSES[_ramp_names[slot]] in _excluded or _ramp_names[slot] in _excluded_keys:
 						continue
 					var distance: float = lab.distance_squared_to(_ramp_lab[slot])
 					if distance < nearest:

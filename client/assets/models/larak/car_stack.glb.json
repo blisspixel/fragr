@@ -1,0 +1,128 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"magenta"
+		],
+		"gain": 1.6,
+		"stretch_xyz": [
+			1.01454639434814,
+			1.10718679428101,
+			1.00000023841858
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.656,
+			"green": 0.026,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.246,
+			"warm": 0.071
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended [2.2, 3.2, 5.0] m",
+		"fill_ratio_xyz": [
+			0.985662157196085,
+			0.90318998838678,
+			1.0
+		],
+		"fitted_m": [
+			2.16845679283142,
+			2.89020800590515,
+			5.0
+		],
+		"scale": 2.63047007495857,
+		"slot_or_intended_m": [
+			2.20000004768372,
+			3.20000004768372,
+			5.0
+		],
+		"worst_log_mismatch": 0.101822350810887,
+		"yaw_degrees": 90.0
+	},
+	"id": "ll-car-stack",
+	"metres_per_source_unit": 2.63047007495857,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 512,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		2.20000004768372,
+		3.20000004768372,
+		5.0
+	],
+	"prepared_sha256": "6fa3698a734585ab2a6875fa852fc965a10a4e4ee13f18ba9ede5ac21c717390",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-car-stack-20261024-v1",
+			"request_id": "01a16f50-8c6c-7009-88aa-712d8c37017b",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 10000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_car_stack_a",
+			"keyed_sha256": "b62e3a132579949d841ce05d0900d7db1c11d4fc7fa260b08554253b4dcd34ad",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "a2045fb4-2896-4e2e-b78c-1fff19dc90e6",
+			"resolution": "2k",
+			"sha256": "344c001aeed86c30ac6bc07bcee5f222e289e18ba2a39b83b373ef970b14982d",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.90080094337463,
+		1.09874200820923,
+		0.824360966682434
+	],
+	"raw_file": "ll-car-stack-20261024-v1-0.glb",
+	"raw_sha256": "abfe2979378d4b30ea2bc0777028069c9a70bb32577f2c134ca11e2123a61deb",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 155.634348766049,
+	"texels_per_metre": 30.1184054809526,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 213,
+		"boundary_loops": 95,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			10,
+			7,
+			7,
+			6,
+			5
+		],
+		"nonmanifold_edges": 209,
+		"watertight": false,
+		"welded_vertices": 4728
+	},
+	"triangles": 10010,
+	"uv_coverage": 0.538554281066911,
+	"vertices": 21169
+}

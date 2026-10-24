@@ -4,9 +4,10 @@ extends Node3D
 ## Larak Lot's presentation: the landmarks, light plan and set dressing of the
 ## car park on map 1, an old black-budget range nobody will sign off, with the
 ## power still on, where the league settles debts. The server's solids stay the only collision;
-## everything here is paint, fixtures and scenery. A few plain boxes (the
-## wrecks, the hung cruiser) are redrawn as vehicles inside their own volume,
-## so a shot still stops exactly where it looks like it should.
+## everything here is paint, fixtures and scenery. Some plain boxes (the
+## wrecks, THE STACK, the toll booths, the bookmaker's kiosk, the hung
+## cruiser) are redrawn inside their own volume, as prepared models or built
+## from parts, so a shot still stops exactly where it looks like it should.
 ##
 ## Coordinates follow `server/src/maps/larak_lot.rs`. A part whose host solid
 ## is missing from the MapInfo is skipped rather than drawn in mid-air.
@@ -14,6 +15,40 @@ extends Node3D
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
 const EARTH: String = "res://assets/environment/earth/"
 const PRODUCTION: String = "res://assets/environment/production/"
+## Prepared venue props (tools/larak_props_20261024.json): pixel-painted
+## models, each standing on its floor centre with its front toward +Z, drawn
+## inside the volume a server solid already holds or flat to a wall.
+const PROPS: String = "res://assets/models/larak/"
+const PROP_NAMES: Array[String] = ["bookmaker_kiosk", "burned_sedan", "car_stack", "clamped_sedan",
+	"coffee_machine", "crane_hook", "pay_machine", "stands_bell", "toll_booth"]
+## Pay machine: depth off the wall, and the blank plate and screen on its
+## face (x from its centre, y from its foot).
+const PAY_DEPTH: float = 0.488
+const PAY_PLATE: Vector2 = Vector2(-0.01, 0.59)
+const PAY_PLATE_SIZE: Vector2 = Vector2(0.54, 0.28)
+const PAY_SCREEN: Vector2 = Vector2(-0.065, 1.3)
+const PAY_SCREEN_SIZE: Vector2 = Vector2(0.46, 0.26)
+## Bookmaker's kiosk: the slate on each end (world z, height off the deck).
+const KIOSK_SLATE: Vector2 = Vector2(17.9, 1.36)
+const KIOSK_SLATE_SIZE: Vector2 = Vector2(1.1, 1.0)
+## Coffee machine: depth off the cabin, its blank approval plate and the
+## notice over its smoked panel (x from its centre in its own frame).
+const COFFEE_DEPTH: float = 0.496
+const COFFEE_PLATE: Vector2 = Vector2(0.255, 1.335)
+const COFFEE_PLATE_SIZE: Vector2 = Vector2(0.19, 0.15)
+const COFFEE_NOTICE: Vector2 = Vector2(-0.09, 1.12)
+const COFFEE_NOTICE_SIZE: Vector2 = Vector2(0.42, 0.16)
+## The Stands bell: top of its wall plate, and its depth off the wall
+## (x) and height (y) including the pull rope.
+const BELL_TOP: float = 5.05
+const BELL_SIZE: Vector2 = Vector2(1.724, 2.1)
+## The podium pallets stand on the bookmaker's roof.
+const PODIUM_BASE: float = 4.3
+## The crane hook block: its top in the hung cruiser's frame, and its work
+## lamp faces (x either side, y up from the hook's tip, z).
+const HOOK_TOP: float = 3.85
+const HOOK_HEIGHT: float = 1.5
+const HOOK_LAMPS: Array[Vector3] = [Vector3(0.49, 0.82, -0.07), Vector3(0.49, 1.0, -0.07), Vector3(0.49, 1.19, -0.07)]
 
 ## Walking levels, mirrored from the server.
 const PIT: float = 0.0
@@ -546,29 +581,35 @@ func _tread_nosing() -> void:
 func _vehicles() -> void:
 	if _replace(-34.0, 22.0, -31.8, 27.0, 3.7):
 		_van(Vector3(-32.9, LEVEL_1, 24.5), Vector3(2.2, 2.2, 5.0), false, "union")
+	# The wreck that went into the Pit nose first when the bays fell, and
+	# two more burnt out on the Roof: civilian bodies, lamps dead.
 	if _replace(2.0, -4.0, 6.4, -2.0, 1.4):
-		_car(Vector3(4.2, PIT, -3.0), Vector3(4.4, 1.4, 2.0), true, "burned", 0.05)
+		_prop("burned_sedan", Vector3(4.2, PIT, -3.0), 0.0, self, 0.05)
 	if _replace(-15.0, -26.0, -11.0, -24.0, 4.4):
 		_car(Vector3(-13.0, LEVEL_2, -25.0), Vector3(4.0, 1.4, 2.0), true, "union_slashed")
+	# Civilian cars clamped and caged in the Impound, awaiting an order.
 	for x: float in [16.0, 23.0]:
 		if _replace(x, 19.0, x + 4.4, 21.0, 2.9):
-			_car(Vector3(x + 2.2, LEVEL_1, 20.0), Vector3(4.4, 1.35, 2.0), true, "civil_clamped")
+			_prop("clamped_sedan", Vector3(x + 2.2, LEVEL_1, 20.0), 0.0 if x < 20.0 else PI)
 			_cage(Vector3(x + 2.2, LEVEL_1, 20.0), Vector3(4.4, 1.4, 2.0))
 	if _replace(14.0, -25.0, 18.4, -23.0, 7.4):
-		_car(Vector3(16.2, ROOF, -24.0), Vector3(4.4, 1.4, 2.0), true, "burned")
+		_prop("burned_sedan", Vector3(16.2, ROOF, -24.0), PI)
 	if _replace(30.0, -26.0, 34.4, -24.0, 7.4):
-		_car(Vector3(32.2, ROOF, -25.0), Vector3(4.4, 1.4, 2.0), true, "burned")
+		_prop("burned_sedan", Vector3(32.2, ROOF, -25.0), 0.0)
 	if _replace(19.0, -17.0, 21.2, -12.0, 8.2):
 		_van(Vector3(20.1, ROOF, -14.5), Vector3(2.2, 2.2, 5.0), true, "union")
+	# THE STACK: crushed cars piled on burnt tow trucks, two piles side by
+	# side across the 4.4 x 5 m solid, turned against each other.
 	if _replace(4.0, 3.0, 8.4, 8.0, 3.2):
-		_stack()
+		_prop("car_stack", Vector3(5.1, PIT, 5.5), 0.0)
+		_prop("car_stack", Vector3(7.3, PIT, 5.5), PI)
 	if _replace(24.0, -6.0, 26.0, -3.0, 4.4):
 		_drum(Vector3(25.0, LEVEL_2, -4.5))
 
 ## A sedan from boxes: body, cabin, glass, wheels and lamps. `size` is the
 ## footprint (length, height, width); `along_x` lays the length on world x.
 func _car(base: Vector3, size: Vector3, along_x: bool, style: String, tilt: float = 0.0) -> void:
-	var body_color: Color = {"union": UNION_BLACK, "union_slashed": UNION_BLACK, "burned": Color("3b2f29"), "civil_clamped": Color("5f7a78")}.get(style, Color("6b6150"))
+	var body_color: Color = UNION_BLACK if style.begins_with("union") else Color("6b6150")
 	var root: Node3D = Node3D.new()
 	root.name = "Car"
 	root.position = base
@@ -577,7 +618,7 @@ func _car(base: Vector3, size: Vector3, along_x: bool, style: String, tilt: floa
 	var length: float = size.x
 	var height: float = size.y
 	var width: float = size.z
-	var body: Material = _mat("car_" + style, body_color, EARTH + "earth_scrapyard_oxidized_plate.png" if style == "burned" else "", 0.0)
+	var body: Material = _mat("car_" + style, body_color)
 	var glass: Material = _mat("car_glass", Color("15191c"))
 	var tyre: Material = _mat("tyre", Color("151515"))
 	var lamp: Material = _mat("lamp_white", Color("e9e2c4"), "", 0.6)
@@ -609,15 +650,11 @@ func _car(base: Vector3, size: Vector3, along_x: bool, style: String, tilt: floa
 			if style == "union_slashed":
 				wheel.scale = Vector3(1.0, 1.0, 0.62)
 			root.add_child(wheel)
-			if style == "civil_clamped" and fx > 0.0 and fz > 0.0:
-				_part(root, _mat("clamp", HAZARD_YELLOW, "", 0.15), wheel.position + Vector3(0.0, 0.0, 0.18), Vector3(0.5, 0.5, 0.12))
 	if style.begins_with("union"):
 		# Union issue: a narrow red waist line, kept thin so no wreck reads
 		# like a Union body's red tell, and a dead light bar.
 		_part(root, _mat("union_band", UNION_RED), Vector3(0.0, waist - 0.05, 0.0), Vector3(length + 0.01, 0.06, width + 0.01))
 		_part(root, _mat("bar_dead", Color("3a2222")), Vector3(-length * 0.04, height + 0.06, 0.0), Vector3(0.3, 0.1, width * 0.7))
-	if style == "civil_clamped":
-		_part(root, _mat("tag_paper", Color("d9d2b8")), Vector3(length * 0.12, waist + 0.25, width * 0.5 + 0.01), Vector3(0.3, 0.42, 0.01))
 
 func _van(base: Vector3, size: Vector3, on_side: bool, style: String) -> void:
 	var root: Node3D = Node3D.new()
@@ -689,6 +726,28 @@ func _wheel(parent: Node3D, tyre: Material, at: Vector3, upright: bool) -> void:
 	wheel.rotation = Vector3(0.0, 0.0, PI * 0.5) if upright else Vector3(0.0, 0.0, PI * 0.5)
 	parent.add_child(wheel)
 
+## A prepared prop on its floor centre `at`, turned by `yaw`. Its painted
+## clusters stay crisp at any distance. Null, with an error, when the asset
+## is missing from the build.
+func _prop(prop: String, at: Vector3, yaw: float, parent: Node3D = self, tilt: float = 0.0) -> Node3D:
+	var scene: PackedScene = load(PROPS + prop + ".glb") as PackedScene
+	var node: Node3D = scene.instantiate() as Node3D if scene != null else null
+	if node == null:
+		push_error("larak_lot: missing prop " + prop)
+		return null
+	node.name = prop.to_pascal_case()
+	node.position = at
+	node.rotation = Vector3(0.0, yaw, tilt)
+	for child: Node in node.find_children("*", "MeshInstance3D", true, false):
+		var surface: MeshInstance3D = child as MeshInstance3D
+		for index: int in range(surface.get_surface_override_material_count()):
+			var finish: BaseMaterial3D = surface.get_active_material(index) as BaseMaterial3D
+			if finish != null:
+				finish.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	node.add_to_group(&"larak_prop")
+	parent.add_child(node)
+	return node
+
 func _part(parent: Node3D, material: Material, center: Vector3, size: Vector3) -> MeshInstance3D:
 	var node: MeshInstance3D = MeshInstance3D.new()
 	var mesh: BoxMesh = BoxMesh.new()
@@ -712,22 +771,6 @@ func _cage(base: Vector3, size: Vector3) -> void:
 		_box("cage_bar", bar, base + Vector3(x * size.x, top, 0.0), Vector3(0.06, 0.06, size.z))
 	_box("cage_bar", bar, base + Vector3(0.0, top, 0.0), Vector3(size.x, 0.05, 0.05))
 
-## THE STACK: crushed cars piled on a burnt Union tow truck that is still
-## hooked to a clamped league car. Footprint 4.4 x 5, 3.2 high.
-func _stack() -> void:
-	var colors: Array[Color] = [Color("3a2c26"), Color("5b6a5e"), Color("6d5446"), Color("44464a"), Color("7a6a48")]
-	var rust: Material = _mat("stack_rust", Color("8a7464"), EARTH + "earth_scrapyard_oxidized_plate.png", 0.0, 0.25)
-	_box("stack_rust", rust, Vector3(6.2, 0.55, 5.5), Vector3(4.4, 1.1, 5.0))
-	for i: int in range(3):
-		var y: float = 1.1 + float(i) * 0.7 + 0.35
-		var material: Material = _mat("stack_%d" % i, colors[i + 1], EARTH + "earth_scrapyard_oxidized_plate.png", 0.0, 0.25)
-		var shift: float = [0.1, -0.12, 0.08][i]
-		_box("stack_%d" % i, material, Vector3(6.2 + shift, y, 5.5 - shift), Vector3(4.2 - float(i) * 0.15, 0.66, 4.8 - float(i) * 0.2), Vector3(0.0, [0.03, -0.05, 0.04][i], [0.02, -0.03, 0.015][i]))
-	# Tow truck's boom and hook, burnt, inside the pile's volume.
-	var steel: Material = _mat("tow_boom", Color("2d2a28"))
-	_box("tow_boom", steel, Vector3(6.2, 2.9, 3.6), Vector3(0.3, 0.3, 2.6), Vector3(0.35, 0.0, 0.0))
-	_box("tow_boom", steel, Vector3(6.2, 2.6, 3.1), Vector3(0.18, 0.5, 0.18))
-
 func _drum(base: Vector3) -> void:
 	var wood: Material = _mat("drum_wood", Color("6b5236"))
 	var cable: Material = _mat("drum_cable", Color("202224"))
@@ -740,22 +783,15 @@ func _drum(base: Vector3) -> void:
 ## ---------------------------------------------------------------------------
 
 func _toll() -> void:
-	var glass: Material = _decal("booth_glass", Color("2b3a3c"), 0.85)
-	var cap: Material = _mat("booth_cap", UNION_BLACK)
 	var arm_yellow: Material = _mat("arm_yellow", HAZARD_YELLOW)
 	var arm_black: Material = _mat("arm_black", HAZARD_BLACK)
-	var sprays: Array[Color] = [LEAGUE_EMBER, LEAGUE_MUSTARD, TAG_MAGENTA]
 	for index: int in range(3):
 		var x: float = [-30.0, -24.0, -18.0][index]
-		# Glass band, sprayed over in league paint, and a black cap. The
-		# booths' red stays in their seals; the enamel is painted out.
-		var paint: Color = sprays[index]
-		var spray: Material = _decal("decal_spray_%d" % index, paint, 0.82)
-		for side: float in [-1.0, 1.0]:
-			_box("booth_glass", glass, Vector3(x + side * 1.005, 4.6, -15.0), Vector3(0.02, 1.0, 3.4))
-			_box("decal_spray_%d" % index, spray, Vector3(x + side * 1.012, 4.7, -15.4 + side * 0.4), Vector3(0.01, 0.35, 1.6), Vector3(0.0, 0.0, side * 0.2))
-			_box("decal_spray_%d" % index, spray, Vector3(x + side * 1.012, 3.9, -14.6 - side * 0.5), Vector3(0.01, 0.9, 1.1), Vector3(side * 0.35, 0.0, 0.0))
-		_box("booth_cap", cap, Vector3(x, 5.85, -15.0), Vector3(2.3, 0.12, 4.3))
+		# The old cashier booths, filling their solids: grey-green enamel
+		# under the league's ember and mustard spray, dark glass, a flat cap,
+		# and on the lane end the Office's seal, cut through with a blade.
+		if _replace(x - 1.0, -17.0, x + 1.0, -13.0, 5.8):
+			_prop("toll_booth", Vector3(x, LEVEL_2, -15.0), 0.0)
 		# Barrier arms: hazard striped, two snapped short, and the east one
 		# still on its motor.
 		_box("arm_black", arm_black, Vector3(x + 1.25, 4.05, -12.9), Vector3(0.3, 0.3, 0.3))
@@ -772,14 +808,26 @@ func _toll() -> void:
 	_sign("WORLD_LARAK_FARE_PAID", Vector3(-35.98, 4.4, -10.5), PI * 0.5, Vector2(3.0, 1.2), LEAGUE_CREAM, Color("3a3e3b"))
 	_directory(Vector3(-35.98, 4.55, -6.3), PI * 0.5)
 	# Dead pay machines, every one signed by Larak; one still asks to be paid.
-	var machine: Material = _mat("pay_machine", Color("a7aca6"), PRODUCTION + "union_steel.png")
 	for x: float in [-34.0, -31.5, -21.0]:
-		_box("pay_machine", machine, Vector3(x, LEVEL_2 + 0.8, -27.85), Vector3(0.8, 1.6, 0.3))
-		_sign("WORLD_LARAK_SIGNATURE", Vector3(x, LEVEL_2 + 1.05, -27.69), 0.0, Vector2(0.62, 0.36), Color("1b1d1c"), Color("c9c2a8"))
-	_box("pay_screen", _mat("pay_screen", Color("3a2208")), Vector3(-31.5, LEVEL_2 + 1.42, -27.695), Vector3(0.6, 0.26, 0.01))
-	_sign("WORLD_LARAK_PLEASE_PAY", Vector3(-31.5, LEVEL_2 + 1.42, -27.685), 0.0, Vector2(0.56, 0.2), Color("ffb347"), Color(0, 0, 0, 0), 1.6)
+		_pay_machine(Vector3(x, LEVEL_2, -28.0), x == -31.5)
 	_callout("WORLD_LARAK_TOLL", Vector3(-35.98, 5.3, -18.0), PI * 0.5, Vector2(4.0, 1.4), 0)
 	_callout("WORLD_LARAK_BOOTHS", Vector3(-24.0, 5.2, -12.98), 0.0, Vector2(1.8, 0.5), 1)
+
+## A pay machine with its back to a north wall at `wall` (the wall's foot,
+## centred on the machine). Larak's approval is pasted on its blank plate;
+## a dead one has its screen dark, the live one still asks to be paid.
+func _pay_machine(wall: Vector3, live: bool) -> Node3D:
+	var machine: Node3D = _prop("pay_machine", wall + Vector3(0.0, 0.0, PAY_DEPTH * 0.5), 0.0)
+	var face: float = wall.z + PAY_DEPTH + 0.008
+	_sign("WORLD_LARAK_SIGNATURE", Vector3(wall.x + PAY_PLATE.x, wall.y + PAY_PLATE.y, face), 0.0, PAY_PLATE_SIZE, Color("1b1d1c"), Color("c9c2a8"))
+	var screen: Vector3 = Vector3(wall.x + PAY_SCREEN.x, wall.y + PAY_SCREEN.y, face)
+	if live:
+		# Still powered: a warm amber panel with the request in dark segments.
+		_box("pay_screen_live", _mat("pay_screen_live", Color("ffb347"), "", 1.2), screen - Vector3(0.0, 0.0, 0.004), Vector3(PAY_SCREEN_SIZE.x, PAY_SCREEN_SIZE.y, 0.01))
+		_sign("WORLD_LARAK_PLEASE_PAY", screen, 0.0, PAY_SCREEN_SIZE, Color("2a1806"))
+	else:
+		_box("pay_screen_dead", _mat("pay_screen_dead", Color("1f1a14")), screen - Vector3(0.0, 0.0, 0.004), Vector3(PAY_SCREEN_SIZE.x, PAY_SCREEN_SIZE.y, 0.01))
+	return machine
 
 func _lane_and_ramp() -> void:
 	# The Lane is the old street entry: the facility's own plate, still
@@ -846,10 +894,12 @@ func _pit_and_stands() -> void:
 	_callout("WORLD_LARAK_STANDS", Vector3(-6.0, 3.9, 27.97), PI, Vector2(4.0, 1.2), 1)
 	# The creed, once and large, where the Office is thinnest.
 	_sign("WORLD_LARAK_CREED", Vector3(2.0, 6.6, 27.97), PI, Vector2(11.5, 1.8), LEAGUE_MUSTARD)
-	_sign("WORLD_LARAK_ODDS", Vector3(0.0, 2.9, 15.98), PI, Vector2(3.6, 1.8), CHALK, Color("1f2a24"))
-	var awning: Material = _mat("awning", LEAGUE_EMBER)
-	_box("awning", awning, Vector3(0.0, 4.45, 17.5), Vector3(4.6, 0.12, 3.6))
-	_box("awning", awning, Vector3(0.0, 4.2, 15.75), Vector3(4.6, 0.5, 0.1))
+	# The bookmaker's kiosk, hatch to the Pit under its striped awning, the
+	# night's odds chalked on the slates at both ends.
+	if _replace(-2.0, 16.0, 2.0, 19.0, 4.3):
+		_prop("bookmaker_kiosk", Vector3(0.0, LEVEL_1, 17.5), PI)
+		for side: float in [-1.0, 1.0]:
+			_sign("WORLD_LARAK_ODDS", Vector3(side * (2.0 + 0.012), LEVEL_1 + KIOSK_SLATE.y, KIOSK_SLATE.x), side * PI * 0.5, KIOSK_SLATE_SIZE, CHALK)
 	# The tote board running back to the viaduct: the night's book, both faces.
 	_sign("WORLD_LARAK_LEDGER_2", Vector3(-0.62, 3.0, 23.5), -PI * 0.5, Vector2(5.0, 1.8), CHALK, Color("1f2a24"))
 	_sign("WORLD_LARAK_ODDS", Vector3(0.62, 3.0, 23.5), PI * 0.5, Vector2(5.0, 1.8), CHALK, Color("1f2a24"))
@@ -875,11 +925,12 @@ func _impound_and_crane() -> void:
 	var window: Material = _mat("office_window", Color("e8c27a"), "", 1.4)
 	_box("office_window", window, Vector3(28.98, 3.1, 25.0), Vector3(0.04, 0.8, 1.8))
 	_box("office_door", _mat("office_door", Color("4b3b2c")), Vector3(32.0, 2.6, 22.98), Vector3(1.0, 2.1, 0.04))
-	var coffee: Material = _mat("coffee_machine", Color("5d5a54"), PRODUCTION + "union_steel.png")
-	_box("coffee_machine", coffee, Vector3(30.2, LEVEL_1 + 0.8, 22.88), Vector3(0.7, 1.6, 0.22))
-	_box("coffee_spout", _mat("coffee_spout", Color("1a1918")), Vector3(30.2, LEVEL_1 + 0.62, 22.76), Vector3(0.3, 0.3, 0.02))
-	_sign("WORLD_LARAK_COFFEE", Vector3(30.2, LEVEL_1 + 1.25, 22.765), PI, Vector2(0.5, 0.3), Color("1b1d1c"), Color("c9c2a8"))
-	_sign("WORLD_LARAK_OUT_OF_ORDER", Vector3(30.2, LEVEL_1 + 0.98, 22.76), PI, Vector2(0.56, 0.18), Color("2a2a2a"), Color("e3dcc4"))
+	# Its back to the cabin, its face to the lot: Larak's approval on the
+	# blank plate, and the league's own notice taped over the smoked panel.
+	_prop("coffee_machine", Vector3(30.2, LEVEL_1, 23.0 - COFFEE_DEPTH * 0.5), PI)
+	var face: float = 23.0 - COFFEE_DEPTH - 0.008
+	_sign("WORLD_LARAK_COFFEE", Vector3(30.2 - COFFEE_PLATE.x, LEVEL_1 + COFFEE_PLATE.y, face), PI, COFFEE_PLATE_SIZE, Color("1b1d1c"), Color("c9c2a8"))
+	_sign("WORLD_LARAK_OUT_OF_ORDER", Vector3(30.2 - COFFEE_NOTICE.x, LEVEL_1 + COFFEE_NOTICE.y, face), PI, COFFEE_NOTICE_SIZE, Color("2a2a2a"), Color("e3dcc4"))
 	# A Night Watch grid stencil on a bay column.
 	_sign("WORLD_LARAK_TAG_GRID", Vector3(28.0, 2.5, 15.68), PI, Vector2(0.5, 0.4), Color("c8c4b8"))
 
@@ -937,11 +988,10 @@ func _range_still_runs() -> void:
 	_seal(Vector3(-24.7, 6.55, -27.965), 0.0, 0.26, false)
 	_sign("WORLD_LARAK_NOT_COMPLIANT", Vector3(-24.0, 4.45, -27.97), 0.0, Vector2(2.6, 1.5), UNION_BLACK, Color("d8d0b4"))
 
-## Office seals on the booths, each cut through with a blade, and an approval
-## plate ground back to bare scarred metal.
+## An approval plate on the first booth ground back to bare scarred metal.
+## The Office's seal on each booth, cut through with a blade, is painted on
+## the booth model's lane end.
 func _office_paper() -> void:
-	for i: int in range(3):
-		_seal(Vector3(-18.55 + float(i) * 0.55, 4.3 + float(i % 2) * 0.12, -17.012), PI, 0.2, true)
 	var bare: Material = _mat("plate_ground", Color("b9b5aa"), PRODUCTION + "union_steel.png", 0.0, 1.0)
 	_box("plate_ground", bare, Vector3(-30.0, 4.4, -17.012), Vector3(0.7, 0.4, 0.01))
 	var scratch: Material = _decal("decal_scratch", Color("ece8de"), 0.9)
@@ -1013,15 +1063,14 @@ func _revival() -> void:
 		_box("bulb", bulb, Vector3(-6.0 + float(i) * 0.75, 7.55 - absf(float(i) - 4.0) * 0.06, -25.62), Vector3(0.1, 0.1, 0.1))
 	# The pulpit: a dead pay machine, Larak's signature still on it, the hand
 	# bell on top and a network cable over it for a stole.
-	var machine: Material = _mat("pay_machine", Color("a7aca6"), PRODUCTION + "union_steel.png")
-	_box("pay_machine", machine, Vector3(-3.0, LEVEL_3 + 0.8, -27.85), Vector3(0.8, 1.6, 0.3))
-	_sign("WORLD_LARAK_SIGNATURE", Vector3(-3.0, LEVEL_3 + 1.05, -27.69), 0.0, Vector2(0.62, 0.36), Color("1b1d1c"), Color("c9c2a8"))
+	_pay_machine(Vector3(-3.0, LEVEL_3, -28.0), false)
 	var brass: Material = _mat("bell_brass", Color("a07a34"), "", 0.0)
 	_cylinder("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.7, -27.82), 0.09, 0.16, Vector3.ZERO, 10)
 	_box("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.83, -27.82), Vector3(0.03, 0.12, 0.03))
 	var stole: Material = _mat("stole_cable", Color("d4b13c"))
-	_box("stole_cable", stole, Vector3(-2.72, LEVEL_3 + 1.25, -27.69), Vector3(0.04, 0.75, 0.03), Vector3(0.0, 0.0, 0.08))
-	_box("stole_cable", stole, Vector3(-2.86, LEVEL_3 + 1.62, -27.75), Vector3(0.3, 0.04, 0.12))
+	var front: float = -28.0 + PAY_DEPTH + 0.02
+	_box("stole_cable", stole, Vector3(-2.66, LEVEL_3 + 1.25, front), Vector3(0.04, 0.75, 0.03), Vector3(0.0, 0.0, 0.08))
+	_box("stole_cable", stole, Vector3(-2.8, LEVEL_3 + 1.62, front - 0.1), Vector3(0.3, 0.04, 0.22))
 	# The hymn board and the prayer card, pinned beside it.
 	_sign("WORLD_LARAK_HYMNS", Vector3(-5.1, 5.75, -27.97), 0.0, Vector2(1.5, 1.7), LEAGUE_CREAM, Color("3a2a1e"))
 	_sign("WORLD_LARAK_PRAYER", Vector3(-1.3, 5.95, -27.965), 0.0, Vector2(0.62, 0.42), Color("2a2420"), Color("e6dcc0"))
@@ -1040,29 +1089,16 @@ func _revival() -> void:
 ## it between rounds; today it hangs as a prop. And the podium: three
 ## stacked pallets on the bookmaker's roof, where the whole lot can see them.
 func _bell_and_podium() -> void:
-	var iron: Material = _mat("hook_iron", Color("2f2c2a"))
-	var brass: Material = _mat("bell_brass", Color("a07a34"), "", 0.0)
-	_box("hook_iron", iron, Vector3(-9.3, 4.85, 27.6), Vector3(0.08, 0.08, 0.8))
-	var bell: MeshInstance3D = MeshInstance3D.new()
-	var cone: CylinderMesh = CylinderMesh.new()
-	cone.top_radius = 0.16
-	cone.bottom_radius = 0.3
-	cone.height = 0.42
-	cone.radial_segments = 12
-	cone.rings = 1
-	bell.mesh = cone
-	bell.material_override = brass
-	bell.name = "StandsBell"
-	bell.position = Vector3(-9.3, 4.55, 27.25)
-	add_child(bell)
-	_box("bell_rope", _mat("bell_rope", Color("8a7650")), Vector3(-9.3, 3.55, 27.25), Vector3(0.03, 1.6, 0.03))
+	# The brass bell on its iron bracket, 1.7 m out from the viaduct wall,
+	# its rope ending well over the bettors' heads.
+	_prop("stands_bell", Vector3(-9.3, BELL_TOP - BELL_SIZE.y, 28.0 - BELL_SIZE.x * 0.5), PI)
 	var pallet: Material = _mat("pallet", Color("8a6f4c"))
 	for step: int in range(3):
 		var x: float = [-1.3, 0.0, 1.3][step]
 		var stack: int = [2, 3, 1][step]
 		for level: int in range(stack):
-			_box("pallet", pallet, Vector3(x, 4.58 + float(level) * 0.14, 17.4), Vector3(1.1, 0.12, 0.9))
-		_sign("WORLD_LARAK_PODIUM_%d" % [2, 1, 3][step], Vector3(x, 4.56 + float(stack) * 0.07, 16.94), PI, Vector2(0.4, 0.13 * float(stack)), LEAGUE_CREAM)
+			_box("pallet", pallet, Vector3(x, PODIUM_BASE + 0.06 + float(level) * 0.14, 17.4), Vector3(1.1, 0.12, 0.9))
+		_sign("WORLD_LARAK_PODIUM_%d" % [2, 1, 3][step], Vector3(x, PODIUM_BASE + 0.04 + float(stack) * 0.07, 16.94), PI, Vector2(0.4, 0.13 * float(stack)), LEAGUE_CREAM)
 
 func _roof() -> void:
 	# Sodium mast heads: one carries the Roof's raking light.
@@ -1155,18 +1191,17 @@ func _repossession() -> void:
 	_light_bar.omni_attenuation = 1.6
 	_light_bar.shadow_enabled = false
 	car.add_child(_light_bar)
-	# Hook, chains and the ring of work lights.
+	# The hook block with its sheaves and forged hook, the chains, and the
+	# work lamps lit in the block's own housings.
 	var iron: Material = _mat("hook_iron", Color("2f2c2a"))
-	var yellow: Material = _mat("hook_yellow", HAZARD_YELLOW)
-	_part(_cruiser, yellow, Vector3(0.0, 3.4, 0.0), Vector3(1.0, 0.9, 0.7))
-	_part(_cruiser, iron, Vector3(0.0, 2.75, 0.0), Vector3(0.18, 0.5, 0.18))
+	_prop("crane_hook", Vector3(0.0, HOOK_TOP - HOOK_HEIGHT, 0.0), 0.0, _cruiser)
 	for corner: Vector2 in [Vector2(0.75, 0.7), Vector2(-0.75, 0.7), Vector2(0.75, -0.7), Vector2(-0.75, -0.7)]:
 		var chain: MeshInstance3D = _part(_cruiser, iron, Vector3(corner.x * 0.5, 2.4, corner.y * 0.5), Vector3(0.05, 0.75, 0.05))
 		chain.rotation = Vector3(corner.y * 0.5, 0.0, -corner.x * 0.5)
 	var work: Material = _mat("work_light", WORK_WHITE, "", 5.0)
-	for i: int in range(6):
-		var a: float = float(i) * TAU / 6.0
-		_part(_cruiser, work, Vector3(cos(a) * 0.75, 3.05, sin(a) * 0.75), Vector3(0.22, 0.12, 0.22))
+	for lamp: Vector3 in HOOK_LAMPS:
+		for side: float in [-1.0, 1.0]:
+			_part(_cruiser, work, Vector3(side * lamp.x, HOOK_TOP - HOOK_HEIGHT + lamp.y, lamp.z), Vector3(0.03, 0.1, 0.16))
 	var flood: SpotLight3D = SpotLight3D.new()
 	flood.name = "PitFlood"
 	flood.position = Vector3(0.0, 3.0, 0.0)

@@ -1,0 +1,117 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"magenta"
+		],
+		"swatches": [
+			"larak_hazard"
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "utility",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.011,
+			"cyan": 0.0,
+			"dark": 0.439,
+			"green": 0.017,
+			"magenta": 0.0,
+			"pale": 0.01,
+			"red": 0.0,
+			"steel": 0.07,
+			"warm": 0.464
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.5 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.992676854133606,
+			1.5,
+			0.655724942684174
+		],
+		"scale": 0.789098264398118,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "ll-crane-hook",
+	"metres_per_source_unit": 0.789098264398118,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre + venue swatches [\"larak_hazard\"]",
+	"prepared_bounds_m": [
+		0.992676854133606,
+		1.50000023841858,
+		0.655725002288818
+	],
+	"prepared_sha256": "d6344c5800cc87adb263474a5a5f50de2ea30d38c1f28c0e5a545546b5b08310",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-crane-hook-20261024-v1",
+			"request_id": "01a16f59-dbc0-728a-9740-0b616ac130f2",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_crane_hook_a",
+			"keyed_sha256": "1e34c09ebd44dda4f85739cd27974d93a61d9502622fa8bd291e337efa5d62e0",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "88e5688d-e0dc-4b3a-b207-305e7655d389",
+			"resolution": "2k",
+			"sha256": "2691ff56e2f0468442f9d111cfa7ff46fa356e807f4536a39e6ce0b88fccfe5f",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.25798892974854,
+		1.90090394020081,
+		0.830980062484741
+	],
+	"raw_file": "ll-crane-hook-20261024-v1-0.glb",
+	"raw_sha256": "6af2ce919b6ecf62802ea15b95900dac04b47cc690d71d464fa9d9706c6b55f8",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 4.11425594126922,
+	"texels_per_metre": 47.8220677704286,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 15,
+		"boundary_loops": 7,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			3,
+			2,
+			2,
+			2,
+			2
+		],
+		"nonmanifold_edges": 14,
+		"watertight": false,
+		"welded_vertices": 3013
+	},
+	"triangles": 6121,
+	"uv_coverage": 0.574285785351054,
+	"vertices": 12327
+}

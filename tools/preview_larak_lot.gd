@@ -14,6 +14,7 @@ extends SceneTree
 ##   FRAGR_LARAK_MAP_INFO=/abs/map.json FRAGR_QA_DIR=/abs/out \
 ##     "$GODOT_BIN" --path client --audio-driver Dummy --windowed \
 ##     --resolution 1280x720 --script ../tools/preview_larak_lot.gd
+## Set FRAGR_LARAK_VIEWS=prop_ (any view-name prefix) for just those views.
 const ARENA_SCENE: PackedScene = preload("res://scenes/arena.tscn")
 const EYE: float = 1.6
 
@@ -46,6 +47,21 @@ const VIEWS: Array = [
 	["impound_office", Vector3(24.0, 1.5 + EYE, 18.0), Vector3(31.0, 2.4, 23.0)],
 	["toll_north_wall", Vector3(-24.0, 3.0 + EYE, -18.5), Vector3(-24.0, 5.0, -28.0)],
 	["gulf_breeze_corner", Vector3(24.0, 3.0 + EYE, -2.0), Vector3(30.0, 4.0, -2.0)],
+	# The prepared props, each in place at play distance.
+	["prop_pit_wreck", Vector3(-1.0, EYE, 2.0), Vector3(4.2, 0.7, -3.0)],
+	["prop_stack", Vector3(0.3, EYE, 0.6), Vector3(6.2, 1.4, 5.5)],
+	["prop_booths", Vector3(-20.2, 3.0 + EYE, -9.5), Vector3(-24.0, 4.3, -15.0)],
+	["prop_pay_machines", Vector3(-29.0, 3.0 + EYE, -23.8), Vector3(-31.5, 3.8, -27.8)],
+	["prop_pay_close", Vector3(-31.0, 3.0 + EYE, -25.6), Vector3(-31.5, 4.0, -28.0)],
+	["prop_kiosk", Vector3(1.2, 1.5 + EYE, 11.6), Vector3(0.0, 2.7, 17.5)],
+	["prop_kiosk_end", Vector3(-6.0, 1.5 + EYE, 15.0), Vector3(-2.0, 2.8, 17.9)],
+	["prop_impound_cars", Vector3(17.0, 1.5 + EYE, 14.5), Vector3(20.0, 2.2, 20.0)],
+	["prop_coffee", Vector3(28.0, 1.5 + EYE, 19.2), Vector3(30.2, 2.3, 22.8)],
+	["prop_bell", Vector3(-6.0, 1.5 + EYE, 23.0), Vector3(-9.3, 3.9, 27.5)],
+	["prop_hook", Vector3(2.0, 4.5 + EYE, -12.0), Vector3(0.0, 15.3, 0.0)],
+	["prop_hook_spectator", Vector3(4.0, 14.5, -5.0), Vector3(0.0, 14.6, 0.0)],
+	["prop_roof_wrecks", Vector3(24.0, 6.0 + EYE, -18.0), Vector3(16.2, 6.6, -24.0)],
+	["prop_pulpit", Vector3(-3.0, 4.5 + EYE, -24.5), Vector3(-3.0, 5.5, -28.0)],
 ]
 ## Readability stagings: name, camera, look target, then a NODS bot and a free
 ## fighter side by side near (about 15 m) and far (about 22 to 30 m), each as
@@ -129,11 +145,22 @@ func _run() -> void:
 	RenderQuality.apply_practicals(arena, settings)
 	for i: int in range(8):
 		await process_frame
+	# FRAGR_LARAK_VIEWS narrows the run to the views whose names start with
+	# that prefix, without the spawn and readability sets.
+	var only: String = OS.get_environment("FRAGR_LARAK_VIEWS")
+	var shot_count: int = 0
 	for view: Array in VIEWS:
+		if not only.is_empty() and not str(view[0]).begins_with(only):
+			continue
 		camera.position = view[1]
 		camera.look_at(view[2], Vector3.UP)
 		if not await _shoot(out, str(view[0])):
 			return
+		shot_count += 1
+	if not only.is_empty():
+		print("preview_larak_lot: wrote %d stills to %s" % [shot_count, out])
+		quit(0)
+		return
 	for index: int in range(SPAWNS.size()):
 		var slot: Array = SPAWNS[index]
 		camera.position = Vector3(float(slot[0]), float(slot[1]) + EYE, float(slot[2]))

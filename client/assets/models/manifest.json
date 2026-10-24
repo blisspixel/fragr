@@ -42,6 +42,42 @@
 			"sha256": "ad6fbf2ad93a75157069a29ee7b0f8db71a25cc83d95bae6ea0fd3a5ef8b78af"
 		},
 		{
+			"file": "larak/bookmaker_kiosk.glb",
+			"sha256": "757d31bc43442d59952be1626e26a1abaa89f5b75d3a554283e90b9175b547ff"
+		},
+		{
+			"file": "larak/burned_sedan.glb",
+			"sha256": "0462b253e7cb25f92ad4d9054f7ff7a9fbf99f07ed3e6d63ba5b57b9667f78f4"
+		},
+		{
+			"file": "larak/car_stack.glb",
+			"sha256": "6fa3698a734585ab2a6875fa852fc965a10a4e4ee13f18ba9ede5ac21c717390"
+		},
+		{
+			"file": "larak/clamped_sedan.glb",
+			"sha256": "cb3cc92ffa3095be5f6dc9eebd0394db3bb6a0f962afb6c74441938aa0f4e4db"
+		},
+		{
+			"file": "larak/coffee_machine.glb",
+			"sha256": "e0925a0137660d2422cb6b492a90c30799510c0eb2d0e4d81928c5d4ece73c0c"
+		},
+		{
+			"file": "larak/crane_hook.glb",
+			"sha256": "d6344c5800cc87adb263474a5a5f50de2ea30d38c1f28c0e5a545546b5b08310"
+		},
+		{
+			"file": "larak/pay_machine.glb",
+			"sha256": "af6afc9582a26a66130994589ad149ca924013d38ec4940c99b0976fadf9dde7"
+		},
+		{
+			"file": "larak/stands_bell.glb",
+			"sha256": "db4602f6b4bd0eb6c6c5d574d79cef168c03194e97b31f8156d793ded2827d95"
+		},
+		{
+			"file": "larak/toll_booth.glb",
+			"sha256": "c6ab9eb193ac6921cad5884aa7c370c863ba8bc3cce9a351102c5856d0f26180"
+		},
+		{
 			"file": "latch.glb",
 			"sha256": "9c8b5ddd33b3f7e9d7d9fb04382e9aa8a95503ec6054d860ceda1d066c06197f"
 		},
