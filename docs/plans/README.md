@@ -24,6 +24,7 @@ Plans whose recorded status is proposed, planned, in flight or otherwise open. M
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`art-style-trial-20261023.md`](./art-style-trial-20261023.md) | **proposed** | Side-by-side character treatment trial on branch `exp/art-style-trial`: shipped look, live pixel 3D, baked 8-direction sprites and a 12 fps hybrid for the free human, Clerk and a free synthetic in Arena Duel, checked against the faction readability contract. Recommends the live pixel material for live skins, baked sprites for Union enemies and personal colour for free bodies; awaits Nick. |
 | [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **in flight**, implemented locally | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, ceremonial gate departure and Episode IV refill to 3 continues. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |
