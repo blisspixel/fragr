@@ -47,6 +47,8 @@ func _ready() -> void:
 	_label.offset_right = -8.0
 	_label.offset_top = 2.0
 	_label.offset_bottom = 19.0
+	# A readout wider than its box grows toward the screen, never past the edge.
+	_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label.add_theme_font_override("font", MenuTheme.FONT)
 	_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
@@ -64,6 +66,21 @@ func apply_preferences() -> void:
 
 func mode() -> int:
 	return _mode
+
+## The canvas rectangle the readout may draw in while it is on, sized for the
+## widest text this mode can print, so HUD text laid out beneath it neither
+## waits for the first refresh nor moves as the digits change. Empty when off.
+func occupied_region() -> Rect2:
+	if _label == null or not visible or _mode == OFF:
+		return Rect2()
+	var font: Font = _label.get_theme_font("font")
+	var font_size: int = _label.get_theme_font_size("font_size")
+	var outline: float = float(_label.get_theme_constant("outline_size"))
+	var widest: String = format(_mode, {"fps": 9999.0, "frame_ms": 999.9, "low_fps": 9999.0})
+	var box: Rect2 = _label.get_global_rect()
+	var width: float = maxf(box.size.x, font.get_string_size(widest, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + outline * 2.0)
+	var height: float = maxf(box.size.y, font.get_height(font_size) + outline * 2.0)
+	return Rect2(box.end.x - width, box.position.y, width, height)
 
 func text() -> String:
 	return "" if _label == null else _label.text

@@ -93,19 +93,21 @@ func _run() -> void:
 	lbl.size = Vector2(400, 60)
 	root.add_child(lbl)
 
+	# The ink settles and tilts; the readable copy never rotates or scales (#437).
 	stamp.trigger_stamp(lbl, MenuTheme.DANGER, false)
 	_check(stamp.is_animating, "stamp animation active")
-	_check(is_equal_approx(lbl.scale.x, StampCardScript.FRAME1_SCALE), "frame 1 scale is 106%")
-	_check(is_equal_approx(lbl.rotation, deg_to_rad(StampCardScript.TILT_DEGREES)), "stamp lands at 2.5 degree tilt")
+	_check(is_equal_approx(stamp.ink_scale, StampCardScript.FRAME1_SCALE), "frame 1 ink scale is 106%")
+	_check(is_zero_approx(lbl.rotation) and lbl.scale.is_equal_approx(Vector2.ONE), "stamped copy lands upright at 100%")
+	_check(stamp.impression_tilt() < 0.0 and stamp.impression_tilt() >= deg_to_rad(StampCardScript.TILT_DEGREES), "only the faint impression carries a bounded tilt")
 
 	stamp._process(0.016)
 	_check(not stamp.is_animating, "stamp settled")
-	_check(is_equal_approx(lbl.scale.x, 1.0), "frame 2 scale settled to 100%")
-	_check(is_equal_approx(lbl.rotation, deg_to_rad(StampCardScript.TILT_DEGREES)), "tilt retained after settle")
+	_check(is_equal_approx(stamp.ink_scale, 1.0), "frame 2 ink settled to 100%")
+	_check(is_zero_approx(lbl.rotation) and lbl.scale.is_equal_approx(Vector2.ONE), "copy stays upright after settle")
 
 	# Reduced motion on stamp
 	stamp.trigger_stamp(lbl, MenuTheme.EMBER, true)
-	_check(not stamp.is_animating and is_equal_approx(lbl.scale.x, 1.0), "reduced motion on stamp settles immediately to 100%")
+	_check(not stamp.is_animating and is_equal_approx(stamp.ink_scale, 1.0) and is_equal_approx(lbl.scale.x, 1.0), "reduced motion on stamp settles immediately to 100%")
 
 	# Magenta prevention on stamp
 	stamp.trigger_stamp(lbl, Color(0.65, 0.1, 0.6), false)

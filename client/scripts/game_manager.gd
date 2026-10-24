@@ -610,6 +610,7 @@ func _setup_frontend() -> void:
 	frame_counter.name = "PerformanceOverlay"
 	frame_counter.preferences = settings
 	add_child(frame_counter)
+	hud.top_region_query = _top_band_reservations
 
 	pause_menu = PauseMenu.new()
 	pause_menu.preferences = settings
@@ -674,6 +675,18 @@ func _event_cover_regions() -> Array[Rect2]:
 		regions.append(departure_review.occupied_region())
 	if is_instance_valid(mission_hud):
 		regions.append_array(mission_hud.event_cover_regions())
+	return regions
+
+## Text on other canvas layers that shares the HUD's top band. The HUD lays its
+## corner, center facts and frag feed out below whatever crosses each column.
+func _top_band_reservations() -> Array[Rect2]:
+	var regions: Array[Rect2] = []
+	var frame_counter: PerformanceOverlay = get_node_or_null("PerformanceOverlay") as PerformanceOverlay
+	if frame_counter != null:
+		regions.append(frame_counter.occupied_region())
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null:
+		regions.append(run.occupied_region())
 	return regions
 
 func _refresh_ui_context(roster: Array) -> void:
