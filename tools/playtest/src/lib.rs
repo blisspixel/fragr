@@ -19,6 +19,7 @@ use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
+pub mod bot_survey;
 pub mod fanout;
 mod provenance;
 pub mod sabotage;
