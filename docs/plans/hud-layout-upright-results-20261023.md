@@ -1,7 +1,8 @@
 # HUD top-band collisions and upright result cards (#437)
 
-Status: **implemented** on branch `wave1/hud-layout` (local evidence below; not
-yet merged). Wave 1 of the October 23 Windows playtest round.
+Status: **in review** on branch `wave1/hud-layout` (local Linux evidence below;
+not yet merged). Wave 1 of the October 23 Windows playtest round. Windows
+confirmation from the reporter is open.
 
 ## Goal
 
@@ -13,15 +14,21 @@ of the HUD, and post-match text that is visibly angled. This plan covers both.
    benchmark status banner. This holds at every supported HUD scale and text
    size, and nothing is shrunk to fit.
 2. Essential result copy (winner, score, reason, next line) stays upright on one
-   baseline in standard and reduced motion. The stamp motif may keep a tilt only
-   on decorative ink. No tilt, scale or stamp border carries over into a later
-   card.
+   baseline in standard and reduced motion. Per Nick's decision on #437 ("no
+   tilted text, anywhere"), nothing on a card is rotated: not the copy, not the
+   backing and not the stamp ink. The stamp keeps its feel through border,
+   colour and a brief ink-only settle. No scale or stamp border carries over
+   into a later card.
 
 ## Non-goals
 
 - The post-death coloured box and lifecycle issue in the #437 comment. The
   death-lifecycle lane owns it. See "Overlap with the death-lifecycle lane"
   below for one shared finding.
+- The "visual review of published tour stills" comment on #437 (host/chat
+  backing, nameplate font, kill-feed icon spacing, the stale team still and
+  `qa_tour.sh` regenerating every published file). That comment needs a tour
+  recapture and is not done by this lane, so #437 stays open after this merge.
 - Menu hierarchy and button focus (#435, #436). Benchmark result-screen UX.
   Gameplay defaults (respawn delay, starting weapon).
 - Publishing the tour to `docs/screenshots`. That happens once, at the end of the
@@ -89,10 +96,9 @@ server are untouched.
   measured scene unchanged from earlier reports (see open questions).
 - `StampCard` no longer touches the label's rotation or scale. It clears any
   stale transform when it stamps. The 106 to 100 percent settle now scales the
-  ink. The upright worn border wraps the drawn text plus 10 units. Only the faint
-  offset impression is tilted, at most 2.5 degrees, and less on wide cards, so
-  its corner moves at most 6 units and never crosses the text. Reduced motion
-  lands the ink at rest. The stamp follows its card: it retires (hidden,
+  ink. The worn border wraps the drawn text plus 10 units, and its faint offset
+  impression sits 2 units down and right. Both are level; the tilt constant is
+  gone. Reduced motion lands the ink at rest. The stamp follows its card: it retires (hidden,
   process off, redrawn empty) when its label hides, is freed or is replaced.
 - `hud.gd`: every card goes through `_show_round_banner`. That retires the old
   ink, pulse, transform and tint, and centers the pulse pivot. Episode
@@ -142,17 +148,43 @@ second fix in `stamp_card.gd`.
 ## Open questions for Nick
 
 1. Benchmark: should match chrome (center facts, feed) be hidden during a
-   benchmark rather than pushed below the banner? Hiding changes the measured
-   scene relative to earlier reports, so this lane kept it visible.
-2. At 150 percent HUD with large text the corner state line ellipsizes
-   ("SPECTATING //..."), so the center keeps a readable width. Is that the
-   preferred trade-off, or should the corner wrap to two lines?
-3. The stamp impression tilt is now decorative and small (about 0.6 degrees on
-   a full-width card). Keep it, or retire the tilt entirely?
+   benchmark rather than pushed below the banner? Issue item 2 prefers hiding.
+   Hiding changes the measured scene relative to earlier reports, so this lane
+   kept it visible and pushed it down. Nothing is shrunk.
+2. At 150 percent HUD with large text the corner round line ellipsizes
+   (`SPECTATING //...`), hiding the round state; it also happens on main, at
+   every 16:9 size, because the corner is one line by the #412 rule
+   (`test_match_rules` asserts `max_lines_visible == 1`). Review tried a
+   two-line wrap; it read well in rendered stills but breaks that accepted
+   rule, so it was reverted pending a decision. Wrap to two lines, or keep the
+   one-line corner? Until decided, this is clipped top text and the first
+   acceptance item is not fully met.
+3. Long callsigns in the frag feed still ellipsize (`EXTREMELY LONG C...`) as
+   on main. That is the feed's existing per-row rule, not a collision; the tour
+   review comment on kill-feed spacing should decide whether it changes.
+
+Resolved in review: the decorative impression tilt is removed under the "no
+tilted text, anywhere" decision.
 
 ## Status and evidence
 
 - 2026-10-23: implemented on `wave1/hud-layout`. Logs: `.agents/hud-layout/*.log`,
   `.agents/focused/*.log`, `.agents/godot-check.log` (Godot checks: PASS).
   No Rust changed, so the cargo gates were not rerun for this lane.
+- 2026-10-23, independent review (second commit): removed the remaining
+  impression tilt, added a HUD-wide check that every visible canvas item in
+  the HUD is level after each result, episode and ordinary card in both motion
+  modes (a mutation that tilts the stamp by 0.04 rad fails it six times). A
+  two-line corner wrap was tried and reverted (see open question 2). Reran
+  `test_hud_layout`,
+  `test_signature_moments`, `test_status_bar`, `test_accessibility_hud`: PASS.
+  Rendered `qa_hud_layout.gd` on DISPLAY=:0 (Vulkan, Radeon 780M): 380 states,
+  0 problems (`.agents/review/qa2`); stills inspected at 1280x720 and 2560x1080
+  with 150 percent large text, and FFA and tall Sabotage results.
+  `tools/godot_check.sh` after `cargo build -p fragr-server --release --locked`:
+  see the PR verification table. Live server capture was not rerun in review.
+- Not done in this lane: tour publish (`tools/qa_tour.sh --publish`, wave end),
+  the tour-still review comment, the death/respawn residue matrix (death
+  lifecycle lane), and keyboard, mouse and gamepad passes over back, menu and
+  rejoin with result cards (cards take no input; not rerun by hand).
 - Next: wave-end tour publish and Windows confirmation from the reporter.

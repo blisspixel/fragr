@@ -93,12 +93,12 @@ func _run() -> void:
 	lbl.size = Vector2(400, 60)
 	root.add_child(lbl)
 
-	# The ink settles and tilts; the readable copy never rotates or scales (#437).
+	# The ink settles; nothing on the card rotates and the copy never scales (#437).
 	stamp.trigger_stamp(lbl, MenuTheme.DANGER, false)
 	_check(stamp.is_animating, "stamp animation active")
 	_check(is_equal_approx(stamp.ink_scale, StampCardScript.FRAME1_SCALE), "frame 1 ink scale is 106%")
 	_check(is_zero_approx(lbl.rotation) and lbl.scale.is_equal_approx(Vector2.ONE), "stamped copy lands upright at 100%")
-	_check(stamp.impression_tilt() < 0.0 and stamp.impression_tilt() >= deg_to_rad(StampCardScript.TILT_DEGREES), "only the faint impression carries a bounded tilt")
+	_check(is_zero_approx(stamp.rotation) and is_zero_approx(stamp.get_global_transform().get_rotation()), "the stamp ink itself is level")
 
 	stamp._process(0.016)
 	_check(not stamp.is_animating, "stamp settled")

@@ -29,6 +29,10 @@ the README front door refresh and game voice (#417, PR #428).
 All sub-issues #411-#417 and parent milestone #418 are closed with passing CI across all platforms.
 v0.90.0 is the current release.
 
+[HUD top-band collisions and upright result cards](hud-layout-upright-results-20261023.md)
+(#437, wave 1) is **in review** on `wave1/hud-layout`: Linux rendered evidence
+recorded, Windows confirmation open.
+
 The [bounded client checks repair](bounded-client-checks-20261018.md) **shipped**
 through PR #422 with passing main CI 39150766048. Linux, macOS and Windows
 passed all 585 client checks, including 187 harnesses, and twelve fault scenarios.

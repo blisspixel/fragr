@@ -6,20 +6,16 @@ extends Control
 ## relation colour, with a faint offset impression behind it. No flash, no
 ## shake. Zero magenta.
 ##
-## The readable copy is never rotated or scaled. The winner, score, reason and
-## next line keep one upright baseline; the settle (106% to 100% over one frame)
-## and the slight tilt belong to the decorative ink only. The impression's tilt
-## is bounded so its lifted corner stays inside the border padding and never
-## crosses the text. Reduced motion lands the ink at rest immediately.
+## Nothing about a card is rotated: not the copy, not the backing, not the ink
+## (#437, "no tilted text, anywhere"). The winner, score, reason and next line
+## keep one level baseline at 100 percent; the settle (106% to 100% over one
+## frame) scales the decorative ink only. Reduced motion lands the ink at rest
+## immediately.
 ##
 ## The stamp follows its card. When the target label hides, leaves the tree or
 ## is replaced by another card, the ink retires and redraws empty, so a border
 ## never outlives the card it marked.
 
-## Upper bound for the impression tilt. Long cards tilt less (see impression_tilt).
-const TILT_DEGREES: float = -2.5
-## The furthest the tilted impression's corner may move from the border line.
-const MAX_TILT_LIFT: float = 6.0
 const FRAME1_SCALE: float = 1.06
 ## Space between the drawn text and the border.
 const PADDING: float = 10.0
@@ -105,27 +101,15 @@ func ink_rect() -> Rect2:
 	var size_scaled: Vector2 = rect.size * ink_scale
 	return Rect2(rect.get_center() - size_scaled * 0.5, size_scaled)
 
-## Radians for the faint impression, at most TILT_DEGREES, and less on a wide
-## card so the rotated corner moves at most MAX_TILT_LIFT from the border line.
-func impression_tilt() -> float:
-	var half_width: float = ink_rect().size.x * 0.5
-	if half_width <= MAX_TILT_LIFT:
-		return deg_to_rad(TILT_DEGREES)
-	var bounded: float = asin(MAX_TILT_LIFT / half_width)
-	return signf(TILT_DEGREES) * minf(absf(deg_to_rad(TILT_DEGREES)), bounded)
-
 func _draw() -> void:
 	if target_label == null:
 		return
 	var main_rect: Rect2 = ink_rect()
 	if not main_rect.has_area():
 		return
-	# Faint impression, offset by (2, 2) and tilted about its own center.
-	var faint_ink: Color = MenuTheme.alpha(stamp_color, 0.22)
-	draw_set_transform(main_rect.get_center() + Vector2(2, 2), impression_tilt(), Vector2.ONE)
-	_draw_worn_border(Rect2(-main_rect.size * 0.5, main_rect.size), faint_ink)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# Main stamped border, upright.
+	# Faint impression, offset by (2, 2) and level like everything else.
+	_draw_worn_border(Rect2(main_rect.position + Vector2(2, 2), main_rect.size), MenuTheme.alpha(stamp_color, 0.22))
+	# Main stamped border.
 	_draw_worn_border(main_rect, stamp_color)
 
 func _draw_worn_border(rect: Rect2, col: Color) -> void:

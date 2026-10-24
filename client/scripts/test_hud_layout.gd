@@ -171,6 +171,18 @@ func _test_scaled_columns() -> void:
 func _upright(message: String) -> void:
 	_check(is_zero_approx(hud.round_message.rotation) and hud.round_message.scale.is_equal_approx(Vector2.ONE), message + ": rotation %f scale %s" % [hud.round_message.rotation, hud.round_message.scale])
 
+## No HUD status label, text-bearing container or stamp carries a rotation
+## (#437 decision: no tilted text, anywhere). Walks every canvas item in the HUD.
+func _level_hud(message: String) -> void:
+	var pending: Array[Node] = [hud]
+	while not pending.is_empty():
+		var node: Node = pending.pop_back()
+		pending.append_array(node.get_children())
+		if not node is CanvasItem or not (node as CanvasItem).is_visible_in_tree():
+			continue
+		var angle: float = (node as CanvasItem).get_global_transform().get_rotation()
+		_check(is_zero_approx(angle), "%s is level %s: %f" % [hud.get_path_to(node), message, angle])
+
 func _test_result_cards() -> void:
 	var stamp: StampCard = hud.stamp_card
 	_check(hud.get_children().find(stamp) > hud.get_children().find(hud.round_backdrop) and hud.get_children().find(stamp) < hud.get_children().find(hud.round_message), "ink draws on the backing and under the copy")
@@ -187,22 +199,23 @@ func _test_result_cards() -> void:
 		var ink: Rect2 = stamp.ink_rect()
 		var copy: Rect2 = stamp.get_global_transform().affine_inverse() * HudRegions.text_bounds(hud.round_message)
 		_check(ink.encloses(copy), "border surrounds the drawn copy, " + mode)
-		var tilt: float = absf(stamp.impression_tilt())
-		_check(tilt > 0.0 and tilt <= absf(deg_to_rad(StampCard.TILT_DEGREES)) + 0.0001, "impression tilt is decorative and bounded, " + mode)
-		_check(ink.size.x * 0.5 * sin(tilt) <= StampCard.MAX_TILT_LIFT + 0.01, "tilted impression lifts at most its padding, " + mode)
+		_level_hud("after a settled result, " + mode)
 		# Consecutive cards: the next result replaces the ink; nothing leaks.
 		hud.show_sabotage_result("UNION TAKES ROUND 3\nCHARGE DETONATED", "")
 		_upright("consecutive backed result is upright, " + mode)
+		_level_hud("after a backed result, " + mode)
 		_check(stamp.active() and hud.round_backdrop.visible, "backed result is stamped on its backing, " + mode)
 		hud.show_episode_fail("HOST: Reload.")
 		_upright("episode fail copy is upright, " + mode)
 		_check(not hud.round_backdrop.visible and is_equal_approx(hud.round_message.offset_left, -600.0), "unbacked card does not inherit backed geometry, " + mode)
 		hud.show_episode_complete("HOST: Done.", "Next: Episode V")
 		_upright("episode complete copy is upright, " + mode)
+		_level_hud("after episode cards, " + mode)
 		# An ordinary card after a result carries no ink.
 		hud.show_round_start(4)
 		_check(not stamp.active() and not stamp.visible, "a new ordinary card retires the result ink, " + mode)
 		_upright("ordinary card after results is upright, " + mode)
+		_level_hud("after an ordinary card, " + mode)
 		# Expiry hides the card and the ink together.
 		hud.show_round_end("Winner", "", 20)
 		hud.round_banner_remaining = 0.01
