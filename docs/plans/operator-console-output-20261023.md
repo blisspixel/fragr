@@ -191,7 +191,10 @@ Fixed in review:
 Re-run in review (logs under `.agents/`): `cargo fmt --check`, workspace
 clippy `-D warnings`, Windows-target clippy for `fragr-server`,
 `cargo deny check licenses bans sources`, the `operator_output` integration
-test (6 of 6), the full `fragr-server` test suite, and a pseudo-terminal
+test (6 of 6), the full `fragr-server` test suite (every target passed
+except three `geometry_owned_local_*` 30 s readiness deadlines at load
+average about 57; those three passed 3 of 3 on an isolated rerun at load 28,
+and they do not use the overview path), and a pseudo-terminal
 capture of the release binary under `auto` with a wildcard bind
 (`review-tty-auto.log`: card with LAN, overlay and local scopes in that order,
 pulses at 0, 10 and 20 s, the round line, no feed, probe or STATUS lines).
