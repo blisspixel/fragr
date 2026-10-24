@@ -350,9 +350,6 @@ msgstr "{name} on deck."
 msgid "HUD_BOSS_DOWN"
 msgstr "Drone down. {killer}"
 
-msgid "HUD_STREAK"
-msgstr "{player}: {count} kill streak"
-
 msgid "HUD_PICKUP"
 msgstr "{player}: {item}"
 

@@ -29,11 +29,11 @@ use crate::protocol::{
     default_host_line, default_mode_name, empty_mvp_host_line, episode0_host_line_auditor,
     episode0_host_line_cold_open, episode0_host_line_fail, episode0_host_line_jammer,
     episode0_host_line_nods_tick, episode0_host_line_win, episode0_objective_chip,
-    episode0_unlock_teaser, killstreak_host_line, mvp_host_line, roster_host_line,
-    round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind,
-    CampaignActor, CampaignSupply, EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore,
-    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
-    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
+    episode0_unlock_teaser, mvp_host_line, roster_host_line, round_open_host_line,
+    rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind, CampaignActor, CampaignSupply,
+    EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore, PlayerState, Role, ServerMessage,
+    ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
+    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
 };
 use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
@@ -425,10 +425,27 @@ pub const GOLDEN_RAIL_PICKUP_ID: &str = "golden_rail";
 #[derive(Debug, Clone, Default)]
 struct ReactionState {
     first_blood: bool,
+    /// The last call of any weight, and the last big (voiced) one.
     last_tick: Option<u64>,
+    last_big_tick: Option<u64>,
     /// Largest deficit each side has faced since it was last level.
     deficit: [u32; 2],
     last_standing: [bool; 2],
+    /// Each fighter's current multikill chain: frags and the last one's tick.
+    chains: HashMap<Uuid, (u32, u64)>,
+    /// Who led the last time anybody did.
+    leader: Option<Leader>,
+    /// Match point called for each side, or for the free-for-all.
+    match_point: [bool; 2],
+    match_point_fighter: bool,
+    sudden_death_called: bool,
+}
+
+/// The front of a round, for the lead-change call.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Leader {
+    Side(Team),
+    Fighter(Uuid),
 }
 
 /// How a lives-limited round ended by elimination.
@@ -635,6 +652,8 @@ pub struct GameState {
     reactions: ReactionState,
     /// Reactions called per kind across the session, so variants rotate.
     reaction_counts: [u32; HostReactionKind::ALL.len()],
+    /// The tick a level clock turned into sudden death this round.
+    pub(crate) sudden_death: Option<u64>,
 }
 
 pub struct Player {
@@ -1105,6 +1124,7 @@ impl GameState {
         self.reset_ctf();
         self.reset_conquest();
         self.reactions = ReactionState::default();
+        self.sudden_death = None;
 
         let lives = self.config.rules.lives();
         let mut revive = Vec::new();
@@ -1811,10 +1831,28 @@ impl GameState {
                     if self.round_ticks >= time_limit {
                         if self.solo_broadcast.enabled {
                             self.fail_episode("Calibration timed out".to_string());
-                        } else {
-                            self.end_round("Time limit reached".to_string());
+                            return;
                         }
-                        return;
+                        match self.sudden_death {
+                            // The clock stays stopped until somebody scores.
+                            Some(_) if !self.level_at_the_clock() => {
+                                self.end_round("Sudden death decided".to_string());
+                                return;
+                            }
+                            Some(since)
+                                if self.tick.saturating_sub(since)
+                                    >= u64::from(crate::rules::SUDDEN_DEATH_LIMIT_TICKS) =>
+                            {
+                                self.end_round("Level after sudden death".to_string());
+                                return;
+                            }
+                            Some(_) => {}
+                            None if self.level_at_the_clock() => self.begin_sudden_death(),
+                            None => {
+                                self.end_round("Time limit reached".to_string());
+                                return;
+                            }
+                        }
                     }
                 }
 
@@ -1843,6 +1881,7 @@ impl GameState {
                     self.finish_round(reason.to_string(), Some(standing));
                     return;
                 }
+                self.react_to_match_point();
             }
             RoundState::Ended => {
                 self.round_ticks += 1;
@@ -3083,43 +3122,30 @@ impl GameState {
                 killer_team: shooter_team,
                 victim_team,
             });
-            if !self.reactions.first_blood {
-                self.reactions.first_blood = true;
-                self.react(
-                    HostReactionKind::FirstBlood,
-                    Some(shooter_name.clone()),
-                    Some(target_name.clone()),
-                    shooter_team,
-                );
-            } else if ended_streak >= crate::rules::STREAK_WORTH_ENDING {
-                self.react(
-                    HostReactionKind::StreakEnded,
-                    Some(target_name.clone()),
-                    Some(shooter_name.clone()),
-                    victim_team,
-                );
-            }
-            if self.config.rules.mode() == crate::protocol::GameMode::Tdm {
-                if let (Some(side), Some(_)) = (shooter_team, victim_team) {
-                    self.note_team_frag(side);
+            let team_frag = match (shooter_team, victim_team) {
+                (Some(side), Some(_))
+                    if self.config.rules.mode() == crate::protocol::GameMode::Tdm =>
+                {
+                    Some(side)
                 }
-            }
-
-            // Killer streak (victim already reset). Host callouts at 2/3/5.
+                _ => None,
+            };
+            // Killer streak (victim already reset); at most one Host call.
             let killer_streak = {
                 let killer = &mut self.players[shooter_idx];
                 killer.killstreak = killer.killstreak.saturating_add(1);
                 killer.killstreak
             };
-            if let Some((tier, message)) = killstreak_host_line(killer_streak, &shooter_name) {
-                self.events.push(GameEvent::Killstreak {
-                    player: shooter_name.clone(),
-                    player_id: shooter_id,
-                    streak: killer_streak,
-                    tier,
-                    message,
-                });
-            }
+            self.react_to_frag(modes::FragFacts {
+                killer: shooter_id,
+                killer_name: shooter_name.clone(),
+                killer_team: shooter_team,
+                victim_name: target_name.clone(),
+                victim_team,
+                killer_streak,
+                ended_streak,
+                team_frag,
+            });
 
             // Named rule bots: occasional Contested Frequency speak (off-tick).
             if matches!(killer_streak, 2 | 3 | 5) {
@@ -3309,12 +3335,16 @@ impl GameState {
     }
     pub fn snapshot(&self) -> Snapshot {
         let sabotage = self.wire_sabotage();
+        let sudden_death = self.round_state == RoundState::Active && self.sudden_death.is_some();
         let round_time_left = if let Some(state) = sabotage
             .as_ref()
             .filter(|_| self.round_state == RoundState::Active)
         {
             // Muster, then the live clock, then the charge's own clock.
             Some(state.clock_ticks.div_ceil(20))
+        } else if sudden_death {
+            // The clock stopped level; the next score decides.
+            None
         } else if self.round_state == RoundState::Active {
             self.config
                 .time_limit_ticks
@@ -3374,6 +3404,7 @@ impl GameState {
                 .collect(),
             round_state: Some(format!("{:?}", self.round_state)),
             round_time_left,
+            sudden_death,
             frag_limit: self.config.frag_limit,
             shot_results: self.shot_results.clone(),
             projectiles: self.projectile_states(),
@@ -4586,6 +4617,7 @@ impl Default for GameState {
             article_blade: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
+            sudden_death: None,
         }
     }
 }

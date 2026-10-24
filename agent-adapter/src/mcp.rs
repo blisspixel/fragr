@@ -661,6 +661,12 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "round_state": snap_field(snap, "round_state"),
         "round_number": round_number,
         "round_time_left": snap_field(snap, "round_time_left"),
+        // The clock stopped level: the next score wins. Omitted on the wire
+        // when false, so a missing field reads false here.
+        "sudden_death": snap
+            .and_then(|s| s.get("sudden_death"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
         "frag_limit": frag_limit,
         "mode_name": mode_name,
         "playlist": snap_field(snap, "playlist"),
@@ -767,7 +773,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "get_events",
-                "description": "Get recent game events (player joins/leaves, frags, killstreaks, respawns, round start/end, speaks). Includes last 50 events.",
+                "description": "Get recent game events (player joins/leaves, frags, Host reactions such as multikills, sprees, match point and sudden death, respawns, round start/end, speaks). Includes last 50 events.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -4138,7 +4144,7 @@ mod mcp_tests {
                 "round_state": "Active",
                 "round_time_left": 90,
                 "frag_limit": 10,
-                "mode_name": "Contested Frequency",
+                "mode_name": "Scrap League",
                 "playlist": "Arena Duel",
                 "host_line": "HOST: LIVE.",
                 "pressure": "compliance"
@@ -4148,7 +4154,7 @@ mod mcp_tests {
                     "event": "round_start",
                     "round_number": 3,
                     "frag_limit": 10,
-                    "mode_name": "Contested Frequency",
+                    "mode_name": "Scrap League",
                     "host_line": "HOST: START."
                 }),
                 serde_json::json!({
@@ -4170,8 +4176,9 @@ mod mcp_tests {
         assert_eq!(result["round_state"], "Active");
         assert_eq!(result["round_number"], 3);
         assert_eq!(result["round_time_left"], 90);
+        assert_eq!(result["sudden_death"], false);
         assert_eq!(result["frag_limit"], 10);
-        assert_eq!(result["mode_name"], "Contested Frequency");
+        assert_eq!(result["mode_name"], "Scrap League");
         assert_eq!(result["host_line"], "HOST: LIVE.");
         assert_eq!(result["pressure"], "compliance");
         assert_eq!(result["connected"], true);
@@ -4181,6 +4188,41 @@ mod mcp_tests {
         // Soft: map fields always present (defaults when snapshot omits them).
         assert!(result["map_id"].is_null());
         assert!(result["map_name"].is_null());
+    }
+
+    #[test]
+    fn round_state_surfaces_sudden_death_with_the_clock_stopped() {
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(serde_json::json!({
+                "tick": 900,
+                "round_state": "Active",
+                "sudden_death": true,
+                "frag_limit": 10
+            })),
+            ..Default::default()
+        };
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["sudden_death"], true);
+        assert!(result["round_time_left"].is_null());
+        state.last_snapshot = Some(serde_json::json!({"tick": 1, "sudden_death": "yes"}));
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["sudden_death"], false, "only a true flag counts");
     }
 
     #[test]
@@ -4220,7 +4262,7 @@ mod mcp_tests {
                 "round_time_left": 2,
                 "map_id": 1,
                 "map_name": "Arena Duel",
-                "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL TUNES IN. DEAD AIR DAN ON THE SCRAP. 2."
+                "host_line": "HOST: ARENA DUEL. DEAD AIR DAN ON THE SCRAP. GOES LIVE IN 2."
             })),
             ..Default::default()
         };
@@ -4237,7 +4279,7 @@ mod mcp_tests {
         assert!(result["host_line"]
             .as_str()
             .unwrap()
-            .contains("CONTESTED FREQUENCY"));
+            .contains("GOES LIVE IN 2"));
         assert!(result["host_line"].as_str().unwrap().contains("ARENA DUEL"));
         assert!(result["host_line"]
             .as_str()
@@ -4340,7 +4382,7 @@ mod mcp_tests {
         assert!(!state.connected);
         ingest_server_text(
             &mut state,
-            r#"{"type":"welcome","player_id":"00000000-0000-0000-0000-000000000000","role":"agent","mode_name":"Contested Frequency","playlist":"Arena Duel"}"#,
+            r#"{"type":"welcome","player_id":"00000000-0000-0000-0000-000000000000","role":"agent","mode_name":"Scrap League","playlist":"Arena Duel"}"#,
         ).unwrap();
         assert!(state.connected);
         assert!(state.player_id.is_some());

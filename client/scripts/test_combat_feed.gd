@@ -112,7 +112,7 @@ func _run() -> void:
 	_check(not game._shows_participant_notice("watched"), "free camera has no participant pickup notices")
 	game.is_human_player = true
 	game._on_event_received({"event":"frag", "killer":"Other", "victim":"Victim"})
-	game._on_event_received({"event":"killstreak", "player":"Other", "player_id":"other", "streak":3, "tier":"triple", "message":"A loud announcement"})
+	game._on_event_received({"event":"host_reaction", "kind":"triple_frag", "variant":0, "player":"Other", "big":true})
 	hud.show_speak("Agent", "Free weights.")
 	hud.show_compliance_ping("Pressure")
 	hud.show_boss_spawn("Drone", "Compliance drone")

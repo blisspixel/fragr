@@ -1171,25 +1171,32 @@ mod tests {
         assert_eq!(frag_json["victim"], "Bot2");
         assert_eq!(frag_json["killer_score"], 5);
 
-        let ks = protocol::GameEvent::Killstreak {
-            player: "Bot1".to_string(),
-            player_id: uuid::Uuid::nil(),
-            streak: 2,
-            tier: "double".to_string(),
-            message: "HOST: DOUBLE FREQUENCY. Bot1 DENIES THE DENIAL.".to_string(),
-        };
-        let ks_json = serde_json::to_value(&ks).unwrap();
-        assert_eq!(ks_json["event"], "killstreak");
-        assert_eq!(ks_json["streak"], 2);
-        assert_eq!(ks_json["tier"], "double");
-        let ks_back: protocol::GameEvent = serde_json::from_value(ks_json).unwrap();
-        match ks_back {
-            protocol::GameEvent::Killstreak { streak, tier, .. } => {
-                assert_eq!(streak, 2);
-                assert_eq!(tier, "double");
+        // Multikills and sprees reach an agent as keyed Host reactions.
+        let triple = serde_json::json!({
+            "type": "event",
+            "event": "host_reaction",
+            "kind": "triple_frag",
+            "variant": 0,
+            "player": "Bot1",
+            "other": "Bot2",
+            "big": true
+        });
+        let triple: protocol::ServerMessage = serde_json::from_value(triple).unwrap();
+        match triple {
+            protocol::ServerMessage::Event(protocol::GameEvent::HostReaction {
+                kind,
+                player,
+                big,
+                ..
+            }) => {
+                assert_eq!(kind, protocol::HostReactionKind::TripleFrag);
+                assert_eq!(player.as_deref(), Some("Bot1"));
+                assert!(big);
             }
-            other => panic!("expected Killstreak, got {:?}", other),
+            other => panic!("expected a host reaction, got {:?}", other),
         }
+        let retired = serde_json::json!({"type": "event", "event": "killstreak", "player": "Bot1"});
+        assert!(serde_json::from_value::<protocol::ServerMessage>(retired).is_err());
 
         let respawn_event = protocol::GameEvent::Respawn {
             player: "Bot2".to_string(),
@@ -1645,6 +1652,7 @@ mod tests {
             }],
             round_state: Some("Active".to_string()),
             round_time_left: Some(120),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -1702,6 +1710,7 @@ mod tests {
             players: vec![],
             round_state: Some("Active".into()),
             round_time_left: Some(30),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -1744,7 +1753,7 @@ mod tests {
 
         // Legacy observe Snapshot without host_line still parses.
         let legacy: protocol::Snapshot = serde_json::from_str(
-            r#"{"tick":1,"players":[],"mode_name":"Contested Frequency","playlist":"Arena Duel"}"#,
+            r#"{"tick":1,"players":[],"mode_name":"Scrap League","playlist":"Arena Duel"}"#,
         )
         .expect("legacy");
         assert_eq!(legacy.host_line, protocol::default_host_line());
@@ -1819,6 +1828,7 @@ mod tests {
             ],
             round_state: Some("Active".to_string()),
             round_time_left: Some(90),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -2189,6 +2199,7 @@ mod tests {
             ],
             round_state: Some("Active".into()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -2711,7 +2722,7 @@ fn main() -> ExitCode {
                     "type": "welcome",
                     "player_id": uuid::Uuid::new_v4().to_string(),
                     "role": "agent",
-                    "mode_name": "Contested Frequency",
+                    "mode_name": "Scrap League",
                     "playlist": "Solo Scrap"
                 });
                 ws.send(Message::Text(welcome.to_string()))
@@ -2744,7 +2755,7 @@ fn main() -> ExitCode {
                         "round_time_left": 60,
                         "frag_limit": 10,
                         "shot_results": [],
-                        "mode_name": "Contested Frequency",
+                        "mode_name": "Scrap League",
                         "playlist": "Solo Scrap",
                         "pressure": null,
                         "host_line": "frequency contested",

@@ -262,6 +262,12 @@ static func result_text(data: Dictionary, viewer_team: String) -> String:
 	var winner: String = MatchRules.valid_team(data.get("winning_team"))
 	if winner.is_empty():
 		return ""
+	# A level match plays a sudden death round, so a decided match always
+	# names its winner; one without is malformed.
+	var match_over: bool = result.get("match_over", false) == true
+	var match_winner: String = MatchRules.valid_team(result.get("match_winner"))
+	if match_over and match_winner.is_empty():
+		return ""
 	var score: Dictionary = result["score"]
 	var lines: PackedStringArray = []
 	lines.append(_text("SABOTAGE_ROUND_WINNER").format({
@@ -270,12 +276,8 @@ static func result_text(data: Dictionary, viewer_team: String) -> String:
 	}))
 	lines.append(_text("SABOTAGE_REASON_" + str(result["reason"]).to_upper()))
 	lines.append(_text("SABOTAGE_ROUND_SCORE").format({"union": int(score["union"]), "coalition": int(score["coalition"])}))
-	if result.get("match_over", false) == true:
-		var match_winner: String = MatchRules.valid_team(result.get("match_winner"))
-		if match_winner.is_empty():
-			lines.append(_text("SABOTAGE_MATCH_DRAW"))
-		else:
-			lines.append(_text("SABOTAGE_MATCH_WINNER").format({"team": MatchRules.team_name(match_winner).to_upper()}))
+	if match_over:
+		lines.append(_text("SABOTAGE_MATCH_WINNER").format({"team": MatchRules.team_name(match_winner).to_upper()}))
 	elif result.get("sides_swap", false) == true:
 		lines.append(_text("SABOTAGE_SWAP_NEXT"))
 	if not viewer_team.is_empty():

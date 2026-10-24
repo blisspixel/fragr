@@ -90,6 +90,21 @@ func _check_reactions() -> void:
 	_check(comeback == "HOST: THE FREE COALITION CLAWS IT BACK. LEVEL GAME.", "comeback names the side: " + comeback)
 	for bad: Dictionary in [{}, {"kind": "ace"}, {"kind": "first_blood", "variant": 3}, {"kind": "first_blood", "variant": -1}, {"kind": 4}]:
 		_check(MatchRules.reaction_line(bad) == "", "unknown reactions stay silent: " + str(bad))
+	# A side call keys its own words, so no line names an empty fighter.
+	for kind: String in MatchRules.SIDE_REACTIONS:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			var side: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "team": "union"})
+			_check(side.contains("UNION") and not side.contains("  ") and not side.contains(" ."), "side call names the side: " + side)
+	var point: String = MatchRules.reaction_line({"kind": "match_point", "variant": 0, "team": "coalition"})
+	_check(point == "HOST: MATCH POINT! THE FREE COALITION!", "side match point: " + point)
+	var triple: String = MatchRules.reaction_line({"kind": "triple_frag", "variant": 0, "player": "Nightfall", "big": true})
+	_check(triple == "HOST: TRIPLE FRAG! NIGHTFALL!", "triple frag caption keeps the name: " + triple)
+	_check(MatchRules.reaction_big({"big": true}) and not MatchRules.reaction_big({"big": 1}) and not MatchRules.reaction_big({}), "only a true flag is a big moment")
+	# Canon: the Host never sells the station inside a match call.
+	for kind: String in MatchRules.REACTIONS:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			var line: String = MatchRules.reaction_line({"kind": kind, "variant": variant, "player": "A", "other": "B", "team": "union"}).to_upper()
+			_check(not line.contains("FREQUENCY") and not line.contains("TUNES IN"), "no station puns: " + line)
 
 
 func _check_hud() -> void:
@@ -120,7 +135,7 @@ func _check_hud() -> void:
 	_check(lines[1] == "1.*[FREE] Nightfall [DEF]: 4", "leader row carries the side chip: " + lines[1])
 	_check(lines[2] == "2. [UNION] Dead Air Dan: 2", "second row: " + lines[2])
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ctf", "mutators": []}))
-	hud.call("set_league_identity", "Contested Frequency", "Arena Duel")
+	hud.call("set_league_identity", "Scrap League", "Arena Duel")
 	var league_line: String = hud.get("mode_label").text
 	_check(league_line == "CAPTURE THE FLAG", "ctf names its actual mode without the older arena playlist: " + league_line)
 	var flags: Array = [

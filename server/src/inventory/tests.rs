@@ -889,6 +889,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         }],
         round_state: Some("Active".into()),
         round_time_left: None,
+        sudden_death: false,
         frag_limit: None,
         shot_results: vec![],
         projectiles: vec![],

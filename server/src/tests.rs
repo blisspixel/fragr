@@ -3,8 +3,8 @@ use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
     default_host_line, default_map_id, default_map_name, default_mode_name, default_playlist,
     mvp_host_line, round_open_host_line, warmup_host_line, Action, ClientMessage, GameEvent,
-    PlayerScore, PlayerState, Role, ServerMessage, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
-    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
+    HostReactionKind, PlayerScore, PlayerState, Role, ServerMessage, Snapshot, WeaponType,
+    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
 };
 #[cfg(test)]
 use crate::session::GameSession;
@@ -480,6 +480,7 @@ fn test_protocol_snapshot_serialization() {
         }],
         round_state: Some("Active".to_string()),
         round_time_left: Some(60),
+        sudden_death: false,
         frag_limit: Some(10),
         shot_results: vec![],
         projectiles: vec![],
@@ -527,6 +528,7 @@ fn test_protocol_snapshot_empty_players() {
         players: vec![],
         round_state: None,
         round_time_left: None,
+        sudden_death: false,
         frag_limit: None,
         shot_results: vec![],
         projectiles: vec![],
@@ -2485,7 +2487,7 @@ fn test_server_round_event_wire_json_shape() {
         start_json
     );
     assert!(
-        start_json.contains(r#""mode_name":"Contested Frequency""#),
+        start_json.contains(r#""mode_name":"Scrap League""#),
         "{}",
         start_json
     );
@@ -2827,6 +2829,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             players: vec![],
             round_state: Some("active".into()),
             round_time_left: Some(100),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: vec![],
             projectiles: vec![],
@@ -3289,14 +3292,14 @@ fn test_shot_results_miss() {
 fn test_snapshot_carries_contested_frequency_mode_identity() {
     let state = GameState::new();
     let snap = state.snapshot();
-    assert_eq!(snap.mode_name, "Contested Frequency");
+    assert_eq!(snap.mode_name, "Scrap League");
     assert_eq!(snap.playlist, "Arena Duel");
     assert!(snap.pressure.is_none());
     let expected_warm = warmup_host_line("Arena Duel", &[], 2);
     assert_eq!(snap.host_line, expected_warm);
     assert_eq!(snap.round_time_left, Some(2));
     let json = serde_json::to_value(&snap).unwrap();
-    assert_eq!(json["mode_name"], "Contested Frequency");
+    assert_eq!(json["mode_name"], "Scrap League");
     assert_eq!(json["playlist"], "Arena Duel");
     assert!(json.get("pressure").is_none() || json["pressure"].is_null());
     assert_eq!(json["host_line"], expected_warm);
@@ -3453,7 +3456,7 @@ fn test_welcome_includes_mode_identity() {
         duck: false,
     };
     let json = serde_json::to_value(&welcome).unwrap();
-    assert_eq!(json["mode_name"], "Contested Frequency");
+    assert_eq!(json["mode_name"], "Scrap League");
     assert_eq!(json["playlist"], "Arena Duel");
 }
 
@@ -3515,7 +3518,7 @@ fn test_snapshot_host_line_defaults_when_absent_on_wire() {
     let raw = r#"{
         "tick": 1,
         "players": [],
-        "mode_name": "Contested Frequency",
+        "mode_name": "Scrap League",
         "playlist": "Arena Duel"
     }"#;
     let snap: Snapshot = serde_json::from_str(raw).expect("legacy snapshot");
@@ -4346,7 +4349,7 @@ fn force_hitscan_frag(state: &mut GameState, shooter_id: Uuid, target_id: Uuid) 
 }
 
 #[test]
-fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
+fn test_spree_calls_the_mode_tier_once_and_resets_on_death() {
     let mut state = GameState::new();
     state.config.compliance_ping_ticks = None;
     state.config.boss_spawn_ticks = None;
@@ -4359,7 +4362,7 @@ fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
     state.add_player(target_id, "Target".to_string(), Role::Agent);
     let _ = state.take_events();
 
-    let mut seen_tiers: Vec<String> = Vec::new();
+    let mut calls: Vec<(u32, HostReactionKind, bool)> = Vec::new();
     for n in 1..=5 {
         // Wait out respawn if target died last frag.
         for _ in 0..100 {
@@ -4397,31 +4400,23 @@ fn test_killstreak_emits_at_2_3_5_and_resets_on_death() {
             .unwrap();
         assert_eq!(state.players[sidx].killstreak, n, "streak after kill {}", n);
         for e in &events {
-            if let GameEvent::Killstreak {
-                streak,
-                tier,
-                message,
-                player,
-                ..
+            if let GameEvent::HostReaction {
+                kind, player, big, ..
             } = e
             {
-                assert_eq!(player, "Rusher");
-                assert_eq!(*streak, n);
-                assert!(message.starts_with("HOST:"));
-                seen_tiers.push(tier.clone());
+                assert_eq!(player.as_deref(), Some("Rusher"));
+                calls.push((n, *kind, *big));
             }
         }
-        if n == 1 || n == 4 {
-            assert!(
-                !events
-                    .iter()
-                    .any(|e| matches!(e, GameEvent::Killstreak { .. })),
-                "no killstreak event at streak {}",
-                n
-            );
-        }
     }
-    assert_eq!(seen_tiers, vec!["double", "triple", "rampage"]);
+    // Kills a respawn apart are no multikill; free-for-all sprees step at five.
+    assert_eq!(
+        calls,
+        vec![
+            (1, HostReactionKind::FirstBlood, true),
+            (5, HostReactionKind::Rampage, true)
+        ]
+    );
 
     // Victim death resets victim streak; kill Rusher with Target to reset Rusher.
     let sidx = state
@@ -4862,9 +4857,9 @@ fn test_protocol_snapshot_map_defaults_round_trip() {
     let json = serde_json::json!({
         "tick": 1,
         "players": [],
-        "mode_name": "Contested Frequency",
+        "mode_name": "Scrap League",
         "playlist": "Arena Duel",
-        "host_line": "HOST: CONTESTED FREQUENCY. PLAY VS COMPLIANCE. ARENA DUEL IS LIVE."
+        "host_line": "HOST: ARENA DUEL IS LIVE."
     });
     let snap: Snapshot = serde_json::from_value(json).unwrap();
     assert_eq!(snap.map_id, default_map_id());
@@ -4880,7 +4875,7 @@ fn test_warmup_host_drama_roster_map_countdown() {
 
     let snap = state.snapshot();
     assert_eq!(snap.round_time_left, Some(2));
-    assert!(snap.host_line.contains("CONTESTED FREQUENCY"));
+    assert!(!snap.host_line.contains("FREQUENCY"));
     assert!(snap.host_line.contains("ARENA DUEL"));
     assert!(snap.host_line.contains("DEAD AIR DAN"));
     assert!(snap.host_line.contains("ON THE SCRAP"));

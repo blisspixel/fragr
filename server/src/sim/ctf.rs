@@ -1,7 +1,8 @@
 //! Authoritative flag transitions for a staged two-side league match.
 use super::{GameState, RoundState, PLAYER_FLOOR_Y};
 use crate::protocol::{
-    FlagEventKind, FlagState, FlagStatus, GameEvent, GameMode, PlayerState, Team, TeamScores,
+    FlagEventKind, FlagState, FlagStatus, GameEvent, GameMode, HostReactionKind, PlayerState, Team,
+    TeamScores,
 };
 use uuid::Uuid;
 
@@ -200,6 +201,8 @@ impl GameState {
                 flags[enemy].dropped_at = None;
                 flags[enemy].position = feet;
                 self.flag_event(FlagEventKind::Taken, side.other(), Some(id));
+                let name = self.name_of(id);
+                self.react(HostReactionKind::FlagTaken, name, None, Some(side));
             }
             if flags[enemy].carrier == Some(id)
                 && flags[own].is_home()
@@ -208,6 +211,10 @@ impl GameState {
                 flags[enemy].return_home();
                 self.capture_scores.add(side);
                 self.flag_event(FlagEventKind::Captured, side.other(), Some(id));
+                // The capture is the call; the lead it may change is only noted.
+                self.note_lead();
+                let name = self.name_of(id);
+                self.react(HostReactionKind::FlagCaptured, name, None, Some(side));
                 if self.capture_scores.get(side)
                     >= self
                         .config

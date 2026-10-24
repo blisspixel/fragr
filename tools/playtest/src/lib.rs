@@ -1272,8 +1272,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                     .unwrap_or_default();
                 *sabotage_events.entry(key).or_default() += 1;
             }
-            GameEvent::Killstreak { .. }
-            | GameEvent::CompliancePing { .. }
+            GameEvent::CompliancePing { .. }
             | GameEvent::BossSpawn { .. }
             | GameEvent::BossDown { .. } => host_beats += 1,
             GameEvent::Pickup { .. } => pickups += 1,
@@ -2714,6 +2713,7 @@ mod tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: None,
+            sudden_death: false,
             frag_limit: Some(5),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -2725,7 +2725,7 @@ mod tests {
             remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -3655,6 +3655,7 @@ mod combat_tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: shots,
             projectiles: Vec::new(),
@@ -3666,7 +3667,7 @@ mod combat_tests {
             remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -4574,6 +4575,7 @@ mod planner_tests {
             players,
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -4585,7 +4587,7 @@ mod planner_tests {
             remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -5388,6 +5390,7 @@ mod line_of_sight_tests {
             players: vec![],
             round_state: Some("Active".to_string()),
             round_time_left: Some(60),
+            sudden_death: false,
             frag_limit: Some(10),
             shot_results: Vec::new(),
             projectiles: Vec::new(),
@@ -5399,7 +5402,7 @@ mod line_of_sight_tests {
             remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
-            mode_name: "Contested Frequency".to_string(),
+            mode_name: "Scrap League".to_string(),
             playlist: "Arena Duel".to_string(),
             pressure: None,
             host_line: String::new(),
@@ -5746,6 +5749,7 @@ mod rule_checks {
                 player: Some("a".into()),
                 other: Some("b".into()),
                 team: None,
+                big: true,
             },
         });
         obs.events.push(TimedEvent {

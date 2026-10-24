@@ -1652,8 +1652,8 @@ mod session_tests {
         );
         assert!(snap.host_line.contains("DEAD AIR DAN"));
         assert!(
-            snap.host_line.contains("CONTESTED FREQUENCY"),
-            "Warmup should sell Contested Frequency bumper: {}",
+            !snap.host_line.contains("FREQUENCY"),
+            "the Warmup intro is a plain arena intro, never a station ident: {}",
             snap.host_line
         );
         assert!(
