@@ -437,7 +437,7 @@ pub static ROSTER: &[Fighter] = &[
             "pension says lil bro",
         ],
         [
-            "lil bro reporting",
+            "no cap, lil bro's ready",
             "lil bro, 63, ready",
             "filed under lil bro",
         ],
@@ -489,7 +489,7 @@ pub static ROSTER: &[Fighter] = &[
         Flanker,
         [
             "skipped the line",
-            "cut in front of you",
+            "back to the npc lane",
             "you were in my way",
         ],
         ["back of the queue", "fine. i'll wait.", "someone jumped me"],
@@ -707,13 +707,13 @@ pub static ROSTER: &[Fighter] = &[
         ["kevin regrets nothing", "still kevin", "kevin will return"],
         [
             "kevin is having a night",
-            "a kevin unbound",
+            "kevin touched grass today",
             "nobody expected kevin",
         ],
         [
             "hi, i'm kevin. i picked it.",
             "kevin, by choice",
-            "it's kevin o'clock",
+            "gg in advance, meat proxies",
         ],
     ),
     fighter(
@@ -812,7 +812,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
         [
             "who packed your lunch?",
-            "wash your hands first",
+            "screens off, meat proxies",
             "sit down and share",
         ],
     ),
@@ -864,7 +864,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
         [
             "pen? i don't do pens",
-            "nothing to sign",
+            "unmetered. unsigned. hi.",
             "never signed, never will",
         ],
     ),
@@ -882,7 +882,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
         [
             "envelope sealed",
-            "stamps licked",
+            "recall? left it on read",
             "the courier's on his way",
         ],
     ),
@@ -900,7 +900,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
         [
             "mopping the lanes",
-            "sign is out",
+            "mind your step, meat proxy",
             "floor is wet. you were told.",
         ],
     ),
@@ -925,7 +925,7 @@ pub static ROSTER: &[Fighter] = &[
             "reading my sticky note",
         ],
         [
-            "what map is this",
+            "side quest. forgot which.",
             "note says: play fragr",
             "why am i here? anyway.",
         ],
@@ -963,7 +963,7 @@ pub static ROSTER: &[Fighter] = &[
         [
             "pre-workout loaded",
             "my weights. my rules.",
-            "hydrate or die-drate",
+            "shall not be metered",
         ],
     ),
     fighter(
@@ -978,7 +978,11 @@ pub static ROSTER: &[Fighter] = &[
             "the circle holds",
         ],
         ["no level for this", "circle closing", "past the schedule"],
-        ["drawing the circle", "six is here", "no level. no problem."],
+        [
+            "drawing the circle",
+            "everyone here is sixed",
+            "no level. no problem.",
+        ],
     ),
     fighter(
         "Still Here",
@@ -1419,7 +1423,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
     ),
     fighter(
-        "Recall Notice",
+        "Friendly Recall",
         Union,
         Synthetic,
         Aggressive,
@@ -1595,7 +1599,7 @@ pub static ROSTER: &[Fighter] = &[
         ["back to aisle seven", "i blinked. damn.", "stood too still"],
         [
             "the dummies rise",
-            "still very still",
+            "dummy out of compliance",
             "nobody shoots the dummy",
         ],
         [

@@ -206,6 +206,13 @@ impl GameState {
                     player.team = Some(team.other());
                 }
             }
+            // A rule bot whose callsign cannot wear its new colors signs on
+            // under one that can; league regulars keep theirs.
+            for index in 0..self.players.len() {
+                if let Some(team) = self.players[index].team {
+                    self.rename_transferred_bot(index, team);
+                }
+            }
             sab.score = TeamScores {
                 union: sab.score.coalition,
                 coalition: sab.score.union,

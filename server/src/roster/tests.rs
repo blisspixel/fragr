@@ -81,6 +81,27 @@ fn roster_keeps_radio_words_and_the_slur_out() {
 }
 
 #[test]
+fn street_register_stays_in_the_right_mouths() {
+    // voice.md: "meat proxy" is friends' slang, never a Union mouth, and the
+    // register's own terms actually get said by the people who own them.
+    let mut friendly = 0;
+    for fighter in ROSTER {
+        for kind in KINDS {
+            for line in fighter.taunts(kind) {
+                if line.contains("meat proxy") || line.contains("meat proxies") {
+                    assert_ne!(fighter.allegiance, Allegiance::Union, "{line}");
+                    friendly += 1;
+                }
+                if line.contains("npc") {
+                    assert!(line.contains("npc lane"), "bare npc: {line}");
+                }
+            }
+        }
+    }
+    assert!(friendly >= 3, "the free side should say meat proxy");
+}
+
+#[test]
 fn roster_mix_matches_the_canon() {
     let count = |keep: &dyn Fn(&Fighter) -> bool| ROSTER.iter().filter(|f| keep(f)).count();
     assert_eq!(count(&|f| f.behavior == BotBehavior::Aggressive), 18);
@@ -100,7 +121,7 @@ fn roster_mix_matches_the_canon() {
     for (free, union) in [
         ("Formerly 4471", "Handle 4471-K"),
         ("Never Signed", "Initial Here"),
-        ("Mailed It Back", "Recall Notice"),
+        ("Mailed It Back", "Friendly Recall"),
         ("Grandma Rizz", "Your Privacy"),
     ] {
         assert_eq!(find(free).unwrap().allegiance, Allegiance::Free);

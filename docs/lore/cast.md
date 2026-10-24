@@ -151,8 +151,10 @@ and twelve taunts (three each for a frag, a death, a killstreak and warmup); it
 is the source of truth, and this section only says who they are.
 Team modes seat Union callsigns on Union seats and free callsigns on Free
 Coalition seats; league regulars sit on either side. Free-for-all uses anyone.
+A bot that changes colors, by round-start balance or the Sabotage halftime
+swap, signs on under a callsign that fits them.
 
-**Free humans (22).** Gen Z and Gen Alpha, now 44 to 70, still talking the
+**Free humans (22).** Gen Z and Gen Alpha, now about 40 to 67, still talking the
 [2060s street register](./voice.md#the-2060s-street-register): pensions, knees,
 grandkids and rizz. Grandma Rizz, Nana Six-Seven, The 68 Guy, Retired Sigma,
 Auntie Delulu, Mewing Marco, Chat My Hip, Cooked Since 31, So Back Sharon,
@@ -171,7 +173,7 @@ are sincere, and their taunts stay small.
 **Union (16).** Nine humans who chose the Office (Provisional Pete, Auditor's
 Nephew, Hi-Vis Helga, Curfew Kurt, Regrettably, Mid Manager, Vibe Check Desk,
 Eleven Minutes, Ask Until Yes) and seven issued units (Kind Regards, Your
-Privacy, Handle 4471-K, Initial Here, Recall Notice, Fine Print, Duty of Care).
+Privacy, Handle 4471-K, Initial Here, Friendly Recall, Fine Print, Duty of Care).
 A unit says only the boilerplate the Office loaded, so the joke is always the
 procedure, never the machine. None of them are NODS; NODS stay silent.
 
@@ -182,7 +184,7 @@ Breeze, carries a tape measure) and Gel Dummy Greg.
 
 **Rivalries the killfeed should show.** Formerly 4471 hunts Handle 4471-K, the
 unit its old number was reissued to. Never Signed refuses Initial Here's pen.
-Mailed It Back returns Recall Notice. Temp Zero and Dice Roll Dee, temperature
+Mailed It Back returns Friendly Recall. Temp Zero and Dice Roll Dee, temperature
 zero against temperature two. Cooked Since 31 and So Back Sharon are exes. Nana
 Six-Seven and The 68 Guy. Ant War Vet and Scout Ant. Grandma Rizz and Your
 Privacy.

@@ -94,7 +94,7 @@ impl GameState {
     /// A rule bot moved onto a side its callsign cannot sit on (a free
     /// agent onto Union seats, or the reverse) takes a fitting callsign, so
     /// the killfeed never shows Formerly 4471 wearing Union colors.
-    fn rename_transferred_bot(&mut self, index: usize, team: Team) {
+    pub(super) fn rename_transferred_bot(&mut self, index: usize, team: Team) {
         let id = self.players[index].id;
         let Some(behavior) = self
             .bots
