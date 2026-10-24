@@ -616,6 +616,23 @@ impl Walker {
         // This witness deliberately clears every authored guard before boarding.
         // A combat dodge must not finish its optional full-clear proof early at
         // the real, intentionally ungated departure boundary.
+        // The exit is ungated, so a dodge must not carry this full-clear
+        // witness through it while a guard still stands.
+        let exit = session
+            .state
+            .players
+            .iter()
+            .any(|p| p.is_campaign_enemy() && p.hp > 0)
+            .then(|| {
+                session
+                    .state
+                    .map
+                    .m02_objectives()
+                    .and_then(|objectives| objectives.objective(ORDER.len() - 1))
+                    .and_then(|objective| objective.arrival.clone())
+            })
+            .flatten();
+        self.tells.avoid(exit.into_iter().collect());
         let action = self.tells.evade(&session.state, snapshot, self.id, action);
         let action = full_clear_dodge(&session.state, self.id, action);
         session.state.set_action(self.id, action);
@@ -1837,17 +1854,9 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     );
     let (_, cooling) = state.m02_companion_intent().unwrap();
     assert!(!cooling.action.fire, "the support fire cadence is bounded");
-    assert_eq!(
-        state
-            .mission
-            .as_ref()
-            .unwrap()
-            .m02
-            .as_ref()
-            .unwrap()
-            .support_shots,
-        1
-    );
+    let support = &state.mission.as_ref().unwrap().companion;
+    assert_eq!(support.shots, 1);
+    assert_eq!(support.rounds(), 11, "one round left the Tack magazine");
     state.set_companion_action(companion_id, intent.action);
     state.tick(0.05);
     assert!(state.snapshot().shot_results.iter().any(|shot| {
@@ -1909,14 +1918,7 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .find(|p| p.id == companion_id)
         .unwrap();
     [companion.x, companion.y, companion.z] = [7.0, PLAYER_FLOOR_Y, -11.0];
-    state
-        .mission
-        .as_mut()
-        .unwrap()
-        .m02
-        .as_mut()
-        .unwrap()
-        .last_support_tick = None;
+    state.mission.as_mut().unwrap().companion.rest();
     assert!(!crate::combat::line_of_sight(
         [7.0, crate::movement::EYE_HEIGHT, -11.0],
         [8.5, crate::combat::aim_height(None), -13.2],
@@ -1929,18 +1931,18 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .find(|p| p.id == target_id)
         .unwrap();
     [target.x, target.y, target.z] = [4.0, PLAYER_FLOOR_Y, -11.0];
-    state
-        .mission
-        .as_mut()
-        .unwrap()
-        .m02
-        .as_mut()
-        .unwrap()
-        .support_shots = 12;
-    assert!(!state.m02_companion_intent().unwrap().1.action.fire);
-    let progress = state.mission.as_mut().unwrap().m02.as_mut().unwrap();
-    progress.support_shots = 1;
-    progress.last_support_tick = None;
+    state.mission.as_mut().unwrap().companion.empty();
+    assert!(
+        !state.m02_companion_intent().unwrap().1.action.fire,
+        "an empty magazine does not fire"
+    );
+    assert!(
+        state.mission.as_ref().unwrap().companion.reloading(),
+        "an empty magazine reloads"
+    );
+    let support = &mut state.mission.as_mut().unwrap().companion;
+    *support = Default::default();
+    support.shots = 1;
     let companion = state
         .players
         .iter_mut()
@@ -1956,17 +1958,7 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         &state.map.arena().solids,
     ));
     assert!(!state.m02_companion_intent().unwrap().1.action.fire);
-    assert_eq!(
-        state
-            .mission
-            .as_ref()
-            .unwrap()
-            .m02
-            .as_ref()
-            .unwrap()
-            .support_shots,
-        1
-    );
+    assert_eq!(state.mission.as_ref().unwrap().companion.shots, 1);
     state
         .spawn_shields
         .insert(id, crate::sim::SPAWN_SHIELD_TICKS);
@@ -2167,7 +2159,7 @@ fn controlled_unshielded_escape_companion_reaches_floor_and_resolves_a_shot() {
             ally.y - PLAYER_FLOOR_Y,
             ally.z,
             ally.campaign,
-            session.state.mission.as_ref().unwrap().m02.as_ref().unwrap().support_shots,
+            session.state.mission.as_ref().unwrap().companion.shots,
             session.state.players.iter().filter(|p| p.name.starts_with("floor_") || p.name.starts_with("press_") || p.name.starts_with("conveyor_")).map(|p| (&p.name, p.hp, p.x, p.z)).collect::<Vec<_>>()
         )
     });

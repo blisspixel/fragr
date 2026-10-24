@@ -1648,7 +1648,7 @@
     "map_index": 7,
     "state": {
       "attempt": 1,
-      "changed_at": 1304,
+      "changed_at": 1300,
       "id": "all_systems_normal",
       "m18": {
         "aid_delivered": true,
@@ -1708,7 +1708,7 @@
         "revision": 4
       }
     },
-    "tick": 1304
+    "tick": 1300
   },
   {
     "map_index": 7,

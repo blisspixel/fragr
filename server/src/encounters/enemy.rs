@@ -274,6 +274,13 @@ fn armored(kind: EnemyKind) -> bool {
     )
 }
 
+/// Kinds whose attacks share the ranged tokens: every tell aimed at a
+/// participant, including a Paver's strip and a Surveyor's lens. Melee leaps
+/// and charges are not paced.
+fn paced(kind: EnemyKind) -> bool {
+    !matches!(kind, EnemyKind::Crawler | EnemyKind::Enforcer)
+}
+
 /// Signed shortest turn from `from` to `to`, in (-pi, pi].
 fn turn(from: f32, to: f32) -> f32 {
     let delta = (to - from).rem_euclid(TAU);
@@ -779,12 +786,14 @@ impl EnemyController {
     }
 
     /// Whether this controller is holding a ranged attack token: a tell or a
-    /// burst committed at a participant.
+    /// burst committed at a participant. Every kind that holds a token also
+    /// asks for one before its tell starts, so a raised gun, a camera flash,
+    /// a jammer pulse or a canister lob on screen always means one of the two
+    /// attacks a participant can face at once.
     pub(super) fn holds_token(&self) -> Option<Uuid> {
-        (!matches!(self.kind, EnemyKind::Crawler | EnemyKind::Enforcer)
-            && matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing))
-        .then_some(self.target)
-        .flatten()
+        (paced(self.kind) && matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing))
+            .then_some(self.target)
+            .flatten()
     }
 
     /// One pre-step observation for every controller. Attack aim commits at the
@@ -916,6 +925,8 @@ impl EnemyController {
         // several pellets or trading shooters add up to one heavy hit.
         let damage = self.last_hp.saturating_sub(me.hp);
         self.last_hp = me.hp;
+        // A new tell starts only with a free token on its participant.
+        let may_attack = target.is_none_or(|target| tokens.free(target.id, tick));
         if self.kind == EnemyKind::Paver {
             let arena = state.current_arena();
             let grounded = me.hp > 0
@@ -933,7 +944,7 @@ impl EnemyController {
                 &arena,
                 target,
                 feet,
-                grounded,
+                grounded && may_attack,
                 damage,
                 (windup, recovery),
                 tick,
@@ -952,7 +963,7 @@ impl EnemyController {
         }
 
         if surveyor {
-            return self.surveyor(state, target, eye, (windup, recovery), tick);
+            return self.surveyor(state, target, eye, (windup, recovery), tick, may_attack);
         }
         let mut action = Action::default();
         if self.kind == EnemyKind::Enforcer {
@@ -1072,10 +1083,10 @@ impl EnemyController {
             return self.crawler(target, grounded, exposed, feet, tick);
         }
         if self.kind == EnemyKind::Jammer {
-            return self.jammer(target, eye, (windup, recovery), tick, state);
+            return self.jammer(target, eye, (windup, recovery), tick, state, may_attack);
         }
         if self.kind == EnemyKind::Assessor {
-            return self.assessor(target, eye, (windup, recovery), tick);
+            return self.assessor(target, eye, (windup, recovery), tick, may_attack);
         }
         // Guards spend the same finite ammunition counts as participants.
         // An empty guard can still defend themselves at melee distance.
@@ -1132,7 +1143,6 @@ impl EnemyController {
         }
         // Turrets and marksmen keep tracking, but start a tell only with a
         // free token, like the infantry below.
-        let may_attack = target.is_none_or(|target| tokens.free(target.id, tick));
         if turret {
             return self.turret(target, eye, windup, tick, &centre, may_attack);
         }
@@ -1146,7 +1156,9 @@ impl EnemyController {
             return self.marksman(target, aim_point.filter(|_| may_attack), eye, windup, tick);
         }
         if self.kind == EnemyKind::Notary {
-            if let Some(target) = target {
+            // A Notary denied a token keeps hovering on its patrol; the
+            // camera flash is its tell and waits its turn like a raised gun.
+            if let Some(target) = target.filter(|_| may_attack) {
                 let horizontal = (target.x - me.x).hypot(target.z - me.z);
                 let rise = eye[1] - centre(target)[1];
                 if horizontal >= rise.max(0.0) && horizontal <= 24.0 {
@@ -1411,6 +1423,7 @@ impl EnemyController {
         timing: (u64, u64),
         tick: u64,
         state: &GameState,
+        may_attack: bool,
     ) -> BotIntent {
         let (windup, recovery) = timing;
         let mut action = Action::default();
@@ -1432,7 +1445,7 @@ impl EnemyController {
             }
             return BotIntent { action, goal: None };
         }
-        if !state.has_traveling_shot(self.id) {
+        if may_attack && !state.has_traveling_shot(self.id) {
             if let Some(target) =
                 target.filter(|target| (target.x - eye[0]).hypot(target.z - eye[2]) <= ENGAGE_RANGE)
             {
@@ -1900,6 +1913,82 @@ mod tests {
         turret.enter(EnemyPhase::Recovery, 10, 30);
         let planted = turret.intent(&state, &state.snapshot());
         assert!(!planted.action.left && !planted.action.right && !planted.action.forward);
+    }
+
+    #[test]
+    fn every_kind_that_holds_a_token_waits_for_one_before_its_tell() {
+        use crate::protocol::Role;
+
+        let jammer_id = Uuid::from_u128(0x0b01);
+        let player_id = Uuid::from_u128(0x0b02);
+        let mut state = GameState::new();
+        state.add_player(jammer_id, "Jammer".into(), Role::Agent);
+        state.add_player(player_id, "Visitor".into(), Role::Human);
+        let floor = state.players[0].y;
+        for (id, x) in [(jammer_id, 0.0), (player_id, 6.0)] {
+            let body = state.players.iter_mut().find(|p| p.id == id).unwrap();
+            [body.x, body.y, body.z] = [x, floor, 0.0];
+        }
+        state.players[1].campaign = Some(CampaignActor::Participant {});
+        state.players[0].campaign = Some(CampaignActor::Hostile {
+            kind: EnemyKind::Jammer,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+            control: crate::protocol::ControlDomain::Union,
+        });
+        state.spawn_shields.clear();
+        state.tick = 40;
+        let snapshot = state.snapshot();
+
+        // Two raised guns already hold both tokens on the participant.
+        let mut tokens = AttackTokens::limited(RANGED_ATTACK_TOKENS);
+        tokens.take(player_id, 0);
+        tokens.take(player_id, 0);
+        let mut jammer =
+            EnemyController::new(jammer_id, EnemyKind::Jammer, [0.0; 3], 0.0, 0, false);
+        jammer.last_hp = state.players[0].hp;
+        jammer.paced_intent(&state, &snapshot, &tokens);
+        assert_ne!(
+            jammer.phase,
+            EnemyPhase::Windup,
+            "a jammer pulse is a third attack and waits like a third gun"
+        );
+        assert_eq!(jammer.holds_token(), None);
+
+        // The guns lower; the pulse may begin and then holds a token itself.
+        tokens.begin_tick();
+        jammer.paced_intent(&state, &snapshot, &tokens);
+        assert_eq!(jammer.phase, EnemyPhase::Windup);
+        assert_eq!(jammer.holds_token(), Some(player_id));
+
+        // Melee leaps and charges are not paced and never hold one.
+        for kind in [EnemyKind::Crawler, EnemyKind::Enforcer] {
+            let mut other = EnemyController::new(jammer_id, kind, [0.0; 3], 0.0, 0, false);
+            other.target = Some(player_id);
+            other.enter(EnemyPhase::Windup, 40, 20);
+            assert_eq!(other.holds_token(), None, "{kind:?}");
+        }
+        for kind in [
+            EnemyKind::Clerk,
+            EnemyKind::Sweeper,
+            EnemyKind::HeavySweeper,
+            EnemyKind::Turret,
+            EnemyKind::Notary,
+            EnemyKind::Auditor,
+            EnemyKind::RangedSweeper,
+            EnemyKind::Redactor,
+            EnemyKind::Jammer,
+            EnemyKind::Assessor,
+            EnemyKind::Paver,
+            EnemyKind::Surveyor,
+        ] {
+            let mut other = EnemyController::new(jammer_id, kind, [0.0; 3], 0.0, 0, false);
+            other.target = Some(player_id);
+            other.enter(EnemyPhase::Windup, 40, 20);
+            assert_eq!(other.holds_token(), Some(player_id), "{kind:?}");
+        }
     }
 
     #[test]

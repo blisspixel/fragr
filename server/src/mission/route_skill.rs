@@ -8,7 +8,7 @@
 //! route a statement about the level instead of about a seed.
 use crate::movement::{Arena, MoveInput, EYE_HEIGHT, STEP_UP};
 use crate::navigation::Navigation;
-use crate::protocol::{Action, CampaignActor, EnemyPhase, PlayerState, Snapshot};
+use crate::protocol::{Action, CampaignActor, EnemyPhase, PlayerState, Region3, Snapshot};
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::FRAC_PI_2;
 use uuid::Uuid;
@@ -63,9 +63,16 @@ pub(crate) struct TellReader {
     dodges: Vec<Dodge>,
     /// The way out of a marked blast area, while the body is still inside one.
     blast: Option<f32>,
+    /// Regions a dodge must not carry the body into, such as an ungated exit
+    /// a full-clear route has not earned yet.
+    avoid: Vec<Region3>,
 }
 
 impl TellReader {
+    pub(crate) fn avoid(&mut self, regions: Vec<Region3>) {
+        self.avoid = regions;
+    }
+
     /// Replace the movement keys with a sidestep while the body still stands
     /// on the line of a committed attack aimed at it. Aim, fire and equipment
     /// intent are kept. Off every line, or with no open side, the action is
@@ -111,8 +118,12 @@ impl TellReader {
             }
             let side = sides
                 .into_iter()
-                .find(|yaw| open(&arena, me, *yaw, SIDE_OPEN))
-                .or_else(|| sides.into_iter().find(|yaw| open(&arena, me, *yaw, 1.0)));
+                .find(|yaw| open(&arena, &self.avoid, me, *yaw, SIDE_OPEN))
+                .or_else(|| {
+                    sides
+                        .into_iter()
+                        .find(|yaw| open(&arena, &self.avoid, me, *yaw, 1.0))
+                });
             if let Some(side) = side {
                 self.dodges.push(Dodge {
                     guard: guard.id,
@@ -125,9 +136,9 @@ impl TellReader {
         // A marked blast area comes first: walk out of it. Keep the way out
         // already chosen while it stays open, so two overlapping marks cannot
         // turn the body back and forth between them.
-        let away = blast_exit(snapshot, me, &arena).map(|fresh| {
+        let away = blast_exit(snapshot, me, &arena, &self.avoid).map(|fresh| {
             self.blast
-                .filter(|kept| open(&arena, me, *kept, 0.6))
+                .filter(|kept| open(&arena, &self.avoid, me, *kept, 0.6))
                 .unwrap_or(fresh)
         });
         self.blast = away;
@@ -144,7 +155,7 @@ impl TellReader {
         else {
             return action;
         };
-        if !open(&arena, me, dodge.side, 0.6) {
+        if !open(&arena, &self.avoid, me, dodge.side, 0.6) {
             return action;
         }
         steer(action, me, dodge.side)
@@ -153,29 +164,50 @@ impl TellReader {
 
 /// The world direction out of the Walker's announced stomp or marked shell
 /// area the body stands in, if any.
-fn blast_exit(snapshot: &Snapshot, me: &PlayerState, arena: &Arena) -> Option<f32> {
+fn blast_exit(
+    snapshot: &Snapshot,
+    me: &PlayerState,
+    arena: &Arena,
+    avoid: &[Region3],
+) -> Option<f32> {
     use crate::protocol::{WalkerPhase, WALKER_SHELL_RADIUS, WALKER_STOMP_RADIUS};
-    let walker = snapshot.walker.as_ref()?;
     let mut areas = Vec::new();
-    if matches!(walker.phase, WalkerPhase::StompWarning | WalkerPhase::Stomp) {
-        areas.push((walker.feet, WALKER_STOMP_RADIUS));
-    }
-    if matches!(
-        walker.phase,
-        WalkerPhase::ArtilleryWarning | WalkerPhase::Artillery
-    ) || !walker.shells.is_empty()
-    {
-        areas.extend(
-            walker
-                .artillery_targets
-                .iter()
-                .map(|target| (*target, WALKER_SHELL_RADIUS)),
-        );
+    if let Some(walker) = snapshot.walker.as_ref() {
+        if matches!(walker.phase, WalkerPhase::StompWarning | WalkerPhase::Stomp) {
+            areas.push((walker.feet, WALKER_STOMP_RADIUS));
+        }
+        if matches!(
+            walker.phase,
+            WalkerPhase::ArtilleryWarning | WalkerPhase::Artillery
+        ) || !walker.shells.is_empty()
+        {
+            areas.extend(
+                walker
+                    .artillery_targets
+                    .iter()
+                    .map(|target| (*target, WALKER_SHELL_RADIUS)),
+            );
+        }
     }
     // Every mark the body stands in pushes it out in proportion to how deep
     // it stands, so overlapping marks resolve to one way out.
     let mut push = [0.0_f32, 0.0_f32];
     let mut inside = false;
+    // A Paver's marked strip: step off its nearer long edge.
+    for strip in &snapshot.paver_strips {
+        let along_dir = [strip.yaw.cos(), strip.yaw.sin()];
+        let delta = [me.x - strip.origin[0], me.z - strip.origin[2]];
+        let along = delta[0] * along_dir[0] + delta[1] * along_dir[1];
+        let lateral = delta[0] * along_dir[1] - delta[1] * along_dir[0];
+        let depth = strip.half_width + 0.6 - lateral.abs();
+        if !(-0.6..=strip.length + 0.6).contains(&along) || depth <= 0.0 {
+            continue;
+        }
+        inside = true;
+        let side = if lateral >= 0.0 { 1.0 } else { -1.0 };
+        push[0] += along_dir[1] * side * depth;
+        push[1] -= along_dir[0] * side * depth;
+    }
     for (centre, radius) in areas {
         let delta = [me.x - centre[0], me.z - centre[2]];
         let distance = delta[0].hypot(delta[1]);
@@ -199,7 +231,7 @@ fn blast_exit(snapshot: &Snapshot, me: &PlayerState, arena: &Arena) -> Option<f3
     [0.0, 0.6, -0.6, 1.2, -1.2, 1.8, -1.8]
         .into_iter()
         .map(|turn| away + turn)
-        .find(|yaw| open(arena, me, *yaw, 1.0))
+        .find(|yaw| open(arena, avoid, me, *yaw, 1.0))
 }
 
 /// Movement keys closest to the world direction `yaw` in the facing the sim
@@ -250,7 +282,14 @@ pub(crate) fn survey(
 ) {
     let mut failed = Vec::new();
     let mut total = 0;
-    for seed in seeds {
+    // FRAGR_SURVEY_SEED narrows a survey to one seed while reading its log.
+    let only: Option<u64> = std::env::var("FRAGR_SURVEY_SEED")
+        .ok()
+        .and_then(|seed| seed.parse().ok());
+    for seed in seeds
+        .into_iter()
+        .filter(|seed| only.is_none_or(|only| only == *seed))
+    {
         total += 1;
         if std::panic::catch_unwind(|| route(seed)).is_err() {
             failed.push(seed);
@@ -288,11 +327,12 @@ impl FutileTargets {
     pub(crate) fn observe(&mut self, snapshot: &Snapshot, action: &Action) {
         let tick = snapshot.tick;
         self.resting.retain(|(_, until)| tick < *until);
+        // Held aim counts as well as held fire: a target the controller only
+        // stares at, out of reach or out of sight, also holds up the route.
         let Some(target) = action
             .look_at
             .as_ref()
             .and_then(|look| look.player_id)
-            .filter(|_| action.fire)
             .and_then(|id| snapshot.players.iter().find(|p| p.id == id))
         else {
             return;
@@ -321,8 +361,9 @@ fn sees(guard: &PlayerState, me: &PlayerState, arena: &Arena) -> bool {
     )
 }
 
-/// Walkable, level ground `length` metres from the body along `yaw`.
-fn open(arena: &Arena, me: &PlayerState, yaw: f32, length: f32) -> bool {
+/// Walkable, level ground `length` metres from the body along `yaw`, outside
+/// every region the controller must not enter yet.
+fn open(arena: &Arena, avoid: &[Region3], me: &PlayerState, yaw: f32, length: f32) -> bool {
     let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
     let point = [
         feet[0] + yaw.cos() * length,
@@ -331,5 +372,8 @@ fn open(arena: &Arena, me: &PlayerState, yaw: f32, length: f32) -> bool {
     ];
     let floor = arena.support_height(point[0], point[2], feet[1] + STEP_UP);
     (floor - feet[1]).abs() <= STEP_UP
+        && !avoid
+            .iter()
+            .any(|region| region.contains([point[0], floor, point[2]]))
         && Navigation::walkable_in(arena, feet, [point[0], floor, point[2]])
 }

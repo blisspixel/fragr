@@ -256,7 +256,7 @@ fn companion_short_yield_can_use_one_supported_quarter_step_deterministically() 
             top: 3.0,
         }],
     };
-    assert!(formation::goal(&arena, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    assert!(formation::goal(&arena, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).is_none());
     let first = formation::short_yield(&arena, me, [0.0, 3.0, 0.0], &bodies).unwrap();
     assert_eq!(first.yaw, Some(0.0));
     assert!(first.forward && !first.fire && !first.jump);
@@ -265,6 +265,14 @@ fn companion_short_yield_can_use_one_supported_quarter_step_deterministically() 
         assert_eq!(repeated.yaw, first.yaw);
     }
     assert!(formation::short_yield(&arena, me, [-2.0, 3.0, 0.0], &bodies).is_none());
+}
+
+fn still(feet: [f32; 3]) -> formation::Leader {
+    formation::Leader {
+        feet,
+        yaw: 0.0,
+        velocity: [0.0; 2],
+    }
 }
 
 fn local_scene(feet: [f32; 3], leader: [f32; 3]) -> (GameState, Uuid, Uuid) {
@@ -293,7 +301,7 @@ fn companion_local_yield_respects_support_corners_and_no_retreat() {
         half: 10.0,
         solids: vec![deck],
     };
-    let goal = formation::goal(&arena, me, [0.0, 3.0, 0.0], false, &bodies).unwrap();
+    let goal = formation::goal(&arena, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).unwrap();
     assert_eq!(goal.feet[1], 3.0);
     assert!(
         goal.feet[2].abs() > 0.6 && goal.feet[0] < 2.0,
@@ -336,7 +344,9 @@ fn companion_local_yield_respects_support_corners_and_no_retreat() {
             },
         ],
     };
-    assert!(formation::goal(&confined, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    assert!(
+        formation::goal(&confined, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).is_none()
+    );
     assert!(formation::short_yield(&confined, me, [0.0, 3.0, 0.0], &bodies).is_none());
 }
 
@@ -349,10 +359,10 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
     let (mut state, id, ally) = local_scene([7.0, 0.0, 0.0], [0.0, 0.0, 0.0]);
     let me = state.players.iter().find(|p| p.id == ally).unwrap();
     let bodies = state.contact_bodies();
-    let first = formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &bodies).unwrap();
+    let first = formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), false, &bodies, None).unwrap();
     for _ in 0..100 {
         assert_eq!(
-            formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &bodies)
+            formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), false, &bodies, None)
                 .unwrap()
                 .feet,
             first.feet
@@ -365,7 +375,7 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
         first.feet
     ));
     assert_eq!(
-        formation::goal(&arena, me, [0.0, 0.0, 0.0], true, &bodies)
+        formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), true, &bodies, None)
             .unwrap()
             .feet,
         [-2.4, 0.0, 1.2],
@@ -373,7 +383,15 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
     );
     place(&mut state, ally, [2.4, 0.0, 0.0]);
     let me = state.players.iter().find(|p| p.id == ally).unwrap();
-    assert!(formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &state.contact_bodies()).is_none());
+    assert!(formation::goal(
+        &arena,
+        me,
+        &still([0.0, 0.0, 0.0]),
+        false,
+        &state.contact_bodies(),
+        None
+    )
+    .is_none());
     assert!(state.players.iter().any(|p| p.id == id && p.hp == 100));
 }
 

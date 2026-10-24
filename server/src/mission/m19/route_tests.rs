@@ -67,6 +67,7 @@ pub(super) fn run_route(difficulty: CampaignDifficulty, seed: u64) -> RouteRepor
     ));
     let mut client = MissionClient::default();
     let mut navigator = Navigator::default();
+    let mut tells = crate::mission::route_skill::TellReader::default();
     let mut previous = None;
     let mut navigation = None;
     let mut objectives = Vec::new();
@@ -266,6 +267,7 @@ pub(super) fn run_route(difficulty: CampaignDifficulty, seed: u64) -> RouteRepor
                 enemies
             );
         }
+        let action = tells.evade(&session.state, &snapshot, id, action);
         session.state.set_action(id, action);
         session.tick_messages(0.05);
     }
@@ -301,6 +303,15 @@ fn m19_route_trace() {
         _ => CampaignDifficulty::Standard,
     };
     run_route(tier, 19);
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn m19_planned_works_seed_survey() {
+    crate::mission::route_skill::survey("M19 Planned Works, Standard", 10..26, |seed| {
+        let report = run_route(CampaignDifficulty::Standard, seed);
+        assert_eq!(report.objectives.len(), 9);
+    });
 }
 
 #[test]

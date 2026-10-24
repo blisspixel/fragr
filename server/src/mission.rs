@@ -80,6 +80,8 @@ pub(crate) struct MissionRun {
     started: bool,
     started_at: Option<u64>,
     ready: HashSet<Uuid>,
+    /// Latch's own weapon state, for the missions Latch fights in.
+    companion: m02::companion::Support,
 }
 
 impl MissionRun {
@@ -116,6 +118,7 @@ impl MissionRun {
             started: false,
             started_at: None,
             ready: HashSet::new(),
+            companion: Default::default(),
         })
     }
 }
@@ -334,6 +337,7 @@ impl GameState {
         self.map = run.initial_map.clone();
         self.players.retain(Player::is_participant);
         run.m20 = run.initial_map.m20_objectives().map(m20::M20Progress::new);
+        run.companion = Default::default();
         if let Some(m02) = run.m02.as_mut() {
             *m02 = m02::M02Progress::default();
         }

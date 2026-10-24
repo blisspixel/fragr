@@ -11,8 +11,6 @@ pub(super) struct M04Progress {
     pub(super) patients: Vec<M04PatientState>,
     pub(super) route_points: Vec<usize>,
     pub(super) photos_completed: u32,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
 }
 impl M04Progress {
     pub(super) fn new(geometry: M04MapGeometry) -> Self {
@@ -30,8 +28,6 @@ impl M04Progress {
                 })
                 .collect(),
             photos_completed: 0,
-            support_shots: 0,
-            last_support_tick: None,
         }
     }
 }

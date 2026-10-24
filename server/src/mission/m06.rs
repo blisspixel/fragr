@@ -6,8 +6,6 @@ use crate::protocol::{M06ObjectiveState, MissionObjective, MissionObjectiveActio
 pub(super) struct M06Progress {
     pub(super) index: usize,
     pub(super) prisoner_route_marked: bool,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
 }
 
 impl GameState {

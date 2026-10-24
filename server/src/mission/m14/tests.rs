@@ -508,6 +508,7 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
     let mut client = MissionClient::default();
     let mut navigator = crate::navigation::Navigator::default();
     let mut tells = crate::mission::route_skill::TellReader::default();
+    let mut futile = crate::mission::route_skill::FutileTargets::default();
     let mut last_map = None;
     let mut reload_held = false;
     let mut navigation = None;
@@ -581,12 +582,13 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
         );
         let p = s.state.players.iter().find(|p| p.id == id).unwrap();
         let loadout = p.inventory.state(id, p.weapon, s.state.tick).unwrap();
-        let mut action = crate::inventory::control_action_with_objective(
+        let mut action = crate::inventory::control_action_with_target_filter(
             id,
             &snapshot,
             Some(&loadout),
             Action::default(),
             true,
+            |_, other| !futile.skips(other.id, snapshot.tick),
         );
         if role == Role::Human
             && loadout
@@ -672,6 +674,7 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
             action.fire = false;
         }
         reload_held = action.reload;
+        futile.observe(&snapshot, &action);
         let action = tells.evade(&s.state, &snapshot, id, action);
         s.state.set_action(id, action);
         tick(&mut s);

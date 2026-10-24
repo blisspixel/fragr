@@ -1,8 +1,39 @@
 //! Fixed local formation probes. Session retains the one bounded route search.
-use crate::movement::{contact::ContactBody, Arena, MoveInput, RADIUS, STEP_UP};
+use crate::movement::{contact::ContactBody, Arena, MoveInput, Solid, EYE_HEIGHT, RADIUS, STEP_UP};
 use crate::navigation::{Navigation, NavigationGoal};
 use crate::protocol::Action;
 use crate::sim::Player;
+
+/// The participant Latch keeps company with.
+pub(super) struct Leader {
+    pub(super) feet: [f32; 3],
+    pub(super) yaw: f32,
+    /// Horizontal velocity, metres per second.
+    pub(super) velocity: [f32; 2],
+}
+
+/// The enemy the participant is facing, and the world that blocks sight.
+pub(super) struct Threat<'a> {
+    pub(super) feet: [f32; 3],
+    pub(super) solids: &'a [Solid],
+}
+
+/// A participant moving at least this fast is going somewhere.
+const WALKING: f32 = 1.0;
+/// The lane ahead of a moving participant that Latch keeps clear: this far
+/// ahead and this wide either side of their line of travel.
+const PATH_AHEAD: f32 = 4.0;
+const PATH_HALF_WIDTH: f32 = 1.0;
+/// Sidestep distance out of that lane.
+const PATH_STEP: f32 = 1.6;
+/// A covering position keeps this much angle off the participant's line of
+/// fire, at a companionable distance from them.
+const FIRE_CONE: f32 = 0.4;
+const COVER_NEAR: f32 = 2.2;
+const COVER_FAR: f32 = 4.6;
+/// Furthest round from the threat bearing a covering position may sit:
+/// abreast or a little back, never behind the participant's shoulders.
+const COVER_WIDE: f32 = 2.1;
 
 const STAND_OFF: f32 = 2.4;
 const YIELD_CLEARANCE: f32 = RADIUS * 2.0 + 0.6;
@@ -85,19 +116,173 @@ fn safe_yield(
     true
 }
 
+fn angle_between(a: f32, b: f32) -> f32 {
+    let delta = (a - b).rem_euclid(std::f32::consts::TAU);
+    delta.min(std::f32::consts::TAU - delta)
+}
+
+/// Supported floor at `point`'s ground position level with `origin`.
+fn level_point(arena: &Arena, origin: [f32; 3], x: f32, z: f32) -> Option<[f32; 3]> {
+    let floor = arena.support_height(x, z, origin[1] + STEP_UP);
+    ((floor - origin[1]).abs() <= 0.1).then_some([x, floor, z])
+}
+
+/// Whether `point` stands in the lane a moving participant is about to walk.
+fn in_path(leader: &Leader, point: [f32; 3], height: f32) -> bool {
+    let speed = leader.velocity[0].hypot(leader.velocity[1]);
+    if speed < WALKING || (point[1] - leader.feet[1]).abs() >= height {
+        return false;
+    }
+    let along = [leader.velocity[0] / speed, leader.velocity[1] / speed];
+    let offset = [point[0] - leader.feet[0], point[2] - leader.feet[2]];
+    let ahead = offset[0] * along[0] + offset[1] * along[1];
+    let lateral = (offset[0] * along[1] - offset[1] * along[0]).abs();
+    ahead > 0.0 && ahead < PATH_AHEAD && lateral < PATH_HALF_WIDTH
+}
+
+/// Out of the way of a participant walking at Latch: a step aside on Latch's
+/// own side of their line, the other side, or a lead through the doorway
+/// ahead of them when the walls leave no side.
+fn clear_path(
+    arena: &Arena,
+    me: &ContactBody,
+    leader: &Leader,
+    bodies: &[ContactBody],
+) -> Option<NavigationGoal> {
+    let feet = [me.from.x, me.from.y, me.from.z];
+    if !in_path(leader, feet, me.height) {
+        return None;
+    }
+    let speed = leader.velocity[0].hypot(leader.velocity[1]);
+    let along = [leader.velocity[0] / speed, leader.velocity[1] / speed];
+    let offset = [feet[0] - leader.feet[0], feet[2] - leader.feet[2]];
+    let side = if offset[0] * along[1] - offset[1] * along[0] >= 0.0 {
+        1.0
+    } else {
+        -1.0
+    };
+    // The perpendicular on Latch's side of the participant's line.
+    let across = [along[1] * side, -along[0] * side];
+    [
+        (across, PATH_STEP),
+        ([-across[0], -across[1]], PATH_STEP),
+        (along, PATH_AHEAD),
+        (across, PATH_STEP * 0.6),
+    ]
+    .into_iter()
+    .filter_map(|(direction, length)| {
+        level_point(
+            arena,
+            feet,
+            feet[0] + direction[0] * length,
+            feet[2] + direction[1] * length,
+        )
+    })
+    .find(|point| {
+        !occupied(*point, me, bodies)
+            && Navigation::walkable_in(arena, feet, *point)
+            && (point[0] - leader.feet[0]).hypot(point[2] - leader.feet[2]) >= YIELD_CLEARANCE
+    })
+    .map(|point| NavigationGoal {
+        feet: point,
+        combat: false,
+    })
+}
+
+/// In a fight Latch stands beside the participant with a line on the threat,
+/// out of the participant's line of fire and out of their crosshair. Returns
+/// `Some(None)` to hold a position that already does that, `Some(goal)` to
+/// move to the nearest one, and `None` when the ground offers none.
+fn covering(
+    arena: &Arena,
+    me: &ContactBody,
+    leader: &Leader,
+    bodies: &[ContactBody],
+    threat: &Threat<'_>,
+) -> Option<Option<NavigationGoal>> {
+    let feet = [me.from.x, me.from.y, me.from.z];
+    let bearing = (threat.feet[2] - leader.feet[2]).atan2(threat.feet[0] - leader.feet[0]);
+    let threat_eye = [
+        threat.feet[0],
+        threat.feet[1] + EYE_HEIGHT * 0.8,
+        threat.feet[2],
+    ];
+    let covers = |point: [f32; 3]| {
+        let offset = [point[0] - leader.feet[0], point[2] - leader.feet[2]];
+        let reach = offset[0].hypot(offset[1]);
+        let round = offset[1].atan2(offset[0]);
+        (COVER_NEAR..=COVER_FAR).contains(&reach)
+            && (point[1] - leader.feet[1]).abs() < me.height
+            && angle_between(round, bearing) >= FIRE_CONE
+            && angle_between(round, bearing) <= COVER_WIDE
+            && angle_between(round, leader.yaw) >= FIRE_CONE
+            && !in_path(leader, point, me.height)
+            && crate::combat::line_of_sight(
+                [point[0], point[1] + EYE_HEIGHT, point[2]],
+                threat_eye,
+                threat.solids,
+            )
+    };
+    if covers(feet) {
+        return Some(None);
+    }
+    let mut best: Option<([f32; 3], f32)> = None;
+    for reach in [2.6_f32, 3.4] {
+        for turn in [0.9_f32, -0.9, 1.3, -1.3, 0.6, -0.6, 1.7, -1.7] {
+            let yaw = bearing + turn;
+            let Some(point) = level_point(
+                arena,
+                leader.feet,
+                leader.feet[0] + yaw.cos() * reach,
+                leader.feet[2] + yaw.sin() * reach,
+            ) else {
+                continue;
+            };
+            let walk = (point[0] - feet[0]).hypot(point[2] - feet[2]);
+            if best.is_some_and(|(_, shortest)| shortest <= walk)
+                || !covers(point)
+                || occupied(point, me, bodies)
+                || !Navigation::walkable_in(arena, leader.feet, point)
+            {
+                continue;
+            }
+            best = Some((point, walk));
+        }
+    }
+    best.map(|(point, walk)| {
+        (walk > FOLLOW_TOLERANCE).then_some(NavigationGoal {
+            feet: point,
+            combat: false,
+        })
+    })
+}
+
 pub(super) fn goal(
     arena: &Arena,
     companion: &Player,
-    leader: [f32; 3],
+    leader_state: &Leader,
     m02_slot: bool,
     bodies: &[ContactBody],
+    threat: Option<Threat<'_>>,
 ) -> Option<NavigationGoal> {
+    let leader = leader_state.feet;
     let me = bodies
         .iter()
         .find(|body| body.key == companion.id.to_string())?;
     let feet = [me.from.x, me.from.y, me.from.z];
     let gap = (feet[0] - leader[0]).hypot(feet[2] - leader[2]);
     let close = gap < YIELD_CLEARANCE && (feet[1] - leader[1]).abs() < me.height;
+    if !close {
+        if let Some(clear) = clear_path(arena, me, leader_state, bodies) {
+            return Some(clear);
+        }
+        if let Some(cover) = threat
+            .as_ref()
+            .and_then(|threat| covering(arena, me, leader_state, bodies, threat))
+        {
+            return cover;
+        }
+    }
     if m02_slot && !close {
         // M02 already has an authored lateral slot. Keep its exact return-route
         // placement and tolerance instead of changing ordinary support timing.

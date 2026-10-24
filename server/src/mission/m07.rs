@@ -5,8 +5,6 @@ use crate::protocol::{M07ObjectiveState, MissionObjective, MissionObjectiveActio
 #[derive(Default)]
 pub(super) struct M07Progress {
     pub(super) index: usize,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
 }
 
 /// Ordered Arrival objectives before the shared departure.

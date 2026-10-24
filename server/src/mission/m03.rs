@@ -8,8 +8,6 @@ use crate::protocol::{
 pub(super) struct M03Progress {
     pub(super) mast_hp: i32,
     pub(super) cars: Vec<M03CarState>,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
 }
 impl M03Progress {
     pub(super) fn new(map: M03MapGeometry) -> Self {
@@ -24,8 +22,6 @@ impl M03Progress {
                     captives: car.held,
                 })
                 .collect(),
-            support_shots: 0,
-            last_support_tick: None,
         }
     }
 }
