@@ -460,6 +460,68 @@ fn a_survival_that_carried_nobody_still_opens_the_walk() {
     );
 }
 
+/// One run shows the same faces at Level 20's pier and in Still Here's first
+/// light. Splice stands at either only after reaching the level 5 freight,
+/// as Tern's crew list in level 9 does: release alone brings nobody.
+#[test]
+fn the_pier_and_the_refuge_agree_on_who_came() {
+    let map = AuthoredSource::Mission(MissionId::LocalException)
+        .load()
+        .unwrap();
+    let hash = AuthoredSource::bundled_content_sha256(MissionId::LocalException);
+    let carried = awaiting_local_exception()
+        .promote_next(MissionId::LocalException, hash)
+        .unwrap();
+    let mut released_only = carried.clone();
+    let workshop = released_only.m05_outcome.as_mut().unwrap();
+    assert!(workshop.released_workers.iter().any(|id| id == "splice"));
+    workshop.evacuated_workers.clear();
+    // Splice missed the freight, so never boarded Tern's ship either.
+    let berth = released_only.m09_outcome.as_mut().unwrap();
+    for list in [&mut berth.released_crew, &mut berth.aboard_at_departure] {
+        list.retain(|id| id != "splice");
+    }
+    if let Some(crate::protocol::M10Transit::Recorded { arrived_crew }) =
+        released_only.m10_transit.as_mut()
+    {
+        arrived_crew.retain(|id| id != "splice");
+    }
+    released_only.validate(hash).unwrap();
+    for (entry, splice) in [(carried, true), (released_only, false)] {
+        let mut s = GameSession::with_authored_map(map.clone());
+        s.state.load_campaign_run(&entry).unwrap();
+        s.state
+            .add_player(Uuid::from_u128(2021), "Pier operative".into(), Role::Human);
+        let pier = s.state.mission_state().unwrap().m20.unwrap().refuge;
+        assert_eq!(
+            pier.splice, splice,
+            "Splice at the pier follows the freight"
+        );
+        // The same run's survival, as Still Here reads it.
+        let SavedStep::MissionEntry { entry: exit, .. } = entry.step.clone() else {
+            unreachable!()
+        };
+        let mut victory = entry;
+        victory.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::LocalException,
+            next_mission: "still_here".into(),
+            exit,
+        };
+        victory.validate(hash).unwrap();
+        let first_light = crate::mission::epilogue::refuge_from(&victory);
+        assert_eq!(
+            (pier.edda, pier.splice, pier.orrin, pier.sorrel),
+            (
+                first_light.edda,
+                first_light.splice,
+                first_light.orrin,
+                first_light.sorrel
+            ),
+            "nobody stands at the pier and goes missing by the morning"
+        );
+    }
+}
+
 /// Live review only: writes a real survival run with every rescue to
 /// `FRAGR_QA_SURVIVAL_RUN_DIR`, so a desktop child can open the fullest
 /// refuge with `--local-mission still_here --run-mode resume`. Run with

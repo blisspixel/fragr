@@ -180,8 +180,11 @@ fn refuge_for(solo: Option<&recovery::SoloRun>) -> M20Refuge {
     M20Refuge {
         persons: M20_REFUGE_BASE + freed.min(crate::protocol::M20_MAX_FREED),
         edda: !solo.carried_patients.is_empty(),
+        // Released from the workshop is not the same as getting out: Splice
+        // stands here only after reaching the level 5 freight, as Tern's crew
+        // list in level 9 and Still Here's refuge agree.
         splice: solo
-            .carried_released_workers
+            .carried_evacuated_workers
             .iter()
             .any(|id| id == "splice"),
         orrin,

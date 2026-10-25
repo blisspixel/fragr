@@ -3652,7 +3652,10 @@ people (`persons`, `edda`, `splice`, `orrin`, `sorrel`), the challenges
 Crew leave `working` only after the sluice crossing. The display lights only at
 the turn, the reprieve only on the authored tick, and Latch exists only after
 it. `persons` is 400 plus everyone the saved run freed (capped at 400 more); a
-development or shared room shows the base 400. Challenges never move
+development or shared room shows the base 400. The named people read the same
+receipts as Still Here's refuge, so one run shows the same faces at the pier
+and in the epilogue: `splice` requires actual M05 evacuation, not release
+alone. Challenges never move
 backwards within an attempt. Brief: Assisted needs the crew across, Standard
 adds a broken Surveyor mark, Severe adds a refuge line that never fell.
 

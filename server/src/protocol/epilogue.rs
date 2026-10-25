@@ -34,7 +34,7 @@ pub enum EpilogueSurvivor {
     Cars,
     /// Edda's clinic team came out of level 4.
     Edda,
-    /// Splice walked out of the workshop in level 5.
+    /// Splice reached the level 5 freight; release alone does not count.
     Splice,
     /// Orrin's backup was secured in level 8.
     Orrin,
