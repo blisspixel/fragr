@@ -57,6 +57,13 @@ func _run() -> void:
 		_check((sign as Label3D).font == ArenaBackdrop.FONT, "venue signage uses the pixel face: " + words)
 	_check(signs.any(func(sign: Node) -> bool: return (sign as Label3D).text.contains("67")), "the 67 ritual mark remains on the venue wall")
 	legacy.free()
+	for map_id: int in [1002, 1003, 1015, 1016, 1017, 1018]:
+		var campaign: ArenaBackdrop = ArenaBackdrop.new()
+		root.add_child(campaign)
+		campaign.build(map_id, 40.0)
+		_check(not campaign.find_children("*", "MeshInstance3D", true, false).is_empty(), "campaign keeps its skyline")
+		_check(campaign.find_children("*", "Label3D", true, false).is_empty(), "campaign never borrows league notices: %d" % map_id)
+		campaign.free()
 	if not _failed:
 		print("test_town_backdrop: PASS")
 	quit(1 if _failed else 0)

@@ -180,12 +180,11 @@ retries and the conditional epilogue.
 
 Survival depends on circumstance, escape, preparation, and mutual help, not moral
 selection. Believers die; skeptics survive; neither proves whose interpretation
-was right. Proposed in [the story arc](../campaign/story-arc.md#the-reprieve-is-earned):
-the local reprieve's fictional cause is the network of people the player and
-their allies actually saved, cited by name at the moment it is granted. This
-shapes who is spared and how the reprieve is described, never whether the
-player's run continues; making it a hard requirement to survive would
-contradict the rule in this paragraph, so it stays flavor and framing only.
+was right. Confirmed 2026-10-25 in [the story arc](../campaign/story-arc.md#the-reprieve-is-earned):
+the people actually rescued shape the named survivors and wording of the local
+reprieve. Survival alone unlocks the epilogue. This is continuity and mutual
+help, never a morality score or a rescue threshold. Exact wording must follow
+retained outcomes rather than inventing people or declaring the absent dead.
 There are survivors on Earth, the Moon, Mars, and ships. Offworld life
 existed long before the catastrophe.
 

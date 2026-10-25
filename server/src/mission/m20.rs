@@ -168,7 +168,13 @@ fn refuge_for(solo: Option<&recovery::SoloRun>) -> M20Refuge {
         ));
     }
     if let Some(stadium) = &solo.carried_stadium {
-        freed = freed.saturating_add(count(stadium.armed_entrants.len()));
+        freed = freed.saturating_add(count(
+            stadium
+                .armed_entrants
+                .iter()
+                .filter(|entrant| !stadium.fallen_entrants.contains(entrant))
+                .count(),
+        ));
     }
     if solo
         .carried_avenue

@@ -49,6 +49,30 @@ fn session() -> (GameSession, Uuid) {
     session_with(CampaignDifficulty::Standard, Role::Agent)
 }
 
+#[test]
+fn pier_population_counts_only_stadium_entrants_who_survived() {
+    let (mut s, _) = session_run(CampaignDifficulty::Standard, Role::Agent, true);
+    let solo = s.state.mission.as_mut().unwrap().solo.as_mut().unwrap();
+    let before = refuge_for(Some(solo));
+    solo.carried_stadium = Some(run_file::M15Outcome {
+        pen_armed: true,
+        blade_wave_won: true,
+        entrants_preserved: false,
+        broadcast_taken: true,
+        armed_entrants: vec![4, 12, 44, 71],
+        fallen_entrants: vec![12, 71],
+    });
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 2);
+    solo.carried_stadium.as_mut().unwrap().fallen_entrants = vec![4, 12, 44, 71];
+    assert_eq!(refuge_for(Some(solo)), before);
+    solo.carried_stadium
+        .as_mut()
+        .unwrap()
+        .fallen_entrants
+        .clear();
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 4);
+}
+
 /// One server tick, then the same strict reader every client uses.
 pub(super) fn tick(s: &mut GameSession) {
     s.tick_messages(0.05);

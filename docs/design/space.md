@@ -2,8 +2,9 @@
 
 Production direction, 2026-09-30. The [shared bible](../ART_STORY_BIBLE.md),
 [Tern's continuity](../lore/cast.md#visual-continuity) and
-[levels 10-11](../campaign/README.md) own this direction. Ship missions remain
-unbuilt; there is no implemented zero-gravity claim.
+[levels 10-11](../campaign/README.md) own this direction. Both ship missions are
+connected development levels; final art and fresh-player acceptance remain
+open. There is no implemented zero-gravity claim.
 
 The Common Carrier is a transport people use and maintain. Rescued people,
 belongings and responsibilities travel aboard it. The Union custody tender

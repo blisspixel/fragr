@@ -572,6 +572,19 @@ protagonist survived. Keep flood/rapture echoes understated. Kindness and
 preparation matter through friends and practical readiness, without a hidden
 morality meter or a promise that good behavior guarantees survival.
 
+## Rescue continuity and the reprieve
+
+Confirmed 2026-10-25: the people actually rescued can change the named survivors
+and wording of the local reprieve. Survival alone unlocks the epilogue. There
+is no morality score, rescue threshold or judgment that the spared deserve life
+more than those lost. Use retained server outcomes; an unrecorded rescue is
+not evidence of a death. Show consequences through people acting, remembered
+objects and recognizable absences. Any spoken total must describe people the
+run actually accounts for, never an invented reward count.
+
+This polish pass deepens the existing cast through brief personal actions and
+recurring objects while preserving combat flow and the agreed main plot.
+
 ## Open decisions
 
 The central arc, twenty levels in five episodes plus conditional epilogue, a
@@ -582,9 +595,10 @@ cast/place names, exact companion relationship wording, individual wipe
 operations, final rescue tradeoffs, the reprieve's precise terms, final
 survival duration, travel technology, and sequel image remain proposals or
 open. The [story
-arc](campaign/story-arc.md)'s proposed canon, including the specific mechanism
-tying who the player rescued to the reprieve's telling, stays proposed until
-Nick accepts or strikes each item. Review the treatment before detailed
+arc](campaign/story-arc.md)'s other proposed canon stays proposed until
+Nick accepts or strikes each item. Rescue continuity in the reprieve is confirmed
+above; exact scene wording and implementation still require review against
+retained outcomes. Review the treatment before detailed
 geometry and paid story production. These open details do not reopen the
 agreed story.
 

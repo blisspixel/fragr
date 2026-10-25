@@ -9,8 +9,9 @@ own local staging. The [roadmap](../ROADMAP.md#full-build-order-2026-09-27) alon
 owns build order.
 
 Current material work is recorded in the [world texture expansion](../plans/world-texture-expansion.md).
-Its Earth and Moon mappings support existing levels; the Mars library remains
-future authoring material until a Mars mission is built and inspected.
+Its Earth, Moon and Mars mappings support the connected development campaign.
+Presence in a playable level does not establish final art or fresh-player
+acceptance; the roadmap records those remaining gates.
 
 | Guide | Applies to |
 |---|---|

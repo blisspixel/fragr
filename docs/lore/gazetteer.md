@@ -23,9 +23,9 @@ Earth-Moon-Mars travel takes time. The cast visits lived-in societies, not new
 colonies or empty skyboxes. The coda and aftermath multiplayer revisit familiar
 places years later; those variants need new routes and evidence of change.
 
-Levels 1-4 currently have authored development prototypes, including the yard
-and Low Water market/clinic. Their final pacing and fresh-player acceptance are
-open. Lunar, Martian, ship and later Earth campaign places remain unbuilt.
+All twenty levels and the conditional epilogue have authored connected
+development implementations. Their final pacing, art and fresh-player
+acceptance remain open; implemented places are not finished places.
 The [world guides](../design/README.md) define their shared production direction.
 
 ## Arena myths
@@ -72,7 +72,7 @@ has painted "-1" at the tunnel mouth and on the Pit walls. Aunt Linda's tent
 revival is on level three, over the Spiral landing. Larak's signature is on the
 pay machines, the pulpit and a coffee machine approved in 2009.
 
-The other arena myths and campaign locations await floor plans. The arena size
+The other arena myths await floor plans. The arena size
 ladder is in [map-scale](../plans/map-scale.md); campaign scale follows its story
 and encounter needs rather than a square arena's dimensions.
 
