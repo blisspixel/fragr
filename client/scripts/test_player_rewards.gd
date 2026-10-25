@@ -257,10 +257,15 @@ func _presentation(store: PlayerRecords) -> void:
 	hud.set_weapon_finish("oxide")
 	hud.set_fp_weapon("Scatter")
 	_check(hud.fp_weapon.material != null, "first-person firearm receives paint")
+	# Let the gun finish coming up before taking its resting frame.
+	for frame: int in range(30):
+		hud._process(1.0 / 60.0)
 	var source: Texture2D = hud.fp_weapon.texture
 	hud.set_fp_weapon("Shiv")
 	_check(hud.fp_weapon.material == null, "knife and hand presentation remains original")
 	hud.set_fp_weapon("Scatter")
+	for frame: int in range(30):
+		hud._process(1.0 / 60.0)
 	hud.set_weapon_finish("standard")
 	_check(hud.fp_weapon.material == null and hud.fp_weapon.texture == source, "default finish restores identical source frame without changing gun timing")
 	hud.set_weapon_finish("margin_teal")

@@ -204,8 +204,15 @@ func _check_pawn() -> void:
 	state["weapon"] = "Tack"
 	pawn.call("update_state", state, 7)
 	pawn.call("_process", 0.05)
-	_check((pawn.get("weapon_sprite") as Sprite3D).flip_h,
-		"the accepted live pistol uses its reflected profile")
+	var carried: MeshInstance3D = pawn.get("_held_model") as MeshInstance3D
+	_check(carried != null and carried.visible and carried.mesh == GunModel.carried_mesh("Tack")
+		and not (pawn.get("weapon_sprite") as Sprite3D).visible,
+		"the accepted live pistol is the modelled gun itself, not a profile card")
+	state["weapon"] = "Sniper"
+	pawn.call("update_state", state, 7)
+	pawn.call("_process", 0.05)
+	_check((pawn.get("weapon_sprite") as Sprite3D).flip_h and (pawn.get("weapon_sprite") as Sprite3D).visible and not carried.visible,
+		"the drawn Sniper profile, muzzle on image left, is reflected")
 	SkinnedCharacter._packed[PlayerBody.SYNTHETIC] = null
 	state["body"] = PlayerBody.SYNTHETIC
 	state["weapon"] = "Rail"

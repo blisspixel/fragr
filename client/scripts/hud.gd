@@ -181,6 +181,8 @@ var fp_bob_weight: float = 0.0
 # The bottom of each full-canvas sprite is cut off. It must stay below the
 # viewport, including the largest upward bob (5.4 pixels) and pixel rounding.
 const FP_BOTTOM_OVERLAP: float = 12.0
+## Reference pixels per held-canvas texel on the 1080 line HUD.
+const FP_TEXEL: float = 2.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
 ## Settings > Audio > Announcer: which Host calls reach the voice row.
@@ -189,6 +191,7 @@ var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
 var fp_reload_motion := WeaponArt.ReloadMotion.new()
+var fp_motion := WeaponArt.ViewMotion.new()
 var reticle_colour: Color = MenuTheme.BONE
 var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
@@ -1819,26 +1822,59 @@ func _process(delta):
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
+		var camera: Camera3D = get_viewport().get_camera_3d()
+		if camera != null:
+			var look: Vector3 = camera.global_basis.get_euler()
+			fp_motion.update(delta, Vector2(look.y, look.x), camera.global_position.y, not reduced_motion)
+		else:
+			fp_motion.update(delta, Vector2.ZERO, 0.0, false)
+		_apply_view_tint(camera)
 		_update_fp_frame()
 		_layout_fp_weapon()
 	elif fp_throw_hand != null:
 		fp_throw_hand.visible = false
 
+## The held gun takes the light where it is held (`ViewLight`, under
+## the view camera): warmer under a lamp, darker in a covered bay, a beat
+## brighter on a shot. Without a ViewLight it stays as drawn.
+func _apply_view_tint(camera: Camera3D) -> void:
+	var tint: Color = MenuTheme.UNTINTED
+	var sampler: Script = _view_light_script()
+	if sampler != null and camera != null:
+		var sampled: Variant = sampler.call("sample", camera)
+		if sampled is Color:
+			tint = sampled
+	fp_weapon.self_modulate = tint
+	if fp_throw_hand != null:
+		fp_throw_hand.self_modulate = tint
+	if melee_view != null:
+		melee_view.modulate = tint
+
+static var _view_light: Script = null
+static var _view_light_checked: bool = false
+
+## ViewLight is found by its global class name so the held gun follows it
+## wherever that script lives, and stays untinted where it is absent.
+static func _view_light_script() -> Script:
+	if not _view_light_checked:
+		_view_light_checked = true
+		for entry: Dictionary in ProjectSettings.get_global_class_list():
+			if entry.get("class") == &"ViewLight":
+				_view_light = load(str(entry["path"])) as Script
+	return _view_light
+
 func set_fp_walk_speed(speed: float) -> void:
 	fp_walk_speed = maxf(speed, 0.0) if is_finite(speed) else 0.0
 
 func _layout_fp_weapon() -> void:
-	var bob_scale: float = 1.0
-	match current_fp_weapon:
-		"Rail": bob_scale = 0.55
-		"Sniper": bob_scale = 0.4
-		"Scatter": bob_scale = 1.35
 	var weight: float = fp_bob_weight if head_bob_enabled else 0.0
-	var bob: Vector2 = Vector2(cos(fp_bob_t * 0.5) * 2.0, sin(fp_bob_t) * 4.0) * bob_scale * weight
+	var bob: Vector2 = WeaponArt.bob(current_fp_weapon, fp_bob_t, weight)
 	var kick: Vector2 = Vector2.ZERO if reduced_motion else fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick).round()
+	# A modelled gun draws its own raise; a drawn sprite slides up instead.
+	var lowered: float = 0.0 if WeaponArt.BAKED.has(fp_motion.shown) or reduced_motion else fp_motion.lowered(fp_weapon.size.y)
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + lowered + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick + fp_motion.offset).round()
 	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
@@ -1930,16 +1966,34 @@ func _vitals_icon(icon_name: String, texture: Texture2D, at: Vector2) -> Texture
 	vitals.add_child(icon)
 	return icon
 
-## The held gun's frame for how long ago it fired: fire, then any cycle stroke,
-## then rest. Melee keeps its own posing.
+## The held gun's frame: an accepted reload, else how long ago it fired (fire,
+## recovery or cycle stroke), else its raise after a switch, else rest. During
+## a switch the old gun is still the one shown while it lowers. Melee keeps its
+## own posing. Every canvas shows at two reference pixels a texel.
 func _update_fp_frame() -> void:
-	if fp_weapon == null or not WeaponArt.FIRE.has(current_fp_weapon):
+	if fp_weapon == null:
 		return
-	var frame: Texture2D = WeaponArt.reload_frame(current_fp_weapon, equipment_hud.state, equipment_hud.tick)
-	if frame == null:
-		frame = WeaponArt.frame_after_shot(current_fp_weapon, fp_shot_age)
-	if frame != null and fp_weapon.texture != frame:
+	var weapon: String = fp_motion.shown if not fp_motion.shown.is_empty() else current_fp_weapon
+	if not viewmodel_textures.has(weapon):
+		return
+	var frame: Texture2D = null
+	if weapon == current_fp_weapon and WeaponArt.FIRE.has(weapon):
+		frame = WeaponArt.reload_frame(weapon, equipment_hud.state, equipment_hud.tick, fp_reload_motion.progress)
+		if frame == null:
+			frame = WeaponArt.frame_after_shot(weapon, fp_shot_age)
+	if frame == null or frame == WeaponArt.IDLE.get(weapon):
+		var raised: Texture2D = WeaponArt.draw_frame(weapon, fp_motion.raise)
+		if raised != null:
+			frame = raised
+	# At rest the presenter's own table decides, so an offline candidate placed
+	# in `viewmodel_textures` is what shows.
+	if frame == null or frame == WeaponArt.IDLE.get(weapon):
+		frame = viewmodel_textures[weapon]
+	if fp_weapon.texture != frame:
 		fp_weapon.texture = frame
+	var canvas: Vector2 = Vector2(frame.get_size()) * FP_TEXEL
+	if fp_weapon.size != canvas:
+		fp_weapon.size = canvas
 
 ## Start the off-hand throw. Called when the local fighter's own grenade
 ## appears in an authoritative snapshot, never on the key press alone.
@@ -2010,6 +2064,7 @@ func set_fp_juice(enabled: bool) -> void:
 		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
 	if not enabled:
 		fp_reload_motion.clear()
+		fp_motion.reset()
 		melee_view.reset()
 		equipment_hud.visible = false
 		if fp_muzzle:
@@ -2143,6 +2198,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		fp_reload_motion.clear()
+		fp_motion.reset()
 		fp_weapon.visible = false
 		fp_weapon.texture = null
 		current_fp_weapon = ""
@@ -2156,7 +2212,9 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
-	fp_weapon.texture = viewmodel_textures[weapon_name]
+	# The old gun lowers and the new one comes up; melee arms have their own.
+	var animate: bool = not reduced_motion and weapon_name not in ["Fists", "Shiv"]
+	fp_motion.select(weapon_name, animate, fp_motion.shown not in ["Fists", "Shiv"])
 	fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(weapon_name) else null
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
@@ -2170,6 +2228,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		fp_weapon.pivot_offset = Vector2.ZERO
 		fp_stab_timer = 0.0
 		_apply_crosshair_for_weapon(weapon_name)
+	_update_fp_frame()
 	_layout_fp_weapon()
 	fp_weapon.visible = weapon_name != "Fists" and not _scoped()
 	melee_view.visible = weapon_name == "Fists"
@@ -2417,6 +2476,7 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		return
 	# A gun with a drawn fire frame carries its own flash; the generic star
 	# would sit over it.
+	fp_motion.settle()
 	if WeaponArt.FIRE.has(weapon_name):
 		fp_shot_age = 0.0
 		fp_shot_pending_update = true

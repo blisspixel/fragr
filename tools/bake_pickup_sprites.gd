@@ -7,7 +7,7 @@ extends SceneTree
 ##
 ##   godot --headless --path client --script res://../tools/bake_pickup_sprites.gd
 ##
-## Style follows the existing pickups (`assets/weapons/pickups/railgun.png`,
+## Style follows the existing pickups (`assets/weapons/pickups/rifle.png`,
 ## `assets/pickups/armor.png`): a dark one-pixel outline inside the
 ## silhouette, light from the upper left, and a little grit. The Rocket is a
 ## freed launcher in the olive of its first-person sprite, its approval plate
