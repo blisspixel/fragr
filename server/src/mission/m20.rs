@@ -411,6 +411,7 @@ impl GameState {
             changed_at: run.changed_at,
             party,
             prompts,
+            epilogue: None,
             m20: Some(M20ObjectiveState {
                 completed,
                 current,

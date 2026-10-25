@@ -171,6 +171,10 @@ impl GameState {
         if !player.is_participant() {
             return None;
         }
+        // The epilogue is a walk, not a result: no service record, no tally.
+        if self.map.campaign_mission_id() == Some(crate::protocol::MissionId::StillHere) {
+            return None;
+        }
         if self.mission.is_none()
             && self.round_state == RoundState::Ended
             && player.statistics.total.alive_ticks == 0

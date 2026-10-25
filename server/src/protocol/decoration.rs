@@ -163,6 +163,18 @@ pub enum MapDecorationKind {
     M20PumpBoard,
     /// The footbridge door toward the waterworks tower.
     M20TowerBridge,
+    /// Still Here: Latch's open ledger on the improvised repair table.
+    EpilogueLedger,
+    /// Still Here: the quay bench years later, where Latch sits.
+    EpilogueBench,
+    /// Still Here: the pier's harbour display, salvaged as the ferry board.
+    EpilogueFerryBoard,
+    /// Still Here: the board of the missing on the court wall.
+    EpilogueMissingBoard,
+    /// Still Here: the refuge tram stop's flag.
+    EpilogueTramStop,
+    /// Still Here: Edda's clinic sign, whoever keeps it.
+    EpilogueClinicSign,
 }
 
 impl MapDecorationKind {
@@ -214,6 +226,19 @@ impl MapDecorationKind {
                 | Self::M20RefugeNotice
                 | Self::M20PumpBoard
                 | Self::M20TowerBridge
+        )
+    }
+
+    /// Registered panels that belong only to Still Here.
+    pub fn is_epilogue(self) -> bool {
+        matches!(
+            self,
+            Self::EpilogueLedger
+                | Self::EpilogueBench
+                | Self::EpilogueFerryBoard
+                | Self::EpilogueMissingBoard
+                | Self::EpilogueTramStop
+                | Self::EpilogueClinicSign
         )
     }
 

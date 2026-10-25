@@ -672,7 +672,7 @@ mod tests {
 
     #[test]
     fn local_mission_accepts_only_registered_bundled_missions() {
-        for mission in fragr_server::protocol::MissionId::ALL {
+        for mission in fragr_server::protocol::MissionId::PLAYABLE {
             let name = serde_json::to_value(mission).unwrap();
             let args =
                 Args::try_parse_from(["fragr-server", "--local-mission", name.as_str().unwrap()])
@@ -680,7 +680,7 @@ mod tests {
             assert_eq!(args.local_mission, Some(mission));
         }
         assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
-        assert!(Args::try_parse_from(["fragr-server", "--local-mission", "still_here"]).is_err());
+        assert!(Args::try_parse_from(["fragr-server", "--local-mission", "epilogue"]).is_err());
     }
 
     #[test]

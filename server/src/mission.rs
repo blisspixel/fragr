@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 mod contact;
 mod controller;
+pub(crate) mod epilogue;
 mod m02;
 mod m03;
 mod m04;
@@ -53,6 +54,7 @@ mod wire_tests;
 
 pub(crate) struct MissionRun {
     pub(crate) m20: Option<m20::M20Progress>,
+    pub(crate) epilogue: Option<epilogue::EpilogueProgress>,
     m02: Option<m02::M02Progress>,
     m03: Option<m03::M03Progress>,
     m04: Option<m04::M04Progress>,
@@ -89,6 +91,9 @@ impl MissionRun {
         map.campaign_mission_id()?;
         Some(Self {
             m20: map.m20_objectives().map(m20::M20Progress::new),
+            epilogue: map
+                .epilogue_objectives()
+                .map(|_| epilogue::EpilogueProgress::default()),
             m02: map.m02_objectives().map(|_| m02::M02Progress::default()),
             m03: map.m03_geometry().map(m03::M03Progress::new),
             m04: map.m04_geometry().map(m04::M04Progress::new),
@@ -282,6 +287,7 @@ impl GameState {
         run.ready.retain(|id| party.contains(id));
         if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
             run.phase = if run.m20.is_some()
+                || run.epilogue.is_some()
                 || run.m02.is_some()
                 || run.m03.is_some()
                 || run.m04.is_some()
@@ -338,6 +344,11 @@ impl GameState {
         self.players.retain(Player::is_participant);
         run.m20 = run.initial_map.m20_objectives().map(m20::M20Progress::new);
         run.companion = Default::default();
+        // Who the run brought survives a reset; only the walk starts again.
+        run.epilogue = run
+            .epilogue
+            .take()
+            .map(|p| epilogue::EpilogueProgress::new(p.refuge));
         if let Some(m02) = run.m02.as_mut() {
             *m02 = m02::M02Progress::default();
         }
@@ -408,6 +419,7 @@ impl GameState {
             MissionPhase::Briefing
         } else {
             if run.m20.is_some()
+                || run.epilogue.is_some()
                 || run.m02.is_some()
                 || run.m03.is_some()
                 || run.m04.is_some()
@@ -466,6 +478,9 @@ impl GameState {
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.epilogue.is_some() {
+            return self.epilogue_mission_state();
+        }
         if run.m20.is_some() {
             return self.m20_mission_state();
         }
@@ -573,6 +588,7 @@ impl GameState {
             party,
             prompts,
             m20: None,
+            epilogue: None,
             m02: None,
             m03: None,
             m04: None,
@@ -617,6 +633,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.epilogue.is_some()) {
+            self.advance_epilogue();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m20.is_some()) {
             self.advance_m20();
             return;

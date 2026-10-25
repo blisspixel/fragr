@@ -240,6 +240,7 @@ fn export_enclosed_capture() {
             m13: None,
             walker: None,
             m20: None,
+            epilogue: None,
             article_blade: None,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),

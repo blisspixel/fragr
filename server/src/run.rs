@@ -318,7 +318,37 @@ async fn run_server_impl(
     .await??;
     let mut run_store: Option<RunStore> = None;
     let mut last_run_document: Option<RunDocument> = None;
-    if let Some(local_run) = local_run {
+    let epilogue =
+        session.state.map.campaign_mission_id() == Some(crate::protocol::MissionId::StillHere);
+    if epilogue {
+        // Still Here keeps no save and runs no solo run. A saved survival
+        // opens it, read without the writer lock, and nothing writes it back.
+        if options.campaign_run {
+            return Err("Still Here runs no campaign run of its own".into());
+        }
+        if let Some(local_run) = local_run {
+            if !local_run.resume {
+                return Err("Still Here opens read-only from a saved survival".into());
+            }
+            let hashes = crate::mission::run_file::store::CAMPAIGN_MISSIONS
+                .map(crate::maps::AuthoredSource::bundled_content_sha256);
+            let saved = match RunStore::inspect_with_hashes(&local_run.directory, hashes)? {
+                crate::mission::run_file::store::RunProbe::Compatible(document) => *document,
+                _ => return Err("no saved campaign survival to open Still Here".into()),
+            };
+            session.state.load_epilogue_entitlement(
+                &saved,
+                hashes[crate::mission::run_file::store::stage_index(
+                    crate::protocol::MissionId::LocalException,
+                )],
+            )?;
+            let _ = local_run
+                .difficulty_ready
+                .send(session.state.campaign_rules().difficulty);
+        } else if let Some(difficulty) = options.difficulty {
+            session.state.set_campaign_difficulty(difficulty)?;
+        }
+    } else if let Some(local_run) = local_run {
         if !options.campaign_run
             || !matches!(
                 options.authored,

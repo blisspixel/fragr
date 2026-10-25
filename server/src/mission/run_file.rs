@@ -348,6 +348,19 @@ impl RunDocument {
         }
     }
 
+    /// The campaign's terminal survival: Local Exception completed and Still
+    /// Here pending. The only entitlement to the epilogue.
+    pub fn survived_the_wipe(&self) -> bool {
+        matches!(
+            &self.step,
+            SavedStep::AwaitingMission {
+                completed_mission: MissionId::LocalException,
+                next_mission,
+                ..
+            } if next_mission == STILL_HERE
+        )
+    }
+
     #[cfg(test)]
     pub fn promote_m02(&self, m02_hash: [u8; 32]) -> Result<Self, &'static str> {
         self.promote_next(MissionId::PersonsUnknown, m02_hash)
@@ -379,6 +392,9 @@ impl RunDocument {
             MissionId::LocalException => (MissionId::PlannedWorks, M20_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
+            MissionId::StillHere => {
+                return Err("the epilogue is entered read-only, never promoted into")
+            }
         };
         let SavedStep::AwaitingMission {
             completed_mission,
@@ -1194,6 +1210,7 @@ impl GameState {
                     MissionId::PlannedWorks => M20_MISSION,
                     MissionId::LocalException => STILL_HERE,
                     MissionId::DeclaredGoods => M08_MISSION,
+                    MissionId::StillHere => return Err("the epilogue keeps no campaign save"),
                 }
                 .into(),
                 exit: solo

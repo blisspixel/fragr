@@ -136,6 +136,7 @@ impl GameState {
         }
         Some(MissionState {
             m20: None,
+            epilogue: None,
             m10: None,
             m11: None,
             m12: None,

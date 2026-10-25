@@ -121,6 +121,48 @@ impl RuntimeMap {
         selected.m20_stage = stage;
         Some(Self::Authored(Arc::new(selected)))
     }
+    pub(crate) fn epilogue_objectives(&self) -> Option<&super::authored::epilogue::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.epilogue.as_deref(),
+        }
+    }
+    pub fn epilogue_geometry(&self) -> Option<crate::protocol::EpilogueMapGeometry> {
+        let mut geometry = self.epilogue_objectives()?.geometry.clone();
+        geometry.later = self.epilogue_stage() >= 1;
+        Some(geometry)
+    }
+    /// 0 the first light after the reprieve, 1 the same refuge years later.
+    pub fn epilogue_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.epilogue.is_some() => map.epilogue_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_epilogue_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.epilogue.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            0 => {
+                selected.arena = prepared.aftermath.clone();
+                selected.navigation = prepared.aftermath_navigation.clone();
+                selected.name = super::authored::epilogue::NAME.into();
+            }
+            1 => {
+                selected.arena = prepared.later.clone();
+                selected.navigation = prepared.later_navigation.clone();
+                // The same place under its later name: presenters light it
+                // as a morning years on, not the first light.
+                selected.name = super::authored::epilogue::LATER_NAME.into();
+            }
+            _ => return None,
+        }
+        selected.epilogue_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub fn requires_surveyor_contract(&self) -> bool {
         self.encounters().iter().any(|group| {
             group
@@ -641,8 +683,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m20_objectives()
-            .map(|_| crate::protocol::MissionId::LocalException)
+        self.epilogue_objectives()
+            .map(|_| crate::protocol::MissionId::StillHere)
+            .or_else(|| {
+                self.m20_objectives()
+                    .map(|_| crate::protocol::MissionId::LocalException)
+            })
             .or_else(|| {
                 self.m19_objectives()
                     .map(|_| crate::protocol::MissionId::PlannedWorks)
@@ -749,7 +795,7 @@ impl RuntimeMap {
         self.has_encounters()
             || self.walker_geometry().is_some()
             || self.mission().is_some()
-            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m07.is_some() || map.m08.is_some())
+            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m07.is_some() || map.m08.is_some() || map.epilogue.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

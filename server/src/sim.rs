@@ -828,7 +828,7 @@ impl Player {
     pub(crate) fn platform_jump_requested(&self) -> bool {
         self.jump_requested || self.pending_action.jump
     }
-    fn reset_movement_baseline(&mut self) {
+    pub(crate) fn reset_movement_baseline(&mut self) {
         // A new body forgets who it was fighting; it still knows the map.
         self.bot_senses.forget_fighters();
         self.movement_epoch = self.movement_epoch.saturating_add(1);
@@ -1859,6 +1859,7 @@ impl GameState {
             m19: self.map.m19_geometry(),
             walker: self.map.walker_geometry(),
             m20: self.map.m20_geometry(),
+            epilogue: self.map.epilogue_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -3748,7 +3749,10 @@ impl GameState {
             } else {
                 None
             },
-            host_line: if self.map.mission().is_some() {
+            // The epilogue is quiet: no Host, no development notice.
+            host_line: if self.map.mission().is_some()
+                || self.map.campaign_mission_id() == Some(crate::protocol::MissionId::StillHere)
+            {
                 String::new()
             } else if self.map.is_authored() {
                 if self.map.has_encounters() || self.map.walker_geometry().is_some() {

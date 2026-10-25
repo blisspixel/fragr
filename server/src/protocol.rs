@@ -50,6 +50,8 @@ pub use m13::{
 pub use walker::*;
 mod m20;
 pub use m20::*;
+mod epilogue;
+pub use epilogue::*;
 mod mission;
 mod rules;
 mod sabotage;
@@ -798,9 +800,12 @@ pub const M19_GAMEPLAY_VERSION: u32 = RECEIPT_GAMEPLAY_VERSION;
 /// Local Exception: the Surveyor, its tracking mark and convergence, the
 /// pier hold clock, refuge barricade, reprieve stand-down and campaign victory.
 pub const M20_GAMEPLAY_VERSION: u32 = 56;
+/// Still Here: the survival-gated epilogue, its two worlds, the people the
+/// run carried and the read-only survival entitlement.
+pub const STILL_HERE_GAMEPLAY_VERSION: u32 = 57;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M20_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = STILL_HERE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -939,6 +944,7 @@ mod geometry_tests {
             m19: None,
             walker: None,
             m20: None,
+            epilogue: None,
             article_blade: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
@@ -1132,6 +1138,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m20: Option<M20MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        epilogue: Option<EpilogueMapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

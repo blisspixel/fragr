@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 pub const MISSION_PARTY_LIMIT: usize = 4;
 pub const USE_DISTANCE: f32 = 2.5;
+const EPILOGUE_IDS_LEN: usize = super::EPILOGUE_OBJECTIVE_IDS.len();
 pub const CAMPAIGN_CONTINUES: u8 = 3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -149,6 +150,9 @@ pub enum MissionId {
     AllSystemsNormal,
     PlannedWorks,
     LocalException,
+    /// The survival-gated epilogue. Not a campaign stage: no continues, no
+    /// save of its own, and only a recorded survival opens it.
+    StillHere,
 }
 
 impl MissionId {
@@ -158,6 +162,7 @@ impl MissionId {
             Self::PassengerManifest | Self::CommonCarrier => super::RECEIPT_GAMEPLAY_VERSION,
             Self::PlannedWorks => super::M19_GAMEPLAY_VERSION,
             Self::LocalException => super::M20_GAMEPLAY_VERSION,
+            Self::StillHere => super::STILL_HERE_GAMEPLAY_VERSION,
             Self::AllSystemsNormal => super::M18_GAMEPLAY_VERSION,
             Self::PeaceWithoutInterruption => super::M17_GAMEPLAY_VERSION,
             Self::FreedomOfMovement => super::M16_GAMEPLAY_VERSION,
@@ -192,6 +197,18 @@ impl MissionId {
         Self::PlannedWorks,
         Self::LocalException,
     ];
+
+    /// Every bundled mission a local child can run and a participant can
+    /// ready for: the campaign stages, then the epilogue.
+    pub const PLAYABLE: [Self; 21] = {
+        let mut playable = [Self::StillHere; 21];
+        let mut index = 0;
+        while index < Self::ALL.len() {
+            playable[index] = Self::ALL[index];
+            index += 1;
+        }
+        playable
+    };
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -628,6 +645,12 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m20: Option<super::M20ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub epilogue: Option<super::EpilogueObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m02: Option<M02ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -717,6 +740,9 @@ impl MissionState {
         if (self.id == MissionId::LocalException) != self.m20.is_some() {
             return Err("M20 facts require exactly M20 mission");
         }
+        if (self.id == MissionId::StillHere) != self.epilogue.is_some() {
+            return Err("Still Here facts require exactly the epilogue");
+        }
         if (self.id == MissionId::PlannedWorks) != self.m19.is_some() {
             return Err("M19 facts require exactly M19 mission");
         }
@@ -766,6 +792,15 @@ impl MissionState {
             return Err("M04 facts require M04 mission");
         }
         match self.id {
+            MissionId::StillHere => {
+                if self.m02.is_some() || self.m03.is_some() || self.run.is_some() {
+                    return Err("Still Here carries no run and no earlier mission facts");
+                }
+                self.epilogue
+                    .as_ref()
+                    .ok_or("Still Here facts missing")?
+                    .validate(self.phase, tick)?;
+            }
             MissionId::PlannedWorks => {
                 if self.m02.is_some() || self.m03.is_some() {
                     return Err("M19 cannot carry earlier mission facts");
@@ -955,14 +990,22 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::LocalException
+                    (self.id == MissionId::StillHere
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m20.as_ref().is_some_and(|f| {
-                            f.completed.len() == super::M20_OBJECTIVE_IDS.len()
-                                && f.gate_open
-                                && !self.party.is_empty()
-                                && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                        && self.epilogue.as_ref().is_some_and(|f| {
+                            // Beside Latch in the first light, or on the quay
+                            // years later; never while the world turns.
+                            f.completed.is_empty() && f.turning_at.is_none()
+                                || f.completed.len() == EPILOGUE_IDS_LEN && f.later
                         }))
+                        || (self.id == MissionId::LocalException
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m20.as_ref().is_some_and(|f| {
+                                f.completed.len() == super::M20_OBJECTIVE_IDS.len()
+                                    && f.gate_open
+                                    && !self.party.is_empty()
+                                    && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                            }))
                         || (self.id == MissionId::CivicPressureValve
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m15.as_ref().is_some_and(|f| {
@@ -1301,6 +1344,7 @@ mod m02_wire_tests {
     fn state() -> MissionState {
         MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::PersonsUnknown,
             run: None,
             rules: CampaignRules::default(),

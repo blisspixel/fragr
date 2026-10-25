@@ -637,7 +637,16 @@ Surveyor its lesson is waiting on, fights back to its pier post rather than
 chasing, keeps a gun that reaches its target, detours to pier crates it needs
 (further when nearly dry) and leaves through the refuge gate once it opens. The scripted bot binds
 the same geometry. Completing M20 records the campaign's survival with the
-epilogue destination `still_here` pending.
+epilogue destination `still_here`.
+
+`mission_ready` also accepts `still_here`, the epilogue a saved survival opens.
+`observe.mission.epilogue` reports the completed objectives, the current one,
+which survivors the run brought (`refuge`), the turn tick, whether the court is
+`later`, and the people standing as bodies (`blocking`). The map's
+`epilogue` facts give the ledger, the arrival region, the bench and every
+person by world and pose. The shared controller walks to Latch's ledger, waits
+out the turn, crosses the later court and sits on the bench; nothing in the
+refuge is a target, so it never fires. The walk keeps no run and no record.
 
 ### `mission_continue`
 

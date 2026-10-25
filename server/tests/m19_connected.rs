@@ -67,7 +67,12 @@ fn planned_works_canonical_source_and_connected_loop() {
         serde_json::from_str::<MissionId>("\"local_exception\"").unwrap(),
         MissionId::LocalException
     );
-    assert!(serde_json::from_str::<MissionId>("\"still_here\"").is_err());
+    // The epilogue is a mission identity, never one of the twenty stages.
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"still_here\"").unwrap(),
+        MissionId::StillHere
+    );
+    assert!(!MissionId::ALL.contains(&MissionId::StillHere));
     assert_eq!(MissionId::ALL.len(), 20);
     assert_eq!(MissionId::ALL.last(), Some(&MissionId::LocalException));
 }

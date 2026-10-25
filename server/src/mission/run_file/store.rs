@@ -23,9 +23,10 @@ pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 /// Every playable campaign stage, indexed like [`ContentHashes`].
 pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = MissionId::ALL;
 
-/// Index of a playable mission in [`ContentHashes`].
-pub(crate) const fn stage_index(mission: MissionId) -> usize {
-    match mission {
+/// Index of a playable mission in [`ContentHashes`]. The epilogue is not a
+/// campaign stage and has none.
+pub(crate) const fn campaign_stage(mission: MissionId) -> Option<usize> {
+    Some(match mission {
         MissionId::RecallNotice => 0,
         MissionId::PersonsUnknown => 1,
         MissionId::ScheduledService => 2,
@@ -46,6 +47,16 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::AllSystemsNormal => 17,
         MissionId::PlannedWorks => 18,
         MissionId::LocalException => 19,
+        MissionId::StillHere => return None,
+    })
+}
+
+/// Index of a campaign stage in [`ContentHashes`], for a stage named by this
+/// build. Untrusted documents go through [`campaign_stage`].
+pub(crate) const fn stage_index(mission: MissionId) -> usize {
+    match campaign_stage(mission) {
+        Some(index) => index,
+        None => panic!("the epilogue is not a campaign stage"),
     }
 }
 
@@ -137,17 +148,20 @@ impl RunStore {
         let Ok(document) = serde_json::from_value::<RunDocument>(value) else {
             return RunProbe::Corrupt;
         };
-        if document
-            .validate(hashes[stage_index(document.stage_mission())])
-            .is_err()
-        {
+        // A saved step can never name the epilogue: it keeps no save.
+        let Some(stage) = campaign_stage(document.stage_mission()) else {
+            return RunProbe::Incompatible;
+        };
+        if document.validate(hashes[stage]).is_err() {
             return RunProbe::Incompatible;
         }
         RunProbe::Compatible(Box::new(document))
     }
 
-    fn expected_hash(&self, document: &RunDocument) -> [u8; 32] {
-        self.hashes[stage_index(document.stage_mission())]
+    fn expected_hash(&self, document: &RunDocument) -> io::Result<[u8; 32]> {
+        campaign_stage(document.stage_mission())
+            .map(|stage| self.hashes[stage])
+            .ok_or_else(|| invalid("the epilogue keeps no campaign save"))
     }
 
     /// Validate and atomically replace `run.json`, whatever it held before.
@@ -164,7 +178,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;

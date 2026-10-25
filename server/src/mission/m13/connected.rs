@@ -119,6 +119,7 @@ impl GameState {
         };
         Some(MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::WeightOfPermission,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,

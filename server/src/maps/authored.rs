@@ -11,6 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub(crate) mod encounters;
+pub(crate) mod epilogue;
 pub(crate) mod m02;
 pub(crate) mod m03;
 pub(crate) mod m04;
@@ -81,6 +82,9 @@ pub struct AuthoredMap {
     pub(super) m19_stage: u8,
     pub(super) m20: Option<Arc<m20::Prepared>>,
     pub(super) m20_stage: u8,
+    pub(super) epilogue: Option<Arc<epilogue::Prepared>>,
+    /// Still Here runtime world: 0 the first light, 1 years later.
+    pub(super) epilogue_stage: u8,
     pub(super) walker: Option<Arc<walker::Prepared>>,
     pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
@@ -145,6 +149,8 @@ struct Document {
     #[serde(default)]
     m19: Option<m19::Definition>,
     m20: Option<m20::Definition>,
+    #[serde(default)]
+    epilogue: Option<epilogue::Definition>,
     #[serde(default)]
     walker: Option<walker::Definition>,
     #[serde(default)]
@@ -412,6 +418,14 @@ impl AuthoredMap {
                 .any(|panel| panel.kind.is_m20())
         {
             return Err(invalid("M20 registered panels require Local Exception"));
+        }
+        if doc.epilogue.is_none()
+            && presentation
+                .decorations
+                .iter()
+                .any(|panel| panel.kind.is_epilogue())
+        {
+            return Err(invalid("Still Here registered panels require the epilogue"));
         }
         if presentation
             .decorations
@@ -1054,6 +1068,25 @@ impl AuthoredMap {
             })
             .transpose()?
             .map(Arc::new);
+        let epilogue = doc
+            .epilogue
+            .map(|d| {
+                // Nothing to fight and nothing to find: no encounters, no
+                // supplies, no blade and no vehicles in the refuge.
+                if doc.map_id != 1021
+                    || doc.name != epilogue::NAME
+                    || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                    || !doc.vehicles.is_empty()
+                    || !doc.encounters.is_empty()
+                    || !doc.supplies.is_empty()
+                    || doc.article_blade.is_some()
+                {
+                    return Err(invalid("Still Here requires the canonical refuge"));
+                }
+                d.prepare(&arena, &presentation, &solid_ids, start, &mut seen)
+            })
+            .transpose()?
+            .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         if let Some(prepared) = &m20 {
             // Crates hold ordinary contested stock: no secret, no weapon.
@@ -1091,7 +1124,9 @@ impl AuthoredMap {
                 ));
             }
         }
-        let navigation = if let Some(prepared) = &m17 {
+        let navigation = if let Some(prepared) = &epilogue {
+            prepared.aftermath_navigation.clone()
+        } else if let Some(prepared) = &m17 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m16 {
             prepared.navigation.clone()
@@ -1278,6 +1313,8 @@ impl AuthoredMap {
             m19_stage: 0,
             m20,
             m20_stage: 0,
+            epilogue,
+            epilogue_stage: 0,
             walker,
             shelter_open: false,
             hatch_open: false,
@@ -1299,6 +1336,10 @@ impl AuthoredMap {
             presentation,
             landmarks: doc.landmarks,
         };
+        // The refuge opens in the first light: the years-later solids lie flat.
+        if let Some(prepared) = &map.epilogue {
+            map.arena = prepared.aftermath.clone();
+        }
         if let (Some(mission), Some(navigation)) = (mission, opened_navigation) {
             let mut opened = map.clone();
             opened.arena = mission.opened;

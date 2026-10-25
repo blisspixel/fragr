@@ -69,7 +69,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Shot geometry and evidence | `server/src/combat.rs`; `ShotResult`/`ShotTrace` in `protocol.rs`; `client/scripts/shot_effects.gd` |
 | Movement and its mirror | `server/src/movement.rs`, `movement/`; `client/scripts/movement.gd`, goldens in `client/golden/` |
 | Encounters and enemies | `server/src/encounters.rs`, `encounters/`; definitions in `maps/authored/encounters.rs` |
-| Missions | Mission N lives in `server/src/mission/mNN.rs`, `maps/authored/mNN.rs`, `protocol/mNN.rs`, `mission/controller/mNN.rs` and client `client/scripts/mNN_*.gd`. Shared readiness, gates and departure: `mission.rs`, `protocol/mission.rs`, `mission/controller.rs` |
+| Missions | Mission N lives in `server/src/mission/mNN.rs`, `maps/authored/mNN.rs`, `protocol/mNN.rs`, `mission/controller/mNN.rs` and client `client/scripts/mNN_*.gd`. Shared readiness, gates and departure: `mission.rs`, `protocol/mission.rs`, `mission/controller.rs`. The Still Here epilogue uses `epilogue` in place of `mNN` (`server/maps/epilogue-still-here.json`; client `still_here_*.gd`, `epilogue_mission_state.gd`) |
 | Run file, retries and continues | `server/src/mission/recovery.rs`, `mission/run_file.rs`, `run_file/store.rs` |
 | Inventory and ammunition | `server/src/inventory.rs`, `protocol/loadout.rs`; client `equipment_state.gd` |
 | Maps, collision, spawns, navigation | `server/src/maps.rs`, `maps/`, `server/maps/`, `navigation.rs`, `sim/spawn.rs`; client `arena_cover.gd`, `arena_materials.gd` |
