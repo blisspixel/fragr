@@ -43,6 +43,9 @@ const FLASHES: Dictionary[String, Dictionary] = {
 ## Accessibility "screen flashes": Full, Reduced, Off (FragrSettings order).
 ## The muzzle light changes the whole near view, so it follows that choice.
 const FLASH_SCALE: Array[float] = [1.0, 0.6, 0.0]
+## The pulse holds full brightness for its first 1 - 1/FLASH_HOLD (40 percent)
+## and fades linearly over the rest.
+const FLASH_HOLD: float = 1.6
 
 ## The measurement maps incident light to a modulate. REFERENCE is the light
 ## that leaves the drawn art as authored: Recall Notice's night street under
@@ -251,11 +254,13 @@ func stop() -> void:
 		_muzzle.light_energy = 0.0
 		_muzzle.visible = false
 
-## The muzzle light's current energy, zero when dark.
+## The muzzle light's current energy, zero when dark. It holds full for the
+## first part of the pulse, so the frame that shows the muzzle flash is lit at
+## full strength on any frame rate, then falls away.
 func flash_energy() -> float:
 	if _flash_left <= 0.0 or _flash_seconds <= 0.0:
 		return 0.0
-	return _flash_peak * pow(_flash_left / _flash_seconds, 1.5)
+	return _flash_peak * minf(1.0, FLASH_HOLD * _flash_left / _flash_seconds)
 
 func current_tint() -> Color:
 	return tint

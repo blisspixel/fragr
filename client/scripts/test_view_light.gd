@@ -46,7 +46,6 @@ func _run() -> void:
 	var full: float = muzzle.light_energy if muzzle != null else 0.0
 	_check(muzzle != null and muzzle.visible and is_equal_approx(full, float(ViewLight.FLASHES["tack"]["energy"])), "Full flashes fire at the gun's peak")
 	_check(muzzle != null and muzzle.light_color == ViewLight.FLASHES["tack"]["colour"], "the light takes the gun's colour")
-	var lit: Color = view.tint
 	view._process(0.0)
 	_check(view.flash_energy() > 0.0, "a fresh shot reports its energy to the gun sample")
 	view._process(0.03)
@@ -119,7 +118,7 @@ func _run() -> void:
 		await process_frame
 	var away: Color = ViewLight.sample(camera)
 	_check(under.r > away.r, "walking away from a lamp darkens the gun: %s then %s" % [under, away])
-	_check(lit == Color.WHITE or lit.a == 1.0, "tint stays opaque")
+	_check(under.a == 1.0 and away.a == 1.0, "the gun tint stays opaque")
 	var tracked: int = view._lights.size()
 	_check(view._lights.has(lamp) and view._lights.has(key), "the view tracks the tree's lamps")
 	lamp.queue_free()

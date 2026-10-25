@@ -21,7 +21,7 @@ things have like graphics settings... that kind of thing should work too."
 `render_quality.gd` owns three presets (Performance, Balanced, High), with MSAA
 and SSAO steps, glow on authored fixtures, a shadow-size step, resolution and
 world-buffer scale, FSR 1 and FSR 2 where the renderer supports them, world
-pixel scale and palette dither. Settings validate in `settings.gd` and edit in
+pixel scale and dither. Settings validate in `settings.gd` and edit in
 `settings_panel.gd` on the Graphics and Display pages.
 
 ## Ray tracing, checked 2026-10-02
