@@ -14,6 +14,8 @@ struct CombatEvidence {
     shots: usize,
     kills: std::collections::HashSet<String>,
     enemy_shots: usize,
+    /// Committed guard attacks, by guard and the tick its tell began.
+    enemy_tells: std::collections::HashSet<(Uuid, u64)>,
     claimed_supplies: std::collections::HashSet<String>,
 }
 
@@ -350,6 +352,19 @@ fn drive(
         nav.steer_snapshot(s.state.map.navigation(), id, &snapshot, action)
     };
     s.state.set_action(id, action);
+    for guard in &snapshot.players {
+        if let Some(crate::protocol::CampaignActor::Hostile {
+            phase:
+                crate::protocol::EnemyPhase::Windup
+                | crate::protocol::EnemyPhase::Leaping
+                | crate::protocol::EnemyPhase::Charging,
+            phase_started,
+            ..
+        }) = guard.campaign
+        {
+            evidence.enemy_tells.insert((guard.id, phase_started));
+        }
+    }
     for message in s.tick_messages(0.05) {
         if let ServerMessage::Event(GameEvent::Pickup {
             player_id,
@@ -385,15 +400,29 @@ fn drive(
     }
 }
 
+/// Seeds 0, 1 and 9 clear every group before a guard's shot lands; 5 trades
+/// fire. The route holds on all of them.
 #[test]
 fn launch_authority_every_group_clears_on_foot_with_present_absent_and_destroyed_jeep() {
+    for seed in [0, 1, 5, 9] {
+        every_group_clears_on_foot(seed);
+    }
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn launch_authority_seed_survey() {
+    crate::mission::route_skill::survey(
+        "Launch Authority on foot",
+        0..16,
+        every_group_clears_on_foot,
+    );
+}
+
+fn every_group_clears_on_foot(seed: u64) {
     for fleet in ["present", "absent", "destroyed"] {
         let mut s = GameSession::with_authored_map(map());
-        // Seed-sensitive controller evidence, not a difficulty verdict. With
-        // the arena fighter model (#463) on this mission-free map and paced
-        // attack tokens (#468), seeds 1, 3, 41, 42 and 44 clear every group
-        // before a guard fires; 2, 4, 5, 6, 7 and 43 exercise the enemies.
-        s.state.seed(5);
+        s.state.seed(seed);
         let id = Uuid::from_u128(1014);
         s.state.add_player(id, "Infantry".into(), Role::Agent);
         match fleet {
@@ -627,8 +656,12 @@ fn launch_authority_every_group_clears_on_foot_with_present_absent_and_destroyed
             assert!(s.state.vehicles.is_empty(), "removed fleet stays absent");
         }
         assert!(evidence.shots > 20);
+        // A guard that sights the infantry commits a tell before it fires.
+        // Whether that tell becomes a shot before the guard falls depends on
+        // the shot sequence, so the tell is the seed-independent evidence
+        // that the actual enemy controllers ran.
         assert!(
-            evidence.enemy_shots > 0,
+            !evidence.enemy_tells.is_empty(),
             "must exercise the actual enemy controllers"
         );
         assert!(s
@@ -640,8 +673,9 @@ fn launch_authority_every_group_clears_on_foot_with_present_absent_and_destroyed
             .inventory
             .owns(WeaponType::Flechette));
         eprintln!(
-            "Launch Authority {fleet}:20 guards,{} ordinary shots,{} enemy attacks,{} ticks,{} HP",
+            "Launch Authority {fleet}:20 guards,{} ordinary shots,{} enemy tells,{} enemy attacks,{} ticks,{} HP",
             evidence.shots,
+            evidence.enemy_tells.len(),
             evidence.enemy_shots,
             s.state.tick,
             s.state.players.iter().find(|p| p.id == id).unwrap().hp

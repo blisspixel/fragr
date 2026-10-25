@@ -77,6 +77,14 @@ impl Encounters {
         })
     }
 
+    /// The participant an enemy's committed ranged tell or burst is aimed at.
+    pub(crate) fn committed_target(&self, id: Uuid) -> Option<Uuid> {
+        self.enemies
+            .iter()
+            .find(|(_, enemy)| enemy.id == id)
+            .and_then(|(_, enemy)| enemy.holds_token())
+    }
+
     pub(crate) fn enemy_in_group(&self, id: Uuid, index: usize) -> bool {
         self.enemies
             .iter()

@@ -1,6 +1,6 @@
 # Bot and Enemy AI Excellence: Tactical Squads, Dynamic Companions, and Fun-First Combat
 
-Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) is implemented on `wave2/bot-ai`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
+Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) is on `wave3/ai-depth`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
 
 ## 1. Executive Summary and Current Architecture Audit
 
@@ -146,4 +146,26 @@ A three-Clerk room against a stationary participant over 400 ticks fires 21 shot
 
 Seeded campaign route controllers are seed-sensitive. Over eight seeds each, the M14 infantry routes completed 7 of 24 runs before pacing and 17 of 24 with it; the late carried-kit routes and the M02 Severe side-ward route completed on as many seeds before as after, on different seeds. Those tests now name their seed and record the survey. This is controller evidence, not a difficulty verdict. `CAMPAIGN_RULES_REVISION` is unchanged because no tell duration changed.
 
-Still open: dormant guard cones and reaction before activation, infantry audio and glint tells, squad roles, companion etiquette and covering fire, barks, bot personalities beyond pad habits, CTF bots seeking pads, and a pad contest index near the 15% the multiplayer research asks for (that needs the Tack and Fists kit and power items worth fighting over). Human play and Windows rendering were not run.
+**Second slice, 2026-10-24 (`wave3/ai-depth`, Refs #432).** Implemented, not merged.
+
+- Tells match tokens. Notaries, Jammers, Assessors, Pavers and Surveyors held a ranged token while telling but never asked for one, so a camera flash or a jammer pulse could be the third attack on a participant (a Jammer with both tokens already held entered its windup on `main`). Every kind that holds a token now asks first; only melee leaps and charges stay unpaced (`every_kind_that_holds_a_token_waits_for_one_before_its_tell`, `a_mixed_room_never_lights_a_third_tell`).
+- Visible tells. Union red optics are the attack tell light (art bible): at rest 1.6, a flash on the tick a tell starts, a swell to the shot and hot through the burst (`EnemyView.tell_glow`). Above rest the shader adds saturated red, so a hard-driven optic never clips to pink or white. A guard denied a token keeps resting optics while it shifts across its lane, so lit optics on screen are the attacks coming. The Auditor's Tack shares the Clerk's tell sound.
+- Latch fights beside the participant. The twelve-shot chapter cap and 40-tick cooldown are gone: Latch's Tack has a real twelve-round magazine and reload, fires every 12, 16 or 22 ticks (Assisted, Standard, Severe) while the participant is in the fight, every 44 ticks while they hold fire, and every 6 ticks at whoever has a gun raised at them while they reload. In a fight Latch takes a covering position beside the participant with a line on the threat; out of a fight Latch keeps the stand-off. Latch never stands in a walking participant's lane, their crosshair or their line to the threat: a step aside, a lead through a doorway when nobody is shooting, or a place behind their shoulder.
+- Seed-robust routes. The route controllers read tells: each committed tell, burst, leap or charge is answered by stepping clear of its line and staying clear until it is spent; they walk out of announced Walker and Paver areas and stop trading with targets their rounds cannot reach. The M14 mission client no longer fires a rocket into a surface inside its splash. Route tests now run several seeds each, including seeds that killed the old controllers; ignored surveys run sixteen (`cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture`, `FRAGR_SURVEY_SEED` narrows one).
+
+Seeds held over sixteen seeds per route, `main` against this slice (late carried kit and M14 count three runs per seed):
+
+| Route | Before | After |
+|---|---|---|
+| M02 Severe side ward | 7 of 16 | 16 of 16 |
+| M14 ordinary infantry | 26 of 48 | 48 of 48 |
+| Late carried kit (M16 to M18) | 30 of 48 | 48 of 48 |
+| Launch Authority on foot | 8 of 16 | 16 of 16 |
+| M19 Planned Works, Standard | not surveyed | 16 of 16 |
+| M20 pier, Standard | not surveyed | 16 of 16 |
+
+Latch, `main` against this slice, from the route tests' own counters: the full M02 graybox walk (human or agent) went from 2 shots, 40 damage and 1 kill to 9 shots, 160 damage and 2 kills; the Severe side-ward route from 120 to 220 companion damage (seed 61); the stationary floor probe, where the participant holds fire, stays near 11 shots and leaves the floor to the participant.
+
+Looked at: a controlled lineup of Clerk, Sweeper, Heavy Sweeper, Auditor, Redactor and Turret at rest, tell start, late tell and burst, at 5 and 15 m under dim light (`client/qa/union_tell_review.gd`), and a live M02 first-person still and strip with Latch holding a covering position right of the crosshair while the crossfire crew is awake (`client/qa/m02-latch-cover.json`). The Clerk's tell is its raise and its sound: the human troop has no bright optic to light. Windows rendering and human play were not run.
+
+Still open: dormant guard cones and reaction before activation, squad roles, barks, bot personalities beyond pad habits, CTF bots seeking pads, and a pad contest index near the 15% the multiplayer research asks for (that needs power items worth fighting over).

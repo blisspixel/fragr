@@ -901,6 +901,11 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
         // Three ordinary 18-damage Arc hits leave six HP, enough for the
         // smallest uncovered landing hit after the living guard's own shuffle.
         let target = if squad.hp > 6 { squad } else { drone };
+        // The last hit on the drone waits until the wounded guard stands
+        // under it, the way a player times the wreck: a guard shifting across
+        // its lane otherwise steps out of the fall.
+        let finishing = squad.hp <= 6 && drone.hp + drone.armor <= 18;
+        let under = (squad.x - drone.x).hypot(squad.z - drone.z) <= 1.0;
         let weapon = WeaponType::Arc;
         let point = [
             target.x,
@@ -921,7 +926,7 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
                 z: Some(point[2]),
                 player_id: None,
             }),
-            fire: target.hp > 0,
+            fire: target.hp > 0 && (!finishing || under),
             left: (snapshot.tick / 12).is_multiple_of(2),
             right: !(snapshot.tick / 12).is_multiple_of(2),
             ..Action::default()

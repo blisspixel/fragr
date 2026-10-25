@@ -62,6 +62,7 @@ fn drive(
     prepare(&mut session, id);
     let mut client = MissionClient::default();
     let mut navigator = Navigator::default();
+    let mut tells = crate::mission::route_skill::TellReader::default();
     let mut previous = None;
     let mut navigation = None;
     let mut killed = 0;
@@ -165,6 +166,7 @@ fn drive(
             action.left = (session.state.tick / 20).is_multiple_of(2);
             action.right = !action.left;
         }
+        let action = tells.evade(&session.state, &snapshot, id, action);
         session.state.set_action(id, action);
         session.tick_messages(0.05);
     }
@@ -241,6 +243,21 @@ fn an_unseen_surveyor_does_not_stall_the_sluice_lesson() {
         );
         assert!(run.killed >= 1);
     }
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn m20_pier_seed_survey() {
+    crate::mission::route_skill::survey("M20 pier, Standard", 0..16, |seed| {
+        let run = drive(
+            CampaignDifficulty::Standard,
+            |session, _| session.state.seed(seed),
+            |state| state.phase == MissionPhase::Departed,
+            false,
+            26_000,
+        );
+        assert!(run.departed && run.deaths == 0 && run.hp > 0);
+    });
 }
 
 #[test]

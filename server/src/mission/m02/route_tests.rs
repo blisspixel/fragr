@@ -153,6 +153,7 @@ struct Walker {
     /// switchback check is the lesson; an earlier sightline must not delete it.
     defer_first_crawler: bool,
     crawler_hits: Vec<(u64, String)>,
+    tells: crate::mission::route_skill::TellReader,
 }
 
 impl Walker {
@@ -191,6 +192,7 @@ impl Walker {
             teach_crawler_landings: false,
             defer_first_crawler: false,
             crawler_hits: Vec::new(),
+            tells: Default::default(),
         }
     }
 
@@ -495,15 +497,19 @@ impl Walker {
                     && !self.hold_stair_shot(&p.name)
                     // Engagement range, not every pixel down a long sightline.
                     && (p.x - me.x).hypot(p.z - me.z) < 24.0
-                    && crate::combat::line_of_sight(
-                        eye,
-                        [
-                            p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
-                            p.z,
-                        ],
-                        &session.state.map.arena().solids,
-                    )
+                    // A guard behind a counter still shows its chest and head.
+                    && [0.5, 0.85].into_iter().any(|share| {
+                        crate::combat::line_of_sight(
+                            eye,
+                            [
+                                p.x,
+                                p.y - PLAYER_FLOOR_Y
+                                    + crate::combat::target_height(p.campaign) * share,
+                                p.z,
+                            ],
+                            &session.state.map.arena().solids,
+                        )
+                    })
             })
             .collect();
         let mut combat = Action::default();
@@ -610,6 +616,24 @@ impl Walker {
         // This witness deliberately clears every authored guard before boarding.
         // A combat dodge must not finish its optional full-clear proof early at
         // the real, intentionally ungated departure boundary.
+        // The exit is ungated, so a dodge must not carry this full-clear
+        // witness through it while a guard still stands.
+        let exit = session
+            .state
+            .players
+            .iter()
+            .any(|p| p.is_campaign_enemy() && p.hp > 0)
+            .then(|| {
+                session
+                    .state
+                    .map
+                    .m02_objectives()
+                    .and_then(|objectives| objectives.objective(ORDER.len() - 1))
+                    .and_then(|objective| objective.arrival.clone())
+            })
+            .flatten();
+        self.tells.avoid(exit.into_iter().collect());
+        let action = self.tells.evade(&session.state, snapshot, self.id, action);
         let action = full_clear_dodge(&session.state, self.id, action);
         session.state.set_action(self.id, action);
     }
@@ -773,6 +797,25 @@ fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
                 && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
         }) {
             return alternate;
+        }
+    }
+    // A tell dodge that would cross into the exit reverses along its own
+    // axis instead of standing on the committed line.
+    if action.forward || action.back || action.left || action.right {
+        for (swap_lateral, swap_depth) in [(true, false), (false, true), (true, true)] {
+            let mut alternate = action.clone();
+            if swap_lateral {
+                (alternate.left, alternate.right) = (action.right, action.left);
+            }
+            if swap_depth {
+                (alternate.forward, alternate.back) = (action.back, action.forward);
+            }
+            if forecast(&alternate).is_some_and(|pose| {
+                !arrival.contains([pose.x, pose.y, pose.z])
+                    && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
+            }) {
+                return alternate;
+            }
         }
     }
     let mut held = action.clone();
@@ -1513,11 +1556,23 @@ fn dock_clear_and_immediate_departure_do_not_grant_unwalked_evacuation() {
     );
 }
 
+/// The walker reads tells, so the route holds across seeds. These include
+/// seeds that killed the tell-blind walker.
 #[test]
 fn severe_side_ward_route_survives_with_ordinary_supplies() {
-    // Seed-sensitive: over seeds 60 to 67 this route survives on three both
-    // before ranged attack pacing (64, 65, 67) and with it (61, 62, 65).
-    let mut session = session_seeded(61);
+    for seed in [60, 64, 70] {
+        severe_side_ward(seed);
+    }
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn severe_side_ward_seed_survey() {
+    crate::mission::route_skill::survey("M02 Severe side ward", 60..76, severe_side_ward);
+}
+
+fn severe_side_ward(seed: u64) {
+    let mut session = session_seeded(seed);
     session
         .state
         .set_campaign_difficulty(crate::protocol::CampaignDifficulty::Severe)
@@ -1550,7 +1605,13 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
     walker.walk_goal = None;
     walker.navigator.clear();
     ticks += walker.until(&mut session, 16000 - ticks, departed);
-    assert_eq!(walker.defeated.len(), ENEMIES);
+    assert_eq!(
+        walker.defeated.len(),
+        ENEMIES,
+        "{:?} attempt {}",
+        walker.defeated_names,
+        session.state.mission_state().unwrap().attempt
+    );
     assert_eq!(session.state.mission_state().unwrap().attempt, 1);
     assert!(session
         .state
@@ -1793,17 +1854,9 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     );
     let (_, cooling) = state.m02_companion_intent().unwrap();
     assert!(!cooling.action.fire, "the support fire cadence is bounded");
-    assert_eq!(
-        state
-            .mission
-            .as_ref()
-            .unwrap()
-            .m02
-            .as_ref()
-            .unwrap()
-            .support_shots,
-        1
-    );
+    let support = &state.mission.as_ref().unwrap().companion;
+    assert_eq!(support.shots, 1);
+    assert_eq!(support.rounds(), 11, "one round left the Tack magazine");
     state.set_companion_action(companion_id, intent.action);
     state.tick(0.05);
     assert!(state.snapshot().shot_results.iter().any(|shot| {
@@ -1865,14 +1918,7 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .find(|p| p.id == companion_id)
         .unwrap();
     [companion.x, companion.y, companion.z] = [7.0, PLAYER_FLOOR_Y, -11.0];
-    state
-        .mission
-        .as_mut()
-        .unwrap()
-        .m02
-        .as_mut()
-        .unwrap()
-        .last_support_tick = None;
+    state.mission.as_mut().unwrap().companion.rest();
     assert!(!crate::combat::line_of_sight(
         [7.0, crate::movement::EYE_HEIGHT, -11.0],
         [8.5, crate::combat::aim_height(None), -13.2],
@@ -1885,18 +1931,18 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .find(|p| p.id == target_id)
         .unwrap();
     [target.x, target.y, target.z] = [4.0, PLAYER_FLOOR_Y, -11.0];
-    state
-        .mission
-        .as_mut()
-        .unwrap()
-        .m02
-        .as_mut()
-        .unwrap()
-        .support_shots = 12;
-    assert!(!state.m02_companion_intent().unwrap().1.action.fire);
-    let progress = state.mission.as_mut().unwrap().m02.as_mut().unwrap();
-    progress.support_shots = 1;
-    progress.last_support_tick = None;
+    state.mission.as_mut().unwrap().companion.empty();
+    assert!(
+        !state.m02_companion_intent().unwrap().1.action.fire,
+        "an empty magazine does not fire"
+    );
+    assert!(
+        state.mission.as_ref().unwrap().companion.reloading(),
+        "an empty magazine reloads"
+    );
+    let support = &mut state.mission.as_mut().unwrap().companion;
+    *support = Default::default();
+    support.shots = 1;
     let companion = state
         .players
         .iter_mut()
@@ -1912,23 +1958,135 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         &state.map.arena().solids,
     ));
     assert!(!state.m02_companion_intent().unwrap().1.action.fire);
-    assert_eq!(
-        state
-            .mission
-            .as_ref()
-            .unwrap()
-            .m02
-            .as_ref()
-            .unwrap()
-            .support_shots,
-        1
-    );
+    assert_eq!(state.mission.as_ref().unwrap().companion.shots, 1);
     state
         .spawn_shields
         .insert(id, crate::sim::SPAWN_SHIELD_TICKS);
     assert!(
         !state.m02_companion_intent().unwrap().1.action.fire,
         "a shielded living participant still blocks support preflight"
+    );
+}
+
+/// Latch's pace follows the participant: measured while they hold fire,
+/// steady while they fight, fast while they reload. The Tack magazine is
+/// real: twelve rounds, then a reload before the next shot.
+#[test]
+fn latch_covers_a_reload_and_fires_a_real_magazine() {
+    let (mut state, id) = ward_test_state();
+    at_frame_facing_control(&mut state, id);
+    state.update_encounters();
+    state.advance_m02();
+    let target_id = state
+        .players
+        .iter()
+        .find(|p| p.name == "ward_sweeper")
+        .unwrap()
+        .id;
+    let companion_id = state.spawn_m02_companion().unwrap();
+    let companion = state
+        .players
+        .iter_mut()
+        .find(|p| p.id == companion_id)
+        .unwrap();
+    [companion.x, companion.y, companion.z] = [6.5, PLAYER_FLOOR_Y, -10.0];
+    companion.campaign = Some(CampaignActor::Companion {
+        kind: crate::protocol::CompanionKind::Latch,
+        phase: CompanionPhase::Following,
+        phase_started: state.tick,
+    });
+    // Shots over a window of decisions, with the sweeper kept standing and
+    // the participant set up by `prepare` before each decision.
+    let shots = |state: &mut GameState, ticks: u64, prepare: &dyn Fn(&mut GameState)| {
+        let mut fired = Vec::new();
+        let start = state.tick;
+        for tick in start..start + ticks {
+            state.tick = tick;
+            prepare(state);
+            if let Some(target) = state.players.iter_mut().find(|p| p.id == target_id) {
+                target.hp = 80;
+            }
+            if state.m02_companion_intent().unwrap().1.action.fire {
+                fired.push(tick);
+            }
+        }
+        state.tick = start + ticks;
+        fired
+    };
+    let gaps = |fired: &[u64]| fired.windows(2).map(|w| w[1] - w[0]).collect::<Vec<_>>();
+
+    let waiting = shots(&mut state, 100, &|_| {});
+    assert!(
+        gaps(&waiting).iter().all(|gap| *gap == 44),
+        "a participant holding fire gets a measured pace: {waiting:?}"
+    );
+    let engaged = shots(&mut state, 100, &|state| {
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == id)
+            .unwrap()
+            .just_fired = true;
+    });
+    assert!(
+        !engaged.is_empty() && gaps(&engaged).iter().all(|gap| *gap == 16),
+        "a fighting participant gets steady support: {engaged:?}"
+    );
+
+    // The participant fires a Pistol round and reloads.
+    {
+        let participant = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        participant.just_fired = false;
+        participant
+            .inventory
+            .grant_weapon(crate::protocol::WeaponType::Tack);
+        participant.inventory.arm_magazines();
+        assert!(participant
+            .inventory
+            .try_fire(crate::protocol::WeaponType::Tack));
+    }
+    let tick = state.tick;
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .request_reload(crate::protocol::WeaponType::Tack, tick));
+    // A fresh magazine, so the covering string is not cut by Latch's reload.
+    state.mission.as_mut().unwrap().companion = Default::default();
+    let covering = shots(&mut state, 100, &|_| {});
+    let covering_gaps = gaps(&covering);
+    // Twelve rounds six ticks apart, Latch's own reload, then cover again.
+    assert!(
+        covering.len() > 12
+            && covering_gaps[..11].iter().all(|gap| *gap == 6)
+            && covering_gaps[11] >= 16
+            && covering_gaps[12..].iter().all(|gap| *gap == 6),
+        "a reload is covered with fast fire from a real magazine: {covering:?}"
+    );
+    let support = &state.mission.as_ref().unwrap().companion;
+    assert_eq!(
+        support.covering_shots,
+        u32::try_from(covering.len()).unwrap()
+    );
+    assert_eq!(
+        support.rounds(),
+        12 - u8::try_from(covering.len() - 12).unwrap(),
+        "the reload refilled the magazine"
+    );
+    let bullets = state
+        .players
+        .iter()
+        .find(|p| p.id == companion_id)
+        .unwrap()
+        .inventory
+        .state(companion_id, crate::protocol::WeaponType::Tack, state.tick)
+        .unwrap()
+        .ammo(crate::protocol::AmmoPool::Bullets);
+    assert!(
+        bullets >= 12,
+        "Latch's own rounds were restocked: {bullets}"
     );
 }
 
@@ -2123,7 +2281,7 @@ fn controlled_unshielded_escape_companion_reaches_floor_and_resolves_a_shot() {
             ally.y - PLAYER_FLOOR_Y,
             ally.z,
             ally.campaign,
-            session.state.mission.as_ref().unwrap().m02.as_ref().unwrap().support_shots,
+            session.state.mission.as_ref().unwrap().companion.shots,
             session.state.players.iter().filter(|p| p.name.starts_with("floor_") || p.name.starts_with("press_") || p.name.starts_with("conveyor_")).map(|p| (&p.name, p.hp, p.x, p.z)).collect::<Vec<_>>()
         )
     });

@@ -110,13 +110,15 @@ pub(crate) fn mark(arena: &Arena, feet: [f32; 3], yaw: f32) -> Option<Strip> {
 impl EnemyController {
     /// Intent for one tick. `damage` is the authoritative health lost since the
     /// previous intent, so trading shooters and pellets add up together.
+    /// `may_prepare` holds when the body stands on its floor and a ranged
+    /// token on the participant is free: a strip on screen is an attack.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn paver(
         &mut self,
         arena: &Arena,
         target: Option<&crate::protocol::PlayerState>,
         feet: [f32; 3],
-        grounded: bool,
+        may_prepare: bool,
         damage: i32,
         timing: (u64, u64),
         tick: u64,
@@ -155,7 +157,7 @@ impl EnemyController {
         }
         let destination = target.map_or(self.last_known, |p| [p.x, p.y - PLAYER_FLOOR_Y, p.z]);
         let distance = (destination[0] - feet[0]).hypot(destination[2] - feet[2]);
-        if let Some(target) = target.filter(|_| grounded) {
+        if let Some(target) = target.filter(|_| may_prepare) {
             let at = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             if (at[1] - feet[1]).abs() <= STRIP_FLOOR_BAND
                 && distance <= STRIP_OFFSET + STRIP_LENGTH

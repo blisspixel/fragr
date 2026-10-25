@@ -7,6 +7,7 @@ impl EnemyController {
         eye: [f32; 3],
         timing: (u64, u64),
         tick: u64,
+        may_attack: bool,
     ) -> BotIntent {
         let (windup, recovery) = timing;
         let mut action = Action::default();
@@ -35,7 +36,7 @@ impl EnemyController {
             return BotIntent { action, goal: None };
         }
         if self.canisters_left > 0 {
-            if let Some(target) = target {
+            if let Some(target) = target.filter(|_| may_attack) {
                 let point = crate::combat::aim_point_for(
                     [target.x, target.y - PLAYER_FLOOR_Y, target.z],
                     target.campaign,
@@ -110,7 +111,7 @@ mod tests {
                 10,
                 false,
             );
-            let initial = controller.assessor(Some(&target), eye, (windup, recovery), 10);
+            let initial = controller.assessor(Some(&target), eye, (windup, recovery), 10, true);
             assert!(!initial.action.fire);
             let point = controller.canister_target.unwrap();
             let aim = controller.aim;
@@ -118,7 +119,7 @@ mod tests {
             moved.z = 5.0;
             let mut fires = Vec::new();
             for tick in 11..=10 + windup + 13 {
-                let intent = controller.assessor(Some(&moved), eye, (windup, recovery), tick);
+                let intent = controller.assessor(Some(&moved), eye, (windup, recovery), tick, true);
                 assert_eq!(
                     controller.canister_target,
                     Some(point),

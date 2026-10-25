@@ -638,8 +638,8 @@ and active ready party arrival at the registered region. Future required
 guards remain absent until their predecessor clears. The optional service
 encounter becomes available after loading clearance and never gates the next
 required encounter. Its marker requires that optional clear and real party
-arrival. Latch follows and has bounded support ammunition, but does not fire
-into the isolated Rail or Turret lesson groups.
+arrival. Latch follows and covers with a Tack from a twelve-round magazine,
+but does not fire into the isolated Rail or Turret lesson groups.
 
 Car and patient carry retains historical unique registered-form IDs and order,
 at most four each; photographs remain bounded at 1,000,000. Released workers
@@ -701,9 +701,9 @@ The required prefix is `ring_cleared`, `plaza_cleared`, `post_cleared`,
 `window_cleared`, `cut_cleared`, then `party_departed`. Each of the first five
 objectives requires its corresponding encounter clear and active ready party
 arrival at the registered region. Future required guards remain absent until
-their predecessor clears. There is no optional branch. Latch follows and has
-bounded support ammunition, but does not fire into the isolated roof-window
-marksman lesson. The carried fields are the immutable earlier outcomes,
+their predecessor clears. There is no optional branch. Latch follows and covers
+with a Tack from a twelve-round magazine, but does not fire into the isolated
+roof-window marksman lesson. The carried fields are the immutable earlier outcomes,
 including the M06 route marker. Departure requires all living ready
 participants aboard the freight boarding region and a fresh aimed Use. Retry
 resets the town, guards, grants and ally while retaining earlier outcomes and
