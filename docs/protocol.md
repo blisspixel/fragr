@@ -429,7 +429,8 @@ second after start); a reader that does not know them ignores them:
     (monotonic, when the snapshot was taken).
   - `tick`: `budget_ms` (50), `rate_hz` (ticks the loop actually ran per second
     over the window, `null` until it spans 30 s), `scope` (`tick_handler`: expiry, simulation, run
-    save, broadcast and unicast enqueue, and this refresh), `window_s` (60),
+    save, the one encode of each broadcast, broadcast and unicast enqueue, and
+    this refresh), `window_s` (60),
     and `window` and `lifetime` summaries of `count`, `p50_ms`, `p95_ms`,
     `p99_ms`, `max_ms` and the exact `over_budget` count. The window is six ten
     second slots, so it covers the last 50 to 60 s. Percentiles are
@@ -1525,6 +1526,8 @@ MapInfo and Mission form barriers even when the map ID stays the same. Events,
 inventory and acknowledgements are never replaced. A full reliable queue or
 a write stalled for two seconds disconnects that client. An in-progress write
 cannot be replaced, and combat-heavy queues can still reach this bound.
+The server encodes each broadcast once per tick and every initialized session
+receives those same bytes; targeted messages are encoded per session.
 
 ```json
 {

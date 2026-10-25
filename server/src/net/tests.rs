@@ -264,6 +264,126 @@ async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels
     let _ = accept.await;
 }
 
+/// Accepts every frame at once and keeps it, in order.
+#[derive(Default)]
+struct RecordingSink(Vec<Message>);
+
+impl futures_util::Sink<Message> for RecordingSink {
+    type Error = std::io::Error;
+
+    fn poll_ready(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn start_send(mut self: std::pin::Pin<&mut Self>, frame: Message) -> Result<(), Self::Error> {
+        self.0.push(frame);
+        Ok(())
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+}
+
+#[tokio::test]
+async fn writer_sends_a_shared_broadcast_unchanged_and_encodes_only_targeted_messages() {
+    let (tx, rx) = outbound_channel(4);
+    let snapshot = ServerMessage::Snapshot(crate::sim::GameState::new().snapshot());
+    let broadcast = Broadcast::encode(snapshot.clone()).unwrap();
+    let private = ServerMessage::Error {
+        code: "private".into(),
+        message: "only this socket".into(),
+    };
+    tx.try_send(Arc::clone(&broadcast)).unwrap();
+    tx.try_send(private.clone()).unwrap();
+    drop(tx);
+    let probe = Arc::new(WriterProbe::default());
+    let (shutdown, _) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let RecordingSink(sent) = run_outbound_writer(
+        RecordingSink::default(),
+        rx,
+        shutdown,
+        Duration::from_secs(1),
+        Duration::from_secs(60),
+        stop,
+        WriterMeters {
+            traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+            probe: Some(Arc::clone(&probe)),
+        },
+    )
+    .await;
+    // The wire is unchanged: the shared payload is the message's own encoding.
+    assert_eq!(
+        sent,
+        vec![
+            Message::Text(serde_json::to_string(&snapshot).unwrap()),
+            Message::Text(serde_json::to_string(&private).unwrap()),
+        ]
+    );
+    let report = probe.report();
+    assert_eq!(report.shared_frames, 1);
+    assert_eq!(report.shared_bytes, broadcast.text().len() as u64);
+    assert_eq!(report.encodes, 1);
+    assert_eq!(report.encode_ms.count, 1);
+    assert_eq!(report.residence_ms.count, 2);
+    assert_eq!(report.send_ms.count, 2);
+    // Neither the queue nor the writer keeps the payload once it is sent.
+    assert_eq!(Arc::strong_count(&broadcast), 1);
+    probe.reset();
+    assert_eq!(probe.report().residence_ms.count, 0);
+}
+
+#[tokio::test]
+async fn cancelled_stalled_writer_releases_every_shared_payload() {
+    let (tx, rx) = outbound_channel(4);
+    let broadcast = Broadcast::encode(ServerMessage::Event(crate::protocol::GameEvent::Respawn {
+        player: "Watcher".into(),
+    }))
+    .unwrap();
+    // One copy reaches the stalled send; the other waits in the queue.
+    tx.try_send(Arc::clone(&broadcast)).unwrap();
+    tx.try_send(Arc::clone(&broadcast)).unwrap();
+    let (shutdown, _) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let writer = tokio::spawn(run_outbound_writer(
+        StalledSink,
+        rx,
+        shutdown,
+        Duration::from_secs(60),
+        Duration::from_secs(60),
+        stop,
+        WriterMeters {
+            traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+            probe: None,
+        },
+    ));
+    timeout(Duration::from_secs(1), async {
+        while tx.depth() != 1 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .unwrap();
+    writer.abort();
+    assert!(writer.await.is_err_and(|error| error.is_cancelled()));
+    assert_eq!(tx.try_send(Arc::clone(&broadcast)), Err(QueueError::Closed));
+    assert_eq!(Arc::strong_count(&broadcast), 1);
+}
+
 struct StalledSink;
 
 impl futures_util::Sink<Message> for StalledSink {
@@ -312,7 +432,10 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         Duration::from_millis(20),
         Duration::from_secs(60),
         stop,
-        crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+        WriterMeters {
+            traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+            probe: None,
+        },
     ));
     timeout(Duration::from_secs(1), changed.changed())
         .await
@@ -1598,7 +1721,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     .await;
     crate::session::broadcast_to_clients(
         &clients,
-        &[ServerMessage::Snapshot(session.state.snapshot())],
+        &crate::net::Broadcast::copies(&[ServerMessage::Snapshot(session.state.snapshot())]),
     )
     .await;
     for socket in [&mut healthy, &mut fighter] {

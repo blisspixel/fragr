@@ -12,6 +12,7 @@
 - Client: Loopback default, accepts `FRAGR_SERVER` env var for remote connections
 - Tick rate: ~20 Hz server broadcast
 - Multi-peer: Multiple spectators/players can connect to same match
+- Fan-out: each broadcast is encoded once per tick and every session's bounded queue shares that payload; targeted messages are encoded per session. Measured before and after in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out).
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
 - Limits: Ordered TCP delivery can stall newer updates after loss; JSON full-world snapshots consume more bytes than a compact, relevant-state format.
 

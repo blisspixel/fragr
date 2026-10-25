@@ -2919,7 +2919,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             article_blade: None,
             podium: None,
         });
-        broadcast_to_clients(&clients, &[snap]).await;
+        broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snap])).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
             .await
             .unwrap()
@@ -3032,7 +3032,7 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
         player_count: session.state.players.len(),
     });
     let messages = session.tick_messages(0.05);
-    broadcast_to_clients(&clients, &messages).await;
+    broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages)).await;
 
     let mut saw_snapshot = false;
     let mut saw_join_event = false;

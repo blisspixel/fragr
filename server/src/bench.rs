@@ -325,6 +325,23 @@ pub struct BenchEnvironment {
     pub available_parallelism: Option<usize>,
 }
 
+impl BenchEnvironment {
+    /// The process measuring now: its platform, build profile and cores.
+    pub fn current() -> Self {
+        Self {
+            os: std::env::consts::OS.to_string(),
+            arch: std::env::consts::ARCH.to_string(),
+            profile: if cfg!(debug_assertions) {
+                "debug"
+            } else {
+                "release"
+            }
+            .to_string(),
+            available_parallelism: std::thread::available_parallelism().ok().map(usize::from),
+        }
+    }
+}
+
 pub(crate) fn encoded_payload_bytes<'a>(
     messages: impl Iterator<Item = &'a crate::protocol::ServerMessage>,
 ) -> serde_json::Result<usize> {
@@ -433,17 +450,7 @@ pub fn run_bench_with_trace(
     Ok(BenchReport {
         schema_version: 2,
         config,
-        environment: BenchEnvironment {
-            os: std::env::consts::OS.to_string(),
-            arch: std::env::consts::ARCH.to_string(),
-            profile: if cfg!(debug_assertions) {
-                "debug"
-            } else {
-                "release"
-            }
-            .to_string(),
-            available_parallelism: std::thread::available_parallelism().ok().map(usize::from),
-        },
+        environment: BenchEnvironment::current(),
         stats: stats.report(fighters, 0),
         session_ms: session_ns.summary(1e-6),
         encode_ms: encode_ns.summary(1e-6),

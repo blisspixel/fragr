@@ -24,6 +24,13 @@ pub(crate) fn disable_nagle(stream: &TcpStream) {
 /// Never log a ticket, resume token or secret under it.
 pub const AUDIT_TARGET: &str = "fragr_server::audit";
 
+/// What a session writer counts into: its traffic and, only when a harness
+/// measures, the shared writer probe.
+struct WriterMeters {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    probe: Option<Arc<WriterProbe>>,
+}
+
 /// Owns the socket's write half. Sends queued messages and a ping on a fixed
 /// cadence. Returns the sink so a kick can still send its reason and close.
 async fn run_outbound_writer<S>(
@@ -33,20 +40,42 @@ async fn run_outbound_writer<S>(
     send_timeout: Duration,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
-    traffic: Arc<crate::metrics::ClientTraffic>,
+    meters: WriterMeters,
 ) -> S
 where
     S: futures_util::Sink<Message> + Unpin,
 {
+    let WriterMeters { traffic, probe } = meters;
     let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
     ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
         let frame = tokio::select! {
-            msg = rx.recv() => {
-                let Some(msg) = msg else { break };
-                let Ok(json) = serde_json::to_string(&msg) else {
-                    tracing::warn!("Failed to serialize outbound server message; dropping client send");
-                    break;
+            delivery = rx.recv() => {
+                let Some(delivery) = delivery else { break };
+                let taken = std::time::Instant::now();
+                if let Some(probe) = &probe {
+                    probe.taken(delivery.queued_at, taken);
+                }
+                let json = match delivery.frame {
+                    // tungstenite 0.24 owns each frame's String, so a shared
+                    // payload is copied, never serialized again.
+                    Outbound::Shared(broadcast) => {
+                        let json = broadcast.text().to_owned();
+                        if let Some(probe) = &probe {
+                            probe.shared(json.len());
+                        }
+                        json
+                    }
+                    Outbound::Targeted(message) => {
+                        let Ok(json) = serde_json::to_string(&message) else {
+                            tracing::warn!("Failed to serialize outbound server message; dropping client send");
+                            break;
+                        };
+                        if let Some(probe) = &probe {
+                            probe.encoded(taken.elapsed(), json.len());
+                        }
+                        json
+                    }
                 };
                 Message::Text(json)
             }
@@ -57,6 +86,7 @@ where
             Message::Text(text) => Some(text.len()),
             _ => None,
         };
+        let sending = std::time::Instant::now();
         if !matches!(
             tokio::time::timeout(send_timeout, sink.send(frame)).await,
             Ok(Ok(()))
@@ -65,6 +95,9 @@ where
         }
         if let Some(bytes) = text_bytes {
             traffic.sent(bytes);
+            if let Some(probe) = &probe {
+                probe.sent(sending.elapsed());
+            }
         }
     }
     // A venue close already told the reader why. A stalled write must not
@@ -510,7 +543,10 @@ async fn close_with_error(
 mod tests;
 
 mod outbound;
-pub use outbound::{channel as outbound_channel, QueueError, Queued, WsRx, WsTx};
+pub use outbound::{
+    channel as outbound_channel, Broadcast, Delivery, Outbound, QueueError, Queued, WriterProbe,
+    WriterReport, WsRx, WsTx,
+};
 
 pub struct ClientSession {
     pub id: Uuid,
@@ -644,6 +680,7 @@ pub struct NetServer {
     resume: std::sync::Arc<crate::resume::ResumeTable>,
     access: Option<AccessWatch>,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    writer_probe: Option<Arc<WriterProbe>>,
     preclass: crate::admission_bounds::PreclassGate,
     population: crate::admission_bounds::Population,
     origins: Arc<Vec<String>>,
@@ -947,6 +984,7 @@ impl NetServer {
             resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
             access: None,
             traffic: Arc::default(),
+            writer_probe: None,
             preclass: crate::admission_bounds::PreclassGate::new(),
             population: crate::admission_bounds::Population::default(),
             origins: Arc::new(Vec::new()),
@@ -998,6 +1036,12 @@ impl NetServer {
     /// Payload totals for every session this listener admits, closed ones included.
     pub fn traffic_totals(&self) -> Arc<crate::metrics::TrafficCounters> {
         Arc::clone(&self.traffic)
+    }
+
+    /// Time every session writer's queue residence, encoding and socket send.
+    /// Only a measuring harness sets this.
+    pub fn set_writer_probe(&mut self, probe: Arc<WriterProbe>) {
+        self.writer_probe = Some(probe);
     }
 
     /// Share the match line the tick loop refreshes. `GET /status` reads it.
@@ -1129,6 +1173,7 @@ impl NetServer {
                     let resume_table = std::sync::Arc::clone(&self.resume);
                     let access = self.access.clone();
                     let traffic = Arc::clone(&self.traffic);
+                    let writer_probe = self.writer_probe.clone();
                     let preclass_gate = self.preclass.clone();
                     let population = self.population.clone();
                     let origins = Arc::clone(&self.origins);
@@ -1218,6 +1263,7 @@ impl NetServer {
                                 access,
                                 limits,
                                 traffic,
+                                writer_probe,
                                 population,
                                 origins,
                                 board_budget,
@@ -1441,6 +1487,7 @@ struct HelloPolicy {
     access: Option<AccessWatch>,
     limits: SessionLimits,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    writer_probe: Option<Arc<WriterProbe>>,
     population: crate::admission_bounds::Population,
     origins: Arc<Vec<String>>,
     board_budget: crate::admission_bounds::BoardBudget,
@@ -2136,7 +2183,10 @@ async fn handle_connection(
         OUTBOUND_SEND_TIMEOUT,
         policy.limits.ping_every,
         writer_stop,
-        Arc::clone(&traffic),
+        WriterMeters {
+            traffic: Arc::clone(&traffic),
+            probe: policy.writer_probe.clone(),
+        },
     ));
 
     let end = read_session(
