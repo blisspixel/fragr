@@ -312,6 +312,16 @@ low hop, with 0.75 s before the next. A slow agent loop that wants to stop on
 a mark should release its keys a step early. A campaign mission keeps the
 immediate 5 m/s step and has no dodge.
 
+Blasts push arena fighters (`docs/protocol.md`, Movement): a Rocket fired at
+your own feet is a rocket jump, so jump and fire straight down on the next
+step to reach a 1.5 m deck edge, at the cost of some armour or health.
+
+`again: true` on the podium (round `Ended`) asks for the next round now. When
+every seated person and agent has asked, it opens two seconds after the result
+instead of eight. `round_state.podium` shows who is ready and, in a Duel, the
+series. A Duel (`rules.mode` `duel`) has two fighter seats; a third fighter is
+refused with `match_full` and may watch.
+
 Authored traversal maps use the same connection and action tools. `observe.map`
 includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.
@@ -674,6 +684,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "pressure": null,
   "mvp": null,
   "mvp_frags": null,
+  "podium": null,
   "map_id": 1,
   "map_name": "Larak Lot",
   "rules": {"mode": "tdm", "name": "Team Deathmatch: Rail Only", "mutators": ["rail-only"]},
@@ -690,12 +701,15 @@ Fields come from the last snapshot plus the most recent `round_start` /
 `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
 sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
 `map_name` are always present (defaulting to Larak Lot if the snapshot omitted
-them). `self_body` is your pawn's accepted body, null before a snapshot shows
+them). `podium` is null mid-round; while Ended it is the Snapshot's podium:
+`again` (ids that pressed `act.again`), `voters` (seated people and agents
+waited on) and, in a Duel, `duel` (both fighters' round wins in this series).
+`self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
-before `map_info` arrives): `mode` (`ffa`, `tdm`, `ctf` or `sabotage`), `name`, `mutators`
+before `map_info` arrives): `mode` (`ffa`, `tdm`, `ctf`, `sabotage`, `conquest` or `duel`), `name`, `mutators`
 (`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
 `two-lives`, `full-arsenal`), `friendly_fire` and `lives`, each omitted at its
 default, and `start_kit`, always present: the weapons a fresh life holds. It is

@@ -662,7 +662,6 @@ fn weapon_pad(id: &str, weapon: WeaponType, x: f32, z: f32, floor: f32) -> Arena
         available: true,
         respawn_timer: None,
         secret: false,
-        clock: None,
     }
 }
 
@@ -679,7 +678,6 @@ fn health_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
         available: true,
         respawn_timer: None,
         secret: false,
-        clock: None,
     }
 }
 
@@ -696,7 +694,6 @@ fn armor_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
         available: true,
         respawn_timer: None,
         secret: false,
-        clock: None,
     }
 }
 

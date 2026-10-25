@@ -11,12 +11,10 @@ pub(crate) const LATCH_RELEASE_TICKS: u64 = 240;
 pub(super) struct M02Progress {
     pub(super) index: usize,
     pub(super) gate_mask: u8,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
     evacuation: evacuation::Controller,
 }
 
-mod companion;
+pub(super) mod companion;
 mod evacuation;
 pub(crate) mod tableau;
 pub(crate) use evacuation::validate_route as validate_m02_evacuation_route;

@@ -16,6 +16,7 @@ pub mod mine;
 mod modes;
 mod paver;
 mod playlist;
+mod podium;
 mod spawn;
 pub(crate) mod walker;
 pub(crate) use playlist::slot_playable as validate_show;
@@ -119,6 +120,13 @@ pub const HEALTH_PICKUP_RESPAWN_TICKS: u32 = 20 * 15;
 pub const SUPPLY_PICKUP_RESPAWN_TICKS: u32 = 20 * 10;
 /// Max scrap armor (simple absorb-before-HP).
 pub const PLAYER_MAX_ARMOR: i32 = 100;
+/// The Custody Plate stacks armour past the ordinary cap to this, and what is
+/// over `PLAYER_MAX_ARMOR` drains back one point a second.
+pub const PLATE_MAX_ARMOR: i32 = 150;
+/// Armour the Custody Plate adds.
+pub const PLATE_AMOUNT: i32 = 100;
+/// Ticks between each point of plated armour draining back.
+pub const PLATE_DECAY_TICKS: u64 = 20;
 /// Half-angle of an Auditor's frontal shield plate: 60 degrees either side.
 pub const AUDITOR_SHIELD_HALF_ARC: f32 = std::f32::consts::FRAC_PI_3;
 /// Health pad heal amount (capped at PLAYER_MAX_HP).
@@ -503,6 +511,8 @@ pub enum PickupKind {
     Weapon(WeaponType),
     Health,
     Armor,
+    /// The Custody Plate, the arena's power item: +100 armour to 150.
+    Plate,
 }
 
 impl PickupKind {
@@ -515,6 +525,7 @@ impl PickupKind {
             PickupKind::Weapon(_) => "weapon",
             PickupKind::Health => "health",
             PickupKind::Armor => "armor",
+            PickupKind::Plate => "plate",
         }
     }
 
@@ -525,7 +536,7 @@ impl PickupKind {
             PickupKind::Weapon(weapon) => {
                 !matches!(weapon, WeaponType::Flechette | WeaponType::Tack)
             }
-            PickupKind::Armor => true,
+            PickupKind::Armor | PickupKind::Plate => true,
             _ => false,
         }
     }
@@ -557,10 +568,6 @@ pub struct ArenaPickup {
     pub respawn_timer: Option<u32>,
     /// An authored secret: optional, found by exploring, never required.
     pub secret: bool,
-    /// This pad's own respawn clock in ticks, when the map sets one. A map
-    /// built around item control times its power items rather than taking
-    /// the clock for the pad's kind.
-    pub clock: Option<u32>,
 }
 
 impl ArenaPickup {
@@ -575,7 +582,7 @@ impl ArenaPickup {
             | PickupKind::ProximityMine { count }
             | PickupKind::RemoteMine { count } => Some(i32::from(count)),
             PickupKind::Weapon(_) => None,
-            PickupKind::Health | PickupKind::Armor => Some(self.amount),
+            PickupKind::Health | PickupKind::Armor | PickupKind::Plate => Some(self.amount),
             PickupKind::Ammo { rounds, .. } => Some(i32::from(rounds)),
         };
         PickupState {
@@ -603,16 +610,17 @@ impl ArenaPickup {
     /// The pad's published return clock under this rule sheet: the clock the
     /// server runs and the one rule bots learn the way a regular does. Bots
     /// never read a live timer.
-    /// A map may author a pad's own clock (Larak Lot's Custody Plate); that
-    /// wins in every mode, then the rule sheet, then the kind's default.
+    /// The Custody Plate keeps the rule sheet's heavy plate clock in every
+    /// mode; everything else asks the rule sheet, then the kind's default.
     pub(crate) fn clock(&self, rules: &crate::rules::RuleSet) -> u32 {
-        self.clock
-            .or_else(|| {
-                rules.pad_respawn_ticks(
-                    self.kind.weapon(),
-                    matches!(self.kind, PickupKind::Health | PickupKind::Armor),
-                )
-            })
+        if self.kind == PickupKind::Plate {
+            return crate::rules::PLATE_RESPAWN_TICKS;
+        }
+        rules
+            .pad_respawn_ticks(
+                self.kind.weapon(),
+                matches!(self.kind, PickupKind::Health | PickupKind::Armor),
+            )
             .unwrap_or_else(|| self.respawn_ticks())
     }
 
@@ -624,6 +632,7 @@ impl ArenaPickup {
             | PickupKind::Ammo { .. } => SUPPLY_PICKUP_RESPAWN_TICKS,
             PickupKind::Weapon(_) => crate::rules::FFA_WEAPON_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
+            PickupKind::Plate => crate::rules::PLATE_RESPAWN_TICKS,
         }
     }
 }
@@ -718,6 +727,10 @@ pub struct GameState {
     reaction_counts: [u32; HostReactionKind::ALL.len()],
     /// The tick a level clock turned into sudden death this round.
     pub(crate) sudden_death: Option<u64>,
+    /// Fighters who asked for the next round while the podium shows.
+    pub(crate) again: std::collections::BTreeSet<Uuid>,
+    /// A Duel's running series while the same two fighters play on.
+    pub(crate) duel_series: Option<podium::DuelSeries>,
 }
 
 pub struct Player {
@@ -1194,6 +1207,7 @@ impl GameState {
             .filter(|p| p.eliminated || p.hp <= 0 || p.respawn_timer.is_some())
             .map(|p| p.id)
             .collect();
+        let rematch = self.round_number > 0 && self.config.rules.mode().free_for_all();
         self.round_number += 1;
         self.statistics_round_started = self.tick;
         self.round_state = RoundState::Active;
@@ -1220,6 +1234,7 @@ impl GameState {
         self.reset_conquest();
         self.reactions = ReactionState::default();
         self.sudden_death = None;
+        self.again.clear();
 
         let lives = self.config.rules.lives();
         let mut revive = Vec::new();
@@ -1240,8 +1255,15 @@ impl GameState {
             }
             // A map change leaves a living fighter inside the old geometry.
             // Sabotage places its own side spawns and must not be moved twice.
+            // A fighter still down from the last round's final frag starts
+            // the new one alive with everybody else, so a rematch never opens
+            // on one side's respawn clock. After a finished free-for-all or
+            // Duel round everybody starts again from a spawn at full health,
+            // never on last round's leftovers.
             let eliminated = std::mem::take(&mut player.eliminated);
-            if !sabotage && (eliminated || (map_changed && player.contestant())) {
+            let down = player.contestant() && (player.hp <= 0 || player.respawn_timer.is_some());
+            if !sabotage && (eliminated || down || (map_changed || rematch) && player.contestant())
+            {
                 revive.push(player.id);
             }
         }
@@ -1283,6 +1305,8 @@ impl GameState {
             playlist: self.display_map_name(),
             host_line: if self.solo_broadcast.enabled {
                 episode0_host_line_cold_open()
+            } else if let Some(line) = self.duel_open_line() {
+                line
             } else {
                 round_open_host_line(self.map.name(), &self.roster_names)
             },
@@ -1351,8 +1375,19 @@ impl GameState {
         // with compliance_drone pressure and MCP gets boss_down (killer null).
         self.wipe_boss_for_round_end();
         let final_scores = self.ranked_scores();
+        // A level Duel has no winner: the callsign order that sorts a tie on
+        // a free-for-all podium would otherwise crown one of two people for
+        // a draw (a goalless Duel named its MVP). Free-for-all keeps it.
+        let decided = self.config.rules.mode() != crate::protocol::GameMode::Duel
+            || final_scores.first().is_some_and(|top| {
+                top.score > 0
+                    && final_scores
+                        .get(1)
+                        .is_none_or(|next| next.score < top.score)
+            });
         let (mut winner, mut winner_score) = final_scores
             .first()
+            .filter(|_| decided)
             .map(|score| (score.name.clone(), score.score))
             .unzip();
 
@@ -1376,6 +1411,11 @@ impl GameState {
             _ if teams => self.team_scores.leader(),
             _ => None,
         };
+        self.settle_duel(match &standing {
+            Some(Standing::Fighter(survivor)) => survivor.as_deref(),
+            _ => None,
+        });
+        self.again.clear();
         if let Some(Standing::Fighter(survivor)) = &standing {
             winner_score = survivor
                 .as_ref()
@@ -1468,9 +1508,20 @@ impl GameState {
                     ", tickets {:?}",
                     self.conquest.as_ref().map(|state| state.tickets)
                 ),
-                crate::protocol::GameMode::Ffa => String::new(),
+                crate::protocol::GameMode::Ffa | crate::protocol::GameMode::Duel => String::new(),
             }
         );
+    }
+
+    /// Fighter seats when the rules cap them: ten in five versus five
+    /// Sabotage, two in a Duel. Rule bots and people share them.
+    pub(crate) fn fighter_seats(&self) -> Option<usize> {
+        if self.config.rules.mode() == crate::protocol::GameMode::Sabotage
+            && self.config.sabotage.five_vs_five
+        {
+            return Some(10);
+        }
+        self.config.rules.mode().seats()
     }
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
@@ -1499,15 +1550,13 @@ impl GameState {
         role: Role,
         body: crate::protocol::BodyKind,
     ) {
-        if self.config.rules.mode() == crate::protocol::GameMode::Sabotage
-            && self.config.sabotage.five_vs_five
-            && self
-                .players
+        if self.fighter_seats().is_some_and(|seats| {
+            self.players
                 .iter()
                 .filter(|player| player.contestant())
                 .count()
-                >= 10
-        {
+                >= seats
+        }) {
             return;
         }
         if !self.admit_campaign_owner(id) {
@@ -1695,6 +1744,11 @@ impl GameState {
     }
 
     fn set_actor_action(&mut self, id: Uuid, mut action: Action, companion_intent: bool) {
+        // The podium's ready-up counts before anything about this body: an
+        // eliminated or waiting fighter can still ask for the next round.
+        if action.again && !companion_intent {
+            self.note_again(id);
+        }
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
             if player.is_campaign_companion() != companion_intent {
                 return;
@@ -1930,7 +1984,7 @@ impl GameState {
                 if self.compliance_ticks_left > 0 {
                     self.compliance_ticks_left -= 1;
                 }
-                if !self.compliance_fired && !self.config.rules.mode().objective() {
+                if !self.compliance_fired && self.config.rules.mode().pressure() {
                     if let Some(at) = self.config.compliance_ping_ticks {
                         if self.round_ticks >= at {
                             self.fire_compliance_ping();
@@ -1940,7 +1994,7 @@ impl GameState {
                 if !self.boss_spawned
                     && !self.solo_broadcast.enabled
                     && self.config.rules.lives().is_none()
-                    && !self.config.rules.mode().objective()
+                    && self.config.rules.mode().pressure()
                 {
                     if let Some(at) = self.config.boss_spawn_ticks {
                         if self.round_ticks >= at {
@@ -2014,7 +2068,9 @@ impl GameState {
                 let delay = self
                     .sabotage_end_delay()
                     .unwrap_or(self.config.end_delay_ticks);
-                if self.round_ticks >= delay {
+                // The next round loads on its own clock, or at once when
+                // everyone seated has asked for another.
+                if self.round_ticks >= delay || self.again_ready() {
                     self.open_round();
                 }
                 return;
@@ -2085,6 +2141,7 @@ impl GameState {
             world
         });
         let movement_arena = vehicle_arena.as_ref().unwrap_or(arena);
+        self.drain_plate();
         self.resolve_stances(arena, &occupied);
         let mut respawn_ids = Vec::new();
         let contact_before = self.contact_bodies();
@@ -3791,6 +3848,7 @@ impl GameState {
             sabotage,
             conquest: self.conquest.clone(),
             article_blade: self.article_blade_snapshot(),
+            podium: self.podium(),
         }
     }
 
@@ -4245,10 +4303,10 @@ impl GameState {
         }
         self.add_sabotage_pads();
         // Every free-for-all life starts on the Pistol, so the floor carries
-        // enough guns that no spawn is a long walk from one.
-        if self.config.rules.mode() == crate::protocol::GameMode::Ffa
-            && !self.solo_broadcast.enabled
-        {
+        // enough guns that no spawn is a long walk from one. An armed start
+        // (Full Arsenal, Golden Rail, a weapon-only mutator) has no use for
+        // them, and its bag could not hold a gun outside the arsenal.
+        if self.sidearm_start() && !self.solo_broadcast.enabled {
             self.pickups.extend(self.map.scrap_pads());
         }
         if self.config.rules.has(Mutator::GoldenRail) {
@@ -4406,6 +4464,7 @@ impl GameState {
                     }
                     PickupKind::Health => player.hp < PLAYER_MAX_HP,
                     PickupKind::Armor => player.armor < PLAYER_MAX_ARMOR,
+                    PickupKind::Plate => player.armor < PLATE_MAX_ARMOR,
                 };
                 if !useful {
                     continue;
@@ -4537,6 +4596,16 @@ impl GameState {
                     let gained = player.armor - before;
                     (String::new(), Some(gained), format!("+{} armor", gained))
                 }
+                PickupKind::Plate => {
+                    let before = player.armor;
+                    player.armor = (player.armor + amount).min(PLATE_MAX_ARMOR);
+                    let gained = player.armor - before;
+                    (
+                        String::new(),
+                        Some(gained),
+                        format!("Custody Plate +{gained}"),
+                    )
+                }
             };
             let name = player.name.clone();
             self.events.push(GameEvent::Pickup {
@@ -4549,6 +4618,19 @@ impl GameState {
                 secret,
             });
             tracing::info!(target: crate::logging::FEED_TARGET, "PICKUP: {} claimed {} ({})", name, label, pickup_id);
+        }
+    }
+
+    /// Plated armour over the ordinary cap drains back a point a second, so
+    /// the Custody Plate is worth taking again before it has run out.
+    fn drain_plate(&mut self) {
+        if !self.tick.is_multiple_of(PLATE_DECAY_TICKS) {
+            return;
+        }
+        for player in &mut self.players {
+            if player.armor > PLAYER_MAX_ARMOR {
+                player.armor -= 1;
+            }
         }
     }
 
@@ -4924,6 +5006,8 @@ impl Default for GameState {
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
             sudden_death: None,
+            again: std::collections::BTreeSet::new(),
+            duel_series: None,
         }
     }
 }

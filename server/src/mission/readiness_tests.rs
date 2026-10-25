@@ -233,7 +233,6 @@ fn a_pending_reader_cannot_trigger_loot_or_become_an_enemy_target() {
         available: true,
         respawn_timer: None,
         secret: false,
-        clock: None,
     });
     for _ in 0..20 {
         session.tick_messages(0.05);

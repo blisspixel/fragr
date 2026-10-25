@@ -1,0 +1,127 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"magenta"
+		],
+		"stretch_xyz": [
+			1.15497553348541,
+			1.0,
+			1.11313164234161
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.894,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.099,
+			"warm": 0.007
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended [4.36, 1.4, 1.96] m",
+		"fill_ratio_xyz": [
+			0.865819176136969,
+			1.0,
+			0.898366358360634
+		],
+		"fitted_m": [
+			3.77497172355652,
+			1.39999997615814,
+			1.7607980966568
+		],
+		"scale": 1.98467544512204,
+		"slot_or_intended_m": [
+			4.3600001335144,
+			1.39999997615814,
+			1.96000003814697
+		],
+		"worst_log_mismatch": 0.144079195759182,
+		"yaw_degrees": 0.0
+	},
+	"id": "ll-burned-sedan",
+	"metres_per_source_unit": 1.98467544512204,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 512,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		4.3600001335144,
+		1.39999997615814,
+		1.96000003814697
+	],
+	"prepared_sha256": "0462b253e7cb25f92ad4d9054f7ff7a9fbf99f07ed3e6d63ba5b57b9667f78f4",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-burned-sedan-20261024-v1",
+			"request_id": "01a16f53-22f2-75c3-af78-2a3ebbfc730b",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 8000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_burned_sedan_a",
+			"keyed_sha256": "dfb88a48327acf4e032e24c1edc579c5d80860e7d09d9b171726a7b0536e7448",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "1781cdcd-49e3-4c97-b684-1262d25965aa",
+			"resolution": "2k",
+			"sha256": "cd1e068a59ddeeb23f1c02f33fd1aeee3c981482ad0def9d23c09be2afe3b004",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90206003189087,
+		0.705404996871948,
+		0.887197017669678
+	],
+	"raw_file": "ll-burned-sedan-20261024-v1-0.glb",
+	"raw_sha256": "4f0dfa61004223b4472720bf09be684d535529265330137981169fadae035f20",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 49.4877350793395,
+	"texels_per_metre": 55.500396829225,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 129,
+		"boundary_loops": 67,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			6,
+			4,
+			4,
+			4,
+			4
+		],
+		"nonmanifold_edges": 161,
+		"watertight": false,
+		"welded_vertices": 3877
+	},
+	"triangles": 8128,
+	"uv_coverage": 0.581500151915967,
+	"vertices": 17264
+}

@@ -69,6 +69,8 @@ func _check_labels() -> void:
 	var tdm: Dictionary = MatchRules.parse({"mode": "tdm", "mutators": ["rail-only", "two-lives"], "friendly_fire": true, "lives": 2})
 	_check(MatchRules.chip_text(tdm) == "TEAM DEATHMATCH // RAIL ONLY + TWO LIVES + FRIENDLY FIRE", "tdm chip: " + MatchRules.chip_text(tdm))
 	_check(MatchRules.chip_text(MatchRules.parse({"mode": "ffa"})) == "FREE FOR ALL", "ffa chip")
+	var duel: Dictionary = MatchRules.parse({"mode": "duel", "name": "Duel", "start_kit": ["fists", "tack"]})
+	_check(MatchRules.chip_text(duel) == "DUEL" and not MatchRules.teams(duel), "a duel is a sideless mode with its own chip")
 	_check(MatchRules.chip_text(MatchRules.parse({"mode": "ctf"})) == "CAPTURE THE FLAG", "ctf chip")
 	_check(MatchRules.chip_text({}) == "", "no rules, no chip")
 	for mutator: String in MatchRules.MUTATORS:

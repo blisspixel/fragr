@@ -35,6 +35,23 @@ boot menu and multiplayer page came out byte for byte the same. Captured at
 | `tour_multiplayer_16x9.png` | Multiplayer choice page: find or join a match, or run one |
 | `tour_combat_follow_16x9.png` | Chase view of a live Larak Lot free-for-all between rule bots, after a clear frame |
 
+## October 24, 2026 wave 3 tour
+
+The wave-end publish for the wave 3 integration: Larak Lot's boxes are now
+modelled props (the toll booths, THE STACK, the burnt and clamped cars, the
+kiosk, the pay machines and the rest), and the Rocket waits in the Pit. The
+first publish attempt failed when a bot's rocket outlived its owner and the
+client refused the snapshot; after that fix the 34 arena states, both team
+states and the Recall Notice arrival were captured at 1280x720 on a nested
+Xwayland display with OpenGL Compatibility on the GPU. The README's
+first-person still now looks down the booth lanes at the modelled booths, and
+the watched match frames THE STACK and the kiosk from the Stands. Both caught
+the Continuance compliance drone event, whose Host line sits under the score.
+The boot menu and multiplayer page came out byte for byte the same. Separate
+review passes looked at the rocket jump strip, a Duel podium and rematch, the
+M02 Latch cover still and strip, the Union tell lineup and each prop at play
+distance. Presentation only; no Windows frames.
+
 ## October 24, 2026 wave 2 tour
 
 The wave-end publish for the wave 2 integration: map 1 is now Larak Lot, a

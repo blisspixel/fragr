@@ -1,8 +1,49 @@
 use crate::maps::AuthoredSource;
 use crate::protocol::MissionId;
 
+const MISSIONS: [MissionId; 3] = [
+    MissionId::FreedomOfMovement,
+    MissionId::PeaceWithoutInterruption,
+    MissionId::AllSystemsNormal,
+];
+
 #[test]
 fn late_campaign_carried_arsenal_controller_routes() {
+    let mut fixtures = Vec::new();
+    for mission in MISSIONS {
+        carried_route(mission, 41, Some(&mut fixtures));
+    }
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../client/golden/late_campaign_routes.json");
+    let bytes = serde_json::to_string_pretty(&fixtures).unwrap() + "\n";
+    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+        std::fs::write(&path, &bytes).unwrap();
+    }
+    assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);
+}
+
+/// The controller reads tells, so its result does not hang on one seed's shot
+/// sequence. These seeds include ones that killed the tell-blind controller.
+#[test]
+fn late_campaign_carried_routes_hold_across_seeds() {
+    for seed in [40, 43, 48] {
+        for mission in MISSIONS {
+            carried_route(mission, seed, None);
+        }
+    }
+}
+
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn late_campaign_carried_route_seed_survey() {
+    crate::mission::route_skill::survey("late carried kit", 40..56, |seed| {
+        for mission in MISSIONS {
+            carried_route(mission, seed, None);
+        }
+    });
+}
+
+fn carried_route(mission: MissionId, seed: u64, mut fixtures: Option<&mut Vec<serde_json::Value>>) {
     use crate::{
         inventory::control_action_with_target_filter,
         mission::MissionClient,
@@ -11,21 +52,12 @@ fn late_campaign_carried_arsenal_controller_routes() {
         session::GameSession,
     };
     use uuid::Uuid;
-    let mut fixtures = Vec::new();
-    for mission in [
-        MissionId::FreedomOfMovement,
-        MissionId::PeaceWithoutInterruption,
-        MissionId::AllSystemsNormal,
-    ] {
+    {
         let mut session =
             GameSession::with_authored_map(AuthoredSource::Mission(mission).load().unwrap());
         let id = Uuid::from_u128(161718);
         session.state.use_replay_ids();
-        // These carried-kit routes are seed-sensitive: over seeds 40 to 47 one
-        // completes all three missions, 42 before ranged attack pacing and 41
-        // with it. Before pacing M18 killed this controller on six seeds; with
-        // pacing M17 does on five. Neither is a difficulty verdict.
-        session.state.seed(41);
+        session.state.seed(seed);
         session.state.add_player(id, "Route".into(), Role::Agent);
         // A bounded carried kit for late-campaign authoring, never replenished in combat.
         // Bare-handed practice and fresh-player difficulty remain separate gates.
@@ -60,6 +92,8 @@ fn late_campaign_carried_arsenal_controller_routes() {
         );
         let mut client = MissionClient::default();
         let mut navigator = Navigator::default();
+        let mut tells = crate::mission::route_skill::TellReader::default();
+        let mut futile = crate::mission::route_skill::FutileTargets::default();
         let mut previous = None;
         let mut navigation = None;
         let mut departed = false;
@@ -140,7 +174,9 @@ fn late_campaign_carried_arsenal_controller_routes() {
                     }
                     _ => unreachable!(),
                 };
-                fixtures.push(serde_json::json!({"map_index": index, "tick": session.state.tick, "state": state}));
+                if let Some(fixtures) = fixtures.as_deref_mut() {
+                    fixtures.push(serde_json::json!({"map_index": index, "tick": session.state.tick, "state": state}));
+                }
                 let mut malformed = state.clone();
                 if let Some(f) = &mut malformed.m16 {
                     f.current = None;
@@ -188,7 +224,8 @@ fn late_campaign_carried_arsenal_controller_routes() {
                 |me, other| {
                     use crate::protocol::{CampaignActor, EnemyPhase};
                     let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
-                    (other.x - me.x).hypot(other.z - me.z) <= if awake { 32.0 } else { 20.0 }
+                    !futile.skips(other.id, session.state.tick)
+                        && (other.x - me.x).hypot(other.z - me.z) <= if awake { 32.0 } else { 20.0 }
                         && crate::combat::line_of_sight(
                             [
                                 me.x,
@@ -245,16 +282,26 @@ fn late_campaign_carried_arsenal_controller_routes() {
                 action.left = (session.state.tick / 20).is_multiple_of(2);
                 action.right = !action.left;
             }
+            futile.observe(&snapshot, &action);
+            let action = tells.evade(&session.state, &snapshot, id, action);
             session.state.set_action(id, action);
             session.tick_messages(0.05);
         }
         let player = session.state.players.iter().find(|p| p.id == id).unwrap();
         assert!(
             departed,
-            "{mission:?} stalled at [{},{},{}]: {:?}",
+            "{mission:?} stalled at [{},{},{}] hp {} beside {:?}: {:?}",
             player.x,
             player.y,
             player.z,
+            player.hp,
+            session
+                .state
+                .players
+                .iter()
+                .filter(|p| p.id != id && p.hp > 0 && (p.x - player.x).hypot(p.z - player.z) < 12.0)
+                .map(|p| (&p.name, p.x, p.z, p.campaign))
+                .collect::<Vec<_>>(),
             session.state.mission_state()
         );
         eprintln!(
@@ -268,11 +315,4 @@ fn late_campaign_carried_arsenal_controller_routes() {
                 .ammo
         );
     }
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../client/golden/late_campaign_routes.json");
-    let bytes = serde_json::to_string_pretty(&fixtures).unwrap() + "\n";
-    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
-        std::fs::write(&path, &bytes).unwrap();
-    }
-    assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);
 }

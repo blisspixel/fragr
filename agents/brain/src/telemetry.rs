@@ -448,6 +448,7 @@ pub(crate) mod fixtures {
             episode_phase: None,
             jammer_dish: None,
             article_blade: None,
+            podium: None,
         }
     }
 }

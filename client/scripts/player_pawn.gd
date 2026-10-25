@@ -136,6 +136,9 @@ const TELL_PATH: String = "res://assets/audio/%s/tell.wav"
 const STRETCHED_TELLS: Array[String] = ["turret"]
 ## Kinds whose tell has its own long-range presenter (RangedSweeperAudio).
 const DEDICATED_TELLS: Array[String] = ["ranged_sweeper"]
+## Kinds that raise the same issued gun as another and share its tell: the
+## Auditor's Tack cocks like a Clerk's.
+const SHARED_TELLS: Dictionary[String, String] = {"auditor": "clerk"}
 const TELL_PITCH_MIN: float = 0.8
 const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
@@ -264,7 +267,7 @@ func _load_audio_streams():
 	for kind: String in ActorState.KINDS:
 		if kind in DEDICATED_TELLS:
 			continue
-		var tell_path: String = TELL_PATH % kind
+		var tell_path: String = TELL_PATH % SHARED_TELLS.get(kind, kind)
 		if ResourceLoader.exists(tell_path):
 			tell_streams[kind] = load(tell_path)
 	if ResourceLoader.exists(DOWN_BODY_PATH):

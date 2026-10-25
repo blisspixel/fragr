@@ -35,13 +35,15 @@ func _run() -> void:
 		_solid(2.0, 6.4, -4.0, -2.0, 1.4),               # nose-down sedan
 		_solid(-10.0, 10.0, -8.0, -5.0, 3.0, 2.6),       # Bridge
 		_solid(-1.0, 1.0, -0.9, 0.9, 14.5, 10.0),        # the Repossession
+		_solid(-25.0, -23.0, -17.0, -13.0, 5.8),         # the middle toll booth
+		_solid(4.0, 8.4, 3.0, 8.0, 3.2),                 # THE STACK
 	]
 	var info: Dictionary = {
 		"type": "map_info", "map_id": 1, "map_name": "Larak Lot", "half_extent": 38.0,
 		"geometry_version": 2, "solids": solids,
 		"presentation": {
 			"ground": "concrete",
-			"solids": ["concrete", "concrete", "concrete", "records_tile", "service_steel", "enamel"],
+			"solids": ["concrete", "concrete", "concrete", "records_tile", "service_steel", "enamel", "enamel", "records_tile"],
 			"decorations": [{"solid": 2, "face": "down", "center": [-1.0, 0.0], "size": [3.0, 0.5], "kind": "strip_light"}],
 		},
 	}
@@ -63,6 +65,28 @@ func _run() -> void:
 		var deck: MeshInstance3D = cover.get_node_or_null("Solid_1") as MeshInstance3D
 		_check(deck != null and deck.visible, "ordinary decks stay drawn")
 		_check(lot.get_node_or_null("Repossession") != null, "the landmark exists")
+		# The prepared props stand in the volumes their solids hold.
+		for index: int in [6, 7]:
+			var box: MeshInstance3D = cover.get_node_or_null("Solid_%d" % index) as MeshInstance3D
+			_check(box != null and not box.visible, "solid %d's plain box is replaced by its prop" % index)
+		var booth: Node3D = lot.get_node_or_null("TollBooth") as Node3D
+		_check(booth != null and booth.position.is_equal_approx(Vector3(-24.0, LarakLot.LEVEL_2, -15.0)), "the booth stands on its solid's floor centre")
+		_check(lot.get_node_or_null("BurnedSedan") != null, "the Pit wreck is the prepared sedan")
+		var stacks: int = 0
+		for child: Node in lot.get_children():
+			stacks += 1 if child.scene_file_path == LarakLot.PROPS + "car_stack.glb" else 0
+		_check(stacks == 2, "THE STACK is two piles across its solid (got %d)" % stacks)
+		var hooks: Array[Node] = lot.find_children("CraneHook", "Node3D", true, false)
+		_check(hooks.size() == 1 and hooks[0].get_parent() == lot.get_node("Repossession"), "the hook block hangs with the cruiser")
+		var props: Array[Node] = get_nodes_in_group(&"larak_prop")
+		_check(props.size() >= 8, "the presenter places its props (got %d)" % props.size())
+		for prop: Node in props:
+			for surface: Node in prop.find_children("*", "MeshInstance3D", true, false):
+				var finish: BaseMaterial3D = (surface as MeshInstance3D).get_active_material(0) as BaseMaterial3D
+				_check(finish != null and finish.albedo_texture != null and finish.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST,
+					"prop %s keeps crisp painted clusters" % prop.name)
+		for prop_name: String in LarakLot.PROP_NAMES:
+			_check(load(LarakLot.PROPS + prop_name + ".glb") is PackedScene, "prop %s ships" % prop_name)
 		_check(lot.find_children("*", "CollisionObject3D", true, false).is_empty(), "the presenter adds no collision")
 		var lights: Array[Node] = lot.find_children("*", "Light3D", true, false)
 		var strips: int = cover.find_children("Practical", "OmniLight3D", true, false).size()
@@ -99,5 +123,5 @@ func _run() -> void:
 	arena.queue_free()
 	await process_frame
 	if _failures == 0:
-		print("test_larak_lot: PASS presenter replaces only its boxes, adds no collision, keeps the light budget, warm emitters and catalog copy")
+		print("test_larak_lot: PASS presenter replaces only its boxes with its props, adds no collision, keeps the light budget, warm emitters and catalog copy")
 	quit(0 if _failures == 0 else 1)

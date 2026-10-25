@@ -76,6 +76,7 @@ impl EnemyController {
         eye: [f32; 3],
         timing: (u64, u64),
         tick: u64,
+        may_attack: bool,
     ) -> BotIntent {
         let (windup, recovery) = timing;
         let difficulty = state.campaign_rules().difficulty;
@@ -175,7 +176,8 @@ impl EnemyController {
         {
             let bearing = (target.z - eye[2]).atan2(target.x - eye[0]);
             let remaining = self.face(&mut action, bearing, TRACK_RATE);
-            if remaining.abs() <= 0.12 {
+            // The lens opens only with a free token: an open lens is a tell.
+            if remaining.abs() <= 0.12 && may_attack {
                 self.stagger_ready = true;
                 self.enter(EnemyPhase::Windup, tick, windup);
             } else if self.phase != EnemyPhase::Moving {

@@ -943,6 +943,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         sabotage: None,
         conquest: None,
         article_blade: None,
+        podium: None,
         vehicles: vec![],
     };
     let action = control_action(id, &snapshot, Some(&loadout), Action::default());

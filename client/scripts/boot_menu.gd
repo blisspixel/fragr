@@ -56,6 +56,8 @@ var _local_match: LocalMatch
 var _local_host: LocalHost
 var _host_settings: Dictionary = {"mode": "tdm", "map_id": 1, "bots": 4, "bot_policy": "fixed", "fill_target": 0, "lan": false, "port": 0}
 var _host_mode: OptionButton
+## The host page's mode list, in the order the picker shows it.
+const HOST_MODES: Array[String] = ["tdm", "sabotage", "conquest", "ffa", "ctf", "duel"]
 var _host_map: OptionButton
 var _host_bots: SpinBox
 var _host_bot_policy: OptionButton
@@ -64,7 +66,7 @@ var _host_bots_label: Label
 var _host_bot_hint: Label
 var _host_bot_counts: Dictionary = {"fixed": 4, "auto": 4}
 var _host_bot_selection: String = "fixed"
-var _host_auto_counts: Dictionary = {"tdm": 4, "sabotage": 10, "conquest": 4, "ffa": 4, "ctf": 4}
+var _host_auto_counts: Dictionary = {"tdm": 4, "sabotage": 10, "conquest": 4, "ffa": 4, "ctf": 4, "duel": 2}
 var _host_selected_mode: String = "tdm"
 var _host_lan: CheckButton
 var _host_port: SpinBox
@@ -1170,8 +1172,9 @@ func _page_host() -> void:
 	_host_mode.add_item(tr("MODE_CONQUEST"))
 	_host_mode.add_item(tr("MODE_FFA"))
 	_host_mode.add_item(tr("MODE_CTF"))
+	_host_mode.add_item(tr("HOST_DUEL"))
 	_host_selected_mode = _host_settings["mode"]
-	_host_mode.select(["tdm", "sabotage", "conquest", "ffa", "ctf"].find(_host_selected_mode))
+	_host_mode.select(HOST_MODES.find(_host_selected_mode))
 	if _host_settings["bot_policy"] == "auto":
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
@@ -1215,8 +1218,8 @@ func _page_host() -> void:
 	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
 	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
 	_host_mutator.add_item(tr("MUTATOR_FULL_ARSENAL"))
-	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa"])
-	_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
+	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa", "duel"])
+	_host_mutator.set_item_disabled(7, _host_selected_mode not in ["ffa", "duel"])
 	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives", "full-arsenal"].find(str(_host_settings.get("mutator", "")))
 	if mutator_index > 0 and not _host_mutator.is_item_disabled(mutator_index):
 		_host_mutator.select(mutator_index)
@@ -1226,7 +1229,7 @@ func _page_host() -> void:
 	_host_friendly_fire.name = "HostFriendlyFire"
 	_host_friendly_fire.text = "Friendly Fire"
 	_host_friendly_fire.button_pressed = _host_settings.get("friendly_fire", false)
-	_host_friendly_fire.visible = _host_selected_mode != "ffa"
+	_host_friendly_fire.visible = _host_selected_mode not in ["ffa", "duel"]
 	_host_advanced.add_child(_host_friendly_fire)
 	_host_lan = CheckButton.new()
 	_host_lan.name = "HostLAN"
@@ -1260,19 +1263,20 @@ func _page_host() -> void:
 func _change_host_mode(_index: int) -> void:
 	if _host_bot_selection == "auto":
 		_host_auto_counts[_host_selected_mode] = int(_host_bots.value)
-	_host_selected_mode = ["tdm", "sabotage", "conquest", "ffa", "ctf"][_host_mode.selected]
+	_host_selected_mode = HOST_MODES[_host_mode.selected]
 	if _host_mutator != null:
-		var finite_lives_allowed: bool = _host_selected_mode in ["tdm", "ffa"]
+		var finite_lives_allowed: bool = _host_selected_mode in ["tdm", "ffa", "duel"]
 		_host_mutator.set_item_disabled(6, not finite_lives_allowed)
 		if not finite_lives_allowed and _host_mutator.selected == 6:
 			_host_mutator.select(0)
-		_host_mutator.set_item_disabled(7, _host_selected_mode != "ffa")
-		if _host_selected_mode != "ffa" and _host_mutator.selected == 7:
+		var arsenal_allowed: bool = _host_selected_mode in ["ffa", "duel"]
+		_host_mutator.set_item_disabled(7, not arsenal_allowed)
+		if not arsenal_allowed and _host_mutator.selected == 7:
 			_host_mutator.select(0)
 	_refresh_host_kit()
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	if _host_friendly_fire != null:
-		_host_friendly_fire.visible = _host_selected_mode != "ffa"
+		_host_friendly_fire.visible = _host_selected_mode not in ["ffa", "duel"]
 	_rebuild_host_maps()
 	_rebuild_host_bots(false)
 
@@ -1285,8 +1289,11 @@ func _rebuild_host_bots(remember: bool) -> void:
 	_host_bots_row.visible = _host_bot_selection != "none"
 	_host_bots_label.text = tr("HOST_TOTAL_FIGHTERS" if _host_bot_selection == "auto" else "HOST_BOT_COUNT")
 	_host_bots.min_value = 1 if _host_bot_selection == "auto" else 0
+	# A duel has two seats: one fixed bot leaves the other for you, and
+	# automatic bots give theirs up as people join.
+	_host_bots.max_value = (2 if _host_bot_selection == "auto" else 1) if _host_selected_mode == "duel" else 10
 	_host_bots.value = _host_bot_counts[_host_bot_selection] if _host_bot_selection != "none" else 0
-	_host_bot_hint.text = tr("HOST_AUTO_PRIORITY" if _host_bot_selection == "auto" else "HOST_NO_BOTS_HINT" if _host_bot_selection == "none" else "HOST_FINITE_SEATS")
+	_host_bot_hint.text = tr("HOST_DUEL_SEATS" if _host_selected_mode == "duel" else "HOST_AUTO_PRIORITY" if _host_bot_selection == "auto" else "HOST_NO_BOTS_HINT" if _host_bot_selection == "none" else "HOST_FINITE_SEATS")
 
 func _host_bot_summary(profile: Dictionary) -> String:
 	match profile["bot_policy"]:
@@ -1303,6 +1310,10 @@ func _rebuild_host_maps() -> void:
 		return
 	if _host_mode.selected == 2:
 		_host_map.add_item("Holdfast Atoll", 7)
+		return
+	if _host_mode.selected == 5:
+		# A duel is fought on Larak Lot, the Duel home.
+		_host_map.add_item("Larak Lot", 1)
 		return
 	if _host_mode.selected == 4:
 		# Larak Lot is the FFA and Duel home; it has no flag stands.
@@ -1344,13 +1355,15 @@ func _refresh_host_kit() -> void:
 		_:
 			if _host_selected_mode == "sabotage":
 				key = "HOST_KIT_SABOTAGE"
+			elif _host_selected_mode == "duel" and mutator not in ["golden-rail", "full-arsenal"]:
+				key = "HOST_KIT_DUEL"
 			elif _host_selected_mode == "ffa" and mutator not in ["golden-rail", "full-arsenal"]:
 				key = "HOST_KIT_SIDEARM"
 	_host_kit_hint.text = tr(key)
 
 func _start_host() -> void:
 	var mut: String = _selected_mutator()
-	_host_settings = {"mode": ["tdm", "sabotage", "conquest", "ffa", "ctf"][_host_mode.selected],
+	_host_settings = {"mode": HOST_MODES[_host_mode.selected],
 		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value) if _host_bot_selection == "fixed" else 0,
 		"bot_policy": _host_bot_selection, "fill_target": int(_host_bots.value) if _host_bot_selection == "auto" else 0,
 		"lan": _host_lan.button_pressed, "port": int(_host_port.value) if _host_lan.button_pressed else 0}

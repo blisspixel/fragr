@@ -44,7 +44,7 @@ static func valid_settings(value: Variant) -> bool:
 		return false
 	var data: Dictionary = value
 	if not data.get("mode") is String \
-		or data["mode"] not in ["tdm", "sabotage", "conquest", "ffa", "ctf"] or not data.get("lan") is bool \
+		or data["mode"] not in ["tdm", "sabotage", "conquest", "ffa", "ctf", "duel"] or not data.get("lan") is bool \
 		or not data.get("bot_policy") is String or data["bot_policy"] not in ["none", "fixed", "auto"] \
 		or not EquipmentState.integer(data.get("map_id"), 8) or data["map_id"] < 1 \
 		or not EquipmentState.integer(data.get("bots"), 10) \
@@ -62,6 +62,10 @@ static func valid_settings(value: Variant) -> bool:
 		return false
 	if data["mode"] == "ctf" and data["map_id"] not in [1, 3, 4]:
 		return false
+	# A duel is two seats on Larak Lot: at most one bot beside you when
+	# fixed, two that give their seats up to people when automatic.
+	if data["mode"] == "duel" and (data["map_id"] != 1 or data["bots"] > 1 or data["fill_target"] > 2):
+		return false
 	if data.has("mutator") and data["mutator"] != null:
 		if not data["mutator"] is String:
 			return false
@@ -70,7 +74,7 @@ static func valid_settings(value: Variant) -> bool:
 		if data["mutator"] == "two-lives" and data["mode"] in ["sabotage", "ctf", "conquest"]:
 			return false
 		# Full Arsenal changes only the free-for-all start; other modes keep their kits.
-		if data["mutator"] == "full-arsenal" and data["mode"] != "ffa":
+		if data["mutator"] == "full-arsenal" and data["mode"] not in ["ffa", "duel"]:
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false
@@ -89,7 +93,7 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		"--bot-policy", value["bot_policy"], "--fill-target", str(int(value["fill_target"]))])
 	if value["mode"] == "sabotage":
 		args.append("--sabotage-five-v-five")
-	if value.get("friendly_fire", false) and value["mode"] != "ffa":
+	if value.get("friendly_fire", false) and value["mode"] not in ["ffa", "duel"]:
 		args.append("--friendly-fire")
 	if value.has("mutator") and value["mutator"] is String and not value["mutator"].is_empty():
 		args.append("--mutator")

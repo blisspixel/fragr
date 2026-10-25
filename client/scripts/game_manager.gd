@@ -94,6 +94,8 @@ var pending_jump: bool = false
 var pending_dodge: bool = false
 var _dodge_was_down: bool = false
 var pending_fire: bool = false
+## A fire press on the podium asks for one more round (`Action.again`).
+var pending_again: bool = false
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
 var jump_armed: bool = true
@@ -198,6 +200,7 @@ const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
 	"cells": "res://assets/audio/pickup/cells.wav",
 	"health": "res://assets/audio/pickup/health.wav",
 	"armor": "res://assets/audio/pickup/armor.wav",
+	"plate": "res://assets/audio/pickup/armor.wav",
 }
 const DRY_FIRE_SOUND_PATH: String = "res://assets/audio/dry_fire.wav"
 const HIT_CONFIRM_SOUND_PATH: String = "res://assets/audio/hit_confirm.wav"
@@ -1514,6 +1517,8 @@ func _input(_event):
 	if Input.is_action_pressed("scoreboard") and hud != null and hud.handle_leaderboard_input(_event):
 		get_viewport().set_input_as_handled()
 		return
+	if is_human_player and _podium_waits_on_me() and _event.is_action_pressed("fire") and not _event.is_echo():
+		pending_again = true
 	if is_human_player and not local_life.alive():
 		# Down: gameplay presses are not queued into the next life. Leaving
 		# and speaking still work.
@@ -1816,6 +1821,8 @@ func _process(_delta):
 		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
+	elif is_human_player and pending_again and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
+		_send_podium_again()
 	var fire_allowed: bool = _local_fire_allowed()
 	if _local_fire_allowed_last_frame and not fire_allowed:
 		_cancel_local_fire_effect()
@@ -2010,6 +2017,10 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.erase("duck")
 	action_state.turn_left = false
 	action_state.turn_right = false
+	if pending_again and not controls_blocked():
+		action_state["again"] = true
+	else:
+		action_state.erase("again")
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
@@ -2052,6 +2063,7 @@ func _send_local_action(now_usec: int) -> bool:
 		_reload_sent_down = reload_sent
 		_present_local_fire(action_state, now_usec)
 		pending_seat = ""
+		pending_again = false
 		pending_fire = false
 		pending_jump = false
 		pending_dodge = false
@@ -2086,6 +2098,23 @@ func _show_fire_juice(weapon_name: String) -> void:
 		hud.show_fire_juice(weapon_name)
 	if camera != null and camera.has_method("punch_for_weapon") and _vehicle_seat().is_empty():
 		camera.punch_for_weapon(weapon_name)
+
+## A fighter with no body to steer (fragged at the whistle, or out of lives)
+## still answers the podium: one numbered Action carrying only `again`.
+func _send_podium_again() -> void:
+	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
+	net_client.last_send_ok = false
+	net_client.send_action({"again": true, "seq": input_seq})
+	if net_client.last_send_ok:
+		pending_again = false
+
+## The podium is up and counts this fighter: a fire press asks for one more.
+func _podium_waits_on_me() -> bool:
+	if latest_snapshot.get("round_state") != "Ended" or net_client == null or net_client.player_id == null:
+		return false
+	var podium: Variant = latest_snapshot.get("podium")
+	return podium is Dictionary and (podium.get("voters") is int or podium.get("voters") is float) \
+		and int(podium["voters"]) > 0
 
 func _local_fire_allowed() -> bool:
 	if not is_human_player or net_client == null or net_client.connection_state != WebSocketPeer.STATE_OPEN \
@@ -2749,6 +2778,8 @@ func _on_snapshot_received(data):
 				var lives: Variant = player_data.get("lives")
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
+	if hud.has_method("show_podium"):
+		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -3115,8 +3146,11 @@ func _on_event_received(data):
 			hud.show_venue_notice(notice)
 	elif event_type == "round_end":
 		ended_podium_shown = true
-		var mvp_name = str(data.get("mvp", data.get("winner", "")))
-		var mvp_frags = int(data.get("mvp_frags", data.get("winner_score", 0)))
+		# A level Duel names nobody: mvp and its frags arrive null.
+		var raw_mvp: Variant = data.get("mvp", data.get("winner"))
+		var mvp_name: String = str(raw_mvp) if raw_mvp is String else ""
+		var raw_frags: Variant = data.get("mvp_frags", data.get("winner_score"))
+		var mvp_frags: int = int(raw_frags) if raw_frags is int or raw_frags is float else 0
 		var host_line = str(data.get("host_line", ""))
 		var podium = data.get("final_scores", [])
 		if hud and hud.sabotage():
@@ -3565,7 +3599,9 @@ func _update_death_presentation(now_usec: int) -> void:
 		return
 	if local_life.phase == LocalLife.Phase.OUT and bool(camera.get("death_view")):
 		camera.end_death_view()
-	if hud.sabotage():
+	# The podium owns the screen between rounds; the countdown resumes with
+	# the next round.
+	if hud.sabotage() or latest_snapshot.get("round_state") == "Ended":
 		hud.hide_death_card()
 		return
 	var watching: String = ""

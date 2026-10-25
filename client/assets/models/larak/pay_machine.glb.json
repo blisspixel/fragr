@@ -1,0 +1,116 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"magenta",
+			"red"
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta",
+		"red"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.024,
+			"cyan": 0.0,
+			"dark": 0.306,
+			"green": 0.002,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.657,
+			"warm": 0.011
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.6 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.862959444522858,
+			1.60000002384186,
+			0.487592041492462
+		],
+		"scale": 0.840735324497884,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "ll-pay-machine",
+	"metres_per_source_unit": 0.840735324497884,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		0.862959444522858,
+		1.60000014305115,
+		0.487592041492462
+	],
+	"prepared_sha256": "af6afc9582a26a66130994589ad149ca924013d38ec4940c99b0976fadf9dde7",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-pay-machine-20261024-v1",
+			"request_id": "01a16f56-1d46-7106-82ce-c21e2ada1874",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_pay_machine_a",
+			"keyed_sha256": "b81f1506882d5e49a8304ab4f77ffeae531dabf8fbb949dcf64787b9268a07cb",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "937d6e77-0f27-4b22-8e16-bf52c02c3f7b",
+			"resolution": "2k",
+			"sha256": "2bc285de588a4b4d3c9f031246bc42eb59b0d288315f9e4eccbf81defa146f13",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.02643418312073,
+		1.90309596061707,
+		0.579959034919739
+	],
+	"raw_file": "ll-pay-machine-20261024-v1-0.glb",
+	"raw_sha256": "94fc89a90ded3579c0b2f9f91eb29b87eec6bd90092cf94eef12a0a9f032d169",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 4.91837292066077,
+	"texels_per_metre": 41.9613119529886,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 95,
+		"boundary_loops": 38,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			6,
+			6,
+			4,
+			4,
+			4
+		],
+		"nonmanifold_edges": 35,
+		"watertight": false,
+		"welded_vertices": 2075
+	},
+	"triangles": 4085,
+	"uv_coverage": 0.528566496905575,
+	"vertices": 7729
+}

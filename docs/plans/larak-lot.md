@@ -1,8 +1,9 @@
 # Plan: Larak Lot replaces the Arena Duel field on map 1
 
-**Status:** implemented on `feat/larak-lot` (2026-10-24), in review, not
-merged. Human play, the live tour publish and the per-pad Plate kind remain
-open (see [Open](#open)).
+**Status:** shipped in #471 (2026-10-24). Wave 3 (#431, `wave3/mp-depth`)
+added the Plate kind, the Pit Rocket and its rocket-jump shortcut, and Duel;
+see [Wave 3](#wave-3-the-plate-the-rocket-and-duel). Human play remains open
+(see [Open](#open)).
 **Spend:** $0. Retained assets and local construction only; no paid generation.
 
 ## Goal
@@ -26,9 +27,7 @@ what was measured.
 
 - New collision kinds. Every stair is a run of 2 m treads with a 0.5 m rise;
   there is no sloped collision.
-- The `PickupKind::Plate` item (cap 150, decaying above 100), the Tack and
-  Fists spawn kit and Overtime. The Plate ships as an armour pad on its own
-  clock until those land.
+- Overtime. One power item per small map: the Plate holds it.
 - Capture the flag on map 1. Larak Lot has no two-base route; the night
   playlist's CTF slot moved to Sector 9 and Directive 17.
 - Paid assets. Wishes for the next asset round are listed below.
@@ -94,7 +93,8 @@ Seventeen callouts (test-side ids, client signs keyed `WORLD_LARAK_*`): PIT,
 STACK, STANDS, LOW RAMP, LANE, PAY DOOR, TOLL, BOOTHS, BRIDGE, GALLERY,
 SPIRAL, ROOF, SIGN, FIRE STAIR, CRANE, STAIR B, IMPOUND.
 
-Pads: Custody Plate (armour to 100, 35 s) in the Roof valet circle; Rail on
+Pads: Custody Plate (+100 armour to 150, 35 s) in the Roof valet circle; Rocket
+in the Pit behind the Stack (free-for-all and Duel, 25 s); Rail on
 the Low Ramp landing (25 s); Scatter at the Booths and the foot of Stair B;
 Flechette in the Pit and the Lane; Bridge armour +25 (out of claim reach from
 the Pit); health at the Toll cashier, Stands and Crane.
@@ -346,29 +346,97 @@ release) passes and is deterministic; p99 tick budget use is 1.3%.
    separate in colour and in grayscale at 15 m in the Pit and a booth lane and
    at 22 to 30 m. The booths' red trim band sat at head height behind the lane
    and is painted out; the vans' red band is narrowed to a line.
+9. Modelled props (wave 3): the nine Meshy props from the 2026-10-24 round
+   replace their box stand-ins, prepared by `tools/prepare_model_candidates.gd`
+   from `tools/larak_props_20261024.json` into `client/assets/models/larak/`,
+   each receipt carrying its reference frame, Meshy task and cleanup. The
+   burnt sedan (Pit, nose down, and both Roof wrecks), the pay machine (three
+   on the Toll wall and the revival pulpit), the 2009 coffee machine, the
+   Stands bell and the crane hook block went in as reviewed; the toll booth,
+   bookmaker's kiosk, THE STACK and the clamped sedan were cleaned up first.
+   Each model fills the solid it stands for, so a shot still stops where it
+   looks like it should: the booth cabin is remapped onto its 2 x 4 m kerb
+   and the kiosk stretched to its 4 x 3 m footprint, and THE STACK is two
+   piles turned against each other. Paint fixes: the clamped sedan locked to
+   one teal body ramp with dark dead tail lamps and a hazard-yellow clamp; the
+   stack brightened before the lock so its rust, teal and olive bodies
+   survive; the hook in venue hazard yellow; no key-colour fringe. The blank
+   plates carry their in-engine signs: `WORLD_LARAK_SIGNATURE` on every pay
+   machine, `WORLD_LARAK_COFFEE` and `WORLD_LARAK_OUT_OF_ORDER` on the coffee
+   machine, `WORLD_LARAK_ODDS` on the kiosk's end slates. One pay machine
+   still glows PLEASE PAY; the rest are dark. The booths carry their own cut
+   seals. No server solid changed. `tools/preview_larak_lot.gd` gained a
+   `prop_` view per prop and `FRAGR_LARAK_VIEWS` to render a subset.
 
 ## Asset wishes for the next paid round
 
-Not generated in this lane. For the Meshy and Higgsfield round:
+For the Meshy and Higgsfield round:
 
 - A Union cruiser and van model (issued black, steel plates one step lighter,
   a narrow red band and a cut seal, a dead light bar), to replace the
   box-built vehicles inside the same collision volumes.
-- A crushed-car stack and a burnt tow truck for THE STACK.
-- A tower crane with hook block and work-light ring.
-- Car-seat and pallet bleacher modules; a bookmaker kiosk with chalk board; a
-  revival tent awning, pulpit and folding chairs.
+- The tower crane mast and jib (the hook block is modelled).
+- Car-seat and pallet bleacher modules; a revival tent awning and folding
+  chairs.
 - Decals: oil stains, tyre skids, betting slips, Larak's signature stamp,
   league tags, six-in-a-circle variants, wet concrete with drain grates.
 - Audio: crowd murmur from the Stands, crane cable creak, neon buzz, the toll
   arm's motor, rain through the Pit lightwell, the Plate's custody-lock clunk,
   the Stands bell.
 
+## Wave 3: the Plate, the Rocket and Duel
+
+Built for #431 on `wave3/mp-depth`, 2026-10-24.
+
+- **The Custody Plate is its own kind** (`PickupKind::Plate`, wire `plate`):
+  +100 armour to 150, the excess draining a point a second, on the rule
+  sheet's 35 s heavy plate clock in every mode. The per-pad clock field is
+  gone; every Larak pad now runs the rule sheet. An ordinary armour pad is no
+  use above 100. The client draws it from `assets/pickups/plate.png`, Union
+  custody armour in issued black and steel with the narrow red band, its seal
+  cut through by a league blade and the custody lock still on, at 1.35 times
+  the vest. Bots want it like armour; Aggressive bots make it a habit.
+- **The Rocket in the Pit** (`larak_rocket_pit`, (7.5, 0, 2), in the lee of
+  the Stack) is laid only where lives start on the Pistol, because an arsenal
+  bag cannot hold it. It is the one patch of the stage that no spawn slot
+  sees: a whole-lot scan found about sixty such cells, almost all in the
+  valet circle and Stair B, and `larak_spawn_never_sees_power_item` now holds
+  the Rocket to the same gate as the Plate and the Rail. A Crane landing
+  placement was tried first and refused by that gate: S1 sees the whole Crane
+  across the Bridge. The launcher sprite is `assets/weapons/pickups/rocket.png`,
+  drawn by `tools/bake_pickup_sprites.gd`.
+- **The rocket jump** (`movement::blast_push`, mirrored and pinned by both
+  golden files) makes the Gallery's east edge a shortcut: the Roof is 1.5 m
+  up, out of a jump's 1.3 m, and a jump with a rocket fired at the floor on
+  the next tick reaches about 2.9 m. The live tour `client/qa/rocket-jump.json`
+  walks from S1 to the Pit Rocket, back up the Toll Steps and the Spiral to the
+  Gallery, and rocket-jumps from (5.8, 4.5, -15) to (14.2, 6.0, -15.3) through
+  ordinary input, for 18 health with no armour. The Crane to Roof face (3 m)
+  stays out of reach.
+- **Duel** is built on this map: two seats, a ready-up rematch and the
+  series (`docs/MODES.md`).
+
+Rule bots through the 20 Hz tick, 180 s per seed, no frag or time limit
+(`lot_power_probe`, ignored, release build). The Crane column is the first
+placement, before the spawn gate moved the Rocket:
+
+| Mode, bots | Frags/min (Crane / Pit) | First frag (Crane / Pit) | Rocket frags per 3 min | Plate claims per 3 min | Rocket claims per 3 min |
+|---|---|---|---|---|---|
+| Duel, 2 | 2.7 to 3.0 / 3.3 to 4.0 | 21 to 23 s / 11 to 14 s | 0 to 1 | 0 to 2 | 5 to 6 |
+| FFA, 4 | 11.0 to 12.3 / 13.3 to 15.3 | 3 to 6 s / 4 to 7 s | 1 to 2 | 0 to 1 | 6 |
+| FFA, 6 | 20.0 to 22.0 / 23.7 to 25.7 | 5 to 6 s / 5 to 6 s | 0 to 6 | 0 to 1 | 6 |
+
+The Rocket in the bowl brings fights forward and the rule bots take it on its
+clock (six claims in 180 s is every 30 s against a 25 s clock), but they
+rarely score with it and visit the Plate less than before. Rocket use and
+Plate timing are bot work for #432; human sessions decide whether the Pit is
+the right home.
+
 ## Open
 
 - Human sessions in Duel and FFA; the playtest agents do not establish fun.
-- `PickupKind::Plate`, the Tack and Fists kit, the Plate clunk and a recorded
-  Host line for the special.
+- The Plate clunk and a recorded Host line for the special. The Plate's
+  sprite is drawn, not generated; a Meshy model could replace it.
 - The rejected-atria decision (`docs/research/compact-map-lessons-20261004.md`):
   the Pit is an open stage every deck looks into. The build mitigates it with
   covered bays, shear walls, the Stack, the Bridge and the Gallery's screens,

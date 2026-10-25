@@ -1,0 +1,516 @@
+{
+ "schema": 1,
+ "round": "asset-round-20261023 / Larak Lot props 2026-10-24",
+ "raw_dir": "art/raw/meshy-pilot-20261003",
+ "candidates": [
+  {
+   "id": "ll-burned-sedan",
+   "output": "burned_sedan",
+   "ship": true,
+   "file": "ll-burned-sedan-20261024-v1-0.glb",
+   "sha256": "4f0dfa61004223b4472720bf09be684d535529265330137981169fadae035f20",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": [
+    4.36,
+    1.4,
+    1.96
+   ],
+   "axis": "y",
+   "metres": null,
+   "stretch": true,
+   "canon": "docs/lore/gazetteer.md: the centre bays fell into the Pit; burnt civilian body, dead lamps, no lit red at body height (faction readability contract)",
+   "placement": "Pit wreck nose-down in solid 2..6.4 x -4..-2 (top 1.4), and the Roof wrecks in 14..18.4 x -25..-23 and 30..34.4 x -26..-24; stretched to the 4.4 x 2 m footprint less 2 cm a side",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_burned_sedan_a",
+     "request_id": "1781cdcd-49e3-4c97-b684-1262d25965aa",
+     "sha256": "cd1e068a59ddeeb23f1c02f33fd1aeee3c981482ad0def9d23c09be2afe3b004",
+     "keyed_sha256": "dfb88a48327acf4e032e24c1edc579c5d80860e7d09d9b171726a7b0536e7448"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-burned-sedan-20261024-v1",
+     "request_id": "01a16f53-22f2-75c3-af78-2a3ebbfc730b",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Larak Lot props review 2026-10-24: ready"
+   },
+   "exclude_classes": [
+    "magenta"
+   ]
+  },
+  {
+   "id": "ll-pay-machine",
+   "output": "pay_machine",
+   "ship": true,
+   "file": "ll-pay-machine-20261024-v1-0.glb",
+   "sha256": "94fc89a90ded3579c0b2f9f91eb29b87eec6bd90092cf94eef12a0a9f032d169",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.6,
+   "canon": "cast.md Larak: \"signature is on every defunct piece of hardware\"; the plate stays blank for the WORLD_LARAK_SIGNATURE sign; amber PLEASE PAY screen; reused as Aunt Linda's pulpit",
+   "placement": "Toll, level 2: three machines with their backs to the north wall (x -34, -31.5, -21) and Aunt Linda's pulpit (x -3, level 3); no collision, 0.49 m off the wall, under the 0.5 m body radius. WORLD_LARAK_SIGNATURE on the blank plate; -31.5 keeps WORLD_LARAK_PLEASE_PAY lit, the rest have dark screens",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_pay_machine_a",
+     "request_id": "937d6e77-0f27-4b22-8e16-bf52c02c3f7b",
+     "sha256": "2bc285de588a4b4d3c9f031246bc42eb59b0d288315f9e4eccbf81defa146f13",
+     "keyed_sha256": "b81f1506882d5e49a8304ab4f77ffeae531dabf8fbb949dcf64787b9268a07cb"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-pay-machine-20261024-v1",
+     "request_id": "01a16f56-1d46-7106-82ce-c21e2ada1874",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Larak Lot props review 2026-10-24: ready"
+   },
+   "exclude_classes": [
+    "magenta",
+    "red"
+   ]
+  },
+  {
+   "id": "ll-coffee-machine",
+   "output": "coffee_machine",
+   "ship": true,
+   "file": "ll-coffee-machine-20261024-v1-0.glb",
+   "sha256": "ce63408ae47b8692196c5884c96d75740fa12105ad3d615803cd52052891c933",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.6,
+   "canon": "cast.md Larak: \"a coffee machine signed for in 2009\"; blank approval plate for the APPROVED / LARAK / 2009 sign",
+   "placement": "Impound, level 1: back to the league cabin's south face at (30.2, 23.0), beside the door; WORLD_LARAK_COFFEE on its blank approval plate, WORLD_LARAK_OUT_OF_ORDER over the smoked panel",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_coffee_machine_a",
+     "request_id": "d16eed8d-8c4a-4a39-a364-d945367b8438",
+     "sha256": "bcbdffe2ca3b990515b6f4da0f8c89af03ae9657868230d478df7fbcc0c0afeb",
+     "keyed_sha256": "8b6510ffa0ae7299888e7ede7f75c15603b83a470fb6cb3ae5fa73473f4593c3"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-coffee-machine-20261024-v1",
+     "request_id": "01a16f57-63c2-758c-a935-a2578e130c30",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Larak Lot props review 2026-10-24: ready"
+   },
+   "exclude_classes": [
+    "magenta",
+    "red"
+   ]
+  },
+  {
+   "id": "ll-stands-bell",
+   "output": "stands_bell",
+   "ship": true,
+   "file": "ll-stands-bell-20261024-v1-0.glb",
+   "sha256": "a8b3e555fb9af36cd4ed8f285864091a640e986e34bd38b2b72eb85581ed3816",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 2.1,
+   "canon": "the-league.md: \"Between rounds there is a bell. Everything stops for it.\" Scavenged brass school bell, never a red fire bell",
+   "placement": "Stands: wall plate on the viaduct wall at x -9.3, top 5.05, bracket 1.72 m out, rope ending 1.45 m over the deck; no collision",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_stands_bell_a",
+     "request_id": "eb783378-649c-4f84-b844-ee245822f946",
+     "sha256": "2977b8e2c6583e7158bcd7ae2b94f2673cce344b265e446a0c8dcf100eb7413e",
+     "keyed_sha256": "8445923916bd24839e656a8cbad50d608d6735ee7803263bcbfa9f89d896d598"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-stands-bell-20261024-v1",
+     "request_id": "01a16f58-96ee-7748-b6ec-3826ff97f306",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Larak Lot props review 2026-10-24: ready"
+   },
+   "exclude_classes": [
+    "magenta",
+    "red"
+   ]
+  },
+  {
+   "id": "ll-crane-hook",
+   "output": "crane_hook",
+   "ship": true,
+   "file": "ll-crane-hook-20261024-v1-0.glb",
+   "sha256": "6af2ce919b6ecf62802ea15b95900dac04b47cc690d71d464fa9d9706c6b55f8",
+   "faction": "utility",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.5,
+   "swatches": [
+    "larak_hazard"
+   ],
+   "canon": "docs/plans/larak-lot.md#canon: THE REPOSSESSION hangs nose-down from a tower crane hook over the Pit; crew-run utility with no faction marks (lore-gate 2.3), hazard yellow, warm-white work floods",
+   "placement": "Pit centre: the hook block in the Repossession's hung frame, top at 3.85 (world 16.1), lit work-lamp faces on its six housings; venue hazard yellow",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_crane_hook_a",
+     "request_id": "88e5688d-e0dc-4b3a-b207-305e7655d389",
+     "sha256": "2691ff56e2f0468442f9d111cfa7ff46fa356e807f4536a39e6ce0b88fccfe5f",
+     "keyed_sha256": "1e34c09ebd44dda4f85739cd27974d93a61d9502622fa8bd291e337efa5d62e0"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-crane-hook-20261024-v1",
+     "request_id": "01a16f59-dbc0-728a-9740-0b616ac130f2",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Larak Lot props review 2026-10-24: ready"
+   },
+   "exclude_classes": [
+    "magenta"
+   ]
+  },
+  {
+   "id": "ll-toll-booth",
+   "output": "toll_booth",
+   "ship": true,
+   "file": "ll-toll-booth-20261024-v1-0.glb",
+   "sha256": "0f8ce4b19610bbf27c3b66fb6ddd3b7ae3e9012609af56647f218632c9ff8d01",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": [
+    2.0,
+    2.8,
+    4.0
+   ],
+   "axis": "y",
+   "metres": null,
+   "stretch": true,
+   "drop": [
+    [
+     [
+      -1.1,
+      0.33,
+      0.72
+     ],
+     [
+      1.1,
+      1.3,
+      2.1
+     ]
+    ]
+   ],
+   "remap": [
+    {
+     "y": [
+      0.31,
+      2.495
+     ],
+     "x": [
+      -0.825,
+      0.8,
+      -0.99,
+      0.99
+     ],
+     "z": [
+      -1.67,
+      0.67,
+      -1.98,
+      1.98
+     ]
+    },
+    {
+     "y": [
+      2.4951,
+      2.81
+     ],
+     "x": [
+      -0.976,
+      0.934,
+      -1.08,
+      1.08
+     ],
+     "z": [
+      -1.852,
+      0.855,
+      -2.12,
+      2.12
+     ]
+    }
+   ],
+   "canon": "docs/plans/larak-lot.md#canon: seals on the booths each cut through with a blade, Union red kept to the seals, league paint sprayed over the enamel; guns.md: no replacement mark",
+   "placement": "Toll, level 2: the three booths filling their Enamel solids (x -30, -24, -18; z -17..-13; top 5.8). Cleanup: the kerb-nose bollard dropped, the cabin remapped onto the 2 x 4 m kerb, the cap 0.08 to 0.12 m over it above head height; the baked cut seal on each lane end replaces the presenter's three",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_toll_booth_a",
+     "request_id": "4c3b9999-8aaa-4236-88c1-8e776dae220f",
+     "sha256": "33baf548d9502d85b4e0dcf3e0d6a4cc8445fbcaf932714f025105ab0c12eec1",
+     "keyed_sha256": "46ec4beefd72faadd2241d11646e8369353de5a580b6d732fc2240637e8dd7f8"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-toll-booth-20261024-v1",
+     "request_id": "01a16f4c-fac3-7382-8872-0f8acc6ae42d",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Larak Lot props review 2026-10-24: local cleanup"
+   },
+   "exclude_classes": [
+    "magenta"
+   ]
+  },
+  {
+   "id": "ll-bookmaker-kiosk",
+   "output": "bookmaker_kiosk",
+   "ship": true,
+   "file": "ll-bookmaker-kiosk-20261024-v1-0.glb",
+   "sha256": "e50504750852bd38bf2cc076541cae5989cca6245bd91cacc06f2bfa2710825b",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": [
+    4.0,
+    2.8,
+    3.0
+   ],
+   "axis": "y",
+   "metres": null,
+   "stretch": true,
+   "max_stretch_log": 0.3,
+   "canon": "the-league.md: \"Somebody sells tickets, and there is genuine disagreement about who that somebody is.\" League warm canvas and ember, not bone",
+   "placement": "Stands, level 1: the bookmaker's kiosk filling ServiceSteel solid -2..2 x 16..19 (top 4.3), hatch to the Pit; stretched x 1.23, z 1.33 (beyond the 15% default, a plain box hut); WORLD_LARAK_ODDS on both end slates, the podium pallets on its roof",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_bookmaker_kiosk_a",
+     "request_id": "934019eb-988f-4e2b-b0be-d735cf4d2de9",
+     "sha256": "34015eccf9dafe0f56605a109fe64e7d5c0a2f6438c38fdba0ddd7686b16b915",
+     "keyed_sha256": "ba8a2bb875a5a0fd8d5b988a44e072816038d690f61db30dd972a760091c4ac3"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-bookmaker-kiosk-20261024-v1",
+     "request_id": "01a16f4e-9130-7587-a98d-238dc5acccdb",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Larak Lot props review 2026-10-24: local cleanup"
+   },
+   "exclude_classes": [
+    "magenta"
+   ]
+  },
+  {
+   "id": "ll-car-stack",
+   "output": "car_stack",
+   "ship": true,
+   "file": "ll-car-stack-20261024-v1-0.glb",
+   "sha256": "abfe2979378d4b30ea2bc0777028069c9a70bb32577f2c134ca11e2123a61deb",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": [
+    2.2,
+    3.2,
+    5.0
+   ],
+   "axis": "y",
+   "metres": null,
+   "stretch": true,
+   "gain": 1.6,
+   "canon": "larak_lot.rs: THE STACK of crushed cars on a burnt tow truck; civilian wrecks, no Union marks",
+   "placement": "Pit: THE STACK, two piles side by side turned against each other (centres x 5.1 and 7.3, z 5.5) filling RecordsTile solid 4..8.4 x 3..8 (top 3.2); paint gain 1.6 before the lock keeps the rust, teal and olive bodies",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_car_stack_a",
+     "request_id": "a2045fb4-2896-4e2e-b78c-1fff19dc90e6",
+     "sha256": "344c001aeed86c30ac6bc07bcee5f222e289e18ba2a39b83b373ef970b14982d",
+     "keyed_sha256": "b62e3a132579949d841ce05d0900d7db1c11d4fc7fa260b08554253b4dcd34ad"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-car-stack-20261024-v1",
+     "request_id": "01a16f50-8c6c-7009-88aa-712d8c37017b",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 10000
+    },
+    "review": "Larak Lot props review 2026-10-24: local cleanup"
+   },
+   "exclude_classes": [
+    "magenta"
+   ]
+  },
+  {
+   "id": "ll-clamped-sedan",
+   "output": "clamped_sedan",
+   "ship": true,
+   "file": "ll-clamped-sedan-20261024-v1-0.glb",
+   "sha256": "28e1e35751c5b12fa60d73fe48c5ddfd9d9f4cd36c0f38bbae423a6e17487667",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": [
+    4.36,
+    1.4,
+    1.96
+   ],
+   "axis": "y",
+   "metres": null,
+   "swatches": [
+    "larak_hazard"
+   ],
+   "exclude_classes": [
+    "red",
+    "magenta"
+   ],
+   "exclude_keys": [
+    "union_plate",
+    "outline_purple",
+    "gunmetal",
+    "gunmetal_light",
+    "dust_light",
+    "m05_ochre",
+    "moss",
+    "leaf_muted",
+    "institutional_green",
+    "rust",
+    "dust_rust",
+    "m05_rust",
+    "ember",
+    "ember_hot"
+   ],
+   "canon": "Impound: civilian cars clamped and caged; dull teal-grey, hazard-yellow clamp, blank tag (WORLD_LARAK_RELEASE_BY_ORDER is a sign)",
+   "placement": "Impound, level 1: the two caged cars (solids 16..20.4 and 23..27.4 x 19..21, top 2.9), inside the presenter's cages, turned against each other. Cleanup: one teal body ramp (greys and greens excluded), red and warm ramps excluded so the tail lamps lock to dark dead lenses, venue hazard yellow for the clamp",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+     "frame": "ll_clamped_sedan_a",
+     "request_id": "70482ab7-8cb9-4036-98dd-254413850e8b",
+     "sha256": "87cbec0620c936fd4a995654920e798c6626be41d53da1b06714c02d723e03fe",
+     "keyed_sha256": "b26423c3b9a244389aac55894ebf8ab9f0944ce2c712567edd443b93d5d92c5d"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+     "job": "ll-clamped-sedan-20261024-v1",
+     "request_id": "01a16f54-e89a-75cf-838a-5eda28271f01",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Larak Lot props review 2026-10-24: local cleanup"
+   }
+  }
+ ]
+}

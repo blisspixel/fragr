@@ -10,7 +10,7 @@ fn map() -> Arc<AuthoredMap> {
         .get_or_init(|| AuthoredMap::read(MAP.as_bytes()).unwrap())
         .clone()
 }
-const INFANTRY_SEED: u64 = 1010;
+const INFANTRY_SEEDS: [u64; 3] = [1011, 1013, 1021];
 fn session() -> (GameSession, Uuid) {
     session_role(Role::Agent)
 }
@@ -481,11 +481,24 @@ fn m14_ordinary_human_magazines_complete_without_the_jeep() {
 fn m14_ordinary_finite_infantry_completes_after_jeep_destruction() {
     ordinary_infantry(Role::Agent, 2);
 }
-/// The ordinary infantry routes are seed-sensitive. Over seeds 1010 to 1017,
-/// 7 of 24 runs completed before ranged attack pacing (only 1014 completed
-/// all three) and 17 of 24 with it; 1010 completes all three.
+#[test]
+#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+fn m14_ordinary_infantry_seed_survey() {
+    crate::mission::route_skill::survey("M14 ordinary infantry", 1010..1026, |seed| {
+        for (role, jeep) in [(Role::Agent, 0), (Role::Human, 1), (Role::Agent, 2)] {
+            ordinary_infantry_seeded(role, jeep, seed);
+        }
+    });
+}
+/// The route reads tells and Walker marks, so it holds on every seed it is
+/// given. These include seeds that killed the tell-blind controller.
 fn ordinary_infantry(role: Role, jeep_condition: u8) {
-    let (mut s, id) = session_seeded(role, INFANTRY_SEED);
+    for seed in INFANTRY_SEEDS {
+        ordinary_infantry_seeded(role, jeep_condition, seed);
+    }
+}
+fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
+    let (mut s, id) = session_seeded(role, seed);
     if jeep_condition == 1 {
         s.state.vehicles.clear();
     }
@@ -494,6 +507,8 @@ fn ordinary_infantry(role: Role, jeep_condition: u8) {
     }
     let mut client = MissionClient::default();
     let mut navigator = crate::navigation::Navigator::default();
+    let mut tells = crate::mission::route_skill::TellReader::default();
+    let mut futile = crate::mission::route_skill::FutileTargets::default();
     let mut last_map = None;
     let mut reload_held = false;
     let mut navigation = None;
@@ -567,12 +582,13 @@ fn ordinary_infantry(role: Role, jeep_condition: u8) {
         );
         let p = s.state.players.iter().find(|p| p.id == id).unwrap();
         let loadout = p.inventory.state(id, p.weapon, s.state.tick).unwrap();
-        let mut action = crate::inventory::control_action_with_objective(
+        let mut action = crate::inventory::control_action_with_target_filter(
             id,
             &snapshot,
             Some(&loadout),
             Action::default(),
             true,
+            |_, other| !futile.skips(other.id, snapshot.tick),
         );
         if role == Role::Human
             && loadout
@@ -658,15 +674,18 @@ fn ordinary_infantry(role: Role, jeep_condition: u8) {
             action.fire = false;
         }
         reload_held = action.reload;
+        futile.observe(&snapshot, &action);
+        let action = tells.evade(&s.state, &snapshot, id, action);
         s.state.set_action(id, action);
         tick(&mut s);
         let after = s.state.players.iter().find(|p| p.id == id).unwrap();
         if after.hp < me.hp {
             eprintln!(
-                "M14 hurt tick{} hp{}->{} at [{:.1},{:.1}] walker{:?} target{:?} stage{:?}",
+                "M14 hurt tick{} hp{}->{} weapon {:?} at [{:.1},{:.1}] walker{:?} target{:?} stage{:?}",
                 s.state.tick,
                 me.hp,
                 after.hp,
+                after.weapon,
                 after.x,
                 after.z,
                 s.state.walker.as_ref().map(|w| (w.state.phase, w.state.hp)),

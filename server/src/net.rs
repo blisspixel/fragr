@@ -24,6 +24,13 @@ pub(crate) fn disable_nagle(stream: &TcpStream) {
 /// Never log a ticket, resume token or secret under it.
 pub const AUDIT_TARGET: &str = "fragr_server::audit";
 
+/// What a session writer counts into: its traffic and, only when a harness
+/// measures, the shared writer probe.
+struct WriterMeters {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    probe: Option<Arc<WriterProbe>>,
+}
+
 /// Owns the socket's write half. Sends queued messages and a ping on a fixed
 /// cadence. Returns the sink so a kick can still send its reason and close.
 async fn run_outbound_writer<S>(
@@ -33,20 +40,42 @@ async fn run_outbound_writer<S>(
     send_timeout: Duration,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
-    traffic: Arc<crate::metrics::ClientTraffic>,
+    meters: WriterMeters,
 ) -> S
 where
     S: futures_util::Sink<Message> + Unpin,
 {
+    let WriterMeters { traffic, probe } = meters;
     let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
     ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
         let frame = tokio::select! {
-            msg = rx.recv() => {
-                let Some(msg) = msg else { break };
-                let Ok(json) = serde_json::to_string(&msg) else {
-                    tracing::warn!("Failed to serialize outbound server message; dropping client send");
-                    break;
+            delivery = rx.recv() => {
+                let Some(delivery) = delivery else { break };
+                let taken = std::time::Instant::now();
+                if let Some(probe) = &probe {
+                    probe.taken(delivery.queued_at, taken);
+                }
+                let json = match delivery.frame {
+                    // tungstenite 0.24 owns each frame's String, so a shared
+                    // payload is copied, never serialized again.
+                    Outbound::Shared(broadcast) => {
+                        let json = broadcast.text().to_owned();
+                        if let Some(probe) = &probe {
+                            probe.shared(json.len());
+                        }
+                        json
+                    }
+                    Outbound::Targeted(message) => {
+                        let Ok(json) = serde_json::to_string(&message) else {
+                            tracing::warn!("Failed to serialize outbound server message; dropping client send");
+                            break;
+                        };
+                        if let Some(probe) = &probe {
+                            probe.encoded(taken.elapsed(), json.len());
+                        }
+                        json
+                    }
                 };
                 Message::Text(json)
             }
@@ -57,6 +86,7 @@ where
             Message::Text(text) => Some(text.len()),
             _ => None,
         };
+        let sending = std::time::Instant::now();
         if !matches!(
             tokio::time::timeout(send_timeout, sink.send(frame)).await,
             Ok(Ok(()))
@@ -65,6 +95,9 @@ where
         }
         if let Some(bytes) = text_bytes {
             traffic.sent(bytes);
+            if let Some(probe) = &probe {
+                probe.sent(sending.elapsed());
+            }
         }
     }
     // A venue close already told the reader why. A stalled write must not
@@ -510,7 +543,10 @@ async fn close_with_error(
 mod tests;
 
 mod outbound;
-pub use outbound::{channel as outbound_channel, QueueError, Queued, WsRx, WsTx};
+pub use outbound::{
+    channel as outbound_channel, Broadcast, Delivery, Outbound, QueueError, Queued, WriterProbe,
+    WriterReport, WsRx, WsTx,
+};
 
 pub struct ClientSession {
     pub id: Uuid,
@@ -632,7 +668,9 @@ pub struct NetServer {
     /// leave it, because the mission probe aims that way. Agents always keep it.
     client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
-    five_vs_five: bool,
+    /// The mode whose fixed fighter seats `party_slots` holds: five versus
+    /// five Sabotage or Duel. A full pool refuses with `match_full`.
+    seat_mode: Option<crate::protocol::GameMode>,
     auto_fill: bool,
     solo_run: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
@@ -642,6 +680,7 @@ pub struct NetServer {
     resume: std::sync::Arc<crate::resume::ResumeTable>,
     access: Option<AccessWatch>,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    writer_probe: Option<Arc<WriterProbe>>,
     preclass: crate::admission_bounds::PreclassGate,
     population: crate::admission_bounds::Population,
     origins: Arc<Vec<String>>,
@@ -932,7 +971,7 @@ impl NetServer {
             gameplay_version,
             client_aim: false,
             solo_run: false,
-            five_vs_five: false,
+            seat_mode: None,
             auto_fill: false,
             solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
@@ -945,6 +984,7 @@ impl NetServer {
             resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
             access: None,
             traffic: Arc::default(),
+            writer_probe: None,
             preclass: crate::admission_bounds::PreclassGate::new(),
             population: crate::admission_bounds::Population::default(),
             origins: Arc::new(Vec::new()),
@@ -996,6 +1036,12 @@ impl NetServer {
     /// Payload totals for every session this listener admits, closed ones included.
     pub fn traffic_totals(&self) -> Arc<crate::metrics::TrafficCounters> {
         Arc::clone(&self.traffic)
+    }
+
+    /// Time every session writer's queue residence, encoding and socket send.
+    /// Only a measuring harness sets this.
+    pub fn set_writer_probe(&mut self, probe: Arc<WriterProbe>) {
+        self.writer_probe = Some(probe);
     }
 
     /// Share the match line the tick loop refreshes. `GET /status` reads it.
@@ -1073,9 +1119,13 @@ impl NetServer {
     }
 
     /// Rule bots and network fighters share the same bounded permit pool.
-    pub(crate) fn set_sabotage_seats(&mut self, slots: Arc<Semaphore>) {
+    pub(crate) fn set_fighter_seats(
+        &mut self,
+        slots: Arc<Semaphore>,
+        mode: crate::protocol::GameMode,
+    ) {
         self.party_slots = Some(slots);
-        self.five_vs_five = true;
+        self.seat_mode = Some(mode);
     }
 
     /// Only a completed admission consumes the run's lifetime combat seat.
@@ -1112,7 +1162,7 @@ impl NetServer {
                     let client_aim = self.client_aim;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
-                    let five_vs_five = self.five_vs_five;
+                    let seat_mode = self.seat_mode;
                     let auto_fill = self.auto_fill;
                     let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
@@ -1123,6 +1173,7 @@ impl NetServer {
                     let resume_table = std::sync::Arc::clone(&self.resume);
                     let access = self.access.clone();
                     let traffic = Arc::clone(&self.traffic);
+                    let writer_probe = self.writer_probe.clone();
                     let preclass_gate = self.preclass.clone();
                     let population = self.population.clone();
                     let origins = Arc::clone(&self.origins);
@@ -1201,7 +1252,7 @@ impl NetServer {
                                 client_aim,
                                 party_slots,
                                 solo_run,
-                                five_vs_five,
+                                seat_mode,
                                 auto_fill,
                                 solo_bound_body,
                                 handshake_timeout,
@@ -1212,6 +1263,7 @@ impl NetServer {
                                 access,
                                 limits,
                                 traffic,
+                                writer_probe,
                                 population,
                                 origins,
                                 board_budget,
@@ -1424,7 +1476,7 @@ struct HelloPolicy {
     client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
-    five_vs_five: bool,
+    seat_mode: Option<crate::protocol::GameMode>,
     auto_fill: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
@@ -1435,6 +1487,7 @@ struct HelloPolicy {
     access: Option<AccessWatch>,
     limits: SessionLimits,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    writer_probe: Option<Arc<WriterProbe>>,
     population: crate::admission_bounds::Population,
     origins: Arc<Vec<String>>,
     board_budget: crate::admission_bounds::BoardBudget,
@@ -1839,7 +1892,7 @@ async fn handle_connection(
                     );
                 } else {
                     let mut auto_join =
-                        if policy.auto_fill && policy.five_vs_five && r != Role::Spectator {
+                        if policy.auto_fill && policy.seat_mode.is_some() && r != Role::Spectator {
                             let guard = AutoJoinGuard {
                                 client_id,
                                 gate: crate::bot_fill::admission_gate(),
@@ -1887,10 +1940,12 @@ async fn handle_connection(
                                 Ok(seat) => Some(seat),
                                 Err(_) => {
                                     let rejection = ServerMessage::Error {
-                                    code: if policy.solo_run { "run_seat_closed" } else if policy.five_vs_five { "match_full" } else { "party_full" }.into(),
+                                    code: if policy.solo_run { "run_seat_closed" } else if policy.seat_mode.is_some() { "match_full" } else { "party_full" }.into(),
                                     message: if policy.solo_run {
                                         "This run already has an owner. Join as a spectator or start a new run."
-                                    } else if policy.five_vs_five {
+                                    } else if policy.seat_mode == Some(crate::protocol::GameMode::Duel) {
+                                        "This duel has two fighter seats. Watch, and join when one opens."
+                                    } else if policy.seat_mode.is_some() {
                                         "This five versus five match has ten fighter seats. Join as a spectator or wait for a seat."
                                     } else {
                                         "This mission supports four participants; join as a spectator or wait for a seat."
@@ -2128,7 +2183,10 @@ async fn handle_connection(
         OUTBOUND_SEND_TIMEOUT,
         policy.limits.ping_every,
         writer_stop,
-        Arc::clone(&traffic),
+        WriterMeters {
+            traffic: Arc::clone(&traffic),
+            probe: policy.writer_probe.clone(),
+        },
     ));
 
     let end = read_session(

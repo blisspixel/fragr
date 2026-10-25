@@ -271,6 +271,10 @@ fighter seat. A resumable drop holds that seat for the existing 200-tick grace.
 Explicit leave or grace expiry frees it. The client maps `match_full` to a
 localized hard stop and Return, with no automatic fighter retry; Watch may
 connect as a spectator. No new capability or discovery field is added.
+A `--mode duel` server shares two fighter seats the same way and refuses a
+third fighter with `match_full` ("This duel has two fighter seats"). Under
+`--bot-policy auto --fill-target 1` or `2` a rule bot keeps an empty seat warm
+and gives it up to a joining person or agent; a person leaving gives it back.
 
 Optional `--bot-policy auto --bots 0 --fill-target N` hosts use plain TDM or
 Sabotage without mutators. Their desired total counts fighters and reserved
@@ -425,7 +429,8 @@ second after start); a reader that does not know them ignores them:
     (monotonic, when the snapshot was taken).
   - `tick`: `budget_ms` (50), `rate_hz` (ticks the loop actually ran per second
     over the window, `null` until it spans 30 s), `scope` (`tick_handler`: expiry, simulation, run
-    save, broadcast and unicast enqueue, and this refresh), `window_s` (60),
+    save, the one encode of each broadcast, broadcast and unicast enqueue, and
+    this refresh), `window_s` (60),
     and `window` and `lifetime` summaries of `count`, `p50_ms`, `p95_ms`,
     `p99_ms`, `max_ms` and the exact `over_budget` count. The window is six ten
     second slots, so it covers the last 50 to 60 s. Percentiles are
@@ -634,8 +639,8 @@ and active ready party arrival at the registered region. Future required
 guards remain absent until their predecessor clears. The optional service
 encounter becomes available after loading clearance and never gates the next
 required encounter. Its marker requires that optional clear and real party
-arrival. Latch follows and has bounded support ammunition, but does not fire
-into the isolated Rail or Turret lesson groups.
+arrival. Latch follows and covers with a Tack from a twelve-round magazine,
+but does not fire into the isolated Rail or Turret lesson groups.
 
 Car and patient carry retains historical unique registered-form IDs and order,
 at most four each; photographs remain bounded at 1,000,000. Released workers
@@ -697,9 +702,9 @@ The required prefix is `ring_cleared`, `plaza_cleared`, `post_cleared`,
 `window_cleared`, `cut_cleared`, then `party_departed`. Each of the first five
 objectives requires its corresponding encounter clear and active ready party
 arrival at the registered region. Future required guards remain absent until
-their predecessor clears. There is no optional branch. Latch follows and has
-bounded support ammunition, but does not fire into the isolated roof-window
-marksman lesson. The carried fields are the immutable earlier outcomes,
+their predecessor clears. There is no optional branch. Latch follows and covers
+with a Tack from a twelve-round magazine, but does not fire into the isolated
+roof-window marksman lesson. The carried fields are the immutable earlier outcomes,
 including the M06 route marker. Departure requires all living ready
 participants aboard the freight boarding region and a fresh aimed Use. Retry
 resets the town, guards, grants and ally while retaining earlier outcomes and
@@ -849,6 +854,13 @@ World-point aim:
   2.9 m). With no direction held, in the air, in water, or within 15 ticks
   (0.75 s) of the last dodge, the press does nothing. A campaign mission has
   no dodge. The movement Ack carries the cooldown left.
+- `again`: Optional boolean, omitted while false. On the podium after an
+  arena round ends, a seated fighter asks for the next round now. The server
+  counts it only while the round is `Ended` and not in Sabotage; when every
+  seated person and agent has asked, the next round opens as soon as the
+  result has shown for 2 s (`rules::AGAIN_MIN_TICKS`) instead of waiting out
+  the 8 s podium. Rule bots are always ready and never counted. The Godot
+  client sends it on a fire press while the podium waits on its fighter.
 - `duck`: Optional held boolean, omitted while false. This server advertises
   the key with `Welcome.duck`. A client must not send it until that flag is
   present, because an older `Action` rejects unknown fields and would drop the
@@ -1514,6 +1526,8 @@ MapInfo and Mission form barriers even when the map ID stays the same. Events,
 inventory and acknowledgements are never replaced. A full reliable queue or
 a write stalled for two seconds disconnects that client. An in-progress write
 cannot be replaced, and combat-heavy queues can still reach this bound.
+The server encodes each broadcast once per tick and every initialized session
+receives those same bytes; targeted messages are encoded per session.
 
 ```json
 {
@@ -1654,6 +1668,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended and during sudden death.
 - `sudden_death`: (optional) `true` while an Active round is in sudden death: an arcade clock ran out level after somebody scored, so the clock stopped and the next score wins, or a level Sabotage match is playing its one deciding round. Omitted when false. A quiet sudden death ends level after 120 s.
+- `podium`: (optional) between rounds, while the round is `Ended` and either a seated person or agent is waited on or a Duel series exists: `{"again": ["<uuid>"], "voters": 2, "duel": [{"id": "<uuid>", "name": "Nightfall", "wins": 2}, {"id": "<uuid>", "name": "Probe", "wins": 1}]}`. `again` lists the fighters who have pressed `Action.again`, in id order, omitted when empty; `voters` counts the seated people and agents the ready-up waits for (rule bots never count, and Sabotage and the campaign have no ready-up, so it is 0 there); `duel` is the series between the Duel's two fighters in id order, present once they have finished a round together and reset when the pair changes. Mid-round it is omitted. Readers refuse unknown fields.
 - `frag_limit`: (optional) Frag limit for current round
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
@@ -1675,7 +1690,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
 - `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
 - `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
-- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health/armor pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100). Larak Lot's Custody Plate (`larak_custody_plate`) is an armor pad granting +100 until the Plate kind lands. A map may give a pad its own respawn clock (Larak Lot: Plate 35 s, Rail and Bridge armour 25 s, the rest 15 s); `respawn_in` always reports the pad's actual clock, and an own clock also holds in team modes. Touch claim is authoritative on the server; clients only render.
+- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor, the Custody Plate). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"` / `"plate"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health, armor and plate pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100) and is no use above 100. The Custody Plate (`plate`, Larak Lot's `larak_custody_plate` in the Roof's valet circle) adds 100 armour to a cap of 150; armour over 100 drains back one point a second. Clocks follow the rule sheet (`crate::rules`): the Plate 35 s in every mode; in free-for-all and Duel the Rail, Sniper, Arc and Rocket 25 s, other guns 15 s, a spare Pistol 8 s, health and armour 25 s; team modes 30 s for guns and 15 s for health and armour. `respawn_in` always reports the pad's actual clock. Larak Lot lays a Rocket pad in the Pit behind the Stack (`larak_rocket_pit`) only where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), because an arsenal bag cannot hold the Rocket. An arsenal fighter never takes a pad for a gun it cannot hold. Touch claim is authoritative on the server; clients only render.
 
 **Notes:**
 - Ordinary dead fighters are omitted; campaign corpses remain for their bounded
@@ -2172,7 +2187,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 **Fields:**
 - `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`)
 - `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
-- `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
+- `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"plate"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health, armor and plate pads carry `amount` (the armour actually gained).
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
 - `winning_team`: (round_end, team modes) the winning side, omitted for a draw. `team_scores` is the final side frags for TDM; `capture_scores` is the final captures for CTF. A CTF round can have an MVP by frags while its winning side is decided by captures.
 
@@ -2225,14 +2240,15 @@ its full short match before the list moves. A playlist file is not on the wire.
 ```
 
 - `mode`: `ffa` (free-for-all), `tdm` (team deathmatch), `ctf` (capture the
-  flag), or `sabotage` (round-based plant and defuse, below).
+  flag), `sabotage` (round-based plant and defuse, below), `conquest`, or
+  `duel` (free-for-all rules with two fighter seats, below).
 - `name`: an English label for logs and agents. Clients key their own labels.
 - `mutators`: sorted, unique ids, omitted when none: `rail-only`,
   `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`,
   `full-arsenal`. A Rust reader refuses an unknown id; the Godot client drops it.
 - `start_kit`: always present. The weapons a fresh life holds, in wire order.
   Anything else a fighter carries was taken from a pad and is lost at death.
-  Free-for-all sends `["fists", "tack"]`; team modes, Golden Rail and Full
+  Free-for-all and Duel send `["fists", "tack"]`; team modes, Golden Rail and Full
   Arsenal send `["flechette", "scatter", "rail"]`; a weapon-only mutator
   sends its one weapon; Sabotage sends `["fists"]`, or `["fists", "tack"]`
   in its five-seat format. The Godot client names a death's cost from it.
@@ -2254,6 +2270,13 @@ Hull-covered firing lanes affect the existing exposure ranking. Wrecks obstruct
 spawns for as long as they obstruct walking; airborne hulls above the body do
 not block a ground bay. No new action or snapshot field is added.
 
+- **Duel.** Free-for-all rules for two: the Pistol and Fists start, the
+  free-for-all pad clocks and the 4 s respawn, and no Compliance ping or drone.
+  Two fighter seats (see admission above). A Duel names no winner and no MVP
+  for a level round. The server keeps the pair's series while the same two
+  fighters play on (`podium.duel` below) and opens a rematch with the Host's
+  `host_line` on it, such as `HOST: REMATCH. NIGHTFALL LEADS 2 TO 1.` Spree
+  tiers step every 3 frags. The desktop host runs it on Larak Lot only.
 - **Team deathmatch.** Sides are `union` and `coalition`. Every join, human,
   agent or rule bot, takes the smaller side (ties go to the side behind on
   frags, then the coalition). At a round start a side two or more ahead gives
@@ -2602,18 +2625,42 @@ are frozen in one block at the top of `movement.rs`:
 | `DODGE_COOLDOWN_TICKS` | 15 | Ticks between dodges |
 | `GRAVITY`, `JUMP_SPEED` | 22 m/s², 7 m/s | At the 20 Hz step a 1.3 m hop of 0.7 s |
 
+The blast push (#431, 2026-10-24) extends the frozen block without changing
+it. `movement::blast_push` gives one blast's push on one body; the client's
+`MoveStep.blast_push` mirrors it and both golden files pin it through blast
+cases (a standing rocket jump, a running rocket jump onto a 1.5 m ledge,
+knockback from the side, a push into a wall, a push against a fall, a
+crouched body):
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `BLAST_PUSH` | 8.1 m/s | Push at a blast's heart, falling linearly to zero at its radius, measured to the nearest point of the body |
+| `BLAST_MIN_LIFT` | 0.35 | Least upward share of the push; the direction runs from the blast to the body's middle |
+| `BLAST_SPEED_CAP` | 14 m/s | Horizontal speed a push never exceeds |
+| `BLAST_RISE_CAP` | 24 m/s | Upward speed a push never exceeds |
+
+Every arena explosive (rocket, grenade, mine, remote charge, vehicle wreck,
+Walker) pushes each living arena fighter it damages, and a rocket always
+pushes its owner: a rocket at your own feet is a rocket jump (about 1.3 m
+standing; jump first and fire at the floor on the next tick for about 2.9 m,
+enough for a 1.5 m deck edge), a rocket at somebody else's is knockback. A
+fighter takes 0.6 of its own rocket splash in the arena. A teammate the blast
+cannot hurt is not pushed, and neither is a seated driver or gunner. The
+pushed velocity reaches a predicting client through the movement Ack, which
+replays from it.
+
 Per tick: wish direction from the keys and yaw; on the ground a dodge, or
 friction then ground acceleration unless jumping; in the air (or on a jump's
 take-off tick) capped air acceleration; then the shared collision, step,
 jump, gravity and landing. Horizontal velocity carries across consecutive
 active ticks and resets after any tick that did not move the body. An
-opposite key stops and reverses a full run in one tick. A rocket's own blast
-pushes away horizontally as well as up, capped at 14 m/s.
+opposite key stops and reverses a full run in one tick. A blast's push
+(above) is carried like any other velocity.
 
 A campaign mission keeps the immediate step for every body: the participant
 at `ACTOR_REFERENCE_SPEED` (5 m/s), authored actors at that times their gait,
 the pace the encounters, route proofs and rules revision were tuned against.
-The rocket's horizontal push and the dodge are arena only as well.
+The blast push and the dodge are arena only as well.
 
 - **Turn speed**: 2 radians/second, used only when an input carries no `yaw`
 - **Facing**: a client-owned absolute `yaw` on the Action wins and is applied before the move
@@ -2623,9 +2670,10 @@ The rocket's horizontal push and the dodge are arena only as well.
 - **Warmup**: 2 seconds (40 ticks) with the Host's plain arena intro and countdown on Snapshot (`host_line` + `round_time_left`; Godot full-frame Warmup TV with GOES LIVE IN N)
 - **Frag limit**: Default 10 kills; 25 side frags in team deathmatch. `--frag-limit` overrides either
 - **Time limit**: Default 180 seconds (3600 ticks)
-- **End delay**: 8 seconds (160 ticks) between rounds
+- **End delay**: 8 seconds (160 ticks) between rounds, or 2 s once every seated person and agent has pressed `again`
+- **Rematch**: after a finished free-for-all or Duel round, every fighter starts the next one from a spawn at full health with the start kit, including one fragged at the whistle
 - **Scoring**: Per-round kills, reset each round
-- **Tied podiums**: Score descending, then callsign ascending. MVP uses that same ordering.
+- **Tied podiums**: Score descending, then callsign ascending. MVP uses that same ordering, except that a level Duel names no MVP.
 - **Persistence**: Bots remain active when humans leave
 
 ## Example Session
@@ -3262,8 +3310,9 @@ or inventory revisions.
 The serial shares the existing projectile namespace. Position components are
 finite and at most 1024 in absolute value. Velocity components are finite and
 at most 20. Age is below 80 and cannot exceed the snapshot tick. The owner is
-a participant still in the snapshot. Unknown fields and duplicate serials are
-refused.
+a non-nil participant ID; a rocket outlives its owner's life, so the owner may
+be absent from `players` while dead or waiting to respawn. Unknown fields and
+duplicate serials are refused.
 
 Impact deals 65 direct damage plus covered splash. Splash is 4 m, linear from
 a peak of 45, and stops at ordinary solids. The blast point sits just before

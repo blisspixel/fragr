@@ -64,12 +64,12 @@ The old `snapshot_bytes` field actually counted all broadcasts; version 2 rename
 it to `broadcast_bytes`. Old simulation-only tick results cannot be compared to
 version 2 total CPU step times without selecting the same phase.
 
-Timers exclude hashing, trace construction/writing, sleeps, network fan-out, socket
-serialization per recipient, transport framing, scheduler delay, and rendering.
-The live status line measures the session phase and counts encoded broadcasts;
+Timers exclude hashing, trace construction/writing, sleeps, network fan-out,
+per-session encoding of targeted messages, transport framing, scheduler delay,
+and rendering. The live status line measures the session phase and counts encoded broadcasts;
 it does not claim a whole-network tick duration. `GET /status` reports a
-different scope, `tick_handler` (simulation plus broadcast and unicast enqueue
-and the status refresh), over a sixty second window and the process lifetime,
+different scope, `tick_handler` (simulation, the one encode of each broadcast,
+broadcast and unicast enqueue, and the status refresh), over a sixty second window and the process lifetime,
 from the same histogram type; see `docs/protocol.md`. Unicast bytes in a rule-bot-only
 run are normally zero because these bots do not send numbered input acknowledgements.
 Recording still affects caches and wall-clock load, so compare like configurations.
@@ -85,16 +85,93 @@ on the retired Arena Duel field and are not comparable:
 cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
 ```
 
-Each row starts a fresh server and records sample counts. `session_ms` measures
-authoritative tick construction. `fanout_enqueue_ms` measures queueing cloned
-messages for connected clients, including targeted sends in that tick. It does
-not include the socket writer's JSON serialization, transport framing, network
-latency, or rendering. Queue high water and overflow counts describe the
-bounded outbound FIFOs. Watcher snapshot intervals, missed tick numbers, and
-relative arrival spread describe the local receiving side. Watcher text payload
-bytes exclude WebSocket and TCP framing. Read the report
-with its source revision and host details before comparing results. Loopback
-numbers do not establish public-server capacity.
+Each row starts a fresh server and records sample counts. The fighters are
+in-process reflex agents and also receive every broadcast, so a row has
+fighters plus spectators recipients. The server admits eight loopback
+spectators per address, so each eight watchers connect from the next 127/8
+source address (Linux routes all of 127/8 to loopback; elsewhere the
+sixteen-watcher rows fail at the bind). Report schema 2 carries the build
+commit and the host environment beside the rows.
+
+The stages stay separate, all from one process and one monotonic clock:
+
+| Field | Stage |
+|---|---|
+| `server_metrics.session_ms` | Authoritative tick construction |
+| `server_metrics.broadcast_encode_ms` | The tick task encoding each broadcast once, which also counts its bytes |
+| `server_metrics.fanout_enqueue_ms` | Queueing that tick's broadcasts and targeted sends for connected clients |
+| `server_metrics.writer.residence_ms` | Enqueue to a session writer taking the message |
+| `server_metrics.writer.encode_ms`, `encodes` | JSON serialization inside session writers, one sample per encode |
+| `server_metrics.writer.shared_frames`, `shared_bytes` | Frames sent from a tick-encoded payload, and the bytes copied into each frame |
+| `server_metrics.writer.send_ms` | Framing and the socket write: send completion, not peer receipt |
+| `tick_to_watcher_ms` | Server tick start to a watcher reading the Snapshot frame, before it parses |
+| `serialization_ms_per_second` | Tick and writer encode time per measured second |
+
+Queue high water and overflow counts describe the bounded outbound FIFOs.
+Watcher snapshot intervals, missed tick numbers, and relative arrival spread
+describe the local receiving side. Watcher text payload bytes exclude WebSocket
+and TCP framing. The watchers, fighters and server share one process and its
+cores, so client work competes with the server; resident memory and process CPU
+are not reported because they would mix the two. Read the report with its
+source revision and host details before comparing results. Loopback numbers do
+not establish public-server capacity.
+
+### Encode-once broadcasts (#434 stage 2)
+
+Before this change each session writer serialized every broadcast for its own
+socket and the tick deep-cloned each message into every queue. Now the tick
+encodes each broadcast once (the same encode that already counted its bytes)
+and every queue holds one shared payload; writers copy its text into the frame
+that tungstenite 0.24 owns and encode only targeted messages, which are boxed so
+a queue slot is pointer sized instead of a several-kilobyte inline message. The
+wire bytes are identical.
+
+Measured 2026-10-24 on Linux x86_64, 16 hardware threads, release build,
+10 seconds per row, seed 42. Before is commit `cf4436c` (the instrumented
+harness on the old delivery path); after is commit `633d906`. Three matrix
+runs each, interleaved before, after, before, after so host load drifted
+evenly; each cell is the median of the three, as before / after. The host was
+shared with other builds (load average 4.5 to 12), so tail latency is noisy.
+
+| Row (fighters / watchers) | Serialization ms/s | Writer encodes/s | Enqueue p50 ms | Enqueue p99 ms | Tick to watcher p50 ms | Tick to watcher p99 ms | Watcher KiB/s |
+|---|---|---|---|---|---|---|---|
+| Larak Lot 4 / 1 | 1.40 / 0.34 | 115 / 5 | 0.030 / 0.010 | 0.111 / 0.019 | 0.23 / 0.19 | 0.35 / 0.29 | 41 / 41 |
+| Larak Lot 4 / 8 | 2.63 / 0.35 | 268 / 5 | 0.057 / 0.014 | 0.188 / 0.031 | 0.30 / 0.25 | 0.93 / 0.47 | 331 / 331 |
+| Larak Lot 4 / 16 | 3.93 / 0.37 | 443 / 6 | 0.086 / 0.018 | 0.221 / 0.059 | 0.36 / 0.31 | 0.58 / 0.61 | 662 / 662 |
+| Larak Lot 16 / 1 | 6.58 / 0.63 | 651 / 37 | 0.106 / 0.018 | 0.475 / 0.066 | 0.46 / 0.32 | 0.99 / 0.92 | 87 / 87 |
+| Larak Lot 16 / 8 | 8.46 / 0.67 | 909 / 38 | 0.180 / 0.023 | 0.721 / 0.078 | 0.56 / 0.43 | 1.19 / 0.92 | 699 / 699 |
+| Larak Lot 16 / 16 | 12.24 / 0.59 | 1192 / 37 | 0.377 / 0.024 | 1.966 / 0.070 | 0.69 / 0.46 | 5.19 / 1.01 | 1397 / 1386 |
+| Tripoint Works 4 / 1 | 1.77 / 0.38 | 105 / 4 | 0.039 / 0.012 | 1.311 / 0.049 | 0.28 / 0.21 | 3.20 / 0.51 | 46 / 46 |
+| Tripoint Works 4 / 8 | 3.08 / 0.38 | 246 / 4 | 0.082 / 0.015 | 0.205 / 0.057 | 0.30 / 0.29 | 0.57 / 1.08 | 370 / 370 |
+| Tripoint Works 4 / 16 | 6.05 / 0.39 | 410 / 4 | 0.188 / 0.019 | 0.655 / 0.055 | 0.43 / 0.35 | 1.54 / 0.56 | 740 / 740 |
+| Tripoint Works 16 / 1 | 6.92 / 0.58 | 492 / 23 | 0.221 / 0.017 | 0.590 / 0.059 | 0.55 / 0.39 | 1.46 / 1.10 | 90 / 90 |
+| Tripoint Works 16 / 8 | 8.97 / 0.58 | 687 / 22 | 0.311 / 0.020 | 0.754 / 0.066 | 0.60 / 0.46 | 1.38 / 1.30 | 721 / 721 |
+| Tripoint Works 16 / 16 | 12.28 / 0.60 | 909 / 23 | 0.410 / 0.026 | 1.245 / 0.442 | 0.70 / 0.48 | 2.40 / 3.74 | 1442 / 1442 |
+
+What this shows, and what it does not:
+
+- JSON encoding falls from 1.4 to 12.3 ms per second of server work to 0.3 to
+  0.7 ms, and stops growing with the watcher count. The remaining writer
+  encodes are targeted messages: geometry on join, acknowledgements and
+  inventory for the in-process fighters.
+- The tick's enqueue median falls in every row, by 3 to 16 times, because a
+  queue now takes a pointer instead of a deep copy of the Snapshot. An earlier
+  five-pair run of the same change without boxed targeted messages, in a
+  busier period, cut it by at most about nine times. The tick-side broadcast encode stays about 0.02 ms
+  per tick: it was already paid to count bytes.
+- Watcher bytes per second match within game-state variance in every row, and
+  no run missed a tick, dropped a watcher or overflowed a queue, before or after.
+- The median tick-to-watcher time falls in every row; the p99 rises in three
+  (Larak Lot 4 / 16, Tripoint Works 4 / 8 and 16 / 16), so no tail latency win
+  is claimed on this shared host. The serialization saved was at most
+  about 1.2 percent of one core, so this removes repeated work rather than
+  fixing a measured bottleneck. It is not evidence of 32 to 64 player
+  capacity, two-machine feel or public-server behavior.
+- Not measured here: slow or stalled readers under load, bursty input and
+  saturation. Slow-reader isolation, ordering, private targeted state and
+  cancellation are covered by tests in `server/src/session.rs`,
+  `server/src/net/tests.rs` and `server/src/net/outbound/tests.rs`.
+
 
 ## Trace version 1
 
@@ -225,8 +302,9 @@ tick and a `complete` footer (`ticks`, `dropped`, `over_budget`,
 flushed ticks remain readable. Each `tick` carries the Snapshot tick number,
 `unix_us` at handler start, `late_us` after the scheduled deadline,
 `skipped` whole periods the interval skipped, and microseconds for
-`sim_us` (session tick and run persistence), `measure_us` (serializing once
-to count bytes), `fanout_us` (queuing broadcasts and unicasts, not socket
+`sim_us` (session tick and run persistence), `measure_us` (encoding each
+broadcast once, the payload every session sends, and counting its bytes),
+`fanout_us` (queuing broadcasts and unicasts, not socket
 completion) and `total_us`, plus clients, messages, bytes and queue
 overflows. A writer thread owns the file behind a bounded 1,024-record queue;
 a full queue drops and counts records rather than delay a tick. An unwritable

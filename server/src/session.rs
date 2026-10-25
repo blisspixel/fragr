@@ -161,7 +161,7 @@ impl GameSession {
     /// rule-bot count so solo stays stocked.
     /// Refreshes sticky Warmup Host roster intro for mid-join.
     pub fn spawn_bots(&mut self, count: usize) {
-        let slots = self.configure_sabotage_seats();
+        let slots = self.configure_fighter_seats();
 
         let start_index = self.bots.len();
         for i in 0..count {
@@ -270,14 +270,13 @@ impl GameSession {
     }
 
     /// Initialize the optional fixed roster before network admission or bot spawn.
-    pub(crate) fn configure_sabotage_seats(&mut self) -> Option<Arc<tokio::sync::Semaphore>> {
-        if self.state.config.rules.mode() != protocol::GameMode::Sabotage
-            || !self.state.config.sabotage.five_vs_five
-        {
-            return None;
-        }
+    /// The shared permit pool for a mode with fixed fighter seats (five
+    /// versus five Sabotage, Duel): rule bots and network fighters draw from
+    /// the same pool, so a full match refuses a joiner before any pawn exists.
+    pub(crate) fn configure_fighter_seats(&mut self) -> Option<Arc<tokio::sync::Semaphore>> {
+        let seats = self.state.fighter_seats()?;
         Some(Arc::clone(self.participant_slots.get_or_insert_with(
-            || Arc::new(tokio::sync::Semaphore::new(10)),
+            || Arc::new(tokio::sync::Semaphore::new(seats)),
         )))
     }
 
@@ -1100,13 +1099,13 @@ pub struct DeliveryStats {
 
 fn queue_for_client(
     client: &mut ClientSession,
-    msg: &ServerMessage,
+    frame: crate::net::Outbound,
     stats: &mut DeliveryStats,
 ) -> bool {
     if client.is_closing() {
         return false;
     }
-    match client.tx.try_send(msg.clone()) {
+    match client.tx.try_send(frame) {
         Ok(queued) => {
             stats.queued_messages += 1;
             stats.replaced_worlds += u64::from(queued == crate::net::Queued::ReplacedWorld);
@@ -1143,23 +1142,26 @@ fn strip_empty_rockets(loadout: &protocol::LoadoutState) -> protocol::LoadoutSta
     compatible
 }
 
+/// Every initialized session receives each broadcast unchanged, so all of
+/// their queues share its one encoding. A session that cannot represent a
+/// broadcast is closed, never sent a variant.
 pub async fn broadcast_to_clients(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
-    messages: &[ServerMessage],
+    broadcasts: &[Arc<crate::net::Broadcast>],
 ) -> DeliveryStats {
     let mut stats = DeliveryStats::default();
     let mut clients_lock = clients.lock().await;
-    for msg in messages {
+    for broadcast in broadcasts {
         for client in clients_lock.iter_mut().filter(|client| client.initialized) {
             if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
-                if let ServerMessage::Snapshot(snapshot) = msg {
+                if let ServerMessage::Snapshot(snapshot) = broadcast.message() {
                     if rocket_snapshot_unrepresentable(snapshot) {
                         client.request_close();
                         continue;
                     }
                 }
             }
-            queue_for_client(client, msg, &mut stats);
+            queue_for_client(client, Arc::clone(broadcast).into(), &mut stats);
         }
     }
     stats
@@ -1266,7 +1268,8 @@ pub async fn send_unicasts(
             } else {
                 None
             };
-            if queue_for_client(client, delivered.as_ref().unwrap_or(msg), &mut stats)
+            let delivered = delivered.unwrap_or_else(|| msg.clone());
+            if queue_for_client(client, delivered.into(), &mut stats)
                 && matches!(msg, ServerMessage::MapInfo { .. })
             {
                 client.initialized = true;
@@ -1313,7 +1316,11 @@ mod session_tests {
             "a failed send cannot initialize a connection"
         );
         let snapshot = ServerMessage::Snapshot(session.state.snapshot());
-        broadcast_to_clients(&clients, std::slice::from_ref(&snapshot)).await;
+        broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(std::slice::from_ref(&snapshot)),
+        )
+        .await;
         assert!(
             pending_rx.try_recv().is_err(),
             "broadcast overtook geometry"
@@ -1346,7 +1353,7 @@ mod session_tests {
             &[(Recipient::Client(ids[0]), map)],
         )
         .await;
-        broadcast_to_clients(&clients, &[snapshot]).await;
+        broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
         assert!(matches!(
             pending_rx.try_recv().unwrap(),
             ServerMessage::MapInfo { .. }
@@ -1391,7 +1398,8 @@ mod session_tests {
         .await;
         assert_eq!(delivery.queue_overflows, 1);
         let snapshot = ServerMessage::Snapshot(session.state.snapshot());
-        let sent = broadcast_to_clients(&clients, &[snapshot]).await;
+        let sent =
+            broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
         assert_eq!(sent.queued_messages, 1);
         let clients = clients.lock().await;
         assert!(!clients[0].initialized);
@@ -1410,6 +1418,94 @@ mod session_tests {
             healthy_rx.try_recv().unwrap(),
             ServerMessage::Snapshot(_)
         ));
+    }
+
+    #[tokio::test]
+    async fn broadcasts_share_one_payload_and_targeted_state_stays_private() {
+        use crate::net::{Broadcast, Outbound};
+        let ids = [
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        ];
+        let (fighter_tx, mut fighter_rx) = crate::net::outbound_channel(8);
+        let (watcher_tx, mut watcher_rx) = crate::net::outbound_channel(8);
+        let (older_tx, mut older_rx) = crate::net::outbound_channel(8);
+        let (joining_tx, mut joining_rx) = crate::net::outbound_channel(8);
+        let clients = Arc::new(Mutex::new(vec![
+            ClientSession::new(ids[0], fighter_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(ids[1], watcher_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(ids[2], older_tx, protocol::ROCKET_GAMEPLAY_VERSION - 1),
+            ClientSession::new(ids[3], joining_tx, protocol::GAMEPLAY_VERSION),
+        ]));
+        let session = GameSession::new();
+        let map = session.state.map_info();
+        let private = ServerMessage::Error {
+            code: "private".into(),
+            message: "only the fighter".into(),
+        };
+        send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[
+                (Recipient::Client(ids[0]), map.clone()),
+                (Recipient::Client(ids[1]), map.clone()),
+                (Recipient::Client(ids[2]), map),
+                (Recipient::Client(ids[0]), private),
+            ],
+        )
+        .await;
+        let broadcasts = Broadcast::encode_all([
+            ServerMessage::Event(protocol::GameEvent::Respawn {
+                player: "Fighter".into(),
+            }),
+            ServerMessage::Snapshot(session.state.snapshot()),
+        ])
+        .unwrap();
+        let sent = broadcast_to_clients(&clients, &broadcasts).await;
+        assert_eq!(sent.queued_messages, 6);
+        let frames = |rx: &mut crate::net::WsRx| {
+            std::iter::from_fn(|| rx.try_take().ok().map(|delivery| delivery.frame))
+                .collect::<Vec<_>>()
+        };
+        let shared_in = |frames: &[Outbound]| {
+            frames
+                .iter()
+                .filter_map(|frame| match frame {
+                    Outbound::Shared(broadcast) => Some(Arc::clone(broadcast)),
+                    Outbound::Targeted(_) => None,
+                })
+                .collect::<Vec<_>>()
+        };
+        let fighter = frames(&mut fighter_rx);
+        let watcher = frames(&mut watcher_rx);
+        let older = frames(&mut older_rx);
+        // Geometry, then the fighter's own fact, then the shared tick.
+        let is_map = |frame: &Outbound| {
+            matches!(frame, Outbound::Targeted(_))
+                && matches!(frame.message(), ServerMessage::MapInfo { .. })
+        };
+        let is_private = |frame: &Outbound| {
+            matches!(frame, Outbound::Targeted(_))
+                && matches!(frame.message(), ServerMessage::Error { code, .. } if code == "private")
+        };
+        assert!(is_map(&fighter[0]));
+        assert!(is_private(&fighter[1]));
+        assert_eq!(fighter.len(), 4);
+        assert!(is_map(&watcher[0]));
+        assert_eq!(watcher.len(), 3);
+        assert!(!watcher.iter().chain(&older).any(is_private));
+        for queue in [&fighter, &watcher, &older] {
+            let shared = shared_in(queue);
+            assert_eq!(shared.len(), 2);
+            for (received, sent) in shared.iter().zip(&broadcasts) {
+                assert!(Arc::ptr_eq(received, sent));
+            }
+        }
+        // No broadcast overtakes the initial geometry of a joining client.
+        assert!(joining_rx.try_take().is_err());
+        assert!(!clients.lock().await[3].initialized);
     }
 
     #[tokio::test]
@@ -1435,8 +1531,13 @@ mod session_tests {
         .await;
         assert_eq!(initial.queued_messages, 2);
         let snapshot = ServerMessage::Snapshot(session.state.snapshot());
-        let first = broadcast_to_clients(&clients, std::slice::from_ref(&snapshot)).await;
-        let second = broadcast_to_clients(&clients, &[snapshot]).await;
+        let first = broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(std::slice::from_ref(&snapshot)),
+        )
+        .await;
+        let second =
+            broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
         assert_eq!(first.queue_overflows, 1);
         assert_eq!(first.queued_messages, 1);
         assert_eq!(second.queue_overflows, 0);

@@ -254,8 +254,12 @@ fn larak_pads_and_spawns_have_headroom_and_no_claim_from_above() {
 #[test]
 fn larak_spawn_never_sees_power_item() {
     let solids = &world().solids;
-    for target in [PLATE_ID, RAIL_ID] {
-        let target = feet(&pad(target));
+    let rocket = MapKind::ArenaDuel
+        .scrap_pads()
+        .into_iter()
+        .find(|p| p.id == ROCKET_ID)
+        .expect("the Pit Rocket");
+    for target in [feet(&pad(PLATE_ID)), feet(&pad(RAIL_ID)), feet(&rocket)] {
         for slot in &SPAWNS {
             assert!(
                 !sees(spawn_feet(slot), target, solids),
@@ -657,16 +661,6 @@ fn larak_presentation_matches_collision_and_budgets() {
 
 #[test]
 fn larak_pads_run_the_rule_sheet_and_the_plate_its_own_clock() {
-    let clocks: HashMap<String, Option<u32>> = MapKind::ArenaDuel
-        .pickups()
-        .into_iter()
-        .map(|p| (p.id, p.clock))
-        .collect();
-    // Only the Custody Plate authors its clock; the rest follow the sheet.
-    assert_eq!(clocks[PLATE_ID], Some(700));
-    assert!(clocks
-        .iter()
-        .all(|(id, clock)| id == PLATE_ID || clock.is_none()));
     let ffa = crate::rules::RuleSet::default();
     let tdm = crate::rules::RuleSet::new(crate::protocol::GameMode::Tdm, &[], false).unwrap();
     assert_eq!(pad(PLATE_ID).clock(&ffa), 700);
@@ -684,8 +678,23 @@ fn larak_pads_run_the_rule_sheet_and_the_plate_its_own_clock() {
         crate::sim::HEALTH_PICKUP_RESPAWN_TICKS
     );
     let plate = pad(PLATE_ID);
-    assert_eq!(plate.kind, PickupKind::Armor);
-    assert_eq!(plate.amount, crate::sim::PLAYER_MAX_ARMOR);
+    assert_eq!(plate.kind, PickupKind::Plate);
+    assert_eq!(plate.amount, crate::sim::PLATE_AMOUNT);
+    // The Rocket is the lot's one free-for-all pad, on the power clock.
+    let rocket = MapKind::ArenaDuel
+        .scrap_pads()
+        .into_iter()
+        .find(|p| p.id == ROCKET_ID)
+        .expect("the Pit Rocket");
+    assert_eq!(
+        rocket.kind,
+        PickupKind::Weapon(crate::protocol::WeaponType::Rocket)
+    );
+    assert_eq!(
+        rocket.clock(&ffa),
+        crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS
+    );
+    assert_eq!(rocket.floor, PIT);
 }
 
 /// Prints the measured route table recorded in the plan. Run with

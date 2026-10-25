@@ -237,6 +237,24 @@ func _inheritance_side() -> void:
 	var tell_peak: float = EnemyView.work_energy(sweeper["campaign"], 0.0, 22, 0.0)
 	_check(tell_start < tell_peak and resting < tell_peak and is_zero_approx(EnemyView.work_energy({"phase": "dead"}, 0.0, 12, 0.0)),
 		"the working light swells through the authoritative windup and dies with the body")
+	# Union red optics are the attack tell: a flash on the tick the tell
+	# starts, a swell to the shot, hot through the burst, rest otherwise.
+	var raise: Dictionary = {"phase": "windup", "phase_started": 10, "phase_ends": 22}
+	var optic_rest: float = EnemyView.tell_glow({"phase": "moving", "phase_started": 0, "phase_ends": 0}, 12, 0.0)
+	var optic_flash: float = EnemyView.tell_glow(raise, 10, 0.0)
+	var optic_early: float = EnemyView.tell_glow(raise, 12, 0.0)
+	var optic_late: float = EnemyView.tell_glow(raise, 21, 0.0)
+	var optic_burst: float = EnemyView.tell_glow({"phase": "firing", "phase_started": 22, "phase_ends": 30}, 23, 0.0)
+	_check(is_equal_approx(optic_rest, EnemyView.OPTIC_REST) and optic_flash > optic_late
+		and optic_rest < optic_early and optic_early < optic_late and optic_burst > optic_rest,
+		"Union optics flash on a tell, swell to the shot and rest when no attack is coming")
+	var raise_body: Sprite3D = Sprite3D.new()
+	pawn.add_child(raise_body)
+	var raise_view: EnemyView = EnemyView.new()
+	raise_view.update({"campaign": raise.merged({"side": "union", "kind": "clerk"}), "weapon": "Tack"}, 10, raise_body)
+	raise_view.render(raise_body, 0.0, Vector3.FORWARD)
+	_check(is_equal_approx(float((raise_body.material_override as ShaderMaterial).get_shader_parameter("red_glow")), EnemyView.OPTIC_FLASH),
+		"a Clerk's optics flash on the tick its raise begins")
 	var other_body: Sprite3D = Sprite3D.new()
 	pawn.add_child(other_body)
 	var other: EnemyView = EnemyView.new()

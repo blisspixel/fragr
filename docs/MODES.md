@@ -100,11 +100,23 @@ changes, contested weapon routes, and safe spawns matter more than map size.
 Spectators can watch or queue for the next round; joining never silently turns
 a duel into free-for-all. This is the smallest competitive balance test.
 
+Built 2026-10-24 (#431), on Larak Lot: `--mode duel`, or Duel on the Run a
+match page. Free-for-all rules for two (Pistol and Fists, the pads on their
+clocks, the Pit Rocket and the Custody Plate, a 4 s respawn), with no
+Continuance ping or drone. Two fighter seats: a third fighter is refused and
+watches; with automatic bots a rule bot keeps an empty seat warm and gives it
+up to a person. On the podium both fighters press fire for an instant rematch,
+the series between the same pair carries on ("REMATCH. NIGHTFALL LEADS 2 TO
+1."), and a level round names no winner. A real queue that seats the next
+watcher and winner-stays rotation are not built yet.
+
 ### Scrap
 
 Free-for-all and teams. Frags, a limit, a clock. What the league runs on a Tuesday, and the mode everything else is measured against. A clock that runs out level after somebody has scored goes to sudden death: the clock stops and the next score wins.
 
 Weapons, armour and the good health spawn on predictable clocks, so knowing where the rail comes back and getting there first is most of the skill. That is the oldest loop in the genre and it still works.
+
+Larak Lot's power item is the Custody Plate on the Roof: +100 armour to 150, the excess draining a point a second, back every 35 s. Its Rocket at the bottom of the Pit, behind the Stack, is the arena's movement gun: a rocket at your own feet is a rocket jump, from the Gallery straight onto the Roof. Any arena blast throws whoever it hurts. After a round, everybody pressing fire on the podium starts the next one at once.
 
 Implemented for wave 2 (2026-10-23), not yet shipped: a free-for-all life starts with the Pistol and Fists. The Rifle, Shotgun and Railgun are owned only after their pad is taken, on 15 and 25 second clocks, with health and armour on 25. Every built map lays extra free-for-all gun pads so each spawn is a fair walk from one. Death loses what you found, the death card says what, and you are back four seconds later. A host can restore the old armed start with the Full Arsenal mutator.
 

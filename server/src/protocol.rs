@@ -4,6 +4,8 @@ use uuid::Uuid;
 mod actors;
 mod blade;
 mod body;
+mod podium;
+pub use podium::{DuelRecord, Podium};
 mod conquest;
 mod decoration;
 mod explosive;
@@ -1318,6 +1320,10 @@ pub struct Action {
     /// the air, with no direction held, or during the dodge cooldown.
     #[serde(default, skip_serializing_if = "is_false")]
     pub dodge: bool,
+    /// Ready-up on the podium: this fighter wants the next round now. Read
+    /// only while an arena round has ended; ignored everywhere else.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub again: bool,
     #[serde(default)]
     pub turn_left: bool,
     #[serde(default)]
@@ -1616,6 +1622,11 @@ pub struct Snapshot {
     /// Article Blade plinth and possession facts.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub article_blade: Option<ArticleBladeState>,
+    /// Between rounds: the ready-up for the next one and a Duel's series.
+    /// Present only while a round has ended and somebody is waited for or a
+    /// series exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub podium: Option<Podium>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -2063,6 +2074,7 @@ mod protocol_tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["shot_results"][0]["hit"], true);
@@ -2326,6 +2338,7 @@ mod protocol_tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["pickups"][0]["id"], "pad_rail");

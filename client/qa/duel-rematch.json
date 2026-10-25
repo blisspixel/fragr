@@ -1,0 +1,16 @@
+{
+  "comment": "A Duel's podium and instant rematch on Larak Lot: one rule bot, a joined human who stands still, a short frag limit. Run with FRAGR_QA_MODE=duel, FRAGR_QA_BOTS=1, FRAGR_QA_FRAG_LIMIT=2 and FRAGR_QA_MANIFEST=res://qa/duel-rematch.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "duel_live", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "radio_off": true,
+     "settle_seconds": 1.0,
+     "note": "One versus one: the mode chip names the Duel and the room holds two fighters."},
+    {"name": "duel_podium", "camera": "first_person", "await_round_state": "Ended", "await_timeout_seconds": 240, "settle_seconds": 0.6,
+     "note": "The result card and the podium plate: the series so far and the fire key for one more round."},
+    {"name": "duel_again_pressed", "camera": "first_person", "press_again": true, "settle_seconds": 0.1,
+     "note": "Fire pressed: the plate says the next round is loading."},
+    {"name": "duel_rematch", "camera": "first_person", "await_round_state": "Active", "await_timeout_seconds": 12, "settle_seconds": 0.8,
+     "note": "The rematch opens two seconds after the result, with the Host on the series."}
+  ]
+}

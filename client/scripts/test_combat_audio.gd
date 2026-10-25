@@ -244,6 +244,8 @@ func _check_tells(scene: PackedScene) -> void:
 	var clerk_tell: AudioStreamPlayer3D = clerk.get_node("TellSound")
 	_check(clerk.tell_count == 1 and clerk_tell.stream == clerk.tell_streams["clerk"]
 		and is_equal_approx(clerk_tell.pitch_scale, 1.0), "a Clerk's raise plays as authored")
+	_check(clerk.tell_streams.has("auditor") and clerk.tell_streams["auditor"] == clerk.tell_streams["clerk"],
+		"an Auditor's Tack cocks with the Clerk's tell")
 	clerk.update_state(_union("clerk", "dead", 30, 30, 0), 30)
 	_check(clerk.down_count == 1 and clerk.get_node("DownSound").stream == clerk.down_body_stream,
 		"a Clerk falls as a body")

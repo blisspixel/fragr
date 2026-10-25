@@ -6,6 +6,21 @@ msgstr ""
 msgid "MODE_FFA"
 msgstr "FREE FOR ALL"
 
+msgid "MODE_DUEL"
+msgstr "DUEL"
+
+msgid "HUD_AGAIN_PROMPT"
+msgstr "{fire} ONE MORE  //  {ready} OF {voters} READY"
+
+msgid "HUD_AGAIN_READY"
+msgstr "READY  //  WAITING ON {waiting}"
+
+msgid "HUD_AGAIN_GO"
+msgstr "READY  //  NEXT ROUND LOADING"
+
+msgid "HUD_DUEL_SERIES"
+msgstr "SERIES  {a} {a_wins} : {b_wins} {b}"
+
 msgid "MODE_CONQUEST"
 msgstr "CONQUEST"
 
@@ -287,6 +302,9 @@ msgstr "+{amount} HP"
 
 msgid "PICKUP_ARMOR"
 msgstr "ARMOR"
+
+msgid "PICKUP_PLATE"
+msgstr "CUSTODY PLATE"
 
 msgid "PICKUP_ARMOR_AMOUNT"
 msgstr "+{amount} ARMOR"

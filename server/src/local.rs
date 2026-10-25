@@ -277,8 +277,11 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
         .as_ref()
         .ok_or_else(|| io::Error::other("desktop host requires a match configuration"))?;
     let valid_mode = match config.rules.mode() {
-        GameMode::Ffa => !config.sabotage.five_vs_five,
-        GameMode::Tdm => !config.sabotage.five_vs_five,
+        GameMode::Ffa | GameMode::Tdm => !config.sabotage.five_vs_five,
+        // Larak Lot is the Duel home.
+        GameMode::Duel => {
+            !config.sabotage.five_vs_five && options.map == crate::sim::MapKind::ArenaDuel
+        }
         GameMode::Ctf => !config.sabotage.five_vs_five && options.map.ctf_stands().is_some(),
         GameMode::Sabotage => config.sabotage.five_vs_five && options.map.sabotage_map().is_some(),
         GameMode::Conquest => {
@@ -287,7 +290,7 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     };
     if !valid_mode {
         return Err(io::Error::other(
-            "desktop host requires FFA, TDM, CTF on maps with stands, five-per-side Sabotage on Sector 9 or Low Water, or Holdfast Conquest",
+            "desktop host requires FFA, TDM, Duel on Larak Lot, CTF on maps with stands, five-per-side Sabotage on Sector 9 or Low Water, or Holdfast Conquest",
         ));
     }
     Ok(address)

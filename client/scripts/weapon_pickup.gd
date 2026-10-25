@@ -39,6 +39,7 @@ const COLORS = {
 	"Arc": Color("d6bb76"),
 	"health": Color(0.62, 0.22, 0.20),     # dried blood
 	"armor": Color(0.48, 0.44, 0.38),      # scrap gunmetal
+	"plate": Color(0.34, 0.34, 0.37),      # Union issued steel
 	"grenade": Color(0.60, 0.56, 0.36),    # olive casing
 	"proximity_mine": Color(0.46, 0.50, 0.44), # grey puck, amber lamp
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
@@ -66,10 +67,14 @@ const TAKEN_SOUND_PATHS: Dictionary[String, String] = {
 	"ammo": "res://assets/audio/pickup/ammo.wav",
 	"health": "res://assets/audio/pickup/health.wav",
 	"armor": "res://assets/audio/pickup/armor.wav",
+	"plate": "res://assets/audio/pickup/armor.wav",
 }
 const POWER_WEAPONS: Array[String] = ["Rail", "Sniper", "Rocket", "Arc"]
 const POWER_REACH_METRES: float = 70.0
 const COMMON_REACH_METRES: float = 32.0
+## The Custody Plate is the arena's power item and stands larger than the
+## ordinary vest, so it reads from the Gallery and the Crane.
+const PLATE_SCALE: float = 1.35
 ## Seconds the item takes to rise back to full size on its return.
 const RETURN_POP_SECONDS: float = 0.28
 
@@ -141,7 +146,7 @@ func note_server_available(up: bool, audible: bool = true) -> void:
 			_play_cue(str(TAKEN_SOUND_PATHS.get(pickup_kind, TAKEN_SOUND_PATHS["weapon"])), -6.0)
 
 func reach_metres() -> float:
-	if pickup_kind == "golden_rail" or pickup_kind == "armor" or weapon_name in POWER_WEAPONS:
+	if pickup_kind in ["golden_rail", "armor", "plate"] or weapon_name in POWER_WEAPONS:
 		return POWER_REACH_METRES
 	return COMMON_REACH_METRES
 
@@ -183,6 +188,8 @@ func _label_text() -> String:
 		return tr("PICKUP_MEDKIT") if amount <= 0 else tr("PICKUP_HEALTH").format({"amount": amount})
 	if pickup_kind == "armor":
 		return tr("PICKUP_ARMOR") if amount <= 0 else tr("PICKUP_ARMOR_AMOUNT").format({"amount": amount})
+	if pickup_kind == "plate":
+		return tr("PICKUP_PLATE")
 	if pickup_kind == "grenade":
 		return tr("PICKUP_GRENADES").format({"amount": amount})
 	if pickup_kind == "proximity_mine":
@@ -202,6 +209,8 @@ func _tint() -> Color:
 		return COLORS["health"]
 	if pickup_kind == "armor":
 		return COLORS["armor"]
+	if pickup_kind == "plate":
+		return COLORS["plate"]
 	if pickup_kind == "grenade":
 		return COLORS["grenade"]
 	if pickup_kind == "proximity_mine":
@@ -262,7 +271,7 @@ func _apply_look() -> void:
 	icon.visible = drawn
 	if drawn:
 		icon.texture = texture
-		icon.pixel_size = WeaponArt.PICKUP_TEXEL_METRES
+		icon.pixel_size = WeaponArt.PICKUP_TEXEL_METRES * (PLATE_SCALE if pickup_kind == "plate" else 1.0)
 		_sprite_rest_y = SPRITE_FLOOR_GAP + float(texture.get_height()) * icon.pixel_size * 0.5
 		icon.position = Vector3(0.0, _sprite_rest_y, 0.0)
 		icon.modulate = Color(1.6, 1.25, 0.45) if pickup_kind == "golden_rail" else Color.WHITE

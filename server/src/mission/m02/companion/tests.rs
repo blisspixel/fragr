@@ -256,7 +256,7 @@ fn companion_short_yield_can_use_one_supported_quarter_step_deterministically() 
             top: 3.0,
         }],
     };
-    assert!(formation::goal(&arena, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    assert!(formation::goal(&arena, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).is_none());
     let first = formation::short_yield(&arena, me, [0.0, 3.0, 0.0], &bodies).unwrap();
     assert_eq!(first.yaw, Some(0.0));
     assert!(first.forward && !first.fire && !first.jump);
@@ -265,6 +265,14 @@ fn companion_short_yield_can_use_one_supported_quarter_step_deterministically() 
         assert_eq!(repeated.yaw, first.yaw);
     }
     assert!(formation::short_yield(&arena, me, [-2.0, 3.0, 0.0], &bodies).is_none());
+}
+
+fn still(feet: [f32; 3]) -> formation::Leader {
+    formation::Leader {
+        feet,
+        yaw: 0.0,
+        velocity: [0.0; 2],
+    }
 }
 
 fn local_scene(feet: [f32; 3], leader: [f32; 3]) -> (GameState, Uuid, Uuid) {
@@ -293,7 +301,7 @@ fn companion_local_yield_respects_support_corners_and_no_retreat() {
         half: 10.0,
         solids: vec![deck],
     };
-    let goal = formation::goal(&arena, me, [0.0, 3.0, 0.0], false, &bodies).unwrap();
+    let goal = formation::goal(&arena, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).unwrap();
     assert_eq!(goal.feet[1], 3.0);
     assert!(
         goal.feet[2].abs() > 0.6 && goal.feet[0] < 2.0,
@@ -336,7 +344,9 @@ fn companion_local_yield_respects_support_corners_and_no_retreat() {
             },
         ],
     };
-    assert!(formation::goal(&confined, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    assert!(
+        formation::goal(&confined, me, &still([0.0, 3.0, 0.0]), false, &bodies, None).is_none()
+    );
     assert!(formation::short_yield(&confined, me, [0.0, 3.0, 0.0], &bodies).is_none());
 }
 
@@ -349,10 +359,10 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
     let (mut state, id, ally) = local_scene([7.0, 0.0, 0.0], [0.0, 0.0, 0.0]);
     let me = state.players.iter().find(|p| p.id == ally).unwrap();
     let bodies = state.contact_bodies();
-    let first = formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &bodies).unwrap();
+    let first = formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), false, &bodies, None).unwrap();
     for _ in 0..100 {
         assert_eq!(
-            formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &bodies)
+            formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), false, &bodies, None)
                 .unwrap()
                 .feet,
             first.feet
@@ -365,7 +375,7 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
         first.feet
     ));
     assert_eq!(
-        formation::goal(&arena, me, [0.0, 0.0, 0.0], true, &bodies)
+        formation::goal(&arena, me, &still([0.0, 0.0, 0.0]), true, &bodies, None)
             .unwrap()
             .feet,
         [-2.4, 0.0, 1.2],
@@ -373,7 +383,15 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
     );
     place(&mut state, ally, [2.4, 0.0, 0.0]);
     let me = state.players.iter().find(|p| p.id == ally).unwrap();
-    assert!(formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &state.contact_bodies()).is_none());
+    assert!(formation::goal(
+        &arena,
+        me,
+        &still([0.0, 0.0, 0.0]),
+        false,
+        &state.contact_bodies(),
+        None
+    )
+    .is_none());
     assert!(state.players.iter().any(|p| p.id == id && p.hp == 100));
 }
 
@@ -434,4 +452,187 @@ fn companion_intent_returns_none_for_m11_mission() {
     run.m03 = None;
     run.m11 = Some(crate::mission::m11::M11Progress::default());
     assert!(session.state.m02_companion_intent().is_none());
+}
+
+fn walking(feet: [f32; 3], velocity: [f32; 2]) -> formation::Leader {
+    formation::Leader {
+        feet,
+        yaw: velocity[1].atan2(velocity[0]),
+        velocity,
+    }
+}
+
+#[test]
+fn companion_steps_out_of_a_walking_participants_lane() {
+    let open = Arena {
+        half: 20.0,
+        solids: vec![],
+    };
+    // Latch stands 2.5 m ahead of a participant walking east.
+    let (state, _, ally) = local_scene([2.5, 0.0, 0.3], [0.0, 0.0, 0.0]);
+    let me = state.players.iter().find(|p| p.id == ally).unwrap();
+    let bodies = state.contact_bodies();
+    let leader = walking([0.0, 0.0, 0.0], [6.0, 0.0]);
+    let aside = formation::goal(&open, me, &leader, false, &bodies, None).unwrap();
+    assert!(
+        aside.feet[2] >= 1.0 && (aside.feet[0] - 2.5).abs() < 0.1,
+        "Latch steps to their own side of the lane: {aside:?}"
+    );
+    // The same participant standing still is not crowded at that distance.
+    assert!(formation::goal(&open, me, &still([0.0, 0.0, 0.0]), false, &bodies, None).is_none());
+
+    // In a corridor with no room either side, Latch leads through instead.
+    let corridor = Arena {
+        half: 20.0,
+        solids: vec![
+            Solid {
+                min_x: -10.0,
+                max_x: 15.0,
+                min_z: 0.9,
+                max_z: 2.0,
+                bottom: 0.0,
+                top: 3.0,
+            },
+            Solid {
+                min_x: -10.0,
+                max_x: 15.0,
+                min_z: -2.0,
+                max_z: -0.9,
+                bottom: 0.0,
+                top: 3.0,
+            },
+        ],
+    };
+    let ahead = formation::goal(&corridor, me, &leader, false, &bodies, None).unwrap();
+    assert!(
+        ahead.feet[0] >= 6.0 && ahead.feet[2].abs() < 0.9,
+        "Latch leads through the doorway: {ahead:?}"
+    );
+}
+
+#[test]
+fn companion_covers_beside_the_participant_off_their_line_of_fire() {
+    let open = Arena {
+        half: 20.0,
+        solids: vec![],
+    };
+    // Latch stands right in the participant's line of fire at a threat east.
+    let (mut state, _, ally) = local_scene([3.0, 0.0, 0.0], [0.0, 0.0, 0.0]);
+    let me = state.players.iter().find(|p| p.id == ally).unwrap();
+    let bodies = state.contact_bodies();
+    let leader = still([0.0, 0.0, 0.0]);
+    let threat = || formation::Threat {
+        feet: [10.0, 0.0, 0.0],
+        solids: &[],
+    };
+    let cover = formation::goal(&open, me, &leader, false, &bodies, Some(threat())).unwrap();
+    let round = cover.feet[2].atan2(cover.feet[0]);
+    let reach = cover.feet[0].hypot(cover.feet[2]);
+    assert!(
+        round.abs() >= 0.4 && round.abs() <= 2.1 && (2.2..=4.6).contains(&reach),
+        "a covering position beside the participant: {cover:?}"
+    );
+    for _ in 0..50 {
+        assert_eq!(
+            formation::goal(&open, me, &leader, false, &bodies, Some(threat()))
+                .unwrap()
+                .feet,
+            cover.feet,
+            "the choice is deterministic"
+        );
+    }
+    // Standing there, Latch holds.
+    place(&mut state, ally, cover.feet);
+    let me = state.players.iter().find(|p| p.id == ally).unwrap();
+    assert!(formation::goal(
+        &open,
+        me,
+        &leader,
+        false,
+        &state.contact_bodies(),
+        Some(threat())
+    )
+    .is_none());
+    // A wall between that spot and the threat sends Latch elsewhere.
+    let wall = [Solid {
+        min_x: cover.feet[0] + 0.6,
+        max_x: cover.feet[0] + 1.0,
+        min_z: cover.feet[2] - 1.0,
+        max_z: cover.feet[2] + 1.0,
+        bottom: 0.0,
+        top: 3.0,
+    }];
+    let blocked = formation::Threat {
+        feet: [10.0, 0.0, 0.0],
+        solids: &wall,
+    };
+    let walled = Arena {
+        half: 20.0,
+        solids: wall.to_vec(),
+    };
+    let moved = formation::goal(
+        &walled,
+        me,
+        &leader,
+        false,
+        &state.contact_bodies(),
+        Some(blocked),
+    )
+    .unwrap();
+    assert!(crate::combat::line_of_sight(
+        [moved.feet[0], crate::movement::EYE_HEIGHT, moved.feet[2]],
+        [10.0, crate::movement::EYE_HEIGHT * 0.8, 0.0],
+        &wall
+    ));
+}
+
+#[test]
+fn companion_never_leads_down_the_participants_line_of_fire() {
+    // A corridor too narrow to step aside in, with a threat at its far end.
+    let corridor = Arena {
+        half: 20.0,
+        solids: vec![
+            Solid {
+                min_x: -10.0,
+                max_x: 15.0,
+                min_z: 0.9,
+                max_z: 2.0,
+                bottom: 0.0,
+                top: 3.0,
+            },
+            Solid {
+                min_x: -10.0,
+                max_x: 15.0,
+                min_z: -2.0,
+                max_z: -0.9,
+                bottom: 0.0,
+                top: 3.0,
+            },
+        ],
+    };
+    let (state, _, ally) = local_scene([2.5, 0.0, 0.3], [0.0, 0.0, 0.0]);
+    let me = state.players.iter().find(|p| p.id == ally).unwrap();
+    let bodies = state.contact_bodies();
+    let threat = formation::Threat {
+        feet: [10.0, 0.0, 0.0],
+        solids: &corridor.solids,
+    };
+    for leader in [still([0.0, 0.0, 0.0]), walking([0.0, 0.0, 0.0], [6.0, 0.0])] {
+        let goal = formation::goal(
+            &corridor,
+            me,
+            &leader,
+            false,
+            &bodies,
+            Some(formation::Threat {
+                feet: threat.feet,
+                solids: threat.solids,
+            }),
+        )
+        .unwrap();
+        assert!(
+            goal.feet[0] < 0.0,
+            "with a gun up Latch drops behind the participant, not ahead into the line: {goal:?}"
+        );
+    }
 }

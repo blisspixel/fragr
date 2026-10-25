@@ -389,7 +389,7 @@ fn five_seats_halftime_and_live_replacement_keep_one_life_rules() {
 #[test]
 fn five_seats_rule_bot_refill_uses_the_network_pool_and_stops_at_capacity() {
     let mut session = make_session(true);
-    let pool = session.configure_sabotage_seats().unwrap();
+    let pool = session.configure_fighter_seats().unwrap();
     session.spawn_bots(4);
     assert_eq!(pool.available_permits(), 6);
     let mut sockets: Vec<_> = (0..6)
@@ -419,7 +419,7 @@ fn five_seats_generic_sabotage_keeps_larger_rosters() {
     session.spawn_bots(12);
     assert_eq!(session.state.players.len(), 12);
     assert_eq!(session.state.team_counts(), [6, 6]);
-    assert!(session.configure_sabotage_seats().is_none());
+    assert!(session.configure_fighter_seats().is_none());
     session.state.config.rules =
         RuleSet::new(GameMode::Sabotage, &[protocol::Mutator::RailOnly], false).unwrap();
     session.state.start_round();
