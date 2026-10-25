@@ -74,6 +74,8 @@ var _motor_player: AudioStreamPlayer3D = null
 ## Count of lamps and dressed rooms, for tests and the QA manifest.
 var lamps: int = 0
 var rooms: Array[String] = []
+## Rooms built off-tree, attached once their visuals carry the world layer.
+var _unattached: Array[Node3D] = []
 
 func _ready() -> void:
 	set_process(false)
@@ -139,7 +141,13 @@ func configure_map(info: Dictionary) -> void:
 	_build_service()
 	_build_records()
 	_build_room_tone()
-	ArenaSky.mark_world(self)
+	# Final layers before attachment. Changing a lit instance's layers in the
+	# tree leaves the Forward+ light pairing stale, and retiring the room then
+	# logs Godot's "indexing did not unpair geometries from light" (#121989).
+	for room: Node3D in _unattached:
+		ArenaSky.mark_world(room)
+		add_child(room)
+	_unattached.clear()
 	set_process(true)
 	if not kept.is_empty():
 		_attempt = int(kept["attempt"])
@@ -359,7 +367,7 @@ func _set_caption(key: String) -> void:
 func _room(label: String) -> Node3D:
 	var node: Node3D = Node3D.new()
 	node.name = label
-	add_child(node)
+	_unattached.append(node)
 	rooms.append(label)
 	return node
 
