@@ -380,7 +380,11 @@ fn lot_power_probe() {
 fn larak_rockets_outlive_their_owners_on_the_wire() {
     use crate::protocol::ServerMessage;
     let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
-    session.state.seed(1993);
+    // Fixed fighter ids: the seed decides the match only when random ids do
+    // not reorder the fighters from run to run. With them, seed 8 flies
+    // rockets past their owners' deaths every time.
+    session.state.use_replay_ids();
+    session.state.seed(8);
     session.state.apply_config(MatchConfig {
         rules: RuleSet::new(GameMode::Ffa, &[], false).unwrap(),
         frag_limit: None,
@@ -418,8 +422,5 @@ fn larak_rockets_outlive_their_owners_on_the_wire() {
             }
         }
     }
-    assert!(
-        orphans > 0,
-        "seed 1993 flies a rocket past its owner's death"
-    );
+    assert!(orphans > 0, "seed 8 flies a rocket past its owner's death");
 }
