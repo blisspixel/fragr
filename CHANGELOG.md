@@ -37,6 +37,10 @@ Release history, newest first. Planned work stays in
 - Dress the waterworks and refuge crowds in their own colours on the
   Compatibility renderer too, where they had kept one rust coat and white
   shirts.
+- Keep Latch's face on the screen when you stand beside them or see them from
+  the side, where it used to float clear of the head.
+- Stand Splice at Level 20's pier only when they made the level 5 freight, as
+  the refuge and Tern's crew list already do.
 
 ## v0.91.0 (2026-10-24)
 

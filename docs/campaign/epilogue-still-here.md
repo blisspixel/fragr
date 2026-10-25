@@ -156,7 +156,8 @@ and art [owed below](#owed-to-the-next-asset-round) are still to come.
   brightens twice without words. Credits name only the people this run saw
   again. Any press moves the coda on.
 - **The other ending.** A durable run that runs out of continues in levels 18
-  to 20 gets The Last Page instead: Latch and the free agents won their
+  to 20 holds on the fall for a moment, with no run-over card offering the
+  menu, then gets The Last Page instead: Latch and the free agents won their
   exception anyway, the Union did not come back, free people live on the Moon,
   Mars, the ships and an Earth growing back, and the player is not among them.
   The ledger's last page has one more line in Latch's hand and no score: "You
