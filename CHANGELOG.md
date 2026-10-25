@@ -24,6 +24,16 @@ Release history, newest first. Planned work stays in
   at once.
 - Let Latch fight beside you from a real twelve-round magazine, cover your
   reloads, and keep out of your path, your crosshair and your line of fire.
+- Add Still Here, the epilogue a survived campaign opens from Single Player:
+  the refuge at the end of Pier 4 the morning after, then the same court years
+  later, with the people your run brought back standing in it and the board
+  still asking after some it did not. Survivors do not agree what the reprieve
+  meant, the ferry board shows two lines once, and the credits name only the
+  people this run saw again. Walking it spends nothing and never changes the
+  saved run; the development list walks it with nobody carried.
+- End a run that runs out of continues in levels 18 to 20 with The Last Page:
+  Latch and the free agents won their exception anyway, the world goes on
+  without you, and the ledger keeps one more line and no score.
 
 ## v0.91.0 (2026-10-24)
 

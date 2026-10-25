@@ -1,9 +1,11 @@
 # Epilogue: Still Here
 
-Status: **planned**, 2026-10-09. Plan only. No geometry, no mission id, and
-no map file in this pass. The accepted direction is
-[Still Here](../campaign/epilogue-still-here.md). Level 20's development map
-stops at the closed refuge gate and does not contain this place.
+Status: **built** for development play, 2026-10-24: mission `still_here`,
+map 1021, capability 57, with the exhaustion ending and its credits. The
+shipped shape is recorded in
+[Still Here](../campaign/epilogue-still-here.md#what-is-built). Voice,
+ambience, page stills and a fresh-player timing are still open. The sections
+that follow are the plan as written on 2026-10-09.
 
 ## Goal
 
