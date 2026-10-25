@@ -244,6 +244,8 @@ static func preset_for(map_name: String) -> Preset:
 		return moon_town()
 	if key.contains("planned works"):
 		return planned_works()
+	if key.begins_with("still here"):
+		return still_here_later() if key.contains("years later") else still_here()
 	if key.contains("local exception"):
 		return waterworks()
 	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
@@ -466,6 +468,52 @@ static func waterworks() -> Preset:
 	preset.contrast = 1.07
 	preset.saturation = 0.94
 	preset.glow_intensity = 0.55
+	return preset
+
+## Still Here, the first light after the reprieve: the blue hour gone to a
+## grey dawn, smoke and haze over the harbour, a weak low sun coming up behind
+## the refuge, and the warmth still in the lamps people carried.
+static func still_here() -> Preset:
+	var preset: Preset = Preset.new(Color("2c3442"), Color("8f7f78"),
+		Color("3a3f46"), Color("5d6268"), 0.0062, Color("8d93a2"), 0.55)
+	preset.outdoor_embers = false
+	preset.key_color = Color("ffb88a")
+	preset.key_energy = 0.55
+	preset.key_rotation_degrees = Vector3(-12.0, 90.0, 0.0)
+	preset.scene_fill_energy = 0.1
+	preset.practical_color = Color("ffc98a")
+	preset.practical_energy = 2.2
+	preset.practical_range = 10.0
+	preset.practical_attenuation = 1.3
+	preset.accent_energy = 0.0
+	preset.view_fill_energy = 0.4
+	preset.view_fill_range = 40.0
+	preset.contrast = 1.05
+	preset.saturation = 0.84
+	preset.glow_intensity = 0.4
+	return preset
+
+## Still Here, years later: a clear morning over clean water, the sun well up
+## in the east, the same court in plain daylight. Warmer and greener than the
+## Low Water afternoon, never a green wash.
+static func still_here_later() -> Preset:
+	var preset: Preset = Preset.new(Color("5d87b0"), Color("d6d2bf"),
+		Color("8a8c78"), Color("c3cbc8"), 0.0016, Color("d6d4c2"), 0.68)
+	preset.outdoor_embers = false
+	# A warm morning sun, not a noon glare: the pale paving and Latch's bone
+	# paint keep their values instead of washing out to white.
+	preset.key_color = Color("ffdcac")
+	preset.key_energy = 1.12
+	preset.key_rotation_degrees = Vector3(-34.0, 127.0, 0.0)
+	preset.scene_fill_energy = 0.14
+	preset.practical_color = Color("ffeac2")
+	preset.practical_energy = 0.6
+	preset.accent_energy = 0.0
+	preset.view_fill_energy = 0.22
+	preset.exposure = 0.95
+	preset.contrast = 1.08
+	preset.saturation = 1.0
+	preset.glow_intensity = 0.2
 	return preset
 
 static func freight_yard() -> Preset:

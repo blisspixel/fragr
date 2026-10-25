@@ -94,7 +94,9 @@ func apply_map_info(info: Dictionary) -> void:
 	# The intake presenter builds the annex's own street skyline instead.
 	# Planned Works ends at the river railing; the presenter owns what lies past it.
 	var planned_works: bool = info.get("m19") is Dictionary
-	if planned_works or venue in ["earth_intake", "moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry", "waterworks"]:
+	# Still Here ends at the quay rail; its presenter owns the harbour beyond.
+	var still_here: bool = info.get("epilogue") is Dictionary
+	if planned_works or still_here or venue in ["earth_intake", "moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry", "waterworks"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
@@ -106,6 +108,8 @@ func apply_map_info(info: Dictionary) -> void:
 	if venue == "waterworks":
 		# The fenced basins open onto the harbour at its real depth.
 		WaterworksBackdrop.split_floor(self, get_node("MapFloor") as MeshInstance3D)
+	if still_here:
+		StillHereBackdrop.split_floor(self, get_node("MapFloor") as MeshInstance3D)
 	var solids: Array = info.get("solids", [])
 	var walker_solids: Array[int] = []
 	if info.get("walker") is Dictionary:
@@ -148,7 +152,7 @@ func apply_map_info(info: Dictionary) -> void:
 		terminal_key = "WORLD_M14_DEPARTURE_CONSOLE"
 	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal, terminal_key)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
-	backdrop.build(map_id, _half_extent, "planned_works" if planned_works else venue)
+	backdrop.build(map_id, _half_extent, "planned_works" if planned_works else ("still_here" if still_here else venue))
 	add_child(backdrop)
 	var water: ArenaWater = ArenaWater.new()
 	water.build(info)
@@ -162,6 +166,8 @@ func apply_map_info(info: Dictionary) -> void:
 static func venue_for(info: Dictionary) -> String:
 	match str(info.get("map_name", "")).strip_edges().to_lower():
 		"low water", "planned works": return "low_water"
+		# The refuge is Low Water's own plaster and paint, both mornings.
+		"still here", "still here, years later": return "low_water"
 		"larak lot": return "larak_lot"
 		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
@@ -180,6 +186,14 @@ static func venue_for(info: Dictionary) -> String:
 	if info.get("m04") is Dictionary or info.get("m05") is Dictionary:
 		return "low_water"
 	return ""
+
+## A presenter that draws a body in its own materials hides the plain box,
+## and a body standing only in another world is hidden with it. Collision is
+## unchanged: the server still owns every one of these solids.
+func hide_solid_views(indices: Array[int]) -> void:
+	for index: int in indices:
+		if index >= 0 and index < _solid_views.size() and is_instance_valid(_solid_views[index]):
+			_solid_views[index].visible = false
 
 ## Half width of the playable square the server last described, so the camera
 ## and the far-plane work can size themselves to the map rather than to a

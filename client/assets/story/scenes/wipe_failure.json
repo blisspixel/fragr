@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "id": "wipe_failure",
+  "title_key": "STORY_WIPE_FAILURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "REFUGE", "caption_key": "STORY_WIPE_FAILURE_REFUGE", "timing": "reader", "hold": 1},
+    {"id": "WORLDS", "caption_key": "STORY_WIPE_FAILURE_WORLDS", "timing": "reader", "hold": 1},
+    {"id": "LEDGER", "caption_key": "STORY_WIPE_FAILURE_LEDGER", "timing": "reader", "hold": 1}
+  ]
+}

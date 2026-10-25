@@ -890,7 +890,8 @@ func _refresh_mode_label():
 	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS \
 		and (watching or (client_mode == "PLAYING" and _play_hint_ms == mode_entered_ms))
 	if regions != null:
-		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if watching else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
+		var legend: String = "HUD_CONTROLS_WATCH" if watching else ("HUD_CONTROLS_WALK" if walk_only else "HUD_CONTROLS_PLAY")
+		regions.hints.text = legend_line(InputGlyphs.plain(tr(legend))) if _controls_visible else ""
 	_refresh_mode_chip()
 
 ## The legend is key and word pairs separated by wide gaps. The corner panel
@@ -2027,7 +2028,23 @@ func _layout_throw_hand(at: Vector2) -> void:
 	var lower: float = fp_weapon.size.y * 0.4 * ((1.0 - rise) + fall)
 	fp_throw_hand.position = (at + Vector2(0.0, lower)).round()
 
+## Still Here is a walk: no viewmodel, no vitals, no crosshair, whatever
+## the camera does. The rest of first person is unchanged.
+var walk_only: bool = false
+
+func set_walk_only(enabled: bool) -> void:
+	walk_only = enabled
+	if enabled:
+		set_fp_juice(false)
+	# The match panel has nothing to say on a walk: no mode, no round.
+	var panel: Control = get_node_or_null("Panel") as Control
+	if panel != null:
+		panel.visible = not enabled
+	_refresh_mode_label()
+
 func set_fp_juice(enabled: bool) -> void:
+	if walk_only:
+		enabled = false
 	if not enabled:
 		_cancel_critical_pulse()
 	if fp_juice_enabled == enabled:

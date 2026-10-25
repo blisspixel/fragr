@@ -36,7 +36,14 @@ const AFTER_MISSION: Dictionary[String, String] = {
 	"launch_authority": "l14_l15",
 	"local_exception": "l20_still_here",
 }
-const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival", "port_of_entry": "m06_arrival", "declared_goods": "m07_arrival", "custodian_of_record": "m08_arrival", "passenger_manifest": "m09_arrival", "common_carrier": "m10_arrival", "right_of_search": "m11_arrival", "terms_of_cooperation": "m12_arrival", "weight_of_permission": "m13_arrival", "launch_authority": "m14_arrival", "civic_pressure_valve": "m15_arrival", "freedom_of_movement": "m16_arrival", "peace_without_interruption": "m17_arrival", "all_systems_normal": "m18_arrival", "planned_works": "m19_arrival"}
+const BEFORE_MISSION: Dictionary[String, String] = {"scheduled_service": "m03_arrival", "notice_to_vacate": "m04_arrival", "no_forwarding_address": "m05_arrival", "port_of_entry": "m06_arrival", "declared_goods": "m07_arrival", "custodian_of_record": "m08_arrival", "passenger_manifest": "m09_arrival", "common_carrier": "m10_arrival", "right_of_search": "m11_arrival", "terms_of_cooperation": "m12_arrival", "weight_of_permission": "m13_arrival", "launch_authority": "m14_arrival", "civic_pressure_valve": "m15_arrival", "freedom_of_movement": "m16_arrival", "peace_without_interruption": "m17_arrival", "all_systems_normal": "m18_arrival", "planned_works": "m19_arrival", "still_here": "still_here_arrival"}
+## Still Here's page between the first light and years later, opened over
+## the turn's cover while the server turns the world.
+const STILL_HERE_LATER: String = "still_here_later"
+## The other ending: a run that runs out of continues in the wipe's three
+## levels gets these pages, then the same fragment, anomaly and credits.
+const WIPE_FAILURE: String = "wipe_failure"
+const WIPE_LEVELS: Array[String] = ["all_systems_normal", "planned_works", "local_exception"]
 
 static func path_for(scene_id: String) -> String:
 	return DIRECTORY + scene_id + ".json"

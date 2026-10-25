@@ -106,11 +106,14 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m20_refuge_notice": "WORLD_M20_REFUGE_NOTICE",
 	"m20_pump_board": "WORLD_M20_PUMP_BOARD",
 	"m20_tower_bridge": "WORLD_M20_TOWER_BRIDGE",
+	"epilogue_tram_stop": "WORLD_EPILOGUE_TRAM_STOP",
+	"epilogue_clinic_sign": "WORLD_EPILOGUE_CLINIC_SIGN",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
 ## Faces a mission presenter dresses itself; a plate here would hide them.
-const PRESENTER_ONLY: Array[String] = ["m07_window_figure", "m20_harbour_display"]
+const PRESENTER_ONLY: Array[String] = ["m07_window_figure", "m20_harbour_display",
+	"epilogue_ledger", "epilogue_bench", "epilogue_ferry_board", "epilogue_missing_board"]
 
 ## Mission controls share the terminal kind with ordinary counters.
 ## `marked_terminal` is that registered decoration index, or -1.

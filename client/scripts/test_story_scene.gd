@@ -94,7 +94,7 @@ func _run() -> void:
 		var arrival: Dictionary = StoryScene.load_scene(StoryScene.BEFORE_MISSION[mission])
 		_expect(not arrival.is_empty(), "arrival scene exists for " + mission)
 		for shot: Dictionary in arrival.get("shots", []):
-			if mission in [MissionState.M03_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID]:
+			if mission in [MissionState.M03_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.STILL_HERE_ID]:
 				# These arrivals use keyed pages with reader pacing.
 				_expect(shot.get("timing") == "reader" and not shot.has("narration"), "reader-paced arrival keeps its keyed scene: " + mission)
 			else:
@@ -102,6 +102,19 @@ func _run() -> void:
 	var departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M03_ID])
 	for shot: Dictionary in departure.get("shots", []):
 		_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M03 departure has its committed narration with text fallback")
+	# Still Here's page between its two worlds is keyed text until its
+	# narration is recorded.
+	var later: Dictionary = StoryScene.load_scene(StoryScene.STILL_HERE_LATER)
+	_expect(later.get("shots", []).size() == 1, "Still Here's elapsed-time page is one keyed shot")
+	for shot: Dictionary in later.get("shots", []):
+		_expect(shot.get("timing") == "reader" and not shot.has("narration"), "Still Here's elapsed-time page waits for the reader")
+	# The wipe's other ending: the refuge, the worlds, the ledger's last page.
+	var last_page: Dictionary = StoryScene.load_scene(StoryScene.WIPE_FAILURE)
+	var last_shots: Array[String] = []
+	for shot: Dictionary in last_page.get("shots", []):
+		last_shots.append(str(shot["id"]))
+		_expect(shot.get("timing") == "reader" and not shot.has("narration"), "the exhaustion pages wait for the reader")
+	_expect(last_shots == ["REFUGE", "WORLDS", "LEDGER"], "the exhaustion pages keep their three beats")
 	var mars_departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M14_ID])
 	_expect(mars_departure.get("shots", []).size() == 3,"M14 departure retains cargo, Tern and elapsed travel beats")
 	for shot: Dictionary in mars_departure.get("shots", []):

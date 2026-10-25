@@ -5,7 +5,6 @@
   "skip_key": "STORY_SKIP_SCENE",
   "shots": [
     {"id": "LINE", "caption_key": "STORY_M20_DEPARTURE_LINE", "timing": "reader", "hold": 1},
-    {"id": "CROSSING", "caption_key": "STORY_M20_DEPARTURE_CROSSING", "timing": "reader", "hold": 1},
-    {"id": "UNLOCKED", "caption_key": "STORY_M20_DEPARTURE_UNLOCKED", "timing": "reader", "hold": 1}
+    {"id": "CROSSING", "caption_key": "STORY_M20_DEPARTURE_CROSSING", "timing": "reader", "hold": 1}
   ]
 }

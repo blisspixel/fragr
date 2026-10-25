@@ -17,6 +17,8 @@ var _leave_button: Button = null
 var local_campaign: bool = false
 ## A development mission keeps no run, so leaving never promises a save.
 var development_mission: bool = false
+## Still Here keeps no save of its own: leaving loses nothing.
+var epilogue: bool = false
 var hosting_server: bool = false
 var preferences: FragrSettings
 var _settings_panel: SettingsPanel
@@ -388,7 +390,9 @@ func _notification(what: int) -> void:
 		_refresh_note()
 
 func _refresh_note() -> void:
-	if development_mission:
+	if epilogue:
+		_note.text = tr("MENU_EXIT_STILL_HERE")
+	elif development_mission:
 		_note.text = tr("MENU_EXIT_DEVELOPMENT")
 	else:
 		_note.text = tr("MENU_EXIT_SAVES_RUN" if _local_campaign_run() else "MENU_LIVE_MATCH")

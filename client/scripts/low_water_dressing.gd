@@ -1,11 +1,14 @@
 extends RefCounted
 
-## Planned Works: the homes of Low Water at night. Every street face the party
-## walks past gets domestic paint, windows (mostly dark, a few still lit, one
-## or two catching and dropping), doors and shop shutters, and the survey
-## marks the machines painted on the doors they plan to take. The roof tanks
-## from level 5 are sectional steel tanks with their ladders and hatches, and
-## the tram street lamps burn, flicker or stay dead.
+## Low Water's homes, one dressing for every level that walks its streets.
+## Planned Works (the default layout and mood) is the town at night: domestic
+## paint, windows mostly dark with a few still lit and one or two catching and
+## dropping, doors and shop shutters, and the survey marks the machines
+## painted on the doors they plan to take. The roof tanks from level 5 are
+## sectional steel tanks with their ladders and hatches, and the tram street
+## lamps burn, flicker or stay dead. Still Here passes its own layout and the
+## mood of the first light or of years later: the same homes, broken and
+## boarded the morning after, glazed and planted years on.
 ##
 ## Everything here is flush relief on registered solids: the deepest part
 ## stands 0.08 m off its wall and nothing becomes collision, cover or a floor.
@@ -130,6 +133,13 @@ const LAMPS: Array[Dictionary] = [
 ]
 ## At most this many lit windows throw light onto the street.
 const WINDOW_LIGHTS: int = 9
+## The rails and wires of Planned Works: under the stalled car, and down the
+## trench. Each runs only when its `with` solid is present.
+const RAILS: Array[Dictionary] = [
+	{"with": {"low": Vector3(-24, 0, -21), "high": Vector3(-15, 3.2, -18)}, "from": Vector3(-28, 0, -19.5), "to": Vector3(10, 0, -19.5), "wall_a": -23.0, "wall_b": -9.0, "wire": 6.4},
+	{"with": {"low": Vector3(58, 0, 16), "high": Vector3(60, 10.5, 60)}, "from": Vector3(53, 0, 18), "to": Vector3(53, 0, 52), "wall_a": 48.0, "wall_b": 58.0, "wire": 7.2},
+]
+const MOODS: Array[String] = ["night_works", "aftermath", "later"]
 
 var _geometry: RefCounted = Geometry.new()
 var _tools: Dictionary[String, SurfaceTool] = {}
@@ -140,16 +150,30 @@ var _window_lights: int = 0
 var root: Node3D
 ## Interrupted lights for the presenter: {mesh, lit, dark, light?, energy, rate, phase, duty}.
 var flicker: Array[Dictionary] = []
+## Another level's streets: any of faces, trams, awnings, planters, wells,
+## roofs, aerials, tanks, lamps and rails, in the shapes the constants use.
+## Empty keeps Planned Works.
+var layout: Dictionary = {}
+## night_works (Planned Works), aftermath (the first light after the wipe)
+## or later (the same street years on).
+var mood: String = "night_works"
+
+func _list(key: String, fallback: Array) -> Array:
+	var value: Variant = layout.get(key)
+	return value if value is Array else fallback
 
 func build(parent: Node3D, info: Dictionary) -> Node3D:
 	root = Node3D.new()
 	root.name = "TownDressing"
 	parent.add_child(root)
+	if mood not in MOODS:
+		mood = "night_works"
 	var solids: Array = info.get("solids", [])
 	var decorations: Array = info.get("presentation", {}).get("decorations", []) if info.get("presentation") is Dictionary else []
 	var dressed: int = 0
-	for index: int in range(FACES.size()):
-		var face: Dictionary = FACES[index]
+	var faces: Array = _list("faces", FACES)
+	for index: int in range(faces.size()):
+		var face: Dictionary = faces[index]
 		var solid: Dictionary = _find(solids, face["low"], face["high"])
 		if solid.is_empty():
 			continue
@@ -157,41 +181,43 @@ func build(parent: Node3D, info: Dictionary) -> Node3D:
 		_face(solid, face, _decorations_on(solids, solid, decorations, str(face["face"])))
 		dressed += 1
 	var tanks: int = 0
-	for tank: Dictionary in TANKS:
+	for tank: Dictionary in _list("tanks", TANKS):
 		var solid: Dictionary = _find(solids, tank["low"], tank["high"])
 		if not solid.is_empty():
 			_tank(tank, _decorations_on(solids, solid, decorations, ""))
 			tanks += 1
 	var lamps: int = 0
-	for lamp: Dictionary in LAMPS:
+	for lamp: Dictionary in _list("lamps", LAMPS):
 		if not _find(solids, lamp["low"], lamp["high"]).is_empty():
 			_lamp(lamp)
 			lamps += 1
-	for tram: Dictionary in TRAMS:
+	for tram: Dictionary in _list("trams", TRAMS):
 		if not _find(solids, tram["low"], tram["high"]).is_empty():
 			_tram(tram["low"], tram["high"])
-	for index: int in range(AWNINGS.size()):
-		var awning: Dictionary = AWNINGS[index]
+	var awnings: Array = _list("awnings", AWNINGS)
+	for index: int in range(awnings.size()):
+		var awning: Dictionary = awnings[index]
 		if not _find(solids, awning["low"], awning["high"]).is_empty():
 			_awning(awning["low"], awning["high"], index)
-	for planter: Dictionary in PLANTERS:
+	for planter: Dictionary in _list("planters", PLANTERS):
 		if not _find(solids, planter["low"], planter["high"]).is_empty():
 			_planter(planter["low"], planter["high"])
-	if not _find(solids, WELL["low"], WELL["high"]).is_empty():
-		_well(WELL["low"], WELL["high"])
-	for roof: Dictionary in ROOFS:
+	for well: Dictionary in _list("wells", [WELL]):
+		if not _find(solids, well["low"], well["high"]).is_empty():
+			_well(well["low"], well["high"])
+	for roof: Dictionary in _list("roofs", ROOFS):
 		if not _find(solids, roof["low"], roof["high"]).is_empty():
 			var corner: Vector3 = roof["low"]
 			_seed = int(absf(corner.x * 13.0 + corner.z))
 			_roof(corner, roof["high"])
-	for aerial: Dictionary in AERIALS:
+	for aerial: Dictionary in _list("aerials", AERIALS):
 		if not _find(solids, aerial["low"], aerial["high"]).is_empty():
 			_aerial(aerial["low"], aerial["high"])
-	# Street-running rails under the stalled car and down the trench.
-	if not _find(solids, TRAMS[0]["low"], TRAMS[0]["high"]).is_empty():
-		_rails(Vector3(-28, 0, -19.5), Vector3(10, 0, -19.5), -23.0, -9.0, 6.4)
-	if not _find(solids, Vector3(58, 0, 16), Vector3(60, 10.5, 60)).is_empty():
-		_rails(Vector3(53, 0, 18), Vector3(53, 0, 52), 48.0, 58.0, 7.2)
+	# Street-running rails and their overhead wire.
+	for rail: Dictionary in _list("rails", RAILS):
+		var anchor: Dictionary = rail["with"]
+		if not _find(solids, anchor["low"], anchor["high"]).is_empty():
+			_rails(rail["from"], rail["to"], float(rail["wall_a"]), float(rail["wall_b"]), float(rail["wire"]))
 	_commit()
 	root.set_meta("faces", dressed)
 	root.set_meta("tanks", tanks)
@@ -242,6 +268,12 @@ func _material(key: String) -> Material:
 		result = tinted
 	elif key.begins_with("paint"):
 		var colour: Color = PAINTS[int(key.substr(5, 1))]
+		# The morning after: soot and dust over every wall. Years on:
+		# fresh limewash over the same colours.
+		if mood == "aftermath":
+			colour = colour.darkened(0.14).lerp(Color("6c6a64"), 0.18)
+		elif mood == "later":
+			colour = colour.lightened(0.12)
 		if key.ends_with("dark"):
 			colour = colour.darkened(0.32)
 		elif key.ends_with("trim"):
@@ -259,9 +291,26 @@ func _material(key: String) -> Material:
 		match key:
 			"frame": standard.albedo_color = Color("2b2824")
 			"glass":
-				standard.albedo_color = Color("141b20")
+				standard.albedo_color = Color("2c3c44") if mood == "later" else Color("141b20")
 				standard.roughness = 0.28
 				standard.metallic_specular = 0.7
+			"void": standard.albedo_color = Color("0b0c0d")
+			"plank": standard.albedo_color = Color("7a6346")
+			"plank_dark": standard.albedo_color = Color("5a4834")
+			"shard":
+				standard.albedo_color = Color("44535a")
+				standard.roughness = 0.2
+				standard.metallic_specular = 0.8
+			"leaf": standard.albedo_color = Color("4f7a3e")
+			"leaf_dark": standard.albedo_color = Color("37592e")
+			"bloom_a": standard.albedo_color = Color("d8a23c")
+			"bloom_b": standard.albedo_color = Color("c4644a")
+			"bloom_c": standard.albedo_color = Color("e8dcc0")
+			"box": standard.albedo_color = Color("6a5038")
+			"fresh_door_a": standard.albedo_color = Color("3f6f62")
+			"fresh_door_b": standard.albedo_color = Color("8e4a34")
+			"fresh_door_c": standard.albedo_color = Color("34506e")
+			"brass": standard.albedo_color = Color("b48a3e")
 			"lit", "lit_dark":
 				standard.albedo_color = LIT if key == "lit" else Color("141b20")
 				standard.emission_enabled = true
@@ -413,6 +462,12 @@ func _face(solid: Dictionary, face: Dictionary, avoid: Array[Rect2]) -> void:
 	var bays: int = maxi(1, int(floor((u1 - u0 - 1.2) / BAY)))
 	var used: float = float(bays) * BAY
 	var start: float = (u0 + u1) * 0.5 - used * 0.5 + BAY * 0.5
+	if mood == "later" and face.get("from", 0.0) == 0.0:
+		# Something climbs every long wall now; nobody cut it back.
+		for vine: int in range(maxi(1, bays / 3)):
+			var at: float = start + BAY * 0.5 + float(vine * 3) * BAY
+			if at < u1 - 0.6:
+				_vine(basis, origin, at, v_low, minf(height - 0.6, 3.2 + float((vine * 7 + _seed) % 4) * 1.1))
 	for bay: int in range(bays):
 		var u: float = start + float(bay) * BAY
 		var ground: String = str(face["ground"])
@@ -438,6 +493,12 @@ func _window(basis: Basis, origin: Vector3, u: float, sill: float, level: int) -
 	var roll: int = _roll(100)
 	_slab(_tool("frame"), basis, origin, u - w * 0.5 - 0.1, sill - 0.08, u + w * 0.5 + 0.1, sill + h + 0.1, 0.0, 0.03)
 	_slab(_tool("sill"), basis, origin, u - w * 0.5 - 0.16, sill - 0.14, u + w * 0.5 + 0.16, sill - 0.02, 0.0, 0.07)
+	if mood == "aftermath":
+		_window_aftermath(basis, origin, u, sill, level, w, h, roll)
+		return
+	if mood == "later":
+		_window_later(basis, origin, u, sill, w, h, roll)
+		return
 	if roll < 15:
 		# Still lit: somebody stayed, or left the lamp on.
 		var glass: String = "lit"
@@ -462,6 +523,58 @@ func _window(basis: Basis, origin: Vector3, u: float, sill: float, level: int) -
 		_slab(_tool("glass"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.034)
 		_slab(_tool("frame"), basis, origin, u - 0.03, sill, u + 0.03, sill + h, 0.034, 0.04)
 		_slab(_tool("frame"), basis, origin, u - w * 0.5, sill + h * 0.62, u + w * 0.5, sill + h * 0.62 + 0.05, 0.034, 0.04)
+
+## The morning after: a few lamps lit by people inside, panes blown in,
+## windows boarded with what was to hand, shutters pulled to.
+func _window_aftermath(basis: Basis, origin: Vector3, u: float, sill: float, level: int, w: float, h: float, roll: int) -> void:
+	if roll < 9:
+		_slab(_tool("lit"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.034)
+		_slab(_tool("curtain"), basis, origin, u - w * 0.5, sill + h * 0.5, u - w * 0.1, sill + h, 0.0, 0.036)
+		_window_light(basis, origin, u, sill, level, 0.7)
+	elif roll < 30:
+		# Blown in: the dark room behind and what is left of the pane.
+		_slab(_tool("void"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.02)
+		_slab(_tool("shard"), basis, origin, u - w * 0.5, sill + h * 0.62, u - w * 0.18, sill + h, 0.02, 0.034)
+		_slab(_tool("shard"), basis, origin, u + w * 0.22, sill, u + w * 0.5, sill + h * 0.3, 0.02, 0.034)
+		_slab(_tool("frame"), basis, origin, u - 0.03, sill, u + 0.03, sill + h, 0.034, 0.04)
+	elif roll < 46:
+		# Boarded with mismatched planks over the dark.
+		_slab(_tool("void"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.02)
+		for plank: int in range(3):
+			var y: float = sill + 0.16 + float(plank) * 0.46
+			_slab(_tool("plank" if plank % 2 == 0 else "plank_dark"), basis, origin, u - w * 0.5 - 0.12, y, u + w * 0.5 + 0.12, y + 0.24, 0.04, 0.07)
+	elif roll < 64:
+		_slab(_tool("shutter"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.05)
+		for slat: int in range(6):
+			var y: float = sill + 0.12 + float(slat) * 0.22
+			_slab(_tool("slat"), basis, origin, u - w * 0.5 + 0.05, y, u + w * 0.5 - 0.05, y + 0.05, 0.05, 0.056)
+	else:
+		_slab(_tool("glass"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.034)
+		_slab(_tool("frame"), basis, origin, u - 0.03, sill, u + 0.03, sill + h, 0.034, 0.04)
+
+## Years on: glazed again, shutters thrown open in fresh paint, curtains and
+## window boxes, nothing boarded.
+func _window_later(basis: Basis, origin: Vector3, u: float, sill: float, w: float, h: float, roll: int) -> void:
+	_slab(_tool("glass"), basis, origin, u - w * 0.5, sill, u + w * 0.5, sill + h, 0.0, 0.034)
+	_slab(_tool("frame"), basis, origin, u - 0.03, sill, u + 0.03, sill + h, 0.034, 0.04)
+	_slab(_tool("frame"), basis, origin, u - w * 0.5, sill + h * 0.62, u + w * 0.5, sill + h * 0.62 + 0.05, 0.034, 0.04)
+	if roll < 40:
+		# Open shutters folded back against the wall either side.
+		var leaf: String = ["fresh_door_a", "fresh_door_b", "fresh_door_c"][roll % 3]
+		for side: float in [-1.0, 1.0]:
+			var edge: float = u + side * (w * 0.5 + 0.12)
+			_slab(_tool(leaf), basis, origin, minf(edge, edge + side * 0.55), sill - 0.02, maxf(edge, edge + side * 0.55), sill + h + 0.02, 0.0, 0.05)
+	if roll % 3 == 0:
+		_slab(_tool("curtain"), basis, origin, u - w * 0.5, sill + h * 0.45, u - w * 0.16, sill + h, 0.034, 0.036)
+	if roll % 4 != 1:
+		# A window box: soil, leaves, and a little colour.
+		_slab(_tool("box"), basis, origin, u - w * 0.5 - 0.05, sill - 0.32, u + w * 0.5 + 0.05, sill - 0.08, 0.0, 0.26)
+		for sprig: int in range(6):
+			var x: float = u - w * 0.42 + float(sprig) * w * 0.17
+			var tall: float = 0.14 + 0.06 * float((sprig * 3 + roll) % 4)
+			_slab(_tool("leaf" if sprig % 2 == 0 else "leaf_dark"), basis, origin, x - 0.07, sill - 0.1, x + 0.07, sill - 0.1 + tall, 0.04, 0.22)
+			if (sprig + roll) % 3 == 0:
+				_slab(_tool(["bloom_a", "bloom_b", "bloom_c"][(sprig + roll) % 3]), basis, origin, x - 0.05, sill - 0.12 + tall, x + 0.05, sill - 0.02 + tall, 0.08, 0.2)
 
 func _window_light(basis: Basis, origin: Vector3, u: float, sill: float, level: int, energy: float) -> OmniLight3D:
 	if _window_lights >= WINDOW_LIGHTS or level > 1:
@@ -496,6 +609,9 @@ func _flicker_window(basis: Basis, origin: Vector3, u: float, sill: float, w: fl
 
 func _ground_bay(basis: Basis, origin: Vector3, u: float, v_low: float, ground: String, paint: int) -> void:
 	var roll: int = _roll(100)
+	if mood != "night_works":
+		_ground_bay_after(basis, origin, u, v_low, ground, paint, roll)
+		return
 	var shop: bool = ground == "shops" and roll < 60
 	if ground == "doors" and roll >= 50:
 		# Not every ground bay is a door: a ground-floor room, its window low.
@@ -528,6 +644,60 @@ func _ground_bay(basis: Basis, origin: Vector3, u: float, v_low: float, ground: 
 	elif roll < 75:
 		# A lit fanlight: someone is still inside.
 		_slab(_tool("lit"), basis, origin, u - 0.4, v_low + 2.0, u + 0.4, v_low + 2.26, 0.025, 0.03)
+
+## Doors and shopfronts the morning after and years on. No survey marks: the
+## machines walked around this place.
+func _ground_bay_after(basis: Basis, origin: Vector3, u: float, v_low: float, ground: String, paint: int, roll: int) -> void:
+	var shop: bool = ground == "shops" and roll < 60
+	if ground == "doors" and roll >= 50:
+		_window(basis, origin, u, v_low + 0.95, 0)
+		return
+	var rect: Rect2 = Rect2(u - 1.4, v_low, 2.8, 3.0) if shop else Rect2(u - 0.7, v_low, 1.4, 2.5)
+	if _blocked(rect):
+		return
+	if shop:
+		_slab(_tool("fascia"), basis, origin, u - 1.45, v_low + 2.55, u + 1.45, v_low + 3.0, 0.0, 0.06)
+		if mood == "aftermath":
+			# Jammed half up: a dark gap under a bent shutter.
+			_slab(_tool("void"), basis, origin, u - 1.3, v_low + 0.02, u + 1.3, v_low + 0.9, 0.0, 0.02)
+			_slab(_tool("roller"), basis, origin, u - 1.3, v_low + 0.9, u + 1.3, v_low + 2.5, 0.0, 0.03)
+			for rib: int in range(9):
+				var y: float = v_low + 1.0 + float(rib) * 0.17
+				_slab(_tool("rib"), basis, origin, u - 1.3, y, u + 1.3, y + 0.035, 0.03, 0.036)
+		else:
+			# Open for business: glass, a striped blind and a door in fresh paint.
+			_slab(_tool("glass"), basis, origin, u - 1.3, v_low + 0.5, u + 0.4, v_low + 2.4, 0.0, 0.03)
+			_slab(_tool("box"), basis, origin, u - 1.3, v_low + 0.02, u + 0.4, v_low + 0.5, 0.0, 0.06)
+			_slab(_tool(["fresh_door_a", "fresh_door_b", "fresh_door_c"][roll % 3]), basis, origin, u + 0.55, v_low + 0.06, u + 1.3, v_low + 2.4, 0.0, 0.03)
+			for stripe: int in range(6):
+				var x: float = u - 1.45 + float(stripe) * 0.48
+				_slab(_tool("canvas%d" % (stripe % 2 * 2 + roll % 2)), basis, origin, x, v_low + 2.3, x + 0.48, v_low + 2.55, 0.06, 0.32)
+		return
+	_slab(_tool("frame"), basis, origin, u - 0.66, v_low, u + 0.66, v_low + 2.42, 0.0, 0.035)
+	if mood == "aftermath" and roll < 22:
+		# Left open on the way out, or kicked in.
+		_slab(_tool("void"), basis, origin, u - 0.54, v_low + 0.06, u + 0.54, v_low + 2.3, 0.0, 0.025)
+	else:
+		var door: String = "door" if mood == "aftermath" else ["fresh_door_a", "fresh_door_b", "fresh_door_c"][roll % 3]
+		_slab(_tool(door), basis, origin, u - 0.54, v_low + 0.06, u + 0.54, v_low + 2.3, 0.0, 0.025)
+		for panel: Array in [[-0.42, 0.25, -0.06, 1.05], [0.06, 0.25, 0.42, 1.05], [-0.42, 1.2, -0.06, 1.85], [0.06, 1.2, 0.42, 1.85]]:
+			_slab(_tool("panel" if mood == "aftermath" else door), basis, origin, u + float(panel[0]), v_low + float(panel[1]), u + float(panel[2]), v_low + float(panel[3]), 0.025, 0.028)
+		if mood == "later":
+			_slab(_tool("brass"), basis, origin, u + 0.32, v_low + 1.0, u + 0.4, v_low + 1.12, 0.028, 0.05)
+	_slab(_tool("sill"), basis, origin, u - 0.75, v_low, u + 0.75, v_low + 0.12, 0.0, 0.08)
+	_slab(_tool("paint%dtrim" % paint), basis, origin, u - 0.25, v_low + 1.95, u + 0.25, v_low + 2.15, 0.025, 0.03)
+
+## A climbing plant up a wall years on: a stem and leaf clusters, flush.
+func _vine(basis: Basis, origin: Vector3, u: float, v_low: float, height: float) -> void:
+	if _blocked(Rect2(u - 0.5, v_low, 1.0, height)):
+		return
+	_slab(_tool("leaf_dark"), basis, origin, u - 0.04, v_low, u + 0.04, v_low + height, 0.0, 0.03)
+	var clusters: int = int(height / 0.42)
+	for index: int in range(clusters):
+		var y: float = v_low + 0.2 + float(index) * 0.42
+		var spread: float = 0.18 + 0.12 * float((index * 5 + _seed) % 3)
+		var side: float = -1.0 if index % 2 == 0 else 1.0
+		_slab(_tool("leaf" if index % 3 else "leaf_dark"), basis, origin, u + minf(0.0, side * spread), y, u + maxf(0.0, side * spread), y + 0.3, 0.01, 0.06)
 
 ## The machines' survey mark: a white box with a cross, sprayed beside a door.
 func _survey(basis: Basis, origin: Vector3, u: float, v: float) -> void:
@@ -703,8 +873,12 @@ func _tram(low: Vector3, high: Vector3) -> void:
 		var origin: Vector3 = centre + basis.z * absf(basis.z.dot(size)) * 0.5
 		var w: float = absf(basis.x.dot(size)) * 0.5
 		var h: float = size.y * 0.5
-		_slab(_tool("tintc9bd9a"), basis, origin, -w, -h, w, h, 0.0, PAINT_OFFSET)
-		_slab(_tool("tint3f6f62"), basis, origin, -w, -h, w, -h + size.y * 0.32, 0.0, 0.01)
+		# Cream over green, the colour the vote carried. Grimed the morning
+		# after; repainted, still green, years on.
+		var cream: String = "tintc9bd9a" if mood == "night_works" else ("tint8f8670" if mood == "aftermath" else "tinte4d8b4")
+		var green: String = "tint3f6f62" if mood == "night_works" else ("tint2f4a42" if mood == "aftermath" else "tint3f7f62")
+		_slab(_tool(cream), basis, origin, -w, -h, w, h, 0.0, PAINT_OFFSET)
+		_slab(_tool(green), basis, origin, -w, -h, w, -h + size.y * 0.32, 0.0, 0.01)
 		_slab(_tool("iron"), basis, origin, -w, -h, w, -h + 0.25, 0.0, 0.03)
 		var band_low: float = -h + size.y * 0.45
 		var band_high: float = h - size.y * 0.12
@@ -785,6 +959,16 @@ func _planter(low: Vector3, high: Vector3) -> void:
 	var lid: Vector3 = (low + high) * 0.5 + Vector3(0.0, size.y * 0.5, 0.0)
 	_avoid = []
 	_slab(_tool("soil"), up, lid, -size.x * 0.5 + 0.12, -size.z * 0.5 + 0.12, size.x * 0.5 - 0.12, size.z * 0.5 - 0.12, 0.0, 0.01)
+	if mood == "later":
+		# Planted and watered: leaves, a few flowers.
+		for index: int in range(14):
+			var u: float = -size.x * 0.5 + 0.3 + float(index % 7) * (size.x - 0.6) / 6.0
+			var v: float = (-0.25 if index < 7 else 0.25) * size.z * 0.5
+			var tall: float = 0.22 + 0.08 * float((index * 5) % 4)
+			_slab(_tool("leaf" if index % 3 else "leaf_dark"), up, lid, u - 0.1, v - 0.1, u + 0.1, v + 0.1, 0.01, tall)
+			if index % 4 == 1:
+				_slab(_tool(["bloom_a", "bloom_b", "bloom_c"][index % 3]), up, lid, u - 0.06, v - 0.06, u + 0.06, v + 0.06, tall, tall + 0.08)
+		return
 	for index: int in range(9):
 		var u: float = -size.x * 0.5 + 0.3 + float(index) * (size.x - 0.6) / 8.0
 		var v: float = (0.18 if index % 2 == 0 else -0.2) * size.z * 0.5

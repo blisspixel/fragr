@@ -307,6 +307,9 @@ msgstr "Mouse: raw counts, never smoothed or assisted. {cm} cm per turn at 800 C
 msgid "HUD_CONTROLS_PLAY"
 msgstr "{fire} fire   {reload} reload   {interact} use   {jump} jump   hold {duck} crouch   {weapon_next} weapon   {pause} menu"
 
+msgid "HUD_CONTROLS_WALK"
+msgstr "{interact} use   {jump} jump   {pause} menu"
+
 msgid "HUD_CONTROLS_WATCH"
 msgstr "{join} join   {cycle} fighter   {view} view   {pause} menu"
 
