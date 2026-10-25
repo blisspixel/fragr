@@ -20,6 +20,8 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 57 connects Still Here: the survival-gated epilogue's two worlds, the
+# people the run carried and the read-only survival entitlement;
 # 56 connects Local Exception: the Surveyor's tracking disc, the pier hold
 # clock, the refuge barricade, the reprieve and campaign victory;
 # 55 connects Planned Works: Paver work strips, the jetpack and Low Water,

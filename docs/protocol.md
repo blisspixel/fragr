@@ -3734,9 +3734,10 @@ result.
 
 The desktop child opens it only as `--local-mission still_here --run-mode
 resume` over a run directory whose saved step is the survival above. The run
-file is read without the writer lock and never written; a run still inside the
-wipe, an incompatible file or no file refuses the launch, and the readiness
-line echoes the saved difficulty. A launch without a run mode is the
+file is read without the writer lock and never written; any other saved step
+(a run still inside the wipe, or one that ran out of continues there or
+earlier), an incompatible file or no file refuses the launch, and the
+readiness line echoes the saved difficulty. A launch without a run mode is the
 development walk with nobody carried. `RunPreview` reports `incompatible` for a
 `still_here` destination, since there is nothing to resume into.
 
