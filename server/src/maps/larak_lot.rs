@@ -312,10 +312,11 @@ fn build_lot() -> Lot {
             shear.push(b.block(x, z, SHEAR_WALL, Concrete));
         }
     }
+    // Above the level band painted round the shear wall at waist height.
     b.panel(
         shear[1],
         MapFace::East,
-        [0.0, 0.2],
+        [0.0, 1.25],
         [2.4, 1.4],
         MapDecorationKind::ComplaintNotice,
     );
