@@ -317,7 +317,7 @@ class ViewMotion extends RefCounted:
 	## Pixels of lag per radian a second of turn, and the most it can lag.
 	const SWAY_PER_RATE: float = 7.0
 	const SWAY_LIMIT: float = 22.0
-	const LANDING_PER_SPEED: float = 4.0
+	const LANDING_PER_SPEED: float = 6.0
 	const LANDING_LIMIT: float = 34.0
 	## The gun shown now: during a holster it is still the old gun.
 	var shown: String = ""
