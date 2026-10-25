@@ -1836,32 +1836,14 @@ func _process(delta):
 
 ## The held gun takes the light where it is held (`ViewLight`, under
 ## the view camera): warmer under a lamp, darker in a covered bay, a beat
-## brighter on a shot. Without a ViewLight it stays as drawn.
+## brighter on a shot. With no camera or no ViewLight it stays as drawn.
 func _apply_view_tint(camera: Camera3D) -> void:
-	var tint: Color = MenuTheme.UNTINTED
-	var sampler: Script = _view_light_script()
-	if sampler != null and camera != null:
-		var sampled: Variant = sampler.call("sample", camera)
-		if sampled is Color:
-			tint = sampled
+	var tint: Color = ViewLight.sample(camera)
 	fp_weapon.self_modulate = tint
 	if fp_throw_hand != null:
 		fp_throw_hand.self_modulate = tint
 	if melee_view != null:
 		melee_view.modulate = tint
-
-static var _view_light: Script = null
-static var _view_light_checked: bool = false
-
-## ViewLight is found by its global class name so the held gun follows it
-## wherever that script lives, and stays untinted where it is absent.
-static func _view_light_script() -> Script:
-	if not _view_light_checked:
-		_view_light_checked = true
-		for entry: Dictionary in ProjectSettings.get_global_class_list():
-			if entry.get("class") == &"ViewLight":
-				_view_light = load(str(entry["path"])) as Script
-	return _view_light
 
 func set_fp_walk_speed(speed: float) -> void:
 	fp_walk_speed = maxf(speed, 0.0) if is_finite(speed) else 0.0

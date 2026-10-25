@@ -16,8 +16,6 @@ const WEAPONS: Dictionary = {
 const KILL_GLYPH: Vector2 = Vector2(96, 32)
 ## A held-gun side profile, fitted into this box keeping its aspect.
 const PROFILE_GLYPH: Vector2 = Vector2(104, 32)
-static var _kill_icons: Dictionary = {}
-static var _kill_icons_read: bool = false
 var notices := HudNoticeQueue.new(LIMIT, PENDING_LIMIT, LIFETIME)
 var coverage_query: Callable
 var _covered: bool = false
@@ -36,25 +34,14 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 ## The kill glyph for a gun: the dedicated 48 by 16 icon from
-## `WeaponArt.KILL_ICON` when this build has one for it, else the held-gun
-## side profile, else null and the row spells the gun out.
+## `WeaponArt.KILL_ICON`, else the held-gun side profile, else null and the
+## row spells the gun out.
 static func kill_glyph(art: String) -> Texture2D:
-	if not _kill_icons_read:
-		_kill_icons_read = true
-		var script: Script = load("res://scripts/weapon_art.gd") as Script
-		var icons: Variant = script.get_script_constant_map().get("KILL_ICON") if script != null else null
-		if icons is Dictionary:
-			_kill_icons = icons
-	var icon: Variant = _kill_icons.get(art)
-	if icon is Texture2D:
-		return icon
-	var profile: Variant = WeaponArt.PROFILE.get(art)
-	return profile if profile is Texture2D else null
+	return WeaponArt.kill_icon(art)
 
 ## True when the glyph is a dedicated kill icon, not a profile stand-in.
 static func is_kill_icon(art: String) -> bool:
-	kill_glyph(art)
-	return _kill_icons.get(art) is Texture2D
+	return WeaponArt.KILL_ICON.get(art) is Texture2D
 
 static func _name(value: Variant) -> String:
 	if not value is String:

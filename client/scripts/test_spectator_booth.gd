@@ -250,14 +250,10 @@ func _check_nameplate() -> void:
 	label.queue_free()
 
 func _check_feed_and_board() -> void:
-	_check(FragFeed.kill_glyph("Rocket") == WeaponArt.PROFILE["Rocket"], "a Rocket frag falls back to the held-gun profile")
-	_check(FragFeed.kill_glyph("Repeater") == null and FragFeed.kill_glyph("Fists") == null, "a gun without art is spelled out")
-	var script: Script = load("res://scripts/weapon_art.gd") as Script
-	var icons: Variant = script.get_script_constant_map().get("KILL_ICON")
-	if icons is Dictionary:
-		for art: Variant in icons:
-			_check(FragFeed.kill_glyph(str(art)) == icons[art] and FragFeed.is_kill_icon(str(art)), "a dedicated kill icon wins over the profile: " + str(art))
-			_check((icons[art] as Texture2D).get_size() == Vector2(48, 16), "kill icons are 48 by 16: " + str(art))
-	else:
-		_check(not FragFeed.is_kill_icon("Rail"), "without kill icons every glyph is a profile")
+	_check(FragFeed.kill_glyph("Repeater") == null and not FragFeed.is_kill_icon("Repeater"), "a gun without art is spelled out")
+	for art: String in WeaponArt.KILL_ICON:
+		_check(FragFeed.kill_glyph(art) == WeaponArt.KILL_ICON[art] and FragFeed.is_kill_icon(art), "a dedicated kill icon wins over the profile: " + art)
+		_check(WeaponArt.KILL_ICON[art].get_size() == Vector2(48, 16), "kill icons are 48 by 16: " + art)
+	for art: String in WeaponArt.PROFILE:
+		_check(FragFeed.is_kill_icon(art), "every gun with a held profile has its own kill icon: " + art)
 	_check(ScoreboardPlate.ping_text({"ping": 42}) == "42" and ScoreboardPlate.ping_text({}) == "--", "the board's ping cell")
