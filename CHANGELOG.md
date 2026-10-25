@@ -10,6 +10,10 @@ Release history, newest first. Planned work stays in
   structure the league settles debts in, with the Pit one level further down
   than the sign admits, Aunt Linda's revival on level three, and Larak's
   signature on everything that has stopped working.
+- Dress Larak Lot with modelled props in place of boxes: the toll booths, the
+  bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
+  pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,
+  each filling the cover it stands for.
 - Start free-for-all lives on the Pistol and Fists. Stronger guns are owned
   only after taking their pad, on 15 to 25 second clocks, with health and armor
   on 25 seconds. Free-for-all respawn is 4 seconds; other modes keep their own

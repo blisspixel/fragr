@@ -1,0 +1,116 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"magenta",
+			"red"
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta",
+		"red"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.519,
+			"green": 0.039,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.235,
+			"warm": 0.207
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 2.1 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.801498532295227,
+			2.09999990463257,
+			1.72364902496338
+		],
+		"scale": 1.10327520245726,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "ll-stands-bell",
+	"metres_per_source_unit": 1.10327520245726,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		0.801498532295227,
+		2.09999942779541,
+		1.72364902496338
+	],
+	"prepared_sha256": "db4602f6b4bd0eb6c6c5d574d79cef168c03194e97b31f8156d793ded2827d95",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-stands-bell-20261024-v1",
+			"request_id": "01a16f58-96ee-7748-b6ec-3826ff97f306",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_stands_bell_a",
+			"keyed_sha256": "8445923916bd24839e656a8cbad50d608d6735ee7803263bcbfa9f89d896d598",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "eb783378-649c-4f84-b844-ee245822f946",
+			"resolution": "2k",
+			"sha256": "2977b8e2c6583e7158bcd7ae2b94f2673cce344b265e446a0c8dcf100eb7413e",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		0.726472020149231,
+		1.90342354774475,
+		1.56230199337006
+	],
+	"raw_file": "ll-stands-bell-20261024-v1-0.glb",
+	"raw_sha256": "a8b3e555fb9af36cd4ed8f285864091a640e986e34bd38b2b72eb85581ed3816",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 5.03475187003096,
+	"texels_per_metre": 44.7998144597034,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 12,
+		"boundary_loops": 7,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			3,
+			2,
+			2,
+			2,
+			1
+		],
+		"nonmanifold_edges": 19,
+		"watertight": false,
+		"welded_vertices": 3036
+	},
+	"triangles": 6125,
+	"uv_coverage": 0.616751995460084,
+	"vertices": 10134
+}

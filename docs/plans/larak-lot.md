@@ -346,18 +346,38 @@ release) passes and is deterministic; p99 tick budget use is 1.3%.
    separate in colour and in grayscale at 15 m in the Pit and a booth lane and
    at 22 to 30 m. The booths' red trim band sat at head height behind the lane
    and is painted out; the vans' red band is narrowed to a line.
+9. Modelled props (wave 3): the nine Meshy props from the 2026-10-24 round
+   replace their box stand-ins, prepared by `tools/prepare_model_candidates.gd`
+   from `tools/larak_props_20261024.json` into `client/assets/models/larak/`,
+   each receipt carrying its reference frame, Meshy task and cleanup. The
+   burnt sedan (Pit, nose down, and both Roof wrecks), the pay machine (three
+   on the Toll wall and the revival pulpit), the 2009 coffee machine, the
+   Stands bell and the crane hook block went in as reviewed; the toll booth,
+   bookmaker's kiosk, THE STACK and the clamped sedan were cleaned up first.
+   Each model fills the solid it stands for, so a shot still stops where it
+   looks like it should: the booth cabin is remapped onto its 2 x 4 m kerb
+   and the kiosk stretched to its 4 x 3 m footprint, and THE STACK is two
+   piles turned against each other. Paint fixes: the clamped sedan locked to
+   one teal body ramp with dark dead tail lamps and a hazard-yellow clamp; the
+   stack brightened before the lock so its rust, teal and olive bodies
+   survive; the hook in venue hazard yellow; no key-colour fringe. The blank
+   plates carry their in-engine signs: `WORLD_LARAK_SIGNATURE` on every pay
+   machine, `WORLD_LARAK_COFFEE` and `WORLD_LARAK_OUT_OF_ORDER` on the coffee
+   machine, `WORLD_LARAK_ODDS` on the kiosk's end slates. One pay machine
+   still glows PLEASE PAY; the rest are dark. The booths carry their own cut
+   seals. No server solid changed. `tools/preview_larak_lot.gd` gained a
+   `prop_` view per prop and `FRAGR_LARAK_VIEWS` to render a subset.
 
 ## Asset wishes for the next paid round
 
-Not generated in this lane. For the Meshy and Higgsfield round:
+For the Meshy and Higgsfield round:
 
 - A Union cruiser and van model (issued black, steel plates one step lighter,
   a narrow red band and a cut seal, a dead light bar), to replace the
   box-built vehicles inside the same collision volumes.
-- A crushed-car stack and a burnt tow truck for THE STACK.
-- A tower crane with hook block and work-light ring.
-- Car-seat and pallet bleacher modules; a bookmaker kiosk with chalk board; a
-  revival tent awning, pulpit and folding chairs.
+- The tower crane mast and jib (the hook block is modelled).
+- Car-seat and pallet bleacher modules; a revival tent awning and folding
+  chairs.
 - Decals: oil stains, tyre skids, betting slips, Larak's signature stamp,
   league tags, six-in-a-circle variants, wet concrete with drain grates.
 - Audio: crowd murmur from the Stands, crane cable creak, neon buzz, the toll

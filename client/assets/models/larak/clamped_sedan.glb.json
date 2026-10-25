@@ -1,0 +1,143 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"red",
+			"magenta"
+		],
+		"exclude_keys": [
+			"union_plate",
+			"outline_purple",
+			"gunmetal",
+			"gunmetal_light",
+			"dust_light",
+			"m05_ochre",
+			"moss",
+			"leaf_muted",
+			"institutional_green",
+			"rust",
+			"dust_rust",
+			"m05_rust",
+			"ember",
+			"ember_hot"
+		],
+		"swatches": [
+			"larak_hazard"
+		]
+	},
+	"excluded_classes": [
+		"cyan",
+		"red",
+		"magenta"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.64,
+			"green": 0.347,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.0,
+			"warm": 0.013
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended [4.36, 1.4, 1.96] m",
+		"fill_ratio_xyz": [
+			0.90628318242422,
+			0.927087850691384,
+			1.0
+		],
+		"fitted_m": [
+			3.95139479637146,
+			1.29792296886444,
+			1.96000003814697
+		],
+		"scale": 2.07892511787913,
+		"slot_or_intended_m": [
+			4.3600001335144,
+			1.39999997615814,
+			1.96000003814697
+		],
+		"worst_log_mismatch": 0.0984034583947737,
+		"yaw_degrees": 0.0
+	},
+	"id": "ll-clamped-sedan",
+	"metres_per_source_unit": 2.07892511787913,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre + venue swatches [\"larak_hazard\"]",
+	"prepared_bounds_m": [
+		3.9513943195343,
+		1.29792284965515,
+		1.96000003814697
+	],
+	"prepared_sha256": "cb3cc92ffa3095be5f6dc9eebd0394db3bb6a0f962afb6c74441938aa0f4e4db",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ll-clamped-sedan-20261024-v1",
+			"request_id": "01a16f54-e89a-75cf-838a-5eda28271f01",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
+			"target_polycount": 8000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ll_clamped_sedan_a",
+			"keyed_sha256": "b26423c3b9a244389aac55894ebf8ab9f0944ce2c712567edd443b93d5d92c5d",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "70482ab7-8cb9-4036-98dd-254413850e8b",
+			"resolution": "2k",
+			"sha256": "87cbec0620c936fd4a995654920e798c6626be41d53da1b06714c02d723e03fe",
+			"spec": "tools/spritegen/specs/h-ll-larak-props-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Larak Lot props review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.90069127082825,
+		0.624324083328247,
+		0.942794919013977
+	],
+	"raw_file": "ll-clamped-sedan-20261024-v1-0.glb",
+	"raw_sha256": "28e1e35751c5b12fa60d73fe48c5ddfd9d9f4cd36c0f38bbae423a6e17487667",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 25.860857570179,
+	"texels_per_metre": 38.4322701594069,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 56,
+		"boundary_loops": 25,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			4,
+			4,
+			4,
+			3,
+			2
+		],
+		"nonmanifold_edges": 27,
+		"watertight": false,
+		"welded_vertices": 3689
+	},
+	"triangles": 7357,
+	"uv_coverage": 0.582847675783317,
+	"vertices": 11912
+}

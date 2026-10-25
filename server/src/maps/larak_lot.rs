@@ -412,8 +412,8 @@ fn build_lot() -> Lot {
     );
     b.panel(lid, F::Down, [-1.0, 0.0], [3.0, 0.5], K::StripLight);
     b.panel(canopy, F::Down, [0.0, 0.0], [4.0, 0.6], K::StripLight);
-    // The booths' seals are the presenter's: cut through by the league and
-    // unlit, so no red panel glows behind the booth lanes.
+    // The booths' seals are painted on the booth models: cut through by the
+    // league and unlit, so no red panel glows behind the booth lanes.
     // One Office seal stays, on the viaduct over the Impound; the north wall
     // above the Spiral belongs to the revival.
     b.panel(toll, F::South, [10.0, 0.0], [2.0, 1.6], K::ComplaintNotice);
