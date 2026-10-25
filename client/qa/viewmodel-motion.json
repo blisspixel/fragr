@@ -1,0 +1,15 @@
+{
+  "comment": "Held-gun motion for the modelled Shotgun and Railgun and the drawn Rifle (the Pistol is in viewmodel-motion-pistol.json, since the full arsenal kit has no Pistol): the switch (old gun lowers, new gun rises through its raise frames), the shot and its recovery, the accepted reload played through its frames, and the walk. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/viewmodel-motion.json, FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MUTATORS=full-arsenal so every gun is owned from the first tick. Inspection only; not a tour publish.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "motion_join", "scene": "res://scenes/main.tscn", "at_seconds": 4, "join": "human", "camera": "first_person", "weapon": "Flechette"},
+    {"name": "scatter_switch", "camera": "first_person", "weapon": "Scatter", "strip_frames": 12, "strip_interval_seconds": 0.03},
+    {"name": "scatter_fire", "camera": "first_person", "weapon": "Scatter", "aim_pitch": -0.2, "trigger": "fire", "single_shot": true, "strip_frames": 8, "strip_interval_seconds": 0.04, "probe": "ShotEffects", "impact_kind": "solid"},
+    {"name": "scatter_reload", "camera": "first_person", "weapon": "Scatter", "aim_pitch": -0.2, "trigger": "reload", "probe": "FpWeapon", "strip_frames": 8, "strip_interval_seconds": 0.09},
+    {"name": "rail_switch", "camera": "first_person", "weapon": "Rail", "strip_frames": 12, "strip_interval_seconds": 0.03},
+    {"name": "rail_fire", "camera": "first_person", "weapon": "Rail", "aim_pitch": -0.2, "trigger": "fire", "single_shot": true, "strip_frames": 8, "strip_interval_seconds": 0.09, "probe": "ShotEffects", "impact_kind": "solid"},
+    {"name": "rail_reload", "camera": "first_person", "weapon": "Rail", "aim_pitch": -0.2, "trigger": "reload", "probe": "FpWeapon", "strip_frames": 10, "strip_interval_seconds": 0.13},
+    {"name": "rifle_fire", "camera": "first_person", "weapon": "Flechette", "aim_pitch": -0.2, "trigger": "fire", "single_shot": true, "strip_frames": 6, "strip_interval_seconds": 0.03, "probe": "ShotEffects", "impact_kind": "solid"}
+  ]
+}

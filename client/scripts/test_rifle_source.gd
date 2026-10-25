@@ -179,8 +179,9 @@ func _check_restored_selection() -> void:
 		_check(selected[path].resource_path == path and FileAccess.get_sha256(path) == hashes[path],
 			"actual selected Rifle path and pixels match retained pre-source artwork: " + path)
 	_check(WeaponArt.frame_after_shot("Flechette", 0.0) == WeaponArt.FIRE["Flechette"]
-		and WeaponArt.frame_after_shot("Flechette", WeaponArt.FIRE_SECONDS) == WeaponArt.IDLE["Flechette"],
-		"ordinary resolved-shot presentation uses restored fire then idle without changing timing")
+		and WeaponArt.frame_after_shot("Flechette", 0.07) == WeaponArt.RECOVER["Flechette"][0]
+		and WeaponArt.frame_after_shot("Flechette", float(WeaponArt.SHOT_FRAMES["Flechette"].back())) == WeaponArt.IDLE["Flechette"],
+		"ordinary resolved-shot presentation uses restored fire, its derived recovery, then idle inside the cooldown")
 	_check(WeaponArt.pickup_texture("weapon", "Flechette", "") == WeaponArt.PROFILE["Flechette"],
 		"world pickup uses the same restored Rifle profile")
 

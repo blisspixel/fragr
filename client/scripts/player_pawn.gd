@@ -86,7 +86,7 @@ const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
 # Below REF, scale stays 1 so close follow is unchanged. Beyond REF, scale grows with
-# distance / REF (capped) so far spectators still read Cyanex/Kragge silhouettes.
+# distance / REF (capped) so far spectators still read distant silhouettes.
 const FAR_CAM_REF_DIST: float = 12.0
 const FAR_CAM_MAX_SCALE: float = 3.5
 ## Below this distance a nameplate shrinks with the distance, so its size on
@@ -155,7 +155,6 @@ var weapon_textures = {}
 const HELD_PROFILE_SCALE: float = 32.0 / 80.0
 ## The scene's pixel size for a 32 pixel weapon icon.
 var weapon_pixel_size: float = 0.026
-var cyanex_texture: Texture2D
 
 ## Fixed colours of the named campaign units. None is Union red, Inheritance
 ## cyan or off-white; `FactionPalette.label_color` still checks each.
@@ -196,8 +195,6 @@ func _ready():
 		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
 	if weapon_sprite:
 		weapon_pixel_size = weapon_sprite.pixel_size
-	
-	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
 
 var fire_streams = {}
 var hit_streams = {}
@@ -366,9 +363,6 @@ func set_player_data(id: String, name: String):
 		player_color = Color(0.72, 0.78, 0.28)
 	else:
 		player_color = FactionPalette.callsign_color(id)
-	
-	# The legacy strip only stands in until the snapshot names a body kind.
-	body.texture = cyanex_texture
 	
 	# Continuance drone: taller billboard silhouette vs scrap fighters.
 	if str(name).begins_with("NODS-") and label:
@@ -690,7 +684,7 @@ func _update_body_color(hit: bool):
 		# plate and, on a live body, the amber tape.
 		body.modulate = Color.WHITE
 	else:
-		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
+		# Near-white multiply so the pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
 	if character_view != null:
 		_dress_live_body()

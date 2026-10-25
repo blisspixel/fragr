@@ -2033,7 +2033,9 @@ func _update_fp_frame() -> void:
 		var raised: Texture2D = WeaponArt.draw_frame(weapon, fp_motion.raise)
 		if raised != null:
 			frame = raised
-	if frame == null:
+	# At rest the presenter's own table decides, so an offline candidate placed
+	# in `viewmodel_textures` is what shows.
+	if frame == null or frame == WeaponArt.IDLE.get(weapon):
 		frame = viewmodel_textures[weapon]
 	if fp_weapon.texture != frame:
 		fp_weapon.texture = frame

@@ -25,7 +25,7 @@ const RAMPS: Dictionary[String, Array] = {
 	"bore": [Color("0a0a0c"), Color("0a0a0c"), Color("1e1e22")],
 	"leather": [Color("1e1e22"), Color("3a3836"), Color("7a3a22"), Color("9f5b3b"), Color("b4754e")],
 	"jacket": [Color("1e1e22"), Color("3a3836"), Color("7a3a22"), Color("9f5b3b")],
-	"seam": [Color("1e1e22"), Color("3a3836"), Color("5a554f")],
+	"seam": [Color("1e1e22"), Color("3a3836"), Color("7a3a22")],
 	"wood": [Color("1e1e22"), Color("3a3836"), Color("7a3a22"), Color("9f5b3b")],
 	"brass": [Color("3a3836"), Color("7a3a22"), Color("c45a20"), Color("dc8c3c"), Color("e8e2d6")],
 	"bone": [Color("5a554f"), Color("8c847a"), Color("e8e2d6")],
@@ -248,9 +248,9 @@ func glove(parent: Node3D, label: String, spec: Dictionary) -> Node3D:
 	# The glove's gauntlet, its stitched cuff band and the jacket sleeve.
 	var elbow: Vector3 = spec["elbow"]
 	var arm: Vector3 = (elbow - wrist).normalized()
-	_capsule(hand, "Gauntlet", wrist + y * 0.012, wrist + arm * 0.040, 0.030, "leather", label + "Wrist")
-	_capsule(hand, "Cuff", wrist + arm * 0.050, wrist + arm * 0.060, 0.035, "seam", label + "Cuff")
-	_capsule(hand, "Sleeve", wrist + arm * 0.070, elbow, 0.040, "jacket", label + "Sleeve")
+	_capsule(hand, "Gauntlet", wrist + y * 0.012, wrist + arm * 0.040, 0.026, "leather", label + "Wrist")
+	_capsule(hand, "Cuff", wrist + arm * 0.050, wrist + arm * 0.060, 0.030, "seam", label + "Cuff")
+	_capsule(hand, "Sleeve", wrist + arm * 0.070, elbow, 0.034, "jacket", label + "Sleeve")
 	return hand
 
 # --- Tack ------------------------------------------------------------------------
@@ -276,6 +276,12 @@ func _tack(gun: Node3D) -> void:
 	for side: float in [-1.0, 1.0]:
 		_block(slide, "RearSight%s" % ("L" if side < 0.0 else "R"), Vector3(0.0095, 0.009, 0.009), "polymer", Vector3(side * 0.0085, 0.0255, 0.003), "RearSight")
 	_block(slide, "RearSightBase", Vector3(0.027, 0.004, 0.010), "polymer", Vector3(0.0, 0.0225, 0.003), "RearSight")
+	# Two bone dots on the rear blade, one on the front post: a three-dot sight.
+	for side: float in [-1.0, 1.0]:
+		_block(slide, "RearDot%s" % ("L" if side < 0.0 else "R"), Vector3(0.0028, 0.0028, 0.0016), "bone", Vector3(side * 0.0085, 0.0262, 0.0078), "RearDot")
+	# The slide's rear plate: an inset panel round the firing pin cap.
+	_block(slide, "RearPlate", Vector3(0.018, 0.018, 0.0016), "slide", Vector3(0.0, 0.004, 0.0137), "RearPlate")
+	_tube(slide, "PinCap", 0.0032, Vector3(0.0, 0.006, 0.0140), Vector3(0.0, 0.006, 0.0152), "steel", "PinCap", 10)
 	_block(slide, "FrontSight", Vector3(0.0045, 0.0075, 0.007), "polymer", Vector3(0.0, 0.0245, -0.163), "FrontSight")
 	_block(slide, "FrontDot", Vector3(0.0028, 0.0028, 0.0016), "bone", Vector3(0.0, 0.0262, -0.1592), "FrontDot")
 	# Fixed barrel crown and its bore, ahead of the slide's nose.
@@ -296,7 +302,7 @@ func _tack(gun: Node3D) -> void:
 	var trigger: Node3D = _workshop.group(gun, "Trigger", Vector3(0.0, -0.027, -0.022))
 	_pipe(trigger, "Blade", PackedVector3Array([Vector3(0.0, 0.0, 0.0), Vector3(0.0, -0.010, -0.003), Vector3(0.0, -0.018, 0.002)]), 0.0024, "steel", "Trigger")
 	var hammer: Node3D = _workshop.group(gun, "Hammer", Vector3(0.0, 0.004, 0.017))
-	_block(hammer, "Spur", Vector3(0.008, 0.012, 0.007), "polymer", Vector3(0.0, 0.005, 0.002), "Hammer")
+	_block(hammer, "Spur", Vector3(0.0065, 0.009, 0.006), "steel", Vector3(0.0, 0.004, 0.002), "Hammer")
 	# Raked polymer grip with two finger grooves cut into the front strap.
 	_prism(gun, "Grip", PackedVector2Array([
 		Vector2(-0.006, -0.022), Vector2(0.031, -0.020), Vector2(0.052, -0.116),
@@ -331,13 +337,13 @@ func _tack_hands(gun: Node3D) -> void:
 		"across": Vector3(0.0, 1.0, 0.12), "back": Vector3(1.0, 0.1, 0.25),
 		"curl": [Vector3(0.45, 0.9, 0.5), Vector3(0.75, 1.25, 0.9), Vector3(0.75, 1.25, 0.9), Vector3(0.75, 1.25, 0.9)],
 		"thumb": [Vector3(0.012, -0.030, 0.042), Vector3(-0.016, -0.018, 0.010), Vector3(-0.021, -0.013, -0.030)],
-		"elbow": Vector3(0.110, -0.420, 0.330)})
+		"elbow": Vector3(0.120, -0.500, 0.220)})
 	glove(hands, "SupportHand", {
 		"wrist": Vector3(-0.050, -0.105, 0.060), "knuckles": Vector3(-0.028, -0.080, -0.028),
 		"across": Vector3(0.0, 1.0, 0.0), "back": Vector3(-0.8, -0.1, -0.5),
 		"curl": [Vector3(0.6, 1.2, 0.8), Vector3(0.65, 1.25, 0.8), Vector3(0.65, 1.25, 0.8), Vector3(0.65, 1.25, 0.8)],
 		"thumb": [Vector3(-0.030, -0.060, 0.040), Vector3(-0.032, -0.042, 0.000), Vector3(-0.026, -0.030, -0.050)],
-		"elbow": Vector3(-0.130, -0.420, 0.300)})
+		"elbow": Vector3(-0.140, -0.500, 0.200)})
 
 ## Pose the Tack: `slide` 0..1 of its 22 mm stroke, `magazine` metres dropped.
 static func pose_tack(gun: Node3D, slide: float, magazine: float = 0.0, trigger: float = 0.0) -> void:
@@ -378,7 +384,7 @@ func _scatter(gun: Node3D) -> void:
 		_tube(barrels, "Bore%s" % ("L" if side < 0.0 else "R"), 0.0090, Vector3(x, 0.022, 0.020 - reach + 0.001), Vector3(x, 0.022, 0.020 - reach - 0.001), "bore", "Bore", 12)
 		# Brass of the loaded shells, seen only when the action is open.
 		_tube(barrels, "Shell%s" % ("L" if side < 0.0 else "R"), 0.0104, Vector3(x, 0.022, 0.0215), Vector3(x, 0.022, 0.0165), "brass", "Shell")
-	_block(barrels, "Rib", Vector3(0.010, 0.006, reach - 0.04), "blued", Vector3(0.0, 0.0375, 0.020 - reach * 0.5), "Rib")
+	_block(barrels, "Rib", Vector3(0.006, 0.005, reach - 0.04), "slide", Vector3(0.0, 0.0375, 0.020 - reach * 0.5), "Rib")
 	_block(barrels, "Bead", Vector3(0.0045, 0.0045, 0.006), "bone", Vector3(0.0, 0.0425, 0.020 - reach + 0.012), "Bead")
 	_block(barrels, "Lug", Vector3(0.020, 0.018, 0.050), "steel", Vector3(0.0, 0.004, -0.005), "Lug")
 	# Forend: wood under the barrels, and the owner's hose clamp over a crack.
@@ -393,7 +399,7 @@ func _scatter(gun: Node3D) -> void:
 	_tube(gun, "HingePin", 0.0065, Vector3(-0.024, -0.022, -0.020), Vector3(0.024, -0.022, -0.020), "steel", "Action", 10)
 	var lever: Node3D = _workshop.group(gun, "Lever", Vector3(0.0, 0.012, 0.030))
 	_prism(lever, "TopLever", PackedVector2Array([
-		Vector2(-0.010, 0.0), Vector2(0.022, 0.0), Vector2(0.030, 0.003), Vector2(0.030, 0.007), Vector2(-0.010, 0.007)]), 0.012, "blued", Vector3.ZERO, 0.2, "Lever")
+		Vector2(-0.010, 0.0), Vector2(0.022, 0.0), Vector2(0.030, 0.003), Vector2(0.030, 0.007), Vector2(-0.010, 0.007)]), 0.008, "slide", Vector3.ZERO, 0.2, "Lever")
 	_pipe(gun, "TriggerGuard", PackedVector3Array([
 		Vector3(0.0, -0.040, -0.006), Vector3(0.0, -0.058, 0.004), Vector3(0.0, -0.064, 0.030),
 		Vector3(0.0, -0.058, 0.058), Vector3(0.0, -0.044, 0.070)]), 0.0032, "enamel", "Action")
@@ -419,9 +425,9 @@ func _scatter_hands(gun: Node3D) -> void:
 		"thumb": [Vector3(0.020, -0.010, 0.110), Vector3(-0.004, 0.006, 0.090), Vector3(-0.018, 0.004, 0.058)],
 		"elbow": Vector3(0.150, -0.40, 0.42)})
 	var support: Node3D = glove(hands, "SupportHand", {
-		"wrist": Vector3(-0.050, -0.052, -0.160), "knuckles": Vector3(0.008, -0.042, -0.200),
+		"wrist": Vector3(-0.050, -0.062, -0.160), "knuckles": Vector3(0.006, -0.056, -0.200),
 		"across": Vector3(0.0, 0.0, -1.0), "back": Vector3(0.0, -1.0, 0.0),
-		"curl": [Vector3(0.9, 1.0, 0.5), Vector3(0.95, 1.05, 0.5), Vector3(0.95, 1.05, 0.5), Vector3(0.95, 1.05, 0.5)],
+		"curl": [Vector3(0.55, 0.7, 0.3), Vector3(0.6, 0.75, 0.3), Vector3(0.6, 0.75, 0.3), Vector3(0.6, 0.75, 0.3)],
 		"thumb": [Vector3(-0.034, -0.040, -0.180), Vector3(-0.030, -0.022, -0.212), Vector3(-0.024, -0.010, -0.248)],
 		"elbow": Vector3(-0.200, -0.40, 0.10)})
 	# The support hand rides the barrels when they break open.
@@ -460,13 +466,18 @@ func _rail(gun: Node3D) -> void:
 		_tag(_workshop.lathe(coils, "Coil%d" % index, PackedVector2Array([
 			Vector2(-0.016, 0.026), Vector2(-0.016, 0.034), Vector2(-0.012, 0.038),
 			Vector2(0.012, 0.038), Vector2(0.016, 0.034), Vector2(0.016, 0.026)]), finish("coil"), Vector3(0.0, 0.0, z), 16), "Coil%d" % index)
-		# The charge between the rails, lit with the coils.
+		# The charge between the rails, lit with the coils, and its glow along
+		# the top rail between each pair of rings.
 		_block(coils, "Charge%d" % index, Vector3(0.010, 0.026, 0.020), "glow", Vector3(0.0, 0.0, z), "Charge")
+		if index < 6:
+			_block(coils, "ChargeTop%d" % index, Vector3(0.008, 0.003, 0.060), "glow", Vector3(0.0, 0.0325, z + 0.0475), "ChargeTop")
 	# Receiver with an optic housing on top and the ground-off plate on its flank.
 	_prism(gun, "Receiver", PackedVector2Array([
 		Vector2(-0.06, 0.046), Vector2(0.20, 0.046), Vector2(0.22, 0.030), Vector2(0.22, -0.040),
 		Vector2(0.05, -0.050), Vector2(-0.06, -0.040), Vector2(-0.07, 0.0)]), 0.064, "enamel", Vector3.ZERO, 0.16, "Receiver")
 	_block(gun, "SightRail", Vector3(0.020, 0.010, 0.120), "polymer", Vector3(0.0, 0.051, 0.060), "Sight")
+	for index: int in range(3):
+		_block(gun, "Vent%d" % index, Vector3(0.040, 0.003, 0.010), "bore", Vector3(0.0, 0.0465, -0.035 + index * 0.020), "Vent")
 	_block(gun, "RearSight", Vector3(0.024, 0.014, 0.008), "polymer", Vector3(0.0, 0.062, 0.110), "Sight")
 	_block(gun, "GroundPlate", Vector3(0.0012, 0.026, 0.060), "steel", Vector3(-0.0325, 0.004, 0.100), "Scar")
 	# The cell pack: a canister on the right flank with an amber charge lamp.
