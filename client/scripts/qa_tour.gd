@@ -2285,6 +2285,16 @@ func _local_human_can_act(gm: Node) -> bool:
 
 func _prepare_static_capture(state: Dictionary) -> bool:
 	var gm: Node = _game_manager()
+	if gm != null:
+		# Scene construction and round transitions can precede the populated
+		# snapshot. Photograph the observed match, not that loading interval.
+		var snapshot_deadline: int = Time.get_ticks_msec() + 16000
+		while (int(gm.latest_snapshot.get("map_id", 0)) == 0 or (gm.latest_snapshot.get("players", []).is_empty() and not state.get("allow_empty_roster", false))) and Time.get_ticks_msec() < snapshot_deadline:
+			await process_frame
+		if int(gm.latest_snapshot.get("map_id", 0)) == 0 or (gm.latest_snapshot.get("players", []).is_empty() and not state.get("allow_empty_roster", false)):
+			push_error("qa_tour: no populated snapshot before capture")
+			_failed = true
+			return false
 	if not _joined or not (state.has("weapon") or state.has("aim_pitch")):
 		return true
 	var state_name: String = str(state.get("name", "static pose"))

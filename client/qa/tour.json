@@ -150,7 +150,7 @@
       "camera": "first_person",
       "weapon": "Rail",
       "aim_pitch": 0.0,
-      "note": "The Railgun taken from its pad on the north gantry, then server-confirmed selection and its distinct reticle."
+      "note": "The Railgun taken from the Low Ramp pad, then server-confirmed selection and its distinct reticle."
     },
     {
       "name": "rail_impact",
@@ -160,12 +160,12 @@
       "aim_pitch": -0.4,
       "trigger": "fire",
       "strip_frames": 12,
-      "strip_interval_seconds": 0.035,
+      "strip_interval_seconds": 0.07,
       "single_shot": true,
       "expect_expiry": true,
       "probe": "ShotEffects",
       "impact_kind": "solid",
-      "note": "Single acknowledged local rail shot into the gantry deck, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
+      "note": "Single acknowledged local rail shot into the floor, sampled beyond its 0.6 second beam lifetime. Inspect the full-size shot and timed strip for position, sparks, trace, and decay."
     },
     {
       "name": "return_to_spectator",
