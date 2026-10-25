@@ -38,9 +38,14 @@ const COFFEE_PLATE: Vector2 = Vector2(0.255, 1.335)
 const COFFEE_PLATE_SIZE: Vector2 = Vector2(0.19, 0.15)
 const COFFEE_NOTICE: Vector2 = Vector2(-0.09, 1.12)
 const COFFEE_NOTICE_SIZE: Vector2 = Vector2(0.42, 0.16)
+## Wall machines (the pay machines and the coffee machine) are set this far
+## into the concrete they stand against, so no more than 30 cm stands proud:
+## dressing a fighter brushes past, never cover the server does not have.
+const WALL_INSET: float = 0.2
 ## The Stands bell: top of its wall plate, and its depth off the wall
-## (x) and height (y) including the pull rope.
-const BELL_TOP: float = 5.05
+## (x) and height (y) including the pull rope, whose end hangs two metres
+## over the bettors' deck.
+const BELL_TOP: float = 5.6
 const BELL_SIZE: Vector2 = Vector2(1.724, 2.1)
 ## The podium pallets stand on the bookmaker's roof.
 const PODIUM_BASE: float = 4.3
@@ -91,11 +96,46 @@ const LEAGUE_BONE: Color = Color("ddd3bd")
 ## Group the presenter joins, so a match can tell it about the Plate.
 const GROUP: StringName = &"larak_lot"
 const PLATE_ID: String = "larak_custody_plate"
+const RAIL_ID: String = "larak_rail"
+const ROCKET_ID: String = "larak_rocket_pit"
+## WeaponPickup.STAGE_GROUP: pickups look here for their pad's seat.
+const PICKUP_STAGE: StringName = &"pickup_stage"
+
+## The decal atlas (tools/bake_larak_decals.gd): every cell is laid at its
+## own size at 16 texels per metre, so a mark shares the decks' pixel grain.
+const DECAL_ATLAS: String = "res://assets/environment/larak/decals.png"
+const DECAL_ATLAS_SIZE: Vector2i = Vector2i(256, 128)
+const DECAL_CELLS: Dictionary[String, Rect2i] = {
+	"oil_0": Rect2i(0, 0, 32, 24), "oil_1": Rect2i(32, 0, 24, 18), "oil_2": Rect2i(56, 0, 16, 12),
+	"scorch_0": Rect2i(72, 0, 24, 24), "scorch_1": Rect2i(96, 0, 18, 16), "scorch_pad": Rect2i(128, 0, 56, 56),
+	"skid_0": Rect2i(0, 32, 20, 4), "skid_1": Rect2i(0, 40, 20, 4), "burn_0": Rect2i(0, 48, 28, 6),
+	"slip_0": Rect2i(32, 32, 3, 4), "slip_1": Rect2i(36, 32, 4, 3), "slip_2": Rect2i(41, 32, 3, 4), "ticket_0": Rect2i(45, 32, 3, 4),
+	"tag_0": Rect2i(0, 64, 40, 20), "tag_1": Rect2i(40, 64, 32, 18), "tag_2": Rect2i(72, 64, 24, 24), "drips_0": Rect2i(96, 64, 32, 16),
+}
+
+## The pad kit. Every pad sits in a recessed ring with a warm light pool;
+## the Rail stands on a steel dais, the Plate on the league's pedestal and the
+## Rocket in a blast cradle in the Pit. Each is low enough to walk over
+## (`test_larak_surfaces.gd` holds every visible body to a server solid, or to
+## under a shin's height off its floor), and its top is the item's seat.
+const PAD_RING_RADIUS: float = 0.78
+const POOL_PIXELS: int = 36
+const RAIL_DAIS: float = 0.08
+const PLATE_PEDESTAL: float = 0.12
+const ROCKET_CRADLE: float = 0.05
+## Light pools stay warm: amber for the guns and supplies, a hotter sodium for
+## the three power pads. Never red (Union tells) or cyan (the Inheritance).
+const POOL_WARM: Color = Color(1.0, 0.72, 0.38)
+const POOL_POWER: Color = Color(1.0, 0.8, 0.46)
 
 var _solids: Array = []
 var _views: Array[MeshInstance3D] = []
 var _materials: Dictionary[String, Material] = {}
 var _batches: Dictionary[String, SurfaceTool] = {}
+var _atlas_tool: SurfaceTool
+var _bodies: Array[Dictionary] = []
+## Pad ids already staged, so a pickup recreated on the same pad reuses its kit.
+var _staged_pads: Dictionary[String, float] = {}
 var _batch_materials: Dictionary[String, Material] = {}
 var _clock: float = 0.0
 var _cruiser: Node3D
@@ -108,12 +148,21 @@ var _office_windows: Array[MeshInstance3D] = []
 var _neon_light: OmniLight3D
 var _neon_letters: Array[Label3D] = []
 var _train: Node3D
+## At most six reading stops including the LARAK neon and the van's mark. Small canon marks are kept
+## separately; the cars, tent, crane and deck colours carry the other places.
+const READING_STOPS: Array[String] = ["WORLD_LARAK_PIT",
+	"WORLD_LARAK_LOW_RAMP", "WORLD_LARAK_SIGNATURE"]
+const CANON_MARKS: Array[String] = ["WORLD_LARAK_SIX", "WORLD_LARAK_67", "WORLD_LARAK_ARTICLE_7"]
+var _reading_stops: Dictionary[String, bool] = {}
 
 func build(info: Dictionary, views: Array[MeshInstance3D]) -> void:
 	name = "LarakLot"
 	add_to_group(GROUP)
+	# Pickups ask this presenter what their pads stand on (`stage_pickup`).
+	add_to_group(PICKUP_STAGE)
 	_solids = info.get("solids", [])
 	_views = views
+	_surfaces()
 	_structure()
 	_grime()
 	_floor_paint()
@@ -224,7 +273,10 @@ func _support(x: float, z: float, ceiling: float) -> float:
 ## Materials and batching
 ## ---------------------------------------------------------------------------
 
-func _mat(key: String, color: Color, texture: String = "", emission: float = 0.0, scale: float = 0.125) -> Material:
+## A painted part. A textured one is world-triplanar at the lot's one texel
+## density, whatever the tile's size, so a banner, a plate and a deck share
+## the same pixel grain (`test_larak_surfaces.gd` holds every material to it).
+func _mat(key: String, color: Color, texture: String = "", emission: float = 0.0) -> Material:
 	if _materials.has(key):
 		return _materials[key]
 	var material: StandardMaterial3D = StandardMaterial3D.new()
@@ -238,7 +290,7 @@ func _mat(key: String, color: Color, texture: String = "", emission: float = 0.0
 			material.albedo_texture = tile
 			material.uv1_triplanar = true
 			material.uv1_world_triplanar = true
-			material.uv1_scale = Vector3.ONE * scale
+			material.uv1_scale = Vector3.ONE * ArenaMaterials.TEXELS_PER_METRE / float(tile.get_width())
 	if emission > 0.0:
 		material.emission_enabled = true
 		material.emission = color
@@ -271,6 +323,7 @@ func _box(key: String, material: Material, center: Vector3, size: Vector3, rotat
 	mesh.size = size
 	var basis: Basis = Basis.from_euler(rotation)
 	_batches[key].append_from(mesh, 0, Transform3D(basis, center))
+	_record(key, Transform3D(basis, center) * AABB(-size * 0.5, size))
 
 func _cylinder(key: String, material: Material, center: Vector3, radius: float, height: float, rotation: Vector3 = Vector3.ZERO, sides: int = 10) -> void:
 	if not _batches.has(key):
@@ -285,6 +338,92 @@ func _cylinder(key: String, material: Material, center: Vector3, radius: float, 
 	mesh.radial_segments = sides
 	mesh.rings = 1
 	_batches[key].append_from(mesh, 0, Transform3D(Basis.from_euler(rotation), center))
+	_record(key, Transform3D(Basis.from_euler(rotation), center) * AABB(Vector3(-radius, -height * 0.5, -radius), Vector3(radius * 2.0, height, radius * 2.0)))
+
+## Batched bodies, kept by bounds so `visible_bodies` can name each one a
+## batch merged away. Paint and decals lie flat and are not bodies.
+func _record(key: String, bounds: AABB) -> void:
+	if not key.begins_with("paint") and not key.begins_with("decal"):
+		_bodies.append({"name": key, "aabb": bounds})
+
+## Every drawn body in the lot, by world bounds: each batched box and drum,
+## every part and prepared prop. `test_larak_surfaces.gd` holds each one to a
+## server solid, or to lying flat, sitting overhead or hugging a wall, so
+## nothing a fighter sees looks like cover that is not there.
+func visible_bodies() -> Array[Dictionary]:
+	var bodies: Array[Dictionary] = []
+	for body: Dictionary in _bodies:
+		bodies.append({"name": body["name"], "aabb": global_transform * (body["aabb"] as AABB)})
+	for node: Node in find_children("*", "GeometryInstance3D", true, false):
+		var shape: GeometryInstance3D = node as GeometryInstance3D
+		if shape.name.begins_with("Batch_") or not shape.is_visible_in_tree() or shape is Label3D:
+			continue
+		var bounds: AABB = shape.get_aabb()
+		if bounds.size.length() <= 0.0:
+			continue
+		bodies.append({"name": str(shape.get_path()), "aabb": shape.global_transform * bounds})
+	return bodies
+
+## The atlas material: crisp cells, alpha-stepped, lit like the deck under it.
+func _atlas_material() -> Material:
+	if _materials.has("decal_atlas"):
+		return _materials["decal_atlas"]
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_texture = load(DECAL_ATLAS) as Texture2D
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.roughness = 1.0
+	material.metallic_specular = 0.0
+	_materials["decal_atlas"] = material
+	return material
+
+## Lay one atlas cell at its own size (its pixels at 16 per metre), centred
+## on `center`: flat on a floor turned by `yaw`, or upright on a wall facing
+## `normal`. Into the shared batch unless `tool` names another.
+func _atlas(cell: String, center: Vector3, yaw: float = 0.0, normal: Vector3 = Vector3.UP, tool: SurfaceTool = null) -> void:
+	if not DECAL_CELLS.has(cell):
+		return
+	if tool == null:
+		if _atlas_tool == null:
+			_atlas_tool = SurfaceTool.new()
+			_atlas_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		tool = _atlas_tool
+	var rect: Rect2i = DECAL_CELLS[cell]
+	var size: Vector2 = Vector2(rect.size) / ArenaMaterials.TEXELS_PER_METRE
+	var across: Vector3
+	var down: Vector3
+	if normal.is_equal_approx(Vector3.UP):
+		across = Vector3(cos(yaw), 0.0, -sin(yaw))
+		down = Vector3(sin(yaw), 0.0, cos(yaw))
+	else:
+		across = Vector3.UP.cross(normal).normalized()
+		down = Vector3.DOWN
+	var uv0: Vector2 = Vector2(rect.position) / Vector2(DECAL_ATLAS_SIZE)
+	var uv1: Vector2 = Vector2(rect.end) / Vector2(DECAL_ATLAS_SIZE)
+	var corners: Array[Vector3] = [
+		center - across * size.x * 0.5 - down * size.y * 0.5, center + across * size.x * 0.5 - down * size.y * 0.5,
+		center + across * size.x * 0.5 + down * size.y * 0.5, center - across * size.x * 0.5 + down * size.y * 0.5]
+	var uvs: Array[Vector2] = [uv0, Vector2(uv1.x, uv0.y), uv1, Vector2(uv0.x, uv1.y)]
+	for corner: int in [0, 1, 2, 0, 2, 3]:
+		tool.set_normal(normal)
+		tool.set_uv(uvs[corner])
+		tool.add_vertex(corners[corner])
+
+func _flush_atlas(tool: SurfaceTool, node_name: String) -> MeshInstance3D:
+	if tool == null:
+		return null
+	var mesh: ArrayMesh = tool.commit()
+	if mesh.get_surface_count() == 0:
+		return null
+	var node: MeshInstance3D = MeshInstance3D.new()
+	node.name = node_name
+	node.mesh = mesh
+	node.material_override = _atlas_material()
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+	return node
 
 ## A flat paint mark lying on a floor at `y`.
 func _floor_mark(key: String, material: Material, x: float, z: float, y: float, size_x: float, size_z: float, yaw: float = 0.0) -> void:
@@ -303,9 +442,19 @@ func _flush_batches() -> void:
 		add_child(node)
 	_batches.clear()
 	_batch_materials.clear()
+	_flush_atlas(_atlas_tool, "Batch_decal_atlas")
+	_atlas_tool = null
 
 ## A keyed world sign, flat on a face. `basis` points the text's +Z outward.
 func _sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color, backing: Color = Color(0, 0, 0, 0), glow: float = 0.0) -> Label3D:
+	if key not in CANON_MARKS:
+		if key not in READING_STOPS or _reading_stops.has(key):
+			# The bookmaker still keeps a slate, but it reads as bets and
+			# tally strokes rather than paragraphs addressed to the player.
+			if key in ["WORLD_LARAK_LEDGER", "WORLD_LARAK_LEDGER_2", "WORLD_LARAK_ODDS"]:
+				_betting_slate(center, yaw, size)
+			return null
+		_reading_stops[key] = true
 	if backing.a > 0.0:
 		var plate: MeshInstance3D = MeshInstance3D.new()
 		var quad: QuadMesh = QuadMesh.new()
@@ -324,6 +473,18 @@ func _sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color, 
 	add_child(label)
 	return label
 
+func _betting_slate(center: Vector3, yaw: float, size: Vector2) -> void:
+	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
+	var slate: Material = _mat("betting_slate", Color("253028"))
+	var chalk: Material = _mat("betting_chalk", Color("afa88c"))
+	_box("betting_slate", slate, center, Vector3(size.x, size.y, 0.012), Vector3(0.0, yaw, 0.0))
+	for row: int in range(3):
+		for stroke: int in range(3 + row):
+			var local: Vector3 = Vector3(-size.x * 0.34 + float(stroke) * size.x * 0.12,
+				size.y * (0.28 - float(row) * 0.28), 0.012)
+			_box("betting_chalk", chalk, center + basis * local,
+				Vector3(minf(size.x * 0.018, 0.035), size.y * 0.13, 0.006), Vector3(0.0, yaw, -0.12))
+
 ## ---------------------------------------------------------------------------
 ## The building: coping, level colours, drive lanes, services
 ## ---------------------------------------------------------------------------
@@ -334,11 +495,54 @@ const LEVEL_COLORS: Dictionary[String, Color] = {
 	"1": Color("4f8a6c"), "2": Color("b8892f"), "3": Color("57709e"), "R": Color("7a5a9a"),
 }
 
+## The surface class of a solid. Steel is tread, or a raised deck (the
+## Bridge, the Toll canopy) whose beam is structural concrete. Of the cast
+## concrete, the shear walls and the Low Ramp's sight screen are heavier
+## structure, a ground box no taller than a deck edge is a kerb (its tyre rub
+## at the foot of each 1.5 m band), and the rest is tall wall. Every concrete
+## class tops out in the same deck concrete.
+static func surface_class(solid: Dictionary, steel: bool = false) -> String:
+	var min_x: float = float(solid["min_x"])
+	var max_x: float = float(solid["max_x"])
+	var min_z: float = float(solid["min_z"])
+	var max_z: float = float(solid["max_z"])
+	var top: float = float(solid.get("top", MoveStep.WALL_TOP))
+	var bottom: float = float(solid.get("bottom", 0.0))
+	if steel:
+		return "slab" if bottom > 0.0 else "ramp"
+	var shear: bool = absf(top - 4.6) < 0.01 and (max_x - min_x) < 0.7 and minf(absf(min_x + 10.6), absf(min_x - 10.0)) < 0.01
+	var screen: bool = absf(top - 4.0) < 0.01 and absf(min_z - 1.5) < 0.01 and absf(max_z - 2.0) < 0.01
+	if shear or screen:
+		return "shear"
+	if bottom <= 0.0 and top <= 1.6:
+		return "kerb"
+	return "wall"
+
+## Kerbs and shear walls take their own class on the concrete the material
+## pass already tiled; the boundary bands outside the shell match the walls.
+func _surfaces() -> void:
+	var wall: ShaderMaterial = ArenaMaterials.larak_class("wall")
+	var ramp: ShaderMaterial = ArenaMaterials.larak_class("ramp")
+	if wall == null or ramp == null:
+		return
+	for index: int in range(mini(_solids.size(), _views.size())):
+		var view: MeshInstance3D = _views[index]
+		if not is_instance_valid(view) or not view.material_override in [wall, ramp]:
+			continue
+		var material: ShaderMaterial = ArenaMaterials.larak_class(surface_class(_solids[index], view.material_override == ramp))
+		if material != null:
+			view.material_override = material
+	var cover: Node = get_parent()
+	for side: int in range(4):
+		var boundary: MeshInstance3D = cover.get_node_or_null("MapBoundary%d" % side) as MeshInstance3D if cover != null else null
+		if boundary != null:
+			boundary.material_override = wall
+
 func _structure() -> void:
 	# Gravel and coping on the shell tops, so the walls read as a building
 	# from the spectator camera rather than as slabs of floor.
-	var gravel: Material = _mat("shell_top", Color("77726a"), EARTH + "earth_roof_tar_patches.png", 0.0, 0.0625)
-	var coping: Material = _mat("coping", Color("9b958a"), PRODUCTION + "scrap_trim.png", 0.0, 0.25)
+	var gravel: Material = _mat("shell_top", Color("77726a"), EARTH + "earth_roof_tar_patches.png")
+	var coping: Material = _mat("coping", Color("9b958a"), PRODUCTION + "scrap_trim.png")
 	for s: Dictionary in _solids:
 		var top: float = float(s.get("top", MoveStep.WALL_TOP))
 		var min_x: float = float(s["min_x"])
@@ -431,8 +635,6 @@ func _band(level: String, center: Vector3, size: Vector3) -> void:
 func _floor_paint() -> void:
 	var line: Material = _decal("paint_line", LINE_PAINT)
 	var worn: Material = _decal("decal_worn", Color("2a2622"), 0.55)
-	var burn: Material = _decal("decal_burn", Color("141210"), 0.7)
-	var oil: Material = _decal("decal_oil", Color("0d0e10"), 0.45)
 	# Bay lines: the lot's own grid, still there under the league's paint.
 	for i: int in range(10):
 		var z: float = -2.0 + float(i) * 2.8
@@ -451,11 +653,19 @@ func _floor_paint() -> void:
 	# before the bays fell in, and where it burns its debts now.
 	for i: int in range(14):
 		var a: float = float(i) * 0.45
-		_floor_mark("decal_burn", burn, cos(a) * 4.2 - 1.0, sin(a) * 3.4 + 1.0, PIT + 0.002, 1.6, 0.32, a + PI * 0.5)
+		_atlas("burn_0", Vector3(cos(a) * 4.2 - 1.0, PIT + 0.006, sin(a) * 3.4 + 1.0), a + PI * 0.5)
 	for at: Vector2 in [Vector2(-5.5, -6.0), Vector2(6.0, 5.0), Vector2(-2.0, 7.0), Vector2(3.0, -8.0)]:
 		_floor_mark("decal_worn", worn, at.x, at.y, PIT + 0.004, 2.4, 1.8, at.x)
-	for at: Vector3 in [Vector3(-32.0, LEVEL_1, 9.0), Vector3(-29.0, LEVEL_1, 1.0), Vector3(18.0, LEVEL_1, 14.0), Vector3(31.0, LEVEL_1, 5.0), Vector3(-26.0, LEVEL_2, -22.0), Vector3(22.0, ROOF, -22.0), Vector3(-5.0, LEVEL_1, 14.0)]:
-		_floor_mark("decal_oil", oil, at.x, at.z, at.y + 0.004, 1.3, 0.9, at.x * 0.7)
+	# Oil where cars stood for years, on every deck.
+	var spills: Array[Vector3] = [Vector3(-32.0, LEVEL_1, 9.0), Vector3(-29.0, LEVEL_1, 1.0), Vector3(18.0, LEVEL_1, 14.0),
+		Vector3(31.0, LEVEL_1, 5.0), Vector3(-26.0, LEVEL_2, -22.0), Vector3(22.0, ROOF, -22.0), Vector3(-5.0, LEVEL_1, 14.0),
+		Vector3(-33.5, LEVEL_1, 14.6), Vector3(-33.0, LEVEL_1, 20.0), Vector3(17.0, LEVEL_1, 9.6), Vector3(22.6, LEVEL_1, 9.4),
+		Vector3(30.0, LEVEL_1, 9.2), Vector3(-21.0, LEVEL_2, -19.5), Vector3(-27.0, LEVEL_2, -8.5), Vector3(10.0, ROOF, -25.4),
+		Vector3(18.0, ROOF, -25.6), Vector3(26.0, LEVEL_2, -7.0), Vector3(14.0, ROOF, -12.4)]
+	for index: int in range(spills.size()):
+		var at: Vector3 = spills[index]
+		if absf(_support(at.x, at.z, at.y + 0.01) - at.y) < 0.01:
+			_atlas("oil_%d" % (index % 3), Vector3(at.x, at.y + 0.008, at.z), at.x * 0.7)
 	# The Settlement Circle round the origin, the jammer ring's radius, with
 	# tally marks where the bay numbers used to be.
 	var ring: MeshInstance3D = MeshInstance3D.new()
@@ -479,7 +689,7 @@ func _floor_paint() -> void:
 	for at: Vector2 in [Vector2(-7.5, 7.0), Vector2(7.5, -7.5), Vector2(0.0, 8.5)]:
 		_box("grate", grate, Vector3(at.x, 0.01, at.y), Vector3(1.2, 0.02, 0.6))
 	# The Roof: tar patches over a leaking deck.
-	var tar: Material = _mat("tar", Color("f2ede4"), EARTH + "earth_roof_tar_patches.png", 0.0, 0.0625)
+	var tar: Material = _mat("tar", Color("f2ede4"), EARTH + "earth_roof_tar_patches.png")
 	for patch: Vector4 in [Vector4(9.0, -24.5, 6.0, 5.0), Vector4(21.0, -22.0, 7.0, 4.0), Vector4(16.0, -14.0, 5.0, 6.0),
 			Vector4(28.0, -12.5, 8.0, 4.0), Vector4(33.0, -25.0, 4.0, 5.0)]:
 		_box("tar", tar, Vector3(patch.x, ROOF + 0.006, patch.y), Vector3(patch.z, 0.01, patch.w))
@@ -678,7 +888,7 @@ func _van(base: Vector3, size: Vector3, on_side: bool, style: String) -> void:
 		# On its side: the roof faces west, the wheels east. The waist band
 		# now stands on end round the body; the issued door plates face the
 		# sky, and the roof with its dead light bar faces the Roof deck.
-		var bone: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png", 0.0, 0.5)
+		var bone: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png")
 		var west: float = -(size.x - 0.3) * 0.5
 		_part(root, body, Vector3(0.0, size.y * 0.5, 0.0), Vector3(size.x - 0.3, size.y, size.z))
 		_part(root, band, Vector3(-0.1, size.y * 0.5, 0.0), Vector3(0.08, size.y + 0.02, size.z + 0.02))
@@ -793,13 +1003,14 @@ func _toll() -> void:
 		if _replace(x - 1.0, -17.0, x + 1.0, -13.0, 5.8):
 			_prop("toll_booth", Vector3(x, LEVEL_2, -15.0), 0.0)
 		# Barrier arms: hazard striped, two snapped short, and the east one
-		# still on its motor.
-		_box("arm_black", arm_black, Vector3(x + 1.25, 4.05, -12.9), Vector3(0.3, 0.3, 0.3))
+		# still on its motor. Each motor sits in its booth's lane-end corner,
+		# inside the booth's own solid; only the thin arm reaches the lane.
+		_box("arm_black", arm_black, Vector3(x + 0.85, 4.05, -13.15), Vector3(0.3, 0.3, 0.3))
 		if index < 2:
-			_box("arm_yellow", arm_yellow, Vector3(x + 1.55, 4.45, -12.9), Vector3(0.8, 0.12, 0.12), Vector3(0.0, 0.0, 1.1 if index == 1 else 0.7))
+			_box("arm_yellow", arm_yellow, Vector3(x + 1.3, 4.4, -12.94), Vector3(0.8, 0.12, 0.12), Vector3(0.0, 0.0, 1.1 if index == 1 else 0.7))
 	_toll_arm = Node3D.new()
 	_toll_arm.name = "TollArm"
-	_toll_arm.position = Vector3(-16.75, 4.12, -12.9)
+	_toll_arm.position = Vector3(-17.0, 4.12, -12.94)
 	add_child(_toll_arm)
 	for i: int in range(3):
 		_part(_toll_arm, arm_yellow if i % 2 == 0 else arm_black, Vector3(0.15 + float(i) * 0.3, 0.0, 0.0), Vector3(0.3, 0.12, 0.12))
@@ -817,8 +1028,8 @@ func _toll() -> void:
 ## centred on the machine). Larak's approval is pasted on its blank plate;
 ## a dead one has its screen dark, the live one still asks to be paid.
 func _pay_machine(wall: Vector3, live: bool) -> Node3D:
-	var machine: Node3D = _prop("pay_machine", wall + Vector3(0.0, 0.0, PAY_DEPTH * 0.5), 0.0)
-	var face: float = wall.z + PAY_DEPTH + 0.008
+	var machine: Node3D = _prop("pay_machine", wall + Vector3(0.0, 0.0, PAY_DEPTH * 0.5 - WALL_INSET), 0.0)
+	var face: float = wall.z + PAY_DEPTH - WALL_INSET + 0.008
 	_sign("WORLD_LARAK_SIGNATURE", Vector3(wall.x + PAY_PLATE.x, wall.y + PAY_PLATE.y, face), 0.0, PAY_PLATE_SIZE, Color("1b1d1c"), Color("c9c2a8"))
 	var screen: Vector3 = Vector3(wall.x + PAY_SCREEN.x, wall.y + PAY_SCREEN.y, face)
 	if live:
@@ -927,8 +1138,8 @@ func _impound_and_crane() -> void:
 	_box("office_door", _mat("office_door", Color("4b3b2c")), Vector3(32.0, 2.6, 22.98), Vector3(1.0, 2.1, 0.04))
 	# Its back to the cabin, its face to the lot: Larak's approval on the
 	# blank plate, and the league's own notice taped over the smoked panel.
-	_prop("coffee_machine", Vector3(30.2, LEVEL_1, 23.0 - COFFEE_DEPTH * 0.5), PI)
-	var face: float = 23.0 - COFFEE_DEPTH - 0.008
+	_prop("coffee_machine", Vector3(30.2, LEVEL_1, 23.0 - COFFEE_DEPTH * 0.5 + WALL_INSET), PI)
+	var face: float = 23.0 - COFFEE_DEPTH + WALL_INSET - 0.008
 	_sign("WORLD_LARAK_COFFEE", Vector3(30.2 - COFFEE_PLATE.x, LEVEL_1 + COFFEE_PLATE.y, face), PI, COFFEE_PLATE_SIZE, Color("1b1d1c"), Color("c9c2a8"))
 	_sign("WORLD_LARAK_OUT_OF_ORDER", Vector3(30.2 - COFFEE_NOTICE.x, LEVEL_1 + COFFEE_NOTICE.y, face), PI, COFFEE_NOTICE_SIZE, Color("2a2a2a"), Color("e3dcc4"))
 	# A Night Watch grid stencil on a bay column.
@@ -968,7 +1179,7 @@ func _seal(center: Vector3, yaw: float, radius: float, cut: bool) -> void:
 		_box("seal_cut", _mat("seal_cut", Color("c9c6be")), center + basis.z * 0.014, Vector3(radius * 2.9, 0.035, 0.01), Vector3(0.0, yaw, 0.85))
 
 func _banner(center: Vector3, yaw: float, size: Vector2) -> void:
-	var cloth: Material = _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5)
+	var cloth: Material = _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png")
 	var ember: Material = _mat("banner_ember", LEAGUE_EMBER)
 	var rust: Material = _mat("banner_rust", LEAGUE_RUST)
 	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
@@ -992,7 +1203,7 @@ func _range_still_runs() -> void:
 ## The Office's seal on each booth, cut through with a blade, is painted on
 ## the booth model's lane end.
 func _office_paper() -> void:
-	var bare: Material = _mat("plate_ground", Color("b9b5aa"), PRODUCTION + "union_steel.png", 0.0, 1.0)
+	var bare: Material = _mat("plate_ground", Color("b9b5aa"), PRODUCTION + "union_steel.png")
 	_box("plate_ground", bare, Vector3(-30.0, 4.4, -17.012), Vector3(0.7, 0.4, 0.01))
 	var scratch: Material = _decal("decal_scratch", Color("ece8de"), 0.9)
 	for i: int in range(4):
@@ -1049,7 +1260,7 @@ func _six(center: Vector3, yaw: float, radius: float, ink: Color) -> void:
 ## machine, the hymn board, the chairs and the prayer card all sit flat to the
 ## north wall above the Spiral landing, so none of it reads as cover.
 func _revival() -> void:
-	var canvas: Material = _mat("revival_canvas", Color("b38f5a"), PRODUCTION + "detail_yard_fabric.png", 0.0, 0.25)
+	var canvas: Material = _mat("revival_canvas", Color("b38f5a"), PRODUCTION + "detail_yard_fabric.png")
 	var stripe: Material = _mat("revival_stripe", Color("8a3f2c"))
 	_box("revival_canvas", canvas, Vector3(-3.0, 7.2, -26.8), Vector3(6.0, 0.08, 2.4), Vector3(-0.22, 0.0, 0.0))
 	for i: int in range(4):
@@ -1068,15 +1279,15 @@ func _revival() -> void:
 	_cylinder("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.7, -27.82), 0.09, 0.16, Vector3.ZERO, 10)
 	_box("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.83, -27.82), Vector3(0.03, 0.12, 0.03))
 	var stole: Material = _mat("stole_cable", Color("d4b13c"))
-	var front: float = -28.0 + PAY_DEPTH + 0.02
+	var front: float = -28.0 + PAY_DEPTH - WALL_INSET + 0.02
 	_box("stole_cable", stole, Vector3(-2.66, LEVEL_3 + 1.25, front), Vector3(0.04, 0.75, 0.03), Vector3(0.0, 0.0, 0.08))
-	_box("stole_cable", stole, Vector3(-2.8, LEVEL_3 + 1.62, front - 0.1), Vector3(0.3, 0.04, 0.22))
+	_box("stole_cable", stole, Vector3(-2.8, LEVEL_3 + 1.62, front - 0.13), Vector3(0.3, 0.04, 0.22))
 	# The hymn board and the prayer card, pinned beside it.
 	_sign("WORLD_LARAK_HYMNS", Vector3(-5.1, 5.75, -27.97), 0.0, Vector2(1.5, 1.7), LEAGUE_CREAM, Color("3a2a1e"))
 	_sign("WORLD_LARAK_PRAYER", Vector3(-1.3, 5.95, -27.965), 0.0, Vector2(0.62, 0.42), Color("2a2420"), Color("e6dcc0"))
 	# Folding chairs hung flat on the wall, and a crate of fish oil on a
 	# shelf above them, all over head height.
-	var chair: Material = _mat("revival_chair", Color("5d625e"), EARTH + "earth_workshop_patched_steel.png", 0.0, 0.5)
+	var chair: Material = _mat("revival_chair", Color("5d625e"), EARTH + "earth_workshop_patched_steel.png")
 	for i: int in range(4):
 		var x: float = -0.4 + float(i) * 0.12
 		_box("revival_chair", chair, Vector3(x - 0.2, 6.75, -27.94 + float(i) * 0.02), Vector3(0.44, 0.78, 0.02))
@@ -1157,7 +1368,7 @@ func _repossession() -> void:
 	var body: Material = _mat("car_union", UNION_BLACK)
 	var glass: Material = _mat("car_glass", Color("15191c"))
 	var band: Material = _mat("union_band", UNION_RED)
-	var plate: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png", 0.0, 0.5)
+	var plate: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png")
 	_part(car, body, Vector3(0.0, 0.5, 0.0), Vector3(4.4, 0.55, 1.8))
 	_part(car, body, Vector3(-0.15, 1.05, 0.0), Vector3(2.3, 0.55, 1.6))
 	_part(car, glass, Vector3(-0.15, 1.07, 0.0), Vector3(2.1, 0.4, 1.64))
@@ -1177,7 +1388,7 @@ func _repossession() -> void:
 		for fz: float in [-0.8, 0.8]:
 			_part(car, _mat("tyre", Color("151515")), Vector3(fx, 0.25, fz), Vector3(0.7, 0.7, 0.22))
 	# League banner wrapped round the boot.
-	_part(car, _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5), Vector3(-1.75, 0.7, 0.0), Vector3(0.9, 1.0, 1.84))
+	_part(car, _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png"), Vector3(-1.75, 0.7, 0.0), Vector3(0.9, 1.0, 1.84))
 	_part(car, _mat("banner_ember", LEAGUE_EMBER), Vector3(-1.75, 0.7, 0.0), Vector3(0.25, 1.02, 1.86))
 	# The light bar, both lenses swapped for league amber.
 	var lens: StandardMaterial3D = _mat("bar_amber", LEAGUE_AMBER, "", 1.6).duplicate() as StandardMaterial3D
@@ -1220,7 +1431,7 @@ func _repossession() -> void:
 	_crane(cable)
 
 func _crane(cable: Material) -> void:
-	var paint: Material = _mat("crane_yellow", Color("b9902e"), EARTH + "earth_workshop_patched_steel.png", 0.0, 0.25)
+	var paint: Material = _mat("crane_yellow", Color("b9902e"), EARTH + "earth_workshop_patched_steel.png")
 	var mast_at: Vector3 = Vector3(47.0, 0.0, -46.0)
 	var height: float = 30.0
 	for corner: Vector2 in [Vector2(-0.8, -0.8), Vector2(0.8, -0.8), Vector2(-0.8, 0.8), Vector2(0.8, 0.8)]:
@@ -1345,6 +1556,184 @@ func _office_block() -> void:
 func plate_claimed() -> void:
 	_plate_flare = 1.2
 
+## ---------------------------------------------------------------------------
+## The pad kit
+## ---------------------------------------------------------------------------
+
+## A pickup asks what its pad stands on (WeaponPickup's stage group). The
+## first ask builds the pad's kit at the floor the server put it on, so the
+## kit follows the server's pads rather than a second copy of their table:
+## the Rocket's cradle exists only where the Rocket is laid. Returns the
+## seat's height over that floor.
+func stage_pickup(id: String, kind: String, _weapon: String, floor_at: Vector3) -> float:
+	if _staged_pads.has(id):
+		return _staged_pads[id]
+	var seat: float = {RAIL_ID: RAIL_DAIS, PLATE_ID: PLATE_PEDESTAL, ROCKET_ID: ROCKET_CRADLE}.get(id, 0.0)
+	var power: bool = seat > 0.0
+	var kit: Node3D = Node3D.new()
+	kit.name = "Pad_" + id.validate_node_name()
+	kit.position = to_local(floor_at)
+	add_child(kit)
+	var marks: SurfaceTool = SurfaceTool.new()
+	marks.begin(Mesh.PRIMITIVE_TRIANGLES)
+	match id:
+		RAIL_ID:
+			_rail_dais(kit)
+			_atlas("scorch_1", Vector3(1.1, 0.008, 0.7), 0.6, Vector3.UP, marks)
+		PLATE_ID:
+			_plate_pedestal(kit)
+		ROCKET_ID:
+			_atlas("scorch_pad", Vector3(0.0, 0.008, 0.0), 0.3, Vector3.UP, marks)
+			_rocket_cradle(kit)
+		_:
+			if kind == "weapon":
+				_atlas("scorch_1", Vector3(-0.9, 0.008, 0.55), float(id.length()), Vector3.UP, marks)
+	_pad_ring(kit, seat)
+	_pad_pool(kit, seat, power)
+	var drawn: MeshInstance3D = _flush_atlas(marks, "PadMarks")
+	if drawn != null:
+		drawn.reparent(kit, false)
+	_staged_pads[id] = seat
+	return seat
+
+## The recessed ring every pad sits in: a dark well inside a worn steel lip,
+## with a thin warm lamp strip round the well.
+func _pad_ring(kit: Node3D, seat: float) -> void:
+	var well: MeshInstance3D = MeshInstance3D.new()
+	well.name = "Well"
+	var disc: CylinderMesh = CylinderMesh.new()
+	disc.top_radius = PAD_RING_RADIUS - 0.12
+	disc.bottom_radius = PAD_RING_RADIUS - 0.12
+	disc.height = 0.01
+	disc.radial_segments = 24
+	disc.rings = 1
+	well.mesh = disc
+	well.position = Vector3(0.0, seat + 0.004, 0.0)
+	well.material_override = _mat("pad_well", Color("24221f"))
+	well.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	kit.add_child(well)
+	var lip: MeshInstance3D = _flat_ring("Lip", PAD_RING_RADIUS - 0.12, PAD_RING_RADIUS, seat + 0.008, ArenaMaterials.larak_class("ramp"))
+	kit.add_child(lip)
+	var lamp: MeshInstance3D = _flat_ring("Lamp", PAD_RING_RADIUS - 0.17, PAD_RING_RADIUS - 0.13, seat + 0.009, _mat("pad_lamp", Color("ffc67a"), "", 1.1))
+	kit.add_child(lamp)
+
+## A flat annulus on a floor, one texel proud.
+func _flat_ring(node_name: String, inner: float, outer: float, y: float, material: Material) -> MeshInstance3D:
+	var ring: MeshInstance3D = MeshInstance3D.new()
+	ring.name = node_name
+	var torus: TorusMesh = TorusMesh.new()
+	torus.inner_radius = inner
+	torus.outer_radius = outer
+	torus.rings = 32
+	torus.ring_segments = 4
+	ring.mesh = torus
+	# The torus's tube is as tall as it is wide; flatten it to a 12 mm lip.
+	ring.scale = Vector3(1.0, 0.012 / maxf(outer - inner, 0.01), 1.0)
+	ring.position = Vector3(0.0, y, 0.0)
+	ring.material_override = material
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return ring
+
+static var _pool_texture: Texture2D
+
+## The light pool round a pad: warm light laid on the deck in stepped rings,
+## additive, so the floor under it brightens rather than being painted over.
+## No light node: the venue's light budget stays with its fixtures.
+func _pad_pool(kit: Node3D, seat: float, power: bool) -> void:
+	if _pool_texture == null:
+		var image: Image = Image.create(POOL_PIXELS, POOL_PIXELS, false, Image.FORMAT_RGBA8)
+		var half: float = float(POOL_PIXELS) * 0.5
+		for y: int in range(POOL_PIXELS):
+			for x: int in range(POOL_PIXELS):
+				var d: float = Vector2(float(x) + 0.5 - half, float(y) + 0.5 - half).length() / half
+				var alpha: float = 0.0 if d >= 1.0 else floorf((1.0 - d) * 4.0 + 0.6) / 4.0
+				image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+		_pool_texture = ImageTexture.create_from_image(image)
+	var key: String = "pad_pool_power" if power else "pad_pool"
+	if not _materials.has(key):
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_texture = _pool_texture
+		material.albedo_color = Color(POOL_POWER if power else POOL_WARM, 0.26 if power else 0.16)
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+		_materials[key] = material
+	var pool: MeshInstance3D = MeshInstance3D.new()
+	pool.name = "Pool"
+	var quad: PlaneMesh = PlaneMesh.new()
+	quad.size = Vector2.ONE * float(POOL_PIXELS) / ArenaMaterials.TEXELS_PER_METRE
+	pool.mesh = quad
+	pool.position = Vector3(0.0, maxf(seat, 0.0) + 0.014, 0.0)
+	pool.material_override = _materials[key]
+	pool.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	kit.add_child(pool)
+
+## The Rail's dais at the foot of the Low Ramp: a low octagon of tread plate
+## with a hazard lip, the one gun in the lot that gets a stage.
+func _rail_dais(kit: Node3D) -> void:
+	var dais: MeshInstance3D = MeshInstance3D.new()
+	dais.name = "Dais"
+	var octagon: CylinderMesh = CylinderMesh.new()
+	octagon.top_radius = 1.05
+	octagon.bottom_radius = 1.1
+	octagon.height = RAIL_DAIS
+	octagon.radial_segments = 8
+	octagon.rings = 1
+	dais.mesh = octagon
+	dais.position = Vector3(0.0, RAIL_DAIS * 0.5, 0.0)
+	dais.rotation.y = PI / 8.0
+	dais.material_override = ArenaMaterials.larak_class("ramp")
+	kit.add_child(dais)
+	kit.add_child(_flat_ring("HazardLip", 0.95, 1.05, RAIL_DAIS + 0.002, _decal("paint_hazard", HAZARD_YELLOW)))
+
+## The Plate's pedestal in the valet circle: a steel road plate the league
+## dropped on two sleepers, its edges sprayed in league ember.
+func _plate_pedestal(kit: Node3D) -> void:
+	var sleeper: Material = _mat("pedestal_sleeper", Color("4b3b2c"))
+	for side: float in [-0.45, 0.45]:
+		var block: MeshInstance3D = _part(kit, sleeper, Vector3(side, (PLATE_PEDESTAL - 0.04) * 0.5, 0.0), Vector3(0.24, PLATE_PEDESTAL - 0.04, 1.3))
+		block.name = "Sleeper"
+	var plate: MeshInstance3D = _part(kit, ArenaMaterials.larak_class("ramp"), Vector3(0.0, PLATE_PEDESTAL - 0.02, 0.0), Vector3(1.4, 0.04, 1.4))
+	plate.name = "RoadPlate"
+	var ember: Material = _decal("paint_ember", LEAGUE_EMBER)
+	for edge: Vector3 in [Vector3(0.0, 0.0, 0.66), Vector3(0.0, 0.0, -0.66)]:
+		var spray: MeshInstance3D = _part(kit, ember, edge + Vector3(0.0, PLATE_PEDESTAL + 0.002, 0.0), Vector3(1.3, 0.004, 0.06))
+		spray.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+## The Rocket's cradle behind the Stack: a scorched steel blast tub, the rim
+## at shin height, the launcher seated on its floor.
+func _rocket_cradle(kit: Node3D) -> void:
+	var rim: MeshInstance3D = MeshInstance3D.new()
+	rim.name = "Rim"
+	var tube: CylinderMesh = CylinderMesh.new()
+	tube.top_radius = 1.0
+	tube.bottom_radius = 1.06
+	tube.height = 0.16
+	tube.radial_segments = 12
+	tube.rings = 1
+	tube.cap_top = false
+	tube.cap_bottom = false
+	rim.mesh = tube
+	rim.position = Vector3(0.0, 0.08, 0.0)
+	var steel: Material = ArenaMaterials.larak_class("ramp")
+	rim.material_override = steel
+	kit.add_child(rim)
+	var floor_plate: MeshInstance3D = MeshInstance3D.new()
+	floor_plate.name = "TubFloor"
+	var disc: CylinderMesh = CylinderMesh.new()
+	disc.top_radius = 1.0
+	disc.bottom_radius = 1.0
+	disc.height = ROCKET_CRADLE
+	disc.radial_segments = 12
+	disc.rings = 1
+	floor_plate.mesh = disc
+	floor_plate.position = Vector3(0.0, ROCKET_CRADLE * 0.5, 0.0)
+	floor_plate.material_override = _mat("cradle_floor", Color("2c2a28"))
+	kit.add_child(floor_plate)
+	kit.add_child(_flat_ring("RimLip", 0.98, 1.08, 0.165, _decal("paint_hazard", HAZARD_YELLOW)))
+
 ## A transit train on the viaduct beyond the Stands: four lit carriages that
 ## sweep past every half minute. Emissive only; it spends no light budget.
 func _transit() -> void:
@@ -1373,7 +1762,9 @@ func _level_numbers() -> void:
 ## kerb, facing the Pit, with a steel rail along their backs. Each row fills
 ## its own collision box, so a shot stops where the seats are.
 func _stands_rows() -> void:
-	var kerb: Material = _mat("kerb", Color("8a857b"), PRODUCTION + "yard_concrete.png", 0.0, 0.25)
+	var kerb: Material = ArenaMaterials.larak_class("kerb")
+	if kerb == null:
+		kerb = _mat("kerb", Color("8a857b"), PRODUCTION + "yard_concrete.png")
 	var rail: Material = _mat("seat_rail", Color("4b4f4c"), EARTH + "earth_workshop_patched_steel.png")
 	var fabrics: Array[Color] = [Color("5a2a26"), Color("3b3d42"), Color("7a6448"), Color("2f3a34"), Color("6b2f2a")]
 	for center_x: float in [-6.5, 6.5]:
@@ -1383,7 +1774,7 @@ func _stands_rows() -> void:
 		for i: int in range(6):
 			var x: float = center_x - 2.08 + float(i) * 0.83
 			var key: String = "seat_%d" % ((i + int(center_x)) % fabrics.size() + fabrics.size())
-			var fabric: Material = _mat(key, fabrics[(i + int(absf(center_x))) % fabrics.size()], PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5)
+			var fabric: Material = _mat(key, fabrics[(i + int(absf(center_x))) % fabrics.size()], PRODUCTION + "detail_yard_fabric.png")
 			_box(key, fabric, Vector3(x, LEVEL_1 + 0.5, 12.95), Vector3(0.74, 0.2, 0.7))
 			_box(key, fabric, Vector3(x, LEVEL_1 + 0.68, 13.24), Vector3(0.74, 0.44, 0.14), Vector3(-0.12, 0.0, 0.0))
 			_box(key, fabric, Vector3(x, LEVEL_1 + 0.86, 13.28), Vector3(0.4, 0.12, 0.1))
@@ -1407,13 +1798,10 @@ func _floor_stencils() -> void:
 	_floor_sign("WORLD_LARAK_STENCIL_NO_PARKING", Vector3(-22.0, LEVEL_2, -6.5), 0.0, Vector2(4.4, 1.0), Color(0.85, 0.81, 0.62, 0.7))
 
 func _floor_sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color) -> void:
-	var label: WorldSign = WorldSign.new()
-	label.configure(key, size, Color(ink.r, ink.g, ink.b))
-	label.modulate = ink
-	label.position = center + Vector3(0.0, 0.022, 0.0)
-	label.rotation = Vector3(-PI * 0.5, yaw, 0.0)
-	label.rotation_order = EULER_ORDER_YXZ
-	add_child(label)
+	# Coloured lane bars reinforce each deck without another reading stop.
+	var paint: Material = _decal("paint_route_" + key, ink)
+	_floor_mark("paint_route_" + key, paint, center.x, center.z,
+		center.y + 0.022, size.x, minf(size.y, 0.16), yaw)
 
 ## Water, tyres and paper: the Pit's standing puddles under the floods, skid
 ## marks where cars were driven in anger, and betting slips blown across the
@@ -1432,7 +1820,6 @@ func _wet_and_worn() -> void:
 			Vector4(-19.5, 8.5, 1.8, 1.0), Vector4(-30.0, 1.0, 2.4, 1.6)]:
 		var floor_y: float = _support(pool.x, pool.y, 2.0)
 		_floor_mark("decal_puddle", puddle, pool.x, pool.y, floor_y + 0.006, pool.z, pool.w, pool.x * 0.3)
-	var skid: Material = _decal("decal_skid", Color("0f0e0d"), 0.6)
 	var seed: int = 4177
 	# Start x, z, heading and length: the marks follow a lazy arc and stop
 	# wherever the deck under them changes level.
@@ -1451,12 +1838,10 @@ func _wet_and_worn() -> void:
 			for pair: float in [-1.0, 1.0]:
 				var mark: Vector2 = at + side * pair
 				if absf(_support(mark.x, mark.y, floor_y + 0.01) - floor_y) < 0.01:
-					_floor_mark("decal_skid", skid, mark.x, mark.y, floor_y + 0.003, 1.1, 0.24, -heading)
-			var step: float = 1.0 + float(seed % 3) * 0.1
+					_atlas("skid_%d" % (seed % 2), Vector3(mark.x, floor_y + 0.007, mark.y), -heading)
+			var step: float = 1.1 + float(seed % 3) * 0.05
 			at += forward * step
 			t += step
-	var slip: Material = _decal("decal_slip", Color("ddd5bd"), 0.92)
-	var ticket: Material = _decal("decal_ticket", LEAGUE_EMBER, 0.9)
 	for i: int in range(140):
 		seed = (seed * 1103515245 + 12345) & 0x7fffffff
 		var x: float = -10.0 + float(seed % 2000) / 100.0
@@ -1466,17 +1851,21 @@ func _wet_and_worn() -> void:
 		# Keep slips off the kiosk and its tote board.
 		if (absf(x) < 2.2 and z > 15.8 and z < 19.2) or (absf(x) < 0.8 and z > 18.8):
 			continue
-		var material: Material = ticket if i % 5 == 0 else slip
-		_floor_mark("decal_slip" if material == slip else "decal_ticket", material, x, z, floor_y + 0.008, 0.14, 0.22, float(seed % 628) / 100.0)
-	# Scorch rings where debts were burned on the decks above.
-	var scorch: Material = _decal("decal_scorch", Color("17130f"), 0.42)
-	for at: Vector3 in [Vector3(-24.0, LEVEL_2, -21.5), Vector3(18.5, LEVEL_1, 11.0), Vector3(-30.0, LEVEL_1, 19.0), Vector3(14.5, ROOF, -15.0)]:
-		for i: int in range(7):
-			seed = (seed * 1103515245 + 12345) & 0x7fffffff
-			var a: float = float(seed % 628) / 100.0
-			var r: float = 0.15 + float((seed >> 8) % 70) / 100.0
-			var w: float = 0.4 + float((seed >> 12) % 60) / 100.0
-			_floor_mark("decal_scorch", scorch, at.x + cos(a) * r, at.z + sin(a) * r, at.y + 0.005 + float(i) * 0.0005, w, w * 0.7, a * 1.7)
+		var paper: String = "ticket_0" if i % 5 == 0 else "slip_%d" % (i % 3)
+		_atlas(paper, Vector3(x, floor_y + 0.009, z), float(seed % 628) / 100.0)
+	# Scorch where debts were burned on the decks above.
+	var burned: Array[Vector3] = [Vector3(-24.0, LEVEL_2, -21.5), Vector3(18.5, LEVEL_1, 11.0), Vector3(-30.0, LEVEL_1, 19.0), Vector3(14.5, ROOF, -15.0)]
+	for index: int in range(burned.size()):
+		seed = (seed * 1103515245 + 12345) & 0x7fffffff
+		var at: Vector3 = burned[index]
+		_atlas("scorch_%d" % (index % 2), Vector3(at.x, at.y + 0.008, at.z), float(seed % 628) / 100.0)
+	# League tags sprayed where the crowd stands: the Pit's east retaining
+	# face, between the Ledger boards, and the bays' back walls. Shapes, never
+	# words.
+	for tag: Array in [["tag_0", Vector3(9.97, 1.0, -8.0), Vector3.LEFT], ["tag_1", Vector3(9.97, 0.9, -1.6), Vector3.LEFT],
+			["drips_0", Vector3(0.9, 0.55, -9.97), Vector3.BACK], ["tag_2", Vector3(-15.5, 3.3, 27.98), Vector3.FORWARD],
+			["drips_0", Vector3(24.0, 3.3, 27.98), Vector3.FORWARD]]:
+		_atlas(str(tag[0]), tag[1], 0.0, tag[2])
 
 ## Headroom bars hung at the mouths of the covered bays, the oldest sign in
 ## any car park. They hang just under the soffit, well over any head.

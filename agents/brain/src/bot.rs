@@ -1002,6 +1002,8 @@ pub async fn run_bot(
                         }
                     }
                     Ok(ServerMessage::Board(_)) => {}
+                    // The booth is for watchers; a fighter never uses it.
+                    Ok(ServerMessage::SpectatorFacts(_)) => {}
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
                         if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {
@@ -1851,6 +1853,7 @@ mod tests {
             human_summary: false,
             overview: None,
             tick_trace: None,
+            head_to_head: None,
         };
         tokio::spawn(async move {
             let _ = run_server(

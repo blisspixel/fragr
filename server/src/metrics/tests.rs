@@ -750,3 +750,27 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
         .unwrap()
         .unwrap();
 }
+
+#[test]
+fn a_pong_times_the_round_trip_and_junk_is_ignored() {
+    let traffic = ClientTraffic::new(Role::Human, Arc::default());
+    assert_eq!(traffic.ping_ms(), None, "no reading before a pong");
+    traffic.pong(&[1, 2, 3]);
+    assert_eq!(traffic.ping_ms(), None, "a payload that is not ours");
+    traffic.pong(&u64::MAX.to_be_bytes());
+    assert_eq!(traffic.ping_ms(), None, "a ping from the future");
+    let payload = traffic.ping_payload();
+    std::thread::sleep(Duration::from_millis(20));
+    traffic.pong(&payload);
+    let first = traffic.ping_ms().expect("a reading");
+    assert!((20..500).contains(&first), "{first}");
+    // A reading from long ago moves the board a quarter of the way, capped.
+    traffic.pong(&0u64.to_be_bytes());
+    let smoothed = traffic.ping_ms().unwrap();
+    assert!(smoothed >= first, "{smoothed} {first}");
+    let stalled = ClientTraffic::new(Role::Agent, Arc::default());
+    stalled
+        .rtt_us
+        .store(u32::MAX - 1, std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(stalled.ping_ms(), Some(MAX_PING_MS));
+}

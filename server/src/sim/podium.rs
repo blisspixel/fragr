@@ -146,6 +146,36 @@ impl GameState {
         self.duel_series = Some(series);
     }
 
+    /// The Host's intro to a Duel before the pair has a series: the venue,
+    /// the two fighters, and what the head-to-head book says between them.
+    /// A plain arena intro in the calling register (`docs/lore/voice.md`):
+    /// capitals, short, no explanation. None outside Duel or without two
+    /// seated fighters.
+    pub(super) fn duel_intro_line(&self) -> Option<String> {
+        if self.config.rules.mode() != GameMode::Duel {
+            return None;
+        }
+        let pair: Vec<&super::Player> = self.players.iter().filter(|p| p.contestant()).collect();
+        let [a, b] = pair.as_slice() else {
+            return None;
+        };
+        let (a_frags, b_frags) = (
+            self.head_to_head.frags(&a.name, &b.name),
+            self.head_to_head.frags(&b.name, &a.name),
+        );
+        let (a_name, b_name) = (a.name.to_uppercase(), b.name.to_uppercase());
+        let book = match a_frags.cmp(&b_frags) {
+            Ordering::Greater => format!("{a_name} LEADS THE BOOK {a_frags} TO {b_frags}."),
+            Ordering::Less => format!("{b_name} LEADS THE BOOK {b_frags} TO {a_frags}."),
+            Ordering::Equal if a_frags == 0 => "FIRST TIME ON THE BOOK.".to_string(),
+            Ordering::Equal => format!("THE BOOK IS LEVEL AT {a_frags}."),
+        };
+        Some(format!(
+            "HOST: {} DUEL. {a_name} AGAINST {b_name}. {book}",
+            self.map.name().to_uppercase()
+        ))
+    }
+
     /// The Host's opening for a rematch: who leads the series, or that it is
     /// level. None before the pair has finished a round together.
     pub(super) fn duel_open_line(&self) -> Option<String> {

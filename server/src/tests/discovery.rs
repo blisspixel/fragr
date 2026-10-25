@@ -302,16 +302,15 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
             .unwrap();
         assert!(!claimed.available);
         assert_eq!(claimed.respawn_timer, None, "campaign stock is finite");
-        assert_eq!(
-            session
+        assert!(
+            !session
                 .state
                 .snapshot()
                 .pickups
                 .iter()
                 .find(|p| p.id == "bay_bullets")
                 .unwrap()
-                .respawn_in,
-            None
+                .available
         );
         for _ in 0..601 {
             session.tick_messages(0.05);

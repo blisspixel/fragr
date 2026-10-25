@@ -42,6 +42,17 @@ forceful readable effects. Sparse geometry, static character cards, and enlarged
 placeholder flashes do not meet this bar. Judge animation, weapon weight, impact,
 and environment cohesion in a played sequence, not only a selected still.
 
+### Environmental storytelling and signs
+
+Tell the story through objects, composition, light and imagery. A confiscation
+bin, a revival tent or a defaced seal should carry its meaning without a prose
+board explaining it. Signs serve wayfinding, objectives and a landmark name.
+Budget about six readable signs per multiplayer map and eight per campaign
+level, each only a few words. Keep necessary canon marks small and attached to
+the world: painted stencils, image-led posters, screens, graffiti and stamped
+plates. No free-standing billboards of lore. Count repeated placements, not
+just unique strings, and inspect them at playing distance in stills and motion.
+
 ### Influences and the original house style
 
 | Influence | What guides fragr |
@@ -170,7 +181,7 @@ recognition of the intelligence. Play continues into the aftermath.
 |---|---|
 | World | Dark steel, worn enamel, rust, concrete, cables, vents, practical lights, stenciled identifiers, and readable landmarks. Distinguish each arena's purpose. |
 | Surface detail | Deliberate pixel clusters and consistent texel scale. Broad readable material shapes before fine wear. Avoid uniform grids on every surface. |
-| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Participants wear the body they chose, a human or a free agent in a synthetic body ([plan](plans/player-body-selection.md)); Cyanex and Kragge remain only for fighters an older server sends without one. Flesh or metal does not establish moral status. |
+| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Participants wear the body they chose, a human or a free agent in a synthetic body ([plan](plans/player-body-selection.md)); the old Cyanex and Kragge strips are retired. Flesh or metal does not establish moral status. |
 | Weapons | Flechette, rail, and scatter must read by silhouette and feedback alone. Separate inventory icons from first-person art. Preserve muzzle registration across frames. |
 | Effects | Short, forceful flashes, impacts, debris, and pain/death response. Color and sound communicate the event. Avoid glow that hides targets. |
 | Menus/settings | Chunky pixel type, bone titles, metal framing, physical controls, and strong selection states. The entire front end belongs to the retro FPS. |
@@ -190,6 +201,16 @@ Apply the [weapon fiction](lore/guns.md) to construction and ownership marks:
 practical civilian forms, maintained workshop equipment and repeatable Union
 issue can differ without becoming unrelated visual styles. Check these qualities
 in ordinary rendered play, including motion and dark rooms, before selecting art.
+
+Combat effects keep the same chunky pixel scale and the faction colour law
+(`client/scripts/shot_vfx.gd` owns the tables, `tools/bake_shot_vfx.gd` the
+art). Gunfire and blasts light the world amber to warm white, never red,
+which stays the Union attack tell. A body hit bleeds in dried-blood tones,
+not bright Union red; a free agent's synthetic body throws sparks and dark
+oil, never cyan, which belongs to the Inheritance. The Railgun is a cold
+near-white core with only a pale cyan edge and a near-white light. Every
+effect is a hard-alpha sprite or skinned model that fades through an ordered
+dither; no untextured blocks (`test_vfx_meshes`).
 
 Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance

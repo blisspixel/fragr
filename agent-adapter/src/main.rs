@@ -63,6 +63,12 @@ enum Commands {
         /// Body for the pawn: `human` or `synthetic`. Presentation only.
         #[arg(long, default_value = "human", value_parser = parse_body)]
         body: protocol::BodyKind,
+
+        /// Hello as a spectator that never fights: a caster's booth seat.
+        /// `round_state` then carries the booth facts. `join` turns it into
+        /// a fighter.
+        #[arg(long)]
+        watch: bool,
     },
 
     ScriptedBot {
@@ -100,12 +106,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             mode,
             name,
             body,
+            watch,
         } => {
             let (server, child) = prepare_mcp_server(local, server, bots, &map, &mode).await?;
             run_mcp_server(
                 server,
                 resolve_agent_name(name.as_deref(), "MCP Agent"),
                 body,
+                watch,
                 child,
             )
             .await?
@@ -170,16 +178,11 @@ async fn mcp_connect_and_hello(
         connect_async_with_config(server_url, Some(socket_config()), false).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
-    let body = tool_state.lock().await.body;
-    let hello = ClientMessage::Hello {
-        body: Some(body),
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
-        role: Role::Agent,
-        name: name.to_string(),
-        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
-        resume: None,
+    let (body, watch) = {
+        let state = tool_state.lock().await;
+        (state.body, state.watch)
     };
+    let hello = booth_or_fighter_hello(name, body, watch);
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
         .await?;
@@ -253,6 +256,21 @@ async fn mcp_connect_and_hello(
         sink: ws_sink,
         recv_task,
     })
+}
+
+/// The MCP session's Hello: a fighter with its body, or a booth seat that
+/// watches and never fights.
+fn booth_or_fighter_hello(name: &str, body: protocol::BodyKind, watch: bool) -> ClientMessage {
+    let role = if watch { Role::Spectator } else { Role::Agent };
+    ClientMessage::Hello {
+        body: (!watch).then_some(body),
+        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        role,
+        name: name.to_string(),
+        ticket: fragr_server::join_ticket::ticket_for(role),
+        resume: None,
+    }
 }
 
 async fn mcp_leave_session(
@@ -662,17 +680,20 @@ async fn run_mcp_server(
     server_url: String,
     name: String,
     body: protocol::BodyKind,
+    watch: bool,
     local: Option<LocalChild>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(
-        "Starting MCP server mode as '{}', connecting to {}",
+        "Starting MCP server mode as '{}'{}, connecting to {}",
         name,
+        if watch { " in the booth" } else { "" },
         server_url
     );
 
     let tool_state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState {
         default_name: name.clone(),
         body,
+        watch,
         ..Default::default()
     }));
 
@@ -1451,15 +1472,67 @@ mod tests {
         assert_eq!(observation["pickups"][0]["available"], false);
         assert_eq!(observation["pickups"][0]["in_view"], true);
 
-        // A booth that never joined keeps the live view and the timer.
+        // A booth that never joined keeps the live view, and its clocks
+        // arrive as booth facts that round_state carries.
         let mut booth = mcp::ToolState::default();
         let welcome = serde_json::json!({"type":"welcome", "role":"spectator", "player_id": null});
         mcp::ingest_server_text(&mut booth, &welcome.to_string()).unwrap();
         mcp::ingest_server_text(&mut booth, &snapshot_text(&game)).unwrap();
         let observation = mcp::build_observe_result(&booth);
         assert_eq!(observation["pickups"][0]["available"], false);
-        assert_eq!(observation["pickups"][0]["respawn_in"], 30);
+        assert!(observation["pickups"][0].get("respawn_in").is_none());
         assert!(observation["pickups"][0].get("in_view").is_none());
+        let facts = facts_text(&game);
+        mcp::ingest_server_text(&mut booth, &facts).unwrap();
+        let round = mcp::build_round_state_result(&booth);
+        // Pad 0 is Larak Lot's Custody Plate, reported on its own.
+        assert_eq!(round["booth"]["plate"]["id"], game.pickups[0].id);
+        assert_eq!(round["booth"]["plate"]["back_in"], 30);
+
+        // A fighter's session drops booth facts even if one arrived.
+        mcp::ingest_server_text(&mut joined, &facts).unwrap();
+        assert!(joined.booth.is_none());
+        assert!(mcp::build_round_state_result(&joined)["booth"].is_null());
+    }
+
+    #[test]
+    fn booth_facts_keep_the_newest_tick_and_drop_oversized_lists() {
+        use fragr_server::sim::GameState;
+        let mut game = GameState::new();
+        game.start_round();
+        let mut booth = mcp::ToolState::default();
+        let welcome = serde_json::json!({"type":"welcome", "role":"spectator", "player_id": null});
+        mcp::ingest_server_text(&mut booth, &welcome.to_string()).unwrap();
+        game.tick = 40;
+        mcp::ingest_server_text(&mut booth, &facts_text(&game)).unwrap();
+        game.tick = 20;
+        mcp::ingest_server_text(&mut booth, &facts_text(&game)).unwrap();
+        assert_eq!(mcp::build_round_state_result(&booth)["booth"]["tick"], 40);
+        let mut flood = game.spectator_facts();
+        flood.tick = 60;
+        flood.sprees = (0..=protocol::MAX_SPECTATOR_RUNS as u128)
+            .map(|n| protocol::SpreeFact {
+                id: uuid::Uuid::from_u128(n + 1),
+                frags: 2,
+            })
+            .collect();
+        let text = serde_json::to_string(&protocol::ServerMessage::SpectatorFacts(flood)).unwrap();
+        mcp::ingest_server_text(&mut booth, &text).unwrap();
+        assert_eq!(
+            mcp::build_round_state_result(&booth)["booth"]["tick"],
+            40,
+            "an oversized list leaves the last good facts"
+        );
+        // A new seat starts with no booth.
+        mcp::ingest_server_text(&mut booth, &welcome.to_string()).unwrap();
+        assert!(mcp::build_round_state_result(&booth)["booth"].is_null());
+    }
+
+    fn facts_text(game: &fragr_server::sim::GameState) -> String {
+        serde_json::to_string(&protocol::ServerMessage::SpectatorFacts(
+            game.spectator_facts(),
+        ))
+        .unwrap()
     }
 
     fn snapshot_text(game: &fragr_server::sim::GameState) -> String {
@@ -1641,6 +1714,7 @@ mod tests {
             heads: 0,
             damage: 0,
             weapon: "Tack".to_string(),
+            ping: None,
         };
         let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
         let near = fighter(
@@ -1711,6 +1785,7 @@ mod tests {
                 heads: 0,
                 damage: 0,
                 weapon: "Rail".to_string(),
+                ping: None,
             }],
             round_state: Some("Active".to_string()),
             round_time_left: Some(120),
@@ -1867,6 +1942,7 @@ mod tests {
                     heads: 0,
                     damage: 0,
                     weapon: "Flechette".to_string(),
+                    ping: None,
                 },
                 protocol::PlayerState {
                     collidable: true,
@@ -1894,6 +1970,7 @@ mod tests {
                     heads: 0,
                     damage: 0,
                     weapon: "Scatter".to_string(),
+                    ping: None,
                 },
             ],
             round_state: Some("Active".to_string()),
@@ -2242,6 +2319,7 @@ mod tests {
                     heads: 0,
                     damage: 0,
                     weapon: "Flechette".into(),
+                    ping: None,
                 },
                 protocol::PlayerState {
                     collidable: true,
@@ -2269,6 +2347,7 @@ mod tests {
                     heads: 0,
                     damage: 0,
                     weapon: "Flechette".into(),
+                    ping: None,
                 },
             ],
             round_state: Some("Active".into()),
@@ -2500,6 +2579,7 @@ mod tests {
                 mode,
                 name,
                 body,
+                watch,
             } => {
                 assert!(server.is_none());
                 assert!(!local);
@@ -2508,9 +2588,65 @@ mod tests {
                 assert_eq!(mode, "ffa");
                 assert!(name.is_none());
                 assert_eq!(body, protocol::BodyKind::Human);
+                assert!(!watch, "a session fights unless asked to watch");
             }
             other => panic!("expected Mcp, got {other:?}"),
         }
+        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp", "--local", "--watch"])
+            .expect("watch");
+        assert!(matches!(args.command, Commands::Mcp { watch: true, .. }));
+    }
+
+    #[test]
+    fn the_booth_hellos_as_a_spectator_and_a_fighter_as_an_agent() {
+        let booth = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, true);
+        let fighter = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, false);
+        match (booth, fighter) {
+            (
+                ClientMessage::Hello {
+                    role: Role::Spectator,
+                    body: None,
+                    ..
+                },
+                ClientMessage::Hello {
+                    role: Role::Agent,
+                    body: Some(protocol::BodyKind::Synthetic),
+                    ..
+                },
+            ) => {}
+            other => panic!("unexpected hellos: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn join_from_the_booth_hellos_again_as_a_fighter() {
+        let mut state = mcp::ToolState {
+            watch: true,
+            ..Default::default()
+        };
+        let welcome = serde_json::json!({"type":"welcome", "role":"spectator", "player_id": null});
+        mcp::ingest_server_text(&mut state, &welcome.to_string()).unwrap();
+        assert!(state.connected && state.player_id.is_none());
+        let request: mcp::McpRequest = serde_json::from_value(serde_json::json!({
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "join", "arguments": {}}
+        }))
+        .unwrap();
+        let outcome = mcp::handle_mcp_request(request, &mut state);
+        assert!(outcome.pending_join.is_some(), "the booth seat steps down");
+        assert!(!state.watch, "the next Hello is a fighter's");
+        // A fighter's second join stays idempotent.
+        let me = uuid::Uuid::from_u128(5);
+        let welcome = serde_json::json!({"type":"welcome", "role":"agent", "player_id": me});
+        mcp::ingest_server_text(&mut state, &welcome.to_string()).unwrap();
+        let request: mcp::McpRequest = serde_json::from_value(serde_json::json!({
+            "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+            "params": {"name": "join", "arguments": {}}
+        }))
+        .unwrap();
+        assert!(mcp::handle_mcp_request(request, &mut state)
+            .pending_join
+            .is_none());
     }
 
     #[test]

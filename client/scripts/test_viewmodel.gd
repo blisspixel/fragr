@@ -16,9 +16,13 @@ func _column(weapon_name: String) -> int:
 	match weapon_name:
 		"Shiv":
 			return 190
-		"Tack":
-			# Both retained frames have an opaque grip and right wrist at 144.
-			return 144
+		"Tack", "Rail":
+			# The baked 384x240 canvas: the right glove and sleeve at 220 in
+			# every rest, raise, shot and recovery frame.
+			return 220
+		"Scatter":
+			# Its receiver and support glove reach the bottom at 200.
+			return 200
 		"Sniper":
 			# The registered drawn pair has its right cuff at this column.
 			return 174
@@ -63,15 +67,70 @@ func _check_transformed_bottom(weapon: TextureRect, column: int, context: String
 	if sample.y >= 0.0 and sample.y < image.get_height():
 		_check(image.get_pixel(column, floori(sample.y)).a > 0.99, context + ": actual wrist is opaque at the physical bottom")
 
+## Select a gun and let its switch (lower the old, raise the new) finish.
+func _select(hud: CanvasLayer, weapon_name: String) -> void:
+	hud.set_fp_weapon(weapon_name)
+	for frame: int in range(24):
+		hud._process(1.0 / 60.0)
+
+## The switch is presentation over time: the old gun lowers first, then the
+## new one rises through its raise frames; a shot cuts it short. Sway and the
+## landing dip come back to rest.
+func _check_switch_motion(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.reduced_motion = false
+	_select(hud, "Flechette")
+	var rest: float = weapon.position.y
+	hud.set_fp_weapon("Tack")
+	hud._process(1.0 / 120.0)
+	_check(weapon.texture == WeaponArt.IDLE["Flechette"] and weapon.position.y > rest, "the Rifle lowers before the Pistol is shown")
+	var raised: Array[Texture2D] = []
+	for frame: int in range(40):
+		hud._process(1.0 / 120.0)
+		if weapon.texture in WeaponArt.BAKED["Tack"]["draw"] and not weapon.texture in raised:
+			raised.append(weapon.texture)
+		_check_bottom(weapon, "Pistol raise", _column(hud.fp_motion.shown))
+	_check(raised.size() >= 2, "the Pistol comes up through its raise frames")
+	_check(weapon.texture == WeaponArt.IDLE["Tack"], "the Pistol settles at rest after the raise")
+	hud.set_fp_weapon("Flechette")
+	hud._process(1.0 / 120.0)
+	hud.show_fire_juice("Flechette")
+	_check(weapon.texture == WeaponArt.FIRE["Flechette"] and hud.fp_motion.raise == 1.0, "a shot during a switch shows the new gun up and firing")
+	hud.reduced_motion = true
+	hud.set_fp_weapon("Tack")
+	_check(weapon.texture == WeaponArt.IDLE["Tack"], "reduced motion switches without the lower and raise")
+	hud.reduced_motion = false
+	var motion := WeaponArt.ViewMotion.new()
+	motion.update(1.0 / 60.0, Vector2.ZERO, 1.6, true)
+	for frame: int in range(6):
+		motion.update(1.0 / 60.0, Vector2(0.03 * (frame + 1), 0.0), 1.6, true)
+	_check(motion.offset.x > 4.0 and motion.offset.x <= WeaponArt.ViewMotion.SWAY_LIMIT, "turning left lags the gun right, within its limit")
+	for frame: int in range(60):
+		motion.update(1.0 / 60.0, Vector2(0.18, 0.0), 1.6, true)
+	_check(motion.offset.length() < 0.5, "sway settles when the turn stops")
+	var height: float = 3.0
+	for frame: int in range(20):
+		height -= 6.0 / 60.0
+		motion.update(1.0 / 60.0, Vector2(0.18, 0.0), height, true)
+	var deepest: float = 0.0
+	for frame: int in range(60):
+		motion.update(1.0 / 60.0, Vector2(0.18, 0.0), height, true)
+		deepest = maxf(deepest, motion.offset.y)
+	_check(deepest > 6.0 and deepest <= WeaponArt.ViewMotion.LANDING_LIMIT, "a landing dips the gun")
+	_check(absf(motion.offset.y) < 1.0, "the gun springs back after landing")
+	var still := WeaponArt.ViewMotion.new()
+	for frame: int in range(20):
+		still.update(1.0 / 60.0, Vector2(0.05 * frame, 0.0), 3.0 - 0.1 * frame, false)
+	_check(still.offset == Vector2.ZERO, "reduced motion has no sway or landing dip")
+
 func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
 	hud.head_bob_enabled = false
 	hud._process(1.0)
-	hud.set_fp_weapon("Scatter")
+	_select(hud, "Flechette")
 	var reference: float = _source_span(weapon, Vector2(51, 163), Vector2(83, 178)) / Vector2(51, 163).distance_to(Vector2(83, 178))
-	hud.set_fp_weapon("Shiv")
+	_select(hud, "Shiv")
 	var rest: float = _source_span(weapon, Vector2(164, 160), Vector2(191, 150)) / Vector2(164, 160).distance_to(Vector2(191, 150))
-	_check(is_equal_approx(rest, reference), "resting Shiv glove texels match the Shotgun display scale at this aspect")
+	_check(is_equal_approx(rest, reference), "resting Shiv glove texels match the Rifle display scale at this aspect")
 	var blade_rest: float = _source_span(weapon, Vector2(106, 44), Vector2(142, 98))
 	_check(blade_rest > reference * 60.0, "unchanged Shiv blade retains its substantial diagonal silhouette")
 	hud.show_fire_juice("Shiv")
@@ -101,22 +160,31 @@ func _check_reload_motion_every_gun(hud: CanvasLayer, weapon: TextureRect) -> vo
 			hud.equipment_hud.apply({})
 			hud.reduced_motion = mode == "reduced"
 			hud.head_bob_enabled = false
-			hud.set_fp_weapon(weapon_name)
+			_select(hud, weapon_name)
 			hud._process(1.0)
 			var rest: float = weapon.position.y
 			hud.equipment_hud.apply(accepted)
 			hud.equipment_hud.reload.observe(accepted, 0)
 			hud.equipment_hud.visible = true
 			var lowest: float = rest
+			var posed: Array[Texture2D] = []
 			for tick: int in range(100, 120):
 				hud.equipment_hud.tick = tick
 				for frame: int in range(3):
 					hud._process(1.0 / 60.0)
 					lowest = maxf(lowest, weapon.position.y)
+					if not weapon.texture in posed:
+						posed.append(weapon.texture)
 					_check(weapon.position.y + weapon.size.y > root.get_visible_rect().size.y + 2.0, weapon_name + " reload keeps the cut-off base below the frame")
 			hud.equipment_hud._refresh()
 			_check(hud.equipment_hud.reload_label.visible and hud.equipment_hud.reload_label.text == "RELOADING" and hud.equipment_hud.reload_bar_visible(), weapon_name + " " + mode + ": the HUD reload line and bar show")
-			if mode == "reduced":
+			if WeaponArt.BAKED.has(weapon_name):
+				# A modelled gun's reload is its own frame sequence, in order, in
+				# every motion setting: it is the gun's state, not camera motion.
+				var frames: Array = WeaponArt.BAKED[weapon_name]["reload"]
+				_check(posed.size() >= frames.size() - 1 and posed[0] == frames[0] and posed.back() == frames.back(), weapon_name + " " + mode + ": the reload plays its frames from first to last")
+				_check(lowest == rest, weapon_name + " " + mode + ": the reload frames carry the motion without a dip")
+			elif mode == "reduced":
 				_check(lowest == rest, weapon_name + ": reduced motion keeps the gun still during reload")
 			else:
 				_check(lowest > rest + weapon.size.y * 0.2, weapon_name + ": an accepted reload visibly lowers the gun with head bob off")
@@ -132,13 +200,13 @@ func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
 	hud.head_bob_enabled = false
 	hud._process(1.0)
-	hud.set_fp_weapon("Scatter")
+	_select(hud, "Flechette")
 	var reference: float = _source_span(weapon, Vector2(51, 163), Vector2(83, 178)) / Vector2(51, 163).distance_to(Vector2(83, 178))
-	hud.set_fp_weapon("Arc")
+	_select(hud, "Arc")
 	var actual: float = _source_span(weapon, Vector2(32, 160), Vector2(57, 178)) / Vector2(32, 160).distance_to(Vector2(57, 178))
-	_check(is_equal_approx(actual, reference), "Arc glove texels match the actual Shotgun display scale at this aspect")
+	_check(is_equal_approx(actual, reference), "Arc glove texels match the actual Rifle display scale at this aspect")
 	for texture: Texture2D in [WeaponArt.IDLE["Arc"], WeaponArt.FIRE["Arc"], WeaponArt.CYCLE["Arc"], WeaponArt.ARC_RELOAD]:
-		_check(texture.get_size() == WeaponArt.IDLE["Scatter"].get_size(), "all Arc held poses share the actual approved full canvas")
+		_check(texture.get_size() == WeaponArt.IDLE["Flechette"].get_size(), "all Arc held poses share the actual approved full canvas")
 		weapon.texture = texture
 		var used: Rect2i = texture.get_image().get_used_rect()
 		_check(used.size.x >= 180 and used.size.y >= 160 and used.end.y == 180, "Arc has a substantial receiver and gloves through the canvas bottom")
@@ -159,18 +227,23 @@ func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
 	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc", "Rocket", "Article Blade"]:
-		hud.set_fp_weapon(weapon_name)
+		_select(hud, weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
 		_check(weapon.texture == WeaponArt.FIRE[weapon_name], weapon_name + " shows its fire frame on the shot")
 		_check(not hud.fp_muzzle.visible, weapon_name + " fire frame carries its own flash")
 		_check_bottom(weapon, weapon_name + " fire frame", _column(weapon_name))
 		var pumped: bool = false
+		var recovered: Array[Texture2D] = []
 		for frame: int in range(48):
 			hud._process(1.0 / 120.0)
 			pumped = pumped or weapon.texture == WeaponArt.CYCLE.get(weapon_name)
+			if weapon.texture in WeaponArt.recover_frames(weapon_name) and not weapon.texture in recovered:
+				recovered.append(weapon.texture)
 			_check_bottom(weapon, weapon_name + " after the shot", _column(weapon_name))
 		_check(pumped == WeaponArt.CYCLE.has(weapon_name), weapon_name + " cycle frame only where drawn")
+		if not WeaponArt.recover_frames(weapon_name).is_empty():
+			_check(recovered.size() == WeaponArt.recover_frames(weapon_name).size(), weapon_name + " recovers through each frame after the shot")
 		for frame: int in range(40):
 			hud._process(1.0 / 120.0)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " settles back to idle")
@@ -178,7 +251,7 @@ func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 ## The off hand rises with the grenade, releases it while the gun dips, then
 ## both return.
 func _check_throw(hud: CanvasLayer, weapon: TextureRect) -> void:
-	hud.set_fp_weapon("Rail")
+	_select(hud, "Rail")
 	for frame: int in range(30):
 		hud._process(1.0 / 60.0)
 	var rest: float = weapon.position.y
@@ -256,6 +329,7 @@ func _run() -> void:
 	hud._process(0.4)
 	_check(weapon.texture == WeaponArt.IDLE["Rocket"], "Rocket settles back to idle")
 	_check_missing_art(hud, weapon)
+	_check_switch_motion(hud, weapon)
 	_check_reload_motion_every_gun(hud, weapon)
 	# A network shot arrives before the HUD's update. A slow preceding render
 	# must not erase its fire frame before this update can present it.
@@ -272,13 +346,13 @@ func _run() -> void:
 		_check_arc_hand_scale(hud, weapon)
 		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Sniper", "Shiv", "Arc"]:
 			hud.call("set_fp_weapon", weapon_name)
-			_check_bottom(weapon, weapon_name + " swap", _column(weapon_name))
+			_check_bottom(weapon, weapon_name + " swap", _column(hud.fp_motion.shown))
 			hud.call("set_fp_walk_speed", MoveStep.TOP_SPEED)
 			for frame in range(240):
 				if frame % 30 == 0:
 					hud.call("show_fire_juice", weapon_name)
 				hud.call("_process", 1.0 / 120.0)
-				_check_bottom(weapon, weapon_name + " moving/firing", _column(weapon_name))
+				_check_bottom(weapon, weapon_name + " moving/firing", _column(hud.fp_motion.shown))
 				if weapon_name == "Arc":
 					_check_transformed_bottom(weapon, _column("Arc"), "Arc moving/firing")
 			hud.call("set_fp_walk_speed", 0.0)

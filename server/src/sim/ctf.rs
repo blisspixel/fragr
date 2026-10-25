@@ -391,6 +391,7 @@ mod tests {
             golden: false,
             ducking: false,
             body: None,
+            ping: None,
         }
     }
 

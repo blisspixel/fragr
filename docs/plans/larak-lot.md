@@ -262,7 +262,8 @@ Cargo tests in `server/src/maps/larak_lot/tests.rs`:
 `larak_lot_calls_its_special_when_the_frag_count_spikes`. Godot:
 `client/scripts/test_larak_lot.gd` (no collision, light budget, replaced boxes,
 catalog copy, the K drop-out, warm emitters outside the red band, the Plate
-flare and the toll arm's timer) and `test_match_rules.gd` (the special's
+flare and the toll arm's timer), `test_larak_surfaces.gd` (texel density and
+every visible body held to a solid; wave 4) and `test_match_rules.gd` (the special's
 words).
 
 Rendered review: `tools/preview_larak_lot.gd` renders 45 stills (every quarter,
@@ -367,6 +368,10 @@ release) passes and is deterministic; p99 tick budget use is 1.3%.
    still glows PLEASE PAY; the rest are dark. The booths carry their own cut
    seals. No server solid changed. `tools/preview_larak_lot.gd` gained a
    `prop_` view per prop and `FRAGR_LARAK_VIEWS` to render a subset.
+10. Surfaces, pads and decals (wave 4): see
+    [Wave 4](#wave-4-surfaces-pads-and-decals). The flat grey slabs with
+    procedural panel joints became class tiles at one texel density, every
+    pad got a kit, and the solid-colour decal boxes became an atlas.
 
 ## Asset wishes for the next paid round
 
@@ -378,8 +383,9 @@ For the Meshy and Higgsfield round:
 - The tower crane mast and jib (the hook block is modelled).
 - Car-seat and pallet bleacher modules; a revival tent awning and folding
   chairs.
-- Decals: oil stains, tyre skids, betting slips, Larak's signature stamp,
-  league tags, six-in-a-circle variants, wet concrete with drain grates.
+- Decals still wanted: Larak's signature stamp, six-in-a-circle variants, wet
+  concrete with drain grates. Oil, skids, scorch, slips and tags are baked
+  (wave 4).
 - Audio: crowd murmur from the Stands, crane cable creak, neon buzz, the toll
   arm's motor, rain through the Pit lightwell, the Plate's custody-lock clunk,
   the Stands bell.
@@ -431,6 +437,87 @@ clock (six claims in 180 s is every 30 s against a 25 s clock), but they
 rarely score with it and visit the Plate less than before. Rocket use and
 Plate timing are bot work for #432; human sessions decide whether the Pit is
 the right home.
+
+## Wave 4: surfaces, pads and decals
+
+Built on `wave4/surfaces`, 2026-10-25. Client only; no server solid changed.
+
+- **Surface classes at one texel density.** Every surface in the lot reads
+  one tile texel per world texel on the 16 per metre grid. Six 64 px class
+  tiles (a 4 m repeat) in `client/assets/environment/larak/`: deck (every
+  concrete top), wall (tall concrete and soffits), kerb (ground boxes up to
+  1.6 m, read from the tile's bottom rows in 1.5 m deck bands so the tyre rub
+  sits at each deck edge's foot), shear (the shear walls, the Low Ramp screen,
+  and the beams of the raised steel decks), ramp (steel treads and the
+  Bridge and canopy tops) and pit (the ground). The stairwell keeps the
+  intake's green tile at the same density. `LarakLot.surface_class` picks a
+  solid's class from its shape; `ArenaMaterials.larak_class` builds it.
+- **Lighting and detail only in the shader.** `arena_surface.gdshader` gains
+  a tile-albedo mode: the class tile is the whole albedo, and the shader adds
+  only an eight-metre macro value drift in quarter-percent steps, the sector
+  steps and the contact shade at each deck's wall base. No procedural panel
+  joints, paint or trim glow in the lot; other venues keep their markings.
+- **Seeds.** Seventeen Higgsfield seeds, $1.209 estimate-held of the lane's
+  $12 cap after a live check (asset-round ledger, D-LS), each read against the
+  lore gate; six kept. `tools/prepare_surface_tiles.gd` recipe mode
+  (`tools/larak_surfaces_20261025.json`) makes a seed periodic, then locks it
+  to a five-step ramp of palette keys and two-key blends by luminance rank
+  with one broad field step, folds lone pixels into clusters and refuses a
+  seam. Values stay quiet and mid so fighters separate (faction readability
+  tour re-run and inspected).
+- **Pad kit.** A pickup asks the presenter what its pad stands on
+  (`stage_pickup`, the `pickup_stage` group), and the first ask builds the kit
+  at the server's own pad: a recessed well and steel lip with a thin warm lamp
+  strip, and an additive warm light pool (no light node; the presenter still
+  spends four lights). The Rail stands on an octagonal tread-plate dais with a
+  hazard lip, the Plate on a road plate over two sleepers with league ember on
+  its edges, the Rocket in a scorched blast tub behind the Stack with its
+  blast mark under it. Every seat is under a shin's height.
+- **Seated pickups.** `weapon_pickup.gd` seats each item on its pad's floor
+  (the server reports a pad 0.4 m over it) or on the staged seat, with a
+  stepped contact shadow; it no longer bobs. A pad coming back on its clock
+  rises from small with a warm column of pixel glints and a brief overbright,
+  0.7 s, never cyan; reduced motion skips the rise and the glints. Everywhere,
+  not just on Larak Lot; the Recall Notice tour's bay shot is reframed so the
+  seated Tack stays in view.
+- **Decal atlas.** `tools/bake_larak_decals.gd` bakes oil, tyre skids and
+  doughnut burns, scorch (and the cradle's blast mark), betting slips and
+  tickets, and league spray tags with drips, in palette keys at 16 texels per
+  metre; the presenter lays each cell at its own size in one batch. Tags are
+  shapes, never words; no sign was added.
+- **Nothing drawn without a solid.** `client/scripts/test_larak_surfaces.gd`
+  builds the lot from the server's MapInfo (`client/golden/larak_lot_map_info.json`,
+  held to the server by `larak_client_golden_is_the_server_map_info`) and
+  holds every visible body the presenter draws to a server solid, or to lying
+  flat, hanging overhead, standing on a roof nobody reaches, or standing no
+  more than 30 cm proud of a wall. It caught the pay machines and the coffee
+  machine standing half a metre proud of their walls (now set 20 cm into
+  them), the barrier motors at the booths' corners (moved inside the booths)
+  and the Stands bell's rope at chest height (raised to two metres over the
+  deck). The same harness holds every class, part, decal and pool to 16
+  texels per metre; `_mat` now derives each part's triplanar scale from its
+  tile, which moved the shell gravel, tar patches, coping, banners, plates,
+  chairs and crane paint off 8, 32, 64 and 128 texels per metre.
+- **Frame time.** Vulkan Forward+, Balanced, 1920 x 1080, 600 frames,
+  `look-perf` (Larak Lot) and `m01-perf` (Recall Notice, for the seated
+  supplies), this branch against `origin/wave4/tooling` run back to back and
+  alternating on one Linux host (Radeon 780M) whose load average other lanes
+  held between 9 and 21. GPU ms is the comparable figure; the mean follows
+  host load.
+
+  | View | Branch GPU ms | Base GPU ms | Branch mean ms | Base mean ms |
+  |---|---|---|---|---|
+  | Larak Lot overview | 6.87, 6.67 | 7.17, 9.04 | 10.53, 13.04 | 15.0, 13.63 |
+  | Larak Lot first person | 6.68, 6.43 | 6.12, 6.68 | 13.32, 11.94 | 17.43, 10.55 |
+  | Recall Notice intake | 6.87, 8.21, 8.58, 6.84 | 7.31, 7.31, 7.02, 6.78 | 18.3, 22.7, 19.6, 9.75 | 16.52, 16.51, 12.86, 9.1 |
+
+  The quietest pair (the last intake runs) is 6.84 against 6.78 GPU ms and
+  9.75 against 9.1 ms mean. Receipts: `.agents/wave4-D/perf/` with
+  `load.log`.
+- **Review.** `tools/preview_larak_lot.gd` lays a pickup on every pad, adds
+  `pad_` views, a `pad_return` strip of the Rail coming back and a
+  `walk_stands` run across the Stands for texel crawl, and takes
+  comma-separated view prefixes.
 
 ## Open
 

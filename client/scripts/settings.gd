@@ -25,8 +25,14 @@ const DEFAULTS: Dictionary = {
 		"resolution_height": 0, # Native fullscreen; automatic size when windowed.
 		"quality": 1,           # Performance, Balanced, High.
 		"upscaling": 0,         # Standard, FSR1, FSR2; renderer gates capability.
-		"pixel_scale": 0,       # Off, fine, medium, chunky world pixels (nearest).
-		"dither": false,        # Ordered dither to the locked palette.
+		# Off, fine, medium, chunky world pixels (nearest). Fine is 540 world
+		# lines: 2x at 1080p, 3x at 1440p, 4x at 2160p, native at 720p. It
+		# keeps fighters at range, the held gun and large signs, costs less GPU
+		# than Off and gives the world one pixel grid. Small placard text does
+		# not survive it. Chosen from Larak Lot and Recall Notice captures on
+		# both renderers (wave 4); Nick's call to confirm.
+		"pixel_scale": 1,
+		"dither": false,        # Ordered dither in value steps; keeps every hue.
 	},
 	"audio": {
 		"master": 0.9,

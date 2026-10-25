@@ -5,6 +5,13 @@ var failures: int = 0
 func _initialize() -> void:
 	call_deferred("_run")
 
+## A stand-in venue stage: a 12 cm seat, counting the asks.
+func _stage_script() -> GDScript:
+	var script: GDScript = GDScript.new()
+	script.source_code = "extends Node\nvar asks: int = 0\nvar floor: Vector3 = Vector3.ZERO\nfunc stage_pickup(_id: String, _kind: String, _weapon: String, at: Vector3) -> float:\n\tasks += 1\n\tfloor = at\n\treturn 0.12\n"
+	script.reload()
+	return script
+
 func _check(condition: bool, message: String) -> void:
 	if not condition:
 		failures += 1
@@ -49,8 +56,13 @@ func _run() -> void:
 		if texture != null:
 			var image: Image = texture.get_image()
 			_check(not image.has_mipmaps() and image.detect_alpha() != Image.ALPHA_NONE, context + " is a cut-out pixel sprite")
-			var bottom: float = icon.position.y - float(texture.get_height()) * icon.pixel_size * 0.5
-			_check(bottom > 0.0 and bottom < 0.12, context + " rests just above the floor: %f" % bottom)
+			# The server reports a pad 0.4 m over its floor; the item seats
+			# itself back down on that floor.
+			var bottom: float = icon.position.y - float(texture.get_height()) * icon.pixel_size * 0.5 + pickup.PAD_LIFT
+			_check(bottom > 0.0 and bottom < 0.06, context + " is seated on its floor: %f" % bottom)
+			var shadow: MeshInstance3D = pickup.get_node_or_null("ContactShadow")
+			_check(shadow != null and shadow.visible and absf(shadow.position.y + pickup.PAD_LIFT) < 0.02,
+				context + " has a contact shadow on its floor")
 			widths[context] = float(texture.get_width()) * icon.pixel_size
 	_check(widths.get("weapon Tack", 0.0) < widths.get("weapon Rail", 0.0) * 0.6,
 		"a pistol is visibly smaller than a railgun at one texel density")
@@ -93,7 +105,7 @@ func _run() -> void:
 	for frame: int in range(90):
 		pickup._process(1.0 / 60.0)
 		highest = maxf(highest, icon.position.y)
-	_check(highest > rest + 0.02 and highest <= rest + 0.051, "the sprite bobs gently above its rest")
+	_check(is_equal_approx(highest, rest), "a seated item rests on its pad rather than floating")
 	pickup.set_reduced_motion(true)
 	pickup._process(0.4)
 	_check(is_equal_approx(icon.position.y, pickup._sprite_rest_y), "reduced motion restores the actual texture's resting height")
@@ -121,9 +133,19 @@ func _run() -> void:
 	_check(cue != null and cue.stream != null and cue.max_distance == rail.POWER_REACH_METRES,
 		"the Railgun's return carries across the map")
 	_check(rail.scale.x < 1.0, "the item rises back from small on its return")
+	var shimmer: Sprite3D = rail.get_node_or_null("Shimmer")
+	_check(shimmer != null and shimmer.visible, "the return shimmers")
+	if shimmer != null:
+		var warm: Color = rail.SHIMMER_COLOR
+		_check(warm.r >= warm.g and warm.g >= warm.b and (warm.h < 0.17 or warm.h > 0.95),
+			"the shimmer is warm, never the Inheritance's cyan")
 	for frame: int in range(30):
 		rail._process(1.0 / 60.0)
 	_check(rail.scale.is_equal_approx(Vector3.ONE), "the return settles at full size")
+	for frame: int in range(30):
+		rail._process(1.0 / 60.0)
+	_check(shimmer != null and not shimmer.visible and (rail.get_node("Icon") as Sprite3D).modulate.is_equal_approx(Color.WHITE),
+		"the shimmer burns out and the item settles to its own colours")
 	var flechette: Node3D = scene.instantiate()
 	root.add_child(flechette)
 	flechette.setup("pad_flechette", "Flechette", Vector3.ZERO, "weapon")
@@ -134,8 +156,26 @@ func _run() -> void:
 	_check(flechette.return_cue_count == 1 and flechette.get_node_or_null("PadCue") == null,
 		"the fighter standing on the pad is not played a second cue")
 	_check(flechette.scale.is_equal_approx(Vector3.ONE), "reduced motion returns the item without the rise")
+	_check(flechette.get_node_or_null("Shimmer") == null, "reduced motion returns the item without the shimmer")
 	rail.queue_free()
 	flechette.queue_free()
+	# A venue that stages its pads seats the item on what it built, once.
+	var stage: Node = Node.new()
+	stage.set_script(_stage_script())
+	root.add_child(stage)
+	stage.add_to_group(&"pickup_stage")
+	var seated: Node3D = scene.instantiate()
+	root.add_child(seated)
+	seated.setup("staged_rail", "Rail", Vector3(3.0, 0.9, -2.0), "weapon")
+	seated.setup("staged_rail", "Rail", Vector3(3.0, 0.9, -2.0), "weapon")
+	var seated_icon: Sprite3D = seated.get_node("Icon")
+	var seated_bottom: float = seated_icon.position.y - float(seated_icon.texture.get_height()) * seated_icon.pixel_size * 0.5
+	_check(stage.get("asks") == 1 and (stage.get("floor") as Vector3).is_equal_approx(Vector3(3.0, 0.5, -2.0)),
+		"the stage is asked once, at the pad's floor")
+	_check(is_equal_approx(seated.seat_height, 0.12) and seated_bottom > -seated.PAD_LIFT + 0.12 and seated_bottom < -seated.PAD_LIFT + 0.18,
+		"the item sits on the staged seat: %f" % seated_bottom)
+	seated.queue_free()
+	stage.queue_free()
 	var early: Node3D = scene.instantiate()
 	early.setup("early_packet", "", Vector3.ZERO, "ammo", 8, "shells")
 	root.add_child(early)
@@ -148,5 +188,5 @@ func _run() -> void:
 	pickup.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_weapon_pickup: PASS sprite for every kind, no world text, floor rest, bob, availability, fallback")
+		print("test_weapon_pickup: PASS sprite for every kind, no world text, seated with a contact shadow, staged seats, return shimmer, availability, fallback")
 	quit(0 if failures == 0 else 1)

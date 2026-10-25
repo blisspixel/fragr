@@ -1,0 +1,28 @@
+{
+  "comment": "Gun effects in a live match on Larak Lot, first person, through ordinary input, from the TOLL north spawn: the Railgun into an enamel toll booth, Rifle rounds into the concrete west wall and the booth, a Shotgun blast into the wall, then the marks they left. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/combat-vfx.json, FRAGR_QA_MAP=1, FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MUTATORS=full-arsenal, so every arcade gun is owned from the first tick. The Rocket is res://qa/combat-vfx-rocket.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "vfx_join", "scene": "res://scenes/main.tscn", "at_seconds": 2, "join": "human", "camera": "first_person", "radio_off": true,
+     "walk_to": [[-33, 3, -22]], "weapon": "Rail", "look_at": [-30, 4.4, -17],
+     "note": "TOLL north, the Railgun up, an enamel toll booth five metres off."},
+    {"name": "vfx_rail_booth", "camera": "first_person", "weapon": "Rail", "look_at": [-30, 4.4, -17],
+     "trigger": "fire", "single_shot": true, "strip_frames": 12, "strip_interval_seconds": 0.05,
+     "probe": "ShotEffects", "impact_kind": "solid",
+     "note": "The beam from the held gun, its spiral and lingering core, the ring on the booth."},
+    {"name": "vfx_rifle_concrete", "camera": "first_person", "weapon": "Flechette", "look_at": [-36, 3.8, -21],
+     "trigger": "fire", "single_shot": true, "strip_frames": 8, "strip_interval_seconds": 0.035,
+     "probe": "ShotEffects", "impact_kind": "solid",
+     "note": "A Rifle round into concrete: dust and grit, and a pock left behind."},
+    {"name": "vfx_rifle_enamel", "camera": "first_person", "weapon": "Flechette", "look_at": [-29.4, 4.0, -17],
+     "trigger": "fire", "single_shot": true, "strip_frames": 8, "strip_interval_seconds": 0.035,
+     "probe": "ShotEffects", "impact_kind": "solid",
+     "note": "A Rifle round into the enamel booth: sparks and a bright dent."},
+    {"name": "vfx_scatter_wall", "camera": "first_person", "weapon": "Scatter", "look_at": [-36, 3.6, -19],
+     "trigger": "fire", "single_shot": true, "strip_frames": 8, "strip_interval_seconds": 0.035,
+     "probe": "ShotEffects", "impact_kind": "solid",
+     "note": "A Shotgun blast into concrete: seven puffs and seven pocks."},
+    {"name": "vfx_marks", "camera": "first_person", "weapon": "Flechette", "look_at": [-36, 3.6, -20], "settle_seconds": 0.6,
+     "note": "What the shots left on the TOLL wall."}
+  ]
+}

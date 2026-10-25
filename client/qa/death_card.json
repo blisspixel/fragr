@@ -1,5 +1,5 @@
 {
-  "comment": "FFA death card after a real frag of the joined fighter: tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/death_card.json. The fighter stands in the open until a rule bot frags it.",
+  "comment": "FFA death card after a real frag of the joined fighter: tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/death_card.json. The fighter walks down into the Pit and stands there until a rule bot frags it; a fighter left at a quiet spawn could outlast the wait.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -11,6 +11,12 @@
       "join": "human",
       "await_alive": 20,
       "note": "Joined fighter on the floor before the frag."
+    },
+    {
+      "name": "death_pit",
+      "camera": "first_person",
+      "walk_into": [[0.0, 0.0, 0.0]],
+      "note": "Walking into the Pit, where the fights are; a frag on the way is the next state's card."
     },
     {
       "name": "death_card",

@@ -96,6 +96,12 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
     }
 }
 
+/// Where a desktop host keeps the head-to-head book: beside the runs, so the
+/// same `FRAGR_RUN_DIR` override isolates both.
+pub fn head_to_head_path() -> io::Result<PathBuf> {
+    Ok(run_directory()?.join("head-to-head.json"))
+}
+
 fn run_directory() -> io::Result<PathBuf> {
     if let Some(override_path) = std::env::var_os("FRAGR_RUN_DIR") {
         let path = PathBuf::from(override_path);
@@ -1085,6 +1091,8 @@ mod tests {
             epilogue.gameplay_version,
             crate::protocol::STILL_HERE_GAMEPLAY_VERSION
         );
-        assert_eq!(epilogue.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        // The epilogue keeps its own floor; later arcade contracts, such as
+        // the booth, sit above it without moving it.
+        assert!(epilogue.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
     }
 }

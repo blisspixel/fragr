@@ -381,10 +381,10 @@ fn larak_rockets_outlive_their_owners_on_the_wire() {
     use crate::protocol::ServerMessage;
     let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
     // Fixed fighter ids: the seed decides the match only when random ids do
-    // not reorder the fighters from run to run. With them, seed 8 flies
+    // not reorder the fighters from run to run. With them, seed 13 flies
     // rockets past their owners' deaths every time.
     session.state.use_replay_ids();
-    session.state.seed(8);
+    session.state.seed(13);
     session.state.apply_config(MatchConfig {
         rules: RuleSet::new(GameMode::Ffa, &[], false).unwrap(),
         frag_limit: None,
@@ -422,5 +422,68 @@ fn larak_rockets_outlive_their_owners_on_the_wire() {
             }
         }
     }
-    assert!(orphans > 0, "seed 8 flies a rocket past its owner's death");
+    assert!(orphans > 0, "seed 13 flies a rocket past its owner's death");
+}
+
+#[test]
+fn the_host_introduces_a_duel_with_the_head_to_head_book() {
+    let mut state = room(GameMode::Duel);
+    assert_eq!(state.duel_intro_line(), None, "nobody seated yet");
+    join(&mut state, 1, Role::Human);
+    assert_eq!(state.duel_intro_line(), None, "a Duel needs two");
+    join(&mut state, 2, Role::Agent);
+    assert_eq!(
+        state.duel_intro_line().unwrap(),
+        "HOST: LARAK LOT DUEL. F1 AGAINST F2. FIRST TIME ON THE BOOK."
+    );
+    // The book is by callsign and carries across sessions on a desktop host.
+    for _ in 0..3 {
+        state.head_to_head.record("F2", "F1");
+    }
+    state.head_to_head.record("F1", "F2");
+    assert_eq!(
+        state.duel_intro_line().unwrap(),
+        "HOST: LARAK LOT DUEL. F1 AGAINST F2. F2 LEADS THE BOOK 3 TO 1."
+    );
+    state.head_to_head.record("F1", "F2");
+    state.head_to_head.record("F1", "F2");
+    assert_eq!(
+        state.duel_intro_line().unwrap(),
+        "HOST: LARAK LOT DUEL. F1 AGAINST F2. THE BOOK IS LEVEL AT 3."
+    );
+    // Warmup counts it in; the round opens on it until a series exists.
+    state.round_state = RoundState::Warmup;
+    state.round_ticks = 0;
+    state.config.warmup_ticks = 60;
+    assert_eq!(
+        state.snapshot().host_line,
+        "HOST: LARAK LOT DUEL. F1 AGAINST F2. THE BOOK IS LEVEL AT 3. GOES LIVE IN 3."
+    );
+    let _ = state.take_events();
+    state.start_round();
+    let opening = state
+        .take_events()
+        .into_iter()
+        .find_map(|event| match event {
+            GameEvent::RoundStart { host_line, .. } => Some(host_line),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(
+        opening,
+        "HOST: LARAK LOT DUEL. F1 AGAINST F2. THE BOOK IS LEVEL AT 3."
+    );
+    // A fighter who sat down after the round opened still sees it live.
+    assert_eq!(state.snapshot().host_line, opening);
+    // The calling register: capitals, short, never a radio word
+    // (docs/lore/voice.md).
+    assert_eq!(opening, opening.to_uppercase());
+    for word in ["FREQUENC", "STATION", "BROADCAST", "RADIO", "LISTENER"] {
+        assert!(!opening.contains(word), "{opening}");
+    }
+    // Free-for-all keeps its own intro.
+    let mut ffa = room(GameMode::Ffa);
+    join(&mut ffa, 1, Role::Human);
+    join(&mut ffa, 2, Role::Agent);
+    assert_eq!(ffa.duel_intro_line(), None);
 }

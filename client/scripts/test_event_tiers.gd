@@ -107,11 +107,11 @@ func _check_presenters() -> void:
 	feed.push(data, "a", "b", "", "coalition")
 	feed._process(0)
 	_check(not feed.notices.active[1].payload.own and feed.notices.active[0].payload.killer_team == "union", "following never becomes local ownership or recolors an old frag")
-	feed.push({"killer": "[color=red]literal", "victim": "測試界name", "weapon": "rocket"})
+	feed.push({"killer": "[color=red]literal", "victim": "測試界name", "weapon": "unknown_weapon"})
 	feed._process(0)
 	var row: PanelContainer = feed._rows[feed.notices.active[2].serial]
 	var plain: Label = row.get_node("Content/Killer")
-	_check(plain.get_meta("full_name") == "[color=red]literal" and plain.tooltip_text == "[color=red]literal" and row.get_node("Content/Weapon").text == "rocket", "peer names stay plain and missing glyph uses literal wire ID")
+	_check(plain.get_meta("full_name") == "[color=red]literal" and plain.tooltip_text == "[color=red]literal" and row.get_node("Content/Weapon").text == "unknown_weapon", "peer names stay plain and missing glyph uses literal wire ID")
 	feed.set_covered(true)
 	feed._process(40)
 	_check(not feed.visible and feed.notices.active[0].remaining == 4.5, "covered presenter does not age readable time")
@@ -192,7 +192,7 @@ func _check_board_identity() -> void:
 	for frame: int in range(3):
 		await process_frame
 	var text: String = hud.leaderboard_text()
-	_check(text.count("Same") == 2 and text.count("YOU") == 1 and text.contains("3 frag, 1 died") and text.contains("2 frag, 4 died"), "duplicate callsigns retain separate identities and counts")
+	_check(text.count("Same") == 2 and text.count("YOU") == 1 and text.contains("1. [UNION] Same  3  1  --  YOU") and text.contains("2. [FREE] Same  2  4  --"), "duplicate callsigns retain separate identities and counts: " + text)
 	_check(hud._leaderboard_rows.get_child(1).get_meta("relation") == "mate" and hud._leaderboard_rows.get_child(2).get_meta("relation") == "foe", "board uses the same relation helper as the feed")
 	hud.set_viewer_context("absent", "union")
 	_check(not hud.leaderboard_text().contains("YOU"), "unmatched modern identity cannot fall back to a callsign")

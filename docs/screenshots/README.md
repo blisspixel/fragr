@@ -567,6 +567,12 @@ strip reduction. Intermediates live in
 `.agents/qa/`. Set `FRAGR_RENDER_DRIVER=vulkan` to check that rendering path;
 OpenGL compatibility is the tour default. This is renderer evidence on the
 recorded host, not a GPU vendor certification or a load benchmark.
+On a Linux Wayland desktop the tour starts its own rootful Xwayland on a free
+display from `:90` and renders on the GPU, so tours can run side by side with
+distinct `FRAGR_PORT` values; without Wayland it falls back to Xvfb and
+llvmpipe, and `FRAGR_QA_DISPLAY` names an existing display instead.
+`FRAGR_QA_QUALITY=performance|balanced|high` runs a whole tour on one graphics
+preset, and the receipt records it with the display server.
 
 `FRAGR_QA_MANIFEST=res://qa/graphics.json FRAGR_RENDER_DRIVER=vulkan tools/qa_tour.sh .agents/qa/graphics`
 compares actual resolution, quality and upscaling states at a fixed 1920x1080

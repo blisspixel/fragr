@@ -151,9 +151,13 @@ func _pawn_seats() -> void:
 					"live profile does not override accepted pitch with fixed-Y " + kind)
 				_expect(pawn._held_root.basis.is_equal_approx(Basis(Vector3.BACK, pitch)),
 					"no-camera profile has stable pitched basis " + kind)
-				_expect(pawn.weapon_sprite.flip_h, "pistol painted muzzle points along positive gun axis " + kind)
-				var painted_grip: Vector3 = pawn.weapon_sprite.position + Vector3(-7.0, -3.0, 0.0) * pawn.weapon_sprite.pixel_size
-				_expect(painted_grip.length() < 0.0001, "pistol painted grip reaches posed wrist " + kind)
+				var carried: MeshInstance3D = pawn._held_model
+				_expect(carried != null and carried.visible and not pawn.weapon_sprite.visible,
+					"the pistol is carried as its model, not a card " + kind)
+				var bore: Vector3 = (carried.global_basis * Vector3.FORWARD).normalized()
+				_expect(bore.distance_to(direction) < 0.0001, "pistol bore points along the accepted aim " + kind)
+				var grip: Vector3 = carried.global_transform * GunModel.GRIP["Tack"]
+				_expect(grip.distance_to(pawn._held_root.global_position) < 0.0001, "pistol grip sits in the posed hand " + kind)
 				var before: PackedFloat32Array = _arm_lengths(pawn.character_view)
 				pawn.character_view.pose(0.371, true, true, false)
 				_expect(_same_lengths(before, _arm_lengths(pawn.character_view)), "aim pose retains weighted arm lengths " + kind)

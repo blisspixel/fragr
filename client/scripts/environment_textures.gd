@@ -11,16 +11,13 @@ static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
 	if venue == "larak_lot":
-		# An old range's car park: cast decks, booth enamel the league painted
-		# over (its red trim gone, so no red band sits at head height behind
-		# a fight), dark steel treads, oxidized wrecks and the stairwell's
-		# green intake tile.
+		# An old range's car park. Its concrete, treads and stairwell are
+		# class tiles (ArenaMaterials.larak_class); the boxes the presenter
+		# redraws keep booth enamel the league painted over (its red trim gone,
+		# so no red band sits at head height behind a fight) and oxidized wrecks.
 		match surface:
-			"concrete": return EARTH + "earth_yard_cast_concrete.png" if horizontal else PRODUCTION + "yard_concrete.png"
 			"enamel": return PRODUCTION + ("union_concrete.png" if horizontal else "scrap_enamel.png")
-			"service_steel": return EARTH + ("earth_service_dark_tread.png" if horizontal else "earth_workshop_patched_steel.png")
 			"records_tile": return EARTH + "earth_scrapyard_oxidized_plate.png" if not horizontal else PRODUCTION + "scrap_steel.png"
-			"lift_panel": return EARTH + "earth_intake_green_tile.png" if not horizontal else PRODUCTION + "union_concrete.png"
 	if venue == "mars_foundry":
 		match surface:
 			"concrete": return PRODUCTION + "mars_floor.png"

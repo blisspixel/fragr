@@ -478,6 +478,7 @@ fn test_protocol_snapshot_serialization() {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }],
         round_state: Some("Active".to_string()),
         round_time_left: Some(60),
@@ -2920,7 +2921,12 @@ async fn test_net_ws_action_forwarded_for_agent() {
             article_blade: None,
             podium: None,
         });
-        broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snap])).await;
+        broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&[snap]),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
             .await
             .unwrap()
@@ -3033,7 +3039,12 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
         player_count: session.state.players.len(),
     });
     let messages = session.tick_messages(0.05);
-    broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages)).await;
+    broadcast_to_clients(
+        &clients,
+        &crate::net::Broadcast::copies(&messages),
+        &std::collections::HashSet::new(),
+    )
+    .await;
 
     let mut saw_snapshot = false;
     let mut saw_join_event = false;
@@ -4648,6 +4659,11 @@ fn test_bot_rail_holds_long_lane() {
         .position(|p| p.id == target_id)
         .unwrap();
 
+    // A Railgun the bot actually took from its pad: a bot that holds only
+    // the Pistol walks off a long trade to arm up first.
+    state.players[bot_idx]
+        .inventory
+        .grant_weapon(WeaponType::Rail);
     state.players[bot_idx].weapon = WeaponType::Rail;
     let (lane_z, span) = clear_lane(25.0);
     state.players[bot_idx].x = -span * 0.5;
@@ -6607,11 +6623,28 @@ fn dispersion_is_dispersion_not_free_aim() {
 
 #[test]
 fn the_scatter_gun_falls_off_with_distance() {
-    use crate::protocol::{WeaponType, SCATTER_FAR_DAMAGE_SCALE, SCATTER_FULL_DAMAGE_UNITS};
+    use crate::protocol::{
+        WeaponType, SCATTER_FAR_DAMAGE_SCALE, SCATTER_FULL_DAMAGE_UNITS, SCATTER_MEATSHOT_PELLET,
+        SCATTER_MEATSHOT_UNITS,
+    };
 
     let scatter = WeaponType::Scatter;
     let full = scatter.damage();
-    assert_eq!(scatter.damage_at(0.0), full, "point blank is full damage");
+    // The meatshot: the barrel against the body puts a bare fighter down.
+    for distance in [0.0, 1.0, SCATTER_MEATSHOT_UNITS] {
+        assert_eq!(scatter.damage_at(distance), SCATTER_MEATSHOT_PELLET);
+    }
+    assert!(SCATTER_MEATSHOT_PELLET * scatter.pellets() as i32 >= 100);
+    assert!(
+        full * (scatter.pellets() as i32) < 100,
+        "a step back is two blasts"
+    );
+    assert_eq!(scatter.damage_at(SCATTER_MEATSHOT_UNITS + 0.01), full);
+    assert_eq!(
+        scatter.damage_at(SCATTER_FULL_DAMAGE_UNITS),
+        full,
+        "the full-damage band reaches four units"
+    );
     assert_eq!(
         scatter.damage_at(SCATTER_FULL_DAMAGE_UNITS),
         full,

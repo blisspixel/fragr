@@ -1,7 +1,7 @@
 extends RefCounted
 class_name StanceChip
 ## Observe-only PlayerState.behavior short codes for spectator surfaces.
-## Shared by Warmup TV roster, follow HUD, nameplate, and Tab scoreboard.
+## Shared by Warmup TV roster, follow HUD, nameplate (`NameplateLayout`) and Tab scoreboard.
 ## Never trusted for combat; display only.
 
 
@@ -54,11 +54,6 @@ static func follow_line(player_name: String, behavior: String = "", weapon_desc:
 	if weapon_desc != "":
 		line += "\n" + weapon_desc
 	return line
-
-
-static func nameplate(player_name: String, behavior: String, hp_display: String, score_chip: String = "") -> String:
-	# Stance beside the callsign so follow / overview reads it before HP.
-	return player_name + bracket(behavior) + score_chip + " [" + hp_display + "]"
 
 
 ## Ember scrap accent when a stance is present (loud without neon).

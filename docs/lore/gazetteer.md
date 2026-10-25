@@ -63,14 +63,15 @@ the FFA and Duel home. Never label different geometry as Larak Lot, because
 learned routes must agree with the name a player sees.
 
 As built, the lot is an old black-budget range that nobody will sign off, with
-the power still on and the league holding its nights there. The directory at
-every entry admits four levels, 1 to 3 and the Roof, and calls level 1 the
-lowest. The fifth is the one the sign never admitted: the centre bays fell into
-it and became the Pit, and the Low Ramp tunnel is the old way down, past the
-Rail on a landing stencilled "halfway to a level that isn't there". The league
-has painted "-1" at the tunnel mouth and on the Pit walls. Aunt Linda's tent
-revival is on level three, over the Spiral landing. Larak's signature is on the
-pay machines, the pulpit and a coffee machine approved in 2009.
+the power still on and the league holding its nights there. The old directory
+admitted four levels, 1 to 3 and the Roof, and called level 1 the lowest. The
+fifth is the one it never admitted: the centre bays fell into it and became the
+Pit, and the Low Ramp tunnel is the old way down past the Rail. The current
+presentation uses deck colours and lane bars instead of repeated directory and
+floor prose. Aunt Linda's tent revival is on level three, over the Spiral
+landing. One small pay-machine plate carries Larak's signature; the dead
+hardware and its repeated manufacture carry the rest. Betting slates show
+tally strokes instead of paragraphs explaining the league.
 
 The other arena myths await floor plans. The arena size
 ladder is in [map-scale](../plans/map-scale.md); campaign scale follows its story

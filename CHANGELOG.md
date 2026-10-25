@@ -11,6 +11,31 @@ Release history, newest first. Planned work stays in
   Carrier's pilot consoles, galley and berths, the foundry's lathes and freight
   hoist, the trams left where they stopped in Planned Works and Local
   Exception, and the concourse's stretcher, cases, duffels and crates.
+- Bots play Larak Lot like regulars: they reach for the Rocket and put it at
+  your feet, leading a strafe, and never fire it close enough to catch
+  themselves; each callsign has a favourite gun and a pad it times, so
+  Nightfall keeps the Railgun and somebody is always walking to the Custody
+  Plate; a fresh life on the Pistol goes for a real gun before a long trade.
+- Grudges: a bot remembers who has fragged it, looks for them first, and says
+  so when it settles the score. A desktop host keeps the head-to-head book
+  between callsigns across sessions, and the Host reads it before a Duel
+  ("NIGHTFALL LEADS THE BOOK 7 TO 4").
+- The Scatter meatshot: the barrel against the body puts a bare fighter down
+  in one blast.
+- Make fights look like fights: a ten-frame pixel fireball with smoke,
+  debris, an amber flash of light, a scorch and a kick to the view on every
+  blast; a modelled rocket that trails smoke; impacts that show what they hit
+  (dust off concrete, sparks off steel, blood off a human, sparks and oil off
+  a free agent) and leave a mark on walls; and a Railgun beam that lingers,
+  white-cored, with a spiral you can see from behind your own gun.
+- Rebuild the Pistol, Shotgun and Railgun as modelled guns in your gloved
+  hands, a quarter of the screen wide: the Pistol's slide runs back on every
+  shot and its magazine drops on the reload, the Shotgun is a side-by-side
+  double that breaks open for its shells, and the Railgun's coils go dark
+  after a shot and charge back up. Every held gun now lowers and rises on a
+  switch, lags your look, dips when you land and takes the light around it.
+  Pickups, the gun a fighter carries, Latch's Pistol and the kill feed's new
+  glyphs all show the same guns.
 - Dress Larak Lot with modelled props in place of boxes: the toll booths, the
   bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
   pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,

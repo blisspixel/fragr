@@ -396,7 +396,7 @@ msgid "SETTINGS_PIXEL_CHUNKY"
 msgstr "CHUNKY"
 
 msgid "SETTINGS_DITHER"
-msgstr "PALETTE DITHER"
+msgstr "DITHER"
 
 msgid "SETTINGS_SHOW_FPS"
 msgstr "SHOW FPS"

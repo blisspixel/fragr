@@ -42,6 +42,16 @@ const VIEW_FILL: String = "ViewFill"
 ## so a dark room stays dark while whatever is in it stays readable.
 const WORLD_LAYERS: int = 2
 const ACTOR_LAYERS: int = 1
+## Glow shape, from the most local level (1) to the blurriest (7). Forward+
+## and Mobile read these; Compatibility has its own fixed blur.
+## The threshold is tested on the half-resolution first level, so a bulb two
+## pixels across averages below it and stays crisp; a lamp head, a lit window
+## or a sign letter clears it. The short ramp (HDR scale) lets an emitter just
+## over the line glow fully instead of fading in over two more stops.
+const GLOW_LEVELS: Array[float] = [1.0, 0.9, 0.35, 0.0, 0.0, 0.0, 0.0]
+const GLOW_THRESHOLD: float = 0.85
+const GLOW_HDR_SCALE: float = 1.0
+const GLOW_LUMINANCE_CAP: float = 6.0
 
 ## One venue's sky and light plan.
 class Preset extends RefCounted:
@@ -51,6 +61,12 @@ class Preset extends RefCounted:
 	var haze_below_horizon: bool = false
 	var fog_color: Color
 	var fog_density: float
+	## A low haze layer: the fog thickens below `fog_height` (world metres) at
+	## `fog_height_density` per metre. Godot's height fog depends on height
+	## alone, not distance, so it tints every surface under the line by the
+	## same amount; keep it thin and below a fighter's chest. Zero is off.
+	var fog_height: float = 0.0
+	var fog_height_density: float = 0.0
 	## The flat ambient tint. This is the floor under every light, not the sky.
 	var ambient_color: Color
 	var ambient_energy: float
@@ -410,6 +426,9 @@ static func larak_lot() -> Preset:
 		0.6
 	)
 	preset.outdoor_embers = false
+	# Exhaust and sodium haze settled in the Pit, under the first deck.
+	preset.fog_height = 0.9
+	preset.fog_height_density = 0.18
 	preset.key_color = Color("b9c6e6")  # cool city glow
 	preset.key_energy = 0.95
 	preset.key_in_sky = false
@@ -424,7 +443,7 @@ static func larak_lot() -> Preset:
 	preset.view_fill_range = 32.0
 	preset.contrast = 1.1
 	preset.saturation = 1.0
-	preset.glow_intensity = 0.4
+	preset.glow_intensity = 0.8
 	return preset
 
 ## Low Water the night of the wipe. A cool moon key and a deep blue sky keep
@@ -573,6 +592,8 @@ static func build_environment(map_name: String = "") -> Environment:
 	env.fog_light_color = preset.fog_color
 	env.fog_density = preset.fog_density
 	env.fog_sky_affect = 0.0
+	env.fog_height = preset.fog_height
+	env.fog_height_density = preset.fog_height_density
 
 	# Filmic keeps a bright fixture from clipping to a flat white card while
 	# the ambient floor stays where it was authored.
@@ -585,10 +606,21 @@ static func build_environment(map_name: String = "") -> Environment:
 
 	# Glow is off here; quality turns it on at Balanced and above. Only emissive
 	# fixtures and lamps reach the threshold, so it never washes the frame.
+	# The bloom is small on purpose: the tight levels carry it, so a bulb,
+	# a window or a sign letter gets a halo a few pixels wide and the wide
+	# levels that fog a whole wall stay off. A lit floor under a lamp stays
+	# below the threshold, and the luminance cap stops one hot lamp from
+	# flooding the frame around a fighter standing under it.
 	env.glow_enabled = false
 	env.glow_intensity = preset.glow_intensity
+	env.glow_strength = 1.0
 	env.glow_bloom = 0.0
-	env.glow_hdr_threshold = 1.0
+	env.glow_hdr_threshold = GLOW_THRESHOLD
+	env.glow_hdr_scale = GLOW_HDR_SCALE
+	env.glow_hdr_luminance_cap = GLOW_LUMINANCE_CAP
+	env.glow_normalized = false
+	for level: int in GLOW_LEVELS.size():
+		env.set_glow_level(level, GLOW_LEVELS[level])
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
 
 	return env

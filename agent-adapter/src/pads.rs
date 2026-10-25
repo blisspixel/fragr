@@ -1,9 +1,11 @@
 //! What a joined agent can know about the map's pads. The snapshot carries
-//! every pad's live state and return timer for the renderer and the booth.
-//! A fighter sees a pad only inside a 120 degree view, within 40 m and past
-//! the map's solids, or underfoot, and remembers the published return clocks.
-//! `observe` reports that belief for a joined agent, never the live timer. A
-//! spectator that never joined keeps the booth's full view.
+//! every pad's live availability for the renderer, and no return timer: the
+//! live clocks go only to spectator connections (`spectator_facts`). A
+//! fighter sees a pad only inside a 120 degree view, within 40 m and past the
+//! map's solids, or underfoot, and remembers the published return clocks.
+//! `observe` reports that belief for a joined agent. A spectator that never
+//! joined keeps the snapshot's full availability view, and `round_state`
+//! carries its booth clocks.
 use fragr_server::movement::Solid;
 use fragr_server::protocol::{PickupState, PlayerState, Snapshot, SupplyClaim};
 use serde_json::Value;
@@ -30,6 +32,8 @@ struct Belief {
 pub struct PadView {
     solids: Vec<Solid>,
     teams: bool,
+    /// Pads return on their clocks: an arcade map with a rule sheet.
+    returns: bool,
     beliefs: HashMap<String, Belief>,
 }
 
@@ -60,11 +64,13 @@ fn sees(solids: &[Solid], me: &PlayerState, pad: &PickupState) -> bool {
 }
 
 impl PadView {
-    /// A new map: its solids, whether weapon pads keep the team clock, and
-    /// every pad believed up, as at a round start.
-    pub fn reset_map(&mut self, solids: Vec<Solid>, teams: bool) {
+    /// A new map: its solids, whether weapon pads keep the team clock,
+    /// whether pads return at all, and every pad believed up, as at a round
+    /// start.
+    pub fn reset_map(&mut self, solids: Vec<Solid>, teams: bool, returns: bool) {
         self.solids = solids;
         self.teams = teams;
+        self.returns = returns;
         self.beliefs.clear();
     }
 
@@ -88,7 +94,7 @@ impl PadView {
                 if pad.available {
                     belief.up = true;
                     belief.back_at = None;
-                } else if pad.respawn_in.is_none() {
+                } else if !self.returns {
                     // Campaign stock that is gone stays gone until the party
                     // reset; there is no clock to learn.
                     belief.up = false;
@@ -120,8 +126,7 @@ impl PadView {
     }
 
     /// Rewrite a full observation's pickups to this belief: `available` is
-    /// what the agent believes, `in_view` whether it can see the pad now, and
-    /// the live `respawn_in` timer is removed.
+    /// what the agent believes and `in_view` whether it can see the pad now.
     pub fn redact(&self, pickups: &mut Value) {
         let Some(rows) = pickups.as_array_mut() else {
             return;
@@ -131,7 +136,6 @@ impl PadView {
                 continue;
             };
             let personal = object.get("claim").and_then(Value::as_str) == Some("personal");
-            object.remove("respawn_in");
             let id = object.get("id").and_then(Value::as_str).unwrap_or_default();
             let belief = self.beliefs.get(id).copied();
             if !personal {
@@ -164,7 +168,7 @@ mod tests {
 
     fn view_for(state: &GameState) -> PadView {
         let mut view = PadView::default();
-        view.reset_map(state.map.arena().solids.clone(), false);
+        view.reset_map(state.map.arena().solids.clone(), false, true);
         view
     }
 
@@ -203,15 +207,15 @@ mod tests {
         view.observe(&state.snapshot(), Some(me));
         assert!(view.up(&pad));
 
-        // Another pad taken out of view is still believed up, and the full
-        // observation hides the live timer.
+        // Another pad taken out of view is still believed up, and the
+        // snapshot carries no live timer to hide.
         state.pickups[1].available = false;
         state.pickups[1].respawn_timer = Some(50);
         view.observe(&state.snapshot(), Some(me));
         let other = state.snapshot().pickups[1].clone();
         assert!(view.up(&other));
         let mut rows = serde_json::to_value(&state.snapshot().pickups).unwrap();
-        assert!(rows[1].get("respawn_in").is_some());
+        assert!(rows[1].get("respawn_in").is_none());
         view.redact(&mut rows);
         assert_eq!(rows[1]["available"], true);
         assert_eq!(rows[1]["in_view"], false);
@@ -221,7 +225,9 @@ mod tests {
     #[test]
     fn stock_that_never_restocks_stays_gone_until_seen_again() {
         let (mut state, me) = arena();
-        let mut view = view_for(&state);
+        // A campaign map: no rule sheet, so pads do not return on a clock.
+        let mut view = PadView::default();
+        view.reset_map(state.map.arena().solids.clone(), false, false);
         stand_at(&mut state, me, 0, 0.0, 1.0);
         state.pickups[0].available = false;
         state.pickups[0].respawn_timer = None;
