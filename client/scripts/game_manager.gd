@@ -283,6 +283,14 @@ func _ready():
 	incoming_feedback.setup(hud)
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
+	shot_effects.decals = VfxDecals.new()
+	add_child(shot_effects.decals)
+	shot_effects.fighter_surface = func(id: String) -> String:
+		var struck: Node = players.get(id)
+		return struck.impact_surface() if is_instance_valid(struck) and struck.has_method("impact_surface") else ShotVfx.FLESH
+	shot_effects.first_person_muzzle = func() -> Vector2:
+		var flash: Variant = hud.get("fp_muzzle") if is_instance_valid(hud) else null
+		return (flash as Control).global_position + (flash as Control).size * 0.5 if flash is Control else Vector2.INF
 	arena_vehicles = ArenaVehicles.new()
 	arena_vehicles.name = "Vehicles"
 	add_child(arena_vehicles)
@@ -305,6 +313,13 @@ func _ready():
 	grenade_effects.placed.connect(func(owner_id: String) -> void:
 		if is_human_player and owner_id == str(net_client.player_id):
 			hud.show_mine_place())
+	grenade_effects.set_decals(shot_effects.decals)
+	grenade_effects.exploded.connect(func(at: Vector3, radius: float) -> void:
+		var eye: Camera3D = get_viewport().get_camera_3d()
+		var kick: float = ShotVfx.blast_kick(eye.global_position.distance_to(at), radius) if is_instance_valid(eye) else 0.0
+		if kick > 0.0 and camera != null:
+			camera.punch_view(ShotVfx.BLAST_KICK_DEGREES * kick)
+			camera.camera_shake_intensity = maxf(camera.camera_shake_intensity, ShotVfx.BLAST_KICK_SHAKE * kick))
 	add_child(grenade_effects)
 	walker_view = WalkerView.new()
 	walker_view.name = "WalkerPresentation"
@@ -597,6 +612,7 @@ func _on_map_info(info: Dictionary) -> void:
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
+		shot_effects.configure_map(info)
 	current_map_info = info.duplicate(true)
 	if incoming_feedback != null:
 		incoming_feedback.configure_map(info)

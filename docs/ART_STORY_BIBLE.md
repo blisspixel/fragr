@@ -191,6 +191,16 @@ practical civilian forms, maintained workshop equipment and repeatable Union
 issue can differ without becoming unrelated visual styles. Check these qualities
 in ordinary rendered play, including motion and dark rooms, before selecting art.
 
+Combat effects keep the same chunky pixel scale and the faction colour law
+(`client/scripts/shot_vfx.gd` owns the tables, `tools/bake_shot_vfx.gd` the
+art). Gunfire and blasts light the world amber to warm white, never red,
+which stays the Union attack tell. A body hit bleeds in dried-blood tones,
+not bright Union red; a free agent's synthetic body throws sparks and dark
+oil, never cyan, which belongs to the Inheritance. The Railgun is a cold
+near-white core with only a pale cyan edge and a near-white light. Every
+effect is a hard-alpha sprite or skinned model that fades through an ordered
+dither; no untextured blocks (`test_vfx_meshes`).
+
 Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance
 leaves unsettling order and regrowth among evidence of human and agent loss.

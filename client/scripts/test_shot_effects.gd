@@ -127,7 +127,7 @@ func _test_incoming_camera(effects: ShotEffects) -> void:
 	effects._process(0.07)
 	_check(_vertices(effects).is_empty() and not effects.visible and effects.is_processing(),
 		"listener impact creates no empty surface but retains its expiry clock")
-	effects._process(0.18)
+	effects._process(ShotEffects.LIFETIME - 0.06)
 	_check(effects.active_count() == 0 and not effects.is_processing(), "clipped effects still expire")
 	effects.clear()
 	# A Sniper shot landing on the viewer draws no streak into a scoped lens.
@@ -224,14 +224,15 @@ func _run() -> void:
 	var sprites: ShaderMaterial = effects.get_node("Impacts").mesh.surface_get_material(0)
 	_check(sprites.shader == ShotEffects.SPRITE_SHADER and sprites.shader.code.contains("camera_clearance")
 		and not sprites.shader.code.contains("depth_test_disabled"), "impact sprites keep world depth and the camera clearance")
-	_check(ShotVfx.impact_row("rail", "solid") == "rail" and ShotVfx.impact_row("scatter", "fighter") == "fighter"
-		and ShotVfx.impact_row("tack", "solid") == "solid" and ShotVfx.impact_row("shiv", "fighter") == "melee",
-		"each gun and surface picks its impact row")
-	var first: Rect2 = ShotVfx.impact_uv("fighter", 0.0, ShotEffects.LIFETIME)
-	var last: Rect2 = ShotVfx.impact_uv("fighter", ShotEffects.LIFETIME * 0.99, ShotEffects.LIFETIME)
-	_check(first.position.x == 0.0 and is_equal_approx(last.position.x, 0.75) and first.position.y == last.position.y
-		and is_equal_approx(first.position.y, 0.25), "an impact plays its row's four frames over its lifetime")
-	for weapon: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper"]:
+	_check(ShotVfx.impact_row("rail", "solid") == "rail" and ShotVfx.impact_row("scatter", "fighter") == "flesh"
+		and ShotVfx.impact_row("scatter", "fighter", ShotVfx.SYNTHETIC) == "synthetic"
+		and ShotVfx.impact_row("tack", "solid") == "concrete" and ShotVfx.impact_row("tack", "solid", ShotVfx.METAL) == "metal"
+		and ShotVfx.impact_row("shiv", "fighter") == "melee", "each gun and surface picks its impact row")
+	var first: Rect2 = ShotVfx.impact_uv("flesh", 0.0, ShotEffects.LIFETIME)
+	var last: Rect2 = ShotVfx.impact_uv("flesh", ShotEffects.LIFETIME * 0.99, ShotEffects.LIFETIME)
+	_check(first.position.x == 0.0 and is_equal_approx(last.position.x, 5.0 / 6.0) and first.position.y == last.position.y
+		and is_equal_approx(first.position.y, 2.0 / 6.0), "an impact plays its row's six frames over its lifetime")
+	for weapon: String in ["Tack", "Flechette", "Repeater", "Scatter", "Rail", "Sniper", "Rocket"]:
 		var flash: Texture2D = ShotVfx.muzzle(weapon)
 		_check(flash != null and flash.get_width() == 32 and flash.get_height() == 32, weapon + " has its own third-person flash")
 	_check(ShotVfx.muzzle("Fists") == null, "a punch shows no flash")
@@ -245,7 +246,9 @@ func _run() -> void:
 	_check(effects.active_count() == 3, "duplicate and reordered snapshots cannot repeat effects")
 	effects._process(0.07)
 	_check(effects.active_count() == 2, "range-only tracers expire without emitting an empty surface")
-	effects._process(0.18)
+	effects._process(0.25)
+	_check(effects.active_count() == 1 and effects.impact_count() == 0, "impacts expire while the Railgun beam lingers")
+	effects._process(ShotEffects.RAIL_SECONDS - 0.3)
 	_check(effects.active_count() == 0 and not effects.visible, "every effect expires")
 	_check(effects.impact_count() == 0, "expiry releases impact sprites")
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 0, "expiry releases draw geometry")
