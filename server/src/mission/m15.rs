@@ -11,6 +11,9 @@ use crate::sim::{BotIntent, Player, PLAYER_FLOOR_Y};
 use std::collections::HashSet;
 use uuid::Uuid;
 
+/// A participant this close to an armed entrant's shot line blocks the shot.
+const ENTRANT_FIRE_CLEARANCE: f32 = 0.7;
+
 #[derive(Default)]
 pub(crate) struct M15Progress {
     pub(super) index: usize,
@@ -86,6 +89,27 @@ impl GameState {
         }
     }
 
+    /// Whether a living participant stands on the line from `from` to `to`:
+    /// an armed entrant holds fire rather than shoot through the person it
+    /// fights beside.
+    fn participant_in_line(&self, from: [f32; 3], to: [f32; 3]) -> bool {
+        let line = [to[0] - from[0], to[2] - from[2]];
+        let length = line[0].hypot(line[1]);
+        if length <= f32::EPSILON {
+            return false;
+        }
+        let along = [line[0] / length, line[1] / length];
+        self.players.iter().any(|p| {
+            if p.campaign != Some(CampaignActor::Participant {}) || p.hp <= 0 {
+                return false;
+            }
+            let offset = [p.x - from[0], p.z - from[2]];
+            let ahead = offset[0] * along[0] + offset[1] * along[1];
+            let lateral = (offset[0] * along[1] - offset[1] * along[0]).abs();
+            ahead > 0.0 && ahead < length && lateral < ENTRANT_FIRE_CLEARANCE
+        })
+    }
+
     pub(crate) fn m15_entrant_intents(&mut self) -> Vec<(Uuid, BotIntent)> {
         let run = match self.mission.as_ref() {
             Some(r) if r.m15.is_some() && r.phase == MissionPhase::InProgress => r,
@@ -130,6 +154,7 @@ impl GameState {
                                 aim_point_for(enemy_feet, enemy.campaign, enemy.ducking),
                                 solids,
                             )
+                            && !self.participant_in_line(feet, enemy_feet)
                     })
                     .min_by(|a, b| {
                         let da = (a.x - feet[0]).powi(2) + (a.z - feet[2]).powi(2);

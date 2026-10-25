@@ -423,3 +423,31 @@ fn m15_mission_retry_resets_entrants_blade_and_gates() {
     assert!(m15.fallen_entrants.is_empty());
     assert!(s.state.article_blade.is_some());
 }
+
+/// An armed entrant fights beside the participant and never shoots through
+/// them: the participant on its line to a guard holds its fire.
+#[test]
+fn armed_entrants_hold_fire_through_the_participant() {
+    let (mut s, id) = session();
+    let from = [0.0, 0.0, 0.0];
+    let target = [8.0, 0.0, 0.0];
+    let at = |s: &mut GameSession, x: f32, z: f32| {
+        let me = s.state.players.iter_mut().find(|p| p.id == id).unwrap();
+        [me.x, me.y, me.z] = [x, PLAYER_FLOOR_Y, z];
+        me.campaign = Some(CampaignActor::Participant {});
+    };
+    at(&mut s, 4.0, 0.3);
+    assert!(s.state.participant_in_line(from, target), "on the line");
+    at(&mut s, 4.0, 2.0);
+    assert!(
+        !s.state.participant_in_line(from, target),
+        "beside the line"
+    );
+    at(&mut s, -2.0, 0.0);
+    assert!(
+        !s.state.participant_in_line(from, target),
+        "behind the entrant"
+    );
+    at(&mut s, 10.0, 0.0);
+    assert!(!s.state.participant_in_line(from, target), "past the guard");
+}
