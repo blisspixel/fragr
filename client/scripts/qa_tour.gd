@@ -66,6 +66,9 @@ var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _combat_travel_targets: Array[String] = []
 var _radio_compare_on: bool = false
+## video/quality indices, in settings order.
+const CAPTURE_QUALITIES: Array[String] = ["performance", "balanced", "high"]
+var _capture_quality: int = -1
 var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
 var _audio_recorder: AudioEffectRecord = null
@@ -135,6 +138,15 @@ func _run() -> void:
 	# Stills show ordinary play; a state that needs the first-run controls
 	# legend asks for it with "controls_hint": "replay".
 	capture_settings.set_value("gameplay", "controls_hint_seen", true)
+	# One tour at each graphics preset: FRAGR_QA_QUALITY starts the whole run
+	# on that preset. A state's own "graphics" options still win for that state.
+	_capture_quality = capture_quality(OS.get_environment("FRAGR_QA_QUALITY"))
+	if _capture_quality == -2:
+		push_error("qa_tour: FRAGR_QA_QUALITY must be performance, balanced or high")
+		quit(1)
+		return
+	if _capture_quality >= 0:
+		capture_settings.set_value("video", "quality", _capture_quality)
 	if capture_settings.save_to_disk() != OK:
 		push_error("qa_tour: could not create isolated capture settings")
 		quit(1)
@@ -1223,6 +1235,14 @@ static func valid_m07_expectations(state: Dictionary) -> bool:
 		if completed[index] != order[index]:
 			return false
 	return true
+
+## The run-wide preset from FRAGR_QA_QUALITY: -1 when unset (the settings
+## default), -2 when unrecognised, else the video/quality index.
+static func capture_quality(value: String) -> int:
+	if value.is_empty():
+		return -1
+	var index: int = CAPTURE_QUALITIES.find(value.to_lower())
+	return index if index >= 0 else -2
 
 static func valid_radio_comparison(value: String, states: Variant) -> bool:
 	if value.is_empty():
@@ -3392,6 +3412,8 @@ func _write_manifest(tour: Dictionary) -> void:
 		"godot": Engine.get_version_info().get("string", ""),
 		"renderer": RenderingServer.get_current_rendering_method(),
 		"device": RenderingServer.get_video_adapter_name(),
+		"display_server": DisplayServer.get_name(),
+		"quality": CAPTURE_QUALITIES[_capture_quality] if _capture_quality >= 0 else "settings default",
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"companion_shots": _combat_probe.companion_shots.duplicate(true),

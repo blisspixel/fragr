@@ -3,10 +3,16 @@
 # save a still and a measurement for each, and build a contact sheet.
 #
 # Needs a real framebuffer. On Windows run it from Git Bash and it uses the
-# console binary directly. On Linux it wraps the run in Xvfb, because bare
-# --headless has no framebuffer and every still comes back empty. Without Xvfb,
-# FRAGR_QA_DISPLAY names an existing 1280x720 X display instead (for example a
-# nested rootful Xwayland on :97), rendered on the GPU.
+# console binary directly. On Linux bare --headless has no framebuffer and
+# every still comes back empty, so the client gets an X display: on a Wayland
+# desktop the tour starts its own rootful Xwayland, rendered on the GPU, with a
+# free display number so parallel tours never collide; elsewhere it starts
+# Xvfb, rendered in software. FRAGR_QA_DISPLAY names an existing X display
+# instead. A tiling compositor may resize the nested window; stills and frame
+# timing read Godot's own viewport at the manifest size, not the screen.
+#
+# FRAGR_QA_QUALITY=performance|balanced|high runs the whole tour on that
+# graphics preset; a state's own "graphics" options still win for that state.
 #
 # Usage: tools/qa_tour.sh [--publish] [output directory]
 #   --publish also runs a short team deathmatch pass and a Recall Notice
@@ -113,7 +119,7 @@ done
 SERVER_PID=""
 cleanup() {
   [ -n "$SERVER_PID" ] && kill "$SERVER_PID" >/dev/null 2>&1
-  [ -n "${XVFB_PID:-}" ] && kill "$XVFB_PID" >/dev/null 2>&1
+  [ -n "${DISPLAY_PID:-}" ] && kill "$DISPLAY_PID" >/dev/null 2>&1
   return 0
 }
 trap cleanup EXIT
@@ -168,12 +174,12 @@ run_client() {
   if [ "$(uname -s)" != "Linux" ]; then
     FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
-  elif [ -n "${FRAGR_QA_DISPLAY:-}" ]; then
-    env -u WAYLAND_DISPLAY DISPLAY="$FRAGR_QA_DISPLAY" \
+  elif [ "$QA_SOFTWARE" = "1" ]; then
+    env -u WAYLAND_DISPLAY DISPLAY="$QA_DISPLAY" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
   else
-    env -u WAYLAND_DISPLAY DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
+    env -u WAYLAND_DISPLAY DISPLAY="$QA_DISPLAY" \
       FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
   fi
@@ -204,13 +210,50 @@ if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/import.l
   exit 1
 fi
 
-if [ "$(uname -s)" = "Linux" ] && [ -z "${FRAGR_QA_DISPLAY:-}" ]; then
-  command -v Xvfb >/dev/null 2>&1 || {
-    echo "qa_tour: Xvfb needed on Linux for a framebuffer" >&2; exit 1; }
-  DISPLAY_NUM="${DISPLAY_NUM:-99}"
-  Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
-  XVFB_PID=$!
-  sleep 1
+QA_DISPLAY="${FRAGR_QA_DISPLAY:-}"
+QA_SOFTWARE=0
+if [ "$(uname -s)" = "Linux" ] && [ -z "$QA_DISPLAY" ]; then
+  if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v Xwayland >/dev/null 2>&1; then
+    # Rootful, so no window manager inside it moves or resizes the client.
+    # Name the display and never pass -displayfd: with it Xwayland skips the
+    # /tmp/.X<n>-lock check, and left to choose it took the desktop's :0,
+    # replaced that X socket and removed it on exit. Without it the lock is
+    # honoured, so two tours racing for one number leave the loser to exit and
+    # try the next. Ready means our lock and our socket both exist.
+    display_number=""
+    for candidate in $(seq 90 129); do
+      [ -e "/tmp/.X$candidate-lock" ] || [ -e "/tmp/.X11-unix/X$candidate" ] && continue
+      Xwayland ":$candidate" -geometry 1920x1080 -noreset >"$OUT_DIR/xwayland.log" 2>&1 &
+      DISPLAY_PID=$!
+      for _ in $(seq 1 100); do
+        if [ -S "/tmp/.X11-unix/X$candidate" ] && \
+          [ "$(tr -dc '0-9' <"/tmp/.X$candidate-lock" 2>/dev/null)" = "$DISPLAY_PID" ]; then
+          display_number="$candidate"
+          break
+        fi
+        kill -0 "$DISPLAY_PID" 2>/dev/null || break
+        sleep 0.1
+      done
+      [ -n "$display_number" ] && break
+      kill "$DISPLAY_PID" >/dev/null 2>&1
+      DISPLAY_PID=""
+    done
+    if [ -z "$display_number" ]; then
+      echo "qa_tour: no nested Xwayland display came up on :90 to :129; see $OUT_DIR/xwayland.log" >&2
+      exit 1
+    fi
+    QA_DISPLAY=":$display_number"
+  else
+    command -v Xvfb >/dev/null 2>&1 || {
+      echo "qa_tour: Linux needs Xwayland under Wayland, Xvfb or FRAGR_QA_DISPLAY for a framebuffer" >&2; exit 1; }
+    DISPLAY_NUM="${DISPLAY_NUM:-99}"
+    Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
+    DISPLAY_PID=$!
+    QA_DISPLAY=":$DISPLAY_NUM"
+    QA_SOFTWARE=1
+    sleep 1
+  fi
+  echo "qa_tour: display $QA_DISPLAY ($([ "$QA_SOFTWARE" = "1" ] && echo "Xvfb, software" || echo "nested Xwayland, GPU"))"
 fi
 
 start_server "$OUT_DIR/server.log" "${SERVER_ARGS[@]}"

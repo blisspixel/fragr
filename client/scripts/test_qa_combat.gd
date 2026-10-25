@@ -204,6 +204,11 @@ func _run() -> void:
 	_check(TOUR.valid_radio_comparison("", [{"radio_off":true}])
 		and TOUR.valid_radio_comparison("on", [{"radio_off":true}]),
 		"radio comparison leaves the default route alone and accepts explicit opt-in")
+	_check(TOUR.capture_quality("") == -1 and TOUR.capture_quality("performance") == 0
+		and TOUR.capture_quality("Balanced") == 1 and TOUR.capture_quality("high") == 2,
+		"run-wide capture preset accepts the three named presets and leaves an unset run alone")
+	_check(TOUR.capture_quality("ultra") == -2 and TOUR.capture_quality("1") == -2,
+		"run-wide capture preset rejects unknown names and bare indices")
 	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
 		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
 		"radio comparison rejects unsupported and inapplicable overrides")
