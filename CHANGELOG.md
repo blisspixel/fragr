@@ -4,16 +4,33 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+- Dress Larak Lot with modelled props in place of boxes: the toll booths, the
+  bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
+  pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,
+  each filling the cover it stands for.
+- Rocket jump. Every arena blast throws the fighters it hurts, and a rocket at
+  your own feet lifts you: from Larak Lot's Gallery straight onto the Roof.
+  The Rocket waits at the bottom of the Pit in free-for-all and Duel.
+- Make the Custody Plate a real power item: +100 armour to 150, the excess
+  draining a point a second, back every 35 seconds.
+- Add Duel on Larak Lot: two fighter seats, a bot that keeps an empty seat warm
+  and gives it up, and a running series between the same pair.
+- Press fire on the podium for one more: when everyone seated has, the next
+  round starts two seconds after the result.
+- Read Union attacks before they land: red optics flash when a windup starts
+  and burn hot through the burst, and no more than two guards wind up on you
+  at once.
+- Let Latch fight beside you from a real twelve-round magazine, cover your
+  reloads, and keep out of your path, your crosshair and your line of fire.
+
 ## v0.91.0 (2026-10-24)
 
 - Rebuild map 1 as Larak Lot, the free-for-all home: a five-level parking
   structure the league settles debts in, with the Pit one level further down
   than the sign admits, Aunt Linda's revival on level three, and Larak's
   signature on everything that has stopped working.
-- Dress Larak Lot with modelled props in place of boxes: the toll booths, the
-  bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
-  pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,
-  each filling the cover it stands for.
 - Start free-for-all lives on the Pistol and Fists. Stronger guns are owned
   only after taking their pad, on 15 to 25 second clocks, with health and armor
   on 25 seconds. Free-for-all respawn is 4 seconds; other modes keep their own
@@ -52,20 +69,6 @@ Release history, newest first. Planned work stays in
   displays, and show an operator overview in the dedicated server terminal.
 - Keep one campaign save format; saves from earlier builds are refused with a
   clear message instead of migrated.
-- Rocket jump. Every arena blast throws the fighters it hurts, and a rocket at
-  your own feet lifts you: from Larak Lot's Gallery straight onto the Roof.
-  The Rocket waits at the bottom of the Pit in free-for-all and Duel.
-- Make the Custody Plate a real power item: +100 armour to 150, the excess
-  draining a point a second, back every 35 seconds.
-- Add Duel on Larak Lot: two fighter seats, a bot that keeps an empty seat warm
-  and gives it up, and a running series between the same pair.
-- Press fire on the podium for one more: when everyone seated has, the next
-  round starts two seconds after the result.
-- Read Union attacks before they land: red optics flash when a windup starts
-  and burn hot through the burst, and no more than two guards wind up on you
-  at once.
-- Let Latch fight beside you from a real twelve-round magazine, cover your
-  reloads, and keep out of your path, your crosshair and your line of fire.
 
 Linux, macOS and Windows CI passed for every change. Windows human play and
 real controllers are still owed.

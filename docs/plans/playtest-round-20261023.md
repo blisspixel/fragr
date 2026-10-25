@@ -119,3 +119,8 @@ two-edge highlight that no check had flagged.
   real pads, packaged builds, soak and a human playtest. #471's open
   questions carry the per-lane follow-ups; the
   [roadmap's next steps](../ROADMAP.md#next-steps) carry the order of work.
+- 2026-10-24: v0.91.0 released from #473. A follow-up integration (branches
+  `wave3/*`) took four lanes into one PR: the Larak Lot prop models, #431's
+  rocket jump, Custody Plate, Duel and podium rematch, #432's token-paced
+  Union tells and Latch's cover, and #434 stage 2's encode-once fan-out. The
+  Still Here lane did not deliver. Evidence is Linux only, as before.
