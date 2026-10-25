@@ -346,11 +346,13 @@ class ViewMotion extends RefCounted:
 		_height = INF
 		_fall = 0.0
 
-	## A new gun is selected. With motion on, the old one lowers first.
-	func select(weapon: String, animate: bool) -> void:
+	## A new gun is selected. With motion on, the old one lowers first and the
+	## new one comes up; `lower_old` is false when the old pose has nothing to
+	## lower (bare fists, the Shiv), and the new gun simply comes up.
+	func select(weapon: String, animate: bool, lower_old: bool = true) -> void:
 		if weapon == shown and not _lowering:
 			return
-		if not animate or shown == "":
+		if not animate or shown == "" or not lower_old:
 			shown = weapon
 			_next = ""
 			_lowering = false
@@ -394,7 +396,7 @@ class ViewMotion extends RefCounted:
 
 	## Extra drop while a gun without raise frames lowers or rises.
 	func lowered(height: float) -> float:
-		return (1.0 - raise) * (1.0 - raise) * height * 0.7
+		return (1.0 - raise) * (1.0 - raise) * height * 0.25
 
 ## The walk bob for a held gun: a slow sideways sway and a step bounce, in
 ## reference pixels. Long guns bob less, the Shotgun a little more.

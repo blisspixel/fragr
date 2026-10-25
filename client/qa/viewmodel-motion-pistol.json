@@ -1,5 +1,5 @@
 {
-  "comment": "Held-gun motion for the modelled Pistol on an ordinary free-for-all life (Pistol and Fists): raising it from the Fists, the shot and its slide recovery, the accepted reload through its frames, and the walk. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/viewmodel-motion-pistol.json, FRAGR_QA_BOTS=0 and FRAGR_QA_NO_ROUND_EVENTS=1. Inspection only; not a tour publish.",
+  "comment": "Held-gun motion for the modelled Pistol on an ordinary free-for-all life (Pistol and Fists): raising it from the Fists, the shot and its slide recovery, the accepted reload through its frames, and the walk. Run qa_arc_visual.gd (it presses R for the reload strip; the tour runner with its script swapped) with FRAGR_QA_MANIFEST=res://qa/viewmodel-motion-pistol.json, FRAGR_QA_BOTS=0 and FRAGR_QA_NO_ROUND_EVENTS=1. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "states": [

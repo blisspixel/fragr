@@ -1882,7 +1882,7 @@ func _process(delta):
 	elif fp_throw_hand != null:
 		fp_throw_hand.visible = false
 
-## The held gun takes the light where it is held (lane B's ViewLight, under
+## The held gun takes the light where it is held (`ViewLight`, under
 ## the view camera): warmer under a lamp, darker in a covered bay, a beat
 ## brighter on a shot. Without a ViewLight it stays as drawn.
 func _apply_view_tint(camera: Camera3D) -> void:
@@ -2261,8 +2261,8 @@ func set_fp_weapon(weapon_name: String) -> void:
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
 	# The old gun lowers and the new one comes up; melee arms have their own.
-	var animate: bool = not reduced_motion and weapon_name not in ["Fists", "Shiv"] and fp_motion.shown not in ["Fists", "Shiv"]
-	fp_motion.select(weapon_name, animate)
+	var animate: bool = not reduced_motion and weapon_name not in ["Fists", "Shiv"]
+	fp_motion.select(weapon_name, animate, fp_motion.shown not in ["Fists", "Shiv"])
 	fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(weapon_name) else null
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:

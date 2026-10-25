@@ -63,6 +63,7 @@ var character_view: SkinnedCharacter = null
 var _held_root: Node3D = null
 ## The modelled gun a live body carries in place of the profile card.
 var _held_model: MeshInstance3D = null
+const CARRIED_SCALE: float = 1.3
 var _notary_shadow: MeshInstance3D = null
 ## Scope glint of a Ranged Sweeper, shown only during its server windup.
 var marksman_tell: RangedSweeperTell = null
@@ -626,7 +627,8 @@ func _attach_carried() -> void:
 			_held_model.set_meta("weapon", current_weapon)
 		var level: Basis = Basis(gun_axis, Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0), gun_axis.cross(Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0)))
 		# Gun space runs its bore along -Z; the pawn aims along +X.
-		var placed: Basis = _held_root.basis.inverse() * level * Basis(Vector3.UP, -PI * 0.5)
+		# Carried a third larger than life, so the gun reads at fighting range.
+		var placed: Basis = (_held_root.basis.inverse() * level * Basis(Vector3.UP, -PI * 0.5)).scaled_local(Vector3.ONE * CARRIED_SCALE)
 		var grip_point: Vector3 = GunModel.GRIP[current_weapon]
 		_held_model.transform = Transform3D(placed, placed * -grip_point)
 		muzzle.position = placed * (GunModel.MUZZLE[current_weapon] - grip_point)

@@ -440,8 +440,8 @@ static func pose_scatter(gun: Node3D, open: float, shells: float = 1.0, eject: f
 	for side: String in ["L", "R"]:
 		var shell: Node3D = barrels.get_node("Shell" + side) as Node3D
 		shell.visible = shells > 0.0 or eject > 0.0
-		shell.position.z += 0.06 * eject
-		shell.position.y += 0.03 * eject
+		shell.position.z += 0.025 * eject
+		shell.position.y += 0.035 * eject
 
 # --- Rail ------------------------------------------------------------------------------
 

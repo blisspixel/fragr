@@ -323,8 +323,8 @@ func _outline_colour(key: String) -> Color:
 ## Where the gun rests in view space and the point it aims at.
 const HOLDS: Dictionary[String, Dictionary] = {
 	"Tack": {"at": Vector3(0.020, -0.046, -0.500), "aim": Vector3(0.0, 0.0, -30.0), "roll": -4.0, "fov": 16.0, "vp": 24.0, "chunk": Vector3(1.2, 1.1, 1.0)},
-	"Scatter": {"at": Vector3(0.036, -0.230, -0.420), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 30.0, "vp": 10.0, "reach": 1.2, "tilt_roll": 22.0, "chunk": Vector3(1.7, 1.5, 1.0), "hide": ["Stock", "ButtPad", "RepairPlate"]},
-	"Rail": {"at": Vector3(0.036, -0.215, -0.400), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 34.0, "vp": 16.0, "reach": 1.2, "tilt_roll": 24.0, "chunk": Vector3(1.4, 1.3, 1.0), "hide": ["Stock"]},
+	"Scatter": {"at": Vector3(0.036, -0.230, -0.420), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 30.0, "vp": 10.0, "reach": 1.2, "tilt_roll": 12.0, "reload_lift": 0.07, "chunk": Vector3(1.7, 1.5, 1.0), "hide": ["Stock", "ButtPad", "RepairPlate"]},
+	"Rail": {"at": Vector3(0.036, -0.215, -0.400), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 34.0, "vp": 16.0, "reach": 1.2, "tilt_roll": 24.0, "reload_lift": 0.03, "chunk": Vector3(1.4, 1.3, 1.0), "hide": ["Stock"]},
 }
 
 func _bake(weapon: String) -> void:
@@ -445,6 +445,8 @@ func _pose(weapon: String, gun: Node3D, frame: Dictionary) -> void:
 	place = place.rotated_local(Vector3.RIGHT, deg_to_rad(-22.0 * drop + 7.0 * kick + 16.0 * tilt))
 	place = place.rotated_local(Vector3.FORWARD, deg_to_rad(float(hold["roll"]) + 30.0 * drop + float(hold.get("tilt_roll", 38.0)) * tilt))
 	place.origin += Vector3(0.012 * drop - 0.010 * tilt, -0.085 * drop + 0.004 * kick + 0.010 * tilt, 0.018 * kick) * float(hold.get("reach", 1.0))
+	# A long gun comes up into view for its reload rather than sinking out of it.
+	place.origin.y += float(hold.get("reload_lift", 0.0)) * tilt
 	# Held guns are drawn chunkier across than they are long, the way sprite
 	# shooters exaggerate a held silhouette; the profile and pickup keep true
 	# proportions.

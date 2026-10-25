@@ -1,5 +1,5 @@
 {
-  "comment": "Held-gun motion for the modelled Shotgun and Railgun and the drawn Rifle (the Pistol is in viewmodel-motion-pistol.json, since the full arsenal kit has no Pistol): the switch (old gun lowers, new gun rises through its raise frames), the shot and its recovery, the accepted reload played through its frames, and the walk. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/viewmodel-motion.json, FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MUTATORS=full-arsenal so every gun is owned from the first tick. Inspection only; not a tour publish.",
+  "comment": "Held-gun motion for the modelled Shotgun and Railgun and the drawn Rifle (the Pistol is in viewmodel-motion-pistol.json, since the full arsenal kit has no Pistol): the switch (old gun lowers, new gun rises through its raise frames), the shot and its recovery, the accepted reload played through its frames, and the walk. Run qa_arc_visual.gd (it presses R for the reload strips; the tour runner with its script swapped) with FRAGR_QA_MANIFEST=res://qa/viewmodel-motion.json, FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MUTATORS=full-arsenal so every gun is owned from the first tick. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "states": [
