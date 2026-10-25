@@ -6,15 +6,19 @@ extends SceneTree
 ##   FRAGR_LARAK_MAP_INFO=/abs/map.json cargo test -p fragr-server --lib \
 ##     larak_write_map_info -- --ignored
 ## and the scene is lit exactly as a match lights it (arena scene lights, the
-## venue sky, quality settings, practicals). There are no pickups; a live match
-## through tools/qa_tour.sh shows those. The readability stagings stand a NODS
+## venue sky, quality settings, practicals). Every pad has its item seated on
+## the kit the presenter stages, and `pad_return_*` is the Rail coming back on
+## its clock, frame by frame (`walk_stands_*` a run across the Stands); a live
+## match through tools/qa_tour.sh shows the fights. The committed
+## client/golden/larak_lot_map_info.json is a current MapInfo to point
+## FRAGR_LARAK_MAP_INFO at. The readability stagings stand a NODS
 ## rule bot beside a free fighter in the Pit, a booth lane and on the Roof, in
 ## colour and grayscale, for the faction readability check.
 ##
 ##   FRAGR_LARAK_MAP_INFO=/abs/map.json FRAGR_QA_DIR=/abs/out \
 ##     "$GODOT_BIN" --path client --audio-driver Dummy --windowed \
 ##     --resolution 1280x720 --script ../tools/preview_larak_lot.gd
-## Set FRAGR_LARAK_VIEWS=prop_ (any view-name prefix) for just those views.
+## Set FRAGR_LARAK_VIEWS=prop_ (view-name prefixes, comma separated) for just those views.
 const ARENA_SCENE: PackedScene = preload("res://scenes/arena.tscn")
 const EYE: float = 1.6
 
@@ -62,7 +66,30 @@ const VIEWS: Array = [
 	["prop_hook_spectator", Vector3(4.0, 14.5, -5.0), Vector3(0.0, 14.6, 0.0)],
 	["prop_roof_wrecks", Vector3(24.0, 6.0 + EYE, -18.0), Vector3(16.2, 6.6, -24.0)],
 	["prop_pulpit", Vector3(-3.0, 4.5 + EYE, -24.5), Vector3(-3.0, 5.5, -28.0)],
+	# The pad kit with its items seated, at the distance a fighter runs in.
+	["pad_rail", Vector3(-15.5, 0.5 + EYE, 5.0), Vector3(-20.0, 0.7, 6.0)],
+	["pad_plate", Vector3(26.5, 6.0 + EYE, -19.5), Vector3(31.0, 6.4, -22.0)],
+	["pad_rocket", Vector3(3.5, EYE, -1.5), Vector3(7.5, 0.4, 2.0)],
+	["pad_booths", Vector3(-17.5, 3.0 + EYE, -11.0), Vector3(-21.0, 3.3, -15.0)],
+	["pad_health", Vector3(-29.5, 3.0 + EYE, -9.0), Vector3(-33.0, 3.3, -7.0)],
+	["pad_pit_overview", Vector3(0.0, 9.0, 12.0), Vector3(0.0, 0.0, 0.0)],
 ]
+## The server's pads (larak_lot.rs): id, kind, weapon, floor position. The
+## preview lays a pickup on each, as a match does with every pad up.
+const PADS: Array = [
+	["larak_custody_plate", "plate", "", Vector3(31.0, 6.0, -22.0)],
+	["larak_rail", "weapon", "Rail", Vector3(-20.0, 0.5, 6.0)],
+	["larak_scatter_booths", "weapon", "Scatter", Vector3(-21.0, 3.0, -15.0)],
+	["larak_scatter_stairb", "weapon", "Scatter", Vector3(26.0, 1.5, 10.0)],
+	["larak_flechette_pit", "weapon", "Flechette", Vector3(-4.0, 0.0, 4.0)],
+	["larak_flechette_lane", "weapon", "Flechette", Vector3(-31.0, 1.5, 16.0)],
+	["larak_armor_bridge", "armor", "", Vector3(0.0, 3.0, -6.5)],
+	["larak_health_toll", "health", "", Vector3(-33.0, 3.0, -7.0)],
+	["larak_health_stands", "health", "", Vector3(6.0, 1.5, 22.0)],
+	["larak_health_crane", "health", "", Vector3(14.0, 3.0, -3.0)],
+	["larak_rocket_pit", "weapon", "Rocket", Vector3(7.5, 0.0, 2.0)],
+]
+const PICKUP_SCENE: PackedScene = preload("res://scenes/weapon_pickup.tscn")
 ## Readability stagings: name, camera, look target, then a NODS bot and a free
 ## fighter side by side near (about 15 m) and far (about 22 to 30 m), each as
 ## floor positions. Every staging is shot in colour and in grayscale.
@@ -143,20 +170,50 @@ func _run() -> void:
 	camera.make_current()
 	ArenaSky.apply_view_fill(camera, map_name)
 	RenderQuality.apply_practicals(arena, settings)
+	# Every pad up, its item seated on the kit the presenter stages.
+	var pickups: Dictionary[String, Node3D] = {}
+	for pad: Array in PADS:
+		var pickup: Node3D = PICKUP_SCENE.instantiate() as Node3D
+		arena.add_child(pickup)
+		pickup.call("setup", str(pad[0]), str(pad[2]), (pad[3] as Vector3) + Vector3(0.0, 0.4, 0.0), str(pad[1]), 0, "")
+		pickups[str(pad[0])] = pickup
 	for i: int in range(8):
 		await process_frame
 	# FRAGR_LARAK_VIEWS narrows the run to the views whose names start with
 	# that prefix, without the spawn and readability sets.
 	var only: String = OS.get_environment("FRAGR_LARAK_VIEWS")
+	var prefixes: PackedStringArray = only.split(",", false)
 	var shot_count: int = 0
 	for view: Array in VIEWS:
-		if not only.is_empty() and not str(view[0]).begins_with(only):
+		if not only.is_empty() and not Array(prefixes).any(func(prefix: String) -> bool: return str(view[0]).begins_with(prefix)):
 			continue
 		camera.position = view[1]
 		camera.look_at(view[2], Vector3.UP)
 		if not await _shoot(out, str(view[0])):
 			return
 		shot_count += 1
+	# The Rail's clock runs out while the camera watches: the return pop and
+	# shimmer as a strip of frames, in real time.
+	if only.is_empty() or Array(prefixes).has("pad_return"):
+		var rail: Node3D = pickups["larak_rail"]
+		camera.position = Vector3(-16.5, 0.5 + EYE, 5.2)
+		camera.look_at(Vector3(-20.0, 1.0, 6.0), Vector3.UP)
+		rail.call("note_server_available", true, false)
+		rail.call("note_server_available", false, false)
+		rail.call("note_server_available", true, false)
+		for frame: int in range(10):
+			if not await _shoot(out, "pad_return_%02d" % frame):
+				return
+			shot_count += 1
+	# A run across the Stands toward the Pit at 6 m/s, one frame per 1/24 s,
+	# to judge the decks and walls in motion (texel crawl, sparkle).
+	if only.is_empty() or Array(prefixes).has("walk_stands"):
+		for frame: int in range(12):
+			camera.position = Vector3(-6.5, 1.5 + EYE, 22.0 - float(frame) * 0.25)
+			camera.look_at(camera.position + Vector3(0.1, -0.3, -1.0), Vector3.UP)
+			if not await _shoot(out, "walk_stands_%02d" % frame):
+				return
+			shot_count += 1
 	if not only.is_empty():
 		print("preview_larak_lot: wrote %d stills to %s" % [shot_count, out])
 		quit(0)

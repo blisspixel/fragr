@@ -26,6 +26,18 @@ uniform float tile_strength : hint_range(0.0, 1.0) = 0.55;
 uniform float tile_floor_strength : hint_range(0.0, 1.0) = 0.55;
 uniform float tile_repeat_pixels = 128.0;
 uniform bool markings_enabled = true;
+// Tile albedo: the class tile is the whole albedo, read on the 16 texel per
+// metre grid, and this shader adds only light and detail (macro value drift,
+// sector steps, contact shade, the detail overlay): no procedural panels,
+// joints or paint. Larak Lot's surface classes use it.
+uniform bool tile_albedo = false;
+uniform vec3 tile_tint : source_color = vec3(1.0);
+// Kerb faces read the wall tile's bottom rows from each band's floor, so
+// tyre rub sits at the foot of every deck edge whatever its level.
+uniform float band_metres = 0.0;
+// Slow value drift over about eight metres, in quarter-percent steps, so a
+// four metre repeat never reads as a grid across a whole deck.
+uniform float macro_variation = 0.0;
 // Optional sparse original repair history, confined to explicit venue materials.
 uniform bool detail_enabled = false;
 uniform sampler2D detail_texture : source_color, filter_nearest, repeat_enable;
@@ -60,13 +72,32 @@ void fragment() {
 	float variation = grain(panel);
 	vec3 color = surface_color.rgb * mix(0.94, 0.83 + floor(variation * 4.0) * 0.07, panel_contrast);
 	color *= 0.93 + floor(grit * 3.0) * 0.035;
-	if (tile_enabled) {
+	if (tile_albedo) {
+		vec2 texel = pixel;
+		if (n.y <= 0.5) {
+			// World up reads up the image; a banded class counts rows from
+			// its band's floor, up from the tile's bottom edge.
+			float row = band_metres > 0.0 ? floor(mod(world_position.y + 0.0005, band_metres) * 16.0) : pixel.y;
+			texel = vec2(pixel.x, -1.0 - row);
+		}
+		vec2 tile_uv = (texel + 0.5) / max(tile_repeat_pixels, 1.0);
+		// Only an upward face is walked on; soffits take the side tile.
+		color = (world_normal.y > 0.5 ? texture(tile_floor, tile_uv).rgb : texture(tile_wall, tile_uv).rgb) * tile_tint;
+		if (macro_variation > 0.0) {
+			vec2 macro = face / 8.0 + (n.y > 0.5 ? vec2(0.0) : vec2(31.0, 17.0));
+			vec2 base = floor(macro);
+			vec2 blend = smoothstep(0.0, 1.0, fract(macro));
+			float drift = mix(mix(grain(base), grain(base + vec2(1.0, 0.0)), blend.x),
+				mix(grain(base + vec2(0.0, 1.0)), grain(base + vec2(1.0)), blend.x), blend.y);
+			color *= 1.0 + floor((drift - 0.5) * 2.0 * macro_variation * 400.0) / 400.0;
+		}
+	} else if (tile_enabled) {
 		vec2 tile_uv = pixel / max(tile_repeat_pixels, 1.0);
 		vec3 albedo = n.y > 0.5 ? texture(tile_floor, tile_uv).rgb : texture(tile_wall, tile_uv).rgb;
 		color = mix(color, albedo, n.y > 0.5 ? tile_floor_strength : tile_strength);
 	}
 
-	if (markings_enabled && surface_style > 0) {
+	if (!tile_albedo && markings_enabled && surface_style > 0) {
 		// Restrained institutional surfaces separate public rooms from machinery.
 		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
 		color *= 1.0 - joint * 0.32;
@@ -95,7 +126,7 @@ void fragment() {
 			color = mix(color, accent_color.rgb, marker);
 			EMISSION = accent_color.rgb * marker * 0.25;
 		}
-	} else if (markings_enabled && surface_kind == 0) {
+	} else if (!tile_albedo && markings_enabled && surface_kind == 0) {
 		// Concrete slabs, inset drainage strips, and worn lane paint.
 		float joint = 1.0 - step(0.018, min(edge.x, edge.y));
 		color *= 1.0 - joint * 0.40;
@@ -105,7 +136,7 @@ void fragment() {
 		float lane = step(3.75, abs(world_position.x)) * step(abs(world_position.x), 4.0);
 		float dash = step(0.28, fract(world_position.z / 4.0));
 		color = mix(color, vec3(0.55, 0.43, 0.22), lane * dash * step(0.18, wear));
-	} else if (markings_enabled) {
+	} else if (!tile_albedo && markings_enabled) {
 		// Framed steel/enamel panels with two-tone bevels and recessed vents.
 		float seam = 1.0 - step(0.035, min(edge.x, edge.y));
 		float highlight = (1.0 - step(0.055, cell.x)) + step(0.945, cell.y);
