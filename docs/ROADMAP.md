@@ -45,6 +45,14 @@ The current rung's work, in order. Finish wave 4's integrated checks and visual
 review, merge its one PR, then integrate wave 5 into one PR. The current release
 request does not establish Windows or fresh-player acceptance.
 
+Wave 5 adds twelve prepared campaign props, replaces repeated prose with
+physical and painted detail, shortens objectives while retaining control and
+threat cues, and reconciles rescue continuity with the saved outcomes. The
+world-text audit covers all twenty maps and Still Here; its initial-state
+counts and inspected sign sheets are authoring evidence. Human completion
+times, deaths, stuck points and first-play pacing remain unmeasured. The
+source and deterministic route checks do not close that acceptance work.
+
 1. **Nick's picks.** Narrator and Host voices (`.agents/voice-casting-20261023/index.html`); the character art treatment from the [#469 trial](plans/art-style-trial-20261023.md); Meshy model picks (`.agents/review-20261023/models.html`); the Latch colours (#455); Union seal option C; radio keepers through `fragr-audiogen review`; the Larak Lot props as they stand in the wave 3 stills, including the bookmaker's kiosk stretched past the proposed 15% tolerance and palette proposal P10. Credits as read on 2026-10-24: Meshy 300 monthly with 15 held, so about 285 usable, resetting 2026-11-03; ElevenLabs 329,544 remaining, resetting 2026-11-06. Run the live balance check before any paid stage.
 2. **Windows playtest of the wave 3 build.** Nick plays Larak Lot (free-for-all, the Pit Rocket and rocket jump, Duel and the podium rematch), Recall Notice, Persons Unknown with Latch covering, and the menus on Windows with a real pad; every defect becomes an issue and a fix lane. Judge whether the Heavy Sweeper and Turret optics read red or salmon at the top of a windup.
 3. **Integrate the picks.** Selected Meshy models and radio keepers go into the levels and the station library, seen in game and recaptured. Wave 3 put the nine Larak Lot props in on their review grades; Nick's review of the wave PR stands as their pick. Wave 5 put twelve campaign props in where a server solid already stands for them (`client/scripts/campaign_props.gd`, `tools/campaign_props_20261025.json`): the correction machine (level 2), the impound tug seen through the customs glass (6), the pilot consoles, galley and berths (10), the lathes and freight hoist (13), the stalled trams (19, 20) and the concourse stretcher, cases, duffels and crates (19). In issued black, the correction machine and the lathes failed the P4 interim grayscale check: a black-coated Clerk standing in front of either was readable only by his outline. Both now wear the Union's plate steel (`union_plate`) and keep their red seal marks. Nick's P4 answer can still move the lathes to a place colour. The other graded models wait on a matching solid, which needs a playtest, or on Nick (the wave PR lists each with its reason).
