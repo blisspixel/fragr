@@ -6,6 +6,14 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Rebuild the Pistol, Shotgun and Railgun as modelled guns in your gloved
+  hands, a quarter of the screen wide: the Pistol's slide runs back on every
+  shot and its magazine drops on the reload, the Shotgun is a side-by-side
+  double that breaks open for its shells, and the Railgun's coils go dark
+  after a shot and charge back up. Every held gun now lowers and rises on a
+  switch, lags your look, dips when you land and takes the light around it.
+  Pickups, the gun a fighter carries, Latch's Pistol and the kill feed's new
+  glyphs all show the same guns.
 - Dress Larak Lot with modelled props in place of boxes: the toll booths, the
   bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
   pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,

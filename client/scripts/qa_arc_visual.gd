@@ -73,7 +73,9 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 		var hud: Node = _find_hud()
 		var weapon: String = str(state.get("weapon", "Arc"))
 		var depth: float = hud.fp_reload_motion.depth * WeaponArt.reload_dip(weapon)
-		var pending: bool = probe.visible and (probe.texture == WeaponArt.ARC_RELOAD if weapon == "Arc" else depth > 0.05)
+		# The Arc and the modelled guns show reload frames; the rest dip.
+		var posed: bool = probe.texture == WeaponArt.ARC_RELOAD if weapon == "Arc" else (probe.texture in WeaponArt.BAKED[weapon]["reload"] if WeaponArt.BAKED.has(weapon) else depth > 0.05)
+		var pending: bool = probe.visible and posed
 		var equipment_hud: EquipmentHud = hud.get("equipment_hud")
 		var tick: int = int(manager.get("latest_snapshot").get("tick", 0))
 		_reload_samples.append({"tick":tick, "reload_pose":pending, "reload_depth":depth, "held_y":probe.position.y, "texture":probe.texture.resource_path if probe.texture != null else "", "hud_line":equipment_hud.reload_label.text if equipment_hud.reload_label.visible else "", "hud_progress":equipment_hud.reload.progress(equipment_hud.tick), "start_cues":manager.get("reload_start_cue_count"), "complete_cues":manager.get("reload_complete_cue_count"), "request_to_accept_usec":equipment_hud.reload.last_request_to_accept_usec, "accept_to_cue_usec":equipment_hud.reload.last_accept_to_cue_usec, "equipment":network.get("equipment").duplicate(true)})
