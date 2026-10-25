@@ -6,6 +6,11 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Replace repeated campaign prose boards with painted marks, notices and
+  physical props. Keep directions and essential teaching cues short, remove
+  league slogans from campaign skylines, and clear text from prop hardware.
+- Count surviving stadium entrants at the final pier consistently with Still
+  Here. Rescues change who arrives; survival alone still unlocks the epilogue.
 - Dress the campaign with modelled props in place of boxes: the correction
   ward's machine, the impound tug beyond the Port of Entry glass, the Common
   Carrier's pilot consoles, galley and berths, the foundry's lathes and freight

@@ -739,7 +739,7 @@ msgid "M14_OBJECTIVE_APPROACH_SECURED"
 msgstr "Take the apron."
 
 msgid "M14_OBJECTIVE_WALKER_DISABLED"
-msgstr "Stop the Walker."
+msgstr "Stop the Walker and its support crews."
 
 msgid "M14_OBJECTIVE_GANTRY_SECURED"
 msgstr "Take the gantry."
@@ -904,7 +904,7 @@ msgid "M17_OBJECTIVE_HALL_SECURED"
 msgstr "Clear the public hall."
 
 msgid "M17_OBJECTIVE_KESSEL_SECURED"
-msgstr "Take Kessel at his desk."
+msgstr "Detain Kessel at his desk."
 
 msgid "M17_OBJECTIVE_CORE_UNSEALED"
 msgstr "Open the core seal."
@@ -976,7 +976,7 @@ msgid "M18_OBJECTIVE_SERVICE_ASCENT"
 msgstr "Climb the service stair."
 
 msgid "M18_OBJECTIVE_OVERLOOK_RECON"
-msgstr "Look out from the overlook."
+msgstr "Use the overlook console."
 
 msgid "M18_OBJECTIVE_CONCOURSE_EVAC"
 msgstr "Reach the concourse."
@@ -1033,7 +1033,7 @@ msgid "M13_OBJECTIVE_FREIGHT_LOOP_SECURED"
 msgstr "Hold the freight loop."
 
 msgid "M13_OBJECTIVE_RELAY_DISABLED"
-msgstr "Shoot the relay."
+msgstr "Shoot the relay beside the town feed."
 
 msgid "M13_OBJECTIVE_UPPER_GALLERY_SECURED"
 msgstr "Clear the upper gallery."
