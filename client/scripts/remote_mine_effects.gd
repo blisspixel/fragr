@@ -69,6 +69,9 @@ static func _part(body: Node3D, label: String, size: Vector3, position: Vector3,
 	part.position = position
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_color = color
+	# Worn edges and pits over the part's own colour, never a flat block.
+	material.albedo_texture = ShotVfx.WEAR
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	material.roughness = 0.9
 	material.emission_enabled = label == "Lamp"
 	part.material_override = material

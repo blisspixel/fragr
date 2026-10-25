@@ -147,7 +147,6 @@ const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
 const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver", "surveyor"]
 
 var muzzle_flash_texture: Texture2D
-var rail_beam_texture: Texture2D
 
 var weapon_textures = {}
 const HELD_PROFILE_SCALE: float = 32.0 / 80.0
@@ -188,7 +187,6 @@ func _ready():
 	_load_audio_streams()
 	
 	muzzle_flash_texture = load("res://assets/vfx/32/muzzle_flash.png")
-	rail_beam_texture = load("res://assets/vfx/32/rail_beam_tip.png")
 	
 	for weapon: String in WeaponArt.PROFILE:
 		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
@@ -769,57 +767,22 @@ func show_muzzle_flash(weapon: String):
 	if not muzzle:
 		return
 	
-	var flash_time = 0.06
-	if weapon == "Rail":
-		muzzle.texture = rail_beam_texture
-		# Gunmetal / cold bone, not neon.
-		muzzle.modulate = Color(0.72, 0.78, 0.82)
-		muzzle.scale = Vector3.ONE * 2.8
-		flash_time = 0.10
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.45, 0.52, 0.55)
-			muzzle_glow.light_energy = 4.2
-			muzzle_glow.omni_range = 5.5
-	elif weapon == "Sniper":
-		# A small orange-white flash with little light: no beam, a hard crack.
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(1.0, 0.82, 0.6)
-		muzzle.scale = Vector3.ONE * 1.4
-		flash_time = 0.05
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.62, 0.6, 0.55)
-			muzzle_glow.light_energy = 1.6
-			muzzle_glow.omni_range = 3.0
-	elif weapon == "Scatter":
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(0.95, 0.55, 0.28)
-		muzzle.scale = Vector3.ONE * 2.6
-		flash_time = 0.08
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.85, 0.42, 0.16)
-			muzzle_glow.light_energy = 4.0
-			muzzle_glow.omni_range = 4.5
-	else:
-		# Flechette: tight ember needle.
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(0.92, 0.78, 0.55)
-		muzzle.scale = Vector3.ONE * 1.7
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.78, 0.55, 0.28)
-			muzzle_glow.light_energy = 2.8
-			muzzle_glow.omni_range = 3.2
-	
-	# Each gun shows its own palette flash; the branches above set its size and
-	# light. Mirroring every other shot keeps a burst from looking stamped.
+	# Each gun shows its own palette flash, size and light from one table in
+	# `ShotVfx`. Mirroring every other shot keeps a burst from looking stamped.
+	var look: Dictionary = ShotVfx.muzzle_look(weapon)
 	var drawn: Texture2D = ShotVfx.muzzle(weapon)
-	if drawn != null:
-		muzzle.texture = drawn
-		muzzle.modulate = Color.WHITE
-		_flash_mirrored = not _flash_mirrored
-		muzzle.flip_h = _flash_mirrored
+	muzzle.texture = drawn if drawn != null else muzzle_flash_texture
+	muzzle.modulate = Color.WHITE
+	muzzle.scale = Vector3.ONE * float(look["scale"])
+	_flash_mirrored = not _flash_mirrored
+	muzzle.flip_h = _flash_mirrored
+	if muzzle_glow:
+		muzzle_glow.light_color = look["light"]
+		muzzle_glow.light_energy = float(look["energy"])
+		muzzle_glow.omni_range = float(look["range"])
 	muzzle.visible = true
-	
-	await get_tree().create_timer(flash_time).timeout
+
+	await get_tree().create_timer(float(look["seconds"])).timeout
 	if is_instance_valid(muzzle) and revision == _fire_feedback_revision:
 		muzzle.visible = false
 		muzzle.scale = Vector3.ONE
@@ -864,6 +827,17 @@ func play_impact(weapon: String) -> void:
 	hit_sound.stream = stream
 	hit_sound.play()
 	impact_count += 1
+
+## What a shot strikes on this body: a free agent's synthetic body and every
+## campaign machine spark and leak oil; a human bleeds. Presentation only.
+func impact_surface() -> String:
+	if body_kind == PlayerBody.SYNTHETIC:
+		return ShotVfx.SYNTHETIC
+	if is_campaign_enemy:
+		var kind: String = str(campaign_actor.get("kind", ""))
+		if kind in ROBOT_KINDS or kind == "notary":
+			return ShotVfx.SYNTHETIC
+	return ShotVfx.FLESH
 
 ## Flinch weight from 0 to 1 at `elapsed` seconds into the recoil: a hard
 ## snap in the first frames, then a settle back to rest by FLINCH_SECONDS.

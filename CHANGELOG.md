@@ -6,6 +6,12 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Make fights look like fights: a ten-frame pixel fireball with smoke,
+  debris, an amber flash of light, a scorch and a kick to the view on every
+  blast; a modelled rocket that trails smoke; impacts that show what they hit
+  (dust off concrete, sparks off steel, blood off a human, sparks and oil off
+  a free agent) and leave a mark on walls; and a Railgun beam that lingers,
+  white-cored, with a spiral you can see from behind your own gun.
 - Dress Larak Lot with modelled props in place of boxes: the toll booths, the
   bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
   pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,

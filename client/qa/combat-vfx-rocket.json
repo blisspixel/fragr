@@ -1,0 +1,25 @@
+{
+  "comment": "Rocket effects in a live match on Larak Lot, first person, through ordinary input: the fighter takes the Rocket from the bottom of the Pit (the rocket-jump route from slot one), then from the Pit's north end fires into the Stack and into the Pit floor, and looks at the scorches. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/combat-vfx-rocket.json, FRAGR_QA_MAP=1, FRAGR_QA_BOTS=0 and FRAGR_QA_NO_ROUND_EVENTS=1. The gun effects are res://qa/combat-vfx.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "vfx_rocket_pad", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "radio_off": true,
+     "walk_to": [[-33, 3, -9], [-14, 3, -6], [-14, 2.5, -3], [-14, 2, -1], [-11, 1.5, -1]],
+     "look_at": [7.5, 0.4, 2],
+     "note": "The Rocket at the bottom of the Pit, from the Lane lip by the Toll Steps."},
+    {"name": "vfx_pit_rocket", "camera": "first_person",
+     "walk_to": [[-9, 1, -1], [-7, 0.5, -1], [-3, 0, 0], [7.5, 0, 2]],
+     "note": "Taken by walking onto its pad."},
+    {"name": "vfx_pit_north", "camera": "first_person", "weapon": "Rocket",
+     "walk_to": [[0, 0, 1], [0, 0, -6]], "look_at": [6, 1.4, 3],
+     "note": "The Pit's north end, the Stack of crushed cars eleven metres off."},
+    {"name": "vfx_rocket_stack", "camera": "first_person", "weapon": "Rocket", "look_at": [6, 1.4, 3],
+     "trigger": "fire", "strip_frames": 18, "strip_interval_seconds": 0.06,
+     "note": "Launch, the round and its smoke, the fireball on the Stack, smoke climbing, the scorch."},
+    {"name": "vfx_rocket_floor", "camera": "first_person", "weapon": "Rocket", "look_at": [-2, 0, 3],
+     "trigger": "fire", "strip_frames": 16, "strip_interval_seconds": 0.06,
+     "note": "A Rocket into the Pit floor nine metres out: the fireball dome and its scorch."},
+    {"name": "vfx_scorches", "camera": "first_person", "weapon": "Rocket", "look_at": [3, 0.6, 3], "settle_seconds": 0.8,
+     "note": "The two scorches the blasts left, on the Stack and on the floor."}
+  ]
+}
