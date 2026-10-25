@@ -1,4 +1,17 @@
 {
+	"cleanup": {
+		"repaint": [
+			{
+				"keys": [
+					"union_black",
+					"union_steel",
+					"gunmetal_dark"
+				],
+				"to": "union_plate"
+			}
+		],
+		"repainted_texels": 148480
+	},
 	"excluded_classes": [
 		"cyan",
 		"magenta"
@@ -8,12 +21,12 @@
 		"area_shares": {
 			"bone": 0.0,
 			"cyan": 0.0,
-			"dark": 0.961,
+			"dark": 0.0,
 			"green": 0.0,
 			"magenta": 0.0,
 			"pale": 0.0,
 			"red": 0.019,
-			"steel": 0.019,
+			"steel": 0.98,
 			"warm": 0.001
 		},
 		"problems": [],
@@ -48,7 +61,7 @@
 		2.97095370292664,
 		2.07915163040161
 	],
-	"prepared_sha256": "3c38c9b755e0e5ba71ada9dcc21eb6bed48a5cd7dbf323144d212a192038659f",
+	"prepared_sha256": "41c7b3016f097bd03379aaeb777d04ce67901459617b72aa1cfc7a496c54a7f1",
 	"provenance": {
 		"model": {
 			"ai_model": "meshy-7.1",

@@ -2,5 +2,8 @@
   {"name": "m10_console", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [2.5, 9.2, -12.8], "camera_look_at": [2.5, 8.1, -16.4], "settle_seconds": 1.5},
   {"name": "m10_galley_fore", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [6.0, 6.4, -1.2], "camera_look_at": [5.9, 5.2, -5.15], "settle_seconds": 0.8},
   {"name": "m10_galley_aft", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [3.0, 6.4, -8.0], "camera_look_at": [5.9, 5.2, -5.15], "settle_seconds": 0.8},
-  {"name": "m10_bunks", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [4.9, 6.4, -14.3], "camera_look_at": [6.4, 5.0, -16.5], "settle_seconds": 0.8}
+  {"name": "m10_bunks", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [4.9, 6.4, -14.3], "camera_look_at": [6.4, 5.0, -16.5], "settle_seconds": 0.8},
+  {"name": "m10_console_side", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [0.2, 9.2, -15.2], "camera_look_at": [2.5, 8.1, -16.4], "settle_seconds": 0.8},
+  {"name": "m10_bunk_aft", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [5.0, 6.4, -14.2], "camera_look_at": [6.4, 5.0, -12.1], "settle_seconds": 0.8},
+  {"name": "m10_galley_near", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [6.6, 6.3, -2.6], "camera_look_at": [6.0, 5.3, -5.0], "settle_seconds": 0.8}
 ]}

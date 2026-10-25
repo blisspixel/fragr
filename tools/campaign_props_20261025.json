@@ -15,8 +15,18 @@
    "intended": null,
    "axis": "x",
    "metres": 3.8,
-   "canon": "m02-persons-unknown.md: the correction ward's processing machine, empty intake; lore-gate 5: Union cruelty is bureaucratic, never gory; issued black, one narrow red band, blank seal boss",
-   "placement": "Persons Unknown ward: fills the correction_machine solid (x -4..0, z -15..-13, top 3.2), open bay to the south where the ward's status lamp hangs; the north vent panel is the model's own back",
+   "canon": "m02-persons-unknown.md: the correction ward's processing machine, empty intake; lore-gate 5: Union cruelty is bureaucratic, never gory; issued dark steel lifted to union_plate so black-uniformed ward guards stay readable in front of it (lore-gate 2.4 P4 interim grayscale check), one narrow red band, blank seal boss",
+   "placement": "Persons Unknown ward: fills the correction_machine solid (x -4..0, z -15..-13, top 3.2), open intake on the -z (map north) face under the ward status lamp, replacing the vent panel that face carried",
+   "repaint": [
+    {
+     "keys": [
+      "union_black",
+      "union_steel",
+      "gunmetal_dark"
+     ],
+     "to": "union_plate"
+    }
+   ],
    "provenance": {
     "reference": {
      "tool": "fragr-spritegen gen",
@@ -254,9 +264,17 @@
    "intended": null,
    "axis": "y",
    "metres": 1.7,
-   "canon": "m08-weight-of-permission.md level 13: the Union-owned Martian works; issued black and dark steel, one red band, blank type-approval plate (lore-gate 2.4 P4 interim: grayscale capture with an enemy in front)",
+   "canon": "m08-weight-of-permission.md level 13: the Union-owned Martian works; Union issue in union_plate steel (the black body failed the lore-gate 2.4 P4 interim grayscale capture: a Clerk in front vanished into it), red kept to the headstock seal ring and band, coolant trays left rust, blank type-approval plate",
    "placement": "Weight of Permission: four lathes in two rows fill edge_west_machine (x -23..-17, z -35..-31, y 0.3..2.0) at the works' north edge",
    "repaint": [
+    {
+     "keys": [
+      "union_black",
+      "union_steel",
+      "gunmetal_dark"
+     ],
+     "to": "union_plate"
+    },
     {
      "keys": [
       "rust",
@@ -267,7 +285,7 @@
      "to": "union_red",
      "box": [
       [
-       -2.0,
+       1.0,
        0.0,
        -2.0
       ],

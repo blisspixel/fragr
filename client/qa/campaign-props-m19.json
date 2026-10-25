@@ -5,5 +5,10 @@
   {"name": "m19_crates_market", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [5, 1.6, 21.5], "camera_look_at": [5, 0.7, 16], "settle_seconds": 0.8},
   {"name": "m19_crates_b", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [33, 1.6, 26.5], "camera_look_at": [33, 0.6, 21], "settle_seconds": 0.8},
   {"name": "m19_stretcher_side", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-55.2, 1.6, -21.6], "camera_look_at": [-55, 0.9, -24.5], "settle_seconds": 0.8},
-  {"name": "m19_tram_roof", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-10, 7.6, -8], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 0.8}
+  {"name": "m19_tram_roof", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-10, 7.6, -8], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 0.8},
+  {"name": "m19_tram_end", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-10.5, 1.6, -19.5], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 0.8},
+  {"name": "m19_tram_close", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-19.5, 1.6, -15.0], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 0.8},
+  {"name": "m19_crates_c", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [49.5, 1.6, 50.5], "camera_look_at": [49.5, 0.6, 46], "settle_seconds": 0.8},
+  {"name": "m19_crates_d", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [56, 1.6, 29.5], "camera_look_at": [56, 0.6, 25], "settle_seconds": 0.8},
+  {"name": "m19_resting_duffels", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-36.0, 1.6, -26.5], "camera_look_at": [-37.5, 0.4, -31.0], "settle_seconds": 0.8}
 ]}

@@ -2,9 +2,17 @@
 	"cleanup": {
 		"repaint": [
 			{
+				"keys": [
+					"union_black",
+					"union_steel",
+					"gunmetal_dark"
+				],
+				"to": "union_plate"
+			},
+			{
 				"box": [
 					[
-						-2.0,
+						1.0,
 						0.0,
 						-2.0
 					],
@@ -23,7 +31,7 @@
 				"to": "union_red"
 			}
 		],
-		"repainted_texels": 2165
+		"repainted_texels": 139095
 	},
 	"excluded_classes": [
 		"cyan",
@@ -34,13 +42,13 @@
 		"area_shares": {
 			"bone": 0.0,
 			"cyan": 0.0,
-			"dark": 0.897,
+			"dark": 0.026,
 			"green": 0.0,
 			"magenta": 0.0,
 			"pale": 0.0,
-			"red": 0.026,
-			"steel": 0.077,
-			"warm": 0.001
+			"red": 0.003,
+			"steel": 0.947,
+			"warm": 0.023
 		},
 		"problems": [],
 		"verdict": "faction colour ok"
@@ -74,7 +82,7 @@
 		1.69999992847443,
 		1.61548352241516
 	],
-	"prepared_sha256": "468740d40d01b900e71c3e59f11ffda7ddcfcc538f48d46a2bb03598ed06aee7",
+	"prepared_sha256": "898e8bfb5cb23bc1fe541e5bfd89ad410cef273e97f2b567a0143991209a13fb",
 	"provenance": {
 		"model": {
 			"ai_model": "meshy-7.1",

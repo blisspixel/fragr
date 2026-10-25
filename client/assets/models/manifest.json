@@ -11,7 +11,7 @@
 		},
 		{
 			"file": "campaign/correction_machine.glb",
-			"sha256": "3c38c9b755e0e5ba71ada9dcc21eb6bed48a5cd7dbf323144d212a192038659f"
+			"sha256": "41c7b3016f097bd03379aaeb777d04ce67901459617b72aa1cfc7a496c54a7f1"
 		},
 		{
 			"file": "campaign/duffel.glb",
@@ -35,7 +35,7 @@
 		},
 		{
 			"file": "campaign/lathe.glb",
-			"sha256": "468740d40d01b900e71c3e59f11ffda7ddcfcc538f48d46a2bb03598ed06aee7"
+			"sha256": "898e8bfb5cb23bc1fe541e5bfd89ad410cef273e97f2b567a0143991209a13fb"
 		},
 		{
 			"file": "campaign/pilot_console.glb",
