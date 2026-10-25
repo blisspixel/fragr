@@ -635,22 +635,26 @@ fn personalities_take_found_guns_to_their_distances() {
     for weapon in [WeaponType::Sniper, WeaponType::Repeater, WeaponType::Rocket] {
         assert!(bot.inventory.usable(weapon), "{weapon:?} in the bag");
     }
+    let own = |behavior| (behavior, crate::roster::behavior_habits(behavior));
+    let pick = |(behavior, habits), distance| preferred_weapon(behavior, habits, bot, distance);
+    assert_eq!(pick(own(BotBehavior::Defensive), 40.0), WeaponType::Sniper);
+    assert_eq!(pick(own(BotBehavior::Aggressive), 15.0), WeaponType::Rocket);
+    // Inside the Rocket's safe distance the rusher fights with the next gun.
     assert_eq!(
-        preferred_weapon(BotBehavior::Defensive, bot, 40.0),
-        WeaponType::Sniper
-    );
-    assert_eq!(
-        preferred_weapon(BotBehavior::Aggressive, bot, 15.0),
-        WeaponType::Rocket
-    );
-    assert_eq!(
-        preferred_weapon(BotBehavior::Aggressive, bot, 5.0),
+        pick(own(BotBehavior::Aggressive), 5.0),
         WeaponType::Repeater
     );
+    // A launcher in the bag is every personality's mid-range gun...
+    assert_eq!(pick(own(BotBehavior::Flanker), 15.0), WeaponType::Rocket);
+    assert_eq!(pick(own(BotBehavior::Balanced), 15.0), WeaponType::Rocket);
+    // ...except where canon names a favourite: Hangar Candy are flechette
+    // mains, and the Night Watch keep the rail for a long lane.
+    let candy = crate::roster::habits("Eyes Only", BotBehavior::Balanced);
     assert_eq!(
-        preferred_weapon(BotBehavior::Flanker, bot, 15.0),
+        pick((BotBehavior::Balanced, candy), 15.0),
         WeaponType::Flechette
     );
+    assert_eq!(pick(own(BotBehavior::Flanker), 3.0), WeaponType::Flechette);
     // A Rocket is never fired into a body at arm's length.
     let (mut state, bot) = pair(2);
     state.players[0].inventory = full_bag(&[WeaponType::Rocket]);
@@ -662,4 +666,234 @@ fn personalities_take_found_guns_to_their_distances() {
         let fight = bot.observed_combat_intent(&state, &state.players[0], observed, None, false);
         assert!(!fight.action.fire, "tick {tick}");
     }
+}
+
+/// Watch a target walk +z at `speed` metres a second for `ticks` ticks.
+fn watch_strafe(state: &mut GameState, bot: &BotController, speed: f32, ticks: u64) {
+    let start = state.players[1].z;
+    for tick in 0..ticks {
+        state.players[1].z = start + speed * tick as f32 / 20.0;
+        observe(state, bot, tick);
+    }
+}
+
+#[test]
+fn the_rocket_goes_at_the_floor_where_a_strafing_body_will_be() {
+    let (mut state, bot) = pair(30);
+    open_ground(&mut state, &[10.0]);
+    state.players[0].inventory = full_bag(&[WeaponType::Rocket]);
+    state.players[0].weapon = WeaponType::Rocket;
+    watch_strafe(&mut state, &bot, 3.0, 12);
+    let observed = state.players[0].bot_senses.target.unwrap();
+    // Two sightings in a row give the ground velocity it watched.
+    assert!(
+        (observed.velocity[1] - 3.0).abs() < 0.5,
+        "{:?}",
+        observed.velocity
+    );
+    assert!(observed.velocity[0].abs() < 0.1);
+    let distance =
+        (observed.feet[0] - state.players[0].x).hypot(observed.feet[2] - state.players[0].z);
+    let aim = rocket_aim(&state, &state.players[0], &observed, distance);
+    // At the shins, led by the flight time, on the body's own floor.
+    let lead = observed.velocity[1] * distance / crate::sim::rocket::SPEED;
+    assert!(
+        (aim.point[2] - (observed.feet[2] + lead)).abs() < 0.01,
+        "{aim:?}"
+    );
+    assert!((aim.point[1] - (observed.feet[1] + ROCKET_AIM_HEIGHT)).abs() < 0.01);
+    assert!(aim.clear);
+    // A long lead is capped.
+    let mut quick = observed;
+    quick.velocity = [0.0, 40.0];
+    let capped = rocket_aim(&state, &state.players[0], &quick, distance);
+    assert!((capped.point[2] - quick.feet[2] - ROCKET_MAX_LEAD).abs() < 0.01);
+    // A body standing above the shooter's floor takes the led chest instead.
+    let mut above = observed;
+    above.feet[1] += 2.0;
+    above.chest[1] += 2.0;
+    let high = rocket_aim(&state, &state.players[0], &above, distance);
+    assert!((high.point[1] - above.chest[1]).abs() < 0.01, "{high:?}");
+    // And once ready, it fires at that point.
+    let ready = bot.observed_combat_intent(&state, &state.players[0], observed, None, true);
+    let (yaw, _) = crate::combat::aim_at(fighter_eye(&state.players[0]), aim.point).unwrap();
+    assert!((ready.action.yaw.unwrap() - state.players[0].yaw).abs() <= TURN_PER_TICK + 1e-4);
+    assert!(angle_difference(yaw, state.players[0].yaw).abs() < 0.6);
+}
+
+/// Put the observer on a stretch of the lot's ground floor with nothing
+/// between its eye and the floor at each of `aheads` metres in front, across
+/// a six metre strafe, so a floor aim is not refused by a kerb or a queue
+/// rail. The target stands at the first distance.
+fn open_ground(state: &mut GameState, aheads: &[f32]) {
+    let arena = state.current_arena().into_owned();
+    let flat = |x: f32, z: f32| arena.support_height(x, z, 3.0).abs() < 0.01;
+    let eye_height = fighter_eye(&state.players[0])[1] - (state.players[0].y - PLAYER_FLOOR_Y);
+    for x in (-40..=40).step_by(2).map(|x| x as f32) {
+        for z in (-40..=40).step_by(2).map(|z| z as f32) {
+            let eye = [x, eye_height, z];
+            let clear = flat(x, z)
+                && aheads.iter().all(|ahead| {
+                    (0..=12).all(|step| {
+                        let along = z + step as f32 * 0.5;
+                        flat(x + ahead, along)
+                            && [0.2, 1.6].iter().all(|height| {
+                                crate::combat::line_of_sight(
+                                    eye,
+                                    [x + ahead, *height, along],
+                                    &arena.solids,
+                                )
+                            })
+                    })
+                });
+            if clear {
+                state.players[0].x = x;
+                state.players[0].z = z;
+                state.players[1].x = x + aheads[0];
+                state.players[1].z = z;
+                return;
+            }
+        }
+    }
+    panic!("no open ground on the lot");
+}
+
+fn observe_for(state: &mut GameState, bot: &BotController, ticks: std::ops::Range<u64>) {
+    for tick in ticks {
+        observe(state, bot, tick);
+    }
+}
+
+#[test]
+fn the_rocket_holds_inside_its_safe_distance_and_gives_ground() {
+    let (mut state, bot) = pair(31);
+    open_ground(&mut state, &[4.0]);
+    state.players[0].inventory = full_bag(&[WeaponType::Rocket, WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Rocket;
+    observe_for(&mut state, &bot, 0..2);
+    for tick in 2..20 {
+        observe(&mut state, &bot, tick);
+        let observed = state.players[0].bot_senses.target.unwrap();
+        let distance =
+            (observed.feet[0] - state.players[0].x).hypot(observed.feet[2] - state.players[0].z);
+        assert!(!rocket_aim(&state, &state.players[0], &observed, distance).clear);
+        let fight = bot.observed_combat_intent(&state, &state.players[0], observed, None, false);
+        assert!(!fight.action.fire, "tick {tick}");
+        assert!(fight.action.back && !fight.action.forward, "it backs off");
+        // Preferring a gun, it changes hands instead.
+        let prefer = bot.observed_combat_intent(&state, &state.players[0], observed, None, true);
+        assert_eq!(prefer.action.weapon_swap, Some(WeaponType::Flechette));
+    }
+}
+
+#[test]
+fn between_fights_a_bot_readies_the_gun_for_the_next_one() {
+    let (mut state, bot) = pair(32);
+    state.players.truncate(1);
+    state.players[0].inventory =
+        full_bag(&[WeaponType::Tack, WeaponType::Flechette, WeaponType::Rocket]);
+    state.players[0].weapon = WeaponType::Tack;
+    observe_for(&mut state, &bot, 0..2);
+    // The balanced regular reaches for the Rocket it carries.
+    assert_eq!(
+        bot.intent(&state).action.weapon_swap,
+        Some(WeaponType::Rocket)
+    );
+    // Hangar Candy keep the Flechette in hand.
+    state.players[0].name = "Need To Know".into();
+    assert_eq!(
+        bot.intent(&state).action.weapon_swap,
+        Some(WeaponType::Flechette)
+    );
+}
+
+fn pad_behind(state: &mut GameState, kind: crate::sim::PickupKind) -> [f32; 3] {
+    let feet = [state.players[0].x - 30.0, 0.0, state.players[0].z];
+    state.pickups = vec![crate::sim::ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
+        id: "behind".into(),
+        kind,
+        amount: 100,
+        x: feet[0],
+        y: 0.4,
+        z: feet[2],
+        floor: 0.0,
+        available: true,
+        respawn_timer: None,
+        secret: false,
+    }];
+    feet
+}
+
+#[test]
+fn a_plate_timer_walks_off_a_long_trade_for_the_plate_and_still_shoots() {
+    let (mut state, _) = pair(33);
+    open_ground(&mut state, &[20.0, 8.0]);
+    let bot = BotController::new(state.players[0].id, BotBehavior::Aggressive);
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    let feet = pad_behind(&mut state, crate::sim::PickupKind::Plate);
+    // A body in a long trade, past the appointment distance.
+    observe_for(&mut state, &bot, 0..12);
+    assert!(state.players[0].bot_senses.target.unwrap().visible);
+    let walk = bot.intent(&state);
+    assert_eq!(walk.goal.unwrap().feet, feet, "the Plate is due: it goes");
+    assert!(walk.action.yaw.is_some(), "and keeps its aim on the fight");
+    // Close in, the fight wins.
+    state.players[1].x = state.players[0].x + 8.0;
+    observe_for(&mut state, &bot, 12..24);
+    assert!(bot.intent(&state).goal.unwrap().combat);
+    // A balanced regular does not time the Plate: the long trade goes on.
+    state.players[1].x = state.players[0].x + 20.0;
+    let balanced = BotController::new(state.players[0].id, BotBehavior::Balanced);
+    observe_for(&mut state, &balanced, 24..36);
+    assert!(balanced.intent(&state).goal.unwrap().combat);
+    // Crackpot, sitting a balanced seat here, times it by canon.
+    state.players[0].name = "Crackpot".into();
+    assert_eq!(balanced.intent(&state).goal.unwrap().feet, feet);
+    // And anyone holding the gun they like goes for plate next.
+    state.players[0].name = "Observer".into();
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette, WeaponType::Rocket]);
+    assert_eq!(balanced.intent(&state).goal.unwrap().feet, feet);
+}
+
+#[test]
+fn a_fresh_life_on_the_pistol_arms_up_before_a_long_trade() {
+    let (mut state, bot) = pair(34);
+    open_ground(&mut state, &[20.0]);
+    state.players[0].inventory = full_bag(&[WeaponType::Tack]);
+    state.players[0].weapon = WeaponType::Tack;
+    let feet = pad_behind(
+        &mut state,
+        crate::sim::PickupKind::Weapon(WeaponType::Scatter),
+    );
+    observe_for(&mut state, &bot, 0..12);
+    assert!(state.players[0].bot_senses.target.unwrap().visible);
+    assert_eq!(bot.intent(&state).goal.unwrap().feet, feet);
+    // With a real gun in hand the same trade is fought.
+    state.players[0].inventory = full_bag(&[WeaponType::Tack, WeaponType::Flechette]);
+    assert!(bot.intent(&state).goal.unwrap().combat);
+}
+
+#[test]
+fn among_new_sightings_the_fighter_a_bot_owes_comes_first() {
+    let (mut state, bot) = pair(35);
+    open_ground(&mut state, &[6.0, 9.0]);
+    let owed = Uuid::from_u128(36);
+    state.add_player(owed, "Owed".into(), Role::Human);
+    let (x, z) = (state.players[0].x, state.players[0].z);
+    let last = state.players.len() - 1;
+    state.players[last].x = x + 9.0;
+    state.players[last].z = z;
+    state.players[last].y = PLAYER_FLOOR_Y;
+    state.spawn_shields.clear();
+    observe_for(&mut state, &bot, 0..2);
+    assert_eq!(
+        state.players[0].bot_senses.target.unwrap().id,
+        state.players[1].id,
+        "with a clean book the nearest comes first"
+    );
+    state.players[0].bot_senses = BotSenses::default();
+    state.head_to_head.record("Owed", "Observer");
+    observe_for(&mut state, &bot, 2..4);
+    assert_eq!(state.players[0].bot_senses.target.unwrap().id, owed);
 }

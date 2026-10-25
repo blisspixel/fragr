@@ -11,6 +11,7 @@ mod death_lifecycle_tests;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
+mod grudge;
 mod kit;
 pub mod mine;
 mod modes;
@@ -731,6 +732,9 @@ pub struct GameState {
     pub(crate) again: std::collections::BTreeSet<Uuid>,
     /// A Duel's running series while the same two fighters play on.
     pub(crate) duel_series: Option<podium::DuelSeries>,
+    /// Who has fragged whom, by callsign: the grudges rule bots hold and
+    /// the book the Host reads at a Duel. A desktop host loads and saves it.
+    pub(crate) head_to_head: crate::statistics::HeadToHead,
 }
 
 pub struct Player {
@@ -1097,7 +1101,9 @@ impl GameState {
     pub(crate) fn current_projectile_serial(&self) -> u32 {
         self.projectile_serial
     }
-    pub(crate) fn use_replay_ids(&mut self) {
+    /// Number fighters from one upward instead of drawing random ids, so a
+    /// seeded match (a replay, a survey) repeats exactly. Call before anyone joins.
+    pub fn use_replay_ids(&mut self) {
         assert!(
             self.players.is_empty(),
             "set replay identity policy before spawning"
@@ -1306,6 +1312,8 @@ impl GameState {
             host_line: if self.solo_broadcast.enabled {
                 episode0_host_line_cold_open()
             } else if let Some(line) = self.duel_open_line() {
+                line
+            } else if let Some(line) = self.duel_intro_line() {
                 line
             } else {
                 round_open_host_line(self.map.name(), &self.roster_names)
@@ -3394,6 +3402,12 @@ impl GameState {
             }
             *self.scores.entry(shooter_id).or_insert(0) += 1;
             let killer_score = self.scores[&shooter_id];
+            // The book, read before this frag lands: a rule bot fragging the
+            // fighter it owed most has settled a score.
+            let payback = self.settles_grudge(shooter_id, &shooter_name, &target_name);
+            if !victim_was_boss && !self.solo_broadcast.enabled {
+                self.head_to_head.record(&shooter_name, &target_name);
+            }
 
             self.events.push(GameEvent::Frag {
                 killer: shooter_name.clone(),
@@ -3430,8 +3444,11 @@ impl GameState {
                 team_frag,
             });
 
-            // Named rule bots: an occasional callout (off-tick).
-            if matches!(killer_streak, 2 | 3 | 5) {
+            // Named rule bots: an occasional callout (off-tick). A settled
+            // grudge is always worth saying, to the fighter it was owed.
+            if payback {
+                self.try_rule_bot_grudge(shooter_id, &target_name, target_id);
+            } else if matches!(killer_streak, 2 | 3 | 5) {
                 self.maybe_rule_bot_taunt(
                     shooter_id,
                     BotTauntKind::Killstreak,
@@ -3774,7 +3791,10 @@ impl GameState {
             } else if self.round_state == RoundState::Warmup {
                 let remaining = self.config.warmup_ticks.saturating_sub(self.round_ticks);
                 let secs = remaining.div_ceil(20).max(1);
-                warmup_host_line(&self.display_map_name(), &self.roster_names, secs)
+                match self.duel_intro_line() {
+                    Some(intro) => format!("{intro} GOES LIVE IN {secs}."),
+                    None => warmup_host_line(&self.display_map_name(), &self.roster_names, secs),
+                }
             } else {
                 self.active_host_line()
             },
@@ -4014,6 +4034,10 @@ impl GameState {
     }
 
     fn active_host_line(&self) -> String {
+        // A Duel with both seats taken keeps its intro up, the book live.
+        if let Some(intro) = self.duel_intro_line() {
+            return intro;
+        }
         if self.map == MapKind::ArenaDuel
             && self.config.rules.mode() == crate::protocol::GameMode::Ffa
         {
@@ -5012,6 +5036,7 @@ impl Default for GameState {
             sudden_death: None,
             again: std::collections::BTreeSet::new(),
             duel_series: None,
+            head_to_head: crate::statistics::HeadToHead::default(),
         }
     }
 }

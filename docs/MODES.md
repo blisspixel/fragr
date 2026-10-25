@@ -105,10 +105,14 @@ match page. Free-for-all rules for two (Pistol and Fists, the pads on their
 clocks, the Pit Rocket and the Custody Plate, a 4 s respawn), with no
 Continuance ping or drone. Two fighter seats: a third fighter is refused and
 watches; with automatic bots a rule bot keeps an empty seat warm and gives it
-up to a person. On the podium both fighters press fire for an instant rematch,
-the series between the same pair carries on ("REMATCH. NIGHTFALL LEADS 2 TO
-1."), and a level round names no winner. A real queue that seats the next
-watcher and winner-stays rotation are not built yet.
+up to a person. Before the pair has a series the Host opens with the venue,
+the two fighters and the head-to-head book between their callsigns ("LARAK
+LOT DUEL. NIGHTFALL AGAINST MEAT PROXY. NIGHTFALL LEADS THE BOOK 7 TO 4."); a
+desktop host keeps the book across sessions. On the podium both fighters press
+fire for an instant rematch, the series between the same pair carries on
+("REMATCH. NIGHTFALL LEADS 2 TO 1."), and a level round names no winner. A
+real queue that seats the next watcher and winner-stays rotation are not built
+yet.
 
 ### Scrap
 

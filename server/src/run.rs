@@ -10,7 +10,7 @@ use crate::session::{broadcast_to_clients, send_unicasts, DeliveryStats, GameSes
 use crate::sim::{MapKind, MatchConfig};
 use std::future::Future;
 use std::net::SocketAddr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::sync::mpsc;
 
@@ -145,6 +145,10 @@ pub struct ServerOptions {
     pub overview: Option<crate::operator::Style>,
     /// Opt-in per-tick timing file for stutter diagnosis (`tick_trace.rs`).
     pub tick_trace: Option<PathBuf>,
+    /// The head-to-head book on disk (`statistics::HeadToHead`): loaded at
+    /// start and saved when a round ends and at shutdown. A desktop host
+    /// keeps it beside its runs; a dedicated server only when asked.
+    pub head_to_head: Option<PathBuf>,
 }
 
 impl Default for ServerOptions {
@@ -173,6 +177,7 @@ impl Default for ServerOptions {
             human_summary: false,
             overview: None,
             tick_trace: None,
+            head_to_head: None,
         }
     }
 }
@@ -727,6 +732,22 @@ async fn run_server_impl(
             session.state.config.rules.name()
         );
     }
+    // The head-to-head book is arcade only: a campaign party has no frags
+    // between callsigns to keep.
+    let head_to_head = options
+        .head_to_head
+        .clone()
+        .filter(|_| !session.state.map.is_campaign());
+    if let Some(path) = head_to_head.as_deref() {
+        let (book, refused) = crate::statistics::HeadToHead::load(path);
+        if let Some(reason) = refused {
+            tracing::warn!(
+                "Head-to-head book refused ({reason}); starting a fresh one. The next save replaces the file."
+            );
+        }
+        session.state.head_to_head = book;
+    }
+    let mut head_to_head_warned = false;
     session.spawn_bots(options.bots);
     if options.authored.is_none() && !options.campaign_run {
         tracing::info!(
@@ -812,6 +833,9 @@ async fn run_server_impl(
                 }
                 let messages = session.tick_messages(TICK.as_secs_f32());
                 persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
+                if session.state.round_state == crate::sim::RoundState::Ended {
+                    save_head_to_head(&mut session.state, head_to_head.as_deref(), &mut head_to_head_warned);
+                }
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let broadcasts = crate::net::Broadcast::encode_all(messages)?;
@@ -953,6 +977,11 @@ async fn run_server_impl(
             }
         }
     }
+    save_head_to_head(
+        &mut session.state,
+        head_to_head.as_deref(),
+        &mut head_to_head_warned,
+    );
     if let Some(trace) = tick_trace.take() {
         match trace.finish() {
             Ok(summary) => tracing::info!(
@@ -1067,6 +1096,22 @@ impl Drop for AbortOnDrop {
     }
 }
 
+/// Save the head-to-head book when it has changed. A failed save keeps the
+/// book in memory and warns once; the match never stops for it.
+fn save_head_to_head(state: &mut crate::sim::GameState, path: Option<&Path>, warned: &mut bool) {
+    let Some(path) = path else { return };
+    if !state.head_to_head.is_dirty() || *warned {
+        return;
+    }
+    if let Err(error) = state.head_to_head.save(path) {
+        *warned = true;
+        tracing::warn!(
+            "Head-to-head book could not be saved to {}: {error}. It is kept for this session only.",
+            path.display()
+        );
+    }
+}
+
 fn persist_local_run(
     state: &crate::sim::GameState,
     store: Option<&RunStore>,
@@ -1081,4 +1126,41 @@ fn persist_local_run(
         *previous = Some(document);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod head_to_head_tests {
+    use super::save_head_to_head;
+    use crate::sim::GameState;
+
+    #[test]
+    fn a_changed_book_is_saved_once_and_a_failed_save_warns_once() {
+        let directory = std::env::temp_dir().join(format!(
+            "fragr-run-book-{}-{}",
+            std::process::id(),
+            uuid::Uuid::new_v4()
+        ));
+        let path = directory.join("head-to-head.json");
+        let mut state = GameState::new();
+        let mut warned = false;
+        // No path: nothing is written and nothing is said.
+        state.head_to_head.record("Nightfall", "Pi");
+        save_head_to_head(&mut state, None, &mut warned);
+        assert!(state.head_to_head.is_dirty() && !warned);
+        save_head_to_head(&mut state, Some(&path), &mut warned);
+        assert!(!state.head_to_head.is_dirty() && !warned);
+        let (book, refused) = crate::statistics::HeadToHead::load(&path);
+        assert_eq!((book.frags("Nightfall", "Pi"), refused), (1, None));
+        // Unchanged since: no second write.
+        std::fs::remove_file(&path).unwrap();
+        save_head_to_head(&mut state, Some(&path), &mut warned);
+        assert!(!path.exists());
+        // A path that cannot be written keeps the book in memory and warns once.
+        std::fs::create_dir_all(&path).unwrap();
+        state.head_to_head.record("Pi", "Nightfall");
+        save_head_to_head(&mut state, Some(&path), &mut warned);
+        assert!(warned && state.head_to_head.is_dirty());
+        assert_eq!(state.head_to_head.frags("Pi", "Nightfall"), 1);
+        std::fs::remove_dir_all(&directory).unwrap();
+    }
 }

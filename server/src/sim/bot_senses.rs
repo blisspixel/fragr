@@ -10,6 +10,7 @@
 use super::{fighter_chest, fighter_eye, BotBehavior, BotController, BotIntent, GameState, Player};
 use crate::navigation::NavigationGoal;
 use crate::protocol::{Action, EquipmentPolicy, GameMode, WeaponType};
+use crate::roster::{Habits, PadHabit};
 use std::f32::consts::{FRAC_PI_3, PI, TAU};
 use uuid::Uuid;
 
@@ -33,10 +34,27 @@ const APPOINTMENT_SLACK: u64 = 40;
 const HURT_HP: i32 = 50;
 /// A habit pad breaks off a search only this close, in metres.
 const HABIT_REACH: f32 = 20.0;
+/// The fighter a bot owes is chosen over nearer ones as if this share of
+/// their distance away.
+const GRUDGE_PULL: f32 = 0.5;
+/// A timed power pad outranks a fight only past this distance, in metres.
+const APPOINTMENT_FIGHT: f32 = 12.0;
 /// Meters of walking one tick of waiting is worth when choosing a pad.
 const WAIT_COST: f32 = crate::movement::TOP_SPEED / 20.0;
-/// Closer than this a bot never fires the Rocket into a body.
-const ROCKET_MIN_DISTANCE: f32 = 4.0;
+/// Closer than this a bot never fires the Rocket: its own splash reaches
+/// four metres, and the impact must land clear of it.
+const ROCKET_SAFE: f32 = 5.0;
+/// The Rocket's band: from a step outside the safe distance to where a
+/// strafing body has walked out of the splash before the rocket arrives.
+const ROCKET_BAND: (f32, f32) = (6.5, 32.0);
+/// The furthest a bot leads a rocket, in metres.
+const ROCKET_MAX_LEAD: f32 = 4.0;
+/// Height above the feet a bot aims the Rocket at: the shins. High error
+/// still strikes the body; low error strikes the floor beside it.
+const ROCKET_AIM_HEIGHT: f32 = 0.4;
+/// The distance a bot readies its gun for between fights: the lot's
+/// typical first sighting.
+const READY_DISTANCE: f32 = 15.0;
 /// Guns a bot may hold, in its fallback order when the hand runs dry.
 const GUNS: [WeaponType; 8] = [
     WeaponType::Flechette,
@@ -54,6 +72,9 @@ struct Observation {
     id: Uuid,
     feet: [f32; 3],
     chest: [f32; 3],
+    /// Ground velocity in metres a second, from two sightings in a row. Zero
+    /// on a first sighting: a lead is only what the bot actually watched.
+    velocity: [f32; 2],
     seen_at: u64,
     ready_at: u64,
     visible: bool,
@@ -65,6 +86,18 @@ struct Hurt {
     from: Uuid,
     feet: [f32; 3],
     at: u64,
+}
+
+/// Where a bot is going for a pad.
+#[derive(Debug, Clone, Copy)]
+struct PadPlan {
+    feet: [f32; 3],
+    /// Already standing on it, early for the clock.
+    waiting: bool,
+    /// The power pad this callsign keeps time on.
+    timed: bool,
+    /// A gun for a bot that holds nothing better than the Pistol.
+    arms: bool,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -139,41 +172,125 @@ fn feet_of(player: &Player) -> [f32; 3] {
     [player.x, player.y - super::PLAYER_FLOOR_Y, player.z]
 }
 
+/// Whether `distance` sits in the band where `weapon` is the right gun.
+fn in_band(weapon: WeaponType, distance: f32) -> bool {
+    match weapon {
+        WeaponType::Scatter => distance < 8.0,
+        WeaponType::Rocket => (ROCKET_BAND.0..=ROCKET_BAND.1).contains(&distance),
+        WeaponType::Rail => distance >= 12.0,
+        WeaponType::Sniper => distance >= 30.0,
+        WeaponType::Flechette => (5.0..=28.0).contains(&distance),
+        WeaponType::Repeater => (5.0..=26.0).contains(&distance),
+        WeaponType::Arc => (4.0..=18.0).contains(&distance),
+        _ => false,
+    }
+}
+
 /// The gun a personality wants for a fight at `distance`, among the guns it
-/// can actually fire. New finds join each lane: the Sniper takes the longest
-/// sightlines, the Repeater the middle, the Rocket a mid-range push that
-/// stays clear of its own splash.
-fn preferred_weapon(behavior: BotBehavior, bot: &Player, distance: f32) -> WeaponType {
+/// can actually fire. The callsign's favourite comes first inside its own
+/// band. New finds join each lane: the Sniper takes the longest sightlines,
+/// the Repeater the middle, and the Rocket every mid-range fight it can win
+/// clear of its own splash: a launcher left holstered dies with its owner.
+fn preferred_weapon(
+    behavior: BotBehavior,
+    habits: Habits,
+    bot: &Player,
+    distance: f32,
+) -> WeaponType {
     use WeaponType::{Flechette, Repeater, Rocket, Scatter, Sniper, Tack};
     let rail = WeaponType::Rail;
     let order: &[WeaponType] = match behavior {
         BotBehavior::Compliance => return bot.weapon,
         _ if bot.golden => &[rail],
-        BotBehavior::Aggressive if distance < 10.0 => &[Scatter, Repeater, Flechette, Tack],
-        BotBehavior::Aggressive if distance < 24.0 => &[Rocket, Repeater, Flechette, Tack],
-        BotBehavior::Defensive if distance > 30.0 => &[Sniper, rail, Flechette, Tack],
-        BotBehavior::Defensive if distance > 12.0 => &[rail, Sniper, Flechette, Tack],
-        BotBehavior::Flanker if distance < 7.0 => &[Scatter, Flechette, Repeater, Tack],
-        BotBehavior::Balanced if distance > 32.0 => &[Sniper, rail, Flechette, Tack],
-        BotBehavior::Balanced if distance > 24.0 => &[rail, Sniper, Flechette, Tack],
-        BotBehavior::Balanced if distance < 6.0 => &[Scatter, Flechette, Tack],
-        BotBehavior::Balanced if distance > 9.0 => &[Rocket, Flechette, Repeater, Tack],
-        _ => &[Flechette, Repeater, Tack],
+        BotBehavior::Aggressive if distance < 10.0 => &[Scatter, Rocket, Repeater, Flechette],
+        BotBehavior::Aggressive => &[Rocket, Repeater, Flechette, rail],
+        BotBehavior::Defensive if distance > 30.0 => &[Sniper, rail, Flechette],
+        BotBehavior::Defensive if distance > 12.0 => &[rail, Sniper, Rocket, Flechette],
+        BotBehavior::Defensive => &[Rocket, Flechette, Repeater, Scatter],
+        BotBehavior::Flanker if distance < 7.0 => &[Scatter, Flechette, Repeater],
+        BotBehavior::Flanker => &[Rocket, Flechette, Repeater, rail],
+        BotBehavior::Balanced if distance > 32.0 => &[Sniper, rail, Flechette],
+        BotBehavior::Balanced if distance > 24.0 => &[rail, Sniper, Rocket, Flechette],
+        BotBehavior::Balanced if distance < 6.0 => &[Scatter, Flechette],
+        BotBehavior::Balanced => &[Rocket, Flechette, Repeater],
+    };
+    let fits = |weapon: &WeaponType| {
+        bot.inventory.usable(*weapon)
+            && (*weapon != Rocket || in_band(Rocket, distance))
+            && *weapon != Tack
     };
     // A free-for-all life owns only the Pistol and what it took from the
     // floor: past the lane's own picks it fights with the best gun it owns,
-    // the Pistol last, and never brings the Rocket to arm's length.
-    order
-        .iter()
-        .copied()
-        .filter(|weapon| *weapon != Tack)
-        .find(|weapon| bot.inventory.usable(*weapon))
+    // the Pistol last, and never brings the Rocket inside its safe distance.
+    Some(habits.favourite)
+        .filter(|weapon| !bot.golden && in_band(*weapon, distance) && fits(weapon))
+        .or_else(|| order.iter().copied().find(fits))
         .or_else(|| {
             GUNS.into_iter()
-                .filter(|weapon| *weapon != Rocket || distance >= ROCKET_MIN_DISTANCE)
+                .filter(|weapon| *weapon != Rocket || distance >= ROCKET_BAND.0)
                 .find(|weapon| bot.inventory.usable(*weapon))
         })
         .unwrap_or(bot.weapon)
+}
+
+/// Where a bot fires the Rocket, and whether it may.
+#[derive(Debug, Clone, Copy)]
+struct RocketAim {
+    point: [f32; 3],
+    /// The blast lands clear of the shooter's own splash.
+    clear: bool,
+}
+
+/// Aim the Rocket at `observed`: at the shins of the body where the bot
+/// expects it to be when the rocket arrives, led by the ground velocity it
+/// watched. Aimed low, the splash off the floor at its feet catches a strafe
+/// a body shot would miss, and a high error still strikes the body. A body
+/// standing above the shooter's floor, or shins out of sight behind a kerb,
+/// takes the led chest instead. Hold fire unless the impact and the first
+/// metres of the flight are clear of the shooter's own splash.
+fn rocket_aim(state: &GameState, bot: &Player, observed: &Observation, distance: f32) -> RocketAim {
+    let flight = distance / super::rocket::SPEED;
+    let mut lead = [observed.velocity[0] * flight, observed.velocity[1] * flight];
+    let length = lead[0].hypot(lead[1]);
+    if length > ROCKET_MAX_LEAD {
+        lead = [
+            lead[0] / length * ROCKET_MAX_LEAD,
+            lead[1] / length * ROCKET_MAX_LEAD,
+        ];
+    }
+    let eye = fighter_eye(bot);
+    let solids = &state.current_arena().solids;
+    let feet = [
+        observed.feet[0] + lead[0],
+        observed.feet[1] + ROCKET_AIM_HEIGHT,
+        observed.feet[2] + lead[1],
+    ];
+    let floor = bot.y - super::PLAYER_FLOOR_Y;
+    let splash =
+        observed.feet[1] <= floor + 0.75 && crate::combat::line_of_sight(eye, feet, solids);
+    let point = if splash {
+        feet
+    } else {
+        [
+            observed.chest[0] + lead[0],
+            observed.chest[1],
+            observed.chest[2] + lead[1],
+        ]
+    };
+    let ray = [point[0] - eye[0], point[1] - eye[1], point[2] - eye[2]];
+    let reach = (ray[0] * ray[0] + ray[1] * ray[1] + ray[2] * ray[2]).sqrt();
+    let clear = distance >= ROCKET_SAFE
+        && reach >= ROCKET_SAFE
+        && crate::combat::line_of_sight(
+            eye,
+            [
+                eye[0] + ray[0] / reach * ROCKET_SAFE,
+                eye[1] + ray[1] / reach * ROCKET_SAFE,
+                eye[2] + ray[2] / reach * ROCKET_SAFE,
+            ],
+            solids,
+        );
+    RocketAim { point, clear }
 }
 
 /// The next gun when the one in hand is dry and cannot reload.
@@ -188,26 +305,34 @@ fn dry_swap(bot: &Player) -> Option<WeaponType> {
         .find(|weapon| bot.inventory.usable(*weapon) || bot.inventory.can_reload(*weapon))
 }
 
-/// The pad each personality times: the defensive line keeps the Rail or
-/// Sniper, flankers push the Shotgun, the balanced regulars farm health and
-/// the rushers want plate before they go in. Callsigns carry the behaviour
-/// (`roster.rs`), so the habit follows the seat, not a name.
-fn habit(behavior: BotBehavior, kind: super::PickupKind) -> bool {
+/// Whether `kind` is the pad these habits time (`roster::habits`): the
+/// Plate (with ordinary armour on the way), the Railgun or Sniper, the
+/// Scatter, the Rocket, or health.
+fn habit(habits: Habits, kind: super::PickupKind) -> bool {
     use super::PickupKind;
     matches!(
-        (behavior, kind),
-        (
-            BotBehavior::Defensive,
-            PickupKind::Weapon(WeaponType::Rail | WeaponType::Sniper)
-        ) | (
-            BotBehavior::Flanker,
-            PickupKind::Weapon(WeaponType::Scatter)
-        ) | (BotBehavior::Balanced, PickupKind::Health)
+        (habits.times, kind),
+        (PadHabit::Plate, PickupKind::Armor | PickupKind::Plate)
             | (
-                BotBehavior::Aggressive,
-                PickupKind::Armor | PickupKind::Plate
+                PadHabit::Rail,
+                PickupKind::Weapon(WeaponType::Rail | WeaponType::Sniper)
             )
+            | (PadHabit::Scatter, PickupKind::Weapon(WeaponType::Scatter))
+            | (PadHabit::Rocket, PickupKind::Weapon(WeaponType::Rocket))
+            | (PadHabit::Health, PickupKind::Health)
     )
+}
+
+/// A pad worth crossing the map for: the power pad a callsign times (not
+/// the ordinary armour on the way to it), and the Custody Plate for anyone
+/// already holding the gun they like: armed, the next thing worth having is
+/// plate.
+fn timed(habits: Habits, bot: &Player, kind: super::PickupKind) -> bool {
+    let own = habit(habits, kind)
+        && habits.times.map_wide()
+        && kind.is_power()
+        && kind != super::PickupKind::Armor;
+    own || (kind == super::PickupKind::Plate && bot.inventory.usable(habits.favourite))
 }
 
 impl BotSenses {
@@ -257,20 +382,31 @@ impl BotSenses {
         });
         // Keep a visible opponent until cover breaks contact. Changing targets
         // every observation otherwise lets the nearest crossing body steal aim.
+        // Among new sightings the nearest wins, except the fighter this bot
+        // owes (`grudge.rs`), who counts as much closer than they stand.
         let target = previous
             .and_then(|old| state.players.iter().find(|player| player.id == old.id))
             .filter(|target| visible(state, bot, target))
             .or_else(|| {
-                state
+                let seen: Vec<&Player> = state
                     .players
                     .iter()
                     .filter(|target| hostile(state, bot, target) && visible(state, bot, target))
-                    .min_by(|a, b| {
-                        (a.x - bot.x)
-                            .hypot(a.z - bot.z)
-                            .total_cmp(&(b.x - bot.x).hypot(b.z - bot.z))
-                            .then(a.id.cmp(&b.id))
-                    })
+                    .collect();
+                // The book is read only when there is a choice to make.
+                let owed = (seen.len() > 1)
+                    .then(|| state.grudge_of(&bot.name))
+                    .flatten();
+                let reach = |target: &Player| {
+                    let distance = (target.x - bot.x).hypot(target.z - bot.z);
+                    if Some(target.id) == owed {
+                        distance * GRUDGE_PULL
+                    } else {
+                        distance
+                    }
+                };
+                seen.into_iter()
+                    .min_by(|a, b| reach(a).total_cmp(&reach(b)).then(a.id.cmp(&b.id)))
             });
         let hurt = self.hurt.filter(|hurt| {
             state.tick.saturating_sub(hurt.at) <= HURT_MEMORY
@@ -280,14 +416,28 @@ impl BotSenses {
                     .any(|player| player.id == hurt.from && hostile(state, bot, player))
         });
         let target = if let Some(target) = target {
-            let ready_at = previous
-                .filter(|old| old.id == target.id && old.visible)
+            let watched = previous.filter(|old| old.id == target.id && old.visible);
+            let ready_at = watched
                 .map(|old| old.ready_at)
                 .unwrap_or_else(|| reaction(bot.id, target.id, state.tick));
+            let feet = feet_of(target);
+            let velocity =
+                watched
+                    .filter(|old| state.tick > old.seen_at)
+                    .map_or([0.0, 0.0], |old| {
+                        let seconds = (state.tick - old.seen_at) as f32 / 20.0;
+                        let step = |axis: usize, slot: usize| {
+                            let now = (feet[axis] - old.feet[axis]) / seconds;
+                            // Half the new reading: a dodge does not swing the lead.
+                            (old.velocity[slot] + now) * 0.5
+                        };
+                        [step(0, 0), step(2, 1)]
+                    });
             Some(Observation {
                 id: target.id,
-                feet: feet_of(target),
+                feet,
                 chest: fighter_chest(target),
+                velocity,
                 seen_at: state.tick,
                 ready_at,
                 visible: true,
@@ -301,6 +451,7 @@ impl BotSenses {
                 id: hurt.from,
                 feet: hurt.feet,
                 chest: [hurt.feet[0], hurt.feet[1] + 1.2, hurt.feet[2]],
+                velocity: [0.0, 0.0],
                 seen_at: hurt.at,
                 ready_at: reaction(bot.id, hurt.from, state.tick),
                 visible: false,
@@ -427,8 +578,14 @@ impl BotController {
         Some(self.observed_combat_intent(state, bot, observed, swap, prefer))
     }
 
+    /// This fighter's habits, read from the callsign it wears right now.
+    pub(super) fn habits(&self, bot: &Player) -> Habits {
+        crate::roster::habits(&bot.name, self.behavior)
+    }
+
     /// Pad believed claimable soonest for its cost, with whether the bot is
-    /// already standing at it waiting for the clock.
+    /// already standing at it waiting for the clock, and whether it is the
+    /// power pad this callsign times.
     /// With `urgent`, only what is worth leaving a search for (see `gain`).
     fn pad_plan(
         &self,
@@ -436,11 +593,15 @@ impl BotController {
         bot: &Player,
         supplied: bool,
         urgent: bool,
-    ) -> Option<([f32; 3], bool)> {
+    ) -> Option<PadPlan> {
         if bot.is_boss {
             return None;
         }
-        let mut best: Option<(f32, [f32; 3], bool)> = None;
+        let habits = self.habits(bot);
+        let pistol_only = !GUNS
+            .into_iter()
+            .any(|gun| gun != WeaponType::Tack && bot.inventory.usable(gun));
+        let mut best: Option<(f32, PadPlan)> = None;
         for (index, pad) in state.pickups.iter().enumerate() {
             let useful = match pad.kind {
                 super::PickupKind::Weapon(weapon) => bot.inventory.weapon_pad_useful(weapon),
@@ -464,7 +625,11 @@ impl BotController {
                 _ => false,
             };
             let near = (pad.x - bot.x).hypot(pad.z - bot.z) <= HABIT_REACH;
-            let wanted = !urgent || gain || (habit(self.behavior, pad.kind) && near);
+            // The power pad a callsign times is an appointment from anywhere
+            // on the map; its other habits only when they are close.
+            let timed = timed(habits, bot, pad.kind);
+            let habitual = habit(habits, pad.kind);
+            let wanted = !urgent || gain || timed || (habitual && near);
             if !useful || !wanted {
                 continue;
             }
@@ -477,19 +642,34 @@ impl BotController {
                 continue;
             }
             let wait = eta.saturating_sub(travel);
-            let weight = if habit(self.behavior, pad.kind) {
+            // The favourite gun is worth a detour while the hand lacks it.
+            let favourite = pad.kind.weapon() == Some(habits.favourite)
+                && !bot.inventory.usable(habits.favourite);
+            let weight = if timed {
+                0.3
+            } else if habitual {
                 0.5
+            } else if favourite {
+                0.6
             } else if pad.kind.is_power() {
                 0.8
             } else {
                 1.0
             };
             let cost = distance * weight + wait as f32 * WAIT_COST;
-            if best.is_none_or(|(old, _, _)| cost < old) {
-                best = Some((cost, [pad.x, pad.floor, pad.z], eta > 0 && distance < 1.5));
+            if best.as_ref().is_none_or(|(old, _)| cost < *old) {
+                best = Some((
+                    cost,
+                    PadPlan {
+                        feet: [pad.x, pad.floor, pad.z],
+                        waiting: eta > 0 && distance < 1.5,
+                        timed,
+                        arms: pad.kind.weapon().is_some() && pistol_only,
+                    },
+                ));
             }
         }
-        best.map(|(_, feet, waiting)| (feet, waiting))
+        best.map(|(_, plan)| plan)
     }
 
     pub(super) fn sensed_intent(&self, state: &GameState, bot: &Player) -> BotIntent {
@@ -514,6 +694,13 @@ impl BotController {
             .map_or(f32::MAX, |target| {
                 (target.feet[0] - bot.x).hypot(target.feet[2] - bot.z)
             });
+        // Between fights a bot has the gun for the next one in hand, so a
+        // Rocket it walked to is up before the first body shows.
+        let swap = swap.or_else(|| {
+            (observed_distance == f32::MAX && !bot.inventory.reloading())
+                .then(|| preferred_weapon(self.behavior, self.habits(bot), bot, READY_DISTANCE))
+                .filter(|weapon| *weapon != bot.weapon && bot.inventory.usable(*weapon))
+        });
         if let Some(feet) = state.golden_rail_goal(bot, observed_distance) {
             let mut action = super::face_flag_goal(bot, feet);
             action.weapon_swap = swap;
@@ -528,10 +715,16 @@ impl BotController {
 
         let visible = observation.is_some_and(|observed| observed.visible);
         // A search can wait for the clock: a bot whose pad is due, or who is
-        // hurt and near health, goes there first.
-        let appointment = (!visible)
+        // hurt and near health, goes there first. A timed power pad, or a
+        // first real gun, also outranks a fight across the lot: a regular who
+        // keeps time on the Plate walks away from a long trade to be there
+        // when it lands, and a fresh life arms up before it duels with the
+        // Pistol. It still shoots what it sees on the way.
+        let walk_off = !visible || (observed_distance > APPOINTMENT_FIGHT && bot.hp >= HURT_HP);
+        let appointment = walk_off
             .then(|| self.pad_plan(state, bot, supplied, true))
-            .flatten();
+            .flatten()
+            .filter(|plan| !visible || plan.timed || plan.arms);
         if let Some(observed) = observation.filter(|_| supplied && appointment.is_none()) {
             if !observed.visible {
                 let mut action = super::face_flag_goal(bot, observed.feet);
@@ -554,9 +747,17 @@ impl BotController {
 
         // Known supplies and spawn locations are navigation knowledge. No live
         // opponent coordinates or live pad timers enter this search.
-        if let Some((feet, waiting)) =
+        if let Some(PadPlan { feet, waiting, .. }) =
             appointment.or_else(|| self.pad_plan(state, bot, supplied, false))
         {
+            // Walking to an appointment past a fight still shoots what it
+            // sees, the way an objective route does.
+            let aim = observation
+                .filter(|observed| observed.visible && supplied)
+                .map(|observed| {
+                    self.observed_combat_intent(state, bot, observed, swap, true)
+                        .action
+                });
             if waiting {
                 // Early for the appointment: hold the pad and sweep the
                 // approaches rather than standing blind on it.
@@ -567,10 +768,27 @@ impl BotController {
                     weapon_swap: swap,
                     ..Action::default()
                 };
-                return BotIntent { action, goal: None };
+                return BotIntent {
+                    action: aim.map_or(action, |aim| Action {
+                        forward: false,
+                        back: false,
+                        left: aim.left,
+                        right: aim.right,
+                        ..aim
+                    }),
+                    goal: None,
+                };
             }
             let mut action = super::face_flag_goal(bot, feet);
             action.weapon_swap = swap;
+            if let Some(aim) = aim {
+                action.yaw = aim.yaw;
+                action.pitch = aim.pitch;
+                action.weapon_swap = aim.weapon_swap;
+                action.turn_left = false;
+                action.turn_right = false;
+                action.fire = aim.fire;
+            }
             return BotIntent {
                 action,
                 goal: Some(NavigationGoal {
@@ -621,16 +839,19 @@ impl BotController {
         mut swap: Option<WeaponType>,
         prefer: bool,
     ) -> BotIntent {
-        let Some((yaw, pitch)) = crate::combat::aim_at(fighter_eye(bot), observed.chest) else {
-            return BotIntent::default();
-        };
         let distance = (observed.feet[0] - bot.x).hypot(observed.feet[2] - bot.z);
         if prefer && !bot.inventory.reloading() && swap.is_none() {
-            let preferred = preferred_weapon(self.behavior, bot, distance);
+            let preferred = preferred_weapon(self.behavior, self.habits(bot), bot, distance);
             if preferred != bot.weapon && bot.inventory.usable(preferred) {
                 swap = Some(preferred);
             }
         }
+        let rocket = (bot.weapon == WeaponType::Rocket && swap.is_none())
+            .then(|| rocket_aim(state, bot, &observed, distance));
+        let point = rocket.map_or(observed.chest, |aim| aim.point);
+        let Some((yaw, pitch)) = crate::combat::aim_at(fighter_eye(bot), point) else {
+            return BotIntent::default();
+        };
         let [yaw_error, pitch_error] = aim_error(bot.id, state.tick);
         // The arcade enforcer keeps its precise long-lane role. Its eyes,
         // reaction and turn speed are still subject to the same gates.
@@ -666,8 +887,14 @@ impl BotController {
             && difference.abs() <= TURN_PER_TICK + 0.03
             && bot.inventory.usable(bot.weapon)
             && swap.is_none()
-            // The Rocket's own splash: never fire it into a body at arm's length.
-            && !(bot.weapon == WeaponType::Rocket && distance < ROCKET_MIN_DISTANCE);
+            // The Rocket's own splash: never fire it where the blast reaches
+            // back, at a body inside the safe distance or into a wall in front.
+            && rocket.is_none_or(|aim| aim.clear);
+        if rocket.is_some() && distance < ROCKET_BAND.0 {
+            // Too close for the launcher: give ground while the hand changes.
+            intent.action.forward = false;
+            intent.action.back = true;
+        }
         intent
     }
 

@@ -487,6 +487,11 @@ pub enum WeaponType {
 
 /// The scatter gun deals full damage inside this distance.
 pub const SCATTER_FULL_DAMAGE_UNITS: f32 = 4.0;
+/// Inside this distance a scatter pellet is a meatshot: the barrel against
+/// the body, every pellet landing, one blast through a bare fighter.
+pub const SCATTER_MEATSHOT_UNITS: f32 = 2.0;
+/// Damage of one meatshot pellet: seven make 105.
+pub const SCATTER_MEATSHOT_PELLET: i32 = 15;
 /// Pellets in one scatter blast, Doom's shotgun count.
 pub const SCATTER_PELLETS: usize = 7;
 /// And this share of it at the edge of its reach.
@@ -502,8 +507,9 @@ pub const BLOOM_RECOVERY_PER_TICK: f32 = 1.0 / 7.0;
 impl WeaponType {
     /// Damage on a clean body hit, before the scatter gun's range falloff and
     /// before a head band doubles a traced pellet. For the scatter gun this is
-    /// per pellet: seven pellets make 70 at point blank, Doom's average blast.
-    /// Four body flechette hits, two point-blank scatter blasts, or two body
+    /// per pellet: seven pellets make 70 in the full band, Doom's average
+    /// blast, and a meatshot closer in makes 105 (`damage_at`).
+    /// Four body flechette hits, two full-band scatter blasts, or two body
     /// rail hits kill an unarmoured fighter, which puts every weapon's body
     /// time to kill inside the 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
     /// Fists, the Shiv and the Article Blade do not gain the head bonus.
@@ -535,7 +541,9 @@ impl WeaponType {
         }
     }
 
-    /// Damage at a distance. Only the scatter gun falls off: full damage to
+    /// Damage at a distance. Only the scatter gun changes with it: a
+    /// meatshot inside `SCATTER_MEATSHOT_UNITS` (seven pellets make 105, one
+    /// blast through a bare fighter), full damage to
     /// `SCATTER_FULL_DAMAGE_UNITS`, then linearly down to
     /// `SCATTER_FAR_DAMAGE_SCALE` of it at the edge of its reach, the banded
     /// shape modern shooters use because it reads at a glance.
@@ -546,6 +554,9 @@ impl WeaponType {
         }
         let near = SCATTER_FULL_DAMAGE_UNITS;
         let far = self.range_units();
+        if distance.is_finite() && distance <= SCATTER_MEATSHOT_UNITS {
+            return SCATTER_MEATSHOT_PELLET;
+        }
         if !distance.is_finite() || distance <= near {
             return base;
         }

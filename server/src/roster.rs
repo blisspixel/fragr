@@ -11,6 +11,9 @@
 use crate::protocol::{BodyKind, BotTauntKind, Team};
 use crate::sim::BotBehavior;
 
+mod habits;
+pub use habits::{behavior_habits, grudge_line, habits, Habits, PadHabit};
+
 /// Which seats a callsign may fill.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Allegiance {

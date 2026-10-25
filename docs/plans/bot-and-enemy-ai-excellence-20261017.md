@@ -1,6 +1,6 @@
 # Bot and Enemy AI Excellence: Tactical Squads, Dynamic Companions, and Fun-First Combat
 
-Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) is on `wave3/ai-depth`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
+Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) came with wave 3; the third (Larak Lot rule bots: the Rocket, callsign habits, grudges and the Scatter meatshot) is on `wave4/bots`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
 
 ## 1. Executive Summary and Current Architecture Audit
 
@@ -169,3 +169,35 @@ Latch, `main` against this slice, from the route tests' own counters: the full M
 Looked at: a controlled lineup of Clerk, Sweeper, Heavy Sweeper, Auditor, Redactor and Turret at rest, tell start, late tell and burst, at 5 and 15 m under dim light (`client/qa/union_tell_review.gd`), and a live M02 first-person still and strip with Latch holding a covering position right of the crosshair while the crossfire crew is awake (`client/qa/m02-latch-cover.json`). The Clerk's tell is its raise and its sound: the human troop has no bright optic to light. Windows rendering and human play were not run.
 
 Still open: dormant guard cones and reaction before activation, squad roles, barks, bot personalities beyond pad habits, CTF bots seeking pads, and a pad contest index near the 15% the multiplayer research asks for (that needs power items worth fighting over).
+
+**Third slice, 2026-10-25 (`wave4/bots`, Refs #431 and #432).** Implemented, not merged. Rule bots that play Larak Lot.
+
+- The Rocket. Every personality fights with a launcher it carries from 6.5 to 32 m and readies it between fights, so it is up before the first body shows. It aims at the shins of where it expects the body to be when the rocket lands, led by the ground velocity it watched over two sightings (never a live position), so low error splashes the floor at the feet and high error strikes the body. A body above the shooter's floor, or shins behind a kerb, take the led chest. It holds fire inside 5 m, or when the first 5 m of the flight would strike a wall, and gives ground while the hand changes.
+- Callsign habits (`server/src/roster/habits.rs`): a favourite gun, first in its band and worth a detour, and one pad each callsign times. Canon sets them where it speaks (Nightfall and Graveyard Shift keep the rail, the Static Kids the Scatter, Hangar Candy the Flechette, Aunt Linda the health), with Crackpot and Buzzkill timing the Custody Plate as readings of their own jokes ([cast](../lore/cast.md#the-wider-roster)); everyone else takes their behavior's. A timed power pad is an appointment from anywhere on the lot and outranks a trade past 12 m; so does the Plate for a bot already holding the gun it likes, and a first real gun for a life still on the Pistol. Walking to an appointment it still shoots what it sees.
+- Grudges. The head-to-head book (`server/src/statistics/head_to_head.rs`, one schema, saved beside the runs on a desktop host and by `--head-to-head` on a dedicated one) counts frags between callsigns. A rule bot looks first for the fighter present it owes most and, settling the score, says so to them in its own register; NODS keep no grudges. The Duel intro reads the same book.
+- The Scatter meatshot: seven pellets inside 2 units make 105, one blast through a bare fighter, asserted in the TTK harness beside the sticky table.
+
+Measured with `fragr-playtest --bot-survey --survey-lot --seed 1 --survey-seeds 24 --time-limit-seconds 180` (24 seeded 180 s rounds per row, rule bots only, release build). The survey now numbers fighters so a seed repeats exactly, and reports Plate and Rocket claims, rockets fired and the Rocket's share of frags. `main` (wave 3 plus `wave4/tooling`) against this slice:
+
+| Larak Lot | Frags/min | Rocket share of frags | Rockets fired (hurt someone) | Plate claims per 3 min | Flechette / Pistol share of shots |
+|---|---|---|---|---|---|
+| FFA, 6 | 24.1 to 20.3 | 2.3% to 3.9% | 264 (79) to 321 (117) | 0.3 to 3.3 | 20% / 70% to 41% / 40% |
+| FFA, 4 | 12.8 to 11.0 | 3.7% to 7.2% | 196 (57) to 308 (122) | 0.6 to 3.3 | 38% / 40% to 50% / 20% |
+| Duel, 2 | 3.5 to 2.3 | 3.9% to 28.9% | 107 (34) to 239 (131) | 1.2 to 3.7 | 47% / 6% to 37% / 6% |
+
+The lane's targets for six bots: 18 or more frags a minute (20.3, met), two or more Plate claims in three minutes (3.3, met), the Flechette under 45% of shots (41%, met), and the Rocket at 15 to 25% of frags (3.9%, **not met**). The Rocket's share is a supply limit, not a use limit: in Duel, where a holder lives, it is 29%. On the six-bot lot one pad on a 25 s clock gives about eight claims a round, a holder lives about four seconds after the claim, and lives average twelve seconds, so a launcher fires about two rockets before its owner dies. Measured supply experiments, not shipped: the Rocket on the 15 s clock alone gave 2.9%; that clock with an 8-rocket rack gave 6.8%; a 10-rocket rack on the 25 s clock gave 4.4%. Reaching 15% at six needs the Rocket to be a common gun (a second launcher on the lot, or weapons dropped on death), which is a map and rules decision for Nick. Duel pace fell from 3.5 to 2.3 frags a minute because both bots now keep the Plate and the Rocket; whether that is the Duel we want is for a human session to judge.
+
+CPU cost, `--bench 16 --bench-ticks 1200 --seed 42` in release, four runs alternated with `main` on the same host: mean tick 0.148 to 0.159 ms on `main` against 0.182 to 0.197 ms here (p50 0.127 to 0.139 against 0.156 to 0.172), about a fifth more, still under 0.5% of the 50 ms tick. Part of it is the play itself (twice the rockets in flight); the grudge lookup and the pad plan run only when a choice exists. `--bench-assert` passes.
+
+Client frame time, `look-perf` on Vulkan at 1920x1080 Balanced (mean / p95 / GPU ms), this branch and `main` plus `wave4/tooling` alternated; host load 16.5, 10.1, 7.8 and 4.6 at the four starts, so the first lane run is the loaded one:
+
+| View | Lane run 1 | Base run 1 | Lane run 2 | Base run 2 |
+|---|---|---|---|---|
+| Larak Lot overview | 7.34 / 10.28 / 6.42 | 7.05 / 10.20 / 6.10 | 6.97 / 9.73 / 6.05 | 7.61 / 11.28 / 6.51 |
+| Larak Lot first person | 9.30 / 13.09 / 7.80 | 7.47 / 10.43 / 6.69 | 6.70 / 10.07 / 5.36 | 7.21 / 11.11 / 5.92 |
+
+No client code changed; the spread is the host's.
+
+Looked at (Vulkan, Balanced, 1280x720): the Larak Lot tour against the wave 4 baseline (no presentation change; the follow camera finds a bot in the Pit), the Duel tour with the intro in the Host corner, upright ("HOST: LARAK LOT DUEL. NANA SIX-SEVEN AGAINST MEAT PROXY. FIRST TIME ON THE BOOK."), and `client/qa/larak-bots.json`, strips of the Pit while the Rocket is claimed and fired and of the Roof while a regular walks up for the Plate.
+
+Still open after this slice: the Rocket target above, voiced grudges (text only), and spectator-facing grudge facts.

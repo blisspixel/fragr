@@ -6,6 +6,17 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Bots play Larak Lot like regulars: they reach for the Rocket and put it at
+  your feet, leading a strafe, and never fire it close enough to catch
+  themselves; each callsign has a favourite gun and a pad it times, so
+  Nightfall keeps the Railgun and somebody is always walking to the Custody
+  Plate; a fresh life on the Pistol goes for a real gun before a long trade.
+- Grudges: a bot remembers who has fragged it, looks for them first, and says
+  so when it settles the score. A desktop host keeps the head-to-head book
+  between callsigns across sessions, and the Host reads it before a Duel
+  ("NIGHTFALL LEADS THE BOOK 7 TO 4").
+- The Scatter meatshot: the barrel against the body puts a bare fighter down
+  in one blast.
 - Dress Larak Lot with modelled props in place of boxes: the toll booths, the
   bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
   pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,

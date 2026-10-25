@@ -195,6 +195,12 @@ struct Args {
     #[arg(long, value_name = "PATH", help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "bench", "bench_verify_trace", "local_run_preview"])]
     tick_trace: Option<PathBuf>,
 
+    /// Keep the head-to-head book (who has fragged whom, by callsign) in this
+    /// file across restarts. A desktop host keeps it beside its runs without
+    /// asking; a dedicated server keeps it in memory unless this is set.
+    #[arg(long, value_name = "PATH", help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "bench", "bench_verify_trace", "local_run_preview"])]
+    head_to_head: Option<PathBuf>,
+
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
@@ -256,6 +262,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     fragr_server::metrics::mark_process_start();
     let matches = Args::command().get_matches();
     let args = Args::from_arg_matches(&matches)?;
+    let head_to_head = head_to_head_path(&args);
     if args.desktop_host
         && matches.value_source("bind") != Some(clap::parser::ValueSource::CommandLine)
     {
@@ -438,6 +445,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Some(path) => Some(path),
             None => fragr_server::tick_trace::path_from_env()?,
         },
+        head_to_head,
     };
     let started = if args.ready_line {
         fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
@@ -471,6 +479,17 @@ impl std::fmt::Display for PlainError {
 }
 
 impl std::error::Error for PlainError {}
+
+/// Where the head-to-head book lives: the path asked for, beside the runs
+/// for a desktop host, otherwise nowhere (a dedicated server keeps it in
+/// memory).
+fn head_to_head_path(args: &Args) -> Option<PathBuf> {
+    match &args.head_to_head {
+        Some(path) => Some(path.clone()),
+        None if args.desktop_host => fragr_server::local::head_to_head_path().ok(),
+        None => None,
+    }
+}
 
 /// Arcade rules from the host's flags. None keeps the plain defaults, which
 /// is also what an authored campaign map requires.
@@ -579,6 +598,27 @@ mod tests {
         let help = String::from_utf8(help).unwrap();
         assert!(help.contains("--output <OUTPUT>"), "{help}");
         assert!(help.contains("status, who, kick"), "{help}");
+    }
+
+    #[test]
+    fn the_head_to_head_book_is_kept_by_a_desktop_host_or_on_request() {
+        let dedicated = Args::try_parse_from(["fragr-server"]).expect("default args");
+        assert_eq!(head_to_head_path(&dedicated), None, "memory only");
+        let asked = Args::try_parse_from(["fragr-server", "--head-to-head", "book.json"])
+            .expect("hosted book");
+        assert_eq!(head_to_head_path(&asked), Some(PathBuf::from("book.json")));
+        let desktop = Args::try_parse_from(["fragr-server", "--desktop-host", "--mode", "tdm"])
+            .expect("desktop host");
+        assert_eq!(
+            head_to_head_path(&desktop),
+            fragr_server::local::head_to_head_path().ok()
+        );
+        assert!(head_to_head_path(&desktop).is_none_or(|path| path.ends_with("head-to-head.json")));
+        assert!(
+            Args::try_parse_from(["fragr-server", "--head-to-head", "b.json", "--bench", "4"])
+                .is_err(),
+            "a benchmark keeps no book"
+        );
     }
 
     #[test]
@@ -1250,6 +1290,7 @@ mod tests {
                     human_summary: false,
                     overview: None,
                     tick_trace: None,
+                    head_to_head: None,
                 },
                 async move {
                     let _ = shutdown_rx.await;
