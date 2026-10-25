@@ -13,6 +13,11 @@ const Workshop = preload("res://scripts/model_geometry.gd")
 const NEAR_CENTER_HEIGHT: float = 1.2
 const NEAR_HIDE_DISTANCE: float = 1.1
 const NEAR_FULL_DISTANCE: float = 1.35
+## The screen and its optics sit on the painted display, which is the head's
+## front face at about 0.08 m, a few millimetres proud of it. Further out the
+## optics float clear of the head and slide off the display seen from the
+## side, uncovering the painted face behind them.
+const SCREEN_OFFSET: Vector3 = Vector3(0.0, 1.55, 0.088)
 var near_camera_clip: bool = false
 var _ward_materials: Dictionary[MeshInstance3D, StandardMaterial3D] = {}
 var _near_origin: Vector3 = Vector3.INF
@@ -70,7 +75,7 @@ func _pose_source() -> void:
 	# Keep the actual weapon in the skinned palm, pointing along the actor's facing.
 	_gun.transform = _right_arm.transform.affine_inverse() * Transform3D(Basis.IDENTITY, hand.origin + Vector3(0, 0.025, 0.03))
 	var head_delta: Transform3D = _source.bone_delta(_source_body, "Head")
-	_screen.transform = head_delta * Transform3D(Basis.IDENTITY, Vector3(0, 1.55, 0.148))
+	_screen.transform = head_delta * Transform3D(Basis.IDENTITY, SCREEN_OFFSET)
 	_eyes.transform = _screen.transform * Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.004))
 
 func _process(_delta: float) -> void:
@@ -166,6 +171,15 @@ func set_face_phosphor(optics: Color, screen: Color, screen_energy: float) -> vo
 ## Optics remain independently expressive instead of relying on painted pixels.
 func set_screen_expression(openness: float) -> void:
 	_eyes.mesh = LatchFace.mesh(face.state, is_finite(openness) and openness < 0.3)
+
+## A still scene holds one of the personal expressions; the face keeps it
+## until something advances the face again. Unknown names change nothing.
+func set_expression(expression: String) -> void:
+	if expression not in LatchFace.STATES:
+		return
+	face.state = expression
+	face.blinking = false
+	_refresh_face()
 
 func observe_health(health: int) -> void:
 	face.observe_health(health)
