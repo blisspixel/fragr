@@ -16,6 +16,14 @@ func _check(value: bool, message: String) -> void:
 		failures += 1
 		push_error("test_still_here_presentation: " + message)
 
+## Tram number signs drawn in the presenter's current world.
+static func _tram_numbers(view: StillHereRefuge) -> int:
+	var count: int = 0
+	for node: Node in view.find_children("*", "Label3D", true, false):
+		if node is WorldSign and (node as WorldSign).message_key == "STILL_HERE_TRAM_NUMBER" and node.is_inside_tree():
+			count += 1
+	return count
+
 static func _ids(geometry: Dictionary, refuge: Dictionary) -> Array[String]:
 	var result: Array[String] = []
 	for person: Dictionary in EpilogueMissionState.people(geometry, refuge):
@@ -64,6 +72,9 @@ func _run() -> void:
 			_check(child != null and child.kind == "human", "a child is a human child, never a small agent: " + str(person["id"]))
 			children += 1
 	_check(children > 0, "the first light has children in it")
+	var counting: LatchView = refuge_view.people["latch"] as LatchView
+	_check(counting != null and counting.face.state == "focused", "the morning after, Latch is still counting over the ledger, not smiling")
+	_check(_tram_numbers(refuge_view) == 2, "the stalled tram carries its number on both ends")
 
 	# A run that brought nobody: stand-ins fill the gaps, the board names who.
 	# A world never changes who the run brought, so this is its own court.
@@ -82,6 +93,18 @@ func _run() -> void:
 	_check(not empty_view.people.has("car_family_a"), "nobody from the recall cars")
 	_check(empty_view.find_children("NamedNote*", "MeshInstance3D", true, false).size() == 4, "four named notes on the board")
 	_check(empty_view.find_children("*Grave*", "", true, false).is_empty(), "never a grave")
+	_check(empty_view.find_child("CabWindscreen", true, false) == null, "the stalled tram the morning after has no glazed cab")
+	# Years on, the seat Sorrel would take is kept: a card inside the
+	# windscreen, clear of the tram's number plate under it.
+	empty_view.configure_map(later_info)
+	var alone_later: Dictionary = alone.duplicate(true)
+	alone_later["epilogue"]["later"] = true
+	empty_view.apply_state(alone_later)
+	await process_frame
+	var kept: MeshInstance3D = empty_view.find_child("CabCard", true, false) as MeshInstance3D
+	_check(not empty_view.people.has("sorrel") and kept != null, "Sorrel's cab keeps a card years later")
+	_check(kept != null and kept.global_position.y - 0.15 > 1.41 and kept.global_position.y + 0.15 < StillHereRefuge._size("tram_running").y * 0.88,
+		"the card sits in the windscreen, clear of the number plate under it")
 	empty_view.queue_free()
 	await process_frame
 
@@ -115,6 +138,19 @@ func _run() -> void:
 		_check(index in hidden, "an aftermath-only solid is not drawn years later: %d" % index)
 	_check(refuge_view.people.size() == _ids(later_info["epilogue"], everyone).size(), "the later court is its own people")
 	_check(refuge_view.people.has("sorrel"), "Sorrel drives the tram years later")
+	var resting: LatchView = refuge_view.people["latch"] as LatchView
+	_check(resting != null and resting.face.state == "relaxed", "years later Latch's easy face is back on the bench")
+	_check(_tram_numbers(refuge_view) == 2, "the running tram carries its number on both ends")
+	# Sorrel in the repaired tram's cab, seen through a clean windscreen: the
+	# driver's seat puts head and shoulders above the sill.
+	var sorrel_feet: Vector3 = Vector3.INF
+	for person: Dictionary in later_info["epilogue"]["people"]:
+		if person["id"] == "sorrel" and person["stage"] == "later":
+			sorrel_feet = Vector3(float(person["feet"][0]), float(person["feet"][1]), float(person["feet"][2]))
+	_check(refuge_view.find_child("CabWindscreen", true, false) != null, "the running tram's cab is glazed years later")
+	_check(refuge_view._in_cab(sorrel_feet) and is_equal_approx(refuge_view._seat_height(sorrel_feet), StillHereRefuge.CAB_SEAT.y), "Sorrel sits in the driver's seat")
+	_check(StillHereRefuge.CAB_SEAT.y + 0.6 > StillHereRefuge._size("tram_running").y * 0.45, "Sorrel's head and shoulders clear the windscreen sill")
+	_check(refuge_view.solid_index("tram_running") in hidden, "the presenter draws the tram round its cab, not the collision box")
 	var nailed: Array[Node] = refuge_view.find_children("EntrantNumber", "Label3D", true, false)
 	_check(not worn.is_empty() and nailed.size() == 1 and (nailed[0] as Label3D).text == worn,
 		"the number over the door years later is the one an entrant wore the morning after")
@@ -249,6 +285,18 @@ func _run() -> void:
 	var owned: LocalMatch = LocalMatch.new()
 	manager.local_match = owned
 	manager.is_human_player = true
+	# The fall in the wipe holds without the generic run-over card once the
+	# ending owns it, so nothing offers the menu before its pages; a retry in
+	# the wipe keeps its card.
+	var m20_fixture: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://golden/m20_lifecycle.json"))
+	var fallen: Dictionary = (m20_fixture["messages"][0]["state"] as Dictionary).duplicate(true)
+	fallen["run"] = {"id": "8c1b6a3e-9a5d-4c1e-8f0b-2f2a6d0c7e11", "status": "failed", "continues": 0, "level_start_continues": 0}
+	var display: MissionHud = MissionHud.new()
+	root.add_child(display)
+	display.apply(fallen, "player")
+	await process_frame
+	_check(display._recovery.visible and not display.recovery_text.is_empty(), "a failed run's card shows until the wipe's ending takes the screen")
+	manager.mission_hud = display
 	owned.set("_run_mode", "resume")
 	var failed: Dictionary = {"id": MissionState.M20_ID, "run": {"status": "failed"}}
 	manager._present_wipe_failure({"id": MissionState.M10_ID, "run": {"status": "failed"}})
@@ -261,11 +309,21 @@ func _run() -> void:
 	owned.set("_run_mode", "resume")
 	for wipe: String in [MissionState.M18_ID, MissionState.M19_ID]:
 		_check(wipe in StoryScene.WIPE_LEVELS, wipe + " is a wipe level")
+	_check(not display.wipe_ending, "no ending owns the fall before one is due")
 	manager._present_wipe_failure(failed)
 	_check(manager._wipe_failure_started, "a durable run out of continues in the wipe ends here")
+	_check(display.wipe_ending and not display._recovery.visible and display.recovery_text.is_empty(),
+		"the wipe's ending owns the fall: no run-over card offers the menu first")
+	var retry: Dictionary = fallen.duplicate(true)
+	retry["run"]["status"] = "continue"
+	retry["run"]["continues"] = 1
+	display.apply(retry, "player")
+	_check(display._recovery.visible, "a retry in the wipe keeps its card")
 	manager._close_wipe_failure_pages()
 	var closing: StillHereCoda = manager.wipe_failure_coda
 	_check(closing != null and closing.ending == StillHereCoda.EXHAUSTION, "its pages close on the exhaustion coda")
+	manager.mission_hud = null
+	display.queue_free()
 	manager.free()
 	owned.free()
 

@@ -193,7 +193,7 @@ func build(parent: Node3D, info: Dictionary) -> Node3D:
 			lamps += 1
 	for tram: Dictionary in _list("trams", TRAMS):
 		if not _find(solids, tram["low"], tram["high"]).is_empty():
-			_tram(tram["low"], tram["high"])
+			_tram(tram["low"], tram["high"], str(tram.get("cab", "")))
 	var awnings: Array = _list("awnings", AWNINGS)
 	for index: int in range(awnings.size()):
 		var awning: Dictionary = awnings[index]
@@ -864,7 +864,9 @@ func _workshop(basis: Basis, origin: Vector3, u0: float, u1: float, v_low: float
 
 ## A tram car left where it stopped: cream and green livery, a band of
 ## windows, a cab windscreen with its lamp out and the pantograph folded.
-func _tram(low: Vector3, high: Vector3) -> void:
+## `cab` names an end face whose windscreen stays open for a presenter that
+## glazes it and furnishes the cab behind it; empty keeps every end shut.
+func _tram(low: Vector3, high: Vector3, cab: String = "") -> void:
 	var centre: Vector3 = (low + high) * 0.5
 	var size: Vector3 = high - low
 	_avoid = []
@@ -877,11 +879,18 @@ func _tram(low: Vector3, high: Vector3) -> void:
 		# after; repainted, still green, years on.
 		var cream: String = "tintc9bd9a" if mood == "night_works" else ("tint8f8670" if mood == "aftermath" else "tinte4d8b4")
 		var green: String = "tint3f6f62" if mood == "night_works" else ("tint2f4a42" if mood == "aftermath" else "tint3f7f62")
-		_slab(_tool(cream), basis, origin, -w, -h, w, h, 0.0, PAINT_OFFSET)
-		_slab(_tool(green), basis, origin, -w, -h, w, -h + size.y * 0.32, 0.0, 0.01)
-		_slab(_tool("iron"), basis, origin, -w, -h, w, -h + 0.25, 0.0, 0.03)
 		var band_low: float = -h + size.y * 0.45
 		var band_high: float = h - size.y * 0.12
+		if face == cab:
+			# Cream round an open windscreen, which the presenter glazes.
+			_slab(_tool(cream), basis, origin, -w, -h, w, band_low, 0.0, PAINT_OFFSET)
+			_slab(_tool(cream), basis, origin, -w, band_high, w, h, 0.0, PAINT_OFFSET)
+			_slab(_tool(cream), basis, origin, -w, band_low, -w + 0.2, band_high, 0.0, PAINT_OFFSET)
+			_slab(_tool(cream), basis, origin, w - 0.2, band_low, w, band_high, 0.0, PAINT_OFFSET)
+		else:
+			_slab(_tool(cream), basis, origin, -w, -h, w, h, 0.0, PAINT_OFFSET)
+		_slab(_tool(green), basis, origin, -w, -h, w, -h + size.y * 0.32, 0.0, 0.01)
+		_slab(_tool("iron"), basis, origin, -w, -h, w, -h + 0.25, 0.0, 0.03)
 		if w > 2.5:
 			var panes: int = int(floor(w * 2.0 / 1.3))
 			var pitch: float = w * 2.0 / float(panes)
@@ -889,7 +898,8 @@ func _tram(low: Vector3, high: Vector3) -> void:
 				var u: float = -w + (float(pane) + 0.5) * pitch
 				_slab(_tool("tram_glass"), basis, origin, u - pitch * 0.4, band_low, u + pitch * 0.4, band_high, 0.0, 0.02)
 		else:
-			_slab(_tool("tram_glass"), basis, origin, -w + 0.2, band_low, w - 0.2, band_high, 0.0, 0.02)
+			if face != cab:
+				_slab(_tool("tram_glass"), basis, origin, -w + 0.2, band_low, w - 0.2, band_high, 0.0, 0.02)
 			_slab(_tool("lit_dark"), basis, origin, -0.2, -h + 0.45, 0.2, -h + 0.7, 0.0, 0.05)
 	var up: Basis = MapDecoration.face_basis("up")
 	var lid: Vector3 = centre + Vector3(0.0, size.y * 0.5, 0.0)

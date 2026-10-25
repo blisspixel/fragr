@@ -126,9 +126,9 @@ and art [owed below](#owed-to-the-next-asset-round) are still to come.
   with Latch at the ledger is the first objective.
 - **Years later.** The same court in a clear morning: the fountain the pumps
   feed, trees grown in the planters built from the rubble, grass along the wall
-  bases, repainted homes and washing, the repaired tram, the "STILL LOOKING"
-  board with flowers under it, and the ferry board timing Low Water and the
-  Waterworks. Walking down to the quay is the second objective; sitting with
+  bases, repainted homes and washing, the repaired tram with Sorrel at the
+  controls behind its windscreen, the "STILL LOOKING" board with flowers under
+  it, and the ferry board timing Low Water and the Waterworks. Walking down to the quay is the second objective; sitting with
   Latch on the bench ends it.
 - **Who is there.** The family Latch let out of a recall car (level 3), Edda
   (level 4), Splice in their own body (level 5), Orrin (level 8), Sorrel (level

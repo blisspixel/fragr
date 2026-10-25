@@ -59,6 +59,8 @@ var _evac_wanted: bool = false
 var _evac_seen: String = ""
 var _status_left: float = 0.0
 var _run_onward: bool = false
+## Set by the game once the wipe's other ending will play for this run.
+var wipe_ending: bool = false
 
 func event_cover_regions() -> Array[Rect2]:
 	var regions: Array[Rect2] = []
@@ -576,6 +578,15 @@ func set_run_onward(available: bool) -> void:
 	_run_onward = available
 	_refresh()
 
+## The wipe's other ending owns the screen once a durable run has run out of
+## continues in levels 18 to 20: the fall holds without the generic run-over
+## card, which would send the player to the menu before the ending's pages.
+func set_wipe_ending(enabled: bool) -> void:
+	if enabled == wipe_ending:
+		return
+	wipe_ending = enabled
+	_refresh()
+
 ## M01 restages the card on a phase change. M02 stays `in_progress`, so its
 ## card restages on each new objective and on a retry.
 static func _stage_key(value: Dictionary) -> String:
@@ -690,7 +701,7 @@ func _refresh_m04() -> void:
 	_card.visible = _stage_card_visible()
 
 func _refresh_run_recovery(run: Dictionary) -> void:
-	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"]
+	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"] and not (wipe_ending and run["status"] == "failed")
 	if not _recovery.visible:
 		_show_recovery("")
 		return

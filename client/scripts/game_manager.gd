@@ -2324,6 +2324,9 @@ func _present_wipe_failure(state: Dictionary) -> void:
 	if not run is Dictionary or run.get("status") != "failed":
 		return
 	_wipe_failure_started = true
+	# The fall holds on its own: no run-over card offers the menu first.
+	if mission_hud != null:
+		mission_hud.set_wipe_ending(true)
 	if is_inside_tree():
 		get_tree().create_timer(WIPE_FAILURE_DELAY).timeout.connect(_open_wipe_failure)
 

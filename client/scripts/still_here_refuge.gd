@@ -74,7 +74,7 @@ const SOLIDS: Dictionary[String, Array] = {
 const DRAWN: Array[String] = ["quay_rail_w_n", "quay_rail_w_s", "quay_rail_n", "quay_rail_s", "pier_rail_n",
 	"pier_rail_s", "pier_barricade", "ferry_gate", "bench_quay", "ferry_board", "repair_table", "bench_back",
 	"motor_stand", "meal_table", "bench_mn", "bench_ms", "empty_chair", "standpipe", "fountain", "rubble_a",
-	"rubble_b", "cot_a", "cot_b", "crate_a", "crate_b", "crate_c", "gate_post_n", "gate_post_s"]
+	"rubble_b", "cot_a", "cot_b", "crate_a", "crate_b", "crate_c", "gate_post_n", "gate_post_s", "tram_running"]
 ## The Low Water dressing for this court: [low, high, face, paint, ground,
 ## optional span]. Faces follow MapDecoration's bases.
 const FACES: Array[Dictionary] = [
@@ -110,8 +110,14 @@ const TANKS: Array[Dictionary] = [
 ]
 const TRAMS: Array[Dictionary] = [
 	{"low": Vector3(15.6, 0, -13), "high": Vector3(18.4, 3.2, -1.5)},
-	{"low": Vector3(15.6, 0, 1.5), "high": Vector3(18.4, 3.2, 14)},
+	{"low": Vector3(15.6, 0, 1.5), "high": Vector3(18.4, 3.2, 14), "cab": "south"},
 ]
+## The running tram's cab years later, at its +z end: how deep it runs back
+## from the windscreen, and the driver's seat (the cushion's top) where Sorrel
+## sits at the controls every morning, seen through the glazed windscreen.
+const CAB_DEPTH: float = 1.5
+const CAB_FLOOR: float = 0.85
+const CAB_SEAT: Vector3 = Vector3(17.0, 1.35, 13.1)
 const PLANTERS: Array[Dictionary] = [
 	{"low": Vector3(-18.6, 0, 6), "high": Vector3(-17.2, 0.6, 8.6)},
 	{"low": Vector3(8, 0, 9.6), "high": Vector3(11, 0.6, 11)},
@@ -458,13 +464,16 @@ func _tram_detail(key: String) -> void:
 		_box("TramBumper", Vector3(at.x, 0.45, face), Vector3(size.x - 0.2, 0.22, 0.12), iron)
 		for x: float in [-0.9, 0.9]:
 			_box("TramLamp", Vector3(at.x + x, 0.95, face), Vector3(0.24, 0.2, 0.06), lamp)
-		_box("TramNumber", Vector3(at.x, 2.1, face + end * 0.005), Vector3(0.5, 0.42, 0.02), _material(Color("e4d8b4") if later else Color("8f8670")))
-	var number: WorldSign = WorldSign.new()
-	number.name = "TramNumber"
-	number.configure("STILL_HERE_TRAM_NUMBER", Vector2(0.42, 0.36), Color("2a2a2a"), true)
-	number.position = Vector3(at.x, 2.1, at.z - (size.z * 0.5 + 0.02) - 0.015)
-	number.rotation.y = PI
-	_static.add_child(number)
+		# The number on a plate under each end's windscreen, facing out.
+		_box("TramNumber", Vector3(at.x, 1.2, face + end * 0.005), Vector3(0.5, 0.42, 0.02), _material(Color("e4d8b4") if later else Color("8f8670")))
+		var number: WorldSign = WorldSign.new()
+		number.name = "TramNumber"
+		number.configure("STILL_HERE_TRAM_NUMBER", Vector2(0.42, 0.36), Color("2a2a2a"), true)
+		number.position = Vector3(at.x, 1.2, face + end * 0.02)
+		number.rotation.y = 0.0 if end > 0.0 else PI
+		_static.add_child(number)
+	if key == "tram_running":
+		_cab(at, size)
 	# Doors on the platform side.
 	for z: float in [at.z - size.z * 0.25, at.z + size.z * 0.25]:
 		_box("TramDoor", Vector3(at.x - size.x * 0.5 - 0.012, 1.15, z), Vector3(0.02, 2.1, 1.2), _material(Color("2f4a42") if not later else Color("3f7f62")))
@@ -472,6 +481,53 @@ func _tram_detail(key: String) -> void:
 	if not later:
 		for z: float in [at.z - 1.2, at.z + 3.4]:
 			_box("BlownPane", Vector3(at.x + size.x * 0.5 + 0.02, 2.05, z), Vector3(0.02, 0.8, 1.0), _material(Color("0b0c0d")))
+
+## The repaired tram's cab years later, behind a clean windscreen: walls, a
+## bulkhead, the controls and the driver's seat, lit for the morning run.
+## Sorrel sits here when the run freed them; otherwise the seat is empty and
+## a card in the window keeps it.
+func _cab(at: Vector3, size: Vector3) -> void:
+	var front: float = at.z + size.z * 0.5
+	var roof_y: float = size.y - 0.06
+	var inner: float = size.x * 0.5 - 0.03
+	var panel: StandardMaterial3D = _shape.material("refuge_cab_panel", Color("7d8a78"))
+	var ceiling: StandardMaterial3D = _shape.material("refuge_cab_ceiling", Color("b8ad8c"))
+	var dark: StandardMaterial3D = _shape.material("refuge_cab_dark", Color("2f3a37"))
+	var leather: StandardMaterial3D = _shape.material("refuge_cab_seat", Color("6b5236"))
+	var middle: float = (CAB_FLOOR + roof_y) * 0.5
+	_box("CabBulkhead", Vector3(at.x, middle, front - CAB_DEPTH), Vector3(inner * 2.0, roof_y - CAB_FLOOR, 0.05), panel)
+	_box("CabFloor", Vector3(at.x, CAB_FLOOR, front - CAB_DEPTH * 0.5), Vector3(inner * 2.0, 0.04, CAB_DEPTH), dark)
+	_box("CabRoof", Vector3(at.x, roof_y, front - CAB_DEPTH * 0.5), Vector3(inner * 2.0, 0.04, CAB_DEPTH), ceiling)
+	for side: float in [-1.0, 1.0]:
+		_box("CabWall", Vector3(at.x + side * inner, middle, front - CAB_DEPTH * 0.5), Vector3(0.04, roof_y - CAB_FLOOR, CAB_DEPTH), panel)
+	# The controls under the windscreen, a lever and a bell push on them.
+	_box("CabDesk", Vector3(at.x, CAB_FLOOR + 0.27, front - 0.17), Vector3(2.2, 0.54, 0.26), dark)
+	_box("CabLever", Vector3(at.x - 0.35, CAB_FLOOR + 0.64, front - 0.2), Vector3(0.05, 0.22, 0.05), _material(Color("8a5a3a")))
+	_box("CabBell", Vector3(at.x + 0.4, CAB_FLOOR + 0.56, front - 0.18), Vector3(0.1, 0.04, 0.1), _material(Color("c8a048")))
+	# The driver's seat: post, cushion and back.
+	_box("CabSeatPost", Vector3(CAB_SEAT.x, (CAB_FLOOR + CAB_SEAT.y - 0.08) * 0.5, CAB_SEAT.z), Vector3(0.1, CAB_SEAT.y - 0.08 - CAB_FLOOR, 0.1), dark)
+	_box("CabSeat", Vector3(CAB_SEAT.x, CAB_SEAT.y - 0.04, CAB_SEAT.z), Vector3(0.55, 0.08, 0.5), leather)
+	_box("CabSeatBack", Vector3(CAB_SEAT.x, CAB_SEAT.y + 0.32, CAB_SEAT.z - 0.27), Vector3(0.55, 0.6, 0.06), leather)
+	# The windscreen, glazed and clean, in three panes, in the opening the
+	# dressing left; the driver sits behind the middle one.
+	var glass: StandardMaterial3D = StandardMaterial3D.new()
+	glass.albedo_color = Color(0.62, 0.78, 0.8, 0.16)
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass.roughness = 0.05
+	glass.metallic_specular = 0.8
+	var low: float = size.y * 0.45
+	var high: float = size.y * 0.88
+	_box("CabWindscreen", Vector3(at.x, (low + high) * 0.5, front + 0.012), Vector3(size.x - 0.4, high - low, 0.008), glass)
+	for x: float in [-0.62, 0.62]:
+		_box("CabMullion", Vector3(at.x + x, (low + high) * 0.5, front + 0.018), Vector3(0.07, high - low, 0.03), _material(Color("3f7f62")))
+	_light("CabLight", Vector3(at.x, roof_y - 0.3, front - 0.6), Color("ffe6c0"), 0.55, 2.4)
+
+## The driver's seat in the running tram's cab years later.
+func _in_cab(feet: Vector3) -> bool:
+	if not later or not _has("tram_running"):
+		return false
+	var front: float = _center("tram_running").z + _size("tram_running").z * 0.5
+	return absf(feet.x - CAB_SEAT.x) < 0.5 and feet.z <= front and feet.z >= front - CAB_DEPTH
 
 func _build_ferry_board() -> void:
 	var at: Vector3 = _center("ferry_board")
@@ -997,9 +1053,10 @@ func _build_absences() -> void:
 		var tag: MeshInstance3D = _quad("CarTagOnDoor", Vector3(-11.9, 1.6, -13.985), Vector2(0.16, 0.24), _material(Color("d8cfb4")))
 		_absence_root.add_child(tag)
 		_absence_root.add_child(_quad("CarTagString", Vector3(-11.9, 1.75, -13.982), Vector2(0.01, 0.1), _material(Color("6a5038"))))
-	# Years on, Sorrel's cab is kept: a card in the window, nobody in the seat.
+	# Years on, Sorrel's cab is kept: a card propped inside the windscreen,
+	# the empty seat behind it.
 	if later and refuge.get("sorrel") != true and _has("tram_running"):
-		var window: Vector3 = Vector3(17.0, 1.9, 14.03)
+		var window: Vector3 = Vector3(17.0, 1.62, 13.98)
 		var card: MeshInstance3D = _box("CabCard", window, Vector3(0.6, 0.3, 0.01), _material(Color("e8e2d6")))
 		card.reparent(_absence_root)
 		var label: WorldSign = WorldSign.new()
@@ -1084,6 +1141,10 @@ func _person(person: Dictionary) -> Node3D:
 		"perch":
 			# On a bench, a crate or a cab seat: hips on it, feet down.
 			body.pose(0.0, false, false, false)
+			if _in_cab(feet):
+				# The driver's seat stands a little ahead of the floor mark:
+				# the hips, 0.14 m behind the origin, land on its cushion.
+				body.position = Vector3(CAB_SEAT.x, feet.y, CAB_SEAT.z) + body.transform.basis * Vector3(0.0, 0.0, 0.14)
 			_seat(body, _seat_height(feet), _at_table(feet))
 		"lie":
 			body.pose(0.0, false, false, false, 1.0)
@@ -1169,6 +1230,10 @@ func _latch(feet: Vector3, facing: float, seated: bool) -> Node3D:
 	latch.set_render_layers(ArenaSky.ACTOR_LAYERS)
 	latch.set_weapon_visible(false)
 	latch.set_face_phosphor(Color("ffb860"), Color("6a3a16"), 0.7)
+	# The morning after, Latch is tired and still counting over the ledger;
+	# the easy smile comes back years later, on the bench.
+	if not seated:
+		latch.set_expression("focused")
 	latch.position = feet
 	latch.rotation.y = facing
 	if seated:
@@ -1210,8 +1275,11 @@ static func _seat(body: SkinnedCharacter, height: float, table: bool) -> void:
 		var hand: Vector3 = Vector3(across, seat + 36.0, 46.0) if table else Vector3(across * 0.9, seat + 14.0, 30.0)
 		source._two_bone(skeleton, side + "Arm", side + "ForeArm", side + "Hand", hand, Vector3(across * 2.8, seat + 50.0, -10.0))
 
-## The seat under a perched person: the low solid they sit on.
+## The seat under a perched person: the low solid they sit on, or the
+## driver's seat in the tram's cab.
 func _seat_height(feet: Vector3) -> float:
+	if _in_cab(feet):
+		return CAB_SEAT.y
 	var best: float = 0.45
 	for raw: Variant in _info.get("solids", []):
 		var solid: Dictionary = raw
