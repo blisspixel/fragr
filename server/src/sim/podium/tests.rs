@@ -372,3 +372,54 @@ fn lot_power_probe() {
         }
     }
 }
+
+/// A rocket outlives its owner's life. Snapshots list only living fighters,
+/// so a Pit Rocket still in flight after its owner dies has an owner absent
+/// from `players`, and every other documented rocket bound still holds.
+#[test]
+fn larak_rockets_outlive_their_owners_on_the_wire() {
+    use crate::protocol::ServerMessage;
+    let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
+    session.state.seed(1993);
+    session.state.apply_config(MatchConfig {
+        rules: RuleSet::new(GameMode::Ffa, &[], false).unwrap(),
+        frag_limit: None,
+        time_limit_ticks: None,
+        ..MatchConfig::default()
+    });
+    session.spawn_bots(6);
+    session.state.start_round();
+    let mut orphans = 0;
+    for _ in 0..60 * 20 {
+        for message in session.tick_messages(DT) {
+            let ServerMessage::Snapshot(snapshot) = message else {
+                continue;
+            };
+            let mut ids: Vec<u32> = Vec::new();
+            ids.extend(snapshot.grenades.iter().map(|fact| fact.id));
+            ids.extend(snapshot.mines.iter().map(|fact| fact.id));
+            ids.extend(snapshot.remote_mines.iter().map(|fact| fact.id));
+            ids.extend(snapshot.projectiles.iter().map(|fact| fact.id));
+            ids.extend(snapshot.explosions.iter().map(|fact| fact.id));
+            ids.extend(snapshot.assessor_canisters.iter().map(|fact| fact.id));
+            for rocket in &snapshot.rockets {
+                assert!(rocket.validate().is_ok(), "{rocket:?}");
+                assert!(!ids.contains(&rocket.id), "serial {} reused", rocket.id);
+                assert!(u64::from(rocket.age_ticks) <= snapshot.tick);
+                assert!(session
+                    .state
+                    .players
+                    .iter()
+                    .any(|p| p.id == rocket.owner_id));
+                if !snapshot.players.iter().any(|p| p.id == rocket.owner_id) {
+                    orphans += 1;
+                }
+                ids.push(rocket.id);
+            }
+        }
+    }
+    assert!(
+        orphans > 0,
+        "seed 1993 flies a rocket past its owner's death"
+    );
+}

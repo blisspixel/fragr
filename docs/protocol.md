@@ -3310,8 +3310,9 @@ or inventory revisions.
 The serial shares the existing projectile namespace. Position components are
 finite and at most 1024 in absolute value. Velocity components are finite and
 at most 20. Age is below 80 and cannot exceed the snapshot tick. The owner is
-a participant still in the snapshot. Unknown fields and duplicate serials are
-refused.
+a non-nil participant ID; a rocket outlives its owner's life, so the owner may
+be absent from `players` while dead or waiting to respawn. Unknown fields and
+duplicate serials are refused.
 
 Impact deals 65 direct damage plus covered splash. Splash is 4 m, linear from
 a peak of 45, and stops at ordinary solids. The blast point sits just before
