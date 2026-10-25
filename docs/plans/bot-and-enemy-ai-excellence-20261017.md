@@ -189,6 +189,15 @@ The lane's targets for six bots: 18 or more frags a minute (20.3, met), two or m
 
 CPU cost, `--bench 16 --bench-ticks 1200 --seed 42` in release, four runs alternated with `main` on the same host: mean tick 0.148 to 0.159 ms on `main` against 0.182 to 0.197 ms here (p50 0.127 to 0.139 against 0.156 to 0.172), about a fifth more, still under 0.5% of the 50 ms tick. Part of it is the play itself (twice the rockets in flight); the grudge lookup and the pad plan run only when a choice exists. `--bench-assert` passes.
 
+Client frame time, `look-perf` on Vulkan at 1920x1080 Balanced (mean / p95 / GPU ms), this branch and `main` plus `wave4/tooling` alternated; host load 16.5, 10.1, 7.8 and 4.6 at the four starts, so the first lane run is the loaded one:
+
+| View | Lane run 1 | Base run 1 | Lane run 2 | Base run 2 |
+|---|---|---|---|---|
+| Larak Lot overview | 7.34 / 10.28 / 6.42 | 7.05 / 10.20 / 6.10 | 6.97 / 9.73 / 6.05 | 7.61 / 11.28 / 6.51 |
+| Larak Lot first person | 9.30 / 13.09 / 7.80 | 7.47 / 10.43 / 6.69 | 6.70 / 10.07 / 5.36 | 7.21 / 11.11 / 5.92 |
+
+No client code changed; the spread is the host's.
+
 Looked at (Vulkan, Balanced, 1280x720): the Larak Lot tour against the wave 4 baseline (no presentation change; the follow camera finds a bot in the Pit), the Duel tour with the intro in the Host corner, upright ("HOST: LARAK LOT DUEL. NANA SIX-SEVEN AGAINST MEAT PROXY. FIRST TIME ON THE BOOK."), and `client/qa/larak-bots.json`, strips of the Pit while the Rocket is claimed and fired and of the Roof while a regular walks up for the Plate.
 
 Still open after this slice: the Rocket target above, voiced grudges (text only), and spectator-facing grudge facts.
