@@ -107,11 +107,11 @@ func _check_presenters() -> void:
 	feed.push(data, "a", "b", "", "coalition")
 	feed._process(0)
 	_check(not feed.notices.active[1].payload.own and feed.notices.active[0].payload.killer_team == "union", "following never becomes local ownership or recolors an old frag")
-	feed.push({"killer": "[color=red]literal", "victim": "測試界name", "weapon": "fists"})
+	feed.push({"killer": "[color=red]literal", "victim": "測試界name", "weapon": "unknown_weapon"})
 	feed._process(0)
 	var row: PanelContainer = feed._rows[feed.notices.active[2].serial]
 	var plain: Label = row.get_node("Content/Killer")
-	_check(plain.get_meta("full_name") == "[color=red]literal" and plain.tooltip_text == "[color=red]literal" and row.get_node("Content/Weapon").text == "fists", "peer names stay plain and missing glyph uses literal wire ID")
+	_check(plain.get_meta("full_name") == "[color=red]literal" and plain.tooltip_text == "[color=red]literal" and row.get_node("Content/Weapon").text == "unknown_weapon", "peer names stay plain and missing glyph uses literal wire ID")
 	feed.set_covered(true)
 	feed._process(40)
 	_check(not feed.visible and feed.notices.active[0].remaining == 4.5, "covered presenter does not age readable time")
