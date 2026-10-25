@@ -98,6 +98,9 @@ fi
 if [ -n "${FRAGR_QA_MODE:-}" ]; then
   SERVER_ARGS+=(--mode "$FRAGR_QA_MODE")
 fi
+if [ -n "${FRAGR_QA_FRAG_LIMIT:-}" ]; then
+  SERVER_ARGS+=(--frag-limit "$FRAGR_QA_FRAG_LIMIT")
+fi
 if [ -n "${FRAGR_QA_CAPTURE_LIMIT:-}" ]; then
   SERVER_ARGS+=(--capture-limit "$FRAGR_QA_CAPTURE_LIMIT")
 fi

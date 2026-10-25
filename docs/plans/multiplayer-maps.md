@@ -186,7 +186,7 @@ players in it. That is the single biggest fault in the current roster.
 | Weapon, team modes | 30 s | built |
 | Health pad (+40) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
 | Armour pad (+25) | 25 s free-for-all, 15 s team modes | implemented for wave 2 / built |
-| Heavy plate (large armour) | 35 s | proposed |
+| Heavy plate, the Custody Plate (+100 armour to 150, excess drains 1 a second) | 35 s, every mode | implemented 2026-10-24 on Larak Lot |
 | Surplus (health over maximum, drains back) | 35 s | proposed |
 | Overtime (power item: triple damage for 20 s) | 120 s, first at 45 s, announced | proposed |
 
@@ -687,7 +687,7 @@ needs from the engine.
 | # | Mode | Maps | Needs | Agents and bots |
 |---|---|---|---|---|
 | 1 | Scrap free-for-all (built) | Small | Item clock table, Tack by spawns, callout regions | Bots fill to a count; agents read callouts |
-| 2 | Duel | Arena Duel, East-West Pipe, Dulce Elevator | 1v1 admission, spectator queue, fast rematch | An agent can queue and duel like anyone |
+| 2 | Duel (built on Larak Lot, 2026-10-24: two seats, ready-up rematch, series; queue and winner-stays open) | Larak Lot, East-West Pipe, Dulce Elevator | 1v1 admission, spectator queue, fast rematch | An agent can queue and duel like anyone |
 | 3 | Mutators | Every map | A named rule set per server, shown in `round_state` | Agents read the rule set before joining |
 | 4 | Team deathmatch | Sector 9 first | Sides on the wire, team spawns, team score, 30 s weapons | Balance counts humans and agents alike; bots fill the short side |
 | 5 | Control | Sector 9, Low Water, Custody Archive | Zone state on the wire, one moving hill, then three sites | Zones appear in `observe` |

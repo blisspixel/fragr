@@ -348,6 +348,11 @@ impl Inventory {
             return false;
         }
         if self.policy == EquipmentPolicy::FullArsenal {
+            // A gun this bag can never hold is nobody's pad: taking it would
+            // spend the pad and grant nothing.
+            if !self.owns(weapon) {
+                return false;
+            }
             if self.armed() && self.only.is_none() {
                 return weapon
                     .ammo_pool()

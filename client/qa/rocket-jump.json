@@ -1,0 +1,26 @@
+{
+  "comment": "Bot-free live rocket jump on Larak Lot from the first spawn slot (TOLL north): take the Rocket from the bottom of the Pit, climb back out by the Toll Steps and the Spiral to the Gallery, and jump the 1.5 m onto the Roof with a rocket fired at the floor, then look at the Custody Plate. Ordinary input through the server. Run with FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/rocket-jump.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "rocket_pad", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "radio_off": true,
+     "walk_to": [[-33, 3, -9], [-14, 3, -6], [-14, 2.5, -3], [-14, 2, -1], [-11, 1.5, -1]],
+     "look_at": [7.5, 0.4, 2],
+     "note": "The Rocket at the bottom of the Pit, in the lee of the Stack, from the Lane lip by the Toll Steps."},
+    {"name": "pit_rocket", "camera": "first_person",
+     "walk_to": [[-9, 1, -1], [-7, 0.5, -1], [-3, 0, 0], [7.5, 0, 2]],
+     "note": "Taken by walking onto its pad: the Pistol start finds the launcher."},
+    {"name": "gallery_ledge", "camera": "first_person",
+     "walk_to": [[-3, 0, -1], [-7, 0.5, -1], [-9, 1, -1], [-11, 1.5, -1], [-14, 2, -1], [-14, 2.5, -3], [-14, 3, -6], [-12, 3, -21], [-4, 4.5, -21], [-3, 4.5, -15], [5.5, 4.5, -15]],
+     "weapon": "Rocket",
+     "look_at": [12, 6.6, -15],
+     "note": "The Gallery's east edge: the Roof sits 1.5 m up, out of a jump's reach."},
+    {"name": "rocket_jump", "camera": "first_person", "weapon": "Rocket", "look_at": [5.8, 0, -15],
+     "trigger": "rocket_jump", "run_up_seconds": 0.15, "strip_frames": 18, "strip_interval_seconds": 0.05, "expect_rise": 1.4,
+     "note": "Run, jump, and fire straight down on the next tick: the push lifts the fighter onto the Roof."},
+    {"name": "roof_plate", "camera": "first_person",
+     "walk_to": [[16, 6, -15], [22, 6, -22]],
+     "look_at": [31, 6.3, -22],
+     "note": "The Custody Plate in the valet circle under the LARAK sign, as the fighter who just came up sees it."}
+  ]
+}

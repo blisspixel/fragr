@@ -91,7 +91,10 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
             .unwrap();
-    server.set_sabotage_seats(Arc::new(Semaphore::new(0)));
+    server.set_fighter_seats(
+        Arc::new(Semaphore::new(0)),
+        crate::protocol::GameMode::Sabotage,
+    );
     server.set_auto_fill();
     let secret = Arc::new(
         crate::join_ticket::JoinSecret::from_env_value("0123456789abcdef")
@@ -203,7 +206,10 @@ async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
             .unwrap();
-    server.set_sabotage_seats(Arc::new(Semaphore::new(0)));
+    server.set_fighter_seats(
+        Arc::new(Semaphore::new(0)),
+        crate::protocol::GameMode::Sabotage,
+    );
     server.set_auto_fill();
     let address = server.local_addr().unwrap();
     let clients = Arc::clone(&server.clients);

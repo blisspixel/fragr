@@ -1,0 +1,10 @@
+{
+  "comment": "The Run a match page with Duel picked: one map, two seats, the kit and rematch line. Menu only; any tour server will do.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "host_duel", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "duel",
+     "note": "Duel on Larak Lot, at most two bots, and the hint naming the rematch."}
+  ]
+}

@@ -69,6 +69,10 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --c
 # Optional ten-seat Sabotage, five per side; four bots leave six seats.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 4
 
+# Duel on Larak Lot: two seats, a rule bot in each until people take them.
+# Both fighters press fire on the podium for an instant rematch.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 1 --mode duel --bots 0 --bot-policy auto --fill-target 2
+
 # TDM with automatic fill toward eight total fighters.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --bot-policy auto --fill-target 8
 
@@ -79,7 +83,7 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotag
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --playlist
 ```
 
-Automatic fill is available for plain TDM and Sabotage, without mutators. Its target is a desired
+Automatic fill is available for plain TDM, Sabotage and Duel (a target of one or two), without mutators. Its target is a desired
 population, not an additional admission limit. Spectators do not count, while
 reserved reconnect seats do. In a full active Sabotage round, replacement can
 wait until the next round if removing a bot would change the outcome or cancel

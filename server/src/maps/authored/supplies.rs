@@ -108,7 +108,6 @@ pub(super) fn build(
                 available: true,
                 respawn_timer: None,
                 secret: supply.secret,
-                clock: None,
             })
         })
         .collect()

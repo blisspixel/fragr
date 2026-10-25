@@ -1128,6 +1128,15 @@ msgstr "A host you check, join, or save stays in this list."
 msgid "HOST_SABOTAGE"
 msgstr "5v5 Sabotage"
 
+msgid "HOST_DUEL"
+msgstr "Duel"
+
+msgid "HOST_DUEL_SEATS"
+msgstr "A duel has two seats. One fixed bot fights you; automatic bots give their seats to people as they join."
+
+msgid "HOST_KIT_DUEL"
+msgstr "One versus one on Larak Lot. Pistol and Fists, guns and the Plate on timed pads. Both press fire on the podium for an instant rematch; others watch until a seat opens."
+
 msgid "HOST_KIT_SIDEARM"
 msgstr "Every life starts with the Pistol and Fists. The Rifle, Shotgun and Railgun wait on timed pads."
 

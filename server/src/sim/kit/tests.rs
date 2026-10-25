@@ -546,6 +546,12 @@ fn free_for_all_supply_pads_are_laid_only_in_free_for_all() {
         }
         state.apply_config(MatchConfig::default());
         assert_eq!(laid(&state), scrap.len());
+        // An armed free-for-all start has no use for them either.
+        state.apply_config(MatchConfig {
+            rules: RuleSet::new(GameMode::Ffa, &[Mutator::FullArsenal], false).unwrap(),
+            ..MatchConfig::default()
+        });
+        assert_eq!(laid(&state), 0, "{} full arsenal", map.name());
     }
     assert!(MapKind::LowWater.scrap_pads().is_empty());
 }
@@ -709,7 +715,6 @@ fn the_wire_pad_clock_matches_the_server_clock() {
                 available: false,
                 respawn_timer: Some(1),
                 secret: false,
-                clock: None,
             };
             assert_eq!(
                 pad.to_state().clock_ticks(rules.teams()),
@@ -719,4 +724,79 @@ fn the_wire_pad_clock_matches_the_server_clock() {
             );
         }
     }
+}
+
+#[test]
+fn the_custody_plate_stacks_to_one_fifty_drains_back_and_keeps_its_clock_in_every_mode() {
+    let mut state = ffa(MapKind::ArenaDuel);
+    let id = join(&mut state, 1, Role::Human);
+    let plate = crate::maps::larak_lot::PLATE_ID;
+    state.players.iter_mut().find(|p| p.id == id).unwrap().armor = 70;
+    stand_on(&mut state, id, plate);
+    state.tick(DT);
+    assert_eq!(fighter(&state, id).armor, crate::sim::PLATE_MAX_ARMOR);
+    let events = state.take_events();
+    assert!(events.iter().any(|e| matches!(e,
+        GameEvent::Pickup { kind, amount, pickup_id, .. }
+            if kind == "plate" && *amount == Some(80) && pickup_id == plate)));
+    let pad = state.pickups.iter().find(|p| p.id == plate).unwrap();
+    assert_eq!(pad.respawn_timer, Some(crate::rules::PLATE_RESPAWN_TICKS));
+    assert_eq!(pad.to_state().kind, "plate");
+    // The excess drains a point a second, back to the ordinary cap and no
+    // further; an ordinary armour pad is no use to a plated fighter.
+    park(&mut state, id);
+    for _ in 0..20 * 10 {
+        state.tick(DT);
+    }
+    let armor = fighter(&state, id).armor;
+    assert!((139..=141).contains(&armor), "{armor}");
+    for _ in 0..20 * 60 {
+        state.tick(DT);
+    }
+    assert_eq!(fighter(&state, id).armor, crate::sim::PLAYER_MAX_ARMOR);
+    stand_on(&mut state, id, "larak_armor_bridge");
+    state.tick(DT);
+    assert!(
+        state
+            .pickups
+            .iter()
+            .find(|p| p.id == "larak_armor_bridge")
+            .unwrap()
+            .available
+    );
+    // Team modes keep the heavy plate on the same 35 s.
+    let tdm = RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+    let pad = state.pickups.iter().find(|p| p.id == plate).unwrap();
+    assert_eq!(pad.clock(&tdm), crate::rules::PLATE_RESPAWN_TICKS);
+}
+
+#[test]
+fn the_pit_rocket_is_found_in_free_for_all_and_never_eaten_by_an_arsenal() {
+    let rocket = crate::maps::larak_lot::ROCKET_ID;
+    let mut state = ffa(MapKind::ArenaDuel);
+    let id = join(&mut state, 1, Role::Human);
+    state.arm_joined_magazines(id);
+    stand_on(&mut state, id, rocket);
+    state.tick(DT);
+    assert!(fighter(&state, id).inventory.owns(WeaponType::Rocket));
+    assert_eq!(fighter(&state, id).weapon, WeaponType::Rocket);
+    let pad = state.pickups.iter().find(|p| p.id == rocket).unwrap();
+    assert_eq!(
+        pad.respawn_timer,
+        Some(crate::rules::FFA_POWER_WEAPON_RESPAWN_TICKS)
+    );
+
+    // Team deathmatch has no Rocket on the lot at all.
+    let mut team = ffa(MapKind::ArenaDuel);
+    team.apply_config(MatchConfig {
+        rules: RuleSet::new(GameMode::Tdm, &[], false).unwrap(),
+        ..MatchConfig::default()
+    });
+    assert!(team.pickups.iter().all(|p| p.id != rocket));
+
+    // An arsenal bag never spends a pad for a gun it cannot hold.
+    let arsenal = crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::FullArsenal);
+    assert!(!arsenal.weapon_pad_useful(WeaponType::Rocket));
+    assert!(!arsenal.weapon_pad_useful(WeaponType::Sniper));
+    assert!(arsenal.weapon_pad_useful(WeaponType::Rail));
 }

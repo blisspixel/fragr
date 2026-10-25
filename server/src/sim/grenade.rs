@@ -303,6 +303,9 @@ impl GameState {
             if hp + armor == 0 {
                 continue;
             }
+            if !died {
+                self.push_from_blast(target, blast.position, blast.radius);
+            }
             let player = &self.players[target];
             hits.push(ExplosionHit {
                 target_id: player.id,
@@ -342,6 +345,46 @@ impl GameState {
         if remote_participant {
             self.note_m11_remote_blast(blast.id, &m11_kills);
         }
+    }
+}
+
+impl GameState {
+    /// Throw one living arena fighter with a blast (`movement::blast_push`):
+    /// knockback, or the rocket jump when it is the fighter's own. Only the
+    /// arena fighter model carries momentum, so campaign bodies, seated
+    /// drivers and gunners and flying bodies are left where they are.
+    pub(super) fn push_from_blast(&mut self, target: usize, center: [f32; 3], radius: f32) {
+        let arena_feel = self.arena_feel();
+        let Some(player) = self.players.get(target) else {
+            return;
+        };
+        let seated = self
+            .vehicles
+            .iter()
+            .any(|v| v.state.driver == Some(player.id) || v.state.gunner == Some(player.id));
+        if player.hp <= 0
+            || seated
+            || !player.fighter_model(arena_feel)
+            || crate::combat::is_flying(player.campaign)
+        {
+            return;
+        }
+        let height = crate::combat::body_height(player.campaign, player.ducking);
+        let body = crate::movement::MoveState {
+            x: player.x,
+            z: player.z,
+            y: player.y - PLAYER_FLOOR_Y,
+            vx: player.vx,
+            vz: player.vz,
+            vy: player.vy,
+            yaw: player.yaw,
+        };
+        let pushed =
+            crate::movement::blast_push(body, height, center, radius, crate::movement::BLAST_PUSH);
+        let player = &mut self.players[target];
+        player.vx = pushed.vx;
+        player.vy = pushed.vy;
+        player.vz = pushed.vz;
     }
 }
 

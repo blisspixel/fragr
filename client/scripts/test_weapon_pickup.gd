@@ -16,12 +16,14 @@ const DRAWN: Array[Dictionary] = [
 	{"kind":"weapon", "weapon":"Flechette", "pool":""},
 	{"kind":"weapon", "weapon":"Scatter", "pool":""},
 	{"kind":"weapon", "weapon":"Rail", "pool":""},
+	{"kind":"weapon", "weapon":"Rocket", "pool":""},
 	{"kind":"weapon", "weapon":"Shiv", "pool":""},
 	{"kind":"ammo", "weapon":"", "pool":"bullets"},
 	{"kind":"ammo", "weapon":"", "pool":"shells"},
 	{"kind":"ammo", "weapon":"", "pool":"cells"},
 	{"kind":"health", "weapon":"", "pool":""},
 	{"kind":"armor", "weapon":"", "pool":""},
+	{"kind":"plate", "weapon":"", "pool":""},
 	{"kind":"grenade", "weapon":"", "pool":""},
 ]
 
@@ -53,6 +55,12 @@ func _run() -> void:
 	_check(widths.get("weapon Tack", 0.0) < widths.get("weapon Rail", 0.0) * 0.6,
 		"a pistol is visibly smaller than a railgun at one texel density")
 	_check(widths.get("health ", 0.0) > 0.4 and widths.get("health ", 0.0) < 0.9, "a medkit reads at room scale")
+	_check(widths.get("plate ", 0.0) > widths.get("armor ", 0.0) * 1.2,
+		"the Custody Plate stands larger than the ordinary vest")
+	_check(widths.get("weapon Rocket", 0.0) > 1.0, "the Rocket Launcher reads as a long tube")
+	pickup.setup("larak_custody_plate", "", Vector3.ZERO, "plate", 100)
+	_check(label.text == TranslationServer.translate("PICKUP_PLATE") and pickup.reach_metres() == pickup.POWER_REACH_METRES,
+		"the Plate is named for the feed and heard across the map like a power item")
 	# The keyed words stay correct for the fallback crate and the corner feed.
 	pickup.setup("vest", "", Vector3.ZERO, "armor", 50)
 	_check(label.text == "+50 ARMOR", "armor names the whole word, not ARM: " + label.text)

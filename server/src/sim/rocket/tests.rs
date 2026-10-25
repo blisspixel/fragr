@@ -764,3 +764,124 @@ fn a_rocket_fired_at_the_floor_behind_throws_the_fighter_forward() {
     assert!(player.vx > 1.0, "thrown away from the blast: {}", player.vx);
     assert!(player.vx.hypot(player.vz) <= 14.0 + 1e-4);
 }
+
+fn burst_at(state: &mut GameState, owner: Uuid, position: [f32; 3]) {
+    let rocket = Rocket {
+        id: 9,
+        owner_id: owner,
+        position,
+        velocity: [0.0; 3],
+        launched_at: 0,
+        age_ticks: 0,
+        blocked_origin: false,
+    };
+    let arena = state.current_arena().into_owned();
+    state.resolve_rocket(&rocket, position, position, None, &arena);
+}
+
+fn body(state: &GameState, id: Uuid) -> &crate::sim::Player {
+    state.players.iter().find(|player| player.id == id).unwrap()
+}
+
+#[test]
+fn splash_throws_an_opponent_away_and_up_through_the_movement_rule() {
+    let mut state = world(serde_json::json!([]));
+    let shooter = arm(&mut state, 1, 0.0, 0.0);
+    let target = arm(&mut state, 2, 6.0, 0.0);
+    burst_at(&mut state, shooter, [4.5, 0.3, 0.0]);
+    let thrown = body(&state, target);
+    assert!(thrown.hp < 100, "the splash lands: {}", thrown.hp);
+    let expected = crate::movement::blast_push(
+        crate::movement::MoveState {
+            x: 6.0,
+            z: 0.0,
+            y: 0.0,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw: 0.0,
+        },
+        crate::movement::BODY_HEIGHT,
+        [4.5, 0.3, 0.0],
+        SPLASH_RADIUS,
+        crate::movement::BLAST_PUSH,
+    );
+    assert_eq!(
+        (thrown.vx, thrown.vy, thrown.vz),
+        (expected.vx, expected.vy, expected.vz)
+    );
+    assert!(
+        thrown.vx > 2.0 && thrown.vy > 0.0,
+        "{} {}",
+        thrown.vx,
+        thrown.vy
+    );
+    // The shooter stood outside the radius and is not moved.
+    let still = body(&state, shooter);
+    assert_eq!((still.vx, still.vy, still.vz), (0.0, 0.0, 0.0));
+}
+
+#[test]
+fn a_teammate_the_splash_cannot_hurt_is_not_thrown_and_a_kill_is_not_pushed() {
+    let mut state = world(serde_json::json!([]));
+    let shooter = arm(&mut state, 1, 0.0, 0.0);
+    let mate = arm(&mut state, 2, 6.0, 0.0);
+    let foe = arm(&mut state, 3, 6.0, 3.0);
+    for (id, team) in [
+        (shooter, Team::Union),
+        (mate, Team::Union),
+        (foe, Team::Coalition),
+    ] {
+        state.players.iter_mut().find(|p| p.id == id).unwrap().team = Some(team);
+    }
+    state.players.iter_mut().find(|p| p.id == foe).unwrap().hp = 1;
+    burst_at(&mut state, shooter, [5.0, 0.3, 1.5]);
+    let mate = body(&state, mate);
+    assert_eq!((mate.hp, mate.vx, mate.vy), (100, 0.0, 0.0));
+    let foe = body(&state, foe);
+    assert!(foe.hp <= 0);
+    assert_eq!((foe.vx, foe.vy, foe.vz), (0.0, 0.0, 0.0));
+}
+
+#[test]
+fn a_rocket_jump_in_the_live_tick_lands_on_a_deck_a_jump_cannot_reach() {
+    // A 1.5 m deck east of the fighter: Larak Lot's Roof over its Gallery.
+    let deck = serde_json::json!([
+        {"id": "deck", "min": [2.5, 0.0, -4.0], "max": [12.0, 1.5, 4.0], "surface": "service_steel"}
+    ]);
+    let run = |rocket: bool| {
+        let mut state = world(deck.clone());
+        let shooter = arm(&mut state, 1, 0.0, 0.0);
+        grant(&mut state, shooter, 4);
+        state.round_state = crate::sim::RoundState::Active;
+        for tick in 0..40 {
+            let mut action = crate::protocol::Action {
+                forward: true,
+                yaw: Some(0.0),
+                ..Default::default()
+            };
+            if tick == 2 {
+                action.jump = true;
+            }
+            if rocket && tick == 3 {
+                action.fire = true;
+                action.pitch = Some(-1.45);
+            }
+            state.set_action(shooter, action);
+            state.tick(0.05);
+        }
+        let player = body(&state, shooter);
+        (player.x, player.y - PLAYER_FLOOR_Y, player.hp)
+    };
+    let (x, feet, _) = run(false);
+    assert!(
+        feet < 0.01 && x < 2.5,
+        "a jump stops at the deck edge: {x} {feet}"
+    );
+    let (x, feet, hp) = run(true);
+    assert!(
+        (feet - 1.5).abs() < 1e-3 && x > 3.0,
+        "on the deck: {x} {feet}"
+    );
+    assert!(hp < 100 && hp > 60, "a rocket jump costs some health: {hp}");
+}

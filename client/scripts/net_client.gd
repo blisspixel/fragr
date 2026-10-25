@@ -320,6 +320,9 @@ func send_action(action: Dictionary):
 	# Omitted unless pressed: one Action carries each dodge press.
 	if action.get("dodge", false):
 		msg["dodge"] = true
+	# Omitted unless pressed on the podium: ask for one more round.
+	if action.get("again", false):
+		msg["again"] = true
 	if action.get("place_remote_mine", false) and remote_supported:
 		msg["place_remote_mine"] = true
 	if action.get("trigger_remote_mines", false) and remote_supported:

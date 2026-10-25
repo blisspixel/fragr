@@ -513,6 +513,7 @@ fn test_protocol_snapshot_serialization() {
         sabotage: None,
         conquest: None,
         article_blade: None,
+        podium: None,
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -564,6 +565,7 @@ fn test_protocol_snapshot_empty_players() {
         sabotage: None,
         conquest: None,
         article_blade: None,
+        podium: None,
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -2915,6 +2917,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         });
         broadcast_to_clients(&clients, &[snap]).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
@@ -3833,9 +3836,9 @@ fn test_boss_down_wire_json_and_compliance_ai_acts() {
 fn test_sim_pickups_present_in_snapshot() {
     let state = GameState::new();
     let snap = state.snapshot();
-    // Larak Lot's ten pads are its own free-for-all supply; it lays no
-    // extra scrap pads.
-    assert_eq!(snap.pickups.len(), 10);
+    // Larak Lot's ten pads, and the Rocket it lays where lives start on the
+    // Pistol.
+    assert_eq!(snap.pickups.len(), 11);
     let ids: Vec<_> = snap.pickups.iter().map(|p| p.id.as_str()).collect();
     for id in [
         "larak_custody_plate",
@@ -3848,9 +3851,16 @@ fn test_sim_pickups_present_in_snapshot() {
         "larak_health_toll",
         "larak_health_stands",
         "larak_health_crane",
+        "larak_rocket_pit",
     ] {
         assert!(ids.contains(&id), "{id}");
     }
+    let plate = snap
+        .pickups
+        .iter()
+        .find(|p| p.id == "larak_custody_plate")
+        .unwrap();
+    assert_eq!((plate.kind.as_str(), plate.amount), ("plate", Some(100)));
     assert!(snap.pickups.iter().all(|p| p.available));
     let health = snap
         .pickups
@@ -6489,6 +6499,9 @@ fn dispersion_is_dispersion_not_free_aim() {
             warmup_ticks: 1,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
+            // Only the weapon decides: no frag limit ends the round and
+            // sends both fighters back to the spawns mid-measurement.
+            frag_limit: None,
             ..crate::sim::MatchConfig::arsenal()
         };
         state.start_round();

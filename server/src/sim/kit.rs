@@ -63,7 +63,7 @@ impl GameState {
 
     /// The free-for-all Pistol start, where every stronger gun is a pickup.
     pub(crate) fn sidearm_start(&self) -> bool {
-        self.config.rules.mode() == GameMode::Ffa
+        self.config.rules.mode().free_for_all()
             && self.start_kit() == Some(StartKit::Found { sidearm: true })
     }
 

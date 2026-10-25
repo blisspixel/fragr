@@ -144,6 +144,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "right",
     "jump",
     "dodge",
+    "again",
     "duck",
     "turn_left",
     "turn_right",
@@ -330,6 +331,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 .ok_or("schema error: dodge must be a boolean")?,
         },
         duck: bool_field("duck"),
+        again: match obj.get("again") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: again must be a boolean")?,
+        },
         interact: match obj.get("interact") {
             None => false,
             Some(value) => value
@@ -707,6 +714,9 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "pressure": snap_field(snap, "pressure"),
         "mvp": mvp,
         "mvp_frags": mvp_frags,
+        // Between rounds: who has pressed again, how many the room waits
+        // for, and a Duel's series. Null mid-round.
+        "podium": snap_field(snap, "podium"),
         "map_id": map_id,
         "map_name": map_name,
         "rules": rules,
@@ -753,6 +763,22 @@ fn sabotage_guidance(state: &ToolState, me: Option<&Value>, layout: &Value) -> (
 }
 
 fn tools_list_result() -> Value {
+    let mut tools = tools_list_body();
+    // Added beside the main literal, which is at the macro's recursion limit.
+    if let Some(act) = tools["tools"]
+        .as_array_mut()
+        .and_then(|list| list.iter_mut().find(|tool| tool["name"] == "act"))
+    {
+        act["inputSchema"]["properties"]["again"] = serde_json::json!({
+            "type": "boolean",
+            "default": false,
+            "description": "On the podium after a round, ask for the next one now. When every seated person and agent has asked, it starts two seconds after the result instead of waiting out the podium. round_state reports who is ready. Ignored mid-round and in Sabotage."
+        });
+    }
+    tools
+}
+
+fn tools_list_body() -> Value {
     serde_json::json!({
         "tools": [
             {
@@ -1228,6 +1254,10 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         dist_text(nearest("health")),
         dist_text(nearest("armor"))
     ));
+    // The power item, where the map has one (Larak Lot's Custody Plate).
+    if let Some(dist) = nearest("plate") {
+        text.push_str(&format!(" plate={dist:.1}"));
+    }
     for (name, dist) in &weapon_pads {
         text.push_str(&format!(" weapon.{name}={dist:.1}"));
     }
@@ -1277,6 +1307,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         "pads": {
             "health": nearest("health"),
             "armor": nearest("armor"),
+            "plate": nearest("plate"),
             "weapons": weapon_pads.iter().map(|(name, dist)| serde_json::json!({"name": name, "dist": dist})).collect::<Vec<_>>(),
         },
         "round": {
@@ -3430,6 +3461,61 @@ mod mcp_tests {
             .unwrap()
             .to_string();
         assert!(text.contains("Action queued"));
+    }
+
+    #[test]
+    fn act_again_queues_the_podium_ready_up_and_round_state_shows_the_podium() {
+        let podium = serde_json::json!({
+            "again": [Uuid::nil()],
+            "voters": 2,
+            "duel": [
+                {"id": Uuid::nil(), "name": "Probe", "wins": 1},
+                {"id": Uuid::from_u128(2), "name": "Nightfall", "wins": 2}
+            ]
+        });
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(serde_json::json!({
+                "round_state": "Ended",
+                "players": [{"id": Uuid::nil(), "hp": 50}],
+                "podium": podium
+            })),
+            ..Default::default()
+        };
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "act", "arguments": {"again": true}})),
+            ),
+            &mut state,
+        );
+        assert!(out.pending_action.expect("pending").again);
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "act", "arguments": {"again": "yes"}})),
+            ),
+            &mut state,
+        );
+        assert!(out.pending_action.is_none(), "again must be a boolean");
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["podium"], podium);
+        let tools = tools_list_result();
+        let act = tools["tools"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "act")
+            .unwrap();
+        assert_eq!(act["inputSchema"]["properties"]["again"]["type"], "boolean");
     }
 
     #[test]

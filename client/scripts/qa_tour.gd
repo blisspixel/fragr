@@ -226,6 +226,13 @@ func _run() -> void:
 				if str(preview.get("status", "")) != "missing":
 					push_error("qa_tour: isolated Single Player preview did not reach missing-run state")
 					_failed = true
+			if menu_page == "host" and state.has("host_mode"):
+				# Pick a mode on the Run a match page the way the picker does.
+				var boot: Node = get_root().get_node("BootMenu")
+				var index: int = (boot.get("HOST_MODES") as Array).find(str(state["host_mode"]))
+				(boot.get("_host_mode") as OptionButton).select(index)
+				boot.call("_change_host_mode", index)
+				await process_frame
 			if menu_page == "records":
 				var panel: RecordsPanel = get_root().get_node("BootMenu").get("_root").get_node("ServiceRecord")
 				panel._select_kind(str(state.get("record_kind", "mission")))
@@ -410,6 +417,27 @@ func _run() -> void:
 				return
 		if state.has("look_at"):
 			await _aim_at(state["look_at"])
+		if state.has("await_round_state"):
+			# Wait for the server's round to reach a phase (the podium, or the
+			# rematch after it) rather than guessing a time.
+			var wanted: String = str(state["await_round_state"])
+			var until: int = Time.get_ticks_msec() + int(float(state.get("await_timeout_seconds", 180.0)) * 1000.0)
+			while _snapshot_round_state() != wanted and Time.get_ticks_msec() < until:
+				await create_timer(0.1).timeout
+			if _snapshot_round_state() != wanted:
+				push_error("qa_tour: %s never saw round state %s" % [state_name, wanted])
+				_failed = true
+		if state.get("press_again", false):
+			# One fire press on the podium: the ordinary key asks for one more.
+			var press := InputEventAction.new()
+			press.action = &"fire"
+			press.pressed = true
+			Input.parse_input_event(press)
+			var lift := InputEventAction.new()
+			lift.action = &"fire"
+			lift.pressed = false
+			Input.parse_input_event(lift)
+			await create_timer(0.3).timeout
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
 		if state.get("expect_prompt", false):
@@ -1503,6 +1531,20 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		await _await_fire_strip(state, probe)
 		if state.get("single_shot", false):
 			Input.action_release("fire")
+	var jump_start: Vector3 = Vector3.ZERO
+	if trigger == "rocket_jump":
+		# The rocket jump through ordinary input: run at the edge, jump, and
+		# on the next tick fire the Rocket at the floor under the feet. The
+		# strip then records the rise and the landing.
+		jump_start = _local_feet()
+		Input.action_press(walk_action)
+		await create_timer(float(state.get("run_up_seconds", 0.2))).timeout
+		Input.action_press("jump")
+		await create_timer(0.06).timeout
+		Input.action_release("jump")
+		Input.action_press("fire")
+		await create_timer(0.06).timeout
+		Input.action_release("fire")
 	if trigger == "place_mine":
 		# The ordinary default key; the strip then records stick, arming and blink.
 		var place: InputEventKey = InputEventKey.new()
@@ -1564,6 +1606,14 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			_failed = true
 	if trigger == "fire":
 		Input.action_release("fire")
+	if trigger == "rocket_jump":
+		Input.action_release(walk_action)
+		var landed: Vector3 = _local_feet()
+		var rise: float = landed.y - jump_start.y
+		print("qa_tour: rocket jump from %s to %s" % [jump_start, landed])
+		if state.has("expect_rise") and rise < float(state["expect_rise"]) - 0.01:
+			push_error("qa_tour: rocket jump rose %.2f m, expected %.2f" % [rise, float(state["expect_rise"])])
+			_failed = true
 	if trigger == "throw_grenade":
 		_finish_grenade_strip()
 	if probe_name != "" and _probe_frames == 0:

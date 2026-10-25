@@ -365,6 +365,9 @@ msgstr "+{amount} HP"
 msgid "HUD_PICKUP_ARMOR"
 msgstr "+{amount} ARMOR"
 
+msgid "HUD_PICKUP_PLATE"
+msgstr "CUSTODY PLATE +{amount}"
+
 msgid "HUD_PICKUP_AMMO"
 msgstr "+{amount} AMMO"
 

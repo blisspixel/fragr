@@ -6,7 +6,7 @@ extends RefCounted
 ## line and the Host's keyed reactions. The server decides every outcome;
 ## this only reads and labels what it sent.
 
-const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest"]
+const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest", "duel"]
 const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives", "full-arsenal"]
 const TEAMS: Array[String] = ["union", "coalition"]
 ## Every Host reaction kind the server sends (`HostReactionKind::ALL`).
