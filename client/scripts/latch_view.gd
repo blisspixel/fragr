@@ -58,7 +58,7 @@ func _init() -> void:
 	# grip in the skinned palm with the bore along the chassis's facing (+Z).
 	# One part per finish, each with its own lit material, so the live pawn's
 	# near-camera clip treats the gun like the rest of the chassis.
-	var carried: ArrayMesh = GunModel.carried_mesh("Tack")
+	var carried: ArrayMesh = GunModel.carried_mesh("Tack", true)
 	var facing: Basis = Basis(Vector3.UP, PI)
 	for surface: int in range(carried.get_surface_count()):
 		var part: ArrayMesh = ArrayMesh.new()

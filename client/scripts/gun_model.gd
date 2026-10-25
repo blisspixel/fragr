@@ -89,15 +89,24 @@ static var _carried: Dictionary[String, ArrayMesh] = {}
 static func has_model(weapon: String) -> bool:
 	return GRIP.has(weapon)
 
-## The gun as one mesh, a surface per finish, for carrying in the world: no
-## hands, no spare magazine, no loose shells. Built once per gun.
-static func carried_mesh(weapon: String) -> ArrayMesh:
-	if _carried.has(weapon):
-		return _carried[weapon]
+## The gun as one mesh for carrying in the world: no hands, no spare
+## magazine, no loose shells. Built once per gun. The fighter's copy is two
+## surfaces (lit parts painted by vertex colour over one metal grain, and the
+## glow), so a crowd of carried guns stays a couple of draws each; `by_finish`
+## keeps a surface and material per finish for presenters that recolour
+## materials, such as Latch's near-camera clip.
+static func carried_mesh(weapon: String, by_finish: bool = false) -> ArrayMesh:
+	var cache_key: String = weapon + ("/finish" if by_finish else "")
+	if _carried.has(cache_key):
+		return _carried[cache_key]
 	if not has_model(weapon):
 		return null
 	var source: GunModel = GunModel.new()
 	var gun: Node3D = source.build(weapon, false)
+	var painted: StandardMaterial3D = source.world_finish("steel").duplicate() as StandardMaterial3D
+	painted.albedo_color = Color.WHITE
+	painted.vertex_color_use_as_albedo = true
+	painted.metallic = 0.15
 	var tools: Dictionary[String, SurfaceTool] = {}
 	for node: Node in gun.find_children("*", "MeshInstance3D", true, false):
 		var piece: MeshInstance3D = node as MeshInstance3D
@@ -112,18 +121,27 @@ static func carried_mesh(weapon: String) -> ArrayMesh:
 		if not visible:
 			continue
 		var finish_key: String = str(piece.material_override.get_meta("finish", "steel"))
-		if not tools.has(finish_key):
+		var surface_key: String = finish_key if by_finish or finish_key in SELF_LIT else "painted"
+		if not tools.has(surface_key):
 			var tool: SurfaceTool = SurfaceTool.new()
 			tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-			tool.set_material(source.world_finish(finish_key))
-			tools[finish_key] = tool
+			tool.set_material(painted if surface_key == "painted" else source.world_finish(finish_key))
+			tools[surface_key] = tool
+		var tint: Color = RAMPS[finish_key][MID[finish_key]]
 		for surface: int in range(piece.mesh.get_surface_count()):
-			tools[finish_key].append_from(piece.mesh, surface, place)
+			var arrays: Array = piece.mesh.surface_get_arrays(surface)
+			var colours: PackedColorArray = PackedColorArray()
+			colours.resize((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size())
+			colours.fill(tint)
+			arrays[Mesh.ARRAY_COLOR] = colours
+			var part: ArrayMesh = ArrayMesh.new()
+			part.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			tools[surface_key].append_from(part, 0, place)
 	var mesh: ArrayMesh = ArrayMesh.new()
-	for finish_key: String in tools:
-		tools[finish_key].commit(mesh)
+	for surface_key: String in tools:
+		tools[surface_key].commit(mesh)
 	gun.free()
-	_carried[weapon] = mesh
+	_carried[cache_key] = mesh
 	return mesh
 
 ## A finish for the lit world: its mid ramp colour over the shared metal or
