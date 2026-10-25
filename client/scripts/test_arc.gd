@@ -26,7 +26,7 @@ func _run() -> void:
 	invalid["ammo"][2]["rounds"] = 15
 	_check(not EquipmentState.validation_error(invalid, "self").is_empty(), "loaded guns cannot invent Cells beyond the bag")
 	_check(WeaponArt.IDLE["Arc"] != WeaponArt.IDLE["Rail"] and WeaponArt.PROFILE["Arc"] != WeaponArt.PROFILE["Rail"], "Arc has independent held and world art")
-	_check(WeaponArt.IDLE["Arc"].get_size() == WeaponArt.IDLE["Scatter"].get_size() and WeaponArt.IDLE["Arc"].get_size() == Vector2(241, 180) and WeaponArt.PROFILE["Arc"].get_size() == Vector2(80, 42), "Arc matches the actual shared held canvas and keeps its own world profile")
+	_check(WeaponArt.IDLE["Arc"].get_size() == WeaponArt.IDLE["Flechette"].get_size() and WeaponArt.IDLE["Arc"].get_size() == Vector2(241, 180) and WeaponArt.PROFILE["Arc"].get_size() == Vector2(80, 42), "Arc matches the actual shared held canvas and keeps its own world profile")
 	invalid = loadout.duplicate(true)
 	invalid["loaded"][1]["ready_at"] = 42
 	_check(WeaponArt.reload_frame("Arc", invalid, 41) == WeaponArt.ARC_RELOAD, "actual pending capacitor reload shows its registered hand pose")

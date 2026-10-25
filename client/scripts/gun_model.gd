@@ -31,15 +31,14 @@ const RAMPS: Dictionary[String, Array] = {
 	"bone": [Color("5a554f"), Color("8c847a"), Color("e8e2d6")],
 	"coil": [Color("1e1e22"), Color("3a3836"), Color("7a3a22"), Color("c45a20")],
 	"glow": [Color("c45a20"), Color("dc8c3c"), Color("e8e2d6")],
-	"flash": [Color("c45a20"), Color("dc8c3c"), Color("e8e2d6"), Color("e8e2d6")],
 }
 ## Which ramp entry a live (unbaked) model shows as its flat albedo.
 const MID: Dictionary[String, int] = {
 	"enamel": 3, "slide": 2, "blued": 2, "steel": 2, "polymer": 2, "bore": 0, "leather": 2,
-	"jacket": 2, "seam": 1, "wood": 3, "brass": 2, "bone": 2, "coil": 2, "glow": 1, "flash": 2,
+	"jacket": 2, "seam": 1, "wood": 3, "brass": 2, "bone": 2, "coil": 2, "glow": 1,
 }
 ## Finishes that light themselves: the baker keeps them in their bright half.
-const SELF_LIT: Array[String] = ["glow", "flash"]
+const SELF_LIT: Array[String] = ["glow"]
 
 ## The guns this source builds, by wire name.
 const GUNS: Array[String] = ["Tack", "Scatter", "Rail"]
@@ -76,6 +75,70 @@ func build(weapon: String, hands: bool = false) -> Node3D:
 static func muzzle(gun: Node3D) -> Vector3:
 	var marker: Node3D = gun.find_child("Muzzle", true, false) as Node3D
 	return gun.to_local(marker.global_position) if marker != null and marker.is_inside_tree() else (marker.position if marker != null else Vector3.ZERO)
+
+## Where the trigger hand closes on each gun, in gun space: a fighter or
+## Latch carries the gun from this point.
+const GRIP: Dictionary[String, Vector3] = {
+	"Tack": Vector3(0.0, -0.055, 0.030),
+	"Scatter": Vector3(0.0, -0.035, 0.085),
+	"Rail": Vector3(0.0, -0.090, 0.130),
+}
+## Each muzzle in gun space, matching the `Muzzle` marker the build places.
+const MUZZLE: Dictionary[String, Vector3] = {
+	"Tack": Vector3(0.0, 0.002, -0.183),
+	"Scatter": Vector3(0.0, 0.0, -0.605),
+	"Rail": Vector3(0.0, 0.0, -0.785),
+}
+static var _carried: Dictionary[String, ArrayMesh] = {}
+
+static func has_model(weapon: String) -> bool:
+	return GRIP.has(weapon)
+
+## The gun as one mesh, a surface per finish, for carrying in the world: no
+## hands, no flash, no spare magazine or loose shells. Built once per gun.
+static func carried_mesh(weapon: String) -> ArrayMesh:
+	if _carried.has(weapon):
+		return _carried[weapon]
+	if not has_model(weapon):
+		return null
+	var source: GunModel = GunModel.new()
+	var gun: Node3D = source.build(weapon, false)
+	var tools: Dictionary[String, SurfaceTool] = {}
+	for node: Node in gun.find_children("*", "MeshInstance3D", true, false):
+		var piece: MeshInstance3D = node as MeshInstance3D
+		var place: Transform3D = Transform3D.IDENTITY
+		var visible: bool = true
+		var at: Node = piece
+		while at != gun:
+			var spatial: Node3D = at as Node3D
+			visible = visible and spatial.visible and spatial.name != "FreshMagazine" and not str(spatial.name).begins_with("Shell")
+			place = spatial.transform * place
+			at = at.get_parent()
+		if not visible:
+			continue
+		var finish_key: String = str(piece.material_override.get_meta("finish", "steel"))
+		if not tools.has(finish_key):
+			var tool: SurfaceTool = SurfaceTool.new()
+			tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+			tool.set_material(source.world_finish(finish_key))
+			tools[finish_key] = tool
+		for surface: int in range(piece.mesh.get_surface_count()):
+			tools[finish_key].append_from(piece.mesh, surface, place)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	for finish_key: String in tools:
+		tools[finish_key].commit(mesh)
+	gun.free()
+	_carried[weapon] = mesh
+	return mesh
+
+## A finish for the lit world: its mid ramp colour over the shared metal or
+## wood grain, nearest sampled; glowing parts stay unshaded.
+func world_finish(key: String) -> StandardMaterial3D:
+	var material: StandardMaterial3D = finish(key).duplicate() as StandardMaterial3D
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	if not key in SELF_LIT:
+		material.albedo_texture = _workshop._grain("wood" if key in ["wood", "leather"] else "metal")
+	return material
 
 ## Restore every moving part to its built transform.
 static func rest(gun: Node3D) -> void:
@@ -249,27 +312,15 @@ func _tack(gun: Node3D) -> void:
 	_block(fresh, "Body", Vector3(0.020, 0.100, 0.030), "steel", Vector3(0.0, 0.004, 0.0), "FreshMagazine")
 	_block(fresh, "BasePlate", Vector3(0.030, 0.008, 0.040), "polymer", Vector3(0.0, -0.058, 0.002), "FreshMagazine")
 	fresh.visible = false
-	_muzzle(gun, Vector3(0.0, 0.002, -0.183), 0.62)
+	_muzzle(gun, MUZZLE["Tack"])
 
-## The muzzle marker and the shot's flash: a hot core, a forward tongue and
-## four short spikes, in warm amber to bone. Hidden until a fire frame.
-func _muzzle(gun: Node3D, at: Vector3, scale: float) -> void:
+## The muzzle marker. The shot's flash is the set's drawn flash, stamped at
+## this point by the baker so every gun shares one.
+func _muzzle(gun: Node3D, at: Vector3) -> void:
 	var muzzle: Marker3D = Marker3D.new()
 	muzzle.name = "Muzzle"
 	muzzle.position = at
 	gun.add_child(muzzle)
-	var flash: Node3D = _workshop.group(gun, "Flash", at)
-	var core: MeshInstance3D = _pad(flash, "Core", Vector3(0.0, 0.0, -0.016) * scale, Vector3(0.020, 0.020, 0.026) * scale, Basis.IDENTITY, "flash", "FlashCore")
-	core.set_meta("glow", 1.0)
-	_pad(flash, "Tongue", Vector3(0.0, 0.0, -0.070) * scale, Vector3(0.013, 0.013, 0.060) * scale, Basis.IDENTITY, "flash", "FlashCore").set_meta("glow", 0.92)
-	# Six uneven petals so the burst reads as a flash, not a symbol.
-	var lengths: Array[float] = [0.030, 0.020, 0.026, 0.018, 0.028, 0.022]
-	for index: int in range(6):
-		var angle: float = 0.35 + index * TAU / 6.0
-		var spike: Basis = Basis(Vector3.BACK, angle)
-		var reach: Vector3 = spike * Vector3(0.0, lengths[index] * 0.9, 0.0) * scale
-		_pad(flash, "Spike%d" % index, reach + Vector3(0.0, 0.0, -0.022) * scale, Vector3(0.011, lengths[index], 0.010) * scale, spike, "flash", "FlashSpike").set_meta("glow", 0.66)
-	flash.visible = false
 
 ## Two-handed thumbs-forward grip: the right hand wraps the grip, the left
 ## cups it from below with both thumbs along the left of the frame.
@@ -356,7 +407,7 @@ func _scatter(gun: Node3D) -> void:
 		Vector2(0.050, -0.032)]), 0.040, "wood", Vector3.ZERO, 0.22, "Stock")
 	_block(gun, "ButtPad", Vector3(0.042, 0.13, 0.014), "polymer", Vector3(0.0, -0.064, 0.405), "ButtPad")
 	_block(gun, "RepairPlate", Vector3(0.0012, 0.022, 0.050), "bone", Vector3(-0.0205, -0.040, 0.24), "Repair")
-	_muzzle(gun, Vector3(0.0, 0.0, -reach - 0.005), 1.1)
+	_muzzle(gun, MUZZLE["Scatter"])
 
 ## Right hand on the stock's wrist, left hand cupping the forend.
 func _scatter_hands(gun: Node3D) -> void:
@@ -435,7 +486,7 @@ func _rail(gun: Node3D) -> void:
 	_block(gun, "ForegripClamp", Vector3(0.040, 0.016, 0.060), "slide", Vector3(0.0, -0.034, -0.275), "Foregrip")
 	_prism(gun, "Stock", PackedVector2Array([
 		Vector2(0.22, 0.030), Vector2(0.42, 0.020), Vector2(0.43, -0.100), Vector2(0.40, -0.104), Vector2(0.22, -0.040)]), 0.040, "polymer", Vector3.ZERO, 0.2, "Stock")
-	_muzzle(gun, Vector3(0.0, 0.0, -0.785), 1.15)
+	_muzzle(gun, MUZZLE["Rail"])
 
 ## Right hand on the pistol grip, left hand on the foregrip.
 func _rail_hands(gun: Node3D) -> void:

@@ -315,10 +315,10 @@ func _level(key: String, light: float, shine: float, steps: int, x: int = 0, y: 
 	return clampi(1 + int(shaded * top + DITHER[(y % 2) * 2 + x % 2]), 1, top)
 
 func _line_level(key: String) -> int:
-	return 1 if key in ["leather", "jacket", "brass", "glow", "flash", "bone"] else 0
+	return 1 if key in ["leather", "jacket", "brass", "glow", "bone"] else 0
 
 func _outline_colour(key: String) -> Color:
-	if key in ["glow", "flash"]:
+	if key == "glow":
 		return Color(0, 0, 0, 0)
 	return Color("0a0a0c") if key in ["polymer", "bore"] else Color("1e1e22")
 
@@ -354,9 +354,21 @@ func _bake(weapon: String) -> void:
 		if node != null:
 			node.get_parent().remove_child(node)
 			node.free()
+	var flash: Image = Image.load_from_file(ProjectSettings.globalize_path(FLASH))
+	if flash == null:
+		push_error("bake_viewmodels: run tools/bake_flechette_frames.gd first for " + FLASH)
+		failed = true
+		return
+	flash.convert(Image.FORMAT_RGBA8)
 	for frame: Dictionary in frames:
 		_pose(weapon, held, frame)
 		var image: Image = await _capture(CANVAS)
+		if bool(frame.get("flash", false)):
+			# The set's drawn flash, burning out of the projected muzzle: its
+			# hot base sits on the bore, the burst above the gun.
+			var marker: Node3D = held.find_child("Muzzle", true, false) as Node3D
+			var at: Vector2 = camera.unproject_position(marker.global_position) / SS
+			image.blend_rect(flash, Rect2i(Vector2i.ZERO, flash.get_size()), Vector2i(at.round()) - Vector2i(flash.get_width() / 2, flash.get_height() * 3 / 4))
 		_save(image, absolute.path_join(str(frame["name"]) + ".png"))
 	held.queue_free()
 	var bare: Node3D = model.build(weapon, false)
@@ -371,7 +383,9 @@ func _bake(weapon: String) -> void:
 	bare.queue_free()
 	await RenderingServer.frame_post_draw
 
-const PROFILE_SIZE: Dictionary[String, Vector2i] = {"Tack": Vector2i(44, 30), "Scatter": Vector2i(92, 22), "Rail": Vector2i(96, 26)}
+## The Rifle's drawn muzzle flash (tools/bake_flechette_frames.gd), shared.
+const FLASH: String = "res://assets/weapons/flechette/flash.png"
+const PROFILE_SIZE: Dictionary[String, Vector2i] = {"Tack": Vector2i(40, 28), "Scatter": Vector2i(92, 22), "Rail": Vector2i(96, 26)}
 
 
 func _frames(weapon: String) -> Array[Dictionary]:
@@ -456,9 +470,6 @@ func _pose(weapon: String, gun: Node3D, frame: Dictionary) -> void:
 	if support != null:
 		var away: float = float(frame.get("support", 0.0))
 		support.position += Vector3(-0.03, -0.16, 0.06) * away
-	var flash: Node3D = gun.find_child("Flash", true, false) as Node3D
-	if flash != null:
-		flash.visible = bool(frame.get("flash", false))
 
 func _save(image: Image, path: String) -> void:
 	if image.save_png(path) != OK:

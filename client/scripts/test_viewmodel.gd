@@ -238,12 +238,12 @@ func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 		for frame: int in range(48):
 			hud._process(1.0 / 120.0)
 			pumped = pumped or weapon.texture == WeaponArt.CYCLE.get(weapon_name)
-			if WeaponArt.BAKED.has(weapon_name) and weapon.texture in WeaponArt.BAKED[weapon_name]["recover"] and not weapon.texture in recovered:
+			if weapon.texture in WeaponArt.recover_frames(weapon_name) and not weapon.texture in recovered:
 				recovered.append(weapon.texture)
 			_check_bottom(weapon, weapon_name + " after the shot", _column(weapon_name))
 		_check(pumped == WeaponArt.CYCLE.has(weapon_name), weapon_name + " cycle frame only where drawn")
-		if WeaponArt.BAKED.has(weapon_name):
-			_check(recovered.size() == WeaponArt.BAKED[weapon_name]["recover"].size(), weapon_name + " recovers through each frame after the shot")
+		if not WeaponArt.recover_frames(weapon_name).is_empty():
+			_check(recovered.size() == WeaponArt.recover_frames(weapon_name).size(), weapon_name + " recovers through each frame after the shot")
 		for frame: int in range(40):
 			hud._process(1.0 / 120.0)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " settles back to idle")

@@ -44,14 +44,28 @@ const BAKED: Dictionary[String, Dictionary] = {
 	},
 }
 
-## Seconds after a shot when a modelled gun leaves its fire frame, then each
-## recovery frame. All end inside the gun's server cooldown (Tack 0.25 s,
-## Scatter 0.60 s, Rail 1.00 s): the Rail's coils sit dark, then recharge.
+## The drawn Rifle keeps its rest and shot; its recovery (a smoke wisp and the
+## spent case) is derived from that rest by `tools/bake_flechette_frames.gd`.
+const RECOVER: Dictionary[String, Array] = {
+	"Flechette": [preload("res://assets/weapons/flechette/recover_0.png"), preload("res://assets/weapons/flechette/recover_1.png")],
+}
+
+## Seconds after a shot when a gun leaves its fire frame, then each recovery
+## frame. All end inside the gun's server cooldown (Tack 0.25 s, Flechette
+## 0.20 s, Scatter 0.60 s, Rail 1.00 s): the Rail's coils sit dark, then
+## recharge.
 const SHOT_FRAMES: Dictionary[String, Array] = {
 	"Tack": [0.05, 0.10, 0.16],
+	"Flechette": [0.06, 0.11, 0.17],
 	"Scatter": [0.07, 0.16, 0.28],
 	"Rail": [0.08, 0.30, 0.60],
 }
+
+## The frames a gun recovers through after its shot, or none.
+static func recover_frames(weapon: String) -> Array:
+	if BAKED.has(weapon):
+		return BAKED[weapon]["recover"]
+	return RECOVER.get(weapon, [])
 
 ## First-person pose at rest. Fists and the Shiv keep their own animation.
 const IDLE: Dictionary[String, Texture2D] = {
@@ -241,9 +255,9 @@ static func pickup_texture(kind: String, weapon: String, pool: String) -> Textur
 
 ## Which first-person frame a gun shows `since` seconds after its last shot.
 static func frame_after_shot(weapon: String, since: float) -> Texture2D:
-	if BAKED.has(weapon) and since >= 0.0:
+	if SHOT_FRAMES.has(weapon) and since >= 0.0:
 		var ends: Array = SHOT_FRAMES[weapon]
-		var poses: Array = [FIRE[weapon]] + BAKED[weapon]["recover"]
+		var poses: Array = [FIRE[weapon]] + recover_frames(weapon)
 		for index: int in range(mini(ends.size(), poses.size())):
 			if since < float(ends[index]):
 				return poses[index]

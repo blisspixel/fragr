@@ -54,11 +54,22 @@ func _init() -> void:
 	_gun = Node3D.new()
 	_gun.name = "Tack"
 	_right_arm.add_child(_gun)
-	var dark: StandardMaterial3D = _material(DARK)
-	var steel: StandardMaterial3D = _material(STEEL)
-	_box(_gun, "Grip", Vector3(0, -0.04, 0.06), Vector3(0.12, 0.16, 0.13), dark)
-	_box(_gun, "Barrel", Vector3(0, 0.035, 0.22), Vector3(0.11, 0.09, 0.32), steel)
-	_flash = _box(_gun, "Flash", Vector3(0, 0.035, 0.40), Vector3(0.16, 0.16, 0.13), _material(Color("cb894d"), true))
+	# Latch carries the same Pistol the player does, the modelled one, from its
+	# grip in the skinned palm with the bore along the chassis's facing (+Z).
+	# One part per finish, each with its own lit material, so the live pawn's
+	# near-camera clip treats the gun like the rest of the chassis.
+	var carried: ArrayMesh = GunModel.carried_mesh("Tack")
+	var facing: Basis = Basis(Vector3.UP, PI)
+	for surface: int in range(carried.get_surface_count()):
+		var part: ArrayMesh = ArrayMesh.new()
+		part.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, carried.surface_get_arrays(surface))
+		var pistol: MeshInstance3D = MeshInstance3D.new()
+		pistol.name = "Pistol%d" % surface
+		pistol.mesh = part
+		pistol.material_override = carried.surface_get_material(surface)
+		pistol.transform = Transform3D(facing, facing * -GunModel.GRIP["Tack"])
+		_gun.add_child(pistol)
+	_flash = _box(_gun, "Flash", facing * (GunModel.MUZZLE["Tack"] - GunModel.GRIP["Tack"]) + Vector3(0, 0, 0.03), Vector3(0.07, 0.07, 0.06), _material(Color("cb894d"), true))
 	_flash.visible = false
 	_gun.visible = false
 	# Independent optics cover the painted display, following the actual head skin.

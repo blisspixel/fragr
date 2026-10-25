@@ -61,6 +61,8 @@ var enemy_view: EnemyView = null
 var latch_view: LatchView = null
 var character_view: SkinnedCharacter = null
 var _held_root: Node3D = null
+## The modelled gun a live body carries in place of the profile card.
+var _held_model: MeshInstance3D = null
 var _notary_shadow: MeshInstance3D = null
 ## Scope glint of a Ranged Sweeper, shown only during its server windup.
 var marksman_tell: RangedSweeperTell = null
@@ -555,6 +557,7 @@ func _wear_body(kind: String) -> void:
 		body.add_child(muzzle)
 		remove_child(_held_root)
 		_held_root.queue_free()
+		_held_model = null
 		_held_root = null
 	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	weapon_sprite.rotation = Vector3.ZERO
@@ -610,16 +613,34 @@ func _attach_carried() -> void:
 	_held_root.basis = Basis(gun_axis, up, gun_axis.cross(up))
 	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	weapon_sprite.rotation = Vector3.ZERO
-	# The existing pistol and sniper profiles have their muzzle on image left.
-	weapon_sprite.flip_h = current_weapon in ["Tack", "Sniper"]
-	# The pistol's painted grip is seven texels left and three below centre
-	# after reflection. Put that grip at the posed wrist, not the canvas centre.
-	weapon_sprite.position = Vector3(0.0728, 0.0312, 0.0) if current_weapon == "Tack" else Vector3(0.20, 0.03, 0.0)
-	muzzle.position = Vector3(0.208, 0.104, 0.0) if current_weapon == "Tack" else Vector3(0.56, 0.08, 0.0)
+	# The Sniper's profile has its muzzle on image left; every other points right.
+	weapon_sprite.flip_h = current_weapon == "Sniper"
+	weapon_sprite.position = Vector3(0.20, 0.03, 0.0)
+	muzzle.position = Vector3(0.56, 0.08, 0.0)
 	_held_root.visible = not is_local_fp and not vehicle_seated
+	var carried: bool = not is_local_fp and hp > 0 and not vehicle_seated
+	# A modelled gun is carried as itself, so it reads from the front and the
+	# side alike and stays upright while the card turns to the camera.
+	var modelled: bool = GunModel.has_model(current_weapon)
+	if modelled:
+		if _held_model == null:
+			_held_model = MeshInstance3D.new()
+			_held_model.name = "CarriedGun"
+			_held_root.add_child(_held_model)
+		if _held_model.get_meta("weapon", "") != current_weapon:
+			_held_model.mesh = GunModel.carried_mesh(current_weapon)
+			_held_model.set_meta("weapon", current_weapon)
+		var level: Basis = Basis(gun_axis, Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0), gun_axis.cross(Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0)))
+		# Gun space runs its bore along -Z; the pawn aims along +X.
+		var placed: Basis = _held_root.basis.inverse() * level * Basis(Vector3.UP, -PI * 0.5)
+		var grip_point: Vector3 = GunModel.GRIP[current_weapon]
+		_held_model.transform = Transform3D(placed, placed * -grip_point)
+		muzzle.position = placed * (GunModel.MUZZLE[current_weapon] - grip_point)
+	if _held_model != null:
+		_held_model.visible = carried and modelled
 	# A resolved shot can arrive after its shooter died. Hide the carried gun
 	# independently so that the sibling muzzle still presents that shot.
-	weapon_sprite.visible = not is_local_fp and hp > 0 and not vehicle_seated and weapon_textures.has(current_weapon)
+	weapon_sprite.visible = carried and not modelled and weapon_textures.has(current_weapon)
 
 func _update_weapon_sprite():
 	if not weapon_sprite:
