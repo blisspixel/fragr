@@ -614,6 +614,9 @@ func _on_map_info(info: Dictionary) -> void:
 		shot_effects.clear()
 		shot_effects.configure_map(info)
 	current_map_info = info.duplicate(true)
+	var view_light: ViewLight = ViewLight.attach(_view_camera())
+	if view_light != null:
+		view_light.set_solids(current_map_info.get("solids"))
 	if incoming_feedback != null:
 		incoming_feedback.configure_map(info)
 	# The rule set arrives with the map; a campaign map has none.
@@ -2147,6 +2150,7 @@ func _present_local_fire(action: Dictionary, now_usec: int) -> void:
 func _show_fire_juice(weapon_name: String) -> void:
 	if hud and hud.has_method("show_fire_juice"):
 		hud.show_fire_juice(weapon_name)
+	ViewLight.flash(_view_camera(), weapon_name, settings.screen_flashes() if settings != null else 0)
 	if camera != null and camera.has_method("punch_for_weapon") and _vehicle_seat().is_empty():
 		camera.punch_for_weapon(weapon_name)
 
@@ -2184,9 +2188,14 @@ func _local_fire_allowed() -> bool:
 func _cancel_local_fire_effect() -> void:
 	if hud and hud.has_method("cancel_fire_juice"):
 		hud.cancel_fire_juice()
+	ViewLight.cancel(_view_camera())
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if is_instance_valid(pawn) and pawn.has_method("cancel_fire_feedback"):
 		pawn.cancel_fire_feedback()
+
+## The view camera the first-person muzzle light and gun measurement ride.
+func _view_camera() -> Camera3D:
+	return get_node_or_null("SpectatorCamera/Camera3D") as Camera3D
 
 func _reset_local_fire() -> void:
 	pending_fire = false

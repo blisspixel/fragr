@@ -53,6 +53,17 @@ func _run() -> void:
 	_check(environment.ambient_light_source == Environment.AMBIENT_SOURCE_COLOR and is_equal_approx(environment.ambient_light_energy, recall.ambient_energy), "interior ambient is not the authored flat floor")
 	_check(environment.fog_enabled and is_equal_approx(environment.fog_density, recall.fog_density) and not environment.glow_enabled, "fog or glow defaults changed outside quality")
 
+	# Small bloom: only the tight levels carry glow, and the threshold stays
+	# above a lit wall so a lamp head glows and the room around it does not.
+	for level: int in range(3, 7):
+		_check(is_zero_approx(environment.get_glow_level(level)), "a wide glow level would wash a wall: %d" % (level + 1))
+	_check(environment.get_glow_level(0) > 0.0 and environment.glow_hdr_threshold >= 0.8 and environment.glow_bloom == 0.0, "glow lost its small-bloom shape")
+	# The Pit's haze sits under the first deck and never reaches a fighter's chest.
+	var lot: Environment = ArenaSky.build_environment("Larak Lot")
+	_check(lot.fog_height_density > 0.0 and lot.fog_height < 1.5, "Larak Lot lost its Pit haze, or it climbed onto the decks")
+	_check(1.0 - exp(-lot.fog_height_density * lot.fog_height) < 0.25, "the Pit haze is too thick on the Pit floor")
+	_check(is_zero_approx(environment.fog_height_density), "height haze leaked into an interior")
+
 	var layout: Node3D = Node3D.new()
 	root.add_child(layout)
 	var key: DirectionalLight3D = DirectionalLight3D.new()

@@ -114,11 +114,9 @@ increment.
   dithered). Both validate and persist through `settings.gd` and appear on the
   GRAPHICS page, whose labels now come from `client/i18n/world.en.po`. A world
   pixel choice replaces FSR while selected.
-- **Default: Native, dither off.** At 1080p Fine keeps the large signs, but the
-  intake's far sign and the floating pickup label break up; Medium also breaks
-  the complaints notice. World text was authored for native resolution, so the
-  pixel look stays opt-in until signs and labels are re-authored for a low-res
-  grid.
+- **Default: Native, dither off** (superseded in increment 2 below). At 1080p
+  Fine keeps the large signs, but the intake's far sign and the floating
+  pickup label break up; Medium also breaks the complaints notice.
 
 **Frame time, this host.** Windows 11, AMD Radeon 780M (integrated), Godot
 4.7.2, 1920 by 1080 window, VSync off, frame cap off, 600 frames per state
@@ -173,11 +171,88 @@ integrated GPU, not a hardware promise.
 **Still weak.** Arenas improved least: they have no registered fixtures, so the
 change there is colour, haze and shadow contrast rather than pools of light. The
 bright enamel walls of M01 still tile visibly in large rooms; the sector steps
-help at corridor scale, not across one long wall. Muzzle flash and impact light
-belong to `shot_effects.gd`, which the weapons PR owns; the follow-up is a
-short-lived `OmniLight3D` per acknowledged shot and impact in the practical
-group so quality controls its shadow. The wall-base shade assumes three-metre
+help at corridor scale, not across one long wall. The shooter's own muzzle
+light landed in increment 2; impact light belongs to the effects owner. The wall-base shade assumes three-metre
 decks and paints a faint band at three metres on taller walls.
+
+## Increment 2: wave 4 lighting and look (2026-10-25)
+
+Presentation only; no server, wire or map data changes.
+
+- **First-person muzzle light.** `client/scripts/view_light.gd` (`ViewLight`)
+  rides the view camera. The local body, and with it the pawn's own flash
+  light, is hidden in first person, so a shot used to light nothing the
+  shooter could see. A short warm `OmniLight3D` now pulses ahead of the gun on
+  the same receipt as the viewmodel kick (`game_manager.gd`
+  `_show_fire_juice`: the local predicted shot, or the followed fighter's
+  resolved one in first-person spectating) and goes out with a rejected
+  speculative shot. One colour, energy, reach and life per gun in
+  `ViewLight.FLASHES`: warm amber to warm white, a near-white for the Rail,
+  never red or cyan; fast guns burn dimmer so a held trigger flickers rather
+  than strobes; blades and fists make none. No shadow map. It follows the
+  accessibility screen-flash choice (Full, Reduced at 0.6, Off none).
+- **`ViewLight.sample(camera)`** is the light at the held gun as a modulate
+  for the 2D viewmodel: the flat ambient, each directional key (dimmed when a
+  MapInfo solid blocks it), every omni and spot lamp in reach with Godot's own
+  falloff, and the muzzle pulse. It is about white on Recall Notice's street,
+  a touch darker on a Larak deck, warmer under sodium, clamped to 0.6 to 1.12
+  with only 40 percent of the light's hue, and white when no ViewLight exists,
+  so a caller can always multiply by it. The HUD viewmodel (weapons owner)
+  applies it.
+- **Small bloom.** Glow keeps only its three tightest levels (1.0, 0.9,
+  0.35), a 0.85 threshold with a short ramp and a luminance cap of 6. The
+  threshold is tested at half resolution, so a two-pixel bulb stays crisp; a
+  lamp head, a canopy tube or a sign letter gets a halo a few pixels wide, and
+  a lit wall or a white pickup does not. Larak Lot's intensity is 0.8.
+  Compatibility uses its own fixed blur and always the screen blend.
+- **Height haze.** `ArenaSky.Preset.fog_height` and `fog_height_density`.
+  Godot's height fog depends on height alone, not distance, so it tints every
+  surface under the line evenly; it is used thinly. Larak Lot: under 0.9 m at
+  0.18 per metre, about 15 percent on the Pit floor and nothing on the decks or
+  a standing fighter's chest. Other venues are unchanged until their floor
+  heights are checked in their own captures.
+- **Dither.** The palette dither snapped every pixel to fourteen swatches and
+  rewrote meaning in a lit scene: a Union seal's red went orange, the Larak
+  indigo sky grey and brown, bone enamel orange. `value_dither.gdshader` now
+  steps value only (ten steps, the same 4 by 4 Bayer grid on the world pixel)
+  and keeps each pixel's hue. The setting is DITHER and stays off.
+- **Default world pixels: Fine** (540 lines: 2x at 1080p, 3x at 1440p, 4x at
+  2160p, native at 720p). Compared with `client/qa/look-pixels.json` and
+  `client/qa/m01-pixels.json` on Vulkan and Compatibility at 1920x1080: Fine
+  is almost indistinguishable from Native at full frame, keeps fighters at
+  range, nameplates, the held gun and the large signs (PROPERTY INTAKE, the
+  Larak boards), gives the world one pixel grid and costs less GPU. Small
+  placard text (stand placards, the Ledger) does not survive it, which the
+  wave's sign budget already removes. Medium breaks the large signs; the
+  dither stays a taste option. Flagged for Nick to confirm.
+
+Review tours: `client/qa/look.json` (Larak glow, haze, Toll sodium, Pistol
+fire strips) and `client/qa/m01-look.json` (fixture glow and a Tack shot in
+the bay), probing `ViewMuzzleLight`.
+
+**Frame time, this host** (Linux, Radeon 780M, 1920 by 1080, VSync off, 600
+frames after 30 warm-up). `look-perf` and `m01-perf` ran on origin/main plus
+the capture tooling and on this branch, alternating, twice each per renderer,
+under other agents' builds (host load 9 to 33). Balanced GPU ms, mean of the
+two runs:
+
+| Renderer | View | origin/main | increment 2 |
+|---|---|---|---|
+| Vulkan | Larak Lot overview | 9.05 | 10.03 |
+| Vulkan | Larak Lot first person | 8.40 | 8.33 |
+| Vulkan | Recall Notice intake | 8.92 | 10.51 |
+| OpenGL | Larak Lot overview | 10.05 | 12.38 |
+| OpenGL | Larak Lot first person | 13.14 | 8.86 |
+| OpenGL | Recall Notice intake | 11.86 | 16.13 |
+
+The same build's Performance rows, where nothing in this increment runs (glow
+is off and the muzzle light only burns on a shot), moved as much in both
+directions, so these runs cannot resolve a 10 percent change. The glow change
+was therefore measured in one process, alternating old and new shapes four
+times at 1920 by 1080 with MSAA 2x and thirty emitters: Vulkan 2.14 ms old
+against 2.17 ms new (glow off 1.39), Compatibility 1.40 against 1.39. The
+haze is one height term in the fog already drawn, and the muzzle light is
+hidden between shots.
 
 ## Verification
 
@@ -187,7 +262,7 @@ decks and paints a faint band at three metres on taller walls.
 
 ## Success criteria
 
-- [ ] Stage 1 lands with the toggle and stills. Implemented in increment 1; the default stays Native until world text is re-authored for a low-res grid.
+- [ ] Stage 1 lands with the toggle and stills. Implemented in increment 1; increment 2 makes Fine the default, awaiting Nick's confirmation.
 - [ ] Both maps re-dressed with the atlas.
 - [ ] Fighters read at thirty metres: the far-cam harness asserts sprite height in pixels at 30 m, and a still shows direction and state.
 - [ ] Every weapon is identifiable by its view model silhouette alone: a silhouette contact sheet of the three view models committed with the stills.
