@@ -52,7 +52,9 @@ Collectors are omitted until that role exists.
 M20 connects the lone sluice Surveyor lesson, the waterworks crew crossing, the refuge pier
 hold with resupply crates and a six-minute last span, the reprieve the free agents win in the
 tower, and the refuge gate. Its completion records the campaign's survival and unlocks the
-Still Here epilogue, which is not built yet. Ordinary campaign supply and visual pursuit scale
+[Still Here epilogue](campaign/epilogue-still-here.md), a read-only walk built on capability 57;
+a run that runs out of continues in levels 18 to 20 gets the exhaustion ending and its credits
+instead. Ordinary campaign supply and visual pursuit scale
 by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone
 [M12 habitat](plans/m12-habitat-development-20261008.md),
 [M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and
@@ -431,7 +433,9 @@ clock; earlier wipe levels already survived stay survived. Death without
 allowance ends the run with a specific wipe-failure ending and credits. Only
 surviving all three levels and receiving the reprieve unlocks the playable
 epilogue. Earlier completion, stored kill counts or viewing credits cannot
-substitute for this result. This finale and unlock are unbuilt.
+substitute for this result. The three levels, the saved survival that unlocks
+the walk and the exhaustion ending are connected development builds; their
+pacing and fresh-player acceptance are open.
 
 The initial survival target is roughly 33 minutes of active gameplay split
 across levels 18 to 20 (about 10, 11 and 12 minutes), not a forecast displayed
@@ -456,8 +460,9 @@ Port of Entry. The version 18 run continues through M14, retaining actual
 completed outcomes, entry resources and the M06/M10 episode refills. Completed
 M13 promotes into M14 without a refill; completed M14 retains pending M15.
 M20 promotes from a completed predecessor through one isolated adapter and records the
-campaign's terminal survival. Connected M19, the epilogue and any cloud-save policy
-remain unbuilt. Complete pacing and fresh-player acceptance stay open.
+campaign's terminal survival. Still Here reads that survival without writing it, so
+walking it again spends nothing and changes no rescue. Any cloud-save policy remains
+unbuilt. Complete pacing and fresh-player acceptance stay open.
 
 ## Story presentation and localization
 

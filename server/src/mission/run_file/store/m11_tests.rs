@@ -447,7 +447,12 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         serde_json::from_str::<MissionId>("\"local_exception\"").unwrap(),
         MissionId::LocalException
     );
-    assert!(serde_json::from_str::<MissionId>("\"still_here\"").is_err());
+    // The epilogue is a mission identity but never a campaign stage.
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"still_here\"").unwrap(),
+        MissionId::StillHere
+    );
+    assert!(!MissionId::ALL.contains(&MissionId::StillHere));
 }
 
 #[test]

@@ -37,7 +37,7 @@ For the factions, machines, and history behind the scrap, see [The world and its
 
 ## Development
 
-The campaign is twenty levels across five episodes. All twenty are playable as connected development levels, from Recall Notice through Local Exception; the Still Here epilogue is planned and not built yet. Level 1 is the golden slice the rest are being raised to. For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
+The campaign is twenty levels across five episodes. All twenty are playable as connected development levels, from Recall Notice through Local Exception, and surviving Level 20 opens the Still Here epilogue, a walk through the refuge the morning after and years later. Level 1 is the golden slice the rest are being raised to. For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
 
 ## In game
 

@@ -99,6 +99,7 @@ pub struct M20Refuge {
     pub persons: u32,
     /// Edda's clinic team came out of level 4: Edda lit the lamp herself.
     pub edda: bool,
+    /// Splice reached the level 5 freight; release alone does not bring them.
     pub splice: bool,
     pub orrin: bool,
     pub sorrel: bool,

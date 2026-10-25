@@ -10,7 +10,7 @@ extends Node3D
 signal notice_requested(text: String)
 
 const CAMERA = preload("res://scripts/spectator_cam.gd")
-const TownDressing = preload("res://scripts/m19_town_dressing.gd")
+const TownDressing = preload("res://scripts/low_water_dressing.gd")
 const LatchSeat = preload("res://scripts/m19_latch_seat.gd")
 const Crowd = preload("res://scripts/m19_crowd.gd")
 

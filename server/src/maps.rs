@@ -32,6 +32,8 @@ pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
 mod low_water;
+#[cfg(test)]
+pub(crate) use authored::epilogue as epilogue_authored;
 pub(crate) use authored::m11::SpinePatrol;
 pub(crate) use authored::m20 as m20_authored;
 pub(crate) use authored::walker::overlaps as walker_solids_overlap;
@@ -112,6 +114,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::LocalException => {
                 include_bytes!("../maps/m20-local-exception.json")
             }
+            crate::protocol::MissionId::StillHere => {
+                include_bytes!("../maps/epilogue-still-here.json")
+            }
         };
         sha2::Sha256::digest(bytes).into()
     }
@@ -180,6 +185,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::LocalException) => {
                 AuthoredMap::read(include_bytes!("../maps/m20-local-exception.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::StillHere) => {
+                AuthoredMap::read(include_bytes!("../maps/epilogue-still-here.json").as_slice())
             }
         }
     }

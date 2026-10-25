@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "id": "still_here_later",
+  "title_key": "MISSION_STILL_HERE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "LATER", "title_key": "STORY_STILL_HERE_LATER_TITLE", "caption_key": "STORY_STILL_HERE_LATER", "timing": "reader", "hold": 1}
+  ]
+}

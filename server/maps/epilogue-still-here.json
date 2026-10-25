@@ -1,0 +1,1103 @@
+{
+  "version": 1,
+  "map_id": 1021,
+  "name": "Still Here",
+  "half_extent": 40,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {
+      "id": "quay_rail_w_n",
+      "min": [-30.4, 0, 3.2],
+      "max": [-30, 3.0, 16.4],
+      "surface": "service_steel"
+    },
+    {
+      "id": "quay_rail_w_s",
+      "min": [-30.4, 0, -16.4],
+      "max": [-30, 3.0, -3.2],
+      "surface": "service_steel"
+    },
+    {
+      "id": "quay_rail_n",
+      "min": [-30.4, 0, 16],
+      "max": [-19, 3.0, 16.4],
+      "surface": "service_steel"
+    },
+    {
+      "id": "quay_rail_s",
+      "min": [-30.4, 0, -16.4],
+      "max": [-19, 3.0, -16],
+      "surface": "service_steel"
+    },
+    {
+      "id": "pier_rail_n",
+      "min": [-40, 0, 3.2],
+      "max": [-30.4, 3.0, 3.5],
+      "surface": "service_steel"
+    },
+    {
+      "id": "pier_rail_s",
+      "min": [-40, 0, -3.5],
+      "max": [-30.4, 3.0, -3.2],
+      "surface": "service_steel"
+    },
+    {
+      "id": "pier_barricade",
+      "min": [-38.2, 0, -3.2],
+      "max": [-37, 1.5, 3.2],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ferry_gate",
+      "min": [-37.8, 0, -3.2],
+      "max": [-37.6, 1.1, 3.2],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bench_quay",
+      "min": [-26.0, 0, 4.8],
+      "max": [-25.4, 0.46, 7.2],
+      "surface": "concrete"
+    },
+    {
+      "id": "ferry_board",
+      "min": [-30.3, 0, 8.2],
+      "max": [-29.9, 3.2, 10.8],
+      "surface": "service_steel"
+    },
+    {
+      "id": "wall_n",
+      "min": [-20, 0, 2.6],
+      "max": [-19, 1.3, 16.4],
+      "surface": "enamel"
+    },
+    {
+      "id": "wall_s",
+      "min": [-20, 0, -16.4],
+      "max": [-19, 1.3, -2.6],
+      "surface": "enamel"
+    },
+    {
+      "id": "gate_post_n",
+      "min": [-20.3, 0, 2.6],
+      "max": [-18.7, 2.8, 3.4],
+      "surface": "concrete"
+    },
+    {
+      "id": "gate_post_s",
+      "min": [-20.3, 0, -3.4],
+      "max": [-18.7, 2.8, -2.6],
+      "surface": "concrete"
+    },
+    {
+      "id": "clinic",
+      "min": [-19, 0, 14],
+      "max": [-11, 6.4, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "home_a",
+      "min": [-11, 0, 14],
+      "max": [-5, 9.6, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "home_b",
+      "min": [-5, 0, 14],
+      "max": [1, 9.6, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "home_c",
+      "min": [1, 0, 14],
+      "max": [7, 6.4, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "home_d",
+      "min": [7, 0, 14],
+      "max": [12, 9.6, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "store_a",
+      "min": [-19, 0, -40],
+      "max": [-11, 6.4, -14],
+      "surface": "enamel"
+    },
+    {
+      "id": "store_b",
+      "min": [-11, 0, -40],
+      "max": [-1, 6.4, -14],
+      "surface": "enamel"
+    },
+    {
+      "id": "store_c",
+      "min": [-1, 0, -40],
+      "max": [6, 9.6, -14],
+      "surface": "enamel"
+    },
+    {
+      "id": "store_d",
+      "min": [6, 0, -40],
+      "max": [12, 6.4, -14],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_n",
+      "min": [12, 0, 30],
+      "max": [40, 9.6, 40],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_s",
+      "min": [12, 0, -40],
+      "max": [40, 6.4, -30],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_home_n",
+      "min": [22, 0, -1.5],
+      "max": [31, 9.6, 30],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_store_s",
+      "min": [22, 0, -30],
+      "max": [31, 6.4, -14.5],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_back",
+      "min": [31, 0, -30],
+      "max": [40, 9.6, 30],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_back",
+      "min": [30, 0, -14.5],
+      "max": [31, 4.6, -1.5],
+      "surface": "enamel"
+    },
+    {
+      "id": "workshop_roof",
+      "min": [22, 4.2, -14.5],
+      "max": [30, 4.6, -1.5],
+      "surface": "enamel"
+    },
+    {
+      "id": "repair_table",
+      "min": [24.6, 0, -9.8],
+      "max": [27.2, 0.9, -7.8],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bench_back",
+      "min": [29.2, 0, -11],
+      "max": [30, 0.95, -3],
+      "surface": "service_steel"
+    },
+    {
+      "id": "motor_stand",
+      "min": [28.0, 0, -13.6],
+      "max": [29.4, 1.0, -12.2],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tram_stalled",
+      "min": [15.6, 0, -13],
+      "max": [18.4, 3.2, -1.5],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tram_running",
+      "min": [15.6, 0, 1.5],
+      "max": [18.4, 3.2, 14],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tram_buffer",
+      "min": [16.2, 0, -29.5],
+      "max": [17.8, 1.2, -28.5],
+      "surface": "service_steel"
+    },
+    {
+      "id": "stop_kiosk",
+      "min": [12.4, 0, 16],
+      "max": [14.2, 2.6, 20],
+      "surface": "enamel"
+    },
+    {
+      "id": "meal_table",
+      "min": [-7, 0, -6.6],
+      "max": [-1, 0.78, -5.4],
+      "surface": "enamel"
+    },
+    {
+      "id": "bench_mn",
+      "min": [-7, 0, -5.1],
+      "max": [-1, 0.45, -4.7],
+      "surface": "enamel"
+    },
+    {
+      "id": "bench_ms",
+      "min": [-7, 0, -7.3],
+      "max": [-1, 0.45, -6.9],
+      "surface": "enamel"
+    },
+    {
+      "id": "empty_chair",
+      "min": [-0.6, 0, -6.3],
+      "max": [0.0, 0.9, -5.7],
+      "surface": "enamel"
+    },
+    {
+      "id": "standpipe",
+      "min": [-12.3, 0, 3.2],
+      "max": [-11.7, 1.2, 3.8],
+      "surface": "service_steel"
+    },
+    {
+      "id": "fountain",
+      "min": [-13.6, 0, 2.0],
+      "max": [-10.4, 0.6, 5.0],
+      "surface": "concrete"
+    },
+    {
+      "id": "rubble_a",
+      "min": [-0.6, 0, -14],
+      "max": [3.4, 1.1, -11.8],
+      "surface": "concrete"
+    },
+    {
+      "id": "rubble_b",
+      "min": [3.0, 0, 11.6],
+      "max": [6.2, 0.9, 14],
+      "surface": "concrete"
+    },
+    {
+      "id": "cot_a",
+      "min": [-18, 0, 9.2],
+      "max": [-16, 0.5, 10.0],
+      "surface": "service_steel"
+    },
+    {
+      "id": "cot_b",
+      "min": [-18, 0, 11.2],
+      "max": [-16, 0.5, 12.0],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crate_a",
+      "min": [-14.4, 0, 8.4],
+      "max": [-13.4, 0.8, 9.4],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crate_b",
+      "min": [8.6, 0, -10.6],
+      "max": [9.6, 0.7, -9.6],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crate_c",
+      "min": [13.0, 0, -9.0],
+      "max": [14.0, 0.8, -8.0],
+      "surface": "service_steel"
+    },
+    {
+      "id": "planter_a",
+      "min": [-18.6, 0, 6],
+      "max": [-17.2, 0.6, 8.6],
+      "surface": "concrete"
+    },
+    {
+      "id": "planter_b",
+      "min": [8, 0, 9.6],
+      "max": [11, 0.6, 11],
+      "surface": "concrete"
+    },
+    {
+      "id": "planter_c",
+      "min": [-17.8, 0, -12],
+      "max": [-15.2, 0.6, -10.6],
+      "surface": "concrete"
+    },
+    {
+      "id": "tank_a",
+      "min": [-9.5, 9.6, 26],
+      "max": [-6.5, 12.8, 29],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tank_b",
+      "min": [8, 9.6, 30],
+      "max": [11, 12.8, 33],
+      "surface": "service_steel"
+    },
+    {
+      "id": "tank_c",
+      "min": [25, 9.6, 10],
+      "max": [28, 12.8, 13],
+      "surface": "service_steel"
+    }
+  ],
+  "decorations": [
+    {
+      "solid": "repair_table",
+      "face": "up",
+      "center": [-0.6, 0.0],
+      "size": [0.6, 0.45],
+      "kind": "epilogue_ledger"
+    },
+    {
+      "solid": "bench_quay",
+      "face": "up",
+      "center": [0.0, 0.6],
+      "size": [0.5, 0.8],
+      "kind": "epilogue_bench"
+    },
+    {
+      "solid": "ferry_board",
+      "face": "east",
+      "center": [0.0, 0.5],
+      "size": [2.4, 1.3],
+      "kind": "epilogue_ferry_board"
+    },
+    {
+      "solid": "store_b",
+      "face": "south",
+      "center": [0.0, -1.6],
+      "size": [6.0, 1.8],
+      "kind": "epilogue_missing_board"
+    },
+    {
+      "solid": "stop_kiosk",
+      "face": "west",
+      "center": [0.0, 0.4],
+      "size": [1.2, 0.8],
+      "kind": "epilogue_tram_stop"
+    },
+    {
+      "solid": "clinic",
+      "face": "north",
+      "center": [0.0, -0.6],
+      "size": [2.2, 0.55],
+      "kind": "epilogue_clinic_sign"
+    }
+  ],
+  "spawns": [
+    {
+      "id": "pier_landing",
+      "feet": [-26.0, 0.0, 0.0],
+      "yaw": 0.0
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "refuge_gate",
+      "feet": [-21.0, 0.0, 0.0]
+    },
+    {
+      "id": "shared_table",
+      "feet": [-4.0, 0.0, -3.5]
+    },
+    {
+      "id": "repair_space",
+      "feet": [23.9, 0.0, -8.8]
+    },
+    {
+      "id": "tram_stop",
+      "feet": [13.4, 0.0, 6.0]
+    },
+    {
+      "id": "quay_bench",
+      "feet": [-24.0, 0.0, 5.4]
+    }
+  ],
+  "epilogue": {
+    "latch": {
+      "decoration": 0,
+      "approach": [23.9, 0.0, -8.8]
+    },
+    "arrival": {
+      "min": [-30.0, 0.0, -7.0],
+      "max": [-18.5, 3.0, 7.0]
+    },
+    "arrival_feet": [-22.0, 0.0, 0.0],
+    "departure": {
+      "decoration": 1,
+      "approach": [-24.0, 0.0, 5.4]
+    },
+    "later_spawn": {
+      "feet": [13.4, 0.0, 6.0],
+      "yaw": 3.14159265
+    },
+    "ferry_board": 2,
+    "aftermath_only": [
+      "pier_barricade",
+      "standpipe",
+      "rubble_a",
+      "rubble_b",
+      "cot_a",
+      "cot_b",
+      "crate_a",
+      "crate_b",
+      "crate_c",
+      "tram_stalled",
+      "motor_stand"
+    ],
+    "later_only": [
+      "ferry_gate",
+      "fountain",
+      "tram_running",
+      "planter_a",
+      "planter_b",
+      "planter_c"
+    ],
+    "aftermath_walk": [
+      [-26.0, 0.0, 0.0],
+      [-17, 0, 0],
+      [-4, 0, -1.2],
+      [14, 0, 0.3],
+      [20.8, 0, 0.3],
+      [20.8, 0, -8.8],
+      [23.9, 0.0, -8.8]
+    ],
+    "later_walk": [
+      [13.4, 0.0, 6.0],
+      [6, 0, 3],
+      [-10, 0, 0.5],
+      [-17, 0, 0],
+      [-22, 0, 0],
+      [-24.0, 0.0, 5.4]
+    ],
+    "people": [
+      {
+        "id": "latch",
+        "stage": "aftermath",
+        "feet": [26.3, 0.0, -7.0],
+        "yaw": -2.4981,
+        "pose": "stand"
+      },
+      {
+        "id": "splice",
+        "stage": "aftermath",
+        "feet": [27.4, 0.0, -12.9],
+        "yaw": 0.0,
+        "pose": "work",
+        "requires": "splice"
+      },
+      {
+        "id": "mechanic",
+        "stage": "aftermath",
+        "feet": [27.4, 0.0, -12.9],
+        "yaw": 0.0,
+        "pose": "work",
+        "unless": "splice"
+      },
+      {
+        "id": "edda",
+        "stage": "aftermath",
+        "feet": [-15.4, 0.0, 10.6],
+        "yaw": 3.1416,
+        "pose": "work",
+        "requires": "edda"
+      },
+      {
+        "id": "lamp_keeper",
+        "stage": "aftermath",
+        "feet": [-15.4, 0.0, 10.6],
+        "yaw": 3.1416,
+        "pose": "work",
+        "unless": "edda"
+      },
+      {
+        "id": "patient_a",
+        "stage": "aftermath",
+        "feet": [-17.0, 0.0, 9.6],
+        "yaw": 1.5708,
+        "pose": "lie"
+      },
+      {
+        "id": "patient_b",
+        "stage": "aftermath",
+        "feet": [-17.0, 0.0, 11.6],
+        "yaw": 1.5708,
+        "pose": "lie"
+      },
+      {
+        "id": "orrin",
+        "stage": "aftermath",
+        "feet": [-6.0, 0.0, -12.2],
+        "yaw": -1.5708,
+        "pose": "stand",
+        "requires": "orrin"
+      },
+      {
+        "id": "sorrel",
+        "stage": "aftermath",
+        "feet": [13.5, 0.0, -8.5],
+        "yaw": 3.1416,
+        "pose": "perch",
+        "requires": "sorrel"
+      },
+      {
+        "id": "tern",
+        "stage": "aftermath",
+        "feet": [-22.5, 0.0, 4.5],
+        "yaw": 3.1416,
+        "pose": "stand"
+      },
+      {
+        "id": "mara",
+        "stage": "aftermath",
+        "feet": [-12.0, 0.0, 4.8],
+        "yaw": -1.5708,
+        "pose": "work"
+      },
+      {
+        "id": "ascender",
+        "stage": "aftermath",
+        "feet": [-2.0, 0.0, 12.8],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "kneeler",
+        "stage": "aftermath",
+        "feet": [9.6, 0.0, 12.8],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "spared",
+        "stage": "aftermath",
+        "feet": [-7.8, 0.0, -6.0],
+        "yaw": 0.0,
+        "pose": "stand"
+      },
+      {
+        "id": "next_district",
+        "stage": "aftermath",
+        "feet": [-3.5, 0.0, -7.1],
+        "yaw": 1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "table_a",
+        "stage": "aftermath",
+        "feet": [-5.6, 0.0, -4.9],
+        "yaw": -1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "table_b",
+        "stage": "aftermath",
+        "feet": [-2.2, 0.0, -4.9],
+        "yaw": -1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "entrant_a",
+        "stage": "aftermath",
+        "feet": [-13.6, 0.0, 6.4],
+        "yaw": -1.5708,
+        "pose": "work",
+        "requires": "entrants"
+      },
+      {
+        "id": "entrant_b",
+        "stage": "aftermath",
+        "feet": [-10.4, 0.0, 6.6],
+        "yaw": -1.5708,
+        "pose": "work",
+        "requires": "entrants"
+      },
+      {
+        "id": "bus_a",
+        "stage": "aftermath",
+        "feet": [5.4, 0.0, -10.6],
+        "yaw": 1.5708,
+        "pose": "sit",
+        "requires": "bus"
+      },
+      {
+        "id": "bus_b",
+        "stage": "aftermath",
+        "feet": [6.2, 0.0, -11.5],
+        "yaw": 1.5708,
+        "pose": "sit",
+        "requires": "bus"
+      },
+      {
+        "id": "bus_c",
+        "stage": "aftermath",
+        "feet": [7.0, 0.0, -10.8],
+        "yaw": 1.5708,
+        "pose": "sit",
+        "requires": "bus"
+      },
+      {
+        "id": "car_family_a",
+        "stage": "aftermath",
+        "feet": [-16.6, 0.0, -5.2],
+        "yaw": 0.6,
+        "pose": "stand",
+        "requires": "cars"
+      },
+      {
+        "id": "car_family_b",
+        "stage": "aftermath",
+        "feet": [-17.4, 0.0, -6.0],
+        "yaw": 0.3,
+        "pose": "sit",
+        "requires": "cars"
+      },
+      {
+        "id": "car_family_c",
+        "stage": "aftermath",
+        "feet": [-16.2, 0.0, -6.3],
+        "yaw": 2.4,
+        "pose": "child",
+        "requires": "cars"
+      },
+      {
+        "id": "leaving",
+        "stage": "aftermath",
+        "feet": [19.6, 0.0, 24.0],
+        "yaw": 1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "quay_agent",
+        "stage": "aftermath",
+        "feet": [-28.8, 0.0, -11.0],
+        "yaw": 3.1416,
+        "pose": "sit"
+      },
+      {
+        "id": "crate_sitter",
+        "stage": "aftermath",
+        "feet": [-13.9, 0.0, 8.55],
+        "yaw": -1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "north_a_0",
+        "stage": "aftermath",
+        "feet": [-6.255, 0.0, 9.831],
+        "yaw": -2.8416,
+        "pose": "stand"
+      },
+      {
+        "id": "north_a_1",
+        "stage": "aftermath",
+        "feet": [-7.231, 0.0, 10.345],
+        "yaw": -1.2708,
+        "pose": "sit"
+      },
+      {
+        "id": "north_a_2",
+        "stage": "aftermath",
+        "feet": [-7.745, 0.0, 9.369],
+        "yaw": 0.3,
+        "pose": "child"
+      },
+      {
+        "id": "north_a_3",
+        "stage": "aftermath",
+        "feet": [-6.769, 0.0, 8.855],
+        "yaw": 1.8708,
+        "pose": "stand"
+      },
+      {
+        "id": "north_b_0",
+        "stage": "aftermath",
+        "feet": [-0.646, 0.0, 8.695],
+        "yaw": -2.0416,
+        "pose": "sit"
+      },
+      {
+        "id": "north_b_1",
+        "stage": "aftermath",
+        "feet": [-1.552, 0.0, 8.551],
+        "yaw": -0.785,
+        "pose": "sit"
+      },
+      {
+        "id": "north_b_2",
+        "stage": "aftermath",
+        "feet": [-1.695, 0.0, 7.646],
+        "yaw": 0.4717,
+        "pose": "stand"
+      },
+      {
+        "id": "north_b_3",
+        "stage": "aftermath",
+        "feet": [-0.878, 0.0, 7.23],
+        "yaw": 1.7283,
+        "pose": "child"
+      },
+      {
+        "id": "north_b_4",
+        "stage": "aftermath",
+        "feet": [-0.23, 0.0, 7.878],
+        "yaw": 2.985,
+        "pose": "stand"
+      },
+      {
+        "id": "north_c_0",
+        "stage": "aftermath",
+        "feet": [5.597, 0.0, 9.502],
+        "yaw": -2.4416,
+        "pose": "stand"
+      },
+      {
+        "id": "north_c_1",
+        "stage": "aftermath",
+        "feet": [4.267, 0.0, 9.265],
+        "yaw": -0.3472,
+        "pose": "sit"
+      },
+      {
+        "id": "north_c_2",
+        "stage": "aftermath",
+        "feet": [5.137, 0.0, 8.232],
+        "yaw": 1.7472,
+        "pose": "stand"
+      },
+      {
+        "id": "south_a_0",
+        "stage": "aftermath",
+        "feet": [-14.236, 0.0, -9.845],
+        "yaw": -2.9416,
+        "pose": "sit"
+      },
+      {
+        "id": "south_a_1",
+        "stage": "aftermath",
+        "feet": [-15.155, 0.0, -9.236],
+        "yaw": -1.3708,
+        "pose": "stand"
+      },
+      {
+        "id": "south_a_2",
+        "stage": "aftermath",
+        "feet": [-15.764, 0.0, -10.155],
+        "yaw": 0.2,
+        "pose": "child"
+      },
+      {
+        "id": "south_a_3",
+        "stage": "aftermath",
+        "feet": [-14.845, 0.0, -10.764],
+        "yaw": 1.7708,
+        "pose": "sit"
+      },
+      {
+        "id": "south_b_0",
+        "stage": "aftermath",
+        "feet": [-10.267, 0.0, -10.231],
+        "yaw": -1.7416,
+        "pose": "stand"
+      },
+      {
+        "id": "south_b_1",
+        "stage": "aftermath",
+        "feet": [-11.132, 0.0, -11.27],
+        "yaw": 0.3528,
+        "pose": "sit"
+      },
+      {
+        "id": "south_b_2",
+        "stage": "aftermath",
+        "feet": [-9.801, 0.0, -11.499],
+        "yaw": 2.4472,
+        "pose": "stand"
+      },
+      {
+        "id": "apron_n_0",
+        "stage": "aftermath",
+        "feet": [-24.715, 0.0, 10.974],
+        "yaw": -2.6416,
+        "pose": "sit"
+      },
+      {
+        "id": "apron_n_1",
+        "stage": "aftermath",
+        "feet": [-25.774, 0.0, 11.285],
+        "yaw": -1.0708,
+        "pose": "stand"
+      },
+      {
+        "id": "apron_n_2",
+        "stage": "aftermath",
+        "feet": [-26.085, 0.0, 10.226],
+        "yaw": 0.5,
+        "pose": "sit"
+      },
+      {
+        "id": "apron_n_3",
+        "stage": "aftermath",
+        "feet": [-25.026, 0.0, 9.915],
+        "yaw": 2.0708,
+        "pose": "child"
+      },
+      {
+        "id": "apron_s_0",
+        "stage": "aftermath",
+        "feet": [-24.515, 0.0, -9.789],
+        "yaw": -2.2416,
+        "pose": "stand"
+      },
+      {
+        "id": "apron_s_1",
+        "stage": "aftermath",
+        "feet": [-25.772, 0.0, -10.286],
+        "yaw": -0.1472,
+        "pose": "sit"
+      },
+      {
+        "id": "apron_s_2",
+        "stage": "aftermath",
+        "feet": [-24.713, 0.0, -11.125],
+        "yaw": 1.9472,
+        "pose": "sit"
+      },
+      {
+        "id": "street_e_0",
+        "stage": "aftermath",
+        "feet": [20.964, 0.0, 10.555],
+        "yaw": -2.9416,
+        "pose": "stand"
+      },
+      {
+        "id": "street_e_1",
+        "stage": "aftermath",
+        "feet": [19.684, 0.0, 10.985],
+        "yaw": -0.8472,
+        "pose": "stand"
+      },
+      {
+        "id": "street_e_2",
+        "stage": "aftermath",
+        "feet": [19.952, 0.0, 9.66],
+        "yaw": 1.2472,
+        "pose": "sit"
+      },
+      {
+        "id": "latch",
+        "stage": "later",
+        "feet": [-25.7, 0.0, 6.6],
+        "yaw": -2.53,
+        "pose": "perch"
+      },
+      {
+        "id": "sorrel",
+        "stage": "later",
+        "feet": [17.0, 0.0, 13.0],
+        "yaw": 1.5708,
+        "pose": "perch",
+        "requires": "sorrel"
+      },
+      {
+        "id": "edda",
+        "stage": "later",
+        "feet": [-15.0, 0.0, 12.6],
+        "yaw": -1.5708,
+        "pose": "stand",
+        "requires": "edda"
+      },
+      {
+        "id": "clinic_keeper",
+        "stage": "later",
+        "feet": [-15.0, 0.0, 12.6],
+        "yaw": -1.5708,
+        "pose": "stand",
+        "unless": "edda"
+      },
+      {
+        "id": "splice",
+        "stage": "later",
+        "feet": [17.0, 0.0, 0.6],
+        "yaw": 1.5708,
+        "pose": "work",
+        "requires": "splice"
+      },
+      {
+        "id": "tern",
+        "stage": "later",
+        "feet": [-36.6, 0.0, -1.6],
+        "yaw": 3.1416,
+        "pose": "work"
+      },
+      {
+        "id": "orrin",
+        "stage": "later",
+        "feet": [-16.4, 0.0, 7.3],
+        "yaw": 3.1416,
+        "pose": "work",
+        "requires": "orrin"
+      },
+      {
+        "id": "mara",
+        "stage": "later",
+        "feet": [11.4, 0.0, 8.4],
+        "yaw": 0.0,
+        "pose": "stand"
+      },
+      {
+        "id": "voter_a",
+        "stage": "later",
+        "feet": [13.6, 0.0, 10.6],
+        "yaw": 3.1416,
+        "pose": "stand"
+      },
+      {
+        "id": "voter_b",
+        "stage": "later",
+        "feet": [14.4, 0.0, 11.7],
+        "yaw": 3.1416,
+        "pose": "stand"
+      },
+      {
+        "id": "voter_c",
+        "stage": "later",
+        "feet": [12.6, 0.0, 11.9],
+        "yaw": -1.5708,
+        "pose": "child"
+      },
+      {
+        "id": "breakfast_a",
+        "stage": "later",
+        "feet": [-5.6, 0.0, -4.9],
+        "yaw": -1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "breakfast_b",
+        "stage": "later",
+        "feet": [-3.6, 0.0, -4.9],
+        "yaw": -1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "trees",
+        "stage": "later",
+        "feet": [-5.0, 0.0, -7.1],
+        "yaw": 1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "kitchen",
+        "stage": "later",
+        "feet": [-2.6, 0.0, -7.1],
+        "yaw": 1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "breakfast_c",
+        "stage": "later",
+        "feet": [-6.4, 0.0, -7.1],
+        "yaw": 1.5708,
+        "pose": "perch"
+      },
+      {
+        "id": "fountain_a",
+        "stage": "later",
+        "feet": [-12.0, 0.0, 6.0],
+        "yaw": -1.5708,
+        "pose": "child"
+      },
+      {
+        "id": "fountain_b",
+        "stage": "later",
+        "feet": [-9.8, 0.0, 4.4],
+        "yaw": 3.1416,
+        "pose": "child"
+      },
+      {
+        "id": "entrant",
+        "stage": "later",
+        "feet": [2.6, 0.0, 12.8],
+        "yaw": -1.5708,
+        "pose": "stand",
+        "requires": "entrants"
+      },
+      {
+        "id": "bus_gardener",
+        "stage": "later",
+        "feet": [-14.4, 0.0, -10.0],
+        "yaw": 3.1416,
+        "pose": "work",
+        "requires": "bus"
+      },
+      {
+        "id": "car_family",
+        "stage": "later",
+        "feet": [-12.6, 0.0, -12.9],
+        "yaw": 1.5708,
+        "pose": "stand",
+        "requires": "cars"
+      },
+      {
+        "id": "memorial",
+        "stage": "later",
+        "feet": [-6.5, 0.0, -12.4],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "door_a",
+        "stage": "later",
+        "feet": [-8.0, 0.0, 12.8],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "door_b",
+        "stage": "later",
+        "feet": [9.6, 0.0, 12.8],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "walker_a",
+        "stage": "later",
+        "feet": [4.0, 0.0, -8.0],
+        "yaw": 3.1416,
+        "pose": "stand"
+      },
+      {
+        "id": "walker_b",
+        "stage": "later",
+        "feet": [20.4, 0.0, -6.0],
+        "yaw": -1.5708,
+        "pose": "stand"
+      },
+      {
+        "id": "quay_pair_a",
+        "stage": "later",
+        "feet": [-25.8, 0.0, -9.6],
+        "yaw": 3.1416,
+        "pose": "sit"
+      },
+      {
+        "id": "quay_pair_b",
+        "stage": "later",
+        "feet": [-25.6, 0.0, -10.4],
+        "yaw": 3.1416,
+        "pose": "sit"
+      },
+      {
+        "id": "street_e",
+        "stage": "later",
+        "feet": [20.2, 0.0, 10.4],
+        "yaw": 3.1416,
+        "pose": "stand"
+      }
+    ]
+  }
+}

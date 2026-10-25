@@ -73,6 +73,8 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::AllSystemsNormal => "all_systems_normal",
                         MissionId::PlannedWorks => "planned_works",
                         MissionId::LocalException => "local_exception",
+                        // A saved step never names the epilogue; the store refuses it.
+                        MissionId::StillHere => return Ok(RunPreview::Incompatible),
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -455,7 +457,9 @@ pub async fn serve_with_mode(
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Later missions without a run mode remain independent development parties.
-    let campaign_run = mission == MissionId::RecallNotice || run_mode.is_some();
+    // Still Here reads a saved survival and runs no solo run of its own.
+    let campaign_run = (mission == MissionId::RecallNotice || run_mode.is_some())
+        && mission != MissionId::StillHere;
     if mission != MissionId::RecallNotice && run_mode == Some(LocalRunMode::New) {
         return Err(io::Error::other("a new durable run must start at M01").into());
     }
@@ -1070,6 +1074,17 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m20.gameplay_version, crate::protocol::M20_GAMEPLAY_VERSION);
-        assert_eq!(m20.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        let epilogue = Ready::new(
+            MissionId::StillHere,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(
+            epilogue.gameplay_version,
+            crate::protocol::STILL_HERE_GAMEPLAY_VERSION
+        );
+        assert_eq!(epilogue.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
     }
 }

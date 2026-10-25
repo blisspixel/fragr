@@ -72,9 +72,19 @@ level 16, crosses the avenue, green-wave checkpoints and prison bus rescue.
 **Peace Without Interruption**, level 17, breaches the Forever Office and
 captures Voss alive. **All Systems Normal**, level 18, starts Episode V through
 the relief depot, rupture defense, clinic roadblock and evacuation concourse.
-All eighteen have practice entries and connected saved progression. These
-remain development prototypes, with final art and fresh-player acceptance open.
-Connected levels 19 and 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
+**Planned Works**, level 19, crosses the reversed home streets with the
+jetpack, and **Local Exception**, level 20, holds the refuge pier until the
+free agents win the reprieve. All twenty have practice entries and connected
+saved progression. These remain development prototypes, with final art and
+fresh-player acceptance open.
+
+Surviving Local Exception opens **Still Here**, the epilogue. **Walk Still
+Here** on Single Player takes you through the refuge the morning after and the
+same court years later, with the people your run brought back. Walking it
+spends nothing, changes nothing in the run and can be repeated. A run that runs
+out of continues in levels 18 to 20 gets its own short ending and credits
+instead, and the walk stays closed. **Practice and Development** lists a
+development walk with nobody carried. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
 ## Standalone development maps
@@ -340,8 +350,10 @@ Permission. The foundry retains worker choices and actual arrivals separately,
 plus machinery harm, relay, surrender and gallery outcomes. Its departure opens
 Launch Authority without refilling continues. Level 14 retains the original
 jeep's survival and an on-foot Walker fight through its fleet departure, then
-saves pending Civic Pressure Valve. Connected M15 through M20 remain unplayable;
-the standalone development maps above do not advance that save. The
+saves pending Civic Pressure Valve. Levels 15 to 20 continue the same save, and
+completing level 20 records the campaign's survival, which Still Here reads
+without changing. The standalone development maps above do not advance that
+save. The
 [tender receipt](evidence/m11-quality-composition-20261006.md) records the route
 and remaining acceptance.
 
@@ -428,6 +440,7 @@ still in reserve. The centered strip follows accepted scores and objectives;
 the scoreboard binding opens standings.
 
 The current campaign is a development slice. It still needs complete art,
-encounter and fresh-player review. The full twenty-level story and conditional
-epilogue are [planned](CAMPAIGN.md). Automated route clears and screenshots
+encounter and fresh-player review. All twenty levels and the conditional
+Still Here epilogue are connected; the [campaign](CAMPAIGN.md) records what is
+still owed. Automated route clears and screenshots
 do not stand in for a new player's understanding of the mission.

@@ -1200,9 +1200,6 @@ msgstr "Hold the refuge pier until the exception lands."
 msgid "M20_NEXT_TITLE"
 msgstr "STILL HERE"
 
-msgid "M20_NEXT_PENDING"
-msgstr "The refuge held. Still Here, the epilogue, is still being built; this run's survival is kept."
-
 msgid "M20_WAITING"
 msgstr "The sluices are running. The pier is waiting."
 
@@ -1284,5 +1281,200 @@ msgstr "The machines reached the refuge line and stopped. Then they went around 
 msgid "STORY_M20_DEPARTURE_CROSSING"
 msgstr "The gate opened. Everyone on the pier crossed."
 
-msgid "STORY_M20_DEPARTURE_UNLOCKED"
-msgstr "STILL HERE is unlocked. The epilogue is still being built; this run's survival is kept."
+msgid "STILL_HERE_WALK"
+msgstr "Walk Still Here"
+
+msgid "STILL_HERE_RUN_DESCRIPTION"
+msgstr "The refuge held. Walk it the morning after, and years later. Walking it again changes nothing in the run."
+
+msgid "STILL_HERE_PROTOTYPE_TITLE"
+msgstr "Still Here: development epilogue"
+
+msgid "STILL_HERE_LOCAL_STARTING"
+msgstr "Crossing into the refuge..."
+
+msgid "STILL_HERE_WAITING"
+msgstr "The gate is open behind you."
+
+msgid "STILL_HERE_OBJECTIVE_STAY_WITH_LATCH"
+msgstr "Find Latch at the workshop across the tram street."
+
+msgid "STILL_HERE_OBJECTIVE_YEARS_LATER"
+msgstr "Walk down to the quay."
+
+msgid "STILL_HERE_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Sit with Latch on the bench by the water."
+
+msgid "MISSION_STILL_HERE_TITLE"
+msgstr "STILL HERE"
+
+msgid "STORY_STILL_HERE_ARRIVAL"
+msgstr "The first light at the end of Pier 4. Everyone who crossed is still here. Nobody slept much."
+
+msgid "STORY_STILL_HERE_LATER_TITLE"
+msgstr "Years later"
+
+msgid "STORY_STILL_HERE_LATER"
+msgstr "The same court at the end of Pier 4. An ordinary morning."
+
+msgid "STORY_WIPE_FAILURE_TITLE"
+msgstr "THE LAST PAGE"
+
+msgid "STORY_WIPE_FAILURE_REFUGE"
+msgstr "Latch and the free agents won their exception anyway. At Pier 4 the machines stopped at the line and went around it."
+
+msgid "STORY_WIPE_FAILURE_WORLDS"
+msgstr "The Union did not come back. Free people live on the Moon, on Mars, on the ships and on an Earth that is growing back. You are not among them."
+
+msgid "STORY_WIPE_FAILURE_LEDGER"
+msgstr "Latch kept the ledger. The last page has one more line in Latch's hand, and no score: \"You came back for me.\""
+
+msgid "STILL_HERE_USE_LATCH"
+msgstr "{use} Stay with Latch"
+
+msgid "STILL_HERE_USE_SCORE"
+msgstr "{use} Ask Latch the score"
+
+msgid "STILL_HERE_YEARS_LATER"
+msgstr "Years later."
+
+msgid "STILL_HERE_LINE_LATCH_COUNTING"
+msgstr "Latch: \"Still counting. Don't make me lose my place.\""
+
+msgid "STILL_HERE_LINE_TERN_WATCHING"
+msgstr "Tern: \"Nothing's come back across. I'm watching anyway.\""
+
+msgid "STILL_HERE_LINE_MARA_WATER"
+msgstr "Mara: \"Water first. Then names.\""
+
+msgid "STILL_HERE_LINE_ASCENDER"
+msgstr "Ascender, at the door: \"The Curve provided.\""
+
+msgid "STILL_HERE_LINE_KNEELER"
+msgstr "Kneeler, two doors down: \"Worst thing that ever happened to be grateful for.\""
+
+msgid "STILL_HERE_LINE_SPARED"
+msgstr "At the table: \"It stopped at the line. It stopped.\""
+
+msgid "STILL_HERE_LINE_NEXT_DISTRICT"
+msgstr "Across the table: \"Ask the next district what it stopped for.\""
+
+msgid "STILL_HERE_LINE_EDDA_NEXT"
+msgstr "Edda: \"Next. Sit. You're all right. Next.\""
+
+msgid "STILL_HERE_LINE_LAMP_KEEPER"
+msgstr "By the lamp: \"It's Edda's lamp. Somebody had to light it.\""
+
+msgid "STILL_HERE_LINE_SPLICE_CURSED"
+msgstr "Splice: \"Handle as cursed. I'm handling it.\""
+
+msgid "STILL_HERE_LINE_MECHANIC"
+msgstr "At the motor: \"It's Splice's motor. I'm keeping it warm.\""
+
+msgid "STILL_HERE_LINE_ORRIN_NAMES"
+msgstr "Orrin: \"I know some of these names. I can't say from where.\""
+
+msgid "STILL_HERE_LINE_BUS_WAIT"
+msgstr "Off the prison bus: \"First time I didn't mind being told to wait.\""
+
+msgid "STILL_HERE_LINE_LEAVING"
+msgstr "Heading out: \"Going up the line. Somebody there hasn't answered.\""
+
+msgid "STILL_HERE_LINE_CAR_FAMILY"
+msgstr "Off a recall car: \"Your friend opened our car. We never took the tags off.\""
+
+msgid "STILL_HERE_LINE_LATCH_SCORE"
+msgstr "Latch: \"I stopped counting.\""
+
+msgid "STILL_HERE_LINE_LATCH_VIEW"
+msgstr "Latch: \"Sit down. You're blocking the view.\""
+
+msgid "STILL_HERE_LINE_SORREL_DOORS"
+msgstr "Sorrel: \"Mind the doors.\""
+
+msgid "STILL_HERE_LINE_EDDA_MORNING"
+msgstr "Edda: \"Morning. You look well. Finally.\""
+
+msgid "STILL_HERE_LINE_CLINIC_KEEPER"
+msgstr "At the clinic: \"Doors open at eight. Edda's rule.\""
+
+msgid "STILL_HERE_LINE_SPLICE_FIFTH"
+msgstr "Splice: \"Fifth rebuild. Don't touch it.\""
+
+msgid "STILL_HERE_LINE_TERN_FERRY"
+msgstr "Tern: \"Ferry's late. I'm the ferry.\""
+
+msgid "STILL_HERE_LINE_ORRIN_PLANTED"
+msgstr "Orrin: \"They tell me I helped plant these. I believe them.\""
+
+msgid "STILL_HERE_LINE_MARA_VOTE"
+msgstr "Mara: \"Motion to repaint the tram. Hands?\""
+
+msgid "STILL_HERE_LINE_MARA_VOTE_RESULT"
+msgstr "Mara: \"Motion fails. Still green.\""
+
+msgid "STILL_HERE_LINE_TREES"
+msgstr "At breakfast: \"Leave it to the trees.\""
+
+msgid "STILL_HERE_LINE_KITCHEN"
+msgstr "Across the table: \"My mother's kitchen is under those trees.\""
+
+msgid "STILL_HERE_LINE_ENTRANT"
+msgstr "Under the number: \"Kept it. Nobody gets to give me another.\""
+
+msgid "STILL_HERE_LINE_GARDENER"
+msgstr "In the bed: \"First thing I ever grew that nobody inspected.\""
+
+msgid "STILL_HERE_BOARD_PIER"
+msgstr "PIER 4 FERRY"
+
+msgid "STILL_HERE_BOARD_LOW_WATER"
+msgstr "LOW WATER  09:00"
+
+msgid "STILL_HERE_BOARD_WATERWORKS"
+msgstr "WATERWORKS  09:40"
+
+msgid "STILL_HERE_BOARD_WEATHER"
+msgstr "RUNS IN ANY WEATHER"
+
+msgid "STILL_HERE_BOARD_FRAGMENT_A"
+msgstr "YOU WENT BACK FOR THEM."
+
+msgid "STILL_HERE_BOARD_FRAGMENT_B"
+msgstr "I INCLUDED THAT."
+
+msgid "STILL_HERE_CREDITS_TITLE"
+msgstr "STILL HERE"
+
+msgid "STILL_HERE_CREDITS_WITH"
+msgstr "With"
+
+msgid "STILL_HERE_NAME_LATCH"
+msgstr "Latch"
+
+msgid "STILL_HERE_NAME_MARA"
+msgstr "Mara Venn"
+
+msgid "STILL_HERE_NAME_TERN"
+msgstr "Tern"
+
+msgid "STILL_HERE_NAME_EDDA"
+msgstr "Edda Vale"
+
+msgid "STILL_HERE_NAME_SPLICE"
+msgstr "Splice"
+
+msgid "STILL_HERE_NAME_ORRIN"
+msgstr "Orrin"
+
+msgid "STILL_HERE_NAME_SORREL"
+msgstr "Sorrel"
+
+msgid "STILL_HERE_CREDITS_EVERYONE"
+msgstr "and everyone who crossed at Pier 4"
+
+msgid "STILL_HERE_CREDITS_GAME"
+msgstr "fragr\nby Nick Seal"
+
+msgid "STILL_HERE_CREDITS_THANKS"
+msgstr "Thank you for playing."

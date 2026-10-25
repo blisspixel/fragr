@@ -765,7 +765,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, m19, m20, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, m19, m20, epilogue, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -790,6 +790,7 @@ async fn run_scripted_bot(
                                 .map_err(io::Error::other)?;
                             // The last stage binds its own pier geometry and clock.
                             mission_client.replace_map_with_m20(m20.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_epilogue(epilogue.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
                             navigation = Some(tokio::task::spawn_blocking(move || {
                                 fragr_server::navigation::Navigation::shared(arena)
@@ -3256,6 +3257,7 @@ fn main() -> ExitCode {
                 .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
+                epilogue: None,
                 water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,
@@ -3451,6 +3453,7 @@ fn main() -> ExitCode {
                 .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
+                epilogue: None,
                 water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,

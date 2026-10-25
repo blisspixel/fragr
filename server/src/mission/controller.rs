@@ -7,6 +7,7 @@ use crate::protocol::{
 };
 use crate::sim::PLAYER_FLOOR_Y;
 use uuid::Uuid;
+mod epilogue;
 mod m04;
 mod m05;
 mod m06;
@@ -27,6 +28,9 @@ mod m20;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
+    epilogue_map: Option<crate::protocol::EpilogueMapGeometry>,
+    epilogue_points: Option<[[f32; 3]; 2]>,
+    epilogue_pending: bool,
     m20_map: Option<crate::protocol::M20MapGeometry>,
     m20_point: Option<[f32; 3]>,
     m20_pending: bool,
@@ -428,6 +432,20 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.epilogue_map.is_some()
+            && mission.is_none()
+            && m02_objectives.is_none()
+            && map_id == 1021
+        {
+            self.epilogue_map = old.epilogue_map.clone();
+            self.epilogue_points = old.epilogue_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.epilogue_pending = true;
+        }
         if old.m20_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1020
         {
             self.m20_map = old.m20_map.clone();
@@ -590,7 +608,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::LocalException {
+        let map_matches = if state.id == MissionId::StillHere {
+            self.validate_epilogue_target(&state)?;
+            true
+        } else if state.id == MissionId::LocalException {
             self.validate_m20_target(tick, &state)?;
             true
         } else if state.id == MissionId::PlannedWorks {
@@ -690,6 +711,7 @@ impl MissionClient {
         self.m18_pending = false;
         self.m19_pending = false;
         self.m20_pending = false;
+        self.epilogue_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -798,7 +820,8 @@ impl MissionClient {
             && self.m17_map.is_none()
             && self.m18_map.is_none()
             && self.m19_map.is_none()
-            && self.m20_map.is_none())
+            && self.m20_map.is_none()
+            && self.epilogue_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -952,6 +975,11 @@ impl MissionClient {
                     append("m20/latch".into(), feet);
                 }
             }
+            if let Some(f) = &state.epilogue {
+                for person in &f.blocking {
+                    append(format!("epilogue/{}", person.id), person.feet);
+                }
+            }
             if let Some(f) = &state.m13 {
                 for (index, feet) in f.worker_feet.iter().enumerate() {
                     append(format!("m13/worker/{index}"), *feet);
@@ -999,9 +1027,17 @@ impl MissionClient {
             || self.m18_pending
             || self.m19_pending
             || self.m20_pending
+            || self.epilogue_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::StillHere)
+        {
+            return self.steer_epilogue(navigator, world, id, snapshot, action);
         }
         if self
             .state

@@ -19,7 +19,7 @@ generated Paver candidates are low four-legged sledges about 0.55 by 1.9 m,
 while the Paver fights in the ordinary 1.8 m fighter volume, so swapping one
 in through `PaverRig.MODEL_PATH` waits on a Paver-specific broad, low shot and
 contact volume or a candidate at the authored proportions. The night dressing
-(`m19_town_dressing.gd`: homes, lit and interrupted windows, survey marks, tanks, tram, rails, lamps, trench,
+(`low_water_dressing.gd`: homes, lit and interrupted windows, survey marks, tanks, tram, rails, lamps, trench,
 concourse and workshop) only follows exact authored solids;
 `client/qa/m19_static_review.gd` and `m19_live_review.gd` photograph it.
 Every hostile here is the Inheritance on the wire and on screen: Sweepers,

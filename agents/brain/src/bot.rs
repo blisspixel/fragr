@@ -923,7 +923,7 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, m20, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, m20, epilogue, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         carrier_defense.clear();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
@@ -976,6 +976,11 @@ pub async fn run_bot(
                         // The campaign's last stage binds its pier geometry and hold clock.
                         if let Err(error) = mission_client.replace_map_with_m20(m20.as_ref(), half_extent, &solids, presentation.as_ref()) {
                             session_error = Some(Error::Transport(format!("invalid M20 mission map: {error}")));
+                            break;
+                        }
+                        // The epilogue binds its two worlds and its walk.
+                        if let Err(error) = mission_client.replace_map_with_epilogue(epilogue.as_ref(), half_extent, &solids, presentation.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid Still Here mission map: {error}")));
                             break;
                         }
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1421,6 +1426,7 @@ mod tests {
         let id = Uuid::from_u128(1);
         let mut state = MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::RecallNotice,
             run: Some(CampaignRunState {
                 id: Uuid::from_u128(2),
@@ -1490,6 +1496,7 @@ mod tests {
         };
         let state = MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::RecallNotice,
             run: Some(run),
             rules: CampaignRules::new(CampaignDifficulty::Standard),
@@ -1631,6 +1638,7 @@ mod tests {
         let id = Uuid::from_u128(1);
         let state = MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::RecallNotice,
             run: Some(CampaignRunState {
                 id: Uuid::from_u128(2),
@@ -1757,6 +1765,7 @@ mod tests {
         assert_eq!(telemetry.enemy.as_ref().unwrap().name, "Exposed");
         let mission = MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::RecallNotice,
             run: None,
             rules: CampaignRules::default(),
@@ -1997,6 +2006,7 @@ mod tests {
         };
         let mut mission = MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::NoForwardingAddress,
             run: None,
             rules: CampaignRules::default(),

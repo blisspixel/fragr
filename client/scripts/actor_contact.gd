@@ -235,6 +235,15 @@ static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary], ar
 		for index: int in range(3):
 			if not _append_feet("m13/worker/%d" % index, workers[index], bodies):
 				return false
+	# Still Here: the people the server stands in the current world.
+	var epilogue: Variant = mission.get("epilogue")
+	if epilogue is Dictionary:
+		var rows: Variant = epilogue.get("blocking")
+		if not rows is Array or rows.size() > MAX_BODIES:
+			return false
+		for row: Variant in rows:
+			if not row is Dictionary or not _civilian_id(row.get("id")) or not _append_feet("epilogue/" + str(row["id"]), row.get("feet"), bodies):
+				return false
 	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary or mission.get("m11") is Dictionary or mission.get("m12") is Dictionary or mission.get("m13") is Dictionary:
 		for resident: Dictionary in residents:
 			var feet: Vector3 = resident["feet"]

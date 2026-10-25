@@ -158,6 +158,7 @@ impl GameState {
         };
         Some(MissionState {
             m20: None,
+            epilogue: None,
             id: MissionId::PersonsUnknown,
             run: run.solo.as_ref().map(|solo| solo.state),
             rules: run.rules,

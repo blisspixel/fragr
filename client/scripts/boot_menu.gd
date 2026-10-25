@@ -457,7 +457,18 @@ func _page_single() -> void:
 			mission.disabled = not can_start
 		"awaiting_mission":
 			var pending_mission: String = str(_local_match.run_preview.get("mission", ""))
-			if LocalMatch.MISSION_GAMEPLAY.has(pending_mission):
+			if pending_mission == LocalMatch.CAMPAIGN_COMPLETE:
+				# The campaign's survival result: the refuge held, and Still
+				# Here opens from it as often as the player likes. Walking it
+				# never spends, changes or replaces the run, so no continues
+				# are offered or counted here.
+				var walk: Button = _button(tr("STILL_HERE_WALK"), _start_campaign_resume)
+				walk.name = _saved_mission_button(LocalMatch.CAMPAIGN_COMPLETE)
+				walk.disabled = not can_start
+				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.CAMPAIGN_COMPLETE)}))
+				_saved_body_choice(_local_match.run_preview, false)
+				_label(tr("STILL_HERE_RUN_DESCRIPTION"))
+			elif LocalMatch.MISSION_GAMEPLAY.has(pending_mission):
 				var next: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
 				next.name = _saved_mission_button(pending_mission)
 				next.disabled = not can_start
@@ -465,10 +476,7 @@ func _page_single() -> void:
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview)
 			else:
-				# The campaign's survival result: the refuge held and Still Here is unlocked.
-				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.CAMPAIGN_COMPLETE)}))
-				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("M20_NEXT_PENDING"))
+				_label(tr("RUN_INCOMPATIBLE"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -538,12 +546,12 @@ func _page_practice() -> void:
 	var selector: OptionButton = OptionButton.new()
 	selector.name = "DevelopmentMission"
 	selector.custom_minimum_size.y = 46.0
-	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE", "M19_PROTOTYPE_TITLE", "M20_PROTOTYPE_TITLE"]:
+	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE", "M13_PROTOTYPE_TITLE", "M14_PROTOTYPE_TITLE", "M15_PROTOTYPE_TITLE", "M16_PROTOTYPE_TITLE", "M17_PROTOTYPE_TITLE", "M18_PROTOTYPE_TITLE", "M19_PROTOTYPE_TITLE", "M20_PROTOTYPE_TITLE", "STILL_HERE_PROTOTYPE_TITLE"]:
 		selector.add_item(tr(key))
 	selector.select(5)
 	_root.add_child(selector)
 	var launch: Button = _button(tr("M05_LAUNCH_PROTOTYPE"), func() -> void:
-		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]
+		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID]
 		_start_development(ids[selector.selected]))
 	launch.name = "LaunchDevelopmentMission"
 	launch.disabled = not can_start
@@ -605,6 +613,8 @@ func _saved_mission_title(mission_id: String) -> String:
 
 func _saved_mission_button(mission_id: String) -> String:
 	match mission_id:
+		LocalMatch.CAMPAIGN_COMPLETE:
+			return "StillHereSaved"
 		MissionState.M02_ID:
 			return "PersonsUnknownSaved"
 		MissionState.M03_ID:
@@ -720,7 +730,7 @@ func _start_development_m04() -> void:
 	_on_local_state_changed()
 
 func _start_development(mission_id: String) -> void:
-	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]:
+	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID]:
 		return
 	_launch_pending = true
 	_campaign_run_mode = ""
@@ -728,13 +738,24 @@ func _start_development(mission_id: String) -> void:
 	_local_match.start_mission("standard", "", mission_id)
 	_on_local_state_changed()
 
+## The saved run names a mission this build can open: a level to continue, or
+## the campaign's survival, which opens Still Here read-only. A saved step
+## never stands inside the epilogue.
+static func _resumable(preview: Dictionary) -> bool:
+	if preview.get("status") not in ["ready", "awaiting_mission"]:
+		return false
+	var mission_id: String = str(preview.get("mission", ""))
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID]:
+		return false
+	if preview["status"] == "awaiting_mission":
+		return mission_id != MissionState.ID
+	return mission_id != MissionState.STILL_HERE_ID
+
 func _start_campaign_resume() -> void:
 	var preview: Dictionary = _local_match.run_preview
-	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
+	if _launch_pending or not _resumable(preview):
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]):
-		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
 	_campaign_run_mode = "resume"
@@ -746,7 +767,7 @@ func _start_campaign_resume() -> void:
 static func _arrival_for_preview(preview: Dictionary) -> bool:
 	var mission_id: String = str(preview.get("mission", ""))
 	return preview.get("status") == "awaiting_mission" \
-		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] \
+		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID] \
 		and StoryScene.BEFORE_MISSION.has(mission_id)
 
 func _page_launch() -> void:
@@ -755,6 +776,8 @@ func _page_launch() -> void:
 		title = tr("M19_PROTOTYPE_TITLE")
 	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M20_ID:
 		title = tr("M20_PROTOTYPE_TITLE")
+	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.STILL_HERE_ID:
+		title = tr("STILL_HERE_PROTOTYPE_TITLE")
 	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M18_ID:
 		title = tr("M18_PROTOTYPE_TITLE")
 	elif _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M17_ID:
@@ -777,6 +800,8 @@ func _page_launch() -> void:
 		preparing = "M19_LOCAL_STARTING"
 	elif _local_match.mission == MissionState.M20_ID:
 		preparing = "M20_LOCAL_STARTING"
+	elif _local_match.mission == MissionState.STILL_HERE_ID:
+		preparing = "STILL_HERE_LOCAL_STARTING"
 	elif _local_match.mission == MissionState.M18_ID:
 		preparing = "M18_LOCAL_STARTING"
 	elif _local_match.mission == MissionState.M17_ID:

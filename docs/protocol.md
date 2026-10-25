@@ -18,7 +18,7 @@ and All Systems Normal 54. Passenger Manifest, Common Carrier and Planned
 Works require 55, which carries the untagged M08 outcome, the `unlinked` M10
 practice transit and connected Planned Works; the free-for-all Pistol start
 with `rules.start_kit` is the same contract 55. Local Exception requires 56,
-the highest this build speaks.
+and the Still Here epilogue requires 57, the highest this build speaks.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -3652,7 +3652,10 @@ people (`persons`, `edda`, `splice`, `orrin`, `sorrel`), the challenges
 Crew leave `working` only after the sluice crossing. The display lights only at
 the turn, the reprieve only on the authored tick, and Latch exists only after
 it. `persons` is 400 plus everyone the saved run freed (capped at 400 more); a
-development or shared room shows the base 400. Challenges never move
+development or shared room shows the base 400. The named people read the same
+receipts as Still Here's refuge, so one run shows the same faces at the pier
+and in the epilogue: `splice` requires actual M05 evacuation, not release
+alone. Challenges never move
 backwards within an attempt. Brief: Assisted needs the crew across, Standard
 adds a broken Surveyor mark, Severe adds a refuge line that never fell.
 
@@ -3717,5 +3720,61 @@ next_mission: "local_exception" }`) promotes into Local Exception with no
 continue refill, carrying every earlier receipt including `m18_outcome` and
 `m19_outcome`. Departure records the campaign's terminal survival as
 `AwaitingMission { completed_mission: local_exception, next_mission:
-"still_here" }`, which unlocks the epilogue; nothing promotes past it until
-Still Here exists, and `still_here` is not a mission identity.
+"still_here" }`, which unlocks the epilogue. Nothing promotes past it: the
+survival is the run's last step, and Still Here reads it without writing.
+
+### Still Here (capability 57)
+
+`still_here` is the conditional epilogue: map 1021, floor 57,
+`MapInfo.epilogue`. Humans, agents and spectators below 57 are refused before
+Welcome or MapInfo. Rules stay 4. It is a mission identity for readiness and
+`mission_ready`, but never a campaign stage: no run promotes into it, it keeps
+no run of its own (`MissionState.run` is absent), and it records no player
+result.
+
+The desktop child opens it only as `--local-mission still_here --run-mode
+resume` over a run directory whose saved step is the survival above. The run
+file is read without the writer lock and never written; any other saved step
+(a run still inside the wipe, or one that ran out of continues there or
+earlier), an incompatible file or no file refuses the launch, and the
+readiness line echoes the saved difficulty. A launch without a run mode is the
+development walk with nobody carried. `RunPreview` reports `incompatible` for a
+`still_here` destination, since there is nothing to resume into.
+
+`MapInfo.epilogue` holds the `latch` ledger Use target (decoration kind
+`epilogue_ledger`), the `arrival` region and its `arrival_feet`, the bench
+`departure` Use target (`epilogue_bench`), `later_spawn` and `later_yaw`,
+`ferry_board` (an index into the presentation decorations whose kind is
+`epilogue_ferry_board`), up to 120 `people`, the solid indices that stand only
+in one world (`aftermath_only`, `later_only`, at most 32 each and never under a
+decoration) and `later`. A person is `{id, stage, feet, yaw, pose}` with
+optional `requires` or `unless`, one of the survivors `cars`, `edda`,
+`splice`, `orrin`, `sorrel`, `entrants` or `bus`; `stage` is `aftermath` or `later` and
+`pose` is `stand`, `sit`, `child`, `work`, `perch` or `lie`. An id appears
+once per stage. The world turns once: a new MapInfo with `later: true`, the
+name `Still Here, years later`, the same solid count and order, and each
+world's own solids moved outside the square. Readers accept only that one
+transition.
+
+`MissionState.epilogue` carries the exact completed prefix of
+`stay_with_latch` (Use the ledger) and `years_later` (arrive on the quay), then
+`party_departed` (Use the bench), with `current` until departure; `refuge`, the
+seven survivor flags the saved run carried (`cars` when level 3 opened any
+recall car, `edda` when level 4 rescued the clinic's patients, `splice` when
+Splice reached the level 5 freight, `orrin` when level 8 secured the backup,
+`sorrel` when level 11 released the transfer hold, `entrants` when an armed
+level 15 entrant did not fall, `bus` when level 16 freed the prison bus);
+optional `turning_at`, the tick the
+ledger was used; `later`; and `blocking`, every present person whose pose is not
+`perch` or `lie` as `{id, feet}` in authored order. A person is present when
+its stage is the current world's, its `requires` survivor is carried and its
+`unless` survivor is not. The world turns 80 ticks after `turning_at` and every
+party member stands at a slot beside `later_spawn`; `later` must agree with the
+MapInfo. `blocking` people are civilian contact bodies keyed `epilogue/<id>`.
+Prompts appear only for the ledger before the turn and the bench after the
+arrival, then a fresh Use departs. Nothing in the refuge is hostile, and
+nothing after the ledger can revoke the ending.
+
+Decoration kinds `epilogue_ledger`, `epilogue_bench`, `epilogue_ferry_board`,
+`epilogue_missing_board`, `epilogue_tram_stop` and `epilogue_clinic_sign` are
+valid only with `MapInfo.epilogue`.

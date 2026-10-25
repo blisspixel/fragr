@@ -21,6 +21,8 @@ const M18_ID: String = "all_systems_normal"
 const M19_ID: String = "planned_works"
 const M12_ID: String = "terms_of_cooperation"
 const M20_ID: String = "local_exception"
+## The survival-gated epilogue: not a campaign stage, no continues, no save.
+const STILL_HERE_ID: String = "still_here"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
 ## Records keep their earned revision; current live facts require revision 4.
@@ -32,6 +34,8 @@ const ORDERED_IDS: Array[String] = [M03_ID, M04_ID, M05_ID, M06_ID, M07_ID, M08_
 
 ## Identity of an already validated MapInfo. Shared by entry and live controls.
 static func id_for_map(info: Dictionary) -> String:
+	if info.get("epilogue") is Dictionary:
+		return STILL_HERE_ID
 	if info.get("m20") is Dictionary:
 		return M20_ID
 	if info.get("mission") is Dictionary:
@@ -123,6 +127,8 @@ static func late_contract_error(message: Dictionary, geometry: Dictionary, previ
 	return ""
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("epilogue"):
+		return EpilogueMissionState.map_error(info)
 	if info.has("m19"):
 		return M19MissionState.map_error(info)
 	if info.has("m20"):
@@ -201,6 +207,8 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == STILL_HERE_ID or (claimed is Dictionary and claimed.get("id") == STILL_HERE_ID):
+		return EpilogueMissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M19_ID or (claimed is Dictionary and claimed.get("id") == M19_ID):
 		return M19MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M20_ID or (claimed is Dictionary and claimed.get("id") == M20_ID):
@@ -369,6 +377,8 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("epilogue"):
+		return EpilogueMissionState.geometry_for(info)
 	if info.has("m19"):
 		return M19MissionState.geometry_for(info)
 	if info.has("m20"):

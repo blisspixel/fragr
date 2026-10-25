@@ -27,5 +27,5 @@ static func apply(view: LatchView) -> void:
 	source._two_bone(skeleton, "LeftArm", "LeftForeArm", "LeftHand", Vector3(26, 14, -10), Vector3(60, 60, -20))
 	# The same head-following placement LatchView gives its screen and optics.
 	var head_delta: Transform3D = source.bone_delta(body, "Head")
-	view._screen.transform = head_delta * Transform3D(Basis.IDENTITY, Vector3(0, 1.55, 0.148))
+	view._screen.transform = head_delta * Transform3D(Basis.IDENTITY, LatchView.SCREEN_OFFSET)
 	view._eyes.transform = view._screen.transform * Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.004))

@@ -8,7 +8,7 @@ extends Control
 const STAGE_SECONDS: float = 8.0
 ## Horizontal metres from an approach. Farther than this, the panel stays quiet.
 const NOTICE_RANGE: float = 4.0
-const PROGRESS_KEYS: Array[String] = ["m02", "m03", "m04", "m05", "m06", "m07", "m08", "m09", "m10", "m11", "m12", "m13", "m14", "m15", "m16", "m17", "m18", "m19", "m20"]
+const PROGRESS_KEYS: Array[String] = ["m02", "m03", "m04", "m05", "m06", "m07", "m08", "m09", "m10", "m11", "m12", "m13", "m14", "m15", "m16", "m17", "m18", "m19", "m20", "epilogue"]
 const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
 const M02_USES: Array[String] = ["companion_released"]
 signal notice_requested(text: String)
@@ -59,6 +59,8 @@ var _evac_wanted: bool = false
 var _evac_seen: String = ""
 var _status_left: float = 0.0
 var _run_onward: bool = false
+## Set by the game once the wipe's other ending will play for this run.
+var wipe_ending: bool = false
 
 func event_cover_regions() -> Array[Rect2]:
 	var regions: Array[Rect2] = []
@@ -166,6 +168,8 @@ func _look_hint() -> String:
 		if not is_finite(float(point[0])) or not is_finite(float(point[2])):
 			continue
 		if Vector2(feet.x - float(point[0]), feet.z - float(point[2])).length() <= NOTICE_RANGE:
+			if state.get("id") == MissionState.STILL_HERE_ID and state.get("epilogue") is Dictionary:
+				return _catalog("STILL_HERE_LOOK_LEDGER" if state["epilogue"]["completed"].is_empty() else "STILL_HERE_LOOK_BENCH")
 			return _catalog("USE_AIM_PANEL")
 	return ""
 
@@ -474,6 +478,9 @@ func _refresh_content() -> void:
 	if state.get("id") == MissionState.M11_ID:
 		_refresh_m11()
 		return
+	if state.get("id") == MissionState.STILL_HERE_ID:
+		_refresh_still_here()
+		return
 	if state.get("id") == MissionState.M20_ID:
 		_refresh_m20()
 		return
@@ -550,7 +557,10 @@ func _refresh_content() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID]:
+	# Still Here says nothing while the world turns or once it has ended.
+	if state.get("id") == MissionState.STILL_HERE_ID and (_copy == null or _copy.text.is_empty()):
+		return false
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -568,14 +578,23 @@ func set_run_onward(available: bool) -> void:
 	_run_onward = available
 	_refresh()
 
+## The wipe's other ending owns the screen once a durable run has run out of
+## continues in levels 18 to 20: the fall holds without the generic run-over
+## card, which would send the player to the menu before the ending's pages.
+func set_wipe_ending(enabled: bool) -> void:
+	if enabled == wipe_ending:
+		return
+	wipe_ending = enabled
+	_refresh()
+
 ## M01 restages the card on a phase change. M02 stays `in_progress`, so its
 ## card restages on each new objective and on a retry.
 static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	var progress_key: String = "m20" if value.get("id") == MissionState.M20_ID else "m19" if value.get("id") == MissionState.M19_ID else "m18" if value.get("id") == MissionState.M18_ID else ("m17" if value.get("id") == MissionState.M17_ID else ("m16" if value.get("id") == MissionState.M16_ID else ("m15" if value.get("id") == MissionState.M15_ID else ("m14" if value.get("id") == MissionState.M14_ID else ("m13" if value.get("id") == MissionState.M13_ID else ("m12" if value.get("id") == MissionState.M12_ID else ("m11" if value.get("id") == MissionState.M11_ID else ("m10" if value.get("id") == MissionState.M10_ID else ("m09" if value.get("id") == MissionState.M09_ID else ("m07" if value.get("id") == MissionState.M07_ID else ("m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04")))))))))))))
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] and value.get(progress_key) is Dictionary:
+	var progress_key: String = "epilogue" if value.get("id") == MissionState.STILL_HERE_ID else "m20" if value.get("id") == MissionState.M20_ID else "m19" if value.get("id") == MissionState.M19_ID else "m18" if value.get("id") == MissionState.M18_ID else ("m17" if value.get("id") == MissionState.M17_ID else ("m16" if value.get("id") == MissionState.M16_ID else ("m15" if value.get("id") == MissionState.M15_ID else ("m14" if value.get("id") == MissionState.M14_ID else ("m13" if value.get("id") == MissionState.M13_ID else ("m12" if value.get("id") == MissionState.M12_ID else ("m11" if value.get("id") == MissionState.M11_ID else ("m10" if value.get("id") == MissionState.M10_ID else ("m09" if value.get("id") == MissionState.M09_ID else ("m07" if value.get("id") == MissionState.M07_ID else ("m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04")))))))))))))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, MissionState.STILL_HERE_ID] and value.get(progress_key) is Dictionary:
 		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
@@ -682,7 +701,7 @@ func _refresh_m04() -> void:
 	_card.visible = _stage_card_visible()
 
 func _refresh_run_recovery(run: Dictionary) -> void:
-	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"]
+	_recovery.visible = run["status"] in ["continue", "failed", "abandoned"] and not (wipe_ending and run["status"] == "failed")
 	if not _recovery.visible:
 		_show_recovery("")
 		return
@@ -1040,6 +1059,25 @@ func _m17_use_label(progress: Dictionary) -> String:
 			nearest = distance
 			label = _catalog(targets[target])
 	return label
+
+## Still Here: one quiet line, no run badge, no tally. While the world turns
+## the card says nothing; the ending leaves the screen to the coda.
+func _refresh_still_here() -> void:
+	_recovery.visible = false
+	_run_badge.visible = false
+	_evac_badge.visible = false
+	var progress: Dictionary = state["epilogue"]
+	var turning: bool = progress.get("turning_at") != null and not progress["later"]
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("STILL_HERE_WAITING")
+		"departed": _copy.text = ""
+		_: _copy.text = "" if turning else InputGlyphs.plain(_catalog("STILL_HERE_OBJECTIVE_" + str(progress["current"]["id"]).to_upper()))
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("STILL_HERE_USE_LATCH" if progress["completed"].is_empty() else "STILL_HERE_USE_SCORE")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible() and not _copy.text.is_empty()
 
 func _refresh_m20() -> void:
 	_recovery.visible = false

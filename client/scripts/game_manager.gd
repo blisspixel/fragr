@@ -132,6 +132,19 @@ var m17_office: M17Office
 var m18_transit: M18Transit
 var m19_works: M19Works
 var m20_waterworks: M20Waterworks
+## Still Here: the refuge in two worlds, the cover and page between them and
+## the ending.
+var still_here: StillHereRefuge
+var still_here_turn: StillHereTurn
+var still_here_page: ScenePlayer
+var still_here_coda: StillHereCoda
+## The wipe's other ending, for a durable run out of continues in levels 18
+## to 20: its pages, then the same fragment, anomaly and credits.
+var wipe_failure_page: ScenePlayer
+var wipe_failure_coda: StillHereCoda
+var _wipe_failure_started: bool = false
+## Seconds the fall stays on screen before the ending's pages open.
+const WIPE_FAILURE_DELAY: float = 3.0
 var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
@@ -445,6 +458,12 @@ func _ready():
 	m20_waterworks.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m20_waterworks)
+	still_here = StillHereRefuge.new()
+	still_here.name = "StillHereRefuge"
+	still_here.solids_hidden.connect(func(indices: Array[int]) -> void:
+		if arena_cover != null:
+			arena_cover.hide_solid_views(indices))
+	add_child(still_here)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -608,6 +627,7 @@ func _on_map_info(info: Dictionary) -> void:
 		show_loading_card()
 	if pause_menu != null:
 		pause_menu.development_mission = not mission_id.is_empty() and mission_id != MissionState.ID and local_match != null and not local_match.has_durable_run()
+		pause_menu.epilogue = mission_id == MissionState.STILL_HERE_ID
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -654,6 +674,14 @@ func _on_map_info(info: Dictionary) -> void:
 		m19_works.configure_map(info)
 	if m20_waterworks != null:
 		m20_waterworks.configure_map(info)
+	if still_here != null:
+		still_here.configure_map(info)
+		# The refuge is a walk: no weapon, no vitals, no radio.
+		hud.set_walk_only(mission_id == MissionState.STILL_HERE_ID)
+		if mission_id == MissionState.STILL_HERE_ID and hud.has_method("hide_radio"):
+			hud.hide_radio()
+		if is_instance_valid(still_here_turn) and info.get("epilogue") is Dictionary and info["epilogue"].get("later") == true:
+			still_here_turn.world_turned()
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -735,6 +763,9 @@ func controls_blocked() -> bool:
 	if loading != null and loading.visible:
 		return true
 	if is_instance_valid(departure_review):
+		return true
+	if is_instance_valid(still_here_turn) or is_instance_valid(still_here_page) or is_instance_valid(still_here_coda) \
+		or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda):
 		return true
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
 
@@ -1085,7 +1116,7 @@ func _setup_host_voice() -> void:
 		host_voice.spoke.connect(func(seconds: float) -> void: radio.duck(seconds))
 
 func _venue_quiets_radio() -> bool:
-	return m01_intake != null and m01_intake.active()
+	return (m01_intake != null and m01_intake.active()) or (still_here != null and not still_here.geometry.is_empty())
 
 func _resolve_boot() -> Dictionary:
 	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
@@ -1795,9 +1826,12 @@ func end_ack_probe() -> Dictionary:
 
 
 func _process(_delta):
+	if still_here != null:
+		still_here.hearing = is_human_player and camera != null and bool(camera.get("fp_mode")) and not controls_blocked()
 	if radio != null:
 		# A story scene owns the music; the station resumes where it paused.
-		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude))
+		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude) or (still_here != null and not still_here.geometry.is_empty()) \
+			or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda))
 	_arm_continue()
 	_arm_onward()
 	if _opening_release and _opening_input_released():
@@ -2219,12 +2253,114 @@ func _on_mission_received(state: Dictionary) -> void:
 		m19_works.apply_state(state)
 	if m20_waterworks != null:
 		m20_waterworks.apply_state(state)
+	if still_here != null:
+		still_here.apply_state(state)
+		_present_still_here(state)
+	_present_wipe_failure(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
 	_try_campaign_results()
+
+## The card while the world turns, and the ending once Latch is asked the
+## score. Presentation for the human at this client; the server has already
+## turned the world or ended the epilogue.
+func _present_still_here(state: Dictionary) -> void:
+	if not is_human_player or state.get("id") != MissionState.STILL_HERE_ID or not state.get("epilogue") is Dictionary:
+		return
+	var facts: Dictionary = state["epilogue"]
+	if facts.get("turning_at") != null and not facts["later"] and not is_instance_valid(still_here_turn):
+		still_here_turn = StillHereTurn.new()
+		still_here_turn.name = "StillHereTurn"
+		still_here_turn.finished.connect(func() -> void: still_here_turn = null)
+		still_here_turn.covered.connect(_open_years_later)
+		add_child(still_here_turn)
+		_clear_story_input()
+	if state.get("phase") == "departed" and not is_instance_valid(still_here_coda):
+		still_here_coda = StillHereCoda.new()
+		still_here_coda.name = "StillHereCoda"
+		still_here_coda.refuge = still_here
+		still_here_coda.camera = camera
+		still_here_coda.finished.connect(_on_still_here_finished)
+		add_child(still_here_coda)
+		_clear_story_input()
+
+## Once the court has gone dark, the page that says time has passed opens
+## over the cover. The cover lifts after the reader is done and the server's
+## later world is in place; without a page the cover says it alone.
+func _open_years_later() -> void:
+	if not is_instance_valid(still_here_turn) or is_instance_valid(still_here_page):
+		return
+	var manifest: Dictionary = StoryScene.load_scene(StoryScene.STILL_HERE_LATER)
+	if manifest.is_empty():
+		return
+	still_here_page = ScenePlayer.new(manifest)
+	still_here_page.name = "StillHereLater"
+	still_here_page.completed.connect(_on_years_later_read)
+	add_child(still_here_page)
+	still_here_turn.page_opened()
+
+func _on_years_later_read() -> void:
+	if is_instance_valid(still_here_page):
+		still_here_page.queue_free()
+	still_here_page = null
+	if is_instance_valid(still_here_turn):
+		still_here_turn.page_closed()
+	_clear_story_input()
+
+## The wipe's other ending. A durable run that runs out of continues in
+## levels 18 to 20 ends here: once the server has failed the run and the fall
+## has had a moment on screen, the pages say what became of everyone else,
+## then the same fragment, anomaly and credits close it. It never opens Still
+## Here and never claims the player reached that future.
+func _present_wipe_failure(state: Dictionary) -> void:
+	if _wipe_failure_started or not is_human_player or local_match == null or not local_match.has_durable_run():
+		return
+	if str(state.get("id", "")) not in StoryScene.WIPE_LEVELS:
+		return
+	var run: Variant = state.get("run")
+	if not run is Dictionary or run.get("status") != "failed":
+		return
+	_wipe_failure_started = true
+	# The fall holds on its own: no run-over card offers the menu first.
+	if mission_hud != null:
+		mission_hud.set_wipe_ending(true)
+	if is_inside_tree():
+		get_tree().create_timer(WIPE_FAILURE_DELAY).timeout.connect(_open_wipe_failure)
+
+func _open_wipe_failure() -> void:
+	if not is_inside_tree() or _leaving or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda):
+		return
+	var manifest: Dictionary = StoryScene.load_scene(StoryScene.WIPE_FAILURE)
+	if manifest.is_empty():
+		_close_wipe_failure_pages()
+		return
+	wipe_failure_page = ScenePlayer.new(manifest)
+	wipe_failure_page.name = "WipeFailure"
+	wipe_failure_page.completed.connect(_close_wipe_failure_pages)
+	add_child(wipe_failure_page)
+
+func _close_wipe_failure_pages() -> void:
+	if is_instance_valid(wipe_failure_page):
+		wipe_failure_page.queue_free()
+	wipe_failure_page = null
+	_clear_story_input()
+	if is_instance_valid(wipe_failure_coda):
+		return
+	wipe_failure_coda = StillHereCoda.new()
+	wipe_failure_coda.name = "WipeFailureCoda"
+	wipe_failure_coda.ending = StillHereCoda.EXHAUSTION
+	wipe_failure_coda.finished.connect(_on_still_here_finished)
+	add_child(wipe_failure_coda)
+
+## The credits are done: back to the menu, where the run's saved result
+## stays, whichever ending this was.
+func _on_still_here_finished() -> void:
+	if get_tree().has_meta("fragr_automated"):
+		return
+	_on_leave_requested()
 
 func _m05_departure_available() -> bool:
 	var value: Dictionary = net_client.mission.get("state", {})
@@ -2298,6 +2434,9 @@ func _on_interlude_completed() -> void:
 
 func _try_campaign_results() -> void:
 	if not is_human_player or local_match == null or net_client == null or _leaving or is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(campaign_results):
+		return
+	# The epilogue ends in its own coda, never a tally.
+	if net_client.mission.get("state", {}).get("id") == MissionState.STILL_HERE_ID:
 		return
 	var result: Dictionary = CampaignResult.select(net_client.record, net_client.mission.get("state", {}), net_client.player_id)
 	if result.is_empty() or _results_played.has(result["key"]):
@@ -2617,6 +2756,17 @@ func _clear_world() -> void:
 		m19_works.clear_map()
 	if m20_waterworks != null:
 		m20_waterworks.clear_map()
+	if still_here != null:
+		still_here.clear_map()
+		hud.set_walk_only(false)
+	for card: CanvasLayer in [still_here_turn, still_here_page, still_here_coda, wipe_failure_page, wipe_failure_coda]:
+		if is_instance_valid(card):
+			card.queue_free()
+	still_here_turn = null
+	still_here_page = null
+	still_here_coda = null
+	wipe_failure_page = null
+	wipe_failure_coda = null
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.set_campaign(false)

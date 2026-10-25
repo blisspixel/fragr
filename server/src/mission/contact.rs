@@ -160,6 +160,7 @@ impl GameState {
             }
         }
         self.append_m20_contacts(bodies);
+        self.append_epilogue_contacts(bodies);
     }
 }
 

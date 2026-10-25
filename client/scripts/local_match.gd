@@ -18,7 +18,7 @@ const DURABLE_GAMEPLAY: int = 43
 const M02_GAMEPLAY: int = 43
 const M03_GAMEPLAY: int = 43
 const M04_GAMEPLAY: int = 43
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY, "terms_of_cooperation": 44, "weight_of_permission": 47, "launch_authority": 49, "civic_pressure_valve": 51, "freedom_of_movement": 52, "peace_without_interruption": 53, "all_systems_normal": 54, "planned_works": 55, "local_exception": 56}
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY, "terms_of_cooperation": 44, "weight_of_permission": 47, "launch_authority": 49, "civic_pressure_valve": 51, "freedom_of_movement": 52, "peace_without_interruption": 53, "all_systems_normal": 54, "planned_works": 55, "local_exception": 56, "still_here": 57}
 const M05_GAMEPLAY: int = 43
 const M06_GAMEPLAY: int = 43
 const M07_GAMEPLAY: int = 43
@@ -26,8 +26,9 @@ const M08_GAMEPLAY: int = 43
 const M09_GAMEPLAY: int = 55
 const M10_GAMEPLAY: int = 55
 const M11_GAMEPLAY: int = 43
-## The completed campaign's pending destination: the survival-gated epilogue.
-const CAMPAIGN_COMPLETE: String = "still_here"
+## The completed campaign's destination: the survival-gated epilogue, opened
+## read-only from the saved survival, as often as the player likes.
+const CAMPAIGN_COMPLETE: String = MissionState.STILL_HERE_ID
 
 var state: State = State.IDLE
 var url: String = ""

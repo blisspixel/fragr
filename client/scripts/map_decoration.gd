@@ -22,7 +22,8 @@ const KINDS: Array[String] = ["property_sign", "intake_sign", "records_sign",
 	"m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m10_cargo_deck", "m10_passenger_deck", "m10_command_deck", "m11_transfer_release", "m11_records_document", "m11_stern_release",
 	"m19_stores_counter", "m19_stores_sign", "m19_concourse_board", "m19_planned_works", "m19_clinic_dark", "m19_tram_vote", "m19_floating_67", "m19_market_board", "m19_market_six", "m19_water_tank", "m19_service_six", "m19_waterworks",
 	"m20_crossing_control", "m20_harbour_display", "m20_valve_six", "m20_lamp_six", "m20_crane_six",
-	"m20_refuge_notice", "m20_pump_board", "m20_tower_bridge"]
+	"m20_refuge_notice", "m20_pump_board", "m20_tower_bridge",
+	"epilogue_ledger", "epilogue_bench", "epilogue_ferry_board", "epilogue_missing_board", "epilogue_tram_stop", "epilogue_clinic_sign"]
 const FACES: Array[String] = ["west", "east", "down", "up", "north", "south"]
 const OFFSET: float = 0.012
 

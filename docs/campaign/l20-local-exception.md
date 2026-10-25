@@ -9,7 +9,7 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 review on 2026-10-24 (issue #430; capability 56, map 1020,
 [protocol](../protocol.md#local-exception-and-surveyor-marks-capability-56)).
 A completed Planned Works promotes into it without a refill; surviving it
-records the campaign's survival and leaves Still Here pending. Every hostile
+records the campaign's survival, which opens [Still Here](epilogue-still-here.md). Every hostile
 body is the Inheritance on the wire: Surveyors and Pavers are restoration
 machines and every bot is absorbed. The first Surveyor teaches alone; one
 absorbed Sweeper follows once its first disc ends. A Paver stripes the

@@ -116,9 +116,17 @@ func _check_live_wiring() -> void:
 	_check(live._eyes == optics and optics.material_override == clipped and clipped is ShaderMaterial
 		and live.find_children("*", "MeshInstance3D", true, false).size() == count,
 		"face transitions reuse the exact live near-clip material/node and bounded mesh count")
-	_check(live._screen.transform.is_equal_approx(live._source.bone_delta(live._source_body, "Head") * Transform3D(Basis.IDENTITY, Vector3(0, 1.55, 0.148)))
+	_check(live._screen.transform.is_equal_approx(live._source.bone_delta(live._source_body, "Head") * Transform3D(Basis.IDENTITY, LatchView.SCREEN_OFFSET))
 		and optics.transform.is_equal_approx(live._screen.transform * Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.004)))
 		and optics.scale.is_equal_approx(Vector3.ONE), "face follows the actual head transform without optical compression")
+	# The painted display is the head's front face, about 0.08 m forward; the
+	# optics sit just proud of it instead of floating clear of the head.
+	_check(LatchView.SCREEN_OFFSET.z > 0.08 and LatchView.SCREEN_OFFSET.z < 0.095, "the optics sit on the display, not in front of the head")
+	# A still scene can hold an expression; an unknown name changes nothing.
+	live.set_expression("focused")
+	_check(live.face.state == "focused" and optics.mesh == LatchFace.mesh("focused"), "a scene holds Latch's focused face")
+	live.set_expression("smirk")
+	_check(live.face.state == "focused", "an unknown expression keeps the current face")
 	live.set_near_camera_clip(false)
 	_check(optics.material_override == live._ward_materials[optics], "face transitions preserve exact material restoration")
 	live.set_weapon_visible(false)
