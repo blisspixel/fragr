@@ -14,7 +14,10 @@ func _run() -> void:
 	# Canon: muzzle light is warm or near-white, never Union red or
 	# Inheritance cyan, and blades and fists make none.
 	for weapon: String in ViewLight.FLASHES:
-		var colour: Color = ViewLight.FLASHES[weapon]["colour"]
+		var shot: String = ViewLight.FLASHES[weapon]["shot"]
+		_check(ShotVfx.MUZZLE_LOOK.has(shot), "%s has no row in the shared muzzle table" % weapon)
+		var colour: Color = ViewLight.flash_colour(weapon)
+		_check(colour == ShotVfx.muzzle_light(shot), "%s first-person light leaves the shared muzzle table" % weapon)
 		var hue: float = colour.h * 360.0
 		var red: bool = colour.s > 0.35 and (hue >= 340.0 or hue <= 20.0)
 		var cyan: bool = colour.s > 0.15 and hue >= 160.0 and hue <= 220.0
@@ -45,7 +48,7 @@ func _run() -> void:
 	_check(ViewLight.flash(camera, "Tack", FragrSettings.FLASHES_FULL), "the Pistol lights its muzzle")
 	var full: float = muzzle.light_energy if muzzle != null else 0.0
 	_check(muzzle != null and muzzle.visible and is_equal_approx(full, float(ViewLight.FLASHES["tack"]["energy"])), "Full flashes fire at the gun's peak")
-	_check(muzzle != null and muzzle.light_color == ViewLight.FLASHES["tack"]["colour"], "the light takes the gun's colour")
+	_check(muzzle != null and muzzle.light_color == ViewLight.flash_colour("Tack"), "the light takes the gun's colour")
 	view._process(0.0)
 	_check(view.flash_energy() > 0.0, "a fresh shot reports its energy to the gun sample")
 	view._process(0.03)

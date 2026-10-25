@@ -25,20 +25,24 @@ const MUZZLE_OFFSET: Vector3 = Vector3(0.18, -0.22, -0.8)
 ## Where the held gun sits, for the measurement.
 const GUN_OFFSET: Vector3 = Vector3(0.15, -0.25, -0.45)
 
-## Per gun: colour, peak energy, reach in metres and how long the pulse lasts.
-## Warm amber to warm white for powder, a near-white for the Rail's
-## accelerator. Never red (the Union's attack tell) and never cyan (the
-## Inheritance's working light). Fast guns burn dimmer so a held trigger is a
-## flicker on the floor, not a strobe. Blades and fists make no light.
+## Per gun: the wire name whose colour it lights, peak energy, reach in
+## metres and how long the pulse lasts. The colour comes from the
+## third-person table (`ShotVfx.muzzle_light`), so one table lights both
+## views: warm amber to warm white for powder, a near-white for the Rail's
+## accelerator, never red (the Union's attack tell) and never cyan (the
+## Inheritance's working light). The first-person pulse is stronger and
+## reaches further, because it has to light the floor ahead from behind the
+## gun. Fast guns burn dimmer so a held trigger is a flicker on the floor,
+## not a strobe. Blades and fists make no light.
 const FLASHES: Dictionary[String, Dictionary] = {
-	"tack": {"colour": Color("ffc27a"), "energy": 4.0, "range": 7.0, "seconds": 0.07},
-	"flechette": {"colour": Color("ffcd88"), "energy": 3.0, "range": 6.5, "seconds": 0.05},
-	"repeater": {"colour": Color("ffc98a"), "energy": 2.2, "range": 6.0, "seconds": 0.04},
-	"scatter": {"colour": Color("ffa255"), "energy": 6.0, "range": 9.5, "seconds": 0.09},
-	"sniper": {"colour": Color("ffd6a0"), "energy": 4.5, "range": 8.0, "seconds": 0.06},
-	"rocket": {"colour": Color("ffb066"), "energy": 5.0, "range": 9.0, "seconds": 0.12},
-	"rail": {"colour": Color("eef1ee"), "energy": 5.0, "range": 10.0, "seconds": 0.12},
-	"arc": {"colour": Color("fff0c4"), "energy": 2.6, "range": 6.5, "seconds": 0.05},
+	"tack": {"shot": "Tack", "energy": 4.0, "range": 7.0, "seconds": 0.07},
+	"flechette": {"shot": "Flechette", "energy": 3.0, "range": 6.5, "seconds": 0.05},
+	"repeater": {"shot": "Repeater", "energy": 2.2, "range": 6.0, "seconds": 0.04},
+	"scatter": {"shot": "Scatter", "energy": 6.0, "range": 9.5, "seconds": 0.09},
+	"sniper": {"shot": "Sniper", "energy": 4.5, "range": 8.0, "seconds": 0.06},
+	"rocket": {"shot": "Rocket", "energy": 5.0, "range": 9.0, "seconds": 0.12},
+	"rail": {"shot": "Rail", "energy": 5.0, "range": 10.0, "seconds": 0.12},
+	"arc": {"shot": "Arc", "energy": 2.6, "range": 6.5, "seconds": 0.05},
 }
 ## Accessibility "screen flashes": Full, Reduced, Off (FragrSettings order).
 ## The muzzle light changes the whole near view, so it follows that choice.
@@ -121,6 +125,14 @@ static func sample(camera: Camera3D) -> Color:
 
 static func weapon_key(weapon: String) -> String:
 	return weapon.strip_edges().to_lower().replace(" ", "_")
+
+## The colour a gun's first-person pulse lights, from the shared muzzle
+## table; white for a weapon that makes no light.
+static func flash_colour(weapon: String) -> Color:
+	var spec: Variant = FLASHES.get(weapon_key(weapon))
+	if not spec is Dictionary:
+		return Color.WHITE
+	return ShotVfx.muzzle_light(String(spec["shot"]))
 
 ## Incident light as a modulate. Pure, so the harness can pin the mapping.
 static func tint_for(incident: Color) -> Color:
@@ -237,7 +249,7 @@ func fire(weapon: String, flashes: int = 0) -> bool:
 	var scale: float = FLASH_SCALE[clampi(flashes, 0, FLASH_SCALE.size() - 1)]
 	if not spec is Dictionary or scale <= 0.0:
 		return false
-	_flash_colour = spec["colour"]
+	_flash_colour = flash_colour(weapon)
 	_flash_peak = float(spec["energy"]) * scale
 	_flash_seconds = float(spec["seconds"])
 	_flash_left = _flash_seconds

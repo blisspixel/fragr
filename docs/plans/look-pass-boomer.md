@@ -186,10 +186,11 @@ Presentation only; no server, wire or map data changes.
   the same receipt as the viewmodel kick (`game_manager.gd`
   `_show_fire_juice`: the local predicted shot, or the followed fighter's
   resolved one in first-person spectating) and goes out with a rejected
-  speculative shot. One colour, energy, reach and life per gun in
-  `ViewLight.FLASHES`: warm amber to warm white, a near-white for the Rail,
-  never red or cyan; fast guns burn dimmer so a held trigger flickers rather
-  than strobes; blades and fists make none. No shadow map. It follows the
+  speculative shot. One energy, reach and life per gun in
+  `ViewLight.FLASHES`, coloured from `ShotVfx.MUZZLE_LOOK`, the table that
+  also lights the third-person flash: warm amber to warm white, a near-white
+  for the Rail, never red or cyan; fast guns burn dimmer so a held trigger
+  flickers rather than strobes; blades and fists make none. No shadow map. It follows the
   accessibility screen-flash choice (Full, Reduced at 0.6, Off none).
 - **`ViewLight.sample(camera)`** is the light at the held gun as a modulate
   for the 2D viewmodel: the flat ambient, each directional key (dimmed when a
