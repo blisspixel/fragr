@@ -10,6 +10,10 @@ extends SceneTree
 ## says `ship`: the receipt carries the entry's provenance and marks the asset
 ## runtime selected, and no review paint is written beside it. Optional local
 ## cleanup, applied in this order and recorded in the receipt:
+##   `clip`           rows {"axis": "y", "keep": "below", "at": metres} cut the
+##                    fitted mesh at a plane, splitting crossing triangles so
+##                    the kept part ends on a clean line (a folded pantograph,
+##                    a bunk's lower berth without its upper tier)
 ##   `stretch`        fit each axis to `intended` instead of one uniform scale,
 ##                    refused beyond `max_stretch_log` (default 0.15) on any axis
 ##   `drop`           [[min x, y, z], [max x, y, z]] boxes in fitted metres (pivot
@@ -21,6 +25,14 @@ extends SceneTree
 ##   `gain`           multiplies the paint before the palette lock
 ##   `swatches`       shipped venue swatches the lock may also use
 ##   `exclude_keys`, `exclude_classes`  ramps the lock may not use
+##   `repaint`        rows {"keys": [locked ramps, "name" or "name@shade"], "to": key, "shade":
+##                    optional, "box": optional [[min], [max]] in fitted
+##                    metres} applied to the locked paint: every texel on a
+##                    triangle whose centroid is inside the box (anywhere
+##                    without one) that locked to one of `keys` takes the
+##                    `to` ramp at its own shade, or at `shade` when given.
+##                    Re-marks a Union band the lock lost or flattens a
+##                    patch onto one ramp; never a ramp the faction excludes
 ##
 ## godot --headless --path client --script ../tools/prepare_model_candidates.gd -- \
 ##   <catalog.json> <raw dir> <prepared dir> [exact candidate id]
@@ -164,7 +176,21 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	var placed: PackedVector3Array = PackedVector3Array()
 	for vertex: Vector3 in vertices:
 		placed.append(basis * (vertex - pivot) * scale)
+	var clipped: Dictionary = {}
+	if entry.get("clip") is Array:
+		clipped = _clip(entry["clip"], placed, normals, uv, indices)
+		if clipped.has("error"):
+			original.free()
+			_fail("%s: %s" % [id, clipped["error"]])
+			return false
+		placed = clipped["placed"]
+		normals = clipped["normals"]
+		uv = clipped["uv"]
+		indices = clipped["indices"]
 	var cleanup: Dictionary = _cleanup(entry, placed, indices)
+	if not clipped.is_empty():
+		(cleanup["applied"] as Dictionary)["clip"] = entry["clip"]
+		(cleanup["applied"] as Dictionary)["clipped_triangles"] = clipped["split"]
 	if cleanup.has("error"):
 		original.free()
 		_fail("%s: %s" % [id, cleanup["error"]])
@@ -212,7 +238,15 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 			for x: int in range(paint.get_width()):
 				var lit: Color = paint.get_pixel(x, y)
 				paint.set_pixel(x, y, Color(minf(lit.r * gain, 1.0), minf(lit.g * gain, 1.0), minf(lit.b * gain, 1.0), lit.a))
-	_lock(paint)
+	var locked_keys: PackedStringArray = _lock(paint)
+	if entry.get("repaint") is Array:
+		var repainted: Dictionary = _repaint(paint, locked_keys, entry["repaint"], placed, uv, indices)
+		if repainted.has("error"):
+			original.free()
+			_fail("%s: %s" % [id, repainted["error"]])
+			return false
+		(cleanup["applied"] as Dictionary)["repaint"] = entry["repaint"]
+		(cleanup["applied"] as Dictionary)["repainted_texels"] = repainted["texels"]
 	paint.resize(size, size, Image.INTERPOLATE_NEAREST)
 	var keys: PackedStringArray = _keys(paint)
 	var presented: Image = paint.duplicate()
@@ -347,6 +381,121 @@ func _cleanup(entry: Dictionary, placed: PackedVector3Array, indices: PackedInt3
 		if entry.has(key):
 			applied[key] = entry[key]
 	return {"indices": indices, "placed": placed, "applied": applied}
+
+## Cuts the fitted mesh at axis-aligned planes, keeping one side. A triangle
+## that crosses a plane is split there, its UV and normal interpolated, so the
+## kept part ends on a clean line instead of a sawtooth of whole triangles.
+func _clip(rows: Array, placed: PackedVector3Array, normals: PackedVector3Array, uv: PackedVector2Array, indices: PackedInt32Array) -> Dictionary:
+	var split: int = 0
+	for row: Dictionary in rows:
+		var axis: int = {"x": 0, "y": 1, "z": 2}.get(str(row.get("axis", "")), -1)
+		var keep_below: bool = str(row.get("keep", "")) == "below"
+		if axis < 0 or str(row.get("keep", "")) not in ["below", "above"] or not (row.get("at") is float or row.get("at") is int):
+			return {"error": "clip rows need axis x|y|z, keep below|above and at"}
+		var plane: float = float(row["at"])
+		var kept: PackedInt32Array = PackedInt32Array()
+		for slot: int in range(0, indices.size(), 3):
+			var corners: Array[int] = [indices[slot], indices[slot + 1], indices[slot + 2]]
+			var inside: Array[bool] = []
+			for corner: int in corners:
+				inside.append(placed[corner][axis] <= plane if keep_below else placed[corner][axis] >= plane)
+			var count: int = inside.count(true)
+			if count == 3:
+				kept.append_array(corners)
+				continue
+			if count == 0:
+				continue
+			split += 1
+			# Walk the triangle's edges in order, emitting kept corners and the
+			# crossing points, then fan the polygon back into triangles.
+			var polygon: Array[int] = []
+			for edge: int in range(3):
+				var a: int = corners[edge]
+				var b: int = corners[(edge + 1) % 3]
+				if inside[edge]:
+					polygon.append(a)
+				if inside[edge] != inside[(edge + 1) % 3]:
+					var t: float = (plane - placed[a][axis]) / (placed[b][axis] - placed[a][axis])
+					placed.append(placed[a].lerp(placed[b], t))
+					normals.append(normals[a].lerp(normals[b], t).normalized())
+					uv.append(uv[a].lerp(uv[b], t))
+					polygon.append(placed.size() - 1)
+			for fan: int in range(1, polygon.size() - 1):
+				kept.append_array([polygon[0], polygon[fan], polygon[fan + 1]])
+		if kept.is_empty():
+			return {"error": "clip removed every triangle"}
+		indices = kept
+	return {"placed": placed, "normals": normals, "uv": uv, "indices": indices, "split": split}
+
+## Moves locked texels from some ramps onto another, on the triangles a row's
+## box selects. Works in the locked paint's own pixels, so each texel keeps
+## exactly one ramp value. Returns the texel count changed, or an error.
+func _repaint(paint: Image, keys: PackedStringArray, rows: Array, placed: PackedVector3Array, uv: PackedVector2Array, indices: PackedInt32Array) -> Dictionary:
+	var width: int = paint.get_width()
+	var height: int = paint.get_height()
+	var changed: int = 0
+	for row: Dictionary in rows:
+		var target: String = str(row.get("to", ""))
+		if not CLASSES.has(target) or CLASSES[target] in _excluded or target in _excluded_keys:
+			return {"error": "repaint target %s is not a ramp this faction may use" % target}
+		var from: Array = row.get("keys", [])
+		if from.is_empty():
+			return {"error": "repaint row names no source ramps"}
+		var shade_override: float = float(row.get("shade", -1.0))
+		var low: Vector3 = Vector3(-INF, -INF, -INF)
+		var high: Vector3 = Vector3(INF, INF, INF)
+		if row.get("box") is Array:
+			low = Vector3(row["box"][0][0], row["box"][0][1], row["box"][0][2])
+			high = Vector3(row["box"][1][0], row["box"][1][1], row["box"][1][2])
+		var done: Dictionary = {}
+		for slot: int in range(0, indices.size(), 3):
+			var centre: Vector3 = (placed[indices[slot]] + placed[indices[slot + 1]] + placed[indices[slot + 2]]) / 3.0
+			if centre.x < low.x or centre.y < low.y or centre.z < low.z or centre.x > high.x or centre.y > high.y or centre.z > high.z:
+				continue
+			var a: Vector2 = uv[indices[slot]] * Vector2(width, height)
+			var b: Vector2 = uv[indices[slot + 1]] * Vector2(width, height)
+			var c: Vector2 = uv[indices[slot + 2]] * Vector2(width, height)
+			var area: float = (b - a).cross(c - a)
+			var x0: int = floori(minf(a.x, minf(b.x, c.x)))
+			var x1: int = ceili(maxf(a.x, maxf(b.x, c.x)))
+			var y0: int = floori(minf(a.y, minf(b.y, c.y)))
+			var y1: int = ceili(maxf(a.y, maxf(b.y, c.y)))
+			for y: int in range(y0, y1 + 1):
+				for x: int in range(x0, x1 + 1):
+					var p: Vector2 = Vector2(float(x) + 0.5, float(y) + 0.5)
+					if absf(area) > 0.000001:
+						var w0: float = (b - p).cross(c - p) / area
+						var w1: float = (c - p).cross(a - p) / area
+						var w2: float = 1.0 - w0 - w1
+						# Half a texel of slack per edge so thin bands keep their edge texels.
+						if w0 < -0.5 * (c - b).length() / absf(area) or w1 < -0.5 * (a - c).length() / absf(area) \
+								or w2 < -0.5 * (b - a).length() / absf(area):
+							continue
+					var px: int = posmod(x, width)
+					var py: int = posmod(y, height)
+					var at: int = py * width + px
+					if done.has(at):
+						continue
+					var key: String = keys[at]
+					if not key in from and not key.get_slice("@", 0) in from:
+						continue
+					done[at] = true
+					var shade: float = shade_override if shade_override > 0.0 else float(key.get_slice("@", 1))
+					var ramp: int = _ramp_index(target, shade)
+					if ramp < 0:
+						return {"error": "no %s ramp at shade %.1f" % [target, shade]}
+					var color: Color = _ramp_colors[ramp]
+					color.a = 1.0
+					paint.set_pixel(px, py, color)
+					keys[at] = "%s@%.1f" % [target, _ramp_shades[ramp]]
+					changed += 1
+	return {"texels": changed}
+
+func _ramp_index(name: String, shade: float) -> int:
+	for slot: int in range(_ramp_names.size()):
+		if _ramp_names[slot] == name and is_equal_approx(_ramp_shades[slot], shade):
+			return slot
+	return -1
 
 func _used_bounds(points: PackedVector3Array, indices: PackedInt32Array) -> AABB:
 	var result: AABB = AABB(points[indices[0]], Vector3.ZERO)

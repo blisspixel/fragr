@@ -1,0 +1,4 @@
+{"comment": "Persons Unknown correction machine: the prepared campaign props in place at play distance, seen by a spectator in the level's own light (no participants). FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m02-persons-unknown.json, FRAGR_QA_MANIFEST=res://qa/campaign-props-m02.json. Stills for looking at, not acceptance.", "width": 1280, "height": 720, "states": [
+  {"name": "m02_correction_entry", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-7.5, 1.6, -19.5], "camera_look_at": [-2, 1.4, -14], "settle_seconds": 1.5},
+  {"name": "m02_correction_near", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-2, 1.6, -18.8], "camera_look_at": [-2, 1.4, -14], "settle_seconds": 0.8}
+]}

@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.024,
+			"green": 0.641,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.115,
+			"warm": 0.22
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 0.7 on longest m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.700000047683716,
+			0.407425493001938,
+			0.503860950469971
+		],
+		"scale": 0.36783539087226,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "duffel",
+	"metres_per_source_unit": 0.36783539087226,
+	"normal_map_px": 128,
+	"orm_maps": false,
+	"paint_locked_px": 64,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		0.699999928474426,
+		0.407425493001938,
+		0.503860950469971
+	],
+	"prepared_sha256": "b84c0abbf9f14be25b9e61666a9bf12d0a3f9a271f1d43dd103fbccbb550eb3c",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "duffel-20261023-v1",
+			"request_id": "01a16c56-4e5e-75fe-8578-e6e178f76601",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "duffel_m34",
+			"keyed_sha256": "1c196cfcc1a54d1a30987050a500d56d6227d62cf6257372616e64164ed0fec8",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "f003b129-1f90-47f9-a0cf-8ab9757b0f3f",
+			"resolution": "2k",
+			"sha256": "d563341181bb62df447fdabbef7a9abb2f7e568dc6328414b47357ab43f47f73",
+			"spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90302515029907,
+		1.10762989521027,
+		1.36980009078979
+	],
+	"raw_file": "duffel-20261023-v1-0.glb",
+	"raw_sha256": "499284ace2af7496be185f0f233892a702cc479b766df8913f861b7a2edad44f",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 1.11842688253557,
+	"texels_per_metre": 46.1376984444108,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 37,
+		"boundary_loops": 21,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			4,
+			2,
+			2,
+			2,
+			2
+		],
+		"nonmanifold_edges": 69,
+		"watertight": false,
+		"welded_vertices": 2908
+	},
+	"triangles": 6036,
+	"uv_coverage": 0.58124536348597,
+	"vertices": 10564
+}

@@ -64,8 +64,12 @@ func _ship_presentation(game: Node) -> void:
 		_check(bench.position.distance_to(bench_host["origin"]) < 0.0001 and absf(bench.rotation.y - PI) < 0.0001, "source working face and feet register to the accepted host")
 		for child: Node in bench.find_children("*", "MeshInstance3D", true, false):
 			_check((child as MeshInstance3D).layers == 2, "workbench belongs to world lighting layer")
+		# The bench's measured pieces and the campaign props' hosts (the
+		# consoles, the galley and the berths) are the only boxes replaced.
+		var props: Array[int] = CampaignProps.host_indices(info)
+		_check(props.size() == 4, "the pilot consoles, galley and both berths stand on their solids")
 		for index: int in range(info["solids"].size()):
-			_check(cover._solid_views[index].visible == not (index in bench_host["indices"]), "only measured proxy pieces are replaced by actual source art")
+			_check(cover._solid_views[index].visible == not (index in bench_host["indices"] or index in props), "only measured proxy pieces are replaced by actual source art")
 		var changed: Dictionary = info.duplicate(true)
 		changed["solids"][bench_host["indices"][1]]["max_x"] += 0.02
 		_check(ShipFurnishings.matched_host(changed).is_empty(), "changed physical cabinet cannot silently keep the old source fit")
@@ -79,8 +83,8 @@ func _ship_presentation(game: Node) -> void:
 		var old_source: WeakRef = weakref(replacement.get_node("RepairWorkbench"))
 		replacement.apply_map_info(changed)
 		_check(replacement.get_node_or_null("RepairWorkbench") == null, "a map rebuild with unmatched host retains physical fallback")
-		for view: MeshInstance3D in replacement._solid_views:
-			_check(view.visible, "fallback does not hide unmatched collision pieces")
+		for index: int in range(replacement._solid_views.size()):
+			_check(replacement._solid_views[index].visible or index in props, "fallback does not hide unmatched collision pieces")
 		await process_frame
 		_check(old_source.get_ref() == null, "map rebuild retires the old source and its resources")
 		replacement.free()

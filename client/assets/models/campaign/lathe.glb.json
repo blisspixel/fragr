@@ -1,0 +1,135 @@
+{
+	"cleanup": {
+		"repaint": [
+			{
+				"box": [
+					[
+						-2.0,
+						0.0,
+						-2.0
+					],
+					[
+						2.0,
+						2.0,
+						2.0
+					]
+				],
+				"keys": [
+					"rust",
+					"dust_rust",
+					"ember",
+					"blood"
+				],
+				"to": "union_red"
+			}
+		],
+		"repainted_texels": 2165
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "union",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.897,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.026,
+			"steel": 0.077,
+			"warm": 0.001
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.7 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			3.18043732643127,
+			1.69999992847443,
+			1.61548352241516
+		],
+		"scale": 1.67177205826324,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "lathe",
+	"metres_per_source_unit": 1.67177205826324,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		3.18043756484985,
+		1.69999992847443,
+		1.61548352241516
+	],
+	"prepared_sha256": "468740d40d01b900e71c3e59f11ffda7ddcfcc538f48d46a2bb03598ed06aee7",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "lathe-20261024-v1",
+			"request_id": "01a16cb8-9dfa-7005-bd45-8ec91d20fede",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+			"target_polycount": 9000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "lathe",
+			"keyed_sha256": "d02aae584590a6942ef61c30cebc66869a9f66429d58e0bf41ac56a931ed7d7c",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "2c05ae0f-8476-4c52-b61e-ccbcfec3e7ae",
+			"resolution": "2k",
+			"sha256": "fbd93175cf40c21676b20624b83fa470623720bdcd3fb48a33a45f2e97128757",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.90243482589722,
+		1.01688504219055,
+		0.966330051422119
+	],
+	"raw_file": "lathe-20261024-v1-0.glb",
+	"raw_sha256": "627de02cece02f96eb626fd11a76d8fe057666551053f7732ee740900444cff9",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 30.0345864189567,
+	"texels_per_metre": 33.978484075568,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 86,
+		"boundary_loops": 36,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			11,
+			4,
+			4,
+			4,
+			3
+		],
+		"nonmanifold_edges": 60,
+		"watertight": false,
+		"welded_vertices": 4245
+	},
+	"triangles": 8616,
+	"uv_coverage": 0.529114573909566,
+	"vertices": 17901
+}

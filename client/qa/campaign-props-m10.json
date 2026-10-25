@@ -1,0 +1,6 @@
+{"comment": "Common Carrier pilot consoles, galley and berths: the prepared campaign props in place at play distance, seen by a spectator in the level's own light (no participants). FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m10_common_carrier.json, FRAGR_QA_MANIFEST=res://qa/campaign-props-m10.json. Stills for looking at, not acceptance.", "width": 1280, "height": 720, "states": [
+  {"name": "m10_console", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [2.5, 9.2, -12.8], "camera_look_at": [2.5, 8.1, -16.4], "settle_seconds": 1.5},
+  {"name": "m10_galley_fore", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [6.0, 6.4, -1.2], "camera_look_at": [5.9, 5.2, -5.15], "settle_seconds": 0.8},
+  {"name": "m10_galley_aft", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [3.0, 6.4, -8.0], "camera_look_at": [5.9, 5.2, -5.15], "settle_seconds": 0.8},
+  {"name": "m10_bunks", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [4.9, 6.4, -14.3], "camera_look_at": [6.4, 5.0, -16.5], "settle_seconds": 0.8}
+]}

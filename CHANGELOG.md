@@ -6,6 +6,11 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Dress the campaign with modelled props in place of boxes: the correction
+  ward's machine, the impound tug beyond the Port of Entry glass, the Common
+  Carrier's pilot consoles, galley and berths, the foundry's lathes and freight
+  hoist, the trams left where they stopped in Planned Works and Local
+  Exception, and the concourse's stretcher, cases, duffels and crates.
 - Dress Larak Lot with modelled props in place of boxes: the toll booths, the
   bookmaker's kiosk, THE STACK, burnt and clamped cars, the pay machines and
   pulpit, Larak's 2009 coffee machine, the Stands bell and the crane hook,

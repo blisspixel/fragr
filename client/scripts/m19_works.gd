@@ -597,9 +597,9 @@ func _build_river(half: float) -> void:
 			var seed: int = 300 + knot * 11 + member
 			var spot: Vector3 = Vector3(float(member) * 0.7 - 0.5, 0.0, float((member * 2 + knot) % 3) * 0.45 - 0.4)
 			if member == 0 and knot % 2 == 0:
-				_box(root, "Case", spot + Vector3(0.0, 0.2, 0.0), Vector3(0.7, 0.4, 0.45), _lit(Crowd.LOADS[knot % Crowd.LOADS.size()]))
+				CampaignProps.stand(root, "duffel", spot, 0.0)
 				var sitter: Node3D = Crowd.seated(seed)
-				sitter.position = spot + Vector3(0.0, 0.42, 0.0)
+				sitter.position = spot + Vector3(0.0, 0.41, 0.0)
 				root.add_child(sitter)
 				continue
 			var stander: Node3D = Crowd.person(seed, member == members - 1 and knot % 3 == 1)
@@ -721,9 +721,10 @@ func _build_concourse() -> void:
 	porter.position = Vector3(0.0, 0.0, 1.1)
 	porter.rotation.y = PI
 	stretcher.add_child(porter)
-	_box(stretcher, "StretcherBed", Vector3(0.0, 0.82, 0.0), Vector3(0.62, 0.06, 1.9), _lit(Color("8a8576")))
+	# The olive canvas stretcher (a prepared prop), carried at 0.82 m by its
+	# poles, with its patient on it.
+	CampaignProps.place(stretcher, "stretcher", Vector3(-0.37, 0.61, -1.05), Vector3(0.37, 0.944, 1.05), 90)
 	_box(stretcher, "Patient", Vector3(0.0, 0.95, 0.1), Vector3(0.42, 0.22, 1.5), _lit(Color("6c7a7c")))
-	_box(stretcher, "Blanket", Vector3(0.0, 1.02, 0.25), Vector3(0.5, 0.06, 1.1), _lit(Color("9c7b55")))
 	# Spare packs hang on the stores racks either side of the sign, harness to
 	# the rack: the counter reads as jetpack stores before anyone draws one.
 	var racks: Array[float] = [-55.3, -54.5, -47.5, -46.7]
@@ -743,16 +744,17 @@ func _build_concourse() -> void:
 		hall.add_child(sitter)
 	# Everything a household could carry, stacked on the luggage cart, and the
 	# household itself resting on its cases beside it under a hand lamp.
-	var cases: Array[Color] = [Color("8a5a3a"), Color("4d5a52"), Color("6e5a3c"), Color("7a5068")]
-	for index: int in range(5):
-		var size: Vector3 = Vector3(0.9 - float(index % 2) * 0.25, 0.32, 0.55)
-		_box(hall, "Case", Vector3(-40.0 + float(index % 2) * 0.35 - 0.2, 1.6 + 0.16 + float(index) * 0.32, -32.0 + float(index % 3 - 1) * 0.12),
-			size, _lit(cases[index % cases.size()]))
+	# The cases and duffels are prepared props: patched, personal, nobody's issue.
+	CampaignProps.stand(hall, "hard_luggage", Vector3(-40.5, 1.6, -32.55), 0.0)
+	CampaignProps.stand(hall, "hard_luggage", Vector3(-39.55, 1.6, -32.35), 90.0)
+	CampaignProps.stand(hall, "hard_luggage", Vector3(-40.45, 1.857, -32.5), 180.0)
+	CampaignProps.stand(hall, "duffel", Vector3(-40.45, 2.114, -32.5), 10.0)
+	CampaignProps.stand(hall, "duffel", Vector3(-40.4, 1.6, -31.55), 0.0)
 	for index: int in range(3):
 		var at: Vector3 = Vector3(-38.2 + float(index) * 0.8, 0.0, -31.4 + float(index % 2) * 0.5)
-		_box(hall, "RestCase", at + Vector3(0.0, 0.2, 0.0), Vector3(0.6, 0.4, 0.42), _lit(cases[(index + 1) % cases.size()]))
+		CampaignProps.stand(hall, "duffel", at, 180.0 if index == 1 else 0.0)
 		var resting: Node3D = Crowd.seated(80 + index * 5, index == 2)
-		resting.position = at + Vector3(0.0, 0.42, 0.0)
+		resting.position = at + Vector3(0.0, 0.41, 0.0)
 		resting.rotation.y = PI * (0.85 + 0.15 * float(index))
 		hall.add_child(resting)
 	Crowd.hand_lamp(hall, Vector3(-37.4, 0.11, -30.6), 0.8)

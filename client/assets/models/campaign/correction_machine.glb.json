@@ -1,0 +1,109 @@
+{
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "union",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.961,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.019,
+			"steel": 0.019,
+			"warm": 0.001
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 3.8 on x m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			3.79999995231628,
+			2.97095370292664,
+			2.07915163040161
+		],
+		"scale": 1.99701784646134,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "correction-machine",
+	"metres_per_source_unit": 1.99701784646134,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 512,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		3.79999971389771,
+		2.97095370292664,
+		2.07915163040161
+	],
+	"prepared_sha256": "3c38c9b755e0e5ba71ada9dcc21eb6bed48a5cd7dbf323144d212a192038659f",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "correction-machine-20261024-v1",
+			"request_id": "01a16cd6-4fdd-731a-8926-e0a54a25927b",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7c-bank-meshy-20261024.json",
+			"target_polycount": 9000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "correction_machine",
+			"keyed_sha256": "4ca64e25ec186f2ca822e67ebe871be52ce5f2c8b0daa34defce40a93f0ede87",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "7d6edeb5-dba2-425b-9aab-3837413db15e",
+			"resolution": "2k",
+			"sha256": "49f7b07f7e99f6c00ae662b4fa0ac7882640dce71fa23a002d869c7eb5fc1975",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90283727645874,
+		1.48769509792328,
+		1.04112815856934
+	],
+	"raw_file": "correction-machine-20261024-v1-0.glb",
+	"raw_sha256": "13ee802d6bcb7cc7a2f9c437a70e7bca2c862204c2ccef78545b78ba9a6d7db5",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 71.2863070279054,
+	"texels_per_metre": 42.8125726983256,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 121,
+		"boundary_loops": 56,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			4,
+			4,
+			4,
+			4,
+			4
+		],
+		"nonmanifold_edges": 91,
+		"watertight": false,
+		"welded_vertices": 3911
+	},
+	"triangles": 7841,
+	"uv_coverage": 0.498435363372672,
+	"vertices": 15870
+}

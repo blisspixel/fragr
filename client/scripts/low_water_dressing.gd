@@ -191,9 +191,12 @@ func build(parent: Node3D, info: Dictionary) -> Node3D:
 		if not _find(solids, lamp["low"], lamp["high"]).is_empty():
 			_lamp(lamp)
 			lamps += 1
+	var trams: int = 0
 	for tram: Dictionary in _list("trams", TRAMS):
-		if not _find(solids, tram["low"], tram["high"]).is_empty():
+		# A prepared tram model fills its own solid; its faces need no paint.
+		if not _find(solids, tram["low"], tram["high"]).is_empty() and not CampaignProps.replaces(info, tram["low"], tram["high"]):
 			_tram(tram["low"], tram["high"], str(tram.get("cab", "")))
+			trams += 1
 	var awnings: Array = _list("awnings", AWNINGS)
 	for index: int in range(awnings.size()):
 		var awning: Dictionary = awnings[index]
@@ -221,6 +224,7 @@ func build(parent: Node3D, info: Dictionary) -> Node3D:
 	_commit()
 	root.set_meta("faces", dressed)
 	root.set_meta("tanks", tanks)
+	root.set_meta("trams", trams)
 	root.set_meta("lamps", lamps)
 	return root
 

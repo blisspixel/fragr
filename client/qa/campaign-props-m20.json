@@ -1,0 +1,4 @@
+{"comment": "Local Exception stalled tram: the prepared campaign props in place at play distance, seen by a spectator in the level's own light (no participants). FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m20-local-exception.json, FRAGR_QA_MANIFEST=res://qa/campaign-props-m20.json. Stills for looking at, not acceptance.", "width": 1280, "height": 720, "states": [
+  {"name": "m20_tram", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [26.5, 1.6, -29.5], "camera_look_at": [31.5, 1.5, -39], "settle_seconds": 1.5},
+  {"name": "m20_tram_east", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [37.5, 1.6, -33], "camera_look_at": [32, 1.6, -39], "settle_seconds": 0.8}
+]}

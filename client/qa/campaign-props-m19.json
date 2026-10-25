@@ -1,0 +1,9 @@
+{"comment": "Planned Works stalled tram, crates and the concourse's stretcher, cases and duffels: the prepared campaign props in place at play distance, seen by a spectator in the level's own light (no participants). FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m19-planned-works.json, FRAGR_QA_MANIFEST=res://qa/campaign-props-m19.json. Stills for looking at, not acceptance.", "width": 1280, "height": 720, "states": [
+  {"name": "m19_tram", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-17, 1.6, -11.5], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 1.5},
+  {"name": "m19_stretcher", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-53.0, 1.6, -22.0], "camera_look_at": [-55, 0.9, -24.5], "settle_seconds": 0.8},
+  {"name": "m19_luggage", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-36.0, 1.6, -28.0], "camera_look_at": [-39.8, 1.4, -31.8], "settle_seconds": 0.8},
+  {"name": "m19_crates_market", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [5, 1.6, 21.5], "camera_look_at": [5, 0.7, 16], "settle_seconds": 0.8},
+  {"name": "m19_crates_b", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [33, 1.6, 26.5], "camera_look_at": [33, 0.6, 21], "settle_seconds": 0.8},
+  {"name": "m19_stretcher_side", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-55.2, 1.6, -21.6], "camera_look_at": [-55, 0.9, -24.5], "settle_seconds": 0.8},
+  {"name": "m19_tram_roof", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-10, 7.6, -8], "camera_look_at": [-19.5, 1.5, -19.5], "settle_seconds": 0.8}
+]}

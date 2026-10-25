@@ -1,0 +1,633 @@
+{
+ "schema": 1,
+ "round": "asset-round-20261023 / campaign props 2026-10-25",
+ "raw_dir": "art/raw/meshy-pilot-20261003",
+ "candidates": [
+  {
+   "id": "correction-machine",
+   "output": "correction_machine",
+   "ship": true,
+   "file": "correction-machine-20261024-v1-0.glb",
+   "sha256": "13ee802d6bcb7cc7a2f9c437a70e7bca2c862204c2ccef78545b78ba9a6d7db5",
+   "faction": "union",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "x",
+   "metres": 3.8,
+   "canon": "m02-persons-unknown.md: the correction ward's processing machine, empty intake; lore-gate 5: Union cruelty is bureaucratic, never gory; issued black, one narrow red band, blank seal boss",
+   "placement": "Persons Unknown ward: fills the correction_machine solid (x -4..0, z -15..-13, top 3.2), open bay to the south where the ward's status lamp hangs; the north vent panel is the model's own back",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "correction_machine",
+     "request_id": "7d6edeb5-dba2-425b-9aab-3837413db15e",
+     "sha256": "49f7b07f7e99f6c00ae662b4fa0ac7882640dce71fa23a002d869c7eb5fc1975",
+     "keyed_sha256": "4ca64e25ec186f2ca822e67ebe871be52ce5f2c8b0daa34defce40a93f0ede87"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7c-bank-meshy-20261024.json",
+     "job": "correction-machine-20261024-v1",
+     "request_id": "01a16cd6-4fdd-731a-8926-e0a54a25927b",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 9000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "impound-tug",
+   "output": "impound_tug",
+   "ship": true,
+   "file": "impound-tug-20261024-v1-0.glb",
+   "sha256": "5b4a1fe9683093b2c036dcc9a14b9517cbb118b2b85c33c3253ec2096664efd5",
+   "faction": "union",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "longest",
+   "metres": 5.5,
+   "canon": "m04-port-of-entry.md level 6: 'Through the customs glass, a tug drags Tern's ship past toward the impound berth'; Union port impound fleet: issued black, one red band, blank plates",
+   "placement": "Port of Entry: on the sealed apron east of the customs glass (x 25..48, z 6..41 is outside every walkable volume), seen through customs_east_glass; no collision because nobody can reach it",
+   "repaint": [
+    {
+     "keys": [
+      "rust",
+      "dust_rust",
+      "blood"
+     ],
+     "to": "union_red",
+     "box": [
+      [
+       -3.0,
+       1.0,
+       -2.0
+      ],
+      [
+       3.0,
+       3.2,
+       2.0
+      ]
+     ]
+    }
+   ],
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "impound_tug",
+     "request_id": "94d1f25d-0148-4e8c-a359-db775c00bd30",
+     "sha256": "a99c1f6d972217a368ce289c87531f5153ea8dfbc0445d585010f71c891fd21e",
+     "keyed_sha256": "67cc78934d3c49763ef297577034a76fd664cea3412908b567fbadfe0db41573"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
+     "job": "impound-tug-20261024-v1",
+     "request_id": "01a16cc4-c57b-70b6-8148-66bafcfd5269",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 9000
+    },
+    "review": "Model candidates review 2026-10-24: local cleanup"
+   }
+  },
+  {
+   "id": "pilot-console",
+   "output": "pilot_console",
+   "ship": true,
+   "file": "pilot-console-20261024-v1-0.glb",
+   "sha256": "ab3be7d8c9d59acf0908759a360c39f00cf810165f348af7cedce4f327a85331",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 0.9,
+   "canon": "m06-common-carrier.md and design/space.md: the Carrier's command console, gunmetal, repaired, muted cyan only on navigation equipment; free side, personal",
+   "placement": "Common Carrier bridge: two consoles side by side fill command_console (x 1.5..3.5, z -16.8..-16.0, y 7.6..8.5), screens aft toward the pilot's feet",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "pilot_console",
+     "request_id": "c35c81ec-253d-4d23-ae36-298879e96056",
+     "sha256": "47a80879f96733e25240b066bd409f443a170bcec07d2cdf0e0691febf031dfc",
+     "keyed_sha256": "ffb13e942c860b6cae58b2b6fd2ef76ab57ae9ee16e531e3d5027e58c4de01aa"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+     "job": "pilot-console-20261024-v1",
+     "request_id": "01a16cc0-170e-703f-befa-6595a90e77aa",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "galley",
+   "output": "galley",
+   "ship": true,
+   "file": "galley-20261024-v1-0.glb",
+   "sha256": "2f548ff5e063e94d46b8ccc0db0632ac3f9aeffae6715e97ecb880c8f9b31c7b",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.1,
+   "canon": "m06-common-carrier.md: the crew's galley, wood-tone doors and personal clutter; art bible: possessions and repairs show individuality",
+   "placement": "Common Carrier crew deck: four units back to back, two along each face, fill the galley_counter island (x 4.5..7.3, z -5.8..-4.5, y 4.8..5.9)",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "galley",
+     "request_id": "21a24d75-2357-42ae-a90b-a443c64e3389",
+     "sha256": "f04ff8a42302a0fd463ee4e69d1ba9351752a00de63564dfe5241528b1fa60d2",
+     "keyed_sha256": "2b6671a909ad0defdd9d34c3fce3a5fff29338e56574f096146cdf31491cf011"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+     "job": "galley-20261024-v1",
+     "request_id": "01a16cbe-315c-75e2-82be-bb3de8a5e1cd",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 7000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "ship-bunk",
+   "output": "ship_bunk",
+   "ship": true,
+   "file": "ship-bunk-20261024-v1-0.glb",
+   "sha256": "a25206d04e7086f07b1bd67b4de0d643ad813af41d44749ec2bf78e1b44c9e73",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.84,
+   "canon": "m06-common-carrier.md: Tern's crew berths, gunmetal with warm personal blankets (rust-orange, never Union red)",
+   "placement": "Common Carrier crew deck: the lower berth only (the upper tier and roof cut away at 0.56 m) fills each 0.5 m berth slab, bunk_fore and bunk_aft, which a fighter can step onto",
+   "clip": [
+    {
+     "axis": "y",
+     "keep": "below",
+     "at": 0.56
+    }
+   ],
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "ship_bunk",
+     "request_id": "ee7332c9-0ca6-42ac-a0b3-8a432bc92de3",
+     "sha256": "0ec2cf730c3f6de7872dad6f2824203003f8d06e14b967c3e610ea0970aeb02b",
+     "keyed_sha256": "7b764e13e4a9edfcdfb0ec25156c302b4720e0f8d8fb37c70775091a53105306"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+     "job": "ship-bunk-20261024-v1",
+     "request_id": "01a16cbb-b767-76b2-92c3-c5ca41f11a7d",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "lathe",
+   "output": "lathe",
+   "ship": true,
+   "file": "lathe-20261024-v1-0.glb",
+   "sha256": "627de02cece02f96eb626fd11a76d8fe057666551053f7732ee740900444cff9",
+   "faction": "union",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.7,
+   "canon": "m08-weight-of-permission.md level 13: the Union-owned Martian works; issued black and dark steel, one red band, blank type-approval plate (lore-gate 2.4 P4 interim: grayscale capture with an enemy in front)",
+   "placement": "Weight of Permission: four lathes in two rows fill edge_west_machine (x -23..-17, z -35..-31, y 0.3..2.0) at the works' north edge",
+   "repaint": [
+    {
+     "keys": [
+      "rust",
+      "dust_rust",
+      "ember",
+      "blood"
+     ],
+     "to": "union_red",
+     "box": [
+      [
+       -2.0,
+       0.0,
+       -2.0
+      ],
+      [
+       2.0,
+       2.0,
+       2.0
+      ]
+     ]
+    }
+   ],
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "lathe",
+     "request_id": "2c05ae0f-8476-4c52-b61e-ccbcfec3e7ae",
+     "sha256": "fbd93175cf40c21676b20624b83fa470623720bdcd3fb48a33a45f2e97128757",
+     "keyed_sha256": "d02aae584590a6942ef61c30cebc66869a9f66429d58e0bf41ac56a931ed7d7c"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+     "job": "lathe-20261024-v1",
+     "request_id": "01a16cb8-9dfa-7005-bd45-8ec91d20fede",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 9000
+    },
+    "review": "Model candidates review 2026-10-24: local cleanup"
+   }
+  },
+  {
+   "id": "gantry-hoist",
+   "output": "gantry_hoist",
+   "ship": true,
+   "file": "gantry-hoist-20261024-v1-0.glb",
+   "sha256": "bbfe217adb63faac7dd9c936d57b8e60794f873add53748e39e24cb9fb9787a7",
+   "faction": "union",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 3.0,
+   "canon": "m08-weight-of-permission.md: the works' freight hoist on its overhead beam; Union issue, red kept to the hook block",
+   "placement": "Weight of Permission: the hoist trolley and hook (its own beam stub cut away above 2.42 m) hang under freight_hoist_beam with the hook block inside freight_hoist_hook (x -0.4..0.4, z 18.2..18.8, y 5.7..8.1)",
+   "clip": [
+    {
+     "axis": "y",
+     "keep": "below",
+     "at": 2.42
+    }
+   ],
+   "repaint": [
+    {
+     "keys": [
+      "union_red",
+      "union_red_glow",
+      "rust",
+      "blood"
+     ],
+     "to": "union_steel",
+     "box": [
+      [
+       -2.0,
+       1.25,
+       -1.0
+      ],
+      [
+       2.0,
+       2.5,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+     "frame": "gantry_hoist",
+     "request_id": "70ec5808-7f5e-4889-93a6-fcdf0edf9ce8",
+     "sha256": "5afc657a0bb4945c25992d15a7eb3943fbb6527835649072b34ddeb217fa83d6",
+     "keyed_sha256": "53c78ee1e2fa7288a28aca5c55cdd0c2c5cc869ef2d8a50d72ecbd19a541e818"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
+     "job": "gantry-hoist-20261024-v1",
+     "request_id": "01a16cc9-907e-718c-aca7-576f5547440c",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 7000
+    },
+    "review": "Model candidates review 2026-10-24: local cleanup"
+   }
+  },
+  {
+   "id": "civilian-tram",
+   "output": "civilian_tram",
+   "ship": true,
+   "file": "civilian-tram-20261023-v1-0.glb",
+   "sha256": "14e80e115367b03b9076775078509d66319b531b630d48ba8449aab6da2c1271",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "longest",
+   "metres": 9.0,
+   "canon": "l04-notice-to-vacate.md 'Motion carried. Green.': Low Water's tram in paint-vote green #699087 (the shipped m05_green swatch), a cream strip only; left where it stopped (l19, l20)",
+   "placement": "Planned Works stalled_tram (x -24..-15, z -21..-18, 3.2 m) and Local Exception stalled_tram (x 30..33, z -44..-34): pantograph and roof gear above 3.02 m cut away (folded), body widened to the 3 m solid",
+   "clip": [
+    {
+     "axis": "y",
+     "keep": "below",
+     "at": 3.02
+    }
+   ],
+   "remap": [
+    {
+     "y": [
+      -0.1,
+      3.2
+     ],
+     "z": [
+      -1.103,
+      1.103,
+      -1.5,
+      1.5
+     ]
+    }
+   ],
+   "repaint": [
+    {
+     "keys": [
+      "institutional_green@1.0",
+      "m05_green@1.0",
+      "institutional_green@0.7"
+     ],
+     "to": "m05_green",
+     "shade": 0.7
+    },
+    {
+     "keys": [
+      "institutional_green@1.2",
+      "m05_green@1.2"
+     ],
+     "to": "m05_green",
+     "shade": 1.0
+    }
+   ],
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h5-canon-fix-refs-20261023.json",
+     "frame": "civilian_tram_fix",
+     "request_id": "246e3c2a-9e16-4332-9d87-70a5792d8cca",
+     "sha256": "6e4d97536452389c879fe12deec3b887679d46376d4daaf555f05013efd7a568",
+     "keyed_sha256": "0d9ee62b30ef5f6670f2cf7a11d8914a10fd93f90e5c3eaf5da24435e1e921a1"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m6-canon-fixed-2k-meshy-20261023.json",
+     "job": "civilian-tram-20261023-v1",
+     "request_id": "01a16c85-93d0-7047-a69f-21fc9b44e3bf",
+     "credits": 35,
+     "format": "glb",
+     "geometry_resolution": "2k",
+     "texture_resolution": "2k",
+     "target_polycount": 15000
+    },
+    "review": "Model candidates review 2026-10-24: local cleanup"
+   }
+  },
+  {
+   "id": "stretcher",
+   "output": "stretcher",
+   "ship": true,
+   "file": "stretcher-20261023-v1-0.glb",
+   "sha256": "a2e11d8caf070981e09489d3fa2243abf0e6afceef84de02c946bc9072e31346",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "longest",
+   "metres": 2.1,
+   "canon": "l19-planned-works.md: former Union personnel help carry people; cast.md Edda: medical items are identified by place and repairs, never by a red cross; plain olive canvas",
+   "placement": "Planned Works concourse: the stretcher the Clerk and the coalition porter carry, canvas at 0.82 m",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+     "frame": "stretcher_m34",
+     "request_id": "23746dab-a0ab-46df-aa4a-a4290efdcfe9",
+     "sha256": "ebad8d0c28c8a2fb1933fb833f12aa52150059506a30ebd01b1da15d392ffd31",
+     "keyed_sha256": "df70613ec4b3e2d4b9e11151d8b3b40f9c1e1114ff24b614492954a644bf91d5"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+     "job": "stretcher-20261023-v1",
+     "request_id": "01a16c58-a20b-7767-9a78-3250cb323d87",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "hard-luggage",
+   "output": "hard_luggage",
+   "ship": true,
+   "file": "hard-luggage-20261023-v1-0.glb",
+   "sha256": "aebab9ce70b66ac847cd5c0e0564b267a45295ff623a873b119a0478a4199a0c",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "longest",
+   "metres": 0.75,
+   "canon": "art bible: 'Possessions and repairs show individuality'; an evacuee's own patched case, never Union issue",
+   "placement": "Planned Works concourse: the household's cases stacked on the luggage cart and the cases people rest on",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+     "frame": "hard_luggage_m34",
+     "request_id": "b881aedd-7e92-4f4c-bc8c-09768c8634ca",
+     "sha256": "ff729ade12cba16e51c531f407f8e18432e4b64d23591984e3041c9446bda8e4",
+     "keyed_sha256": "05940090352210dbba1de1a53fad5b089110704737c014aa8c604688df0ff6c8"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+     "job": "hard-luggage-20261023-v1",
+     "request_id": "01a16c57-94dd-75e0-9213-afaa6c35fcdd",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "duffel",
+   "output": "duffel",
+   "ship": true,
+   "file": "duffel-20261023-v1-0.glb",
+   "sha256": "499284ace2af7496be185f0f233892a702cc479b766df8913f861b7a2edad44f",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "longest",
+   "metres": 0.7,
+   "canon": "art bible: 'Possessions and repairs show individuality'; an evacuee's olive duffel with its bedroll",
+   "placement": "Planned Works concourse: in the luggage cart stack and as a seat for one of the resting household",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+     "frame": "duffel_m34",
+     "request_id": "f003b129-1f90-47f9-a0cf-8ab9757b0f3f",
+     "sha256": "d563341181bb62df447fdabbef7a9abb2f7e568dc6328414b47357ab43f47f73",
+     "keyed_sha256": "1c196cfcc1a54d1a30987050a500d56d6227d62cf6257372616e64164ed0fec8"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+     "job": "duffel-20261023-v1",
+     "request_id": "01a16c56-4e5e-75fe-8578-e6e178f76601",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 6000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  },
+  {
+   "id": "supply-crate",
+   "output": "supply_crate",
+   "ship": true,
+   "file": "supply-crate-20261023-v1-0.glb",
+   "sha256": "5bf97e0564ca3d89b8950e7a5a821d7e258157f738767cabd7e4b8a60e44d1b0",
+   "faction": "free",
+   "map": null,
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.0,
+   "canon": "Low Water supply crate (shipped prodref): gunmetal frame, olive slats, no Union marks",
+   "placement": "Planned Works: the crate stacks in the market, the lane and the trench, each solid filled by a grid of crates",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+     "frame": "supply_crate_m34",
+     "request_id": "5154f89f-e607-4b93-b8d5-34c64ef3eddb",
+     "sha256": "d8af51e9979dba96cef5208709ea8999982aa86ac2903ce20f24717af02c86fa",
+     "keyed_sha256": "8dfe2ef2bb40f69b820f2498b1ff97124bcbc98e561eeb80b30917c5984e1560"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m5-l20-props-meshy-20261023.json",
+     "job": "supply-crate-20261023-v1",
+     "request_id": "01a16c5f-7356-7183-878e-044f534b7338",
+     "credits": 30,
+     "format": "glb",
+     "geometry_resolution": "standard",
+     "texture_resolution": "2k",
+     "target_polycount": 8000
+    },
+    "review": "Model candidates review 2026-10-24: ready"
+   }
+  }
+ ]
+}

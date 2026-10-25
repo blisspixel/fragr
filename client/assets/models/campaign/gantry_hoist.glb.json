@@ -1,0 +1,143 @@
+{
+	"cleanup": {
+		"clip": [
+			{
+				"at": 2.42,
+				"axis": "y",
+				"keep": "below"
+			}
+		],
+		"clipped_triangles": 223,
+		"repaint": [
+			{
+				"box": [
+					[
+						-2.0,
+						1.25,
+						-1.0
+					],
+					[
+						2.0,
+						2.5,
+						1.0
+					]
+				],
+				"keys": [
+					"union_red",
+					"union_red_glow",
+					"rust",
+					"blood"
+				],
+				"to": "union_steel"
+			}
+		],
+		"repainted_texels": 1112
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "union",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.822,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.022,
+			"steel": 0.144,
+			"warm": 0.013
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 3.0 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			2.88161945343018,
+			3.0,
+			0.991365373134613
+		],
+		"scale": 1.57372837030739,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "gantry-hoist",
+	"metres_per_source_unit": 1.57372837030739,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		2.15852117538452,
+		2.42000007629395,
+		0.991365432739258
+	],
+	"prepared_sha256": "a8e86e611f81b57ef4fd0a9431c3870b83441b26808069f8b31fcb00e6bdb7c7",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "gantry-hoist-20261024-v1",
+			"request_id": "01a16cc9-907e-718c-aca7-576f5547440c",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
+			"target_polycount": 7000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "gantry_hoist",
+			"keyed_sha256": "53c78ee1e2fa7288a28aca5c55cdd0c2c5cc869ef2d8a50d72ecbd19a541e818",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "70ec5808-7f5e-4889-93a6-fcdf0edf9ce8",
+			"resolution": "2k",
+			"sha256": "5afc657a0bb4945c25992d15a7eb3943fbb6527835649072b34ddeb217fa83d6",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.83107805252075,
+		1.90630102157593,
+		0.629946947097778
+	],
+	"raw_file": "gantry-hoist-20261024-v1-0.glb",
+	"raw_sha256": "bbfe217adb63faac7dd9c936d57b8e60794f873add53748e39e24cb9fb9787a7",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 12.8926509237758,
+	"texels_per_metre": 44.6781003184456,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 36,
+		"boundary_loops": 14,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			8,
+			7,
+			3,
+			3,
+			2
+		],
+		"nonmanifold_edges": 28,
+		"watertight": false,
+		"welded_vertices": 3388
+	},
+	"triangles": 4592,
+	"uv_coverage": 0.392691672196279,
+	"vertices": 13591
+}

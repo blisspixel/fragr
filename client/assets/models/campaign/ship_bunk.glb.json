@@ -1,0 +1,118 @@
+{
+	"cleanup": {
+		"clip": [
+			{
+				"at": 0.56,
+				"axis": "y",
+				"keep": "below"
+			}
+		],
+		"clipped_triangles": 281
+	},
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.727,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.251,
+			"warm": 0.022
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.84 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			2.0008499622345,
+			1.83999991416931,
+			1.36910772323608
+		],
+		"scale": 1.05254047377909,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "ship-bunk",
+	"metres_per_source_unit": 1.05254047377909,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		1.97885501384735,
+		0.560000061988831,
+		1.36910772323608
+	],
+	"prepared_sha256": "5efef55dd464d5e374d95eef9a81d418e6fb21043d4584db78dbd0e8eb6dede5",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "ship-bunk-20261024-v1",
+			"request_id": "01a16cbb-b767-76b2-92c3-c5ca41f11a7d",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+			"target_polycount": 8000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "ship_bunk",
+			"keyed_sha256": "7b764e13e4a9edfcdfb0ec25156c302b4720e0f8d8fb37c70775091a53105306",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "ee7332c9-0ca6-42ac-a0b3-8a432bc92de3",
+			"resolution": "2k",
+			"sha256": "0ec2cf730c3f6de7872dad6f2824203003f8d06e14b967c3e610ea0970aeb02b",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90097212791443,
+		1.74815130233765,
+		1.30076503753662
+	],
+	"raw_file": "ship-bunk-20261024-v1-0.glb",
+	"raw_sha256": "a25206d04e7086f07b1bd67b4de0d643ad813af41d44749ec2bf78e1b44c9e73",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 9.89498842201328,
+	"texels_per_metre": 35.379283022183,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 199,
+		"boundary_loops": 90,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			7,
+			6,
+			6,
+			4,
+			4
+		],
+		"nonmanifold_edges": 145,
+		"watertight": false,
+		"welded_vertices": 3302
+	},
+	"triangles": 2787,
+	"uv_coverage": 0.188987645637396,
+	"vertices": 14164
+}

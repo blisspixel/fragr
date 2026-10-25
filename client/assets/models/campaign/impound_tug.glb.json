@@ -1,0 +1,134 @@
+{
+	"cleanup": {
+		"repaint": [
+			{
+				"box": [
+					[
+						-3.0,
+						1.0,
+						-2.0
+					],
+					[
+						3.0,
+						3.2,
+						2.0
+					]
+				],
+				"keys": [
+					"rust",
+					"dust_rust",
+					"blood"
+				],
+				"to": "union_red"
+			}
+		],
+		"repainted_texels": 783
+	},
+	"excluded_classes": [
+		"cyan",
+		"magenta"
+	],
+	"faction": "union",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.679,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.008,
+			"steel": 0.295,
+			"warm": 0.017
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 5.5 on longest m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			5.5,
+			2.86923670768738,
+			2.27026963233948
+		],
+		"scale": 2.89164699619301,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "impound-tug",
+	"metres_per_source_unit": 2.89164699619301,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 512,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		5.49999904632568,
+		2.8692364692688,
+		2.27026987075806
+	],
+	"prepared_sha256": "bdd23b4917b3ee8ca97be69ec140ee95c3c5cd53075e1a41e852a5f1736a533e",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "impound-tug-20261024-v1",
+			"request_id": "01a16cc4-c57b-70b6-8148-66bafcfd5269",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
+			"target_polycount": 9000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "impound_tug",
+			"keyed_sha256": "67cc78934d3c49763ef297577034a76fd664cea3412908b567fbadfe0db41573",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "94d1f25d-0148-4e8c-a359-db775c00bd30",
+			"resolution": "2k",
+			"sha256": "a99c1f6d972217a368ce289c87531f5153ea8dfbc0445d585010f71c891fd21e",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.90203022956848,
+		0.992249965667725,
+		0.785112977027893
+	],
+	"raw_file": "impound-tug-20261024-v1-0.glb",
+	"raw_sha256": "5b4a1fe9683093b2c036dcc9a14b9517cbb118b2b85c33c3253ec2096664efd5",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 77.9910802390077,
+	"texels_per_metre": 43.3498007506633,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 44,
+		"boundary_loops": 23,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			4,
+			3,
+			3,
+			3,
+			2
+		],
+		"nonmanifold_edges": 44,
+		"watertight": false,
+		"welded_vertices": 4429
+	},
+	"triangles": 9046,
+	"uv_coverage": 0.559086782448077,
+	"vertices": 16675
+}
