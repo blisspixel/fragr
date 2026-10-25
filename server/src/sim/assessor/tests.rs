@@ -334,7 +334,8 @@ fn assessor_mixed_scatter_faces_commit_each_plate_before_one_armor_share() {
     let trace = ShotTrace {
         vehicle_id: None,
         weapon: WeaponType::Scatter,
-        origin: [2.0, 4.6, 0.0],
+        // Every pellet in the full band, past the meatshot: 2.8 to 3.8 m.
+        origin: [0.0, 4.6, -2.5],
         end: pellets[0].end,
         impact: pellets[0].impact.clone(),
         pellets,

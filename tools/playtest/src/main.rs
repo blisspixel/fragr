@@ -63,6 +63,12 @@ struct Cli {
     /// Rule bots in each surveyed match, split between the sides.
     #[arg(long, default_value_t = 8, value_parser = clap::value_parser!(u64).range(2..=16))]
     survey_bots: u64,
+    /// With --bot-survey: survey only Larak Lot (free-for-all at six and four,
+    /// Duel at two). --assert then holds the six-bot row to the lot targets:
+    /// Rocket frag share 15 to 25 percent, two or more Plate claims in three
+    /// minutes, Flechette under 45 percent of shots, 18 or more frags a minute.
+    #[arg(long, requires = "bot_survey")]
+    survey_lot: bool,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -351,6 +357,16 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.objective_events,
             shots.join(", ")
         );
+        println!(
+            "{}: Rocket {:.1}% of frags, {} Rocket claims, {} rockets fired ({} hurt), {:.1} Plate claims per 3 min, {} self deaths",
+            row.scenario,
+            row.rocket_frag_share * 100.0,
+            row.rocket_claims,
+            row.rocket_launches,
+            row.rocket_damaging,
+            row.plate_claims_per_3min,
+            row.self_deaths
+        );
     }
 }
 
@@ -443,11 +459,14 @@ async fn main() {
         .init();
     let cli = Cli::parse();
     if cli.bot_survey {
-        let config = fragr_playtest::bot_survey::BotSurveyConfig {
+        let mut config = fragr_playtest::bot_survey::BotSurveyConfig {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             round_ticks: cli.time_limit_seconds.saturating_mul(20),
             ..fragr_playtest::bot_survey::BotSurveyConfig::default()
         };
+        if cli.survey_lot {
+            config.scenarios = fragr_playtest::bot_survey::lot_scenarios();
+        }
         let report = fragr_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
@@ -464,7 +483,13 @@ async fn main() {
         }
         print_bot_survey(&report);
         println!("report: {}", cli.report.display());
-        let problems = fragr_playtest::bot_survey::check_bot_survey(&report);
+        let mut problems = fragr_playtest::bot_survey::check_bot_survey(&report);
+        if cli.survey_lot {
+            let lot = fragr_playtest::bot_survey::lot_scenario().label();
+            for row in report.scenarios.iter().filter(|row| row.scenario == lot) {
+                problems.extend(fragr_playtest::bot_survey::check_lot_targets(row));
+            }
+        }
         for problem in &problems {
             println!("threshold: {problem}");
         }

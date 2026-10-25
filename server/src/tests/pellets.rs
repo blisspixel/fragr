@@ -95,14 +95,15 @@ fn distance(origin: [f32; 3], end: [f32; 3]) -> f32 {
 }
 
 #[test]
-fn a_point_blank_blast_lands_every_pellet_and_two_blasts_kill() {
+fn a_full_band_blast_lands_every_pellet_and_two_blasts_kill() {
     let mut state = range(serde_json::json!([]), false);
-    let victim = target(&mut state, 1, [2.0, 0.0, 0.0]);
+    // Past the meatshot, inside the full-damage band.
+    let victim = target(&mut state, 1, [3.0, 0.0, 0.0]);
     // Pitch 0 is the face, and the chest cone still clips the head band.
     // The belt is the body number: seven full pellets, Doom's average.
     let pitch = crate::combat::aim_at(
         [0.0, crate::movement::EYE_HEIGHT, 0.0],
-        [2.0, crate::movement::BODY_HEIGHT * 0.5, 0.0],
+        [3.0, crate::movement::BODY_HEIGHT * 0.5, 0.0],
     )
     .unwrap()
     .1;
@@ -138,6 +139,29 @@ fn a_point_blank_blast_lands_every_pellet_and_two_blasts_kill() {
         .count();
     assert_eq!(frags, 1, "seven lethal pellets are one frag");
     assert_eq!(state.scores.get(&SHOOTER), Some(&1));
+}
+
+#[test]
+fn a_meatshot_puts_a_bare_fighter_down_in_one_blast() {
+    let mut state = range(serde_json::json!([]), false);
+    let victim = target(&mut state, 1, [1.4, 0.0, 0.0]);
+    let pitch = crate::combat::aim_at(
+        [0.0, crate::movement::EYE_HEIGHT, 0.0],
+        [1.4, crate::movement::BODY_HEIGHT * 0.5, 0.0],
+    )
+    .unwrap()
+    .1;
+    let blast = blast_at(&mut state, pitch);
+    assert_eq!(blast.len(), 1, "every pellet struck the same fighter");
+    let trace = blast[0].trace.as_ref().unwrap();
+    assert_eq!(trace.pellets.len(), SCATTER_PELLETS);
+    assert!(trace.pellets.iter().all(|pellet| {
+        matches!(pellet.impact, ShotImpact::Fighter { .. })
+            && distance(trace.origin, pellet.end) <= crate::protocol::SCATTER_MEATSHOT_UNITS
+    }));
+    assert!(blast[0].killed, "barrel against the body: one blast");
+    assert!(blast[0].damage >= 100);
+    assert!(hp(&state, victim) <= 0);
 }
 
 #[test]

@@ -71,6 +71,10 @@ Currently, `resolve_blast` in `server/src/sim/grenade.rs` computes line-of-sight
 - **Rocket Jumping Self-Damage Scaling:** Reduce self-inflicted explosive damage by 40% while preserving 100% vertical impulse, enabling high-skill rocket jumps to bypass stair routes or scale high gantries (Directive 17, Arena Duel).
 
 ### Pillar 4: Super Shotgun "Meatshot" Tuning
+
+Built in wave 4 (`wave4/bots`): seven pellets inside 2 units make 105, one
+blast through a bare fighter; the playtest harness asserts it beside the
+sticky TTK table. The sound pass below is not part of it.
 Currently, `WeaponType::Scatter` fires 7 pellets at 10 damage each (70 total), requiring 2 point-blank shots to kill an unarmored fighter.
 - **Tuning:** Increase point-blank pellet concentration so landing all 7 pellets within 2.0 meters inflicts **105 total damage**, rewarding aggressive barrel-stuffing with an immediate one-shot kill.
 - **Sound Feedback:** Thicken the Scattergun fire sound with a deeper sub-bass kick and audible pump mechanical clack.

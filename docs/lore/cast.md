@@ -235,6 +235,20 @@ only the boilerplate the Office loaded, so the joke is always the procedure,
 never the machine. Two NODS, NODS 0412 and NODS 2208, take no trash talk and
 answer only with Articles.
 
+**Habits and grudges.** Each callsign has a favourite gun and one pad it keeps
+time on (`server/src/roster/habits.rs`). Where canon speaks, the habit follows
+it: Nightfall and Graveyard Shift favour the rail and time it, the Static Kids
+spray scatter, Hangar Candy are flechette mains, and Aunt Linda farms health.
+Two are readings of their own jokes rather than anything stated above:
+Crackpot, compliance-flavoured, wears the Custody Plate whenever it is his,
+and Buzzkill makes sure it is never yours. Everyone else takes the habits of
+how they fight. A regular also remembers who has fragged them, from the
+head-to-head book the venue keeps by callsign, looks for that fighter first,
+and says so when the score is settled, in their own register: the Night Watch
+close the debt in capitals, Hangar Candy declassify it, Gulf Breeze log the
+sighting, Hermes thanks you for the rematch and L5 says "even." NODS keep no
+grudges; they answer only with Articles.
+
 **Rivalries the killfeed should show.** Formerly 4471 hunts Handle 4471-K, the
 unit its old number was reissued to. Never Signed refuses Initial Here 3's pen.
 Mailed It Back returns Polite Recall 9. Not Hermes and Hermes, who thanks it

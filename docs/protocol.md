@@ -2275,8 +2275,14 @@ not block a ground bay. No new action or snapshot field is added.
   Two fighter seats (see admission above). A Duel names no winner and no MVP
   for a level round. The server keeps the pair's series while the same two
   fighters play on (`podium.duel` below) and opens a rematch with the Host's
-  `host_line` on it, such as `HOST: REMATCH. NIGHTFALL LEADS 2 TO 1.` Spree
-  tiers step every 3 frags. The desktop host runs it on Larak Lot only.
+  `host_line` on it, such as `HOST: REMATCH. NIGHTFALL LEADS 2 TO 1.` Before
+  the pair has a series, warmup and the round opening carry the Duel intro
+  instead: `HOST: LARAK LOT DUEL. NIGHTFALL AGAINST MEAT PROXY. NIGHTFALL
+  LEADS THE BOOK 7 TO 4.` (or `FIRST TIME ON THE BOOK.`, or `THE BOOK IS
+  LEVEL AT 3.`), with `GOES LIVE IN 3.` appended during warmup. The book is
+  the server's head-to-head frag count between the two callsigns; it is not
+  on the wire as data. Spree tiers step every 3 frags. The desktop host runs
+  it on Larak Lot only.
 - **Team deathmatch.** Sides are `union` and `coalition`. Every join, human,
   agent or rule bot, takes the smaller side (ties go to the side behind on
   frags, then the coalition). At a round start a side two or more ahead gives

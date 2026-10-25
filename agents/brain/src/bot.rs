@@ -1851,6 +1851,7 @@ mod tests {
             human_summary: false,
             overview: None,
             tick_trace: None,
+            head_to_head: None,
         };
         tokio::spawn(async move {
             let _ = run_server(

@@ -422,6 +422,7 @@ modes still need fresh human matches to establish clarity and fun.
 | `--color <WHEN>` | `auto` (default), `always` or `never`. |
 | `--ban-list <PATH>` / `--allow-list <PATH>` | Address lists described above. |
 | `--console` | Local venue desk on a dedicated arcade match, including `status`. End of input does not stop the process. |
+| `--head-to-head <PATH>` | Keep the head-to-head book (frags between callsigns, which rule bots hold grudges from and the Host reads before a Duel) in this file across restarts, saved at each round end. A desktop host keeps it as `head-to-head.json` beside its campaign runs; a dedicated server keeps it in memory unless this is set. One file version: any other is refused with a warning, the book starts fresh and the next save replaces the file. |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |
