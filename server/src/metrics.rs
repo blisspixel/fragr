@@ -11,7 +11,7 @@ use crate::protocol::{
     ProcessInfo, Role, RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
 use std::collections::{HashMap, VecDeque};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
@@ -155,6 +155,11 @@ impl TrafficCounters {
     }
 }
 
+/// A round trip no scoreboard shows past: three figures.
+pub const MAX_PING_MS: u16 = 999;
+/// No reading yet.
+const NO_PING: u32 = u32::MAX;
+
 /// One session's counters, updated by its reader and writer tasks.
 #[derive(Debug)]
 pub struct ClientTraffic {
@@ -162,6 +167,8 @@ pub struct ClientTraffic {
     connected: Instant,
     own: TrafficCounters,
     totals: Arc<TrafficCounters>,
+    /// Smoothed round trip in microseconds, or `NO_PING`.
+    rtt_us: AtomicU32,
 }
 
 impl ClientTraffic {
@@ -171,6 +178,49 @@ impl ClientTraffic {
             connected: Instant::now(),
             own: TrafficCounters::default(),
             totals,
+            rtt_us: AtomicU32::new(NO_PING),
+        })
+    }
+
+    /// The payload of the writer's next WebSocket ping: when it left, in
+    /// microseconds since the session opened. The client's pong echoes it.
+    pub fn ping_payload(&self) -> Vec<u8> {
+        let sent = u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(u64::MAX);
+        sent.to_be_bytes().to_vec()
+    }
+
+    /// A pong arrived. A payload that is not one of our pings, or claims a
+    /// ping from the future, is ignored. Readings are smoothed, a quarter of
+    /// each new one, so one slow frame does not jump the board.
+    pub fn pong(&self, payload: &[u8]) {
+        let Ok(bytes) = <[u8; 8]>::try_from(payload) else {
+            return;
+        };
+        let sent = u64::from_be_bytes(bytes);
+        let now = u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(u64::MAX);
+        let Some(sample) = now.checked_sub(sent) else {
+            return;
+        };
+        let sample = u32::try_from(sample)
+            .unwrap_or(NO_PING - 1)
+            .min(NO_PING - 1);
+        let old = self.rtt_us.load(Ordering::Relaxed);
+        let next = if old == NO_PING {
+            sample
+        } else {
+            u32::try_from((u64::from(old) * 3 + u64::from(sample)) / 4).unwrap_or(NO_PING - 1)
+        };
+        self.rtt_us.store(next, Ordering::Relaxed);
+    }
+
+    /// The smoothed round trip in whole milliseconds, capped for a board, or
+    /// None before the first pong.
+    pub fn ping_ms(&self) -> Option<u16> {
+        let rtt = self.rtt_us.load(Ordering::Relaxed);
+        (rtt != NO_PING).then(|| {
+            u16::try_from(rtt / 1000)
+                .unwrap_or(MAX_PING_MS)
+                .min(MAX_PING_MS)
         })
     }
 

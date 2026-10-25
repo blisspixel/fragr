@@ -285,8 +285,74 @@ msgstr "LEADERS"
 msgid "HUD_BOARD_SCROLL"
 msgstr "SCROLL: {previous} / {next} (WEAPON CYCLE)"
 
-msgid "HUD_BOARD_COLUMNS"
-msgstr "FRAG  DIED  HIT% bodies/shots  HEAD% of those bodies  DEALT hp+armor"
+msgid "HUD_BOARD_RANK"
+msgstr "#"
+
+msgid "HUD_BOARD_CALLSIGN"
+msgstr "CALLSIGN"
+
+msgid "HUD_BOARD_FRAGS"
+msgstr "FRAGS"
+
+msgid "HUD_BOARD_DEATHS"
+msgstr "DEATHS"
+
+msgid "HUD_BOARD_PING"
+msgstr "PING"
+
+msgid "BOOTH_UP"
+msgstr "UP"
+
+msgid "BOOTH_PAD_PLATE"
+msgstr "PLATE"
+
+msgid "BOOTH_PAD_ARMOR"
+msgstr "ARMOR"
+
+msgid "BOOTH_PAD_RAIL"
+msgstr "RAILGUN"
+
+msgid "BOOTH_PAD_ROCKET"
+msgstr "ROCKET"
+
+msgid "BOOTH_PAD_SCATTER"
+msgstr "SHOTGUN"
+
+msgid "BOOTH_PAD_SNIPER"
+msgstr "SNIPER"
+
+msgid "BOOTH_PAD_ARC"
+msgstr "ARC"
+
+msgid "BOOTH_PAD_REPEATER"
+msgstr "REPEATER"
+
+msgid "BOOTH_PAD_ARTICLE_BLADE"
+msgstr "BLADE"
+
+msgid "BOOTH_RUNS"
+msgstr "ON A RUN"
+
+msgid "BOOTH_RAMPAGE"
+msgstr "RAMPAGE"
+
+msgid "BOOTH_RIOT"
+msgstr "RIOT"
+
+msgid "BOOTH_UNTOUCHABLE"
+msgstr "UNTOUCHABLE"
+
+msgid "BOOTH_CHAIN_2"
+msgstr "DOUBLE"
+
+msgid "BOOTH_CHAIN_3"
+msgstr "TRIPLE"
+
+msgid "BOOTH_CHAIN_4"
+msgstr "QUAD"
+
+msgid "BOOTH_CHAIN_5"
+msgstr "FRAG STORM"
 
 msgid "PICKUP_GOLDEN_RAIL"
 msgstr "GOLDEN RAIL"

@@ -51,11 +51,11 @@ is intent, not confirmation of a game outcome. `observe` defaults to `detail: br
 A joined agent sees pads the way rule bots do. Its `observe` (brief pad
 distances and full `pickups`) reports what its own fighter has seen: a pad
 inside a 120 degree view, within 40 m and past cover, or underfoot. Full
-`pickups[].available` is that belief, `in_view` says whether the pad is seen
-now, and the live `respawn_in` timer is removed. A pad seen empty is believed
-back after its published clock; pads not seen are believed up. Turn and look to
-learn the map. An adapter that never joined keeps the full live view.
-`docs/protocol.md` has the clocks.
+`pickups[].available` is that belief and `in_view` says whether the pad is
+seen now. The snapshot carries no live return timer for anyone. A pad seen
+empty is believed back after its published clock; pads not seen are believed
+up. Turn and look to learn the map. An adapter that never joined keeps the full
+live view. `docs/protocol.md` has the clocks.
 
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
@@ -69,9 +69,18 @@ cargo run -p fragr-agent-adapter -- mcp --local --name MyAgent
 # cargo run -p fragr-agent-adapter -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
 # or: FRAGR_AGENT_NAME=ArenaFox cargo run -p fragr-agent-adapter -- mcp
 # choose a body: --body human (default) or --body synthetic
+# a caster's booth seat that watches and never fights:
+# cargo run -p fragr-agent-adapter -- mcp --local --watch --name Booth
 ```
 
 Connect via an MCP client on stdio. The boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. `join` / `leave` / `round_state` are also tools (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
+
+`--watch` hellos as a spectator instead: a booth seat for an agent caster. It
+never holds a fighter, `act` and `speak` refuse, and `round_state.booth` carries
+the booth facts the server sends only to spectators (live pad clocks, the
+Custody Plate and its wearer, sprees and open multikill chains). Calling `join`
+from the booth steps down from it and hellos again as a fighter; from then on
+the session never hears the booth.
 
 ### Scripted bot
 
@@ -701,10 +710,29 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "self_team": "coalition",
   "self_lives": null,
   "self_body": "synthetic",
+  "booth": null,
   "last_round_start": {"event": "round_start", "round_number": 3},
   "last_round_end": null
 }
 ```
+
+`booth` is null for a fighter, always. A session started with `--watch` that
+has not joined carries the newest booth facts there, as
+[`spectator_facts`](../docs/protocol.md#spectatorfacts) states them:
+
+```json
+"booth": {
+  "tick": 2400, "spree_step": 5,
+  "pads": [{"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300}],
+  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520, "holder": "550e8400-...", "armor": 143},
+  "sprees": [{"id": "550e8400-...", "frags": 6}],
+  "chains": [{"id": "550e8400-...", "frags": 2, "open_for": 31}]
+}
+```
+
+Times are ticks (20 a second). Join each `id` against the snapshot players or
+pickups for a name or a position. Health and armour for every fighter are in
+the snapshot itself.
 
 Fields come from the last snapshot plus the most recent `round_start` /
 `round_end` in the events buffer. While Ended, Snapshot `mvp` / `mvp_frags` /
@@ -816,7 +844,7 @@ The adapter speaks the same WebSocket JSON protocol as the Godot client and huma
 5. MCP client calls `act` / `speak`; adapter forwards on the open socket
 6. `leave` closes the socket cleanly; `join` reconnects and Hellos again
 
-The receive task answers the server's liveness ping every 15 seconds, so an
+The receive task answers the server's liveness ping every 5 seconds, so an
 idle agent between tool calls stays connected. A server kick (`idle_timeout`,
 `rate_limited`, `malformed`, `address_banned`, `address_not_allowed`; see
 `docs/protocol.md`) arrives as a final `error` and a close, and the session

@@ -30,6 +30,8 @@ var _layout_key: Array = []
 ## Vertical shift currently applied to the round card, so placement can be
 ## recomputed without accumulating.
 var card_shift: float = 0.0
+## The booth panel's width in logical units before HUD scale.
+const BOOTH_W: float = 400.0
 ## Now-playing toast in logical units before HUD scale: two text rows.
 const RADIO_CARD_W: float = 440.0
 const RADIO_CARD_H: float = 76.0
@@ -105,6 +107,22 @@ func fit_backings() -> void:
 				box.size + Vector2(style.content_margin_left + style.content_margin_right, style.content_margin_top + style.content_margin_bottom))
 			plate.position = grown.position.round()
 			plate.size = grown.size.round()
+	place_booth()
+
+## The booth panel hangs in the left column between the corner facts' drawn
+## backing and the bottom-left context, never over either. Runs every frame
+## with the backings, because the corner settles after layout.
+func place_booth() -> void:
+	var booth: Variant = hud.get("spectator_panel")
+	if not booth is SpectatorPanel:
+		return
+	var panel: Control = hud.get_node("Panel")
+	var hud_scale: float = hud.hud_style.scale if "hud_style" in hud and hud.hud_style != null else 1.0
+	var booth_top: float = panel.position.y + corner_bottom(hud_scale) + GAP
+	var booth_w: float = minf(panel.size.x, BOOTH_W * hud_scale)
+	var bottom: float = context.position.y - GAP if context.visible else hud.get_viewport().get_visible_rect().size.y - 164.0 * hud_scale
+	(booth as SpectatorPanel).set_region(Rect2(20, booth_top, booth_w, maxf(0.0, bottom - booth_top)))
+	(booth as SpectatorPanel).set_covered(hud.round_message.visible or hud.warmup_tv_active)
 
 func layout() -> void:
 	var view: Vector2 = hud.get_viewport().get_visible_rect().size
@@ -297,6 +315,14 @@ static func top_band(view_width: float, hud_scale: float, text_scale: float = -1
 	var center: float = clampf(view_width - 2.0 * side, floor_width, ceiling)
 	return {"left_width": left, "center_width": center, "right_width": right}
 
+## How far the corner facts' drawn backing reaches below the panel origin.
+func corner_bottom(hud_scale: float) -> float:
+	var plate: Panel = backings.get("corner")
+	var panel: Control = hud.get_node("Panel")
+	if plate != null and plate.visible and plate.size.y > 0.0:
+		return maxf(0.0, plate.position.y + plate.size.y - panel.position.y)
+	return 72.0 * hud_scale
+
 ## The corner panel's widest line, drawn, plus its inner margins.
 func corner_need() -> float:
 	var widest: float = 0.0
@@ -385,8 +411,11 @@ func world_label_blockers() -> Array[Rect2]:
 	plates.append_array(backings.values())
 	plates.append_array([hud.get("weapon_icon_bg"), hud.get("round_backdrop"), hud.get("_leaderboard"),
 		hud.get("_use_plate"), hud.get("radio_card"), hud.get("warmup_tv")])
-	# Holders whose plates are their children: feed rows, the centre call and
-	# the death card.
+	# Holders whose plates are their children: feed rows, the centre call,
+	# the death card and the booth panel's rows.
+	var booth: Variant = hud.get("spectator_panel")
+	if booth is SpectatorPanel and (booth as Control).is_visible_in_tree():
+		plates.append_array((booth as Control).get_node("Rows").get_children())
 	for holder_name: String in ["frag_feed", "objective_call", "death_card"]:
 		var holder: Variant = hud.get(holder_name)
 		if holder is Control and (holder as Control).is_visible_in_tree():

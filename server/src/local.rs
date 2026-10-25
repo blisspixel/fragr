@@ -1091,6 +1091,8 @@ mod tests {
             epilogue.gameplay_version,
             crate::protocol::STILL_HERE_GAMEPLAY_VERSION
         );
-        assert_eq!(epilogue.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        // The epilogue keeps its own floor; later arcade contracts, such as
+        // the booth, sit above it without moving it.
+        assert!(epilogue.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
     }
 }

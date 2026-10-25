@@ -345,6 +345,7 @@ func _ready():
 	net_client.mission_received.connect(_on_mission_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
+	net_client.spectator_facts_received.connect(_on_spectator_facts)
 	net_client.ack_received.connect(_on_ack_received)
 	net_client.connected_to_server.connect(_on_connected)
 	net_client.session_resumed.connect(_on_session_resumed)
@@ -2828,6 +2829,8 @@ func _on_snapshot_received(data):
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
+	hud.spectator_panel.watching = not is_human_player and not _benchmark
+	hud.spectator_panel.observe_snapshot(data)
 	var pre_my_id: String = str(net_client.player_id) if net_client != null and net_client.player_id != null else ""
 	var pre_pawn: Node = players.get(pre_my_id)
 	var active_cam: Node3D = camera if is_instance_valid(camera) else (get_viewport().get_camera_3d() if get_viewport() != null else null)
@@ -3151,6 +3154,12 @@ func _update_nameplates() -> void:
 		if is_instance_valid(pawn):
 			pawn.set_nameplate_enabled(visible_ids.has(str(id)))
 
+## The booth's facts reach a watcher only: the panel and the director.
+func _on_spectator_facts(facts: Dictionary) -> void:
+	hud.spectator_panel.observe_facts(facts)
+	if camera != null and not is_human_player:
+		camera.director_observe_facts(facts, latest_snapshot.get("pickups", []))
+
 func _on_event_received(data):
 	var event_type = data.get("event", "")
 	if event_type == "sabotage":
@@ -3176,6 +3185,7 @@ func _on_event_received(data):
 		if is_human_player and _is_local_victim(victim_id):
 			_on_local_frag(victim_id, killer_id, killer_name)
 		elif not is_human_player and killer_id != "" and camera:
+			camera.director_observe_frag(data, killer_id)
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false

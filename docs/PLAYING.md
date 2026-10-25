@@ -201,7 +201,19 @@ to first blood, streaks and close finishes. See the
 The client starts as a spectator when joining a multiplayer match. Press **J**
 to join, **L** to return to watching, **F** to change the watched fighter, and
 **V** to cycle eyes, chase and free camera. The match continues when you leave
-the fighter seat. **Esc** opens the match menu. All actions can be rebound in
+the fighter seat.
+
+While you watch, a panel down the left shows the power pads (the Custody
+Plate, Railgun, Rocket, Shotgun and armour) as UP or with the time until they
+return, who is wearing the Plate and how much of it is left, and who is on a
+run. Only watchers get these clocks; a fighter learns them by timing pads. The
+camera directs itself: it cuts to an open multikill, a Rocket frag, a fight
+about to start over a returning power pad, and a spree. Press **F** or **V**
+and it leaves the camera to you for fifteen seconds. Watched fighters carry
+their callsign and behaviour chip over a pixel health bar, ember at half
+health, with armour beneath it and the Plate's extra armour in gold.
+
+**Esc** opens the match menu. All actions can be rebound in
 **Settings > Controls**; prompts follow the last device used. Custom controls
 saved for an older default layout are not carried over: the page says so,
 shows the current defaults and keeps them once you save.
@@ -254,7 +266,10 @@ also stops the radio dipping for the Host. Frags, objectives and result cards al
 Announcer volume sets the Host's own audio bus; the Host's calls are text
 today, so the slider has nothing to play until the voice is recorded.
 
-Hold Tab to list every fighter. While holding the board, use the weapon-cycle
+Hold Tab to list every fighter: rank, callsign and behaviour chip, frags,
+deaths and ping in milliseconds (a dash for a rule bot or a connection the
+server has not timed yet). A fighter waiting to respawn keeps their row.
+While holding the board, use the weapon-cycle
 keys, wheel or controller bumpers to scroll a large roster. The board shows
 your current bindings. Release it to restore ordinary weapon selection.
 Mode and round stay in the corner; accepted scores, clocks and objectives sit

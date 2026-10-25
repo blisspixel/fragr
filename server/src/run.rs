@@ -843,7 +843,16 @@ async fn run_server_impl(
                 let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);
                 let fanout_started = std::time::Instant::now();
-                let delivery = broadcast_to_clients(&clients, &broadcasts).await;
+                // Booth facts reach only the connections that watch.
+                let watchers = if broadcasts
+                    .iter()
+                    .any(|broadcast| broadcast.audience() == crate::net::Audience::Spectators)
+                {
+                    session.spectator_ids()
+                } else {
+                    std::collections::HashSet::new()
+                };
+                let delivery = broadcast_to_clients(&clients, &broadcasts, &watchers).await;
                 let broadcast_elapsed = fanout_started.elapsed();
                 let connections;
                 {
@@ -852,6 +861,11 @@ async fn run_server_impl(
                     connections = clients_lock.len();
                     let refreshed = tracker.due(now);
                     if refreshed {
+                        let pings: Vec<(uuid::Uuid, u16)> = clients_lock
+                            .iter()
+                            .filter_map(|client| Some((client.id, client.traffic().ping_ms()?)))
+                            .collect();
+                        session.note_pings(&pings);
                         let samples: Vec<crate::metrics::ClientSample<'_>> = clients_lock
                             .iter()
                             .map(|client| crate::metrics::ClientSample {

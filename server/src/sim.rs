@@ -2,6 +2,7 @@
 mod arc;
 pub(crate) mod assessor;
 pub(crate) mod blade;
+mod booth;
 mod bot_senses;
 mod conquest;
 pub(crate) mod contact;
@@ -600,11 +601,6 @@ impl ArenaPickup {
             y: self.y,
             z: self.z,
             available: self.available,
-            respawn_in: if self.available {
-                None
-            } else {
-                self.respawn_timer
-            },
         }
     }
 
@@ -790,6 +786,10 @@ pub struct Player {
     pub is_boss: bool,
     /// Within-round killstreak (resets on death and round boundaries).
     pub killstreak: u32,
+    /// Round trip to the connection driving this fighter, in milliseconds,
+    /// from the server's WebSocket pings. None for rule bots, campaign
+    /// actors and a fighter whose connection has not answered yet.
+    pub ping_ms: Option<u16>,
     /// Agent-set observe chip (never used for combat). Rule bots use BotController.
     pub display_behavior: Option<String>,
     /// Newest input sequence applied to this fighter, echoed in the Ack.
@@ -941,6 +941,7 @@ impl Player {
             last_speak_tick: None,
             is_boss: false,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
@@ -3728,6 +3729,7 @@ impl GameState {
                         golden: p.golden,
                         ducking: p.ducking,
                         body: p.is_participant().then_some(p.body),
+                        ping: p.ping_ms,
                     }
                 })
                 .collect(),
@@ -3823,7 +3825,6 @@ impl GameState {
                     y: gold.y,
                     z: gold.z,
                     available: gold.holder.is_none(),
-                    respawn_in: None,
                 }))
                 .chain(
                     self.article_blade
@@ -4236,6 +4237,7 @@ impl GameState {
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
@@ -4727,6 +4729,7 @@ impl GameState {
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
