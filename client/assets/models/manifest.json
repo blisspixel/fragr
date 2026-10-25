@@ -140,7 +140,7 @@
 		"res://scripts/latch_face.gd": "dbae2a83d4414c8f67fc78fef5cf07d839a5767b2d1b96b18193248018436166",
 		"res://scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
 		"res://scripts/latch_view.gd": "ef8cddc038b40d4e36834a0df860b2cbbe876794556fcdeb0d7d040f8b8f7356",
-		"res://scripts/gun_model.gd": "674027f213b5b98ae726b01fe5ade60fa41704e8a56283e2362a1cd230a2b293",
+		"res://scripts/gun_model.gd": "87ccc9a7d664ab3c78695c7ca6c3f4fd540837cc8cf41fce314e40ec290dd01f",
 		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	}
 }

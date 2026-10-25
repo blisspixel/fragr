@@ -106,6 +106,8 @@ static func carried_mesh(weapon: String, by_finish: bool = false) -> ArrayMesh:
 	var painted: StandardMaterial3D = source.world_finish("steel").duplicate() as StandardMaterial3D
 	painted.albedo_color = Color.WHITE
 	painted.vertex_color_use_as_albedo = true
+	# Ramp colours are sRGB swatches; without this they render washed out.
+	painted.vertex_color_is_srgb = true
 	painted.metallic = 0.15
 	var tools: Dictionary[String, SurfaceTool] = {}
 	for node: Node in gun.find_children("*", "MeshInstance3D", true, false):
