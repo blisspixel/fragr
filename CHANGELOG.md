@@ -61,6 +61,11 @@ Release history, newest first. Planned work stays in
   and gives it up, and a running series between the same pair.
 - Press fire on the podium for one more: when everyone seated has, the next
   round starts two seconds after the result.
+- Read Union attacks before they land: red optics flash when a windup starts
+  and burn hot through the burst, and no more than two guards wind up on you
+  at once.
+- Let Latch fight beside you from a real twelve-round magazine, cover your
+  reloads, and keep out of your path, your crosshair and your line of fire.
 
 Linux, macOS and Windows CI passed for every change. Windows human play and
 real controllers are still owed.
