@@ -861,7 +861,6 @@ fn supplied_agents_advance_the_mission_instead_of_filling_every_reserve() {
         y: 0.,
         z: -5.,
         available: true,
-        respawn_in: None,
     });
     let p = &state.players[0];
     let supplied = p.inventory.state(id, p.weapon, state.tick).unwrap();

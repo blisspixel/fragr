@@ -385,6 +385,7 @@ pub(crate) mod fixtures {
             heads: 0,
             damage: 0,
             weapon: weapon.to_string(),
+            ping: None,
         }
     }
 
@@ -400,7 +401,6 @@ pub(crate) mod fixtures {
             y: 0.0,
             z,
             available,
-            respawn_in: None,
         }
     }
 

@@ -1,0 +1,13 @@
+{
+  "comment": "The booth on Larak Lot: a watcher's panel of power pads, the Custody Plate and runs from the server's spectator-only facts; the director cutting the follow camera; nameplates with Silkscreen callsigns, the true behaviour chip and a pixel health bar that geometry never cuts; the Tab board with rank, callsign, frags, deaths and ping, watched and then joined. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/booth.json. Presentation only; no player pose injection.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "booth_follow", "scene": "res://scenes/main.tscn", "at_seconds": 30, "camera": "follow", "settle_seconds": 1.0, "note": "A watched fight with the booth panel down the left: pad clocks counting, the Plate and any run."},
+    {"name": "booth_overview_plates", "at_seconds": 45, "camera": "overview", "camera_position": [31, 26, 33], "camera_look_at": [-4, 1, -4], "settle_seconds": 0.4, "note": "The overview that bit callsigns in half under the decks: whole plates over pixel health bars."},
+    {"name": "booth_director", "at_seconds": 60, "camera": "follow", "settle_seconds": 0.5, "strip_frames": 8, "strip_interval_seconds": 0.5, "note": "Four seconds of the follow camera under the director; the manifest names its last cut."},
+    {"name": "booth_eye", "at_seconds": 80, "camera": "first_person", "settle_seconds": 1.0, "note": "Through a fighter's eyes with the panel and the feed's kill glyphs."},
+    {"name": "booth_board", "at_seconds": 95, "camera": "follow", "overlay": "scoreboard", "settle_seconds": 0.6, "note": "The Tab board for a watcher: rank, callsign and chip, frags, deaths, ping."},
+    {"name": "booth_joined_board", "join": "human", "camera": "first_person", "overlay": "scoreboard", "settle_seconds": 8.0, "note": "Joined: the board marks the fighter's own row and its measured ping; the booth panel is gone."}
+  ]
+}

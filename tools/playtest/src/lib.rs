@@ -2708,6 +2708,7 @@ mod tests {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }
     }
 
@@ -3655,6 +3656,7 @@ mod combat_tests {
             heads: 0,
             damage: 0,
             weapon: weapon.to_string(),
+            ping: None,
         }
     }
 
@@ -4564,6 +4566,7 @@ mod planner_tests {
             heads: 0,
             damage: 0,
             weapon: weapon.to_string(),
+            ping: None,
         }
     }
 
@@ -4579,7 +4582,6 @@ mod planner_tests {
             y: 0.0,
             z,
             available,
-            respawn_in: None,
         }
     }
 
@@ -5474,6 +5476,7 @@ mod line_of_sight_tests {
             heads: 0,
             damage: 0,
             weapon: "flechette".to_string(),
+            ping: None,
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
 
@@ -5552,6 +5555,7 @@ mod patrol_tests {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }
     }
 

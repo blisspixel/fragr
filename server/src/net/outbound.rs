@@ -13,18 +13,47 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::Notify;
 
-/// One message every initialized session receives unchanged, with the exact
-/// JSON text each of their writers sends. Immutable once built.
+/// Who may receive a broadcast. The class follows from the message itself,
+/// so no caller can label a booth fact for players by mistake.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Audience {
+    /// Every initialized session.
+    Everyone,
+    /// Only sessions that watch and hold no fighter: the booth.
+    Spectators,
+}
+
+impl Audience {
+    pub fn of(message: &ServerMessage) -> Self {
+        match message {
+            ServerMessage::SpectatorFacts(_) => Self::Spectators,
+            _ => Self::Everyone,
+        }
+    }
+}
+
+/// One message every session of its audience receives unchanged, with the
+/// exact JSON text each of their writers sends. Immutable once built.
 #[derive(Debug)]
 pub struct Broadcast {
     message: ServerMessage,
     text: String,
+    audience: Audience,
 }
 
 impl Broadcast {
     pub fn encode(message: ServerMessage) -> serde_json::Result<Arc<Self>> {
         let text = serde_json::to_string(&message)?;
-        Ok(Arc::new(Self { message, text }))
+        let audience = Audience::of(&message);
+        Ok(Arc::new(Self {
+            message,
+            text,
+            audience,
+        }))
+    }
+
+    pub fn audience(&self) -> Audience {
+        self.audience
     }
 
     /// Encode a tick's broadcasts in order. One failure fails the tick.
@@ -440,13 +469,9 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         && host_line == &new.host_line
         && mvp == &new.mvp
         && mvp_frags == &new.mvp_frags
-        && pickups.len() == new.pickups.len()
-        && pickups.iter().zip(&new.pickups).all(|(a, b)| {
-            // A countdown is superseded; availability and all supply facts are exact.
-            let mut prior = a.clone();
-            prior.respawn_in = b.respawn_in;
-            prior == *b
-        })
+        // Availability and every supply fact are exact; the snapshot carries
+        // no countdown that a newer world could supersede.
+        && pickups == &new.pickups
         && map_id == &new.map_id
         && map_name == &new.map_name
         && episode_id == &new.episode_id
@@ -517,6 +542,8 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         golden,
         ducking,
         body,
+        // A newer ping reading supersedes an older one, like motion.
+        ping: _,
     } = old;
     !just_fired
         && collidable == &new.collidable

@@ -1023,6 +1023,9 @@ impl GameSession {
             self.last_mission_sent = mission;
         }
         out.push(ServerMessage::Snapshot(self.state.snapshot()));
+        if self.booth_due() {
+            out.push(ServerMessage::SpectatorFacts(self.state.spectator_facts()));
+        }
         let (humans, fighters) = self.state.participant_counts();
         self.sheet.note_presence(humans, fighters);
         for event in self.state.take_events() {
@@ -1051,6 +1054,39 @@ impl GameSession {
             out.push(ServerMessage::Event(event));
         }
         out
+    }
+
+    /// Connections that watch and hold no fighter: the booth's audience.
+    pub fn spectator_ids(&self) -> std::collections::HashSet<Uuid> {
+        self.spectators
+            .keys()
+            .copied()
+            .filter(|id| !self.client_to_player.contains_key(id))
+            .collect()
+    }
+
+    /// Booth facts go out a few times a second while somebody watches an
+    /// arcade match. A campaign map has no booth.
+    fn booth_due(&self) -> bool {
+        !self.spectators.is_empty()
+            && !self.state.map.is_campaign()
+            && self
+                .state
+                .tick
+                .is_multiple_of(protocol::SPECTATOR_FACTS_EVERY_TICKS)
+    }
+
+    /// Record each connection's measured round trip on the fighter it drives.
+    /// A connection without a fighter, or one that has not answered a ping,
+    /// changes nothing; a fighter whose connection is gone loses its reading.
+    pub fn note_pings(&mut self, pings: &[(Uuid, u16)]) {
+        let driven: HashMap<Uuid, u16> = pings
+            .iter()
+            .filter_map(|(client, ms)| Some((*self.client_to_player.get(client)?, *ms)))
+            .collect();
+        for player in &mut self.state.players {
+            player.ping_ms = driven.get(&player.id).copied();
+        }
     }
 
     /// Drain targeted messages queued by commands and the tick.
@@ -1142,17 +1178,24 @@ fn strip_empty_rockets(loadout: &protocol::LoadoutState) -> protocol::LoadoutSta
     compatible
 }
 
-/// Every initialized session receives each broadcast unchanged, so all of
-/// their queues share its one encoding. A session that cannot represent a
-/// broadcast is closed, never sent a variant.
+/// Every initialized session of a broadcast's audience receives it
+/// unchanged, so all of their queues share its one encoding. A booth fact
+/// (`Audience::Spectators`) reaches only the connections in `spectators`,
+/// the ones that watch and hold no fighter. A session that cannot represent
+/// a broadcast is closed, never sent a variant.
 pub async fn broadcast_to_clients(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     broadcasts: &[Arc<crate::net::Broadcast>],
+    spectators: &std::collections::HashSet<Uuid>,
 ) -> DeliveryStats {
     let mut stats = DeliveryStats::default();
     let mut clients_lock = clients.lock().await;
     for broadcast in broadcasts {
-        for client in clients_lock.iter_mut().filter(|client| client.initialized) {
+        let booth = broadcast.audience() == crate::net::Audience::Spectators;
+        for client in clients_lock
+            .iter_mut()
+            .filter(|client| client.initialized && (!booth || spectators.contains(&client.id)))
+        {
             if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
                 if let ServerMessage::Snapshot(snapshot) = broadcast.message() {
                     if rocket_snapshot_unrepresentable(snapshot) {
@@ -1319,6 +1362,7 @@ mod session_tests {
         broadcast_to_clients(
             &clients,
             &crate::net::Broadcast::copies(std::slice::from_ref(&snapshot)),
+            &std::collections::HashSet::new(),
         )
         .await;
         assert!(
@@ -1353,7 +1397,12 @@ mod session_tests {
             &[(Recipient::Client(ids[0]), map)],
         )
         .await;
-        broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
+        broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&[snapshot]),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         assert!(matches!(
             pending_rx.try_recv().unwrap(),
             ServerMessage::MapInfo { .. }
@@ -1398,8 +1447,12 @@ mod session_tests {
         .await;
         assert_eq!(delivery.queue_overflows, 1);
         let snapshot = ServerMessage::Snapshot(session.state.snapshot());
-        let sent =
-            broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
+        let sent = broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&[snapshot]),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         assert_eq!(sent.queued_messages, 1);
         let clients = clients.lock().await;
         assert!(!clients[0].initialized);
@@ -1463,7 +1516,8 @@ mod session_tests {
             ServerMessage::Snapshot(session.state.snapshot()),
         ])
         .unwrap();
-        let sent = broadcast_to_clients(&clients, &broadcasts).await;
+        let sent =
+            broadcast_to_clients(&clients, &broadcasts, &std::collections::HashSet::new()).await;
         assert_eq!(sent.queued_messages, 6);
         let frames = |rx: &mut crate::net::WsRx| {
             std::iter::from_fn(|| rx.try_take().ok().map(|delivery| delivery.frame))
@@ -1509,6 +1563,145 @@ mod session_tests {
     }
 
     #[tokio::test]
+    async fn booth_facts_reach_spectators_and_never_a_fighter() {
+        use crate::net::Broadcast;
+        let fighter = Uuid::new_v4();
+        let agent = Uuid::new_v4();
+        let watcher = Uuid::new_v4();
+        let mut session = GameSession::new();
+        for (id, role) in [(fighter, Role::Human), (agent, Role::Agent)] {
+            session.apply_command(GameCommand::Connected {
+                body: crate::protocol::BodyKind::Human,
+                id,
+                role,
+                name: format!("{role:?}"),
+                player_id: Some(Uuid::new_v4()),
+            });
+        }
+        let is_booth =
+            |message: &ServerMessage| matches!(message, ServerMessage::SpectatorFacts(_));
+        let quiet: Vec<ServerMessage> = (0..protocol::SPECTATOR_FACTS_EVERY_TICKS)
+            .flat_map(|_| session.tick_messages(0.05))
+            .collect();
+        assert!(
+            !quiet.iter().any(is_booth),
+            "nobody watches, so nothing is built"
+        );
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: watcher,
+            role: Role::Spectator,
+            name: "Booth".into(),
+            player_id: None,
+        });
+        assert_eq!(
+            session.spectator_ids(),
+            std::collections::HashSet::from([watcher])
+        );
+        let messages: Vec<ServerMessage> = (0..protocol::SPECTATOR_FACTS_EVERY_TICKS)
+            .flat_map(|_| session.tick_messages(0.05))
+            .collect();
+        assert_eq!(messages.iter().filter(|m| is_booth(m)).count(), 1);
+        let (fighter_tx, mut fighter_rx) = crate::net::outbound_channel(32);
+        let (agent_tx, mut agent_rx) = crate::net::outbound_channel(32);
+        let (watcher_tx, mut watcher_rx) = crate::net::outbound_channel(32);
+        let clients = Arc::new(Mutex::new(vec![
+            ClientSession::new(fighter, fighter_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(agent, agent_tx, protocol::GAMEPLAY_VERSION),
+            ClientSession::new(watcher, watcher_tx, protocol::GAMEPLAY_VERSION),
+        ]));
+        let map = session.state.map_info();
+        send_unicasts(
+            &clients,
+            &HashMap::new(),
+            &[fighter, agent, watcher].map(|id| (Recipient::Client(id), map.clone())),
+        )
+        .await;
+        let broadcasts = Broadcast::encode_all(messages).unwrap();
+        broadcast_to_clients(&clients, &broadcasts, &session.spectator_ids()).await;
+        let drained = |rx: &mut crate::net::WsRx| {
+            std::iter::from_fn(|| rx.try_recv().ok()).collect::<Vec<_>>()
+        };
+        let fighter_got = drained(&mut fighter_rx);
+        let agent_got = drained(&mut agent_rx);
+        let watcher_got = drained(&mut watcher_rx);
+        for got in [&fighter_got, &agent_got] {
+            assert!(got.iter().any(|m| matches!(m, ServerMessage::Snapshot(_))));
+            assert!(!got.iter().any(is_booth), "a fighter never hears the booth");
+            for message in got {
+                let text = serde_json::to_string(message).unwrap();
+                assert!(!text.contains("spectator_facts") && !text.contains("respawn_in"));
+            }
+        }
+        assert_eq!(watcher_got.iter().filter(|m| is_booth(m)).count(), 1);
+        // An empty audience keeps every booth fact on the server.
+        let (late_tx, mut late_rx) = crate::net::outbound_channel(8);
+        let late = Uuid::new_v4();
+        clients.lock().await.push(ClientSession::new(
+            late,
+            late_tx,
+            protocol::GAMEPLAY_VERSION,
+        ));
+        send_unicasts(&clients, &HashMap::new(), &[(Recipient::Client(late), map)]).await;
+        broadcast_to_clients(&clients, &broadcasts, &std::collections::HashSet::new()).await;
+        assert!(!drained(&mut late_rx).iter().any(is_booth));
+    }
+
+    #[test]
+    fn a_campaign_map_has_no_booth() {
+        let mut session = GameSession::with_authored_map(
+            crate::maps::AuthoredMap::read(
+                include_bytes!("../maps/m01-recall-notice.json").as_slice(),
+            )
+            .unwrap(),
+        );
+        assert!(session.state.map.is_campaign());
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: Uuid::new_v4(),
+            role: Role::Spectator,
+            name: "Booth".into(),
+            player_id: None,
+        });
+        let campaign: Vec<ServerMessage> = (0..protocol::SPECTATOR_FACTS_EVERY_TICKS * 2)
+            .flat_map(|_| session.tick_messages(0.05))
+            .collect();
+        assert!(!campaign
+            .iter()
+            .any(|m| matches!(m, ServerMessage::SpectatorFacts(_))));
+    }
+
+    #[test]
+    fn measured_pings_land_on_the_fighter_each_connection_drives() {
+        let mut session = GameSession::new();
+        let client = Uuid::new_v4();
+        let player = Uuid::new_v4();
+        let watcher = Uuid::new_v4();
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: client,
+            role: Role::Human,
+            name: "Proxy".into(),
+            player_id: Some(player),
+        });
+        session.note_pings(&[(client, 42), (watcher, 9)]);
+        let ping = |session: &GameSession| {
+            session
+                .state
+                .snapshot()
+                .players
+                .iter()
+                .find(|p| p.id == player)
+                .and_then(|p| p.ping)
+        };
+        assert_eq!(ping(&session), Some(42));
+        let text = serde_json::to_string(&session.state.snapshot()).unwrap();
+        assert!(text.contains(r#""ping":42"#), "{text}");
+        session.note_pings(&[]);
+        assert_eq!(ping(&session), None, "no answer, no reading");
+    }
+
+    #[tokio::test]
     async fn active_slow_watcher_overflow_is_counted_once() {
         let slow_id = Uuid::new_v4();
         let healthy_id = Uuid::new_v4();
@@ -1534,10 +1727,15 @@ mod session_tests {
         let first = broadcast_to_clients(
             &clients,
             &crate::net::Broadcast::copies(std::slice::from_ref(&snapshot)),
+            &std::collections::HashSet::new(),
         )
         .await;
-        let second =
-            broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snapshot])).await;
+        let second = broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&[snapshot]),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         assert_eq!(first.queue_overflows, 1);
         assert_eq!(first.queued_messages, 1);
         assert_eq!(second.queue_overflows, 0);

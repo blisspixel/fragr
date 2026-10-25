@@ -477,6 +477,7 @@ fn test_protocol_snapshot_serialization() {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }],
         round_state: Some("Active".to_string()),
         round_time_left: Some(60),
@@ -2919,7 +2920,12 @@ async fn test_net_ws_action_forwarded_for_agent() {
             article_blade: None,
             podium: None,
         });
-        broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&[snap])).await;
+        broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&[snap]),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
             .await
             .unwrap()
@@ -3032,7 +3038,12 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
         player_count: session.state.players.len(),
     });
     let messages = session.tick_messages(0.05);
-    broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages)).await;
+    broadcast_to_clients(
+        &clients,
+        &crate::net::Broadcast::copies(&messages),
+        &std::collections::HashSet::new(),
+    )
+    .await;
 
     let mut saw_snapshot = false;
     let mut saw_join_event = false;

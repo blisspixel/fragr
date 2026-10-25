@@ -1041,17 +1041,19 @@ func _apply_plate() -> void:
 	if label == null:
 		return
 	_apply_plate_edge()
+	var bar: Sprite3D = NameplateLayout.vitals_bar(label)
+	NameplateLayout.style_plate(label)
 	var mark: String = MatchRules.relation_mark(team_relation)
 	if mark != "":
 		label.text = mark
+		bar.visible = false
 		# The words carry the relation; the colour stays the fighter's own
 		# side, so Union red never marks a free foe.
 		label.modulate = MatchRules.team_label_color(team)
 		return
-	var hp_display: String = str(hp) + " HP"
-	if hp < 30:
-		hp_display = "!" + hp_display + "!"
-	label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, _score_chip)
+	bar.visible = true
+	NameplateLayout.paint_vitals(bar, hp, armor)
+	label.text = NameplateLayout.plate_text(player_name, behavior, _score_chip)
 	if team != "":
 		label.text = "[" + MatchRules.team_short(team) + "] " + label.text
 	if golden:

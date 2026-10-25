@@ -504,6 +504,11 @@ func _run() -> void:
 			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
+		# The board held on Tab, as a player holds it: the key stays down
+		# through the settle and the still, and is let go after.
+		if state.get("overlay", "") == "scoreboard":
+			Input.action_press("scoreboard")
+			await create_timer(0.3).timeout
 		if state.get("overlay", "") == "match_settings":
 			var match_menu: PauseMenu = _game_manager().get_node("PauseMenu")
 			match_menu.open()
@@ -906,6 +911,8 @@ func _run() -> void:
 			# started photographs an empty grey room, and the HUD panel alone
 			# is enough texture to make the whole frame look non-blank.
 			"world_blank": measured.get("world_blank", false),
+			# The watcher's director: its last cut and why, when it made one.
+			"director": _director_record(),
 			"note": state.get("note", ""),
 			"input": {"kind": ["keyboard", "mouse", "gamepad"][InputDevice.kind], "look": InputDevice.look_source, "pad_layout": InputDevice.pad_layout, "prompt": _game_manager().mission_hud.prompt_text if _game_manager() != null and _game_manager().get("mission_hud") != null else "", "recovery": _game_manager().mission_hud.recovery_text if _game_manager() != null and _game_manager().get("mission_hud") != null and _game_manager().mission_hud._recovery.visible else ""},
 		})
@@ -918,6 +925,8 @@ func _run() -> void:
 				label.visible = true
 		if state.get("overlay", "") in ["match_menu", "match_settings"]:
 			_game_manager().get_node("PauseMenu").call("close")
+		if state.get("overlay", "") == "scoreboard":
+			Input.action_release("scoreboard")
 		if _failed and _combat_travel:
 			break
 
@@ -926,6 +935,17 @@ func _run() -> void:
 	print("qa_tour: ", _results.size(), " states under ", _out_dir)
 	await _retire_scene()
 	quit(1 if _failed else 0)
+
+func _director_record() -> Dictionary:
+	var camera: Node = _spectator_camera()
+	if camera == null or not "director_reason" in camera:
+		return {}
+	var manager: Node = _game_manager()
+	var target: String = str(camera.get("director_target_id"))
+	var named: String = ""
+	if manager != null and not target.is_empty() and manager.players.has(target) and is_instance_valid(manager.players[target]):
+		named = str(manager.players[target].get("player_name"))
+	return {"reason": str(camera.get("director_reason")), "target": named}
 
 func _retire_scene() -> void:
 	_disconnect_grenade_strip()

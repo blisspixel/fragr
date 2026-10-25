@@ -18,7 +18,9 @@ and All Systems Normal 54. Passenger Manifest, Common Carrier and Planned
 Works require 55, which carries the untagged M08 outcome, the `unlinked` M10
 practice transit and connected Planned Works; the free-for-all Pistol start
 with `rules.start_kit` is the same contract 55. Local Exception requires 56,
-and the Still Here epilogue requires 57, the highest this build speaks.
+the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
+fighter's `ping`, pads without a live clock) is 58, the highest this build
+speaks.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -53,17 +55,19 @@ drain. A fresh connection attempt or Welcome clears it. An explicit rejected
 `join` returns an MCP tool error. Unknown `map_id` and `map_name` are null.
 
 **Pads in a joined agent's `observe`:** the Snapshot carries every pad's live
-state for renderers and spectators. Once the adapter's own fighter is in the
+availability for renderers and spectators, and no return timer (the booth's
+`spectator_facts` alone carry those). Once the adapter's own fighter is in the
 snapshot, `observe` reports pads as that fighter perceives them, the way rule
 bots do: a pad is seen inside a 120 degree view, within 40 m and past the map's
 solids, or within 2.5 m whatever the facing. Full `observe.pickups[].available`
-is the fighter's belief, `in_view` says whether it sees the pad now, and the live
-`respawn_in` timer is removed. A pad seen empty is believed back after its
+is the fighter's belief and `in_view` says whether it sees the pad now. A pad
+seen empty is believed back after its
 published clock (weapons 240 ticks, 600 in team modes; health and armor 300;
 ammo and explosives 200); campaign stock seen empty stays empty until seen
 again. Unseen pads are believed up, and a `round_start` puts every pad back.
 The brief's pad distances use the same belief. Personal stock passes through.
-An adapter that never joined keeps the full live view.
+An adapter that never joined (`mcp --watch`) keeps the full live view, and its
+`round_state.booth` carries the booth's live clocks.
 
 **Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
@@ -1366,8 +1370,8 @@ Pickup entries additionally support `kind: "ammo"`, `pool` (`bullets`, `shells`,
 legacy snapshots. A `personal` weapon supply stays publicly available while each
 participant claims it independently once per development life. Contested stock
 has one authoritative winner and reports the actual received amount in the pickup
-event. On campaign maps, claimed stock stays unavailable with no `respawn_in`
-until the authoritative party reset. Outside campaign play, ammo returns after
+event. On campaign maps, claimed stock stays unavailable, with no return
+clock anywhere, until the authoritative party reset. Outside campaign play, ammo returns after
 200 ticks and other arcade pads retain their existing timers. Claims require proximity and, on authored
 maps, unobstructed sight. Current development death resets inventory and claims.
 A resumed pawn keeps the claims it still holds. A new hello does not restore a pawn that already left.
@@ -1576,7 +1580,7 @@ receives those same bytes; targeted messages are encoded per session.
   "host_line": "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.",
   "pickups": [
     {"id": "pad_rail", "kind": "weapon", "weapon": "Rail", "x": 12.0, "y": 0.4, "z": 12.0, "available": true},
-    {"id": "pad_scatter", "kind": "weapon", "weapon": "Scatter", "x": -12.0, "y": 0.4, "z": -12.0, "available": false, "respawn_in": 80},
+    {"id": "pad_scatter", "kind": "weapon", "weapon": "Scatter", "x": -12.0, "y": 0.4, "z": -12.0, "available": false},
     {"id": "pad_flechette", "kind": "weapon", "weapon": "Flechette", "x": -12.0, "y": 0.4, "z": 12.0, "available": true},
     {"id": "pad_health_n", "kind": "health", "amount": 40, "x": 0.0, "y": 0.4, "z": 8.0, "available": true},
     {"id": "pad_health_s", "kind": "health", "amount": 40, "x": 0.0, "y": 0.4, "z": -8.0, "available": true},
@@ -1659,6 +1663,12 @@ receives those same bytes; targeted messages are encoded per session.
     Unready or dead campaign bodies that stay published report false. Legacy
     omission defaults to true, still subject to HP and mission participation; a
     present nonboolean is invalid.
+  - `ping`: (optional) round trip to this fighter's connection in whole
+    milliseconds, capped at 999. The server pings every session every 5 s
+    with an 8-byte payload and times the echoed pong, smoothing each reading
+    by a quarter. Omitted for rule bots, campaign actors, a pawn held for a
+    dropped connection and a fighter whose connection has not answered yet.
+    The hold-Tab board reads it.
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -1690,7 +1700,7 @@ receives those same bytes; targeted messages are encoded per session.
 - `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
 - `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
-- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor, the Custody Plate). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"` / `"plate"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health, armor and plate pads), `x`/`y`/`z`, `available`, optional `respawn_in` (ticks until the pad returns). Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100) and is no use above 100. The Custody Plate (`plate`, Larak Lot's `larak_custody_plate` in the Roof's valet circle) adds 100 armour to a cap of 150; armour over 100 drains back one point a second. Clocks follow the rule sheet (`crate::rules`): the Plate 35 s in every mode; in free-for-all and Duel the Rail, Sniper, Arc and Rocket 25 s, other guns 15 s, a spare Pistol 8 s, health and armour 25 s; team modes 30 s for guns and 15 s for health and armour. `respawn_in` always reports the pad's actual clock. Larak Lot lays a Rocket pad in the Pit behind the Stack (`larak_rocket_pit`) only where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), because an arsenal bag cannot hold the Rocket. An arsenal fighter never takes a pad for a gun it cannot hold. Touch claim is authoritative on the server; clients only render.
+- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor, the Custody Plate). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"` / `"plate"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health, armor and plate pads), `x`/`y`/`z`, `available`. The shared world carries no live return clock: a fighter learns the published clocks below the way a regular does, and only the booth (`spectator_facts`) reports the time left. Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100) and is no use above 100. The Custody Plate (`plate`, Larak Lot's `larak_custody_plate` in the Roof's valet circle) adds 100 armour to a cap of 150; armour over 100 drains back one point a second. Clocks follow the rule sheet (`crate::rules`): the Plate 35 s in every mode; in free-for-all and Duel the Rail, Sniper, Arc and Rocket 25 s, other guns 15 s, a spare Pistol 8 s, health and armour 25 s; team modes 30 s for guns and 15 s for health and armour. Larak Lot lays a Rocket pad in the Pit behind the Stack (`larak_rocket_pit`) only where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), because an arsenal bag cannot hold the Rocket. An arsenal fighter never takes a pad for a gun it cannot hold. Touch claim is authoritative on the server; clients only render.
 
 **Notes:**
 - Ordinary dead fighters are omitted; campaign corpses remain for their bounded
@@ -1755,6 +1765,56 @@ committed ray reaches a fighter already killed earlier in the same tick.
 records default it to false. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
+
+#### SpectatorFacts
+
+The booth: facts the server broadcasts only to spectator connections, the
+ones that watch and hold no fighter. A connection bound to a pawn (a human or
+agent fighter, seated or parked) never receives one, and no campaign map has
+a booth. The server builds them only while somebody watches, every 5 ticks
+(4 a second), encodes each once and queues the same bytes for every watcher.
+A fighter learns pad clocks by watching pads empty and counting, and reads
+health and armour from the snapshot it already shares; the booth adds what a
+caster or a director needs to cut to the next fight before it starts.
+
+```json
+{
+  "type": "spectator_facts",
+  "tick": 2400,
+  "spree_step": 5,
+  "pads": [
+    {"id": "larak_health_toll", "kind": "health", "back_in": 40},
+    {"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300}
+  ],
+  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520,
+            "holder": "550e8400-e29b-41d4-a716-446655440000", "armor": 143},
+  "sprees": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 6}],
+  "chains": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 2, "open_for": 31}]
+}
+```
+
+- `tick`: the tick these facts describe.
+- `spree_step`: frags without dying that make a spree tier in this mode (5 in
+  free-for-all and team deathmatch, 3 in Duel and Sabotage, 4 in capture the
+  flag and Conquest).
+- `pads`: (omitted when empty) every pad that is down and will come back,
+  soonest first, at most 64: `id` (the snapshot `pickups` id), `kind`,
+  `weapon` on a weapon pad, `power` (omitted when false) for a gun better than
+  the Flechette or the sidearm, or armour, and `back_in` in ticks. A borrowed
+  Article Blade's return clock is a `weapon` row. Campaign stock that never
+  returns is never listed.
+- `plate`: (omitted on a map without one) the Custody Plate: its pad `id`,
+  `up`, `back_in` while it is down, and `holder` with that fighter's whole
+  `armor` for the living fighter carrying the most armour over the ordinary
+  cap of 100, which only the Plate grants. Omitted when nobody is over it.
+- `sprees`: (omitted when empty) living fighters on two or more frags without
+  dying, longest first, at most 16: `{id, frags}`.
+- `chains`: (omitted when empty) open multikill chains, two or more frags each
+  inside 3 s of the last, most frags first, at most 16: `{id, frags,
+  open_for}` where `open_for` is the ticks left for the next frag to extend it.
+
+Readers refuse unknown fields. The adapter keeps the newest facts only for a
+session that never joined (`mcp --watch`) and reports them as `round_state.booth`.
 
 #### Campaign actor identity
 
@@ -3778,3 +3838,12 @@ nothing after the ledger can revoke the ending.
 Decoration kinds `epilogue_ledger`, `epilogue_bench`, `epilogue_ferry_board`,
 `epilogue_missing_board`, `epilogue_tram_stop` and `epilogue_clinic_sign` are
 valid only with `MapInfo.epilogue`.
+
+### The booth (capability 58)
+
+Gameplay 58 adds `spectator_facts`, sent only to spectator connections
+(above, under Server to Client), the snapshot's per-fighter `ping`, and
+removes the pad's live `respawn_in` clock from the shared snapshot, so no
+fighter's client receives a pad timer, another fighter's spree or an open
+multikill chain. The server pings every session every 5 s, and the pong's
+echoed payload times the round trip. Arcade rooms require 58.

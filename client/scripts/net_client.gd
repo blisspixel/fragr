@@ -20,6 +20,8 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 58 understands the booth: `spectator_facts` for a watcher only, each
+# fighter's measured ping, and pads without a live return clock;
 # 57 connects Still Here: the survival-gated epilogue's two worlds, the
 # people the run carried and the read-only survival entitlement;
 # 56 connects Local Exception: the Surveyor's tracking disc, the pier hold
@@ -32,7 +34,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 57
+const GAMEPLAY_VERSION: int = 58
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -48,6 +50,8 @@ signal ack_received(data)
 signal loadout_received(data: Dictionary)
 signal mission_received(data: Dictionary)
 signal record_received(data: Dictionary)
+## The booth's facts, typed by `SpectatorFacts.parse`. Only a watcher hears them.
+signal spectator_facts_received(facts: Dictionary)
 
 var equipment: Dictionary = {}
 var record: Dictionary = {}
@@ -751,6 +755,15 @@ func _handle_message(text: String):
 			_movement_ack_previous = data.duplicate(true) if MovementAck.has_replay_body(data) else {}
 			ack_received.emit(data)
 		
+		"spectator_facts":
+			# The server sends the booth to watchers only. A fighter's client
+			# drops it anyway, and a malformed one changes nothing.
+			if player_id != null:
+				return
+			var facts: Dictionary = SpectatorFacts.parse(data)
+			if not facts.is_empty():
+				spectator_facts_received.emit(facts)
+
 		"event":
 			event_received.emit(data)
 			var event_type = data.get("event", "")

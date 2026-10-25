@@ -283,6 +283,11 @@ func _check_chase_cover() -> void:
 	var lifted: Vector3 = Cam.chase_clear_position(look, desired, [wall])
 	_check(AimAssist.line_of_sight(look, lifted, [wall]) and lifted.y > 4.0, "cover right behind the fighter lifts the camera over it")
 	_check(AimAssist.first_hit(look, desired, [crate]) > 0.0 and AimAssist.first_hit(look, desired, []) < 0.0, "first hit reports the nearest solid or none")
+	# Under a deck every raised boom meets the slab: a low boom sees the
+	# fighter along the floor rather than pulling in to stare at the ceiling.
+	var deck: Dictionary = {"min_x": -30.0, "max_x": 30.0, "min_z": -30.0, "max_z": 30.0, "bottom": 3.2, "top": 3.6}
+	var under: Vector3 = Cam.chase_clear_position(look, desired, [deck])
+	_check(AimAssist.line_of_sight(look, under, [deck]) and under.y < 3.2 and look.distance_to(under) > 8.0, "under a deck the chase boom drops instead of staring up: " + str(under))
 
 ## The camera punch is presentation: its peak is the asked-for angle, it has
 ## the same shape at any frame rate, it settles, and it never moves the aim.

@@ -56,5 +56,9 @@ func _run() -> void:
 		push_error("test_nameplate_layout: a plate in clear view, or with no solids known, should stay")
 		quit(1)
 		return
+	if not layout.hidden_by(eye, eye + Vector3(1.0, 0.4, 0.0), []):
+		push_error("test_nameplate_layout: a plate at the lens should hide, not fill the view")
+		quit(1)
+		return
 	print("test_nameplate_layout: PASS carrier priority, clear labels, stable ties, flag yield, cover")
 	quit(0)

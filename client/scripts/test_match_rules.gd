@@ -248,18 +248,19 @@ func _check_hud() -> void:
 		{"name": "Nightfall", "score": 3},
 		{"name": "Static Kid", "score": 2},
 		{"name": "Aunt Linda", "score": 1},
-		{"name": "Meat Proxy", "score": 5, "deaths": 1, "attacks": 3, "connects": 2, "heads": 1, "damage": 40},
-		{"name": "Probe", "score": 0},
+		{"name": "Meat Proxy", "score": 5, "deaths": 1, "attacks": 3, "connects": 2, "heads": 1, "damage": 40, "ping": 23},
+		{"name": "Probe", "score": 0, "ping": 1000},
 	])
 	hud.call("set_board_name", "Meat Proxy")
 	var leaders: String = str(hud.call("leaderboard_text"))
 	_check(leaders.begins_with("LEADERS\n"), "tab board names itself: " + leaders)
-	_check(leaders.contains("HIT% bodies/shots"), "tab board names the rates: " + leaders)
-	_check(leaders.contains("1.*Meat Proxy: 5 frag, 1 died, hit 66.7 (2/3), head 50.0 (1/2), 40 dealt  YOU"), "local fighter carries the counts: " + leaders)
-	_check(leaders.contains("6. Probe: 0 frag, 0 died, hit -, head -, 0 dealt"), "a quiet fighter is not a fake zero rate: " + leaders)
+	_check(leaders.contains("#  CALLSIGN  FRAGS  DEATHS  PING"), "tab board names its columns: " + leaders)
+	_check(leaders.contains("1. Meat Proxy  5  1  23  YOU"), "local fighter carries rank, frags, deaths and ping: " + leaders)
+	_check(leaders.contains("6. Probe  0  0  --"), "an impossible ping reads as no reading, never a number: " + leaders)
+	_check(leaders.contains("2. Dead Air Dan  4  0  --"), "a fighter with no reading shows a dash: " + leaders)
 	hud.call("set_board_name", "")
 	var spectator: String = str(hud.call("leaderboard_text"))
-	_check(spectator.contains("hit 66.7") and not spectator.contains("YOU"), "a spectator still gets the columns: " + spectator)
+	_check(spectator.contains("1. Meat Proxy  5  1  23") and not spectator.contains("YOU"), "a spectator still gets the columns: " + spectator)
 	hud.call("set_board_name", "Meat Proxy")
 	var corner: String = str(hud.get("scoreboard").text)
 	_check(not corner.contains("Probe"), "the corner stays the top four: " + corner)
@@ -302,8 +303,14 @@ func _check_large_board(hud: CanvasLayer) -> void:
 	_check(panel.get_global_rect().encloses(scroll.get_global_rect()), "large roster has a bounded scrolling viewport")
 	_check(panel.get_global_rect().encloses(hint.get_global_rect()), "scroll instructions stay inside the panel")
 	_check(rows.get_global_rect().end.x <= scroll.get_global_rect().end.x, "long Unicode names and counts wrap within the board width")
-	var final_label: Label = rows.get_child(64).get_node("Content/Text")
-	_check(final_label.text.contains("64. [UNION] 測試界abcdefghijklmnopqr63") and final_label.text.contains("999999 dealt"), "large roster retains the final fighter and full counts")
+	var final_row: Control = rows.get_child(64)
+	var final_label: Label = final_row.get_node("Content/Text")
+	_check(final_label.text.contains("測試界abcdefghijklmnopqr63") and str(final_row.get_meta("text")).contains("64. [UNION] 測試界abcdefghijklmnopqr63  1  999  --"), "large roster retains the final fighter and full counts: " + str(final_row.get_meta("text")))
+	_check((final_row.get_node("Content/Rank") as Label).text == "64" and (final_row.get_node("Content/Deaths") as Label).text == "999", "rank and deaths sit in their own columns")
+	var heading: Control = rows.get_child(0).get_node("Columns") if rows.get_child(0).has_node("Columns") else rows.get_child(0).find_child("Columns", true, false)
+	var frags_head: Label = heading.get_node("Frags")
+	var frags_cell: Label = final_row.get_node("Content/Frags")
+	_check(absf(frags_head.get_global_rect().end.x - frags_cell.get_global_rect().end.x) <= 1.0, "numbers line up under their heading: " + str([frags_head.get_global_rect(), frags_cell.get_global_rect()]))
 	var next: InputEventAction = InputEventAction.new()
 	next.action = "weapon_next"
 	next.pressed = true

@@ -79,7 +79,7 @@ where
                 };
                 Message::Text(json)
             }
-            _ = ping.tick() => Message::Ping(Vec::new()),
+            _ = ping.tick() => Message::Ping(traffic.ping_payload()),
             _ = &mut stop => return sink,
         };
         let text_bytes = match &frame {
@@ -158,10 +158,11 @@ const INBOUND_PER_SEC: f32 = 256.0;
 const INBOUND_BURST: f32 = 64.0;
 
 /// The server pings every open session on this cadence. Every WebSocket
-/// client answers a ping while it reads, so a quiet spectator stays live.
-const PING_EVERY: Duration = Duration::from_secs(15);
+/// client answers a ping while it reads, so a quiet spectator stays live,
+/// and the answer times the round trip each fighter's `ping` reports.
+const PING_EVERY: Duration = Duration::from_secs(5);
 /// No frame at all for this long, not even a pong, closes with `idle_timeout`.
-/// Three missed pings, so one long frame hitch is not a disconnect.
+/// Nine missed pings, so one long frame hitch is not a disconnect.
 const IDLE_AFTER: Duration = Duration::from_secs(45);
 /// Dropped messages fill a strike level that drains at this rate. A client
 /// that renders uncapped sends one action per frame, so only a sustained rate
@@ -544,8 +545,8 @@ mod tests;
 
 mod outbound;
 pub use outbound::{
-    channel as outbound_channel, Broadcast, Delivery, Outbound, QueueError, Queued, WriterProbe,
-    WriterReport, WsRx, WsTx,
+    channel as outbound_channel, Audience, Broadcast, Delivery, Outbound, QueueError, Queued,
+    WriterProbe, WriterReport, WsRx, WsTx,
 };
 
 pub struct ClientSession {
@@ -1598,8 +1599,15 @@ async fn read_session(
                     // Control frames used to skip the budget, so a ping flood
                     // never became rate_limited. Pongs that answer the server
                     // ping are rare enough to share the same bucket.
-                    Message::Ping(payload) | Message::Pong(payload) => {
+                    Message::Ping(payload) => {
                         traffic.received(payload.len());
+                        InboundFrame::Control
+                    }
+                    // The answer to the writer's ping times the round trip
+                    // the scoreboard shows.
+                    Message::Pong(payload) => {
+                        traffic.received(payload.len());
+                        traffic.pong(&payload);
                         InboundFrame::Control
                     }
                     Message::Frame(frame) => {

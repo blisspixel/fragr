@@ -8,6 +8,8 @@ const StampCardScript = preload("res://scripts/stamp_card.gd")
 var vitals_seal_plate = null
 var stamp_card = null
 var death_card: DeathCard = null
+## The booth panel a watcher sees: power pads, the Plate and runs.
+var spectator_panel: SpectatorPanel = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -88,10 +90,15 @@ var hit_confirm_sound: AudioStreamPlayer = null
 const HIT_CONFIRM_PATH: String = "res://assets/audio/hit_confirm.wav"
 
 var _standings: Array[Dictionary] = []
+## Fighters the snapshot stopped listing (dead and waiting to respawn), kept
+## on the board with their last counts for a while: id -> {row, since}.
+var _board_absent: Dictionary = {}
+## A fighter missing this long has left, not died.
+const BOARD_ABSENCE_MS: int = 10000
 var _standings_revision: int = 0
 ## Local callsign, so the hold-Tab board can mark that row.
 var board_name: String = ""
-var _leaderboard: Panel = null
+var _leaderboard: ScoreboardPlate = null
 var _leaderboard_rows: VBoxContainer = null
 var _leaderboard_key: Array = []
 var _leaderboard_layout_generation: int = 0
@@ -285,6 +292,8 @@ func _ready():
 	add_child(stamp_card)
 	death_card = DeathCard.new()
 	add_child(death_card)
+	spectator_panel = SpectatorPanel.new()
+	add_child(spectator_panel)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
@@ -485,6 +494,7 @@ func set_match_rules(rules: Dictionary, new_map: bool = true) -> void:
 	pressure_id = ""
 	team_score_text = ""
 	_standings.clear()
+	_board_absent.clear()
 	_standings_revision += 1
 	board_id = ""
 	board_name = ""
@@ -971,43 +981,18 @@ func _board_line() -> String:
 		})
 	return board_score
 
-## Every fighter, for the board held on Tab. The corner list stays four rows.
+## Every fighter, for the board held on Tab, as text. The corner list stays
+## four rows.
 func leaderboard_text() -> String:
-	var rows: Array = _score_rows()
-	var body: String = _board_line() + "\n" if not _board_line().is_empty() else ""
-	body += tr("HUD_BOARD_COLUMNS") + "\n"
-	for index: int in range(rows.size()):
-		body += MatchRules.scoreboard_row(rows[index], index, true, _board_own(rows[index])) + "\n"
-	if body.strip_edges() == "":
-		body = "(waiting for scrap)"
-	return tr("HUD_LEADERS") + "\n" + body.strip_edges()
+	return ScoreboardPlate.board_text(_score_rows(), _board_line(), _board_own)
 
 func _ensure_leaderboard() -> void:
 	if _leaderboard != null:
 		return
-	_leaderboard = Panel.new()
-	_leaderboard.name = "Leaderboard"
-	_leaderboard.visible = false
-	_leaderboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard.add_theme_stylebox_override("panel", MenuTheme.panel())
-	_leaderboard_scroll = ScrollContainer.new()
-	_leaderboard_scroll.name = "Scroll"
-	_leaderboard_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_leaderboard_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
-	_leaderboard_scroll.get_v_scroll_bar().mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard.add_child(_leaderboard_scroll)
-	_leaderboard_rows = VBoxContainer.new()
-	_leaderboard_rows.name = "Rows"
-	_leaderboard_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_leaderboard_rows.add_theme_constant_override("separation", 6)
-	_leaderboard_scroll.add_child(_leaderboard_rows)
-	_leaderboard_hint = Label.new()
-	_leaderboard_hint.name = "ScrollHint"
-	_leaderboard_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_leaderboard.add_child(_leaderboard_hint)
+	_leaderboard = ScoreboardPlate.new()
+	_leaderboard_scroll = _leaderboard.scroll
+	_leaderboard_rows = _leaderboard.rows
+	_leaderboard_hint = _leaderboard.hint
 	add_child(_leaderboard)
 
 func set_leaderboard_open(open: bool) -> void:
@@ -1040,67 +1025,14 @@ func _settle_leaderboard(generation: int, turns: int = 2) -> void:
 		get_tree().process_frame.connect(_settle_leaderboard.bind(generation, turns - 1), CONNECT_ONE_SHOT)
 
 func _refresh_leaderboard_rows() -> void:
-	var key: Array = [_standings_revision, _board_line(), board_id, board_name, viewer_team, TranslationServer.get_locale()]
-	if key == _leaderboard_key:
-		return
-	_leaderboard_key = key
-	for child: Node in _leaderboard_rows.get_children():
-		_leaderboard_rows.remove_child(child)
-		child.queue_free()
-	var heading: Label = FragFeed._label(tr("HUD_LEADERS") + "\n" + (_board_line() + "\n" if not _board_line().is_empty() else "") + tr("HUD_BOARD_COLUMNS"), false)
-	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_leaderboard_rows.add_child(heading)
-	for index: int in range(_standings.size()):
-		var row: Dictionary = _standings[index]
-		var own: bool = _board_own(row)
-		var plate := PanelContainer.new()
-		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		plate.set_meta("facts", row.duplicate(true))
-		var style := StyleBoxFlat.new()
-		style.bg_color = MenuTheme.BONE if own else MenuTheme.INK
-		style.content_margin_left = 6
-		style.content_margin_right = 6
-		style.content_margin_top = 4
-		style.content_margin_bottom = 4
-		plate.add_theme_stylebox_override("panel", style)
-		var content := HBoxContainer.new()
-		content.name = "Content"
-		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		content.add_theme_constant_override("separation", 8)
-		plate.add_child(content)
-		var team: String = row.team
-		var relation: String = HudRelation.token(team, viewer_team)
-		plate.set_meta("relation", relation)
-		content.add_child(HudRelation.mark(team, relation, own))
-		var label: Label = FragFeed._label(MatchRules.scoreboard_row(row, index, true, own), own)
-		label.name = "Text"
-		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		content.add_child(label)
-		_leaderboard_rows.add_child(plate)
+	if _leaderboard.refresh(_standings, _standings_revision, _board_line(), _board_own, viewer_team, [board_id, board_name]):
+		_leaderboard_key = _leaderboard._key
 
 func _place_leaderboard() -> void:
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	var width: float = minf(1440.0, maxf(160.0, view.x - 64.0))
-	_leaderboard_hint.text = tr("HUD_BOARD_SCROLL").format({
+	_leaderboard.place(get_viewport().get_visible_rect().size, tr("HUD_BOARD_SCROLL").format({
 		"previous": InputGlyphs.action_name("weapon_prev"),
 		"next": InputGlyphs.action_name("weapon_next"),
-	})
-	_leaderboard_hint.size = Vector2(width - 28.0, 0)
-	var hint_height: float = _leaderboard_hint.get_minimum_size().y
-	var bar_width: float = _leaderboard_scroll.get_v_scroll_bar().get_combined_minimum_size().x
-	_leaderboard_rows.size.x = width - 28.0 - bar_width
-	var height: float = clampf(_leaderboard_rows.get_combined_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
-	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
-	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
-	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
-	_leaderboard.position = origin
-	_leaderboard.size = Vector2(width, height)
-	_leaderboard_scroll.position = Vector2(14, 10)
-	_leaderboard_scroll.size = Vector2(width - 28.0, height - hint_height - 40.0)
-	_leaderboard_hint.position = Vector2(14, height - hint_height - 14.0)
+	}))
 
 ## The existing weapon-cycle bindings browse a held board on keys, wheel or pad.
 ## Route this before equipment/seat input so browsing cannot change either.
@@ -1158,7 +1090,22 @@ func sync_scores_from_players(player_list: Array):
 			"connects": int(player_data.get("connects", 0)),
 			"heads": int(player_data.get("heads", 0)),
 			"damage": int(player_data.get("damage", 0)),
+			"ping": _board_ping(player_data.get("ping")),
 		})
+	# The snapshot omits a body between death and respawn; the board does not.
+	var now: int = Time.get_ticks_msec()
+	var listed: Dictionary = {}
+	for row: Dictionary in next:
+		listed[row.id] = true
+	for row: Dictionary in _standings:
+		if not str(row.id).is_empty() and not listed.has(row.id) and not _board_absent.has(row.id):
+			_board_absent[row.id] = {"row": row, "since": now}
+	for id: Variant in _board_absent.keys():
+		var absent: Dictionary = _board_absent[id]
+		if listed.has(id) or now - int(absent.since) > BOARD_ABSENCE_MS:
+			_board_absent.erase(id)
+		else:
+			next.append(absent.row)
 	next.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a.kills != b.kills: return int(a.kills) > int(b.kills)
 		if a.name != b.name: return str(a.name) < str(b.name)
@@ -1171,6 +1118,10 @@ func sync_scores_from_players(player_list: Array):
 		leader_name = str(next[0].name) + " (" + str(next[0].kills) + ")"
 	update_scoreboard()
 	_refresh_mode_chip()
+
+## The measured round trip for the board, or -1 when the server has none.
+static func _board_ping(value: Variant) -> int:
+	return int(value) if EquipmentState.integer(value, 999) else -1
 
 func set_ghost_rival(rival: String):
 	ghost_rival = rival
@@ -1575,6 +1526,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	host_duck(4.0, true)
 	# Round-end MVP / podium Host drama.
 	_standings.clear()
+	_board_absent.clear()
 	_standings_revision += 1
 	leader_name = mvp_name
 	pressure_id = ""
