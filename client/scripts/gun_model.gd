@@ -71,11 +71,6 @@ func build(weapon: String, hands: bool = false) -> Node3D:
 		node.set_meta("rest", node.transform)
 	return gun
 
-## The muzzle marker's position in gun space.
-static func muzzle(gun: Node3D) -> Vector3:
-	var marker: Node3D = gun.find_child("Muzzle", true, false) as Node3D
-	return gun.to_local(marker.global_position) if marker != null and marker.is_inside_tree() else (marker.position if marker != null else Vector3.ZERO)
-
 ## Where the trigger hand closes on each gun, in gun space: a fighter or
 ## Latch carries the gun from this point.
 const GRIP: Dictionary[String, Vector3] = {
@@ -95,7 +90,7 @@ static func has_model(weapon: String) -> bool:
 	return GRIP.has(weapon)
 
 ## The gun as one mesh, a surface per finish, for carrying in the world: no
-## hands, no flash, no spare magazine or loose shells. Built once per gun.
+## hands, no spare magazine, no loose shells. Built once per gun.
 static func carried_mesh(weapon: String) -> ArrayMesh:
 	if _carried.has(weapon):
 		return _carried[weapon]

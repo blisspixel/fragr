@@ -5,27 +5,27 @@ extends SceneTree
 ## canvas, the world pickup / held profile, and the 48x16 kill icon. Each frame
 ## renders the posed model twice (light, then palette ramp and outline group),
 ## four samples to a texel, and paints the result onto docs/palette.json ramps
-## with a one-texel outline. Needs a real framebuffer (a GPU display):
+## with a one-texel outline. Each shot frame carries the set's drawn flash
+## (`tools/bake_flechette_frames.gd` cuts it; run that first). Needs a real
+## framebuffer (a GPU display):
 ##
 ##   godot --path client --rendering-driver vulkan --windowed \
 ##     --script ../tools/bake_viewmodels.gd -- [--only=Tack] [--preview=DIR]
 ##
+## `--turnaround` instead paints the held model from six sides into the
+## preview directory, and `--hide=Node` leaves parts out, for authoring hands.
 ## Writes `res://assets/weapons/<gun>/`. Re-run after any model change and
 ## inspect the frames in game; a clean bake is not visual acceptance.
 
 const GunModelScript = preload("res://scripts/gun_model.gd")
 const BAKE_SHADER: Shader = preload("res://art/models/gun_bake.gdshader")
 const KillIcons = preload("res://../tools/bake_kill_icons.gd")
-## The held canvas: drawn at two screen pixels a texel on a 1080 line view,
-## bottom centre, its lowest 12 px below the edge (hud.gd FP_BOTTOM_OVERLAP).
+## The held canvas: the HUD draws it at two reference pixels a texel on the
+## 1080 line view, bottom centre, its lowest 12 px below the edge.
 const CANVAS: Vector2i = Vector2i(384, 240)
-const DISPLAY_SCALE: float = 2.0
+## Samples per texel along each axis.
 const SS: int = 4
 const KILL_ICON: Vector2i = Vector2i(48, 16)
-## Under the game's default 75 degree vertical field.
-const SCREEN_HEIGHT: float = 1080.0
-const VIEW_FOV: float = 75.0
-const CANVAS_CENTRE_BELOW: float = SCREEN_HEIGHT * 0.5 - CANVAS.y * DISPLAY_SCALE * 0.5 + 12.0
 const NEAR: float = 0.02
 ## View-space direction toward the key light: high on the left, as drawn
 ## sprites light their guns, so top, left and right faces take three tones.
@@ -198,10 +198,6 @@ func _capture(size: Vector2i, outline_interior: bool = true) -> Image:
 	viewport.size = size * SS
 	var light: Image = await _render(0)
 	var ids: Image = await _render(1)
-	if preview_dir != "" and size == CANVAS and not FileAccess.file_exists(preview_dir.path_join("raw_light.png")):
-		DirAccess.make_dir_recursive_absolute(preview_dir)
-		light.save_png(preview_dir.path_join("raw_light.png"))
-		ids.save_png(preview_dir.path_join("raw_ids.png"))
 	return _paint(light, ids, size, outline_interior)
 
 func _paint(light: Image, ids: Image, size: Vector2i, outline_interior: bool) -> Image:
