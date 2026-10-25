@@ -1,0 +1,99 @@
+{
+	"color_model": "class ramps of docs/palette.json keys and two-key blends (lore-gate P10 extension, pending)",
+	"entries": [
+		{
+			"id": "deck",
+			"palette_colors": 6,
+			"raw_sha256": "4ccccc2c4c55797ed3b121553cfe4e8d00b70e1d203470b32b9d0ae1f035e68f",
+			"reduced_sha256": "9ecbe5f998fd7ef7b5133eceffce0f8a6e6fdbdeff643795ad9421eecd3b4ba9",
+			"runtime_sha256": "b147f71a7e93782a0dce1500812233d2df18f8d945d729ecfd7c4062e364754c",
+			"seam_ratio": 1.23,
+			"source": "larak_deck_d",
+			"subject": "seamless old car park floor slab seen from directly above, uniform warm medium grey concrete with broad faint mottling spread evenly edge to edge, scattered small pale chips and small dark rubber flecks, a few faint thin hairline cracks, isotropic with no direction, no bands, no rectangles, no patches, quiet walking surface",
+			"use": "walking decks: the swept cast concrete of every level, evenly mottled so a 4 m repeat carries no motif"
+		},
+		{
+			"id": "wall",
+			"palette_colors": 6,
+			"raw_sha256": "fbea7f8b003fd8a375272ab2b66160cba1d6466fa0c2da40f9d38e2e4afb2127",
+			"reduced_sha256": "ce35733452c6daf09f9467261d235f75c6b7dae9417239a38e95cd7f1f3a56d3",
+			"runtime_sha256": "b0bd5825ce014528e79dc843094bd7309cc30fd5e368e78af5cc89f011523605",
+			"seam_ratio": 0.67,
+			"source": "larak_wall_d",
+			"subject": "seamless painted-over concrete wall seen straight on, warm medium grey with broad soft vertical water marks of slightly darker grey evenly spaced across the square, faint pale efflorescence blooms here and there, no horizontal lines, no gradient top to bottom, calm surface",
+			"use": "tall concrete: the shell, columns and screens, streaked by years of leaks"
+		},
+		{
+			"id": "ramp",
+			"palette_colors": 5,
+			"raw_sha256": "d38133c712a548f67a4467430542804db8eef136aa3d8ead6d1eb07dfb42e2b4",
+			"reduced_sha256": "6bb5111f25be28125443e792615cd992f79bb0175976d9aead4f8359580f5019",
+			"runtime_sha256": "29ea20a89ca9033a3c83b546dcb6fcca2ef2df346855d47c9174aa48ec076e7a",
+			"seam_ratio": 0.73,
+			"source": "larak_ramp_a",
+			"subject": "seamless dark steel stair tread plate seen from directly above, charcoal gunmetal with regular raised short diagonal lugs worn bright on their tops along the walking line, dull rust in the corners between lugs, scuffed mid grey dust, chunky readable pattern, no paint",
+			"use": "steel treads, steps, the Bridge and the valet barriers: raised lugs worn pale on the walking line"
+		},
+		{
+			"id": "shear",
+			"palette_colors": 5,
+			"raw_sha256": "96278673bae9ddce8f9e38b2d687dc1d3a4973ae4615c3cf62d0a168980a4373",
+			"reduced_sha256": "5e9c3b54b6e5d065516439331856665f95217d7bffe0e1cced217ecca81298cd",
+			"runtime_sha256": "35c17a9b88ae3dd2b206ff4c1fa2417b98dddb34549daf5f0ae45a6cbe74b695",
+			"seam_ratio": 0.87,
+			"source": "larak_shear_a",
+			"subject": "seamless heavy structural shear wall of reinforced concrete seen straight on, slightly cooler darker grey than ordinary walls, a regular grid of small round dark formwork tie holes about one metre apart, faint vertical plywood panel seams, broad smooth fields between them, sparse grime",
+			"use": "the shear walls and the Low Ramp screen: heavier structure, darker, a tie-hole grid"
+		},
+		{
+			"id": "kerb",
+			"palette_colors": 6,
+			"raw_sha256": "a10050e60492f08060fd8885e422ef46ba1c3b31589abddaccdeff6ae88fccc3",
+			"reduced_sha256": "1da558a8eb5b93e2b7a54a73d5c13a5959acbedb590cc3bbf01a39881a9e6518",
+			"runtime_sha256": "5a2c65ae9f46af5e818466b58df8a0ed3441f6251662db560bb1d17da04b20dd",
+			"seam_ratio": 0.67,
+			"source": "larak_kerb_c",
+			"subject": "seamless low concrete kerb face seen straight on, warm medium grey upper half that is fairly clean, the lower third darkened by black rubber tyre scuffs and smears and grime along the bottom edge, a few chipped spots showing paler aggregate, the scuffing runs horizontally across the whole width",
+			"use": "low faces up to 1.6 m: deck edges, retaining faces and the seat kerbs, with tyre rub along the base; sampled from the tile's bottom rows in 1.5 m deck bands"
+		},
+		{
+			"id": "pit",
+			"palette_colors": 7,
+			"raw_sha256": "6b3983bb866acb7745f781c0991c41529193ed4ddbbb52a438afb4e99d3582f5",
+			"reduced_sha256": "066ca14e8963c327de63f457844550130546c14a19ae3e55d49c75d5f7e8784a",
+			"runtime_sha256": "8ac9dcd0b566b8701185d7b9defa643f4c0f57cf87dd0117db3a40fac644bbc7",
+			"seam_ratio": 1.02,
+			"source": "larak_pit_a",
+			"subject": "seamless cracked old concrete slab at the bottom of a collapsed car park pit seen from directly above, damp darker warm grey, broad wet darker patches, scattered small rubble chips and grit, a few wide crack lines with dark soil in them, dull rust stains from old rebar, rough ground surface",
+			"use": "the Pit floor: the bays that fell in, damp broken slab under the lightwell"
+		}
+	],
+	"filter": "nearest",
+	"mipmaps": false,
+	"model": "marketing-studio/image",
+	"negative": "text, letters, numbers, logos, signage, painted markings, hazard stripes, arrows, parking bay lines, red paint, cyan, neon, glowing cracks, fire, puddle reflections, perspective, room, objects, cars, people, dramatic lighting, hard shadows, photographic noise, dense grunge, tiny speckle, high contrast checkerboard, decorative border, bricks, tiles, grass",
+	"palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+	"params": {
+		"aspect_ratio": "1:1",
+		"enhance_prompt": false,
+		"quality": "medium",
+		"resolution": "1k"
+	},
+	"preparation_sha256": "f6a026cc7f361d2caacfcf35ef2370780b7525b50aeee5df9b4eb839efaac6c1",
+	"recipe": "tools/larak_surfaces_20261025.json",
+	"recipe_sha256": "45225bae723df793c6fc0e067fdd86ecda84447cfbb8ba8ae2b1dd791188cddd",
+	"repeat_metres": 4.0,
+	"schema": 1,
+	"size": [
+		64,
+		64
+	],
+	"specs": {
+		"tools/spritegen/specs/d-larak-surfaces-20261025.json": "3e069e49c9d36b6e68c6c50b126175b36bec55ad747fac68451d0113d0b133b8",
+		"tools/spritegen/specs/d-larak-surfaces-r2-20261025.json": "6c13c2aa86180121cdf507422d35efdbf0ee8226d07121fc2e114e06a97b9586"
+	},
+	"style": "original modern retro first-person shooter material albedo for a league fight venue in an old multistorey car park, circa 2070, deliberate chunky pixel-friendly clusters, broad readable material shapes before fine wear, quiet combat-readable values, restrained warm gunmetal grey concrete with sparse dull rust and dust, flat even lighting, no gradients",
+	"technical": "opaque square albedo only, designed for reduction to a 64 by 64 pixel tile at sixteen pixels per metre, so every feature is at least ten centimetres wide, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no baked lights, no text, no lettering, no numbers, no logos, no watermark, no signature, no frame or border",
+	"texels_per_metre": 16,
+	"view": "orthographic straight-on seamless square texture showing a patch exactly four metres across, full continuous edge-to-edge flat material, no perspective, no object silhouette"
+}

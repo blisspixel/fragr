@@ -1,0 +1,71 @@
+{
+  "comment": "Larak Lot surface classes (wave 4 lane D). Each class tile is 64 x 64 at 16 texels per metre, a 4 m patch, prepared by tools/prepare_surface_tiles.gd from one Higgsfield seed native-reduced to 128 (the specs below). Ramp steps are palette.json keys or blends of two keys [a, b, t] (lore-gate P10: extension, pending Nick). Shares are the fraction of the tile each step takes, darkest first, assigned by luminance rank: one broad field step carries most of the tile and the steps either side of it, a few percent of value apart, are its clusters, so every class keeps a known, quiet value whatever the generator's exposure. Accents replace the most saturated warm pixels, up to their share.",
+  "specs": ["tools/spritegen/specs/d-larak-surfaces-20261025.json", "tools/spritegen/specs/d-larak-surfaces-r2-20261025.json"],
+  "size": 64,
+  "texels_per_metre": 16,
+  "despeckle_passes": 2,
+  "classes": [
+    {
+      "id": "deck",
+      "source": "larak_deck_d",
+      "use": "walking decks: the swept cast concrete of every level, evenly mottled so a 4 m repeat carries no motif",
+      "soften": 1,
+      "ramp": [["gunmetal", "gunmetal_light", 0.02], ["gunmetal", "gunmetal_light", 0.16], ["gunmetal", "gunmetal_light", 0.3], ["gunmetal", "gunmetal_light", 0.43], ["gunmetal", "gunmetal_light", 0.56]],
+      "shares": [0.04, 0.16, 0.58, 0.18, 0.04],
+      "accents": [["rust", "gunmetal", 0.55]],
+      "accent_share": 0.006
+    },
+    {
+      "id": "wall",
+      "source": "larak_wall_d",
+      "use": "tall concrete: the shell, columns and screens, streaked by years of leaks",
+      "soften": 0,
+      "ramp": [["gunmetal", "gunmetal_light", 0.05], ["gunmetal", "gunmetal_light", 0.2], ["gunmetal", "gunmetal_light", 0.34], ["gunmetal", "gunmetal_light", 0.47], ["gunmetal", "gunmetal_light", 0.6]],
+      "shares": [0.05, 0.17, 0.56, 0.18, 0.04],
+      "accents": [["dust_rust", "gunmetal", 0.6]],
+      "accent_share": 0.004
+    },
+    {
+      "id": "ramp",
+      "source": "larak_ramp_a",
+      "use": "steel treads, steps, the Bridge and the valet barriers: raised lugs worn pale on the walking line",
+      "crop": true,
+      "soften": 0,
+      "ramp": [["ink", "gunmetal_dark", 0.85], ["gunmetal_dark"], ["gunmetal_dark", "gunmetal", 0.22], ["gunmetal_dark", "gunmetal", 0.45], ["gunmetal_dark", "gunmetal", 0.7]],
+      "shares": [0.06, 0.44, 0.28, 0.16, 0.06],
+      "accents": [["rust", "gunmetal_dark", 0.35]],
+      "accent_share": 0.012
+    },
+    {
+      "id": "shear",
+      "source": "larak_shear_a",
+      "use": "the shear walls and the Low Ramp screen: heavier structure, darker, a tie-hole grid",
+      "soften": 0,
+      "ramp": [["gunmetal_dark", "gunmetal", 0.15], ["gunmetal_dark", "gunmetal", 0.45], ["gunmetal_dark", "gunmetal", 0.7], ["gunmetal_dark", "gunmetal", 0.9], ["gunmetal", "gunmetal_light", 0.15]],
+      "shares": [0.04, 0.16, 0.58, 0.18, 0.04],
+      "accents": [],
+      "accent_share": 0.0
+    },
+    {
+      "id": "kerb",
+      "source": "larak_kerb_c",
+      "use": "low faces up to 1.6 m: deck edges, retaining faces and the seat kerbs, with tyre rub along the base; sampled from the tile's bottom rows in 1.5 m deck bands",
+      "periodic_y": false,
+      "soften": 0,
+      "ramp": [["gunmetal_dark", "gunmetal", 0.2], ["gunmetal_dark", "gunmetal", 0.55], ["gunmetal", "gunmetal_light", 0.12], ["gunmetal", "gunmetal_light", 0.26], ["gunmetal", "gunmetal_light", 0.4]],
+      "shares": [0.08, 0.14, 0.18, 0.52, 0.08],
+      "accents": [["rust", "gunmetal_dark", 0.45]],
+      "accent_share": 0.004
+    },
+    {
+      "id": "pit",
+      "source": "larak_pit_a",
+      "use": "the Pit floor: the bays that fell in, damp broken slab under the lightwell",
+      "soften": 1,
+      "ramp": [["ink", "gunmetal_dark", 0.85], ["gunmetal_dark", "gunmetal", 0.2], ["gunmetal_dark", "gunmetal", 0.42], ["gunmetal_dark", "gunmetal", 0.64], ["gunmetal_dark", "gunmetal", 0.88]],
+      "shares": [0.03, 0.17, 0.58, 0.18, 0.04],
+      "accents": [["rust", "gunmetal_dark", 0.45], ["dust_rust", "gunmetal", 0.6]],
+      "accent_share": 0.015
+    }
+  ]
+}

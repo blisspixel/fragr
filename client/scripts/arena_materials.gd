@@ -7,6 +7,60 @@ const PLASTER_DETAIL: Texture2D = preload("res://assets/environment/low_water/pl
 const STEEL_DETAIL: Texture2D = preload("res://assets/environment/low_water/steel_repairs.png")
 static var _moon_textures: Dictionary[String, Texture2D] = {}
 
+## Larak Lot's surface classes: one 64 px tile each at 16 texels per metre
+## (tools/larak_surfaces_20261025.json). A class names its top tile and its
+## side tile; the shader reads them as the whole albedo and adds only light.
+const LARAK: String = "res://assets/environment/larak/"
+## Texels per metre on every Larak surface; a tile's repeat in metres is its
+## pixel size over this.
+const TEXELS_PER_METRE: float = 16.0
+## class: [top tile, side tile, tint, band metres]. Tints are value trims
+## under the venue's sodium light, never a hue change. The stairwell keeps
+## the intake's green tile (128 px, an 8 m repeat at the same density).
+const LARAK_CLASSES: Dictionary[String, Array] = {
+	"wall": [LARAK + "deck.png", LARAK + "wall.png", Color(1.0, 1.0, 1.0), 0.0],
+	"kerb": [LARAK + "deck.png", LARAK + "kerb.png", Color(1.0, 1.0, 1.0), 1.5],
+	"shear": [LARAK + "deck.png", LARAK + "shear.png", Color(1.0, 1.0, 1.0), 0.0],
+	"ramp": [LARAK + "ramp.png", LARAK + "ramp.png", Color(1.0, 1.0, 1.0), 0.0],
+	# A raised steel deck (the Bridge, the Toll canopy): tread on top, its
+	# beam and soffit the heavier structural concrete.
+	"slab": [LARAK + "ramp.png", LARAK + "shear.png", Color(1.0, 1.0, 1.0), 0.0],
+	"pit": [LARAK + "pit.png", LARAK + "kerb.png", Color(1.0, 1.0, 1.0), 1.5],
+	"stairwell": [EnvironmentTextures.EARTH + "earth_intake_green_tile.png", EnvironmentTextures.EARTH + "earth_intake_green_tile.png", Color(1.0, 1.0, 1.0), 0.0],
+}
+static var _larak_classes: Dictionary[String, ShaderMaterial] = {}
+
+## The shared material for one Larak Lot surface class, or null when its tiles
+## are missing from the build.
+static func larak_class(id: String) -> ShaderMaterial:
+	if _larak_classes.has(id):
+		return _larak_classes[id]
+	if not LARAK_CLASSES.has(id):
+		return null
+	var row: Array = LARAK_CLASSES[id]
+	var top: Texture2D = EnvironmentTextures.texture_at(str(row[0]))
+	var side: Texture2D = EnvironmentTextures.texture_at(str(row[1]))
+	if top == null or side == null or top.get_size() != side.get_size() or top.get_width() != top.get_height():
+		return null
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = SURFACE
+	material.set_shader_parameter("tile_albedo", true)
+	material.set_shader_parameter("tile_enabled", true)
+	material.set_shader_parameter("tile_floor", top)
+	material.set_shader_parameter("tile_wall", side)
+	# One tile texel per world texel: the repeat is the tile's own size.
+	material.set_shader_parameter("tile_repeat_pixels", float(top.get_width()))
+	material.set_shader_parameter("tile_tint", row[2])
+	material.set_shader_parameter("band_metres", float(row[3]))
+	material.set_shader_parameter("markings_enabled", false)
+	material.set_shader_parameter("trim_glow", 0.0)
+	material.set_shader_parameter("macro_variation", 0.06)
+	material.set_shader_parameter("sector_variation", 0.04)
+	material.set_shader_parameter("deck_spacing", 1.5)
+	material.set_shader_parameter("base_shade", 0.22)
+	_larak_classes[id] = material
+	return material
+
 static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = SURFACE
@@ -25,16 +79,11 @@ static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 ## Street decking has no issued warning signal. Duplicate only this material
 ## so the same authored steel on the post and barriers keeps its red markings.
 static func ground(material: Material, surface: String, venue: String) -> Material:
-	if venue == "larak_lot" and material is ShaderMaterial:
-		# The Pit floor is the base ground: the bays that fell in, wet scrap
-		# concrete under the lightwell rather than the swept decks above it.
-		var pit: ShaderMaterial = material.duplicate() as ShaderMaterial
-		pit.set_shader_parameter("surface_color", Color("5c5852"))
-		var wet: Texture2D = EnvironmentTextures.texture_at(EnvironmentTextures.PRODUCTION + "scrap_floor.png")
-		if wet != null:
-			pit.set_shader_parameter("tile_floor", wet)
-			pit.set_shader_parameter("tile_floor_strength", 0.6)
-		return pit
+	if venue == "larak_lot":
+		# The Pit floor is the base ground: the bays that fell in, damp broken
+		# slab under the lightwell rather than the swept decks above it.
+		var pit: ShaderMaterial = larak_class("pit")
+		return pit if pit != null else material
 	if venue != "moon_town" or surface != "service_steel" or not material is ShaderMaterial:
 		return material
 	var deck: ShaderMaterial = material.duplicate() as ShaderMaterial
@@ -108,6 +157,12 @@ static func authored(surface: String, venue: String = "") -> Material:
 		glass.metallic_specular = 0.0
 		glass.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_OPAQUE_ONLY
 		return glass
+	if venue == "larak_lot" and surface in ["concrete", "service_steel", "lift_panel"]:
+		# Cast concrete, steel treads and the stairwell take their class
+		# tiles; the presenter refines kerbs and shear walls per solid.
+		var tiled: ShaderMaterial = larak_class({"concrete": "wall", "service_steel": "ramp", "lift_panel": "stairwell"}[surface])
+		if tiled != null:
+			return tiled
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = SURFACE
 	var index: int = MapGeometry.SURFACES.find(surface)
@@ -172,10 +227,6 @@ static func authored(surface: String, venue: String = "") -> Material:
 			material.set_shader_parameter("markings_enabled", false)
 			material.set_shader_parameter("tile_strength", 0.8)
 			material.set_shader_parameter("tile_floor_strength", 0.8)
-		elif surface == "concrete":
-			material.set_shader_parameter("panel_size", 4.0)
-			material.set_shader_parameter("tile_strength", 0.45)
-			material.set_shader_parameter("tile_floor_strength", 0.5)
 	if venue == "launch_works" and surface == "concrete":
 		# This venue uses dust and berm terrain. Keep
 		# its pixel grain without painting an institutional slab grid over it.

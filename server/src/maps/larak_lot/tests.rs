@@ -787,6 +787,28 @@ fn larak_measured_table() {
     println!("LARAK sign visible from {:.0}%", share(&sign) * 100.0);
 }
 
+/// The client's Larak Lot harness (`client/scripts/test_larak_surfaces.gd`)
+/// holds every visible body the presenter draws to a server solid, using this
+/// map's MapInfo from `client/golden/larak_lot_map_info.json`. The golden must
+/// be the server's own, or that check would pass against stale geometry.
+/// Regenerate with `FRAGR_LARAK_MAP_INFO=$PWD/client/golden/larak_lot_map_info.json
+/// cargo test -p fragr-server --lib larak_write_map_info -- --ignored`.
+#[test]
+fn larak_client_golden_is_the_server_map_info() {
+    let state = crate::sim::GameState::with_map(MapKind::ArenaDuel, false);
+    // Through the wire text, so f32 values compare as the client reads them.
+    let wire = serde_json::to_string(&state.map_info()).expect("serialize MapInfo");
+    let live: serde_json::Value = serde_json::from_str(&wire).expect("parse MapInfo");
+    let golden: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../client/golden/larak_lot_map_info.json"
+    ))
+    .expect("parse the client golden");
+    assert_eq!(
+        live, golden,
+        "client/golden/larak_lot_map_info.json is stale; regenerate it with larak_write_map_info"
+    );
+}
+
 /// Writes the wire MapInfo to `FRAGR_LARAK_MAP_INFO` for the offline preview
 /// in `tools/preview_larak_lot.gd`. Run with `--ignored`.
 #[test]
