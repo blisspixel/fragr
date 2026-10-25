@@ -293,6 +293,59 @@ fn people_are_bodies_and_furniture_holds_the_seated() {
     assert!(!bodies.iter().any(|b| b.key == "epilogue/patient_a"));
 }
 
+/// The harbour past the quay, the pier and the apron basins is water, not a
+/// floor: running and jumping at every rail, crouched or not, from the paving
+/// or from the top of the court's low wall, leaves nobody standing on it.
+#[test]
+fn the_harbour_is_water_not_a_floor() {
+    use std::f32::consts::PI;
+    let on_water = |x: f32, z: f32| x < -30.4 && z.abs() > 3.2 || x < -19.0 && z.abs() > 16.4;
+    let starts: [([f32; 3], f32); 10] = [
+        ([-28.6, 0.0, 8.0], PI),
+        ([-28.6, 0.0, 8.0], PI - 0.5),
+        ([-28.6, 0.0, -8.0], PI + 0.5),
+        ([-25.0, 0.0, 14.6], PI * 0.5),
+        ([-25.0, 0.0, -14.6], -PI * 0.5),
+        ([-34.0, 0.0, 1.8], PI * 0.5),
+        ([-34.0, 0.0, -1.8], -PI * 0.5),
+        // Along the top of the court's low wall, off its ends.
+        ([-19.5, 1.3, 14.0], PI * 0.5),
+        ([-19.5, 1.3, -14.0], -PI * 0.5),
+        ([-19.5, 1.3, 15.4], PI * 0.75),
+    ];
+    for (start, yaw) in starts {
+        for duck in [false, true] {
+            for jump_every in [1u64, 3] {
+                let (mut s, id) = session(Role::Human);
+                place(&mut s, id, start);
+                for t in 0..80u64 {
+                    s.state.set_action(
+                        id,
+                        Action {
+                            forward: true,
+                            jump: t % jump_every == 0,
+                            duck,
+                            dodge: t == 3,
+                            yaw: Some(yaw),
+                            ..Default::default()
+                        },
+                    );
+                    s.tick_messages(0.05);
+                    let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+                    assert!(
+                        !on_water(p.x, p.z),
+                        "from {start:?} at {yaw:.2} (duck {duck}, jump every {jump_every}) \
+                         onto the water at ({:.2}, {:.2}, {:.2})",
+                        p.x,
+                        p.y - PLAYER_FLOOR_Y,
+                        p.z
+                    );
+                }
+            }
+        }
+    }
+}
+
 #[test]
 fn a_reset_keeps_who_the_run_brought() {
     let (mut s, id) = session(Role::Human);

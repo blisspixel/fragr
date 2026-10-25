@@ -33,14 +33,16 @@ const HEAR_DISTANCE: float = 3.4
 const HEARING: Dictionary[String, float] = {"aftermath/latch": 5.5}
 ## Seated eye height on the quay bench, metres above the paving.
 const SEATED_EYE: float = 1.22
-## Exact authored bodies this presenter dresses or draws itself.
+## Exact authored bodies this presenter dresses or draws itself. The water's
+## edges stand 3 m tall on the server so nobody hops a rail, or the court's
+## low wall, onto the harbour; the rail drawn here is the waist-high one.
 const SOLIDS: Dictionary[String, Array] = {
-	"quay_rail_w_n": [Vector3(-30.4, 0, 3.2), Vector3(-30, 1.1, 16.4)],
-	"quay_rail_w_s": [Vector3(-30.4, 0, -16.4), Vector3(-30, 1.1, -3.2)],
-	"quay_rail_n": [Vector3(-30.4, 0, 16), Vector3(-20, 1.1, 16.4)],
-	"quay_rail_s": [Vector3(-30.4, 0, -16.4), Vector3(-20, 1.1, -16)],
-	"pier_rail_n": [Vector3(-40, 0, 3.2), Vector3(-30.4, 1.1, 3.5)],
-	"pier_rail_s": [Vector3(-40, 0, -3.5), Vector3(-30.4, 1.1, -3.2)],
+	"quay_rail_w_n": [Vector3(-30.4, 0, 3.2), Vector3(-30, 3.0, 16.4)],
+	"quay_rail_w_s": [Vector3(-30.4, 0, -16.4), Vector3(-30, 3.0, -3.2)],
+	"quay_rail_n": [Vector3(-30.4, 0, 16), Vector3(-19, 3.0, 16.4)],
+	"quay_rail_s": [Vector3(-30.4, 0, -16.4), Vector3(-19, 3.0, -16)],
+	"pier_rail_n": [Vector3(-40, 0, 3.2), Vector3(-30.4, 3.0, 3.5)],
+	"pier_rail_s": [Vector3(-40, 0, -3.5), Vector3(-30.4, 3.0, -3.2)],
 	"pier_barricade": [Vector3(-38.2, 0, -3.2), Vector3(-37, 1.5, 3.2)],
 	"ferry_gate": [Vector3(-37.8, 0, -3.2), Vector3(-37.6, 1.1, 3.2)],
 	"bench_quay": [Vector3(-26.0, 0, 4.8), Vector3(-25.4, 0.46, 7.2)],
