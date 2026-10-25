@@ -88,6 +88,15 @@ func _run() -> void:
 	_check(lot.find_children("Pad_*", "Node3D", false, false).size() == PADS.size(), "one kit per pad, built once")
 	await process_frame
 	_texel_density(cover, lot)
+	var reading_keys: Array[String] = []
+	for node: Node in lot.find_children("*", "WorldSign", true, false):
+		var sign: WorldSign = node as WorldSign
+		if sign.message_key not in LarakLot.CANON_MARKS:
+			reading_keys.append(sign.message_key)
+	_check(reading_keys.size() <= 5, "at most five short signs plus the LARAK neon: " + str(reading_keys))
+	_check(reading_keys.count("WORLD_LARAK_REPOSSESSED") == 1, "the overturned van keeps its repossession mark")
+	for key: String in LarakLot.READING_STOPS:
+		_check(reading_keys.count(key) == 1, "one placement for " + key)
 	_pools_stay_warm(lot)
 	_visible_bodies_have_solids(lot)
 	_check(lot.find_children("*", "Light3D", true, false).size() == 4, "the pad kit spends no light budget")

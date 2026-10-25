@@ -148,6 +148,12 @@ var _office_windows: Array[MeshInstance3D] = []
 var _neon_light: OmniLight3D
 var _neon_letters: Array[Label3D] = []
 var _train: Node3D
+## At most six reading stops including the LARAK neon and the van's mark. Small canon marks are kept
+## separately; the cars, tent, crane and deck colours carry the other places.
+const READING_STOPS: Array[String] = ["WORLD_LARAK_PIT",
+	"WORLD_LARAK_LOW_RAMP", "WORLD_LARAK_SIGNATURE"]
+const CANON_MARKS: Array[String] = ["WORLD_LARAK_SIX", "WORLD_LARAK_67", "WORLD_LARAK_ARTICLE_7"]
+var _reading_stops: Dictionary[String, bool] = {}
 
 func build(info: Dictionary, views: Array[MeshInstance3D]) -> void:
 	name = "LarakLot"
@@ -441,6 +447,14 @@ func _flush_batches() -> void:
 
 ## A keyed world sign, flat on a face. `basis` points the text's +Z outward.
 func _sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color, backing: Color = Color(0, 0, 0, 0), glow: float = 0.0) -> Label3D:
+	if key not in CANON_MARKS:
+		if key not in READING_STOPS or _reading_stops.has(key):
+			# The bookmaker still keeps a slate, but it reads as bets and
+			# tally strokes rather than paragraphs addressed to the player.
+			if key in ["WORLD_LARAK_LEDGER", "WORLD_LARAK_LEDGER_2", "WORLD_LARAK_ODDS"]:
+				_betting_slate(center, yaw, size)
+			return null
+		_reading_stops[key] = true
 	if backing.a > 0.0:
 		var plate: MeshInstance3D = MeshInstance3D.new()
 		var quad: QuadMesh = QuadMesh.new()
@@ -458,6 +472,18 @@ func _sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color, 
 		label.modulate = Color(ink.r * glow, ink.g * glow, ink.b * glow, 1.0)
 	add_child(label)
 	return label
+
+func _betting_slate(center: Vector3, yaw: float, size: Vector2) -> void:
+	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
+	var slate: Material = _mat("betting_slate", Color("253028"))
+	var chalk: Material = _mat("betting_chalk", Color("afa88c"))
+	_box("betting_slate", slate, center, Vector3(size.x, size.y, 0.012), Vector3(0.0, yaw, 0.0))
+	for row: int in range(3):
+		for stroke: int in range(3 + row):
+			var local: Vector3 = Vector3(-size.x * 0.34 + float(stroke) * size.x * 0.12,
+				size.y * (0.28 - float(row) * 0.28), 0.012)
+			_box("betting_chalk", chalk, center + basis * local,
+				Vector3(minf(size.x * 0.018, 0.035), size.y * 0.13, 0.006), Vector3(0.0, yaw, -0.12))
 
 ## ---------------------------------------------------------------------------
 ## The building: coping, level colours, drive lanes, services
@@ -1772,13 +1798,10 @@ func _floor_stencils() -> void:
 	_floor_sign("WORLD_LARAK_STENCIL_NO_PARKING", Vector3(-22.0, LEVEL_2, -6.5), 0.0, Vector2(4.4, 1.0), Color(0.85, 0.81, 0.62, 0.7))
 
 func _floor_sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color) -> void:
-	var label: WorldSign = WorldSign.new()
-	label.configure(key, size, Color(ink.r, ink.g, ink.b))
-	label.modulate = ink
-	label.position = center + Vector3(0.0, 0.022, 0.0)
-	label.rotation = Vector3(-PI * 0.5, yaw, 0.0)
-	label.rotation_order = EULER_ORDER_YXZ
-	add_child(label)
+	# Coloured lane bars reinforce each deck without another reading stop.
+	var paint: Material = _decal("paint_route_" + key, ink)
+	_floor_mark("paint_route_" + key, paint, center.x, center.z,
+		center.y + 0.022, size.x, minf(size.y, 0.16), yaw)
 
 ## Water, tyres and paper: the Pit's standing puddles under the floods, skid
 ## marks where cars were driven in anger, and betting slips blown across the

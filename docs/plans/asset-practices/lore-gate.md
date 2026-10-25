@@ -1,5 +1,11 @@
 # Lore and design consistency gate for generated assets
 
+Environmental storytelling follows the [art bible](../../ART_STORY_BIBLE.md#environmental-storytelling-and-signs):
+about six readable signs per multiplayer map or eight per campaign level,
+with short wayfinding, objective or landmark copy. Replace explanatory prose
+boards with props, composition, light and imagery. Small canon marks remain
+diegetic. Review actual placements at playing distance, including duplicates.
+
 Written 2026-10-24 for Nick's request: "all assets we make make sense with the
 lore and worlds and designs for consistency ... if it's not clear, think
 through it." This is a working gate, not canon. Where it adds anything that

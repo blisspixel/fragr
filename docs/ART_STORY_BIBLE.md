@@ -42,6 +42,17 @@ forceful readable effects. Sparse geometry, static character cards, and enlarged
 placeholder flashes do not meet this bar. Judge animation, weapon weight, impact,
 and environment cohesion in a played sequence, not only a selected still.
 
+### Environmental storytelling and signs
+
+Tell the story through objects, composition, light and imagery. A confiscation
+bin, a revival tent or a defaced seal should carry its meaning without a prose
+board explaining it. Signs serve wayfinding, objectives and a landmark name.
+Budget about six readable signs per multiplayer map and eight per campaign
+level, each only a few words. Keep necessary canon marks small and attached to
+the world: painted stencils, image-led posters, screens, graffiti and stamped
+plates. No free-standing billboards of lore. Count repeated placements, not
+just unique strings, and inspect them at playing distance in stills and motion.
+
 ### Influences and the original house style
 
 | Influence | What guides fragr |
