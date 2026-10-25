@@ -25,12 +25,24 @@ vec3 hsv(vec3 c) {
 	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + 1e-6)), d / (q.x + 1e-6), q.x);
 }
 
+// Forward+ and Mobile hand the painted atlas and the colours over in linear
+// light and expect linear albedo. The Compatibility renderer hands both over
+// as painted and shows albedo as given, so there the conversions are none;
+// converting anyway left coats rust and turned shirts white.
 vec3 to_srgb(vec3 c) {
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	return max(c, vec3(0.0));
+#else
 	return pow(max(c, vec3(0.0)), vec3(1.0 / 2.2));
+#endif
 }
 
 vec3 to_linear(vec3 c) {
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	return max(c, vec3(0.0));
+#else
 	return pow(max(c, vec3(0.0)), vec3(2.2));
+#endif
 }
 
 // A new colour at the painted value: `reference` is the atlas's typical

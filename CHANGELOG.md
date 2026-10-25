@@ -34,6 +34,9 @@ Release history, newest first. Planned work stays in
 - End a run that runs out of continues in levels 18 to 20 with The Last Page:
   Latch and the free agents won their exception anyway, the world goes on
   without you, and the ledger keeps one more line and no score.
+- Dress the waterworks and refuge crowds in their own colours on the
+  Compatibility renderer too, where they had kept one rust coat and white
+  shirts.
 
 ## v0.91.0 (2026-10-24)
 
