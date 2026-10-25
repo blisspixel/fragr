@@ -1,0 +1,22 @@
+{
+  "comment": "World pixel and palette dither comparison on Larak Lot at 1920x1080, where Fine is 540 world lines (2x), Medium 360 (3x). Native, Fine, Medium, then Fine and Medium with the dither, at the same three views. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/look-pixels.json on each renderer. Judge signs, the HUD-free world, fighters at range and the held gun; the HUD stays native in every choice.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name": "pit_native", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.4, "graphics": {"pixel_scale": 0, "dither": false}},
+    {"name": "pit_fine", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": false}},
+    {"name": "pit_medium", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": false}},
+    {"name": "pit_fine_dither", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": true}},
+    {"name": "pit_medium_dither", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": true}},
+    {"name": "toll_native", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "graphics": {"pixel_scale": 0, "dither": false}},
+    {"name": "toll_fine", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": false}},
+    {"name": "toll_medium", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": false}},
+    {"name": "toll_fine_dither", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": true}},
+    {"name": "toll_medium_dither", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": true}},
+    {"name": "fp_native", "join": "human", "camera": "first_person", "settle_seconds": 1.0, "graphics": {"pixel_scale": 0, "dither": false}},
+    {"name": "fp_fine", "camera": "first_person", "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": false}},
+    {"name": "fp_medium", "camera": "first_person", "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": false}},
+    {"name": "fp_fine_dither", "camera": "first_person", "settle_seconds": 0.3, "graphics": {"pixel_scale": 1, "dither": true}},
+    {"name": "fp_medium_dither", "camera": "first_person", "settle_seconds": 0.3, "graphics": {"pixel_scale": 2, "dither": true}}
+  ]
+}

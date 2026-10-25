@@ -1,0 +1,14 @@
+{
+  "comment": "Lighting and look review on Larak Lot: glow on the lamps and the LARAK sign, the haze settled in the Pit, the sodium Toll canopy, and the first-person muzzle light from the Pistol every life starts with. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/look.json and a renderer and preset. Compare each still with the same view in larak_lot.json; motion is the fire strips.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "look_overview", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [31, 26, 33], "camera_look_at": [-4, 1, -4], "settle_seconds": 0.4, "note": "The whole lot: the Pit haze against the decks, the far city receding, no wall washed by glow."},
+    {"name": "look_pit_sign", "camera": "overview", "camera_position": [2, 3.2, 13], "camera_look_at": [0, 4, -8], "settle_seconds": 0.3, "note": "The Pit floor under its haze, and the LARAK sign's bulbs with a halo a few pixels wide."},
+    {"name": "look_toll_canopy", "camera": "overview", "camera_position": [-34, 4.6, -6], "camera_look_at": [-20, 4, -17], "settle_seconds": 0.3, "note": "Sodium under the Toll canopy: the lamp head glows, the lit deck below it does not."},
+    {"name": "look_pit_low", "camera": "overview", "camera_position": [-3, 1.7, 2], "camera_look_at": [6, 1.2, -6], "settle_seconds": 0.3, "note": "Eye height in the Pit: the haze must not grey out a fighter's legs or the Rocket cradle."},
+    {"name": "look_first_person", "join": "human", "camera": "first_person", "settle_seconds": 1.0, "note": "A joined fighter at its spawn slot, the held Pistol in the room's light."},
+    {"name": "look_fire_pistol", "camera": "first_person", "aim_pitch": -0.2, "trigger": "fire", "single_shot": true, "probe": "ViewMuzzleLight", "strip_frames": 8, "note": "One acknowledged Pistol shot at the deck ahead: a warm pulse on the floor and near cover for a few frames, then gone."},
+    {"name": "look_fire_pistol_held", "camera": "first_person", "aim_pitch": -0.1, "trigger": "fire", "probe": "ViewMuzzleLight", "strip_frames": 12, "strip_interval_seconds": 0.05, "note": "The trigger held: each shot pulses and decays, a flicker on the floor rather than a strobe."}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "comment": "World pixel and palette dither comparison in Recall Notice at 1920x1080 (Fine 2x, Medium 3x): the street with its signs and the hall with its counters, then the Tack in hand in the bay. Run with FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/m01-pixels.json on each renderer.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name":"street_native","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"graphics":{"pixel_scale":0,"dither":false}},
+    {"name":"street_fine","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"graphics":{"pixel_scale":1,"dither":false}},
+    {"name":"street_medium","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"graphics":{"pixel_scale":2,"dither":false}},
+    {"name":"street_fine_dither","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"graphics":{"pixel_scale":1,"dither":true}},
+    {"name":"street_medium_dither","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"graphics":{"pixel_scale":2,"dither":true}},
+    {"name":"hall_native","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"graphics":{"pixel_scale":0,"dither":false}},
+    {"name":"hall_fine","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"graphics":{"pixel_scale":1,"dither":false}},
+    {"name":"hall_medium","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"graphics":{"pixel_scale":2,"dither":false}},
+    {"name":"hall_fine_dither","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"graphics":{"pixel_scale":1,"dither":true}},
+    {"name":"hall_medium_dither","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"graphics":{"pixel_scale":2,"dither":true}},
+    {"name":"bay_native","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"look_at":[-8,0.9,-23.5],"expect_equipment":{"selected":"tack"},"graphics":{"pixel_scale":0,"dither":false}},
+    {"name":"bay_fine","camera":"first_person","look_at":[-8,0.9,-23.5],"graphics":{"pixel_scale":1,"dither":false}},
+    {"name":"bay_medium","camera":"first_person","look_at":[-8,0.9,-23.5],"graphics":{"pixel_scale":2,"dither":false}},
+    {"name":"bay_fine_dither","camera":"first_person","look_at":[-8,0.9,-23.5],"graphics":{"pixel_scale":1,"dither":true}},
+    {"name":"bay_medium_dither","camera":"first_person","look_at":[-8,0.9,-23.5],"graphics":{"pixel_scale":2,"dither":true}}
+  ]
+}
