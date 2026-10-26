@@ -279,6 +279,40 @@ func _run() -> void:
 	_check(closed.size() == 1, "the exhaustion coda ends")
 	other.queue_free()
 
+	# Audio is optional in both endings. Reader pages and coda controls still
+	# close once with the master bus muted, including repeated skip input.
+	var previously_muted: bool = AudioServer.is_bus_mute(0)
+	AudioServer.set_bus_mute(0, true)
+	for scene_id: String in ["still_here_arrival", StoryScene.STILL_HERE_LATER, StoryScene.WIPE_FAILURE]:
+		var page: ScenePlayer = ScenePlayer.new(StoryScene.load_scene(scene_id))
+		var page_ends: Array[bool] = []
+		page.completed.connect(func() -> void: page_ends.append(true))
+		root.add_child(page)
+		await process_frame
+		page._skip.pressed.emit()
+		page.finish()
+		_check(page_ends.size() == 1, scene_id + " can be skipped once without audio")
+		page.queue_free()
+	for ending: String in [StillHereCoda.SURVIVAL, StillHereCoda.EXHAUSTION]:
+		var skipped: StillHereCoda = StillHereCoda.new()
+		skipped.ending = ending
+		var skip_ends: Array[bool] = []
+		skipped.finished.connect(func() -> void: skip_ends.append(true))
+		root.add_child(skipped)
+		await process_frame
+		var press: InputEventAction = InputEventAction.new()
+		press.action = &"ui_accept"
+		press.pressed = true
+		for beat: int in range(12):
+			skipped._input(press)
+			skipped._process(0.01)
+		_check(skip_ends.size() == 1, ending + " advances through every beat and ends once while muted")
+		press.action = &"ui_cancel"
+		skipped._input(press)
+		_check(skip_ends.size() == 1, "repeat cancel cannot duplicate " + ending)
+		skipped.queue_free()
+	AudioServer.set_bus_mute(0, previously_muted)
+
 	# Only a durable run that runs out of continues in levels 18 to 20 gets
 	# that ending, once, and its pages close on the exhaustion coda.
 	var manager: Node = load("res://scripts/game_manager.gd").new()
@@ -322,6 +356,13 @@ func _run() -> void:
 	manager._close_wipe_failure_pages()
 	var closing: StillHereCoda = manager.wipe_failure_coda
 	_check(closing != null and closing.ending == StillHereCoda.EXHAUSTION, "its pages close on the exhaustion coda")
+	manager._present_wipe_failure(failed)
+	manager._close_wipe_failure_pages()
+	_check(manager.wipe_failure_coda == closing, "repeated failure facts and page completion keep one coda")
+	for wipe: String in [MissionState.M18_ID, MissionState.M19_ID]:
+		manager._wipe_failure_started = false
+		manager._present_wipe_failure({"id": wipe, "run": {"status": "failed"}})
+		_check(manager._wipe_failure_started, wipe + " exhaustion also selects the failure ending")
 	manager.mission_hud = null
 	display.queue_free()
 	manager.free()

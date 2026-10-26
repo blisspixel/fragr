@@ -411,6 +411,201 @@ async fn the_saved_survival_opens_still_here_read_only() {
     assert!(open_still_here(&directory).await.is_err());
 }
 
+/// Isolated threshold fixture, not an earned campaign clear: place a valid
+/// inherited entry at the final hold tick with one HP and no continues. From
+/// that boundary onward only ordinary ticks and Use determine the outcome.
+/// A death at the same boundary must remain exhaustion, not an entitlement.
+#[tokio::test]
+async fn one_hp_at_the_reprieve_records_once_and_replays_without_spending() {
+    use crate::protocol::{CampaignDifficulty, CampaignRunStatus};
+    let source = AuthoredSource::Mission(MissionId::LocalException);
+    let map = source.load().unwrap();
+    let hash = AuthoredSource::bundled_content_sha256(MissionId::LocalException);
+    let hashes = CAMPAIGN_MISSIONS.map(AuthoredSource::bundled_content_sha256);
+    for difficulty in [
+        CampaignDifficulty::Assisted,
+        CampaignDifficulty::Standard,
+        CampaignDifficulty::Severe,
+    ] {
+        for alive in [false, true] {
+            let mut entry = awaiting_local_exception()
+                .promote_next(MissionId::LocalException, hash)
+                .unwrap();
+            entry.rules.difficulty = difficulty;
+            entry.remaining_continues = 0;
+            let SavedStep::MissionEntry {
+                entry: resources, ..
+            } = &mut entry.step
+            else {
+                unreachable!()
+            };
+            resources.hp = 1;
+            resources.armor = 0;
+            entry.validate(hash).unwrap();
+            let mut session = GameSession::with_authored_map(map.clone());
+            session.state.use_replay_ids();
+            session.state.seed(2020);
+            session.state.load_campaign_run(&entry).unwrap();
+            let id = Uuid::from_u128(2020);
+            session
+                .state
+                .add_player(id, "Threshold fixture".into(), Role::Human);
+            assert!(session.state.acknowledge_mission(
+                id,
+                MissionReady {
+                    id: MissionId::LocalException,
+                    attempt: entry.attempt(),
+                }
+            ));
+            session.tick_messages(0.05);
+            let geometry = session.state.map.m20_geometry().unwrap();
+            let (_, _, due) = geometry.clock(1);
+            // Fixture setup is explicit and ends here. The whole hold and
+            // previous missions are not being scored or claimed as played.
+            session.state.tick = due - 1;
+            let crew_feet: Vec<_> = session
+                .state
+                .map
+                .m20_objectives()
+                .unwrap()
+                .crew
+                .iter()
+                .map(|route| *route.route.last().unwrap())
+                .collect();
+            let progress = session
+                .state
+                .mission
+                .as_mut()
+                .unwrap()
+                .m20
+                .as_mut()
+                .unwrap();
+            progress.index = 4;
+            progress.pier_reached_at = Some(1);
+            progress.display_lit = true;
+            for (member, feet) in progress.crew.iter_mut().zip(crew_feet) {
+                member.phase = crate::protocol::M20CrewPhase::Arrived;
+                member.feet = feet;
+            }
+            progress.challenges.crew_crossed = true;
+            let player = session
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == id)
+                .unwrap();
+            [player.x, player.y, player.z] = [
+                geometry.departure.approach[0],
+                geometry.departure.approach[1] + PLAYER_FLOOR_Y,
+                geometry.departure.approach[2],
+            ];
+            player.vy = 0.0;
+            assert_eq!((player.hp, player.armor), (1, 0));
+            if !alive {
+                let index = session
+                    .state
+                    .players
+                    .iter()
+                    .position(|p| p.id == id)
+                    .unwrap();
+                session.state.environmental_self_damage(index, 1);
+            }
+            session.tick_messages(0.05);
+            let state = session.state.mission_state().unwrap();
+            state
+                .validate_with_clock(Some(geometry.clock(1)), session.state.tick)
+                .unwrap();
+            let before_departure = session.state.campaign_run_document().unwrap().unwrap();
+            assert!(!before_departure.survived_the_wipe());
+            if !alive {
+                assert_eq!(state.run.unwrap().status, CampaignRunStatus::Failed);
+                assert!(state.m20.unwrap().reprieve_at.is_none());
+                let epilogue = AuthoredSource::Mission(MissionId::StillHere)
+                    .load()
+                    .unwrap();
+                assert!(GameSession::with_authored_map(epilogue)
+                    .state
+                    .load_epilogue_entitlement(&before_departure, hash)
+                    .is_err());
+                continue;
+            }
+            assert_eq!(state.m20.unwrap().reprieve_at, Some(due));
+            while !session
+                .state
+                .mission_state()
+                .unwrap()
+                .m20
+                .unwrap()
+                .gate_open
+            {
+                assert!(session.state.tick <= due + crate::mission::m20::GATE_TIMEOUT + 1);
+                session.tick_messages(0.05);
+            }
+            let point = geometry
+                .departure
+                .point(
+                    session.state.map.presentation_ref().unwrap(),
+                    &session.state.map.arena().solids,
+                )
+                .unwrap();
+            session.state.set_action(
+                id,
+                Action {
+                    interact: true,
+                    look_at: Some(LookAt {
+                        x: Some(point[0]),
+                        y: Some(point[1]),
+                        z: Some(point[2]),
+                        player_id: None,
+                    }),
+                    ..Default::default()
+                },
+            );
+            session.tick_messages(0.05);
+            let victory = session.state.campaign_run_document().unwrap().unwrap();
+            assert!(victory.survived_the_wipe(), "{difficulty:?}");
+            let SavedStep::AwaitingMission { exit, .. } = &victory.step else {
+                unreachable!()
+            };
+            assert_eq!(exit.hp, 1, "the threshold never requires a health grant");
+            assert_eq!(victory.remaining_continues, 0);
+            let saved = serde_json::to_value(&victory).unwrap();
+            for interact in [false, true, false, true] {
+                session.state.set_action(
+                    id,
+                    Action {
+                        interact,
+                        ..Default::default()
+                    },
+                );
+                session.tick_messages(0.05);
+                assert_eq!(
+                    serde_json::to_value(session.state.campaign_run_document().unwrap().unwrap())
+                        .unwrap(),
+                    saved
+                );
+            }
+            let directory =
+                std::env::temp_dir().join(format!("fragr-threshold-{}", Uuid::new_v4()));
+            let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+            store.save(&victory).unwrap();
+            drop(store);
+            let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
+            for _ in 0..2 {
+                let (state, actual_difficulty) = open_still_here(&directory).await.unwrap();
+                assert_eq!(actual_difficulty, difficulty);
+                assert!(state.run.is_none());
+                assert_eq!(
+                    state.epilogue.unwrap().refuge,
+                    crate::mission::epilogue::refuge_from(&victory)
+                );
+                assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+            }
+            fs::remove_dir_all(directory).unwrap();
+        }
+    }
+}
+
 /// A run's survival with nobody carried still opens the walk: absent
 /// rescues change the faces, never the entitlement.
 #[test]
