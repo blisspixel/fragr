@@ -250,17 +250,12 @@ static func reaction_line(data: Dictionary) -> String:
 	})
 
 
-## Scoreboard rows as text: side score first in a team mode, then the top
-## fighters with their side chip. `you` marks the local callsign on the
-## hold-Tab board. The corner list leaves it empty and stays on frags.
-## `detailed` is the hold-Tab board, including a spectator whose name is
-## not on a row.
-static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "", detailed: bool = false) -> String:
+## The corner standings: the side score, then the top `limit` rows on frags.
+## The hold-Tab board is `ScoreboardPlate`.
+static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "") -> String:
 	var text: String = ""
 	if score_line != "":
 		text += score_line + "\n"
-	if detailed:
-		text += _text("HUD_BOARD_COLUMNS") + "\n"
 	for i: int in range(mini(limit, rows.size())):
 		var row: Dictionary = rows[i]
 		var accepted: Dictionary = row.duplicate()
@@ -270,23 +265,14 @@ static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, 
 		for candidate: Dictionary in rows:
 			if candidate.get("name") == you:
 				unique += 1
-		text += scoreboard_row(accepted, i, detailed, not you.is_empty() and unique == 1 and row.get("name") == you) + "\n"
+		text += scoreboard_row(accepted, i, not you.is_empty() and unique == 1 and row.get("name") == you) + "\n"
 	return text
 
-static func scoreboard_row(row: Dictionary, index: int, detailed: bool, own: bool = false) -> String:
+static func scoreboard_row(row: Dictionary, index: int, own: bool = false) -> String:
 	var name: String = str(row.get("name", "?"))
 	var kills: int = int(row.get("kills", 0))
 	var side: String = team_short(valid_team(row.get("team")))
 	var marker: String = "*" if index == 0 and kills > 0 else " "
 	var tag: String = "[" + side + "] " if not side.is_empty() else ""
 	var prefix: String = str(index + 1) + "." + marker + tag + name + str(row.get("chip", "")) + ": " + str(kills)
-	if detailed:
-		prefix += " frag, " + str(int(row.get("deaths", 0))) + " died, hit " + _rate(int(row.get("connects", 0)), int(row.get("attacks", 0))) + ", head " + _rate(int(row.get("heads", 0)), int(row.get("connects", 0))) + ", " + str(int(row.get("damage", 0))) + " dealt"
 	return prefix + ("  YOU" if own else "")
-
-static func _rate(numerator: int, denominator: int) -> String:
-	var label: String = PlayerRecord.percent_label(numerator, denominator)
-	if label == "":
-		return "-"
-	# The count sits beside the percent. 100.0 on one shot is not 100.0 on a hundred.
-	return label + " (" + str(numerator) + "/" + str(denominator) + ")"

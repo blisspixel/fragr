@@ -1,0 +1,13 @@
+{
+  "comment": "Lighting and look review in Recall Notice: fixture glow over bone enamel, warm service lamps, and the first-person muzzle light from the Tack in the street and the bay. Run with FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/m01-look.json and a renderer and preset. Compare the stills with the same rooms in m01-golden.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"street","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"note":"The night street: canopy lamps and the annex door glow small; the queue rail stays readable."},
+    {"name":"hall","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"note":"Fluorescent strips over the hall: a tight halo on each tube, never a wash over the bone walls."},
+    {"name":"maintenance","camera":"overview","camera_position":[-17,1.65,-20.5],"camera_look_at":[-17,2.2,-6],"allow_empty_roster":true,"note":"Warm cage lamps in the low passage."},
+    {"name":"stacks","camera":"overview","camera_position":[-25,4.65,17.5],"camera_look_at":[-36,4.6,23],"allow_empty_roster":true,"note":"The archive stacks under service light."},
+    {"name":"safe_pistol","join":"human","camera":"first_person","walk_to":[[0,0,-34],[0,0,-26]],"expect_equipment":{"selected":"tack"},"note":"The Tack in hand in the bay, in the room's light."},
+    {"name":"bay_fire","camera":"first_person","look_at":[-8,0.4,-23.5],"trigger":"fire","single_shot":true,"probe":"ViewMuzzleLight","strip_frames":8,"note":"One Tack shot toward the seized stock: the warm pulse on the floor, the counter and the near wall, then gone."}
+  ]
+}

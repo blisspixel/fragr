@@ -66,6 +66,9 @@ var _combat_probe: QaCombat = QaCombat.new()
 var _combat_travel: bool = false
 var _combat_travel_targets: Array[String] = []
 var _radio_compare_on: bool = false
+## video/quality indices, in settings order.
+const CAPTURE_QUALITIES: Array[String] = ["performance", "balanced", "high"]
+var _capture_quality: int = -1
 var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
 var _audio_recorder: AudioEffectRecord = null
@@ -135,6 +138,15 @@ func _run() -> void:
 	# Stills show ordinary play; a state that needs the first-run controls
 	# legend asks for it with "controls_hint": "replay".
 	capture_settings.set_value("gameplay", "controls_hint_seen", true)
+	# One tour at each graphics preset: FRAGR_QA_QUALITY starts the whole run
+	# on that preset. A state's own "graphics" options still win for that state.
+	_capture_quality = capture_quality(OS.get_environment("FRAGR_QA_QUALITY"))
+	if _capture_quality == -2:
+		push_error("qa_tour: FRAGR_QA_QUALITY must be performance, balanced or high")
+		quit(1)
+		return
+	if _capture_quality >= 0:
+		capture_settings.set_value("video", "quality", _capture_quality)
 	if capture_settings.save_to_disk() != OK:
 		push_error("qa_tour: could not create isolated capture settings")
 		quit(1)
@@ -492,6 +504,11 @@ func _run() -> void:
 			await _use_input_device(str(state["input_device"]), str(state.get("pad_layout", "")))
 		if state.get("overlay", "") == "match_menu":
 			_game_manager().get_node("PauseMenu").call("open")
+		# The board held on Tab, as a player holds it: the key stays down
+		# through the settle and the still, and is let go after.
+		if state.get("overlay", "") == "scoreboard":
+			Input.action_press("scoreboard")
+			await create_timer(0.3).timeout
 		if state.get("overlay", "") == "match_settings":
 			var match_menu: PauseMenu = _game_manager().get_node("PauseMenu")
 			match_menu.open()
@@ -894,6 +911,8 @@ func _run() -> void:
 			# started photographs an empty grey room, and the HUD panel alone
 			# is enough texture to make the whole frame look non-blank.
 			"world_blank": measured.get("world_blank", false),
+			# The watcher's director: its last cut and why, when it made one.
+			"director": _director_record(),
 			"note": state.get("note", ""),
 			"input": {"kind": ["keyboard", "mouse", "gamepad"][InputDevice.kind], "look": InputDevice.look_source, "pad_layout": InputDevice.pad_layout, "prompt": _game_manager().mission_hud.prompt_text if _game_manager() != null and _game_manager().get("mission_hud") != null else "", "recovery": _game_manager().mission_hud.recovery_text if _game_manager() != null and _game_manager().get("mission_hud") != null and _game_manager().mission_hud._recovery.visible else ""},
 		})
@@ -906,6 +925,8 @@ func _run() -> void:
 				label.visible = true
 		if state.get("overlay", "") in ["match_menu", "match_settings"]:
 			_game_manager().get_node("PauseMenu").call("close")
+		if state.get("overlay", "") == "scoreboard":
+			Input.action_release("scoreboard")
 		if _failed and _combat_travel:
 			break
 
@@ -914,6 +935,17 @@ func _run() -> void:
 	print("qa_tour: ", _results.size(), " states under ", _out_dir)
 	await _retire_scene()
 	quit(1 if _failed else 0)
+
+func _director_record() -> Dictionary:
+	var camera: Node = _spectator_camera()
+	if camera == null or not "director_reason" in camera:
+		return {}
+	var manager: Node = _game_manager()
+	var target: String = str(camera.get("director_target_id"))
+	var named: String = ""
+	if manager != null and not target.is_empty() and manager.players.has(target) and is_instance_valid(manager.players[target]):
+		named = str(manager.players[target].get("player_name"))
+	return {"reason": str(camera.get("director_reason")), "target": named}
 
 func _retire_scene() -> void:
 	_disconnect_grenade_strip()
@@ -1223,6 +1255,14 @@ static func valid_m07_expectations(state: Dictionary) -> bool:
 		if completed[index] != order[index]:
 			return false
 	return true
+
+## The run-wide preset from FRAGR_QA_QUALITY: -1 when unset (the settings
+## default), -2 when unrecognised, else the video/quality index.
+static func capture_quality(value: String) -> int:
+	if value.is_empty():
+		return -1
+	var index: int = CAPTURE_QUALITIES.find(value.to_lower())
+	return index if index >= 0 else -2
 
 static func valid_radio_comparison(value: String, states: Variant) -> bool:
 	if value.is_empty():
@@ -1947,6 +1987,10 @@ func _take_from_pad(weapon: String) -> bool:
 				await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
 			elif point is Dictionary and point.has("orbit") and point.has("to_degrees"):
 				await _orbit_to(float(point["orbit"]), deg_to_rad(float(point["to_degrees"])))
+			# The route can cross the pad before its final waypoint. Do not
+			# wait for a pad we just emptied while already carrying the gun.
+			if _owned_weapons().has(weapon.to_lower()):
+				return true
 			alive = _local_human_alive(gm)
 			if not alive:
 				break
@@ -1968,7 +2012,11 @@ func _take_from_pad(weapon: String) -> bool:
 			continue
 		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
 		while is_instance_valid(pad) and not bool(pad.get("available")) and _local_human_alive(gm) and Time.get_ticks_msec() < back_by:
+			if _owned_weapons().has(weapon.to_lower()):
+				return true
 			await create_timer(0.1).timeout
+		if _owned_weapons().has(weapon.to_lower()):
+			return true
 		if not is_instance_valid(pad) or not _local_human_alive(gm):
 			continue
 		var floor_y: float = pad.position.y - 0.4
@@ -2245,6 +2293,16 @@ func _local_human_can_act(gm: Node) -> bool:
 
 func _prepare_static_capture(state: Dictionary) -> bool:
 	var gm: Node = _game_manager()
+	if gm != null:
+		# Scene construction and round transitions can precede the populated
+		# snapshot. Photograph the observed match, not that loading interval.
+		var snapshot_deadline: int = Time.get_ticks_msec() + 16000
+		while (int(gm.latest_snapshot.get("map_id", 0)) == 0 or (gm.latest_snapshot.get("players", []).is_empty() and not state.get("allow_empty_roster", false))) and Time.get_ticks_msec() < snapshot_deadline:
+			await process_frame
+		if int(gm.latest_snapshot.get("map_id", 0)) == 0 or (gm.latest_snapshot.get("players", []).is_empty() and not state.get("allow_empty_roster", false)):
+			push_error("qa_tour: no populated snapshot before capture")
+			_failed = true
+			return false
 	if not _joined or not (state.has("weapon") or state.has("aim_pitch")):
 		return true
 	var state_name: String = str(state.get("name", "static pose"))
@@ -3392,6 +3450,8 @@ func _write_manifest(tour: Dictionary) -> void:
 		"godot": Engine.get_version_info().get("string", ""),
 		"renderer": RenderingServer.get_current_rendering_method(),
 		"device": RenderingServer.get_video_adapter_name(),
+		"display_server": DisplayServer.get_name(),
+		"quality": CAPTURE_QUALITIES[_capture_quality] if _capture_quality >= 0 else "settings default",
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"companion_shots": _combat_probe.companion_shots.duplicate(true),

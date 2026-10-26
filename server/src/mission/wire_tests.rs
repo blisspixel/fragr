@@ -224,14 +224,22 @@ async fn broadcast_cannot_overtake_join_geometry_for_any_role() {
             session.state.mission_message().unwrap(),
             ServerMessage::Snapshot(session.state.snapshot()),
         ];
-        crate::session::broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages))
-            .await;
+        crate::session::broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&messages),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         session.apply_command(connected);
         let unicasts = session.take_unicasts();
         crate::session::send_unicasts(&clients, &session.client_to_player, &unicasts).await;
         let messages = session.tick_messages(0.05);
-        crate::session::broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages))
-            .await;
+        crate::session::broadcast_to_clients(
+            &clients,
+            &crate::net::Broadcast::copies(&messages),
+            &std::collections::HashSet::new(),
+        )
+        .await;
         tokio::time::timeout(Duration::from_secs(2), async {
             let first = socket.next().await.unwrap().unwrap();
             let first = serde_json::from_str::<ServerMessage>(first.to_text().unwrap()).unwrap();
@@ -488,7 +496,12 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
     let unicasts = session.take_unicasts();
     crate::session::send_unicasts(&clients, &session.client_to_player, &unicasts).await;
     let messages = session.tick_messages(0.05);
-    crate::session::broadcast_to_clients(&clients, &crate::net::Broadcast::copies(&messages)).await;
+    crate::session::broadcast_to_clients(
+        &clients,
+        &crate::net::Broadcast::copies(&messages),
+        &std::collections::HashSet::new(),
+    )
+    .await;
     for socket in &mut sockets {
         // Geometry preparation is not socket delivery time, especially under
         // coverage. Start the delivery deadline after the probe is ready.

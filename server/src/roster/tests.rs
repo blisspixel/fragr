@@ -392,3 +392,96 @@ fn pick_skips_names_people_already_use() {
     assert!(std::ptr::eq(again, fighter));
     assert_eq!(next, format!("{}-3", fighter.name));
 }
+
+#[test]
+fn habits_follow_canon_where_it_speaks_and_the_behavior_elsewhere() {
+    use crate::protocol::WeaponType::{Flechette, Rail, Rocket, Scatter};
+    // Canon (cast.md, the-league.md): the Night Watch favour the rail and
+    // Nightfall times it, the Static Kids spray scatter, Hangar Candy are
+    // flechette mains, Aunt Linda farms health.
+    for (name, favourite, times) in [
+        ("Nightfall", Rail, PadHabit::Rail),
+        ("Graveyard Shift", Rail, PadHabit::Rail),
+        ("Static Kid", Scatter, PadHabit::Scatter),
+        ("Pckt Lss", Scatter, PadHabit::Scatter),
+        ("Dd Pxl", Scatter, PadHabit::Scatter),
+        ("Eyes Only", Flechette, PadHabit::Health),
+        ("Need To Know", Flechette, PadHabit::Health),
+        ("Aunt Linda", Rocket, PadHabit::Health),
+        ("Crackpot", Rail, PadHabit::Plate),
+        ("Buzzkill", Rocket, PadHabit::Plate),
+    ] {
+        let fighter = find(name).unwrap();
+        let got = habits(name, fighter.behavior);
+        assert_eq!((got.favourite, got.times), (favourite, times), "{name}");
+        // The overflow copy is the same regular.
+        assert_eq!(habits(&format!("{name}-2"), fighter.behavior), got);
+    }
+    // Everyone else takes the behavior's habits, and a name off the roster
+    // plays its seat.
+    let dan = find("Dead Air Dan").unwrap();
+    assert_eq!(
+        habits(dan.name, dan.behavior),
+        behavior_habits(dan.behavior)
+    );
+    assert_eq!(
+        habits("Somebody New", BotBehavior::Flanker),
+        behavior_habits(BotBehavior::Flanker)
+    );
+    // Only the power pads are worth the walk across the lot.
+    assert!(PadHabit::Plate.map_wide() && PadHabit::Rail.map_wide() && PadHabit::Rocket.map_wide());
+    assert!(!PadHabit::Health.map_wide() && !PadHabit::Scatter.map_wide());
+}
+
+#[test]
+fn grudge_lines_keep_each_register_and_name_the_fighter_owed() {
+    const BANNED: [&str; 8] = [
+        "booth",
+        "dial",
+        "station",
+        "frequenc",
+        "broadcast",
+        "listener",
+        "radio",
+        "clanker",
+    ];
+    for fighter in ROSTER {
+        if fighter.name.starts_with("NODS ") {
+            // Articles only: no grudges, no trash talk.
+            assert_eq!(grudge_line(fighter.name, "Meat Proxy", 0), None);
+            continue;
+        }
+        for salt in 0..6 {
+            let line = grudge_line(fighter.name, "Wet Floor-2", salt).unwrap();
+            assert!(line.chars().count() <= 48, "{line}");
+            for word in BANNED {
+                assert!(
+                    !line.to_lowercase().contains(word),
+                    "{}: {line}",
+                    fighter.name
+                );
+            }
+            if fighter.name == "L5" {
+                // Says very little.
+                assert_eq!(line, "even.");
+                continue;
+            }
+            if tribe(fighter.name) == Some(Tribe::NightWatch) {
+                assert!(line.ends_with("WET FLOOR"), "{line}");
+                assert!(
+                    line.chars().all(|c| c.is_ascii_uppercase() || c == ' '),
+                    "{line} is not night watch"
+                );
+            } else {
+                assert!(line.contains("Wet Floor"), "{line}");
+                let words = line.replace("Wet Floor", "");
+                assert_eq!(words, words.to_lowercase(), "{line} is not lowercase");
+            }
+        }
+    }
+    // Hermes thanks you anyway; a name off the roster has no lines.
+    assert!(grudge_line("Hermes", "Not Hermes", 0)
+        .unwrap()
+        .contains("thank you"));
+    assert_eq!(grudge_line("Somebody New", "Hermes", 0), None);
+}

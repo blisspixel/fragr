@@ -145,6 +145,87 @@ pub struct ScenarioReport {
     pub frag_weapons: BTreeMap<String, u64>,
     /// Captures in CTF; Conquest sites changing hands.
     pub objective_events: u64,
+    /// Claims of the power armour (the Custody Plate), per three live minutes.
+    pub plate_claims: u64,
+    pub plate_claims_per_3min: f64,
+    /// Claims of a Rocket pad.
+    pub rocket_claims: u64,
+    /// Frags landed by the Rocket, as a share of all frags.
+    pub rocket_frag_share: f64,
+    /// Fighters killed by their own blast.
+    pub self_deaths: u64,
+    /// Rockets fired, and those that hurt somebody.
+    pub rocket_launches: u64,
+    pub rocket_damaging: u64,
+}
+
+/// The lane targets for rule bots on Larak Lot's free-for-all at six bots:
+/// the Rocket does a real share of the work, the Plate is fought over, the
+/// Flechette is not the only gun anybody fires, and fights keep coming.
+pub const LOT_ROCKET_FRAG_SHARE: (f64, f64) = (0.15, 0.25);
+pub const LOT_PLATE_CLAIMS_PER_3MIN: f64 = 2.0;
+pub const LOT_FLECHETTE_SHOT_SHARE: f64 = 0.45;
+pub const LOT_FRAGS_PER_MINUTE: f64 = 18.0;
+
+/// The Larak Lot free-for-all at six rule bots, the row the targets read.
+pub fn lot_scenario() -> Scenario {
+    Scenario {
+        mode: GameMode::Ffa,
+        map: MapKind::ArenaDuel.id(),
+        bots: 6,
+    }
+}
+
+/// Larak Lot at the sizes it hosts: the target row, a smaller free-for-all
+/// and Duel.
+pub fn lot_scenarios() -> Vec<Scenario> {
+    let lot = lot_scenario();
+    vec![
+        lot,
+        Scenario { bots: 4, ..lot },
+        Scenario {
+            mode: GameMode::Duel,
+            bots: 2,
+            ..lot
+        },
+    ]
+}
+
+/// Problems against the Larak Lot targets, for the lot's six-bot row.
+pub fn check_lot_targets(row: &ScenarioReport) -> Vec<String> {
+    let mut problems = Vec::new();
+    let (low, high) = LOT_ROCKET_FRAG_SHARE;
+    if !(low..=high).contains(&row.rocket_frag_share) {
+        problems.push(format!(
+            "{}: Rocket frag share {:.1} percent, want {:.0} to {:.0}",
+            row.scenario,
+            row.rocket_frag_share * 100.0,
+            low * 100.0,
+            high * 100.0
+        ));
+    }
+    if row.plate_claims_per_3min < LOT_PLATE_CLAIMS_PER_3MIN {
+        problems.push(format!(
+            "{}: {:.1} Plate claims per 3 min, want {LOT_PLATE_CLAIMS_PER_3MIN} or more",
+            row.scenario, row.plate_claims_per_3min
+        ));
+    }
+    let flechette = row.shot_share.get("Flechette").copied().unwrap_or(0.0);
+    if flechette >= LOT_FLECHETTE_SHOT_SHARE {
+        problems.push(format!(
+            "{}: Flechette fires {:.1} percent of shots, want under {:.0}",
+            row.scenario,
+            flechette * 100.0,
+            LOT_FLECHETTE_SHOT_SHARE * 100.0
+        ));
+    }
+    if row.frags_per_minute < LOT_FRAGS_PER_MINUTE {
+        problems.push(format!(
+            "{}: {:.1} frags/min, want {LOT_FRAGS_PER_MINUTE} or more",
+            row.scenario, row.frags_per_minute
+        ));
+    }
+    problems
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -175,12 +256,17 @@ struct Tally {
     shots: BTreeMap<String, u64>,
     frag_weapons: BTreeMap<String, u64>,
     objective_events: u64,
+    plate_claims: u64,
+    rocket_claims: u64,
+    self_deaths: u64,
+    rocket_launches: u64,
+    rocket_damaging: u64,
 }
 
 fn power(kind: PickupKind) -> bool {
     match kind {
         PickupKind::Weapon(weapon) => weapon != WeaponType::Flechette,
-        PickupKind::Armor => true,
+        PickupKind::Armor | PickupKind::Plate => true,
         _ => false,
     }
 }
@@ -259,6 +345,16 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
             .collect(),
         frag_weapons: tally.frag_weapons.clone(),
         objective_events: tally.objective_events,
+        plate_claims: tally.plate_claims,
+        plate_claims_per_3min: per_minute(tally.plate_claims) * 3.0,
+        rocket_claims: tally.rocket_claims,
+        rocket_frag_share: share(
+            tally.frag_weapons.get("Rocket").copied().unwrap_or(0),
+            tally.frags,
+        ),
+        self_deaths: tally.self_deaths,
+        rocket_launches: tally.rocket_launches,
+        rocket_damaging: tally.rocket_damaging,
     }
 }
 
@@ -271,6 +367,9 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         return;
     };
     let mut session = GameSession::with_map(map, false);
+    // Numbered fighters: aim error and reaction mix the fighter id, so random
+    // ids would make two runs of one seed differ.
+    session.state.use_replay_ids();
     session.state.seed(seed);
     let Ok(rules) = RuleSet::new(scenario.mode, &[], false) else {
         return;
@@ -351,6 +450,17 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     if let Some(p) = session.state.players.iter().find(|p| &p.name == player) {
                         spawned_at.insert(p.id, tick);
                         tally.spawns += 1;
+                    }
+                }
+                GameEvent::Hit {
+                    shooter_id,
+                    target_id,
+                    target_hp_after,
+                    ..
+                } if live && shooter_id == target_id => {
+                    // A fighter's own blast is not a hit on anybody else.
+                    if target_hp_after <= 0 {
+                        tally.self_deaths += 1;
                     }
                 }
                 GameEvent::Hit {
@@ -455,6 +565,11 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                         .iter()
                         .position(|p| &p.id == pickup_id)
                     {
+                        match session.state.pickups[index].kind {
+                            PickupKind::Plate => tally.plate_claims += 1,
+                            PickupKind::Weapon(WeaponType::Rocket) => tally.rocket_claims += 1,
+                            _ => {}
+                        }
                         if let Some(at) = returned[index].filter(|_| waiting[index]) {
                             // The return tick stays for the contest window; the
                             // next claim needs the next return.
@@ -476,6 +591,14 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 }
                 _ => {}
             }
+        }
+    }
+    let ids: Vec<Uuid> = session.state.players.iter().map(|p| p.id).collect();
+    for id in ids {
+        if let Some(record) = session.state.player_record(id) {
+            let rocket = record.total.weapon(WeaponType::Rocket);
+            tally.rocket_launches += rocket.attacks;
+            tally.rocket_damaging += rocket.damaging_attacks;
         }
     }
     if let Some(conquest) = session.state.snapshot().conquest {
@@ -531,6 +654,47 @@ mod tests {
         assert!(row.spawns >= 4, "{row:?}");
         assert!(row.shot_share.values().sum::<f64>() > 0.99, "{row:?}");
         assert!(check_bot_survey(&report).is_empty(), "{row:?}");
+    }
+
+    #[test]
+    fn the_lot_targets_name_each_miss_and_pass_a_good_row() {
+        let labels: Vec<String> = lot_scenarios().iter().map(Scenario::label).collect();
+        assert_eq!(
+            labels,
+            ["ffa-larak-lot-6", "ffa-larak-lot-4", "duel-larak-lot-2"]
+        );
+        let good = ScenarioReport {
+            scenario: lot_scenario().label(),
+            frags_per_minute: 20.0,
+            plate_claims_per_3min: 3.0,
+            rocket_frag_share: 0.2,
+            shot_share: [("Flechette".to_string(), 0.4)].into_iter().collect(),
+            ..ScenarioReport::default()
+        };
+        assert!(check_lot_targets(&good).is_empty());
+        let bad = ScenarioReport {
+            frags_per_minute: 10.0,
+            plate_claims_per_3min: 1.0,
+            rocket_frag_share: 0.3,
+            shot_share: [("Flechette".to_string(), 0.6)].into_iter().collect(),
+            ..good
+        };
+        assert_eq!(
+            check_lot_targets(&bad).len(),
+            4,
+            "{:?}",
+            check_lot_targets(&bad)
+        );
+    }
+
+    #[test]
+    fn a_seeded_survey_repeats_exactly() {
+        let config = BotSurveyConfig {
+            scenarios: vec![lot_scenario()],
+            seeds: vec![5],
+            round_ticks: 20 * 30,
+        };
+        assert_eq!(run_bot_survey(&config), run_bot_survey(&config));
     }
 
     #[test]

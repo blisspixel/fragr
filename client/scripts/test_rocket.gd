@@ -55,10 +55,18 @@ func _run() -> void:
 	var effects: GrenadeEffects = GrenadeEffects.new()
 	root.add_child(effects)
 	effects.apply(flying, Vector3.ZERO)
-	var body: MeshInstance3D = effects.rockets[7]
-	var size: Vector3 = (body.mesh as BoxMesh).size
-	_check(size.z > size.x * 2.0, "the rocket body is long")
+	var body: Node3D = effects.rockets[7]
+	var hull: MeshInstance3D = body.get_node("Body") as MeshInstance3D
+	var shape: CylinderMesh = hull.mesh as CylinderMesh
+	_check(shape.height > shape.top_radius * 4.0 and body.get_node_or_null("Nose") != null
+		and body.get_node_or_null("Flame") != null, "the rocket is a long modelled round with a nose and a flame")
 	_check((-body.basis.z).dot(Vector3.RIGHT) > 0.9, "the long axis follows server velocity")
+	effects._process(0.05)
+	_check(body.position.x > 1.0 + 18.0 * 0.04 and body.position.x < 1.0 + 18.0 * GrenadeEffects.ROCKET_LEAD_SECONDS + 0.01,
+		"between snapshots the round flies on along its server velocity, bounded")
+	_check(effects.blast.smoke.active_count() > 0, "a rocket in flight lays smoke behind it")
+	effects._process(1.0)
+	_check(body.position.x <= 1.0 + 18.0 * GrenadeEffects.ROCKET_LEAD_SECONDS + 0.01, "a late snapshot never carries the round past its lead")
 	var gone: Dictionary = flying.duplicate(true)
 	gone["tick"] = 5
 	gone["rockets"] = []

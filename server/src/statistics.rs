@@ -6,6 +6,9 @@ use crate::protocol::{
 use crate::sim::{GameState, RoundState};
 use uuid::Uuid;
 
+mod head_to_head;
+pub(crate) use head_to_head::HeadToHead;
+
 #[cfg(test)]
 mod tests;
 

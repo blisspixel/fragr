@@ -283,6 +283,14 @@ func _ready():
 	incoming_feedback.setup(hud)
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
+	shot_effects.decals = VfxDecals.new()
+	add_child(shot_effects.decals)
+	shot_effects.fighter_surface = func(id: String) -> String:
+		var struck: Node = players.get(id)
+		return struck.impact_surface() if is_instance_valid(struck) and struck.has_method("impact_surface") else ShotVfx.FLESH
+	shot_effects.first_person_muzzle = func() -> Vector2:
+		var flash: Variant = hud.get("fp_muzzle") if is_instance_valid(hud) else null
+		return (flash as Control).global_position + (flash as Control).size * 0.5 if flash is Control else Vector2.INF
 	arena_vehicles = ArenaVehicles.new()
 	arena_vehicles.name = "Vehicles"
 	add_child(arena_vehicles)
@@ -305,6 +313,13 @@ func _ready():
 	grenade_effects.placed.connect(func(owner_id: String) -> void:
 		if is_human_player and owner_id == str(net_client.player_id):
 			hud.show_mine_place())
+	grenade_effects.set_decals(shot_effects.decals)
+	grenade_effects.exploded.connect(func(at: Vector3, radius: float) -> void:
+		var eye: Camera3D = get_viewport().get_camera_3d()
+		var kick: float = ShotVfx.blast_kick(eye.global_position.distance_to(at), radius) if is_instance_valid(eye) else 0.0
+		if kick > 0.0 and camera != null:
+			camera.punch_view(ShotVfx.BLAST_KICK_DEGREES * kick)
+			camera.camera_shake_intensity = maxf(camera.camera_shake_intensity, ShotVfx.BLAST_KICK_SHAKE * kick))
 	add_child(grenade_effects)
 	walker_view = WalkerView.new()
 	walker_view.name = "WalkerPresentation"
@@ -345,6 +360,7 @@ func _ready():
 	net_client.mission_received.connect(_on_mission_received)
 	net_client.map_info_received.connect(_on_map_info)
 	net_client.event_received.connect(_on_event_received)
+	net_client.spectator_facts_received.connect(_on_spectator_facts)
 	net_client.ack_received.connect(_on_ack_received)
 	net_client.connected_to_server.connect(_on_connected)
 	net_client.session_resumed.connect(_on_session_resumed)
@@ -596,7 +612,11 @@ func _on_map_info(info: Dictionary) -> void:
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
+		shot_effects.configure_map(info)
 	current_map_info = info.duplicate(true)
+	var view_light: ViewLight = ViewLight.attach(_view_camera())
+	if view_light != null:
+		view_light.set_solids(current_map_info.get("solids"))
 	if incoming_feedback != null:
 		incoming_feedback.configure_map(info)
 	# The rule set arrives with the map; a campaign map has none.
@@ -2130,6 +2150,7 @@ func _present_local_fire(action: Dictionary, now_usec: int) -> void:
 func _show_fire_juice(weapon_name: String) -> void:
 	if hud and hud.has_method("show_fire_juice"):
 		hud.show_fire_juice(weapon_name)
+	ViewLight.flash(_view_camera(), weapon_name, settings.screen_flashes() if settings != null else 0)
 	if camera != null and camera.has_method("punch_for_weapon") and _vehicle_seat().is_empty():
 		camera.punch_for_weapon(weapon_name)
 
@@ -2167,9 +2188,14 @@ func _local_fire_allowed() -> bool:
 func _cancel_local_fire_effect() -> void:
 	if hud and hud.has_method("cancel_fire_juice"):
 		hud.cancel_fire_juice()
+	ViewLight.cancel(_view_camera())
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if is_instance_valid(pawn) and pawn.has_method("cancel_fire_feedback"):
 		pawn.cancel_fire_feedback()
+
+## The view camera the first-person muzzle light and gun measurement ride.
+func _view_camera() -> Camera3D:
+	return get_node_or_null("SpectatorCamera/Camera3D") as Camera3D
 
 func _reset_local_fire() -> void:
 	pending_fire = false
@@ -2828,6 +2854,8 @@ func _on_snapshot_received(data):
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
+	hud.spectator_panel.watching = not is_human_player and not _benchmark
+	hud.spectator_panel.observe_snapshot(data)
 	var pre_my_id: String = str(net_client.player_id) if net_client != null and net_client.player_id != null else ""
 	var pre_pawn: Node = players.get(pre_my_id)
 	var active_cam: Node3D = camera if is_instance_valid(camera) else (get_viewport().get_camera_3d() if get_viewport() != null else null)
@@ -3151,6 +3179,12 @@ func _update_nameplates() -> void:
 		if is_instance_valid(pawn):
 			pawn.set_nameplate_enabled(visible_ids.has(str(id)))
 
+## The booth's facts reach a watcher only: the panel and the director.
+func _on_spectator_facts(facts: Dictionary) -> void:
+	hud.spectator_panel.observe_facts(facts)
+	if camera != null and not is_human_player:
+		camera.director_observe_facts(facts, latest_snapshot.get("pickups", []))
+
 func _on_event_received(data):
 	var event_type = data.get("event", "")
 	if event_type == "sabotage":
@@ -3176,6 +3210,7 @@ func _on_event_received(data):
 		if is_human_player and _is_local_victim(victim_id):
 			_on_local_frag(victim_id, killer_id, killer_name)
 		elif not is_human_player and killer_id != "" and camera:
+			camera.director_observe_frag(data, killer_id)
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false

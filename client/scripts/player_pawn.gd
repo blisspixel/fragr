@@ -61,6 +61,9 @@ var enemy_view: EnemyView = null
 var latch_view: LatchView = null
 var character_view: SkinnedCharacter = null
 var _held_root: Node3D = null
+## The modelled gun a live body carries in place of the profile card.
+var _held_model: MeshInstance3D = null
+const CARRIED_SCALE: float = 1.3
 var _notary_shadow: MeshInstance3D = null
 ## Scope glint of a Ranged Sweeper, shown only during its server windup.
 var marksman_tell: RangedSweeperTell = null
@@ -84,7 +87,7 @@ const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
 # Below REF, scale stays 1 so close follow is unchanged. Beyond REF, scale grows with
-# distance / REF (capped) so far spectators still read Cyanex/Kragge silhouettes.
+# distance / REF (capped) so far spectators still read distant silhouettes.
 const FAR_CAM_REF_DIST: float = 12.0
 const FAR_CAM_MAX_SCALE: float = 3.5
 ## Below this distance a nameplate shrinks with the distance, so its size on
@@ -147,13 +150,11 @@ const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
 const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor", "paver", "surveyor"]
 
 var muzzle_flash_texture: Texture2D
-var rail_beam_texture: Texture2D
 
 var weapon_textures = {}
 const HELD_PROFILE_SCALE: float = 32.0 / 80.0
 ## The scene's pixel size for a 32 pixel weapon icon.
 var weapon_pixel_size: float = 0.026
-var cyanex_texture: Texture2D
 
 ## Fixed colours of the named campaign units. None is Union red, Inheritance
 ## cyan or off-white; `FactionPalette.label_color` still checks each.
@@ -188,14 +189,11 @@ func _ready():
 	_load_audio_streams()
 	
 	muzzle_flash_texture = load("res://assets/vfx/32/muzzle_flash.png")
-	rail_beam_texture = load("res://assets/vfx/32/rail_beam_tip.png")
 	
 	for weapon: String in WeaponArt.PROFILE:
 		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
 	if weapon_sprite:
 		weapon_pixel_size = weapon_sprite.pixel_size
-	
-	cyanex_texture = load("res://assets/characters/64/cyanex_idle_strip.png")
 
 var fire_streams = {}
 var hit_streams = {}
@@ -364,9 +362,6 @@ func set_player_data(id: String, name: String):
 		player_color = Color(0.72, 0.78, 0.28)
 	else:
 		player_color = FactionPalette.callsign_color(id)
-	
-	# The legacy strip only stands in until the snapshot names a body kind.
-	body.texture = cyanex_texture
 	
 	# Continuance drone: taller billboard silhouette vs scrap fighters.
 	if str(name).begins_with("NODS-") and label:
@@ -555,6 +550,7 @@ func _wear_body(kind: String) -> void:
 		body.add_child(muzzle)
 		remove_child(_held_root)
 		_held_root.queue_free()
+		_held_model = null
 		_held_root = null
 	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	weapon_sprite.rotation = Vector3.ZERO
@@ -610,16 +606,35 @@ func _attach_carried() -> void:
 	_held_root.basis = Basis(gun_axis, up, gun_axis.cross(up))
 	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	weapon_sprite.rotation = Vector3.ZERO
-	# The existing pistol and sniper profiles have their muzzle on image left.
-	weapon_sprite.flip_h = current_weapon in ["Tack", "Sniper"]
-	# The pistol's painted grip is seven texels left and three below centre
-	# after reflection. Put that grip at the posed wrist, not the canvas centre.
-	weapon_sprite.position = Vector3(0.0728, 0.0312, 0.0) if current_weapon == "Tack" else Vector3(0.20, 0.03, 0.0)
-	muzzle.position = Vector3(0.208, 0.104, 0.0) if current_weapon == "Tack" else Vector3(0.56, 0.08, 0.0)
+	# The Sniper's profile has its muzzle on image left; every other points right.
+	weapon_sprite.flip_h = current_weapon == "Sniper"
+	weapon_sprite.position = Vector3(0.20, 0.03, 0.0)
+	muzzle.position = Vector3(0.56, 0.08, 0.0)
 	_held_root.visible = not is_local_fp and not vehicle_seated
+	var carried: bool = not is_local_fp and hp > 0 and not vehicle_seated
+	# A modelled gun is carried as itself, so it reads from the front and the
+	# side alike and stays upright while the card turns to the camera.
+	var modelled: bool = GunModel.has_model(current_weapon)
+	if modelled:
+		if _held_model == null:
+			_held_model = MeshInstance3D.new()
+			_held_model.name = "CarriedGun"
+			_held_root.add_child(_held_model)
+		if _held_model.get_meta("weapon", "") != current_weapon:
+			_held_model.mesh = GunModel.carried_mesh(current_weapon)
+			_held_model.set_meta("weapon", current_weapon)
+		var level: Basis = Basis(gun_axis, Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0), gun_axis.cross(Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0)))
+		# Gun space runs its bore along -Z; the pawn aims along +X.
+		# Carried a third larger than life, so the gun reads at fighting range.
+		var placed: Basis = (_held_root.basis.inverse() * level * Basis(Vector3.UP, -PI * 0.5)).scaled_local(Vector3.ONE * CARRIED_SCALE)
+		var grip_point: Vector3 = GunModel.GRIP[current_weapon]
+		_held_model.transform = Transform3D(placed, placed * -grip_point)
+		muzzle.position = placed * (GunModel.MUZZLE[current_weapon] - grip_point)
+	if _held_model != null:
+		_held_model.visible = carried and modelled
 	# A resolved shot can arrive after its shooter died. Hide the carried gun
 	# independently so that the sibling muzzle still presents that shot.
-	weapon_sprite.visible = not is_local_fp and hp > 0 and not vehicle_seated and weapon_textures.has(current_weapon)
+	weapon_sprite.visible = carried and not modelled and weapon_textures.has(current_weapon)
 
 func _update_weapon_sprite():
 	if not weapon_sprite:
@@ -669,7 +684,7 @@ func _update_body_color(hit: bool):
 		# plate and, on a live body, the amber tape.
 		body.modulate = Color.WHITE
 	else:
-		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
+		# Near-white multiply so the pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
 	if character_view != null:
 		_dress_live_body()
@@ -769,57 +784,22 @@ func show_muzzle_flash(weapon: String):
 	if not muzzle:
 		return
 	
-	var flash_time = 0.06
-	if weapon == "Rail":
-		muzzle.texture = rail_beam_texture
-		# Gunmetal / cold bone, not neon.
-		muzzle.modulate = Color(0.72, 0.78, 0.82)
-		muzzle.scale = Vector3.ONE * 2.8
-		flash_time = 0.10
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.45, 0.52, 0.55)
-			muzzle_glow.light_energy = 4.2
-			muzzle_glow.omni_range = 5.5
-	elif weapon == "Sniper":
-		# A small orange-white flash with little light: no beam, a hard crack.
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(1.0, 0.82, 0.6)
-		muzzle.scale = Vector3.ONE * 1.4
-		flash_time = 0.05
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.62, 0.6, 0.55)
-			muzzle_glow.light_energy = 1.6
-			muzzle_glow.omni_range = 3.0
-	elif weapon == "Scatter":
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(0.95, 0.55, 0.28)
-		muzzle.scale = Vector3.ONE * 2.6
-		flash_time = 0.08
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.85, 0.42, 0.16)
-			muzzle_glow.light_energy = 4.0
-			muzzle_glow.omni_range = 4.5
-	else:
-		# Flechette: tight ember needle.
-		muzzle.texture = muzzle_flash_texture
-		muzzle.modulate = Color(0.92, 0.78, 0.55)
-		muzzle.scale = Vector3.ONE * 1.7
-		if muzzle_glow:
-			muzzle_glow.light_color = Color(0.78, 0.55, 0.28)
-			muzzle_glow.light_energy = 2.8
-			muzzle_glow.omni_range = 3.2
-	
-	# Each gun shows its own palette flash; the branches above set its size and
-	# light. Mirroring every other shot keeps a burst from looking stamped.
+	# Each gun shows its own palette flash, size and light from one table in
+	# `ShotVfx`. Mirroring every other shot keeps a burst from looking stamped.
+	var look: Dictionary = ShotVfx.muzzle_look(weapon)
 	var drawn: Texture2D = ShotVfx.muzzle(weapon)
-	if drawn != null:
-		muzzle.texture = drawn
-		muzzle.modulate = Color.WHITE
-		_flash_mirrored = not _flash_mirrored
-		muzzle.flip_h = _flash_mirrored
+	muzzle.texture = drawn if drawn != null else muzzle_flash_texture
+	muzzle.modulate = Color.WHITE
+	muzzle.scale = Vector3.ONE * float(look["scale"])
+	_flash_mirrored = not _flash_mirrored
+	muzzle.flip_h = _flash_mirrored
+	if muzzle_glow:
+		muzzle_glow.light_color = look["light"]
+		muzzle_glow.light_energy = float(look["energy"])
+		muzzle_glow.omni_range = float(look["range"])
 	muzzle.visible = true
-	
-	await get_tree().create_timer(flash_time).timeout
+
+	await get_tree().create_timer(float(look["seconds"])).timeout
 	if is_instance_valid(muzzle) and revision == _fire_feedback_revision:
 		muzzle.visible = false
 		muzzle.scale = Vector3.ONE
@@ -864,6 +844,17 @@ func play_impact(weapon: String) -> void:
 	hit_sound.stream = stream
 	hit_sound.play()
 	impact_count += 1
+
+## What a shot strikes on this body: a free agent's synthetic body and every
+## campaign machine spark and leak oil; a human bleeds. Presentation only.
+func impact_surface() -> String:
+	if body_kind == PlayerBody.SYNTHETIC:
+		return ShotVfx.SYNTHETIC
+	if is_campaign_enemy:
+		var kind: String = str(campaign_actor.get("kind", ""))
+		if kind in ROBOT_KINDS or kind == "notary":
+			return ShotVfx.SYNTHETIC
+	return ShotVfx.FLESH
 
 ## Flinch weight from 0 to 1 at `elapsed` seconds into the recoil: a hard
 ## snap in the first frames, then a settle back to rest by FLINCH_SECONDS.
@@ -1041,17 +1032,19 @@ func _apply_plate() -> void:
 	if label == null:
 		return
 	_apply_plate_edge()
+	var bar: Sprite3D = NameplateLayout.vitals_bar(label)
+	NameplateLayout.style_plate(label)
 	var mark: String = MatchRules.relation_mark(team_relation)
 	if mark != "":
 		label.text = mark
+		bar.visible = false
 		# The words carry the relation; the colour stays the fighter's own
 		# side, so Union red never marks a free foe.
 		label.modulate = MatchRules.team_label_color(team)
 		return
-	var hp_display: String = str(hp) + " HP"
-	if hp < 30:
-		hp_display = "!" + hp_display + "!"
-	label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, _score_chip)
+	bar.visible = true
+	NameplateLayout.paint_vitals(bar, hp, armor)
+	label.text = NameplateLayout.plate_text(player_name, behavior, _score_chip)
 	if team != "":
 		label.text = "[" + MatchRules.team_short(team) + "] " + label.text
 	if golden:

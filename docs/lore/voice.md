@@ -210,7 +210,9 @@ rare: big moments are voiced, the rest are captions, voiced calls land at
 least eight seconds apart and a caption waits eight seconds after any call
 ([protocol](../protocol.md#host-reactions)). The intro is a plain arena intro:
 the venue, who is on it, then go. No station ident and no frequency puns
-(DOUBLE FRAG, RAMPAGE, FLAG TAKEN, SUDDEN DEATH). Captions name the fighters;
+(DOUBLE FRAG, RAMPAGE, FLAG TAKEN, SUDDEN DEATH). A Duel's intro adds one
+fact, the book between the two callsigns ("NIGHTFALL LEADS THE BOOK 7 TO 4."),
+because somebody on the lot is always taking bets. Captions name the fighters;
 recordings are name-free, one per kind and variant. The client's second copy
 of the Host bumper list, with its retired and engineering-name lines, is gone.
 

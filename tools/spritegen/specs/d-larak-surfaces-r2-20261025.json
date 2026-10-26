@@ -1,0 +1,36 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": ".agents/larak-surfaces-20261025/raw-r2",
+  "params": {
+    "quality": "medium",
+    "resolution": "1k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "style": "original modern retro first-person shooter material albedo for a league fight venue in an old multistorey car park, circa 2070, deliberate chunky pixel-friendly clusters, broad readable material shapes before fine wear, quiet combat-readable values, restrained warm gunmetal grey concrete with sparse dull rust and dust, flat even lighting, no gradients",
+  "view": "orthographic straight-on seamless square texture showing a patch exactly four metres across, full continuous edge-to-edge flat material, no perspective, no object silhouette",
+  "technical": "opaque square albedo only, designed for reduction to a 64 by 64 pixel tile at sixteen pixels per metre, so every feature is at least ten centimetres wide, match opposing edges on both axes for repeated tiling, no shadow, no ambient occlusion, no specular highlight, no glossy reflection, no baked lights, no text, no lettering, no numbers, no logos, no watermark, no signature, no frame or border",
+  "negative": "text, letters, numbers, logos, signage, painted markings, hazard stripes, arrows, parking bay lines, red paint, cyan, neon, glowing cracks, fire, puddle reflections, perspective, room, objects, cars, people, dramatic lighting, hard shadows, photographic noise, dense grunge, tiny speckle, high contrast checkerboard, decorative border, bricks, tiles, grass",
+  "frames": [
+    {
+      "id": "larak_deck_c",
+      "subject": "seamless swept cast concrete parking deck seen from directly above, one even warm medium gunmetal grey field with soft irregular lighter and darker clouds of wear evenly scattered across the whole square, sparse small aggregate clusters, two or three soft dark oil spots, isotropic with no direction, no bands, no stripes, no rectangles, no patches, no joints, quiet walking surface"
+    },
+    {
+      "id": "larak_deck_d",
+      "subject": "seamless old car park floor slab seen from directly above, uniform warm medium grey concrete with broad faint mottling spread evenly edge to edge, scattered small pale chips and small dark rubber flecks, a few faint thin hairline cracks, isotropic with no direction, no bands, no rectangles, no patches, quiet walking surface"
+    },
+    {
+      "id": "larak_wall_c",
+      "subject": "seamless weathered concrete wall seen straight on, warm medium grey field with faint vertical rain streaks spread evenly across the whole width from top to bottom, small chipped spots and pores scattered evenly, no horizontal bands, no grime gradient, no joints, calm large readable field"
+    },
+    {
+      "id": "larak_wall_d",
+      "subject": "seamless painted-over concrete wall seen straight on, warm medium grey with broad soft vertical water marks of slightly darker grey evenly spaced across the square, faint pale efflorescence blooms here and there, no horizontal lines, no gradient top to bottom, calm surface"
+    },
+    {
+      "id": "larak_kerb_c",
+      "subject": "seamless low concrete kerb face seen straight on, warm medium grey upper half that is fairly clean, the lower third darkened by black rubber tyre scuffs and smears and grime along the bottom edge, a few chipped spots showing paler aggregate, the scuffing runs horizontally across the whole width"
+    }
+  ]
+}

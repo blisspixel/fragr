@@ -1,0 +1,10 @@
+{
+  "comment": "Larak Lot rule bots in motion: the Pit with its Rocket, the Roof with the Custody Plate, and a watched bot, as strips. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/larak-bots.json. Behaviour evidence for rule bots (Rocket use, Plate timing), not a fun verdict; the numbers live in fragr-playtest --bot-survey --survey-lot.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "pit_rocket", "scene": "res://scenes/main.tscn", "at_seconds": 8, "camera": "overview", "camera_position": [2, 11, 16], "camera_look_at": [6, 0, 0], "settle_seconds": 0.3, "strip_frames": 24, "strip_interval_seconds": 0.25, "note": "The Pit from above the Stands while the Rocket is fought over and fired."},
+    {"name": "roof_plate", "camera": "overview", "camera_position": [15, 12, -8], "camera_look_at": [31, 6.5, -22], "settle_seconds": 0.3, "strip_frames": 24, "strip_interval_seconds": 0.25, "note": "The Roof and the Custody Plate: the regulars who time it walk up for it."},
+    {"name": "follow", "camera": "follow", "settle_seconds": 1.0, "strip_frames": 32, "strip_interval_seconds": 0.2, "note": "A watched rule bot fighting on the decks."}
+  ]
+}

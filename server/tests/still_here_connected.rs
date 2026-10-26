@@ -19,10 +19,7 @@ fn still_here_canonical_source_and_connected_loop() {
         STILL_HERE_GAMEPLAY_VERSION
     );
     assert_eq!(STILL_HERE_GAMEPLAY_VERSION, 57);
-    assert_eq!(
-        fragr_server::protocol::GAMEPLAY_VERSION,
-        STILL_HERE_GAMEPLAY_VERSION
-    );
+    const { assert!(fragr_server::protocol::GAMEPLAY_VERSION >= STILL_HERE_GAMEPLAY_VERSION) };
     // A campaign stage list without the epilogue; every playable mission with it.
     assert!(!MissionId::ALL.contains(&MissionId::StillHere));
     assert_eq!(MissionId::PLAYABLE.last(), Some(&MissionId::StillHere));

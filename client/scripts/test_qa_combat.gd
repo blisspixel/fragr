@@ -32,6 +32,18 @@ class PitchTour extends TOUR:
 	func _spectator_camera() -> Node:
 		return camera
 
+class PadTour extends PitchTour:
+	var walks: int = 0
+	func _owned_weapons() -> Array:
+		return ["pistol", "rail"] if walks > 0 else ["pistol"]
+	func _wait_live_joined_fighter(_state_name: String) -> bool:
+		return true
+	func _local_feet() -> Vector3:
+		return Vector3.ZERO
+	func _walk_to(_goal: Vector3, _look_back: bool = false, _stop_round_state: String = "", _guide_only: bool = false) -> bool:
+		walks += 1
+		return true
+
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -39,6 +51,15 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	var pad_tour: PadTour = PadTour.new()
+	var pad_manager: PitchManager = PitchManager.new()
+	pad_manager.latest_snapshot = {"map_id": 1}
+	pad_tour.manager = pad_manager
+	pad_tour._pad_routes = {"1": {"Rail": [[0, 0, 1], [0, 0, 2]]}}
+	_check(await pad_tour._take_from_pad("Rail") and pad_tour.walks == 1,
+		"a route pickup completes acquisition without waiting on the emptied pad")
+	pad_tour.free()
+	pad_manager.free()
 	_check(QaCombat.valid_finish_search_route({}) and QaCombat.valid_finish_search_route({"finish_search_route":false}), "existing combat captures keep their completion behavior")
 	_check(not QaCombat.valid_finish_search_route({"finish_search_route":true,"search_route":[]}), "a return capture cannot accept an absent search loop")
 	var magazine: Dictionary = {"selected":"flechette", "ammo":[{"pool":"bullets","rounds":40}], "loaded":[{"weapon":"flechette","rounds":0}]}
@@ -204,6 +225,11 @@ func _run() -> void:
 	_check(TOUR.valid_radio_comparison("", [{"radio_off":true}])
 		and TOUR.valid_radio_comparison("on", [{"radio_off":true}]),
 		"radio comparison leaves the default route alone and accepts explicit opt-in")
+	_check(TOUR.capture_quality("") == -1 and TOUR.capture_quality("performance") == 0
+		and TOUR.capture_quality("Balanced") == 1 and TOUR.capture_quality("high") == 2,
+		"run-wide capture preset accepts the three named presets and leaves an unset run alone")
+	_check(TOUR.capture_quality("ultra") == -2 and TOUR.capture_quality("1") == -2,
+		"run-wide capture preset rejects unknown names and bare indices")
 	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
 		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
 		"radio comparison rejects unsupported and inapplicable overrides")

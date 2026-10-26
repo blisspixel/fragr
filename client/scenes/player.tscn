@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8vg5m2kuxl7r"]
+[gd_scene load_steps=4 format=3 uid="uid://c8vg5m2kuxl7r"]
 
 [ext_resource type="Script" path="res://scripts/player_pawn.gd" id="1_player"]
-[ext_resource type="Texture2D" path="res://assets/characters/64/cyanex_idle_strip.png" id="2_sprite"]
 
 [sub_resource type="StandardMaterial3D" id="HighlightMaterial"]
 transparency = 1
@@ -51,7 +50,6 @@ billboard = 2
 shaded = false
 alpha_cut = 1
 texture_filter = 0
-texture = ExtResource("2_sprite")
 hframes = 4
 vframes = 1
 frame = 0

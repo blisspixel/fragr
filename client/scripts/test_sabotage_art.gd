@@ -59,7 +59,7 @@ func _run() -> void:
 		_check(changed.size != Vector2i.ZERO, state + " reads differently from armed")
 		box = changed if box.size == Vector2i.ZERO else box.merge(changed)
 	_check(box.size.x <= 10 and box.size.y <= 8, "timer states change only the timer box: %s" % box)
-	var weapon_canvas: Vector2i = _image(VIEWMODELS + "pistol_idle.png").get_size()
+	var weapon_canvas: Vector2i = _image(VIEWMODELS + "fists_idle.png").get_size()
 	for frame: String in ["charge_carry", "charge_plant", "charge_defuse"]:
 		_check(_image(VIEWMODELS + frame + ".png").get_size() == weapon_canvas, frame + " shares the weapon canvas")
 	var plant: Image = _image(DIR + "icon_plant.png")

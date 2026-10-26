@@ -892,6 +892,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
             body: None,
             collidable: true,
             campaign: None,
+            ping: None,
         }],
         round_state: Some("Active".into()),
         round_time_left: None,
@@ -925,7 +926,6 @@ fn useful_supply_recognizes_grenades_and_mines() {
             y: 0.0,
             z: 0.0,
             available: true,
-            respawn_in: None,
             claim: SupplyClaim::Contested,
         }],
         map_id: 1,
@@ -1007,7 +1007,6 @@ fn ray_objective_uses_owned_ammunition_or_routes_to_ray_supply_without_firing_ro
         y: 0.0,
         z: 0.0,
         available: true,
-        respawn_in: None,
         claim: SupplyClaim::Contested,
     };
     snapshot.pickups = vec![

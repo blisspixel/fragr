@@ -1,12 +1,39 @@
 extends Node3D
 class_name ShotEffects
 
-## Short, depth-tested geometry from server shot evidence. No local hit tests.
+## Short, depth-tested geometry from server shot evidence. No local hit tests:
+## what a shot struck comes from the resolved trace, and its surface class
+## from the struck fighter's body or the registered material of the solid the
+## server's endpoint lies on.
 const MAX_EFFECTS: int = 128
 const MAX_RESULTS: int = 512
 const MAX_COORDINATE: float = 8192.0
 const MAX_TRACE_LENGTH: float = 1024.0
-const LIFETIME: float = 0.24
+## An impact sprite's six frames, and every non-Railgun effect's lifetime.
+const LIFETIME: float = 0.3
+## The Railgun's beam lingers: a thick near-white core that thins, a pale
+## edge that burns off first, and a dithered spiral that widens and fades.
+const RAIL_SECONDS: float = 0.6
+const RAIL_EDGE_SECONDS: float = 0.24
+const RAIL_CORE_WIDTH: float = 0.04
+const RAIL_CORE_THIN: float = 0.018
+const RAIL_SPIRAL_RADIUS: float = 0.09
+const RAIL_SPIRAL_GROWTH: float = 0.12
+const RAIL_SPIRAL_PITCH: float = 0.75
+const RAIL_SPIRAL_STEP: float = 0.1
+const RAIL_SPIRAL_METRES: float = 24.0
+const RAIL_SPIRAL_WIDTH: float = 0.007
+## The spiral starts this far down the line and opens over RAIL_FLARE_METRES,
+## over which the core also widens from RAIL_MUZZLE_TAPER of its width.
+const RAIL_SPIRAL_FROM: float = 0.8
+const RAIL_FLARE_METRES: float = 2.5
+const RAIL_MUZZLE_TAPER: float = 0.2
+## Where a beam leaves the eye's own gun in first person, in camera space
+## (right, down, forward metres): the held gun's muzzle, not the eye, so
+## the shooter sees the line and the spiral leave the barrel.
+const FIRST_PERSON_MUZZLE: Vector3 = Vector3(0.0, -0.26, 0.72)
+## An origin this close to the camera is the viewer's own shot.
+const FIRST_PERSON_REACH: float = 0.45
 ## Cosmetic geometry close to the eye must not become screen-filling polygons.
 const CAMERA_CLEARANCE: float = 0.6
 const CLEARANCE_SHADER: Shader = preload("res://assets/shaders/shot_clearance.gdshader")
@@ -29,17 +56,34 @@ const SNIPER_TRACER_TINT: Color = Color("ffa45c")
 ## No streak is drawn within this distance of the viewing camera.
 const SNIPER_TRACER_VIEWER_CLEARANCE: float = 3.0
 const ARC_REACH: float = 24.0
+## A bullet tracer: pale amber, warm without reading as a beam.
+const TRACER_TINT: Color = Color("ffd49a")
 const ARC_DISCHARGE_SECONDS: float = 0.09
 
 class Effect:
 	var shooter: String
+	var target: String = ""
 	var weapon: String
 	var origin: Vector3
 	var end: Vector3
 	var normal: Vector3
 	var kind: String
+	## Struck surface class (`ShotVfx` CONCRETE, METAL, FLESH or SYNTHETIC).
+	var surface: String = ""
 	var age: float = 0.0
+	## Where the drawn beam starts, fixed on its first draw.
+	var start: Vector3 = Vector3.INF
 
+## The surface class of a struck fighter by participant ID; set by the match.
+## Unset or unknown fighters read as flesh.
+var fighter_surface: Callable = Callable()
+## The screen point of the first-person gun's drawn muzzle, or Vector2.INF;
+## set by the match. Unset, a fixed point low and centre stands in.
+var first_person_muzzle: Callable = Callable()
+## Shared surface marks; a solid hit leaves its pock here and solids report
+## their registered material through it.
+var decals: VfxDecals = null
+var _marks_left: int = 0
 var _effects: Array[Effect] = []
 var _last_tick: int = -1
 var _mesh: ImmediateMesh = ImmediateMesh.new()
@@ -49,6 +93,8 @@ var _camera_origin: Vector3 = Vector3.ZERO
 var _camera_forward: Vector3 = Vector3.FORWARD
 var _camera_right: Vector3 = Vector3.RIGHT
 var _camera_up: Vector3 = Vector3.UP
+var _local_eye: Vector3 = Vector3.ZERO
+var _local_forward: Vector3 = Vector3.FORWARD
 var _impact_mesh: ImmediateMesh = ImmediateMesh.new()
 var _impact_material: ShaderMaterial = ShaderMaterial.new()
 var _building_impacts: bool = false
@@ -81,10 +127,23 @@ func ingest(tick: int, results: Array) -> void:
 	_last_tick = tick
 	for result in results:
 		for effect: Effect in _parse_all(result):
+			_classify(effect)
 			if _effects.size() == MAX_EFFECTS:
 				_effects.pop_front()
 			_effects.append(effect)
 	_rebuild()
+
+## Names what the shot struck and leaves its mark on a solid. A fighter's
+## class comes from its body, a solid's from its registered material.
+func _classify(effect: Effect) -> void:
+	if effect.kind == "fighter":
+		var surface: Variant = fighter_surface.call(effect.target) if fighter_surface.is_valid() else ShotVfx.FLESH
+		effect.surface = ShotVfx.SYNTHETIC if surface == ShotVfx.SYNTHETIC else ShotVfx.FLESH
+	elif effect.kind == "solid":
+		effect.surface = decals.surface_at(effect.end, effect.normal) if decals != null else ShotVfx.CONCRETE
+		if decals != null:
+			_marks_left += 1
+			decals.add_mark(effect.end, effect.normal, ShotVfx.mark_cell(effect.weapon, effect.kind, effect.surface, _marks_left))
 
 static func _vector(value: Variant) -> Vector3:
 	if not value is Array or value.size() != 3:
@@ -116,7 +175,7 @@ static func _parse_all(value: Variant) -> Array[Effect]:
 		trace.erase("pellets")
 		trace["end"] = pellet.get("end")
 		trace["impact"] = pellet.get("impact")
-		var effect: Effect = _parse({"shooter_id": value["shooter_id"], "trace": trace})
+		var effect: Effect = _parse({"shooter_id": value["shooter_id"], "target_id": value.get("target_id"), "trace": trace})
 		if effect == null:
 			return [] as Array[Effect]
 		effects.append(effect)
@@ -152,6 +211,8 @@ static func _parse(value: Variant) -> Effect:
 		return null
 	var effect: Effect = Effect.new()
 	effect.shooter = value["shooter_id"]
+	if value.get("target_id") is String:
+		effect.target = value["target_id"]
 	effect.weapon = weapon
 	effect.origin = origin
 	effect.end = end
@@ -167,6 +228,13 @@ func clear() -> void:
 	_impact_quads = 0
 	visible = false
 	set_process(false)
+	if decals != null:
+		decals.clear()
+
+## Adopt a new map's faces for surface classes and marks.
+func configure_map(info: Dictionary) -> void:
+	if decals != null:
+		decals.set_map(info)
 
 func active_count() -> int:
 	return _effects.size()
@@ -180,14 +248,22 @@ func has_shot_from(shooter: String, kind: String = "") -> bool:
 func _process(delta: float) -> void:
 	for i in range(_effects.size() - 1, -1, -1):
 		_effects[i].age += delta
-		var lifetime: float = LIFETIME
-		if _effects[i].kind == "range":
-			lifetime = 0.14 if _effects[i].weapon == "rail" else (SNIPER_TRACER_SECONDS if _effects[i].weapon == "sniper" else 0.065)
-			if _effects[i].weapon == "arc":
-				lifetime = ARC_DISCHARGE_SECONDS
-		if _effects[i].age >= lifetime:
+		if _effects[i].age >= lifetime(_effects[i]):
 			_effects.remove_at(i)
 	_rebuild()
+
+## How long an effect stays: the Railgun's beam lingers on every outcome, a
+## miss of any other gun is a brief tracer, and a hit plays its impact.
+static func lifetime(effect: Effect) -> float:
+	if effect.weapon == "rail":
+		return RAIL_SECONDS
+	if effect.kind != "range":
+		return LIFETIME
+	if effect.weapon == "sniper":
+		return SNIPER_TRACER_SECONDS
+	if effect.weapon == "arc":
+		return ARC_DISCHARGE_SECONDS
+	return 0.065
 
 func _rebuild() -> void:
 	_mesh.clear_surfaces()
@@ -205,6 +281,8 @@ func _rebuild() -> void:
 		_camera_forward = -camera_transform.basis.z.normalized()
 		_camera_right = camera_transform.basis.x.normalized()
 		_camera_up = camera_transform.basis.y.normalized()
+		_local_eye = to_local(_camera_origin)
+		_local_forward = (global_transform.basis.inverse() * _camera_forward).normalized()
 		_camera_clearance = maxf(CAMERA_CLEARANCE, camera.near)
 	_material.set_shader_parameter("camera_clearance", _camera_clearance)
 	_impact_material.set_shader_parameter("camera_clearance", _camera_clearance)
@@ -230,28 +308,135 @@ func _draw_effect(effect: Effect) -> void:
 	if effect.weapon == "sniper":
 		_draw_sniper_tracer(effect)
 		return
-	var rail: bool = effect.weapon == "rail"
-	var tint: Color = Color("b4e0e8") if rail else Color("f5b568")
-	var beam_time: float = 0.14 if rail else 0.065
+	if effect.weapon == "rail":
+		_draw_rail(effect)
+		return
+	var tint: Color = TRACER_TINT
+	var beam_time: float = 0.065
 	var direction: Vector3 = (effect.end - effect.origin).normalized()
 	var distance: float = effect.origin.distance_to(effect.end)
 	if effect.age < beam_time and distance > 0.05:
-		var width: float = (0.045 if rail else 0.018) * (1.0 - 0.6 * effect.age / beam_time)
+		var width: float = 0.018 * (1.0 - 0.6 * effect.age / beam_time)
 		var start: Vector3 = effect.origin + direction * minf(0.35, distance * 0.1)
 		_segment(start, effect.end, width, tint)
-	if effect.kind == "range":
+	if effect.kind == "range" or effect.age >= LIFETIME:
 		return
+	_draw_debris(effect)
+
+## The flash and puff are the impact sprite; these thrown bits add motion in
+## the struck surface's own material: hot sparks off metal and machines, grit
+## off concrete, dark droplets off a body.
+func _draw_debris(effect: Effect) -> void:
 	var normal: Vector3 = effect.normal
 	var tangent: Vector3 = normal.cross(Vector3.UP if absf(normal.y) < 0.9 else Vector3.RIGHT).normalized()
 	var bitangent: Vector3 = normal.cross(tangent)
-	# The flash and puff are the impact sprite; these sparks add the motion.
-	var size: float = (0.12 if effect.kind == "fighter" else 0.07) * (1.0 - effect.age / LIFETIME)
+	var row: String = ShotVfx.impact_row(effect.weapon, effect.kind, effect.surface)
+	var tint: Color = TRACER_TINT
+	var count: int = 4
+	var speed: float = 1.8
+	var size: float = 0.07
+	match row:
+		"metal", "synthetic":
+			tint = Color("ffd08a")
+			count = 6
+			speed = 2.6
+		"concrete":
+			tint = Color("8c847a")
+			speed = 1.4
+		"flesh":
+			tint = Color("6e1218")
+			size = 0.1
+			speed = 1.2
+	size *= 1.0 - effect.age / LIFETIME
 	var centre: Vector3 = effect.end + normal * 0.025
-	for i in range(4):
-		var angle: float = float(i) * PI * 0.5 + 0.35
-		var velocity: Vector3 = (tangent * cos(angle) + bitangent * sin(angle)) * 1.8 + normal * 1.3
+	for i in range(count):
+		var angle: float = float(i) * TAU / count + 0.35
+		var velocity: Vector3 = (tangent * cos(angle) + bitangent * sin(angle)) * speed + normal * 1.3
 		var position: Vector3 = centre + velocity * effect.age + Vector3.DOWN * 3.0 * effect.age * effect.age
 		_segment(position, position + velocity.normalized() * size * 1.8, maxf(size * 0.22, 0.002), tint)
+
+## The Railgun's discharge: from the gun's muzzle (the eye's own held gun in
+## first person) to the resolved endpoint, a camera-facing ribbon with a
+## near-white core between pale cyan edges, and a spiral round it. The core
+## starts thick and thins; the edges burn off first; everything dithers out
+## by RAIL_SECONDS.
+func _draw_rail(effect: Effect) -> void:
+	var distance: float = effect.origin.distance_to(effect.end)
+	if effect.age >= RAIL_SECONDS or distance <= 0.05:
+		return
+	if not effect.start.is_finite():
+		effect.start = _beam_start(effect)
+	var start: Vector3 = effect.start
+	var span: Vector3 = effect.end - start
+	if span.length() <= 0.05:
+		return
+	var direction: Vector3 = span.normalized()
+	var progress: float = effect.age / RAIL_SECONDS
+	var settle: float = smoothstep(0.0, 0.3, progress)
+	var core: float = lerpf(RAIL_CORE_WIDTH, RAIL_CORE_THIN, settle)
+	var fade: float = clampf((1.0 - progress) * 2.2, 0.0, 1.0)
+	var edge_fade: float = clampf(1.0 - effect.age / RAIL_EDGE_SECONDS, 0.0, 1.0)
+	var core_colour: Color = Color(ShotVfx.RAIL_CORE, fade)
+	var edge_colour: Color = Color(ShotVfx.RAIL_EDGE, edge_fade)
+	# The first metres leave the barrel narrow and widen to full, so a beam
+	# from the eye's own gun is a line, not a wedge across the view.
+	var flare: float = minf(RAIL_FLARE_METRES, span.length() * 0.5)
+	var joint: Vector3 = start + direction * flare
+	for piece: Array in [[start, joint, RAIL_MUZZLE_TAPER], [joint, effect.end, 1.0]]:
+		if edge_fade > 0.0:
+			_ribbon(piece[0], piece[1], core, core * 2.0, edge_colour, piece[2])
+			_ribbon(piece[0], piece[1], -core * 2.0, -core, edge_colour, piece[2])
+		_ribbon(piece[0], piece[1], -core, core, core_colour, piece[2])
+	# The spiral: a helix round the line from a little past the muzzle, its
+	# radius opening over the first metres and widening as it fades.
+	var side: Vector3 = direction.cross(Vector3.UP if absf(direction.y) < 0.9 else Vector3.RIGHT).normalized()
+	var up: Vector3 = direction.cross(side)
+	var radius: float = RAIL_SPIRAL_RADIUS + RAIL_SPIRAL_GROWTH * progress
+	var length: float = minf(span.length(), RAIL_SPIRAL_METRES)
+	var spiral_colour: Color = Color(ShotVfx.RAIL_SPIRAL, clampf((1.0 - progress) * 1.6, 0.0, 1.0))
+	var previous: Vector3 = Vector3.INF
+	var along: float = RAIL_SPIRAL_FROM
+	while along <= length:
+		var angle: float = along / RAIL_SPIRAL_PITCH * TAU
+		var opened: float = radius * clampf((along - RAIL_SPIRAL_FROM) / RAIL_FLARE_METRES, 0.25, 1.0)
+		var point: Vector3 = start + direction * along + (side * cos(angle) + up * sin(angle)) * opened
+		if previous.is_finite():
+			_ribbon(previous, point, -RAIL_SPIRAL_WIDTH, RAIL_SPIRAL_WIDTH, spiral_colour)
+		previous = point
+		along += RAIL_SPIRAL_STEP
+
+## Where a beam is drawn from: the viewer's own held gun when the shot came
+## from this eye, else just ahead of the shooter's eye.
+func _beam_start(effect: Effect) -> Vector3:
+	var direction: Vector3 = (effect.end - effect.origin).normalized()
+	var fallback: Vector3 = effect.origin + direction * minf(0.35, effect.origin.distance_to(effect.end) * 0.1)
+	if not _clip_to_camera or _camera_origin.distance_to(to_global(effect.origin)) > FIRST_PERSON_REACH:
+		return fallback
+	var muzzle: Vector3 = _camera_origin + _camera_right * FIRST_PERSON_MUZZLE.x \
+		+ _camera_up * FIRST_PERSON_MUZZLE.y + _camera_forward * FIRST_PERSON_MUZZLE.z
+	# The held gun's own drawn muzzle, when the view reports one, so the beam
+	# leaves the barrel of whatever gun art is on screen.
+	var screen: Variant = first_person_muzzle.call() if first_person_muzzle.is_valid() else null
+	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if screen is Vector2 and (screen as Vector2).is_finite() and is_instance_valid(camera):
+		muzzle = camera.project_position(screen, FIRST_PERSON_MUZZLE.z)
+	return to_local(muzzle)
+
+## A flat strip facing the eye between `from` and `to`, spanning `inner` to
+## `outer` metres to the side of the line. Without a camera it falls back to
+## the crossed quads of `_segment`.
+func _ribbon(from: Vector3, to: Vector3, inner: float, outer: float, colour: Color, taper: float = 1.0) -> void:
+	if not _clip_to_camera:
+		if inner < 0.0 and outer > 0.0:
+			_segment(from, to, outer, colour)
+		return
+	var eye: Vector3 = _local_eye
+	var along: Vector3 = to - from
+	var side: Vector3 = along.cross(eye - from)
+	if side.length_squared() < 0.000001:
+		return
+	side = side.normalized()
+	_quad(from + side * inner * taper, from + side * outer * taper, to + side * outer, to + side * inner, colour)
 
 ## No beam back to the muzzle: a faint thin streak over the last few metres
 ## that fades as it closes on the impact, so the shot reads without pointing at
@@ -320,6 +505,21 @@ func _segment(start: Vector3, end: Vector3, width: float, colour: Color) -> void
 	_quad(start - up, start + up, end + up, end - up, colour)
 
 func _quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, colour: Color) -> void:
+	# Fast path: a quad wholly past the clip plane needs no polygon clipping.
+	# The Railgun spiral alone is hundreds of quads a frame.
+	if not _clip_to_camera or (_local_depth(a) >= 0.0 and _local_depth(b) >= 0.0
+			and _local_depth(c) >= 0.0 and _local_depth(d) >= 0.0):
+		if not _building_surface:
+			_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
+			_building_surface = true
+		_mesh.surface_set_color(colour)
+		_mesh.surface_add_vertex(a)
+		_mesh.surface_add_vertex(b)
+		_mesh.surface_add_vertex(c)
+		_mesh.surface_add_vertex(a)
+		_mesh.surface_add_vertex(c)
+		_mesh.surface_add_vertex(d)
+		return
 	var polygon: Array[Vector3] = [a, b, c, d]
 	if _clip_to_camera:
 		var clipped: Array[Vector3] = []
@@ -350,13 +550,19 @@ func _quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, colour: Color) -> voi
 func _camera_depth(vertex: Vector3) -> float:
 	return _camera_forward.dot(to_global(vertex) - _camera_origin) - _camera_clearance
 
+## The same depth from this node's own space, for the fast path: the eye and
+## view direction are carried into local space once per rebuild. The effects
+## node is never scaled, so local and world distances agree.
+func _local_depth(vertex: Vector3) -> float:
+	return _local_forward.dot(vertex - _local_eye) - _camera_clearance
+
 ## One camera-facing quad from the impact atlas, its frame chosen by age.
 ## The whole quad is skipped when any corner would enter the camera
 ## clearance, and the shader discards anything the moving eye later reaches.
 func _draw_impact_sprite(effect: Effect) -> void:
 	if effect.kind == "range" or effect.age >= LIFETIME:
 		return
-	var row: String = ShotVfx.impact_row(effect.weapon, effect.kind)
+	var row: String = ShotVfx.impact_row(effect.weapon, effect.kind, effect.surface)
 	var half: float = ShotVfx.IMPACT_METRES[row] * 0.5
 	var centre: Vector3 = effect.end + effect.normal * IMPACT_STANDOFF
 	var right: Vector3

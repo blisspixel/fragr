@@ -1002,6 +1002,8 @@ pub async fn run_bot(
                         }
                     }
                     Ok(ServerMessage::Board(_)) => {}
+                    // The booth is for watchers; a fighter never uses it.
+                    Ok(ServerMessage::SpectatorFacts(_)) => {}
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
                         if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {
@@ -1851,6 +1853,7 @@ mod tests {
             human_summary: false,
             overview: None,
             tick_trace: None,
+            head_to_head: None,
         };
         tokio::spawn(async move {
             let _ = run_server(
@@ -3116,9 +3119,21 @@ mod tests {
             wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
             "the one retryable call never reached the transport"
         );
-        // The backoff after one retryable failure doubles the 200ms cadence
-        // to 400ms before the budget-pending second cycle; this bounded
-        // margin is generous even under contention.
+        // A returned HTTP response still has to durably settle its estimated
+        // charge. Windows fsync under CI contention can exceed a decision
+        // interval. Start the cadence window after settlement, not dispatch.
+        assert!(
+            wait_for(
+                || budget
+                    .try_lock()
+                    .is_ok_and(|guard| guard.ledger().calls() == 1),
+                Duration::from_secs(10),
+            )
+            .await,
+            "the failed call never recorded its estimated charge"
+        );
+        // The result can now reach the bot and its 400ms backoff can lead to
+        // the next cycle's refusal of the unresolved paid reservation.
         tokio::time::sleep(Duration::from_millis(1_500)).await;
         stop.store(true, Ordering::Relaxed);
         let summary = handle.await.unwrap().expect("bot runs");

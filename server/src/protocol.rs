@@ -55,6 +55,11 @@ pub use epilogue::*;
 mod mission;
 mod rules;
 mod sabotage;
+mod spectator;
+pub use spectator::{
+    ChainFact, PadClock, PlateFact, SpectatorFacts, SpreeFact, MAX_SPECTATOR_PADS,
+    MAX_SPECTATOR_RUNS, SPECTATOR_FACTS_EVERY_TICKS,
+};
 mod statistics;
 mod status;
 mod vehicle;
@@ -487,6 +492,11 @@ pub enum WeaponType {
 
 /// The scatter gun deals full damage inside this distance.
 pub const SCATTER_FULL_DAMAGE_UNITS: f32 = 4.0;
+/// Inside this distance a scatter pellet is a meatshot: the barrel against
+/// the body, every pellet landing, one blast through a bare fighter.
+pub const SCATTER_MEATSHOT_UNITS: f32 = 2.0;
+/// Damage of one meatshot pellet: seven make 105.
+pub const SCATTER_MEATSHOT_PELLET: i32 = 15;
 /// Pellets in one scatter blast, Doom's shotgun count.
 pub const SCATTER_PELLETS: usize = 7;
 /// And this share of it at the edge of its reach.
@@ -502,8 +512,9 @@ pub const BLOOM_RECOVERY_PER_TICK: f32 = 1.0 / 7.0;
 impl WeaponType {
     /// Damage on a clean body hit, before the scatter gun's range falloff and
     /// before a head band doubles a traced pellet. For the scatter gun this is
-    /// per pellet: seven pellets make 70 at point blank, Doom's average blast.
-    /// Four body flechette hits, two point-blank scatter blasts, or two body
+    /// per pellet: seven pellets make 70 in the full band, Doom's average
+    /// blast, and a meatshot closer in makes 105 (`damage_at`).
+    /// Four body flechette hits, two full-band scatter blasts, or two body
     /// rail hits kill an unarmoured fighter, which puts every weapon's body
     /// time to kill inside the 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
     /// Fists, the Shiv and the Article Blade do not gain the head bonus.
@@ -535,7 +546,9 @@ impl WeaponType {
         }
     }
 
-    /// Damage at a distance. Only the scatter gun falls off: full damage to
+    /// Damage at a distance. Only the scatter gun changes with it: a
+    /// meatshot inside `SCATTER_MEATSHOT_UNITS` (seven pellets make 105, one
+    /// blast through a bare fighter), full damage to
     /// `SCATTER_FULL_DAMAGE_UNITS`, then linearly down to
     /// `SCATTER_FAR_DAMAGE_SCALE` of it at the edge of its reach, the banded
     /// shape modern shooters use because it reads at a glance.
@@ -546,6 +559,9 @@ impl WeaponType {
         }
         let near = SCATTER_FULL_DAMAGE_UNITS;
         let far = self.range_units();
+        if distance.is_finite() && distance <= SCATTER_MEATSHOT_UNITS {
+            return SCATTER_MEATSHOT_PELLET;
+        }
         if !distance.is_finite() || distance <= near {
             return base;
         }
@@ -803,9 +819,12 @@ pub const M20_GAMEPLAY_VERSION: u32 = 56;
 /// Still Here: the survival-gated epilogue, its two worlds, the people the
 /// run carried and the read-only survival entitlement.
 pub const STILL_HERE_GAMEPLAY_VERSION: u32 = 57;
+/// The booth: `spectator_facts` for spectator connections only, each
+/// fighter's measured `ping`, and pads that publish no live return clock.
+pub const BOOTH_GAMEPLAY_VERSION: u32 = 58;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = STILL_HERE_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = BOOTH_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1193,6 +1212,10 @@ pub enum ServerMessage {
     },
     /// Unicast answer for the connection that asked. Not broadcast.
     Board(BoardPage),
+    /// The booth: live pad clocks, the Custody Plate, sprees and open
+    /// multikill chains. Broadcast only to spectator connections, never to
+    /// a connection that holds a fighter, and never on a campaign map.
+    SpectatorFacts(SpectatorFacts),
 }
 
 /// Additive full-body extension to the legacy Ack root fields. An absent block
@@ -1472,13 +1495,12 @@ pub struct PickupState {
     pub y: f32,
     pub z: f32,
     pub available: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub respawn_in: Option<u32>,
 }
 
 impl PickupState {
     /// The pad's published return clock in ticks. A regular learns these
-    /// numbers; a joined agent's observe uses them instead of a live timer.
+    /// numbers, and a joined agent's observe uses them: the snapshot carries
+    /// no live timer. Only the booth (`SpectatorFacts`) does.
     /// Free-for-all clocks depend on the gun (`crate::rules`), so the pad's
     /// `weapon` name picks the clock exactly as the server does. A clock a map
     /// authors for one pad (Larak Lot's Custody Plate, 35 s) is not on the
@@ -1732,6 +1754,12 @@ pub struct PlayerState {
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
+    /// Round trip to this fighter's connection in milliseconds, measured by
+    /// the server's WebSocket pings. Omitted for rule bots, campaign actors,
+    /// a fighter whose connection has not answered a ping yet, and a pawn
+    /// held for a dropped connection.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ping: Option<u16>,
 }
 
 fn collidable_by_default() -> bool {
@@ -2305,7 +2333,6 @@ mod protocol_tests {
             y: 0.4,
             z: 12.0,
             available: false,
-            respawn_in: Some(80),
         };
         let snap = Snapshot {
             vehicles: Vec::new(),
@@ -2356,7 +2383,8 @@ mod protocol_tests {
         assert_eq!(v["pickups"][0]["id"], "pad_rail");
         assert_eq!(v["pickups"][0]["weapon"], "Rail");
         assert_eq!(v["pickups"][0]["available"], false);
-        assert_eq!(v["pickups"][0]["respawn_in"], 80);
+        // A live return clock belongs to the booth, never the shared world.
+        assert!(v["pickups"][0].get("respawn_in").is_none());
         let back: Snapshot = serde_json::from_value(v).unwrap();
         assert_eq!(back.pickups, vec![pad]);
 

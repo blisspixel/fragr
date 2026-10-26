@@ -9,6 +9,8 @@ class ReplayCamera extends Node:
 		return followed
 	func lock_on_frag(_id: String, _seconds: float) -> void:
 		pass
+	func director_observe_frag(_data: Dictionary, _killer_id: String) -> void:
+		pass
 
 var failures: int = 0
 

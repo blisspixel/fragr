@@ -49,8 +49,9 @@ func _initialize() -> void:
 		push_error("test_spectator_stance_chips: follow with weapon got %s" % follow_w)
 		ok = false
 
-	var plate: String = str(chip.call("nameplate", "Nightfall", "Defensive", "100 HP", " +2"))
-	if plate != "Nightfall [DEF] +2 [100 HP]":
+	# The plate keeps the true chip beside the callsign; health is the bar.
+	var plate: String = NameplateLayout.plate_text("Nightfall", "Defensive", " +2")
+	if plate != "Nightfall [DEF] +2":
 		push_error("test_spectator_stance_chips: nameplate got %s" % plate)
 		ok = false
 

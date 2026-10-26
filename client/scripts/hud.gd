@@ -8,6 +8,8 @@ const StampCardScript = preload("res://scripts/stamp_card.gd")
 var vitals_seal_plate = null
 var stamp_card = null
 var death_card: DeathCard = null
+## The booth panel a watcher sees: power pads, the Plate and runs.
+var spectator_panel: SpectatorPanel = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -88,10 +90,15 @@ var hit_confirm_sound: AudioStreamPlayer = null
 const HIT_CONFIRM_PATH: String = "res://assets/audio/hit_confirm.wav"
 
 var _standings: Array[Dictionary] = []
+## Fighters the snapshot stopped listing (dead and waiting to respawn), kept
+## on the board with their last counts for a while: id -> {row, since}.
+var _board_absent: Dictionary = {}
+## A fighter missing this long has left, not died.
+const BOARD_ABSENCE_MS: int = 10000
 var _standings_revision: int = 0
 ## Local callsign, so the hold-Tab board can mark that row.
 var board_name: String = ""
-var _leaderboard: Panel = null
+var _leaderboard: ScoreboardPlate = null
 var _leaderboard_rows: VBoxContainer = null
 var _leaderboard_key: Array = []
 var _leaderboard_layout_generation: int = 0
@@ -174,6 +181,8 @@ var fp_bob_weight: float = 0.0
 # The bottom of each full-canvas sprite is cut off. It must stay below the
 # viewport, including the largest upward bob (5.4 pixels) and pixel rounding.
 const FP_BOTTOM_OVERLAP: float = 12.0
+## Reference pixels per held-canvas texel on the 1080 line HUD.
+const FP_TEXEL: float = 2.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
 ## Settings > Audio > Announcer: which Host calls reach the voice row.
@@ -182,6 +191,7 @@ var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
 var fp_reload_motion := WeaponArt.ReloadMotion.new()
+var fp_motion := WeaponArt.ViewMotion.new()
 var reticle_colour: Color = MenuTheme.BONE
 var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
@@ -285,6 +295,8 @@ func _ready():
 	add_child(stamp_card)
 	death_card = DeathCard.new()
 	add_child(death_card)
+	spectator_panel = SpectatorPanel.new()
+	add_child(spectator_panel)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
@@ -485,6 +497,7 @@ func set_match_rules(rules: Dictionary, new_map: bool = true) -> void:
 	pressure_id = ""
 	team_score_text = ""
 	_standings.clear()
+	_board_absent.clear()
 	_standings_revision += 1
 	board_id = ""
 	board_name = ""
@@ -971,43 +984,18 @@ func _board_line() -> String:
 		})
 	return board_score
 
-## Every fighter, for the board held on Tab. The corner list stays four rows.
+## Every fighter, for the board held on Tab, as text. The corner list stays
+## four rows.
 func leaderboard_text() -> String:
-	var rows: Array = _score_rows()
-	var body: String = _board_line() + "\n" if not _board_line().is_empty() else ""
-	body += tr("HUD_BOARD_COLUMNS") + "\n"
-	for index: int in range(rows.size()):
-		body += MatchRules.scoreboard_row(rows[index], index, true, _board_own(rows[index])) + "\n"
-	if body.strip_edges() == "":
-		body = "(waiting for scrap)"
-	return tr("HUD_LEADERS") + "\n" + body.strip_edges()
+	return ScoreboardPlate.board_text(_score_rows(), _board_line(), _board_own)
 
 func _ensure_leaderboard() -> void:
 	if _leaderboard != null:
 		return
-	_leaderboard = Panel.new()
-	_leaderboard.name = "Leaderboard"
-	_leaderboard.visible = false
-	_leaderboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard.add_theme_stylebox_override("panel", MenuTheme.panel())
-	_leaderboard_scroll = ScrollContainer.new()
-	_leaderboard_scroll.name = "Scroll"
-	_leaderboard_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_leaderboard_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
-	_leaderboard_scroll.get_v_scroll_bar().mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard.add_child(_leaderboard_scroll)
-	_leaderboard_rows = VBoxContainer.new()
-	_leaderboard_rows.name = "Rows"
-	_leaderboard_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_leaderboard_rows.add_theme_constant_override("separation", 6)
-	_leaderboard_scroll.add_child(_leaderboard_rows)
-	_leaderboard_hint = Label.new()
-	_leaderboard_hint.name = "ScrollHint"
-	_leaderboard_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_leaderboard.add_child(_leaderboard_hint)
+	_leaderboard = ScoreboardPlate.new()
+	_leaderboard_scroll = _leaderboard.scroll
+	_leaderboard_rows = _leaderboard.rows
+	_leaderboard_hint = _leaderboard.hint
 	add_child(_leaderboard)
 
 func set_leaderboard_open(open: bool) -> void:
@@ -1040,67 +1028,14 @@ func _settle_leaderboard(generation: int, turns: int = 2) -> void:
 		get_tree().process_frame.connect(_settle_leaderboard.bind(generation, turns - 1), CONNECT_ONE_SHOT)
 
 func _refresh_leaderboard_rows() -> void:
-	var key: Array = [_standings_revision, _board_line(), board_id, board_name, viewer_team, TranslationServer.get_locale()]
-	if key == _leaderboard_key:
-		return
-	_leaderboard_key = key
-	for child: Node in _leaderboard_rows.get_children():
-		_leaderboard_rows.remove_child(child)
-		child.queue_free()
-	var heading: Label = FragFeed._label(tr("HUD_LEADERS") + "\n" + (_board_line() + "\n" if not _board_line().is_empty() else "") + tr("HUD_BOARD_COLUMNS"), false)
-	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_leaderboard_rows.add_child(heading)
-	for index: int in range(_standings.size()):
-		var row: Dictionary = _standings[index]
-		var own: bool = _board_own(row)
-		var plate := PanelContainer.new()
-		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		plate.set_meta("facts", row.duplicate(true))
-		var style := StyleBoxFlat.new()
-		style.bg_color = MenuTheme.BONE if own else MenuTheme.INK
-		style.content_margin_left = 6
-		style.content_margin_right = 6
-		style.content_margin_top = 4
-		style.content_margin_bottom = 4
-		plate.add_theme_stylebox_override("panel", style)
-		var content := HBoxContainer.new()
-		content.name = "Content"
-		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		content.add_theme_constant_override("separation", 8)
-		plate.add_child(content)
-		var team: String = row.team
-		var relation: String = HudRelation.token(team, viewer_team)
-		plate.set_meta("relation", relation)
-		content.add_child(HudRelation.mark(team, relation, own))
-		var label: Label = FragFeed._label(MatchRules.scoreboard_row(row, index, true, own), own)
-		label.name = "Text"
-		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		content.add_child(label)
-		_leaderboard_rows.add_child(plate)
+	if _leaderboard.refresh(_standings, _standings_revision, _board_line(), _board_own, viewer_team, [board_id, board_name]):
+		_leaderboard_key = _leaderboard._key
 
 func _place_leaderboard() -> void:
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	var width: float = minf(1440.0, maxf(160.0, view.x - 64.0))
-	_leaderboard_hint.text = tr("HUD_BOARD_SCROLL").format({
+	_leaderboard.place(get_viewport().get_visible_rect().size, tr("HUD_BOARD_SCROLL").format({
 		"previous": InputGlyphs.action_name("weapon_prev"),
 		"next": InputGlyphs.action_name("weapon_next"),
-	})
-	_leaderboard_hint.size = Vector2(width - 28.0, 0)
-	var hint_height: float = _leaderboard_hint.get_minimum_size().y
-	var bar_width: float = _leaderboard_scroll.get_v_scroll_bar().get_combined_minimum_size().x
-	_leaderboard_rows.size.x = width - 28.0 - bar_width
-	var height: float = clampf(_leaderboard_rows.get_combined_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
-	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
-	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
-	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
-	_leaderboard.position = origin
-	_leaderboard.size = Vector2(width, height)
-	_leaderboard_scroll.position = Vector2(14, 10)
-	_leaderboard_scroll.size = Vector2(width - 28.0, height - hint_height - 40.0)
-	_leaderboard_hint.position = Vector2(14, height - hint_height - 14.0)
+	}))
 
 ## The existing weapon-cycle bindings browse a held board on keys, wheel or pad.
 ## Route this before equipment/seat input so browsing cannot change either.
@@ -1158,7 +1093,22 @@ func sync_scores_from_players(player_list: Array):
 			"connects": int(player_data.get("connects", 0)),
 			"heads": int(player_data.get("heads", 0)),
 			"damage": int(player_data.get("damage", 0)),
+			"ping": _board_ping(player_data.get("ping")),
 		})
+	# The snapshot omits a body between death and respawn; the board does not.
+	var now: int = Time.get_ticks_msec()
+	var listed: Dictionary = {}
+	for row: Dictionary in next:
+		listed[row.id] = true
+	for row: Dictionary in _standings:
+		if not str(row.id).is_empty() and not listed.has(row.id) and not _board_absent.has(row.id):
+			_board_absent[row.id] = {"row": row, "since": now}
+	for id: Variant in _board_absent.keys():
+		var absent: Dictionary = _board_absent[id]
+		if listed.has(id) or now - int(absent.since) > BOARD_ABSENCE_MS:
+			_board_absent.erase(id)
+		else:
+			next.append(absent.row)
 	next.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a.kills != b.kills: return int(a.kills) > int(b.kills)
 		if a.name != b.name: return str(a.name) < str(b.name)
@@ -1171,6 +1121,10 @@ func sync_scores_from_players(player_list: Array):
 		leader_name = str(next[0].name) + " (" + str(next[0].kills) + ")"
 	update_scoreboard()
 	_refresh_mode_chip()
+
+## The measured round trip for the board, or -1 when the server has none.
+static func _board_ping(value: Variant) -> int:
+	return int(value) if EquipmentState.integer(value, 999) else -1
 
 func set_ghost_rival(rival: String):
 	ghost_rival = rival
@@ -1575,6 +1529,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	host_duck(4.0, true)
 	# Round-end MVP / podium Host drama.
 	_standings.clear()
+	_board_absent.clear()
 	_standings_revision += 1
 	leader_name = mvp_name
 	pressure_id = ""
@@ -1867,26 +1822,41 @@ func _process(delta):
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
+		var camera: Camera3D = get_viewport().get_camera_3d()
+		if camera != null:
+			var look: Vector3 = camera.global_basis.get_euler()
+			fp_motion.update(delta, Vector2(look.y, look.x), camera.global_position.y, not reduced_motion)
+		else:
+			fp_motion.update(delta, Vector2.ZERO, 0.0, false)
+		_apply_view_tint(camera)
 		_update_fp_frame()
 		_layout_fp_weapon()
 	elif fp_throw_hand != null:
 		fp_throw_hand.visible = false
 
+## The held gun takes the light where it is held (`ViewLight`, under
+## the view camera): warmer under a lamp, darker in a covered bay, a beat
+## brighter on a shot. With no camera or no ViewLight it stays as drawn.
+func _apply_view_tint(camera: Camera3D) -> void:
+	var tint: Color = ViewLight.sample(camera)
+	fp_weapon.self_modulate = tint
+	if fp_throw_hand != null:
+		fp_throw_hand.self_modulate = tint
+	if melee_view != null:
+		melee_view.modulate = tint
+
 func set_fp_walk_speed(speed: float) -> void:
 	fp_walk_speed = maxf(speed, 0.0) if is_finite(speed) else 0.0
 
 func _layout_fp_weapon() -> void:
-	var bob_scale: float = 1.0
-	match current_fp_weapon:
-		"Rail": bob_scale = 0.55
-		"Sniper": bob_scale = 0.4
-		"Scatter": bob_scale = 1.35
 	var weight: float = fp_bob_weight if head_bob_enabled else 0.0
-	var bob: Vector2 = Vector2(cos(fp_bob_t * 0.5) * 2.0, sin(fp_bob_t) * 4.0) * bob_scale * weight
+	var bob: Vector2 = WeaponArt.bob(current_fp_weapon, fp_bob_t, weight)
 	var kick: Vector2 = Vector2.ZERO if reduced_motion else fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick).round()
+	# A modelled gun draws its own raise; a drawn sprite slides up instead.
+	var lowered: float = 0.0 if WeaponArt.BAKED.has(fp_motion.shown) or reduced_motion else fp_motion.lowered(fp_weapon.size.y)
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + lowered + fp_weapon.size.y * WeaponArt.reload_dip(current_fp_weapon) * fp_reload_motion.depth) + bob + kick + fp_motion.offset).round()
 	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
@@ -1978,16 +1948,34 @@ func _vitals_icon(icon_name: String, texture: Texture2D, at: Vector2) -> Texture
 	vitals.add_child(icon)
 	return icon
 
-## The held gun's frame for how long ago it fired: fire, then any cycle stroke,
-## then rest. Melee keeps its own posing.
+## The held gun's frame: an accepted reload, else how long ago it fired (fire,
+## recovery or cycle stroke), else its raise after a switch, else rest. During
+## a switch the old gun is still the one shown while it lowers. Melee keeps its
+## own posing. Every canvas shows at two reference pixels a texel.
 func _update_fp_frame() -> void:
-	if fp_weapon == null or not WeaponArt.FIRE.has(current_fp_weapon):
+	if fp_weapon == null:
 		return
-	var frame: Texture2D = WeaponArt.reload_frame(current_fp_weapon, equipment_hud.state, equipment_hud.tick)
-	if frame == null:
-		frame = WeaponArt.frame_after_shot(current_fp_weapon, fp_shot_age)
-	if frame != null and fp_weapon.texture != frame:
+	var weapon: String = fp_motion.shown if not fp_motion.shown.is_empty() else current_fp_weapon
+	if not viewmodel_textures.has(weapon):
+		return
+	var frame: Texture2D = null
+	if weapon == current_fp_weapon and WeaponArt.FIRE.has(weapon):
+		frame = WeaponArt.reload_frame(weapon, equipment_hud.state, equipment_hud.tick, fp_reload_motion.progress)
+		if frame == null:
+			frame = WeaponArt.frame_after_shot(weapon, fp_shot_age)
+	if frame == null or frame == WeaponArt.IDLE.get(weapon):
+		var raised: Texture2D = WeaponArt.draw_frame(weapon, fp_motion.raise)
+		if raised != null:
+			frame = raised
+	# At rest the presenter's own table decides, so an offline candidate placed
+	# in `viewmodel_textures` is what shows.
+	if frame == null or frame == WeaponArt.IDLE.get(weapon):
+		frame = viewmodel_textures[weapon]
+	if fp_weapon.texture != frame:
 		fp_weapon.texture = frame
+	var canvas: Vector2 = Vector2(frame.get_size()) * FP_TEXEL
+	if fp_weapon.size != canvas:
+		fp_weapon.size = canvas
 
 ## Start the off-hand throw. Called when the local fighter's own grenade
 ## appears in an authoritative snapshot, never on the key press alone.
@@ -2058,6 +2046,7 @@ func set_fp_juice(enabled: bool) -> void:
 		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
 	if not enabled:
 		fp_reload_motion.clear()
+		fp_motion.reset()
 		melee_view.reset()
 		equipment_hud.visible = false
 		if fp_muzzle:
@@ -2191,6 +2180,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		fp_reload_motion.clear()
+		fp_motion.reset()
 		fp_weapon.visible = false
 		fp_weapon.texture = null
 		current_fp_weapon = ""
@@ -2204,7 +2194,9 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
-	fp_weapon.texture = viewmodel_textures[weapon_name]
+	# The old gun lowers and the new one comes up; melee arms have their own.
+	var animate: bool = not reduced_motion and weapon_name not in ["Fists", "Shiv"]
+	fp_motion.select(weapon_name, animate, fp_motion.shown not in ["Fists", "Shiv"])
 	fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(weapon_name) else null
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
@@ -2218,6 +2210,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		fp_weapon.pivot_offset = Vector2.ZERO
 		fp_stab_timer = 0.0
 		_apply_crosshair_for_weapon(weapon_name)
+	_update_fp_frame()
 	_layout_fp_weapon()
 	fp_weapon.visible = weapon_name != "Fists" and not _scoped()
 	melee_view.visible = weapon_name == "Fists"
@@ -2465,6 +2458,7 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		return
 	# A gun with a drawn fire frame carries its own flash; the generic star
 	# would sit over it.
+	fp_motion.settle()
 	if WeaponArt.FIRE.has(weapon_name):
 		fp_shot_age = 0.0
 		fp_shot_pending_update = true

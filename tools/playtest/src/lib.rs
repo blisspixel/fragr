@@ -63,26 +63,62 @@ pub struct StickyWeaponTtk {
     pub seconds: f64,
 }
 
+/// Clean-hit time to kill for `weapon` at `distance`, every pellet landing.
+pub fn clean_ttk(weapon: WeaponType, distance: f32) -> StickyWeaponTtk {
+    let damage = (weapon.damage_at(distance) * weapon.pellets() as i32).max(1);
+    let hits = ((STICKY_FIGHTER_HP + damage - 1) / damage) as u32;
+    let seconds =
+        (hits.saturating_sub(1) as f64) * (weapon.cooldown_ticks() as f64) / TICKS_PER_SECOND;
+    StickyWeaponTtk {
+        weapon,
+        hits_to_kill: hits,
+        seconds,
+    }
+}
+
 /// Flechette, rail, and scatter clean-hit TTK from `WeaponType` damage and
-/// cooldown. Point-blank for the scatter gun, every pellet landing, so falloff
-/// does not hide a table regression. This is the #124 claim made
-/// CI-assertable from the harness.
+/// cooldown. The scatter gun is measured at the edge of its full-damage band,
+/// every pellet landing, so falloff does not hide a table regression and the
+/// meatshot inside it (`check_meatshot`) does not hide the ordinary blast.
+/// This is the #124 claim made CI-assertable from the harness.
 pub fn sticky_weapon_ttk_table() -> [StickyWeaponTtk; 3] {
     [WeaponType::Flechette, WeaponType::Rail, WeaponType::Scatter].map(|weapon| {
-        let damage = (weapon.damage_at(0.0) * weapon.pellets() as i32).max(1);
-        let hits = ((STICKY_FIGHTER_HP + damage - 1) / damage) as u32;
-        let seconds =
-            (hits.saturating_sub(1) as f64) * (weapon.cooldown_ticks() as f64) / TICKS_PER_SECOND;
-        StickyWeaponTtk {
-            weapon,
-            hits_to_kill: hits,
-            seconds,
-        }
+        let distance = if weapon == WeaponType::Scatter {
+            fragr_server::protocol::SCATTER_FULL_DAMAGE_UNITS
+        } else {
+            0.0
+        };
+        clean_ttk(weapon, distance)
     })
 }
 
+/// Problems with the Scatter meatshot: inside its band one blast with every
+/// pellet landing puts a bare fighter down, and a step outside it does not.
+pub fn check_meatshot() -> Vec<String> {
+    use fragr_server::protocol::SCATTER_MEATSHOT_UNITS;
+    let mut problems = Vec::new();
+    for distance in [0.5, 1.0, SCATTER_MEATSHOT_UNITS] {
+        let row = clean_ttk(WeaponType::Scatter, distance);
+        if row.hits_to_kill != 1 {
+            problems.push(format!(
+                "Scatter meatshot at {distance} m takes {} blasts (want 1)",
+                row.hits_to_kill
+            ));
+        }
+    }
+    let outside = clean_ttk(WeaponType::Scatter, SCATTER_MEATSHOT_UNITS + 0.5);
+    if outside.hits_to_kill < 2 {
+        problems.push(format!(
+            "Scatter one-shots at {} m, outside the meatshot band",
+            SCATTER_MEATSHOT_UNITS + 0.5
+        ));
+    }
+    problems
+}
+
 /// Problems when any sticky weapon leaves the target band or the expected
-/// hit count. Empty means the table still kills in about a second, three ways.
+/// hit count, or the Scatter meatshot drifts. Empty means the table still
+/// kills in about a second, three ways, and point blank is one blast.
 pub fn check_sticky_ttk_table() -> Vec<String> {
     let expected = [
         (WeaponType::Flechette, 4u32, 0.6),
@@ -120,6 +156,7 @@ pub fn check_sticky_ttk_table() -> Vec<String> {
             ));
         }
     }
+    problems.extend(check_meatshot());
     problems
 }
 
@@ -2475,6 +2512,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         human_summary: false,
         overview: None,
         tick_trace: None,
+        head_to_head: None,
     };
     let server = tokio::spawn(async move {
         run_server(
@@ -2708,6 +2746,7 @@ mod tests {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }
     }
 
@@ -3655,6 +3694,7 @@ mod combat_tests {
             heads: 0,
             damage: 0,
             weapon: weapon.to_string(),
+            ping: None,
         }
     }
 
@@ -4463,6 +4503,17 @@ mod sticky_ttk_tests {
     }
 
     #[test]
+    fn the_scatter_meatshot_is_one_blast_and_only_up_close() {
+        use fragr_server::protocol::SCATTER_MEATSHOT_UNITS;
+        let close = clean_ttk(WeaponType::Scatter, 1.0);
+        assert_eq!(close.hits_to_kill, 1, "barrel against the body");
+        assert_eq!(close.seconds, 0.0);
+        let step_back = clean_ttk(WeaponType::Scatter, SCATTER_MEATSHOT_UNITS + 0.5);
+        assert_eq!(step_back.hits_to_kill, 2, "a step back is two blasts");
+        assert!(check_meatshot().is_empty(), "{:?}", check_meatshot());
+    }
+
+    #[test]
     fn assert_path_includes_sticky_ttk_with_frustration_checks() {
         let report = Report {
             agents: 4,
@@ -4564,6 +4615,7 @@ mod planner_tests {
             heads: 0,
             damage: 0,
             weapon: weapon.to_string(),
+            ping: None,
         }
     }
 
@@ -4579,7 +4631,6 @@ mod planner_tests {
             y: 0.0,
             z,
             available,
-            respawn_in: None,
         }
     }
 
@@ -5474,6 +5525,7 @@ mod line_of_sight_tests {
             heads: 0,
             damage: 0,
             weapon: "flechette".to_string(),
+            ping: None,
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
 
@@ -5552,6 +5604,7 @@ mod patrol_tests {
             heads: 0,
             damage: 0,
             weapon: "Flechette".to_string(),
+            ping: None,
         }
     }
 

@@ -7,19 +7,14 @@ const RESOLUTION_HEIGHTS: Array[int] = [0, 720, 900, 1080, 1440, 2160]
 ## the nearest whole number that reaches the target on the actual output, so
 ## every choice is an exact integer upscale and the HUD stays native.
 const PIXEL_TARGETS: Array[int] = [0, 540, 360, 270]
-const DITHER_SHADER: Shader = preload("res://assets/shaders/palette_dither.gdshader")
-const DITHER_LAYER: String = "PaletteDither"
+const DITHER_SHADER: Shader = preload("res://assets/shaders/value_dither.gdshader")
+const DITHER_LAYER: String = "WorldDither"
 ## Sits over the 3D frame and under the HUD (layer 1) and menus.
 const DITHER_CANVAS_LAYER: int = -1
-## docs/palette.json world swatches, in file order. The cyan and magenta
-## pairs are fighter and team accents; left in, every pale green wall dithered
-## toward cyan. The dither never invents a colour.
-const PALETTE: Array[Color] = [
-	Color8(10, 10, 12), Color8(232, 226, 214), Color8(58, 42, 72), Color8(58, 56, 54),
-	Color8(90, 85, 79), Color8(140, 132, 122), Color8(122, 58, 34), Color8(110, 18, 24),
-	Color8(196, 90, 32), Color8(220, 140, 60), Color8(139, 30, 30), Color8(78, 88, 68),
-	Color8(58, 76, 46), Color8(116, 136, 78),
-]
+## Value steps the ordered dither shades in. Each pixel keeps its hue, so a
+## Union red tell or a cyan working light is never dithered into another
+## colour (see value_dither.gdshader).
+const DITHER_STEPS: float = 10.0
 
 static func supports_fsr(renderer: String) -> bool:
 	return renderer == "forward_plus"
@@ -153,8 +148,8 @@ static func apply_practicals(scope: Node, preferences: FragrSettings) -> void:
 			var paraboloid: bool = quality == 1 and supports_dual_paraboloid(RenderingServer.get_current_rendering_method())
 			(node as OmniLight3D).omni_shadow_mode = OmniLight3D.SHADOW_DUAL_PARABOLOID if paraboloid else OmniLight3D.SHADOW_CUBE
 
-## The optional ordered palette dither, owned by the match scene so it never
-## sits over a menu. Grid-aligned to the world pixel size.
+## The optional ordered dither, owned by the match scene so it never sits over
+## a menu. Grid-aligned to the world pixel size.
 static func apply_dither(owner: Node, viewport: Viewport, preferences: FragrSettings) -> void:
 	var layer: CanvasLayer = owner.get_node_or_null(DITHER_LAYER) as CanvasLayer
 	if not bool(preferences.get_value("video", "dither")):
@@ -172,11 +167,7 @@ static func apply_dither(owner: Node, viewport: Viewport, preferences: FragrSett
 		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var material: ShaderMaterial = ShaderMaterial.new()
 		material.shader = DITHER_SHADER
-		var swatches: PackedVector3Array = PackedVector3Array()
-		for colour: Color in PALETTE:
-			swatches.append(Vector3(colour.r, colour.g, colour.b))
-		material.set_shader_parameter("palette", swatches)
-		material.set_shader_parameter("palette_size", PALETTE.size())
+		material.set_shader_parameter("steps", DITHER_STEPS)
 		rect.material = material
 		layer.add_child(rect)
 		owner.add_child(layer)

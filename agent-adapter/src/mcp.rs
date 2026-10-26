@@ -68,6 +68,12 @@ pub struct ToolState {
     pub body: protocol::BodyKind,
     /// What the joined fighter has seen of the pads, for `observe`.
     pub pads: crate::pads::PadView,
+    /// Hello as a spectator that never fights (`mcp --watch`): a caster's
+    /// booth seat. `join` turns it into a fighter.
+    pub watch: bool,
+    /// The newest booth facts (`spectator_facts`), kept only while this
+    /// session holds no fighter. The server sends them to nobody else.
+    pub booth: Option<Value>,
 }
 
 impl Default for ToolState {
@@ -87,6 +93,8 @@ impl Default for ToolState {
             map: None,
             body: protocol::BodyKind::Human,
             pads: crate::pads::PadView::default(),
+            watch: false,
+            booth: None,
         }
     }
 }
@@ -731,6 +739,14 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "self_team": self_team,
         "self_lives": self_lives,
         "self_body": self_body,
+        // The booth: live pad clocks, the Custody Plate, sprees and open
+        // multikill chains. Present only for a session that watches and
+        // never fights (`mcp --watch`); null for a fighter.
+        "booth": if state.player_id.is_none() {
+            state.booth.clone().unwrap_or(Value::Null)
+        } else {
+            Value::Null
+        },
         "last_round_start": last_round_start,
         "last_round_end": last_round_end
     })
@@ -1528,7 +1544,19 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         .and_then(|name| validate_join_body(&arguments).map(|body| (name, body)))
                     {
                         Ok((join_name, body)) => {
-                            if state.connected {
+                            if state.connected && state.watch && state.player_id.is_none() {
+                                // A booth seat steps down from the booth and
+                                // hellos again as a fighter.
+                                state.watch = false;
+                                if let Some(body) = body {
+                                    state.body = body;
+                                }
+                                pending_join = Some(join_name.clone());
+                                tool_ok_text(&format!(
+                                    "Leaving the booth to join as '{}'; Hello pending",
+                                    join_name
+                                ))
+                            } else if state.connected {
                                 let who = state
                                     .session_name
                                     .clone()
@@ -2019,7 +2047,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 map["m04"] = serde_json::json!(m04);
             }
             let teams = rules.as_ref().is_some_and(|rules| rules.mode.teams());
-            state.pads.reset_map(solids.clone(), teams);
+            // Arcade pads return on their published clocks; campaign stock,
+            // on a map without a rule sheet, stays gone until the party reset.
+            state.pads.reset_map(solids.clone(), teams, rules.is_some());
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
             }
@@ -2059,6 +2089,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.mission = Default::default();
             // The map follows the Welcome; a new seat has seen nothing yet.
             state.pads = Default::default();
+            state.booth = None;
             state.player_id = player_id;
             state.connected = true;
         }
@@ -2086,6 +2117,29 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
         }
         Ok(protocol::ServerMessage::Board(_)) => {}
+        Ok(protocol::ServerMessage::SpectatorFacts(facts)) => {
+            // The booth is never a fighter's business. The server does not
+            // send it to one; a seat that somehow hears it still drops it.
+            if state.player_id.is_some() {
+                state.booth = None;
+                return Ok(());
+            }
+            if facts.pads.len() > protocol::MAX_SPECTATOR_PADS
+                || facts.sprees.len() > protocol::MAX_SPECTATOR_RUNS
+                || facts.chains.len() > protocol::MAX_SPECTATOR_RUNS
+            {
+                return Ok(());
+            }
+            let stale = state
+                .booth
+                .as_ref()
+                .and_then(|booth| booth.get("tick"))
+                .and_then(Value::as_u64)
+                .is_some_and(|tick| tick > facts.tick);
+            if !stale {
+                state.booth = serde_json::to_value(facts).ok();
+            }
+        }
         Err(_) => {
             let raw = serde_json::from_str::<Value>(text).map_err(|_| "invalid server JSON")?;
             if !raw.is_object() {

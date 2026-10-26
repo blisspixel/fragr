@@ -2,6 +2,7 @@
 mod arc;
 pub(crate) mod assessor;
 pub(crate) mod blade;
+mod booth;
 mod bot_senses;
 mod conquest;
 pub(crate) mod contact;
@@ -11,6 +12,7 @@ mod death_lifecycle_tests;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
+mod grudge;
 mod kit;
 pub mod mine;
 mod modes;
@@ -599,11 +601,6 @@ impl ArenaPickup {
             y: self.y,
             z: self.z,
             available: self.available,
-            respawn_in: if self.available {
-                None
-            } else {
-                self.respawn_timer
-            },
         }
     }
 
@@ -731,6 +728,9 @@ pub struct GameState {
     pub(crate) again: std::collections::BTreeSet<Uuid>,
     /// A Duel's running series while the same two fighters play on.
     pub(crate) duel_series: Option<podium::DuelSeries>,
+    /// Who has fragged whom, by callsign: the grudges rule bots hold and
+    /// the book the Host reads at a Duel. A desktop host loads and saves it.
+    pub(crate) head_to_head: crate::statistics::HeadToHead,
 }
 
 pub struct Player {
@@ -786,6 +786,10 @@ pub struct Player {
     pub is_boss: bool,
     /// Within-round killstreak (resets on death and round boundaries).
     pub killstreak: u32,
+    /// Round trip to the connection driving this fighter, in milliseconds,
+    /// from the server's WebSocket pings. None for rule bots, campaign
+    /// actors and a fighter whose connection has not answered yet.
+    pub ping_ms: Option<u16>,
     /// Agent-set observe chip (never used for combat). Rule bots use BotController.
     pub display_behavior: Option<String>,
     /// Newest input sequence applied to this fighter, echoed in the Ack.
@@ -937,6 +941,7 @@ impl Player {
             last_speak_tick: None,
             is_boss: false,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
@@ -1097,7 +1102,9 @@ impl GameState {
     pub(crate) fn current_projectile_serial(&self) -> u32 {
         self.projectile_serial
     }
-    pub(crate) fn use_replay_ids(&mut self) {
+    /// Number fighters from one upward instead of drawing random ids, so a
+    /// seeded match (a replay, a survey) repeats exactly. Call before anyone joins.
+    pub fn use_replay_ids(&mut self) {
         assert!(
             self.players.is_empty(),
             "set replay identity policy before spawning"
@@ -1306,6 +1313,8 @@ impl GameState {
             host_line: if self.solo_broadcast.enabled {
                 episode0_host_line_cold_open()
             } else if let Some(line) = self.duel_open_line() {
+                line
+            } else if let Some(line) = self.duel_intro_line() {
                 line
             } else {
                 round_open_host_line(self.map.name(), &self.roster_names)
@@ -3394,6 +3403,12 @@ impl GameState {
             }
             *self.scores.entry(shooter_id).or_insert(0) += 1;
             let killer_score = self.scores[&shooter_id];
+            // The book, read before this frag lands: a rule bot fragging the
+            // fighter it owed most has settled a score.
+            let payback = self.settles_grudge(shooter_id, &shooter_name, &target_name);
+            if !victim_was_boss && !self.solo_broadcast.enabled {
+                self.head_to_head.record(&shooter_name, &target_name);
+            }
 
             self.events.push(GameEvent::Frag {
                 killer: shooter_name.clone(),
@@ -3430,8 +3445,11 @@ impl GameState {
                 team_frag,
             });
 
-            // Named rule bots: an occasional callout (off-tick).
-            if matches!(killer_streak, 2 | 3 | 5) {
+            // Named rule bots: an occasional callout (off-tick). A settled
+            // grudge is always worth saying, to the fighter it was owed.
+            if payback {
+                self.try_rule_bot_grudge(shooter_id, &target_name, target_id);
+            } else if matches!(killer_streak, 2 | 3 | 5) {
                 self.maybe_rule_bot_taunt(
                     shooter_id,
                     BotTauntKind::Killstreak,
@@ -3711,6 +3729,7 @@ impl GameState {
                         golden: p.golden,
                         ducking: p.ducking,
                         body: p.is_participant().then_some(p.body),
+                        ping: p.ping_ms,
                     }
                 })
                 .collect(),
@@ -3774,7 +3793,10 @@ impl GameState {
             } else if self.round_state == RoundState::Warmup {
                 let remaining = self.config.warmup_ticks.saturating_sub(self.round_ticks);
                 let secs = remaining.div_ceil(20).max(1);
-                warmup_host_line(&self.display_map_name(), &self.roster_names, secs)
+                match self.duel_intro_line() {
+                    Some(intro) => format!("{intro} GOES LIVE IN {secs}."),
+                    None => warmup_host_line(&self.display_map_name(), &self.roster_names, secs),
+                }
             } else {
                 self.active_host_line()
             },
@@ -3803,7 +3825,6 @@ impl GameState {
                     y: gold.y,
                     z: gold.z,
                     available: gold.holder.is_none(),
-                    respawn_in: None,
                 }))
                 .chain(
                     self.article_blade
@@ -4014,6 +4035,10 @@ impl GameState {
     }
 
     fn active_host_line(&self) -> String {
+        // A Duel with both seats taken keeps its intro up, the book live.
+        if let Some(intro) = self.duel_intro_line() {
+            return intro;
+        }
         if self.map == MapKind::ArenaDuel
             && self.config.rules.mode() == crate::protocol::GameMode::Ffa
         {
@@ -4212,6 +4237,7 @@ impl GameState {
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
@@ -4703,6 +4729,7 @@ impl GameState {
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
+            ping_ms: None,
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
@@ -5012,6 +5039,7 @@ impl Default for GameState {
             sudden_death: None,
             again: std::collections::BTreeSet::new(),
             duel_series: None,
+            head_to_head: crate::statistics::HeadToHead::default(),
         }
     }
 }

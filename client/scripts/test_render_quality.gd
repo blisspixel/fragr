@@ -38,6 +38,11 @@ func _run() -> void:
 	var loaded: FragrSettings = FragrSettings.new(path)
 	loaded.load_from_disk()
 	_check(loaded.get_value("video", "quality") == 2 and loaded.get_value("video", "upscaling") == 2 and loaded.get_value("video", "resolution_height") == 720, "graphics choices survive restart")
+	_check(FragrSettings.new("user://unused").get_value("video", "pixel_scale") == 1 and not FragrSettings.new("user://unused").get_value("video", "dither"),
+		"a fresh settings file starts on Fine world pixels with the dither off")
+	_check(RenderQuality.pixel_factor(1, Vector2i(1280, 720)) == 1, "the Fine default stays native at 720p")
+	# Reconstruction and resolution below are checked with the pixel look off.
+	loaded.set_value("video", "pixel_scale", 0)
 	var viewport: SubViewport = SubViewport.new()
 	viewport.size = Vector2i(1920, 1080)
 	root.add_child(viewport)
@@ -78,6 +83,8 @@ func _run() -> void:
 	_check(layer != null and layer.layer < 1, "dither sits under the HUD layer")
 	var material: ShaderMaterial = (layer.get_node("Dither") as ColorRect).material as ShaderMaterial if layer != null else null
 	_check(material != null and is_equal_approx(float(material.get_shader_parameter("pixel_size")), 3.0), "dither grid follows the world pixel size")
+	_check(material != null and is_equal_approx(float(material.get_shader_parameter("steps")), RenderQuality.DITHER_STEPS)
+		and not str(material.shader.code).contains("palette["), "the dither steps value and never snaps to a swatch list")
 	RenderQuality.apply_dither(owner, viewport, loaded)
 	_check(owner.get_child_count() == 1, "reapplying never stacks a second dither layer")
 	loaded.set_value("video", "dither", false)

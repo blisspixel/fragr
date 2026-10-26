@@ -5,7 +5,7 @@
   "states": [
     {"name":"street","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-6,1.65,-37.2],"camera_look_at":[1,2.4,-28],"allow_empty_roster":true,"note":"Arrival: queue lane, recall notice, Annex 67 over the door."},
     {"name":"street_back","camera":"overview","camera_position":[3,1.65,-29.5],"camera_look_at":[-5,1.8,-38],"allow_empty_roster":true,"note":"Sealed repair stalls and the canopy lamps."},
-    {"name":"bay","camera":"overview","camera_position":[1,1.65,-27],"camera_look_at":[-8,0.9,-23.5],"allow_empty_roster":true,"note":"Seized property treated as stock; the Tack in plain light."},
+    {"name":"bay","camera":"overview","camera_position":[2.5,1.65,-28.5],"camera_look_at":[-8,0.5,-23.5],"allow_empty_roster":true,"note":"Seized property treated as stock; the Tack in plain light."},
     {"name":"bay_alcove","camera":"overview","camera_position":[-3,1.65,-22],"camera_look_at":[10,1.2,-21],"allow_empty_roster":true,"note":"Property lockers and the alcove."},
     {"name":"bay_threshold","camera":"overview","camera_position":[-3,1.65,-26],"camera_look_at":[-6,1.4,-15],"allow_empty_roster":true,"note":"The lone Clerk past the partition must read at once."},
     {"name":"hall","camera":"overview","camera_position":[0,1.65,-11.5],"camera_look_at":[0,2.0,7],"allow_empty_roster":true,"note":"Counters as islands, the looped address on the records screen."},

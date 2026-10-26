@@ -1722,6 +1722,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     crate::session::broadcast_to_clients(
         &clients,
         &crate::net::Broadcast::copies(&[ServerMessage::Snapshot(session.state.snapshot())]),
+        &std::collections::HashSet::new(),
     )
     .await;
     for socket in [&mut healthy, &mut fighter] {
@@ -1989,12 +1990,12 @@ async fn quiet_spectator_that_answers_pings_is_not_idle() {
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(quick_limits());
     let address = server.local_addr().unwrap();
+    let clients = server.clients.clone();
     let accept = tokio::spawn(server.accept_loop());
     let mut watcher = welcome_spectator(address).await;
-    assert!(matches!(
-        next_command(&mut commands).await,
-        GameCommand::Connected { .. }
-    ));
+    let GameCommand::Connected { id: watcher_id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
     // Read only: the client library answers each ping while it reads.
     let mut pings = 0;
     let deadline = tokio::time::Instant::now() + Duration::from_millis(1200);
@@ -2009,6 +2010,17 @@ async fn quiet_spectator_that_answers_pings_is_not_idle() {
     assert!(
         commands.try_recv().is_err(),
         "three idle windows passed and the watcher stayed"
+    );
+    // Each answer timed the round trip, which a loopback keeps under a beat.
+    let ping = clients
+        .lock()
+        .await
+        .iter()
+        .find(|client| client.id == watcher_id)
+        .and_then(|client| client.traffic().ping_ms());
+    assert!(
+        ping.is_some_and(|ms| ms < 500),
+        "the pong timed the session: {ping:?}"
     );
     accept.abort();
 }
