@@ -1987,6 +1987,10 @@ func _take_from_pad(weapon: String) -> bool:
 				await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
 			elif point is Dictionary and point.has("orbit") and point.has("to_degrees"):
 				await _orbit_to(float(point["orbit"]), deg_to_rad(float(point["to_degrees"])))
+			# The route can cross the pad before its final waypoint. Do not
+			# wait for a pad we just emptied while already carrying the gun.
+			if _owned_weapons().has(weapon.to_lower()):
+				return true
 			alive = _local_human_alive(gm)
 			if not alive:
 				break
@@ -2008,7 +2012,11 @@ func _take_from_pad(weapon: String) -> bool:
 			continue
 		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
 		while is_instance_valid(pad) and not bool(pad.get("available")) and _local_human_alive(gm) and Time.get_ticks_msec() < back_by:
+			if _owned_weapons().has(weapon.to_lower()):
+				return true
 			await create_timer(0.1).timeout
+		if _owned_weapons().has(weapon.to_lower()):
+			return true
 		if not is_instance_valid(pad) or not _local_human_alive(gm):
 			continue
 		var floor_y: float = pad.position.y - 0.4
