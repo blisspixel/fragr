@@ -65,6 +65,13 @@ routes after a death or round change, waits for timed supplies at their pad,
 and uses ordinary defensive fire along the route. This authoring controller
 has accurate aim at visible rivals in every direction; it is separate from
 the constrained survey and keeps the existing route and retry limits.
+The mixed-client roster exposed a separate Holdfast aircraft-edge stall:
+the shared mission controller's arena fallback omitted live vehicle hulls.
+It now uses the existing snapshot collision geometry for routing and local
+avoidance. Install checks retain bounded child diagnostics on premature wire
+loss and use the process owner's confirmed retirement result during cleanup.
+These changes preserve the roster's five-second stall gate and the package
+check's required wire facts and owned-process shutdown.
 The bounded M20 survival threshold and read-only epilogue acceptance follow in
 #482; neither slice replaces human pacing or physical-input evidence.
 

@@ -18,6 +18,11 @@ Release history, newest first. Planned work stays in
   The authoring tour can defend those routes with ordinary fire and reloads.
 - Forward M02's existing objective facts to the evaluation controller and
   qualify a bounded standalone entry with the same calibrated input policy.
+- Route shared arena controllers around observed vehicle hulls, fixing a
+  repeated stall beside Holdfast Atoll's parked aircraft.
+- Report incomplete install-check connections immediately with bounded server
+  diagnostics, and confirm owned process retirement without querying a reaped
+  PID or treating failed termination as success.
 
 ## v0.92.0 - 2026-10-25
 
