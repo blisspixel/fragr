@@ -65,6 +65,11 @@ jobs:
       - name: Agent playtest smoke
         run: cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 
+      - name: Guided campaign stress report
+        # Preserve non-clears as diagnostics. Evaluator invariants are gated by
+        # workspace tests; CI success is not an all-profile balance claim.
+        run: cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-campaign.json
+
       - name: Team deathmatch and mutator playtests
         run: |
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json

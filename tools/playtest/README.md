@@ -55,6 +55,9 @@ report. Timeouts and exhausted continues never count as clears. The current
 stress matrix does not pass that strict all-clear gate; its failures are leads
 for inspection, not proof that the game is unfair. Unit tests gate perception,
 turning, actual completion, retry exhaustion, determinism and report failures.
+CI retains a seed-42 matrix in its `playtest-reports` artifact without the
+strict all-clear assertion. A successful job therefore means the evaluator ran
+and its regression tests passed; consult the report for gameplay outcomes.
 
 ```bash
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/run.json
