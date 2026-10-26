@@ -55,10 +55,16 @@ The recovery acceptance slice (#481) keeps Continue available after a failed
 transport enqueue. It tests an earned, finite-ammunition M01 departure through
 disk save, M02 entry, enemy-caused death and a reopened retry, with exact entry
 inventory and one continue spent. This is known-route continuity evidence,
-separate from the constrained Recall Notice survey. Repeated pending refreshes,
+separate from the constrained Recall Notice survey. A standalone M02 entry
+fixture transfers the same perception, aim and reload policy through the
+existing mission controller; forwarding its omitted objective fields repairs
+the initial configuration. It does not claim an inherited M02 clear. Repeated pending refreshes,
 stale requests, duplicate accepts and later-campaign recovery remain covered by
 the existing client and server harnesses. The visual tour now restarts pickup
-routes after a death or round change and waits for timed supplies at their pad.
+routes after a death or round change, waits for timed supplies at their pad,
+and uses ordinary defensive fire along the route. This authoring controller
+has accurate aim at visible rivals in every direction; it is separate from
+the constrained survey and keeps the existing route and retry limits.
 The bounded M20 survival threshold and read-only epilogue acceptance follow in
 #482; neither slice replaces human pacing or physical-input evidence.
 

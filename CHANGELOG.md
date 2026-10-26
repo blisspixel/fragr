@@ -15,6 +15,9 @@ Release history, newest first. Planned work stays in
   review. Fix the evaluation controller's empty-magazine reload stall.
 - Keep visual pickup routes tied to the current life and round, and wait for
   timed weapons at their pads instead of standing exposed away from them.
+  The authoring tour can defend those routes with ordinary fire and reloads.
+- Forward M02's existing objective facts to the evaluation controller and
+  qualify a bounded standalone entry with the same calibrated input policy.
 
 ## v0.92.0 - 2026-10-25
 
