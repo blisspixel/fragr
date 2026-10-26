@@ -15,7 +15,7 @@ use fragr_server::protocol::{
 use fragr_server::session::GameSession;
 use fragr_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 
@@ -100,10 +100,21 @@ pub struct Report {
     pub commit: &'static str,
     pub observation: &'static str,
     pub profiles: [Profile; 3],
+    pub decision_hz: u8,
+    pub continuation_delay_seconds: u8,
     pub trials: Vec<Trial>,
     /// Last fatal-hit pre-frame of the first deliberate/Standard trial.
     /// Authoritative scene data for inspection, never controller input.
     pub review: Option<serde_json::Value>,
+    /// First kill of the first reference/Assisted trial, even if it later fails.
+    pub first_kill_review: Option<serde_json::Value>,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum Recording {
+    None,
+    Fatal,
+    FirstKill,
 }
 
 fn angle(value: f32) -> f32 {
@@ -314,7 +325,7 @@ pub fn trial(
     difficulty: CampaignDifficulty,
     max_ticks: u64,
 ) -> Result<Trial, String> {
-    trial_recorded(seed, profile, difficulty, max_ticks, false).map(|(row, _)| row)
+    trial_recorded(seed, profile, difficulty, max_ticks, Recording::None).map(|(row, _)| row)
 }
 
 fn trial_recorded(
@@ -322,7 +333,22 @@ fn trial_recorded(
     profile: Profile,
     difficulty: CampaignDifficulty,
     max_ticks: u64,
-    record: bool,
+    recording: Recording,
+) -> Result<(Trial, Option<serde_json::Value>), String> {
+    trial_with_actions(seed, profile, difficulty, max_ticks, recording, |action| {
+        action
+    })
+}
+
+/// The action seam lets calibration supply a deliberately ineffective policy
+/// without editing the simulation, granting resources or forcing an outcome.
+fn trial_with_actions(
+    seed: u64,
+    profile: Profile,
+    difficulty: CampaignDifficulty,
+    max_ticks: u64,
+    recording: Recording,
+    mut actions: impl FnMut(Action) -> Action,
 ) -> Result<(Trial, Option<serde_json::Value>), String> {
     if !(1..=36_000).contains(&max_ticks)
         || !profile.view_degrees.is_finite()
@@ -396,8 +422,15 @@ fn trial_recorded(
     let mut scan_remaining = 0.0_f32;
     let mut evade: Option<(u64, [f32; 2], f32)> = None;
     let mut review = None;
+    let mut frames = VecDeque::new();
     while session.state.tick < max_ticks {
         let snapshot = session.state.snapshot();
+        if recording != Recording::None {
+            frames.push_back(snapshot.clone());
+            if frames.len() > 80 {
+                frames.pop_front();
+            }
+        }
         let state = session.state.mission_state().ok_or("mission vanished")?;
         if state.phase != report.last_phase {
             progress = snapshot.tick;
@@ -434,6 +467,7 @@ fn trial_recorded(
             report.continues_spent += 1;
             navigator.clear();
             perception = Perception::default();
+            frames.clear();
             heard = None;
             evade = None;
             scan_remaining = 0.0;
@@ -596,15 +630,10 @@ fn trial_recorded(
                 ..Default::default()
             };
         }
-        let dry = gear
-            .loaded
-            .iter()
-            .any(|m| m.weapon == gear.selected && m.rounds == 0 && m.ready_at.is_none())
-            && gear.ammo(AmmoPool::Bullets) > 0;
-        action.reload = dry && !reload_down;
+        action.reload = reload_requested(&gear, reload_down);
+        action = actions(constrain(action, me, &observed, profile, seed, arena));
         reload_down = action.reload;
         report.reloads += u32::from(action.reload);
-        action = constrain(action, me, &observed, profile, seed, arena);
         let feet = report.last_feet;
         if visited.insert((
             (feet[0] / 2.0).floor() as i32,
@@ -631,14 +660,19 @@ fn trial_recorded(
                 report.kills += u32::from(shot.killed);
                 if shot.killed {
                     scan_remaining = TAU;
+                    if recording == Recording::FirstKill && review.is_none() {
+                        review = Some(
+                            serde_json::json!({"event":"first_kill","seed":seed,"profile":profile.name,"difficulty":difficulty,"attempt":attempt,"view":me,"map_info":session.state.map_info(),"snapshot":snapshot,"frames":frames}),
+                        );
+                    }
                 }
                 if shot.damage > 0 {
                     progress = snapshot.tick;
                 }
             } else if shot.target_id == Some(id) {
-                if record && shot.killed {
+                if recording == Recording::Fatal && shot.killed {
                     review = Some(
-                        serde_json::json!({"seed":seed,"profile":profile.name,"difficulty":difficulty,"attempt":attempt,"view":me,"map_info":session.state.map_info(),"snapshot":snapshot}),
+                        serde_json::json!({"event":"fatal_hit","seed":seed,"profile":profile.name,"difficulty":difficulty,"attempt":attempt,"view":me,"map_info":session.state.map_info(),"snapshot":snapshot,"frames":frames}),
                     );
                 }
                 if !visible_shooters.contains(&shot.shooter_id) {
@@ -703,12 +737,22 @@ fn wanted_is_combat(action: &Action) -> bool {
         .is_some_and(|look| look.player_id.is_some())
 }
 
+fn reload_requested(gear: &LoadoutState, reload_down: bool) -> bool {
+    !reload_down
+        && gear
+            .loaded
+            .iter()
+            .any(|m| m.weapon == gear.selected && m.rounds == 0 && m.ready_at.is_none())
+        && gear.ammo(AmmoPool::Bullets) > 0
+}
+
 pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String> {
     if seeds.is_empty() || seeds.end - seeds.start > 64 {
         return Err("campaign survey requires 1..=64 seeds".into());
     }
     let mut trials = Vec::new();
     let mut review = None;
+    let mut first_kill_review = None;
     let first_seed = seeds.start;
     for seed in seeds {
         for profile in PROFILES {
@@ -717,19 +761,31 @@ pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String
                 CampaignDifficulty::Standard,
                 CampaignDifficulty::Severe,
             ] {
-                let record = seed == first_seed
+                let fatal = seed == first_seed
                     && profile.name == "deliberate"
                     && difficulty == CampaignDifficulty::Standard;
-                let (row, frame) = trial_recorded(seed, profile, difficulty, max_ticks, record)?;
-                if record {
+                let first_kill = seed == first_seed
+                    && profile.name == "reference"
+                    && difficulty == CampaignDifficulty::Assisted;
+                let recording = if fatal {
+                    Recording::Fatal
+                } else if first_kill {
+                    Recording::FirstKill
+                } else {
+                    Recording::None
+                };
+                let (row, frame) = trial_recorded(seed, profile, difficulty, max_ticks, recording)?;
+                if fatal {
                     review = frame;
+                } else if first_kill {
+                    first_kill_review = frame;
                 }
                 eprintln!("campaign {} seed={} {:?}: {} {:.1}s, {} shots, {} hits, {} damage, {:.1}s stall", row.profile, seed, difficulty, row.outcome, row.seconds, row.shots, row.hits, row.damage_received, row.longest_no_progress_seconds);
                 trials.push(row);
             }
         }
     }
-    Ok(Report { schema: 1, build: env!("FRAGR_CLI_VERSION"), commit: env!("FRAGR_BUILD_COMMIT"), observation: "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; no human-population calibration or rendered-readability claim.", profiles: PROFILES, trials, review })
+    Ok(Report { schema: 1, build: env!("FRAGR_CLI_VERSION"), commit: env!("FRAGR_BUILD_COMMIT"), observation: "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.", profiles: PROFILES, decision_hz: 20, continuation_delay_seconds: 0, trials, review, first_kill_review })
 }
 
 #[cfg(test)]
@@ -769,6 +825,14 @@ mod tests {
     fn reaction_requires_continuous_visible_observation() {
         let (mut snapshot, arena, id, target) = scene();
         let profile = PROFILES[1];
+        // Isolated perception fixture, not earned campaign progress.
+        let mut inventory = fragr_server::inventory::Inventory::new(
+            fragr_server::protocol::EquipmentPolicy::Discovery,
+        );
+        inventory.grant_weapon(fragr_server::protocol::WeaponType::Tack);
+        let gear = inventory
+            .state(id, fragr_server::protocol::WeaponType::Tack, 0)
+            .unwrap();
         let mut perception = Perception::default();
         for tick in 0..=profile.reaction_ticks {
             snapshot.tick = tick;
@@ -777,6 +841,17 @@ mod tests {
                 view.players.iter().any(|p| p.id == target),
                 tick == profile.reaction_ticks
             );
+            let wanted = control_action_with_target_filter(
+                id,
+                &view,
+                Some(&gear),
+                Action::default(),
+                true,
+                |_, _| true,
+            );
+            let me = snapshot.players.iter().find(|p| p.id == id).unwrap();
+            let action = constrain(wanted, me, &view, profile, 42, &arena);
+            assert_eq!(action.fire, tick == profile.reaction_ticks);
         }
         snapshot
             .players
@@ -857,6 +932,59 @@ mod tests {
         assert_eq!(row.seconds, 0.05);
         assert_eq!(row.kills, 0);
         assert_eq!(row.last_phase, MissionPhase::FindTransfer);
+    }
+
+    #[test]
+    fn ineffective_policy_fails_and_active_stall_is_not_hidden_by_motion() {
+        let (row, _) = trial_with_actions(
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            400,
+            Recording::None,
+            |_| Action::default(),
+        )
+        .unwrap();
+        assert_eq!(row.outcome, "timeout");
+        assert_eq!(row.shots, 0);
+        assert_eq!(row.reloads, 0);
+        assert_eq!(row.continues_spent, 0);
+        assert!(row.longest_no_progress_seconds >= 19.9);
+        assert_eq!(row.last_phase, MissionPhase::FindTransfer);
+    }
+
+    #[test]
+    fn reload_commands_preserve_finite_supply_in_an_isolated_inventory_fixture() {
+        use fragr_server::protocol::{EquipmentPolicy, WeaponType};
+        // Calibration of the reload seam only; no campaign result is claimed.
+        let mut inventory = fragr_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Tack);
+        inventory.arm_magazines();
+        let id = Uuid::from_u128(1);
+        let initial = inventory.state(id, WeaponType::Tack, 0).unwrap();
+        let mut fired = 0;
+        let mut reloads = 0;
+        let mut held = false;
+        for tick in 0..500 {
+            inventory.finish_reload(tick);
+            let gear = inventory.state(id, WeaponType::Tack, tick).unwrap();
+            let reload = reload_requested(&gear, held);
+            if reload {
+                assert_eq!(gear.shots(WeaponType::Tack), Some(0));
+                assert!(inventory.request_reload(WeaponType::Tack, tick));
+                reloads += 1;
+            }
+            held = reload;
+            fired += u16::from(inventory.try_fire(WeaponType::Tack));
+            let remaining = inventory
+                .state(id, WeaponType::Tack, tick)
+                .unwrap()
+                .ammo(AmmoPool::Bullets);
+            assert_eq!(fired + remaining, initial.ammo(AmmoPool::Bullets));
+        }
+        assert_eq!(fired, initial.ammo(AmmoPool::Bullets));
+        assert!(reloads > 0 && fired > initial.shots(WeaponType::Tack).unwrap());
+        assert!(!inventory.try_fire(WeaponType::Tack));
     }
 
     #[test]
@@ -966,24 +1094,48 @@ mod tests {
 
     #[test]
     fn real_completion_and_exhaustion_are_deterministic_and_keep_failed_attempts() {
-        let clear = trial(47, PROFILES[0], CampaignDifficulty::Assisted, 12_000).unwrap();
+        let (clear, first_kill) = trial_recorded(
+            47,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            12_000,
+            Recording::FirstKill,
+        )
+        .unwrap();
         assert_eq!(clear.outcome, "departed");
+        assert_eq!(first_kill.unwrap()["event"], "first_kill");
         assert!(clear.shots > 20 && clear.reloads > 0);
         assert_eq!(
             clear,
             trial(47, PROFILES[0], CampaignDifficulty::Assisted, 12_000).unwrap()
         );
-        let (failed, review) =
-            trial_recorded(47, PROFILES[2], CampaignDifficulty::Severe, 12_000, true).unwrap();
+        let (failed, review) = trial_recorded(
+            47,
+            PROFILES[2],
+            CampaignDifficulty::Severe,
+            12_000,
+            Recording::Fatal,
+        )
+        .unwrap();
         assert_eq!(failed.outcome, "exhausted");
         assert_eq!(failed.deaths, 4);
         assert_eq!(failed.continues_spent, 3);
+        assert_eq!(
+            failed,
+            trial(47, PROFILES[2], CampaignDifficulty::Severe, 12_000).unwrap(),
+            "recorded authoritative facts must not affect controller decisions"
+        );
         assert!(failed.hits_received.iter().any(|hit| hit.attempt == 4));
         assert!(failed.damage_received >= 400);
         assert_eq!(failed.hits_omitted, 0);
         let review = review.unwrap();
         assert_eq!(review["attempt"], 4);
         assert_eq!(review["seed"], 47);
+        let frames: Vec<Snapshot> = serde_json::from_value(review["frames"].clone()).unwrap();
+        assert_eq!(frames.len(), 80);
+        assert!(frames
+            .windows(2)
+            .all(|pair| pair[0].tick + 1 == pair[1].tick));
         let before: Snapshot = serde_json::from_value(review["snapshot"].clone()).unwrap();
         let viewer: PlayerState = serde_json::from_value(review["view"].clone()).unwrap();
         assert!(viewer.hp > 0, "review must precede the fatal shot");

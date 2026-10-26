@@ -62,6 +62,7 @@ for script in client/scripts/*.gd; do
   name=$(basename "$script")
   check "$name" "" --check-only --script "res://scripts/$name"
 done
+check "campaign review parser" "" --check-only --script ../tools/review_campaign.gd
 
 for script in client/scripts/test_*.gd; do
   harness=$(basename "$script" .gd)

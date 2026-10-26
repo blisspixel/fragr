@@ -35,6 +35,11 @@ profiles are synthetic constraints, not measured novice populations. Compare
 game changes with the same evaluator revision and seed set; a controller change
 requires a new baseline.
 
+Decisions and actions run at 20 Hz for every profile. Reaction delay limits
+acquisition, not decision cadence. Continue is accepted immediately, with zero
+simulated menu delay; dead/menu time is not included in the active stall metric.
+The report records these assumptions rather than inventing human deliberation.
+
 `--survey-seeds` accepts 1 to 64 here (default 16); `--max-seconds` bounds each
 trial, including retries, from 1 to 1800 simulated seconds (default 120).
 Reports include the build/commit, profile values, all outcomes, continues,
@@ -46,8 +51,24 @@ bearing; nominal `resolved_damage_outside_view` can include overkill and must
 not be treated as a fraction of actual HP lost. The first 256 incoming hits per
 trial are retained, with `hits_omitted` counting any further entries. `review`
 holds the last fatal-hit pre-frame of the first deliberate/Standard trial, if
-one exists, for scene reconstruction. It is inspection data, never controller
-input or a recording of ordinary client play.
+one exists. `first_kill_review` holds the first kill of the first
+reference/Assisted trial, even if that trial later fails. Each includes up to
+80 consecutive pre-event snapshots, stopping at retry boundaries. They are
+inspection data, never controller input or recordings of ordinary client play.
+
+To reconstruct those four-second windows with the existing world, fighter and
+shot presenters (a real renderer is required):
+
+```bash
+"$GODOT_BIN" --path client --audio-driver Dummy --windowed --resolution 1280x720 --script ../tools/review_campaign.gd -- "$PWD/.agents/playtest/campaign.json" "$PWD/.agents/playtest/campaign-frames"
+```
+
+The tool writes numbered PNGs under `first_kill/` and `fatal_hit/` when those
+events exist. View sequentially at 20 frames/second. A missing event produces no
+window; an invalid report or failed image write fails the command. Require its
+`campaign review: PASS` marker and clean error logs. This reconstruction omits
+HUD, audio and input-to-display timing. It supports scene/tell inspection, not
+those claims.
 
 By default a completed survey writes every failure and exits successfully.
 `--assert` instead fails if **any** trial does not depart, after writing the
