@@ -4,6 +4,18 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.92.1 - 2026-10-26
+
+- Keep Continue available when its request fails to enter the network queue,
+  so the same pending attempt can be retried without reopening the game.
+- Verify earned campaign supplies across M01 departure, M02 entry, death,
+  saved-run reopening and retry, including duplicate and stale requests.
+- Add reproducible constrained Recall Notice trials with finite magazines,
+  declared vision and reaction limits, retained failures and recorded scene
+  review. Fix the evaluation controller's empty-magazine reload stall.
+- Keep visual pickup routes tied to the current life and round, and wait for
+  timed weapons at their pads instead of standing exposed away from them.
+
 ## v0.92.0 - 2026-10-25
 
 - Add Hold 4x, Toggle 4x and Cycle 2x/4x/open Sniper scope preferences, with
