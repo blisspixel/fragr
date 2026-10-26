@@ -989,14 +989,26 @@ impl MissionClient {
                 }
             }
         }
-        let solids = self
-            .m14_visibility_solids(snapshot)
-            .or_else(|| self.live_visibility_solids());
-        let arena = crate::movement::Arena {
-            half: world.planning_arena().half,
-            solids: solids.unwrap_or_else(|| world.planning_arena().solids.clone()),
-        };
+        let arena = self.snapshot_arena(world, snapshot);
         navigator.avoid_bodies(&arena, id, &bodies, wanted, snapshot.tick)
+    }
+
+    fn snapshot_arena(&self, world: &Navigation, snapshot: &Snapshot) -> crate::movement::Arena {
+        // M14 already reconstructs its moving walker and observed vehicle hulls.
+        if let Some(solids) = self.m14_visibility_solids(snapshot) {
+            return crate::movement::Arena {
+                half: world.planning_arena().half,
+                solids,
+            };
+        }
+        let visibility = self.live_visibility_solids();
+        Navigator::snapshot_arena(
+            world,
+            snapshot,
+            visibility
+                .as_deref()
+                .unwrap_or(&world.planning_arena().solids),
+        )
     }
 
     fn steer_route(
@@ -1173,13 +1185,14 @@ impl MissionClient {
             return self.steer_m02(navigator, world, id, snapshot, action);
         }
         let (Some(geometry), Some(state)) = (&self.geometry, &self.state) else {
+            let arena = self.snapshot_arena(world, snapshot);
             return navigator.route_snapshot_with_visibility(
                 world,
                 id,
                 snapshot,
                 action,
                 true,
-                &world.planning_arena().solids,
+                &arena.solids,
             );
         };
         if action.look_at.is_some() {

@@ -42,7 +42,7 @@ This is the only active sequence. When the current rung changes, edit this secti
 ### Next steps when work resumes
 
 Waves 4 and 5 are released. Continue evaluation and bounded fixes without waiting
-for human sessions or optional art picks. #479 adds a guided Recall Notice
+for human sessions or optional art picks. #480 delivered #479's guided Recall Notice
 survey to the existing playtest harness: constrained vision, reaction, turning
 and aim, actual supplies, deaths and continues, and preserved failure reports.
 The [harness guide](../tools/playtest/README.md) states its assumptions. Inspect
@@ -50,6 +50,30 @@ failures in the rendered level before changing encounters, retain a fixed
 controller baseline when comparing game changes, and promote demonstrated
 defects to regression tests. Development-release checks and synthetic profiles
 do not establish physical-controller feel or human fresh-player acceptance.
+
+The recovery acceptance slice (#481) keeps Continue available after a failed
+transport enqueue. It tests an earned, finite-ammunition M01 departure through
+disk save, M02 entry, enemy-caused death and a reopened retry, with exact entry
+inventory and one continue spent. This is known-route continuity evidence,
+separate from the constrained Recall Notice survey. A standalone M02 entry
+fixture transfers the same perception, aim and reload policy through the
+existing mission controller; forwarding its omitted objective fields repairs
+the initial configuration. It does not claim an inherited M02 clear. Repeated pending refreshes,
+stale requests, duplicate accepts and later-campaign recovery remain covered by
+the existing client and server harnesses. The visual tour now restarts pickup
+routes after a death or round change, waits for timed supplies at their pad,
+and uses ordinary defensive fire along the route. This authoring controller
+has accurate aim at visible rivals in every direction; it is separate from
+the constrained survey and keeps the existing route and retry limits.
+The mixed-client roster exposed a separate Holdfast aircraft-edge stall:
+the shared mission controller's arena fallback omitted live vehicle hulls.
+It now uses the existing snapshot collision geometry for routing and local
+avoidance. Install checks retain bounded child diagnostics on premature wire
+loss and use the process owner's confirmed retirement result during cleanup.
+These changes preserve the roster's five-second stall gate and the package
+check's required wire facts and owned-process shutdown.
+The bounded M20 survival threshold and read-only epilogue acceptance follow in
+#482; neither slice replaces human pacing or physical-input evidence.
 
 Wave 5 adds twelve prepared campaign props, replaces repeated prose with
 physical and painted detail, shortens objectives while retaining control and

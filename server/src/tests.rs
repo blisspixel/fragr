@@ -6870,6 +6870,85 @@ mod map_roster {
     use crate::sim::PLAYER_FLOOR_Y;
 
     #[test]
+    fn mission_client_arena_routes_around_live_holdfast_vehicles() {
+        // Retained CI/reproduction positions beside the aircraft, plus routes
+        // approaching both it and the jeep. This is an isolated collision
+        // fixture, not earned campaign progress or a constrained-player trial.
+        for cadence in [1, 2, 4] {
+            for start in [
+                [5.206_377_5, -109.5],
+                [5.319_645, -109.5],
+                [-10.0, -115.0],
+                [-15.0, -130.0],
+                [12.0, -130.0],
+                [20.0, -120.0],
+            ] {
+                let id = Uuid::from_u128(1);
+                let mut state = GameState::with_map(MapKind::HoldfastAtoll, false);
+                state.seed(42);
+                state.add_player(id, "Route fixture".into(), Role::Agent);
+                state.start_round();
+                assert!(!state.vehicles.is_empty());
+                let floor = maps::holdfast::LAND_HEIGHT;
+                [state.players[0].x, state.players[0].y, state.players[0].z] =
+                    [start[0], floor + PLAYER_FLOOR_Y, start[1]];
+                let mut navigator = crate::navigation::Navigator::default();
+                let mut mission = crate::mission::MissionClient::default();
+                let mut stationary = 0;
+                let mut longest = 0;
+                for tick in 0..400 {
+                    if tick % cadence == 0 {
+                        let snapshot = state.snapshot();
+                        let player = &state.players[0];
+                        let loadout = player.inventory.state(id, player.weapon, state.tick);
+                        let action = mission.steer_with_equipment(
+                            &mut navigator,
+                            state.map.navigation(),
+                            id,
+                            &snapshot,
+                            Action {
+                                forward: true,
+                                look_at: Some(crate::protocol::LookAt {
+                                    x: Some(0.0),
+                                    y: Some(floor + 0.4),
+                                    z: Some(-60.0),
+                                    player_id: None,
+                                }),
+                                ..Default::default()
+                            },
+                            loadout.as_ref(),
+                        );
+                        state.set_action(id, action);
+                    }
+                    let before = [state.players[0].x, state.players[0].z];
+                    state.tick(0.05);
+                    let player = &state.players[0];
+                    let movement = (player.x - before[0]).hypot(player.z - before[1]);
+                    stationary = if movement < 0.01 { stationary + 1 } else { 0 };
+                    longest = longest.max(stationary);
+                    assert_eq!(player.hp, 100, "route must not rely on death/respawn");
+                    assert!((player.y - PLAYER_FLOOR_Y - floor).abs() < 0.01);
+                    if player.x.hypot(player.z + 60.0) < 0.75 {
+                        break;
+                    }
+                }
+                let player = &state.players[0];
+                assert!(
+                    longest < 100,
+                    "five-second stall from {start:?}, cadence {cadence}: {longest} ticks"
+                );
+                assert!(
+                    (player.x - start[0]).hypot(player.z - start[1]) > 5.0
+                        && player.x.hypot(player.z + 60.0) < start[0].hypot(start[1] + 60.0) - 3.0,
+                    "route made no progress from {start:?}, cadence {cadence}: ({}, {})",
+                    player.x,
+                    player.z
+                );
+            }
+        }
+    }
+
+    #[test]
     fn every_map_validates() {
         for map in MapKind::ALL {
             let problems = maps::validate(map);

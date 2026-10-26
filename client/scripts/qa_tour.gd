@@ -45,9 +45,12 @@ var _walk_results: Array[Dictionary] = []
 ## keyed by the pad's weapon (manifest `pad_routes`). Free-for-all lives
 ## start on the Pistol, so a weapon state takes its gun from the floor first.
 var _pad_routes: Dictionary = {}
-## Lives a pad route may spend before the tour gives up on that gun. The
-## joined tour fighter never shoots back, and with five bots and the drone
-## on Larak Lot four lives were not always enough to reach the Rail.
+var _pad_network: Node
+var _pad_generation: int = 0
+var _pad_round: int = -1
+var _pad_interrupted_by: String = ""
+## Lives a pad route may spend before the tour gives up on that gun. Known
+## routes use ordinary defensive fire; they are not fresh-player trials.
 const PAD_ATTEMPTS: int = 8
 ## The longest free-for-all pad clock (25 s) plus slack.
 const PAD_CLOCK_WAIT_MS: int = 27000
@@ -98,6 +101,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _finalize() -> void:
+	_disconnect_pad_network()
 	_discard_audio()
 	_combat_probe.finish()
 	MouseCapture.release()
@@ -962,6 +966,7 @@ func _director_record() -> Dictionary:
 	return {"reason": str(camera.get("director_reason")), "target": named}
 
 func _retire_scene() -> void:
+	_disconnect_pad_network()
 	_disconnect_grenade_strip()
 	if not _discard_audio():
 		push_error("qa_tour: Master recording effect remained during scene retirement")
@@ -1986,30 +1991,44 @@ func _owned_weapons() -> Array:
 ## live, so a death on the way starts the walk again from the next spawn. An
 ## arsenal life, or a gun already owned, walks nowhere. True once owned.
 func _take_from_pad(weapon: String) -> bool:
+	QaCombat.release_inputs()
+	var acquired: bool = await _take_from_pad_attempts(weapon)
+	QaCombat.release_inputs()
+	return acquired
+
+func _take_from_pad_attempts(weapon: String) -> bool:
 	var gm: Node = _game_manager()
 	var owned: Array = _owned_weapons()
 	if owned.is_empty() or owned.has(weapon.to_lower()):
 		return true
+	_watch_pad_network(gm.get("net_client") as Node)
 	for attempt: int in range(PAD_ATTEMPTS):
+		QaCombat.release_inputs()
 		if not await _wait_live_joined_fighter("pad " + weapon):
 			return false
+		var generation: int = _pad_generation
 		var map_routes: Variant = _pad_routes.get(str(int(gm.get("latest_snapshot").get("map_id", 0))), {})
 		var route: Variant = _pad_route_from((map_routes as Dictionary).get(weapon, []) if map_routes is Dictionary else [], _local_feet())
-		var alive: bool = true
+		var interrupted: bool = false
 		for point: Variant in (route if route is Array else []):
+			var arrived: bool = false
 			if point is Array and (point as Array).size() == 3:
-				await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
+				arrived = await _walk_to(Vector3(float(point[0]), float(point[1]), float(point[2])), false, "", true)
 			elif point is Dictionary and point.has("orbit") and point.has("to_degrees"):
 				await _orbit_to(float(point["orbit"]), deg_to_rad(float(point["to_degrees"])))
+				arrived = not _walk_results.is_empty() and bool(_walk_results.back().get("arrived", false))
+			var result: String = _pad_walk_result(arrived, generation, weapon)
+			if result == "failed":
+				return false
+			if result == "interrupted":
+				interrupted = true
+				break
 			# The route can cross the pad before its final waypoint. Do not
 			# wait for a pad we just emptied while already carrying the gun.
 			if _owned_weapons().has(weapon.to_lower()):
 				return true
-			alive = _local_human_alive(gm)
-			if not alive:
-				break
-		if not alive:
-			print("qa_tour: fragged on the way to a %s pad (attempt %d)" % [weapon, attempt + 1])
+		if interrupted:
+			print("qa_tour: interrupted %s pad route; retry from current spawn (attempt %d)" % [weapon, attempt + 1])
 			continue
 		# The nearest pad to where the route left the fighter. A taken pad is
 		# an appointment, as for a player: wait out its clock rather than
@@ -2024,26 +2043,86 @@ func _take_from_pad(weapon: String) -> bool:
 		if pad == null:
 			await create_timer(0.5).timeout
 			continue
+		# Route waypoints stop at the last clear approach, often well short
+		# of the pad. Reach it during its cooldown, then wait there for the
+		# ordinary pickup, rather than standing exposed off-pad for its clock.
+		var floor_y: float = pad.position.y - 0.4
+		var arrived: bool = await _walk_to(Vector3(pad.position.x, floor_y, pad.position.z), false, "", true)
+		var result: String = _pad_walk_result(arrived, generation, weapon)
+		if result == "failed":
+			return false
+		if result == "interrupted":
+			continue
 		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
-		while is_instance_valid(pad) and not bool(pad.get("available")) and _local_human_alive(gm) and Time.get_ticks_msec() < back_by:
+		while is_instance_valid(pad) and not bool(pad.get("available")) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < back_by:
 			if _owned_weapons().has(weapon.to_lower()):
 				return true
+			_combat_probe.defend_arena_pad(gm, Vector3.ZERO, false)
 			await create_timer(0.1).timeout
-		if _owned_weapons().has(weapon.to_lower()):
-			return true
-		if not is_instance_valid(pad) or not _local_human_alive(gm):
+		if not _pad_interruption(generation).is_empty() or not is_instance_valid(pad):
 			continue
-		var floor_y: float = pad.position.y - 0.4
-		await _walk_to(Vector3(pad.position.x, floor_y, pad.position.z), false, "", true)
 		var deadline: int = Time.get_ticks_msec() + 2000
-		while not _owned_weapons().has(weapon.to_lower()) and Time.get_ticks_msec() < deadline:
+		while not _owned_weapons().has(weapon.to_lower()) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < deadline:
+			_combat_probe.defend_arena_pad(gm, Vector3.ZERO, false)
 			await create_timer(0.05).timeout
+		if not _pad_interruption(generation).is_empty():
+			continue
 		if _owned_weapons().has(weapon.to_lower()):
 			print("qa_tour: took %s from %s on attempt %d" % [weapon, pad.get("pickup_id"), attempt + 1])
 			return true
-	push_error("qa_tour: the joined fighter never took a " + weapon + " from its pad")
-	_failed = true
+	_pad_failure("the joined fighter never took a " + weapon + " from its pad")
 	return false
+
+func _watch_pad_network(network: Node) -> void:
+	if network == _pad_network or not is_instance_valid(network):
+		return
+	_disconnect_pad_network()
+	_pad_network = network
+	network.event_received.connect(_observe_pad_event)
+
+func _disconnect_pad_network() -> void:
+	if is_instance_valid(_pad_network) and _pad_network.event_received.is_connected(_observe_pad_event):
+		_pad_network.event_received.disconnect(_observe_pad_event)
+	_pad_network = null
+	_pad_round = -1
+	_pad_generation += 1
+	_pad_interrupted_by = "connection"
+
+func _observe_pad_event(event: Dictionary) -> void:
+	if event.get("event") == "round_start" and EquipmentState.integer(event.get("round_number"), 4294967295) \
+			and int(event["round_number"]) > maxi(_pad_round, 0):
+		_pad_round = int(event["round_number"])
+		_pad_generation += 1
+		_pad_interrupted_by = "round"
+	elif event.get("event") == "frag" and is_instance_valid(_pad_network) \
+			and event.get("victim_id") is String and event["victim_id"] == _pad_network.get("player_id"):
+		_pad_generation += 1
+		_pad_interrupted_by = "death"
+
+func _pad_interruption(generation: int) -> String:
+	if generation != _pad_generation:
+		return _pad_interrupted_by
+	if _snapshot_round_state() in ["Ended", "Warmup"]:
+		return "round"
+	if not _local_human_alive(_game_manager()):
+		return "death"
+	return ""
+
+func _pad_walk_result(arrived: bool, generation: int, weapon: String) -> String:
+	var interruption: String = _pad_interruption(generation)
+	if interruption.is_empty() and not arrived and not _walk_results.is_empty():
+		interruption = str(_walk_results.back().get("interruption", ""))
+	if not interruption.is_empty():
+		print("qa_tour: %s pad walk interrupted by %s" % [weapon, interruption])
+		return "interrupted"
+	if arrived or _owned_weapons().has(weapon.to_lower()):
+		return "arrived"
+	_pad_failure("unexplained failed walk to " + weapon + "; route will not continue")
+	return "failed"
+
+func _pad_failure(message: String) -> void:
+	_failed = true
+	push_error("qa_tour: " + message)
 
 ## A manifest pad route is either one list of waypoints, or a list of
 ## {near: [x, z], points: [...]} alternatives for a map whose spawns sit in
@@ -2809,8 +2888,8 @@ func _jump_probe() -> void:
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
 ## Walk the joined fighter to `goal`; true on arrival. A failed walk fails the
-## tour unless it is `guide_only`: a free-for-all pad route is walked under
-## fire and only steers, and the server's loadout is what the tour checks.
+## tour unless it is `guide_only`: the caller distinguishes a pad route's
+## lifecycle interruption from a real walk failure and checks the loadout.
 func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "", guide_only: bool = false) -> bool:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
@@ -2822,14 +2901,18 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	Input.action_press(movement_action)
 	var arrived: bool = false
 	var stopped_for_round: bool = false
+	var pad_generation: int = _pad_generation
+	var interruption: String = ""
 	var anchor: Vector2 = Vector2(_local_feet().x, _local_feet().z)
 	while walking_ms < 15000 and fighting_ms < 25000:
 		var step_started: int = Time.get_ticks_msec()
 		await _record_companion_route()
 		if _combat_travel and _combat_probe.participant_died:
 			break
-		if guide_only and not _local_human_alive(_game_manager()):
-			break
+		if guide_only:
+			interruption = _pad_interruption(pad_generation)
+			if not interruption.is_empty():
+				break
 		var feet: Vector3 = _local_feet()
 		if not feet.is_finite():
 			break
@@ -2843,6 +2926,11 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
 			arrived = true
 			break
+		if guide_only and _combat_probe.defend_arena_pad(_game_manager(), goal, true):
+			_record_movement()
+			await create_timer(0.05).timeout
+			walking_ms += Time.get_ticks_msec() - step_started
+			continue
 		if _combat_travel and _combat_probe.travel(_game_manager(), anchor, _combat_travel_targets):
 			_record_movement()
 			await create_timer(0.05).timeout
@@ -2859,6 +2947,8 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 	var walk_result: Dictionary = {"goal": [goal.x, goal.y, goal.z], "arrived": arrived, "walking_ms": walking_ms, "fighting_ms": fighting_ms}
 	if stopped_for_round:
 		walk_result["stopped_for_round"] = true
+	if not interruption.is_empty():
+		walk_result["interruption"] = interruption
 	_walk_results.append(walk_result)
 	await create_timer(0.15).timeout
 	if not arrived:
