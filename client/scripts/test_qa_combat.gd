@@ -23,6 +23,18 @@ class PitchManager extends Node:
 	var latest_snapshot: Dictionary = {}
 	var net_client: Node
 
+class ArenaDefenseNetwork extends PitchNetwork:
+	var equipment: Dictionary = {}
+
+class ArenaDefenseManager extends PitchManager:
+	var current_map_info: Dictionary = {"solids": []}
+
+class ReloadObserver extends Node:
+	var requests: int = 0
+	func _input(event: InputEvent) -> void:
+		if event is InputEventAction and event.action == "reload" and event.pressed:
+			requests += 1
+
 class PitchTour extends TOUR:
 	var manager: Node
 	var camera: Node
@@ -98,6 +110,7 @@ func _run() -> void:
 	pad_tour.free()
 	pad_manager.free()
 	await _check_pad_interruption_recovery()
+	await _check_arena_pad_defense()
 	_check(QaCombat.valid_finish_search_route({}) and QaCombat.valid_finish_search_route({"finish_search_route":false}), "existing combat captures keep their completion behavior")
 	_check(not QaCombat.valid_finish_search_route({"finish_search_route":true,"search_route":[]}), "a return capture cannot accept an absent search loop")
 	var magazine: Dictionary = {"selected":"flechette", "ammo":[{"pool":"bullets","rounds":40}], "loaded":[{"weapon":"flechette","rounds":0}]}
@@ -658,6 +671,81 @@ func _check_pad_interruption_recovery() -> void:
 	tour.free()
 	network.free()
 	manager.free()
+
+func _check_arena_pad_defense() -> void:
+	var me: Dictionary = {"id": "local-human", "hp": 100, "x": 0.0, "y": 1.5, "z": 0.0, "team": "union"}
+	var foe: Dictionary = {"id": "foe", "hp": 100, "x": 5.0, "y": 1.5, "z": 0.0, "team": "coalition"}
+	var mate: Dictionary = foe.duplicate(true)
+	mate.merge({"id": "mate", "x": 1.0, "team": "union"}, true)
+	var dead: Dictionary = foe.duplicate(true)
+	dead.merge({"id": "dead", "x": 1.0, "hp": 0}, true)
+	var companion: Dictionary = foe.duplicate(true)
+	companion.merge({"id": "companion", "x": 1.0, "campaign": {"side": "free"}}, true)
+	var far: Dictionary = foe.duplicate(true)
+	far.merge({"id": "far", "x": 30.0}, true)
+	var snapshot: Dictionary = {"round_state": "Active", "players": [me, mate, dead, companion, far, foe]}
+	_check(QaCombat.arena_pad_target(snapshot, "local-human", []).get("id") == "foe",
+		"arena pad defense excludes self, teammate, dead, friendly campaign body and distant rival")
+	var ffa_me: Dictionary = me.duplicate(true)
+	var ffa_foe: Dictionary = foe.duplicate(true)
+	ffa_me.erase("team")
+	ffa_foe.erase("team")
+	_check(QaCombat.arena_pad_target({"players": [ffa_me, ffa_foe]}, "local-human", []).get("id") == "foe",
+		"ordinary free-for-all bodies without team fields remain eligible rivals")
+	var wall: Array = [{"min_x": 2.0, "max_x": 3.0, "min_z": -2.0, "max_z": 2.0, "bottom": 0.0, "top": 5.0}]
+	_check(QaCombat.arena_pad_target(snapshot, "local-human", wall).is_empty(), "arena pad defense cannot acquire through cover")
+	me["hp"] = 0
+	_check(QaCombat.arena_pad_target(snapshot, "local-human", []).is_empty(), "a dead local fighter cannot choose a rival")
+	me["hp"] = 100
+	var manager: ArenaDefenseManager = ArenaDefenseManager.new()
+	var network: ArenaDefenseNetwork = ArenaDefenseNetwork.new()
+	manager.net_client = network
+	manager.latest_snapshot = snapshot
+	var camera: Node3D = preload("res://scripts/spectator_cam.gd").new()
+	camera.name = "SpectatorCamera"
+	manager.add_child(camera)
+	var observer: ReloadObserver = ReloadObserver.new()
+	root.add_child(observer)
+	await process_frame
+	var defense: QaCombat = QaCombat.new()
+	var loadout: Dictionary = {"type": "loadout", "player_id": "local-human", "tick": 20, "selected": "tack",
+		"weapons": ["fists", "tack"], "ammo": [{"pool": "bullets", "rounds": 20}, {"pool": "shells", "rounds": 0},
+			{"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}], "loaded": [{"weapon": "tack", "rounds": 12}],
+		"personal_claims": [], "dry_fire_count": 0, "grenades": 0}
+	network.equipment = loadout.duplicate(true)
+	_check(defense.defend_arena_pad(manager, Vector3(0, 0, 10), true) and Input.is_action_pressed("fire")
+		and Input.is_action_pressed("move_right") and not Input.is_action_pressed("move_forward"),
+		"ordinary fire keeps the world route direction while facing a rival")
+	_check(network.equipment == loadout, "defensive input never rewrites ammunition or inventory")
+	manager.current_map_info["solids"] = wall
+	_check(not defense.defend_arena_pad(manager, Vector3.ZERO, false) and not Input.is_action_pressed("fire")
+		and not Input.is_action_pressed("move_right"), "new cover releases prior fire and movement immediately")
+	manager.current_map_info["solids"] = []
+	for invalid: Dictionary in [{}, {"selected": "tack"}, {"player_id": "other"}]:
+		network.equipment = invalid
+		_check(not defense.defend_arena_pad(manager, Vector3.ZERO, false) and not Input.is_action_pressed("fire"),
+			"missing or invalid loadout cannot fire")
+	await process_frame
+	_check(observer.requests == 0, "missing or invalid loadout cannot request a reload")
+	network.equipment = loadout.duplicate(true)
+	network.equipment["loaded"][0]["rounds"] = 0
+	_check(defense.defend_arena_pad(manager, Vector3.ZERO, false) and not Input.is_action_pressed("fire"),
+		"empty finite magazine requests reload without firing")
+	await process_frame
+	_check(observer.requests == 1 and network.equipment["loaded"][0]["rounds"] == 0,
+		"reload uses ordinary input without refilling the fixture magazine")
+	network.equipment["loaded"][0]["ready_at"] = 40
+	_check(not defense.defend_arena_pad(manager, Vector3.ZERO, false), "pending reload is neither fired nor restarted")
+	network.equipment["loaded"][0].erase("ready_at")
+	network.equipment["ammo"][0]["rounds"] = 0
+	_check(not defense.defend_arena_pad(manager, Vector3.ZERO, false) and not Input.is_action_pressed("fire"),
+		"exhausted ammunition stays exhausted")
+	await process_frame
+	_check(observer.requests == 1, "pending and exhausted magazines do not add reload requests")
+	QaCombat.release_inputs()
+	observer.free()
+	manager.free()
+	network.free()
 
 func _check_round_capture_prerequisite() -> void:
 	var tour: PitchTour = PitchTour.new()

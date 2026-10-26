@@ -73,8 +73,11 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_check(_completion.is_empty(), "available pad alone does not prove equipment ownership")
 	_owns_rail = true
+	Input.action_press("fire")
+	Input.action_press("move_right")
 	await _await_completion()
 	_check(_completion == [true] and _waits == 1, "acknowledged ownership completes the same attempt")
+	_check(not Input.is_action_pressed("fire") and not Input.is_action_pressed("move_right"), "pickup return releases held defensive input")
 	if _completion.is_empty():
 		quit(1)
 		return
@@ -87,9 +90,12 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_check(_goals.size() == 1 and _completion.is_empty(), "second attempt reaches the cooling pad")
 	network.event_received.emit({"event": "frag", "victim_id": network.player_id})
+	Input.action_press("fire")
+	Input.action_press("move_forward")
 	await _await_completion()
 	_check(_completion == [false] and _waits == 2 and _goals.size() == 1,
 		"death cancels the cooldown and requires a fresh living attempt")
+	_check(not Input.is_action_pressed("fire") and not Input.is_action_pressed("move_forward"), "interrupted return releases held defensive input")
 	_disconnect_pad_network()
 	pad.free()
 	network.free()

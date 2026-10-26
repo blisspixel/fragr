@@ -408,6 +408,61 @@ func travel(manager: Node, anchor: Vector2, allowed_names: Array = []) -> bool:
 	engage(manager, me, target, solids, anchor, true, true)
 	return true
 
+## Known-route arena capture control, not a constrained-player profile. It
+## reads visible rivals in every direction and aims accurately, but uses the
+## normal action channel, finite magazines, reloads and authored waypoints.
+static func arena_pad_target(snapshot: Dictionary, player_id: String, solids: Array) -> Dictionary:
+	var me: Dictionary = actor_by_id(snapshot, player_id)
+	if me.is_empty() or int(me["hp"]) <= 0:
+		return {}
+	var eye: Vector3 = Vector3(me.x, float(me.y) + CAMERA.FP_EYE_HEIGHT, me.z)
+	var nearest: Dictionary = {}
+	var distance: float = 24.0 * 24.0
+	for actor: Dictionary in snapshot.get("players", []):
+		if actor.get("id") == player_id or int(actor["hp"]) <= 0 \
+				or MatchRules.team_relation(str(me.get("team", "")), str(actor.get("team", ""))) == "mate" \
+				or (actor.has("campaign") and not ActorState.is_hostile(actor)):
+			continue
+		var point: Vector3 = exposed_point(actor, eye, solids)
+		if point.is_finite() and eye.distance_squared_to(point) < distance:
+			nearest = actor
+			distance = eye.distance_squared_to(point)
+	return nearest
+
+func defend_arena_pad(manager: Node, goal: Vector3, moving: bool) -> bool:
+	release_inputs()
+	var network: Node = manager.get("net_client")
+	if not is_instance_valid(network):
+		return false
+	var player_id: Variant = network.get("player_id")
+	var loadout: Variant = network.get("equipment")
+	var snapshot: Dictionary = manager.get("latest_snapshot")
+	if snapshot.get("round_state") != "Active" or not loadout is Dictionary \
+			or not EquipmentState.validation_error(loadout, player_id).is_empty():
+		return false
+	var map_value: Variant = manager.get("current_map_info")
+	if not map_value is Dictionary or not MissionState.id_for_map(map_value).is_empty():
+		return false
+	var map_info: Dictionary = map_value
+	# Keep melee and dry weapons on the route. This helper never switches or
+	# supplies equipment, and an in-flight reload remains server-owned.
+	var selected: String = loadout["selected"]
+	if selected in EquipmentState.MELEE or (EquipmentState.shots(loadout, selected) == 0 and not reload_needed(loadout)):
+		return false
+	var solids: Array = map_info.get("solids", [])
+	var target: Dictionary = arena_pad_target(snapshot, player_id, solids)
+	if target.is_empty():
+		return false
+	var me: Dictionary = actor_by_id(snapshot, player_id)
+	engage(manager, me, target, solids, Vector2(me.x, me.z), false, true)
+	if moving:
+		var camera: Node3D = manager.get_node("SpectatorCamera")
+		var buttons: Dictionary[String, bool] = route_buttons(Vector2(goal.x - float(me.x), goal.z - float(me.z)), float(camera.get("fp_yaw")))
+		for action: String in buttons:
+			if buttons[action]:
+				Input.action_press(action)
+	return true
+
 static func release_inputs() -> void:
 	for action: String in ["fire", "move_forward", "move_back", "move_left", "move_right"]:
 		Input.action_release(action)

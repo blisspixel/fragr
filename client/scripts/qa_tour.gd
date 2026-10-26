@@ -49,9 +49,8 @@ var _pad_network: Node
 var _pad_generation: int = 0
 var _pad_round: int = -1
 var _pad_interrupted_by: String = ""
-## Lives a pad route may spend before the tour gives up on that gun. The
-## joined tour fighter never shoots back, and with five bots and the drone
-## on Larak Lot four lives were not always enough to reach the Rail.
+## Lives a pad route may spend before the tour gives up on that gun. Known
+## routes use ordinary defensive fire; they are not fresh-player trials.
 const PAD_ATTEMPTS: int = 8
 ## The longest free-for-all pad clock (25 s) plus slack.
 const PAD_CLOCK_WAIT_MS: int = 27000
@@ -1992,12 +1991,19 @@ func _owned_weapons() -> Array:
 ## live, so a death on the way starts the walk again from the next spawn. An
 ## arsenal life, or a gun already owned, walks nowhere. True once owned.
 func _take_from_pad(weapon: String) -> bool:
+	QaCombat.release_inputs()
+	var acquired: bool = await _take_from_pad_attempts(weapon)
+	QaCombat.release_inputs()
+	return acquired
+
+func _take_from_pad_attempts(weapon: String) -> bool:
 	var gm: Node = _game_manager()
 	var owned: Array = _owned_weapons()
 	if owned.is_empty() or owned.has(weapon.to_lower()):
 		return true
 	_watch_pad_network(gm.get("net_client") as Node)
 	for attempt: int in range(PAD_ATTEMPTS):
+		QaCombat.release_inputs()
 		if not await _wait_live_joined_fighter("pad " + weapon):
 			return false
 		var generation: int = _pad_generation
@@ -2051,11 +2057,13 @@ func _take_from_pad(weapon: String) -> bool:
 		while is_instance_valid(pad) and not bool(pad.get("available")) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < back_by:
 			if _owned_weapons().has(weapon.to_lower()):
 				return true
+			_combat_probe.defend_arena_pad(gm, Vector3.ZERO, false)
 			await create_timer(0.1).timeout
 		if not _pad_interruption(generation).is_empty() or not is_instance_valid(pad):
 			continue
 		var deadline: int = Time.get_ticks_msec() + 2000
 		while not _owned_weapons().has(weapon.to_lower()) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < deadline:
+			_combat_probe.defend_arena_pad(gm, Vector3.ZERO, false)
 			await create_timer(0.05).timeout
 		if not _pad_interruption(generation).is_empty():
 			continue
@@ -2880,8 +2888,8 @@ func _jump_probe() -> void:
 	print("qa_tour: jump peak %.3f m, eye rise %.3f m" % [peak - start.y, camera_peak - camera_start])
 
 ## Walk the joined fighter to `goal`; true on arrival. A failed walk fails the
-## tour unless it is `guide_only`: a free-for-all pad route is walked under
-## fire and only steers, and the server's loadout is what the tour checks.
+## tour unless it is `guide_only`: the caller distinguishes a pad route's
+## lifecycle interruption from a real walk failure and checks the loadout.
 func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String = "", guide_only: bool = false) -> bool:
 	# Keep the original movement bound. Opt-in combat uses a separate bounded
 	# allowance, because the controller intentionally stops walking to fight.
@@ -2918,6 +2926,11 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.3 and absf(feet.y - goal.y) < 0.03:
 			arrived = true
 			break
+		if guide_only and _combat_probe.defend_arena_pad(_game_manager(), goal, true):
+			_record_movement()
+			await create_timer(0.05).timeout
+			walking_ms += Time.get_ticks_msec() - step_started
+			continue
 		if _combat_travel and _combat_probe.travel(_game_manager(), anchor, _combat_travel_targets):
 			_record_movement()
 			await create_timer(0.05).timeout
