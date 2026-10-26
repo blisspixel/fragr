@@ -241,3 +241,149 @@ fn late_campaign_retry_restores_entry_without_rewinding_or_fabricating_outcomes(
         source = completed(next);
     }
 }
+
+#[test]
+fn exhausted_m18_and_m19_entries_stay_failed_and_refuse_still_here() {
+    use crate::{
+        maps::AuthoredSource,
+        protocol::{CampaignDifficulty, CampaignRunStatus, MissionContinue, MissionReady, Role},
+        session::GameSession,
+    };
+    // Explicit entry/death fixtures, not inherited campaign clears or a
+    // measure of encounter difficulty. Earlier receipts use this owner's
+    // existing setup; no route, objective or survival result is played here.
+    let hashes = CAMPAIGN_MISSIONS.map(AuthoredSource::bundled_content_sha256);
+    let mut source = m15_tests::completed_stadium();
+    for mission in [
+        MissionId::FreedomOfMovement,
+        MissionId::PeaceWithoutInterruption,
+        MissionId::AllSystemsNormal,
+        MissionId::PlannedWorks,
+    ] {
+        let hash = hashes[stage_index(mission)];
+        let entry = source.promote_next(mission, hash).unwrap();
+        if matches!(
+            mission,
+            MissionId::AllSystemsNormal | MissionId::PlannedWorks
+        ) {
+            for difficulty in [
+                CampaignDifficulty::Assisted,
+                CampaignDifficulty::Standard,
+                CampaignDifficulty::Severe,
+            ] {
+                let mut boundary = entry.clone();
+                boundary.rules.difficulty = difficulty;
+                boundary.remaining_continues = 0;
+                let SavedStep::MissionEntry {
+                    entry: resources, ..
+                } = &mut boundary.step
+                else {
+                    unreachable!()
+                };
+                resources.hp = 1;
+                resources.armor = 0;
+                boundary.validate(hash).unwrap();
+                let attempt = boundary.attempt();
+                let map = AuthoredSource::Mission(mission).load().unwrap();
+                let mut session = GameSession::with_authored_map(map.clone());
+                session.state.load_campaign_run(&boundary).unwrap();
+                let id = Uuid::from_u128(1819);
+                session
+                    .state
+                    .add_player(id, "Exhaustion fixture".into(), Role::Human);
+                assert!(session.state.acknowledge_mission(
+                    id,
+                    MissionReady {
+                        id: mission,
+                        attempt,
+                    }
+                ));
+                let before = session.state.campaign_run_document().unwrap().unwrap();
+                assert_eq!(before, boundary, "admission preserves the declared entry");
+                let player = session
+                    .state
+                    .players
+                    .iter()
+                    .position(|p| p.id == id)
+                    .unwrap();
+                assert_eq!(
+                    (
+                        session.state.players[player].hp,
+                        session.state.players[player].armor
+                    ),
+                    (1, 0)
+                );
+                // Apply the labelled lethal fixture through damage accounting;
+                // the ordinary tick owns the failed run and refusal thereafter.
+                session.state.environmental_self_damage(player, 1);
+                session.tick_messages(0.05);
+                let state = session.state.mission_state().unwrap();
+                state.validate(session.state.tick).unwrap();
+                assert_eq!(state.run.unwrap().status, CampaignRunStatus::Failed);
+                let failed = session.state.campaign_run_document().unwrap().unwrap();
+                let SavedStep::MissionEntry {
+                    entry: resources, ..
+                } = before.step.clone()
+                else {
+                    unreachable!()
+                };
+                let mut expected = before;
+                expected.step = SavedStep::Failed {
+                    mission,
+                    entry: resources,
+                };
+                assert_eq!(
+                    failed, expected,
+                    "death preserves every receipt and entry resource"
+                );
+                assert_eq!(failed.remaining_continues, 0);
+                assert!(!failed.survived_the_wipe());
+                let retry = MissionContinue {
+                    id: mission,
+                    run_id: failed.id,
+                    attempt,
+                };
+                for _ in 0..2 {
+                    assert!(!session.state.continue_mission(id, retry));
+                    session.tick_messages(0.05);
+                    assert_eq!(
+                        session.state.campaign_run_document().unwrap().unwrap(),
+                        failed
+                    );
+                }
+                assert_eq!(session.state.player_record(id).unwrap().total.deaths, 1);
+                let directory =
+                    std::env::temp_dir().join(format!("fragr-exhausted-wipe-{}", Uuid::new_v4()));
+                let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+                store.save(&failed).unwrap();
+                drop(store);
+                let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+                let reopened = store.load().unwrap().unwrap();
+                assert_eq!(reopened, failed);
+                reopened.validate(hash).unwrap();
+                assert!(GameSession::with_authored_map(map)
+                    .state
+                    .load_campaign_run(&reopened)
+                    .is_err());
+                let epilogue = AuthoredSource::Mission(MissionId::StillHere)
+                    .load()
+                    .unwrap();
+                assert_eq!(
+                    GameSession::with_authored_map(epilogue)
+                        .state
+                        .load_epilogue_entitlement(&reopened, hash),
+                    Err("only a recorded survival of Local Exception opens Still Here")
+                );
+                drop(store);
+                fs::remove_dir_all(directory).unwrap();
+            }
+        }
+        if mission != MissionId::PlannedWorks {
+            // Advance only the setup receipts, never the tested failed run.
+            let setup = source
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .unwrap();
+            source = completed(setup);
+        }
+    }
+}

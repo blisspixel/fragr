@@ -74,8 +74,11 @@ epilogue opens that file read-only. Replay starts at first light, cannot consume
 continues, alter recorded rescues or replace the main run, and does not save
 mid-walk progress. The threshold regression covers one HP and zero continues
 on every difficulty, plus death at that same boundary, duplicate terminal facts
-and two read-only opens through the local server. It is an isolated lifecycle
-fixture, not a claim to have earned the preceding campaign.
+and two read-only opens through the local server. Separate entry fixtures cover
+exhaustion in levels 18 and 19 on every difficulty, including repeated retry
+refusal, unchanged outcomes and failed-run refusal after disk reopen. These
+are isolated lifecycle fixtures, not claims to have earned the preceding
+campaign or measured the fights.
 
 Test failure with allowance, exhaustion, survival at the threshold, duplicate
 completion, skipped scenes, muted audio, human/agent control, spectator transitions
