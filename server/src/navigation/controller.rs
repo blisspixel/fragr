@@ -98,13 +98,7 @@ impl Navigator {
         allow_search: bool,
         visibility: &[Solid],
     ) -> Action {
-        let mut arena = crate::movement::Arena {
-            half: world.arena.half,
-            solids: visibility.to_vec(),
-        };
-        arena
-            .solids
-            .extend(snapshot.vehicles.iter().map(crate::vehicles::hull));
+        let arena = Self::snapshot_arena(world, snapshot, visibility);
         let steered = self.route_snapshot_with_visibility(
             world,
             id,
@@ -115,6 +109,22 @@ impl Navigator {
         );
         let bodies = Self::snapshot_bodies(snapshot);
         self.avoid_bodies(&arena, id, &bodies, steered, snapshot.tick)
+    }
+
+    /// Route and local avoidance must share the same observed vehicle hulls.
+    pub(crate) fn snapshot_arena(
+        world: &Navigation,
+        snapshot: &Snapshot,
+        visibility: &[Solid],
+    ) -> crate::movement::Arena {
+        let mut arena = crate::movement::Arena {
+            half: world.arena.half,
+            solids: visibility.to_vec(),
+        };
+        arena
+            .solids
+            .extend(snapshot.vehicles.iter().map(crate::vehicles::hull));
+        arena
     }
 
     pub(crate) fn snapshot_bodies(
