@@ -23,6 +23,9 @@ Release history, newest first. Planned work stays in
 - Report incomplete install-check connections immediately with bounded server
   diagnostics, and confirm owned process retirement without querying a reaped
   PID or treating failed termination as success.
+- Qualify one-HP finale survival, exhaustion in levels 18 to 20, repeated
+  completion and read-only epilogue replay. Refuse named review captures when
+  their scene, settled arrival or image write did not actually succeed.
 
 ## v0.92.0 - 2026-10-25
 
