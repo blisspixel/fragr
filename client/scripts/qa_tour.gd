@@ -2037,21 +2037,22 @@ func _take_from_pad(weapon: String) -> bool:
 		if pad == null:
 			await create_timer(0.5).timeout
 			continue
-		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
-		while is_instance_valid(pad) and not bool(pad.get("available")) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < back_by:
-			if _owned_weapons().has(weapon.to_lower()):
-				return true
-			await create_timer(0.1).timeout
-		if not _pad_interruption(generation).is_empty() or not is_instance_valid(pad):
-			continue
-		if _owned_weapons().has(weapon.to_lower()):
-			return true
+		# Route waypoints stop at the last clear approach, often well short
+		# of the pad. Reach it during its cooldown, then wait there for the
+		# ordinary pickup, rather than standing exposed off-pad for its clock.
 		var floor_y: float = pad.position.y - 0.4
 		var arrived: bool = await _walk_to(Vector3(pad.position.x, floor_y, pad.position.z), false, "", true)
 		var result: String = _pad_walk_result(arrived, generation, weapon)
 		if result == "failed":
 			return false
 		if result == "interrupted":
+			continue
+		var back_by: int = Time.get_ticks_msec() + PAD_CLOCK_WAIT_MS
+		while is_instance_valid(pad) and not bool(pad.get("available")) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < back_by:
+			if _owned_weapons().has(weapon.to_lower()):
+				return true
+			await create_timer(0.1).timeout
+		if not _pad_interruption(generation).is_empty() or not is_instance_valid(pad):
 			continue
 		var deadline: int = Time.get_ticks_msec() + 2000
 		while not _owned_weapons().has(weapon.to_lower()) and _pad_interruption(generation).is_empty() and Time.get_ticks_msec() < deadline:
