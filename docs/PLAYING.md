@@ -235,7 +235,7 @@ the pad in hand (Xbox name first, PlayStation second below).
 | Dodge (arena) | Left Shift | Left Shift | not bound (rebindable) |
 | Reload | R | R | X / Square |
 | Use | Enter | F | Y / Triangle |
-| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB / L1 and R1 |
+| Weapons | [ and ], or 1 through 7 | Wheel, [ and ], or 1 through 7 | LB and RB / L1 and R1 |
 | Vehicle seat swap | [ and ] | Wheel | LB and RB / L1 and R1 |
 | Throw grenade | G | G or middle mouse | D-pad up |
 | Place mine | B | B | D-pad down |
@@ -288,13 +288,16 @@ Hold Left Ctrl, or B or Circle on a pad, to crouch. The camera and body lower, m
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
 or Standard aim assist, which moves the aim sent to the server; the server
-still decides hits. Hold scope on the Sniper Rifle only. It narrows the local
-view and slows look, on the mouse and on keys. It does not decide the hit.
+still decides hits. Scope works on the Sniper Rifle only. Settings > Look
+offers Hold 4x, Toggle 4x, or Cycle 2x/4x/open. It narrows the local view and
+slows look, on mouse, keys and pad. It does not decide the hit. Changing weapons,
+dying or opening a menu clears zoom.
 The [input plan](plans/input-all-devices.md) records
 the behavior and verification.
 
-The numbered weapon order is fists or found Shiv, pistol, shotgun, rifle,
-railgun and sniper. Key 4 cycles owned Rifle and Repeater; key 5 cycles owned
+The numbered weapon order is melee, pistol, shotgun, rifle, railgun, sniper
+and Rocket Launcher. Key 1 cycles owned melee weapons; key 4 cycles owned
+Rifle and Repeater; key 5 cycles owned
 Railgun and Arc. The Repeater foundation is not granted in current campaign
 maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The

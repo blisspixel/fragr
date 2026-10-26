@@ -653,6 +653,11 @@ func _run() -> void:
 				push_error("qa_tour: %s has the wrong magnification" % state_name)
 				_failed = true
 			Input.action_release("scope")
+			# A following state may select an already-held weapon without
+			# yielding. Let the real input loop observe this release before
+			# another press, as a player's toggle/cycle input would.
+			await process_frame
+			await process_frame
 		var shot: Image = measured.get("shot")
 		if shot == null:
 			push_error("qa_tour: no frame for state " + state_name)

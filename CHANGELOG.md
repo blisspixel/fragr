@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.92.0 - 2026-10-25
 
 - Add Hold 4x, Toggle 4x and Cycle 2x/4x/open Sniper scope preferences, with
   consistent optical magnification across field-of-view settings. Key 7
