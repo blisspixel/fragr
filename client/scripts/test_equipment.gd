@@ -227,6 +227,18 @@ func _run() -> void:
 	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(not network.sent.back().has("weapon_swap"), "the discrete fists choice is transmitted once")
+	var launcher_key: InputEventKey = InputEventKey.new()
+	launcher_key.physical_keycode = KEY_7
+	launcher_key.pressed = true
+	manager._input(launcher_key)
+	_check(manager.pending_weapon_swap == null, "7 cannot select an unowned launcher")
+	network.equipment["weapons"].append("rocket")
+	manager._input(launcher_key)
+	_check(manager.pending_weapon_swap == "rocket", "7 selects a recovered launcher through live input")
+	manager._last_action_usec = -1000000000
+	manager._process(0.001)
+	_check(network.sent.back().get("weapon_swap") == "rocket", "7 reaches the ordinary server action as rocket")
+	network.equipment = state.duplicate(true)
 	var magazine: Dictionary = state.duplicate(true)
 	magazine["tick"] = 21
 	magazine["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}]
