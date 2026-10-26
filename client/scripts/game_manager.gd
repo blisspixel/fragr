@@ -149,6 +149,7 @@ var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
+var _continue_context: String = ""
 var _continue_attempt_sent: int = -1
 ## A completed local run can go straight on to its saved next mission. The
 ## boot menu reads LocalMatch.ONWARD_META once and opens Continue Run.
@@ -2210,10 +2211,17 @@ func _reset_local_fire() -> void:
 
 func _on_mission_received(state: Dictionary) -> void:
 	var receipt: String = "%s:%d" % [str(state.get("id", "")), int(state.get("attempt", 0))] if not state.is_empty() else ""
+	var run: Variant = state.get("run")
+	var continuation: String = "%s:%s" % [receipt, str(run.get("id", ""))] if run is Dictionary and run.get("status") == "continue" else ""
+	# A refresh of the same pending retry must not disarm a fresh accept
+	# press between network polling and input delivery. New runs, attempts
+	# and non-continue states still require input release before arming.
+	if continuation.is_empty() or continuation != _continue_context:
+		_continue_armed = false
+	_continue_context = continuation
 	if not _event_mission_receipt.is_empty() and receipt != _event_mission_receipt:
 		hud.reset_event_context()
 	_event_mission_receipt = receipt
-	_continue_armed = false
 	if is_instance_valid(departure_review):
 		if not _m05_departure_available():
 			_close_departure_review()

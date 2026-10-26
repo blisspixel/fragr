@@ -9,6 +9,8 @@ Release history, newest first. Planned work stays in
 - Add Hold 4x, Toggle 4x and Cycle 2x/4x/open Sniper scope preferences, with
   consistent optical magnification across field-of-view settings. Key 7
   selects an owned Rocket Launcher without cycling past the other guns.
+- Keep a fresh Continue press armed when the server refreshes the same
+  pending retry, while still requiring released input for a new attempt.
 - Replace repeated campaign prose boards with painted marks, notices and
   physical props. Keep directions and essential teaching cues short, remove
   league slogans from campaign skylines, and clear text from prop hardware.
