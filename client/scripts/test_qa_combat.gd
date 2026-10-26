@@ -15,6 +15,7 @@ class ApproachProbe extends QaCombat:
 		fired = fired or allow_fire
 
 class PitchNetwork extends Node:
+	signal event_received(data: Dictionary)
 	var player_id: String = "local-human"
 
 class PitchManager extends Node:
@@ -34,6 +35,8 @@ class PitchTour extends TOUR:
 
 class PadTour extends PitchTour:
 	var walks: int = 0
+	func _local_human_alive(_manager: Node) -> bool:
+		return true
 	func _owned_weapons() -> Array:
 		return ["pistol", "rail"] if walks > 0 else ["pistol"]
 	func _wait_live_joined_fighter(_state_name: String) -> bool:
@@ -44,6 +47,40 @@ class PadTour extends PitchTour:
 		walks += 1
 		return true
 
+class InterruptedPadTour extends PitchTour:
+	var cause: String = "round"
+	var waits: int = 0
+	var goals: Array[Vector3] = []
+	var failures: Array[String] = []
+	func _owned_weapons() -> Array:
+		# A stale old-life loadout cannot turn an interrupted walk into success.
+		return ["tack", "rail"] if goals.size() > 1 else ["tack"]
+	func _wait_live_joined_fighter(_state_name: String) -> bool:
+		waits += 1
+		manager.latest_snapshot["round_state"] = "Active"
+		return true
+	func _local_human_alive(_manager: Node) -> bool:
+		return true
+	func _local_feet() -> Vector3:
+		return Vector3.ZERO
+	func _walk_to(goal: Vector3, _look_back: bool = false, _stop_round_state: String = "", _guide_only: bool = false) -> bool:
+		goals.append(goal)
+		if goals.size() == 1 or cause == "exhausted":
+			if cause in ["round", "exhausted"]:
+				# Latest snapshot is Active on both sides of a complete reset.
+				manager.net_client.event_received.emit({"event": "round_start", "round_number": waits + 1})
+			elif cause == "death":
+				manager.net_client.event_received.emit({"event": "frag", "victim_id": "local-human"})
+			elif cause == "phase":
+				manager.latest_snapshot["round_state"] = "Ended"
+			_walk_results.append({"arrived": false})
+			return false
+		_walk_results.append({"arrived": true})
+		return true
+	func _pad_failure(message: String) -> void:
+		_failed = true
+		failures.append(message)
+
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -53,13 +90,14 @@ func _initialize() -> void:
 func _run() -> void:
 	var pad_tour: PadTour = PadTour.new()
 	var pad_manager: PitchManager = PitchManager.new()
-	pad_manager.latest_snapshot = {"map_id": 1}
+	pad_manager.latest_snapshot = {"map_id": 1, "round_state": "Active"}
 	pad_tour.manager = pad_manager
 	pad_tour._pad_routes = {"1": {"Rail": [[0, 0, 1], [0, 0, 2]]}}
 	_check(await pad_tour._take_from_pad("Rail") and pad_tour.walks == 1,
 		"a route pickup completes acquisition without waiting on the emptied pad")
 	pad_tour.free()
 	pad_manager.free()
+	await _check_pad_interruption_recovery()
 	_check(QaCombat.valid_finish_search_route({}) and QaCombat.valid_finish_search_route({"finish_search_route":false}), "existing combat captures keep their completion behavior")
 	_check(not QaCombat.valid_finish_search_route({"finish_search_route":true,"search_route":[]}), "a return capture cannot accept an absent search loop")
 	var magazine: Dictionary = {"selected":"flechette", "ammo":[{"pool":"bullets","rounds":40}], "loaded":[{"weapon":"flechette","rounds":0}]}
@@ -564,6 +602,60 @@ func _check_aim_pitch() -> void:
 	await process_frame
 	tour.free()
 	camera.free()
+	network.free()
+	manager.free()
+
+func _check_pad_interruption_recovery() -> void:
+	for cause: String in ["round", "phase", "death", "timeout", "exhausted"]:
+		var tour: InterruptedPadTour = InterruptedPadTour.new()
+		var manager: PitchManager = PitchManager.new()
+		var network: PitchNetwork = PitchNetwork.new()
+		manager.net_client = network
+		manager.latest_snapshot = {"map_id": 1, "round_state": "Active"}
+		tour.manager = manager
+		tour.cause = cause
+		tour._pad_routes = {"1": {"Rail": [[0, 0, 1], [0, 0, 2]]}}
+		var acquired: bool = await tour._take_from_pad("Rail")
+		if cause == "timeout":
+			_check(not acquired and tour._failed and tour.waits == 1 and tour.goals.size() == 1 \
+				and tour.failures.size() == 1 and tour.failures[0].contains("unexplained"),
+				"an unexplained failed waypoint stops the tour instead of advancing or retrying")
+		elif cause == "exhausted":
+			_check(not acquired and tour._failed and tour.waits == TOUR.PAD_ATTEMPTS \
+				and tour.goals.size() == TOUR.PAD_ATTEMPTS and tour.failures.size() == 1,
+				"interruptions consume the existing attempt ceiling, despite stale owned equipment")
+		else:
+			_check(acquired and not tour._failed and tour.waits == 2 and tour.failures.is_empty() \
+				and tour.goals == [Vector3(0, 0, 1), Vector3(0, 0, 1)],
+				cause + " interruption restarts the first waypoint of a fresh route")
+		tour._disconnect_pad_network()
+		var retired: int = tour._pad_generation
+		network.event_received.emit({"event": "round_start", "round_number": 100})
+		_check(tour._pad_generation == retired, "retired pad observers do not receive further events")
+		tour.free()
+		network.free()
+		manager.free()
+	var tour: InterruptedPadTour = InterruptedPadTour.new()
+	var manager: PitchManager = PitchManager.new()
+	var network: PitchNetwork = PitchNetwork.new()
+	manager.net_client = network
+	manager.latest_snapshot = {"round_state": "Active"}
+	tour.manager = manager
+	tour._watch_pad_network(network)
+	network.event_received.emit({"event": "round_start", "round_number": 2})
+	var generation: int = tour._pad_generation
+	for number: Variant in [2, 1, 0, -1, 2.5, "3", NAN, INF]:
+		network.event_received.emit({"event": "round_start", "round_number": number})
+		network.event_received.emit({"event": "frag", "victim_id": "other-human"})
+	_check(tour._pad_interruption(generation).is_empty(), "duplicate, stale, malformed or unrelated events preserve the current route")
+	for phase: String in ["Ended", "Warmup"]:
+		manager.latest_snapshot["round_state"] = phase
+		_check(tour._pad_interruption(generation) == "round", "a live non-Active phase interrupts walking")
+	manager.latest_snapshot["round_state"] = "Active"
+	network.event_received.emit({"event": "round_start", "round_number": 3})
+	_check(tour._pad_interruption(generation) == "round", "a new Active round is detected even if intermediate snapshots were skipped")
+	tour._disconnect_pad_network()
+	tour.free()
 	network.free()
 	manager.free()
 
