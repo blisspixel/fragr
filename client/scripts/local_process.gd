@@ -8,8 +8,10 @@ var _stderr: FileAccess
 var _error_pending: PackedByteArray = PackedByteArray()
 var _error_lines: Array[String] = []
 var _discard_error_line: bool = false
-## An observed exit or successful owned termination, not a later PID lookup.
+## Only a polled exit is observed. OS.kill can merely accept an asynchronous
+## termination, after which its native handle is no longer ours to query.
 var retirement_confirmed: bool = true
+var termination_accepted: bool = false
 var retirement_error: Error = OK
 
 func start(executable: String, arguments: PackedStringArray) -> bool:
@@ -23,6 +25,7 @@ func start(executable: String, arguments: PackedStringArray) -> bool:
 	_stdio = child["stdio"] as FileAccess
 	_stderr = child["stderr"] as FileAccess
 	retirement_confirmed = false
+	termination_accepted = false
 	retirement_error = OK
 	return true
 
@@ -76,15 +79,16 @@ func request_stop() -> void:
 		_stdio.close()
 
 func dispose() -> void:
-	if retirement_error != OK:
+	if retirement_error != OK or termination_accepted:
 		return
 	if running():
 		retirement_error = _terminate_owned_process()
 		if retirement_error != OK:
 			retirement_confirmed = false
 			return
+		termination_accepted = true
+		retirement_confirmed = false
 	_pid = -1
-	retirement_confirmed = true
 	if _stdio != null and _stdio.is_open():
 		_stdio.close()
 	if _stderr != null and _stderr.is_open():

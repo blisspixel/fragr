@@ -20,6 +20,9 @@ var _peer: Node
 var _map: Dictionary = {}
 var _snapshot: Dictionary = {}
 var _preview_status: String = ""
+var _finish_pending: bool = false
+var _finish_passed: bool = false
+var _finish_detail: String = ""
 
 static func requested() -> bool:
 	return FLAG in OS.get_cmdline_user_args()
@@ -173,6 +176,11 @@ static func _current_composition_error() -> String:
 	return ""
 
 func _process(_delta: float) -> void:
+	if _finish_pending:
+		if _host.state != LocalHost.State.STOPPING:
+			_finish_pending = false
+			_complete_finish(_finish_passed, _finish_detail)
+		return
 	if _deadline > 0 and Time.get_ticks_msec() > _deadline:
 		_finish(false, _phase + " timed out")
 		return
@@ -264,6 +272,7 @@ func _close_peer() -> void:
 	_peer = null
 
 func _exit_tree() -> void:
+	_finish_pending = false
 	_close_peer()
 	if _owns_host and is_instance_valid(_host):
 		_host.stop()
@@ -287,11 +296,24 @@ func _finish(passed: bool, detail: String) -> void:
 	_close_peer()
 	if _owns_host and is_instance_valid(_host):
 		_host.stop()
-		_host.process.dispose()
+		if _host.state == LocalHost.State.STOPPING:
+			# LocalHost already owns the bounded graceful Stop and its fallback.
+			# Finish through the normal frame loop so teardown leaves no waiter.
+			_finish_pending = true
+			_finish_passed = passed
+			_finish_detail = detail
+			set_process(true)
+			return
+	_complete_finish(passed, detail)
+
+func _complete_finish(passed: bool, detail: String) -> void:
+	set_process(false)
+	if _owns_host and is_instance_valid(_host):
 		if not _host.process.retirement_confirmed:
 			passed = false
-			detail += "; owned arena retirement unconfirmed (error %s)" % _host.process.retirement_error
-		else:
+			detail += "; owned arena termination accepted but exit unobserved" if _host.process.termination_accepted \
+				else "; owned arena retirement unconfirmed (error %s)" % _host.process.retirement_error
+		if _host.process.retirement_confirmed or _host.process.termination_accepted:
 			_owns_host = false
 	if _local.run_preview_changed.is_connected(_on_preview):
 		_local.run_preview_changed.disconnect(_on_preview)
