@@ -22,7 +22,7 @@ const ACTIONS: Array[String] = [
 	"move_forward", "move_back", "move_left", "move_right", "strafe", "jump", "dodge", "duck",
 	"turn_left", "turn_right", "look_up", "look_down", "center_view",
 	"fire", "reload", "scope", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "weapon_next", "weapon_prev",
-	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
+	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6", "weapon_7",
 	"scoreboard", "speak", "pause", "leave_match",
 	"join_as_human", "cycle_cam", "toggle_follow",
 	"radio_prev_station", "radio_next_station", "radio_next_track", "radio_toggle",
@@ -42,7 +42,7 @@ const EVERYWHERE: Array[String] = ["scoreboard", "pause", "radio_prev_station", 
 const NO_PAD_DEFAULT: Array[String] = [
 	"move_forward", "move_back", "move_left", "move_right", "strafe",
 	"turn_left", "turn_right", "look_up", "look_down", "center_view",
-	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
+	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6", "weapon_7",
 	"speak", "leave_match", "radio_next_track", "radio_toggle", "dodge",
 ]
 

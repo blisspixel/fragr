@@ -219,6 +219,7 @@ func set_weapon_finish(finish: String) -> void:
 		fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(current_fp_weapon) else null
 ## Presentation-only scope for the Sniper Rifle. The server owns aim and hits.
 var sniper_scope: SniperScope
+var scope_mode: int = 0
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
 var crawler_caption: CrawlerCaption
@@ -309,6 +310,7 @@ func _ready():
 	sniper_scope = SniperScope.new()
 	sniper_scope.name = "SniperScope"
 	add_child(sniper_scope)
+	sniper_scope.set_mode(scope_mode)
 	frag_feed = FragFeed.new()
 	frag_feed.name = "FragFeed"
 	add_child(frag_feed)
@@ -1286,6 +1288,9 @@ func show_critical_crossing(before: int, after: int) -> void:
 	_critical_pulse.tween_property(health_value, "scale", Vector2.ONE, 0.18)
 
 func apply_preferences(settings: FragrSettings) -> void:
+	scope_mode = int(settings.get_value("controls", "scope_mode"))
+	if sniper_scope != null:
+		sniper_scope.set_mode(scope_mode)
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
 	announcer = settings.announcer()

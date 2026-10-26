@@ -24,6 +24,6 @@ const SCOPE_OUT_SOUND: String = "res://assets/audio/sniper/scope_out.wav"
 const CURFEW_CHIME_SOUND: String = "res://assets/audio/l07/curfew_chime.wav"
 
 ## Scoped view: the field of view shrinks to this share of the player's setting.
-const SCOPE_FOV_FACTOR: float = 0.3
+const SCOPE_FOV_FACTOR: float = 0.25
 ## Seconds to settle into or out of the scope.
 const SCOPE_SETTLE_SECONDS: float = 0.12

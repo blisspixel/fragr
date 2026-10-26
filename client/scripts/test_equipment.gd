@@ -53,7 +53,7 @@ func _run() -> void:
 	_check(EquipmentState.validation_error(automatic, "self").is_empty(), "real Repeater is a distinct owned gun")
 	var family: Array[String] = EquipmentState.carried_names(automatic)
 	_check(EquipmentState.slot_if_owned(family, 4, "flechette") == "repeater" and EquipmentState.slot_if_owned(family, 4, "repeater") == "flechette", "key four cycles the two owned automatic guns")
-	_check(EquipmentState.slot_if_owned(family, 3, "repeater") == "scatter" and EquipmentState.SLOTS.size() == 6, "shotgun key three and all six physical slots stay unchanged")
+	_check(EquipmentState.slot_if_owned(family, 3, "repeater") == "scatter" and EquipmentState.SLOTS.size() == 7, "shotgun key three remains unchanged beside the new heavy slot")
 	_check(EquipmentState.cycle(automatic, "flechette", 1) == "repeater" and EquipmentState.cycle(automatic, "repeater", 1) == "rail", "wheel places Repeater after Rifle")
 	family.erase("flechette")
 	_check(EquipmentState.slot_if_owned(family, 4, "tack") == "repeater" and EquipmentState.slot_if_owned(family, 4, "repeater") == "repeater", "sole automatic family ownership always selects the real gun")
@@ -69,7 +69,7 @@ func _run() -> void:
 	_check(EquipmentState.cycle(arc, "rail", 1) == "arc" and EquipmentState.cycle(arc, "arc", 1) == "fists", "the wheel puts Arc beside Rail")
 	arc_family.erase("rail")
 	_check(EquipmentState.slot_if_owned(arc_family, 5, "tack") == "arc" and EquipmentState.slot_if_owned(arc_family, 5, "arc") == "arc", "Arc alone keeps key five usable")
-	_check("arc" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("arc") == 8 and EquipmentState.SLOTS.size() == 6, "Arc appends an identity without expanding the arcade kit or physical keys")
+	_check("arc" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("arc") == 8 and EquipmentState.SLOTS.size() == 7, "Arc retains its identity and shares key five without expanding the arcade kit")
 	var launcher: Dictionary = state.duplicate(true)
 	launcher["weapons"] = ["fists", "rocket"]
 	launcher["selected"] = "rocket"
@@ -79,7 +79,7 @@ func _run() -> void:
 	_check(EquipmentState.shots(launcher, "rocket") == 1 and EquipmentState.count_text(launcher, "rocket") == "1|3", "the human tube holds one rocket and the reserve stays in the bag")
 	_check(EquipmentState.display_name("rocket") == "Rocket Launcher" and EquipmentState.pool_name("rockets") == "Rockets", "the launcher and its pool use their names")
 	_check(EquipmentState.cycle(launcher, "fists", 1) == "rocket" and EquipmentState.cycle(launcher, "rocket", 1) == "fists", "the wheel appends a carried launcher")
-	_check("rocket" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("rocket") == 9 and int(EquipmentState.MAGAZINE_SIZES["rocket"]) == 1 and int(EquipmentState.CAPACITIES["rockets"]) == 20 and EquipmentState.SLOTS.size() == 6, "the launcher appends without a new physical key or an arcade grant")
+	_check("rocket" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("rocket") == 9 and int(EquipmentState.MAGAZINE_SIZES["rocket"]) == 1 and int(EquipmentState.CAPACITIES["rockets"]) == 20 and EquipmentState.SLOTS.size() == 7, "the launcher keeps its finite tube and gets a direct key without an arcade spawn grant")
 	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(launcher), 5) == "", "key five stays the Cells guns")
 	var found: Dictionary = state.duplicate(true)
 	found["weapons"] = ["fists", "tack", "shiv"]
@@ -101,6 +101,7 @@ func _run() -> void:
 	_check(EquipmentState.slot_if_owned(marksman_carried, 6) == "sniper" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 6) == "", "key six draws only a carried Sniper Rifle")
 	_check(EquipmentState.cycle(marksman, "rail", 1) == "sniper" and EquipmentState.cycle(marksman, "sniper", 1) == "fists", "the wheel places the Sniper Rifle after the Railgun")
 	_check("sniper" in EquipmentState.SCOPED and "rail" not in EquipmentState.SCOPED, "only the Sniper Rifle offers a scope")
+	_check(EquipmentState.slot_if_owned(["fists", "rocket"], 7) == "rocket" and EquipmentState.slot_if_owned(["fists"], 7) == "", "key seven draws only an acquired Rocket Launcher")
 	_check(SniperScope.active_for("sniper", true, true) and not SniperScope.active_for("rail", true, true) and not SniperScope.active_for("sniper", false, true) and not SniperScope.active_for("sniper", true, false), "the scope opens only when held with the Sniper Rifle in a live view")
 	var unknown: Dictionary = found.duplicate(true)
 	unknown["weapons"] = ["fists", "chainsaw"]

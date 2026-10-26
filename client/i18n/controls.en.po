@@ -151,11 +151,26 @@ msgstr "WEAPON 5"
 msgid "ACTION_WEAPON_6"
 msgstr "WEAPON 6"
 
+msgid "ACTION_WEAPON_7"
+msgstr "ROCKET LAUNCHER"
+
 msgid "ACTION_RELOAD"
 msgstr "RELOAD"
 
 msgid "ACTION_SCOPE"
-msgstr "SCOPE (HOLD)"
+msgstr "SCOPE"
+
+msgid "LOOK_SCOPE_MODE"
+msgstr "SCOPE CONTROL"
+
+msgid "LOOK_SCOPE_HOLD"
+msgstr "HOLD 4x"
+
+msgid "LOOK_SCOPE_TOGGLE"
+msgstr "TOGGLE 4x"
+
+msgid "LOOK_SCOPE_CYCLE"
+msgstr "CYCLE 2x / 4x"
 
 msgid "ACTION_SCOREBOARD"
 msgstr "SCORES (HOLD)"

@@ -59,11 +59,15 @@ func _initialize() -> void:
 
 	# A round trip through disk keeps every value.
 	s.set_value("controls", "mouse_sensitivity", 2.25)
+	s.set_value("controls", "scope_mode", 2)
 	s.set_value("gameplay", "head_bob", false)
 	s.set_value("audio", "effects", 1.0)
 	s.save_to_disk()
 	var loaded: RefCounted = script.new(test_path)
 	loaded.load_from_disk()
+	if loaded.get_value("controls", "scope_mode") != 2:
+		push_error("test_settings: scope mode did not survive a save and load")
+		ok = false
 	if loaded.get_value("audio", "effects") != 1.0:
 		push_error("test_settings: new defaults must preserve an existing full-volume preference")
 		ok = false
@@ -151,11 +155,15 @@ func _initialize() -> void:
 	invalid.set_value("video", "display_mode", true)
 	invalid.set_value("video", "vsync", "false")
 	invalid.set_value("controls", "mouse_sensitivity", [])
+	invalid.set_value("controls", "scope_mode", 9)
 	invalid.set_value("audio", "master", -10)
 	invalid.set_value("audio", "music", NAN)
 	invalid.set_value("controls", "sensitivity", 0.0041)
 	invalid.save(test_path)
 	loaded.load_from_disk()
+	if loaded.get_value("controls", "scope_mode") != 0:
+		push_error("test_settings: invalid scope mode must restore hold")
+		ok = false
 	if loaded.fov() != 75.0 or loaded.get_value("video", "fps_cap") != 0 or loaded.get_value("video", "display_mode") != 2:
 		push_error("test_settings: invalid display values must use safe defaults")
 		ok = false

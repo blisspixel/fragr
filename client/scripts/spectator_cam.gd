@@ -826,7 +826,11 @@ func apply_zoom() -> void:
 	_applied_zoom = wanted
 	var lens: Camera3D = get_node_or_null("Camera3D")
 	if lens != null:
-		lens.fov = base_fov * wanted
+		lens.fov = magnified_fov(base_fov, wanted)
+
+## Magnification scales the projected image, not the angle in degrees.
+static func magnified_fov(open_fov: float, inverse_zoom: float) -> float:
+	return rad_to_deg(2.0 * atan(tan(deg_to_rad(open_fov) * 0.5) * inverse_zoom))
 
 
 ## Centimetres of mouse travel for a full turn, the number players compare.

@@ -1899,8 +1899,8 @@ func _process(_delta):
 func _update_scope(delta: float) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
-	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
-	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
+	var held: bool = is_human_player and InputMap.has_action("scope") and Input.is_action_pressed("scope")
+	var enabled: bool = is_human_player and alive and not controls_blocked() and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
 	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
 	_play_scope_cue(was_scoped, _scope_engaged())
