@@ -23,7 +23,7 @@ Local agents play the game and file structured feedback so most iteration does n
 
 ## Guided campaign evaluation
 
-`--campaign-survey` adds a Recall Notice stress matrix using the real session,
+`--campaign-survey` adds Recall Notice and bounded M19 teaching matrices using the real session,
 shared navigation and inventory controller. Three declared perception/action
 profiles play all three difficulties with finite supplies and actual continues.
 The [harness README](../../tools/playtest/README.md) owns commands, assumptions
@@ -31,6 +31,13 @@ and report fields. Keep failed trials and evaluator regressions. Inspect the
 reported scene before attributing a failure to game balance; known routes and
 synthetic aim do not establish fresh-player acceptance. Extend this one seam
 after its limits are understood, rather than adding another campaign controller.
+
+`--survey-mission m19-teaching` ends at the first tram-street Paver, before
+the market. Its standalone earned kit, disclosed hop hints, sampled floor-strip
+vision and bounded last-seen search are separate from inherited campaign proof.
+Actual supported powered ascent, public objective progress and rendered
+reconstructions remain separate evidence; a controller repair requires repeating
+the declared baseline before judging content.
 
 The historical measurements below describe their dated builds, not today's game.
 

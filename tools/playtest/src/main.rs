@@ -15,7 +15,7 @@ use tracing_subscriber::EnvFilter;
     about = "Scripted agents play fragr rounds in-process and file a metrics report."
 )]
 struct Cli {
-    /// Guided Recall Notice trials with limited vision, reaction and aim.
+    /// Guided campaign trials with limited vision, reaction and aim.
     #[arg(long, conflicts_with_all = [
         "soak", "fanout_matrix", "bot_survey", "sabotage_survey", "traffic",
         "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke", "sabotage_contested",
@@ -26,6 +26,9 @@ struct Cli {
         "traffic_spectators", "traffic_seconds", "traffic_hz", "traffic_bots", "traffic_server"
     ])]
     campaign_survey: bool,
+    /// Bounded campaign endpoint. M19 starts with its standalone discovery kit.
+    #[arg(long, value_enum, requires = "campaign_survey", default_value_t = fragr_playtest::campaign::Scenario::RecallNotice)]
+    survey_mission: fragr_playtest::campaign::Scenario,
     /// Prove a joined fighter takes and scores a flag through a real socket.
     #[arg(long, conflicts_with_all = [
         "ctf_contested", "fanout_matrix", "fanout_seconds", "soak",
@@ -744,15 +747,26 @@ fn campaign_report(cli: &Cli) -> Result<(), String> {
         .seed
         .checked_add(cli.survey_seeds)
         .ok_or("seed range overflow")?;
-    let report = fragr_playtest::campaign::run(cli.seed..end, cli.max_seconds.saturating_mul(20))?;
+    let report = fragr_playtest::campaign::run_scenario(
+        cli.survey_mission,
+        cli.seed..end,
+        cli.max_seconds.saturating_mul(20),
+    )?;
     if let Some(parent) = cli.report.parent().filter(|p| !p.as_os_str().is_empty()) {
         std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?;
     std::fs::write(&cli.report, format!("{json}\n")).map_err(|e| e.to_string())?;
     println!("report: {}", cli.report.display());
-    if cli.assert && report.trials.iter().any(|row| row.outcome != "departed") {
-        return Err("campaign trial did not depart; see all outcomes in the report".into());
+    if cli.assert
+        && report
+            .trials
+            .iter()
+            .any(|row| !cli.survey_mission.accepts(row))
+    {
+        return Err(
+            "campaign trial did not pass its endpoint; see all outcomes in the report".into(),
+        );
     }
     Ok(())
 }
@@ -764,6 +778,27 @@ mod tests {
     #[test]
     fn campaign_survey_refuses_ignored_arena_options() {
         assert!(Cli::try_parse_from(["fragr-playtest", "--campaign-survey"]).is_ok());
+        assert!(
+            Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-teaching"]).is_err()
+        );
+        assert!(Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "unknown"
+        ])
+        .is_err());
+        let m19 = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m19-teaching",
+        ])
+        .unwrap();
+        assert_eq!(
+            m19.survey_mission,
+            fragr_playtest::campaign::Scenario::M19Teaching
+        );
         for args in [
             ["--map", "2"],
             ["--mode", "tdm"],
@@ -797,7 +832,7 @@ mod tests {
         cli.report = dir.join("nested/report.json");
         assert!(campaign_report(&cli)
             .unwrap_err()
-            .contains("did not depart"));
+            .contains("did not pass its endpoint"));
         let report: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&cli.report).unwrap()).unwrap();
         assert_eq!(report["trials"].as_array().unwrap().len(), 9);

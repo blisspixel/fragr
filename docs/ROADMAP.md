@@ -84,6 +84,18 @@ instead of saving misleading captures. Continue the Episode V rung with
 bounded encounter/readability trials using the calibrated policy, without
 waiting on optional human sessions or asset picks.
 
+The bounded M19 slice (#485) extends that same survey through the jetpack
+lesson and first tram-street Paver, before the market. It measures supported
+powered ascent independently of objective arrival and filters strip perception
+by view, cover and reaction time. The crossing transfer exposed an evaluator
+that forgot guards behind cover and waited at its arrival forever; bounded
+last-seen search now routes only to observed positions. Retain the matched
+baseline and repaired-controller trials, including failures. Recorded flight,
+strip and stalled windows support rendered inspection; they do not establish
+full inherited M19 pacing or human route discovery. Continue broader Episode V
+acceptance in later bounded slices, rather than treating this endpoint as a
+whole-level approval.
+
 Wave 5 adds twelve prepared campaign props, replaces repeated prose with
 physical and painted detail, shortens objectives while retaining control and
 threat cues, and reconciles rescue continuity with the saved outcomes. The

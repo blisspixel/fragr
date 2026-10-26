@@ -31,7 +31,16 @@ omitted until the role exists; no stronger renamed Sweeper stands in for them
 ([wipe design](../design/wipe-finale-and-mode.md)). The concourse crowd and the
 pier are households, pairs and free agents in their own colours, and the Clerk
 at the stretcher keeps his red armband and seal.
-Rendered review only, not fresh-player acceptance. Accepted 2026-09-25.
+Those earlier route clears and rendered reviews are authoring evidence, not
+fresh-player acceptance. Design accepted 2026-09-25.
+The bounded #485 teaching survey now covers the stores, powered gallery ascent,
+concourse crossing and first tram-street Paver with earned finite ammunition and
+declared perception limits. Its [guide](../../tools/playtest/README.md) separates
+standalone discovery trials, remembered-position search and inspected recorded
+windows from full inherited runs and human route discovery. A completed arrival
+while airborne does not qualify the landing. Paver preparation, working damage,
+interruption and clean avoidance remain distinct outcomes; no successful trial
+is substituted for the retained deaths, retries or stalls.
 The middle third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10
