@@ -22,6 +22,7 @@ use uuid::Uuid;
 const DT: f32 = 0.05;
 
 mod paver;
+mod search;
 mod teaching;
 
 /// One bounded campaign endpoint, using the same calibrated action policy.
@@ -224,10 +225,15 @@ impl Perception {
             snapshot
                 .players
                 .iter()
-                .any(|p| p.id == *id && p.hp > 0 && visible_aim(me, p, arena, profile).is_some())
+                .any(|p| p.id == *id && visible_aim(me, p, arena, profile).is_some())
         });
         observed.players.retain(|p| {
-            if !me.is_hostile_to(p) {
+            // Combat selection excludes corpses, but perception must still
+            // hide an unseen opponent's death from search memory.
+            if me.id == p.id
+                || !fragr_server::protocol::hostile(me.campaign, p.campaign)
+                || (me.team.is_some() && me.team == p.team)
+            {
                 return true;
             }
             if visible_aim(me, p, arena, profile).is_none() {
@@ -459,6 +465,7 @@ fn scenario_trial_with_actions(
     configure_map(&mut client, &map_record)?;
     let mut navigator = Navigator::default();
     let mut perception = Perception::default();
+    let mut search = search::Search::default();
     let mut report = Trial {
         seed,
         profile: profile.name.into(),
@@ -566,6 +573,7 @@ fn scenario_trial_with_actions(
             report.continues_spent += 1;
             navigator.clear();
             perception = Perception::default();
+            search = search::Search::default();
             frames.clear();
             heard = None;
             evade = None;
@@ -605,6 +613,9 @@ fn scenario_trial_with_actions(
         }
         let arena = session.state.map.arena();
         let observed = perception.observe(&snapshot, id, arena, profile);
+        if scenario == Scenario::M19Teaching {
+            search.observe(&observed, id);
+        }
         if let Some(recorder) = &mut teaching {
             recorder.observe_perception(&observed);
         }
@@ -661,6 +672,34 @@ fn scenario_trial_with_actions(
                 if let Some(trace) = &shot.trace {
                     heard = Some((snapshot.tick, trace.origin));
                 }
+            }
+        }
+        let mut pursuing = false;
+        if scenario == Scenario::M19Teaching
+            && wanted.look_at.is_none()
+            && state
+                .m19
+                .as_ref()
+                .and_then(|facts| facts.current.as_ref())
+                .is_some_and(|objective| {
+                    matches!(objective.id.as_str(), "concourse_crossing" | "tram_street")
+                })
+        {
+            if let Some(point) = search.destination(me, &observed) {
+                // Search only the previously seen location. The shared route
+                // controller receives no invented target or hidden live pose.
+                wanted = Action {
+                    forward: true,
+                    look_at: Some(LookAt {
+                        x: Some(point[0]),
+                        y: Some(point[1] + EYE_HEIGHT),
+                        z: Some(point[2]),
+                        player_id: None,
+                    }),
+                    weapon_swap: wanted.weapon_swap,
+                    ..Default::default()
+                };
+                pursuing = true;
             }
         }
         let mut action = client.steer_with_equipment(
@@ -721,9 +760,26 @@ fn scenario_trial_with_actions(
                 }
             }
         }
+        // A reached arrival can still have an unfinished encounter. Looking
+        // only after kills strands a constrained viewer when the last guard
+        // has left its view. Retry the same bounded sweep at that public goal;
+        // no unseen actor position or encounter roster informs this decision.
+        if scenario == Scenario::M19Teaching
+            && scan_remaining <= 0.0
+            && snapshot.tick.saturating_sub(progress) >= 60
+            && state.m19.as_ref().and_then(|facts| facts.current.as_ref()).is_some_and(|objective| {
+                matches!(&objective.action, fragr_server::protocol::MissionObjectiveAction::Arrival { region, .. } if region.contains(report.last_feet))
+            })
+        {
+            scan_remaining = TAU;
+        }
         // A cleared target is not proof the room is clear. Inspect the room
         // before following the next objective, using the same turn limit.
-        if scan_remaining > 0.0 && !wanted_is_combat(&action) && heard.is_none() && evade.is_none()
+        if scan_remaining > 0.0
+            && !pursuing
+            && !wanted_is_combat(&action)
+            && heard.is_none()
+            && evade.is_none()
         {
             let step = (profile.turn_degrees_per_second.to_radians() * DT).min(scan_remaining);
             scan_remaining -= step;
@@ -977,7 +1033,7 @@ pub fn run_scenario(
     }
     let observation = match scenario {
         Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
-        Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Ends after tram_street, before the market. Supported gallery landing and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+        Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
     Ok(Report {
         schema: 2,
@@ -1084,6 +1140,59 @@ mod tests {
             .players
             .iter()
             .any(|p| p.id == target));
+    }
+
+    #[test]
+    fn remembered_positions_and_deaths_require_delayed_visible_observations() {
+        let (mut snapshot, arena, id, target) = scene();
+        let profile = PROFILES[1];
+        let mut perception = Perception::default();
+        let mut memory = search::Search::default();
+        for tick in 0..=profile.reaction_ticks {
+            snapshot.tick = tick;
+            let observed = perception.observe(&snapshot, id, &arena, profile);
+            memory.observe(&observed, id);
+            let mut hidden = observed.clone();
+            hidden.players.retain(|p| p.id != target);
+            let me = hidden.players.iter().find(|p| p.id == id).unwrap();
+            assert_eq!(
+                memory.destination(me, &hidden).is_some(),
+                tick == profile.reaction_ticks
+            );
+        }
+        let enemy = snapshot
+            .players
+            .iter_mut()
+            .find(|p| p.id == target)
+            .unwrap();
+        enemy.x = -20.0;
+        enemy.hp = 0;
+        snapshot.tick += 1;
+        let observed = perception.observe(&snapshot, id, &arena, profile);
+        assert!(!observed.players.iter().any(|p| p.id == target));
+        memory.observe(&observed, id);
+        let me = observed.players.iter().find(|p| p.id == id).unwrap();
+        assert_eq!(memory.destination(me, &observed), Some([10.0, 0.0, 0.0]));
+        snapshot
+            .players
+            .iter_mut()
+            .find(|p| p.id == target)
+            .unwrap()
+            .x = 10.0;
+        for elapsed in 0..=profile.reaction_ticks {
+            snapshot.tick += 1;
+            let observed = perception.observe(&snapshot, id, &arena, profile);
+            assert_eq!(
+                observed.players.iter().any(|p| p.id == target),
+                elapsed == profile.reaction_ticks
+            );
+            memory.observe(&observed, id);
+            let me = observed.players.iter().find(|p| p.id == id).unwrap();
+            assert_eq!(
+                memory.destination(me, &observed).is_some(),
+                elapsed < profile.reaction_ticks
+            );
+        }
     }
 
     #[test]
@@ -1241,6 +1350,24 @@ mod tests {
             .flights
             .iter()
             .any(|flight| flight.gallery_landing));
+    }
+
+    #[test]
+    fn m19_crossing_search_does_not_stop_with_a_living_guard_out_of_view() {
+        // Earned standalone run. Seed 43 previously stopped at the public
+        // crossing arrival for over 500 seconds with 40 bullets still held.
+        let (row, _, _) = scenario_trial_with_actions(
+            Scenario::M19Teaching,
+            43,
+            PROFILES[1],
+            CampaignDifficulty::Assisted,
+            2_400,
+            Recording::None,
+            |action| action,
+        )
+        .unwrap();
+        assert!(row.longest_no_progress_seconds < 30.0, "{row:?}");
+        assert_ne!(row.outcome, "timeout");
     }
 
     #[test]

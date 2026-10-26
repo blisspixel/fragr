@@ -47,6 +47,16 @@ profiles are synthetic constraints, not measured novice populations. Compare
 game changes with the same evaluator revision and seed set; a controller change
 requires a new baseline.
 
+During M19's crossing and tram street, it also remembers up to 64 positions
+seen after the reaction delay, for less than 30 seconds. Losing sight permits
+an investigation of that last position through the shared navigator; it never
+updates a hidden pose, injects a target or fires at a memory. Reaching that point,
+expiry, an observed corpse or its own kill confirmation retires the memory.
+Retry clears it. At an unfinished arrival, three seconds without progress
+permits another sweep at the same turn limit. This explicit search model repairs
+the stationary crossing stall; compare it with its own evaluator revision,
+not as a change to enemy difficulty or a human learning model.
+
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
 acquisition, not decision cadence. Continue is accepted immediately, with zero
 simulated menu delay; dead/menu time is not included in the active stall metric.
