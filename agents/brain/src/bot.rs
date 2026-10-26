@@ -3119,9 +3119,21 @@ mod tests {
             wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
             "the one retryable call never reached the transport"
         );
-        // The backoff after one retryable failure doubles the 200ms cadence
-        // to 400ms before the budget-pending second cycle; this bounded
-        // margin is generous even under contention.
+        // A returned HTTP response still has to durably settle its estimated
+        // charge. Windows fsync under CI contention can exceed a decision
+        // interval. Start the cadence window after settlement, not dispatch.
+        assert!(
+            wait_for(
+                || budget
+                    .try_lock()
+                    .is_ok_and(|guard| guard.ledger().calls() == 1),
+                Duration::from_secs(10),
+            )
+            .await,
+            "the failed call never recorded its estimated charge"
+        );
+        // The result can now reach the bot and its 400ms backoff can lead to
+        // the next cycle's refusal of the unresolved paid reservation.
         tokio::time::sleep(Duration::from_millis(1_500)).await;
         stop.store(true, Ordering::Relaxed);
         let summary = handle.await.unwrap().expect("bot runs");
