@@ -338,7 +338,7 @@ msgid "MENU_NAV_PAD"
 msgstr "D-PAD + {accept}   /   {back} BACK"
 
 msgid "LOADING_CONTROLS_KEYS"
-msgstr "{move_forward} {move_left} {move_back} {move_right} / arrows: move        Mouse / {turn_left} {turn_right}: turn\n{fire}: fire        {interact}: use panel        {jump}: jump        Hold {duck}: crouch\n{strafe} + arrows: strafe        {look_up} {look_down}: look        Wheel / 1-6: weapons\n{scope}: scope        {reload}: reload        {pause}: menu        Tilde: console\n{radio_prev} {radio_next}: radio station        {skip}: skip track        {radio_power}: radio on/off"
+msgstr "{move_forward} {move_left} {move_back} {move_right} / arrows: move        Mouse / {turn_left} {turn_right}: turn\n{fire}: fire        {interact}: use panel        {jump}: jump        Hold {duck}: crouch\n{strafe} + arrows: strafe        {look_up} {look_down}: look        Wheel / 1-7: weapons\n{scope}: scope        {reload}: reload        {pause}: menu        Tilde: console\n{radio_prev} {radio_next}: radio station        {skip}: skip track        {radio_power}: radio on/off"
 
 msgid "LOADING_CONTROLS_PAD"
 msgstr "Left stick moves        Right stick looks        {fire} fires        {scope} scopes        {jump} jumps        {duck} crouches\n{reload} reloads        {interact} uses        {weapon_prev} {weapon_next} change weapon        {grenade} grenade        {pause} menu\n{radio_prev} {radio_next} radio station, hold {radio_next} to skip, hold {radio_prev} for on/off"
