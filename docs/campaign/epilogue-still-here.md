@@ -68,16 +68,26 @@ language and approved attribution policy.
 
 ## State and acceptance
 
-The server's terminal survival result is the only unlock source. Persist it
-idempotently through the eventual campaign/profile seam; statistical history alone
-is not an entitlement. Replay cannot consume continues, alter recorded rescues
-or silently replace the main run. Save-and-quit and replay policy remain unbuilt.
+The server's terminal survival result is the only unlock source. The current
+run file persists it; statistical history alone is not an entitlement. The
+epilogue opens that file read-only. Replay starts at first light, cannot consume
+continues, alter recorded rescues or replace the main run, and does not save
+mid-walk progress. The threshold regression covers one HP and zero continues
+on every difficulty, plus death at that same boundary, duplicate terminal facts
+and two read-only opens through the local server. It is an isolated lifecycle
+fixture, not a claim to have earned the preceding campaign.
 
 Test failure with allowance, exhaustion, survival at the threshold, duplicate
 completion, skipped scenes, muted audio, human/agent control, spectator transitions
 and relevant survivor combinations. Measure the whole finale plus epilogue with
 fresh players. An inspected ending needs both immediate loss and later recovery;
 one green-tinted screenshot does not establish either.
+
+`client/qa/still_here_review.gd` drives the existing live review manifest with
+ordinary held movement and Use. It refuses missing pages, unmet named states,
+unreached positions and capture failures; a failed prerequisite produces no
+capture with that state's name and exits unsuccessfully. The declared route
+and overview poses remain authoring knowledge, not fresh-player discovery.
 
 ## In the twenty-level expansion
 
