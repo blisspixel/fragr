@@ -239,6 +239,12 @@ func _continue_refresh() -> void:
 	state["run"]["status"] = "playing"
 	game._on_mission_received(state)
 	_check(not game._continue_armed, "leaving the continue state clears its input latch")
+	state["run"]["status"] = "continue"
+	game._on_mission_received(state)
+	game._continue_armed = true
+	game._clear_world()
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "a rebuilt session cannot inherit the old retry input latch")
 
 func _conquest_changes() -> void:
 	hud.reset_event_context(true)

@@ -2216,7 +2216,7 @@ func _on_mission_received(state: Dictionary) -> void:
 	# A refresh of the same pending retry must not disarm a fresh accept
 	# press between network polling and input delivery. New runs, attempts
 	# and non-continue states still require input release before arming.
-	if continuation.is_empty() or continuation != _continue_context:
+	if receipt != _event_mission_receipt or continuation.is_empty() or continuation != _continue_context:
 		_continue_armed = false
 	_continue_context = continuation
 	if not _event_mission_receipt.is_empty() and receipt != _event_mission_receipt:
