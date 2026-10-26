@@ -8,14 +8,22 @@ var _stderr: FileAccess
 var _error_pending: PackedByteArray = PackedByteArray()
 var _error_lines: Array[String] = []
 var _discard_error_line: bool = false
+## An observed exit or successful owned termination, not a later PID lookup.
+var retirement_confirmed: bool = true
+var retirement_error: Error = OK
 
 func start(executable: String, arguments: PackedStringArray) -> bool:
+	# Failed retirement keeps custody. A replacement must not hide that child.
+	if _pid > 0 or _stdio != null or _stderr != null:
+		return false
 	var child: Dictionary = OS.execute_with_pipe(executable, arguments, false)
 	if child.is_empty():
 		return false
 	_pid = int(child["pid"])
 	_stdio = child["stdio"] as FileAccess
 	_stderr = child["stderr"] as FileAccess
+	retirement_confirmed = false
+	retirement_error = OK
 	return true
 
 func read_output() -> PackedByteArray:
@@ -42,11 +50,22 @@ func diagnostics() -> String:
 func running() -> bool:
 	if _pid <= 0:
 		return false
-	if OS.is_process_running(_pid):
+	# Godot may discard its native handle even when termination fails. That
+	# lost observation must not become a false exit or a kill of a reused PID.
+	if retirement_error != OK:
+		return true
+	if _owned_process_running():
 		return true
 	# Retire observed exits. Cleanup must never query or kill a reused PID.
 	_pid = -1
+	retirement_confirmed = true
 	return false
+
+func _owned_process_running() -> bool:
+	return OS.is_process_running(_pid)
+
+func _terminate_owned_process() -> Error:
+	return OS.kill(_pid)
 
 func request_stop() -> void:
 	if _stdio != null and _stdio.is_open():
@@ -57,9 +76,15 @@ func request_stop() -> void:
 		_stdio.close()
 
 func dispose() -> void:
+	if retirement_error != OK:
+		return
 	if running():
-		OS.kill(_pid)
+		retirement_error = _terminate_owned_process()
+		if retirement_error != OK:
+			retirement_confirmed = false
+			return
 	_pid = -1
+	retirement_confirmed = true
 	if _stdio != null and _stdio.is_open():
 		_stdio.close()
 	if _stderr != null and _stderr.is_open():

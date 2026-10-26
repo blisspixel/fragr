@@ -15,7 +15,6 @@ var _deadline: int = 0
 var _phase: String = "preview"
 var _host: LocalHost
 var _owns_host: bool = false
-var _host_pid: int = -1
 var _preset: int = 0
 var _peer: Node
 var _map: Dictionary = {}
@@ -196,12 +195,11 @@ func _process(_delta: float) -> void:
 		_phase = "stopping"
 		_deadline = Time.get_ticks_msec() + TIMEOUT_MS
 	elif _phase == "stopping" and _host.state == LocalHost.State.IDLE:
-		if OS.is_process_running(_host_pid):
-			_finish(false, "the owned arena process survived Stop")
+		if not _host.process.retirement_confirmed:
+			_finish(false, "owned arena retirement was not confirmed after Stop")
 			return
 		print("fragr install check: arena ", "tdm" if _preset == 0 else "5v5 sabotage", " ready, wire and owned Stop PASS")
 		_owns_host = false
-		_host_pid = -1
 		if _preset == 0:
 			_preset = 1
 			_start_arena()
@@ -234,22 +232,33 @@ func _start_arena() -> void:
 		_finish(false, "the bundled server could not start its arena preset")
 		return
 	_owns_host = true
-	_host_pid = _host.process._pid
 
 func _connect_arena() -> void:
-	_peer = load("res://scripts/net_client.gd").new()
+	_peer = _create_arena_peer()
 	add_child(_peer)
 	_peer.map_info_received.connect(func(info: Dictionary) -> void: _map = info.duplicate(true))
 	_peer.snapshot_received.connect(func(info: Dictionary) -> void: _snapshot = info.duplicate(true))
 	_peer.server_error.connect(func(_message: String) -> void: _finish(false, "the arena wire was refused or invalid"))
+	_peer.disconnected_from_server.connect(_on_arena_disconnected)
 	_peer.set_server_host(_host.url)
 	_phase = "wire"
 	_deadline = Time.get_ticks_msec() + TIMEOUT_MS
 	if not _peer.connect_to_server("spectator", "InstallCheck"):
 		_finish(false, "the arena socket did not connect")
 
+func _create_arena_peer() -> Node:
+	return load("res://scripts/net_client.gd").new()
+
+func _on_arena_disconnected() -> void:
+	if _deadline > 0 and _phase == "wire" and (_map.is_empty() or _snapshot.is_empty()):
+		_finish(false, "the arena socket disconnected before complete wire verification")
+
 func _close_peer() -> void:
 	if is_instance_valid(_peer):
+		# Explicit Stop and failed-check cleanup retire this peer deliberately.
+		# Its synchronous leave signal must not report a second wire failure.
+		if _peer.disconnected_from_server.is_connected(_on_arena_disconnected):
+			_peer.disconnected_from_server.disconnect(_on_arena_disconnected)
 		_peer.leave_match()
 		_peer.queue_free()
 	_peer = null
@@ -265,14 +274,25 @@ func _finish(passed: bool, detail: String) -> void:
 	if _deadline < 0:
 		return
 	_deadline = -1
+	if not passed:
+		detail += " [phase=%s preset=%s map=%s snapshot=%s]" % [_phase,
+			"tdm" if _preset == 0 else "5v5 sabotage", not _map.is_empty(), not _snapshot.is_empty()]
+		if _owns_host and is_instance_valid(_host):
+			# LocalProcess already bounds the retained lines and each line's size.
+			# Drain and print before Stop/dispose destroys that diagnostic buffer.
+			_host.process.drain_errors()
+			var diagnostic: String = _host.process.diagnostics()
+			if not diagnostic.is_empty():
+				print("fragr install check: owned arena diagnostics: ", diagnostic)
 	_close_peer()
 	if _owns_host and is_instance_valid(_host):
 		_host.stop()
 		_host.process.dispose()
-		if _host_pid > 0 and OS.is_process_running(_host_pid):
+		if not _host.process.retirement_confirmed:
 			passed = false
-			detail = "the failed check could not retire its owned arena process"
-	_owns_host = false
+			detail += "; owned arena retirement unconfirmed (error %s)" % _host.process.retirement_error
+		else:
+			_owns_host = false
 	if _local.run_preview_changed.is_connected(_on_preview):
 		_local.run_preview_changed.disconnect(_on_preview)
 	if passed:
