@@ -630,7 +630,7 @@ fn trial_with_actions(
                 ..Default::default()
             };
         }
-        action.reload = reload_requested(&gear, reload_down);
+        action = apply_reload(action, &gear, reload_down);
         action = actions(constrain(action, me, &observed, profile, seed, arena));
         reload_down = action.reload;
         report.reloads += u32::from(action.reload);
@@ -743,7 +743,35 @@ fn reload_requested(gear: &LoadoutState, reload_down: bool) -> bool {
             .loaded
             .iter()
             .any(|m| m.weapon == gear.selected && m.rounds == 0 && m.ready_at.is_none())
-        && gear.ammo(AmmoPool::Bullets) > 0
+        && reserve_rounds(gear) > 0
+}
+
+fn reserve_rounds(gear: &LoadoutState) -> u16 {
+    let Some(pool) = gear.selected.ammo_pool() else {
+        return 0;
+    };
+    let loaded: u16 = gear
+        .loaded
+        .iter()
+        .filter(|m| m.weapon.ammo_pool() == Some(pool))
+        .map(|m| m.rounds)
+        .sum();
+    gear.ammo(pool).saturating_sub(loaded)
+}
+
+fn apply_reload(mut action: Action, gear: &LoadoutState, reload_down: bool) -> Action {
+    action.reload = reload_requested(gear, reload_down);
+    // The shared selector normally runs unmagazined agents. A human's empty
+    // magazine must stay selected until its ordinary reload finishes, rather
+    // than switching to Fists and cancelling the reload on the next tick.
+    if gear.loaded.iter().any(|m| {
+        m.weapon == gear.selected
+            && (m.ready_at.is_some() || (m.rounds == 0 && reserve_rounds(gear) > 0))
+    }) {
+        action.weapon_swap = None;
+        action.fire = false;
+    }
+    action
 }
 
 pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String> {
@@ -985,6 +1013,58 @@ mod tests {
         assert_eq!(fired, initial.ammo(AmmoPool::Bullets));
         assert!(reloads > 0 && fired > initial.shots(WeaponType::Tack).unwrap());
         assert!(!inventory.try_fire(WeaponType::Tack));
+    }
+
+    #[test]
+    fn weapon_selection_cannot_cancel_an_empty_magazine_reload() {
+        use fragr_server::protocol::{EquipmentPolicy, WeaponType};
+        let (snapshot, _, id, _) = scene();
+        // Isolated owned-gun fixture, distinct from earned campaign trials.
+        let mut inventory = fragr_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Tack);
+        inventory.arm_magazines();
+        for _ in 0..12 {
+            assert!(inventory.try_fire(WeaponType::Tack));
+        }
+        let gear = inventory.state(id, WeaponType::Tack, 0).unwrap();
+        let wanted = control_action_with_target_filter(
+            id,
+            &snapshot,
+            Some(&gear),
+            Action::default(),
+            true,
+            |_, _| true,
+        );
+        let action = apply_reload(wanted, &gear, false);
+        assert!(action.reload);
+        assert_ne!(
+            action.weapon_swap,
+            Some(WeaponType::Fists),
+            "reload must keep the empty gun selected"
+        );
+        assert!(inventory.request_reload(WeaponType::Tack, 1));
+        let gear = inventory.state(id, WeaponType::Tack, 2).unwrap();
+        let wanted = control_action_with_target_filter(
+            id,
+            &snapshot,
+            Some(&gear),
+            Action::default(),
+            true,
+            |_, _| true,
+        );
+        let action = apply_reload(wanted, &gear, true);
+        assert_eq!(action.weapon_swap, None);
+        assert!(!action.reload && !action.fire);
+        inventory.finish_reload(30);
+        assert!(inventory.try_fire(WeaponType::Tack));
+    }
+
+    #[test]
+    fn formerly_stranded_fighter_reloads_and_finishes_with_earned_ammunition() {
+        let row = trial(42, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
+        assert_eq!(row.outcome, "departed");
+        assert!(row.reloads > 0 && row.deaths > 0);
+        assert!(row.longest_no_progress_seconds < 30.0);
     }
 
     #[test]
