@@ -6,6 +6,56 @@ authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
 sizes. These measurements support playtesting; they do not establish fun alone.
 
+The guided campaign survey runs Recall Notice directly through the authoritative
+session at 20 simulated ticks per second. It uses the shared mission navigator
+and inventory controller with ordinary human actions, finite magazines, earned
+pickups, real deaths and the three episode continues. No equipment or health is
+granted during play. It needs no sockets, model, credentials or paid service.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 8 --seed 40 --max-seconds 600 --report .agents/playtest/campaign.json
+```
+
+Every seed runs three stress profiles on Assisted, Standard and Severe:
+
+| Profile | Reaction | Horizontal view | Turn limit | Aim error amplitude |
+|---|---|---|---|---|
+| reference | 0 ms | 100 degrees | 360 degrees/s | 0 degrees |
+| deliberate | 250 ms | 100 degrees | 180 degrees/s | 1 degree |
+| hesitant | 450 ms | 90 degrees | 120 degrees/s | 2.5 degrees |
+
+All profiles use a 48-unit sight limit and an 80-degree vertical view. Enemy
+recognition needs continuous line of sight to chest or head; cover, leaving the
+view and death reset the delay. Incoming shots can prompt a delayed turn toward
+their published origin. Navigation knows public objective locations and map
+geometry. The controller scans after kills, reacts to published attack tells
+and takes short detours for visible supplies. It does not model reading,
+route discovery, human learning, sound perception or the rendered HUD. These
+profiles are synthetic constraints, not measured novice populations. Compare
+game changes with the same evaluator revision and seed set; a controller change
+requires a new baseline.
+
+`--survey-seeds` accepts 1 to 64 here (default 16); `--max-seconds` bounds each
+trial, including retries, from 1 to 1800 simulated seconds (default 120).
+Reports include the build/commit, profile values, all outcomes, continues,
+contact distance/time, shots/hits, actual HP plus armor lost, inventory and
+longest time without damage dealt, a new pickup, objective change or a newly
+visited two-unit cell. This last metric detects lack of progress, not just lack
+of motion. Shot records retain attempt, position, source and view-relative
+bearing; nominal `resolved_damage_outside_view` can include overkill and must
+not be treated as a fraction of actual HP lost. The first 256 incoming hits per
+trial are retained, with `hits_omitted` counting any further entries. `review`
+holds the last fatal-hit pre-frame of the first deliberate/Standard trial, if
+one exists, for scene reconstruction. It is inspection data, never controller
+input or a recording of ordinary client play.
+
+By default a completed survey writes every failure and exits successfully.
+`--assert` instead fails if **any** trial does not depart, after writing the
+report. Timeouts and exhausted continues never count as clears. The current
+stress matrix does not pass that strict all-clear gate; its failures are leads
+for inspection, not proof that the game is unfair. Unit tests gate perception,
+turning, actual completion, retry exhaustion, determinism and report failures.
+
 ```bash
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/run.json
 bash tools/playtest_roster.sh

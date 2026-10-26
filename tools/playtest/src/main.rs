@@ -15,6 +15,17 @@ use tracing_subscriber::EnvFilter;
     about = "Scripted agents play fragr rounds in-process and file a metrics report."
 )]
 struct Cli {
+    /// Guided Recall Notice trials with limited vision, reaction and aim.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "bot_survey", "sabotage_survey", "traffic",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke", "sabotage_contested",
+        "survey_bots", "sabotage_format", "fanout_seconds", "agents", "rounds", "map",
+        "frag_limit", "capture_limit", "time_limit_seconds", "mode", "mutators", "tiers",
+        "soak_seconds", "soak_sample_seconds", "soak_bots", "soak_spectators",
+        "soak_map_rotate", "soak_server", "soak_log", "traffic_fighters",
+        "traffic_spectators", "traffic_seconds", "traffic_hz", "traffic_bots", "traffic_server"
+    ])]
+    campaign_survey: bool,
     /// Prove a joined fighter takes and scores a flag through a real socket.
     #[arg(long, conflicts_with_all = [
         "ctf_contested", "fanout_matrix", "fanout_seconds", "soak",
@@ -93,7 +104,7 @@ struct Cli {
     /// Round time limit in seconds.
     #[arg(long, default_value_t = 60)]
     time_limit_seconds: u32,
-    /// Hard stop for the whole run, in seconds of match time.
+    /// Hard stop in match seconds; with --campaign-survey, 1..=1800 per trial.
     #[arg(long, default_value_t = 120)]
     max_seconds: u64,
     /// Where to write the JSON report.
@@ -458,6 +469,13 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.campaign_survey {
+        if let Err(error) = campaign_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.bot_survey {
         let mut config = fragr_playtest::bot_survey::BotSurveyConfig {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
@@ -721,9 +739,82 @@ async fn main() {
     }
 }
 
+fn campaign_report(cli: &Cli) -> Result<(), String> {
+    let end = cli
+        .seed
+        .checked_add(cli.survey_seeds)
+        .ok_or("seed range overflow")?;
+    let report = fragr_playtest::campaign::run(cli.seed..end, cli.max_seconds.saturating_mul(20))?;
+    if let Some(parent) = cli.report.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?;
+    std::fs::write(&cli.report, format!("{json}\n")).map_err(|e| e.to_string())?;
+    println!("report: {}", cli.report.display());
+    if cli.assert && report.trials.iter().any(|row| row.outcome != "departed") {
+        return Err("campaign trial did not depart; see all outcomes in the report".into());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn campaign_survey_refuses_ignored_arena_options() {
+        assert!(Cli::try_parse_from(["fragr-playtest", "--campaign-survey"]).is_ok());
+        for args in [
+            ["--map", "2"],
+            ["--mode", "tdm"],
+            ["--survey-bots", "4"],
+            ["--soak-seconds", "10"],
+            ["--traffic-hz", "20"],
+        ] {
+            assert!(
+                Cli::try_parse_from(["fragr-playtest", "--campaign-survey", args[0], args[1]])
+                    .is_err()
+            );
+        }
+        for mode in ["--bot-survey", "--soak", "--fanout-matrix", "--traffic"] {
+            assert!(Cli::try_parse_from(["fragr-playtest", "--campaign-survey", mode]).is_err());
+        }
+    }
+
+    #[test]
+    fn campaign_assert_preserves_failures_and_report_errors_are_fatal() {
+        let dir = std::env::temp_dir().join(format!("fragr-campaign-{}", uuid::Uuid::new_v4()));
+        let mut cli = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-seeds",
+            "1",
+            "--max-seconds",
+            "1",
+            "--assert",
+        ])
+        .unwrap();
+        cli.report = dir.join("nested/report.json");
+        assert!(campaign_report(&cli)
+            .unwrap_err()
+            .contains("did not depart"));
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&cli.report).unwrap()).unwrap();
+        assert_eq!(report["trials"].as_array().unwrap().len(), 9);
+        assert!(report["trials"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|row| row["outcome"] == "timeout"));
+        assert!(report["review"].is_null());
+        cli.assert = false;
+        campaign_report(&cli).unwrap();
+        cli.report = dir.clone();
+        assert!(campaign_report(&cli).is_err());
+        cli.seed = u64::MAX;
+        assert_eq!(campaign_report(&cli).unwrap_err(), "seed range overflow");
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn parses_defaults_and_map() {

@@ -1,8 +1,8 @@
 //! Agent playtest harness: boots the authoritative server in-process on a free
 //! loopback port, connects scripted agents over the real wire, watches the match
-//! as a spectator, and turns what it saw into a metrics report. Humans still
-//! judge fun; this catches stuck agents, dead time, spawn deaths, and regressions
-//! in the numbers that make a round feel alive.
+//! as a spectator, and turns what it saw into a metrics report. These measures
+//! guide quality review by catching stuck agents, dead time, spawn deaths and
+//! regressions; they do not establish fun alone.
 
 use fragr_server::movement::{Solid, EYE_HEIGHT};
 use fragr_server::protocol::{
@@ -20,6 +20,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
 pub mod bot_survey;
+pub mod campaign;
 pub mod fanout;
 mod provenance;
 pub mod sabotage;
