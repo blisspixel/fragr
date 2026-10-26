@@ -59,6 +59,7 @@ func _run() -> void:
 	_conquest_changes()
 	await _measured_geometry()
 	_mission_attempts()
+	_continue_refresh()
 	game.free()
 	await _settle()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
@@ -218,6 +219,32 @@ func _host_and_identity() -> void:
 	game.is_human_player = false
 	game._refresh_ui_context([])
 	_check(hud.board_id.is_empty(), "spectator context has no local ownership")
+
+func _continue_refresh() -> void:
+	var state: Dictionary = {"id": MissionState.ID, "attempt": 1, "phase": "in_progress", "run": {"id": A, "status": "continue", "continues": 1, "level_start_continues": 3}}
+	game._on_mission_received(state)
+	game._continue_armed = true
+	# A server refresh can arrive between the input-release frame and the
+	# next fresh press. It is still the same available continuation.
+	game._on_mission_received(state.duplicate(true))
+	_check(game._continue_armed, "same continuation refresh cannot swallow the next accept press")
+	state["attempt"] = 2
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "a different attempt requires released input again")
+	game._continue_armed = true
+	state["run"]["id"] = B
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "another run cannot inherit an armed continuation")
+	game._continue_armed = true
+	state["run"]["status"] = "playing"
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "leaving the continue state clears its input latch")
+	state["run"]["status"] = "continue"
+	game._on_mission_received(state)
+	game._continue_armed = true
+	game._clear_world()
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "a rebuilt session cannot inherit the old retry input latch")
 
 func _conquest_changes() -> void:
 	hud.reset_event_context(true)

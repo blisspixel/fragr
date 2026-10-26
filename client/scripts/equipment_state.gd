@@ -18,7 +18,7 @@ const PELLETS: Dictionary = {"scatter": 7}
 ## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun,
 ## then the found Sniper Rifle on six. One number key per slot. Slot one also
 ## holds the Shiv, as Doom's holds the chainsaw.
-const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper"]
+const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper", "rocket"]
 ## The wheel order: the Shiv sits beside the fists it shares a key with.
 const CYCLE: Array[String] = ["fists", "article_blade", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper", "rocket"]
 ## Weapons that offer a scope. The view is presentation only: aim and hits stay

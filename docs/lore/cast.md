@@ -53,8 +53,10 @@ the proposed cast's gestures and later autonomous roles remain unbuilt.
 Playable viewpoints and optional allied appearances follow
 [the campaign contract](../CAMPAIGN.md#solo-co-op-agents-and-watching).
 There is no mandatory opening partner, companion seat handoff or revive system.
-An ally's death removes them for the mission attempt; later appearances must
-respect explicit story outcomes. A continue replays gameplay, not resurrection.
+An ordinary combat ally's defeat can remove them for the mission attempt.
+Rescued story characters, including Latch, survive or die only through authored
+story outcomes, not ordinary combat damage. Later appearances respect those
+outcomes. A continue replays gameplay, not resurrection.
 
 ### Recurring survivor roles
 

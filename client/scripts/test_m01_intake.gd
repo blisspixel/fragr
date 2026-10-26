@@ -69,6 +69,8 @@ func _run() -> void:
 	var line: Vector3 = (captions[0] as Node3D).position
 	_expect(absf(line.x) < 1.2 and line.y > 0.48 and line.y < 2.28 and line.z < 5.868, "the caption sits on the main picture, so it survives over the static")
 	_expect(intake.find_children("Copy_WORLD_M01_OFFICIAL_CAPTION", "Label3D", true, false).size() == 1, "the official track carries its own label")
+	_expect(intake.find_children("Copy_WORLD_M01_LATCH_FILE", "Label3D", true, false).size() == 1, "the file monitor names Latch without a duplicate desk board")
+	_expect(intake.find_children("*", "WorldSign", true, false).size() == 7, "seven authored reading points plus the cover's custody lift sign")
 	await process_frame
 	intake.observe_shots([_shot(Vector3(6.0, 1.2, 6.0))])
 	intake.observe_shots([_shot(Vector3(0.0, 1.2, 6.0), "fighter")])
@@ -129,6 +131,8 @@ func _run() -> void:
 	_expect(intake.radio_level_db(Vector3.ZERO) == 0.0 and not intake.active(), "other maps keep the radio's own level")
 	intake.queue_free()
 	await process_frame
+	# Let the audio mixer release the room-tone playbacks after node teardown.
+	await create_timer(0.1).timeout
 	if failures == 0:
 		print("test_m01_intake: PASS authored guard, eight dressed rooms, warm local lamps, merged props, looped address, surviving caption and the custody car leaving")
 	quit(0 if failures == 0 else 1)

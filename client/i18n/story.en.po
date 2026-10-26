@@ -502,25 +502,25 @@ msgid "M11_DEPARTED"
 msgstr "Stern airlock released. The tender is yours to leave."
 
 msgid "M11_OBJECTIVE_ARMORY_FOUND"
-msgstr "Find the armory beside the entry. Remote charges wait for your trigger."
+msgstr "Take the remote charges."
 
 msgid "M11_OBJECTIVE_SPINE_SECURED"
-msgstr "Clear the patrol. [place_remote_mine] places a charge; [trigger_remote_mines] triggers armed charges."
+msgstr "Clear the patrol. [place_remote_mine] place, [trigger_remote_mines] detonate."
 
 msgid "M11_OBJECTIVE_HOLDS_SECURED"
-msgstr "Clear the side holds. Check the transfer panel if you have a moment."
+msgstr "Clear the side holds."
 
 msgid "M11_OBJECTIVE_RECORDS_SECURED"
-msgstr "Reach the records room. Watch the gaps between the racks."
+msgstr "Reach the records room."
 
 msgid "M11_OBJECTIVE_COUNTER_BOARDERS_SECURED"
-msgstr "Counter-boarders are entering the spine. Stop their push."
+msgstr "Stop the counter-boarders."
 
 msgid "M11_OBJECTIVE_BRIDGE_SECURED"
-msgstr "Take the bridge. Both approaches lead to the control deck."
+msgstr "Take the bridge."
 
 msgid "M11_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Return to the stern airlock. Everyone alive must be aboard before using the release."
+msgstr "Reach the stern airlock."
 
 msgid "M11_USE_PANEL"
 msgstr "[interact] Use panel"
@@ -646,25 +646,25 @@ msgid "M12_DEPARTED"
 msgstr "The route is secure. The communities have joined the coalition."
 
 msgid "M12_OBJECTIVE_MARKET_SECURED"
-msgstr "Clear the market and reach its main aisle."
+msgstr "Clear the market."
 
 msgid "M12_OBJECTIVE_ARC_FOUND"
-msgstr "Find the Arc and Cells in maintenance. Clear the armored guard."
+msgstr "Find the Arc in maintenance."
 
 msgid "M12_OBJECTIVE_GREENHOUSE_SECURED"
-msgstr "Clear the greenhouse and its Assessor."
+msgstr "Clear the greenhouse."
 
 msgid "M12_OBJECTIVE_SHELTER_ROUTE_SECURED"
-msgstr "Clear the pumping court. Secure the shelter approach."
+msgstr "Clear the pumping court."
 
 msgid "M12_OBJECTIVE_AID_FORCE_ARRIVED"
-msgstr "Reach the depot to receive the mutual-aid force."
+msgstr "Reach the depot."
 
 msgid "M12_OBJECTIVE_COALITION_COMMITMENT"
-msgstr "Use the depot terminal to confirm the coalition commitment."
+msgstr "Call in the coalition."
 
 msgid "M12_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Gather everyone at the depot and use the departure terminal."
+msgstr "Depart from the depot."
 
 msgid "M12_USE_PANEL"
 msgstr "{interact} Use habitat terminal"
@@ -727,25 +727,25 @@ msgid "M14_DEPARTED"
 msgstr "The cargo is aboard. Earth is next."
 
 msgid "M14_OBJECTIVE_ARRIVAL"
-msgstr "Reach the launch-work approach."
+msgstr "Reach the launch works."
 
 msgid "M14_OBJECTIVE_DEPOT_SECURED"
-msgstr "Secure the supply depot."
+msgstr "Take the depot."
 
 msgid "M14_OBJECTIVE_ROAD_SECURED"
-msgstr "Clear the road to the launch apron."
+msgstr "Clear the apron road."
 
 msgid "M14_OBJECTIVE_APPROACH_SECURED"
-msgstr "Secure the apron approach. Keep solid cover nearby."
+msgstr "Take the apron."
 
 msgid "M14_OBJECTIVE_WALKER_DISABLED"
-msgstr "Disable the Walker and clear its support crews."
+msgstr "Stop the Walker and its support crews."
 
 msgid "M14_OBJECTIVE_GANTRY_SECURED"
-msgstr "Clear the gantry and reach its departure control."
+msgstr "Take the gantry."
 
 msgid "M14_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Gather at the gantry control. Use it to depart."
+msgstr "Depart from gantry control."
 
 msgid "M14_USE_PANEL"
 msgstr "{use} Use departure control"
@@ -778,25 +778,25 @@ msgid "M15_DEPARTED"
 msgstr "The bout is won. The uprising begins."
 
 msgid "M15_OBJECTIVE_PEN_ARMED"
-msgstr "Arm the entrants' pen at the supply crate."
+msgstr "Arm the entrants."
 
 msgid "M15_OBJECTIVE_PEN_CLEARED"
-msgstr "Clear the pen gate and enter the tunnel."
+msgstr "Break out of the pen."
 
 msgid "M15_OBJECTIVE_BLADE_LESSON_WON"
-msgstr "Defeat the first wave on the stadium floor."
+msgstr "Win the floor."
 
 msgid "M15_OBJECTIVE_WARDENS_CLEARED"
-msgstr "Clear the wardens and camera notaries."
+msgstr "Clear the wardens."
 
 msgid "M15_OBJECTIVE_BROADCAST_SECURED"
-msgstr "Take the broadcast booth on the upper ring."
+msgstr "Take the broadcast booth."
 
 msgid "M15_OBJECTIVE_BOUT_WON"
-msgstr "Defeat the final bout wave."
+msgstr "Win the last bout."
 
 msgid "M15_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Gather at the ceremonial gate to depart."
+msgstr "Leave by the ceremonial gate."
 
 msgid "M15_USE_ARMING"
 msgstr "{use} Arm entrants"
@@ -835,25 +835,25 @@ msgid "M16_DEPARTED"
 msgstr "The avenue is taken. The chamber doors open."
 
 msgid "M16_OBJECTIVE_RIDE_STARTED"
-msgstr "Mount the motorcycle and begin the avenue dash."
+msgstr "Take the motorcycle."
 
 msgid "M16_OBJECTIVE_BARRICADE_BROKEN"
-msgstr "Break through the first stretch barricade."
+msgstr "Break the barricade."
 
 msgid "M16_OBJECTIVE_GREEN_WAVE_TRIGGERED"
-msgstr "Trip the green wave checkpoint sensors."
+msgstr "Ride the avenue."
 
 msgid "M16_OBJECTIVE_BUS_FREED"
-msgstr "Release the detainees from the transit prison bus."
+msgstr "Free the prison bus."
 
 msgid "M16_OBJECTIVE_FORECOURT_SECURED"
-msgstr "Clear the office forecourt defenders."
+msgstr "Clear the forecourt."
 
 msgid "M16_OBJECTIVE_DOORS_REACHED"
-msgstr "Approach the Forever Office chamber doors."
+msgstr "Reach the chamber doors."
 
 msgid "M16_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Enter the Forever Office chamber."
+msgstr "Enter the Forever Office."
 
 msgid "M16_USE_BUS"
 msgstr "{use} Release transit bus"
@@ -898,25 +898,25 @@ msgid "M17_DEPARTED"
 msgstr "The Forever Office has fallen. Departure confirmed."
 
 msgid "M17_OBJECTIVE_APPROACH_BREACHED"
-msgstr "Breach the Forever Office civic approach and enter the public hall."
+msgstr "Enter the public hall."
 
 msgid "M17_OBJECTIVE_HALL_SECURED"
-msgstr "Clear the armed defenders in the public hall."
+msgstr "Clear the public hall."
 
 msgid "M17_OBJECTIVE_KESSEL_SECURED"
-msgstr "Take Registrar Kessel into custody at the committee desk."
+msgstr "Detain Kessel at his desk."
 
 msgid "M17_OBJECTIVE_CORE_UNSEALED"
-msgstr "Override the security core seal from the command gallery."
+msgstr "Open the core seal."
 
 msgid "M17_OBJECTIVE_CORE_DEFEATED"
-msgstr "Eliminate the heavy core security detachment under the dome."
+msgstr "Clear the security core."
 
 msgid "M17_OBJECTIVE_VOSS_CAPTURED"
-msgstr "Confront and secure Chancellor Voss at the executive rostrum."
+msgstr "Take Voss alive."
 
 msgid "M17_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Assemble at the executive terrace for extraction."
+msgstr "Reach the terrace."
 
 msgid "M17_USE_KESSEL"
 msgstr "{use} Secure Registrar Kessel"
@@ -964,25 +964,25 @@ msgid "M18_DEPARTED"
 msgstr "Evacuation concourse cleared. Departure confirmed."
 
 msgid "M18_OBJECTIVE_AID_CHECKIN"
-msgstr "Check in at the Recovery Square relief depot counter."
+msgstr "Make the delivery at the depot."
 
 msgid "M18_OBJECTIVE_SQUARE_DEFENSE"
-msgstr "Defend Recovery Square against the ruptured bot diagnostic swarm."
+msgstr "Survive the square."
 
 msgid "M18_OBJECTIVE_COLLECTOR_BREACH"
-msgstr "Breach the Collector roadblock sealing the clinic avenue."
+msgstr "Get past the Collectors."
 
 msgid "M18_OBJECTIVE_SERVICE_ASCENT"
-msgstr "Flank through the maintenance alley and ascend the service stair tower."
+msgstr "Climb the service stair."
 
 msgid "M18_OBJECTIVE_OVERLOOK_RECON"
-msgstr "Access the Upper Overlook console and survey the planetary wipe."
+msgstr "Use the overlook console."
 
 msgid "M18_OBJECTIVE_CONCOURSE_EVAC"
-msgstr "Fight through to the Evacuation Concourse departure gate."
+msgstr "Reach the concourse."
 
 msgid "M18_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Board the evacuation transit gate."
+msgstr "Get through the transit gate."
 
 msgid "M18_USE_DEPOT"
 msgstr "{use} Check in at depot"
@@ -1021,28 +1021,28 @@ msgid "M13_DEPARTED"
 msgstr "The lift reaches daylight. The launch works lie ahead."
 
 msgid "M13_OBJECTIVE_FOUNDRY_ENTERED"
-msgstr "Enter through the service approach."
+msgstr "Enter the foundry."
 
 msgid "M13_OBJECTIVE_MACHINE_HALL_CLEARED"
-msgstr "Clear the foundry edge and machine hall."
+msgstr "Clear the machine hall."
 
 msgid "M13_OBJECTIVE_ROCKET_FOUND"
-msgstr "Clear the quarters approach. Find the office supplies."
+msgstr "Find the rockets in the office."
 
 msgid "M13_OBJECTIVE_FREIGHT_LOOP_SECURED"
-msgstr "Secure the freight loop. Rockets stop at cover."
+msgstr "Hold the freight loop."
 
 msgid "M13_OBJECTIVE_RELAY_DISABLED"
-msgstr "Shoot the relay beside the armored town feed."
+msgstr "Shoot the relay beside the town feed."
 
 msgid "M13_OBJECTIVE_UPPER_GALLERY_SECURED"
-msgstr "Clear the upper gallery and its support positions."
+msgstr "Clear the upper gallery."
 
 msgid "M13_OBJECTIVE_LIFT_BOARDED"
-msgstr "Board the freight lift together. Use its control."
+msgstr "Board the freight lift."
 
 msgid "M13_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Stay on the freight lift until it reaches daylight."
+msgstr "Ride the lift up."
 
 msgid "M13_USE_PANEL"
 msgstr "{use} Use control"
@@ -1108,31 +1108,31 @@ msgid "M19_DEPARTED"
 msgstr "Through the waterworks. The pier is ahead."
 
 msgid "M19_OBJECTIVE_CONCOURSE_STORES"
-msgstr "Draw a jetpack at the concourse stores counter."
+msgstr "Take a jetpack."
 
 msgid "M19_OBJECTIVE_BROKEN_STAIR"
-msgstr "The stair is broken. Jump, then hold {jump} in the air to reach the gallery."
+msgstr "Jump, then hold {jump} to fly up."
 
 msgid "M19_OBJECTIVE_CONCOURSE_CROSSING"
-msgstr "Clear the concourse crossing to the street doors."
+msgstr "Reach the street doors."
 
 msgid "M19_OBJECTIVE_TRAM_STREET"
-msgstr "Get down the tram street past the Paver."
+msgstr "Get past the Paver."
 
 msgid "M19_OBJECTIVE_MARKET_STRIPS"
-msgstr "Cross the market through the work strips."
+msgstr "Cross the market."
 
 msgid "M19_OBJECTIVE_WATER_TANKS"
-msgstr "Climb to the water tanks. Latch is up there."
+msgstr "Climb to Latch at the tanks."
 
 msgid "M19_OBJECTIVE_ROOF_LOOP"
-msgstr "Run the roofs to Splice's workshop. The streets go there too."
+msgstr "Reach Splice's workshop."
 
 msgid "M19_OBJECTIVE_TRAM_TRENCH"
-msgstr "Get through the tram trench before the strips close."
+msgstr "Run the tram trench."
 
 msgid "M19_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Get everyone through the waterworks hatch."
+msgstr "Reach the waterworks hatch."
 
 msgid "M19_USE_STORES"
 msgstr "{use} Draw jetpack"
@@ -1207,25 +1207,25 @@ msgid "M20_DEPARTED"
 msgstr "The refuge gate is open. Everyone on the pier crossed."
 
 msgid "M20_OBJECTIVE_SLUICE_CROSSING"
-msgstr "Cross the sluices. Break the Surveyor's sight, outwalk its light, or hit the open lens."
+msgstr "Cross the sluices. Break its sight or hit the open lens."
 
 msgid "M20_OBJECTIVE_CREW_CROSSING"
-msgstr "Clear the service road. The waterworks crew will cross on their own."
+msgstr "Clear the service road."
 
 msgid "M20_OBJECTIVE_PIER_ARRIVAL"
 msgstr "Reach the refuge pier."
 
 msgid "M20_OBJECTIVE_PIER_HOLD"
-msgstr "Hold the pier. Keep the machines off the refuge line."
+msgstr "Hold the pier."
 
 msgid "M20_OBJECTIVE_LAST_SIX"
 msgstr "Six minutes. Hold the line."
 
 msgid "M20_OBJECTIVE_LATCH_RETURNING"
-msgstr "Latch is walking back across the pier."
+msgstr "Latch is coming back."
 
 msgid "M20_OBJECTIVE_PARTY_DEPARTED"
-msgstr "The gate is open. Cross with them at the refuge control."
+msgstr "Cross into the refuge."
 
 msgid "M20_USE_CROSSING"
 msgstr "{use} Open the crossing"
@@ -1297,13 +1297,13 @@ msgid "STILL_HERE_WAITING"
 msgstr "The gate is open behind you."
 
 msgid "STILL_HERE_OBJECTIVE_STAY_WITH_LATCH"
-msgstr "Find Latch at the workshop across the tram street."
+msgstr "Find Latch at the workshop."
 
 msgid "STILL_HERE_OBJECTIVE_YEARS_LATER"
 msgstr "Walk down to the quay."
 
 msgid "STILL_HERE_OBJECTIVE_PARTY_DEPARTED"
-msgstr "Sit with Latch on the bench by the water."
+msgstr "Sit with Latch."
 
 msgid "MISSION_STILL_HERE_TITLE"
 msgstr "STILL HERE"

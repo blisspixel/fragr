@@ -76,6 +76,11 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	_box(Vector3(half * 0.25, 12.1, half + 10.0), Vector3(30.0, 0.8, 18.0), edge)
 	_box(Vector3(-half - 9.0, 6.5, half * 0.3), Vector3(14.0, 13.0, 26.0), wall_material)
 	_box(Vector3(-half - 9.0, 13.2, half * 0.3), Vector3(16.0, 0.8, 28.0), edge)
+	# Only the built multiplayer roster owns these arena notices. Campaign
+	# and custom authored maps may share this industrial skyline, never the
+	# league's identity. Their own presenters supply meaningful world copy.
+	if map_id not in [1, 2, 3, 4, 5, 6, 7, 8]:
+		return
 	var office: bool = map_id in [2, 3, 4]
 	for sign: Dictionary in wall_signs(office):
 		_sign(str(sign.text), Vector3(0.0, float(sign.y), -half + float(sign.inset)), 0.0, float(sign.pixel), SIGN_PAINT if office else VENUE_PAINT)

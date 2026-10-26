@@ -4,8 +4,23 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.92.0 - 2026-10-25
 
+- Add Hold 4x, Toggle 4x and Cycle 2x/4x/open Sniper scope preferences, with
+  consistent optical magnification across field-of-view settings. Key 7
+  selects an owned Rocket Launcher without cycling past the other guns.
+- Keep a fresh Continue press armed when the server refreshes the same
+  pending retry, while still requiring released input for a new attempt.
+- Replace repeated campaign prose boards with painted marks, notices and
+  physical props. Keep directions and essential teaching cues short, remove
+  league slogans from campaign skylines, and clear text from prop hardware.
+- Count surviving stadium entrants at the final pier consistently with Still
+  Here. Rescues change who arrives; survival alone still unlocks the epilogue.
+- Dress the campaign with modelled props in place of boxes: the correction
+  ward's machine, the impound tug beyond the Port of Entry glass, the Common
+  Carrier's pilot consoles, galley and berths, the foundry's lathes and freight
+  hoist, the trams left where they stopped in Planned Works and Local
+  Exception, and the concourse's stretcher, cases, duffels and crates.
 - Bots play Larak Lot like regulars: they reach for the Rocket and put it at
   your feet, leading a strafe, and never fire it close enough to catch
   themselves; each callsign has a favourite gun and a pad it times, so

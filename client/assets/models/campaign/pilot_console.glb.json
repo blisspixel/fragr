@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.849,
+			"green": 0.006,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.145,
+			"warm": 0.001
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 0.9 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			1.07461786270142,
+			0.899999976158142,
+			0.730904102325439
+		],
+		"scale": 0.565712239448008,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "pilot-console",
+	"metres_per_source_unit": 0.565712239448008,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		1.07461774349213,
+		0.899999976158142,
+		0.730904102325439
+	],
+	"prepared_sha256": "8861edeaee5748a03f7d3c481a9e8df17429e34a094d07ab17f804d273939bd6",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "pilot-console-20261024-v1",
+			"request_id": "01a16cc0-170e-703f-befa-6595a90e77aa",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+			"target_polycount": 8000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "pilot_console",
+			"keyed_sha256": "ffb13e942c860b6cae58b2b6fd2ef76ab57ae9ee16e531e3d5027e58c4de01aa",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "c35c81ec-253d-4d23-ae36-298879e96056",
+			"resolution": "2k",
+			"sha256": "47a80879f96733e25240b066bd409f443a170bcec07d2cdf0e0691febf031dfc",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.8995840549469,
+		1.59091484546661,
+		1.2920069694519
+	],
+	"raw_file": "pilot-console-20261024-v1-0.glb",
+	"raw_sha256": "ab3be7d8c9d59acf0908759a360c39f00cf810165f348af7cedce4f327a85331",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 4.50792596386668,
+	"texels_per_metre": 43.4540405259247,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 55,
+		"boundary_loops": 28,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			4,
+			3,
+			3,
+			3,
+			2
+		],
+		"nonmanifold_edges": 61,
+		"watertight": false,
+		"welded_vertices": 3722
+	},
+	"triangles": 7510,
+	"uv_coverage": 0.519537817458212,
+	"vertices": 14682
+}

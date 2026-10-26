@@ -49,6 +49,52 @@ fn session() -> (GameSession, Uuid) {
     session_with(CampaignDifficulty::Standard, Role::Agent)
 }
 
+#[test]
+fn pier_workshop_people_are_counted_once_after_evacuation() {
+    let (mut s, _) = session_run(CampaignDifficulty::Standard, Role::Agent, true);
+    let solo = s.state.mission.as_mut().unwrap().solo.as_mut().unwrap();
+    let before = refuge_for(Some(solo));
+    solo.carried_released_workers = vec!["splice".into()];
+    assert_eq!(refuge_for(Some(solo)), before);
+    solo.carried_evacuated_workers = vec!["splice".into()];
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 1);
+    assert!(refuge_for(Some(solo)).splice);
+    solo.carried_berth = Some(run_file::M09Outcome {
+        released_crew: vec![
+            "tern".into(),
+            "berth_crew_a".into(),
+            "berth_crew_b".into(),
+            "splice".into(),
+        ],
+        aboard_at_departure: vec![],
+    });
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 4);
+}
+
+#[test]
+fn pier_population_counts_only_stadium_entrants_who_survived() {
+    let (mut s, _) = session_run(CampaignDifficulty::Standard, Role::Agent, true);
+    let solo = s.state.mission.as_mut().unwrap().solo.as_mut().unwrap();
+    let before = refuge_for(Some(solo));
+    solo.carried_stadium = Some(run_file::M15Outcome {
+        pen_armed: true,
+        blade_wave_won: true,
+        entrants_preserved: false,
+        broadcast_taken: true,
+        armed_entrants: vec![4, 12, 44, 71],
+        fallen_entrants: vec![12, 71],
+    });
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 2);
+    solo.carried_stadium.as_mut().unwrap().fallen_entrants = vec![4, 12, 44, 71];
+    assert_eq!(refuge_for(Some(solo)), before);
+    solo.carried_stadium
+        .as_mut()
+        .unwrap()
+        .fallen_entrants
+        .clear();
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 4);
+}
+
 /// One server tick, then the same strict reader every client uses.
 pub(super) fn tick(s: &mut GameSession) {
     s.tick_messages(0.05);

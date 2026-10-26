@@ -13,6 +13,29 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+## October 25, 2026 wave 5 tour
+
+The combined build repeated the full publish tour on Linux/Vulkan, including
+ordinary weapon pickups, both team views and Recall Notice arrival. The
+campaign arrival image now shows the reduced prose and physical wall notices;
+unchanged arena and menu surfaces keep wave 4's inspected images. Separate
+rendered checks covered all twenty campaign sign sheets and Still Here, the
+twelve props in place and in rotation, Planned Works' sixteen review states,
+and distinct 2x and 4x Sniper views. The Look menu's scope control is legible
+without overlapping its neighbouring controls. These are authoring and visual
+checks, not measured novice playthroughs.
+
+## October 25, 2026 wave 4 tour
+
+The 34 main states, two team states and Recall Notice arrival passed on Linux
+with Vulkan, Godot 4.7.2-stable and a nested Xwayland display at 1280x720.
+The free-for-all used seed 17 and two bots; the joined fighter collected its
+Shotgun and Railgun from their actual pads. Inspected stills and effect frame
+sequences show the modelled guns, reduced Larak signage, pickup staging,
+spectator facts and current lighting. Ten changed arena and team images were
+refreshed. Unchanged menu and campaign surfaces retain their earlier images.
+These captures do not establish Windows, controller or fresh-player acceptance.
+
 ## October 24, 2026 README stills
 
 The last pass of wave 2 retook the front-door stills and looked at each one.

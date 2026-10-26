@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.001,
+			"cyan": 0.0,
+			"dark": 0.006,
+			"green": 0.638,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.33,
+			"warm": 0.025
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 2.1 on longest m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			2.09999990463257,
+			0.334098815917969,
+			0.741235494613647
+		],
+		"scale": 1.10362687951236,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "stretcher",
+	"metres_per_source_unit": 1.10362687951236,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		2.09999990463257,
+		0.334098815917969,
+		0.741235494613647
+	],
+	"prepared_sha256": "f50ca4006466ad7b45f7d92dbc980a7e070b0b0d91c12a35cd1dd4bcda7711d9",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "stretcher-20261023-v1",
+			"request_id": "01a16c58-a20b-7767-9a78-3250cb323d87",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "stretcher_m34",
+			"keyed_sha256": "df70613ec4b3e2d4b9e11151d8b3b40f9c1e1114ff24b614492954a644bf91d5",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "23746dab-a0ab-46df-aa4a-a4290efdcfe9",
+			"resolution": "2k",
+			"sha256": "ebad8d0c28c8a2fb1933fb833f12aa52150059506a30ebd01b1da15d392ffd31",
+			"spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90281701087952,
+		0.302728056907654,
+		0.671635985374451
+	],
+	"raw_file": "stretcher-20261023-v1-0.glb",
+	"raw_sha256": "a2e11d8caf070981e09489d3fa2243abf0e6afceef84de02c946bc9072e31346",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 6.47733523151919,
+	"texels_per_metre": 35.6028694654051,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 97,
+		"boundary_loops": 44,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			7,
+			5,
+			5,
+			5,
+			4
+		],
+		"nonmanifold_edges": 92,
+		"watertight": false,
+		"welded_vertices": 2517
+	},
+	"triangles": 5223,
+	"uv_coverage": 0.5011254266598,
+	"vertices": 10614
+}

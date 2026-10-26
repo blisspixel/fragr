@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.214,
+			"green": 0.167,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.619,
+			"warm": 0.0
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.0 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.950332760810852,
+			1.0,
+			0.818763613700867
+		],
+		"scale": 0.525927249495772,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "supply-crate",
+	"metres_per_source_unit": 0.525927249495772,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		0.950332701206207,
+		1.00000011920929,
+		0.818763613700867
+	],
+	"prepared_sha256": "784abdd9a5a90816d45ced472b6f1e848fa9048263154568e6661a93c4edd30c",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "supply-crate-20261023-v1",
+			"request_id": "01a16c5f-7356-7183-878e-044f534b7338",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m5-l20-props-meshy-20261023.json",
+			"target_polycount": 8000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "supply_crate_m34",
+			"keyed_sha256": "8dfe2ef2bb40f69b820f2498b1ff97124bcbc98e561eeb80b30917c5984e1560",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "5154f89f-e607-4b93-b8d5-34c64ef3eddb",
+			"resolution": "2k",
+			"sha256": "d8af51e9979dba96cef5208709ea8999982aa86ac2903ce20f24717af02c86fa",
+			"spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.80696618556976,
+		1.9014036655426,
+		1.55680012702942
+	],
+	"raw_file": "supply-crate-20261023-v1-0.glb",
+	"raw_sha256": "5bf97e0564ca3d89b8950e7a5a821d7e258157f738767cabd7e4b8a60e44d1b0",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 11.4918380226227,
+	"texels_per_metre": 52.4308363741477,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 134,
+		"boundary_loops": 57,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			6,
+			6,
+			6,
+			5,
+			5
+		],
+		"nonmanifold_edges": 168,
+		"watertight": false,
+		"welded_vertices": 3561
+	},
+	"triangles": 7361,
+	"uv_coverage": 0.48204006527451,
+	"vertices": 15362
+}

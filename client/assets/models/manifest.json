@@ -6,6 +6,54 @@
 	"engine": "4.7.2-stable (official)",
 	"models": [
 		{
+			"file": "campaign/civilian_tram.glb",
+			"sha256": "6e78f3914b5970c1353d8b08f1bc7daf7d74b44f95448aa7e35f910246f36eed"
+		},
+		{
+			"file": "campaign/correction_machine.glb",
+			"sha256": "41c7b3016f097bd03379aaeb777d04ce67901459617b72aa1cfc7a496c54a7f1"
+		},
+		{
+			"file": "campaign/duffel.glb",
+			"sha256": "b84c0abbf9f14be25b9e61666a9bf12d0a3f9a271f1d43dd103fbccbb550eb3c"
+		},
+		{
+			"file": "campaign/galley.glb",
+			"sha256": "8fac8677c68de6c80fae82dde961bf822acf0382c0506f1a862ed062fe7a7b9c"
+		},
+		{
+			"file": "campaign/gantry_hoist.glb",
+			"sha256": "a8e86e611f81b57ef4fd0a9431c3870b83441b26808069f8b31fcb00e6bdb7c7"
+		},
+		{
+			"file": "campaign/hard_luggage.glb",
+			"sha256": "d523d116aefc39f4211502eb04b98081e6040ed209cb6c5740cc1c9a03682586"
+		},
+		{
+			"file": "campaign/impound_tug.glb",
+			"sha256": "bdd23b4917b3ee8ca97be69ec140ee95c3c5cd53075e1a41e852a5f1736a533e"
+		},
+		{
+			"file": "campaign/lathe.glb",
+			"sha256": "898e8bfb5cb23bc1fe541e5bfd89ad410cef273e97f2b567a0143991209a13fb"
+		},
+		{
+			"file": "campaign/pilot_console.glb",
+			"sha256": "8861edeaee5748a03f7d3c481a9e8df17429e34a094d07ab17f804d273939bd6"
+		},
+		{
+			"file": "campaign/ship_bunk.glb",
+			"sha256": "5efef55dd464d5e374d95eef9a81d418e6fb21043d4584db78dbd0e8eb6dede5"
+		},
+		{
+			"file": "campaign/stretcher.glb",
+			"sha256": "f50ca4006466ad7b45f7d92dbc980a7e070b0b0d91c12a35cd1dd4bcda7711d9"
+		},
+		{
+			"file": "campaign/supply_crate.glb",
+			"sha256": "784abdd9a5a90816d45ced472b6f1e848fa9048263154568e6661a93c4edd30c"
+		},
+		{
 			"file": "edda_live.glb",
 			"sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40"
 		},

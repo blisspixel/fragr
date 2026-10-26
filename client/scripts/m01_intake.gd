@@ -433,6 +433,13 @@ func _tiled(parent: Node3D, label: String, key: String, size: Vector2, at: Vecto
 	return node
 
 func _sign(parent: Node3D, key: String, size: Vector2, at: Vector3, face: String, ink: Color) -> WorldSign:
+	# The intake's queues, shuttered stalls, confiscation bins and paperwork
+	# carry the coercion. Keep only the identity, personal and route details
+	# that need words, plus the accurately labelled propaganda caption.
+	if key not in CAPTIONS and key not in ["WORLD_M01_ANNEX_NUMBER",
+			"WORLD_M01_LEDGER_LINE", "WORLD_M01_LATCH_EFFECTS",
+			"WORLD_M01_OFFICIAL_CAPTION", "WORLD_M01_CUSTODY_FEED", "WORLD_M01_LATCH_FILE"]:
+		return null
 	var label: WorldSign = WorldSign.new()
 	label.name = "Copy_" + key
 	label.configure(key, size, ink)

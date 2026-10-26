@@ -126,7 +126,7 @@ fn refuge_for(solo: Option<&recovery::SoloRun>) -> M20Refuge {
     let count = |items: usize| u32::try_from(items).unwrap_or(u32::MAX);
     freed = freed.saturating_add(count(solo.carried_recall_cars.len()).saturating_mul(2));
     freed = freed.saturating_add(count(solo.carried_patients.len()));
-    freed = freed.saturating_add(count(solo.carried_released_workers.len()));
+    freed = freed.saturating_add(count(solo.carried_evacuated_workers.len()));
     if solo.carried_prisoner_route_marked {
         freed = freed.saturating_add(6);
     }
@@ -146,7 +146,14 @@ fn refuge_for(solo: Option<&recovery::SoloRun>) -> M20Refuge {
         }
     }
     if let Some(run_file::M09Outcome { released_crew, .. }) = &solo.carried_berth {
-        freed = freed.saturating_add(count(released_crew.len()));
+        // Splice can occur in both the workshop and the ship's crew list.
+        // One person's later appearance is not another rescue.
+        freed = freed.saturating_add(count(
+            released_crew
+                .iter()
+                .filter(|id| !solo.carried_evacuated_workers.contains(id))
+                .count(),
+        ));
     }
     let sorrel = solo
         .carried_tender
@@ -168,7 +175,13 @@ fn refuge_for(solo: Option<&recovery::SoloRun>) -> M20Refuge {
         ));
     }
     if let Some(stadium) = &solo.carried_stadium {
-        freed = freed.saturating_add(count(stadium.armed_entrants.len()));
+        freed = freed.saturating_add(count(
+            stadium
+                .armed_entrants
+                .iter()
+                .filter(|entrant| !stadium.fallen_entrants.contains(entrant))
+                .count(),
+        ));
     }
     if solo
         .carried_avenue

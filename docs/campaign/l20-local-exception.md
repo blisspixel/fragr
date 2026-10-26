@@ -29,6 +29,13 @@ harness. Rendered review only, not fresh-player acceptance. Accepted 2026-09-25.
 to 33, the climax. Surviving it unlocks [Still Here](epilogue-still-here.md).
 [Story arc](story-arc.md).
 
+**Rescue continuity, confirmed 2026-10-25:** the pier's population and named
+survivors come from retained campaign outcomes. The four hundred refuge
+residents are joined by those the run brought; fallen stadium entrants are
+not counted as arrivals. Splice must have reached the freight. Survival alone
+opens Still Here, with no rescue threshold or morality score. The Severe brief
+question above is separate from this confirmed ending direction.
+
 **Expanded gameplay direction, accepted 2026-10-04:** this is the larger
 strategic survival climax after M18's unexpected takeover and M19's escape.
 Use a connected district with persistent converging attacks, useful vehicle

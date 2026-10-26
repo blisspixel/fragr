@@ -136,16 +136,6 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	_water_material.set_shader_parameter("crest_color", Color("aec5ae"))
 	water.material_override = _water_material
 	_root.add_child(water)
-	var water_label: Label3D = Label3D.new()
-	water_label.name = "RecyclingCopy"
-	water_label.text = tr("WORLD_M06_RECYCLED_WATER")
-	water_label.font = WorldSign.FONT
-	water_label.font_size = 24
-	water_label.pixel_size = 0.008
-	water_label.position = centre + Vector3(0.7, 1.3, 4.2)
-	water_label.rotation.y = PI * 0.5
-	water_label.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	_root.add_child(water_label)
 	var drawing: MeshInstance3D = MeshInstance3D.new()
 	drawing.name = "EarthDrawing"
 	var page: QuadMesh = QuadMesh.new()

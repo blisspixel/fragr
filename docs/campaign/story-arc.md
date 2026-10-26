@@ -317,34 +317,36 @@ nothing.
 
 ## The reprieve is earned
 
-**Proposal, and a flagged question for Nick.** The fiction should say plainly
-that the player survives level 20 because of who they brought with them, not
-only because they held a pier for twelve minutes. The free agents at the
-waterworks are not negotiating in the abstract; they are naming names. Latch
-citing "four hundred lives" at the pier (level 20) already gestures at this;
-the proposal makes it a real, tracked number.
+**Direction confirmed 2026-10-25.** The people actually rescued change the named
+survivors and wording of the local reprieve. Survival alone unlocks the epilogue.
+The free agents argue for particular people; the game does not certify them as
+more deserving of life. A number in their appeal must come from retained
+outcomes. The existing four hundred are the refuge's residents, not a default
+rescue score.
 
-**Proposed mechanism.** Count authored rescues across all twenty levels (the
-[network](#the-network-grows) table above) into one running total, never shown
-to the player as a score or a meter during play. That total does three things,
-none of them a gate:
+**Implemented foundation.** `server/src/mission/m20.rs` derives the harbour's
+population from the refuge's residents and retained campaign outcomes. Fallen
+stadium entrants are excluded. `server/src/mission/epilogue.rs` reads those
+receipts independently for named and group presence, never inferring a death
+from an absent rescue. Neither is an unlock condition. This supports:
 
 1. Sets the number Latch and the free agents cite at the pier and in the
    Inheritance's one precise message (level 20).
-2. Determines which named survivors appear at the refuge and what they are
-   doing (already established for levels 3, 8, 11 and 15; this extends it).
-3. Colors one line of the epilogue's framing text, nothing more.
+2. Named survivors and their activities at the refuge, using each person's
+   actual receipt rather than an aggregate threshold.
+3. Further scene wording through those same receipts. The current epilogue's
+   arrival framing remains common to every survived run.
 
-**The flag.** [CAMPAIGN.md](../CAMPAIGN.md#confirmed-direction) already says
+**The boundary.** [CAMPAIGN.md](../CAMPAIGN.md#confirmed-direction) says
 survival "depends on circumstance, escape, and mutual help, not moral
 selection," and the mission treatment rules out "a hidden morality score" or
 rescue count deciding an outcome. A rescue-count gate on the epilogue itself
 would contradict that agreed canon. This proposal resolves the conflict by
 making survival remain the only mechanical requirement to unlock the epilogue,
-exactly as agreed: the rescue count changes what the reprieve *means* and *who
-you see again*, never *whether* the player reaches it. Nick should confirm
-this resolution, or strike the mechanism if even flavor-only rescue tracking
-reads as a virtue score.
+exactly as agreed: retained rescues change what the reprieve *means* and *who
+you see again*, never *whether* the player reaches it. Nick confirmed this
+boundary on 2026-10-25. Named consequences need no new score or competing
+progress store.
 
 ## Themes
 
@@ -492,8 +494,9 @@ none contradicts [CAMPAIGN.md](../CAMPAIGN.md).
     all twenty levels that shapes who appears and what the ending's framing
     says, never whether the ending unlocks
     ([the network grows](#the-network-grows), [the reprieve is earned](#the-reprieve-is-earned)).
-    Flagged for Nick: confirm this does not read as a virtue score even as
-    flavor only.
+    Confirmed 2026-10-25: survivor and reprieve consequences, never a morality
+    score. Exact scene wording and any aggregate accounting remain to be built
+    from actual retained outcomes.
 14. **The wipe as haunting ambiguity**: the Congregation's Ascenders read it as
     the Curve arriving; the game shows the world healing and the Union gone
     without ever declaring the Inheritance right

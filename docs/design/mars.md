@@ -2,9 +2,9 @@
 
 Production direction, 2026-09-30. Read the [bible](../ART_STORY_BIBLE.md),
 [campaign](../CAMPAIGN.md) and [levels 12-14](../campaign/README.md).
-Updated implementation context, 2026-10-15: M12 and M13 have connected
-development prototypes. M14's connected launch-work integration is in flight,
-with its historical standalone battlefield and Walker range retained. Final art and player
+Updated implementation context, 2026-10-25: M12, M13 and M14 are connected
+development levels, with M14's historical standalone battlefield and Walker
+range retained. Final art and player
 acceptance remain open for all three.
 
 Settlements survive around practical lifelines: habitat, contained agriculture,

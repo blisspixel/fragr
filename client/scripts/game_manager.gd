@@ -149,6 +149,7 @@ var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
+var _continue_context: String = ""
 var _continue_attempt_sent: int = -1
 ## A completed local run can go straight on to its saved next mission. The
 ## boot menu reads LocalMatch.ONWARD_META once and opens Continue Run.
@@ -1899,8 +1900,8 @@ func _process(_delta):
 func _update_scope(delta: float) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
-	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
-	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
+	var held: bool = is_human_player and InputMap.has_action("scope") and Input.is_action_pressed("scope")
+	var enabled: bool = is_human_player and alive and not controls_blocked() and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
 	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
 	_play_scope_cue(was_scoped, _scope_engaged())
@@ -2210,10 +2211,17 @@ func _reset_local_fire() -> void:
 
 func _on_mission_received(state: Dictionary) -> void:
 	var receipt: String = "%s:%d" % [str(state.get("id", "")), int(state.get("attempt", 0))] if not state.is_empty() else ""
+	var run: Variant = state.get("run")
+	var continuation: String = "%s:%s" % [receipt, str(run.get("id", ""))] if run is Dictionary and run.get("status") == "continue" else ""
+	# A refresh of the same pending retry must not disarm a fresh accept
+	# press between network polling and input delivery. New runs, attempts
+	# and non-continue states still require input release before arming.
+	if receipt != _event_mission_receipt or continuation.is_empty() or continuation != _continue_context:
+		_continue_armed = false
+	_continue_context = continuation
 	if not _event_mission_receipt.is_empty() and receipt != _event_mission_receipt:
 		hud.reset_event_context()
 	_event_mission_receipt = receipt
-	_continue_armed = false
 	if is_instance_valid(departure_review):
 		if not _m05_departure_available():
 			_close_departure_review()

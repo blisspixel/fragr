@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.0,
+			"cyan": 0.0,
+			"dark": 0.004,
+			"green": 0.884,
+			"magenta": 0.0,
+			"pale": 0.0,
+			"red": 0.0,
+			"steel": 0.009,
+			"warm": 0.103
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 0.75 on longest m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.75,
+			0.254805326461792,
+			0.655576467514038
+		],
+		"scale": 0.394339003543529,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "hard-luggage",
+	"metres_per_source_unit": 0.394339003543529,
+	"normal_map_px": 128,
+	"orm_maps": false,
+	"paint_locked_px": 64,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		0.75,
+		0.254805326461792,
+		0.655576407909393
+	],
+	"prepared_sha256": "d523d116aefc39f4211502eb04b98081e6040ed209cb6c5740cc1c9a03682586",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "hard-luggage-20261023-v1",
+			"request_id": "01a16c57-94dd-75e0-9213-afaa6c35fcdd",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
+			"target_polycount": 6000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "hard_luggage_m34",
+			"keyed_sha256": "05940090352210dbba1de1a53fad5b089110704737c014aa8c604688df0ff6c8",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "b881aedd-7e92-4f4c-bc8c-09768c8634ca",
+			"resolution": "2k",
+			"sha256": "ff729ade12cba16e51c531f407f8e18432e4b64d23591984e3041c9446bda8e4",
+			"spec": "tools/spritegen/specs/h1b-medium-20261023.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.90191686153412,
+		0.6461580991745,
+		1.66246926784515
+	],
+	"raw_file": "hard-luggage-20261023-v1-0.glb",
+	"raw_sha256": "aebab9ce70b66ac847cd5c0e0564b267a45295ff623a873b119a0478a4199a0c",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 1.54219369441273,
+	"texels_per_metre": 38.1397610655445,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 17,
+		"boundary_loops": 9,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			2,
+			2,
+			2,
+			2,
+			2
+		],
+		"nonmanifold_edges": 11,
+		"watertight": false,
+		"welded_vertices": 2615
+	},
+	"triangles": 5257,
+	"uv_coverage": 0.547690125689864,
+	"vertices": 8478
+}

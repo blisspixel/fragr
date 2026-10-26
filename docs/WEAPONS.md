@@ -22,8 +22,9 @@ client presentation foundation. Its separate development lesson and connected
 M12 introduction pass ordinary-input checks. The larger industrial presentation
 has [inspected correction evidence](evidence/presentation-corrections-20261008.md);
 final human feel and integration retain their gates in
-[its plan](plans/arc-foundation-20261008.md). Article Blade
-and Denial remain accepted later finds awaiting implementation. These additions are not in M01
+[its plan](plans/arc-foundation-20261008.md). Article Blade is implemented
+with its M15 plinth and twelve-swing lifecycle. Denial remains planned.
+These additions are not in M01
 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
@@ -72,14 +73,17 @@ Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they
 
 ## What you start with
 
-**Your fists.** A fresh campaign and ordinary pickup-based matches begin with
-melee only. Explicit full-arsenal modes such as Open Weights are labeled exceptions.
+**Campaign: your fists. Free-for-all: Pistol and Fists.** Recall Notice begins
+with confiscated equipment and a safely reachable first sidearm. Free-for-all
+and Duel give each new life a Pistol and fifty Bullets; better guns require a
+contested pad. Team modes and explicit arsenal rules advertise their kit.
 A campaign continue restores the current mission's starting inventory; crossing a
 mission boundary is not another fresh spawn.
 
 Everything else is acquired through play. Competitive respawns reset inventory;
 the current local campaign carries it between connected missions and restores
-mission-entry inventory on retry. Doom starts you with fists and a pistol; fragr keeps the fists and puts the pistol on the ground, which is further than Doom goes and is the point.
+mission-entry inventory on retry. The campaign's bare-handed opening makes
+recovering the Pistol a small act of agency; it is not repeated at each level.
 
 Every authored melee-start location needs a safely reachable sidearm close by.
 The first campaign pickup is an action and a discovery, not a death sentence.
@@ -91,6 +95,33 @@ Finding a knife can then be a real upgrade. Do not strip recovered guns after
 every campaign death merely to repeat that introduction.
 
 Nobody is a class. There are no loadouts and no roles: if you are sniping it is because you walked to where the rail was. The enemies are the opposite, and deliberately so. A Continuance unit has one shape, one behaviour and one attack, and it never varies, so you learn a silhouette once and know it forever. That roster is [`docs/ENEMIES.md`](./ENEMIES.md).
+
+## Handling and discovery
+
+The Rifle is the familiar modular mid-range workhorse, with an original
+2060s design and repair history rather than a manufacturer replica. The
+Rocket Launcher fills the unguided RPG role: visible flight, a single loaded
+round, covered splash and dangerous close shots. The Sniper Rifle is a slow,
+precise alternative to the Railgun, not a stronger replacement for every gun.
+
+The Sniper scope offers Hold 4x, Toggle 4x and Cycle 2x/4x/open in Look settings.
+Magnification uses the camera projection so 4x remains 4x across base field of
+view settings; scoped sensitivity scales with it. Weapon changes, death and
+blocked controls clear zoom. Optics never alter server hit rules.
+
+The touchstones have distinct jobs: Doom II's movement and situational weapon
+choices, Counter-Strike 1.6's deliberate precision, Battlefield 1942's useful
+engagement distances and vehicle counterplay, and GoldenEye's readable tools
+and discoveries. Preserve those pleasures within fragr's own fiction. An
+issued rifle, a maintained civilian gun and a liberated accelerator can share
+a workshop without becoming interchangeable skins.
+
+Each campaign introduction needs a visible source, room to try the new tool,
+an immediately useful target and enough ammunition to learn its role. The
+following fight should let the player choose it or keep a trusted weapon.
+Equipment is recovered from the world and carried onward, with no campaign
+carry cap or purchase menu. Actual first-player supply and pacing acceptance
+still require imperfect-aim play; a scripted clear cannot establish them.
 
 ## The ladder
 
@@ -106,10 +137,10 @@ There is one number per ammunition type and it is everything you carry, includin
 | 6 | **Rail** (shipped) | Long precision | 80 | 1.00 s | 10 | Cells | Pad |
 | 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
 | 7 | **Repeater** (CPU foundation, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 lesson planned; no production find |
-| 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
+| 8 | **Rocket Launcher** (implemented) | Splash, projectile | 65 direct, 45 peak splash | 0.80 s | 4 | Rockets | M13 freight office; Larak pad |
 | 9 | **Arc** (implemented foundation) | 24 m energy, bypasses carried armour and registered plates | 18 | 0.15 s | 40 | Cells | Connected M12 prototype; fresh-player acceptance remains open |
 | 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
-| 11 | **Article Blade** | Melee upgrade | 70 | 0.45 s | 12 swings | none | Plinth, near centre |
+| 11 | **Article Blade** (implemented) | Melee upgrade | 70 | 0.45 s | 12 swings | none | M15 plinth |
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
 
 Three melee tiers, six guns and a sidearm, a thrown mine and a signature weapon. Four ammunition types feed the guns: Bullets for the sidearm, the flechette and the repeater, Shells for the scatter, Cells for the rail, the arc and the sniper rifle, Rockets for the lobber (the rocket launcher). The tin, the blade and the signature weapon carry their own counts and sit outside the pools entirely.
@@ -135,14 +166,16 @@ fire cues clear the prior stream; another gun's body or sound is not a stand-in.
 See [the foundation](plans/repeater-foundation.md) and its
 [local evidence](evidence/repeater-foundation-20261004.md).
 
-Six physical weapon keys remain unchanged: key 1 Fists/Shiv, key 2 Pistol, key 3
+Seven physical weapon keys select owned equipment: key 1 Fists/Shiv/Article
+Blade, key 2 Pistol, key 3
 Shotgun, key 4 Rifle, key 5 Railgun/Arc and key 6 Sniper Rifle. Repeated key 4 cycles
 the owned Rifle/Repeater family, while the existing wheel includes Repeater
 beside Rifle, and repeated key 5 cycles owned Railgun/Arc. The wheel places Arc
 beside Railgun. Shiv retains its existing melee-family selection. Repeater is
 appended at wire/record index 7 and Arc at index 8; no earlier index changes.
-Rocket is appended at index 9 and is reachable through the owned-weapon wheel.
-Current participant record revision 4 uses exactly ten columns. Strict
+Rocket is at index 9 and has direct key 7 as well as the owned-weapon wheel.
+Article Blade is index 10. Current participant record revision 5 uses eleven
+columns. Revision 4 keeps ten. Strict
 historical revision 3 keeps nine, revision 2 keeps eight and revision 1 keeps five/six/seven.
 Older readers receive a compatible shape only when every unsupported column is
 actually empty. Actual Arc or Rocket facts are never assigned to another gun or discarded.
@@ -208,9 +241,9 @@ is found should be an upgrade; resupply should reward useful detours. Resource
 pressure and imperfect aim remain campaign tuning gates, not conclusions from
 an accurate-aim automation clear.
 
-**Current melee stays available.** Fists and the found Shiv consume no ammunition
-and never break. The older breakable Shiv and twelve-swing Article Blade are
-retired and proposed respectively, not current inventory rules.
+**Ordinary melee stays available.** Fists and the found Shiv consume no ammunition
+and never break. Article Blade is the explicit exception: its twelve swings
+and plinth lifecycle are visible server facts.
 
 **A pickup is a fight and a half, not an afternoon.** The exact numbers are in the table. The caps are Doom's, so you can hoard, but a single pad never fills you.
 

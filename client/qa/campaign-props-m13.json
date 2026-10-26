@@ -1,0 +1,8 @@
+{"comment": "Weight of Permission lathes and freight hoist: the prepared campaign props in place at play distance, seen by a spectator in the level's own light (no participants). FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m13-weight-of-permission.json, FRAGR_QA_MANIFEST=res://qa/campaign-props-m13.json. Stills for looking at, not acceptance.", "width": 1280, "height": 720, "states": [
+  {"name": "m13_lathes", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-20, 1.9, -24], "camera_look_at": [-20, 1.1, -33], "settle_seconds": 1.5},
+  {"name": "m13_lathes_squad", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-17, 1.9, -22], "camera_look_at": [-20, 1.2, -32], "settle_seconds": 0.8},
+  {"name": "m13_hoist", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [2, 1.9, 11], "camera_look_at": [0, 6.6, 18.5], "settle_seconds": 0.8},
+  {"name": "m13_hoist_side", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-6, 2.4, 14.5], "camera_look_at": [0, 6.6, 18.5], "settle_seconds": 0.8},
+  {"name": "m13_lathes_close", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-18.5, 1.9, -28.5], "camera_look_at": [-21, 1.0, -31.5], "settle_seconds": 0.8},
+  {"name": "m13_lathes_end", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-14.0, 1.9, -33.0], "camera_look_at": [-20, 1.1, -33], "settle_seconds": 0.8}
+]}

@@ -538,7 +538,13 @@ func _run() -> void:
 		if state.get("camera", "") == "body":
 			_body_distance = clampf(float(state.get("body_distance", 3.0)), 1.5, 40.0)
 			await _find_body(str(state.get("body", "")), str(state.get("body_team", "")))
-		# A held scope frames the still through the presentation-only overlay.
+		# Scope preference changes use the same presenter setting as Look.
+		if state.has("scope_mode"):
+			var preference_hud: Node = _find_hud()
+			var preference_scope: Variant = preference_hud.get("sniper_scope") if preference_hud != null else null
+			if preference_scope is SniperScope:
+				(preference_scope as SniperScope).set_mode(int(state["scope_mode"]))
+		# A scope press frames the still through the presentation-only overlay.
 		var scoped_still: bool = state.get("scope", false) == true
 		if scoped_still:
 			Input.action_press("scope")
@@ -643,7 +649,15 @@ func _run() -> void:
 			if not scope_view is SniperScope or not (scope_view as SniperScope).scoped():
 				push_error("qa_tour: %s expected the Sniper scope in the still" % state_name)
 				_failed = true
+			elif state.has("expect_scope_factor") and not is_equal_approx((scope_view as SniperScope).fov_factor(), float(state["expect_scope_factor"])):
+				push_error("qa_tour: %s has the wrong magnification" % state_name)
+				_failed = true
 			Input.action_release("scope")
+			# A following state may select an already-held weapon without
+			# yielding. Let the real input loop observe this release before
+			# another press, as a player's toggle/cycle input would.
+			await process_frame
+			await process_frame
 		var shot: Image = measured.get("shot")
 		if shot == null:
 			push_error("qa_tour: no frame for state " + state_name)

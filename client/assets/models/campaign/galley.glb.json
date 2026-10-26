@@ -1,0 +1,108 @@
+{
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.004,
+			"cyan": 0.0,
+			"dark": 0.188,
+			"green": 0.007,
+			"magenta": 0.0,
+			"pale": 0.004,
+			"red": 0.0,
+			"steel": 0.602,
+			"warm": 0.199
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.1 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			1.40060043334961,
+			1.10000002384186,
+			0.700812458992004
+		],
+		"scale": 0.738115307479359,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "galley",
+	"metres_per_source_unit": 0.738115307479359,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		1.40060043334961,
+		1.09999990463257,
+		0.700812458992004
+	],
+	"prepared_sha256": "8fac8677c68de6c80fae82dde961bf822acf0382c0506f1a862ed062fe7a7b9c",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 30.0,
+			"format": "glb",
+			"geometry_resolution": "standard",
+			"job": "galley-20261024-v1",
+			"request_id": "01a16cbe-315c-75e2-82be-bb3de8a5e1cd",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
+			"target_polycount": 7000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "galley",
+			"keyed_sha256": "2b6671a909ad0defdd9d34c3fce3a5fff29338e56574f096146cdf31491cf011",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "21a24d75-2357-42ae-a90b-a443c64e3389",
+			"resolution": "2k",
+			"sha256": "f04ff8a42302a0fd463ee4e69d1ba9351752a00de63564dfe5241528b1fa60d2",
+			"spec": "tools/spritegen/specs/h-m7-bank-refs-20261024.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: ready"
+	},
+	"raw_bounds_units": [
+		1.89753603935242,
+		1.49028205871582,
+		0.949462056159973
+	],
+	"raw_file": "galley-20261024-v1-0.glb",
+	"raw_sha256": "2f548ff5e063e94d46b8ccc0db0632ac3f9aeffae6715e97ecb880c8f9b31c7b",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 8.09689369246939,
+	"texels_per_metre": 32.358783769926,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 94,
+		"boundary_loops": 36,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			10,
+			5,
+			4,
+			4,
+			4
+		],
+		"nonmanifold_edges": 59,
+		"watertight": false,
+		"welded_vertices": 2918
+	},
+	"triangles": 5913,
+	"uv_coverage": 0.517467260678085,
+	"vertices": 11752
+}

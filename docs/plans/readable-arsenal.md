@@ -21,16 +21,16 @@ final human feel remains in the [Arc plan](arc-foundation-20261008.md).
 The Rocket Launcher has a finite
 projectile foundation and its M13 introduction is implemented in the
 [connected foundry round](m13-connected-round-20261013.md), with final art and
-human feel still open. Article Blade (M15) and Denial (M17) remain accepted introductions awaiting implementation
+human feel still open. Article Blade is implemented at M15; Denial remains a
+planned introduction
 in [CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md).
 The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
 
 Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
 below stays carried, Doom style, all the way to the credits; nothing hits the
-floor to make room for the next pickup. [WEAPONS.md](../WEAPONS.md)'s "you
-carry a melee, a sidearm, and two found weapons" rule is an arcade and
-multiplayer rule and does not apply here. [CAMPAIGN.md](../CAMPAIGN.md#combat-and-level-contract)
+floor to make room for the next pickup. The older proposed two-found-weapon
+limit is not implemented in campaign or ordinary matches. [CAMPAIGN.md](../CAMPAIGN.md#combat-and-level-contract)
 owns this carve-out for the campaign specifically.
 
 ## Goal
@@ -134,6 +134,6 @@ M01 and from the default arcade kit. Grenade implementation evidence belongs
 to its bounded foundation and M05 plans; Sniper Rifle evidence to the level 7
 plan. Proximity Mine evidence belongs to the level 8 custody plan and Remote
 Mine evidence to the level 11 plan. Repeater and Arc foundations retain their
-separate find, presentation and played acceptance gates. Rocket Launcher,
-Article Blade and Denial remain unbuilt. A passing development lesson does not
+separate find, presentation and played acceptance gates. Rocket Launcher
+and Article Blade are implemented; Denial remains unbuilt. A passing development lesson does not
 establish a connected mission or human weapon feel.

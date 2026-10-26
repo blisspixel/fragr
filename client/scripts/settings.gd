@@ -45,6 +45,7 @@ const DEFAULTS: Dictionary = {
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
+		"scope_mode": 0,       # Hold 4x, toggle 4x, cycle 2x / 4x / open.
 		"invert_y": false,      # Mouse and stick pitch. Look keys are literal.
 		"turn_speed": 2.8,      # Radians per second for keyboard turning
 		"auto_centre": false,   # Keyboard pitch eases level while walking.
@@ -62,7 +63,7 @@ const DEFAULTS: Dictionary = {
 		"strafe": "", "jump": "", "dodge": "", "duck": "", "turn_left": "", "turn_right": "",
 		"look_up": "", "look_down": "", "center_view": "", "fire": "", "reload": "",
 		"interact": "", "throw_grenade": "", "place_mine": "", "place_remote_mine": "", "trigger_remote_mines": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
-		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "scope": "",
+		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "weapon_7": "", "scope": "",
 		"scoreboard": "", "speak": "", "pause": "", "leave_match": "",
 		"join_as_human": "", "cycle_cam": "", "toggle_follow": "",
 		"radio_prev_station": "", "radio_next_station": "", "radio_next_track": "", "radio_toggle": "",
@@ -178,7 +179,7 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "accessibility/screen_flashes", "audio/announcer"]:
+	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "controls/scope_mode", "accessibility/screen_flashes", "audio/announcer"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
 	elif path in ["accessibility/text_size", "accessibility/team_colours"]:

@@ -151,6 +151,9 @@ func apply_map_info(info: Dictionary) -> void:
 		marked_terminal = int(info["m14"]["departure"]["decoration"])
 		terminal_key = "WORLD_M14_DEPARTURE_CONSOLE"
 	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal, terminal_key)
+	# Prepared campaign props replace the plain boxes that stood for them,
+	# and the face panels the models now carry themselves.
+	CampaignProps.build(self, info, _solid_views)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent, "planned_works" if planned_works else ("still_here" if still_here else venue))
 	add_child(backdrop)

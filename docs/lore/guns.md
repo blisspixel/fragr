@@ -13,7 +13,7 @@ firearms and personally maintained self-defense equipment with original
 near-future accelerators and other advanced weapons. American civilian gun
 culture informs practical handling, individual choice and recognizable
 mechanical forms. Use original designs without manufacturer logos or copied
-weapon models. The campaign is loosely around 2070, with retro-futuristic
+weapon models. The campaign is set in the 2060s, with retro-futuristic
 charm rather than uniformly exotic technology. Familiar mechanical forms
 remain useful alongside a few advanced designs.
 
@@ -44,11 +44,18 @@ It is named for Article Seven, which is the clause that meters cognition by inte
 
 You always have them. They are the slowest way to kill anyone in the Perimeter and they do not run out, and those two facts are the entire design.
 
-Everything else in this file is found on the floor. In its sanctioned games, the Union issues nothing to an entrant except a numbered placard, on the stated grounds that arming a participant in advance would prejudice the outcome, and on the actual grounds that a crowd will not pay to watch somebody who arrived equipped.
+Recall Notice begins with confiscated equipment and bare hands. Recovering a
+Pistol is the first small reversal of that ownership. Found campaign guns stay
+with you across missions. Sanctioned free-for-all lives instead start with a
+Pistol, fifty Bullets and Fists; better weapons sit on contested timed pads.
+Team matches issue their advertised kit. The Union's argument that an equal
+starting allocation makes its games fair survives remarkably unequal arenas.
 
 ## The Shiv
 
-Cheap, scavenged, and the first thing most people find. It breaks. It is supposed to break: a knife that lasted forever would make finding a knife stop being a moment.
+Cheap, scavenged, and hidden in the intake. It stays usable once found; its
+owner maintains it. Scarcity belongs to ammunition and opportunities, not a
+surprise durability meter on a simple knife.
 
 ## What the labels tell you
 

@@ -1,0 +1,152 @@
+{
+	"cleanup": {
+		"clip": [
+			{
+				"at": 3.02,
+				"axis": "y",
+				"keep": "below"
+			}
+		],
+		"clipped_triangles": 171,
+		"remap": [
+			{
+				"y": [
+					-0.1,
+					3.2
+				],
+				"z": [
+					-1.103,
+					1.103,
+					-1.5,
+					1.5
+				]
+			}
+		],
+		"repaint": [
+			{
+				"keys": [
+					"institutional_green@1.0",
+					"m05_green@1.0",
+					"institutional_green@0.7"
+				],
+				"shade": 0.7,
+				"to": "m05_green"
+			},
+			{
+				"keys": [
+					"institutional_green@1.2",
+					"m05_green@1.2"
+				],
+				"shade": 1.0,
+				"to": "m05_green"
+			}
+		],
+		"repainted_texels": 34887
+	},
+	"excluded_classes": [
+		"cyan"
+	],
+	"faction": "free",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.004,
+			"cyan": 0.0,
+			"dark": 0.311,
+			"green": 0.486,
+			"magenta": 0.0,
+			"pale": 0.001,
+			"red": 0.0,
+			"steel": 0.185,
+			"warm": 0.013
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 9.0 on longest m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			9.0,
+			4.18251895904541,
+			2.20505261421204
+		],
+		"scale": 4.73556099490756,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "civilian-tram",
+	"metres_per_source_unit": 4.73556099490756,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 512,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"prepared_bounds_m": [
+		9.0,
+		3.01999998092651,
+		2.99871158599854
+	],
+	"prepared_sha256": "6e78f3914b5970c1353d8b08f1bc7daf7d74b44f95448aa7e35f910246f36eed",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 35.0,
+			"format": "glb",
+			"geometry_resolution": "2k",
+			"job": "civilian-tram-20261023-v1",
+			"request_id": "01a16c85-93d0-7047-a69f-21fc9b44e3bf",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m6-canon-fixed-2k-meshy-20261023.json",
+			"target_polycount": 15000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "civilian_tram_fix",
+			"keyed_sha256": "0d9ee62b30ef5f6670f2cf7a11d8914a10fd93f90e5c3eaf5da24435e1e921a1",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "246e3c2a-9e16-4332-9d87-70a5792d8cca",
+			"resolution": "2k",
+			"sha256": "6e4d97536452389c879fe12deec3b887679d46376d4daaf555f05013efd7a568",
+			"spec": "tools/spritegen/specs/h5-canon-fix-refs-20261023.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "Model candidates review 2026-10-24: local cleanup"
+	},
+	"raw_bounds_units": [
+		1.90051400661469,
+		0.883215069770813,
+		0.465637028217316
+	],
+	"raw_file": "civilian-tram-20261023-v1-0.glb",
+	"raw_sha256": "14e80e115367b03b9076775078509d66319b531b630d48ba8449aab6da2c1271",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 157.965065749331,
+	"texels_per_metre": 28.6339603212979,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 101,
+		"boundary_loops": 58,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			3,
+			3,
+			3,
+			3,
+			3
+		],
+		"nonmanifold_edges": 159,
+		"watertight": false,
+		"welded_vertices": 6968
+	},
+	"triangles": 13685,
+	"uv_coverage": 0.494064862445421,
+	"vertices": 30160
+}

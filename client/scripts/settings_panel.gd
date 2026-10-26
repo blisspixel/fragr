@@ -90,6 +90,7 @@ func show_page(page: String) -> void:
 			_bindings_page()
 		"LOOK":
 			_slider(tr("LOOK_MOUSE_SENSITIVITY"), "controls", "mouse_sensitivity", 0.1, 10.0, 0.05)
+			_option(tr("LOOK_SCOPE_MODE"), "controls", "scope_mode", [tr("LOOK_SCOPE_HOLD"), tr("LOOK_SCOPE_TOGGLE"), tr("LOOK_SCOPE_CYCLE")], [0, 1, 2])
 			_toggle(tr("LOOK_INVERT"), "controls", "invert_y")
 			_slider(tr("LOOK_TURN_SPEED"), "controls", "turn_speed", 0.5, 6.0, 0.1, "degrees")
 			_toggle(tr("LOOK_AUTO_CENTRE"), "controls", "auto_centre")

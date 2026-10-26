@@ -23,9 +23,10 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _contract() -> void:
-	_expect(ArenaDecoration.sign_key("terminal", 2, 2) == "WORLD_LATCH_RECORD", "the record console is the marked terminal")
-	_expect(ArenaDecoration.sign_key("terminal", 1, 2) == "WORLD_TRANSFER_QUEUE", "another terminal stays a transfer queue")
-	_expect(ArenaDecoration.sign_key("lift_control", 2, 2) == "WORLD_LIFT_CONTROL", "a marked index does not retitle a different kind")
+	_expect(ArenaDecoration.sign_key("terminal", 2, 2).is_empty(), "the intake presenter owns the file monitor copy")
+	_expect(ArenaDecoration.sign_key("terminal", 2, 2, "WORLD_M14_DEPARTURE_CONSOLE") == "WORLD_M14_DEPARTURE_CONSOLE", "other mission controls retain their registered label")
+	_expect(ArenaDecoration.sign_key("terminal", 1, 2).is_empty(), "ordinary screens use imagery and their interaction prompt")
+	_expect(ArenaDecoration.sign_key("lift_control", 2, 2).is_empty(), "a marked index does not retitle a different kind")
 	_expect(MapDecoration.validation_error([DETAIL], [HOST]) == "", "valid panel rejected")
 	for bad: Variant in [null, {}, 1, true, "panel"]:
 		_expect(MapDecoration.validation_error(bad, [HOST]) != "", "non-array accepted")
@@ -124,13 +125,20 @@ func _presentation() -> void:
 	_expect(cover.get_child_count() == base_count + details.size(), "details not built from MapInfo")
 	cover.apply_map_info(info)
 	_expect(cover.get_child_count() == base_count + details.size(), "duplicate map rebuilt twice")
+	var translation_index: int = -1
 	for index: int in range(details.size()):
 		var kind: String = details[index]["kind"]
 		var panel: MeshInstance3D = cover.get_node("Detail_%d_%s" % [index, kind])
+		if kind == "lift_sign":
+			translation_index = index
+		if ArenaDecoration.look_of(kind) == ArenaDecoration.Look.HIDDEN:
+			_expect(not panel.visible and panel.find_children("*", "Label3D", true, false).is_empty(), "retired prose has no duplicate visible panel")
 		_expect(panel.transform == MapDecoration.placement(HOST, details[index]), "builder moved panel")
 		if ArenaDecoration.SIGN_KEYS.has(kind):
 			var label: WorldSign = panel.get_node("Copy")
 			_expect(label.text != label.message_key and not label.text.is_empty(), "missing English catalog key")
+			if kind in ["m04_tram_vote", "m08_cold_cabinet"]:
+				_expect(label.position.y < -0.2 * float(details[index]["size"][1]), "copy leaves presenter hardware unobstructed")
 			_check_label(label)
 		if kind == "strip_light":
 			_expect(panel.get_node("Practical") is OmniLight3D, "missing practical light")
@@ -145,11 +153,11 @@ func _presentation() -> void:
 	# A runtime locale change must relayout expanded copy, not retain English metrics.
 	var expanded: Translation = Translation.new()
 	expanded.locale = "de"
-	expanded.add_message("WORLD_PROPERTY_INTAKE", "A MUCH LONGER TEST TRANSLATION\n".repeat(5))
+	expanded.add_message("WORLD_CUSTODY_LIFT", "A MUCH LONGER TEST TRANSLATION\n".repeat(5))
 	TranslationServer.add_translation(expanded)
 	TranslationServer.set_locale("de")
 	await process_frame
-	var sign: WorldSign = cover.get_node("Detail_0_property_sign/Copy")
+	var sign: WorldSign = cover.get_node("Detail_%d_lift_sign/Copy" % translation_index)
 	_expect(sign.text.begins_with("A MUCH LONGER"), "runtime translation did not refresh")
 	_check_label(sign)
 	TranslationServer.set_locale("en")
@@ -162,8 +170,8 @@ func _presentation() -> void:
 			break
 	info["mission"] = {"record": {"decoration": terminal_index}}
 	cover.apply_map_info(info)
-	var marked: WorldSign = cover.get_node("Detail_%d_terminal/Copy" % terminal_index)
-	_expect(marked.message_key == "WORLD_LATCH_RECORD" and marked.text.contains("LATCH"), "the record console names Latch's file")
+	var marked: Node = cover.get_node("Detail_%d_terminal" % terminal_index)
+	_expect(marked.find_children("*", "Label3D", true, false).is_empty(), "no duplicate file billboard beneath the intake monitor")
 	info["presentation"].erase("decorations")
 	cover.apply_map_info(info)
 	_expect(cover.get_child_count() == base_count, "map rotation retained details")
