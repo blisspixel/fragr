@@ -1,7 +1,7 @@
 # Plan: agent playtest loop
 
-**Status:** in flight (rung 1 shipped in #95, 2026-09-18)
-**Branch:** `feat/playtest-harness`
+**Status:** multiplayer loop shipped; guided campaign evaluation extends it in #479.
+**Owner:** `tools/playtest`, with the current sequence in `docs/ROADMAP.md`.
 **Spend:** $0 for the scripted levels. An LLM-driven observer is optional and off by default.
 
 ## Goal
@@ -10,14 +10,30 @@ Local agents play the game and file structured feedback so most iteration does n
 
 ## Non-goals
 
-- Replacing human judgement about fun. Agents catch stuck states, dead time, and imbalance; people still decide what is funny.
+- Treating synthetic metrics as human judgement about fun. Agents own repeatable
+  evaluation, visual inspection and fixes without waiting for human testers;
+  physical-device measurements and actual human feedback remain distinct evidence.
 - Any model on the combat tick. The optional observer reads the event stream after the fact.
 
 ## Shape
 
 - Crate: `tools/playtest` (`fragr-playtest`), Rust, workspace member, takes wire types straight from `fragr-server` and boots the server in-process through `run_server`.
-- Command today: `fragr-playtest --agents 4 --rounds 1 --map 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json`. Planned: `--tiers reflex,planner,brain`.
+- Command today: `fragr-playtest --agents 4 --rounds 1 --map 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json`. `--tiers reflex,planner` is implemented; the brain is a separate client.
 - Agent policies (all the same agent on the wire): `reflex` (chase nearest, fire when facing; shipped), `planner` (observe every few ticks, pick a pickup or a target, path by waypoints), and `brain` (the decision-brain client under a cap, from `plans/decision-brain.md`).
+
+## Guided campaign evaluation
+
+`--campaign-survey` adds a Recall Notice stress matrix using the real session,
+shared navigation and inventory controller. Three declared perception/action
+profiles play all three difficulties with finite supplies and actual continues.
+The [harness README](../../tools/playtest/README.md) owns commands, assumptions
+and report fields. Keep failed trials and evaluator regressions. Inspect the
+reported scene before attributing a failure to game balance; known routes and
+synthetic aim do not establish fresh-player acceptance. Extend this one seam
+after its limits are understood, rather than adding another campaign controller.
+
+The historical measurements below describe their dated builds, not today's game.
+
 ## First combat numbers (2026-09-19)
 
 Six reflex agents, one round, 76.5 seconds, Arena Duel. The combat report earns its place immediately, because three of these were invisible before it:
