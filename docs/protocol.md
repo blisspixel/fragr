@@ -3717,7 +3717,9 @@ people (`persons`, `edda`, `splice`, `orrin`, `sorrel`), the challenges
 `crew_crossed`, `mark_broken`, `refuge_held` and the derived `brief_completed`.
 Crew leave `working` only after the sluice crossing. The display lights only at
 the turn, the reprieve only on the authored tick, and Latch exists only after
-it. `persons` is 400 plus everyone the saved run freed (capped at 400 more); a
+it. `persons` is 400 plus the saved rescue receipts (capped at 400 more).
+Workshop workers count only after evacuation, a worker also on the berth crew
+list counts once, and fallen stadium entrants are excluded. A
 development or shared room shows the base 400. The named people read the same
 receipts as Still Here's refuge, so one run shows the same faces at the pier
 and in the epilogue: `splice` requires actual M05 evacuation, not release

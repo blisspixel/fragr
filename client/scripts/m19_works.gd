@@ -128,7 +128,6 @@ func configure_map(info: Dictionary) -> void:
 	_geometry = MissionState.geometry_for(info)
 	_root = Node3D.new()
 	_root.name = "PlannedWorks"
-	add_child(_root)
 	strips = PaverStrips.new()
 	strips.name = "PaverStrips"
 	strips.strip_marked.connect(_on_strip_marked)
@@ -157,6 +156,9 @@ func configure_map(info: Dictionary) -> void:
 	ArenaSky.mark_world(_root)
 	# Fighters and Latch stay on the actor layer so the view fill reads them.
 	_latch.set_render_layers(ArenaSky.ACTOR_LAYERS)
+	# Enter with final layers: changing them in the live world can leave
+	# stale light/geometry pairs in the pinned Forward+ renderer.
+	add_child(_root)
 
 func active() -> bool:
 	return _root != null

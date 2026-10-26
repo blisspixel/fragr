@@ -50,6 +50,28 @@ fn session() -> (GameSession, Uuid) {
 }
 
 #[test]
+fn pier_workshop_people_are_counted_once_after_evacuation() {
+    let (mut s, _) = session_run(CampaignDifficulty::Standard, Role::Agent, true);
+    let solo = s.state.mission.as_mut().unwrap().solo.as_mut().unwrap();
+    let before = refuge_for(Some(solo));
+    solo.carried_released_workers = vec!["splice".into()];
+    assert_eq!(refuge_for(Some(solo)), before);
+    solo.carried_evacuated_workers = vec!["splice".into()];
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 1);
+    assert!(refuge_for(Some(solo)).splice);
+    solo.carried_berth = Some(run_file::M09Outcome {
+        released_crew: vec![
+            "tern".into(),
+            "berth_crew_a".into(),
+            "berth_crew_b".into(),
+            "splice".into(),
+        ],
+        aboard_at_departure: vec![],
+    });
+    assert_eq!(refuge_for(Some(solo)).persons, before.persons + 4);
+}
+
+#[test]
 fn pier_population_counts_only_stadium_entrants_who_survived() {
     let (mut s, _) = session_run(CampaignDifficulty::Standard, Role::Agent, true);
     let solo = s.state.mission.as_mut().unwrap().solo.as_mut().unwrap();

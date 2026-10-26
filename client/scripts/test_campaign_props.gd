@@ -152,7 +152,19 @@ func _check_level(info: Dictionary, sites: Array) -> void:
 func _check_concourse(info: Dictionary) -> void:
 	var works: M19Works = M19Works.new()
 	root.add_child(works)
+	var entered: Array[VisualInstance3D] = []
+	var observe: Callable = func(node: Node) -> void:
+		if node is VisualInstance3D and works.is_ancestor_of(node):
+			entered.append(node)
+			var ancestor: Node = node.get_parent()
+			while ancestor != works and not ancestor is LatchView:
+				ancestor = ancestor.get_parent()
+			var expected: int = ArenaSky.ACTOR_LAYERS if ancestor is LatchView else ArenaSky.WORLD_LAYERS
+			_check(node.layers == expected, "Planned Works enters with final render layers: " + str(node.name))
+	node_added.connect(observe)
 	works.configure_map(info)
+	node_added.disconnect(observe)
+	_check(not entered.is_empty(), "Planned Works layer check observed live geometry")
 	await process_frame
 	for name: String in ["StretcherBed", "Blanket", "RestCase"]:
 		_check(works.find_children(name, "MeshInstance3D", true, false).is_empty(), "the concourse draws no %s box" % name)
