@@ -226,8 +226,13 @@ func _continue_refresh() -> void:
 	game._continue_armed = true
 	# A server refresh can arrive between the input-release frame and the
 	# next fresh press. It is still the same available continuation.
-	game._on_mission_received(state.duplicate(true))
-	_check(game._continue_armed, "same continuation refresh cannot swallow the next accept press")
+	for refresh: int in range(3):
+		game._on_mission_received(state.duplicate(true))
+		_check(game._continue_armed, "same continuation refresh cannot swallow the next accept press: %d" % refresh)
+	state["id"] = MissionState.M02_ID
+	game._on_mission_received(state)
+	_check(not game._continue_armed, "a different mission requires released input again")
+	game._continue_armed = true
 	state["attempt"] = 2
 	game._on_mission_received(state)
 	_check(not game._continue_armed, "a different attempt requires released input again")

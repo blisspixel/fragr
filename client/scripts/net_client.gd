@@ -369,7 +369,7 @@ func send_mission_continue() -> bool:
 	for member: Dictionary in state["party"]:
 		if member["id"] == player_id and not member["alive"]:
 			send_json({"type": "mission_continue", "id": state["id"], "run_id": state["run"]["id"], "attempt": int(state["attempt"])})
-			return true
+			return last_send_ok
 	return false
 
 func send_speak(text: String) -> void:

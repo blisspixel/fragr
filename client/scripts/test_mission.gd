@@ -2,9 +2,11 @@ extends SceneTree
 
 class CaptureNetwork extends "res://scripts/net_client.gd":
 	var sent: Array[Dictionary] = []
+	var accept_send: bool = true
 	func send_json(data: Dictionary) -> void:
-		last_send_ok = true
-		sent.append(data.duplicate(true))
+		last_send_ok = accept_send
+		if last_send_ok:
+			sent.append(data.duplicate(true))
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000001"
 var failures: int = 0
@@ -188,10 +190,15 @@ func _continues() -> void:
 	_expect(not manager._try_continue(press), "held gameplay input cannot spend a continue")
 	Input.action_release("jump")
 	manager._arm_continue()
+	network.accept_send = false
+	_expect(not manager._try_continue(press), "failed transport enqueue does not accept the continue")
+	_expect(manager._continue_armed and manager._continue_attempt_sent == -1 and network.sent.is_empty(),
+		"failed transport keeps the same attempt available without recording a sent request")
+	network.accept_send = true
 	_expect(manager._try_continue(press), "fresh A press submits a continue")
 	manager._arm_continue()
 	_expect(not manager._try_continue(press) and network.sent.size() == 1, "pending continue cannot spend twice")
-	_expect(network.sent[0] == {"type": "mission_continue", "id": "recall_notice", "run_id": message["state"]["run"]["id"], "attempt": 1}, "continue is tied to exact run and attempt")
+	_expect(network.sent.size() == 1 and network.sent[0] == {"type": "mission_continue", "id": "recall_notice", "run_id": message["state"]["run"]["id"], "attempt": 1}, "continue is tied to exact run and attempt")
 	var display: MissionHud = MissionHud.new()
 	root.add_child(display)
 	display.apply(message["state"], PLAYER)

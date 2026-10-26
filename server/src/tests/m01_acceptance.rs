@@ -157,6 +157,222 @@ fn m01_all_tiers_both_ordinary_routes_depart_with_periodic_resolved_misses() {
     }
 }
 
+/// Known-route authoring evidence: the carried entry comes from an actual
+/// finite-ammunition M01 clear, never a manufactured departure or kit. This
+/// does not model first-time route discovery or constrained-player pacing.
+#[test]
+fn earned_m01_exit_survives_disk_m02_death_and_reopened_retry() {
+    use crate::maps::AuthoredSource;
+    use crate::mission::run_file::store::{ContentHashes, RunStore};
+    use crate::mission::run_file::{SavedEntry, SavedStep};
+    use crate::protocol::{MissionId, MissionReady};
+
+    let mut run = Walkthrough::with_rules(Role::Human, true, CampaignDifficulty::Assisted, true, 4);
+    ordinary_route(&mut run, true);
+    assert!(run.reload_presses > 0 && run.shots > 0);
+    let exit = run.session.state.campaign_run_document().unwrap().unwrap();
+    let player = run
+        .session
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == run.id)
+        .unwrap();
+    let earned = SavedEntry::from_player(player).unwrap();
+    assert!(
+        matches!(&exit.step, SavedStep::AwaitingMission { completed_mission: MissionId::RecallNotice, exit, .. } if exit == &earned)
+    );
+
+    let map = AuthoredSource::Mission(MissionId::PersonsUnknown)
+        .load()
+        .unwrap();
+    let mut m02 = GameSession::with_authored_map(map.clone());
+    let mut hashes: ContentHashes = [[0; 32]; crate::mission::run_file::store::CAMPAIGN_STAGES];
+    hashes[0] = run.session.state.map.content_sha256().unwrap();
+    hashes[1] = m02.state.map.content_sha256().unwrap();
+    let directory = std::env::temp_dir().join(format!("fragr-earned-carry-{}", Uuid::new_v4()));
+    let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    store.save(&exit).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), exit);
+    let entry = store
+        .load()
+        .unwrap()
+        .unwrap()
+        .promote_m02(hashes[1])
+        .unwrap();
+    store.save(&entry).unwrap();
+    drop(store);
+    let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    let entry = store.load().unwrap().unwrap();
+    assert!(entry.promote_m02(hashes[1]).is_err());
+    m02.state.load_campaign_run(&entry).unwrap();
+    m02.state.seed(67);
+    m02.state
+        .add_player(run.id, "Carry owner".into(), Role::Human);
+    m02.state.arm_joined_magazines(run.id);
+    assert!(m02.state.acknowledge_mission(
+        run.id,
+        MissionReady {
+            id: MissionId::PersonsUnknown,
+            attempt: 1
+        }
+    ));
+    let mut expected = earned.clone();
+    expected.equipment.personal_claims.clear();
+    let player = m02.state.players.iter().find(|p| p.id == run.id).unwrap();
+    assert_eq!(SavedEntry::from_player(player).unwrap(), expected);
+    let before = player
+        .inventory
+        .state(run.id, player.weapon, m02.state.tick)
+        .unwrap();
+
+    // Spend earned ammunition using an ordinary shot, then deliberately enter
+    // the first guard room and remain exposed. The guard owns the actual death.
+    let mut shot = false;
+    for _ in 0..20 {
+        m02.state.set_action(
+            run.id,
+            Action {
+                fire: true,
+                pitch: Some(1.4),
+                ..Default::default()
+            },
+        );
+        m02.tick_messages(0.05);
+        if m02
+            .state
+            .shot_results
+            .iter()
+            .any(|s| s.shooter_id == run.id)
+        {
+            shot = true;
+            break;
+        }
+    }
+    assert!(shot);
+    let player = m02.state.players.iter().find(|p| p.id == run.id).unwrap();
+    assert!(
+        player
+            .inventory
+            .state(run.id, player.weapon, m02.state.tick)
+            .unwrap()
+            .ammo(AmmoPool::Bullets)
+            < before.ammo(AmmoPool::Bullets)
+    );
+    let mut navigator = Navigator::default();
+    let mut enemy_kill = false;
+    for _ in 0..3600 {
+        let player = m02.state.players.iter().find(|p| p.id == run.id).unwrap();
+        if player.hp <= 0 {
+            break;
+        }
+        let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+        let action = navigator.steer(
+            m02.state.map.navigation(),
+            feet,
+            NavigationGoal {
+                feet: [-3.2, 3., -31.],
+                combat: false,
+            },
+            Action::default(),
+            m02.state.tick,
+            true,
+        );
+        m02.state.set_action(run.id, action);
+        m02.tick_messages(0.05);
+        enemy_kill |= m02
+            .state
+            .shot_results
+            .iter()
+            .any(|s| s.shooter_id != run.id && s.target_id == Some(run.id) && s.killed);
+    }
+    assert!(enemy_kill, "ordinary guard encounter must own the death");
+    let player = m02.state.players.iter().find(|p| p.id == run.id).unwrap();
+    assert!(player.inventory.claimed("guard_room_scatter"));
+    let pending = m02.state.campaign_run_document().unwrap().unwrap();
+    assert!(matches!(
+        pending.step,
+        SavedStep::PendingContinue {
+            mission: MissionId::PersonsUnknown,
+            ..
+        }
+    ));
+    assert_eq!(pending.remaining_continues, exit.remaining_continues);
+    store.save(&pending).unwrap();
+    drop(store);
+    let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    let pending = store.load().unwrap().unwrap();
+    let mut reopened = GameSession::with_authored_map(map);
+    reopened.state.load_campaign_run(&pending).unwrap();
+    reopened
+        .state
+        .add_player(run.id, "Reopened carry owner".into(), Role::Human);
+    reopened.state.arm_joined_magazines(run.id);
+    assert!(
+        reopened
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == run.id)
+            .unwrap()
+            .hp
+            <= 0
+    );
+    let retry = MissionContinue {
+        id: MissionId::PersonsUnknown,
+        run_id: pending.id,
+        attempt: 1,
+    };
+    for stale in [
+        MissionContinue {
+            id: MissionId::RecallNotice,
+            ..retry
+        },
+        MissionContinue {
+            run_id: Uuid::new_v4(),
+            ..retry
+        },
+        MissionContinue {
+            attempt: 2,
+            ..retry
+        },
+    ] {
+        assert!(!reopened.state.continue_mission(run.id, stale));
+        assert_eq!(
+            reopened.state.campaign_run_document().unwrap().unwrap(),
+            pending
+        );
+    }
+    assert!(reopened.state.continue_mission(run.id, retry));
+    assert!(!reopened.state.continue_mission(run.id, retry));
+    let player = reopened
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == run.id)
+        .unwrap();
+    assert_eq!(SavedEntry::from_player(player).unwrap(), expected);
+    let resumed = reopened.state.campaign_run_document().unwrap().unwrap();
+    assert_eq!(resumed.id, exit.id);
+    assert_eq!(resumed.remaining_continues, exit.remaining_continues - 1);
+    assert_eq!(resumed.attempt(), 2);
+    let messages = reopened.tick_messages(0.05);
+    let map_at = messages
+        .iter()
+        .position(|message| matches!(message, ServerMessage::MapInfo { map_id: 1002, .. }))
+        .unwrap();
+    let mission_at = messages.iter().position(|message| matches!(message, ServerMessage::Mission { state, .. } if state.id == MissionId::PersonsUnknown && state.attempt == 2)).unwrap();
+    let snapshot_at = messages
+        .iter()
+        .position(|message| matches!(message, ServerMessage::Snapshot(_)))
+        .unwrap();
+    assert!(map_at < mission_at && mission_at < snapshot_at);
+    store.save(&resumed).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), resumed);
+    drop(store);
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
 /// Use ordinary forward input into the taught Clerk's room, then stay exposed.
 /// The participant spends a real round overhead and lets the guard kill them.
 fn enemy_death(run: &mut Walkthrough) {
