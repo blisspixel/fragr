@@ -297,6 +297,8 @@ fn constrain(
 fn configure_map(client: &mut MissionClient, message: &ServerMessage) -> Result<(), String> {
     if let ServerMessage::MapInfo {
         map_id,
+        m02_objectives,
+        m02_side_ward,
         mission,
         half_extent,
         solids,
@@ -307,8 +309,8 @@ fn configure_map(client: &mut MissionClient, message: &ServerMessage) -> Result<
         client
             .replace_map_with_id(
                 *map_id,
-                None,
-                false,
+                *m02_objectives,
+                *m02_side_ward,
                 mission.as_ref(),
                 *half_extent,
                 solids,
@@ -1065,6 +1067,125 @@ mod tests {
         assert_eq!(row.outcome, "departed");
         assert!(row.reloads > 0 && row.deaths > 0);
         assert!(row.longest_no_progress_seconds < 30.0);
+    }
+
+    #[test]
+    fn calibrated_policy_accepts_m02_entry_and_initial_ordinary_actions() {
+        // Standalone M02 discovery kit and a twenty-second initial window.
+        // This is policy/input transfer, not earned carry, a mission clear or
+        // a fresh-player acceptance trial. The server owns its ordinary kit.
+        let mut session = GameSession::with_authored_map(
+            AuthoredSource::Mission(MissionId::PersonsUnknown)
+                .load()
+                .unwrap(),
+        );
+        session.state.use_replay_ids();
+        session.state.seed(47);
+        session
+            .state
+            .set_campaign_difficulty(CampaignDifficulty::Assisted)
+            .unwrap();
+        let id = Uuid::from_u128(479);
+        session
+            .state
+            .add_player(id, "Initial transfer fixture".into(), Role::Human);
+        session.state.arm_joined_magazines(id);
+        let mut client = MissionClient::default();
+        configure_map(&mut client, &session.state.map_info()).unwrap();
+        assert!(session.state.acknowledge_mission(
+            id,
+            MissionReady {
+                id: MissionId::PersonsUnknown,
+                attempt: 1,
+            }
+        ));
+        let initial = session.state.snapshot();
+        let initial_me = initial.players.iter().find(|p| p.id == id).unwrap();
+        let start = [initial_me.x, initial_me.z];
+        let profile = PROFILES[1];
+        let mut perception = Perception::default();
+        let mut navigator = Navigator::default();
+        let mut reload_down = false;
+        let mut actions = 0;
+        let mut shots = 0;
+        let mut reloads = 0;
+        let mut distance = 0.0_f32;
+        for _ in 0..400 {
+            let snapshot = session.state.snapshot();
+            let Some(me) = snapshot.players.iter().find(|p| p.id == id && p.hp > 0) else {
+                break; // A death remains a valid bounded observation.
+            };
+            let state = session.state.mission_state().unwrap();
+            client.observe(snapshot.tick, state).unwrap();
+            let player = session.state.players.iter().find(|p| p.id == id).unwrap();
+            let gear = player
+                .inventory
+                .state(id, player.weapon, snapshot.tick)
+                .unwrap();
+            assert!(
+                player.inventory.armed(),
+                "ordinary human magazines are active"
+            );
+            let arena = session.state.map.arena();
+            let observed = perception.observe(&snapshot, id, arena, profile);
+            let wanted = control_action_with_target_filter(
+                id,
+                &observed,
+                Some(&gear),
+                Action::default(),
+                true,
+                |_, _| true,
+            );
+            // Use only the same public mission geometry and existing
+            // navigation owner as M01; add no M02 waypoints or route hints.
+            let wanted = client.steer_with_equipment(
+                &mut navigator,
+                session.state.map.navigation(),
+                id,
+                &observed,
+                wanted,
+                Some(&gear),
+            );
+            let action = constrain(
+                apply_reload(wanted, &gear, reload_down),
+                me,
+                &observed,
+                profile,
+                47,
+                arena,
+            );
+            assert!(action.look_at.is_none());
+            let turn = profile.turn_degrees_per_second.to_radians() * DT + 0.0001;
+            assert!(angle(action.yaw.unwrap() - me.yaw).abs() <= turn);
+            assert!((action.pitch.unwrap() - me.pitch).abs() <= turn);
+            if action.reload {
+                assert_eq!(gear.shots(gear.selected), Some(0));
+                assert!(reserve_rounds(&gear) > 0);
+            }
+            reload_down = action.reload;
+            reloads += usize::from(action.reload);
+            actions += 1;
+            distance = distance.max((me.x - start[0]).hypot(me.z - start[1]));
+            session.state.set_action(id, action);
+            for message in session.tick_messages(DT) {
+                configure_map(&mut client, &message).unwrap();
+            }
+            shots += session
+                .state
+                .shot_results
+                .iter()
+                .filter(|shot| shot.shooter_id == id)
+                .count();
+        }
+        assert!(
+            actions > 0 && distance > 1.0,
+            "the policy must move the real body"
+        );
+        assert!(
+            shots > 0 && reloads > 0,
+            "the initial encounter must exercise real attacks and reload input"
+        );
+        eprintln!("M02 initial policy transfer: seed=47 profile={} actions={actions} shots={shots} reloads={reloads} max_distance={distance:.2}m; standalone kit, no completion claim", profile.name);
     }
 
     #[test]
