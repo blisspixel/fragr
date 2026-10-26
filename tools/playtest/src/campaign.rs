@@ -21,6 +21,41 @@ use uuid::Uuid;
 
 const DT: f32 = 0.05;
 
+mod paver;
+mod teaching;
+
+/// One bounded campaign endpoint, using the same calibrated action policy.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, clap::ValueEnum)]
+#[serde(rename_all = "snake_case")]
+pub enum Scenario {
+    #[default]
+    RecallNotice,
+    M19Teaching,
+}
+
+impl Scenario {
+    fn mission(self) -> MissionId {
+        match self {
+            Self::RecallNotice => MissionId::RecallNotice,
+            Self::M19Teaching => MissionId::PlannedWorks,
+        }
+    }
+
+    pub fn accepts(self, trial: &Trial) -> bool {
+        match self {
+            Self::RecallNotice => trial.outcome == "departed",
+            Self::M19Teaching => {
+                trial.outcome == "segment_complete"
+                    && trial.teaching.as_ref().is_some_and(|evidence| {
+                        evidence.flights.iter().any(|flight| {
+                            flight.attempt == trial.final_attempt && flight.gallery_landing
+                        })
+                    })
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub struct Profile {
     pub name: &'static str,
@@ -80,6 +115,8 @@ pub struct Trial {
     pub hp: i32,
     pub bullets: u16,
     pub weapons: Vec<String>,
+    pub final_attempt: u32,
+    pub teaching: Option<teaching::Metrics>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -102,12 +139,14 @@ pub struct Report {
     pub profiles: [Profile; 3],
     pub decision_hz: u8,
     pub continuation_delay_seconds: u8,
+    pub scenario: Scenario,
     pub trials: Vec<Trial>,
     /// Last fatal-hit pre-frame of the first deliberate/Standard trial.
     /// Authoritative scene data for inspection, never controller input.
     pub review: Option<serde_json::Value>,
     /// First kill of the first reference/Assisted trial, even if it later fails.
     pub first_kill_review: Option<serde_json::Value>,
+    pub teaching_reviews: Vec<serde_json::Value>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -115,6 +154,7 @@ enum Recording {
     None,
     Fatal,
     FirstKill,
+    Teaching,
 }
 
 fn angle(value: f32) -> f32 {
@@ -165,6 +205,7 @@ fn visible_aim(
 #[derive(Default)]
 struct Perception {
     first_seen: BTreeMap<Uuid, u64>,
+    strips: paver::Perception,
 }
 
 impl Perception {
@@ -198,6 +239,7 @@ impl Perception {
         observed
             .pickups
             .retain(|p| visible(me, [p.x, p.y + 0.3, p.z], arena, profile));
+        self.strips.filter(&mut observed, me, arena, profile);
         observed
     }
 }
@@ -299,6 +341,7 @@ fn configure_map(client: &mut MissionClient, message: &ServerMessage) -> Result<
         map_id,
         m02_objectives,
         m02_side_ward,
+        m19,
         mission,
         half_extent,
         solids,
@@ -316,6 +359,9 @@ fn configure_map(client: &mut MissionClient, message: &ServerMessage) -> Result<
                 solids,
                 presentation.as_ref(),
             )
+            .map_err(str::to_owned)?;
+        client
+            .replace_map_with_m19(m19.as_ref(), *half_extent, solids, presentation.as_ref())
             .map_err(str::to_owned)?;
     }
     Ok(())
@@ -350,8 +396,29 @@ fn trial_with_actions(
     difficulty: CampaignDifficulty,
     max_ticks: u64,
     recording: Recording,
-    mut actions: impl FnMut(Action) -> Action,
+    actions: impl FnMut(Action) -> Action,
 ) -> Result<(Trial, Option<serde_json::Value>), String> {
+    scenario_trial_with_actions(
+        Scenario::RecallNotice,
+        seed,
+        profile,
+        difficulty,
+        max_ticks,
+        recording,
+        actions,
+    )
+    .map(|(trial, review, _)| (trial, review))
+}
+
+fn scenario_trial_with_actions(
+    scenario: Scenario,
+    seed: u64,
+    profile: Profile,
+    difficulty: CampaignDifficulty,
+    max_ticks: u64,
+    recording: Recording,
+    mut actions: impl FnMut(Action) -> Action,
+) -> Result<(Trial, Option<serde_json::Value>, Vec<serde_json::Value>), String> {
     if !(1..=36_000).contains(&max_ticks)
         || !profile.view_degrees.is_finite()
         || !(30.0..=180.0).contains(&profile.view_degrees)
@@ -366,7 +433,7 @@ fn trial_with_actions(
         );
     }
     let mut session = GameSession::with_authored_map(
-        AuthoredSource::Mission(MissionId::RecallNotice)
+        AuthoredSource::Mission(scenario.mission())
             .load()
             .map_err(|e| e.to_string())?,
     );
@@ -383,12 +450,13 @@ fn trial_with_actions(
     session.state.acknowledge_mission(
         id,
         MissionReady {
-            id: MissionId::RecallNotice,
+            id: scenario.mission(),
             attempt: 1,
         },
     );
     let mut client = MissionClient::default();
-    configure_map(&mut client, &session.state.map_info())?;
+    let mut map_record = session.state.map_info();
+    configure_map(&mut client, &map_record)?;
     let mut navigator = Navigator::default();
     let mut perception = Perception::default();
     let mut report = Trial {
@@ -415,6 +483,8 @@ fn trial_with_actions(
         hp: 100,
         bullets: 0,
         weapons: Vec::new(),
+        final_attempt: 1,
+        teaching: None,
     };
     let mut progress = 0;
     let mut last_supply = 0;
@@ -425,6 +495,9 @@ fn trial_with_actions(
     let mut evade: Option<(u64, [f32; 2], f32)> = None;
     let mut review = None;
     let mut frames = VecDeque::new();
+    let mut teaching = (scenario == Scenario::M19Teaching).then(|| {
+        teaching::Recorder::new(id, seed, profile, difficulty, recording != Recording::None)
+    });
     while session.state.tick < max_ticks {
         let snapshot = session.state.snapshot();
         if recording != Recording::None {
@@ -434,12 +507,36 @@ fn trial_with_actions(
             }
         }
         let state = session.state.mission_state().ok_or("mission vanished")?;
+        report.final_attempt = state.attempt;
+        if let Some(recorder) = &mut teaching {
+            let player = session.state.players.iter().find(|p| p.id == id);
+            if recorder.observe(
+                &snapshot,
+                &state,
+                session.state.map.arena(),
+                player.map(|p| p.vy),
+                &map_record,
+            ) {
+                progress = snapshot.tick;
+            }
+        }
         if state.phase != report.last_phase {
             progress = snapshot.tick;
             report.last_phase = state.phase;
         }
         if state.phase == MissionPhase::Departed {
             report.outcome = "departed".into();
+            break;
+        }
+        if scenario == Scenario::M19Teaching
+            && state.m19.as_ref().is_some_and(|facts| {
+                facts
+                    .completed
+                    .iter()
+                    .any(|objective| objective == "tram_street")
+            })
+        {
+            report.outcome = "segment_complete".into();
             break;
         }
         let attempt = state.attempt;
@@ -477,7 +574,8 @@ fn trial_with_actions(
             visited.clear();
             last_supply = 0;
             progress = snapshot.tick;
-            configure_map(&mut client, &session.state.map_info())?;
+            map_record = session.state.map_info();
+            configure_map(&mut client, &map_record)?;
             session.state.acknowledge_mission(
                 id,
                 MissionReady {
@@ -507,6 +605,9 @@ fn trial_with_actions(
         }
         let arena = session.state.map.arena();
         let observed = perception.observe(&snapshot, id, arena, profile);
+        if let Some(recorder) = &mut teaching {
+            recorder.observe_perception(&observed);
+        }
         if let Some(target) = snapshot
             .players
             .iter()
@@ -647,6 +748,13 @@ fn trial_with_actions(
         report.longest_no_progress_seconds = report
             .longest_no_progress_seconds
             .max(snapshot.tick.saturating_sub(progress) as f64 / 20.0);
+        if let Some(recorder) = &mut teaching {
+            recorder.observe_stall(
+                snapshot.tick.saturating_sub(progress) as f64 / 20.0,
+                me,
+                &map_record,
+            );
+        }
         let visible_shooters: Vec<Uuid> = snapshot
             .players
             .iter()
@@ -700,6 +808,9 @@ fn trial_with_actions(
         report.seconds = session.state.tick as f64 / 20.0;
         for message in &messages {
             configure_map(&mut client, message)?;
+            if matches!(message, ServerMessage::MapInfo { .. }) {
+                map_record = message.clone();
+            }
         }
     }
     if let Some(record) = session.state.player_record(id) {
@@ -719,17 +830,46 @@ fn trial_with_actions(
         }
     }
     if let Some(state) = session.state.mission_state() {
+        // The final permitted action has already advanced the simulation.
+        // Observe its result even when no next control tick is permitted.
+        // Duplicate observations on normal break paths are idempotent.
+        report.final_attempt = state.attempt;
+        if let Some(recorder) = &mut teaching {
+            let player = session.state.players.iter().find(|p| p.id == id);
+            recorder.observe(
+                &session.state.snapshot(),
+                &state,
+                session.state.map.arena(),
+                player.map(|p| p.vy),
+                &map_record,
+            );
+        }
         report.last_phase = state.phase;
-        if state.phase == MissionPhase::Departed {
-            report.outcome = "departed".into();
-        } else if state
+        if state
             .run
             .is_some_and(|run| run.status == CampaignRunStatus::Failed)
         {
             report.outcome = "exhausted".into();
+        } else if state.phase == MissionPhase::Departed {
+            report.outcome = "departed".into();
+        } else if scenario == Scenario::M19Teaching
+            && report.hp > 0
+            && state
+                .m19
+                .as_ref()
+                .is_some_and(|facts| facts.completed.iter().any(|id| id == "tram_street"))
+        {
+            report.outcome = "segment_complete".into();
         }
     }
-    Ok((report, review))
+    let teaching_reviews = if let Some(recorder) = teaching {
+        let (metrics, windows) = recorder.finish();
+        report.teaching = Some(metrics);
+        windows
+    } else {
+        Vec::new()
+    };
+    Ok((report, review, teaching_reviews))
 }
 
 fn wanted_is_combat(action: &Action) -> bool {
@@ -777,12 +917,21 @@ fn apply_reload(mut action: Action, gear: &LoadoutState, reload_down: bool) -> A
 }
 
 pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String> {
+    run_scenario(Scenario::RecallNotice, seeds, max_ticks)
+}
+
+pub fn run_scenario(
+    scenario: Scenario,
+    seeds: std::ops::Range<u64>,
+    max_ticks: u64,
+) -> Result<Report, String> {
     if seeds.is_empty() || seeds.end - seeds.start > 64 {
         return Err("campaign survey requires 1..=64 seeds".into());
     }
     let mut trials = Vec::new();
     let mut review = None;
     let mut first_kill_review = None;
+    let mut teaching_reviews = Vec::new();
     let first_seed = seeds.start;
     for seed in seeds {
         for profile in PROFILES {
@@ -801,10 +950,21 @@ pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String
                     Recording::Fatal
                 } else if first_kill {
                     Recording::FirstKill
+                } else if scenario == Scenario::M19Teaching && seed == first_seed {
+                    Recording::Teaching
                 } else {
                     Recording::None
                 };
-                let (row, frame) = trial_recorded(seed, profile, difficulty, max_ticks, recording)?;
+                let (row, frame, windows) = scenario_trial_with_actions(
+                    scenario,
+                    seed,
+                    profile,
+                    difficulty,
+                    max_ticks,
+                    recording,
+                    |action| action,
+                )?;
+                teaching_reviews.extend(windows);
                 if fatal {
                     review = frame;
                 } else if first_kill {
@@ -815,7 +975,24 @@ pub fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report, String
             }
         }
     }
-    Ok(Report { schema: 1, build: env!("FRAGR_CLI_VERSION"), commit: env!("FRAGR_BUILD_COMMIT"), observation: "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.", profiles: PROFILES, decision_hz: 20, continuation_delay_seconds: 0, trials, review, first_kill_review })
+    let observation = match scenario {
+        Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
+        Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Ends after tram_street, before the market. Supported gallery landing and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+    };
+    Ok(Report {
+        schema: 2,
+        build: env!("FRAGR_CLI_VERSION"),
+        commit: env!("FRAGR_BUILD_COMMIT"),
+        observation,
+        profiles: PROFILES,
+        decision_hz: 20,
+        continuation_delay_seconds: 0,
+        scenario,
+        trials,
+        review,
+        first_kill_review,
+        teaching_reviews,
+    })
 }
 
 #[cfg(test)]
@@ -981,6 +1158,89 @@ mod tests {
         assert_eq!(row.continues_spent, 0);
         assert!(row.longest_no_progress_seconds >= 19.9);
         assert_eq!(row.last_phase, MissionPhase::FindTransfer);
+    }
+
+    #[test]
+    fn m19_discovery_entry_does_not_give_an_ineffective_policy_equipment_or_progress() {
+        let (row, _, _) = scenario_trial_with_actions(
+            Scenario::M19Teaching,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            400,
+            Recording::None,
+            |_| Action::default(),
+        )
+        .unwrap();
+        assert_eq!(row.outcome, "timeout");
+        assert_eq!(row.weapons, ["Fists"]);
+        assert_eq!(row.bullets, 0);
+        assert_eq!(row.shots, 0);
+        assert!(row.longest_no_progress_seconds >= 19.9);
+        let metrics = row.teaching.as_ref().unwrap();
+        assert!(metrics.objectives.is_empty() && metrics.flights.is_empty());
+        assert!(!Scenario::M19Teaching.accepts(&row));
+    }
+
+    #[test]
+    fn m19_last_allowed_tick_keeps_earned_completion_and_landing_receipts() {
+        let play = |ticks| {
+            scenario_trial_with_actions(
+                Scenario::M19Teaching,
+                42,
+                PROFILES[0],
+                CampaignDifficulty::Assisted,
+                ticks,
+                Recording::None,
+                |action| action,
+            )
+            .unwrap()
+            .0
+        };
+        let clear = play(2_000);
+        assert!(Scenario::M19Teaching.accepts(&clear));
+        let (recorded, _, windows) = scenario_trial_with_actions(
+            Scenario::M19Teaching,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            2_000,
+            Recording::Teaching,
+            |action| action,
+        )
+        .unwrap();
+        assert_eq!(
+            recorded, clear,
+            "recording must not influence ordinary actions or metrics"
+        );
+        assert!(!windows.is_empty());
+        let final_tick = (clear.seconds * 20.0).round() as u64;
+        let exact = play(final_tick);
+        assert_eq!(exact, clear, "the last allowed action belongs to the trial");
+        let before = play(final_tick - 1);
+        assert_eq!(before.outcome, "timeout");
+        let landing_tick = clear
+            .teaching
+            .as_ref()
+            .unwrap()
+            .flights
+            .iter()
+            .find(|flight| flight.gallery_landing)
+            .unwrap()
+            .ended_tick;
+        let landed = play(landing_tick);
+        assert!(landed
+            .teaching
+            .unwrap()
+            .flights
+            .iter()
+            .any(|flight| flight.gallery_landing));
+        assert!(!play(landing_tick - 1)
+            .teaching
+            .unwrap()
+            .flights
+            .iter()
+            .any(|flight| flight.gallery_landing));
     }
 
     #[test]

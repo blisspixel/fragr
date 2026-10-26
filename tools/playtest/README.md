@@ -6,7 +6,7 @@ authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
 sizes. These measurements support playtesting; they do not establish fun alone.
 
-The guided campaign survey runs Recall Notice directly through the authoritative
+The guided campaign survey runs Recall Notice, or M19's bounded teaching segment, through the authoritative
 session at 20 simulated ticks per second. It uses the shared mission navigator
 and inventory controller with ordinary human actions, finite magazines, earned
 pickups, real deaths and the three episode continues. No equipment or health is
@@ -14,6 +14,18 @@ granted during play. It needs no sockets, model, credentials or paid service.
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 8 --seed 40 --max-seconds 600 --report .agents/playtest/campaign.json
+```
+
+Select `--survey-mission m19-teaching` for Planned Works, ending after the
+tram-street objective and before the market. This is a standalone discovery
+entry with Fists, zero ammunition and three fresh continues, not an inherited
+M18 run. Weapons, ammunition and the coalition jetpack must be earned through
+ordinary pickups and Use. Navigation knows the published objective regions and
+exact authored jetpack launch/landing points; this does not test discovering
+the route or understanding the lesson without hints.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 4 --seed 40 --max-seconds 600 --report .agents/playtest/m19-teaching.json
 ```
 
 Every seed runs three stress profiles on Assisted, Standard and Severe:
@@ -40,6 +52,14 @@ acquisition, not decision cadence. Continue is accepted immediately, with zero
 simulated menu delay; dead/menu time is not included in the active stall metric.
 The report records these assumptions rather than inventing human deliberation.
 
+Paver strips need continuous visibility for the same reaction delay. Visibility
+uses fifteen interior floor samples, the profile's view and range, and solid
+occlusion. The Paver itself need not be visible. Cover, disappearance, changed
+geometry or a new preparation reset recognition; a continuous preparation-to-work
+transition retains it. This sampling can miss a narrow visible sliver and does
+not model light spill or sound. Authoritative strip timing and actual support
+are recorded separately for diagnosis and never supplied as decision inputs.
+
 `--survey-seeds` accepts 1 to 64 here (default 16); `--max-seconds` bounds each
 trial, including retries, from 1 to 1800 simulated seconds (default 120).
 Reports include the build/commit, profile values, all outcomes, continues,
@@ -56,6 +76,22 @@ reference/Assisted trial, even if that trial later fails. Each includes up to
 80 consecutive pre-event snapshots, stopping at retry boundaries. They are
 inspection data, never controller input or recordings of ordinary client play.
 
+Campaign reports use schema 2. M19 adds objective receipts, flight fuel/burn and
+supported-landing outcomes, Paver phase/recognition times, strip-hit and
+interruption attempts, and supported/airborne fuel increases. An airborne
+objective completion is not a safe landing. Teaching acceptance requires a
+powered ascent beginning below the gallery and ending on its support in the
+successful attempt; a small powered hop on the gallery does not qualify.
+`teaching_reviews` retains up to eight seconds per flight, first preparation and
+first work event in each recorded attempt, including up to one second before
+the event. These mechanic windows cover every profile and difficulty of the
+first seed; the kill/fatal selection remains unchanged. An `active_stall`
+window begins after ten active seconds without progress, retaining its measured
+`active_stall_seconds`. Missing events
+remain missing; windows never join retries or observation gaps.
+Flight `ended_tick` and `to` are the last live sample, including for flights
+closed later by death, retry, a missing pack or an observation gap.
+
 To reconstruct those four-second windows with the existing world, fighter and
 shot presenters (a real renderer is required):
 
@@ -70,8 +106,13 @@ window; an invalid report or failed image write fails the command. Require its
 HUD, audio and input-to-display timing. It supports scene/tell inspection, not
 those claims.
 
+M19 mechanic windows use numbered event directories, and reconstruct the
+recorded jetpack and work-strip state as well as fighters. Their observer data
+can include an unseen strip, so a visible reconstruction is not evidence the
+controller recognized it; consult the separate recognition timestamp.
+
 By default a completed survey writes every failure and exits successfully.
-`--assert` instead fails if **any** trial does not depart, after writing the
+`--assert` instead fails if **any** trial misses its scenario's endpoint, after writing the
 report. Timeouts and exhausted continues never count as clears. The current
 stress matrix does not pass that strict all-clear gate; its failures are leads
 for inspection, not proof that the game is unfair. Unit tests gate perception,

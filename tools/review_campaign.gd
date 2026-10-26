@@ -1,11 +1,14 @@
 extends "audit_world_signs.gd"
 
-## Reconstruct the survey's recorded four-second scene windows. This uses real
-## world, fighter and shot presenters, but is not an ordinary client session.
+## Reconstruct recorded combat and M19 teaching windows at their 20 Hz clock.
+## This uses the world, fighter, shot and work presenters, including recorded
+## local fuel. It omits normal HUD, audio and input-to-display timing and is
+## not an ordinary client session.
 ## Run with a renderer, --path client --script ../tools/review_campaign.gd --
 ## /absolute/report.json /absolute/output-directory
 const PAWN: PackedScene = preload("res://scenes/player.tscn")
 const STEP: float = 0.05
+const TEACHING_EVENTS: Array[String] = ["jetpack_flight", "paver_tell", "paver_work", "active_stall"]
 
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -13,7 +16,7 @@ func _run() -> void:
 		_fail("campaign review needs report.json and an output directory")
 		return
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
-	if not parsed is Dictionary or parsed.get("schema") != 1:
+	if not _valid_report(parsed):
 		_fail("invalid campaign report")
 		return
 	var reviews: Array[Dictionary] = []
@@ -21,9 +24,8 @@ func _run() -> void:
 		var item: Variant = parsed.get(key)
 		if item == null:
 			continue
-		if not _valid_review(item):
-			_fail("invalid recorded scene: " + key)
-			return
+		reviews.append(item)
+	for item: Variant in parsed["teaching_reviews"]:
 		reviews.append(item)
 	if reviews.is_empty():
 		_fail("report has no recorded scene windows")
@@ -33,8 +35,8 @@ func _run() -> void:
 	if not args[1].is_absolute_path() or DirAccess.make_dir_recursive_absolute(args[1]) != OK:
 		_fail("cannot create absolute output directory")
 		return
-	for review: Dictionary in reviews:
-		if not await _render_review(review, args[1]):
+	for index: int in range(reviews.size()):
+		if not await _render_review(reviews[index], args[1], index):
 			Engine.time_scale = 1.0
 			return
 	Engine.time_scale = 1.0
@@ -45,23 +47,51 @@ func _run() -> void:
 static func _number(value: Variant) -> bool:
 	return (value is float or value is int) and is_finite(float(value))
 
+static func _valid_report(value: Variant) -> bool:
+	if not value is Dictionary or value.get("schema") != 2 or not value.get("teaching_reviews") is Array:
+		return false
+	for key: String in ["first_kill_review", "review"]:
+		var item: Variant = value.get(key)
+		if item != null and (not _valid_review(item) or item["event"] != ("first_kill" if key == "first_kill_review" else "fatal_hit")):
+			return false
+	for item: Variant in value["teaching_reviews"]:
+		if not _valid_review(item) or item["event"] not in TEACHING_EVENTS:
+			return false
+	return true
+
 static func _valid_review(value: Variant) -> bool:
 	if not value is Dictionary or not value.get("map_info") is Dictionary \
 			or not value.get("view") is Dictionary or not value.get("frames") is Array:
 		return false
-	if not value.get("event") in ["first_kill", "fatal_hit"] or not value["view"].get("id") is String:
+	var teaching: bool = value.get("event") in TEACHING_EVENTS
+	var stall: bool = value.get("event") == "active_stall"
+	if not (teaching or value.get("event") in ["first_kill", "fatal_hit"]) or not value["view"].get("id") is String:
+		return false
+	if stall and (not _number(value.get("active_stall_seconds")) or float(value["active_stall_seconds"]) < 10.0):
 		return false
 	if not MapGeometry.validation_error(value["map_info"]).is_empty():
 		return false
+	var m19: bool = value["map_info"].has("m19")
+	if (teaching and not m19) or (m19 and not M19MissionState.map_error(value["map_info"]).is_empty()):
+		return false
 	var frames: Array = value["frames"]
-	if frames.is_empty() or frames.size() > 80:
+	if frames.is_empty() or frames.size() > (160 if teaching else 80):
 		return false
 	var previous: int = -1
+	var mechanic_seen: bool = not teaching or stall
 	for frame: Variant in frames:
 		if not frame is Dictionary or not EquipmentState.integer(frame.get("tick"), EquipmentState.MAX_EXACT_INTEGER) or not frame.get("players") is Array:
 			return false
 		if not ActorState.validation_error(frame).is_empty():
 			return false
+		if not WorksFacts.validation_error(frame).is_empty():
+			return false
+		if teaching and not stall:
+			if value["event"] == "jetpack_flight":
+				mechanic_seen = mechanic_seen or WorksFacts.pack_for(frame, value["view"]["id"]).get("thrusting", false)
+			else:
+				for strip: Dictionary in frame.get("paver_strips", []):
+					mechanic_seen = mechanic_seen or strip["working"] == (value["event"] == "paver_work")
 		var tick: int = int(frame["tick"])
 		if tick < 0 or (previous >= 0 and tick != previous + 1) or frame["players"].size() > 64:
 			return false
@@ -76,16 +106,25 @@ static func _valid_review(value: Variant) -> bool:
 			viewer_found = viewer_found or player["id"] == value["view"]["id"]
 		if not viewer_found or not frame.get("shot_results", []) is Array:
 			return false
-	return true
+	return mechanic_seen
 
-func _render_review(review: Dictionary, out: String) -> bool:
+static func _review_directory(review: Dictionary, index: int) -> String:
+	# Only validated event names reach this path. Indexing teaching windows
+	# retains repeated seeds/profiles without trusting their strings as paths.
+	return "%03d_%s" % [index, review["event"]] if review["event"] in TEACHING_EVENTS else str(review["event"])
+
+func _render_review(review: Dictionary, out: String, record_index: int = 0) -> bool:
 	var info: Dictionary = review["map_info"]
-	var directory: String = out.path_join(str(review["event"]))
+	var directory: String = out.path_join(_review_directory(review, record_index))
 	if DirAccess.make_dir_recursive_absolute(directory) != OK:
 		_fail("cannot create scene output")
 		return false
 	var arena: Node3D = _build(info)
 	_freeze_stage(arena)
+	var works: M19Works
+	for child: Node in arena.get_children():
+		if child is M19Works and child.active():
+			works = child
 	var camera: Camera3D = _setup_view(arena, str(info.get("map_name", "Recall Notice")))
 	var shots: ShotEffects = ShotEffects.new()
 	arena.add_child(shots)
@@ -125,6 +164,8 @@ func _render_review(review: Dictionary, out: String) -> bool:
 			if not id in present:
 				pawns[id].queue_free()
 				pawns.erase(id)
+		if works != null:
+			_step_recorded_work(works, pawns, frame, review["view"]["id"])
 		shots.call("_process", STEP)
 		shots.decals.call("_process", STEP)
 		shots.ingest(int(frame["tick"]), frame.get("shot_results", []))
@@ -149,15 +190,29 @@ func _render_review(review: Dictionary, out: String) -> bool:
 		for settle: int in range(16 if index == 0 else 1):
 			await process_frame
 		await RenderingServer.frame_post_draw
-		if root.get_texture().get_image().save_png(directory.path_join("%04d.png" % index)) != OK:
+		var captured: Image = root.get_texture().get_image()
+		if captured == null or captured.is_empty() or captured.save_png(directory.path_join("%04d.png" % index)) != OK:
 			_fail("cannot save recorded frame")
 			return false
 		index += 1
 	arena.queue_free()
 	for settle: int in range(4):
 		await process_frame
-	print("campaign review: ", review["event"], " ", index, " frames")
+	print("campaign review: ", directory.get_file(), " ", index, " frames")
 	return true
+
+static func _step_recorded_work(works: M19Works, pawns: Dictionary[String, Node3D], frame: Dictionary, viewer: String) -> void:
+	works.players = pawns
+	works.local_id = viewer
+	# Advance the previous animation interval, then apply the exact new tick.
+	# Snapshot application resets strip interpolation; rendering must not age it.
+	works.strips._process(STEP)
+	works.apply_snapshot(frame)
+	works.strips._process(0.0)
+	works._process(STEP)
+	works._gauge._process(STEP)
+	for pack: JetpackRig in works._packs.values():
+		pack._process(STEP)
 
 static func _freeze_stage(arena: Node3D) -> void:
 	# Match combat_vfx_review: asynchronous muzzle timers, automatic pawn
