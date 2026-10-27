@@ -105,7 +105,8 @@ impl GameSession {
             .values()
             .filter(|r| matches!(r.seat, ReservedSeat::Free(_)))
             .count();
-        let missing = target.saturating_sub(self.occupied() + pending_free);
+        // A seat held for the Duel line's caller is theirs, not a bot's.
+        let missing = target.saturating_sub(self.occupied() + pending_free + self.held_seats());
         if missing > 0 {
             self.spawn_bots(missing);
         }

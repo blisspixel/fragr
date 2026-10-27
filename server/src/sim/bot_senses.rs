@@ -669,6 +669,43 @@ impl BotController {
                 ));
             }
         }
+        // A gun somebody dropped, where this bot saw it lying: there now
+        // or never, so no clock, and valued by the same habits as a pad.
+        for gun in bot.bot_senses.pads.drops() {
+            let weapon = gun.weapon;
+            if !bot.inventory.weapon_pad_useful(weapon) {
+                continue;
+            }
+            let kind = super::PickupKind::Weapon(weapon);
+            let distance = (gun.feet[0] - bot.x).hypot(gun.feet[2] - bot.z);
+            let gain = !bot.inventory.usable(weapon) && !bot.inventory.can_reload(weapon);
+            let habitual = habit(habits, kind);
+            let favourite = weapon == habits.favourite && !bot.inventory.usable(weapon);
+            if urgent && !gain && !(habitual && distance <= HABIT_REACH) {
+                continue;
+            }
+            let weight = if habitual {
+                0.5
+            } else if favourite {
+                0.6
+            } else if kind.is_power() {
+                0.8
+            } else {
+                1.0
+            };
+            let cost = distance * weight;
+            if best.as_ref().is_none_or(|(old, _)| cost < *old) {
+                best = Some((
+                    cost,
+                    PadPlan {
+                        feet: gun.feet,
+                        waiting: false,
+                        timed: false,
+                        arms: pistol_only,
+                    },
+                ));
+            }
+        }
         best.map(|(_, plan)| plan)
     }
 

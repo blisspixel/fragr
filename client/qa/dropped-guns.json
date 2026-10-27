@@ -1,0 +1,12 @@
+{
+  "comment": "Guns dropped on death on Larak Lot's free-for-all (gameplay 59): rule bots frag each other and the newest dropped gun is framed where it fell, then again in its last seconds as it blinks. Run with FRAGR_QA_BOTS=6 and FRAGR_QA_MANIFEST=res://qa/dropped-guns.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "dropped_gun", "scene": "res://scenes/main.tscn", "at_seconds": 1, "radio_off": true,
+     "await_dropped_gun": true, "await_timeout_seconds": 120, "camera": "dropped_gun", "settle_seconds": 0.4,
+     "note": "A fragged fighter's gun lies on the floor where they fell, seated with its contact shadow and no pad under it."},
+    {"name": "dropped_gun_wide", "camera": "dropped_gun", "camera_distance": 7.0, "settle_seconds": 0.2,
+     "note": "Readable from across a few bays: the same gun picture as a pad."}
+  ]
+}

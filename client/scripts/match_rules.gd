@@ -9,6 +9,17 @@ extends RefCounted
 const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest", "duel"]
 const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives", "full-arsenal"]
 const TEAMS: Array[String] = ["union", "coalition"]
+## Host presets (`rules::preset::Preset`): a named starting set of mutators,
+## launched in one pick. Labels are `PRESET_<ID>`. Proximity Party is not
+## here because the server has no mines-only start kit.
+const PRESETS: Array[String] = ["standard", "licence-to-kill", "golden-rail", "slappers-only", "shotgun-wedding", "rail-only"]
+const PRESET_MUTATORS: Dictionary[String, Array] = {
+	"standard": [], "licence-to-kill": ["licence-to-kill"], "golden-rail": ["golden-rail"],
+	"slappers-only": ["fists-only"], "shotgun-wedding": ["shotgun-only"], "rail-only": ["rail-only"],
+}
+## Twists a host may stack on a preset, in the order the menu shows them.
+const TWISTS: Array[String] = ["licence-to-kill", "two-lives", "full-arsenal"]
+const WEAPON_ONLY: Array[String] = ["rail-only", "shotgun-only", "fists-only"]
 ## Every Host reaction kind the server sends (`HostReactionKind::ALL`).
 const REACTIONS: Array[String] = [
 	"first_blood", "streak_ended", "last_standing", "comeback", "golden_rail",
@@ -16,9 +27,10 @@ const REACTIONS: Array[String] = [
 	"rampage", "riot", "untouchable",
 	"lead_change", "flag_taken", "flag_captured", "charge_planted",
 	"match_point", "sudden_death", "larak_lot_special",
+	"next_up", "tickets_low",
 ]
 ## Calls about a fighter or a side. A side call (no `player`) keys `_SIDE`.
-const SIDE_REACTIONS: Array[String] = ["lead_change", "match_point"]
+const SIDE_REACTIONS: Array[String] = ["lead_change", "match_point", "tickets_low"]
 const REACTION_VARIANTS: int = 3
 const MAX_LIVES: int = 9
 
@@ -124,6 +136,51 @@ static func modifier_text(rules: Dictionary) -> String:
 	if rules.get("friendly_fire", false):
 		parts.append(_text("RULES_FRIENDLY_FIRE"))
 	return " + ".join(parts)
+
+
+## Why the server would refuse `mutators` in `mode`, or "" when it would
+## accept them. Mirrors `RuleSet::new` so the host menu never offers a stack
+## the server turns away.
+static func stack_error(mode: String, mutators: Array) -> String:
+	var seen: Array[String] = []
+	for item: Variant in mutators:
+		if not item is String or not MUTATORS.has(item) or seen.has(item):
+			return "unknown or repeated mutator"
+		seen.append(item)
+	var only: Array[String] = []
+	for item: String in seen:
+		if WEAPON_ONLY.has(item):
+			only.append(item)
+	if only.size() > 1:
+		return "one weapon mutator"
+	if seen.has("golden-rail") and (seen.has("licence-to-kill") or (not only.is_empty() and only[0] != "rail-only")):
+		return "golden rail needs one special gun"
+	if seen.has("full-arsenal") and (mode not in ["ffa", "duel"] or not only.is_empty() or seen.has("golden-rail")):
+		return "full arsenal changes only the free-for-all start"
+	if seen.has("two-lives") and mode in ["sabotage", "ctf", "conquest"]:
+		return "two lives does not fit this mode"
+	return ""
+
+## The preset a mutator list starts from: its weapon rule first, then
+## Licence to Kill, else Standard.
+static func preset_of(mutators: Array) -> String:
+	for preset: String in ["golden-rail", "slappers-only", "shotgun-wedding", "rail-only"]:
+		if mutators.has(PRESET_MUTATORS[preset][0]):
+			return preset
+	return "licence-to-kill" if mutators.has("licence-to-kill") else "standard"
+
+## Whether `twist` can stack on `preset` in `mode`. A twist the preset
+## already carries is not offered again.
+static func twist_allowed(mode: String, preset: String, twist: String) -> bool:
+	var base: Array = PRESET_MUTATORS.get(preset, [])
+	if base.has(twist):
+		return false
+	var stacked: Array = base.duplicate()
+	stacked.append(twist)
+	return stack_error(mode, stacked).is_empty()
+
+static func preset_name(preset: String) -> String:
+	return _text(_key("PRESET_", preset)) if PRESETS.has(preset) else ""
 
 
 static func valid_team(team: Variant) -> String:
@@ -239,6 +296,9 @@ static func reaction_line(data: Dictionary) -> String:
 	var stem: String = kind.to_upper()
 	if SIDE_REACTIONS.has(kind) and not player is String:
 		stem += "_SIDE"
+	# A Duel seat with no winner staying (a free seat) has its own words.
+	if kind == "next_up" and not other is String:
+		stem += "_OPEN"
 	var key: String = "HOST_REACTION_%s_%d" % [stem, variant]
 	var line: String = _text(key)
 	if line == key:

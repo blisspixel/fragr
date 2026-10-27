@@ -157,6 +157,11 @@ pub struct ScenarioReport {
     /// Rockets fired, and those that hurt somebody.
     pub rocket_launches: u64,
     pub rocket_damaging: u64,
+    /// Guns dropped on death, and how many were taken before they went.
+    pub guns_dropped: u64,
+    pub drop_claims: u64,
+    /// Dropped Rockets taken.
+    pub rocket_drop_claims: u64,
 }
 
 /// The lane targets for rule bots on Larak Lot's free-for-all at six bots:
@@ -261,6 +266,9 @@ struct Tally {
     self_deaths: u64,
     rocket_launches: u64,
     rocket_damaging: u64,
+    guns_dropped: u64,
+    drop_claims: u64,
+    rocket_drop_claims: u64,
 }
 
 fn power(kind: PickupKind) -> bool {
@@ -355,6 +363,9 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         self_deaths: tally.self_deaths,
         rocket_launches: tally.rocket_launches,
         rocket_damaging: tally.rocket_damaging,
+        guns_dropped: tally.guns_dropped,
+        drop_claims: tally.drop_claims,
+        rocket_drop_claims: tally.rocket_drop_claims,
     }
 }
 
@@ -557,8 +568,18 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                         tally.contested_frags += 1;
                     }
                 }
-                GameEvent::Pickup { ref pickup_id, .. } if live => {
+                GameEvent::Pickup {
+                    ref pickup_id,
+                    ref weapon,
+                    ..
+                } if live => {
                     tally.pickups += 1;
+                    if pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX) {
+                        tally.drop_claims += 1;
+                        if weapon == WeaponType::Rocket.name() {
+                            tally.rocket_drop_claims += 1;
+                        }
+                    }
                     if let Some(index) = session
                         .state
                         .pickups
@@ -593,6 +614,7 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
             }
         }
     }
+    tally.guns_dropped += u64::from(session.state.guns_dropped());
     let ids: Vec<Uuid> = session.state.players.iter().map(|p| p.id).collect();
     for id in ids {
         if let Some(record) = session.state.player_record(id) {
@@ -653,6 +675,7 @@ mod tests {
         assert!(row.frags > 0, "{row:?}");
         assert!(row.spawns >= 4, "{row:?}");
         assert!(row.shot_share.values().sum::<f64>() > 0.99, "{row:?}");
+        assert!(row.guns_dropped > 0, "the Pistol start drops guns: {row:?}");
         assert!(check_bot_survey(&report).is_empty(), "{row:?}");
     }
 

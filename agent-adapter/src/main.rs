@@ -264,6 +264,7 @@ fn booth_or_fighter_hello(name: &str, body: protocol::BodyKind, watch: bool) -> 
     let role = if watch { Role::Spectator } else { Role::Agent };
     ClientMessage::Hello {
         body: (!watch).then_some(body),
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role,
@@ -732,6 +733,7 @@ async fn run_scripted_bot(
 
     let hello = ClientMessage::Hello {
         body: Some(body),
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -1821,6 +1823,7 @@ mod tests {
             jammer_dish: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -1883,6 +1886,7 @@ mod tests {
             jammer_dish: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let json = serde_json::to_value(&snap).unwrap();
         assert_eq!(json["host_line"], protocol::default_host_line());
@@ -2007,6 +2011,7 @@ mod tests {
             jammer_dish: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -2047,6 +2052,7 @@ mod tests {
     fn test_client_action_message_structure() {
         let hello = ClientMessage::Hello {
             body: None,
+            seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
@@ -2222,6 +2228,7 @@ mod tests {
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
             body: None,
+            seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
@@ -2384,6 +2391,7 @@ mod tests {
             jammer_dish: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let action = compute_bot_action(bot_id, &snapshot);
         let look = action.look_at.expect("look_at toward nearest");

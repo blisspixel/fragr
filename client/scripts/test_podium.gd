@@ -57,6 +57,28 @@ func _run() -> void:
 	hud.show_podium(null, ME)
 	_check(not _plate_up(hud), "mid-round the podium plate is gone")
 	# A Sabotage prompt on the same plate survives the podium clearing.
+	# The Duel line: a watcher sees who is next and their own place; a
+	# fighter sees the line only on the podium.
+	# Two watchers can share a name; the server's private place says which
+	# entry is this one.
+	hud.show_podium(null, "", ["Probe", "Probe"], 2, true)
+	text = _plate_text(hud)
+	_check(text.contains("NEXT UP  PROBE, PROBE") and text.contains("YOU ARE 2 OF 2"), "a queued watcher reads the line: " + text)
+	hud.show_podium(null, "", ["Static Kid"], 0, true)
+	_check(_plate_text(hud).contains("WAIT FOR THE NEXT SEAT"), "an unqueued watcher is offered the line")
+	hud.show_podium(null, ME, ["Static Kid"], 0, true)
+	_check(not _plate_up(hud), "mid-round a fighter is not shown the line")
+	hud.show_podium({"voters": 2, "duel": duel}, ME, ["Static Kid"], 0, true)
+	_check(_plate_text(hud).contains("NEXT UP  STATIC KID"), "the podium shows the line to fighters")
+	hud.show_podium(null, "", [], 0, false)
+	_check(not _plate_up(hud), "outside a Duel nothing is offered")
+	var many: Array = []
+	for n: int in range(6):
+		many.append("W%d" % n)
+	hud.show_podium(null, "", many, 6, true)
+	text = _plate_text(hud)
+	_check(text.contains("W0, W1, W2  +3") and text.contains("6 OF 6"), "a long line shows three and a count: " + text)
+	hud.show_podium(null, ME)
 	hud._show_use_plate("{use} PLANT")
 	hud.show_podium(null, ME)
 	_check(_plate_up(hud) and _plate_text(hud).contains("PLANT"), "clearing the podium leaves a plant prompt alone")
@@ -95,6 +117,40 @@ func _run() -> void:
 		"host_line": "HOST: ROUND CLOSED. NO MVP. LEAGUE DENIES THE SCRAP.", "final_scores": [], "reason": "Time limit reached"})
 	_check(hud.result_subject == "ROUND OVER" and not hud.round_message.text.contains("null"),
 		"a nameless result reads as round over: " + hud.result_subject)
+	# The line's key and the seat call: a watcher asks with one message, a
+	# called watcher's next fighter Hello carries the token once, and a
+	# malformed token is ignored.
+	wire.sent.clear()
+	wire.role = "spectator"
+	wire.connection_state = WebSocketPeer.STATE_OPEN
+	wire.send_queue(true)
+	_check(wire.sent.size() == 1 and wire.sent[0] == {"type": "queue", "wait": true}, "queue is one message: %s" % str(wire.sent))
+	var called: Array[String] = []
+	wire.seat_called.connect(func(token: String) -> void: called.append(token))
+	wire._handle_message(JSON.stringify({"type": "seat_call", "seat": "0123abcd"}))
+	wire._handle_message(JSON.stringify({"type": "seat_call", "seat": "<script>"}))
+	wire._handle_message(JSON.stringify({"type": "seat_call", "seat": 4}))
+	_check(called == ["0123abcd"], "only a plain token calls: %s" % str(called))
+	wire.sent.clear()
+	wire.role = "human"
+	wire.seat_token = "0123abcd"
+	wire.send_hello()
+	wire.send_hello()
+	_check(wire.sent.size() == 2 and wire.sent[0].get("seat") == "0123abcd" and not wire.sent[1].has("seat"), "the token rides one Hello: %s" % str(wire.sent))
+	# The server's private place and a full line's refusal reach the watcher.
+	wire.role = "spectator"
+	wire._handle_message(JSON.stringify({"type": "queue_place", "place": 3, "of": 4}))
+	_check(wire.queue_place == 3 and wire.queue_of == 4, "a watcher learns its own place")
+	wire._handle_message(JSON.stringify({"type": "queue_place", "place": 5, "of": 4}))
+	_check(wire.queue_place == 3, "a place past the line's end is refused")
+	var refusals: Array[String] = []
+	wire.queue_refused.connect(func(message: String) -> void: refusals.append(message))
+	wire._handle_message(JSON.stringify({"type": "error", "code": "queue_full", "message": "The line for this duel is full."}))
+	_check(refusals == ["The line for this duel is full."], "a full line says so without closing")
+	var passed: Array[int] = [0]
+	wire.seat_passed.connect(func() -> void: passed[0] += 1)
+	wire._handle_message(JSON.stringify({"type": "error", "code": "duel_seat_passed", "message": "Winner stays."}))
+	_check(passed[0] == 1, "a passed seat is not a hard stop")
 	game.net_client = null
 	wire.queue_free()
 	game.free()
@@ -102,5 +158,5 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	if _failures == 0:
-		print("test_podium: PASS ready-up prompt, Duel series, spectator view, shared plate and the again key")
+		print("test_podium: PASS ready-up prompt, Duel series and line, spectator view, shared plate, the again key and the seat call")
 	quit(0 if _failures == 0 else 1)

@@ -49,6 +49,7 @@ async fn hello(url: &str, role: Role, index: usize, version: u32) -> Socket {
                 ticket: None,
                 resume: None,
                 body: None,
+                seat: None,
             })
             .unwrap(),
         ))

@@ -96,6 +96,29 @@ impl GameState {
         if let (Some(state), Some(team)) = (&mut self.conquest, team) {
             debit(&mut state.tickets, team, 1);
         }
+        self.call_bleed();
+    }
+
+    /// The Host calls each side's fall under the bleed line once a round.
+    fn call_bleed(&mut self) {
+        let Some(tickets) = self.conquest.as_ref().map(|state| state.tickets) else {
+            return;
+        };
+        for team in Team::ALL {
+            let left = tickets.get(team);
+            if left > 0
+                && left < crate::protocol::CONQUEST_BLEED_TICKETS
+                && !self.reactions.tickets_low[team.index()]
+            {
+                // A call held back by the Host's spacing is made later.
+                self.reactions.tickets_low[team.index()] = self.react(
+                    crate::protocol::HostReactionKind::TicketsLow,
+                    None,
+                    None,
+                    Some(team),
+                );
+            }
+        }
     }
 
     pub(super) fn tick_conquest(&mut self) {
@@ -149,6 +172,13 @@ impl GameState {
                 debit(&mut state.tickets, team.other(), held.saturating_sub(2));
             }
         }
+        let over = state.tickets.union == 0 || state.tickets.coalition == 0;
+        if !over {
+            self.call_bleed();
+        }
+        let Some(state) = &self.conquest else {
+            return;
+        };
         if state.tickets.union == 0 || state.tickets.coalition == 0 {
             let winner = state.tickets.leader();
             self.finish_round("Tickets exhausted".into(), Some(Standing::Side(winner)));
@@ -300,6 +330,46 @@ mod tests {
         state.players[0].role = crate::protocol::Role::Spectator;
         state.tick_conquest();
         assert_eq!(state.conquest.as_ref().unwrap().points[0].progress, 0);
+    }
+
+    #[test]
+    fn the_host_calls_each_side_under_the_bleed_line_once_a_round() {
+        use crate::protocol::{GameEvent, HostReactionKind, CONQUEST_BLEED_TICKETS};
+        let calls = |state: &mut GameState| -> Vec<Option<Team>> {
+            state
+                .take_events()
+                .into_iter()
+                .filter_map(|event| match event {
+                    GameEvent::HostReaction {
+                        kind: HostReactionKind::TicketsLow,
+                        team,
+                        big,
+                        ..
+                    } => {
+                        assert!(big, "the bleed is a voiced slot");
+                        Some(team)
+                    }
+                    _ => None,
+                })
+                .collect()
+        };
+        let mut state = game();
+        state.conquest.as_mut().unwrap().tickets.union = CONQUEST_BLEED_TICKETS;
+        state.take_events();
+        state.tick_conquest();
+        assert!(calls(&mut state).is_empty(), "at the line is not under it");
+        state.conquest_death(Some(Team::Union));
+        assert_eq!(calls(&mut state), [Some(Team::Union)]);
+        state.conquest_death(Some(Team::Union));
+        state.tick_conquest();
+        assert!(calls(&mut state).is_empty(), "once a round");
+        // The other side's fall is its own call, through the bleed.
+        state.conquest.as_mut().unwrap().tickets.coalition = CONQUEST_BLEED_TICKETS - 1;
+        state.tick_conquest();
+        assert!(calls(&mut state).is_empty(), "held by the Host's spacing");
+        state.reactions.last_big_tick = None;
+        state.tick_conquest();
+        assert_eq!(calls(&mut state), [Some(Team::Coalition)], "said later");
     }
 
     #[test]

@@ -174,6 +174,26 @@ func _run() -> void:
 		"the stage is asked once, at the pad's floor")
 	_check(is_equal_approx(seated.seat_height, 0.12) and seated_bottom > -seated.PAD_LIFT + 0.12 and seated_bottom < -seated.PAD_LIFT + 0.18,
 		"the item sits on the staged seat: %f" % seated_bottom)
+	# A dropped gun lies on its floor: the venue never stages under it, and
+	# it blinks out over its last seconds (reduced motion holds it dim).
+	var dropped: Node3D = scene.instantiate()
+	root.add_child(dropped)
+	dropped.setup("drop_7", "Rocket", Vector3(1.0, 0.4, 1.0), "weapon", 3, "", true)
+	_check(stage.get("asks") == 1 and is_zero_approx(dropped.seat_height), "a dropped gun is not staged")
+	var dropped_icon: Sprite3D = dropped.get_node("Icon")
+	_check(dropped_icon.visible and dropped_icon.texture != null, "a dropped gun reads by the same picture")
+	dropped._process(dropped.DROPPED_SECONDS - dropped.DROPPED_BLINK_SECONDS - 0.5)
+	_check(is_equal_approx(dropped_icon.modulate.a, 1.0), "steady before the warning")
+	dropped._process(0.6)
+	var seen: Dictionary = {}
+	for step: int in range(8):
+		dropped._process(0.0625)
+		seen[dropped_icon.modulate.a > 0.5] = true
+	_check(seen.size() == 2, "the warning blinks")
+	dropped.set_reduced_motion(true)
+	dropped._process(0.1)
+	_check(is_equal_approx(dropped_icon.modulate.a, 1.0) and dropped_icon.modulate.r < 0.9, "reduced motion dims instead of blinking")
+	dropped.queue_free()
 	seated.queue_free()
 	stage.queue_free()
 	var early: Node3D = scene.instantiate()
@@ -188,5 +208,5 @@ func _run() -> void:
 	pickup.queue_free()
 	await process_frame
 	if failures == 0:
-		print("test_weapon_pickup: PASS sprite for every kind, no world text, seated with a contact shadow, staged seats, return shimmer, availability, fallback")
+		print("test_weapon_pickup: PASS sprite for every kind, no world text, seated with a contact shadow, staged seats, dropped guns, return shimmer, availability, fallback")
 	quit(0 if failures == 0 else 1)

@@ -66,19 +66,13 @@ static func valid_settings(value: Variant) -> bool:
 	# fixed, two that give their seats up to people when automatic.
 	if data["mode"] == "duel" and (data["map_id"] != 1 or data["bots"] > 1 or data["fill_target"] > 2):
 		return false
-	if data.has("mutator") and data["mutator"] != null:
-		if not data["mutator"] is String:
-			return false
-		if not data["mutator"].is_empty() and data["mutator"] not in MatchRules.MUTATORS:
-			return false
-		if data["mutator"] == "two-lives" and data["mode"] in ["sabotage", "ctf", "conquest"]:
-			return false
-		# Full Arsenal changes only the free-for-all start; other modes keep their kits.
-		if data["mutator"] == "full-arsenal" and data["mode"] not in ["ffa", "duel"]:
+	# A preset plus stacked twists, as the server's repeated --mutator.
+	if data.has("mutators"):
+		if not data["mutators"] is Array or not MatchRules.stack_error(data["mode"], data["mutators"]).is_empty():
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false
-	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutator", "friendly_fire"]
+	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire"]
 	for k: Variant in data.keys():
 		if not k is String or k not in known_keys:
 			return false
@@ -95,9 +89,9 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		args.append("--sabotage-five-v-five")
 	if value.get("friendly_fire", false) and value["mode"] not in ["ffa", "duel"]:
 		args.append("--friendly-fire")
-	if value.has("mutator") and value["mutator"] is String and not value["mutator"].is_empty():
+	for mutator: Variant in value.get("mutators", []):
 		args.append("--mutator")
-		args.append(value["mutator"])
+		args.append(str(mutator))
 	return args
 
 func start_host(value: Dictionary) -> bool:

@@ -76,6 +76,18 @@ func _check_labels() -> void:
 	for mutator: String in MatchRules.MUTATORS:
 		var chip: String = MatchRules.chip_text(MatchRules.parse({"mode": "ffa", "mutators": [mutator]}))
 		_check(not chip.contains("MUTATOR_"), "every mutator has a label: " + chip)
+	# Presets and stacking mirror the server's RuleSet::new.
+	for preset: String in MatchRules.PRESETS:
+		_check(not MatchRules.preset_name(preset).begins_with("PRESET_") and MatchRules.stack_error("ffa", MatchRules.PRESET_MUTATORS[preset]).is_empty()
+			and MatchRules.preset_of(MatchRules.PRESET_MUTATORS[preset]) == preset, "preset is named, valid and recognised: " + preset)
+	_check(MatchRules.stack_error("tdm", ["shotgun-only", "licence-to-kill", "two-lives"]).is_empty(), "a wedding stacks")
+	for bad: Array in [["golden-rail", "licence-to-kill"], ["fists-only", "shotgun-only"], ["golden-rail", "full-arsenal"], ["rail-only", "rail-only"]]:
+		_check(not MatchRules.stack_error("ffa", bad).is_empty(), "contradiction refused: " + str(bad))
+	_check(not MatchRules.stack_error("tdm", ["full-arsenal"]).is_empty() and not MatchRules.stack_error("ctf", ["two-lives"]).is_empty(), "mode-bound twists")
+	_check(MatchRules.stack_error("ffa", ["golden-rail", "rail-only"]).is_empty(), "the golden Railgun may stand among Railguns")
+	_check(not MatchRules.twist_allowed("ffa", "golden-rail", "licence-to-kill") and MatchRules.twist_allowed("ffa", "standard", "full-arsenal")
+		and not MatchRules.twist_allowed("ffa", "slappers-only", "full-arsenal") and not MatchRules.twist_allowed("ffa", "licence-to-kill", "licence-to-kill"),
+		"twists are offered only where they stack")
 	_check(MatchRules.team_score_line({"union": 3.0, "coalition": 5}) == "UNION 3 : 5 FREE COALITION", "side score line")
 	for bad: Variant in [null, {}, {"union": -1, "coalition": 0}, {"union": 1.5, "coalition": 0}, {"union": "3", "coalition": 1}]:
 		_check(MatchRules.team_score_line(bad) == "", "bad side scores show nothing: " + str(bad))
@@ -117,6 +129,13 @@ func _check_reactions() -> void:
 			_check(side.contains("UNION") and not side.contains("  ") and not side.contains(" ."), "side call names the side: " + side)
 	var point: String = MatchRules.reaction_line({"kind": "match_point", "variant": 0, "team": "coalition"})
 	_check(point == "HOST: MATCH POINT! THE FREE COALITION!", "side match point: " + point)
+	var stays: String = MatchRules.reaction_line({"kind": "next_up", "variant": 0, "player": "Static Kid", "other": "Nightfall"})
+	_check(stays == "HOST: NIGHTFALL STAYS. STATIC KID, YOU'RE UP!", "winner stays names both: " + stays)
+	for variant: int in range(MatchRules.REACTION_VARIANTS):
+		var open_seat: String = MatchRules.reaction_line({"kind": "next_up", "variant": variant, "player": "Static Kid"})
+		_check(open_seat.contains("STATIC KID") and not open_seat.contains("STAYS") and not open_seat.contains("  "), "an open seat names only the caller: " + open_seat)
+	var bleed: String = MatchRules.reaction_line({"kind": "tickets_low", "variant": 0, "team": "union"})
+	_check(bleed == "HOST: THE UNION IS BLEEDING OUT!", "the bleed names the side: " + bleed)
 	var triple: String = MatchRules.reaction_line({"kind": "triple_frag", "variant": 0, "player": "Nightfall", "big": true})
 	_check(triple == "HOST: TRIPLE FRAG! NIGHTFALL!", "triple frag caption keeps the name: " + triple)
 	_check(MatchRules.reaction_big({"big": true}) and not MatchRules.reaction_big({"big": 1}) and not MatchRules.reaction_big({}), "only a true flag is a big moment")

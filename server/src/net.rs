@@ -119,7 +119,11 @@ where
 enum StopSignal {
     Open,
     Quiet,
-    Venue { banned: bool },
+    Venue {
+        banned: bool,
+    },
+    /// Duel winner-stays: the loser's socket closes with `duel_seat_passed`.
+    SeatPassed,
 }
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
@@ -233,6 +237,8 @@ enum Kick {
     Venue {
         banned: bool,
     },
+    /// Duel winner-stays: this fighter lost and passed the seat to the line.
+    SeatPassed,
 }
 
 impl Kick {
@@ -244,6 +250,7 @@ impl Kick {
             Kick::Refused(verdict) => verdict.code().unwrap_or("address_banned"),
             Kick::Venue { banned: true } => "address_banned",
             Kick::Venue { banned: false } => "venue_kick",
+            Kick::SeatPassed => "duel_seat_passed",
         }
     }
 
@@ -255,6 +262,7 @@ impl Kick {
             Kick::Refused(_) => refusal_message(self.code()),
             Kick::Venue { banned: true } => refusal_message("address_banned"),
             Kick::Venue { banned: false } => "The venue asked you to step outside.",
+            Kick::SeatPassed => "Winner stays. You are back in the line.",
         }
     }
 
@@ -268,6 +276,7 @@ impl Kick {
             Kick::Refused(crate::access::Verdict::Banned { .. }) | Kick::Venue { banned: true } => {
                 "ban"
             }
+            Kick::SeatPassed => "seat_passed",
             _ => "kick",
         }
     }
@@ -604,6 +613,11 @@ impl ClientSession {
         self.shutdown.send_replace(StopSignal::Venue { banned });
     }
 
+    /// This fighter lost a Duel round and passes the seat to the line.
+    pub(crate) fn seat_passed(&self) {
+        self.shutdown.send_replace(StopSignal::SeatPassed);
+    }
+
     pub(crate) fn queue_depth(&self) -> usize {
         self.tx.depth()
     }
@@ -672,6 +686,8 @@ pub struct NetServer {
     /// The mode whose fixed fighter seats `party_slots` holds: five versus
     /// five Sabotage or Duel. A full pool refuses with `match_full`.
     seat_mode: Option<crate::protocol::GameMode>,
+    /// Duel seats held for the line's caller (`session::queue`).
+    seat_holds: Option<crate::session::queue::SeatHolds>,
     auto_fill: bool,
     solo_run: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
@@ -847,6 +863,11 @@ pub enum GameCommand {
         board: Option<String>,
         text: Option<String>,
     },
+    /// A Duel watcher joins or leaves the line for a seat.
+    Queue {
+        client_id: Uuid,
+        wait: bool,
+    },
     /// The socket died. The pawn stays until grace or an explicit leave.
     Detached {
         id: Uuid,
@@ -973,6 +994,7 @@ impl NetServer {
             client_aim: false,
             solo_run: false,
             seat_mode: None,
+            seat_holds: None,
             auto_fill: false,
             solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
@@ -1129,6 +1151,11 @@ impl NetServer {
         self.seat_mode = Some(mode);
     }
 
+    /// The Duel line's seat holds, shared with the session that calls.
+    pub(crate) fn set_seat_holds(&mut self, holds: crate::session::queue::SeatHolds) {
+        self.seat_holds = Some(holds);
+    }
+
     /// Only a completed admission consumes the run's lifetime combat seat.
     pub(crate) fn reserve_solo_run(&mut self) -> std::io::Result<()> {
         if self.gameplay_version < crate::protocol::CONTINUES_GAMEPLAY_VERSION {
@@ -1164,6 +1191,7 @@ impl NetServer {
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
                     let seat_mode = self.seat_mode;
+                    let seat_holds = self.seat_holds.clone();
                     let auto_fill = self.auto_fill;
                     let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
@@ -1254,6 +1282,7 @@ impl NetServer {
                                 party_slots,
                                 solo_run,
                                 seat_mode,
+                                seat_holds,
                                 auto_fill,
                                 solo_bound_body,
                                 handshake_timeout,
@@ -1478,6 +1507,7 @@ struct HelloPolicy {
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
     seat_mode: Option<crate::protocol::GameMode>,
+    seat_holds: Option<crate::session::queue::SeatHolds>,
     auto_fill: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
@@ -1557,6 +1587,7 @@ async fn read_session(
                     StopSignal::Open => continue,
                     StopSignal::Quiet => break None,
                     StopSignal::Venue { banned } => break Some(Kick::Venue { banned }),
+                    StopSignal::SeatPassed => break Some(Kick::SeatPassed),
                 }
             }
             () = &mut idle => break Some(Kick::Idle),
@@ -1674,6 +1705,15 @@ async fn read_session(
             });
             continue;
         }
+        if let ClientMessage::Queue(request) = &message {
+            if role == Role::Spectator {
+                let _ = game_tx.send(GameCommand::Queue {
+                    client_id,
+                    wait: request.wait,
+                });
+            }
+            continue;
+        }
         let Some(player_id) = player_id.filter(|_| role != Role::Spectator) else {
             continue;
         };
@@ -1705,6 +1745,50 @@ async fn read_session(
         let _ = game_tx.send(command);
     };
     SessionEnd { left, kick }
+}
+
+/// A Duel fighter Hello while the line may hold a seat: refuse anybody but
+/// the called watcher while the held seat is the only free one, and let the
+/// called watcher wait for the passing fighter's socket to release the seat.
+/// `Ok(true)` is the holder, whose hold is spent once the seat is taken.
+/// The refusal is the `match_full` message text.
+async fn admit_duel_seat(policy: &HelloPolicy, token: Option<&str>) -> Result<bool, &'static str> {
+    let Some(holds) = policy.seat_holds.as_ref() else {
+        return Ok(false);
+    };
+    match crate::session::queue::admit(holds, token, std::time::Instant::now()) {
+        crate::session::queue::Admit::Held => {
+            // One free seat is the caller's; a second free seat is anybody's.
+            if policy
+                .party_slots
+                .as_ref()
+                .is_some_and(|slots| slots.available_permits() > 1)
+            {
+                return Ok(false);
+            }
+            Err("This duel's next seat is called for the line. Watch, and join the line.")
+        }
+        crate::session::queue::Admit::Holder => {
+            if !policy.auto_fill {
+                if let Some(slots) = policy.party_slots.as_ref() {
+                    let until =
+                        tokio::time::Instant::now() + crate::session::queue::SEAT_RELEASE_WAIT;
+                    while slots.available_permits() == 0 && tokio::time::Instant::now() < until {
+                        tokio::time::sleep(Duration::from_millis(50)).await;
+                    }
+                }
+            }
+            Ok(true)
+        }
+        crate::session::queue::Admit::Open => Ok(false),
+    }
+}
+
+/// Spend a called watcher's hold once its seat is taken.
+fn release_duel_seat(policy: &HelloPolicy, token: Option<&str>, holder: bool) {
+    if let (true, Some(holds), Some(token)) = (holder, policy.seat_holds.as_ref(), token) {
+        crate::session::queue::release(holds, token);
+    }
 }
 
 async fn send_welcome(
@@ -1771,6 +1855,7 @@ async fn handle_connection(
                 ticket,
                 resume,
                 body: requested_body,
+                seat: seat_token,
             }) => {
                 let admitted = {
                     let mut nonces = policy
@@ -1899,6 +1984,22 @@ async fn handle_connection(
                         name = ?audit_name(&name),
                     );
                 } else {
+                    let mut seat_holder = false;
+                    if r != Role::Spectator
+                        && policy.seat_mode == Some(crate::protocol::GameMode::Duel)
+                    {
+                        match admit_duel_seat(&policy, seat_token.as_deref()).await {
+                            Ok(holder) => seat_holder = holder,
+                            Err(message) => {
+                                let rejection = ServerMessage::Error {
+                                    code: "match_full".into(),
+                                    message: message.into(),
+                                };
+                                return reject_connection(ws_sink, ws_stream, rejection, peer)
+                                    .await;
+                            }
+                        }
+                    }
                     let mut auto_join =
                         if policy.auto_fill && policy.seat_mode.is_some() && r != Role::Spectator {
                             let guard = AutoJoinGuard {
@@ -1968,6 +2069,9 @@ async fn handle_connection(
                     } else {
                         None
                     };
+                    if auto_join.is_none() {
+                        release_duel_seat(&policy, seat_token.as_deref(), seat_holder);
+                    }
                     role = Some(r);
 
                     player_id = if r != Role::Spectator {
@@ -2127,6 +2231,7 @@ async fn handle_connection(
                             Ok(seat) => {
                                 _party_seat = Some(seat);
                                 guard.armed = false;
+                                release_duel_seat(&policy, seat_token.as_deref(), seat_holder);
                             }
                             Err(reason) => {
                                 drop(auto_join);

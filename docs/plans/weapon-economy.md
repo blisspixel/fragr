@@ -22,7 +22,17 @@ valve is replaced by a walk bound to the nearest gun, met with free-for-all
 supply pads. Clocks: 15 s for the Rifle and Shotgun, 25 s for the Railgun,
 health and armour. Team modes, Golden Rail, weapon-only mutators and the
 `full-arsenal` host mutator keep their kits. Pools, sidearm trickle, carry
-limits, the Shiv ladder and the four gates remain proposed. The gates still
+limits, the Shiv ladder and the four gates remain proposed.
+
+Current-state note (2026-10-27, wave 11): guns drop on death in the Pistol
+start (Nick's decision for the Rocket supply, #432). The gun in a fragged
+fighter's hands lies where they fell for 15 s with the rounds they still had
+for it, capped at that gun's pad grant, and goes to the first fighter on it
+who can use it (`server/src/sim/drops.rs`). The Pistol, Fists, the Shiv, the
+Article Blade, the Flechette (the common pad gun, which otherwise passed the
+45% shot gate) and an empty gun stay behind; issued kits, weapon-only rules,
+Golden Rail, Sabotage, the campaign and the benchmark never drop. The
+measurements and the unmet Rocket target are in the [bot plan](bot-and-enemy-ai-excellence-20261017.md#6-progress). The gates still
 need the harness metrics named below before this economy is tuned.
 
 ## Bounded increment: M01 discovery

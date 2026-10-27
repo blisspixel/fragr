@@ -54,8 +54,13 @@ inside a 120 degree view, within 40 m and past cover, or underfoot. Full
 `pickups[].available` is that belief and `in_view` says whether the pad is
 seen now. The snapshot carries no live return timer for anyone. A pad seen
 empty is believed back after its published clock; pads not seen are believed
-up. Turn and look to learn the map. An adapter that never joined keeps the full
-live view. `docs/protocol.md` has the clocks.
+up. Turn and look to learn the map. A gun a fragged fighter dropped
+(`dropped: true`, gameplay 59) is known only once seen: until then `observe`
+leaves it out. Once seen it stays in `observe`, as last seen, until the
+fighter sees its spot empty or 15 s from first sight pass, even if somebody
+took it out of view; `in_view` says whether it is seen now. The `pickup`
+event for a drop the fighter cannot see is not passed on. An adapter
+that never joined keeps the full live view. `docs/protocol.md` has the clocks.
 
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 

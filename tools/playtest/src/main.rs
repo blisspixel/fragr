@@ -382,6 +382,10 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.plate_claims_per_3min,
             row.self_deaths
         );
+        println!(
+            "{}: {} guns dropped on death, {} taken ({} Rockets)",
+            row.scenario, row.guns_dropped, row.drop_claims, row.rocket_drop_claims
+        );
     }
 }
 

@@ -165,6 +165,7 @@ async fn seat_task(
     };
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role,

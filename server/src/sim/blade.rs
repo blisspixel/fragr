@@ -173,6 +173,7 @@ impl ArticleBladePlinth {
             y: self.feet[1] + 0.4,
             z: self.feet[2],
             available: self.is_available(),
+            dropped: false,
         }
     }
 }

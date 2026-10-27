@@ -546,6 +546,7 @@ async fn run_server_impl(
     }
     if let Some(slots) = session.configure_fighter_seats() {
         net_server.set_fighter_seats(slots, session.state.config.rules.mode());
+        net_server.set_seat_holds(session.seat_holds());
     }
     if options.bot_policy == crate::bot_fill::BotPolicy::Auto {
         session.set_auto_fill(options.fill_target);
@@ -826,6 +827,13 @@ async fn run_server_impl(
                     }
                     if let Ok(mut slot) = live.try_write() {
                         *slot = next;
+                    }
+                }
+                let passes = session.take_seat_passes();
+                if !passes.is_empty() {
+                    let clients_lock = clients.lock().await;
+                    for client in clients_lock.iter().filter(|client| passes.contains(&client.id)) {
+                        client.seat_passed();
                     }
                 }
                 let unicasts = session.take_unicasts();

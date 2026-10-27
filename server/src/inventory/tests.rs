@@ -926,6 +926,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
             y: 0.0,
             z: 0.0,
             available: true,
+            dropped: false,
             claim: SupplyClaim::Contested,
         }],
         map_id: 1,
@@ -944,6 +945,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         conquest: None,
         article_blade: None,
         podium: None,
+        duel_queue: Vec::new(),
         vehicles: vec![],
     };
     let action = control_action(id, &snapshot, Some(&loadout), Action::default());
@@ -1007,6 +1009,7 @@ fn ray_objective_uses_owned_ammunition_or_routes_to_ray_supply_without_firing_ro
         y: 0.0,
         z: 0.0,
         available: true,
+        dropped: false,
         claim: SupplyClaim::Contested,
     };
     snapshot.pickups = vec![

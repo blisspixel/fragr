@@ -2188,6 +2188,7 @@ async fn agent_task(
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -2556,6 +2557,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
@@ -2796,6 +2798,7 @@ mod tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -3744,6 +3747,7 @@ mod combat_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -4632,6 +4636,7 @@ mod planner_tests {
             y: 0.0,
             z,
             available,
+            dropped: false,
         }
     }
 
@@ -4680,6 +4685,7 @@ mod planner_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -5499,6 +5505,7 @@ mod line_of_sight_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
