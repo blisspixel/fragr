@@ -258,6 +258,9 @@ msgstr "Slappers Only"
 msgid "PRESET_SHOTGUN_WEDDING"
 msgstr "Shotgun Wedding"
 
+msgid "PRESET_RAIL_ONLY"
+msgstr "Rail Only"
+
 msgid "MUTATOR_RAIL_ONLY"
 msgstr "RAIL ONLY"
 

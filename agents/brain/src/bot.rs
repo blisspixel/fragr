@@ -1006,7 +1006,7 @@ pub async fn run_bot(
                     // The booth is for watchers; a fighter never uses it.
                     Ok(ServerMessage::SpectatorFacts(_)) => {}
                     // The brain joins as a fighter; it is never called from the Duel line.
-                    Ok(ServerMessage::SeatCall { .. }) => {}
+                    Ok(ServerMessage::SeatCall { .. } | ServerMessage::QueuePlace { .. }) => {}
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
                         if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {

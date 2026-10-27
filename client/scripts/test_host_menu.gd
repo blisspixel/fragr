@@ -59,10 +59,20 @@ func _run() -> void:
 	_check(menu._host_bot_policy.is_visible_in_tree() and not menu._host_more.button_pressed and not menu._host_advanced.visible
 		and menu._root.get_node("HostMoreOptions").get_index() < menu._root.get_node("StartServer").get_index(),
 		"default hosting shows mode, map and an explicit bot policy; rules and network fold before Start")
-	_check(menu._host_presets.size() == 5 and menu._host_presets["standard"].button_pressed
+	_check(menu._host_presets.size() == 6 and menu._host_presets["standard"].button_pressed
 		and menu._host_presets["shotgun-wedding"].is_visible_in_tree()
 		and menu._root.get_node("HostPresetRow").get_index() < menu._root.get_node("HostMoreOptions").get_index(),
-		"the five presets are one visible pick, Standard first, above the fold")
+		"the six presets are one visible pick, Standard first, above the fold")
+	_check(menu._host_presets.has("rail-only"), "Rail Only stays on the menu as a preset")
+	# Every mode's bot line says what is true for it: only Sabotage's five
+	# versus five shares ten seats.
+	for mode: String in ["tdm", "ffa", "ctf", "conquest"]:
+		_check(menu.host_bot_hint_key(mode, "fixed") == "HOST_FIXED_BOTS", "fixed bots in %s are not a 5v5" % mode)
+		_check(not tr(menu.host_bot_hint_key(mode, "fixed")).contains("5v5"), "no 5v5 copy in " + mode)
+	_check(menu.host_bot_hint_key("sabotage", "fixed") == "HOST_FINITE_SEATS", "Sabotage keeps its ten seats")
+	_check(menu.host_bot_hint_key("duel", "fixed") == "HOST_DUEL_SEATS" and menu.host_bot_hint_key("duel", "auto") == "HOST_DUEL_SEATS", "a duel names its two seats")
+	_check(menu.host_bot_hint_key("tdm", "auto") == "HOST_AUTO_PRIORITY" and menu.host_bot_hint_key("ffa", "none") == "HOST_NO_BOTS_HINT", "automatic and no-bot lines")
+	_check(not menu._host_bot_hint.text.contains("5v5"), "the default page does not claim 5v5 seats: " + menu._host_bot_hint.text)
 	menu._host_more.button_pressed = true
 	_check(menu._host_advanced.visible and menu._host_lan.is_visible_in_tree() and menu._host_twists["two-lives"].is_visible_in_tree(),
 		"one switch discloses stacked rules, friendly fire, LAN and port")

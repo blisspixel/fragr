@@ -1748,26 +1748,46 @@ async fn read_session(
 }
 
 /// A Duel fighter Hello while the line may hold a seat: refuse anybody but
-/// the called watcher, and let the called watcher wait briefly for the
-/// passing fighter's socket to release the seat.
-async fn admit_duel_seat(policy: &HelloPolicy, token: Option<&str>) -> Option<ServerMessage> {
-    let holds = policy.seat_holds.as_ref()?;
+/// the called watcher while the held seat is the only free one, and let the
+/// called watcher wait for the passing fighter's socket to release the seat.
+/// `Ok(true)` is the holder, whose hold is spent once the seat is taken.
+/// The refusal is the `match_full` message text.
+async fn admit_duel_seat(policy: &HelloPolicy, token: Option<&str>) -> Result<bool, &'static str> {
+    let Some(holds) = policy.seat_holds.as_ref() else {
+        return Ok(false);
+    };
     match crate::session::queue::admit(holds, token, std::time::Instant::now()) {
-        crate::session::queue::Admit::Held => Some(ServerMessage::Error {
-            code: "match_full".into(),
-            message: "This duel's next seat is called for the line. Watch, and join the line."
-                .into(),
-        }),
-        crate::session::queue::Admit::Holder if !policy.auto_fill => {
-            if let Some(slots) = policy.party_slots.as_ref() {
-                let until = tokio::time::Instant::now() + crate::session::queue::SEAT_RELEASE_WAIT;
-                while slots.available_permits() == 0 && tokio::time::Instant::now() < until {
-                    tokio::time::sleep(Duration::from_millis(50)).await;
+        crate::session::queue::Admit::Held => {
+            // One free seat is the caller's; a second free seat is anybody's.
+            if policy
+                .party_slots
+                .as_ref()
+                .is_some_and(|slots| slots.available_permits() > 1)
+            {
+                return Ok(false);
+            }
+            Err("This duel's next seat is called for the line. Watch, and join the line.")
+        }
+        crate::session::queue::Admit::Holder => {
+            if !policy.auto_fill {
+                if let Some(slots) = policy.party_slots.as_ref() {
+                    let until =
+                        tokio::time::Instant::now() + crate::session::queue::SEAT_RELEASE_WAIT;
+                    while slots.available_permits() == 0 && tokio::time::Instant::now() < until {
+                        tokio::time::sleep(Duration::from_millis(50)).await;
+                    }
                 }
             }
-            None
+            Ok(true)
         }
-        _ => None,
+        crate::session::queue::Admit::Open => Ok(false),
+    }
+}
+
+/// Spend a called watcher's hold once its seat is taken.
+fn release_duel_seat(policy: &HelloPolicy, token: Option<&str>, holder: bool) {
+    if let (true, Some(holds), Some(token)) = (holder, policy.seat_holds.as_ref(), token) {
+        crate::session::queue::release(holds, token);
     }
 }
 
@@ -1964,13 +1984,20 @@ async fn handle_connection(
                         name = ?audit_name(&name),
                     );
                 } else {
+                    let mut seat_holder = false;
                     if r != Role::Spectator
                         && policy.seat_mode == Some(crate::protocol::GameMode::Duel)
                     {
-                        if let Some(rejection) =
-                            admit_duel_seat(&policy, seat_token.as_deref()).await
-                        {
-                            return reject_connection(ws_sink, ws_stream, rejection, peer).await;
+                        match admit_duel_seat(&policy, seat_token.as_deref()).await {
+                            Ok(holder) => seat_holder = holder,
+                            Err(message) => {
+                                let rejection = ServerMessage::Error {
+                                    code: "match_full".into(),
+                                    message: message.into(),
+                                };
+                                return reject_connection(ws_sink, ws_stream, rejection, peer)
+                                    .await;
+                            }
                         }
                     }
                     let mut auto_join =
@@ -2042,6 +2069,9 @@ async fn handle_connection(
                     } else {
                         None
                     };
+                    if auto_join.is_none() {
+                        release_duel_seat(&policy, seat_token.as_deref(), seat_holder);
+                    }
                     role = Some(r);
 
                     player_id = if r != Role::Spectator {
@@ -2201,6 +2231,7 @@ async fn handle_connection(
                             Ok(seat) => {
                                 _party_seat = Some(seat);
                                 guard.armed = false;
+                                release_duel_seat(&policy, seat_token.as_deref(), seat_holder);
                             }
                             Err(reason) => {
                                 drop(auto_join);

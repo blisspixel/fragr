@@ -55,6 +55,11 @@ func _run() -> void:
 	hud.owner = null
 	root.add_child(hud)
 	game.free()
+	# The fixture is a Conquest room on Holdfast Atoll, live: the HUD gets the
+	# same rules, venue and round facts a real snapshot would give it.
+	hud.set_match_rules(MatchRules.parse({"mode": "conquest", "name": "Conquest"}))
+	hud.set_map_name("Holdfast Atoll")
+	hud.set_round_info("Active", 600, 0)
 	hud.set_mode("SPECTATING")
 	var panel: ConquestHud = ConquestHud.new()
 	hud.add_child(panel)

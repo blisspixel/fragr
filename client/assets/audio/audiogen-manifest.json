@@ -169,31 +169,31 @@
       "bytes": 28844,
       "generated_unix": 1790950654
     },
-    "conquest/heartbeat": {
+    "conquest/heartbeat_loop": {
       "kind": "sfx",
-      "file": "conquest/heartbeat.wav",
-      "prompt": "a single heavy heartbeat, two deep low muffled thumps lub dub, very close and dry, tense, no music, no voice, no reverb tail",
+      "file": "conquest/heartbeat_loop.wav",
+      "prompt": "A tense steady heartbeat-like low synth pulse, about seventy beats per minute, constant tempo and volume for the whole duration, dark and minimal. Isolated game sound effect, clean, no voice, no music unless stated.",
       "model": "eleven_text_to_sound_v2",
-      "format": "pcm_24000",
-      "title": "Conquest last tickets heartbeat",
-      "seconds": 1.0,
-      "looping": false,
+      "format": "pcm_48000",
+      "title": "Conquest last tickets heartbeat loop (asset round E-7 take j: 3.986 s loop from 0.8 s, 50 ms crossfade, DC removed, gain -6.75 dB to -24 LUFS)",
+      "seconds": 3.986,
+      "looping": true,
       "channels": 2,
-      "bytes": 96044,
-      "generated_unix": 1793110747
+      "bytes": 765452,
+      "generated_unix": 1792804060
     },
     "conquest/siren": {
       "kind": "sfx",
       "file": "conquest/siren.wav",
-      "prompt": "one low warning siren wail from an old outdoor loudspeaker tower, a slow rise and fall lasting about two seconds, deep and ominous, carried on wind over an island battlefield, slightly distorted, no voice, no music",
+      "prompt": "A short industrial air-raid style siren wind-up and wind-down from a distance over an arena, one cycle. Isolated game sound effect, clean, no voice, no music unless stated.",
       "model": "eleven_text_to_sound_v2",
-      "format": "pcm_24000",
-      "title": "Conquest bleed siren",
-      "seconds": 2.5,
+      "format": "pcm_48000",
+      "title": "Conquest bleed siren (asset round E-7 take d: declipped, DC removed, 4 ms fades, gain -4.84 dB to K50 -12)",
+      "seconds": 3.0,
       "looping": false,
       "channels": 2,
-      "bytes": 238124,
-      "generated_unix": 1793110745
+      "bytes": 576044,
+      "generated_unix": 1792804046
     },
     "down/body": {
       "kind": "sfx",

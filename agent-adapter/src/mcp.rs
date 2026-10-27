@@ -1169,7 +1169,19 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         .filter(|player| player.hp > 0)
         .count();
     let origin = me.map(|player| (player.x, player.z)).unwrap_or((0.0, 0.0));
-    // A joined fighter's pads are what it has seen; the booth sees them all.
+    // A joined fighter's pads are what it has seen, and its dropped guns
+    // are the ones it believes lie where it saw them; the booth sees all.
+    let floor: Vec<protocol::PickupState> = if me.is_some() {
+        snapshot
+            .pickups
+            .iter()
+            .filter(|pad| !pad.dropped)
+            .cloned()
+            .chain(state.pads.believed_drops())
+            .collect()
+    } else {
+        snapshot.pickups.clone()
+    };
     let believed = |pad: &protocol::PickupState| {
         if me.is_some() {
             state.pads.up(pad)
@@ -1178,8 +1190,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         }
     };
     let nearest = |kind: &str| -> Option<f32> {
-        snapshot
-            .pickups
+        floor
             .iter()
             .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case(kind))
             .map(|pad| (pad.x - origin.0).hypot(pad.z - origin.1))
@@ -1187,8 +1198,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             .min_by(|a, b| a.total_cmp(b))
     };
     let mut weapon_pads: Vec<(String, f32)> = Vec::new();
-    for pad in snapshot
-        .pickups
+    for pad in floor
         .iter()
         .filter(|pad| believed(pad) && pad.kind.eq_ignore_ascii_case("weapon"))
     {
@@ -2076,6 +2086,21 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if matches!(event, protocol::GameEvent::RoundStart { .. }) {
                 state.pads.reset_round();
             }
+            // A joined fighter does not hear a dropped gun taken out of its
+            // sight; the booth (no seat) still hears every claim.
+            if let (
+                protocol::GameEvent::Pickup {
+                    pickup_id,
+                    player_id,
+                    ..
+                },
+                Some(me),
+            ) = (&event, state.player_id)
+            {
+                if !state.pads.hears_pickup(pickup_id, *player_id == me) {
+                    return Ok(());
+                }
+            }
             if let Ok(event_value) = serde_json::to_value(event) {
                 push_recent_event(state, event_value);
             }
@@ -2119,7 +2144,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         Ok(protocol::ServerMessage::Board(_)) => {}
         // The Duel line is a watcher queue for people; MCP has no queue tool,
         // so an agent is never called. Joining stays `join`.
-        Ok(protocol::ServerMessage::SeatCall { .. }) => {}
+        Ok(
+            protocol::ServerMessage::SeatCall { .. } | protocol::ServerMessage::QueuePlace { .. },
+        ) => {}
         Ok(protocol::ServerMessage::SpectatorFacts(facts)) => {
             // The booth is never a fighter's business. The server does not
             // send it to one; a seat that somehow hears it still drops it.
@@ -3695,6 +3722,49 @@ mod mcp_tests {
             .unwrap();
         assert_eq!(found["secret"], true);
         assert_eq!(found["weapon"], "Shiv");
+    }
+
+    #[test]
+    fn a_joined_fighter_does_not_hear_an_unseen_dropped_gun_taken() {
+        use protocol::GameEvent;
+        let me = Uuid::from_u128(1);
+        let other = Uuid::from_u128(2);
+        let claim = |player_id: Uuid, pickup_id: &str| {
+            serde_json::to_string(&protocol::ServerMessage::Event(GameEvent::Pickup {
+                player: "Someone".into(),
+                player_id,
+                kind: "weapon".into(),
+                weapon: "Rocket".into(),
+                amount: Some(3),
+                pickup_id: pickup_id.into(),
+                secret: false,
+            }))
+            .unwrap()
+        };
+        let mut joined = ToolState {
+            player_id: Some(me),
+            ..Default::default()
+        };
+        ingest_server_text(&mut joined, &claim(other, "drop_4")).unwrap();
+        assert!(
+            joined.recent_events.is_empty(),
+            "an unseen drop's claim is not heard"
+        );
+        ingest_server_text(&mut joined, &claim(me, "drop_5")).unwrap();
+        ingest_server_text(&mut joined, &claim(other, "larak_rocket_pit")).unwrap();
+        let ids: Vec<&str> = joined
+            .recent_events
+            .iter()
+            .filter_map(|e| e["pickup_id"].as_str())
+            .collect();
+        assert_eq!(
+            ids,
+            ["drop_5", "larak_rocket_pit"],
+            "own claims and pads are heard"
+        );
+        let mut booth = ToolState::default();
+        ingest_server_text(&mut booth, &claim(other, "drop_4")).unwrap();
+        assert_eq!(booth.recent_events.len(), 1, "a watcher hears every claim");
     }
 
     #[test]

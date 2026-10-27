@@ -12,10 +12,10 @@ const TEAMS: Array[String] = ["union", "coalition"]
 ## Host presets (`rules::preset::Preset`): a named starting set of mutators,
 ## launched in one pick. Labels are `PRESET_<ID>`. Proximity Party is not
 ## here because the server has no mines-only start kit.
-const PRESETS: Array[String] = ["standard", "licence-to-kill", "golden-rail", "slappers-only", "shotgun-wedding"]
+const PRESETS: Array[String] = ["standard", "licence-to-kill", "golden-rail", "slappers-only", "shotgun-wedding", "rail-only"]
 const PRESET_MUTATORS: Dictionary[String, Array] = {
 	"standard": [], "licence-to-kill": ["licence-to-kill"], "golden-rail": ["golden-rail"],
-	"slappers-only": ["fists-only"], "shotgun-wedding": ["shotgun-only"],
+	"slappers-only": ["fists-only"], "shotgun-wedding": ["shotgun-only"], "rail-only": ["rail-only"],
 }
 ## Twists a host may stack on a preset, in the order the menu shows them.
 const TWISTS: Array[String] = ["licence-to-kill", "two-lives", "full-arsenal"]
@@ -164,7 +164,7 @@ static func stack_error(mode: String, mutators: Array) -> String:
 ## The preset a mutator list starts from: its weapon rule first, then
 ## Licence to Kill, else Standard.
 static func preset_of(mutators: Array) -> String:
-	for preset: String in ["golden-rail", "slappers-only", "shotgun-wedding"]:
+	for preset: String in ["golden-rail", "slappers-only", "shotgun-wedding", "rail-only"]:
 		if mutators.has(PRESET_MUTATORS[preset][0]):
 			return preset
 	return "licence-to-kill" if mutators.has("licence-to-kill") else "standard"

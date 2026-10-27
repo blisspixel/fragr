@@ -1303,7 +1303,18 @@ func _rebuild_host_bots(remember: bool) -> void:
 	# automatic bots give theirs up as people join.
 	_host_bots.max_value = (2 if _host_bot_selection == "auto" else 1) if _host_selected_mode == "duel" else 10
 	_host_bots.value = _host_bot_counts[_host_bot_selection] if _host_bot_selection != "none" else 0
-	_host_bot_hint.text = tr("HOST_DUEL_SEATS" if _host_selected_mode == "duel" else "HOST_AUTO_PRIORITY" if _host_bot_selection == "auto" else "HOST_NO_BOTS_HINT" if _host_bot_selection == "none" else "HOST_FINITE_SEATS")
+	_host_bot_hint.text = tr(host_bot_hint_key(_host_selected_mode, _host_bot_selection))
+
+## The line under the bot count for a mode and bot policy. Only Sabotage's
+## five versus five shares ten fixed seats; Duel has its own two.
+static func host_bot_hint_key(mode: String, policy: String) -> String:
+	if mode == "duel":
+		return "HOST_DUEL_SEATS"
+	if policy == "auto":
+		return "HOST_AUTO_PRIORITY"
+	if policy == "none":
+		return "HOST_NO_BOTS_HINT"
+	return "HOST_FINITE_SEATS" if mode == "sabotage" else "HOST_FIXED_BOTS"
 
 func _host_bot_summary(profile: Dictionary) -> String:
 	match profile["bot_policy"]:

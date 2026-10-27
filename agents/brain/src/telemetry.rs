@@ -196,7 +196,13 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
     let mut health_pad = None;
     let mut armor_pad = None;
     let mut weapon_pads: BTreeMap<String, f32> = BTreeMap::new();
-    for pad in snapshot.pickups.iter().filter(|p| p.available) {
+    // A gun somebody dropped is not a pad the brain knows: it lies only where a
+    // fighter saw it fall, and the brain has no eyes of its own to see it.
+    for pad in snapshot
+        .pickups
+        .iter()
+        .filter(|p| p.available && !p.dropped)
+    {
         let dist = dist2d(mine.x, mine.z, pad.x, pad.z);
         match pad.kind.as_str() {
             "health" => {
@@ -521,6 +527,10 @@ mod tests {
             pad("weapon", "Rail", 6.0, 8.0, true),
             pad("weapon", "Rail", 3.0, 0.0, true),
             pad("weapon", "", 2.0, 0.0, true),
+            fragr_server::protocol::PickupState {
+                dropped: true,
+                ..pad("weapon", "Rocket", 1.0, 0.0, true)
+            },
         ];
         let snap = snapshot(100, players, pickups);
         let mut hits = RecentHits::default();
@@ -535,7 +545,7 @@ mod tests {
         assert_eq!(t.top_rival_score, 9, "a respawning leader still leads");
         assert!((t.health_pad.unwrap() - 5.0).abs() < 1e-5);
         assert!((t.armor_pad.unwrap() - 8.0).abs() < 1e-5);
-        assert_eq!(t.weapon_pads.len(), 1);
+        assert_eq!(t.weapon_pads.len(), 1, "a dropped gun is not a known pad");
         assert!((t.weapon_pads["rail"] - 3.0).abs() < 1e-5);
         assert!(!t.under_fire);
         assert_eq!(t.round_state, "active");

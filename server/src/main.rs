@@ -102,7 +102,8 @@ struct Args {
     mutators: Vec<fragr_server::protocol::Mutator>,
 
     /// A named rule package: standard, licence-to-kill, golden-rail,
-    /// slappers-only or shotgun-wedding. Any `--mutator` stacks on top.
+    /// slappers-only, shotgun-wedding or rail-only. Any `--mutator` stacks on
+    /// top.
     #[arg(long, value_enum, default_value_t = fragr_server::rules::preset::Preset::Standard, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     preset: fragr_server::rules::preset::Preset,
 

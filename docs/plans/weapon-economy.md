@@ -29,7 +29,8 @@ start (Nick's decision for the Rocket supply, #432). The gun in a fragged
 fighter's hands lies where they fell for 15 s with the rounds they still had
 for it, capped at that gun's pad grant, and goes to the first fighter on it
 who can use it (`server/src/sim/drops.rs`). The Pistol, Fists, the Shiv, the
-Article Blade and an empty gun stay behind; issued kits, weapon-only rules,
+Article Blade, the Flechette (the common pad gun, which otherwise passed the
+45% shot gate) and an empty gun stay behind; issued kits, weapon-only rules,
 Golden Rail, Sabotage, the campaign and the benchmark never drop. The
 measurements and the unmet Rocket target are in the [bot plan](bot-and-enemy-ai-excellence-20261017.md#6-progress). The gates still
 need the harness metrics named below before this economy is tuned.

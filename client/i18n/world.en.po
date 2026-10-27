@@ -1167,6 +1167,9 @@ msgstr "Fists only. Get close."
 msgid "PRESET_HINT_SHOTGUN_WEDDING"
 msgstr "Shotguns for everyone, till death."
 
+msgid "PRESET_HINT_RAIL_ONLY"
+msgstr "Railguns for everyone, cells without end. Lead your shots."
+
 msgid "HOST_KIT_DUEL"
 msgstr "One versus one on Larak Lot. Pistol and Fists, guns and the Plate on timed pads. Both press fire on the podium for an instant rematch; others watch until a seat opens."
 
@@ -1226,6 +1229,9 @@ msgstr "Total fighters"
 
 msgid "HOST_AUTO_PRIORITY"
 msgstr "Bots fill toward the total. Humans and agents take priority; spectators do not count."
+
+msgid "HOST_FIXED_BOTS"
+msgstr "This many bots fight all match. People and agents join beside them."
 
 msgid "HOST_NO_BOTS_HINT"
 msgstr "All fighter seats are available to humans and agents."

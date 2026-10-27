@@ -12,6 +12,10 @@ use crate::protocol::{GameEvent, PickupState, SupplyClaim, WeaponType};
 /// fight's winner to walk over it, short enough that the floor never fills.
 /// Tuned on the six-bot Larak Lot survey (`docs/plans/weapon-economy.md`).
 pub const DROPPED_GUN_TICKS: u32 = 20 * 15;
+/// At most this many guns lie on the floor at once; a new drop past it
+/// takes the place of the oldest, so a long brawl never grows the snapshot
+/// or the claim scan without bound.
+pub const MAX_DROPPED_GUNS: usize = 16;
 /// Wire id prefix for a dropped gun in the snapshot's `pickups`.
 pub const DROPPED_GUN_PREFIX: &str = "drop_";
 
@@ -55,10 +59,14 @@ impl DroppedGun {
 
 /// The gun a fragged fighter leaves, and its rounds: the gun in hand when it
 /// is a found gun with rounds left. Fists, the Shiv, the borrowed Article
-/// Blade and the Pistol every life starts with stay behind.
+/// Blade and the Pistol every life starts with stay behind, and so does the
+/// Flechette: it is the lot's common pad gun, and dropped Flechettes pushed
+/// it past half of all shots on the six-bot survey (50% against the 45%
+/// gate; 36% when it stays behind, `docs/plans/bot-and-enemy-ai-excellence-20261017.md`).
 pub(super) fn dropped_from(player: &Player) -> Option<(WeaponType, u16)> {
     let weapon = player.weapon;
-    if weapon == WeaponType::Tack || !player.inventory.owns(weapon) {
+    if matches!(weapon, WeaponType::Tack | WeaponType::Flechette) || !player.inventory.owns(weapon)
+    {
         return None;
     }
     let pool = weapon.ammo_pool()?;
@@ -106,6 +114,9 @@ impl GameState {
             expires_at: self.tick + u64::from(DROPPED_GUN_TICKS),
         };
         tracing::info!(target: crate::logging::FEED_TARGET, "DROP: {} dropped the {} ({} rounds)", player.name, weapon.name(), rounds);
+        if self.dropped_guns.len() >= MAX_DROPPED_GUNS {
+            self.dropped_guns.remove(0);
+        }
         self.dropped_guns.push(gun);
     }
 

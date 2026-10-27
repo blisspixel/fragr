@@ -1240,6 +1240,14 @@ pub enum ServerMessage {
     SeatCall {
         seat: String,
     },
+    /// Unicast to a Duel watcher whenever its place in line changes
+    /// (capability 59): `place` from 1, or 0 when it is not in line; `of`
+    /// the line's length. The shared `duel_queue` names can repeat, so this
+    /// is how a watcher knows which entry is its own.
+    QueuePlace {
+        place: u32,
+        of: u32,
+    },
 }
 
 /// Additive full-body extension to the legacy Ack root fields. An absent block

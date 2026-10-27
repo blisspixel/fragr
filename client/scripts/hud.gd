@@ -558,9 +558,9 @@ func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: in
 ## series for everyone, and for a seated fighter the ready-up for one more
 ## round (fire to press, then how many the room still waits on). `my_id` is
 ## empty for a spectator. Absent mid-round, which clears it.
-func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_name: String = "", duel_room: bool = false) -> void:
+func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_place: int = 0, duel_room: bool = false) -> void:
 	var lines: PackedStringArray = []
-	lines.append_array(duel_queue_lines(queue, my_name, duel_room and my_id.is_empty(), podium is Dictionary))
+	lines.append_array(duel_queue_lines(queue, my_place, duel_room and my_id.is_empty(), podium is Dictionary))
 	if podium is Dictionary:
 		var data: Dictionary = podium
 		var voters: int = int(data["voters"]) if data.get("voters") is int or data.get("voters") is float else 0
@@ -592,14 +592,16 @@ func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_name: S
 
 
 ## The Duel queue (`duel_queue`, capability 59), seen by the room: who takes
-## the next open seat. A watcher also sees their own place and the key that
-## joins or leaves the line. A fighter sees the line only on the podium.
-static func duel_queue_lines(queue: Variant, my_name: String, watching: bool, podium: bool) -> PackedStringArray:
+## the next open seat. A watcher also sees their own place (`my_place`,
+## from the server's private `queue_place`, since names can repeat) and the
+## key that joins or leaves the line. A fighter sees the line only on the
+## podium.
+static func duel_queue_lines(queue: Variant, my_place: int, watching: bool, podium: bool) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	var names: Array[String] = []
 	if queue is Array:
 		for entry: Variant in queue:
-			if entry is String and not (entry as String).is_empty() and names.size() < 8:
+			if entry is String and not (entry as String).is_empty() and names.size() < 16:
 				names.append(entry)
 	if not watching and not podium:
 		return lines
@@ -610,9 +612,8 @@ static func duel_queue_lines(queue: Variant, my_name: String, watching: bool, po
 		var more: int = names.size() - shown.size()
 		lines.append(TranslationServer.translate("HUD_DUEL_NEXT_UP").format({"names": ", ".join(shown)}) + (TranslationServer.translate("HUD_DUEL_NEXT_MORE").format({"more": more}) if more > 0 else ""))
 	if watching:
-		var place: int = names.find(my_name) if not my_name.is_empty() else -1
-		if place >= 0:
-			lines.append(TranslationServer.translate("HUD_DUEL_IN_LINE").format({"place": place + 1, "count": names.size()}))
+		if my_place > 0:
+			lines.append(TranslationServer.translate("HUD_DUEL_IN_LINE").format({"place": my_place, "count": maxi(names.size(), my_place)}))
 		else:
 			lines.append(TranslationServer.translate("HUD_DUEL_QUEUE_PROMPT"))
 	return lines

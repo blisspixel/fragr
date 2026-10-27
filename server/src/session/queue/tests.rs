@@ -32,10 +32,14 @@ fn watcher(session: &mut GameSession, n: u128, name: &str) -> Uuid {
 }
 
 fn fighter(session: &mut GameSession, n: u128, name: &str) -> (Uuid, Uuid) {
+    seated(session, n, name, Role::Human)
+}
+
+fn seated(session: &mut GameSession, n: u128, name: &str, role: Role) -> (Uuid, Uuid) {
     let (client, player) = (Uuid::from_u128(n), Uuid::from_u128(n + 1000));
     session.apply_command(GameCommand::Connected {
         id: client,
-        role: Role::Human,
+        role,
         name: name.into(),
         player_id: Some(player),
         body: BodyKind::Human,
@@ -129,6 +133,11 @@ fn an_open_seat_calls_the_head_of_the_line_and_holds_it_for_them() {
     assert_eq!(admit(&holds, None, now), Admit::Held);
     assert_eq!(admit(&holds, Some("not-it"), now), Admit::Held);
     assert_eq!(admit(&holds, Some(&called[0].1), now), Admit::Holder);
+    // The holder keeps the hold until the seat is actually theirs.
+    assert_eq!(admit(&holds, None, now), Admit::Held);
+    release(&holds, "not-it");
+    assert_eq!(admit(&holds, None, now), Admit::Held);
+    release(&holds, &called[0].1);
     assert_eq!(admit(&holds, None, now), Admit::Open);
     // The next open seat goes to the next in line.
     duel.tick_duel_queue();
@@ -204,4 +213,99 @@ fn leaving_duel_empties_the_line() {
     });
     duel.tick_duel_queue();
     assert!(duel.state.snapshot().duel_queue.is_empty());
+}
+
+fn places(session: &mut GameSession) -> Vec<(Uuid, u32, u32)> {
+    session
+        .take_unicasts()
+        .into_iter()
+        .filter_map(|(to, message)| match (to, message) {
+            (Recipient::Client(id), ServerMessage::QueuePlace { place, of }) => {
+                Some((id, place, of))
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// Two seated fighters and a waiting watcher; the round ends with
+/// `winner` ahead.
+fn decided(session: &mut GameSession, winner: Uuid, loser: Uuid) {
+    session.state.scores.insert(winner, 3);
+    session.state.scores.insert(loser, 1);
+    session.state.end_round("Time".into());
+    session.tick_duel_queue();
+}
+
+#[test]
+fn an_agent_that_loses_keeps_its_seat() {
+    let mut duel = room(GameMode::Duel);
+    let slots = duel.configure_fighter_seats().unwrap();
+    let _one = Arc::clone(&slots).try_acquire_owned().unwrap();
+    let _two = Arc::clone(&slots).try_acquire_owned().unwrap();
+    let (_, winner) = fighter(&mut duel, 1, "Winner");
+    let (_, agent) = seated(&mut duel, 2, "Probe", Role::Agent);
+    let w = watcher(&mut duel, 3, "Next");
+    queue(&mut duel, w, true);
+    decided(&mut duel, winner, agent);
+    assert!(
+        duel.take_seat_passes().is_empty(),
+        "an agent has no line to return to"
+    );
+    assert!(calls(&mut duel).is_empty());
+}
+
+#[test]
+fn a_person_who_loses_to_a_rule_bot_stays_for_the_rematch() {
+    let mut duel = room(GameMode::Duel);
+    duel.spawn_bots(1);
+    let bot = duel.bots[0].player_id;
+    let (_, person) = fighter(&mut duel, 2, "Person");
+    let w = watcher(&mut duel, 3, "Next");
+    queue(&mut duel, w, true);
+    duel.take_unicasts();
+    decided(&mut duel, bot, person);
+    assert!(
+        duel.take_seat_passes().is_empty(),
+        "losing to a bot is not a hand-over"
+    );
+}
+
+#[test]
+fn a_full_line_says_so_and_each_watcher_hears_its_own_place() {
+    let mut duel = room(GameMode::Duel);
+    let slots = duel.configure_fighter_seats().unwrap();
+    let _one = Arc::clone(&slots).try_acquire_owned().unwrap();
+    let _two = Arc::clone(&slots).try_acquire_owned().unwrap();
+    // Two watchers with the same name: only the place tells them apart.
+    let a = watcher(&mut duel, 1, "Twin");
+    let b = watcher(&mut duel, 2, "Twin");
+    duel.take_unicasts();
+    queue(&mut duel, a, true);
+    assert_eq!(places(&mut duel), [(a, 1, 1)]);
+    queue(&mut duel, b, true);
+    let told = places(&mut duel);
+    assert!(
+        told.contains(&(b, 2, 2)) && told.contains(&(a, 1, 2)),
+        "{told:?}"
+    );
+    queue(&mut duel, a, false);
+    let told = places(&mut duel);
+    assert!(
+        told.contains(&(a, 0, 1)) && told.contains(&(b, 1, 1)),
+        "{told:?}"
+    );
+    queue(&mut duel, b, false);
+    for n in 0..QUEUE_LIMIT as u128 {
+        let id = watcher(&mut duel, 100 + n, &format!("W{n}"));
+        queue(&mut duel, id, true);
+    }
+    duel.take_unicasts();
+    queue(&mut duel, a, true);
+    let refused = duel.take_unicasts().into_iter().any(|(to, message)| {
+        matches!((to, message), (Recipient::Client(id), ServerMessage::Error { code, .. })
+            if id == a && code == "queue_full")
+    });
+    assert!(refused, "a full line answers with a reason");
+    assert_eq!(duel.state.snapshot().duel_queue.len(), QUEUE_LIMIT);
 }

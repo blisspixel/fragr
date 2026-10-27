@@ -2310,3 +2310,165 @@ async fn a_new_ban_closes_a_live_session_and_an_unrelated_edit_does_not() {
     assert_eq!(code, "address_banned");
     accept.abort();
 }
+
+/// A Duel listener with `free` open fighter seats and, when `held`, the next
+/// seat held for token "c0ffee" until `lapse` from now.
+async fn duel_listener(
+    free: usize,
+    held: Option<Duration>,
+) -> (
+    std::net::SocketAddr,
+    Arc<Semaphore>,
+    crate::session::queue::SeatHolds,
+    mpsc::Receiver<GameCommand>,
+    tokio::task::JoinHandle<()>,
+) {
+    let (tx, commands) = game_channel();
+    let mut server =
+        NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
+            .await
+            .unwrap();
+    let slots = Arc::new(Semaphore::new(free));
+    server.set_fighter_seats(Arc::clone(&slots), crate::protocol::GameMode::Duel);
+    let holds = crate::session::queue::SeatHolds::default();
+    if let Some(lapse) = held {
+        crate::session::queue::place_hold(
+            &holds,
+            "c0ffee".into(),
+            std::time::Instant::now() + lapse,
+        );
+    }
+    server.set_seat_holds(Arc::clone(&holds));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    (address, slots, holds, commands, accept)
+}
+
+async fn duel_hello(address: std::net::SocketAddr, seat: Option<&str>) -> ServerMessage {
+    let mut hello = serde_json::json!({"type":"hello", "role":"human", "name":"Next", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION});
+    if let Some(seat) = seat {
+        hello["seat"] = serde_json::json!(seat);
+    }
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket.send(Message::Text(hello.to_string())).await.unwrap();
+    loop {
+        let frame = timeout(Duration::from_secs(5), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        if let Message::Text(text) = frame {
+            return serde_json::from_str(&text).unwrap();
+        }
+    }
+}
+
+fn held_now(holds: &crate::session::queue::SeatHolds) -> bool {
+    crate::session::queue::admit(holds, None, std::time::Instant::now())
+        == crate::session::queue::Admit::Held
+}
+
+#[tokio::test]
+async fn a_held_duel_seat_admits_only_its_token_and_is_spent_once_taken() {
+    let (address, _slots, holds, _commands, accept) =
+        duel_listener(1, Some(Duration::from_secs(10))).await;
+    for seat in [None, Some("not-it")] {
+        let reply = duel_hello(address, seat).await;
+        assert!(
+            matches!(&reply, ServerMessage::Error { code, .. } if code == "match_full"),
+            "{seat:?}: {reply:?}"
+        );
+    }
+    assert!(held_now(&holds), "refusals leave the hold standing");
+    let reply = duel_hello(address, Some("c0ffee")).await;
+    assert!(
+        matches!(
+            reply,
+            ServerMessage::Welcome {
+                player_id: Some(_),
+                ..
+            }
+        ),
+        "{reply:?}"
+    );
+    assert!(
+        !held_now(&holds),
+        "the hold is spent once the seat is taken"
+    );
+    accept.abort();
+}
+
+#[tokio::test]
+async fn a_lapsed_call_or_a_second_free_seat_admits_anybody() {
+    let (address, _slots, _holds, _commands, accept) = duel_listener(1, Some(Duration::ZERO)).await;
+    let reply = duel_hello(address, None).await;
+    assert!(
+        matches!(reply, ServerMessage::Welcome { .. }),
+        "lapsed: {reply:?}"
+    );
+    accept.abort();
+    let (address, _slots, holds, _commands, accept) =
+        duel_listener(2, Some(Duration::from_secs(10))).await;
+    let reply = duel_hello(address, None).await;
+    assert!(
+        matches!(reply, ServerMessage::Welcome { .. }),
+        "the second free seat is anybody's: {reply:?}"
+    );
+    assert!(held_now(&holds), "the caller's seat stays held");
+    accept.abort();
+}
+
+#[tokio::test]
+async fn the_caller_waits_for_the_passing_fighter_to_let_the_seat_go() {
+    let (address, slots, holds, _commands, accept) =
+        duel_listener(0, Some(Duration::from_secs(10))).await;
+    let freed = Arc::clone(&slots);
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(400)).await;
+        freed.add_permits(1);
+    });
+    let reply = duel_hello(address, Some("c0ffee")).await;
+    assert!(
+        matches!(
+            reply,
+            ServerMessage::Welcome {
+                player_id: Some(_),
+                ..
+            }
+        ),
+        "{reply:?}"
+    );
+    assert!(!held_now(&holds));
+    accept.abort();
+}
+
+#[tokio::test]
+async fn a_passed_seat_closes_with_its_code_and_forgets_the_resume_token() {
+    let (tx, mut commands) = game_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let clients = server.clients.clone();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected the join");
+    };
+    clients
+        .lock()
+        .await
+        .iter()
+        .find(|client| client.id == id)
+        .unwrap()
+        .seat_passed();
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(
+        (code.as_str(), reason.as_str()),
+        ("duel_seat_passed", "duel_seat_passed")
+    );
+    let gone = next_command(&mut commands).await;
+    assert!(
+        matches!(gone, GameCommand::Disconnected { id: dropped } if dropped == id),
+        "a passed seat removes the pawn and its resume token instead of parking it"
+    );
+    accept.abort();
+}

@@ -33,15 +33,18 @@ pub enum Preset {
     SlappersOnly,
     /// Shotguns only.
     ShotgunWedding,
+    /// Railguns only, the host menu's long-standing one-gun rule.
+    RailOnly,
 }
 
 impl Preset {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Standard,
         Self::LicenceToKill,
         Self::GoldenRail,
         Self::SlappersOnly,
         Self::ShotgunWedding,
+        Self::RailOnly,
     ];
 
     /// The command-line id.
@@ -52,6 +55,7 @@ impl Preset {
             Self::GoldenRail => "golden-rail",
             Self::SlappersOnly => "slappers-only",
             Self::ShotgunWedding => "shotgun-wedding",
+            Self::RailOnly => "rail-only",
         }
     }
 
@@ -62,6 +66,7 @@ impl Preset {
             Self::GoldenRail => "Golden Rail",
             Self::SlappersOnly => "Slappers Only",
             Self::ShotgunWedding => "Shotgun Wedding",
+            Self::RailOnly => "Rail Only",
         }
     }
 
@@ -73,6 +78,7 @@ impl Preset {
             Self::GoldenRail => &[Mutator::GoldenRail],
             Self::SlappersOnly => &[Mutator::FistsOnly],
             Self::ShotgunWedding => &[Mutator::ShotgunOnly],
+            Self::RailOnly => &[Mutator::RailOnly],
         }
     }
 
@@ -100,6 +106,7 @@ mod tests {
         assert_eq!(Preset::default(), Preset::Standard);
         assert_eq!(Preset::SlappersOnly.mutators(), [Mutator::FistsOnly]);
         assert_eq!(Preset::ShotgunWedding.mutators(), [Mutator::ShotgunOnly]);
+        assert_eq!(Preset::RailOnly.mutators(), [Mutator::RailOnly]);
     }
 
     #[test]
@@ -127,6 +134,8 @@ mod tests {
             (Preset::GoldenRail, Mutator::FullArsenal),
             (Preset::SlappersOnly, Mutator::FullArsenal),
             (Preset::ShotgunWedding, Mutator::RailOnly),
+            (Preset::RailOnly, Mutator::FullArsenal),
+            (Preset::RailOnly, Mutator::FistsOnly),
         ] {
             assert!(
                 RuleSet::new(GameMode::Ffa, &preset.stack(&[extra]), false).is_err(),

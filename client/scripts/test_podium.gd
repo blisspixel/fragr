@@ -59,21 +59,23 @@ func _run() -> void:
 	# A Sabotage prompt on the same plate survives the podium clearing.
 	# The Duel line: a watcher sees who is next and their own place; a
 	# fighter sees the line only on the podium.
-	hud.show_podium(null, "", ["Static Kid", "Probe"], "Probe", true)
+	# Two watchers can share a name; the server's private place says which
+	# entry is this one.
+	hud.show_podium(null, "", ["Probe", "Probe"], 2, true)
 	text = _plate_text(hud)
-	_check(text.contains("NEXT UP  STATIC KID, PROBE") and text.contains("YOU ARE 2 OF 2"), "a queued watcher reads the line: " + text)
-	hud.show_podium(null, "", ["Static Kid"], "Probe", true)
+	_check(text.contains("NEXT UP  PROBE, PROBE") and text.contains("YOU ARE 2 OF 2"), "a queued watcher reads the line: " + text)
+	hud.show_podium(null, "", ["Static Kid"], 0, true)
 	_check(_plate_text(hud).contains("WAIT FOR THE NEXT SEAT"), "an unqueued watcher is offered the line")
-	hud.show_podium(null, ME, ["Static Kid"], "Probe", true)
+	hud.show_podium(null, ME, ["Static Kid"], 0, true)
 	_check(not _plate_up(hud), "mid-round a fighter is not shown the line")
-	hud.show_podium({"voters": 2, "duel": duel}, ME, ["Static Kid"], "Probe", true)
+	hud.show_podium({"voters": 2, "duel": duel}, ME, ["Static Kid"], 0, true)
 	_check(_plate_text(hud).contains("NEXT UP  STATIC KID"), "the podium shows the line to fighters")
-	hud.show_podium(null, "", [], "Probe", false)
+	hud.show_podium(null, "", [], 0, false)
 	_check(not _plate_up(hud), "outside a Duel nothing is offered")
 	var many: Array = []
 	for n: int in range(6):
 		many.append("W%d" % n)
-	hud.show_podium(null, "", many, "W5", true)
+	hud.show_podium(null, "", many, 6, true)
 	text = _plate_text(hud)
 	_check(text.contains("W0, W1, W2  +3") and text.contains("6 OF 6"), "a long line shows three and a count: " + text)
 	hud.show_podium(null, ME)
@@ -135,6 +137,16 @@ func _run() -> void:
 	wire.send_hello()
 	wire.send_hello()
 	_check(wire.sent.size() == 2 and wire.sent[0].get("seat") == "0123abcd" and not wire.sent[1].has("seat"), "the token rides one Hello: %s" % str(wire.sent))
+	# The server's private place and a full line's refusal reach the watcher.
+	wire.role = "spectator"
+	wire._handle_message(JSON.stringify({"type": "queue_place", "place": 3, "of": 4}))
+	_check(wire.queue_place == 3 and wire.queue_of == 4, "a watcher learns its own place")
+	wire._handle_message(JSON.stringify({"type": "queue_place", "place": 5, "of": 4}))
+	_check(wire.queue_place == 3, "a place past the line's end is refused")
+	var refusals: Array[String] = []
+	wire.queue_refused.connect(func(message: String) -> void: refusals.append(message))
+	wire._handle_message(JSON.stringify({"type": "error", "code": "queue_full", "message": "The line for this duel is full."}))
+	_check(refusals == ["The line for this duel is full."], "a full line says so without closing")
 	var passed: Array[int] = [0]
 	wire.seat_passed.connect(func() -> void: passed[0] += 1)
 	wire._handle_message(JSON.stringify({"type": "error", "code": "duel_seat_passed", "message": "Winner stays."}))

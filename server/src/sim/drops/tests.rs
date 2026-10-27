@@ -133,10 +133,11 @@ fn a_drop_carries_what_was_left_and_never_more_than_a_pad() {
 }
 
 #[test]
-fn the_pistol_fists_and_an_empty_gun_stay_behind() {
+fn the_pistol_fists_the_flechette_and_an_empty_gun_stay_behind() {
     for (weapon, empty) in [
         (WeaponType::Tack, false),
         (WeaponType::Fists, false),
+        (WeaponType::Flechette, false),
         (WeaponType::Rocket, true),
     ] {
         let mut state = ffa();
@@ -250,4 +251,92 @@ fn issued_kits_and_one_gun_rules_keep_their_guns() {
 fn licence_to_kill_still_drops_because_its_guns_are_found() {
     let state = arena(RuleSet::new(GameMode::Ffa, &[Mutator::LicenceToKill], false).unwrap());
     assert!(state.drops_guns());
+}
+
+#[test]
+fn a_fighter_killed_by_their_own_blast_drops_too() {
+    let mut state = ffa();
+    let victim = join(&mut state, 2);
+    arm(&mut state, victim, WeaponType::Rocket, 10.0);
+    let index = state.players.iter().position(|p| p.id == victim).unwrap();
+    state.environmental_self_damage(index, 1000);
+    assert_eq!(state.dropped_guns.len(), 1);
+    assert_eq!(state.dropped_guns[0].weapon, WeaponType::Rocket);
+}
+
+#[test]
+fn a_repeater_carries_rounds_from_the_bullets_it_shares_with_the_pistol() {
+    let mut state = ffa();
+    let killer = join(&mut state, 1);
+    let victim = join(&mut state, 2);
+    // The Pistol's fifty Bullets and the Repeater's sixty are one count.
+    arm(&mut state, victim, WeaponType::Repeater, 10.0);
+    assert_eq!(
+        fighter(&mut state, victim)
+            .inventory
+            .carried(AmmoPool::Bullets),
+        50 + WeaponType::Repeater.pickup_rounds()
+    );
+    let (x, z) = {
+        let p = fighter(&mut state, victim);
+        (p.x, p.z)
+    };
+    assert!(state.hit_for_test(killer, victim, 1000));
+    assert_eq!(
+        state.dropped_guns[0].rounds,
+        WeaponType::Repeater.pickup_rounds()
+    );
+    step_onto(&mut state, killer, x, z);
+    let p = fighter(&mut state, killer);
+    assert!(p.inventory.owns(WeaponType::Repeater));
+    assert_eq!(
+        p.inventory.carried(AmmoPool::Bullets),
+        50 + WeaponType::Repeater.pickup_rounds()
+    );
+}
+
+#[test]
+fn several_drops_go_to_several_fighters_in_one_tick() {
+    let mut state = ffa();
+    let a = join(&mut state, 1);
+    let b = join(&mut state, 2);
+    for (serial, weapon, x) in [(1, WeaponType::Rocket, 4.0), (2, WeaponType::Scatter, -8.0)] {
+        state.dropped_guns.push(DroppedGun {
+            serial,
+            weapon,
+            rounds: 3,
+            x,
+            y: 0.4,
+            z: -30.0,
+            floor: 0.0,
+            expires_at: 10_000,
+        });
+    }
+    for (id, x) in [(a, 4.0), (b, -8.0)] {
+        let p = fighter(&mut state, id);
+        p.x = x;
+        p.z = -30.0;
+        p.y = PLAYER_FLOOR_Y;
+    }
+    state.tick(DT);
+    assert!(state.dropped_guns.is_empty());
+    assert!(fighter(&mut state, a).inventory.owns(WeaponType::Rocket));
+    assert!(fighter(&mut state, b).inventory.owns(WeaponType::Scatter));
+}
+
+#[test]
+fn the_floor_holds_at_most_sixteen_and_the_oldest_goes_first() {
+    let mut state = ffa();
+    let killer = join(&mut state, 1);
+    let victim = join(&mut state, 2);
+    for _ in 0..MAX_DROPPED_GUNS + 3 {
+        arm(&mut state, victim, WeaponType::Scatter, 10.0);
+        let p = fighter(&mut state, victim);
+        p.hp = 100;
+        p.respawn_timer = None;
+        assert!(state.hit_for_test(killer, victim, 1000));
+    }
+    assert_eq!(state.dropped_guns.len(), MAX_DROPPED_GUNS);
+    assert_eq!(state.dropped_guns[0].serial, 4, "the three oldest went");
+    assert_eq!(state.guns_dropped(), 19);
 }

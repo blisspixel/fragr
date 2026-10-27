@@ -371,6 +371,7 @@ func _ready():
 	net_client.server_error.connect(_on_server_error)
 	net_client.seat_called.connect(_on_seat_called)
 	net_client.seat_passed.connect(_on_seat_passed)
+	net_client.queue_refused.connect(func(message: String) -> void: hud.set_status(message))
 	
 	_load_audio_streams()
 	
@@ -1638,8 +1639,7 @@ func _duel_room() -> bool:
 	return local_match == null and str(hud.match_rules.get("mode", "")) == "duel"
 
 func _in_duel_queue() -> bool:
-	var queue: Variant = latest_snapshot.get("duel_queue", [])
-	return queue is Array and (queue as Array).has(net_client.player_name)
+	return net_client.queue_place > 0
 
 ## The server opened a seat for the head of the line: rejoin as a fighter
 ## carrying its one-time token.
@@ -2999,7 +2999,7 @@ func _on_snapshot_received(data):
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
 	if hud.has_method("show_podium"):
-		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.player_name, _duel_room())
+		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room())
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	

@@ -196,30 +196,34 @@ Built on `wave3/mp-depth`, 2026-10-24. Linux evidence only.
 Built on `wave11/mp-rules`, 2026-10-27. Linux evidence only.
 
 - **Weapons drop on death** in the Pistol start (free-for-all and Duel): the
-  gun in hand with its rounds, 15 s on the floor, known to bots and agents
+  gun in hand with its rounds (not the Pistol or the common Flechette), 15 s
+  on the floor, known to bots and agents
   only once seen. Rules, exceptions and measurements are in the
   [bot plan](bot-and-enemy-ai-excellence-20261017.md#6-progress). The Rocket
   share target at six bots is still not met.
 - **The Duel line and winner-stays.** A watcher presses Join to wait in line
   (`queue`); the head of the line is called to any seat that opens with a
   one-time token the server holds for ten seconds (`seat_call`, Hello
-  `seat`). When a round between two people ends with a winner and somebody
-  waits, the loser's socket closes with `duel_seat_passed`, the caller takes
-  the seat, and the native client returns the loser to the back of the line.
-  A level round passes nobody. The line shows on the watcher's plate and on
+  `seat`). When a round between two `human` fighters ends with a winner and
+  somebody waits, the loser's socket closes with `duel_seat_passed`, the
+  caller takes the seat, and the native client returns the loser to the back
+  of the line. Agents never pass their seat (no line to return to), a person
+  who lost to a rule bot stays for the rematch, and a level round passes
+  nobody. Each watcher is told its own place (`queue_place`). The line shows on the watcher's plate and on
   the podium (`duel_queue`), and each hand-over is a `next_up` Host caption
   ("NIGHTFALL STAYS. STATIC KID, YOU'RE UP!"). Server-owned
   (`server/src/session/queue.rs`); MCP has no queue tool.
 - **Host presets and stacking (Pillar 5).** Standard, Licence to Kill, Golden
-  Rail, Slappers Only and Shotgun Wedding as one row on the Host page, with a
+  Rail, Slappers Only, Shotgun Wedding and Rail Only as one row on the Host page, with a
   short Stack line (Licence to Kill, Two Lives, Full Arsenal) disabled where
   the server would refuse the combination. Dedicated parity:
   `fragr-server --preset <id>` stacks with repeated `--mutator`
   (`server/src/rules/preset.rs`). Proximity Party is not built: the server
   has no Pistol and mines start kit.
 - **Conquest bleed (Pillar 6).** Under 25 tickets (`CONQUEST_BLEED_TICKETS`)
-  the side's counter pulses between bone and warning red on a level
-  baseline, a low siren sounds every four seconds, and from ten tickets a
+  the bleeding side's count flashes inverse (ink on a warm-white plate) on a
+  level baseline, not red or amber, because both are faction colours in the
+  readability contract; a low siren sounds every four seconds, and from ten tickets a
   heartbeat joins it (`client/scripts/conquest_hud.gd`). The Host calls each
   side's fall once a round (`tickets_low`, a voiced slot; the recording is
   for the Host voice round).

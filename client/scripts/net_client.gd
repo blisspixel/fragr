@@ -109,6 +109,12 @@ signal session_resumed
 ## `duel_seat_passed` and comes back as a watcher.
 signal seat_called(token: String)
 signal seat_passed
+## The server would not add this watcher to a full line (`queue_full`).
+signal queue_refused(message: String)
+## This watcher's place in the Duel line from the server (0: not in line),
+## and the line's length. The shared `duel_queue` names can repeat.
+var queue_place: int = 0
+var queue_of: int = 0
 ## Sent once in the next fighter Hello, then forgotten.
 var seat_token: String = ""
 const SEAT_PASSED: String = "duel_seat_passed"
@@ -130,6 +136,8 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	duck_supported = false
 	remote_supported = false
 	accepted_body = ""
+	queue_place = 0
+	queue_of = 0
 	_leaving = false
 	_resume_used = false
 	_version_told = false
@@ -177,6 +185,8 @@ func disconnect_from_server():
 	duck_supported = false
 	remote_supported = false
 	accepted_body = ""
+	queue_place = 0
+	queue_of = 0
 	record.clear()
 	equipment.clear()
 	mission.clear()
@@ -559,6 +569,13 @@ func _handle_message(text: String):
 	var msg_type = data.get("type", "")
 	
 	match msg_type:
+		"queue_place":
+			var place: Variant = data.get("place")
+			var of: Variant = data.get("of")
+			if role == "spectator" and (place is int or place is float) and (of is int or of is float) \
+					and float(place) >= 0.0 and float(of) >= float(place) and float(of) <= 64.0:
+				queue_place = int(place)
+				queue_of = int(of)
 		"seat_call":
 			if role == "spectator" and valid_seat_token(data.get("seat")):
 				seat_called.emit(str(data["seat"]))
@@ -746,6 +763,9 @@ func _handle_message(text: String):
 				var code: String = str(data["code"])
 				if code == SEAT_PASSED:
 					_pass_seat()
+					return
+				if code == "queue_full":
+					queue_refused.emit(str(data.get("message", "")) if data.get("message") is String else "")
 					return
 				if code == "unsupported_gameplay" or code == "unsupported_geometry":
 					if not _version_told:

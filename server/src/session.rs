@@ -69,6 +69,9 @@ pub struct GameSession {
     seat_passes: Vec<Uuid>,
     /// The round whose end already passed a seat.
     benched_round: Option<u32>,
+    /// Each queued watcher's last told place in line, and the line's length.
+    queue_places: HashMap<Uuid, u32>,
+    queue_size: u32,
 }
 
 struct SpectatorSeat {
@@ -154,6 +157,8 @@ impl GameSession {
             seat_holds: queue::SeatHolds::default(),
             seat_passes: Vec::new(),
             benched_round: None,
+            queue_places: HashMap::new(),
+            queue_size: 0,
         }
     }
 

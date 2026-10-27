@@ -379,50 +379,60 @@ fn lot_power_probe() {
 #[test]
 fn larak_rockets_outlive_their_owners_on_the_wire() {
     use crate::protocol::ServerMessage;
-    let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
     // Fixed fighter ids: the seed decides the match only when random ids do
-    // not reorder the fighters from run to run. With them, seed 13 flies
-    // rockets past their owners' deaths every time.
-    session.state.use_replay_ids();
-    session.state.seed(13);
-    session.state.apply_config(MatchConfig {
-        rules: RuleSet::new(GameMode::Ffa, &[], false).unwrap(),
-        frag_limit: None,
-        time_limit_ticks: None,
-        ..MatchConfig::default()
-    });
-    session.spawn_bots(6);
-    session.state.start_round();
+    // not reorder the fighters from run to run. Which seed flies a rocket
+    // past its owner's death moves whenever the lot's play changes (dropped
+    // guns moved it off seed 13), so a few seeds are tried and every rocket
+    // on every one keeps the documented bounds.
     let mut orphans = 0;
-    for _ in 0..60 * 20 {
-        for message in session.tick_messages(DT) {
-            let ServerMessage::Snapshot(snapshot) = message else {
-                continue;
-            };
-            let mut ids: Vec<u32> = Vec::new();
-            ids.extend(snapshot.grenades.iter().map(|fact| fact.id));
-            ids.extend(snapshot.mines.iter().map(|fact| fact.id));
-            ids.extend(snapshot.remote_mines.iter().map(|fact| fact.id));
-            ids.extend(snapshot.projectiles.iter().map(|fact| fact.id));
-            ids.extend(snapshot.explosions.iter().map(|fact| fact.id));
-            ids.extend(snapshot.assessor_canisters.iter().map(|fact| fact.id));
-            for rocket in &snapshot.rockets {
-                assert!(rocket.validate().is_ok(), "{rocket:?}");
-                assert!(!ids.contains(&rocket.id), "serial {} reused", rocket.id);
-                assert!(u64::from(rocket.age_ticks) <= snapshot.tick);
-                assert!(session
-                    .state
-                    .players
-                    .iter()
-                    .any(|p| p.id == rocket.owner_id));
-                if !snapshot.players.iter().any(|p| p.id == rocket.owner_id) {
-                    orphans += 1;
+    for seed in [13, 7, 21, 42, 3, 99] {
+        let mut session = crate::session::GameSession::with_map(MapKind::ArenaDuel, false);
+        session.state.use_replay_ids();
+        session.state.seed(seed);
+        session.state.apply_config(MatchConfig {
+            rules: RuleSet::new(GameMode::Ffa, &[], false).unwrap(),
+            frag_limit: None,
+            time_limit_ticks: None,
+            ..MatchConfig::default()
+        });
+        session.spawn_bots(6);
+        session.state.start_round();
+        for _ in 0..60 * 20 {
+            for message in session.tick_messages(DT) {
+                let ServerMessage::Snapshot(snapshot) = message else {
+                    continue;
+                };
+                let mut ids: Vec<u32> = Vec::new();
+                ids.extend(snapshot.grenades.iter().map(|fact| fact.id));
+                ids.extend(snapshot.mines.iter().map(|fact| fact.id));
+                ids.extend(snapshot.remote_mines.iter().map(|fact| fact.id));
+                ids.extend(snapshot.projectiles.iter().map(|fact| fact.id));
+                ids.extend(snapshot.explosions.iter().map(|fact| fact.id));
+                ids.extend(snapshot.assessor_canisters.iter().map(|fact| fact.id));
+                for rocket in &snapshot.rockets {
+                    assert!(rocket.validate().is_ok(), "{rocket:?}");
+                    assert!(!ids.contains(&rocket.id), "serial {} reused", rocket.id);
+                    assert!(u64::from(rocket.age_ticks) <= snapshot.tick);
+                    assert!(session
+                        .state
+                        .players
+                        .iter()
+                        .any(|p| p.id == rocket.owner_id));
+                    if !snapshot.players.iter().any(|p| p.id == rocket.owner_id) {
+                        orphans += 1;
+                    }
+                    ids.push(rocket.id);
                 }
-                ids.push(rocket.id);
             }
         }
+        if orphans > 0 {
+            break;
+        }
     }
-    assert!(orphans > 0, "seed 13 flies a rocket past its owner's death");
+    assert!(
+        orphans > 0,
+        "some seed flies a rocket past its owner's death"
+    );
 }
 
 #[test]
