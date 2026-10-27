@@ -178,7 +178,9 @@ impl Recorder {
                             .map_or(0, |status| stage::ranged_rounds(&status.loadout)),
                         ..Default::default()
                     });
-                    self.tracker.reset();
+                    if let Some(market) = row.stage.as_mut() {
+                        self.tracker.close(market, tick);
+                    }
                 }
                 facts
                     .completed
@@ -190,6 +192,9 @@ impl Recorder {
             None
         };
         if let Some((outcome, event)) = terminal {
+            if let Some(open) = row.continuation.as_mut().or(row.stage.as_mut()) {
+                self.tracker.close(open, tick);
+            }
             row.outcome = outcome;
             row.receipts.push(receipt(event, tick, state, status));
         }
@@ -228,6 +233,9 @@ impl Recorder {
             .last_mut()
             .filter(|row| row.attempt == state.attempt && row.outcome == Outcome::InProgress)
         {
+            if let Some(open) = row.continuation.as_mut().or(row.stage.as_mut()) {
+                self.tracker.close(open, tick);
+            }
             row.outcome = Outcome::Timeout;
             row.receipts
                 .push(receipt(Event::Timeout, tick, state, status));

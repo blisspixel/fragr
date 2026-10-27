@@ -131,7 +131,8 @@ The shared mission controller's strip escape keeps the edge it chose while
 the body stays on the same half of the same strip. Re-deciding every tick
 beside a market stall corner reversed the escape each step and held a
 recognized body inside until the strip worked; crossing the centre line
-still decides afresh. This is a controller repair in
+still decides afresh. Its regression replays that one strip; the second
+strip live in the recorded case is not excluded as a contributor. This is a controller repair in
 `server/src/mission/controller/m19.rs`, shared with the free local agent; it
 changes no strip, damage or movement rule.
 

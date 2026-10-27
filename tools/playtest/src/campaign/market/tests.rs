@@ -371,3 +371,64 @@ fn per_action_market_facts_start_at_public_entry_and_stop_at_the_terminal_receip
     assert_eq!(row.outcome, Outcome::Complete);
     assert_eq!(row.stage.as_ref().unwrap().decision_steps, 0);
 }
+
+#[test]
+fn terminal_and_continuation_boundaries_close_open_market_contacts() {
+    let (mut state, status) = fixture();
+    let names = std::collections::BTreeMap::new();
+    let strip = fragr_server::protocol::PaverStripState {
+        owner_id: Uuid::from_u128(7),
+        origin: [status.feet[0] - 1.0, status.feet[1], status.feet[2]],
+        yaw: 0.0,
+        length: 4.0,
+        half_width: 1.6,
+        working: false,
+        phase_started: 0,
+        phase_ends: 40,
+    };
+    let stand = |recorder: &mut Recorder, tick| {
+        recorder.step(
+            &stage::Decision {
+                tick,
+                feet: status.feet,
+                hp: 100,
+                armor: 0,
+                airborne: false,
+                moving: false,
+                telling: false,
+                guard: None,
+                recognized: Vec::new(),
+                strips: &[strip],
+                names: &names,
+            },
+            stage::Outcome {
+                strips: &[strip],
+                status: Some(status.clone()),
+                shots: Vec::new(),
+            },
+        )
+    };
+    for through_tanks in [false, true] {
+        let mut recorder = if through_tanks {
+            Recorder::through_tanks()
+        } else {
+            Recorder::default()
+        };
+        completed(&mut state, 4);
+        recorder.observe(1, &state, Some(status.clone()));
+        stand(&mut recorder, 2);
+        completed(&mut state, 5);
+        recorder.observe(3, &state, Some(status.clone()));
+        let row = &recorder.metrics.attempts[0];
+        let market = row.stage.as_ref().unwrap();
+        assert_eq!(market.contacts.len(), 1);
+        assert_eq!(market.contacts[0].left_tick, Some(3));
+        if through_tanks {
+            stand(&mut recorder, 4);
+            recorder.finish_attempt(5, &state, Some(status.clone()));
+            let row = &recorder.metrics.attempts[0];
+            let continuation = row.continuation.as_ref().unwrap();
+            assert_eq!(continuation.contacts[0].left_tick, Some(5));
+        }
+    }
+}

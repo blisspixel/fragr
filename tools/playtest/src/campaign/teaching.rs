@@ -317,7 +317,13 @@ impl Recorder {
             // The walk out of the market, then the first rise toward the
             // tank top, whichever way the body gets there.
             self.window("tanks_leg", me, map_info);
-            if feet[1] > 1.0 {
+            // Open only once the retained pre-roll already shows more than a
+            // metre of rise, so every climb window carries its own baseline.
+            let baseline = self
+                .recent
+                .front()
+                .and_then(|frame| frame.players.iter().find(|p| p.id == self.id).map(|p| p.y));
+            if baseline.is_some_and(|y| me.y - y > 1.0) {
                 self.window("tanks_climb", me, map_info);
             }
         }

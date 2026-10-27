@@ -60,7 +60,7 @@ use before changing authored quantities. Per-action stage facts attribute
 strip contacts, work-pulse loss, shot loss and the fatal step, so read them
 before an attempt-wide flag. In the wave 11 matched cohort, 25 of 27 market
 deaths were shots, 26 died with no ranged rounds left and the strip hits
-that remained were strips outside the declared view; the visible-supply
+that remained were strips absent from the delayed observation; the visible-supply
 detour never took the gallery Scatter and took the pocket Repeater in 3 of
 35 entries. Treat that as an evaluator supply and perception limit to
 measure, not a reason to add ammunition.
