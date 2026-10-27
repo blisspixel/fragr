@@ -23,7 +23,7 @@ struct Cli {
         "frag_limit", "capture_limit", "time_limit_seconds", "mode", "mutators", "tiers",
         "soak_seconds", "soak_sample_seconds", "soak_bots", "soak_spectators",
         "soak_map_rotate", "soak_server", "soak_log", "traffic_fighters",
-        "traffic_spectators", "traffic_seconds", "traffic_hz", "traffic_bots", "traffic_server"
+        "traffic_spectators", "traffic_seconds", "traffic_hz", "traffic_burst", "traffic_bots", "traffic_server"
     ])]
     campaign_survey: bool,
     /// Bounded campaign endpoint. M19 starts with its standalone discovery kit;
@@ -58,6 +58,10 @@ struct Cli {
     /// Run the local fighter and spectator delivery matrix instead of a round.
     #[arg(long)]
     fanout_matrix: bool,
+    /// With --fanout-matrix: the stress rows instead (slow and stalled
+    /// watchers, steady and bursty input probes) on Tripoint Works.
+    #[arg(long, requires = "fanout_matrix")]
+    fanout_stress: bool,
     /// Bots-only Sabotage survey on Sector 9: whole seeded matches of rule
     /// bots on the session, without sockets. Asserts plants, defuses, round
     /// wins for both sides and no stuck round when --assert is set.
@@ -174,9 +178,14 @@ struct Cli {
     #[arg(long, default_value_t = 10, value_parser = clap::value_parser!(u64).range(1..=3600))]
     traffic_seconds: u64,
     /// Actions per fighter per second. The server allows 256 inbound messages.
-    #[arg(long, default_value_t = 60, value_parser = clap::value_parser!(u32).range(1..=120))]
+    /// Zero holds the fighters idle: joined and reading, sending nothing.
+    #[arg(long, default_value_t = 60, value_parser = clap::value_parser!(u32).range(0..=120))]
     traffic_hz: u32,
-    /// Rule bots beside the synthetic fighters. At most 32.
+    /// Actions each fighter writes back to back per send, at the same mean
+    /// rate: 30 at 60 Hz is half a second of input every half second.
+    #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=64))]
+    traffic_burst: u32,
+    /// Rule bots beside the synthetic fighters. At most 96.
     #[arg(long, default_value_t = 4)]
     traffic_bots: usize,
     /// The `fragr-server` binary to stress. Defaults to the one beside this tool.
@@ -225,6 +234,7 @@ fn traffic_config(cli: &Cli) -> Result<fragr_playtest::traffic::TrafficConfig, S
         spectators: cli.traffic_spectators,
         bots: cli.traffic_bots,
         hz: cli.traffic_hz,
+        burst: cli.traffic_burst,
         map,
         seed: cli.seed,
         launch: fragr_playtest::soak::Launch::Binary(binary),
@@ -252,6 +262,37 @@ fn print_traffic(report: &fragr_playtest::traffic::TrafficReport) {
             .unwrap_or_else(|| "unavailable".into()),
         report.health.as_deref().unwrap_or("unavailable"),
     );
+    let cost = &report.server;
+    let mib = |bytes: Option<u64>| {
+        bytes
+            .map(|bytes| format!("{:.1}", bytes as f64 / (1024.0 * 1024.0)))
+            .unwrap_or_else(|| "-".into())
+    };
+    println!(
+        "server: rss MiB {} before, {} connected, {} end, {} after leave; cpu {} cores; sockets {} KiB; ticks over budget {}, skipped {}, total p99 {} ms",
+        mib(cost.rss_bytes.before_clients),
+        mib(cost.rss_bytes.connected),
+        mib(cost.rss_bytes.end),
+        mib(cost.rss_bytes.after_leave),
+        cost.cpu_cores
+            .map(|cores| format!("{cores:.3}"))
+            .unwrap_or_else(|| "-".into()),
+        cost.sockets
+            .map(|memory| format!("{:.0}", memory.total() as f64 / 1024.0))
+            .unwrap_or_else(|| "-".into()),
+        cost.ticks
+            .as_ref()
+            .map_or_else(|| "-".into(), |ticks| ticks.over_budget.to_string()),
+        cost.ticks
+            .as_ref()
+            .map_or_else(|| "-".into(), |ticks| ticks.skipped_periods.to_string()),
+        cost.ticks
+            .as_ref()
+            .map_or_else(|| "-".into(), |ticks| format!("{:.2}", ticks.total_ms.p99)),
+    );
+    for missing in &cost.unavailable {
+        println!("server cost unavailable: {missing}");
+    }
     for problem in &report.problems {
         println!("traffic problem: {problem}");
     }
@@ -617,7 +658,12 @@ async fn main() {
         return;
     }
     if cli.fanout_matrix {
-        let report = match fragr_playtest::fanout::matrix(cli.fanout_seconds).await {
+        let measured = if cli.fanout_stress {
+            fragr_playtest::fanout::stress(cli.fanout_seconds).await
+        } else {
+            fragr_playtest::fanout::matrix(cli.fanout_seconds).await
+        };
+        let report = match measured {
             Ok(report) => report,
             Err(error) => {
                 eprintln!("error: {error}");
@@ -637,14 +683,16 @@ async fn main() {
         }
         for row in &report.rows {
             println!(
-                "{}: {} fighters, {} spectators, {} frames, {:.0} text KiB/s, {} missing ticks, {} disconnects",
+                "{} {}: {} fighters, {} spectators, {} frames, {:.0} text KiB/s, {} missing ticks, {} disconnects, {} connections lost",
+                row.scenario,
                 row.map,
                 row.fighters,
                 row.spectators,
                 row.watcher_snapshots,
                 row.watcher_text_bytes_per_second / 1024.0,
                 row.missing_snapshot_ticks,
-                row.watcher_disconnects
+                row.watcher_disconnects,
+                row.connection_losses_ms.len()
             );
         }
         println!("report: {}", cli.report.display());
@@ -924,7 +972,13 @@ mod tests {
         assert_eq!(config.map, fragr_server::sim::MapKind::ArenaDuel);
         assert!(!cli.assert);
         assert!(!cli.fanout_matrix);
+        assert!(!cli.fanout_stress);
         assert_eq!(cli.fanout_seconds, 10);
+        // The stress rows are a variant of the matrix, never a mode alone.
+        assert!(Cli::try_parse_from(["fragr-playtest", "--fanout-stress"]).is_err());
+        let stress =
+            Cli::try_parse_from(["fragr-playtest", "--fanout-matrix", "--fanout-stress"]).unwrap();
+        assert!(stress.fanout_matrix && stress.fanout_stress);
     }
 
     #[test]
@@ -1166,6 +1220,8 @@ mod tests {
             "30",
             "--traffic-hz",
             "30",
+            "--traffic-burst",
+            "3",
             "--traffic-bots",
             "0",
             "--traffic-server",
@@ -1182,6 +1238,7 @@ mod tests {
         assert_eq!(config.spectators, 20);
         assert_eq!(config.seconds, 30);
         assert_eq!(config.hz, 30);
+        assert_eq!(config.burst, 3);
         assert_eq!(config.bots, 0);
         assert_eq!(config.seed, 9);
         assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);

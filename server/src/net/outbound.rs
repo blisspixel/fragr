@@ -293,6 +293,10 @@ struct WriterSamples {
     encoded_bytes: u64,
     shared_frames: u64,
     shared_bytes: u64,
+    /// When the measured window began: the last reset.
+    since: Option<Instant>,
+    /// Writers that gave up on a send (timeout or socket error), by when.
+    send_failures: Vec<Duration>,
 }
 
 /// What every session writer did with its text frames.
@@ -311,6 +315,9 @@ pub struct WriterReport {
     pub shared_frames: u64,
     /// Bytes copied from shared payloads into per-socket frames.
     pub shared_bytes: u64,
+    /// Milliseconds into the window at which a writer's send timed out or
+    /// failed, closing that connection.
+    pub send_failures_ms: Vec<f64>,
 }
 
 fn nanos(duration: Duration) -> u64 {
@@ -345,8 +352,20 @@ impl WriterProbe {
         self.samples().send_ns.record(nanos(elapsed));
     }
 
+    /// A writer stopped because a send timed out or failed.
+    pub(crate) fn send_failed(&self, at: Instant) {
+        let mut samples = self.samples();
+        let since = samples.since.unwrap_or(at);
+        samples
+            .send_failures
+            .push(at.saturating_duration_since(since));
+    }
+
     pub fn reset(&self) {
-        *self.samples() = WriterSamples::default();
+        *self.samples() = WriterSamples {
+            since: Some(Instant::now()),
+            ..WriterSamples::default()
+        };
     }
 
     pub fn report(&self) -> WriterReport {
@@ -359,6 +378,11 @@ impl WriterProbe {
             encoded_bytes: samples.encoded_bytes,
             shared_frames: samples.shared_frames,
             shared_bytes: samples.shared_bytes,
+            send_failures_ms: samples
+                .send_failures
+                .iter()
+                .map(|at| at.as_secs_f64() * 1000.0)
+                .collect(),
         }
     }
 }
