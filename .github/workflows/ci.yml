@@ -74,6 +74,10 @@ jobs:
         # A standalone earned-kit diagnostic, not an inherited campaign clear.
         run: cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-teaching.json
 
+      - name: M19 market stress report
+        # Continue the earned prefix; retain failures without an all-clear gate.
+        run: cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-market.json
+
       - name: Team deathmatch and mutator playtests
         run: |
           cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json

@@ -113,6 +113,43 @@ fn add_strip(frame: &mut Snapshot, started: u64, working: bool) {
     });
 }
 
+fn add_second_strip(frame: &mut Snapshot) {
+    let first = frame.paver_strips[0];
+    let mut owner = frame
+        .players
+        .iter()
+        .find(|player| player.id == first.owner_id)
+        .unwrap()
+        .clone();
+    owner.id = Uuid::from_u128(487);
+    owner.x += 5.0;
+    let mut second = first;
+    second.owner_id = owner.id;
+    second.origin[0] += 5.0;
+    frame.players.push(owner);
+    frame.paver_strips.push(second);
+}
+
+fn enter_market(fixture: &mut Fixture) {
+    fixture.state.m19.as_mut().unwrap().completed = [
+        "concourse_stores",
+        "broken_stair",
+        "concourse_crossing",
+        "tram_street",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    let ServerMessage::MapInfo {
+        m19: Some(geometry),
+        ..
+    } = &fixture.map_info
+    else {
+        panic!("fixture requires authored M19 geometry");
+    };
+    fixture.state.m19.as_mut().unwrap().current = Some(geometry.objectives[4].clone());
+}
+
 #[test]
 fn airborne_objective_receipt_is_not_a_supported_gallery_landing() {
     let mut fixture = Fixture::new();
@@ -538,4 +575,150 @@ fn active_stall_windows_require_a_live_threshold_and_are_recording_only() {
             assert!(windows.is_empty());
         }
     }
+}
+
+#[test]
+fn public_market_boundary_splits_windows_and_same_phase_recognition_without_resetting_fuel() {
+    let mut fixture = Fixture::new();
+    let mut recorded = fixture.recorder(true);
+    let mut unrecorded = fixture.recorder(false);
+    for tick in 1..=5 {
+        if tick == 3 {
+            enter_market(&mut fixture);
+        }
+        if tick == 5 {
+            fixture
+                .state
+                .m19
+                .as_mut()
+                .unwrap()
+                .completed
+                .push("market_strips".into());
+        }
+        let mut frame = fixture.frame(tick, GROUND, Some((30 + tick as u16, false)));
+        add_strip(&mut frame, 1, false);
+        for recorder in [&mut recorded, &mut unrecorded] {
+            fixture.observe(recorder, &frame, 0.0);
+            if tick >= 2 {
+                // The already perceived phase remains present at the boundary:
+                // this observer must not impose another acquisition delay.
+                recorder.observe_perception(&frame);
+            }
+            recorder.observe_stall(10.0, &frame.players[0], &fixture.map_info);
+        }
+    }
+    let (metrics, windows) = recorded.finish();
+    let (quiet_metrics, quiet_windows) = unrecorded.finish();
+    assert_eq!(metrics, quiet_metrics);
+    assert!(quiet_windows.is_empty());
+    assert_eq!(
+        metrics.supported_refuel_ticks, 4,
+        "public stages do not reset fuel custody"
+    );
+    assert_eq!(metrics.paver_phases.len(), 2);
+    let teaching = &metrics.paver_phases[0];
+    let market = &metrics.paver_phases[1];
+    assert_eq!(
+        (
+            teaching.stage,
+            teaching.first_snapshot_tick,
+            teaching.recognized_tick
+        ),
+        (Stage::Teaching, 1, Some(2))
+    );
+    assert_eq!(
+        (
+            market.stage,
+            market.first_snapshot_tick,
+            market.recognized_tick
+        ),
+        (Stage::Market, 3, Some(3))
+    );
+    assert_eq!(teaching.owner, market.owner);
+    assert_eq!(teaching.started_tick, market.started_tick);
+    for event in ["paver_tell", "active_stall"] {
+        let selected: Vec<_> = windows
+            .iter()
+            .filter(|window| window["event"] == event)
+            .collect();
+        assert_eq!(selected.len(), 2);
+        assert_eq!(selected[0]["stage"], "teaching");
+        assert_eq!(selected[0]["frames"][0]["tick"], 1);
+        assert_eq!(
+            selected[0]["frames"].as_array().unwrap().last().unwrap()["tick"],
+            2
+        );
+        assert_eq!(selected[1]["stage"], "market");
+        assert_eq!(selected[1]["frames"][0]["tick"], 3);
+        assert_eq!(
+            selected[1]["frames"].as_array().unwrap().last().unwrap()["tick"],
+            5
+        );
+    }
+}
+
+#[test]
+fn simultaneous_owner_windows_are_stage_scoped_bounded_and_retry_local() {
+    let mut fixture = Fixture::new();
+    let initial_objective = fixture.state.m19.as_ref().unwrap().current.clone();
+    let mut recorder = fixture.recorder(true);
+    for tick in 1..=190 {
+        if tick == 5 {
+            enter_market(&mut fixture);
+        }
+        let mut frame = fixture.frame(tick, GROUND, None);
+        if tick <= 6 {
+            add_strip(&mut frame, 1, false);
+            add_second_strip(&mut frame);
+        }
+        fixture.observe(&mut recorder, &frame, 0.0);
+    }
+    fixture.state.attempt += 1;
+    fixture.state.m19.as_mut().unwrap().completed.clear();
+    fixture.state.m19.as_mut().unwrap().current = initial_objective;
+    let mut retry = fixture.frame(191, GROUND, None);
+    add_strip(&mut retry, 191, false);
+    add_second_strip(&mut retry);
+    fixture.observe(&mut recorder, &retry, 0.0);
+    let (_, windows) = recorder.finish();
+    let overlaps: Vec<_> = windows
+        .iter()
+        .filter(|window| window["event"] == "paver_overlap")
+        .collect();
+    assert_eq!(overlaps.len(), 3);
+    assert_eq!(overlaps[0]["stage"], "teaching");
+    assert_eq!(overlaps[0]["frames"].as_array().unwrap().len(), 4);
+    assert_eq!(overlaps[1]["stage"], "market");
+    let market = overlaps[1]["frames"].as_array().unwrap();
+    assert_eq!(market.len(), 160);
+    assert_eq!(market.first().unwrap()["tick"], 5);
+    assert_eq!(market.last().unwrap()["tick"], 164);
+    assert!(market.windows(2).all(|pair| {
+        pair[0]["tick"].as_u64().unwrap() + 1 == pair[1]["tick"].as_u64().unwrap()
+    }));
+    assert_eq!(overlaps[2]["stage"], "teaching");
+    assert_eq!(overlaps[2]["attempt"], fixture.state.attempt);
+    assert_eq!(overlaps[2]["frames"][0]["tick"], 191);
+}
+
+#[test]
+fn sequential_or_duplicate_owners_do_not_claim_simultaneous_strips() {
+    let mut fixture = Fixture::new();
+    enter_market(&mut fixture);
+    let mut recorder = fixture.recorder(true);
+    for tick in 1..=3 {
+        let mut frame = fixture.frame(tick, GROUND, None);
+        add_strip(&mut frame, 1, false);
+        if tick == 2 {
+            add_second_strip(&mut frame);
+            frame.paver_strips.remove(0);
+        } else if tick == 3 {
+            frame.paver_strips.push(frame.paver_strips[0]);
+        }
+        fixture.observe(&mut recorder, &frame, 0.0);
+    }
+    let (_, windows) = recorder.finish();
+    assert!(windows
+        .iter()
+        .all(|window| window["event"] != "paver_overlap"));
 }

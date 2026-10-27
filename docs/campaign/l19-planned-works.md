@@ -81,8 +81,8 @@ goes out.
    the far end, a Collector working the turnstiles. The jetpack lesson on the
    broken stair.
 3. **Escalation.** Low Water's edge: the Paver lesson on the tram street, then
-   the market from level 4 with two Pavers striping it and absorbed Heavy
-   Sweepers walking the lines.
+   the market from level 4 with two Pavers striping it, an absorbed Heavy
+   Sweeper and an absorbed Sweeper walking the lines.
 4. **Breath.** The court's shared meal table from level 4, still set, under a
    white strip. Then the water tanks. Latch sits on the tank and says the only
    despairing line they have in the game: "Every one I didn't reach." Tern, on

@@ -23,7 +23,7 @@ Local agents play the game and file structured feedback so most iteration does n
 
 ## Guided campaign evaluation
 
-`--campaign-survey` adds Recall Notice and bounded M19 teaching matrices using the real session,
+`--campaign-survey` adds Recall Notice and bounded M19 teaching/market matrices using the real session,
 shared navigation and inventory controller. Three declared perception/action
 profiles play all three difficulties with finite supplies and actual continues.
 The [harness README](../../tools/playtest/README.md) owns commands, assumptions
@@ -38,6 +38,14 @@ vision and bounded last-seen search are separate from inherited campaign proof.
 Actual supported powered ascent, public objective progress and rendered
 reconstructions remain separate evidence; a controller repair requires repeating
 the declared baseline before judging content.
+
+`--survey-mission m19-market` continues the same earned prefix through the
+market objective, stopping before the tanks. Preserve complete ammunition and
+magazine receipts at its boundaries and failed attempts before the market.
+Objective-stage windows keep the street lesson separate from market work and
+simultaneous strips. The shared inventory controller already seeks compatible
+visible supply when out of usable ranged ammunition; diagnose actual supply
+use before changing authored quantities.
 
 The historical measurements below describe their dated builds, not today's game.
 

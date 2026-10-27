@@ -117,6 +117,7 @@ bash tools/check_action_pins.sh && bash tools/test_action_pins.sh && bash tools/
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-campaign.json # diagnostic outcomes; evaluator tests are the gate
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-teaching.json # standalone diagnostic; includes failures
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-market.json # earned prefix through the market; includes failures
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json

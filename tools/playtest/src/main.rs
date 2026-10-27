@@ -799,6 +799,18 @@ mod tests {
             m19.survey_mission,
             fragr_playtest::campaign::Scenario::M19Teaching
         );
+        let market = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m19-market",
+        ])
+        .unwrap();
+        assert_eq!(
+            market.survey_mission,
+            fragr_playtest::campaign::Scenario::M19Market
+        );
+        assert!(Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-market"]).is_err());
         for args in [
             ["--map", "2"],
             ["--mode", "tdm"],
@@ -842,6 +854,19 @@ mod tests {
             .iter()
             .all(|row| row["outcome"] == "timeout"));
         assert!(report["review"].is_null());
+        cli.survey_mission = fragr_playtest::campaign::Scenario::M19Market;
+        assert!(campaign_report(&cli)
+            .unwrap_err()
+            .contains("did not pass its endpoint"));
+        let market: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&cli.report).unwrap()).unwrap();
+        assert_eq!(market["schema"], 3);
+        assert_eq!(market["scenario"], "m19_market");
+        assert!(market["trials"].as_array().unwrap().iter().all(|row| {
+            row["outcome"] == "timeout"
+                && row["market"]["attempts"][0]["entered_market"] == false
+                && row["market"]["attempts"][0]["outcome"] == "timeout"
+        }));
         cli.assert = false;
         campaign_report(&cli).unwrap();
         cli.report = dir.clone();
