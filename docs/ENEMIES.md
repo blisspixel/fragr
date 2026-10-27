@@ -93,6 +93,42 @@ another label for an already-complete enemy. Level 8's custody-defense encounter
 can combine ordinary units and machinery instead of demanding a unique boss
 species for every milestone.
 
+## Guards, squads and chatter
+
+A room wakes where its level says: the authored entry region, or a shot that
+strikes one of its guards. A shot is gunfire in the room and puts the whole
+group in the fight at once. The entry region is a quiet alarm: the group is
+dispatched as the level was written, but a guard on foot (personnel and the
+Sweepers) that has not seen the participant only turns its eyes toward the
+alarm (half a turn in about 0.6 s) while its feet go there as before, and
+raises its gun only after it sees a participant through the shared senses (a
+120 degree cone, a level gaze, cover). A guard already looking at the alarm
+was expecting someone and raises at once; one still turning is startled and
+takes a 200 to 400 ms reaction. Coming in behind a guard, or from a gantry
+above it, buys the first shots; after one second every alarmed guard is in the
+fight regardless. Office equipment (Turrets, Jammers,
+Notaries, Assessors), marksmen, Surveyors and Pavers keep their own notice
+rules; a Crawler pack wakes with its scrabble, already in the fight. Waking
+a room by sight before its region was measured and not kept: it broke authored
+beats and made the constrained surveys much harder ([bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress)).
+
+Squads share the two ranged attack tokens per participant. Anchors (the Heavy
+Sweeper and the Turret) hold a lane: once a Heavy's burst has begun it finishes
+down its committed line into the cover, while its tell still cancels on broken
+sight. While an anchor of its group is telling or firing at a participant, a
+skirmisher (Sweeper, Redactor, Crawler) leaves the anchor's line and walks
+round to a side that still sees them, for at most 2.5 s, before it asks for
+its own token; on Assisted it does not flank. An Auditor that cannot attack
+from where it stands keeps a Heavy Sweeper or Enforcer of its group between
+itself and the participant.
+
+Union personnel (Clerk, Auditor, Enforcer, Redactor) call short orders over
+compliance radio and issued units (the Sweepers) recite boilerplate: a
+sighting, a flank and an Auditor down. Latch calls a gun behind the
+participant's shoulder, an Auditor's repair or a Turret's charge, and low
+health. Lines are captioned, rare and spaced; equipment, absorbed bots and
+Inheritance machines say nothing ([protocol](protocol.md)).
+
 ## Union drones
 
 The Union watches before it arrives. Its drones are the Office's eyes over

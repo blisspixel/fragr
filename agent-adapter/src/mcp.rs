@@ -3901,6 +3901,42 @@ mod mcp_tests {
     }
 
     #[test]
+    fn campaign_barks_reach_agents_as_keyed_facts() {
+        use protocol::{BarkRegister, CompanionBarkKind, EnemyBarkKind, EnemyKind, GameEvent};
+        let mut state = ToolState::default();
+        for event in [
+            GameEvent::EnemyBark {
+                kind: EnemyBarkKind::Sighting,
+                register: BarkRegister::Personnel,
+                variant: 1,
+                speaker_id: uuid::Uuid::from_u128(9),
+                position: [3.0, 0.0, 8.0],
+            },
+            GameEvent::CompanionBark {
+                kind: CompanionBarkKind::PriorityTarget,
+                subject: Some(EnemyKind::Turret),
+                variant: 0,
+                speaker_id: uuid::Uuid::from_u128(10),
+                position: [1.0, 0.0, 0.0],
+            },
+        ] {
+            let wire = protocol::ServerMessage::Event(event);
+            ingest_server_text(&mut state, &serde_json::to_string(&wire).unwrap()).unwrap();
+        }
+        let observed = build_observe_result(&state);
+        let events = &observed["recent_events"];
+        assert_eq!(events[0]["event"], "enemy_bark");
+        assert_eq!(events[0]["kind"], "sighting");
+        assert_eq!(events[0]["register"], "personnel");
+        assert_eq!(events[0]["position"], serde_json::json!([3.0, 0.0, 8.0]));
+        assert_eq!(events[1]["event"], "companion_bark");
+        assert_eq!(events[1]["kind"], "priority_target");
+        assert_eq!(events[1]["subject"], "turret");
+        // The words stay with the client: no caption text on the wire.
+        assert!(events[0].get("text").is_none() && events[1].get("text").is_none());
+    }
+
+    #[test]
     fn initialize_and_tools_list_and_unknown_method() {
         let mut state = ToolState::default();
         let init = handle_mcp_request(req("initialize", None), &mut state);

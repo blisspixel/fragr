@@ -1478,3 +1478,102 @@ msgstr "fragr\nby Nick Seal"
 
 msgid "STILL_HERE_CREDITS_THANKS"
 msgstr "Thank you for playing."
+
+msgid "BARK_SPEAKER_UNION"
+msgstr "UNION RADIO"
+
+msgid "BARK_SPEAKER_UNIT"
+msgstr "ISSUED UNIT"
+
+msgid "BARK_SPEAKER_LATCH"
+msgstr "LATCH"
+
+msgid "BARK_ENEMY_PERSONNEL_SIGHTING_0"
+msgstr "Contact. Unscheduled person on the floor. Opening a file."
+
+msgid "BARK_ENEMY_PERSONNEL_SIGHTING_1"
+msgstr "Eyes on the subject. Note the time and move."
+
+msgid "BARK_ENEMY_PERSONNEL_SIGHTING_2"
+msgstr "Visual confirmed. Subject is out of compliance."
+
+msgid "BARK_ENEMY_PERSONNEL_FLANKING_0"
+msgstr "Keep them pinned. I'm going around."
+
+msgid "BARK_ENEMY_PERSONNEL_FLANKING_1"
+msgstr "Hold that lane. Taking the side."
+
+msgid "BARK_ENEMY_PERSONNEL_FLANKING_2"
+msgstr "Suppress. I'll file this from the flank."
+
+msgid "BARK_ENEMY_PERSONNEL_OFFICER_DOWN_0"
+msgstr "Auditor down. Who signs for this now?"
+
+msgid "BARK_ENEMY_PERSONNEL_OFFICER_DOWN_1"
+msgstr "We lost the Auditor. Hold until relief."
+
+msgid "BARK_ENEMY_PERSONNEL_OFFICER_DOWN_2"
+msgstr "Auditor's down. Nobody leaves without a signature."
+
+msgid "BARK_ENEMY_UNIT_SIGHTING_0"
+msgstr "Unscheduled presence observed. Report filed."
+
+msgid "BARK_ENEMY_UNIT_SIGHTING_1"
+msgstr "Subject located. Compliance check initiated."
+
+msgid "BARK_ENEMY_UNIT_SIGHTING_2"
+msgstr "Visual acquired. Please remain where you are."
+
+msgid "BARK_ENEMY_UNIT_FLANKING_0"
+msgstr "Repositioning per directive."
+
+msgid "BARK_ENEMY_UNIT_FLANKING_1"
+msgstr "Lateral approach authorized."
+
+msgid "BARK_ENEMY_UNIT_FLANKING_2"
+msgstr "Adjusting angle. Thank you for your patience."
+
+msgid "BARK_ENEMY_UNIT_OFFICER_DOWN_0"
+msgstr "Supervising Auditor offline. Awaiting instruction."
+
+msgid "BARK_ENEMY_UNIT_OFFICER_DOWN_1"
+msgstr "Supervisor unavailable. Continuing last approved task."
+
+msgid "BARK_ENEMY_UNIT_OFFICER_DOWN_2"
+msgstr "Auditor offline. This incident has been noted."
+
+msgid "BARK_LATCH_FLANK_WARNING_0"
+msgstr "Behind you, buddy."
+
+msgid "BARK_LATCH_FLANK_WARNING_1"
+msgstr "Hey. Your back. Somebody's being sneaky."
+
+msgid "BARK_LATCH_FLANK_WARNING_2"
+msgstr "Don't look now. Okay, look now. Behind you."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_AUDITOR_0"
+msgstr "Auditor's patching them up. Rude. Hit the Auditor."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_AUDITOR_1"
+msgstr "That Auditor is undoing your work. Take it first."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_AUDITOR_2"
+msgstr "Auditor's on the repair. Break it up."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_TURRET_0"
+msgstr "Turret's charging. Get out of its sight."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_TURRET_1"
+msgstr "Turret. Break its line before it finishes."
+
+msgid "BARK_LATCH_PRIORITY_TARGET_TURRET_2"
+msgstr "That turret's winding up. Find a wall."
+
+msgid "BARK_LATCH_LOW_HEALTH_0"
+msgstr "You're leaking, meat bag. Get behind something."
+
+msgid "BARK_LATCH_LOW_HEALTH_1"
+msgstr "Okay, you look terrible. Find cover."
+
+msgid "BARK_LATCH_LOW_HEALTH_2"
+msgstr "Easy. Back off and breathe a second."

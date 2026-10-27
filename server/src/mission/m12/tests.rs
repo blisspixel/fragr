@@ -935,6 +935,23 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
             action.fire = false;
             action.reload = snapshot.tick.is_multiple_of(2);
         }
+        // The launcher's visible count and its volley in flight are read the
+        // way a player reads them: back off along one side until it is spent.
+        // (Since guards need a sighting, the two Clerks facing away no longer
+        // claim both attack tokens on entry, so the drone's volley comes
+        // early, while this input still stands in the squad's lane.)
+        if matches!(
+            drone.campaign,
+            Some(CampaignActor::Hostile {
+                phase: crate::protocol::EnemyPhase::Windup | crate::protocol::EnemyPhase::Firing,
+                ..
+            })
+        ) || !snapshot.assessor_canisters.is_empty()
+        {
+            action.left = false;
+            action.right = true;
+            action.back = true;
+        }
         s.state.set_action(id, action);
         tick(&mut s);
         for blast in &s.state.snapshot().explosions {

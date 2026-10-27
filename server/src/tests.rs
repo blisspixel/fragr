@@ -7841,6 +7841,7 @@ mod vertical_aim {
     }
 }
 mod auditor;
+pub(crate) mod campaign_ai;
 mod duck;
 mod encounters;
 mod enforcer;

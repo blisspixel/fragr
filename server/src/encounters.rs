@@ -3,6 +3,7 @@ use crate::protocol::{CampaignActor, EnemyKind, EnemyPhase, GameEvent};
 use crate::sim::{BotIntent, GameState, Player, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
+mod barks;
 pub(crate) mod enemy;
 pub(crate) use enemy::body as enemy_body;
 use enemy::EnemyController;
@@ -44,6 +45,10 @@ pub(crate) struct Encounters {
     waiting_for_party: bool,
     /// Ranged attack pacing per participant, kept for its stagger clock.
     tokens: enemy::AttackTokens,
+    /// Union squad radio and Latch's callouts, on one spaced channel.
+    barks: barks::Barks,
+    /// Auditors that fell since the last intents, with their group.
+    officers_down: Vec<(usize, Uuid)>,
 }
 
 impl Encounters {
@@ -94,6 +99,8 @@ impl Encounters {
     fn reset(&mut self, state: &mut GameState) {
         state.clear_traveling_shots();
         state.players.retain(Player::is_participant);
+        self.barks.reset();
+        self.officers_down.clear();
         self.enemies.clear();
         self.groups
             .iter_mut()
@@ -237,6 +244,7 @@ impl Encounters {
                             state.tick,
                             placement.seated,
                         )
+                        .on_post()
                         .with_hover(placement.hover.clone())
                         .with_control(placement.control)
                         .with_spine_march(
@@ -288,6 +296,8 @@ impl Encounters {
                     .iter()
                     .any(|region| region.contains(feet))
             });
+            // The authored region stays the alarm. Each guard then needs its
+            // own sighting before it attacks (`enemy/awareness.rs`).
             if let Some(&feet) = entered.filter(|_| ready) {
                 self.activate(index, feet, state.tick, true);
                 if let Some(crawler) = definition
@@ -327,6 +337,48 @@ impl Encounters {
             .retain(|(_, enemy)| state.players.iter().any(|p| p.id == enemy.id));
     }
 
+    /// What each awake group's guards know of their squad this tick: an
+    /// anchor in a tell or burst and the first living heavy in authored order.
+    fn squads(&self, state: &GameState) -> Vec<(usize, enemy::squad::Squad)> {
+        let feet_of = |id: Uuid| {
+            state
+                .players
+                .iter()
+                .find(|p| p.id == id && p.hp > 0)
+                .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+        };
+        let mut squads: Vec<(usize, enemy::squad::Squad)> = Vec::new();
+        for (group, enemy) in &self.enemies {
+            if !matches!(self.groups.get(*group), Some(Group::Active { .. })) {
+                continue;
+            }
+            let Some(feet) = feet_of(enemy.id) else {
+                continue;
+            };
+            let at = match squads.iter().position(|(g, _)| g == group) {
+                Some(at) => at,
+                None => {
+                    squads.push((*group, Default::default()));
+                    squads.len() - 1
+                }
+            };
+            let squad = &mut squads[at].1;
+            if enemy::squad::role(enemy.kind()) == enemy::squad::SquadRole::Anchor
+                && squad.anchor.is_none()
+            {
+                if let Some(target) = enemy.holds_token() {
+                    squad.anchor = Some((target, feet));
+                }
+            }
+            if matches!(enemy.kind(), EnemyKind::HeavySweeper | EnemyKind::Enforcer)
+                && squad.heavy.is_none()
+            {
+                squad.heavy = Some(feet);
+            }
+        }
+        squads
+    }
+
     fn activate(&mut self, group: usize, alarm: [f32; 3], tick: u64, dispatch: bool) {
         match &mut self.groups[group] {
             Group::Dormant(ids) => {
@@ -343,6 +395,12 @@ impl Encounters {
                 enemy.end_spine_march();
             }
             enemy.alarm(alarm, tick);
+            // A shot that struck one of them is gunfire in the room: everyone
+            // is in the fight at once, as before guards needed a sighting.
+            // Only the silent entry alarm leaves them looking.
+            if !dispatch {
+                enemy.wake();
+            }
         }
     }
 
@@ -371,6 +429,14 @@ impl Encounters {
                 })
             })
             .collect()
+    }
+
+    /// Whether a placed guard is in the fight rather than on post or alarmed.
+    #[cfg(test)]
+    pub(crate) fn aware(&self, id: Uuid) -> bool {
+        self.enemies
+            .iter()
+            .any(|(_, enemy)| enemy.id == id && enemy.aware())
     }
 
     #[cfg(test)]
@@ -754,6 +820,19 @@ impl Encounters {
         self.advance_marks(state);
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
+        let squads = self.squads(state);
+        for (group, enemy) in &mut self.enemies {
+            let squad = squads
+                .iter()
+                .find(|(g, _)| g == group)
+                .map(|(_, squad)| *squad)
+                .unwrap_or_default();
+            enemy.set_squad(squad);
+        }
+        // What changed this tick, for chatter once every guard has moved.
+        let mut said: Vec<(usize, Uuid, crate::protocol::EnemyBarkKind)> = Vec::new();
+        let mut raised: Vec<(Uuid, EnemyKind, Uuid)> = Vec::new();
+        let mut channels: Vec<Uuid> = Vec::new();
         // Ranged tokens per participant: attacks already committed hold theirs.
         let tokens = &mut self.tokens;
         tokens.begin_tick();
@@ -779,14 +858,122 @@ impl Encounters {
                 .count()
                 == 1;
             let held = enemy.holds_token();
+            let was = (enemy.phase(), enemy.phase_started());
             let intent = enemy.paced_intent(state, &snapshot, tokens);
             tokens.settle(held, enemy.holds_token(), state.tick);
+            if let Some(kind) = enemy.take_bark() {
+                said.push((*group, enemy.id, kind));
+            }
+            if (enemy.phase(), enemy.phase_started()) != was {
+                if let (EnemyPhase::Windup, Some(target)) = (enemy.phase(), enemy.holds_token()) {
+                    raised.push((enemy.id, enemy.kind(), target));
+                }
+            }
             if let Some(player) = state.players.iter_mut().find(|p| p.id == enemy.id) {
                 player.campaign = Some(enemy.identity());
             }
             actions.push((enemy.id, intent));
         }
+        for (group, enemy) in &self.enemies {
+            if enemy.kind() == EnemyKind::Auditor
+                && enemy.phase() == EnemyPhase::Channeling
+                && enemy.phase_started() == state.tick.saturating_add(1)
+                && matches!(self.groups.get(*group), Some(Group::Active { .. }))
+            {
+                channels.push(enemy.id);
+            }
+        }
+        for (group, id) in std::mem::take(&mut self.officers_down) {
+            said.push((group, id, crate::protocol::EnemyBarkKind::OfficerDown));
+        }
+        self.chatter(state, &said, &raised, &channels);
         actions
+    }
+
+    /// Offer this tick's chatter to the spaced channel: the squad's own lines
+    /// first, then Latch's callouts.
+    fn chatter(
+        &mut self,
+        state: &mut GameState,
+        said: &[(usize, Uuid, crate::protocol::EnemyBarkKind)],
+        raised: &[(Uuid, EnemyKind, Uuid)],
+        channels: &[Uuid],
+    ) {
+        use crate::protocol::CompanionBarkKind;
+        for &(group, id, bark) in said {
+            // A guard that cannot speak passes the line to one of its group
+            // that can.
+            if let Some((speaker, speaker_kind, control)) = self.speaker(state, group, id) {
+                if self
+                    .barks
+                    .enemy(state, bark, speaker, speaker_kind, control)
+                {
+                    break;
+                }
+            }
+        }
+        if !channels.is_empty() {
+            self.barks.companion(
+                state,
+                CompanionBarkKind::PriorityTarget,
+                Some(EnemyKind::Auditor),
+            );
+        }
+        for &(id, kind, target) in raised {
+            if kind == EnemyKind::Turret {
+                self.barks.companion(
+                    state,
+                    CompanionBarkKind::PriorityTarget,
+                    Some(EnemyKind::Turret),
+                );
+            }
+            let from = state
+                .players
+                .iter()
+                .find(|p| p.id == id)
+                .map(|p| [p.x, p.y, p.z]);
+            let flanked = from.is_some_and(|from| {
+                state
+                    .players
+                    .iter()
+                    .find(|p| p.id == target)
+                    .is_some_and(|participant| barks::behind(participant, from))
+            });
+            if flanked {
+                self.barks
+                    .companion(state, CompanionBarkKind::FlankWarning, None);
+            }
+        }
+        self.barks.watch_health(state);
+    }
+
+    /// The living body that voices a line for `id`: itself when it speaks,
+    /// otherwise the nearest speaking member of its group.
+    fn speaker(
+        &self,
+        state: &GameState,
+        group: usize,
+        id: Uuid,
+    ) -> Option<(Uuid, EnemyKind, crate::protocol::ControlDomain)> {
+        let origin = state.players.iter().find(|p| p.id == id)?;
+        self.enemies
+            .iter()
+            .filter(|(g, enemy)| {
+                *g == group && barks::register(enemy.kind(), enemy.control()).is_some()
+            })
+            .filter_map(|(_, enemy)| {
+                state
+                    .players
+                    .iter()
+                    .find(|p| p.id == enemy.id && p.hp > 0)
+                    .map(|p| (enemy, (p.x - origin.x).hypot(p.z - origin.z)))
+            })
+            .min_by(|a, b| {
+                (a.0.id != id)
+                    .cmp(&(b.0.id != id))
+                    .then(a.1.total_cmp(&b.1))
+            })
+            .map(|(enemy, _)| (enemy.id, enemy.kind(), enemy.control()))
     }
 
     pub fn hit(
@@ -804,6 +991,9 @@ impl Encounters {
         self.activate(group, feet, tick, false);
         let enemy = &mut self.enemies[index].1;
         enemy.hit(tick, died);
+        if died && enemy.kind() == EnemyKind::Auditor {
+            self.officers_down.push((group, id));
+        }
         Some(enemy.identity())
     }
 

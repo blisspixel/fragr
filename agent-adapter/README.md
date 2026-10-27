@@ -949,7 +949,14 @@ phase as an instant gun hit. A Turret in `moving` is turning its head, not walki
 every kind. A Crawler's `leaping` phase is committed movement after a crouched
 windup; its contact damage is resolved by the server. `crawler_scrabble` events
 in `recent_events` and `get_events` carry a finite world position for the
-mechanical warning, never text or a player identity. Never infer hostility from
+mechanical warning, never text or a player identity. `enemy_bark` events
+(`kind` `sighting`, `flanking` or `officer_down`; `register` `personnel` or
+`unit`) and `companion_bark` events (`kind` `flank_warning`,
+`priority_target` with `subject` `auditor` or `turret`, or `low_health`) carry
+a rotating `variant`, the speaker's id and feet, never caption text; a
+`flanking` bark means a skirmisher is walking around you while an anchor of its
+group fires, and a `flank_warning` means a gun was raised behind your shoulder
+(`docs/protocol.md`). Never infer hostility from
 a callsign,
 body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same

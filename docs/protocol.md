@@ -2118,6 +2118,33 @@ shot at a visible dormant Crawler can wake it before region entry without this
 event. Clients validate its finite three-component shape before playback; the event remains
 available to sound-muted players through the caption and visible attack tell.
 
+**Enemy Bark and Companion Bark Events:** (campaign chatter: Union squad radio
+and Latch's callouts, as keyed facts; the client owns the words, captions and
+recordings)
+```json
+{"type":"event","event":"enemy_bark","kind":"sighting","register":"personnel","variant":0,"speaker_id":"550e8400-e29b-41d4-a716-446655440000","position":[0,0,8]}
+{"type":"event","event":"companion_bark","kind":"priority_target","subject":"turret","variant":1,"speaker_id":"660e8400-e29b-41d4-a716-446655440000","position":[2,0,-1]}
+```
+
+`enemy_bark.kind` is `sighting` (a guard of a woken group saw a participant
+and reacted), `flanking` (a skirmisher leaves the line to go around while an
+anchor of its group fires) or `officer_down` (the group's Auditor fell; a
+living member speaks). `register` is `personnel` (Clerk, Auditor, Enforcer,
+Redactor: short orders) or `unit` (Sweeper, Heavy Sweeper, Ranged Sweeper:
+issued boilerplate). Only Union-controlled bodies speak; equipment, Crawlers,
+absorbed bots and Inheritance machines never do. `companion_bark.kind` is
+`flank_warning` (a gun raised behind a participant's shoulder within 24 m),
+`priority_target` with `subject` `auditor` (a repair channel began) or
+`turret` (a charge began), or `low_health` (a participant fell below 35
+health). It is sent only while Latch is alive and following. `variant` is
+`0..3`, rotated per kind. `position` is the speaker's feet for the spatial
+voice. Lines are rare: a Union line waits 5 s after any line; Latch waits 5 s
+after Latch's own last line and may cut across Union radio; one kind repeats at
+most every 20 s (low health every 30 s). The events are additive and change no
+gameplay contract; readers that do not know them ignore them. Clients validate
+the kind, register, subject, variant range and finite position, and show the
+caption even when the recording is missing or audio is muted.
+
 **Respawn Event:**
 ```json
 {
@@ -2318,8 +2345,8 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`)
-- `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`)
+- `position`: (`crawler_scrabble`, `enemy_bark` and `companion_bark`) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"plate"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health, armor and plate pads carry `amount` (the armour actually gained).
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
 - `winning_team`: (round_end, team modes) the winning side, omitted for a draw. `team_scores` is the final side frags for TDM; `capture_scores` is the final captures for CTF. A CTF round can have an MVP by frags while its winning side is decided by captures.
