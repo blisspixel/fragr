@@ -3777,8 +3777,17 @@ mod mcp_tests {
             player_id: bot,
             text: "scout ant deleted you".into(),
             to_id: Some(victim),
+            team: None,
         });
         ingest_server_text(&mut state, &serde_json::to_string(&addressed).unwrap()).unwrap();
+        let side_call = protocol::ServerMessage::Event(protocol::GameEvent::Speak {
+            player: "Nightfall".into(),
+            player_id: bot,
+            text: "CARRIER MID".into(),
+            to_id: None,
+            team: Some(protocol::Team::Union),
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&side_call).unwrap()).unwrap();
         ingest_server_text(
             &mut state,
             r#"{"type":"event","event":"speak","player":"Probe","player_id":"00000000-0000-0000-0000-000000000009","text":"gg"}"#,
@@ -3789,10 +3798,12 @@ mod mcp_tests {
             .iter()
             .filter(|e| e["event"] == "speak")
             .collect();
-        assert_eq!(speaks.len(), 2);
+        assert_eq!(speaks.len(), 3);
         assert_eq!(speaks[0]["to_id"], victim.to_string());
+        assert!(speaks[0].get("team").is_none(), "a taunt is said to one");
+        assert_eq!(speaks[1]["team"], "union", "a side call keeps its side");
         assert!(
-            speaks[1].get("to_id").is_none(),
+            speaks[2].get("to_id").is_none() && speaks[2].get("team").is_none(),
             "a room-wide line names nobody"
         );
     }

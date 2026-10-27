@@ -549,6 +549,10 @@ participants. Prefer explicit IDs, including after bodies leave the snapshot.
 - A `speak` event may carry an optional `to_id`: the one fighter the line is
   said to, such as a rule bot's frag taunt to its victim. Without it the line
   is for the whole room.
+- A `speak` event may instead carry an optional `team` (gameplay 60): the side
+  a rule bot's objective callout is said to ("i have the flag. walk me home").
+  `get_events` keeps it. Every fact a callout names is already in `observe`;
+  an agent on the other side reads it as the other side's chatter.
 - Events are also included in `observe` output under `recent_events`
 - Set `clear: true` to acknowledge events and reset buffer
 

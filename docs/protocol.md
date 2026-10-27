@@ -1116,6 +1116,7 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - MCP adapter mirrors the cooldown and returns tool `isError` (never a success toast on a no-op)
 - Spectators cannot speak
 - Named server rule bots may emit occasional Speak taunts on frag, death, Warmup and a streak of 2, 3 or 5 via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
+- Named rule bots also make rare objective callouts to their own side in capture the flag and Sabotage (gameplay 60, the event's `team`); the same cooldown applies, and NODS make none
 
 #### Wire board
 
@@ -2159,6 +2160,26 @@ taunt carries its victim's id (`"scout ant deleted you"` is said to that
 fighter). The Godot client shows an addressed line only when its viewer is that
 fighter or is watching through that fighter's eyes; a line without `to_id` is
 for the whole room.
+
+Optional `team` (gameplay 60, `"union"` or `"coalition"`) names the side a
+line is said to: a named rule bot's objective callout in capture the flag or
+Sabotage, such as `"i have the flag. walk me home"` or
+`"CHARGE SET A HOLD"`. The Godot client shows it to a fighter on that side
+and to a spectator following one, with the side's shape mark and label colour;
+a free spectator camera hears both sides. The line names only facts every
+snapshot already carries (who holds a flag, where they stand, the charge), so
+the field addresses a line and hides nothing. See [Side calls](#side-calls-capability-60).
+
+```json
+{
+  "type": "event",
+  "event": "speak",
+  "player": "Nightfall",
+  "player_id": "550e8400-e29b-41d4-a716-446655440000",
+  "text": "CARRIER MID",
+  "team": "union"
+}
+```
 
 **Venue notice.** The person at a dedicated `--console` desk, not a player
 and not the on-air Host. The text already begins `The venue: `.
@@ -3922,4 +3943,15 @@ first in line first, omitted while empty), and the `next_up` and
 side's ticket count inverse (ink on a warm-white plate, never a faction
 colour), sounds a low siren every four seconds and a
 heartbeat on the last ten tickets, from the ticket counts it already
-receives. Arcade rooms require 59.
+receives. Arcade rooms required 59 until 60.
+
+### Side calls (capability 60)
+
+Gameplay 60 adds the optional `team` on the `speak` event: the side a line
+is said to. Named rule bots use it for objective callouts in capture the flag
+and Sabotage (taking the flag, seeing the carrier of their own flag, planting,
+defusing), in their callsign's register. A side hears at most one such call
+every fifteen seconds, a call waits two seconds after any Host call, and a call
+that stopped being true before it could be said is dropped. A reader that
+ignored `team` would show one side's calls to the other, so arcade rooms
+require 60.

@@ -115,6 +115,12 @@ func _run() -> void:
 	game._on_event_received({"event":"frag", "killer":"Other", "victim":"Victim"})
 	game._on_event_received({"event":"host_reaction", "kind":"triple_frag", "variant":0, "player":"Other", "big":true})
 	hud.show_speak("Agent", "Free weights.")
+	var nobody: Array[String] = []
+	_check(not hud.show_speak("Nightfall", "CARRIER MID", "", nobody, "union", "coalition"), "a side's call never reaches the other side")
+	_check(hud.show_speak("Nightfall", "CARRIER MID", "", nobody, "union", "union"), "a side hears its own call")
+	var called: Label = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
+	_check(called.text == MatchRules.UNION_SHAPE_MARK + " Nightfall: CARRIER MID", "a side's call carries its shape mark: " + called.text)
+	_check(hud.show_speak("Hermes", "flag secured", "", nobody, "coalition", ""), "a free camera hears both sides")
 	hud.show_compliance_ping("Pressure")
 	hud.show_boss_spawn("Drone", "Compliance drone")
 	hud.show_boss_down("Gone", "Other")

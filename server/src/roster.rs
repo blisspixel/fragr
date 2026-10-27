@@ -11,7 +11,9 @@
 use crate::protocol::{BodyKind, BotTauntKind, Team};
 use crate::sim::BotBehavior;
 
+mod callouts;
 mod habits;
+pub use callouts::{objective_line, ObjectiveCall, Reach};
 pub use habits::{behavior_habits, grudge_line, habits, Habits, PadHabit};
 
 /// Which seats a callsign may fill.

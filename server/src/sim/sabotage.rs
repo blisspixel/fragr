@@ -353,6 +353,18 @@ impl GameState {
             site,
             score,
         });
+        let call = match (kind, site) {
+            (SabotageEventKind::Planted, Some(site)) => {
+                Some(crate::roster::ObjectiveCall::Planted(site))
+            }
+            (SabotageEventKind::DefuseStarted, Some(site)) => {
+                Some(crate::roster::ObjectiveCall::Defusing(site))
+            }
+            _ => None,
+        };
+        if let (Some(call), Some(id)) = (call, player) {
+            self.queue_callout(id, call);
+        }
     }
 
     /// The charge leaves a carrier who died, left, detached or changed side,

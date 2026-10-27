@@ -3326,7 +3326,8 @@ func _on_event_received(data):
 		var viewers: Array[String] = [_followed_player_id()]
 		if is_human_player and net_client.player_id != null:
 			viewers.append(str(net_client.player_id))
-		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers)
+		var side: String = MatchRules.valid_team(data.get("team"))
+		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers, side, _viewer_side())
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():
@@ -4069,6 +4070,15 @@ func _carried_flag_team(subject: String, flags: Variant) -> String:
 		if str(flag.get("status", "")) != "carried" or str(flag.get("carrier", "")) != subject:
 			continue
 		return MatchRules.valid_team(flag.get("team"))
+	return ""
+
+## The side whose calls this view hears: the local fighter's, else the
+## followed fighter's, else none (a free camera hears both sides).
+func _viewer_side() -> String:
+	var subject: String = str(local_fp_pawn_id) if is_human_player else _followed_player_id()
+	var pawn: Variant = players.get(subject)
+	if pawn is Node and is_instance_valid(pawn):
+		return MatchRules.valid_team(pawn.get("team"))
 	return ""
 
 func _followed_player_id() -> String:

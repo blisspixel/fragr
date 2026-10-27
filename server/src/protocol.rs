@@ -827,7 +827,11 @@ pub const BOOTH_GAMEPLAY_VERSION: u32 = 58;
 /// Guns dropped on death, the Duel line and seat calls, the Conquest bleed
 /// call and the hand-over call.
 pub const ARENA_RULES_GAMEPLAY_VERSION: u32 = 59;
-pub const GAMEPLAY_VERSION: u32 = ARENA_RULES_GAMEPLAY_VERSION;
+/// Side-addressed speak lines: a rule bot's objective callouts carry the
+/// `team` they are said to, and a reader that ignored it would show one
+/// side's calls to the other.
+pub const SIDE_CALLS_GAMEPLAY_VERSION: u32 = 60;
+pub const GAMEPLAY_VERSION: u32 = SIDE_CALLS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -2000,6 +2004,14 @@ pub enum GameEvent {
         /// lines meant for the whole room.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         to_id: Option<Uuid>,
+        /// The side a line is said to (capability 60): a rule bot's objective
+        /// callout ("i have the flag") is for its own side, and a client
+        /// shows it only to a fighter on that side, or to a spectator who
+        /// follows one or follows nobody. Every fact a callout names is
+        /// already public in the snapshot; this addresses it, never hides it.
+        /// Absent for lines meant for the whole room.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        team: Option<Team>,
     },
     /// One ordinary sentence from the person running the venue. Not a player
     /// callout and not an on-air Host line.
@@ -2268,6 +2280,7 @@ mod protocol_tests {
             player_id: id,
             text: "nice scrap".into(),
             to_id: None,
+            team: None,
         };
         let v = serde_json::to_value(&ev).unwrap();
         assert_eq!(v["event"], "speak");
@@ -2294,11 +2307,31 @@ mod protocol_tests {
             player_id: id,
             text: "scout ant deleted you".into(),
             to_id: Some(victim),
+            team: None,
         };
         let v = serde_json::to_value(&addressed).unwrap();
         assert_eq!(v["to_id"], victim.to_string());
+        assert!(
+            v.get("team").is_none(),
+            "a line to one fighter names no side"
+        );
         match serde_json::from_value::<GameEvent>(v).unwrap() {
             GameEvent::Speak { to_id, .. } => assert_eq!(to_id, Some(victim)),
+            other => panic!("expected Speak, got {:?}", other),
+        }
+        let side_call = GameEvent::Speak {
+            player: "Nightfall".into(),
+            player_id: id,
+            text: "CARRIER MID".into(),
+            to_id: None,
+            team: Some(Team::Union),
+        };
+        let v = serde_json::to_value(&side_call).unwrap();
+        assert_eq!(v["team"], "union");
+        match serde_json::from_value::<GameEvent>(v).unwrap() {
+            GameEvent::Speak { team, to_id, .. } => {
+                assert_eq!((team, to_id), (Some(Team::Union), None));
+            }
             other => panic!("expected Speak, got {:?}", other),
         }
     }

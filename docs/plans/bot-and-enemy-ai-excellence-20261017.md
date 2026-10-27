@@ -1,6 +1,6 @@
 # Bot and Enemy AI Excellence: Tactical Squads, Dynamic Companions, and Fun-First Combat
 
-Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) came with wave 3; the third (Larak Lot rule bots: the Rocket, callsign habits, grudges and the Scatter meatshot) is on `wave4/bots`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
+Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) came with wave 3; the third (Larak Lot rule bots: the Rocket, callsign habits, grudges and the Scatter meatshot) came with wave 4; the fourth (weapons dropped on death) with wave 11; the fifth (how a holder uses the Rocket, CTF pads and objective callouts) is on `wave12/mp-bots`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
 
 ## 1. Executive Summary and Current Architecture Audit
 
@@ -242,3 +242,39 @@ Drops alone, before bots learned them (15 s): Rocket 3.7%, Flechette 45%,
 26.1 pickups a minute against 30.4 once bots walk to what they see.
 
 The Rocket target (15 to 25% at six) is **not met**: 3.9% to 6.1%. Lifetime moves it inside noise (4.2% to 5.4%); a longer lifetime only lets more Flechettes circulate. Drops added about 90 Rocket lives over 72 minutes of six-bot play to the 140 the pad gives, and 441 rockets were fired against 321, but a rocket still kills about once in five (160 of 441 hurt someone). The Rocket's frag share at six is limited by how often a launcher is in a living hand in its band, and a dropped launcher mostly goes to whoever just won the fight nearby, usually with a Flechette in hand. Reaching 15% needs the lot to carry more launchers (a second pad), or bots that hold the Rocket longer in mid-range trades; both are map or controller decisions outside a drop rule. With every found gun dropping, the Flechette share rose past the 45% gate (41% to 50%), because dropped Flechettes keep circulating; the shipped rule keeps the Flechette behind and lands at 36%. Frags per minute, the Plate and spawn deaths held. Nick's call whether drops stay in Duel, where the Rocket share moved from 29% to 26%.
+
+**Fifth slice, 2026-10-27 (`wave12/mp-bots`, Refs #432).** Implemented, not merged. How a holder uses the Rocket, CTF bots that take pads, and objective callouts.
+
+- The Rocket, measured first. The survey now counts Rocket lives (from the moment a fighter holds a launcher with rounds until it dies or fires the last one), their length, how many end in death, and how much of the life the launcher is in hand. On the six-bot lot a life lasted 4.3 s and half of them ended with the rack fired dry, not in death: 470 rockets for about 91 frags. A diagnostic trace (not shipped) put the waste in range: rockets fired from 20 to 32 m hurt nobody four times in five, inside 10 m two in three found a body, and the holder mostly died inside 12 m, often to a Pistol, with the launcher held because the old 5 m safe distance refused the shot.
+- Close rockets. In the arena a fighter takes 0.6 of its own splash, so a blast 3 m off costs the shooter a few points and the target the whole rocket. The safe distance is now 3 m and the band starts at 3.5 m (`ROCKET_SAFE`, `ROCKET_BAND`).
+- A rack of four is spent where it lands. A holder fires on its own floor only inside 16 m (`ROCKET_SURE`), or from 1.5 m or more above a body within 24 m, whose floor catches the splash. Past that it keeps the launcher up and closes in rather than swapping to the Flechette.
+- Drops. A Rocket a bot has seen lying within 15 m, while it holds none, is worth leaving a fight past 12 m for, the way a timed power pad is.
+- CTF pads. Off the fight, a CTF bot takes a pad it needs inside its role's leash, from what it believes about the pads (seen, with published clocks; no live timer): health at 70 or under, armour under 50, rounds for a gun down to half its spawn kit. A carrier takes only health, and only a step (6 m) off its way home; an escort a step off its line; a runner a detour of up to 14 m; a defender only pads within 24 m of its stand. Nobody stops for a pad while its side's flag is stolen or lying out.
+- Objective callouts (Milestone 5, multiplayer). A named rule bot tells its own side, in text, when it takes the enemy flag, when it sees the fighter carrying its side's flag (where, in thirds of the line between the stands, once per carry and only through its senses), when it plants the charge and when it starts defusing. Lines follow the callsign's register (`server/src/roster/callouts.rs`: the Night Watch in capitals, the Static Kids short of vowels, Union units in boilerplate, Hermes polite, L5 terse; NODS say nothing). They go out as `speak` events with the side they are said to (gameplay 60), at most one per side every 15 s, two seconds clear of any Host call, and a call that stopped being true before it could be said is dropped. The client shows a side's call to that side and to a spectator following one of it, with the side's shape mark and label colour; a free camera hears both.
+
+Measured with `fragr-playtest --bot-survey --survey-lot --seed 1 --survey-seeds 24 --time-limit-seconds 180` in release, `wave11/integration` at `5b4ad2c3` against this slice:
+
+| Larak Lot, 24 seeds of 180 s | Frags/min | Rocket share of frags | Rockets fired (hurt someone) | Plate claims per 3 min | Flechette / Pistol share of shots | Spawn deaths per spawn | Rocket lives (s each, ended by death) |
+|---|---|---|---|---|---|---|---|
+| FFA, 6 | 20.7 to 20.5 | 6.1% to 8.2% | 470 (176) to 470 (254) | 3.4 to 3.6 | 36% / 35% to 33% / 38% | 0.022 to 0.026 | 207 (4.3, 51%) to 286 (4.7, 65%) |
+| FFA, 4 | 11.2 to 10.3 | 9.8% to 12.6% | 456 (181) to 437 (239) | 3.1 to 3.6 | 47% / 17% to 40% / 21% | 0.014 to 0.010 | 238 (6.9, 61%) to 238 (8.1, 58%) |
+| Duel, 2 | 2.3 to 2.4 | 26.3% to 32.0% | 279 (161) to 315 (188) | 4.0 to 3.9 | 35% / 4% to 34% / 4% | 0.000 to 0.005 | 137 (27.8, 47%) to 146 (26.1, 44%) |
+
+Rockets that hurt somebody went from 37% to 54% of those fired at six, and more launchers stay in play (286 lives against 207) because a holder now dies with rounds left and the gun drops. The Rocket target at six (15 to 25%) is still **not met**. Supply is no longer what limits it: a holder lives under five seconds and trades about one frag per death, because at bot accuracy a one-round launcher on a 0.8 s cycle loses most close trades to hitscan. Frags a minute at four fell from 11.2 to 10.3 while holders close in instead of firing long; six and Duel held.
+
+Tried and not shipped, same survey (Rocket share at six / four / Duel):
+
+| Variant on top of the shipped rules | Six | Four | Duel |
+|---|---|---|---|
+| Shipped | 8.2% | 12.6% | 32.0% |
+| Rocket regulars keep the Rocket pad as an appointment | 7.7% | 14.6% | 22.0% |
+| The holder perches on the nearest height between fights | 8.0% | 15.3% | 43.3% |
+| A holder under 50 health breaks off a fight past 8 m for health | 8.6% | 14.1% | 37.0% |
+| Both of the last two | 8.1% | 14.6% | 52.3% |
+| Band ends at 20 m (swap to hitscan past it) | 5.8% | 10.5% | 24.7% |
+
+None moves the six-bot share by more than the point or so that unrelated small rule changes move it, the perch tips Duel toward a Rocket game, and the appointment drags Duel bots off fights. Holder lifetime, not supply or shot choice, now sets the six-bot share; raising it further is a weapon decision (the Rocket's cycle, splash or rack) or the second launcher on the lot, both Nick's.
+
+CTF on Sector 9, `fragr-playtest --bot-survey --seed 1 --survey-seeds 24 --time-limit-seconds 150` (eight bots): 25 to 27 captures, 7.7 to 7.4 frags a minute, 0.2 to 0.6 pickups a minute (8 to 35 power returns). Side calls: 2.8 a minute in CTF across both sides, 0.7 in Sabotage; none in the free-for-all, TDM or Conquest rows. Sabotage and the other rows did not change.
+
+Still open: the Rocket target at six, which this slice shows is not a use problem; voiced callouts (text only here); dormant guard cones and squad roles (the campaign lane).
