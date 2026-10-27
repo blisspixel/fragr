@@ -673,16 +673,23 @@ TLS session remain open. The next measurement step is still pass 1.
 `--traffic` on `fragr-playtest` starts a local server and fills it with
 synthetic fighters and read-only spectators. Fighters send movement and a
 held trigger at a chosen rate. They do not pathfind, so the load is the
-tick, the shots, and the fan-out. One loopback address holds 32
-connections. A roster through 64 uses the next loopback addresses.
-Linux and Windows already assign `127.0.0.0/8`. macOS assigns only
-`127.0.0.1` until an alias is added, so a roster past 32 there needs
-`ifconfig lo0 alias` first. The
-report records actions, snapshots, bytes, the tick counters, and health.
-`--assert` checks that the roster stayed up. It does not declare the 50 ms
-budget met. The measurement table for pass 1 is still empty. A debug run
-is a smoke of the generator. A release binary, with the roster and the
-machine written down beside the numbers, is what fills that table.
+tick, the shots, and the fan-out. Each loopback address takes up to 24
+fighters (under the loopback join rate of 30 in ten seconds) and 8
+spectators (the loopback spectator cap). A roster through 64 uses the next
+loopback addresses. Linux and Windows already assign `127.0.0.0/8`. macOS
+assigns only `127.0.0.1` until an alias is added, so a larger roster there
+needs `ifconfig lo0 alias` first. `--traffic-hz 0` holds fighters idle
+(joined and reading, sending nothing), `--traffic-burst N` writes N actions
+at once at the same mean rate, and `--traffic-bots` takes up to 96. Report
+schema 2 records actions, snapshots, bytes, the tick counters and health,
+and, against the binary, what the server process paid: its resident set
+before clients, connected, at the end and after they leave, CPU time over the
+held window, kernel socket memory, and its own tick trace for that window
+(late, total, simulation, encode and fan-out, over budget, skipped periods).
+It also records the snapshot's composition and, for every live fighter, the
+share of others beyond 16, 32 and 64 m. `--assert` checks that the roster
+stayed up. It does not declare the 50 ms budget met. The first pass 1 table
+is in [BENCHMARK.md](../BENCHMARK.md#stage-1-stress-baseline-434).
 
 ## Polish
 
@@ -759,8 +766,17 @@ Templates stay plan-only the whole time.
    separately. Record p99, bytes out, write-buffer high water, missed ticks,
    outbound overflows, and how often a snapshot was not queued because that
    client was behind. Count those last two apart from a missed tick, and
-   record how often bots are still on a cached path. No rule change. The
-   table lives in this file when the run exists.
+   record how often bots are still on a cached path. No rule change. First
+   run 2026-10-27 (#434), tables in
+   [BENCHMARK.md](../BENCHMARK.md#stage-1-stress-baseline-434): 16, 32 and
+   64 connections on Larak Lot and Tripoint Works, up to 101 fighters with
+   bots, held every deadline on a lightly loaded 16-thread host; egress, not
+   CPU, grows fastest (17 MiB/s at 48 fighters and 64 connections). A slow
+   reader is not closed until its kernel send buffer fills (38 s at half
+   rate, 35 s stale), and a stalled one closes at about 29 s; healthy
+   readers are unaffected. Distance relevance would cut 5 to 8 percent of
+   entries on Larak Lot at 64 m, so deltas (pass 5) come first. Bot path
+   cache use was not recorded.
 2. **Bot senses.** Reaction delay, aim noise, a view cone, line of sight, and
    a last-known position. Tiers change only those knobs. Decisions near 10 Hz,
    staggered. Movement stays at 20 Hz. Seeded tests at 8 and 16: no kills
