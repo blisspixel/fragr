@@ -2647,6 +2647,9 @@ mod side_call_tests {
     use crate::rules::RuleSet;
     use crate::sim::MatchConfig;
 
+    /// A connection and the fighter it drives.
+    type Seat = (Uuid, Uuid);
+
     fn is_side_call(message: &ServerMessage) -> bool {
         matches!(
             message,
@@ -2695,7 +2698,7 @@ mod side_call_tests {
         };
         let speaker = clients[0].1;
         let side = team_of(&session, speaker);
-        let (own, other): (Vec<(Uuid, Uuid)>, Vec<(Uuid, Uuid)>) = clients
+        let (own, other): (Vec<Seat>, Vec<Seat>) = clients
             .iter()
             .copied()
             .partition(|(_, player)| team_of(&session, *player) == side);
