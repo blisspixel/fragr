@@ -43,7 +43,9 @@ request, asset charge or weapon-gunshot substitution.
 |---|---|
 | `fire.wav`, `hit.wav` | Fallback weapon fire and the generic hit (health drops without a resolved shot) |
 | `fire_tack.wav`, `fire_flechette.wav`, `fire_rail.wav`, `fire_scatter.wav` | Per-weapon fire |
-| `shotgun/cycle.wav` | Shotgun pump cycle, 0.22 s after each blast, inside the 0.60 s cooldown |
+| `shotgun/cycle.wav` | Shotgun pump clack (rack back, slam forward), 0.22 s after each blast, inside the 0.60 s cooldown |
+| `hit_chime/body.wav`, `head.wav`, `kill.wav` | The shooter's hit confirm (`hit_chime.gd`): a steel tick pitched by the reported damage, a brighter ping when `shot_results` says `head`, a heavy clang for the frag; a stopped shot replays the tick low and quiet |
+| `host/<kind>_<variant>.mp3` | The Host's voiced calls, one name-free recording per voiced `HostReactionKind` and variant (`host_voice.gd`, Announcer bus) |
 | `hit_tack.wav`, `hit_flechette.wav`, `hit_rail.wav`, `hit_scatter.wav` | Impact of the gun a resolved shot names, once per struck body |
 | `melee/fists.wav`, `melee/shiv.wav` | Melee swings (never a Crawler's leap contact) |
 | `clerk/tell.wav`, `sweeper/tell.wav`, `heavy_sweeper/tell.wav`, `turret/tell.wav` | Union windup tells, `<kind>/tell.wav`, cut off when the windup ends |
@@ -66,7 +68,16 @@ request, asset charge or weapon-gunshot substitution.
 | `m02/floor_machinery_loop.wav` | Processing-floor spatial machinery bed |
 | `radio/<station>/` | Contested Frequency radio tracks, grouped by station id; `radio/stations.json` names the stations |
 
-Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit, pump, melee, tells and falls), `client/scripts/game_manager.gd` (frag, round, Crawler, pickup and dry-trigger cues, and resolved-shot impacts), `client/scripts/grenade_effects.gd` (throw, bounce and blast), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
+The 2026-10-27 pass (`specs/hit-chime-scatter-20261027.json`,
+`specs/host-calls-callum-20261027.json`) added the hit chime tiers, the pump
+clack and the Host's calls, and laid an original procedural sub kick (a sine
+sweeping 120 to 48 Hz) under the Shotgun blast, which keeps its K50 of -7.3.
+Each manifest title records the take, the chain and the measured level. The
+chime sits at K50 -14 (body), -13 (head) and -12 (kill); Host calls sit at
+K50 -12 through a -3 dBFS peak limiter, mono 44.1 kHz MP3. Listening
+acceptance remains separate from these measurements.
+
+Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit, pump, melee, tells and falls), `client/scripts/game_manager.gd` (frag, round, Crawler, pickup and dry-trigger cues, and resolved-shot impacts), `client/scripts/hit_chime.gd` (hit confirm tiers, through `hud.gd`), `client/scripts/host_voice.gd` (Host calls), `client/scripts/grenade_effects.gd` (throw, bounce and blast), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
 The 2026-10-02 [sound pass](../../../docs/plans/sound-pass-20261002.md)
 rebuilt the Shotgun from five full-band 48 kHz layers and added the pump cycle,

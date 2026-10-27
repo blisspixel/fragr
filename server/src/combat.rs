@@ -187,17 +187,20 @@ pub fn head_hit_for(
     impact_y >= gate && impact_y <= top
 }
 
+/// Whether a pellet in the head band doubles this weapon's damage.
+pub const fn head_bonus(weapon: crate::protocol::WeaponType) -> bool {
+    !matches!(
+        weapon,
+        crate::protocol::WeaponType::Fists
+            | crate::protocol::WeaponType::Shiv
+            | crate::protocol::WeaponType::ArticleBlade
+    )
+}
+
 /// Body damage, or double when the pellet is in the head band. Fists, the
 /// Shiv and the Article Blade stay flat: a punch or sword cut has no head bonus.
 pub fn traced_damage(weapon: crate::protocol::WeaponType, body: i32, head: bool) -> i32 {
-    if head
-        && !matches!(
-            weapon,
-            crate::protocol::WeaponType::Fists
-                | crate::protocol::WeaponType::Shiv
-                | crate::protocol::WeaponType::ArticleBlade
-        )
-    {
+    if head && head_bonus(weapon) {
         body.saturating_mul(HEAD_DAMAGE_SCALE)
     } else {
         body

@@ -1477,6 +1477,11 @@ pub struct ShotResult {
     /// True only for the shot that first takes this target to zero HP.
     #[serde(default)]
     pub killed: bool,
+    /// A pellet of this result struck the head band and doubled damage that
+    /// landed. Presentation only (the shooter's headshot confirm); `damage`
+    /// already counts it. Omitted when false.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub head: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -2104,6 +2109,7 @@ mod protocol_tests {
         let shot = ShotResult {
             trace: None,
             killed: false,
+            head: false,
             shooter_id,
             shooter: "A".into(),
             hit: true,

@@ -1732,7 +1732,7 @@ receives those same bytes; targeted messages are encoded per session.
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
   carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
-  `damage`, `killed`, and `trace`. Do not join only against surviving `players` to
+  `damage`, `killed`, optional `head`, and `trace`. Do not join only against surviving `players` to
   count shots or infer their weapon.
 - `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
@@ -1811,7 +1811,10 @@ at most once a tick, so all of one shooter's results in a tick are one shot.
 before armour absorption, including overkill; it is zero on a miss or when that
 committed ray reaches a fighter already killed earlier in the same tick.
 `killed` is true only for the shot that first takes the victim to zero HP. Older
-records default it to false. Committed shots can trade kills; later hits cannot
+records default it to false. `head` is present and true when a pellet of that
+result struck the head band of a gun with a head bonus and doubled damage that
+landed (a shield that took nothing is no headshot); `damage` already counts it.
+It drives only the shooter's headshot confirm sound. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
 
@@ -2675,7 +2678,7 @@ in Sabotage.
 | `match_point` | yes | Once per round each: a side one frag or capture from the limit, a Sabotage side one round win from the match, or the first free-for-all fighter one frag from the limit | Free-for-all: `player`, `team`. Otherwise `team` the side |
 | `sudden_death` | yes | The clock ran out level and stopped, or a level Sabotage match starts its deciding round | None |
 | `golden_rail` | no | Somebody takes the golden Railgun | `player` the holder, `team` their side |
-| `larak_lot_special` | no | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
+| `larak_lot_special` | yes | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
 | `next_up` | no | Gameplay 59, Duel: the head of the line is called to a seat. Never held back | `player` the watcher called, `other` the winner who stays when a round passed the seat (absent for a free seat, which keys `HOST_REACTION_NEXT_UP_OPEN_<VARIANT>`) |
 | `tickets_low` | yes | Gameplay 59, Conquest: a side falls under `CONQUEST_BLEED_TICKETS` (25), once per side per round; a call held back by the spacing is made when the spacing allows | `team` the side (keys `_SIDE`) |
 

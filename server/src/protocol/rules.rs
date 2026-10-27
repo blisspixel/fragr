@@ -311,7 +311,7 @@ pub enum HostReactionKind {
     /// Level at the clock: the next score decides.
     SuddenDeath,
     /// Larak Lot only: the frag count spikes across the lot, and the Host
-    /// calls it what the league calls it. Text only.
+    /// calls it what the league calls it. Voiced.
     LarakLotSpecial,
     /// Duel: the head of the line takes a seat; `player` is who, `other`
     /// the winner who stays, when a round passed it. Text only, and always

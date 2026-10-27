@@ -1,0 +1,1445 @@
+{
+  "out_dir": ".agents/wave12-host-audio/host/raw",
+  "items": [
+    {
+      "kind": "tts",
+      "name": "host/first_blood_0_a",
+      "text": "[deadpan] First blood. Somebody had to.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_0_b",
+      "text": "[deadpan] First blood. Somebody had to.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_0_c",
+      "text": "[deadpan] First blood. Somebody had to.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_1_a",
+      "text": "[deadpan] That opens the books.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_1_b",
+      "text": "[deadpan] That opens the books.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_1_c",
+      "text": "[deadpan] That opens the books.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_2_a",
+      "text": "[deadpan] First one on the board.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_2_b",
+      "text": "[deadpan] First one on the board.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/first_blood_2_c",
+      "text": "[deadpan] First one on the board.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host first_blood 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_0_a",
+      "text": "[deadpan] That streak is over. Say something nice.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_0_b",
+      "text": "[deadpan] That streak is over. Say something nice.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_0_c",
+      "text": "[deadpan] That streak is over. Say something nice.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_1_a",
+      "text": "[deadpan] And that ends the show.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_1_b",
+      "text": "[deadpan] And that ends the show.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_1_c",
+      "text": "[deadpan] And that ends the show.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_2_a",
+      "text": "[deadpan] That run is done. Somebody signed for it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_2_b",
+      "text": "[deadpan] That run is done. Somebody signed for it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/streak_ended_2_c",
+      "text": "[deadpan] That run is done. Somebody signed for it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host streak_ended 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_0_a",
+      "text": "[deadpan] One left. The booth is standing.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_0_b",
+      "text": "[deadpan] One left. The booth is standing.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_0_c",
+      "text": "[deadpan] One left. The booth is standing.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_1_a",
+      "text": "[deadpan] One left. No pressure.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_1_b",
+      "text": "[deadpan] One left. No pressure.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_1_c",
+      "text": "[deadpan] One left. No pressure.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_2_a",
+      "text": "[deadpan] Down to the last one. Same rules.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_2_b",
+      "text": "[deadpan] Down to the last one. Same rules.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/last_standing_2_c",
+      "text": "[deadpan] Down to the last one. Same rules.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host last_standing 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_0_a",
+      "text": "[deadpan] Clawed it back. Level game.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_0_b",
+      "text": "[deadpan] Clawed it back. Level game.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_0_c",
+      "text": "[deadpan] Clawed it back. Level game.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_1_a",
+      "text": "[deadpan] Nobody believed them. Level again.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_1_b",
+      "text": "[deadpan] Nobody believed them. Level again.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_1_c",
+      "text": "[deadpan] Nobody believed them. Level again.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_2_a",
+      "text": "[deadpan] Down and out, then level. Everybody.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_2_b",
+      "text": "[deadpan] Down and out, then level. Everybody.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/comeback_2_c",
+      "text": "[deadpan] Down and out, then level. Everybody.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host comeback 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_0_a",
+      "text": "[deadpan] Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_0_b",
+      "text": "[deadpan] Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_0_c",
+      "text": "[deadpan] Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_1_a",
+      "text": "[deadpan] Three, just like that.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_1_b",
+      "text": "[deadpan] Three, just like that.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_1_c",
+      "text": "[deadpan] Three, just like that.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_2_a",
+      "text": "[deadpan] Takes three. Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_2_b",
+      "text": "[deadpan] Takes three. Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/triple_frag_2_c",
+      "text": "[deadpan] Takes three. Triple frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host triple_frag 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_0_a",
+      "text": "[deadpan] Quad frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_0_b",
+      "text": "[deadpan] Quad frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_0_c",
+      "text": "[deadpan] Quad frag.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_1_a",
+      "text": "[deadpan] Four. Not stopping.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_1_b",
+      "text": "[deadpan] Four. Not stopping.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_1_c",
+      "text": "[deadpan] Four. Not stopping.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_2_a",
+      "text": "[deadpan] Four. Unreal.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_2_b",
+      "text": "[deadpan] Four. Unreal.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/quad_frag_2_c",
+      "text": "[deadpan] Four. Unreal.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host quad_frag 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_0_a",
+      "text": "[deadpan] Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_0_b",
+      "text": "[deadpan] Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_0_c",
+      "text": "[deadpan] Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_1_a",
+      "text": "[deadpan] Five in a row.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_1_b",
+      "text": "[deadpan] Five in a row.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_1_c",
+      "text": "[deadpan] Five in a row.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_2_a",
+      "text": "[deadpan] Empties the room. Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_2_b",
+      "text": "[deadpan] Empties the room. Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/frag_storm_2_c",
+      "text": "[deadpan] Empties the room. Frag storm.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host frag_storm 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_0_a",
+      "text": "[deadpan] Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_0_b",
+      "text": "[deadpan] Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_0_c",
+      "text": "[deadpan] Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_1_a",
+      "text": "[deadpan] That is a rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_1_b",
+      "text": "[deadpan] That is a rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_1_c",
+      "text": "[deadpan] That is a rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_2_a",
+      "text": "[deadpan] Nobody has touched them. Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_2_b",
+      "text": "[deadpan] Nobody has touched them. Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/rampage_2_c",
+      "text": "[deadpan] Nobody has touched them. Rampage.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host rampage 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_0_a",
+      "text": "[deadpan] Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_0_b",
+      "text": "[deadpan] Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_0_c",
+      "text": "[deadpan] Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_1_a",
+      "text": "[deadpan] That is a riot. Somebody stop this.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_1_b",
+      "text": "[deadpan] That is a riot. Somebody stop this.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_1_c",
+      "text": "[deadpan] That is a riot. Somebody stop this.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_2_a",
+      "text": "[deadpan] Still standing, still shooting. Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_2_b",
+      "text": "[deadpan] Still standing, still shooting. Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/riot_2_c",
+      "text": "[deadpan] Still standing, still shooting. Riot.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host riot 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_0_a",
+      "text": "[deadpan] Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_0_b",
+      "text": "[deadpan] Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_0_c",
+      "text": "[deadpan] Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_1_a",
+      "text": "[deadpan] Completely untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_1_b",
+      "text": "[deadpan] Completely untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_1_c",
+      "text": "[deadpan] Completely untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_2_a",
+      "text": "[deadpan] Nobody can find them. Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_2_b",
+      "text": "[deadpan] Nobody can find them. Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/untouchable_2_c",
+      "text": "[deadpan] Nobody can find them. Untouchable.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host untouchable 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_0_a",
+      "text": "[deadpan] Flag captured. That scores.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_0_b",
+      "text": "[deadpan] Flag captured. That scores.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_0_c",
+      "text": "[deadpan] Flag captured. That scores.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_1_a",
+      "text": "[deadpan] Brings it home.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_1_b",
+      "text": "[deadpan] Brings it home.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_1_c",
+      "text": "[deadpan] Brings it home.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_2_a",
+      "text": "[deadpan] Capture. That counts.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_2_b",
+      "text": "[deadpan] Capture. That counts.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/flag_captured_2_c",
+      "text": "[deadpan] Capture. That counts.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host flag_captured 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_0_a",
+      "text": "[deadpan] Charge planted. Clock is running.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_0_b",
+      "text": "[deadpan] Charge planted. Clock is running.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_0_c",
+      "text": "[deadpan] Charge planted. Clock is running.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_1_a",
+      "text": "[deadpan] It's planted. Find it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_1_b",
+      "text": "[deadpan] It's planted. Find it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_1_c",
+      "text": "[deadpan] It's planted. Find it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_2_a",
+      "text": "[deadpan] It's in. Everybody move.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_2_b",
+      "text": "[deadpan] It's in. Everybody move.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/charge_planted_2_c",
+      "text": "[deadpan] It's in. Everybody move.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host charge_planted 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_0_a",
+      "text": "[deadpan] Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_0_b",
+      "text": "[deadpan] Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_0_c",
+      "text": "[deadpan] Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_1_a",
+      "text": "[deadpan] One more.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_1_b",
+      "text": "[deadpan] One more.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_1_c",
+      "text": "[deadpan] One more.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_2_a",
+      "text": "[deadpan] One away. Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_2_b",
+      "text": "[deadpan] One away. Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/match_point_2_c",
+      "text": "[deadpan] One away. Match point.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host match_point 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_0_a",
+      "text": "[deadpan] Sudden death.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_0_b",
+      "text": "[deadpan] Sudden death.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_0_c",
+      "text": "[deadpan] Sudden death.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_1_a",
+      "text": "[deadpan] Level. Sudden death. This decides it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_1_b",
+      "text": "[deadpan] Level. Sudden death. This decides it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_1_c",
+      "text": "[deadpan] Level. Sudden death. This decides it.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_2_a",
+      "text": "[deadpan] Sudden death. Whoever scores, wins.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_2_b",
+      "text": "[deadpan] Sudden death. Whoever scores, wins.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/sudden_death_2_c",
+      "text": "[deadpan] Sudden death. Whoever scores, wins.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host sudden_death 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_0_a",
+      "text": "[deadpan] Bleeding out.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_0_b",
+      "text": "[deadpan] Bleeding out.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_0_c",
+      "text": "[deadpan] Bleeding out.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_1_a",
+      "text": "[deadpan] Under twenty-five. Hold something.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_1_b",
+      "text": "[deadpan] Under twenty-five. Hold something.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_1_c",
+      "text": "[deadpan] Under twenty-five. Hold something.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_2_a",
+      "text": "[deadpan] Last tickets.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_2_b",
+      "text": "[deadpan] Last tickets.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/tickets_low_2_c",
+      "text": "[deadpan] Last tickets.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host tickets_low 2 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_0_a",
+      "text": "[deadpan] The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_0_b",
+      "text": "[deadpan] The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_0_c",
+      "text": "[deadpan] The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 0 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_1_a",
+      "text": "[deadpan] There it is. The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_1_b",
+      "text": "[deadpan] There it is. The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_1_c",
+      "text": "[deadpan] There it is. The Larak Lot special.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 1 take c"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_2_a",
+      "text": "[deadpan] Very loud. The Larak Lot special, all five levels.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_2_b",
+      "text": "[deadpan] Very loud. The Larak Lot special, all five levels.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "host/larak_lot_special_2_c",
+      "text": "[deadpan] Very loud. The Larak Lot special, all five levels.",
+      "voice": "N2lVS1w4EtoT3dr4eOWO",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "pcm_44100",
+      "title": "Host larak_lot_special 2 take c"
+    }
+  ]
+}
