@@ -1,0 +1,167 @@
+{
+	"cleanup": {
+		"exclude_keys": [
+			"union_black",
+			"union_steel",
+			"union_plate"
+		],
+		"repaint": [
+			{
+				"box": [
+					[
+						-0.7,
+						0.0,
+						-0.7
+					],
+					[
+						0.7,
+						0.8,
+						0.7
+					]
+				],
+				"keys": [
+					"cyan_muted",
+					"cyan_light"
+				],
+				"to": "bone"
+			},
+			{
+				"box": [
+					[
+						-0.03,
+						0.66,
+						-0.14
+					],
+					[
+						0.25,
+						1.24,
+						0.14
+					]
+				],
+				"keys": [
+					"ink",
+					"gunmetal_dark",
+					"gunmetal",
+					"gunmetal_light"
+				],
+				"shade": 1.0,
+				"to": "bone"
+			}
+		],
+		"repainted_texels": 24400
+	},
+	"excluded_classes": [
+		"red",
+		"magenta"
+	],
+	"faction": "inheritance",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.509,
+			"cyan": 0.035,
+			"dark": 0.345,
+			"green": 0.001,
+			"magenta": 0.0,
+			"pale": 0.437,
+			"red": 0.0,
+			"steel": 0.11,
+			"warm": 0.0
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.85 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			0.938267648220062,
+			1.85000002384186,
+			1.10496366024017
+		],
+		"scale": 0.972344457340318,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "surveyor",
+	"metres_per_source_unit": 0.972344457340318,
+	"normal_map_px": 256,
+	"orm_maps": false,
+	"paint_locked_px": 128,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"parts": [
+		{
+			"name": "Head",
+			"pivot_m": [
+				0.109999999403954,
+				1.37999999523163,
+				0.0
+			],
+			"triangles": 4548
+		}
+	],
+	"prepared_bounds_m": [
+		0.938267707824707,
+		1.85000002384186,
+		1.10496366024017
+	],
+	"prepared_sha256": "3cd3f4cb51b673d6bdc7cdaee7503a03bb54b7a830d7f7df77ab14bdcf3f7456",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-7.1",
+			"credits": 35.0,
+			"format": "glb",
+			"geometry_resolution": "2k",
+			"job": "surveyor-20261023-v1",
+			"request_id": "01a16c48-222e-75b6-839b-43a972dfb2e0",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m1-inheritance-enemies-meshy-20261023.json",
+			"target_polycount": 12000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "surveyor_keeper",
+			"model": "marketing-studio/image",
+			"spec": "tools/spritegen/specs/h1a-keeper-20261023.json",
+			"tool": "fragr-spritegen gen",
+			"url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/70a4a934-07c6-477c-b5a5-d15fe44fd065.png"
+		},
+		"review": "wave 11 inheritance-models 2026-10-27: integrated and inspected in L19 and L20 captures; Nick model pick pending"
+	},
+	"raw_bounds_units": [
+		0.96495395898819,
+		1.90261793136597,
+		1.13639116287231
+	],
+	"raw_file": "surveyor-20261023-v1-0.glb",
+	"raw_sha256": "c7f689adc98363509ee75dc822aeaec1f626ba3d3b0cd80887b663e45661b397",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 3.80184732482462,
+	"texels_per_metre": 50.1711621824349,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 27,
+		"boundary_loops": 14,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			2,
+			2,
+			2,
+			2,
+			2
+		],
+		"nonmanifold_edges": 28,
+		"watertight": false,
+		"welded_vertices": 5852
+	},
+	"triangles": 11773,
+	"uv_coverage": 0.584094417809695,
+	"vertices": 19186
+}

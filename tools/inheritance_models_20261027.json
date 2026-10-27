@@ -1,0 +1,108 @@
+{
+ "schema": 1,
+ "round": "wave 11 inheritance-models 2026-10-27",
+ "raw_dir": "art/raw/meshy-pilot-20261003",
+ "candidates": [
+  {
+   "id": "paver",
+   "output": "paver",
+   "ship": true,
+   "file": "paver-20261027-v1-0.glb",
+   "sha256": "72d7beb9f04b99dcb9e7dfd0de9e8c17f5f41ac6cc402939739a3e486bdfa5ee",
+   "faction": "inheritance",
+   "map": "m19-planned-works",
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.75,
+   "canon": "l19-planned-works.md: the Paver, a broad matte body that projects a bounded white strip, prepares for a readable span, then works everything inside it; the-inheritance.md physical presence: continuous matte off-white, no serials, unfamiliar construction, muted cyan working indicators; drawn upright inside the unchanged server fighter volume (r 0.5, h 1.8)",
+   "place": "tram_street_lamps",
+   "exclude_classes": ["warm", "green", "magenta"],
+   "exclude_keys": ["cyan_light", "union_black", "union_steel", "union_plate"],
+   "gain": 1.12,
+   "repaint": [
+    {"keys": ["gunmetal_light", "gunmetal", "gunmetal_dark", "bone@0.7", "ink"], "to": "bone", "shade": 1.0, "box": [[-0.6, 0.64, -0.6], [0.6, 1.22, 0.6]]},
+    {"keys": ["bone", "gunmetal_light", "cyan_muted"], "to": "ink", "box": [[-0.62, 0.0, -0.56], [0.62, 0.5, 0.56]]}
+   ],
+   "parts": [
+    {"name": "Head", "box": [[-0.4, 1.41, -0.45], [0.4, 1.95, 0.45]], "pivot": [0.0, 1.42, 0.0]},
+    {"name": "ShoulderLeft", "box": [[-0.95, 1.22, -0.55], [-0.45, 1.55, 0.55]], "pivot": [-0.45, 1.3, 0.0]},
+    {"name": "ShoulderRight", "box": [[0.45, 1.22, -0.55], [0.95, 1.55, 0.55]], "pivot": [0.45, 1.3, 0.0]}
+   ],
+   "placement": "PaverRig.MODEL_PATH, presented by EnemyView at the server feet; the source faces +Z and PaverRig turns it to +X; projector lens at 1.64 m",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "quality": "medium",
+     "resolution": "2k",
+     "spec": "tools/spritegen/specs/h-w11-paver-refs-20261027.json",
+     "frame": "paver_b",
+     "request_id": "01a17d91-1159-7998-9278-5f98cc7d9072",
+     "sha256": "ca3551c5491f74e2be252cca5fc05a5a0dd00845cb14a703357a42c0640895d3",
+     "keyed_sha256": "4f29f3437e315043b60b60f122e3e6130ccad27ace8a68305a1330810977872d"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-t2",
+     "spec": "tools/spritegen/specs/m-w11-paver-meshy-20261027.json",
+     "job": "paver-20261027-v1",
+     "request_id": "01a17d93-1f0b-7789-a67d-0114e386d2bf",
+     "credits": 15,
+     "format": "glb",
+     "texture_resolution": "2k",
+     "target_polycount": 12000
+    },
+    "review": "wave 11 inheritance-models 2026-10-27: integrated and inspected in L19 and L20 captures; Nick model pick pending"
+   }
+  },
+  {
+   "id": "surveyor",
+   "output": "surveyor",
+   "ship": true,
+   "file": "surveyor-20261023-v1-0.glb",
+   "sha256": "c7f689adc98363509ee75dc822aeaec1f626ba3d3b0cd80887b663e45661b397",
+   "faction": "inheritance",
+   "map": "m20-local-exception",
+   "slot": null,
+   "intended": null,
+   "axis": "y",
+   "metres": 1.85,
+   "canon": "l20-local-exception.md: an elevated off-white unit on a waterworks tower that projects a mark; hit it during its exposed observation phase, when its lens opens wide; the-inheritance.md physical presence; lens centre near the server eye (1.6 m) so a shot at the open lens lands in the fighter volume",
+   "place": "sluice_gallery",
+   "exclude_keys": ["union_black", "union_steel", "union_plate"],
+   "repaint": [
+    {"keys": ["cyan_muted", "cyan_light"], "to": "bone", "box": [[-0.7, 0.0, -0.7], [0.7, 0.8, 0.7]]},
+    {"keys": ["ink", "gunmetal_dark", "gunmetal", "gunmetal_light"], "to": "bone", "shade": 1.0, "box": [[-0.03, 0.66, -0.14], [0.25, 1.24, 0.14]]}
+   ],
+   "parts": [
+    {"name": "Head", "box": [[-0.5, 1.36, -0.5], [0.7, 2.0, 0.5]], "pivot": [0.11, 1.38, 0.0]}
+   ],
+   "placement": "SurveyorRig.SOURCE_SCENE, presented by EnemyView at the server feet; the source lens faces +Z and SurveyorRig turns it to +X",
+   "provenance": {
+    "reference": {
+     "tool": "fragr-spritegen gen",
+     "model": "marketing-studio/image",
+     "spec": "tools/spritegen/specs/h1a-keeper-20261023.json",
+     "frame": "surveyor_keeper",
+     "url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/70a4a934-07c6-477c-b5a5-d15fe44fd065.png"
+    },
+    "model": {
+     "tool": "fragr-spritegen meshy-gen",
+     "service": "meshy/image-to-3d",
+     "ai_model": "meshy-7.1",
+     "spec": "tools/spritegen/specs/m1-inheritance-enemies-meshy-20261023.json",
+     "job": "surveyor-20261023-v1",
+     "request_id": "01a16c48-222e-75b6-839b-43a972dfb2e0",
+     "credits": 35,
+     "format": "glb",
+     "geometry_resolution": "2k",
+     "texture_resolution": "2k",
+     "target_polycount": 12000
+    },
+    "review": "wave 11 inheritance-models 2026-10-27: integrated and inspected in L19 and L20 captures; Nick model pick pending"
+   }
+  }
+ ]
+}

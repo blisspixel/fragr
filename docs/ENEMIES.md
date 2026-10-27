@@ -28,7 +28,8 @@ a distinct shootable moving machine, committed warnings and finite traveling
 artillery in a standalone range. Connected M14, its later support phases and
 final art remain unbuilt. The Paver is built for level 19 and the Surveyor for
 level 20 under the authoritative `restoration` control domain, beside
-`absorbed` bots; both use placeholder forms behind one model path, and the
+`absorbed` bots; both present prepared generated models (wave 11, awaiting
+Nick's model pick) with authored tell parts on local pivots, and the
 Collector remains unbuilt.
 Calibration's NODS
 and arcade "AUDITOR" label are separate arcade prototypes, not implementations

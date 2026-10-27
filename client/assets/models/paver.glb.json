@@ -1,0 +1,199 @@
+{
+	"cleanup": {
+		"exclude_classes": [
+			"warm",
+			"green",
+			"magenta"
+		],
+		"exclude_keys": [
+			"cyan_light",
+			"union_black",
+			"union_steel",
+			"union_plate"
+		],
+		"gain": 1.12,
+		"repaint": [
+			{
+				"box": [
+					[
+						-0.6,
+						0.64,
+						-0.6
+					],
+					[
+						0.6,
+						1.22,
+						0.6
+					]
+				],
+				"keys": [
+					"gunmetal_light",
+					"gunmetal",
+					"gunmetal_dark",
+					"bone@0.7",
+					"ink"
+				],
+				"shade": 1.0,
+				"to": "bone"
+			},
+			{
+				"box": [
+					[
+						-0.62,
+						0.0,
+						-0.56
+					],
+					[
+						0.62,
+						0.5,
+						0.56
+					]
+				],
+				"keys": [
+					"bone",
+					"gunmetal_light",
+					"cyan_muted"
+				],
+				"to": "ink"
+			}
+		],
+		"repainted_texels": 1992
+	},
+	"excluded_classes": [
+		"red",
+		"magenta",
+		"warm",
+		"green"
+	],
+	"faction": "inheritance",
+	"faction_colour": {
+		"area_shares": {
+			"bone": 0.311,
+			"cyan": 0.003,
+			"dark": 0.646,
+			"green": 0.0,
+			"magenta": 0.0,
+			"pale": 0.308,
+			"red": 0.0,
+			"steel": 0.041,
+			"warm": 0.0
+		},
+		"problems": [],
+		"verdict": "faction colour ok"
+	},
+	"fit": {
+		"basis": "intended 1.75 on y m",
+		"fill_ratio_xyz": [],
+		"fitted_m": [
+			1.56204295158386,
+			1.75,
+			1.43070375919342
+		],
+		"scale": 1.75,
+		"slot_or_intended_m": [],
+		"worst_log_mismatch": 0.0,
+		"yaw_degrees": 0.0
+	},
+	"id": "paver",
+	"metres_per_source_unit": 1.75,
+	"normal_map_px": 512,
+	"orm_maps": false,
+	"paint_locked_px": 256,
+	"paint_presented_px": 1024,
+	"paint_source_px": [
+		2048,
+		2048
+	],
+	"palette": "docs/palette.json x shades [0.7, 1.0, 1.2] + shipped M05 rust/green/ochre",
+	"parts": [
+		{
+			"name": "Head",
+			"pivot_m": [
+				0.0,
+				1.41999995708466,
+				0.0
+			],
+			"triangles": 1715
+		},
+		{
+			"name": "ShoulderLeft",
+			"pivot_m": [
+				-0.449999988079071,
+				1.29999995231628,
+				0.0
+			],
+			"triangles": 825
+		},
+		{
+			"name": "ShoulderRight",
+			"pivot_m": [
+				0.449999988079071,
+				1.29999995231628,
+				0.0
+			],
+			"triangles": 744
+		}
+	],
+	"prepared_bounds_m": [
+		1.56204295158386,
+		1.75,
+		1.43070375919342
+	],
+	"prepared_sha256": "e3fa0a10d319fb734523e3e1b780b45ccaede6c2e3ad4647a637b47faab6fdc7",
+	"provenance": {
+		"model": {
+			"ai_model": "meshy-t2",
+			"credits": 15.0,
+			"format": "glb",
+			"job": "paver-20261027-v1",
+			"request_id": "01a17d93-1f0b-7789-a67d-0114e386d2bf",
+			"service": "meshy/image-to-3d",
+			"spec": "tools/spritegen/specs/m-w11-paver-meshy-20261027.json",
+			"target_polycount": 12000.0,
+			"texture_resolution": "2k",
+			"tool": "fragr-spritegen meshy-gen"
+		},
+		"reference": {
+			"frame": "paver_b",
+			"keyed_sha256": "4f29f3437e315043b60b60f122e3e6130ccad27ace8a68305a1330810977872d",
+			"model": "marketing-studio/image",
+			"quality": "medium",
+			"request_id": "01a17d91-1159-7998-9278-5f98cc7d9072",
+			"resolution": "2k",
+			"sha256": "ca3551c5491f74e2be252cca5fc05a5a0dd00845cb14a703357a42c0640895d3",
+			"spec": "tools/spritegen/specs/h-w11-paver-refs-20261027.json",
+			"tool": "fragr-spritegen gen"
+		},
+		"review": "wave 11 inheritance-models 2026-10-27: integrated and inspected in L19 and L20 captures; Nick model pick pending"
+	},
+	"raw_bounds_units": [
+		0.892596006393433,
+		1.0,
+		0.817544996738434
+	],
+	"raw_file": "paver-20261027-v1-0.glb",
+	"raw_sha256": "72d7beb9f04b99dcb9e7dfd0de9e8c17f5f41ac6cc402939739a3e486bdfa5ee",
+	"runtime_selected": true,
+	"schema": 1,
+	"surface_area_m2": 21.9013467457301,
+	"texels_per_metre": 36.3822094492318,
+	"texture_filter": "nearest",
+	"topology": {
+		"boundary_edges": 408,
+		"boundary_loops": 20,
+		"degenerate_triangles": 0,
+		"largest_loops_edges": [
+			51,
+			49,
+			32,
+			22,
+			21
+		],
+		"nonmanifold_edges": 0,
+		"watertight": false,
+		"welded_vertices": 6543
+	},
+	"triangles": 12574,
+	"uv_coverage": 0.442353053908361,
+	"vertices": 11334
+}

@@ -14,11 +14,13 @@ The free local agent completes it on all three difficulties: the seeded
 (seeds 1 and 2 on each tier, 2026-10-23: all six departed; Severe seed 1 after
 one retry). The worn and racked jetpack is the generated candidate prepared by
 `tools/prepare_jetpack_source.gd` (`JetpackRig.MODEL_PATH`, receipt beside
-the model). The Paver and the scene figures are placeholder forms. Both
-generated Paver candidates are low four-legged sledges about 0.55 by 1.9 m,
-while the Paver fights in the ordinary 1.8 m fighter volume, so swapping one
-in through `PaverRig.MODEL_PATH` waits on a Paver-specific broad, low shot and
-contact volume or a candidate at the authored proportions. The night dressing
+the model). The scene figures are placeholder forms. The Paver is a prepared
+generated model drawn upright at the authored proportions of its ordinary
+1.8 m fighter volume (wave 11, 2026-10-27; `PaverRig.MODEL_PATH`, receipt
+`client/assets/models/paver.glb.json`, brief
+[`c-paver.md`](../plans/meshy-assets/c-paver.md)): its projector head and both
+shoulder plates move on local pivots for the preparation tell. Nick's model
+pick is pending; the low sledge candidates stay retained. The night dressing
 (`low_water_dressing.gd`: homes, lit and interrupted windows, survey marks, tanks, tram, rails, lamps, trench,
 concourse and workshop) only follows exact authored solids;
 `client/qa/m19_static_review.gd` and `m19_live_review.gd` photograph it.
