@@ -67,6 +67,17 @@ permits another sweep at the same turn limit. This explicit search model repairs
 the stationary crossing stall; compare it with its own evaluator revision,
 not as a change to enemy difficulty or a human learning model.
 
+During the market objective, a stateless guard preserves the shared strip
+escape instead of letting generic dodging, hearing or scanning replace it.
+After the normal reload, aim and turn constraints, a grounded movement step
+that would cross back into a currently perceived strip releases its movement
+keys; aim and firing remain available. Projection uses the existing campaign
+movement step and authored solids. It does not infer airborne velocity or
+remember unseen hazards, and retirement or lost perception removes the veto.
+This repairs the measured escape/pursuit oscillation in the market evaluator.
+The teaching prefix is unchanged. Compare this explicit policy revision with
+its retained baseline; improved clears do not establish a game balance change.
+
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
 acquisition, not decision cadence. Continue is accepted immediately, with zero
 simulated menu delay; dead/menu time is not included in the active stall metric.

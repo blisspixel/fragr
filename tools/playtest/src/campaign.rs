@@ -22,6 +22,7 @@ use uuid::Uuid;
 const DT: f32 = 0.05;
 
 mod market;
+mod market_guard;
 mod paver;
 mod search;
 mod teaching;
@@ -750,6 +751,13 @@ fn scenario_trial_with_actions(
             wanted,
             Some(&gear),
         );
+        let market_escape = (scenario == Scenario::M19Market
+            && state
+                .m19
+                .as_ref()
+                .and_then(|facts| facts.current.as_ref())
+                .is_some_and(|objective| objective.id == "market_strips"))
+        .then(|| action.clone());
         let telling = observed.players.iter().find(|p| me.is_hostile_to(p) && matches!(p.campaign, Some(CampaignActor::Hostile { phase: EnemyPhase::Windup | EnemyPhase::Firing, phase_started, .. }) if snapshot.tick.saturating_sub(phase_started) >= profile.reaction_ticks));
         if evade.is_some_and(|(until, _, _)| snapshot.tick > until) {
             evade = None;
@@ -830,7 +838,19 @@ fn scenario_trial_with_actions(
             };
         }
         action = apply_reload(action, &gear, reload_down);
-        action = actions(constrain(action, me, &observed, profile, seed, arena));
+        action = constrain(action, me, &observed, profile, seed, arena);
+        if let Some(shared) = market_escape {
+            let shared = constrain(
+                apply_reload(shared, &gear, reload_down),
+                me,
+                &observed,
+                profile,
+                seed,
+                arena,
+            );
+            action = market_guard::protect(shared, action, me, &observed, arena);
+        }
+        action = actions(action);
         reload_down = action.reload;
         report.reloads += u32::from(action.reload);
         let feet = report.last_feet;
@@ -1092,7 +1112,7 @@ pub fn run_scenario(
     let observation = match scenario {
         Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
         Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
-        Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+        Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
     Ok(Report {
         schema: 3,
@@ -1566,6 +1586,74 @@ mod tests {
         assert_eq!(entry.loadout.ammo, terminal.loadout.ammo);
         assert!(terminal.loadout.personal_claims.is_empty());
         assert!(!Scenario::M19Market.accepts(&bad));
+    }
+
+    #[test]
+    fn m19_market_earned_completion_keeps_the_final_action_and_stops_before_water_tanks() {
+        // Baseline 6b8061b7: ordinary seed42 hesitant/Assisted completes at
+        // tick2017 with no retry. No setup kit, position or progress edits.
+        let play = |ticks| {
+            let mut actions = 0_u64;
+            let (row, _, _) = scenario_trial_with_actions(
+                Scenario::M19Market,
+                42,
+                PROFILES[2],
+                CampaignDifficulty::Assisted,
+                ticks,
+                Recording::None,
+                |action| {
+                    actions += 1;
+                    action
+                },
+            )
+            .unwrap();
+            (row, actions)
+        };
+        let (clear, actions) = play(2_400);
+        assert!(Scenario::M19Market.accepts(&clear), "{clear:?}");
+        assert_eq!(clear.final_attempt, 1);
+        let final_tick = (clear.seconds * 20.0).round() as u64;
+        assert_eq!(
+            actions, final_tick,
+            "no extra action may follow market completion"
+        );
+        let terminal = clear.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .last()
+            .unwrap();
+        assert_eq!(terminal.event, market::Event::MarketComplete);
+        assert_eq!(terminal.tick, final_tick);
+        assert_eq!(terminal.current_objective.as_deref(), Some("water_tanks"));
+        assert!(!clear
+            .teaching
+            .as_ref()
+            .unwrap()
+            .objectives
+            .iter()
+            .any(|receipt| receipt.objective == "water_tanks"));
+        let (exact, exact_actions) = play(final_tick);
+        assert_eq!(
+            exact, clear,
+            "completion on the last allowed tick belongs to this trial"
+        );
+        assert_eq!(exact_actions, actions);
+        let (before, before_actions) = play(final_tick - 1);
+        assert_eq!(before.outcome, "timeout");
+        assert_eq!(before_actions, final_tick - 1);
+        assert!(!Scenario::M19Market.accepts(&before));
+        let before_terminal = before.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .last()
+            .unwrap();
+        assert_eq!(before_terminal.event, market::Event::Timeout);
+        assert_eq!(
+            before_terminal.current_objective.as_deref(),
+            Some("market_strips")
+        );
+        assert!(!before.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .iter()
+            .any(|receipt| receipt.event == market::Event::MarketComplete));
     }
 
     #[test]

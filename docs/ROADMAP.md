@@ -103,7 +103,11 @@ completion; no replacement kit is supplied. Stage-specific work windows keep
 the street lesson separate from the two-Paver encounter. Compare the declared
 seed/profile matrix and inspected motion before changing ammunition or escape
 behavior. Attempt-wide challenge flags cannot establish market-only damage or
-interruption. This remains standalone constrained evaluation, not inherited
+interruption. A retained ordinary-action trace exposed escape/pursuit
+oscillation at a live strip and generic dodging that replaced the strip escape.
+The market evaluator preserves that escape and rejects grounded re-entry into
+currently perceived strips without changing the teaching prefix or authored
+content. This remains standalone constrained evaluation, not inherited
 whole-level or human first-play acceptance.
 
 Wave 5 adds twelve prepared campaign props, replaces repeated prose with
