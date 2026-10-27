@@ -25,6 +25,10 @@ pub struct Attempt {
     /// Per-action market facts after public market entry. Absent before entry.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stage: Option<stage::Facts>,
+    /// Per-action facts on the continuation after market completion, only
+    /// when the survey runs through the water tanks. Absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub continuation: Option<stage::Facts>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -53,6 +57,8 @@ pub enum Event {
     Entry,
     MarketEntry,
     MarketComplete,
+    /// The next authored objective, `water_tanks`, completed with the body alive.
+    TanksComplete,
     Death,
     Exhausted,
     Timeout,
@@ -84,9 +90,20 @@ pub(super) struct Recorder {
     metrics: Metrics,
     previous_flags: [bool; 2],
     tracker: stage::Tracker,
+    /// Continue past market completion to the water tanks arrival.
+    through_tanks: bool,
 }
 
 impl Recorder {
+    /// A recorder whose completion is the water tanks arrival. The market
+    /// completion receipt stays as a non-terminal boundary.
+    pub(super) fn through_tanks() -> Self {
+        Self {
+            through_tanks: true,
+            ..Self::default()
+        }
+    }
+
     pub(super) fn observe(&mut self, tick: u64, state: &MissionState, status: Option<Status>) {
         let Some(facts) = &state.m19 else {
             return;
@@ -109,6 +126,7 @@ impl Recorder {
                 interruption: Attribution::Unknown,
                 strip_damage: Attribution::Unknown,
                 stage: None,
+                continuation: None,
             });
             self.previous_flags = flags;
             self.tracker.reset();
@@ -117,7 +135,9 @@ impl Recorder {
         if row.outcome != Outcome::InProgress {
             return;
         }
-        if row.entered_market {
+        if row.continuation.is_some() {
+            // After market completion a new flag is not market timing.
+        } else if row.entered_market {
             if !self.previous_flags[0] && flags[0] {
                 row.interruption = Attribution::FirstObservedDuringMarket;
             }
@@ -146,7 +166,26 @@ impl Recorder {
         } else if status.as_ref().is_some_and(|status| status.hp > 0)
             && facts.completed.iter().any(|id| id == "market_strips")
         {
-            Some((Outcome::Complete, Event::MarketComplete))
+            if !self.through_tanks {
+                Some((Outcome::Complete, Event::MarketComplete))
+            } else {
+                if row.continuation.is_none() {
+                    row.receipts
+                        .push(receipt(Event::MarketComplete, tick, state, status.clone()));
+                    row.continuation = Some(stage::Facts {
+                        entry_ranged_rounds: status
+                            .as_ref()
+                            .map_or(0, |status| stage::ranged_rounds(&status.loadout)),
+                        ..Default::default()
+                    });
+                    self.tracker.reset();
+                }
+                facts
+                    .completed
+                    .iter()
+                    .any(|id| id == "water_tanks")
+                    .then_some((Outcome::Complete, Event::TanksComplete))
+            }
         } else {
             None
         };
@@ -171,7 +210,7 @@ impl Recorder {
             .attempts
             .last_mut()
             .filter(|row| row.outcome == Outcome::InProgress)
-            .and_then(|row| row.stage.as_mut())
+            .and_then(|row| row.continuation.as_mut().or(row.stage.as_mut()))
         {
             self.tracker.step(facts, decision, outcome);
         }

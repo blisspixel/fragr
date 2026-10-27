@@ -35,18 +35,26 @@ pub enum Scenario {
     RecallNotice,
     M19Teaching,
     M19Market,
+    /// The same earned market prefix, continued to the next authored
+    /// objective (`water_tanks`).
+    M19Tanks,
 }
 
 impl Scenario {
     fn mission(self) -> MissionId {
         match self {
             Self::RecallNotice => MissionId::RecallNotice,
-            Self::M19Teaching | Self::M19Market => MissionId::PlannedWorks,
+            Self::M19Teaching | Self::M19Market | Self::M19Tanks => MissionId::PlannedWorks,
         }
     }
 
     fn is_m19(self) -> bool {
-        matches!(self, Self::M19Teaching | Self::M19Market)
+        matches!(self, Self::M19Teaching | Self::M19Market | Self::M19Tanks)
+    }
+
+    /// Runs the market objective with its evaluator revision and receipts.
+    fn plays_market(self) -> bool {
+        matches!(self, Self::M19Market | Self::M19Tanks)
     }
 
     fn segment_complete(self, state: &fragr_server::protocol::MissionState, alive: bool) -> bool {
@@ -64,6 +72,7 @@ impl Scenario {
             Self::RecallNotice => return false,
             Self::M19Teaching => "tram_street",
             Self::M19Market => "market_strips",
+            Self::M19Tanks => "water_tanks",
         };
         state.m19.as_ref().is_some_and(|facts| {
             facts
@@ -76,14 +85,14 @@ impl Scenario {
     pub fn accepts(self, trial: &Trial) -> bool {
         match self {
             Self::RecallNotice => trial.outcome == "departed",
-            Self::M19Teaching | Self::M19Market => {
+            Self::M19Teaching | Self::M19Market | Self::M19Tanks => {
                 trial.outcome == "segment_complete"
                     && trial.teaching.as_ref().is_some_and(|evidence| {
                         evidence.flights.iter().any(|flight| {
                             flight.attempt == trial.final_attempt && flight.gallery_landing
                         })
                     })
-                    && (self != Self::M19Market
+                    && (!self.plays_market()
                         || trial.market.as_ref().is_some_and(|metrics| {
                             metrics.attempts.iter().any(|attempt| {
                                 attempt.attempt == trial.final_attempt
@@ -543,9 +552,21 @@ fn scenario_trial_with_actions(
     let mut review = None;
     let mut frames = VecDeque::new();
     let mut teaching = scenario.is_m19().then(|| {
-        teaching::Recorder::new(id, seed, profile, difficulty, recording != Recording::None)
+        let recorder =
+            teaching::Recorder::new(id, seed, profile, difficulty, recording != Recording::None);
+        if scenario == Scenario::M19Tanks {
+            recorder.through_tanks()
+        } else {
+            recorder
+        }
     });
-    let mut market = (scenario == Scenario::M19Market).then(market::Recorder::default);
+    let mut market = scenario.plays_market().then(|| {
+        if scenario == Scenario::M19Tanks {
+            market::Recorder::through_tanks()
+        } else {
+            market::Recorder::default()
+        }
+    });
     while session.state.tick < max_ticks {
         let snapshot = session.state.snapshot();
         if recording != Recording::None {
@@ -723,7 +744,7 @@ fn scenario_trial_with_actions(
                 .and_then(|facts| facts.current.as_ref())
                 .is_some_and(|objective| {
                     matches!(objective.id.as_str(), "concourse_crossing" | "tram_street")
-                        || (scenario == Scenario::M19Market && objective.id == "market_strips")
+                        || (scenario.plays_market() && objective.id == "market_strips")
                 })
         {
             if let Some(point) = search.destination(me, &observed) {
@@ -751,7 +772,7 @@ fn scenario_trial_with_actions(
             wanted,
             Some(&gear),
         );
-        let market_escape = (scenario == Scenario::M19Market
+        let market_escape = (scenario.plays_market()
             && state
                 .m19
                 .as_ref()
@@ -1163,6 +1184,7 @@ pub fn run_scenario(
         Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
         Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
         Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Per-action stage facts after public market entry record authoritative strip contacts, unshot loss inside a working strip, shot loss by shooter, the guard branch and the fatal step cause; they are read after each action and never feed a decision. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+        Scenario::M19Tanks => "The M19 market survey unchanged through market_strips, continued with the same profile, finite equipment, lives and continues to the next authored objective, water_tanks, and ended immediately after it completes, before acting on roof_loop. No kit, health, save or objective is granted or invented. The market completion receipt is kept as a non-terminal boundary; continuation facts after it are recorded separately from market facts, and later challenge flags carry no market timing. A death on the continuation retries from the ordinary attempt start, so the market must be earned again. A standalone endpoint, not an inherited M19 clear or fresh-player acceptance. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
     Ok(Report {
         schema: 3,
@@ -1704,6 +1726,80 @@ mod tests {
             .receipts
             .iter()
             .any(|receipt| receipt.event == market::Event::MarketComplete));
+    }
+
+    #[test]
+    fn m19_tanks_continues_the_identical_market_prefix_to_the_next_objective_only() {
+        // Wave 11 cohort: ordinary seed42 hesitant/Assisted completes the
+        // market and then the water tanks with no retry. No kit, position,
+        // save or objective edits.
+        let play = |scenario, ticks, idle_after: Option<u64>| {
+            let mut actions = 0_u64;
+            let (row, _, _) = scenario_trial_with_actions(
+                scenario,
+                42,
+                PROFILES[2],
+                CampaignDifficulty::Assisted,
+                ticks,
+                Recording::None,
+                |action| {
+                    actions += 1;
+                    if idle_after.is_some_and(|tick| actions > tick) {
+                        Action::default()
+                    } else {
+                        action
+                    }
+                },
+            )
+            .unwrap();
+            (row, actions)
+        };
+        let (market, _) = play(Scenario::M19Market, 2_400, None);
+        let market_terminal = market.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .last()
+            .unwrap()
+            .clone();
+        assert_eq!(market_terminal.event, market::Event::MarketComplete);
+        let (clear, actions) = play(Scenario::M19Tanks, 2_800, None);
+        assert!(Scenario::M19Tanks.accepts(&clear), "{clear:?}");
+        assert_eq!(clear.final_attempt, 1);
+        let final_tick = (clear.seconds * 20.0).round() as u64;
+        assert_eq!(actions, final_tick, "no action follows the tanks arrival");
+        let attempt = &clear.market.as_ref().unwrap().attempts[0];
+        assert_eq!(attempt.outcome, market::Outcome::Complete);
+        assert_eq!(
+            attempt.receipts.iter().map(|r| r.event).collect::<Vec<_>>(),
+            [
+                market::Event::Entry,
+                market::Event::MarketEntry,
+                market::Event::MarketComplete,
+                market::Event::TanksComplete
+            ]
+        );
+        // The earned prefix through the market boundary is byte-identical.
+        assert_eq!(attempt.receipts[2], market_terminal);
+        let arrival = &attempt.receipts[3];
+        assert_eq!(arrival.tick, final_tick);
+        assert_eq!(arrival.current_objective.as_deref(), Some("roof_loop"));
+        assert_eq!(arrival.continues, market_terminal.continues);
+        let status = arrival.status.as_ref().unwrap();
+        assert!(status.hp > 0 && status.feet[1] > 5.0, "{status:?}");
+        let continuation = attempt.continuation.as_ref().unwrap();
+        assert!(continuation.decision_steps > 0);
+        assert_eq!(continuation.strip_loss, 0);
+        assert!(attempt.stage.as_ref().unwrap().decision_steps > 0);
+        // A controller that stops after the market cannot reach the tanks:
+        // the trial times out on water_tanks and is not a clear.
+        let market_tick = market_terminal.tick;
+        let (idle, _) = play(Scenario::M19Tanks, market_tick + 400, Some(market_tick));
+        assert_eq!(idle.outcome, "timeout");
+        assert!(!Scenario::M19Tanks.accepts(&idle));
+        let idle_attempt = &idle.market.as_ref().unwrap().attempts[0];
+        assert_eq!(idle_attempt.receipts[2], market_terminal);
+        let last = idle_attempt.receipts.last().unwrap();
+        assert_eq!(last.event, market::Event::Timeout);
+        assert_eq!(last.current_objective.as_deref(), Some("water_tanks"));
     }
 
     #[test]

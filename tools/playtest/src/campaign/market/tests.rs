@@ -242,6 +242,82 @@ fn timeout_and_missing_participant_facts_do_not_invent_completion_or_equipment()
 }
 
 #[test]
+fn tanks_continuation_keeps_market_completion_and_separates_its_own_failures() {
+    let (mut state, status) = fixture();
+    let mut recorder = Recorder::through_tanks();
+    recorder.observe(0, &state, Some(status.clone()));
+    completed(&mut state, 4);
+    recorder.observe(10, &state, Some(status.clone()));
+    completed(&mut state, 5);
+    recorder.observe(20, &state, Some(status.clone()));
+    recorder.observe(21, &state, Some(status.clone()));
+    let row = &recorder.metrics.attempts[0];
+    assert_eq!(
+        row.outcome,
+        Outcome::InProgress,
+        "market is not the endpoint"
+    );
+    assert!(
+        recorder.in_market(),
+        "continuation steps are still recorded"
+    );
+    assert!(row.continuation.is_some());
+    assert_eq!(
+        row.receipts
+            .iter()
+            .filter(|r| r.event == Event::MarketComplete)
+            .count(),
+        1
+    );
+    // A strip flag first seen on the continuation carries no market timing.
+    state.m19.as_mut().unwrap().challenges.strip_struck = true;
+    recorder.observe(30, &state, Some(status.clone()));
+    assert_eq!(
+        recorder.metrics.attempts[0].strip_damage,
+        Attribution::Unknown
+    );
+    // Death on the way to the tanks: an ordinary failed attempt.
+    state.run.as_mut().unwrap().status = CampaignRunStatus::Continue;
+    let mut dead = status.clone();
+    dead.hp = 0;
+    recorder.observe(40, &state, Some(dead.clone()));
+    let row = &recorder.metrics.attempts[0];
+    assert_eq!(row.outcome, Outcome::Death);
+    assert_eq!(
+        row.receipts.last().unwrap().current_objective.as_deref(),
+        Some("water_tanks")
+    );
+    // The retry starts again from entry and must earn the market again.
+    state.attempt = 2;
+    state.run.as_mut().unwrap().status = CampaignRunStatus::Playing;
+    completed(&mut state, 0);
+    recorder.observe(50, &state, Some(status.clone()));
+    let rows = recorder.finish().attempts;
+    assert_eq!(rows.len(), 2);
+    assert_eq!(rows[1].outcome, Outcome::InProgress);
+    assert!(!rows[1].entered_market, "no market without tram_street");
+    let (mut state, status) = fixture();
+    let mut recorder = Recorder::through_tanks();
+    completed(&mut state, 6);
+    recorder.observe(5, &state, Some(status.clone()));
+    let row = recorder.finish().attempts.pop().unwrap();
+    assert_eq!(row.outcome, Outcome::Complete);
+    assert_eq!(
+        row.receipts.iter().map(|r| r.event).collect::<Vec<_>>(),
+        [
+            Event::Entry,
+            Event::MarketEntry,
+            Event::MarketComplete,
+            Event::TanksComplete
+        ]
+    );
+    assert_eq!(
+        row.receipts[3].current_objective.as_deref(),
+        Some("roof_loop")
+    );
+}
+
+#[test]
 fn per_action_market_facts_start_at_public_entry_and_stop_at_the_terminal_receipt() {
     let (mut state, mut status) = fixture();
     let mut recorder = Recorder::default();

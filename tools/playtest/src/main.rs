@@ -811,6 +811,17 @@ mod tests {
             fragr_playtest::campaign::Scenario::M19Market
         );
         assert!(Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-market"]).is_err());
+        let tanks = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m19-tanks",
+        ])
+        .unwrap();
+        assert_eq!(
+            tanks.survey_mission,
+            fragr_playtest::campaign::Scenario::M19Tanks
+        );
         for args in [
             ["--map", "2"],
             ["--mode", "tdm"],
