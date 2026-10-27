@@ -219,13 +219,9 @@ const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
 	"plate": "res://assets/audio/pickup/armor.wav",
 }
 const DRY_FIRE_SOUND_PATH: String = "res://assets/audio/dry_fire.wav"
-const HIT_CONFIRM_SOUND_PATH: String = "res://assets/audio/hit_confirm.wav"
 var pickup_streams: Dictionary[String, AudioStream] = {}
 var pickup_sound: AudioStreamPlayer = null
 var dry_fire_sound: AudioStreamPlayer = null
-var hit_confirm_sound: AudioStreamPlayer = null
-var hit_confirm_stream: AudioStream = null
-var kill_confirm_sound: AudioStreamPlayer = null
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
@@ -1224,42 +1220,6 @@ func _load_audio_streams():
 			reload_start_stream = load(RELOAD_START_SOUND_PATH)
 		if ResourceLoader.exists(RELOAD_COMPLETE_SOUND_PATH):
 			reload_complete_stream = load(RELOAD_COMPLETE_SOUND_PATH)
-	if hit_confirm_sound == null and ResourceLoader.exists(HIT_CONFIRM_SOUND_PATH):
-		hit_confirm_stream = load(HIT_CONFIRM_SOUND_PATH)
-		hit_confirm_sound = AudioStreamPlayer.new()
-		hit_confirm_sound.name = "HitConfirmSound"
-		hit_confirm_sound.bus = &"Effects"
-		hit_confirm_sound.volume_db = -4.0
-		hit_confirm_sound.stream = hit_confirm_stream
-		audio_parent.add_child(hit_confirm_sound)
-		# Its own player, so the kill thud does not cut off the hit ding.
-		kill_confirm_sound = AudioStreamPlayer.new()
-		kill_confirm_sound.name = "KillConfirmSound"
-		kill_confirm_sound.bus = &"Effects"
-		kill_confirm_sound.stream = hit_confirm_stream
-		audio_parent.add_child(kill_confirm_sound)
-
-## Tactile metallic audio feedback when the player lands a shot.
-func _play_hit_confirm_cue(damage: int) -> void:
-	if hit_confirm_sound == null or hit_confirm_stream == null:
-		return
-	if damage <= 0:
-		hit_confirm_sound.pitch_scale = 0.8
-		hit_confirm_sound.volume_db = -8.0
-	else:
-		var factor: float = clampf(float(damage) / 75.0, 0.0, 1.0)
-		hit_confirm_sound.pitch_scale = lerpf(0.95, 1.35, factor)
-		hit_confirm_sound.volume_db = -4.0
-	hit_confirm_sound.play()
-
-## Kill confirmation: the hit chime pitched down and louder, so a frag lands
-## as a distinct thud under the ordinary ding. Existing asset, no new sound.
-func _play_kill_confirm_cue() -> void:
-	if kill_confirm_sound == null or hit_confirm_stream == null:
-		return
-	kill_confirm_sound.pitch_scale = 0.62
-	kill_confirm_sound.volume_db = -1.0
-	kill_confirm_sound.play()
 
 ## Pickup feedback for the watched fighter. The event carries no ammunition
 ## pool, so the pad it came from says whether it was Cells.
@@ -3909,6 +3869,11 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		if bool(result.get("hit", false)):
 			folded["damage"] = int(folded.get("damage", 0)) * int(bool(folded.get("hit", false))) + int(result.get("damage", 0))
 			folded["hit"] = true
+			# A blast that took one head or one life confirms it once.
+			if result.get("head") == true:
+				folded["head"] = true
+			if result.get("killed") == true:
+				folded["killed"] = true
 	for shot: Dictionary in shots:
 		var shooter_id = str(shot.get("shooter_id", ""))
 		var hit = bool(shot.get("hit", false))
@@ -3933,16 +3898,18 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		# The local cue has already played; spectators still use server evidence.
 		if not predicted and not mounted and (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			_show_fire_juice(wpn)
+		var killed: bool = is_local and shot.get("killed") == true
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
 			hud.show_hit_marker(dmg, wpn)
-			if is_local:
-				_play_hit_confirm_cue(dmg)
+			# One confirm per shot, tiered by the server's facts. A followed
+			# fighter's stopped shots stay quiet; only the shooter hears those.
+			if hud.has_method("confirm_hit") and (dmg > 0 or is_local):
+				hud.confirm_hit(dmg, shot.get("head") == true, killed)
 		# The shot that put a fighter down says so, louder than a hit.
-		if is_local and bool(shot.get("killed", false)) and hud and hud.has_method("show_kill_marker"):
+		if killed and hud and hud.has_method("show_kill_marker"):
 			hud.show_kill_marker()
-			_play_kill_confirm_cue()
 	if local_fire.reconcile(tick):
 		_cancel_local_fire_effect()
 

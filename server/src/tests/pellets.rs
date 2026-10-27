@@ -291,6 +291,14 @@ fn one_blast_spreads_across_two_fighters_with_one_frag_each() {
             .sum();
         assert_eq!(shot.damage, expected);
         assert_eq!(100 - hp(&state, shot.target_id.unwrap()), shot.damage);
+        let headed = trace
+            .pellets
+            .iter()
+            .any(|pellet| crate::combat::head_hit_for(0.0, pellet.end[1], None, false));
+        assert_eq!(
+            shot.head, headed,
+            "a blast reports its head band per fighter"
+        );
     }
 
     // Replay the same seeded blast with both nearly dead: two deaths, two

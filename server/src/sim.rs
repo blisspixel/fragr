@@ -2744,24 +2744,31 @@ impl GameState {
                 match target {
                     Some(victim_idx) => {
                         connected = true;
-                        {
+                        let struck_head = {
                             let victim = &self.players[victim_idx];
                             let feet_y = victim.y - PLAYER_FLOOR_Y;
                             let campaign = victim.campaign;
                             let ducking = victim.ducking;
-                            if members.iter().any(|pellet| {
+                            members.iter().any(|pellet| {
                                 crate::combat::head_hit_for(
                                     feet_y,
                                     pellet.end[1],
                                     campaign,
                                     ducking,
                                 )
-                            }) {
-                                headed = true;
-                            }
-                        }
+                            })
+                        };
+                        headed |= struck_head;
+                        let reported = self.shot_results.len();
                         let (hp, armor, died) =
                             self.resolve_fighter_hit(shooter_idx, victim_idx, damage, Some(trace));
+                        // The result just reported says the head band doubled
+                        // damage that landed, so the shooter hears a headshot.
+                        if struck_head && crate::combat::head_bonus(weapon) {
+                            if let Some(result) = self.shot_results.get_mut(reported) {
+                                result.head = result.damage > 0;
+                            }
+                        }
                         hp_total += hp;
                         armor_total += armor;
                         kills += u64::from(died);
@@ -2778,6 +2785,7 @@ impl GameState {
                             target_hp_after: None,
                             trace: Some(trace),
                             killed: false,
+                            head: false,
                         });
                     }
                 }
@@ -3350,6 +3358,7 @@ impl GameState {
                 target_hp_after: Some(target_hp_after),
                 trace: Some(trace),
                 killed: died,
+                head: false,
             });
         }
         if damage > 0 {

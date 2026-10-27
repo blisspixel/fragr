@@ -2108,6 +2108,94 @@ fn test_rail_higher_damage_than_flechette() {
     );
 }
 
+/// The shot result tells the shooter a head-band hit doubled real damage, so
+/// the client can play the headshot confirm without judging the hit itself.
+#[test]
+fn a_shot_result_reports_a_headshot_only_when_the_head_doubled_damage() {
+    use crate::protocol::WeaponType;
+
+    let fire = |weapon: WeaponType, aim_height: f32, shield: bool| {
+        let mut state = GameState::arsenal();
+        state.start_round();
+        let shooter_id = Uuid::new_v4();
+        let target_id = Uuid::new_v4();
+        state.add_player(shooter_id, "Shooter".to_string(), Role::Agent);
+        state.add_player(target_id, "Target".to_string(), Role::Agent);
+        let shooter = state
+            .players
+            .iter()
+            .position(|p| p.id == shooter_id)
+            .unwrap();
+        let target = state
+            .players
+            .iter()
+            .position(|p| p.id == target_id)
+            .unwrap();
+        state.players[target].x = 5.0;
+        state.players[target].z = 0.0;
+        state.players[target].y = state.players[shooter].y;
+        state.players[shooter].x = 0.0;
+        state.players[shooter].z = 0.0;
+        state.players[shooter].yaw = 0.0;
+        state.players[shooter].weapon = weapon;
+        let feet = state.players[target].y - crate::sim::PLAYER_FLOOR_Y;
+        state.players[shooter].pitch = crate::combat::aim_at(
+            [0.0, feet + crate::movement::EYE_HEIGHT, 0.0],
+            [5.0, feet + aim_height, 0.0],
+        )
+        .unwrap()
+        .1;
+        if shield {
+            state.spawn_shields.insert(target_id, 40);
+        } else {
+            state.spawn_shields.remove(&target_id);
+        }
+        state.set_action(
+            shooter_id,
+            Action {
+                fire: true,
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        let result = state
+            .shot_results
+            .iter()
+            .find(|shot| shot.target_id == Some(target_id))
+            .cloned()
+            .unwrap_or_else(|| {
+                panic!(
+                    "{weapon:?} at {aim_height} reached the target: {:?}",
+                    state.shot_results
+                )
+            });
+        let wire = serde_json::to_value(&result).unwrap();
+        assert_eq!(
+            wire.get("head").is_some(),
+            result.head,
+            "head is omitted when false"
+        );
+        result
+    };
+    let face = crate::movement::EYE_HEIGHT;
+    let chest = crate::combat::TORSO_HEIGHT;
+    let head = fire(WeaponType::Rail, face, false);
+    assert!(
+        head.head && head.damage == 160,
+        "a Rail to the face: {head:?}"
+    );
+    let body = fire(WeaponType::Rail, chest, false);
+    assert!(
+        !body.head && body.damage == 80,
+        "a Rail to the chest: {body:?}"
+    );
+    let shielded = fire(WeaponType::Rail, face, true);
+    assert!(
+        shielded.hit && shielded.damage == 0 && !shielded.head,
+        "a shield that took nothing is no headshot: {shielded:?}"
+    );
+}
+
 #[test]
 fn test_scatter_hits_harder_than_flechette_up_close() {
     use crate::protocol::WeaponType;

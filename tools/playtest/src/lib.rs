@@ -3755,6 +3755,7 @@ mod combat_tests {
         ShotResult {
             trace: None,
             killed: false,
+            head: false,
             shooter_id: shooter,
             shooter: "S".to_string(),
             hit,

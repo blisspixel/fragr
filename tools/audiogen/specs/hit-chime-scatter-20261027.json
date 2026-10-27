@@ -1,0 +1,275 @@
+{
+  "out_dir": ".agents/wave12-host-audio/sfx/raw",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_a",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take a"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_b",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take b"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_c",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take c"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_d",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take d"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_e",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take e"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/body_f",
+      "prompt": "One single sharp metallic tick: a small bright steel plate pinged once with a hard metal striker, instant crisp attack, short clean ring that dies within a quarter second. Arcade shooter hit confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Hit confirm take f"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_a",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take a"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_b",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take b"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_c",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take c"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_d",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take d"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_e",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take e"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/head_f",
+      "prompt": "One single high piercing metallic ping: a small steel bell and a tuning fork struck together once, very bright glassy attack with a short shimmering ring that dies within half a second. Arcade shooter headshot confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.5,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Headshot confirm take f"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_a",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take a"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_b",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take b"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_c",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take c"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_d",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take d"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_e",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take e"
+    },
+    {
+      "kind": "sfx",
+      "name": "hit_chime/kill_f",
+      "prompt": "One single heavy metallic clang: a thick steel plate struck hard once with a hammer, sharp bright transient then a lower ringing body that decays within half a second. Arcade shooter kill confirm, one-shot, close-mic'd, dry, no reverb, no echo, no music, no voice, no second hit.",
+      "seconds": 0.7,
+      "influence": 0.7,
+      "format": "pcm_48000",
+      "title": "Kill confirm take f"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_a",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take a"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_b",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take b"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_c",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take c"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_d",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take d"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_e",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take e"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/sub_f",
+      "prompt": "Only the deep sub-bass thump of a close 12-gauge shotgun blast, a short chest-hitting low boom like a kick drum, instant attack, decays in a quarter second. No crack, no high frequencies, no pump, no echo, no reverb, no music, no voice.",
+      "seconds": 0.5,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun sub kick layer take f"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_a",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take a"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_b",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take b"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_c",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take c"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_d",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take d"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_e",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take e"
+    },
+    {
+      "kind": "sfx",
+      "name": "scatter/pump_f",
+      "prompt": "A pump-action shotgun racked once, close: a hard crisp steel-and-polymer clack as the slide goes back, then a second sharp clack as it slams forward. Two clean mechanical clicks only, dry, close-mic'd, no gunshot, no shell drop, no echo, no reverb, no music, no voice.",
+      "seconds": 0.6,
+      "influence": 0.75,
+      "format": "pcm_48000",
+      "title": "Shotgun pump clack take f"
+    }
+  ]
+}

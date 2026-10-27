@@ -149,6 +149,41 @@ func _tone() -> AudioStreamWAV:
 	return clip
 
 
+## The server's voiced kinds (`HostReactionKind::big`) and its text-only ones.
+const VOICED: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "triple_frag",
+	"quad_frag", "frag_storm", "rampage", "riot", "untouchable", "flag_captured", "charge_planted",
+	"match_point", "sudden_death", "larak_lot_special", "tickets_low"]
+const CAPTIONS: Array[String] = ["golden_rail", "double_frag", "lead_change", "flag_taken", "next_up"]
+
+
+## Every voiced slot resolves to a recording the real loader plays, short
+## enough for a call; a caption-only kind has no recording to play by mistake.
+func _check_recordings() -> void:
+	_check(VOICED.size() + CAPTIONS.size() == MatchRules.REACTIONS.size(), "every reaction kind is voiced or a caption")
+	for kind: String in VOICED + CAPTIONS:
+		_check(MatchRules.REACTIONS.has(kind), "a known reaction kind: " + kind)
+	var voice: HostVoice = HostVoice.new()
+	root.add_child(voice)
+	for kind: String in VOICED:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			var path: String = HostVoice.slot_path(kind, variant)
+			_check(ResourceLoader.exists(path), "the voiced slot is recorded: " + path)
+			var clip: AudioStream = load(path) as AudioStream if ResourceLoader.exists(path) else null
+			_check(clip is AudioStreamMP3, "a Host call is an MP3 stream: " + path)
+			if clip != null:
+				_check(clip.get_length() > 0.4 and clip.get_length() < 5.0, "a call is short: %s %.2f s" % [path, clip.get_length()])
+				var looped: bool = (clip as AudioStreamMP3).loop if clip is AudioStreamMP3 else false
+				_check(not looped, "a call plays once: " + path)
+			var data: Dictionary = {"kind": kind, "variant": variant, "player": "Nightfall", "team": "union", "big": true}
+			_check(voice.speak(data, FragrSettings.ANNOUNCER_BIG_MOMENTS), "the real loader voices " + path)
+	for kind: String in CAPTIONS:
+		for variant: int in range(MatchRules.REACTION_VARIANTS):
+			_check(not ResourceLoader.exists(HostVoice.slot_path(kind, variant)), "a caption has no recording: " + kind)
+	voice.stop()
+	voice.stream = null
+	voice.free()
+
+
 func _check_voice() -> void:
 	# Every slot is a kind and a variant only: no names reach a recording.
 	var slot: RegEx = RegEx.create_from_string("^res://assets/audio/host/[a-z_]+_[0-2]\\.mp3$")
@@ -156,13 +191,15 @@ func _check_voice() -> void:
 		for variant: int in range(MatchRules.REACTION_VARIANTS):
 			_check(slot.search(HostVoice.slot_path(kind, variant)) != null, "name-free slot: " + HostVoice.slot_path(kind, variant))
 	_check(HostVoice.slot_path("triple_frag", 1) == "res://assets/audio/host/triple_frag_1.mp3", "the documented slot layout")
+	_check_recordings()
 	var voice: HostVoice = HostVoice.new()
 	root.add_child(voice)
 	await process_frame
 	_check(voice.bus == &"Announcer", "the Host speaks on the Announcer bus: " + str(voice.bus))
 	var big: Dictionary = {"kind": "triple_frag", "variant": 1, "player": "Nightfall", "big": true}
-	# No recording yet: silence, never an error.
-	_check(not voice.speak(big, FragrSettings.ANNOUNCER_ON), "a missing clip is silence")
+	# No recording: silence, never an error.
+	var unrecorded: Dictionary = {"kind": "golden_rail", "variant": 1, "player": "Nightfall", "big": true}
+	_check(not voice.speak(unrecorded, FragrSettings.ANNOUNCER_ON), "a missing clip is silence")
 	var asked: Array[String] = []
 	var clip: AudioStreamWAV = _tone()
 	voice.clip_source = func(path: String) -> AudioStream:
