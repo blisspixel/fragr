@@ -34,10 +34,14 @@ after its limits are understood, rather than adding another campaign controller.
 
 `--survey-mission m02-carry` keeps the Recall Notice trial unchanged, writes
 it through the server's durable run file and enters M02 only by resuming the
-saved departure. A bounded 60-second M02 window uses the same policy; every
-death is reopened from disk and must refuse dropped, stale and duplicate
-Continue requests before spending exactly one. This is earned carry and retry
+saved departure. A bounded 60-second M02 window uses the same policy and the
+same public-objective guidance; every death is reopened from disk, a dropped
+request must leave it unchanged, and stale and duplicate Continue requests must
+be refused before exactly one is spent. This is earned carry and retry
 evidence for one window, not an M02 clear or acceptance of carried difficulty.
+Finding: the local child's fixed process seed makes a deterministic agent
+replay the same death on every reopened Continue; the harness declares a
+per-attempt seed to vary attempts, which does not change the game.
 
 `--survey-mission m19-teaching` ends at the first tram-street Paver, before
 the market. Its standalone earned kit, disclosed hop hints, sampled floor-strip

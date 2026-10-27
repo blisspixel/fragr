@@ -16,7 +16,11 @@ use std::path::{Path, PathBuf};
 /// Active M02 play after entry, summed across reopened attempts.
 pub const M02_WINDOW_TICKS: u64 = 60 * 20;
 
-pub const OBSERVATION: &str = "Earned M01 departure from the constrained Recall Notice policy, written through the server's durable run file after every step. M02 is entered only by reopening that file: the saved departure is promoted and loaded by the same code as the local child. The same constrained perception, turning, aim, reload and supply policy then plays a bounded 60-second M02 window of active time; there are no M02 route hints, grants or completion targets. A death ends the session. Its pending Continue is reopened from disk in a fresh session with a declared per-attempt simulation seed (trial seed plus 1000 per earlier attempt; an unchanged seed replays a deterministic controller's death exactly), where a dropped request, stale mission/run/attempt requests and a duplicate after acceptance are sent through the ordinary session command path; only the accepted request may spend a continue. Restoration is compared with the M02 entry kit live and again from a copy of the saved file. Immediate Continue with no menu delay; no M02 clear, campaign, human-population or rendered-readability claim.";
+pub const OBSERVATION: &str = concat!(
+    "M01 leg: ",
+    recall_notice_observation!(),
+    " The M01 leg is written through the server's durable run file after every step. M02 is entered only by reopening that file: the saved departure is promoted and loaded by the same DurableRun code as the local child. Both legs are guided by public objectives and navigation geometry through the shared MissionClient; M02 adds no harness-specific route hints, grants or completion targets. The same constrained perception, turning, aim, reload and supply policy plays a bounded 60-second M02 window of active time. Harness sessions number entities deterministically for reproducible reports, where the local child draws random entity ids, and admit the participant directly rather than through a wire join; the simulation seed is applied after the run file opens, as in the local child. A death ends the session. Its pending Continue is reopened from disk in a fresh session. The local child launches every process with one fixed seed, so a deterministic controller replays the same death after each reopened Continue; to observe varied attempts this harness instead declares a per-attempt simulation seed (trial seed plus 1000 per earlier attempt), recorded in each segment. A request dropped before delivery must leave the saved file unchanged; stale mission/run/attempt requests and a duplicate after acceptance are sent through the ordinary session command path and must be refused. Only the accepted request may spend a continue. Restoration is compared with the M02 entry kit live and again from a copy of the saved file. Immediate Continue with no menu delay; no M02 clear, campaign, human-population or rendered-readability claim."
+);
 
 /// HP, armor and the ordinary authoritative loadout, without its clock.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -74,6 +78,7 @@ pub fn attempt_seed(seed: u64, attempt: u32) -> u64 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Segment {
     pub attempt: u32,
+    /// The simulation seed this session was actually opened with.
     pub sim_seed: u64,
     pub outcome: String,
     pub ticks: u64,
@@ -81,6 +86,8 @@ pub struct Segment {
     pub hits: u32,
     pub kills: u32,
     pub reloads: u32,
+    /// Feet at the end of the segment; the death position when pending.
+    pub end_feet: [f32; 3],
     pub ammo_start: Vec<AmmoCount>,
     pub ammo_end: Vec<AmmoCount>,
 }
@@ -93,7 +100,10 @@ pub struct Retry {
     pub continues_after: u8,
     /// Saved menu preview of the pending death, before any request.
     pub pending: serde_json::Value,
-    /// Requests refused by the server, each leaving the saved file unchanged.
+    /// A request lost before delivery (a failed client enqueue) never reaches
+    /// the server; true when the saved pending Continue was left unchanged.
+    pub dropped_unchanged: bool,
+    /// Requests the server refused, each leaving the saved file unchanged.
     pub rejected: Vec<String>,
     /// Saved menu preview after the accepted request and its duplicate.
     pub resumed: serde_json::Value,
@@ -151,9 +161,10 @@ fn open(
             .map_err(|e| e.to_string())?,
     );
     session.state.use_replay_ids();
-    session.state.seed(seed);
     let run = DurableRun::open(&mut session, directory, resume, Some(difficulty))
         .map_err(|e| e.to_string())?;
+    // The local child seeds after its run file opens.
+    session.state.seed(seed);
     Ok((session, run))
 }
 
@@ -228,7 +239,7 @@ fn reopen_pending(
     // A request lost before delivery (a failed client enqueue) never reaches
     // the session. The pending attempt must remain available unchanged.
     unchanged(&session, &mut run, "a dropped request")?;
-    let mut rejected = vec!["dropped_before_delivery".to_owned()];
+    let mut rejected = Vec::new();
     let mut stale = vec![
         (
             "stale_mission",
@@ -317,6 +328,7 @@ fn reopen_pending(
             continues_before: before.continues,
             continues_after: after.continues,
             pending,
+            dropped_unchanged: true,
             rejected,
             resumed,
         },
@@ -466,6 +478,8 @@ pub(super) fn trial(
     }
     carry.m02_entry = Some(entry.clone());
     let mut remaining = window_ticks;
+    // The seed actually passed to `open` for the live session.
+    let mut sim_seed = seed;
     row.outcome = "window_elapsed".into();
     loop {
         let attempt = run_state(&session)?.0;
@@ -488,13 +502,14 @@ pub(super) fn trial(
         absorb(&mut row, &part);
         carry.segments.push(Segment {
             attempt,
-            sim_seed: attempt_seed(seed, attempt),
+            sim_seed,
             outcome: part.outcome.clone(),
             ticks,
             shots: part.shots,
             hits: part.hits,
             kills: part.kills,
             reloads: part.reloads,
+            end_feet: part.last_feet,
             ammo_start,
             ammo_end: Kit::of(&session, id)?.loadout.ammo,
         });
@@ -502,12 +517,9 @@ pub(super) fn trial(
             "pending_continue" => {
                 drop(run);
                 drop(session);
-                let (next, next_run, _, retry) = reopen_pending(
-                    &directory.0,
-                    attempt_seed(seed, attempt + 1),
-                    difficulty,
-                    &entry,
-                )?;
+                sim_seed = attempt_seed(seed, attempt + 1);
+                let (next, next_run, _, retry) =
+                    reopen_pending(&directory.0, sim_seed, difficulty, &entry)?;
                 carry.retries.push(retry);
                 row.continues_spent += 1;
                 session = next;
@@ -626,8 +638,9 @@ mod tests {
             assert_eq!(retry.continues_after + 1, retry.continues_before);
             assert_eq!(retry.pending["pending_continue"], true);
             assert_eq!(retry.resumed["attempt"], retry.attempt + 1);
+            assert!(retry.dropped_unchanged);
+            assert!(!retry.rejected.iter().any(|r| r.contains("dropped")));
             for label in [
-                "dropped_before_delivery",
                 "stale_mission",
                 "stale_run",
                 "future_attempt",
@@ -638,10 +651,7 @@ mod tests {
         }
         let active: u64 = carry.segments.iter().map(|s| s.ticks).sum();
         assert!(active <= M02_WINDOW_TICKS);
-        assert!(carry
-            .segments
-            .iter()
-            .all(|s| s.sim_seed == attempt_seed(42, s.attempt)));
+        assert_eq!(carry.segments[0].sim_seed, 42);
         let fatal = reviews.fatal.expect("the M02 death keeps its scene window");
         assert_eq!(fatal["event"], "fatal_hit");
         assert_eq!(fatal["attempt"], 1);
@@ -715,6 +725,94 @@ mod tests {
             .unwrap();
         assert!(refused.starts_with("saved death is not a pending Continue"));
         assert!(run(42..42, 20).is_err() && run(0..65, 20).is_err());
+    }
+
+    fn leg(seed: u64, scenario: Scenario, max_ticks: u64, stop_at_pending: bool) -> Leg {
+        Leg {
+            scenario,
+            seed,
+            profile: PROFILES[0],
+            difficulty: CampaignDifficulty::Severe,
+            max_ticks,
+            recording: Recording::None,
+            stop_at_pending,
+        }
+    }
+
+    /// The earned M01 leg and the first M02 attempt, ending at its saved death.
+    fn first_pending(seed: u64) -> (Scratch, Kit) {
+        let difficulty = CampaignDifficulty::Severe;
+        let directory = Scratch::new("pending").unwrap();
+        {
+            let (mut session, mut run) = open(
+                MissionId::RecallNotice,
+                &directory.0,
+                false,
+                seed,
+                difficulty,
+            )
+            .unwrap();
+            let id = admit(&mut session, MissionId::RecallNotice, 1);
+            let (m01, _, _) = drive(
+                &mut session,
+                id,
+                leg(seed, Scenario::RecallNotice, 12_000, false),
+                |action| action,
+                persist(&mut run),
+            )
+            .unwrap();
+            assert_eq!(m01.outcome, "departed");
+        }
+        let (mut session, mut run) = open(
+            MissionId::PersonsUnknown,
+            &directory.0,
+            true,
+            seed,
+            difficulty,
+        )
+        .unwrap();
+        let id = admit(&mut session, MissionId::PersonsUnknown, 1);
+        let entry = Kit::of(&session, id).unwrap();
+        let (part, _, _) = drive(
+            &mut session,
+            id,
+            leg(seed, Scenario::M02Carry, M02_WINDOW_TICKS, true),
+            |action| action,
+            persist(&mut run),
+        )
+        .unwrap();
+        assert_eq!(part.outcome, "pending_continue");
+        (directory, entry)
+    }
+
+    /// Reopen a copy of the saved death with `sim_seed` and play attempt 2.
+    fn replay(pending: &Scratch, entry: &Kit, sim_seed: u64) -> (String, u64, [f32; 3], u32) {
+        let copy = Scratch::new("replay").unwrap();
+        std::fs::copy(pending.0.join("run.json"), copy.0.join("run.json")).unwrap();
+        let (mut session, mut run, id, _) =
+            reopen_pending(&copy.0, sim_seed, CampaignDifficulty::Severe, entry).unwrap();
+        let (part, _, _) = drive(
+            &mut session,
+            id,
+            leg(42, Scenario::M02Carry, M02_WINDOW_TICKS, true),
+            |action| action,
+            persist(&mut run),
+        )
+        .unwrap();
+        (part.outcome, session.state.tick, part.last_feet, part.shots)
+    }
+
+    #[test]
+    fn a_fixed_process_seed_replays_the_reopened_attempt_and_a_declared_seed_diverges() {
+        // Product finding: the local child launches every process with one
+        // seed, so reopening the same saved death replays a deterministic
+        // controller exactly. The harness's declared attempt seed diverges.
+        let (pending, entry) = first_pending(42);
+        let fixed = replay(&pending, &entry, 42);
+        assert_eq!(replay(&pending, &entry, 42), fixed);
+        let declared = replay(&pending, &entry, attempt_seed(42, 2));
+        assert_ne!(declared, fixed);
+        eprintln!("fixed seed attempt 2: {fixed:?}; declared seed: {declared:?}");
     }
 
     #[test]
