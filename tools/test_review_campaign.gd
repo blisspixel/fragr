@@ -143,6 +143,32 @@ func _stall_validation() -> void:
 	discontinuous["frames"].append(later)
 	_check(not _valid_review(discontinuous), "active stall windows must remain consecutive")
 
+func _tanks_validation() -> void:
+	var leg: Dictionary = _teaching("jetpack_flight").duplicate(true)
+	leg["event"] = "tanks_leg"
+	leg["stage"] = "tanks"
+	leg["frames"][0].erase("jetpacks")
+	leg["frames"][0].erase("paver_strips")
+	_check(_valid_review(leg), "a tanks route window needs no invented work mechanic")
+	_check(_valid_report({"schema": 3, "teaching_reviews": [leg]}), "tanks windows enter the current report")
+	for stage: String in ["teaching", "market"]:
+		var early: Dictionary = leg.duplicate(true)
+		early["stage"] = stage
+		_check(not _valid_review(early), "tanks windows belong to the tanks stage only")
+	var climb: Dictionary = leg.duplicate(true)
+	climb["event"] = "tanks_climb"
+	_check(not _valid_review(climb), "a climb window must show the viewer rising")
+	var later: Dictionary = climb["frames"][0].duplicate(true)
+	later["tick"] = int(later["tick"]) + 1
+	for player: Dictionary in later["players"]:
+		if player["id"] == climb["view"]["id"]:
+			player["y"] = float(player["y"]) + 1.5
+	climb["frames"].append(later)
+	_check(_valid_review(climb), "a recorded rise qualifies the climb window")
+	var other: Dictionary = _teaching("paver_tell").duplicate(true)
+	other["stage"] = "tanks"
+	_check(_valid_review(other), "a later Paver window may carry the tanks stage")
+
 static func _overlap() -> Dictionary:
 	# Two distinct owners in one isolated snapshot. This claims simultaneous
 	# strips, not intersection of their floor rectangles or earned progress.
@@ -262,6 +288,7 @@ func _run() -> void:
 	_validation()
 	_teaching_validation()
 	_stall_validation()
+	_tanks_validation()
 	_stage_and_overlap_validation()
 	var arena: Node3D = Node3D.new()
 	root.add_child(arena)

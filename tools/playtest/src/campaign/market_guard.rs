@@ -4,14 +4,48 @@
 use fragr_server::movement::{Arena, MoveInput, MoveState, ACTOR_REFERENCE_SPEED, CONTACT_EPSILON};
 use fragr_server::protocol::{Action, PaverStripState, PlayerState, Snapshot};
 use fragr_server::sim::PLAYER_FLOOR_Y;
+use serde::{Deserialize, Serialize};
 
+/// Which arbitration branch produced the final keys. Reported for diagnosis
+/// only; the branch never feeds a later decision.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Guard {
+    /// Inside a recognized strip: the shared escape replaced generic actions.
+    EscapePreserved,
+    /// Airborne or jumping: no grounded ingress check applies.
+    Airborne,
+    /// Grounded movement keys released before crossing a recognized strip.
+    IngressWithheld,
+    /// Grounded and checked; the proposed keys cross no recognized strip.
+    Pass,
+}
+
+#[cfg(test)]
 pub(super) fn protect(
+    shared: Action,
+    proposed: Action,
+    me: &PlayerState,
+    observed: &Snapshot,
+    arena: &Arena,
+) -> Action {
+    arbitrate(shared, proposed, me, observed, arena).0
+}
+
+/// Feet off their support by more than contact tolerance.
+pub(super) fn airborne(me: &PlayerState, arena: &Arena) -> bool {
+    let from = feet(me);
+    let floor = arena.support_height(from[0], from[2], from[1] + CONTACT_EPSILON);
+    (from[1] - floor).abs() > CONTACT_EPSILON
+}
+
+pub(super) fn arbitrate(
     shared: Action,
     mut proposed: Action,
     me: &PlayerState,
     observed: &Snapshot,
     arena: &Arena,
-) -> Action {
+) -> (Action, Guard) {
     let current = || {
         observed
             .paver_strips
@@ -22,13 +56,12 @@ pub(super) fn protect(
     if current().any(|strip| crosses(strip, from, from)) {
         // This alternative already passed the same reload, aim and turning
         // constraints. Generic dodge/hearing/scanning cannot replace escape.
-        return shared;
+        return (shared, Guard::EscapePreserved);
     }
-    let floor = arena.support_height(from[0], from[2], from[1] + CONTACT_EPSILON);
-    if proposed.jump || (from[1] - floor).abs() > CONTACT_EPSILON {
+    if proposed.jump || airborne(me, arena) {
         // No private vertical velocity, airborne prediction or extra flight
         // ability is introduced by this grounded ingress check.
-        return proposed;
+        return (proposed, Guard::Airborne);
     }
     let to = project(me, &proposed, arena);
     if current().any(|strip| crosses(strip, from, to)) {
@@ -38,8 +71,9 @@ pub(super) fn protect(
         proposed.back = false;
         proposed.left = false;
         proposed.right = false;
+        return (proposed, Guard::IngressWithheld);
     }
-    proposed
+    (proposed, Guard::Pass)
 }
 
 fn feet(me: &PlayerState) -> [f32; 3] {

@@ -823,6 +823,17 @@ mod tests {
             carry.survey_mission,
             fragr_playtest::campaign::Scenario::M02Carry
         );
+        let tanks = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m19-tanks",
+        ])
+        .unwrap();
+        assert_eq!(
+            tanks.survey_mission,
+            fragr_playtest::campaign::Scenario::M19Tanks
+        );
         for args in [
             ["--map", "2"],
             ["--mode", "tdm"],
