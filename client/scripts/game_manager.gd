@@ -257,6 +257,7 @@ const CRAWLER_SOUND_VOICES: int = 4
 const CRAWLER_CUE_DISTANCE: float = 24.0
 var crawler_sound_stream: AudioStream = null
 var crawler_sound_players: Array[AudioStreamPlayer3D] = []
+var bark_voice: BarkVoice = null
 var crawler_sound_next: int = 0
 var crawler_scrabble_count: int = 0
 var crawler_last_position: Vector3 = Vector3.INF
@@ -1409,6 +1410,22 @@ func _reset_crawler_cues() -> void:
 			voice.stop()
 	if hud != null and hud.crawler_caption != null:
 		hud.crawler_caption.clear()
+	if hud != null and hud.get("bark_caption") is BarkCaption:
+		(hud.get("bark_caption") as BarkCaption).clear()
+	if bark_voice != null and is_instance_valid(bark_voice):
+		bark_voice.stop_all()
+
+## Campaign chatter: caption always, voice when its slot is recorded.
+func _on_bark(data: Dictionary) -> void:
+	var caption: String = CampaignBarks.caption_key(data)
+	if caption.is_empty():
+		return
+	if hud != null and hud.has_method("show_bark_caption"):
+		hud.show_bark_caption(CampaignBarks.speaker_key(data), caption, CampaignBarks.is_union(data))
+	if bark_voice == null or not is_instance_valid(bark_voice):
+		bark_voice = BarkVoice.new()
+		add_child(bark_voice)
+	bark_voice.speak(data)
 
 func _accept_crawler_scrabble(position: Vector3, now_ms: int) -> bool:
 	if now_ms - crawler_last_ms < 300 and position.distance_squared_to(crawler_last_position) < 1.0:
@@ -3277,6 +3294,8 @@ func _on_event_received(data):
 		var duration_ticks = int(data.get("duration_ticks", 120))
 		var duration_sec = float(duration_ticks) / 20.0
 		hud.show_compliance_ping(str(data.get("message", "")), duration_sec)
+	elif event_type == CampaignBarks.ENEMY_EVENT or event_type == CampaignBarks.COMPANION_EVENT:
+		_on_bark(data)
 	elif event_type == "crawler_scrabble":
 		var crawler_position: Vector3 = _crawler_position(data.get("position"))
 		if crawler_position.is_finite() and _crawler_listener_near(crawler_position) \

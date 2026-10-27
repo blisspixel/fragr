@@ -62,9 +62,18 @@ fn every_tier_keeps_real_tells_committed_aim_and_retaliation_windows() {
         ] {
             for dodge in [false, true] {
                 let (mut session, id) = fixture(difficulty, kind);
-                for _ in 0..2 {
-                    session.tick_messages(0.05);
-                }
+                session.tick_messages(0.05);
+                // The entry is an alarm; the facing guard reacts to its sighting
+                // first, then tells.
+                let guard = session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.is_campaign_enemy())
+                    .unwrap()
+                    .id;
+                crate::tests::campaign_ai::await_reaction(&mut session, guard);
+                session.tick_messages(0.05);
                 let (current, start, end) = phase(&session);
                 assert_eq!(current, EnemyPhase::Windup);
                 assert!(end - start >= 10, "every tier preserves a readable tell");
@@ -217,7 +226,8 @@ fn heavy_and_turret_tells_precede_damage_by_the_documented_time_on_every_tier() 
                 let (mut session, id) = fixture_facing(difficulty, kind, facing);
                 session.state.players[0].hp = 500;
                 session.tick_messages(0.05);
-                for _ in 0..8 {
+                // A Heavy reacts to its sighting first (200 to 400 ms).
+                for _ in 0..16 {
                     if phase(&session).0 == EnemyPhase::Windup {
                         break;
                     }

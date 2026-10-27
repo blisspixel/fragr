@@ -223,6 +223,7 @@ var scope_mode: int = 0
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
 var crawler_caption: CrawlerCaption
+var bark_caption: BarkCaption
 const FP_MUZZLE_SECONDS: float = 0.07
 ## One Shiv thrust: out toward the crosshair and back inside the 0.30 s cooldown.
 const FP_STAB_SECONDS: float = 0.22
@@ -268,6 +269,8 @@ func _ready():
 	add_child(sabotage_hud)
 	crawler_caption = CrawlerCaption.new()
 	add_child(crawler_caption)
+	bark_caption = BarkCaption.new()
+	add_child(bark_caption)
 	melee_view = MeleeView.new()
 	melee_view.name = "MeleeView"
 	add_child(melee_view)
@@ -2585,6 +2588,11 @@ func show_damage_flash() -> void:
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
 		crawler_caption.push_scrabble()
+
+## One line of campaign chatter: the speaker label and the caption key.
+func show_bark_caption(speaker_key: String, caption_key: String, union: bool = true) -> void:
+	if bark_caption != null:
+		bark_caption.push(speaker_key, caption_key, union)
 
 ## The joined player's death card: three lines, or empty to clear it.
 func show_death_card(lines: PackedStringArray) -> void:

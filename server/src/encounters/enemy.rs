@@ -7,10 +7,12 @@ use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod assessor;
+mod awareness;
 mod enforcer;
 pub(crate) mod paver;
 mod redactor;
 mod spine_patrol;
+pub(crate) mod squad;
 pub(crate) mod surveyor;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
@@ -372,6 +374,16 @@ pub(super) struct EnemyController {
     /// After the reprieve: the exit this body walks to without attacking.
     stood_down: Option<[f32; 3]>,
     stood_down_at: u64,
+    /// What this guard knows: on post, alarmed, reacting or in the fight.
+    awareness: awareness::Awareness,
+    /// Its group this tick, from the encounter.
+    squad: squad::Squad,
+    /// A skirmisher's flank point and its deadline.
+    flank: Option<([f32; 3], u64)>,
+    /// No new flank before this tick.
+    flank_rest: u64,
+    /// Something this guard would say, drained by the encounter.
+    pending_bark: Option<crate::protocol::EnemyBarkKind>,
 }
 
 /// (windup, recovery) ticks. Health, damage, burst length, locked aim and
@@ -610,6 +622,11 @@ impl EnemyController {
             converging: None,
             stood_down: None,
             stood_down_at: 0,
+            awareness: awareness::Awareness::Aware,
+            squad: squad::Squad::default(),
+            flank: None,
+            flank_rest: 0,
+            pending_bark: None,
         }
     }
 
@@ -641,6 +658,7 @@ impl EnemyController {
     }
 
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        self.hear_alarm(tick);
         if let Some(march) = &mut self.spine_march {
             march.start(tick);
         }
@@ -653,6 +671,7 @@ impl EnemyController {
     /// Pressure toward a point on the refuge line. The point becomes this
     /// body's post, so a chase that loses its quarry walks back to the line.
     pub(super) fn march(&mut self, point: [f32; 3], tick: u64) {
+        self.wake();
         self.home = point;
         self.alarmed = true;
         self.chased = true;
@@ -672,6 +691,7 @@ impl EnemyController {
         if self.stood_down.is_some() {
             return;
         }
+        self.wake();
         self.end_mark(surveyor::MarkEnd::Expired);
         self.stood_down = Some(exit);
         self.stood_down_at = tick;
@@ -735,6 +755,8 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.wake();
+        self.flank = None;
         self.end_spine_march();
         self.redactor_approach = None;
         self.redactor_approached = false;
@@ -816,6 +838,12 @@ impl EnemyController {
         let tick = state.tick.saturating_add(1);
         if let Some(exit) = self.stood_down {
             return self.walk_off(exit, me, tick);
+        }
+        if !self.aware() {
+            if let Some(intent) = self.unaware_intent(state, tick) {
+                self.last_hp = me.hp;
+                return intent;
+            }
         }
         let (windup, recovery) = attack_timing(self.kind, state.campaign_rules().difficulty);
         let turret = self.kind == EnemyKind::Turret;
@@ -984,6 +1012,19 @@ impl EnemyController {
                 });
             return self.enforcer(target, feet, grounded, (windup, recovery), tick);
         }
+        if self.phase == EnemyPhase::Recovery
+            && tick < self.until
+            && self.kind == EnemyKind::Sweeper
+        {
+            // A Sweeper spends the recovery it would sidestep through walking
+            // a flank while an anchor of its group holds the lane. Crawler and
+            // Redactor recoveries stay planted: they are the punish window.
+            if let Some(target) = target {
+                if let Some(intent) = self.flank(state, target, feet, tick) {
+                    return intent;
+                }
+            }
+        }
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
             // Hit stun stays planted. Between bursts a Clerk, Sweeper or Heavy
             // sidesteps. Standard steps in past PRESSURE_RANGE. Severe steps
@@ -1072,6 +1113,13 @@ impl EnemyController {
         let Some(body) = state.players.iter().find(|p| p.id == self.id) else {
             return BotIntent::default();
         };
+        // While an anchor of its group fires at this participant, a
+        // skirmisher goes around to a side of them before its own attack.
+        if let Some(target) = target {
+            if let Some(intent) = self.flank(state, target, feet, tick) {
+                return intent;
+            }
+        }
         if self.kind == EnemyKind::Crawler {
             let support = state
                 .current_arena()
@@ -1106,9 +1154,13 @@ impl EnemyController {
             }
         }
         if matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing) {
-            if target.is_none() {
+            let suppressing = self.kind == EnemyKind::HeavySweeper
+                && self.phase == EnemyPhase::Firing
+                && self.shots_left > 0;
+            if target.is_none() && !suppressing {
                 // Broken sight cancels the committed attack, including the
-                // turret's charged shot.
+                // turret's charged shot. A Heavy Sweeper's burst, once it has
+                // begun, finishes down its lane into the cover: it pins.
                 self.target = None;
                 self.shots_left = 0;
                 self.enter(EnemyPhase::Recovery, tick, 12);
@@ -1206,7 +1258,15 @@ impl EnemyController {
                 action.right = !self.strafe_left;
                 return BotIntent { action, goal: None };
             }
-            if distance <= body.weapon.range_units().min(ENGAGE_RANGE) {
+            let in_range = distance <= body.weapon.range_units().min(ENGAGE_RANGE);
+            if !(in_range && tick >= self.yield_until && tokens.free(target.id, tick)) {
+                // An Auditor that cannot attack from here keeps its heavy
+                // between itself and the participant.
+                if let Some(intent) = self.hold_behind(target, feet, tick) {
+                    return intent;
+                }
+            }
+            if in_range {
                 let yielding = tick < self.yield_until;
                 if yielding || !tokens.free(target.id, tick) {
                     // Two guns are already on this participant, or one just

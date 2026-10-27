@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod actors;
+mod barks;
+pub use barks::{BarkRegister, CompanionBarkKind, EnemyBarkKind, BARK_VARIANTS};
 mod blade;
 mod body;
 mod podium;
@@ -1818,6 +1820,28 @@ pub struct PlayerScore {
 pub enum GameEvent {
     /// A nearby Crawler encounter wakes before its first visible attack.
     CrawlerScrabble {
+        position: [f32; 3],
+    },
+    /// Union squad radio from one speaking body: rare and spaced. The
+    /// client owns the words for `kind`, `register` and `variant`.
+    EnemyBark {
+        kind: EnemyBarkKind,
+        register: BarkRegister,
+        /// `0..BARK_VARIANTS`, rotated per kind and register.
+        variant: u8,
+        speaker_id: Uuid,
+        /// The speaker's feet, for the spatial voice.
+        position: [f32; 3],
+    },
+    /// A companion's callout to the party, on the same spaced channel.
+    CompanionBark {
+        kind: CompanionBarkKind,
+        /// The enemy kind a priority callout names. Omitted otherwise.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        subject: Option<EnemyKind>,
+        /// `0..BARK_VARIANTS`, rotated per kind and subject.
+        variant: u8,
+        speaker_id: Uuid,
         position: [f32; 3],
     },
     /// A Sabotage fact everyone hears: the charge changing hands, a plant or

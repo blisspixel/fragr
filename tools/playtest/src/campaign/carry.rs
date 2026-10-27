@@ -598,12 +598,14 @@ mod tests {
 
     #[test]
     fn earned_departure_reopens_m02_retries_through_the_saved_run() {
-        // Earned-run evidence: seed 42 reference/Severe departs M01 with
-        // finite earned supply and dies in its M02 window. Every lifecycle
-        // check inside `trial` is a hard error, never a reported outcome.
+        // Earned-run evidence: seed 44 reference/Severe departs M01 with
+        // finite earned supply and dies in its M02 window (seed 42 stopped
+        // dying there when Union guards began needing a sighting, wave 12).
+        // Every lifecycle check inside `trial` is a hard error, never a
+        // reported outcome.
         let mut reviews = Reviews::default();
         let row = trial(
-            42,
+            44,
             PROFILES[0],
             CampaignDifficulty::Severe,
             12_000,
@@ -615,7 +617,7 @@ mod tests {
         // Durable persistence after every step must not perturb play: the M01
         // leg is the survey's own trial, field for field.
         let survey =
-            super::super::trial(42, PROFILES[0], CampaignDifficulty::Severe, 12_000).unwrap();
+            super::super::trial(44, PROFILES[0], CampaignDifficulty::Severe, 12_000).unwrap();
         assert_eq!(carry.m01, survey);
         assert_eq!(carry.m01.outcome, "departed");
         assert!(accepts(&row));
@@ -651,7 +653,7 @@ mod tests {
         }
         let active: u64 = carry.segments.iter().map(|s| s.ticks).sum();
         assert!(active <= M02_WINDOW_TICKS);
-        assert_eq!(carry.segments[0].sim_seed, 42);
+        assert_eq!(carry.segments[0].sim_seed, 44);
         let fatal = reviews.fatal.expect("the M02 death keeps its scene window");
         assert_eq!(fatal["event"], "fatal_hit");
         assert_eq!(fatal["attempt"], 1);
@@ -659,13 +661,14 @@ mod tests {
 
     #[test]
     fn an_exhausted_carry_saves_failure_without_a_retry() {
-        // Seed 43 deliberate/Assisted spends all three continues in M01 and
-        // still departs; its first M02 death exhausts the run on disk.
+        // Seed 43 deliberate/Severe spends all three continues in M01 and
+        // still departs; its first M02 death exhausts the run on disk. (Until
+        // wave 12 this was deliberate/Assisted.)
         let mut reviews = Reviews::default();
         let row = trial(
             43,
             PROFILES[1],
-            CampaignDifficulty::Assisted,
+            CampaignDifficulty::Severe,
             12_000,
             M02_WINDOW_TICKS,
             &mut reviews,
@@ -786,7 +789,12 @@ mod tests {
     }
 
     /// Reopen a copy of the saved death with `sim_seed` and play attempt 2.
-    fn replay(pending: &Scratch, entry: &Kit, sim_seed: u64) -> (String, u64, [f32; 3], u32) {
+    fn replay(
+        pending: &Scratch,
+        entry: &Kit,
+        seed: u64,
+        sim_seed: u64,
+    ) -> (String, u64, [f32; 3], u32) {
         let copy = Scratch::new("replay").unwrap();
         std::fs::copy(pending.0.join("run.json"), copy.0.join("run.json")).unwrap();
         let (mut session, mut run, id, _) =
@@ -794,7 +802,7 @@ mod tests {
         let (part, _, _) = drive(
             &mut session,
             id,
-            leg(42, Scenario::M02Carry, M02_WINDOW_TICKS, true),
+            leg(seed, Scenario::M02Carry, M02_WINDOW_TICKS, true),
             |action| action,
             persist(&mut run),
         )
@@ -807,10 +815,12 @@ mod tests {
         // Product finding: the local child launches every process with one
         // seed, so reopening the same saved death replays a deterministic
         // controller exactly. The harness's declared attempt seed diverges.
-        let (pending, entry) = first_pending(42);
-        let fixed = replay(&pending, &entry, 42);
-        assert_eq!(replay(&pending, &entry, 42), fixed);
-        let declared = replay(&pending, &entry, attempt_seed(42, 2));
+        // Seed 44 reference/Severe dies in its M02 window (seed 42 no longer
+        // does since wave 12).
+        let (pending, entry) = first_pending(44);
+        let fixed = replay(&pending, &entry, 44, 44);
+        assert_eq!(replay(&pending, &entry, 44, 44), fixed);
+        let declared = replay(&pending, &entry, 44, attempt_seed(44, 2));
         assert_ne!(declared, fixed);
         eprintln!("fixed seed attempt 2: {fixed:?}; declared seed: {declared:?}");
     }

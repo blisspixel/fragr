@@ -14,6 +14,7 @@ use crate::roster::{Habits, PadHabit};
 use std::f32::consts::{FRAC_PI_3, PI, TAU};
 use uuid::Uuid;
 
+pub(crate) mod guard;
 mod pads;
 
 const OBSERVE_EVERY: u64 = 2;

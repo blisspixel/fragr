@@ -1330,6 +1330,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             },
             GameEvent::Hit { .. }
             | GameEvent::CrawlerScrabble { .. }
+            | GameEvent::EnemyBark { .. }
+            | GameEvent::CompanionBark { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
             | GameEvent::Speak { .. }

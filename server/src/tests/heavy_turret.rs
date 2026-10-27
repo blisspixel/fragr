@@ -199,7 +199,8 @@ fn turret_ignores_a_flank_behind_its_sweep_and_can_be_destroyed_there() {
 fn heavy_sweeper_shrugs_light_hits_and_staggers_once_on_a_heavy_one() {
     let (mut session, id, heavy) = fixture("heavy_sweeper", false);
     assert_eq!(body(&session, heavy).hp, 160);
-    until(&mut session, heavy, EnemyPhase::Windup, 5);
+    // The alarm, then a 200 to 400 ms reaction to the sighting.
+    until(&mut session, heavy, EnemyPhase::Windup, 14);
     let (_, _, _, end) = identity(&session, heavy);
     shoot(&mut session, id, heavy, WeaponType::Tack);
     advance(&mut session, 1);

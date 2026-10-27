@@ -21,6 +21,8 @@ fn crawler_fixture() -> (GameSession, Uuid) {
     let map = AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
     let mut session = GameSession::with_authored_map(map);
     session.state.seed(42);
+    // Numbered bodies, so each guard's reaction repeats exactly.
+    session.state.use_replay_ids();
     let id = Uuid::from_u128(101);
     session.state.add_player(id, "Visitor".into(), Role::Human);
     (session, id)
@@ -49,6 +51,8 @@ fn fixture(cover: bool) -> (GameSession, Uuid) {
     let map = AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
     let mut session = GameSession::with_authored_map(map);
     session.state.seed(42);
+    // Numbered bodies, so each guard's reaction repeats exactly.
+    session.state.use_replay_ids();
     let id = Uuid::from_u128(100);
     session.state.add_player(id, "Visitor".into(), Role::Human);
     (session, id)
@@ -70,13 +74,17 @@ fn enter(session: &mut GameSession, id: Uuid) -> Uuid {
     player.x = 0.0;
     player.z = 0.0;
     advance(session, 1);
-    session
+    let clerk = session
         .state
         .players
         .iter()
         .find(|p| p.is_campaign_enemy())
         .unwrap()
-        .id
+        .id;
+    // The entry is an alarm; the clerk, facing the door, reacts to the
+    // sighting. Timing below starts from its first tick in the fight.
+    super::campaign_ai::await_reaction(session, clerk);
+    clerk
 }
 
 fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
@@ -335,34 +343,32 @@ fn shooting_a_dormant_group_wakes_existing_guards_without_waiting_for_its_depend
     shoot(&mut session, id, guards[1]);
     assert_eq!(phase(&session, guards[1]), EnemyPhase::Hit);
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
-    advance(&mut session, 6);
-    // Both woken guards attack, one tell at a time: the second shifts across
-    // its lane until the stagger has passed.
-    let telling = |session: &GameSession| {
-        [guards[1], guards[2]]
-            .into_iter()
-            .filter(|guard| phase(session, *guard) == EnemyPhase::Windup)
-            .count()
-    };
-    assert_eq!(telling(&session), 1);
-    assert!([guards[1], guards[2]]
-        .into_iter()
-        .any(|guard| phase(&session, guard) == EnemyPhase::Moving));
+    // Both woken guards attack, one tell start at a time: the struck guard
+    // knows where the shot came from, its peer heard it and reacts to its own
+    // sighting, and whichever asks second waits out the stagger.
     // Keep the participant standing through both bursts.
     if let Some(player) = session.state.players.iter_mut().find(|p| p.id == id) {
         player.hp = 1000;
     }
-    let mut told = [false; 2];
-    for _ in 0..40 {
+    let mut told: [Option<u64>; 2] = [None; 2];
+    for _ in 0..60 {
+        advance(&mut session, 1);
         for (index, guard) in [guards[1], guards[2]].into_iter().enumerate() {
-            told[index] |= phase(&session, guard) == EnemyPhase::Windup;
+            if told[index].is_none() && phase(&session, guard) == EnemyPhase::Windup {
+                told[index] = Some(session.state.tick);
+            }
         }
-        if told == [true, true] {
+        if told.iter().all(Option::is_some) {
             break;
         }
-        advance(&mut session, 1);
     }
-    assert_eq!(told, [true, true], "the yielding guard takes its turn");
+    let [Some(first), Some(second)] = told else {
+        panic!("the yielding guard takes its turn: {told:?}");
+    };
+    assert!(
+        first.abs_diff(second) >= crate::encounters::enemy::ATTACK_STAGGER_TICKS,
+        "{told:?}"
+    );
     assert_eq!(phase(&session, guards[0]), EnemyPhase::Idle);
     assert_eq!(
         session
@@ -771,6 +777,23 @@ fn sweeper_bursts_are_spaced_and_recovery_is_an_actual_opening() {
         .filter(|p| p.is_campaign_enemy() && p.hp > 0)
         .map(|p| p.id)
         .collect();
+    // Both sweepers face the entry; start the clock on the tick before the
+    // first one's reaction completes.
+    let due = |session: &GameSession| {
+        sweepers
+            .iter()
+            .filter_map(|id| session.state.encounters.reaction_due(*id))
+            .min()
+    };
+    for _ in 0..20 {
+        if due(&session).is_some() {
+            break;
+        }
+        advance(&mut session, 1);
+    }
+    while due(&session).is_some_and(|ready| session.state.tick + 1 < ready) {
+        advance(&mut session, 1);
+    }
     let started = session.state.tick;
     let mut shots = Vec::new();
     for _ in 0..50 {

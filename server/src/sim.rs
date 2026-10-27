@@ -4,6 +4,7 @@ pub(crate) mod assessor;
 pub(crate) mod blade;
 mod booth;
 mod bot_senses;
+pub(crate) use bot_senses::guard::{guard_reaction, guard_sees};
 mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
