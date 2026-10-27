@@ -1279,7 +1279,11 @@ mod tests {
         assert!(degraded.snapshots > 0);
         let input = slow.input.as_ref().unwrap();
         assert!(input.actions_sent >= 8, "{input:?}");
-        assert!(input.actions_acked > 0, "{input:?}");
+        // Every action is timed, set aside untimed (down, or before the first
+        // applied Ack), or still pending when the window closes. A short
+        // window can fall entirely inside one respawn, so either may be zero.
+        let settled = input.actions_acked + input.actions_unapplied;
+        assert!(settled > 0 && settled <= input.actions_sent, "{input:?}");
         assert!(slow.server_metrics["tick_ms"]["count"].as_u64().unwrap() > 0);
         let stalled = one_row(
             RowSpec {
