@@ -21,6 +21,8 @@ use uuid::Uuid;
 
 const DT: f32 = 0.05;
 
+mod market;
+mod market_guard;
 mod paver;
 mod search;
 mod teaching;
@@ -32,26 +34,62 @@ pub enum Scenario {
     #[default]
     RecallNotice,
     M19Teaching,
+    M19Market,
 }
 
 impl Scenario {
     fn mission(self) -> MissionId {
         match self {
             Self::RecallNotice => MissionId::RecallNotice,
-            Self::M19Teaching => MissionId::PlannedWorks,
+            Self::M19Teaching | Self::M19Market => MissionId::PlannedWorks,
         }
+    }
+
+    fn is_m19(self) -> bool {
+        matches!(self, Self::M19Teaching | Self::M19Market)
+    }
+
+    fn segment_complete(self, state: &fragr_server::protocol::MissionState, alive: bool) -> bool {
+        if !alive
+            || state.run.is_some_and(|run| {
+                matches!(
+                    run.status,
+                    CampaignRunStatus::Continue | CampaignRunStatus::Failed
+                )
+            })
+        {
+            return false;
+        }
+        let endpoint = match self {
+            Self::RecallNotice => return false,
+            Self::M19Teaching => "tram_street",
+            Self::M19Market => "market_strips",
+        };
+        state.m19.as_ref().is_some_and(|facts| {
+            facts
+                .completed
+                .iter()
+                .any(|objective| objective == endpoint)
+        })
     }
 
     pub fn accepts(self, trial: &Trial) -> bool {
         match self {
             Self::RecallNotice => trial.outcome == "departed",
-            Self::M19Teaching => {
+            Self::M19Teaching | Self::M19Market => {
                 trial.outcome == "segment_complete"
                     && trial.teaching.as_ref().is_some_and(|evidence| {
                         evidence.flights.iter().any(|flight| {
                             flight.attempt == trial.final_attempt && flight.gallery_landing
                         })
                     })
+                    && (self != Self::M19Market
+                        || trial.market.as_ref().is_some_and(|metrics| {
+                            metrics.attempts.iter().any(|attempt| {
+                                attempt.attempt == trial.final_attempt
+                                    && attempt.outcome == market::Outcome::Complete
+                            })
+                        }))
             }
         }
     }
@@ -118,6 +156,7 @@ pub struct Trial {
     pub weapons: Vec<String>,
     pub final_attempt: u32,
     pub teaching: Option<teaching::Metrics>,
+    pub market: Option<market::Metrics>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -492,6 +531,7 @@ fn scenario_trial_with_actions(
         weapons: Vec::new(),
         final_attempt: 1,
         teaching: None,
+        market: None,
     };
     let mut progress = 0;
     let mut last_supply = 0;
@@ -502,9 +542,10 @@ fn scenario_trial_with_actions(
     let mut evade: Option<(u64, [f32; 2], f32)> = None;
     let mut review = None;
     let mut frames = VecDeque::new();
-    let mut teaching = (scenario == Scenario::M19Teaching).then(|| {
+    let mut teaching = scenario.is_m19().then(|| {
         teaching::Recorder::new(id, seed, profile, difficulty, recording != Recording::None)
     });
+    let mut market = (scenario == Scenario::M19Market).then(market::Recorder::default);
     while session.state.tick < max_ticks {
         let snapshot = session.state.snapshot();
         if recording != Recording::None {
@@ -515,6 +556,9 @@ fn scenario_trial_with_actions(
         }
         let state = session.state.mission_state().ok_or("mission vanished")?;
         report.final_attempt = state.attempt;
+        if let Some(recorder) = &mut market {
+            recorder.observe(snapshot.tick, &state, market_status(&session, id));
+        }
         if let Some(recorder) = &mut teaching {
             let player = session.state.players.iter().find(|p| p.id == id);
             if recorder.observe(
@@ -535,14 +579,10 @@ fn scenario_trial_with_actions(
             report.outcome = "departed".into();
             break;
         }
-        if scenario == Scenario::M19Teaching
-            && state.m19.as_ref().is_some_and(|facts| {
-                facts
-                    .completed
-                    .iter()
-                    .any(|objective| objective == "tram_street")
-            })
-        {
+        if scenario.segment_complete(
+            &state,
+            snapshot.players.iter().any(|p| p.id == id && p.hp > 0),
+        ) {
             report.outcome = "segment_complete".into();
             break;
         }
@@ -613,7 +653,7 @@ fn scenario_trial_with_actions(
         }
         let arena = session.state.map.arena();
         let observed = perception.observe(&snapshot, id, arena, profile);
-        if scenario == Scenario::M19Teaching {
+        if scenario.is_m19() {
             search.observe(&observed, id);
         }
         if let Some(recorder) = &mut teaching {
@@ -675,7 +715,7 @@ fn scenario_trial_with_actions(
             }
         }
         let mut pursuing = false;
-        if scenario == Scenario::M19Teaching
+        if scenario.is_m19()
             && wanted.look_at.is_none()
             && state
                 .m19
@@ -683,6 +723,7 @@ fn scenario_trial_with_actions(
                 .and_then(|facts| facts.current.as_ref())
                 .is_some_and(|objective| {
                     matches!(objective.id.as_str(), "concourse_crossing" | "tram_street")
+                        || (scenario == Scenario::M19Market && objective.id == "market_strips")
                 })
         {
             if let Some(point) = search.destination(me, &observed) {
@@ -710,6 +751,13 @@ fn scenario_trial_with_actions(
             wanted,
             Some(&gear),
         );
+        let market_escape = (scenario == Scenario::M19Market
+            && state
+                .m19
+                .as_ref()
+                .and_then(|facts| facts.current.as_ref())
+                .is_some_and(|objective| objective.id == "market_strips"))
+        .then(|| action.clone());
         let telling = observed.players.iter().find(|p| me.is_hostile_to(p) && matches!(p.campaign, Some(CampaignActor::Hostile { phase: EnemyPhase::Windup | EnemyPhase::Firing, phase_started, .. }) if snapshot.tick.saturating_sub(phase_started) >= profile.reaction_ticks));
         if evade.is_some_and(|(until, _, _)| snapshot.tick > until) {
             evade = None;
@@ -764,7 +812,7 @@ fn scenario_trial_with_actions(
         // only after kills strands a constrained viewer when the last guard
         // has left its view. Retry the same bounded sweep at that public goal;
         // no unseen actor position or encounter roster informs this decision.
-        if scenario == Scenario::M19Teaching
+        if scenario.is_m19()
             && scan_remaining <= 0.0
             && snapshot.tick.saturating_sub(progress) >= 60
             && state.m19.as_ref().and_then(|facts| facts.current.as_ref()).is_some_and(|objective| {
@@ -790,7 +838,19 @@ fn scenario_trial_with_actions(
             };
         }
         action = apply_reload(action, &gear, reload_down);
-        action = actions(constrain(action, me, &observed, profile, seed, arena));
+        action = constrain(action, me, &observed, profile, seed, arena);
+        if let Some(shared) = market_escape {
+            let shared = constrain(
+                apply_reload(shared, &gear, reload_down),
+                me,
+                &observed,
+                profile,
+                seed,
+                arena,
+            );
+            action = market_guard::protect(shared, action, me, &observed, arena);
+        }
+        action = actions(action);
         reload_down = action.reload;
         report.reloads += u32::from(action.reload);
         let feet = report.last_feet;
@@ -890,6 +950,11 @@ fn scenario_trial_with_actions(
         // Observe its result even when no next control tick is permitted.
         // Duplicate observations on normal break paths are idempotent.
         report.final_attempt = state.attempt;
+        if let Some(recorder) = &mut market {
+            let status = market_status(&session, id);
+            recorder.observe(session.state.tick, &state, status.clone());
+            recorder.finish_attempt(session.state.tick, &state, status);
+        }
         if let Some(recorder) = &mut teaching {
             let player = session.state.players.iter().find(|p| p.id == id);
             recorder.observe(
@@ -908,13 +973,7 @@ fn scenario_trial_with_actions(
             report.outcome = "exhausted".into();
         } else if state.phase == MissionPhase::Departed {
             report.outcome = "departed".into();
-        } else if scenario == Scenario::M19Teaching
-            && report.hp > 0
-            && state
-                .m19
-                .as_ref()
-                .is_some_and(|facts| facts.completed.iter().any(|id| id == "tram_street"))
-        {
+        } else if scenario.segment_complete(&state, report.hp > 0) {
             report.outcome = "segment_complete".into();
         }
     }
@@ -925,7 +984,26 @@ fn scenario_trial_with_actions(
     } else {
         Vec::new()
     };
+    report.market = market.map(market::Recorder::finish);
     Ok((report, review, teaching_reviews))
+}
+
+/// Observation only: these are the participant's own ordinary equipment and
+/// status, including the terminal body omitted from a living snapshot.
+fn market_status(session: &GameSession, id: Uuid) -> Option<market::Status> {
+    let player = session
+        .state
+        .players
+        .iter()
+        .find(|player| player.id == id)?;
+    Some(market::Status {
+        feet: [player.x, player.y - PLAYER_FLOOR_Y, player.z],
+        hp: player.hp.max(0),
+        armor: player.armor,
+        loadout: player
+            .inventory
+            .state(id, player.weapon, session.state.tick)?,
+    })
 }
 
 fn wanted_is_combat(action: &Action) -> bool {
@@ -1006,7 +1084,7 @@ pub fn run_scenario(
                     Recording::Fatal
                 } else if first_kill {
                     Recording::FirstKill
-                } else if scenario == Scenario::M19Teaching && seed == first_seed {
+                } else if scenario.is_m19() && seed == first_seed {
                     Recording::Teaching
                 } else {
                     Recording::None
@@ -1034,9 +1112,10 @@ pub fn run_scenario(
     let observation = match scenario {
         Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
         Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+        Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
     Ok(Report {
-        schema: 2,
+        schema: 3,
         build: env!("FRAGR_CLI_VERSION"),
         commit: env!("FRAGR_BUILD_COMMIT"),
         observation,
@@ -1368,6 +1447,213 @@ mod tests {
         .unwrap();
         assert!(row.longest_no_progress_seconds < 30.0, "{row:?}");
         assert_ne!(row.outcome, "timeout");
+    }
+
+    #[test]
+    fn m19_market_keeps_the_earned_teaching_prefix_and_stops_at_the_declared_tick() {
+        let mut prefix = Vec::new();
+        let (teaching, _, _) = scenario_trial_with_actions(
+            Scenario::M19Teaching,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            2_000,
+            Recording::None,
+            |action| {
+                prefix.push(serde_json::to_value(&action).unwrap());
+                action
+            },
+        )
+        .unwrap();
+        assert!(Scenario::M19Teaching.accepts(&teaching));
+        let boundary = (teaching.seconds * 20.0).round() as u64;
+        let mut extended = Vec::new();
+        let (market, _, _) = scenario_trial_with_actions(
+            Scenario::M19Market,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            boundary + 1,
+            Recording::None,
+            |action| {
+                extended.push(serde_json::to_value(&action).unwrap());
+                action
+            },
+        )
+        .unwrap();
+        assert_eq!(&extended[..prefix.len()], prefix);
+        assert_eq!(extended.len(), prefix.len() + 1);
+        assert_eq!(market.seconds, (boundary + 1) as f64 / 20.0);
+        assert_eq!(
+            market.outcome, "timeout",
+            "tram completion is not market completion"
+        );
+        assert!(!Scenario::M19Market.accepts(&market));
+        let attempt = &market.market.as_ref().unwrap().attempts[0];
+        assert!(attempt.entered_market);
+        let entry = attempt
+            .receipts
+            .iter()
+            .find(|r| r.event == market::Event::MarketEntry)
+            .unwrap();
+        assert_eq!(entry.tick, boundary);
+        assert_eq!(entry.current_objective.as_deref(), Some("market_strips"));
+        let earned = entry.status.as_ref().unwrap();
+        assert_eq!(earned.hp, teaching.hp);
+        assert_eq!(earned.loadout.ammo(AmmoPool::Bullets), teaching.bullets);
+        assert_eq!(
+            earned
+                .loadout
+                .weapons
+                .iter()
+                .map(|w| w.name())
+                .collect::<Vec<_>>(),
+            teaching.weapons
+        );
+        assert_eq!(attempt.receipts.last().unwrap().tick, boundary + 1);
+        assert_eq!(
+            attempt.receipts.last().unwrap().event,
+            market::Event::Timeout
+        );
+        let exact = scenario_trial_with_actions(
+            Scenario::M19Market,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            boundary,
+            Recording::None,
+            |action| action,
+        )
+        .unwrap()
+        .0;
+        let exact_entry = exact.market.unwrap().attempts[0]
+            .receipts
+            .iter()
+            .find(|r| r.event == market::Event::MarketEntry)
+            .cloned()
+            .unwrap();
+        assert_eq!(
+            &exact_entry, entry,
+            "last allowed action retains the new stage receipt"
+        );
+    }
+
+    #[test]
+    fn m19_market_observation_and_recording_never_change_actions_or_grant_supplies() {
+        let play = |recording| {
+            let mut actions = Vec::new();
+            let result = scenario_trial_with_actions(
+                Scenario::M19Market,
+                42,
+                PROFILES[0],
+                CampaignDifficulty::Assisted,
+                2_000,
+                recording,
+                |action| {
+                    actions.push(serde_json::to_value(&action).unwrap());
+                    action
+                },
+            )
+            .unwrap();
+            (result, actions)
+        };
+        let ((plain, _, _), actions) = play(Recording::None);
+        let ((recorded, _, windows), recorded_actions) = play(Recording::Teaching);
+        assert_eq!(actions, recorded_actions);
+        assert_eq!(plain, recorded);
+        assert!(!windows.is_empty());
+        let (bad, _, _) = scenario_trial_with_actions(
+            Scenario::M19Market,
+            42,
+            PROFILES[0],
+            CampaignDifficulty::Assisted,
+            400,
+            Recording::None,
+            |_| Action::default(),
+        )
+        .unwrap();
+        assert_eq!(bad.outcome, "timeout");
+        assert_eq!(bad.shots, 0);
+        assert_eq!(bad.weapons, ["Fists"]);
+        assert_eq!(bad.bullets, 0);
+        let attempt = &bad.market.as_ref().unwrap().attempts[0];
+        assert!(!attempt.entered_market);
+        assert_eq!(attempt.outcome, market::Outcome::Timeout);
+        assert_eq!(attempt.receipts.len(), 2);
+        let entry = attempt.receipts[0].status.as_ref().unwrap();
+        let terminal = attempt.receipts[1].status.as_ref().unwrap();
+        assert_eq!(entry.loadout.weapons, terminal.loadout.weapons);
+        assert_eq!(entry.loadout.ammo, terminal.loadout.ammo);
+        assert!(terminal.loadout.personal_claims.is_empty());
+        assert!(!Scenario::M19Market.accepts(&bad));
+    }
+
+    #[test]
+    fn m19_market_earned_completion_keeps_the_final_action_and_stops_before_water_tanks() {
+        // Baseline 6b8061b7: ordinary seed42 hesitant/Assisted completes at
+        // tick2017 with no retry. No setup kit, position or progress edits.
+        let play = |ticks| {
+            let mut actions = 0_u64;
+            let (row, _, _) = scenario_trial_with_actions(
+                Scenario::M19Market,
+                42,
+                PROFILES[2],
+                CampaignDifficulty::Assisted,
+                ticks,
+                Recording::None,
+                |action| {
+                    actions += 1;
+                    action
+                },
+            )
+            .unwrap();
+            (row, actions)
+        };
+        let (clear, actions) = play(2_400);
+        assert!(Scenario::M19Market.accepts(&clear), "{clear:?}");
+        assert_eq!(clear.final_attempt, 1);
+        let final_tick = (clear.seconds * 20.0).round() as u64;
+        assert_eq!(
+            actions, final_tick,
+            "no extra action may follow market completion"
+        );
+        let terminal = clear.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .last()
+            .unwrap();
+        assert_eq!(terminal.event, market::Event::MarketComplete);
+        assert_eq!(terminal.tick, final_tick);
+        assert_eq!(terminal.current_objective.as_deref(), Some("water_tanks"));
+        assert!(!clear
+            .teaching
+            .as_ref()
+            .unwrap()
+            .objectives
+            .iter()
+            .any(|receipt| receipt.objective == "water_tanks"));
+        let (exact, exact_actions) = play(final_tick);
+        assert_eq!(
+            exact, clear,
+            "completion on the last allowed tick belongs to this trial"
+        );
+        assert_eq!(exact_actions, actions);
+        let (before, before_actions) = play(final_tick - 1);
+        assert_eq!(before.outcome, "timeout");
+        assert_eq!(before_actions, final_tick - 1);
+        assert!(!Scenario::M19Market.accepts(&before));
+        let before_terminal = before.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .last()
+            .unwrap();
+        assert_eq!(before_terminal.event, market::Event::Timeout);
+        assert_eq!(
+            before_terminal.current_objective.as_deref(),
+            Some("market_strips")
+        );
+        assert!(!before.market.as_ref().unwrap().attempts[0]
+            .receipts
+            .iter()
+            .any(|receipt| receipt.event == market::Event::MarketComplete));
     }
 
     #[test]

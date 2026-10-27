@@ -6,7 +6,7 @@ authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
 sizes. These measurements support playtesting; they do not establish fun alone.
 
-The guided campaign survey runs Recall Notice, or M19's bounded teaching segment, through the authoritative
+The guided campaign survey runs Recall Notice, or M19's bounded teaching and market segments, through the authoritative
 session at 20 simulated ticks per second. It uses the shared mission navigator
 and inventory controller with ordinary human actions, finite magazines, earned
 pickups, real deaths and the three episode continues. No equipment or health is
@@ -28,6 +28,16 @@ the route or understanding the lesson without hints.
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 4 --seed 40 --max-seconds 600 --report .agents/playtest/m19-teaching.json
 ```
 
+Select `--survey-mission m19-market` to continue the same played prefix until
+`market_strips` completes, before taking any action toward the water tanks.
+There is no injected market kit, refill or objective skip. The market stage
+begins when the public objective follows `tram_street`; this is not a claim
+that market enemies first activate or become visible at that boundary.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-market.json
+```
+
 Every seed runs three stress profiles on Assisted, Standard and Severe:
 
 | Profile | Reaction | Horizontal view | Turn limit | Aim error amplitude |
@@ -47,7 +57,7 @@ profiles are synthetic constraints, not measured novice populations. Compare
 game changes with the same evaluator revision and seed set; a controller change
 requires a new baseline.
 
-During M19's crossing and tram street, it also remembers up to 64 positions
+During M19's crossing, tram street and market, it also remembers up to 64 positions
 seen after the reaction delay, for less than 30 seconds. Losing sight permits
 an investigation of that last position through the shared navigator; it never
 updates a hidden pose, injects a target or fires at a memory. Reaching that point,
@@ -56,6 +66,17 @@ Retry clears it. At an unfinished arrival, three seconds without progress
 permits another sweep at the same turn limit. This explicit search model repairs
 the stationary crossing stall; compare it with its own evaluator revision,
 not as a change to enemy difficulty or a human learning model.
+
+During the market objective, a stateless guard preserves the shared strip
+escape instead of letting generic dodging, hearing or scanning replace it.
+After the normal reload, aim and turn constraints, a grounded movement step
+that would cross back into a currently perceived strip releases its movement
+keys; aim and firing remain available. Projection uses the existing campaign
+movement step and authored solids. It does not infer airborne velocity or
+remember unseen hazards, and retirement or lost perception removes the veto.
+This repairs the measured escape/pursuit oscillation in the market evaluator.
+The teaching prefix is unchanged. Compare this explicit policy revision with
+its retained baseline; improved clears do not establish a game balance change.
 
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
 acquisition, not decision cadence. Continue is accepted immediately, with zero
@@ -86,23 +107,40 @@ reference/Assisted trial, even if that trial later fails. Each includes up to
 80 consecutive pre-event snapshots, stopping at retry boundaries. They are
 inspection data, never controller input or recordings of ordinary client play.
 
-Campaign reports use schema 2. M19 adds objective receipts, flight fuel/burn and
+Campaign reports use schema 3. M19 adds objective receipts, flight fuel/burn and
 supported-landing outcomes, Paver phase/recognition times, strip-hit and
 interruption attempts, and supported/airborne fuel increases. An airborne
 objective completion is not a safe landing. Teaching acceptance requires a
 powered ascent beginning below the gallery and ending on its support in the
 successful attempt; a small powered hop on the gallery does not qualify.
 `teaching_reviews` retains up to eight seconds per flight, first preparation and
-first work event in each recorded attempt, including up to one second before
+first work event in each recorded attempt and objective stage, including up to one second before
 the event. These mechanic windows cover every profile and difficulty of the
 first seed; the kill/fatal selection remains unchanged. An `active_stall`
 window begins after ten active seconds without progress, retaining its measured
 `active_stall_seconds`. Missing events
 remain missing; windows never join retries or observation gaps.
+An actual simultaneous pair of strips can produce a `paver_overlap` window;
+the renderer requires that event to exist in its frames. Stage metadata keeps
+the earlier street lesson distinct from market inspection. A captured overlap
+means simultaneous owners, not necessarily intersecting floor rectangles or
+perception of both strips. Recognition remains separately measured under the
+same view, cover and reaction limits; a phase's `recognized_tick` is its first
+recognized sample within that stage, which can follow initial acquisition.
 Flight `ended_tick` and `to` are the last live sample, including for flights
 closed later by death, retry, a missing pack or an observation gap.
 
-To reconstruct those four-second windows with the existing world, fighter and
+The market report keeps every attempt, including deaths or timeouts before
+market entry. Its boundary receipts contain the full own `LoadoutState`, HP,
+armor and remaining continues. Ammo counts already include rounds loaded in
+magazines; do not add them twice. `entered_market` and the per-attempt outcome
+separate entry from completion. Public interruption and strip-damage flags
+remain attempt-wide: only a newly observed false-to-true flag after entry has
+market-stage timing. Prior-true flags and absent attributable evidence remain
+`unknown`, not a claim that no event occurred. These receipts never feed the
+controller and do not assign damage to a particular Paver.
+
+To reconstruct those recorded windows with the existing world, fighter and
 shot presenters (a real renderer is required):
 
 ```bash

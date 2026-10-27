@@ -13,6 +13,15 @@ use uuid::Uuid;
 #[cfg(test)]
 mod tests;
 
+/// The public objective boundary, not an assertion about encounter activation.
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum Stage {
+    #[default]
+    Teaching,
+    Market,
+}
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Metrics {
     pub objectives: Vec<Receipt>,
@@ -54,8 +63,10 @@ pub struct Flight {
 pub struct PaverPhase {
     pub owner: Uuid,
     pub attempt: u32,
+    pub stage: Stage,
     pub started_tick: u64,
     pub first_snapshot_tick: u64,
+    /// First recognized sample in this stage, not necessarily initial acquisition.
     pub recognized_tick: Option<u64>,
     pub working: bool,
 }
@@ -63,6 +74,7 @@ pub struct PaverPhase {
 struct Window {
     event: &'static str,
     attempt: u32,
+    stage: Stage,
     view: PlayerState,
     map_info: ServerMessage,
     frames: Vec<Snapshot>,
@@ -76,13 +88,14 @@ pub(super) struct Recorder {
     difficulty: CampaignDifficulty,
     record: bool,
     attempt: u32,
+    stage: Stage,
     metrics: Metrics,
     flight: Option<usize>,
     previous_fuel: Option<u16>,
     last_tick: Option<u64>,
     recent: VecDeque<Snapshot>,
     windows: Vec<Window>,
-    seen_windows: BTreeSet<(u32, &'static str)>,
+    seen_windows: BTreeSet<(u32, Stage, &'static str)>,
 }
 
 impl Recorder {
@@ -100,6 +113,7 @@ impl Recorder {
             difficulty,
             record,
             attempt: 0,
+            stage: Stage::Teaching,
             metrics: Metrics::default(),
             flight: None,
             previous_fuel: None,
@@ -153,6 +167,21 @@ impl Recorder {
         let Some(facts) = &state.m19 else {
             return false;
         };
+        let stage = if facts
+            .completed
+            .iter()
+            .any(|objective| objective == "tram_street")
+        {
+            Stage::Market
+        } else {
+            Stage::Teaching
+        };
+        if self.stage != stage {
+            self.stage = stage;
+            // A street pre-roll cannot stand in for a market window. Neither
+            // perception nor flight/fuel history resets at this public boundary.
+            self.recent.clear();
+        }
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let pack = snapshot
             .jetpacks
@@ -193,6 +222,7 @@ impl Recorder {
         if self.record {
             for window in &mut self.windows {
                 if window.attempt == self.attempt
+                    && window.stage == self.stage
                     && window.frames.len() < 160
                     && window
                         .frames
@@ -268,6 +298,7 @@ impl Recorder {
         for strip in &snapshot.paver_strips {
             if !self.metrics.paver_phases.iter().any(|phase| {
                 phase.attempt == self.attempt
+                    && phase.stage == self.stage
                     && phase.owner == strip.owner_id
                     && phase.started_tick == strip.phase_started
                     && phase.working == strip.working
@@ -275,6 +306,7 @@ impl Recorder {
                 self.metrics.paver_phases.push(PaverPhase {
                     owner: strip.owner_id,
                     attempt: self.attempt,
+                    stage: self.stage,
                     started_tick: strip.phase_started,
                     first_snapshot_tick: snapshot.tick,
                     recognized_tick: None,
@@ -291,6 +323,16 @@ impl Recorder {
                 );
             }
         }
+        // Overlap here is temporal: two distinct owners publish strips in the
+        // same snapshot. It does not claim intersecting ground rectangles.
+        if snapshot.paver_strips.first().is_some_and(|first| {
+            snapshot
+                .paver_strips
+                .iter()
+                .any(|strip| strip.owner_id != first.owner_id)
+        }) {
+            self.window("paver_overlap", me, map_info);
+        }
         advanced
     }
 
@@ -298,6 +340,7 @@ impl Recorder {
         for strip in &observed.paver_strips {
             if let Some(phase) = self.metrics.paver_phases.iter_mut().find(|phase| {
                 phase.attempt == self.attempt
+                    && phase.stage == self.stage
                     && phase.owner == strip.owner_id
                     && phase.started_tick == strip.phase_started
                     && phase.working == strip.working
@@ -308,10 +351,11 @@ impl Recorder {
     }
 
     fn window(&mut self, event: &'static str, me: &PlayerState, map_info: &ServerMessage) {
-        if self.record && self.seen_windows.insert((self.attempt, event)) {
+        if self.record && self.seen_windows.insert((self.attempt, self.stage, event)) {
             self.windows.push(Window {
                 event,
                 attempt: self.attempt,
+                stage: self.stage,
                 view: me.clone(),
                 map_info: map_info.clone(),
                 frames: self.recent.iter().cloned().collect(),
@@ -349,7 +393,8 @@ impl Recorder {
             .map(|window| {
                 serde_json::json!({
                     "event": window.event, "seed": self.seed, "profile": self.profile.name,
-                    "difficulty": self.difficulty, "attempt": window.attempt, "view": window.view,
+                    "difficulty": self.difficulty, "attempt": window.attempt,
+                    "stage": window.stage, "view": window.view,
                     "map_info": window.map_info, "snapshot": window.frames.first(),
                     "frames": window.frames, "step_seconds": DT,
                     "active_stall_seconds": window.active_stall_seconds,

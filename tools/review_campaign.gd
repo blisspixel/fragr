@@ -8,7 +8,8 @@ extends "audit_world_signs.gd"
 ## /absolute/report.json /absolute/output-directory
 const PAWN: PackedScene = preload("res://scenes/player.tscn")
 const STEP: float = 0.05
-const TEACHING_EVENTS: Array[String] = ["jetpack_flight", "paver_tell", "paver_work", "active_stall"]
+const TEACHING_EVENTS: Array[String] = ["jetpack_flight", "paver_tell", "paver_work", "paver_overlap", "active_stall"]
+const TEACHING_STAGES: Array[String] = ["teaching", "market"]
 
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -48,7 +49,7 @@ static func _number(value: Variant) -> bool:
 	return (value is float or value is int) and is_finite(float(value))
 
 static func _valid_report(value: Variant) -> bool:
-	if not value is Dictionary or value.get("schema") != 2 or not value.get("teaching_reviews") is Array:
+	if not value is Dictionary or value.get("schema") != 3 or not value.get("teaching_reviews") is Array:
 		return false
 	for key: String in ["first_kill_review", "review"]:
 		var item: Variant = value.get(key)
@@ -61,11 +62,14 @@ static func _valid_report(value: Variant) -> bool:
 
 static func _valid_review(value: Variant) -> bool:
 	if not value is Dictionary or not value.get("map_info") is Dictionary \
-			or not value.get("view") is Dictionary or not value.get("frames") is Array:
+			or not value.get("view") is Dictionary or not value.get("frames") is Array \
+			or not value.get("event") is String:
 		return false
 	var teaching: bool = value.get("event") in TEACHING_EVENTS
 	var stall: bool = value.get("event") == "active_stall"
 	if not (teaching or value.get("event") in ["first_kill", "fatal_hit"]) or not value["view"].get("id") is String:
+		return false
+	if teaching and (not value.get("stage") is String or value["stage"] not in TEACHING_STAGES):
 		return false
 	if stall and (not _number(value.get("active_stall_seconds")) or float(value["active_stall_seconds"]) < 10.0):
 		return false
@@ -89,6 +93,10 @@ static func _valid_review(value: Variant) -> bool:
 		if teaching and not stall:
 			if value["event"] == "jetpack_flight":
 				mechanic_seen = mechanic_seen or WorksFacts.pack_for(frame, value["view"]["id"]).get("thrusting", false)
+			elif value["event"] == "paver_overlap":
+				# WorksFacts already requires distinct owners. This event means
+				# simultaneous strips, not intersecting floor rectangles.
+				mechanic_seen = mechanic_seen or frame.get("paver_strips", []).size() >= 2
 			else:
 				for strip: Dictionary in frame.get("paver_strips", []):
 					mechanic_seen = mechanic_seen or strip["working"] == (value["event"] == "paver_work")

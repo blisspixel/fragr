@@ -25,14 +25,19 @@ static func _review() -> Dictionary:
 func _validation() -> void:
 	var valid: Dictionary = _review()
 	_check(_valid_review(valid), "a bounded scene window is accepted")
-	var report: Dictionary = {"schema": 2, "first_kill_review": valid, "review": null, "teaching_reviews": []}
+	var report: Dictionary = {"schema": 3, "first_kill_review": valid, "review": null, "teaching_reviews": []}
 	_check(_valid_report(report), "current report preserves the M01 scene slots")
-	report["schema"] = 1
-	_check(not _valid_report(report), "old report schema is refused")
-	report["schema"] = 2
+	for schema: int in [1, 2]:
+		report["schema"] = schema
+		_check(not _valid_report(report), "old report schema is refused")
+	report["schema"] = 3
 	report["review"] = valid
 	_check(not _valid_report(report), "legacy slots cannot overwrite one scene directory")
 	_check(_review_directory(valid, 4) == "first_kill", "M01 directory names stay stable")
+	for event: Variant in [null, 1, "invented"]:
+		var bad_event: Dictionary = valid.duplicate(true)
+		bad_event["event"] = event
+		_check(not _valid_review(bad_event), "invalid event metadata is refused without engine errors")
 	for field: String in ["weapon", "hp", "pitch", "id"]:
 		var incomplete: Dictionary = valid.duplicate(true)
 		incomplete["frames"][0]["players"][0].erase(field)
@@ -71,7 +76,7 @@ static func _teaching(event: String) -> Dictionary:
 			continue
 		for player: Dictionary in frame["players"]:
 			if player["id"] == packs[0]["player_id"]:
-				return {"event": event, "profile": "fixture", "difficulty": "standard", "attempt": 1,
+				return {"event": event, "stage": "teaching", "profile": "fixture", "difficulty": "standard", "attempt": 1,
 					"view": player, "map_info": native["maps"][sample["map_index"]], "frames": [frame]}
 	return {}
 
@@ -79,7 +84,7 @@ func _teaching_validation() -> void:
 	for event: String in ["jetpack_flight", "paver_tell", "paver_work"]:
 		var valid: Dictionary = _teaching(event)
 		_check(_valid_review(valid), event + " accepts native work facts")
-		_check(_valid_report({"schema": 2, "teaching_reviews": [valid]}), event + " enters the current report")
+		_check(_valid_report({"schema": 3, "teaching_reviews": [valid]}), event + " enters the current report")
 		_check(_review_directory(valid, 0) != _review_directory(valid, 1), "repeated " + event + " keeps both windows")
 		var missing: Dictionary = valid.duplicate(true)
 		missing["frames"][0].erase("jetpacks" if event == "jetpack_flight" else "paver_strips")
@@ -117,7 +122,7 @@ func _stall_validation() -> void:
 	valid["frames"][0].erase("jetpacks")
 	valid["frames"][0].erase("paver_strips")
 	_check(_valid_review(valid), "a 10-second active stall needs no invented work mechanic")
-	_check(_valid_report({"schema": 2, "teaching_reviews": [valid]}), "active stalls enter the current report")
+	_check(_valid_report({"schema": 3, "teaching_reviews": [valid]}), "active stalls enter the current report")
 	_check(_review_directory(valid, 0) != _review_directory(valid, 1), "repeated stalls retain separate windows")
 	var missing: Dictionary = valid.duplicate(true)
 	missing.erase("active_stall_seconds")
@@ -137,6 +142,73 @@ func _stall_validation() -> void:
 	later["tick"] = int(later["tick"]) + 2
 	discontinuous["frames"].append(later)
 	_check(not _valid_review(discontinuous), "active stall windows must remain consecutive")
+
+static func _overlap() -> Dictionary:
+	# Two distinct owners in one isolated snapshot. This claims simultaneous
+	# strips, not intersection of their floor rectangles or earned progress.
+	var fixture: Dictionary = _teaching("paver_tell").duplicate(true)
+	fixture["event"] = "paver_overlap"
+	fixture["stage"] = "market"
+	var frame: Dictionary = fixture["frames"][0]
+	var first: Dictionary = frame["paver_strips"][0]
+	var second: Dictionary = first.duplicate(true)
+	second["owner_id"] = "00000000-0000-0000-0000-00000000ffff"
+	second["origin"][0] += 5.0
+	for actor: Dictionary in frame["players"]:
+		if actor["id"] == first["owner_id"]:
+			var owner: Dictionary = actor.duplicate(true)
+			owner["id"] = second["owner_id"]
+			owner["x"] += 5.0
+			frame["players"].append(owner)
+			break
+	frame["paver_strips"].append(second)
+	return fixture
+
+func _stage_and_overlap_validation() -> void:
+	var valid: Dictionary = _overlap()
+	_check(_valid_review(valid), "two simultaneous valid strip owners qualify overlap")
+	_check(_valid_report({"schema": 3, "teaching_reviews": [valid]}), "overlap enters schema 3")
+	_check(_review_directory(valid, 0) != _review_directory(valid, 1), "overlap windows keep distinct directories")
+	var missing: Dictionary = valid.duplicate(true)
+	missing.erase("stage")
+	_check(not _valid_review(missing), "teaching windows require stage metadata")
+	for stage: Variant in [null, "", "tram_street", "invented", 1]:
+		var bad: Dictionary = valid.duplicate(true)
+		bad["stage"] = stage
+		_check(not _valid_review(bad), "arbitrary stage metadata is refused")
+	for stage: String in ["teaching", "market"]:
+		var accepted: Dictionary = valid.duplicate(true)
+		accepted["stage"] = stage
+		_check(_valid_review(accepted), "the public " + stage + " stage is accepted")
+	var one: Dictionary = valid.duplicate(true)
+	one["frames"][0]["paver_strips"].remove_at(1)
+	_check(not _valid_review(one), "one strip cannot claim overlap")
+	var duplicate: Dictionary = valid.duplicate(true)
+	duplicate["frames"][0]["paver_strips"][1] = duplicate["frames"][0]["paver_strips"][0].duplicate(true)
+	_check(not _valid_review(duplicate), "a repeated owner cannot claim overlap")
+	var sequential: Dictionary = one.duplicate(true)
+	var later: Dictionary = valid["frames"][0].duplicate(true)
+	later["tick"] = int(later["tick"]) + 1
+	later["paver_strips"].remove_at(0)
+	sequential["frames"].append(later)
+	_check(not _valid_review(sequential), "different owners in successive frames do not claim overlap")
+
+func _overlap_presentation(arena: Node3D) -> void:
+	var fixture: Dictionary = _overlap()
+	var works: M19Works = M19Works.new()
+	arena.add_child(works)
+	works.configure_map(fixture["map_info"])
+	var pawns: Dictionary[String, Node3D] = {}
+	var frame: Dictionary = fixture["frames"][0]
+	_step_recorded_work(works, pawns, frame, fixture["view"]["id"])
+	_check(works.strips._strips.size() == 2, "simultaneous strips both reach the presenter")
+	var remaining: String = frame["paver_strips"][1]["owner_id"]
+	var ended: Dictionary = frame.duplicate(true)
+	ended["tick"] = int(ended["tick"]) + 1
+	ended["paver_strips"].remove_at(0)
+	_step_recorded_work(works, pawns, ended, fixture["view"]["id"])
+	_check(works.strips._strips.size() == 1 and works.strips._strips.has(remaining), "retiring one strip leaves the other owner's strip")
+	works.queue_free()
 
 func _teaching_presentation(arena: Node3D) -> void:
 	var fixture: Dictionary = _teaching("paver_tell")
@@ -190,6 +262,7 @@ func _run() -> void:
 	_validation()
 	_teaching_validation()
 	_stall_validation()
+	_stage_and_overlap_validation()
 	var arena: Node3D = Node3D.new()
 	root.add_child(arena)
 	_freeze_stage(arena)
@@ -231,6 +304,7 @@ func _run() -> void:
 	_check(not (pawn.get("muzzle") as Sprite3D).visible, "the recorded clock can end a muzzle flash")
 	_check((pawn.get("muzzle_glow") as OmniLight3D).light_energy == 0.0, "expired flash light is cleared")
 	await _teaching_presentation(arena)
+	_overlap_presentation(arena)
 	arena.queue_free()
 	for index: int in range(4):
 		await process_frame
