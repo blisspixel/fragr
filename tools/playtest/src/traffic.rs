@@ -28,8 +28,11 @@ use tokio_tungstenite::{client_async, tungstenite::Message, WebSocketStream};
 pub const TRAFFIC_SCHEMA: u32 = 2;
 /// Rule bots the generator may ask for, beside the socket roster.
 pub const MAX_BOTS: usize = 96;
-/// WebSocket clients one source address may hold. Matches the server cap.
-pub const PER_ADDRESS: usize = 32;
+/// Fighters per source address: under the loopback join rate (30 joins per
+/// address in ten seconds) and the 32-connection address cap.
+pub const FIGHTERS_PER_ADDRESS: usize = 24;
+/// Spectators per source address: the loopback spectator cap.
+pub const SPECTATORS_PER_ADDRESS: usize = 8;
 /// WebSocket clients one server process may hold.
 pub const MAX_CLIENTS: usize = 64;
 /// Stay under the server's 256 inbound messages per second.
@@ -123,9 +126,15 @@ pub struct ServerCost {
     pub unavailable: Vec<String>,
 }
 
-/// Last octet of `127.0.0.x` for client `index`. Each address holds 32.
-pub fn source_octet(index: usize) -> u8 {
-    1 + (index / PER_ADDRESS) as u8
+/// Last octet of `127.0.0.x` for a seat. Each address from .1 holds up to 24
+/// fighters and 8 spectators, 32 connections, so no address meets a server
+/// bound and a small roster stays on .1 (all macOS assigns by default).
+fn source_octet(seat: &Seat) -> u8 {
+    let octet = match seat {
+        Seat::Fighter { index } => 1 + index / FIGHTERS_PER_ADDRESS,
+        Seat::Spectator { index } => 1 + index / SPECTATORS_PER_ADDRESS,
+    };
+    u8::try_from(octet).unwrap_or(u8::MAX)
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -200,7 +209,7 @@ async fn open_socket(server: SocketAddr, octet: u8) -> Result<TcpStream, Error> 
     socket.bind(local).map_err(|error| {
         if error.kind() == std::io::ErrorKind::AddrNotAvailable && octet != 1 {
             Error::Server(format!(
-                "cannot bind a client to {local}: {error}. This machine has not assigned that loopback address. macOS needs an alias such as `ifconfig lo0 alias 127.0.0.{octet}` before a roster past 32"
+                "cannot bind a client to {local}: {error}. This machine has not assigned that loopback address. macOS needs an alias such as `ifconfig lo0 alias 127.0.0.{octet}` before a roster past 24 fighters or 8 spectators"
             ))
         } else {
             Error::Server(format!("cannot bind a client to {local}: {error}"))
@@ -420,11 +429,18 @@ async fn finish_early(
     error: Error,
 ) -> Error {
     let _ = stop_tx.send(true);
+    // A refused seat says why; keep the first reason instead of a bare timeout.
+    let mut cause = None;
     for task in tasks {
-        let _ = tokio::time::timeout(Duration::from_secs(2), task).await;
+        if let Ok(Ok(Err(seat))) = tokio::time::timeout(Duration::from_secs(2), task).await {
+            cause.get_or_insert(seat);
+        }
     }
     let exit = server.stop().await;
-    Error::Server(format!("{error} (server {exit})"))
+    match cause {
+        Some(seat) => Error::Server(format!("{error}: {seat} (server {exit})")),
+        None => Error::Server(format!("{error} (server {exit})")),
+    }
 }
 
 /// Samples of the server process, taken only when it is a child process:
@@ -497,12 +513,12 @@ async fn drive(
             cadence: None,
             shape: index == 0,
         }));
-    for (index, plan) in seats.enumerate() {
+    for plan in seats {
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         ready_wait.push(ready_rx);
         tasks.push(tokio::spawn(seat_task(
             address,
-            source_octet(index),
+            source_octet(&plan.seat),
             plan,
             ready_tx,
             stop_rx.clone(),
@@ -677,11 +693,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn addresses_roll_after_thirty_two_and_the_roster_is_bounded() {
-        assert_eq!(source_octet(0), 1);
-        assert_eq!(source_octet(31), 1);
-        assert_eq!(source_octet(32), 2);
-        assert_eq!(source_octet(63), 2);
+    fn addresses_stay_under_the_join_and_spectator_bounds() {
+        let fighter = |index| source_octet(&Seat::Fighter { index });
+        let watcher = |index| source_octet(&Seat::Spectator { index });
+        assert_eq!(
+            (fighter(0), fighter(23), fighter(24), fighter(47)),
+            (1, 1, 2, 2)
+        );
+        assert_eq!(
+            (watcher(0), watcher(7), watcher(8), watcher(15)),
+            (1, 1, 2, 2)
+        );
+        assert_eq!(fighter(usize::MAX), u8::MAX);
         let ok = TrafficConfig {
             seconds: 2,
             fighters: 2,

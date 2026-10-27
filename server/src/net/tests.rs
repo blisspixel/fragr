@@ -425,6 +425,8 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
     })
     .unwrap();
     let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
     let writer = tokio::spawn(run_outbound_writer(
         StalledSink,
         rx,
@@ -434,7 +436,7 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         stop,
         WriterMeters {
             traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
-            probe: None,
+            probe: Some(Arc::clone(&probe)),
         },
     ));
     timeout(Duration::from_secs(1), changed.changed())
@@ -443,6 +445,12 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         .unwrap();
     assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
     writer.await.unwrap();
+    // The measured window records when the send gave up.
+    let failures = probe.report().send_failures_ms;
+    assert_eq!(failures.len(), 1);
+    assert!(failures[0] >= 20.0, "{failures:?}");
+    probe.reset();
+    assert!(probe.report().send_failures_ms.is_empty());
 }
 
 #[tokio::test]

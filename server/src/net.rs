@@ -91,6 +91,9 @@ where
             tokio::time::timeout(send_timeout, sink.send(frame)).await,
             Ok(Ok(()))
         ) {
+            if let Some(probe) = &probe {
+                probe.send_failed(std::time::Instant::now());
+            }
             break;
         }
         if let Some(bytes) = text_bytes {
