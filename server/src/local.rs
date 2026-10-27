@@ -43,9 +43,14 @@ pub enum RunPreview {
 }
 
 pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
+    preview_run_in(&run_directory()?)
+}
+
+/// The same menu preview for an explicit run directory, without the writer lock.
+pub fn preview_run_in(directory: &std::path::Path) -> io::Result<RunPreview> {
     let hashes = crate::mission::run_file::store::CAMPAIGN_MISSIONS
         .map(AuthoredSource::bundled_content_sha256);
-    match RunStore::inspect_with_hashes(&run_directory()?, hashes)? {
+    match RunStore::inspect_with_hashes(directory, hashes)? {
         RunProbe::Missing => Ok(RunPreview::Missing),
         RunProbe::Incompatible => Ok(RunPreview::Incompatible),
         RunProbe::Corrupt => Ok(RunPreview::Corrupt),
