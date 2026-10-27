@@ -404,6 +404,86 @@ fn a_skirmisher_goes_around_while_the_heavy_holds_the_lane() {
     );
 }
 
+/// A Crawler is a leaper, not a gun: it never walks a flank, which would take
+/// it out to six metres or more and past its four metre leap. While the
+/// heavy holds the lane, a Crawler inside leap range leaps.
+#[test]
+fn a_crawler_leaps_while_the_heavy_holds_the_lane_and_never_flanks() {
+    let region = json!({"min":[-20,0,-20],"max":[20,2,20]});
+    let (mut session, id) = session(
+        json!([
+            {"id":"heavy","kind":"heavy_sweeper","feet":[0,0,10],"yaw":TOWARD_SPAWN},
+            {"id":"crawler","kind":"crawler","feet":[0.5,0,14],"yaw":TOWARD_SPAWN}
+        ]),
+        json!([]),
+        region,
+    );
+    place(&mut session, id, [0.0, 0.0, 0.0]);
+    advance(&mut session, 1);
+    let heavy = guard(&session, EnemyKind::HeavySweeper);
+    let crawler = guard(&session, EnemyKind::Crawler);
+    let hold = |session: &mut GameSession| {
+        session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == id)
+            .unwrap()
+            .hp = 100;
+        place(session, id, [0.0, 0.0, 0.0]);
+    };
+    // The heavy's tell is the anchor; the Crawler waits out of reach.
+    for _ in 0..40 {
+        hold(&mut session);
+        place(&mut session, crawler, [0.5, 0.0, 14.0]);
+        if matches!(
+            phase(&session, heavy),
+            EnemyPhase::Windup | EnemyPhase::Firing
+        ) {
+            break;
+        }
+        advance(&mut session, 1);
+    }
+    assert!(matches!(
+        phase(&session, heavy),
+        EnemyPhase::Windup | EnemyPhase::Firing
+    ));
+    // In the heavy's lane, inside leap range.
+    place(&mut session, crawler, [0.3, 0.0, 3.0]);
+    let mut leapt = false;
+    let mut flanked = false;
+    let mut farthest: f32 = 0.0;
+    for _ in 0..30 {
+        hold(&mut session);
+        let events = advance(&mut session, 1);
+        flanked |= events.iter().any(|event| {
+            matches!(
+                event,
+                GameEvent::EnemyBark {
+                    kind: EnemyBarkKind::Flanking,
+                    speaker_id,
+                    ..
+                } if *speaker_id == crawler
+            )
+        });
+        let c = body(&session, crawler);
+        farthest = farthest.max(c.x.hypot(c.z));
+        if matches!(
+            phase(&session, crawler),
+            EnemyPhase::Windup | EnemyPhase::Leaping
+        ) {
+            leapt = true;
+            break;
+        }
+    }
+    assert!(!flanked, "a Crawler never calls a flank");
+    assert!(
+        leapt,
+        "a Crawler inside leap range leaps while the heavy holds the lane; it went out to {farthest} m"
+    );
+    assert!(farthest < 4.0, "it never left leap range: {farthest} m");
+}
+
 #[test]
 fn a_heavy_burst_finishes_down_its_lane_into_the_cover() {
     let region = json!({"min":[-20,0,-20],"max":[20,2,20]});
