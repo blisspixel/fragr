@@ -12,7 +12,7 @@ Non-goals: new modes, new services, transport rewrites, cloud apply, save migrat
 - Waves of three or four lanes.
 - Episode V evidence: agent-led acceptance and independent agent review are the default; no human reviewer is required to proceed. Platform, device and human gaps are recorded, not simulated.
 
-## Wave 11
+## Wave 11 (shipped, #490)
 
 | Lane | Scope | Owner doc |
 |---|---|---|
@@ -21,15 +21,13 @@ Non-goals: new modes, new services, transport rewrites, cloud apply, save migrat
 | `inheritance-models` | Lore-gated Meshy Paver and Surveyor, integrated and inspected in Levels 19 and 20 | [asset practices](asset-practices/README.md) |
 | `mp-rules` | Weapons drop on death with a measured Rocket share, Duel queue and winner-stays, host presets and mutator stacking, the Conquest ticket bleed | [multiplayer excellence](multiplayer-excellence-20261017.md), [bot and enemy AI](bot-and-enemy-ai-excellence-20261017.md) |
 
-## Wave 12 (planned)
+## Wave 12 (shipped in its wave PR)
 
-- Host voice: Callum records the voiced `HostReactionKind` slots; the hit chime with pitch by damage; the Scatter sound pass (#431 Pillars 1, 2 and 4).
-- AI depth: dormant guard cones and reaction before activation, squad roles, enemy and Latch barks with captions and recordings, CTF bots seeking pads (#432 Milestones 1, 2 and 5).
-- Network: the rest of the #434 stage 1 baseline (slow readers, bursty input, saturation) and stage 3 relevance, measured.
+Host voice (Callum), the hit confirm and the Scatter pass; Rocket use, CTF pads and side calls for rule bots; campaign guard sighting, squad roles and barks; the #434 stage 1 baseline with stage 3 measured and deferred. Follow-ups: #491, #492, #493, #494.
 
 ## Wave 13 (planned)
 
-Bounded lag compensation and acknowledged deltas (#434 stages 4 and 5), and raising levels 1 to 18 to the golden-slice bar in rendered passes.
+The Recall Notice deliberate-profile regression and M14 seed 1015 (#493); the slow-reader close (#492); #434 stage 4 (acknowledged deltas and compact encoding) and bounded lag compensation; the roster deck pockets (#491) and test flakes (#494); then raising levels 1 to 18 to the golden-slice bar in rendered passes.
 
 ## Verification
 

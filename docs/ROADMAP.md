@@ -130,6 +130,27 @@ restore carried low health, so very low-health entries can exhaust a run (a
 design question), and the local child's fixed seed replays a deterministic
 agent's death on every Continue (#489).
 
+Wave 12 of the same round voices and deepens the arena and the campaign.
+Callum records the 48 voiced Host slots, chosen and levelled by transcript and
+loudness measurement and still to be heard by Nick; a tiered hit confirm reads
+damage, a headshot (`shot_results.head`) and a kill; the Scatter gains a sub
+kick and a pump clack. Rule bots fire the Rocket close, save rockets for shots
+that land and chase Rocket drops they have seen (six-bot share 6.1% to 8.2%;
+holder survival is now the limit, a weapon or map call); CTF bots take pads
+within their role; named bots post rare objective calls that reach only their
+own side and spectators (gameplay 60). Campaign guards on foot answer the quiet
+region alarm by looking and need their own sighting and a 200 to 400 ms
+reaction unless they already face it; a shot puts the whole group in the fight;
+heavies pin, skirmishers flank and the Auditor shields behind a heavy; Union
+radio barks are voiced and Latch callouts are captions until casting. Over 288
+constrained Recall Notice trials clears are 189 against 194 (within noise), but
+the deliberate profile on Standard and Severe is harder and M14 route seed 1015
+regresses (#493). The #434 stage 1 baseline is measured in
+[BENCHMARK.md](BENCHMARK.md): healthy readers and the tick stay isolated, no
+tick runs over budget at the 64-connection cap with about 101 fighters, and
+stage 3 relevance is deferred because distance cuts only 5 to 8% of entries on
+Larak Lot; slow readers linger (#492).
+
 Wave 5 adds twelve prepared campaign props, replaces repeated prose with
 physical and painted detail, shortens objectives while retaining control and
 threat cues, and reconciles rescue continuity with the saved outcomes. The
@@ -142,7 +163,7 @@ source and deterministic route checks do not close that acceptance work.
 2. **Optional Windows playtest of v0.92.1; no engineering wait.** Nick plays Larak Lot (free-for-all, the Pit Rocket and rocket jump, Duel and the podium rematch), Recall Notice, Persons Unknown with Latch covering, the Sniper scope modes and the menus on Windows with a real pad; every defect becomes an issue and a bounded fix. Judge whether the Heavy Sweeper and Turret optics read red or salmon at the top of a windup.
 3. **Integrate the picks.** Selected Meshy models and radio keepers go into the levels and the station library, seen in game and recaptured. Wave 3 put the nine Larak Lot props in on their review grades; Nick's review of the wave PR stands as their pick. Wave 5 put twelve campaign props in where a server solid already stands for them (`client/scripts/campaign_props.gd`, `tools/campaign_props_20261025.json`): the correction machine (level 2), the impound tug seen through the customs glass (6), the pilot consoles, galley and berths (10), the lathes and freight hoist (13), the stalled trams (19, 20) and the concourse stretcher, cases, duffels and crates (19). In issued black, the correction machine and the lathes failed the P4 interim grayscale check: a black-coated Clerk standing in front of either was readable only by his outline. Both now wear the Union's plate steel (`union_plate`) and keep their red seal marks. Nick's P4 answer can still move the lathes to a place colour. The other graded models wait on a matching solid, which needs a playtest, or on Nick (the wave PR lists each with its reason).
 4. **Still Here, technical acceptance covered; pacing and art remain.** The conditional epilogue walks the refuge the morning after and years later from the saved survival, read-only, and a run exhausted in the wipe gets The Last Page and its credits instead. Survival alone opens it; rescues change the people. Automated boundary and replay checks plus inspected walks cover the bounded ending slice above. Owed: human fresh-player timing and the voice, ambience and page stills [listed for the next asset round](campaign/epilogue-still-here.md#owed-to-the-next-asset-round). These do not block further technical acceptance.
-5. **Remaining scope.** The rest of #431 (multiplayer excellence: voiced Host lines (Callum records them in wave 12, Nick 2026-10-27), the hit chime and the Scatter sound pass; wave 3 built blast push and the rocket jump, the Custody Plate, Duel and the podium rematch, wave 4 the Scatter meatshot and a head-to-head book, and wave 11 six Host presets with compatible stacking and `--preset`, the Duel line with winner-stays between people, and the Conquest bleed with its siren, heartbeat and a voiced `tickets_low` slot), #432 (bot and enemy AI: dormant guard vision, squad roles, barks, and enough Rocket on Larak Lot for bots to score with it at six; wave 3 built tells that wait for an attack token, lit Union optics and Latch's magazine and cover, wave 4 callsign habits, grudges and bots that use the Rocket, and wave 11 guns dropped on death in Pistol-start modes, Nick's 2026-10-27 supply pick, seen-only for bots and agents, with the Flechette staying behind. Measured at six bots: the Rocket's share of frags rose from 3.9% to 6.1% and the Flechette's share of shots fell from 41% to 36%; 15% needs bots that keep the Rocket in mid-range fights or a second launcher, see the [bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress)), and #434: the rest of the stage 1 baseline (slow readers, bursty input, saturation) and stages 3 to 6 (relevance, acknowledged deltas, bounded lag compensation, transport comparison). Stage 2, encode-once broadcasts with a before and after table in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out), landed in wave 3.
+5. **Remaining scope.** #431 (multiplayer excellence) is built through wave 12: blast push and the rocket jump, the Custody Plate, Duel and the podium rematch (wave 3); the Scatter meatshot and the head-to-head book (wave 4); host presets with stacking, the Duel line with winner-stays and the Conquest bleed (wave 11); Callum's Host voice, the hit confirm and the Scatter sound pass (wave 12). Owed: Nick's listening pass and a two-human Duel hand-over. #432 (bot and enemy AI) is built through wave 12: perception, attack tokens, tells, Latch's cover, callsign habits, grudges, guns dropped on death, Rocket use, CTF pads, objective calls, guard sighting, squad roles and barks. Owed: the Rocket at 15% of frags at six (8.2% now; a weapon or map decision, see the [bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress)), the Recall Notice deliberate-profile regression and M14 seed 1015 (#493), and Latch's voice. #434: stages 1 and 2 are measured and stage 3 is deferred with numbers in [BENCHMARK.md](BENCHMARK.md); next are stage 4 (acknowledged deltas and compact encoding), stage 5 (bounded lag compensation), stage 6 (transport comparison) and the slow-reader close (#492).
 6. **Next release follows acceptance fixes.** Keep automated portability,
    inspected Linux visuals, package checks and human acceptance distinct.
 
