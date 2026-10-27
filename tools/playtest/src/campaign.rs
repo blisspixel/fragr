@@ -1608,16 +1608,12 @@ mod tests {
 
     #[test]
     fn m19_market_keeps_the_earned_teaching_prefix_and_stops_at_the_declared_tick() {
-        // Seed 42 reference/Standard earns the teaching segment without a
-        // death, so its market entry is in its first attempt. (Reference/
-        // Assisted dies once there since Union guards began needing a
-        // sighting, wave 12.)
         let mut prefix = Vec::new();
         let (teaching, _, _) = scenario_trial_with_actions(
             Scenario::M19Teaching,
             42,
             PROFILES[0],
-            CampaignDifficulty::Standard,
+            CampaignDifficulty::Assisted,
             2_000,
             Recording::None,
             |action| {
@@ -1633,7 +1629,7 @@ mod tests {
             Scenario::M19Market,
             42,
             PROFILES[0],
-            CampaignDifficulty::Standard,
+            CampaignDifficulty::Assisted,
             boundary + 1,
             Recording::None,
             |action| {
@@ -1680,7 +1676,7 @@ mod tests {
             Scenario::M19Market,
             42,
             PROFILES[0],
-            CampaignDifficulty::Standard,
+            CampaignDifficulty::Assisted,
             boundary,
             Recording::None,
             |action| action,

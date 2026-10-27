@@ -96,14 +96,17 @@ species for every milestone.
 ## Guards, squads and chatter
 
 A room wakes where its level says: the authored entry region, or a shot that
-strikes one of its guards. Waking is an alarm, not a sighting. A guard on foot
-(personnel and the Sweepers) that has not seen the participant turns toward the
-alarm if it can see that spot (half a turn in about 0.6 s) or walks there
-around cover if it cannot, and raises its gun only after it sees a participant
-through the shared senses (a 120 degree cone, a level gaze, cover) and a 200
-to 400 ms reaction. Coming in behind a guard, or from a gantry above it, buys
-the first shots; after one second every alarmed guard is in the fight
-regardless. A struck guard reacts at once. Office equipment (Turrets, Jammers,
+strikes one of its guards. A shot is gunfire in the room and puts the whole
+group in the fight at once. The entry region is a quiet alarm: the group is
+dispatched as the level was written, but a guard on foot (personnel and the
+Sweepers) that has not seen the participant only turns its eyes toward the
+alarm (half a turn in about 0.6 s) while its feet go there as before, and
+raises its gun only after it sees a participant through the shared senses (a
+120 degree cone, a level gaze, cover). A guard already looking at the alarm
+was expecting someone and raises at once; one still turning is startled and
+takes a 200 to 400 ms reaction. Coming in behind a guard, or from a gantry
+above it, buys the first shots; after one second every alarmed guard is in the
+fight regardless. Office equipment (Turrets, Jammers,
 Notaries, Assessors), marksmen, Surveyors and Pavers keep their own notice
 rules; a Crawler pack wakes with its scrabble, already in the fight. Waking
 a room by sight before its region was measured and not kept: it broke authored

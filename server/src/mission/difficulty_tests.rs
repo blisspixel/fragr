@@ -61,19 +61,13 @@ fn every_tier_keeps_real_tells_committed_aim_and_retaliation_windows() {
             CampaignDifficulty::Severe,
         ] {
             for dodge in [false, true] {
-                let (mut session, id) = fixture(difficulty, kind);
-                session.tick_messages(0.05);
-                // The entry is an alarm; the facing guard reacts to its sighting
-                // first, then tells.
-                let guard = session
-                    .state
-                    .players
-                    .iter()
-                    .find(|p| p.is_campaign_enemy())
-                    .unwrap()
-                    .id;
-                crate::tests::campaign_ai::await_reaction(&mut session, guard);
-                session.tick_messages(0.05);
+                // Facing the visitor, as a guard at its door does: this is about
+                // tells, not about being caught from behind.
+                let facing = (-3.0f32).atan2(-2.0).rem_euclid(std::f32::consts::TAU);
+                let (mut session, id) = fixture_facing(difficulty, kind, facing);
+                for _ in 0..2 {
+                    session.tick_messages(0.05);
+                }
                 let (current, start, end) = phase(&session);
                 assert_eq!(current, EnemyPhase::Windup);
                 assert!(end - start >= 10, "every tier preserves a readable tell");
@@ -226,8 +220,7 @@ fn heavy_and_turret_tells_precede_damage_by_the_documented_time_on_every_tier() 
                 let (mut session, id) = fixture_facing(difficulty, kind, facing);
                 session.state.players[0].hp = 500;
                 session.tick_messages(0.05);
-                // A Heavy reacts to its sighting first (200 to 400 ms).
-                for _ in 0..16 {
+                for _ in 0..8 {
                     if phase(&session).0 == EnemyPhase::Windup {
                         break;
                     }

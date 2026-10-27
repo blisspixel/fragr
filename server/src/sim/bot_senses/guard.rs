@@ -31,7 +31,20 @@ pub(crate) fn guard_sees(
 }
 
 /// The tick a guard that first saw `target` at `tick` reacts: 200 to 400 ms
-/// later, the arcade's reaction.
-pub(crate) fn guard_reaction(guard: Uuid, target: Uuid, tick: u64) -> u64 {
-    reaction(guard, target, tick)
+/// later, the arcade's reaction. The draw is keyed on the guard's authored
+/// placement name rather than its runtime id, so a seeded campaign repeats
+/// whether or not its bodies were numbered.
+pub(crate) fn guard_reaction(guard: &Player, target: Uuid, tick: u64) -> u64 {
+    // FNV-1a over the authored name.
+    let name = guard
+        .name
+        .bytes()
+        .fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
+            (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
+        });
+    reaction(
+        Uuid::from_u64_pair(name, name.rotate_left(32)),
+        target,
+        tick,
+    )
 }

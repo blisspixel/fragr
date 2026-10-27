@@ -395,6 +395,12 @@ impl Encounters {
                 enemy.end_spine_march();
             }
             enemy.alarm(alarm, tick);
+            // A shot that struck one of them is gunfire in the room: everyone
+            // is in the fight at once, as before guards needed a sighting.
+            // Only the silent entry alarm leaves them looking.
+            if !dispatch {
+                enemy.wake();
+            }
         }
     }
 
@@ -423,15 +429,6 @@ impl Encounters {
                 })
             })
             .collect()
-    }
-
-    /// When an alarmed guard's reaction completes, if it sees someone.
-    #[cfg(test)]
-    pub(crate) fn reaction_due(&self, id: Uuid) -> Option<u64> {
-        self.enemies
-            .iter()
-            .find(|(_, enemy)| enemy.id == id)
-            .and_then(|(_, enemy)| enemy.reaction_due())
     }
 
     /// Whether a placed guard is in the fight rather than on post or alarmed.

@@ -162,10 +162,10 @@ fn a_guard_on_post_waits_for_its_region_even_with_the_party_in_view() {
             raised = Some(tick);
         }
     }
-    let raised = raised.expect("a facing clerk raises after its reaction");
+    let raised = raised.expect("a clerk facing the door raises");
     assert!(
-        (4..=10).contains(&raised),
-        "raised {raised} ticks after entry"
+        raised <= 2,
+        "a clerk already looking at the door was expecting someone: {raised}"
     );
     assert_eq!(
         sightings(&events),
@@ -177,26 +177,18 @@ fn a_guard_on_post_waits_for_its_region_even_with_the_party_in_view() {
 #[test]
 fn cover_and_an_overhead_ambush_hold_off_an_alarmed_guard() {
     // A shelf four metres in front of the clerk, six metres up, inside the
-    // room, and a wall between the clerk and the floor beside it.
+    // room. (Cover is the shared line-of-sight gate; a guard behind a wall
+    // walks to the alarm as it always has.)
     let solids = json!([
-        {"id":"shelf","min":[-1,0,3],"max":[1,6,5],"surface":"enamel"},
-        {"id":"wall","min":[2,0,5],"max":[6,3,5.5],"surface":"enamel"}
+        {"id":"shelf","min":[-1,0,3],"max":[1,6,5],"surface":"enamel"}
     ]);
     let enemies = json!([{"id":"clerk","kind":"clerk","feet":[0,0,8],"yaw":TOWARD_SPAWN}]);
-    // Overhead the clerk never sees them before its alarm bound; behind the
-    // wall it has to walk to the alarm first, which buys several ticks.
-    for (feet, why, held) in [
-        (
-            [0.0, 6.0, 4.0],
-            "a body overhead is outside a level gaze",
-            18,
-        ),
-        (
-            [4.0, 0.0, 3.0],
-            "the wall hides the floor beside the shelf",
-            8,
-        ),
-    ] {
+    // Overhead the clerk never sees them before its alarm bound.
+    for (feet, why, held) in [(
+        [0.0, 6.0, 4.0],
+        "a body overhead is outside a level gaze",
+        18,
+    )] {
         let (mut session, id) = session(enemies.clone(), solids.clone(), room());
         place(&mut session, id, feet);
         advance(&mut session, 1);
@@ -255,7 +247,8 @@ fn entering_a_region_behind_a_guard_buys_the_first_shots_then_it_turns() {
         json!([]),
         region,
     );
-    // Seen from the front: only the reaction stands before the raise.
+    // Seen from the front by a clerk already looking at the door: it raises
+    // at once, as it always has.
     place(&mut front, front_id, [0.0, 0.0, 4.0]);
     advance(&mut front, 1);
     let front_clerk = guard(&front, EnemyKind::Clerk);
@@ -267,8 +260,8 @@ fn entering_a_region_behind_a_guard_buys_the_first_shots_then_it_turns() {
             break;
         }
     }
-    let front_raise = front_raise.expect("a facing clerk raises after its reaction");
-    assert!((3..=9).contains(&front_raise), "{front_raise}");
+    let front_raise = front_raise.expect("a facing clerk raises");
+    assert!(front_raise <= 2, "{front_raise}");
 
     // Entering behind it: the region wakes the group, but the clerk has heard
     // an alarm, not seen anyone. It turns toward it before it can react.
@@ -287,7 +280,7 @@ fn entering_a_region_behind_a_guard_buys_the_first_shots_then_it_turns() {
     }
     let back_raise = back_raise.expect("the clerk joins the fight within its bound");
     assert!(
-        back_raise >= front_raise + 4,
+        back_raise >= front_raise + 8,
         "behind it the participant gets the first shots: {back_raise} vs {front_raise}"
     );
     assert!(
@@ -302,7 +295,7 @@ fn entering_a_region_behind_a_guard_buys_the_first_shots_then_it_turns() {
 }
 
 #[test]
-fn a_struck_guard_reacts_at_once_and_its_unseen_peer_looks_for_the_alarm() {
+fn a_shot_that_strikes_one_guard_puts_its_whole_group_in_the_fight() {
     let (mut session, id) = session(
         json!([
             {"id":"a","kind":"clerk","feet":[-2,0,8],"yaw":AWAY},
@@ -347,11 +340,9 @@ fn a_struck_guard_reacts_at_once_and_its_unseen_peer_looks_for_the_alarm() {
         "struck, it knows"
     );
     assert!(
-        !session.state.encounters.aware(clerks[1]),
-        "its peer heard it, nothing more"
+        session.state.encounters.aware(clerks[1]),
+        "gunfire in the room: its peer needs no sighting"
     );
-    advance(&mut session, 45);
-    assert!(session.state.encounters.aware(clerks[1]));
 }
 
 #[test]
@@ -647,23 +638,4 @@ fn bark_events_have_a_strict_wire_shape() {
     let unknown = json!({"event":"enemy_bark","kind":"taunt","register":"unit","variant":0,
         "speaker_id":"00000000-0000-0000-0000-000000000007","position":[0,0,0]});
     assert!(serde_json::from_value::<GameEvent>(unknown).is_err());
-}
-
-/// Advance an alarmed guard to the tick before its reaction completes, so
-/// the next tick is its first in the fight. Tests of tells and timing start
-/// from there, as they did before guards needed a sighting. A guard already
-/// in the fight returns at once.
-pub(crate) fn await_reaction(session: &mut GameSession, guard: Uuid) {
-    for _ in 0..60 {
-        if session.state.encounters.aware(guard) {
-            return;
-        }
-        if let Some(ready) = session.state.encounters.reaction_due(guard) {
-            if session.state.tick + 1 >= ready {
-                return;
-            }
-        }
-        session.tick_messages(0.05);
-    }
-    panic!("guard {guard} never reacted");
 }

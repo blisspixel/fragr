@@ -17,6 +17,10 @@ use uuid::Uuid;
 const LINE_CLEAR: f32 = 2.0;
 /// A sidestep is chosen only toward ground that is open this far.
 const SIDE_OPEN: f32 = 2.4;
+/// A canister contact blast peaks within three metres of where it lands.
+const ASSESSOR_LANDING_RADIUS: f32 = 3.0;
+/// A drop deeper than this beside a strafing body is a ledge, not a step.
+const LEDGE_DROP: f32 = 1.0;
 
 /// A tell, burst, leap or charge: an attack whose line is already chosen.
 fn committed(campaign: Option<CampaignActor>) -> bool {
@@ -89,6 +93,28 @@ impl TellReader {
             return action;
         };
         let arena = state.current_arena();
+        // A sideways strafe while trading fire never steps off the side of a
+        // stair or a ledge into a drop: the body keeps its footing and fights
+        // from where it stands. Walking moves and ordinary steps are kept.
+        let mut action = action;
+        if action.fire && !action.forward && !action.back && action.left != action.right {
+            let facing = action.yaw.unwrap_or(me.yaw);
+            let (dx, dz) = crate::movement::wish_dir(
+                &MoveInput {
+                    left: action.left,
+                    right: action.right,
+                    yaw: facing,
+                    ..Default::default()
+                },
+                facing,
+            );
+            let feet = me.y - PLAYER_FLOOR_Y;
+            let (x, z) = (me.x + dx, me.z + dz);
+            if feet - arena.support_height(x, z, feet + STEP_UP) > LEDGE_DROP {
+                action.left = false;
+                action.right = false;
+            }
+        }
         let here = [me.x, me.z];
         // An attack spent, or a guard down, frees its line.
         self.dodges.retain(|dodge| {
@@ -187,6 +213,29 @@ fn blast_exit(
                     .iter()
                     .map(|target| (*target, WALKER_SHELL_RADIUS)),
             );
+        }
+    }
+    // An Assessor canister in flight is a visible lob: walk out of where it
+    // will come down, or of its path where that path crosses the body, as a
+    // player reads its arc.
+    let body_feet = me.y - PLAYER_FLOOR_Y;
+    for canister in &snapshot.assessor_canisters {
+        let mut point = canister.position;
+        let mut velocity = canister.velocity;
+        for _ in 0..120 {
+            let next = [
+                point[0] + velocity[0] * 0.05,
+                point[1] + velocity[1] * 0.05,
+                point[2] + velocity[2] * 0.05,
+            ];
+            velocity[1] -= crate::sim::assessor::GRAVITY * 0.05;
+            let through_body = (next[0] - me.x).hypot(next[2] - me.z) <= ASSESSOR_LANDING_RADIUS
+                && (body_feet..body_feet + 2.2).contains(&next[1]);
+            if through_body || next[1] <= arena.support_height(next[0], next[2], point[1]) {
+                areas.push((next, ASSESSOR_LANDING_RADIUS));
+                break;
+            }
+            point = next;
         }
     }
     // Every mark the body stands in pushes it out in proportion to how deep
