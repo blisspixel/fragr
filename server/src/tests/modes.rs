@@ -530,15 +530,67 @@ fn ctf_a_pad_seen_taken_is_not_sought_and_errands_skip_pads() {
         "a pad seen empty waits its clock"
     );
 
-    // With its own flag stolen nobody on the side stops for a pad.
+    // A bare escort beside its carrier takes the armour a step off its line.
     session.state.pickups[index].available = true;
     session.state.pickups[index].respawn_timer = None;
+    let union_stand = flags[Team::Union.index()].stand;
+    let carrier = coalition[3];
+    let escort = coalition[1];
+    take_flag(&mut session, carrier, union_stand);
+    let armour = session
+        .state
+        .pickups
+        .iter()
+        .find(|pad| pad.id == "pad_armor")
+        .map(|pad| [pad.x, pad.floor, pad.z])
+        .unwrap();
+    let park_escort = |session: &mut GameSession| {
+        place(&mut session.state, carrier, 2.0, 10.0);
+        place(&mut session.state, escort, -1.0, 12.0);
+        session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == escort)
+            .unwrap()
+            .armor = 0;
+    };
+    park_escort(&mut session);
+    assert_eq!(
+        goal_feet(&session, escort),
+        armour,
+        "with no errand, a bare escort takes the armour beside it"
+    );
+
+    // With its own flag stolen nobody on the side stops for a pad.
     take_flag(&mut session, union[0], home);
     place(&mut session.state, union[0], 30.0, 0.0);
     let thief = goal_feet(&session, defender);
     assert!(
         (thief[0] - 30.0).abs() < 0.05,
         "the defender chases, hurt or not"
+    );
+    park_escort(&mut session);
+    assert_ne!(
+        goal_feet(&session, escort),
+        armour,
+        "an escort does not detour for a pad while its own flag is stolen"
+    );
+
+    // Nor while its own flag lies out.
+    let thief_at = player(&session.state, union[0]);
+    let (x, z) = (thief_at.x, thief_at.z);
+    assert!(session.state.hit_for_test(defender, union[0], 1000));
+    let dropped = session.state.snapshot().flags.unwrap()[Team::Coalition.index()].clone();
+    assert!(
+        dropped.status == crate::protocol::FlagStatus::Dropped,
+        "the stolen flag lies out at ({x}, {z}): {dropped:?}"
+    );
+    park_escort(&mut session);
+    assert_ne!(
+        goal_feet(&session, escort),
+        armour,
+        "an escort does not detour for a pad while its own flag lies out"
     );
 }
 
