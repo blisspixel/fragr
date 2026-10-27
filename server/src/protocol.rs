@@ -2029,10 +2029,9 @@ pub enum GameEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         to_id: Option<Uuid>,
         /// The side a line is said to (capability 60): a rule bot's objective
-        /// callout ("i have the flag") is for its own side, and a client
-        /// shows it only to a fighter on that side, or to a spectator who
-        /// follows one or follows nobody. Every fact a callout names is
-        /// already public in the snapshot; this addresses it, never hides it.
+        /// callout ("i have the flag") is for its own side. The session
+        /// delivers it only to that side's fighters and to spectators, never
+        /// as a broadcast, so the speaker's id never reaches the other side.
         /// Absent for lines meant for the whole room.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         team: Option<Team>,

@@ -1,11 +1,12 @@
 extends SceneTree
 
 ## Wave 1 visual QA regressions: one pixel type system on the match HUD,
-## backed corner text, the first-run controls hint, taunt addressing, kill
+## backed corner text, the first-run controls hint, taunt and side call addressing, kill
 ## feed names, the armor readout on its plate and pixel world text.
 
 class Fighter extends Node:
 	var player_id: String = ""
+	var team: String = ""
 
 class CameraProbe extends Node:
 	var target: Node
@@ -139,6 +140,30 @@ func _run() -> void:
 	_check(hud.combat_feed.get_child_count() == before + 2, "a taunt to the watched fighter reaches the eyes it is watched through")
 	game._on_event_received({"event": "speak", "player": "Aunt Linda", "player_id": "linda", "text": "league says keep rolling"})
 	_check(hud.combat_feed.get_child_count() == mini(before + 3, CombatFeed.LIMIT), "a room-wide line reaches everyone")
+
+	# Side calls: the server sends a fighter only its own side's calls, so a
+	# fighter whose pawn is gone (dead, eliminated) still shows them.
+	hud.combat_feed.clear()
+	game.local_fp_pawn_id = "self"
+	_check(not game.players.has("self"), "the local pawn is absent")
+	game._on_event_received({"event": "speak", "player": "Nightfall", "player_id": "night", "text": "i have the flag. walk me home", "team": "union"})
+	_check(hud.combat_feed.get_child_count() == 1, "a fighter without a pawn still shows its side's call")
+	# A spectator receives both sides: the followed fighter's side, or both
+	# from a free camera.
+	game.is_human_player = false
+	watched.team = "union"
+	game.players["watched"] = watched
+	hud.combat_feed.clear()
+	game._on_event_received({"event": "speak", "player": "Hermes", "player_id": "hermes", "text": "CARRIER MID", "team": "coalition"})
+	_check(hud.combat_feed.get_child_count() == 0, "a spectator following one side does not show the other side's call")
+	game._on_event_received({"event": "speak", "player": "Nightfall", "player_id": "night", "text": "CARRIER MID", "team": "union"})
+	_check(hud.combat_feed.get_child_count() == 1, "a spectator following one side shows that side's call")
+	camera.target = null
+	game._on_event_received({"event": "speak", "player": "Hermes", "player_id": "hermes", "text": "flag secured", "team": "coalition"})
+	_check(hud.combat_feed.get_child_count() == 2, "a free camera shows both sides")
+	camera.target = watched
+	game.players.erase("watched")
+	game.is_human_player = true
 	hud.combat_feed.clear()
 	hud.show_boss_down("", "Scout Ant")
 	hud.show_boss_down("", "")

@@ -4091,11 +4091,15 @@ func _carried_flag_team(subject: String, flags: Variant) -> String:
 		return MatchRules.valid_team(flag.get("team"))
 	return ""
 
-## The side whose calls this view hears: the local fighter's, else the
-## followed fighter's, else none (a free camera hears both sides).
+## The side whose calls this view shows. The server sends a fighter's session
+## only its own side's calls, alive, dead or eliminated, so a fighter shows
+## every call it receives and needs no pawn to know its side. A spectator
+## receives both sides: it shows the followed fighter's side, and a free
+## camera shows both.
 func _viewer_side() -> String:
-	var subject: String = str(local_fp_pawn_id) if is_human_player else _followed_player_id()
-	var pawn: Variant = players.get(subject)
+	if is_human_player:
+		return ""
+	var pawn: Variant = players.get(_followed_player_id())
 	if pawn is Node and is_instance_valid(pawn):
 		return MatchRules.valid_team(pawn.get("team"))
 	return ""

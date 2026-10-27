@@ -2191,11 +2191,14 @@ for the whole room.
 Optional `team` (gameplay 60, `"union"` or `"coalition"`) names the side a
 line is said to: a named rule bot's objective callout in capture the flag or
 Sabotage, such as `"i have the flag. walk me home"` or
-`"CHARGE SET A HOLD"`. The Godot client shows it to a fighter on that side
-and to a spectator following one, with the side's shape mark and label colour;
-a free spectator camera hears both sides. The line names only facts every
-snapshot already carries (who holds a flag, where they stand, the charge), so
-the field addresses a line and hides nothing. See [Side calls](#side-calls-capability-60).
+`"CHARGE SET A HOLD"`. The server sends it only to that side's fighters and to
+spectators, never as a broadcast. The Godot client shows it with the side's
+shape mark and label colour: a fighter shows every side call it receives, a
+spectator following a fighter shows that fighter's side, and a free spectator
+camera shows both sides. The line names only facts every snapshot already
+carries (who holds a flag, where they stand, the charge); the delivery keeps
+the speaker, and so who has eyes on a carrier, from the other side. See
+[Side calls](#side-calls-capability-60).
 
 ```json
 {
@@ -3979,6 +3982,16 @@ is said to. Named rule bots use it for objective callouts in capture the flag
 and Sabotage (taking the flag, seeing the carrier of their own flag, planting,
 defusing), in their callsign's register. A side hears at most one such call
 every fifteen seconds, a call waits two seconds after any Host call, and a call
-that stopped being true before it could be said is dropped. A reader that
-ignored `team` would show one side's calls to the other, so arcade rooms
+that stopped being true before it could be said is dropped.
+
+A side call is not a broadcast. The server delivers it on the targeted path,
+as one message per recipient connection, only to the sessions of that side's
+fighters (alive, dead or eliminated) and to spectator sessions that hold no
+fighter. The other side's sessions never receive it, so the speaker's id never
+tells them who has eyes on a carrier. Every other event stays one shared,
+encode-once broadcast. A fighter's client shows every side call it receives
+and needs no pawn to do so; a spectator's client receives both sides, shows
+the followed fighter's side, and shows both from a free camera. The MCP
+adapter forwards only what its own session received. A spectator reader that
+ignored `team` would show one side's calls as room chatter, so arcade rooms
 require 60.

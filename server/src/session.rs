@@ -1072,9 +1072,44 @@ impl GameSession {
                 });
                 tracing::info!("SHEET {line}");
             }
+            if let protocol::GameEvent::Speak {
+                team: Some(side), ..
+            } = &event
+            {
+                let side = *side;
+                self.queue_side_call(side, ServerMessage::Event(event));
+                continue;
+            }
             out.push(ServerMessage::Event(event));
         }
         out
+    }
+
+    /// A side call reaches only the sessions of that side's fighters and the
+    /// spectators, through the targeted path. The other side's sessions never
+    /// receive it, alive, dead or eliminated, so a speaker's id never tells
+    /// them who has eyes on a carrier. Everything else stays one shared
+    /// broadcast.
+    fn queue_side_call(&mut self, side: protocol::Team, message: ServerMessage) {
+        let mut recipients: Vec<Uuid> = self
+            .client_to_player
+            .iter()
+            .filter(|(_, player_id)| {
+                self.state
+                    .players
+                    .iter()
+                    .any(|player| player.id == **player_id && player.team == Some(side))
+            })
+            .map(|(client_id, _)| *client_id)
+            .chain(self.spectator_ids())
+            .collect();
+        recipients.sort_unstable();
+        recipients.dedup();
+        self.pending_unicasts.extend(
+            recipients
+                .into_iter()
+                .map(|client_id| (Recipient::Client(client_id), message.clone())),
+        );
     }
 
     /// Connections that watch and hold no fighter: the booth's audience.
@@ -2602,5 +2637,118 @@ mod session_tests {
         assert_eq!(session.state.players.len(), 2);
         assert!(session.state.players.iter().any(|p| p.id == bot_id));
         assert!(session.state.players.iter().any(|p| p.id == p1));
+    }
+}
+
+#[cfg(test)]
+mod side_call_tests {
+    use super::*;
+    use crate::protocol::{GameEvent, GameMode};
+    use crate::rules::RuleSet;
+    use crate::sim::MatchConfig;
+
+    fn is_side_call(message: &ServerMessage) -> bool {
+        matches!(
+            message,
+            ServerMessage::Event(GameEvent::Speak { team: Some(_), .. })
+        )
+    }
+
+    #[test]
+    fn a_side_call_reaches_its_side_and_the_booth_and_never_the_other_side() {
+        let mut session = GameSession::with_map(MapKind::Sector9, false);
+        session.min_bots = 0;
+        session.state.apply_config(crate::sim::MatchConfig {
+            rules: RuleSet::new(GameMode::Ctf, &[], false).unwrap(),
+            capture_limit: Some(3),
+            ..MatchConfig::default()
+        });
+        let clients: Vec<(Uuid, Uuid)> = (1..=4)
+            .map(|n| (Uuid::from_u128(100 + n), Uuid::from_u128(n)))
+            .collect();
+        for (n, (client, player)) in clients.iter().enumerate() {
+            session.apply_command(GameCommand::Connected {
+                body: protocol::BodyKind::Human,
+                id: *client,
+                role: if n % 2 == 0 { Role::Human } else { Role::Agent },
+                name: format!("Side{n}"),
+                player_id: Some(*player),
+            });
+        }
+        let watcher = Uuid::from_u128(900);
+        session.apply_command(GameCommand::Connected {
+            body: protocol::BodyKind::Human,
+            id: watcher,
+            role: Role::Spectator,
+            name: "Booth".into(),
+            player_id: None,
+        });
+        session.state.start_round();
+        let team_of = |session: &GameSession, player: Uuid| {
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == player)
+                .and_then(|p| p.team)
+                .expect("a ctf fighter has a side")
+        };
+        let speaker = clients[0].1;
+        let side = team_of(&session, speaker);
+        let (own, other): (Vec<(Uuid, Uuid)>, Vec<(Uuid, Uuid)>) = clients
+            .iter()
+            .copied()
+            .partition(|(_, player)| team_of(&session, *player) == side);
+        assert!(own.len() >= 2 && !other.is_empty(), "{own:?} {other:?}");
+        // An own-side fighter waiting to respawn still hears its side.
+        let dead = own[1].1;
+        let player = session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == dead)
+            .unwrap();
+        player.hp = 0;
+        player.respawn_timer = Some(100);
+        let _ = session.tick_messages(0.05);
+        let _ = session.take_unicasts();
+
+        assert_eq!(
+            session
+                .state
+                .try_speak_to_side(speaker, "i have the flag. walk me home", side),
+            SpeakOutcome::Sent
+        );
+        let shared = session.tick_messages(0.05);
+        assert!(
+            !shared.iter().any(is_side_call),
+            "a side call never enters the shared broadcast"
+        );
+        let mut heard: Vec<Uuid> = session
+            .take_unicasts()
+            .into_iter()
+            .filter(|(_, message)| is_side_call(message))
+            .map(|(recipient, _)| match recipient {
+                Recipient::Client(id) => id,
+                Recipient::Player(id) => panic!("a side call addresses a connection, got {id}"),
+            })
+            .collect();
+        heard.sort_unstable();
+        let mut expected: Vec<Uuid> = own.iter().map(|(client, _)| *client).collect();
+        expected.push(watcher);
+        expected.sort_unstable();
+        assert_eq!(heard, expected, "own side, dead or alive, and the booth");
+        for (client, _) in &other {
+            assert!(!heard.contains(client), "the other side heard {client}");
+        }
+
+        // A room-wide line is still one shared broadcast.
+        let (_, listener) = other[0];
+        assert_eq!(session.state.try_speak(listener, "gg"), SpeakOutcome::Sent);
+        let shared = session.tick_messages(0.05);
+        assert!(shared.iter().any(|message| matches!(
+            message,
+            ServerMessage::Event(GameEvent::Speak { team: None, .. })
+        )));
     }
 }
