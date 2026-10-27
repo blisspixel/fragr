@@ -153,7 +153,8 @@ pub struct InputSummary {
     pub probes: usize,
     pub actions_sent: u64,
     pub actions_acked: u64,
-    /// Sent while an Ack showed the fighter down, so never applied or timed.
+    /// Sent while an Ack showed the fighter down, or before the first
+    /// applied Ack, so not timed.
     pub actions_unapplied: u64,
     /// From writing an action to reading the first applied Ack whose sequence
     /// covers it: inbound queueing, the wait for the next tick, and the Ack's
@@ -402,7 +403,8 @@ async fn watcher_task(
 struct ProbeResult {
     sent: u64,
     acked_ms: Vec<f64>,
-    /// Actions dropped untimed because an Ack showed the fighter down.
+    /// Actions dropped untimed: sent while an Ack showed the fighter down,
+    /// or before the server applied its first input.
     unapplied: u64,
     disconnected: bool,
 }
@@ -454,6 +456,7 @@ async fn probe_task(
     let mut ready = Some(ready);
     let mut result = ProbeResult::default();
     let mut pending = std::collections::VecDeque::new();
+    let mut acknowledged = false;
     let mut step = 0u32;
     let mut interval = tokio::time::interval(pattern.period());
     interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -493,8 +496,16 @@ async fn probe_task(
                     ServerMessage::Ack { seq, movement, respawn_ticks, .. } => {
                         let applied = respawn_ticks.is_none()
                             && movement.as_ref().is_none_or(|movement| movement.applied);
-                        if applied {
+                        if applied && acknowledged {
                             result.acked_ms.extend(settle_acks(&mut pending, seq, at));
+                        } else if applied {
+                            // The server Acks only once it has applied this
+                            // fighter's first input; a fighter that opened the
+                            // window down waits out its respawn first. Time
+                            // only what follows the first applied Ack.
+                            acknowledged = true;
+                            result.unapplied += pending.len() as u64;
+                            pending.clear();
                         } else {
                             // A downed or frozen fighter's input is never
                             // applied, so it is not timed.

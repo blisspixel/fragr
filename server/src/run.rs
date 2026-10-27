@@ -1330,6 +1330,12 @@ mod durable_run_tests {
         );
         std::fs::remove_dir_all(&directory).unwrap();
     }
+}
+
+#[cfg(test)]
+mod metrics_tests {
+    use super::{RunMetrics, TICK};
+    use std::time::Duration;
 
     #[test]
     fn measured_ticks_count_lateness_skips_and_budget() {
