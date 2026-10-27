@@ -485,3 +485,72 @@ fn grudge_lines_keep_each_register_and_name_the_fighter_owed() {
         .contains("thank you"));
     assert_eq!(grudge_line("Somebody New", "Hermes", 0), None);
 }
+
+#[test]
+fn objective_calls_keep_each_register_short_and_free_of_radio_words() {
+    use crate::protocol::SiteId;
+    const BANNED: [&str; 11] = [
+        "booth",
+        "dial",
+        "station",
+        "frequenc",
+        "broadcast",
+        "listener",
+        "radio",
+        "clanker",
+        "roger",
+        "copy that",
+        "over and out",
+    ];
+    let calls = [
+        ObjectiveCall::HaveFlag,
+        ObjectiveCall::EnemyCarrier(Reach::OurStand),
+        ObjectiveCall::EnemyCarrier(Reach::Mid),
+        ObjectiveCall::EnemyCarrier(Reach::TheirStand),
+        ObjectiveCall::Planted(SiteId::A),
+        ObjectiveCall::Defusing(SiteId::B),
+    ];
+    for fighter in ROSTER {
+        for call in calls {
+            let line = objective_line(fighter.name, call);
+            if fighter.name.starts_with("NODS ") {
+                assert_eq!(line, None, "NODS answer only with Articles");
+                continue;
+            }
+            let line = line.unwrap();
+            assert!(line.chars().count() <= 48, "{line}");
+            assert!(!line.contains("{}"), "{line}");
+            assert!(
+                !line.contains('\u{2014}') && !line.contains('\u{2013}'),
+                "{line}"
+            );
+            for word in BANNED {
+                assert!(
+                    !line.to_lowercase().contains(word),
+                    "{}: {line}",
+                    fighter.name
+                );
+            }
+            if tribe(fighter.name) == Some(Tribe::NightWatch) {
+                assert!(
+                    line.chars().all(|c| c.is_ascii_uppercase() || c == ' '),
+                    "{line} is not night watch"
+                );
+            } else {
+                // Lowercase but for the site's letter, as the floor stencils it.
+                let words = line.replace(" A", "").replace(" B", "");
+                assert_eq!(words, words.to_lowercase(), "{line} is not lowercase");
+            }
+            if let ObjectiveCall::Planted(_) | ObjectiveCall::Defusing(_) = call {
+                assert!(
+                    line.contains(" A") || line.contains(" B"),
+                    "{line} names no site"
+                );
+            }
+        }
+    }
+    assert_eq!(
+        objective_line("Somebody New", ObjectiveCall::HaveFlag),
+        None
+    );
+}

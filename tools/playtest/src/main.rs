@@ -386,6 +386,15 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             "{}: {} guns dropped on death, {} taken ({} Rockets)",
             row.scenario, row.guns_dropped, row.drop_claims, row.rocket_drop_claims
         );
+        println!(
+            "{}: {} Rocket lives of {:.1} s, {:.0}% ended by death, launcher in hand {:.0}% of the life, {:.2} side calls/min",
+            row.scenario,
+            row.rocket_lives,
+            row.rocket_life_seconds,
+            row.rocket_lives_died * 100.0,
+            row.rocket_in_hand_share * 100.0,
+            row.side_calls_per_minute
+        );
     }
 }
 

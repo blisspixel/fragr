@@ -4,6 +4,7 @@ pub(crate) mod assessor;
 pub(crate) mod blade;
 mod booth;
 mod bot_senses;
+mod callouts;
 mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
@@ -112,6 +113,8 @@ const CTF_HOLD_RADIUS: f32 = 6.0;
 /// A runner or escort clears opponents this close to the enemy flag or the
 /// carrier.
 const CTF_CLEAR_RADIUS: f32 = 10.0;
+/// The point a CTF bot guards and how close an opponent must come to it.
+type CtfGuard = Option<([f32; 3], f32)>;
 /// How far above or below a pad's own floor a fighter may be and still claim
 /// it. Generous enough to take a pad while jumping over it, tight enough that
 /// a pad on a walkway is not free to whoever stands underneath.
@@ -481,6 +484,8 @@ struct ReactionState {
     /// the Host last called the Larak Lot special.
     lot_frags: std::collections::VecDeque<u64>,
     lot_special: Option<u64>,
+    /// Rule bots' objective callouts to their sides (`callouts.rs`).
+    callouts: callouts::CalloutBook,
 }
 
 /// The front of a round, for the lead-change call.
@@ -2878,6 +2883,7 @@ impl GameState {
         // Last: every death this tick, including traveling shots, counts.
         self.tick_sabotage();
         self.tick_conquest();
+        self.tick_callouts();
     }
 
     fn crawler_contacts(
@@ -4949,6 +4955,27 @@ impl GameState {
         raw_text: &str,
         to_id: Option<Uuid>,
     ) -> SpeakOutcome {
+        self.speak_addressed(player_id, raw_text, to_id, None)
+    }
+
+    /// A line said to one side (`team`), such as a rule bot's objective
+    /// callout. Same limits as `try_speak`.
+    pub(crate) fn try_speak_to_side(
+        &mut self,
+        player_id: Uuid,
+        raw_text: &str,
+        team: Team,
+    ) -> SpeakOutcome {
+        self.speak_addressed(player_id, raw_text, None, Some(team))
+    }
+
+    fn speak_addressed(
+        &mut self,
+        player_id: Uuid,
+        raw_text: &str,
+        to_id: Option<Uuid>,
+        team: Option<Team>,
+    ) -> SpeakOutcome {
         let trimmed: String = raw_text.trim().chars().take(SPEAK_MAX_CHARS + 1).collect();
         if trimmed.is_empty() {
             return SpeakOutcome::Rejected;
@@ -4979,6 +5006,7 @@ impl GameState {
             player_id,
             text: trimmed,
             to_id,
+            team,
         });
         SpeakOutcome::Sent
     }
@@ -5193,13 +5221,13 @@ impl BotController {
         bot: &Player,
         team: Team,
         flags: &[ctf::Flag; 2],
-    ) -> (BotIntent, Option<([f32; 3], f32)>) {
+    ) -> (BotIntent, CtfGuard, Option<bot_senses::Leash>) {
         let own = &flags[team.index()];
         let enemy = &flags[team.other().index()];
         let living =
             |player: &Player| player.hp > 0 && player.respawn_timer.is_none() && !player.detached;
         if !living(bot) {
-            return (BotIntent::default(), None);
+            return (BotIntent::default(), None, None);
         }
         let feet_of = |player: &Player| [player.x, player.y - PLAYER_FLOOR_Y, player.z];
         let carrier = enemy.carrier.and_then(|id| {
@@ -5285,12 +5313,25 @@ impl BotController {
         } else {
             Some((enemy.position, CTF_CLEAR_RADIUS))
         };
+        // Pads stay off every errand that cannot wait: a stolen or dropped
+        // flag of our own.
+        let errand = own.carrier.is_some() || own.dropped_at.is_some();
+        let leash = if carrying {
+            Some(bot_senses::Leash::Carrier)
+        } else if defending {
+            (!errand).then_some(bot_senses::Leash::Defender(own.stand))
+        } else if escorting {
+            Some(bot_senses::Leash::Escort)
+        } else {
+            (!errand).then_some(bot_senses::Leash::Runner)
+        };
         (
             BotIntent {
                 action,
                 goal: Some(crate::navigation::NavigationGoal { feet, combat }),
             },
             guard,
+            leash,
         )
     }
 
@@ -5316,8 +5357,8 @@ impl BotController {
             })
             .count();
         if side_count >= 3 {
-            let (objective, guard) = self.ctf_support_intent(state, bot, team, flags);
-            return Some(self.ctf_combat(state, bot, guard, objective));
+            let (objective, guard, leash) = self.ctf_support_intent(state, bot, team, flags);
+            return Some(self.ctf_combat(state, bot, guard, objective, leash));
         }
         // Keep one stable defender per side. The other rule bots stay
         // on the flag route even when the roster grows.
@@ -5401,7 +5442,17 @@ impl BotController {
         } else {
             Some((enemy.position, CTF_CLEAR_RADIUS))
         };
-        Some(self.ctf_combat(state, bot, guard, objective))
+        let errand = own.carrier.is_some() || own.dropped_at.is_some();
+        let leash = if enemy.carrier == Some(bot.id) {
+            Some(bot_senses::Leash::Carrier)
+        } else if errand {
+            None
+        } else if defender {
+            Some(bot_senses::Leash::Defender(own.stand))
+        } else {
+            Some(bot_senses::Leash::Runner)
+        };
+        Some(self.ctf_combat(state, bot, guard, objective, leash))
     }
 
     /// A CTF bot keeps its objective route and shoots what it actually sees
@@ -5411,13 +5462,17 @@ impl BotController {
     /// elsewhere; measured on Sector 9, every bot
     /// fighting whatever it saw inside 25 m cut 2v2 captures from 16 of 16
     /// seeded rounds to 3. A contact-range intercept of the flag thief keeps
-    /// its own aim. All of it uses the shared delayed observations.
+    /// its own aim. All of it uses the shared delayed observations. Off the
+    /// fight, a bot takes a pad it needs inside its role's `leash` (a step off
+    /// the way for a carrier or escort, a short detour for a runner, near the
+    /// stand for a defender), from what it believes about the pads.
     fn ctf_combat(
         &self,
         state: &GameState,
         bot: &Player,
-        guard: Option<([f32; 3], f32)>,
+        guard: CtfGuard,
         mut objective: BotIntent,
+        leash: Option<bot_senses::Leash>,
     ) -> BotIntent {
         if objective.goal.is_some_and(|goal| goal.combat) {
             return objective;
@@ -5430,6 +5485,18 @@ impl BotController {
             if let Some(fight) = self.sensed_fight(state, bot, None, true) {
                 return fight;
             }
+        }
+        let pad = leash
+            .zip(objective.goal)
+            .and_then(|(leash, goal)| self.objective_pad(state, bot, goal.feet, leash));
+        if let Some(feet) = pad {
+            let swap = objective.action.weapon_swap;
+            objective.action = face_flag_goal(bot, feet);
+            objective.action.weapon_swap = swap;
+            objective.goal = Some(crate::navigation::NavigationGoal {
+                feet,
+                combat: false,
+            });
         }
         if let Some(combat) = self.sensed_objective_aim(state, bot) {
             objective.action.yaw = combat.yaw;

@@ -1548,10 +1548,19 @@ func show_boss_down(message: String, killer: String = "") -> void:
 ## speak event's `to_id`, such as a frag taunt's "deleted you") shows only
 ## when that fighter is one of `viewers`: the local fighter or the fighter
 ## whose eyes the camera is behind. Anyone else would read "you" as themselves.
-func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = []) -> bool:
+## A line said to one side (`side`, a rule bot's objective callout) shows
+## only when the view hears that side (`viewer_side`: the local or followed
+## fighter's), or to a free camera, which hears both. It carries the side's
+## shape mark and label colour so it never reads as the other side's.
+func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = [], side: String = "", viewer_side: String = "") -> bool:
 	if line.is_empty() or (not addressee.is_empty() and not viewers.has(addressee)):
 		return false
-	combat_feed.push(player + ": " + line)
+	if side.is_empty():
+		combat_feed.push(player + ": " + line)
+		return true
+	if not viewer_side.is_empty() and viewer_side != side:
+		return false
+	combat_feed.push(MatchRules.team_shape_mark(side) + " " + player + ": " + line, MatchRules.team_label_color(side))
 	return true
 
 func show_venue_notice(line: String) -> void:
