@@ -150,6 +150,9 @@ func _run() -> void:
 	rig.present({"phase": "idle", "phase_started": 1, "phase_ends": 1}, 60, 0.0)
 	_check(is_zero_approx(rig.aperture), "the shutter is closed while scanning")
 	_check(rig.placeholder == not ResourceLoader.exists(SurveyorRig.SOURCE_SCENE), "the swap seam picks the delivered model")
+	var glass: Node3D = rig.find_child("LensGlass", true, false) as Node3D
+	_check(glass != null and absf(glass.global_position.y - rig.global_position.y - SurveyorRig.LENS_HEIGHT) < 0.08
+		and SurveyorRig.LENS_HEIGHT < 1.8, "the lens sits at the mark's origin inside the 1.8 m body")
 	rig.queue_free()
 	await process_frame
 	if failures > 0:

@@ -8,8 +8,10 @@ extends "audit_world_signs.gd"
 ## /absolute/report.json /absolute/output-directory
 const PAWN: PackedScene = preload("res://scenes/player.tscn")
 const STEP: float = 0.05
-const TEACHING_EVENTS: Array[String] = ["jetpack_flight", "paver_tell", "paver_work", "paver_overlap", "active_stall"]
-const TEACHING_STAGES: Array[String] = ["teaching", "market"]
+const TEACHING_EVENTS: Array[String] = ["jetpack_flight", "paver_tell", "paver_work", "paver_overlap", "active_stall", "tanks_leg", "tanks_climb"]
+const TEACHING_STAGES: Array[String] = ["teaching", "market", "tanks"]
+## Route windows after the market, recorded only by the tanks continuation.
+const TANKS_EVENTS: Array[String] = ["tanks_leg", "tanks_climb"]
 
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -71,6 +73,9 @@ static func _valid_review(value: Variant) -> bool:
 		return false
 	if teaching and (not value.get("stage") is String or value["stage"] not in TEACHING_STAGES):
 		return false
+	var tanks: bool = value.get("event") in TANKS_EVENTS
+	if tanks and value["stage"] != "tanks":
+		return false
 	if stall and (not _number(value.get("active_stall_seconds")) or float(value["active_stall_seconds"]) < 10.0):
 		return false
 	if not MapGeometry.validation_error(value["map_info"]).is_empty():
@@ -82,7 +87,9 @@ static func _valid_review(value: Variant) -> bool:
 	if frames.is_empty() or frames.size() > (160 if teaching else 80):
 		return false
 	var previous: int = -1
-	var mechanic_seen: bool = not teaching or stall
+	var mechanic_seen: bool = not teaching or stall or value["event"] == "tanks_leg"
+	# A climb window must show the viewer rising at least a metre.
+	var viewer_heights: Array[float] = []
 	for frame: Variant in frames:
 		if not frame is Dictionary or not EquipmentState.integer(frame.get("tick"), EquipmentState.MAX_EXACT_INTEGER) or not frame.get("players") is Array:
 			return false
@@ -90,7 +97,7 @@ static func _valid_review(value: Variant) -> bool:
 			return false
 		if not WorksFacts.validation_error(frame).is_empty():
 			return false
-		if teaching and not stall:
+		if teaching and not stall and not tanks:
 			if value["event"] == "jetpack_flight":
 				mechanic_seen = mechanic_seen or WorksFacts.pack_for(frame, value["view"]["id"]).get("thrusting", false)
 			elif value["event"] == "paver_overlap":
@@ -111,9 +118,13 @@ static func _valid_review(value: Variant) -> bool:
 			for key: String in ["x", "y", "z", "yaw", "pitch", "hp"]:
 				if not _number(player.get(key)) or absf(float(player[key])) > 8192.0:
 					return false
-			viewer_found = viewer_found or player["id"] == value["view"]["id"]
+			if player["id"] == value["view"]["id"]:
+				viewer_found = true
+				viewer_heights.append(float(player["y"]))
 		if not viewer_found or not frame.get("shot_results", []) is Array:
 			return false
+	if value["event"] == "tanks_climb":
+		mechanic_seen = float(viewer_heights.max()) - viewer_heights[0] > 1.0
 	return mechanic_seen
 
 static func _review_directory(review: Dictionary, index: int) -> String:

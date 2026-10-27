@@ -6,7 +6,7 @@ authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
 sizes. These measurements support playtesting; they do not establish fun alone.
 
-The guided campaign survey runs Recall Notice, or M19's bounded teaching and market segments, through the authoritative
+The guided campaign survey runs Recall Notice, its earned carry into a bounded M02 window, or M19's bounded teaching and market segments, through the authoritative
 session at 20 simulated ticks per second. It uses the shared mission navigator
 and inventory controller with ordinary human actions, finite magazines, earned
 pickups, real deaths and the three episode continues. No equipment or health is
@@ -37,6 +37,55 @@ that market enemies first activate or become visible at that boundary.
 ```bash
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-market.json
 ```
+
+Select `--survey-mission m02-carry` to carry an earned Recall Notice departure
+into Persons Unknown through the real run file. The M01 leg is the Recall
+Notice trial itself, field for field, with the server's `DurableRun` writing
+`run.json` after every step into a scratch directory. M02 opens only by
+resuming that file, which promotes and loads the saved departure exactly as the
+local child does. The same policy then plays 60 seconds of active M02 time
+with the carried equipment, HP, armor and remaining continues. Both legs are
+guided by public objectives and navigation geometry through the shared
+`MissionClient`, as in the Recall Notice survey; M02 adds no harness-specific
+route hints, grants or completion target. `--max-seconds` bounds the M01 leg
+only. Unlike the local child, harness sessions number entities
+deterministically and admit the participant directly instead of through a wire
+join; the simulation seed is applied after the run file opens, as in the child,
+and opening draws nothing from the simulation stream (the M01 leg stays
+identical to the survey either way).
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m02-carry --survey-seeds 8 --seed 42 --max-seconds 600 --report .agents/playtest/m02-carry.json
+```
+
+Each M02 death ends its session with the pending Continue saved. A fresh
+session reopens it from disk. A request dropped before delivery must leave the
+file unchanged (`dropped_unchanged`). Stale mission, run and attempt requests
+and a duplicate after acceptance go through the ordinary session command path;
+each must be refused (`rejected`) and leave the file unchanged, and only the
+accepted request may spend a continue. The restored
+kit must equal the M02 entry kit live and again after reopening a copy of the
+saved entry. Any violation fails the command. Exhaustion must save `failed`.
+The dropped request models transport loss; the client's own retry latch is
+covered by the Godot net client harness.
+
+Finding: the local child launches every process with one fixed seed (default
+1), and a Continue restores the same entry. A deterministic agent that
+reopens its saved death therefore replays that death exactly on every
+Continue. Seed 42 reference/Severe dies at tick 998 on attempt 1 and again at
+tick 998 when reopened with the same seed; a test pins this. To observe varied
+attempts, the harness instead opens attempt `n` with simulation seed
+`seed + 1000 * (n - 1)` and records the seed actually used in each segment;
+aim phase keeps the trial seed. This harness choice does not change the game.
+
+Outcomes are `m01_exhausted` or `m01_timeout` (no M02 entry), `window_elapsed`
+(alive when the window ends, after any retries), `exhausted` and `departed`.
+`carry` holds the M01 trial, exit and entry kits, per-attempt `segments` with
+their simulation seed, end position and ammunition at start and end, and `retries` with menu-preview receipts. M02
+supplies can refill ammunition, so compare shots with the ammunition receipts
+rather than reading net change as use. `review` is the first M02 fatal hit and
+`first_kill_review` the first later M02 kill; render them as below. A
+`window_elapsed` row is not an M02 clear.
 
 Every seed runs three stress profiles on Assisted, Standard and Severe:
 
@@ -77,6 +126,26 @@ remember unseen hazards, and retirement or lost perception removes the veto.
 This repairs the measured escape/pursuit oscillation in the market evaluator.
 The teaching prefix is unchanged. Compare this explicit policy revision with
 its retained baseline; improved clears do not establish a game balance change.
+
+The shared mission controller's strip escape keeps the edge it chose while
+the body stays on the same half of the same strip. Re-deciding every tick
+beside a market stall corner reversed the escape each step and held a
+recognized body inside until the strip worked; crossing the centre line
+still decides afresh. Its regression replays that one strip; the second
+strip live in the recorded case is not excluded as a contributor. This is a controller repair in
+`server/src/mission/controller/m19.rs`, shared with the free local agent; it
+changes no strip, damage or movement rule.
+
+Select `--survey-mission m19-tanks` to continue the same earned market run to
+the next authored objective, `water_tanks`, and stop as it completes, before
+acting on the roof loop. The market completion receipt stays as a
+non-terminal boundary; a death after it retries from the attempt start, so
+the market is earned again. No kit, save or objective is added. This is a
+standalone endpoint, not an inherited M19 clear or fresh-player acceptance.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-tanks --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-tanks.json
+```
 
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
 acquisition, not decision cadence. Continue is accepted immediately, with zero
@@ -140,6 +209,18 @@ market-stage timing. Prior-true flags and absent attributable evidence remain
 `unknown`, not a claim that no event occurred. These receipts never feed the
 controller and do not assign damage to a particular Paver.
 
+Per-action `stage` facts separate those attempt-wide flags into steps. After
+public market entry each decision records, once the action has been chosen:
+contacts with authoritative strip rectangles (`moved_in`, `placed_on_body` or
+`already_inside`, whether that strip was in the delayed observation, the guard
+branch and other live strips), health plus armor lost to published shots by
+shooter, unshot loss on steps ending inside a working strip (`strip_loss`, a
+work-pulse inference, not a server hit count), remaining `unattributed_loss`,
+ranged rounds at entry and the fatal step's cause. Several owners on one
+strip hit means overlapping rectangles. The tanks endpoint records the same
+facts after market completion as `continuation`. None of this feeds the
+controller; the matched cohort report is byte-identical without the field.
+
 To reconstruct those recorded windows with the existing world, fighter and
 shot presenters (a real renderer is required):
 
@@ -158,6 +239,9 @@ M19 mechanic windows use numbered event directories, and reconstruct the
 recorded jetpack and work-strip state as well as fighters. Their observer data
 can include an unseen strip, so a visible reconstruction is not evidence the
 controller recognized it; consult the separate recognition timestamp.
+The tanks endpoint adds a `tanks` stage with a `tanks_leg` window from market
+completion and a `tanks_climb` window from the first rise above a metre; the
+renderer requires that rise to exist in the climb's frames.
 
 By default a completed survey writes every failure and exits successfully.
 `--assert` instead fails if **any** trial misses its scenario's endpoint, after writing the

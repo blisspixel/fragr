@@ -104,6 +104,7 @@ impl GameState {
     /// last fighter standing when lives decided it; otherwise frags do, and a
     /// level round counts for nobody.
     pub(super) fn settle_duel(&mut self, survivor: Option<&str>) {
+        self.duel_result = None;
         if self.config.rules.mode() != GameMode::Duel {
             return;
         }
@@ -142,6 +143,7 @@ impl GameState {
         };
         if let Some(side) = winner {
             series.wins[side] = series.wins[side].saturating_add(1);
+            self.duel_result = Some([ids[side], ids[1 - side]]);
         }
         self.duel_series = Some(series);
     }

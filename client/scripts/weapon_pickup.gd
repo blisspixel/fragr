@@ -14,6 +14,11 @@ var pickup_kind: String = "weapon"
 var amount: int = 0
 var ammo_pool: String = ""
 var available: bool = true
+## A gun a fragged fighter dropped (`dropped` on the wire): it lies on the
+## floor where they fell, with no pad or stage under it, and blinks before
+## it is gone. The server takes it away; this only warns.
+var dropped: bool = false
+var _dropped_age: float = 0.0
 
 @onready var label: Label3D = $Label3D
 @onready var body: MeshInstance3D = $Body
@@ -96,6 +101,10 @@ const COMMON_REACH_METRES: float = 32.0
 const PLATE_SCALE: float = 1.35
 ## Seconds the item takes to rise back to full size on its return.
 const RETURN_POP_SECONDS: float = 0.28
+## A dropped gun lies this long (`sim::drops::DROPPED_GUN_TICKS` / 20).
+const DROPPED_SECONDS: float = 15.0
+## It blinks for its last seconds, so nobody runs for a gun about to go.
+const DROPPED_BLINK_SECONDS: float = 3.0
 
 var _cue: AudioStreamPlayer3D
 ## The server's own availability, before any personal claim hides the pad.
@@ -141,10 +150,12 @@ func _ready() -> void:
 	_stage()
 	_apply_look()
 
-func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0, pool: String = "") -> void:
+func setup(id: String, weapon: String, pos: Vector3, kind: String = "weapon", pad_amount: int = 0, pool: String = "", is_dropped: bool = false) -> void:
 	if id != pickup_id:
 		_staged = false
 		seat_height = 0.0
+		_dropped_age = 0.0
+	dropped = is_dropped
 	pickup_id = id
 	weapon_name = weapon
 	pickup_kind = kind if kind != "" else "weapon"
@@ -160,6 +171,9 @@ func _stage() -> void:
 	if _staged or pickup_id.is_empty() or not is_inside_tree():
 		return
 	_staged = true
+	# A dropped gun lies where its fighter fell; the venue stages pads only.
+	if dropped:
+		return
 	for stage: Node in get_tree().get_nodes_in_group(STAGE_GROUP):
 		if stage.has_method("stage_pickup"):
 			var floor_at: Vector3 = global_position - Vector3(0.0, PAD_LIFT, 0.0)
@@ -231,6 +245,14 @@ func _process(delta: float) -> void:
 	if is_instance_valid(icon) and icon.visible:
 		# Seated: the item rests on its pad and does not float.
 		icon.position.y = _sprite_rest_y
+	if dropped:
+		_dropped_age += delta
+		var left: float = DROPPED_SECONDS - _dropped_age
+		if is_instance_valid(icon) and left < DROPPED_BLINK_SECONDS:
+			# Four blinks a second (the sprite cuts out below half alpha);
+			# reduced motion holds it steady and dimmed instead.
+			var lit: bool = int(floor(left * 8.0)) % 2 == 0
+			icon.modulate = Color(0.55, 0.55, 0.55) if reduced_motion else Color(1.0, 1.0, 1.0, 1.0 if lit else 0.0)
 
 ## Begin the return shimmer (the server just brought this pad back).
 func _start_shimmer() -> void:

@@ -1768,6 +1768,11 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
             ..Action::default()
         };
     }
+    let forward = dist > CLOSE_RANGE || !clear;
+    // A target in plain view can still stand past a kerb or a low rail the
+    // body cannot walk through: then it slides too, toward a side that is
+    // open, and backs out of a pocket with neither.
+    let slide = !clear || (forward && !feet_lane_clear(arena, me, target.x, target.z));
     Action {
         look_at: Some(LookAt {
             y: None,
@@ -1775,12 +1780,13 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
             x: None,
             z: None,
         }),
-        forward: dist > CLOSE_RANGE || !clear,
+        forward,
         // Walking straight into a pillar is how an agent gets pinned. While it
-        // cannot see its target it also slides, alternating every second, so a
-        // corner is something it goes around rather than into.
-        left: !clear && snapshot.tick % 40 < 20,
-        right: !clear && snapshot.tick % 40 >= 20,
+        // cannot see its target or walk straight at it, it also slides,
+        // alternating every second, so a corner is something it goes around
+        // rather than into.
+        left: slide && snapshot.tick % 40 < 20,
+        right: slide && snapshot.tick % 40 >= 20,
         fire: clear && dist < FIRE_RANGE,
         weapon_swap,
         ..Action::default()
@@ -1884,15 +1890,15 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
 
     // Hurt and a pad within reach: go and heal, and do not stop to shoot.
     if me.hp < PLANNER_LOW_HEALTH {
-        if let Some(pad) = nearest_pickup(snapshot, me, |p| p.kind == "health") {
-            return walk_to(pad, me, nearest.map(|(_, e)| e));
+        if let Some(pad) = nearest_pickup(snapshot, me, arena, |p| p.kind == "health") {
+            return walk_to(pad, me, nearest.map(|(_, e)| e), arena, snapshot.tick);
         }
     }
 
     let Some((dist, enemy)) = nearest else {
         // Nobody about: collect something useful.
-        if let Some(pad) = nearest_pickup(snapshot, me, |p| p.kind != "health") {
-            return walk_to(pad, me, None);
+        if let Some(pad) = nearest_pickup(snapshot, me, arena, |p| p.kind != "health") {
+            return walk_to(pad, me, None, arena, snapshot.tick);
         }
         return patrol_action(me, snapshot.tick, arena);
     };
@@ -1900,10 +1906,10 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
     // A weapon this fighter is not carrying, close by, and no enemy breathing
     // down its neck: worth the detour.
     if dist > preferred_band(held).1 * 1.5 {
-        if let Some(pad) = nearest_pickup(snapshot, me, |p| {
+        if let Some(pad) = nearest_pickup(snapshot, me, arena, |p| {
             p.kind == "weapon" && weapon_from_wire(&p.weapon) != Some(held)
         }) {
-            return walk_to(pad, me, Some(enemy));
+            return walk_to(pad, me, Some(enemy), arena, snapshot.tick);
         }
     }
 
@@ -1916,6 +1922,8 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
     let clear = arena.fighter_visible(me, enemy);
     // With cover in the way the band does not matter: step out and look.
     let holding = clear && dist >= comfortable && dist <= ideal;
+    let closing = dist > ideal || !clear;
+    let slide = holding || !clear || (closing && !feet_lane_clear(arena, me, enemy.x, enemy.z));
     Action {
         look_at: Some(LookAt {
             y: None,
@@ -1923,11 +1931,12 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
             x: None,
             z: None,
         }),
-        forward: dist > ideal || !clear,
+        forward: closing,
         back: clear && dist < comfortable,
-        // Always strafing while it cannot see is what clears a corner.
-        left: (holding || !clear) && snapshot.tick % 40 < 20,
-        right: (holding || !clear) && snapshot.tick % 40 >= 20,
+        // Always strafing while it cannot see, or cannot walk straight at
+        // what it sees, is what clears a corner.
+        left: slide && snapshot.tick % 40 < 20,
+        right: slide && snapshot.tick % 40 >= 20,
         fire: clear && dist < wanted.range_units(),
         weapon_swap,
         ..Action::default()
@@ -1935,28 +1944,138 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
 }
 
 /// The closest available pickup this fighter cares about, within reach.
+/// A pad stands where the map put it, on a route; a dropped gun lies wherever
+/// its fighter fell, on a stair, a ledge or behind cover, and the planner
+/// only walks straight. It goes for a drop only when that straight walk can
+/// get there (`walkable_to`), so it never leans on a wall at a gun it cannot
+/// reach.
 fn nearest_pickup<'a>(
     snapshot: &'a Snapshot,
     me: &fragr_server::protocol::PlayerState,
+    arena: &Arena,
     wanted: impl Fn(&fragr_server::protocol::PickupState) -> bool,
 ) -> Option<&'a fragr_server::protocol::PickupState> {
     snapshot
         .pickups
         .iter()
-        .filter(|p| p.available && wanted(p))
+        .filter(|p| p.available && wanted(p) && (!p.dropped || walkable_to(arena, me, p)))
         .map(|p| (((p.x - me.x).powi(2) + (p.z - me.z).powi(2)).sqrt(), p))
-        .filter(|(d, _)| *d <= PLANNER_PICKUP_REACH)
+        // Still lying there with this fighter standing on it: the server
+        // claims a useful pickup on touch, so this one is no use to it, and
+        // waiting on it would be standing still.
+        .filter(|(d, _)| *d <= PLANNER_PICKUP_REACH && *d > UNCLAIMED_UNDERFOOT)
         .min_by(|a, b| a.0.total_cmp(&b.0))
         .map(|(_, p)| p)
 }
 
+/// A pickup still present this close was refused by the server's touch
+/// claim (inside its 1.75 m radius), so it is not worth standing on.
+const UNCLAIMED_UNDERFOOT: f32 = 1.4;
+/// Drawn pickups float this far above the surface they lie on.
+const PICKUP_LIFT: f32 = 0.4;
+/// The most a straight walk climbs or drops without stairs.
+const STRAIGHT_STEP: f32 = 0.5;
+/// A fighter's half width for a walk check, a little over the movement
+/// capsule so a lane that only just clears is not trusted.
+const BODY_RADIUS: f32 = 0.5;
+
+/// Whether a straight walk reaches `pickup`: it lies on this fighter's own
+/// floor (within a step), and nothing stands across the line at knee and
+/// chest height.
+pub fn walkable_to(
+    arena: &Arena,
+    me: &fragr_server::protocol::PlayerState,
+    pickup: &fragr_server::protocol::PickupState,
+) -> bool {
+    let feet = me.y - fragr_server::sim::PLAYER_FLOOR_Y;
+    let floor = pickup.y - PICKUP_LIFT;
+    if (floor - feet).abs() > STRAIGHT_STEP {
+        return false;
+    }
+    [0.3_f32, 1.2].into_iter().all(|height| {
+        body_lane_clear(
+            arena,
+            (me.x, me.z),
+            feet + height,
+            (pickup.x, pickup.z),
+            floor + height,
+        )
+    })
+}
+
+/// Whether the next few metres of a straight walk toward `(x, z)` are clear
+/// at knee height on this fighter's own floor.
+fn feet_lane_clear(
+    arena: &Arena,
+    me: &fragr_server::protocol::PlayerState,
+    x: f32,
+    z: f32,
+) -> bool {
+    let (dx, dz) = (x - me.x, z - me.z);
+    let length = dx.hypot(dz);
+    if length < 1e-3 {
+        return true;
+    }
+    let ahead = length.min(FEET_LOOKAHEAD);
+    let knee = me.y - fragr_server::sim::PLAYER_FLOOR_Y + 0.3;
+    body_lane_clear(
+        arena,
+        (me.x, me.z),
+        knee,
+        (me.x + dx / length * ahead, me.z + dz / length * ahead),
+        knee,
+    )
+}
+
+/// How far ahead a walk checks its own lane.
+const FEET_LOOKAHEAD: f32 = 2.0;
+
+/// Whether a body walking from `from` to `to` clears every solid: the centre
+/// line and both shoulders, a fighter's radius to either side, at the given
+/// heights. A bare ray slips past a corner the body would catch on.
+fn body_lane_clear(
+    arena: &Arena,
+    from: (f32, f32),
+    from_y: f32,
+    to: (f32, f32),
+    to_y: f32,
+) -> bool {
+    let (dx, dz) = (to.0 - from.0, to.1 - from.1);
+    let length = dx.hypot(dz);
+    if length < 1e-3 {
+        return true;
+    }
+    let side = (-dz / length * BODY_RADIUS, dx / length * BODY_RADIUS);
+    [-1.0_f32, 0.0, 1.0].into_iter().all(|k| {
+        fragr_server::combat::line_of_sight(
+            [from.0 + side.0 * k, from_y, from.1 + side.1 * k],
+            [to.0 + side.0 * k, to_y, to.1 + side.1 * k],
+            &arena.solids,
+        )
+    })
+}
+
 /// Walk to a point, still shooting at anything already in front.
+/// With something across the straight line (a cover block between a spawn
+/// and its pad), it strafes as it walks, the way it clears a corner in a
+/// fight, rather than leaning on the block.
 fn walk_to(
     pad: &fragr_server::protocol::PickupState,
     me: &fragr_server::protocol::PlayerState,
     enemy: Option<&fragr_server::protocol::PlayerState>,
+    arena: &Arena,
+    tick: u64,
 ) -> Action {
     let dist = ((pad.x - me.x).powi(2) + (pad.z - me.z).powi(2)).sqrt();
+    let feet = me.y - fragr_server::sim::PLAYER_FLOOR_Y;
+    let blocked = !body_lane_clear(
+        arena,
+        (me.x, me.z),
+        feet + 0.3,
+        (pad.x, pad.z),
+        pad.y - PICKUP_LIFT + 0.3,
+    );
+
     let fire = enemy.is_some_and(|e| {
         let to_enemy = ((e.x - me.x).powi(2) + (e.z - me.z).powi(2)).sqrt();
         to_enemy < 6.0
@@ -1969,6 +2088,8 @@ fn walk_to(
             player_id: None,
         }),
         forward: dist > 1.0,
+        left: blocked && tick % 40 < 20,
+        right: blocked && tick % 40 >= 20,
         fire,
         ..Action::default()
     }
@@ -2188,6 +2309,7 @@ async fn agent_task(
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -2556,6 +2678,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
@@ -2796,6 +2919,7 @@ mod tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -3744,6 +3868,7 @@ mod combat_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -4632,6 +4757,7 @@ mod planner_tests {
             y: 0.0,
             z,
             available,
+            dropped: false,
         }
     }
 
@@ -4680,6 +4806,7 @@ mod planner_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 
@@ -5499,6 +5626,7 @@ mod line_of_sight_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
@@ -5854,3 +5982,6 @@ mod rule_checks {
         assert_eq!(report.rules.as_ref().unwrap().mode, GameMode::Tdm);
     }
 }
+
+#[cfg(test)]
+mod roster_probe;

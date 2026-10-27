@@ -132,6 +132,7 @@ use uuid::Uuid;
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
         body: None,
+        seat: None,
         gameplay_version: crate::protocol::GAMEPLAY_VERSION,
         geometry_version: crate::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -148,6 +149,7 @@ fn test_protocol_client_message_hello_serialization() {
     match deserialized {
         ClientMessage::Hello {
             body: _,
+            seat: None,
             role,
             name,
             geometry_version,
@@ -516,6 +518,7 @@ fn test_protocol_snapshot_serialization() {
         conquest: None,
         article_blade: None,
         podium: None,
+        duel_queue: Vec::new(),
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -568,6 +571,7 @@ fn test_protocol_snapshot_empty_players() {
         conquest: None,
         article_blade: None,
         podium: None,
+        duel_queue: Vec::new(),
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -2700,6 +2704,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::NoteSeat { .. } => "NoteSeat".into(),
         crate::net::GameCommand::NoteClientVersion { .. } => "NoteClientVersion".into(),
         crate::net::GameCommand::Board { .. } => "Board".into(),
+        crate::net::GameCommand::Queue { .. } => "Queue".into(),
     }
 }
 
@@ -2920,6 +2925,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         });
         broadcast_to_clients(
             &clients,

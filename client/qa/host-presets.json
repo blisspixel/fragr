@@ -1,0 +1,14 @@
+{
+  "comment": "The Run a match page: the six rules presets under the map, and a preset with stacked twists in the open fold. Menu only; any tour server will do.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "host_presets", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "ffa",
+     "note": "Free-for-all with Standard picked: the six presets above the bots."},
+    {"name": "host_presets_stacked", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "ffa", "host_preset": "shotgun-wedding", "host_more": true,
+     "host_twists": ["licence-to-kill", "two-lives"],
+     "note": "Shotgun Wedding with Licence to Kill and Two Lives stacked; Full Arsenal off for a one-gun rule."}
+  ]
+}

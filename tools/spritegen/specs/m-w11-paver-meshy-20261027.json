@@ -1,0 +1,15 @@
+{
+  "out_dir": "/home/pueo/Work/fragr/art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "paver-20261027-v1",
+      "kind": "image",
+      "ai_model": "meshy-t2",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/91dc7619-c372-4011-b8a2-b676652b0d9e.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    }
+  ]
+}

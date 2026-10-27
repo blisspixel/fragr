@@ -1,0 +1,11 @@
+{
+  "comment": "The Duel line on Larak Lot (gameplay 59): two rule bots hold both seats, the tour watches and presses Join, and the server puts it in line. Run with FRAGR_QA_MODE=duel, FRAGR_QA_BOTS=2 and FRAGR_QA_MANIFEST=res://qa/duel-queue.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "duel_watch", "scene": "res://scenes/main.tscn", "at_seconds": 2, "camera": "follow", "radio_off": true, "settle_seconds": 0.6,
+     "note": "Watching a full Duel: the plate offers the line and says the winner stays."},
+    {"name": "duel_in_line", "camera": "follow", "press_join": true, "settle_seconds": 0.8,
+     "note": "Join pressed: the server lists this watcher first in line, and the plate says so with the key that leaves it."}
+  ]
+}

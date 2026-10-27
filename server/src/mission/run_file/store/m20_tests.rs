@@ -334,6 +334,7 @@ async fn open_still_here(
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                seat: None,
                 role: Role::Human,
                 name: "Still here".into(),
                 geometry_version: crate::protocol::GEOMETRY_VERSION,

@@ -124,6 +124,13 @@ Initial handshake message. Must be sent immediately after connection.
   string asks for a resume token on `Welcome`. A token rebinds the parked pawn
   and the server answers with a new token. A bad or expired token is
   `resume_rejected` and does not create a second pawn. Spectators omit it.
+- `seat`: optional, gameplay 59. The one-time token from a Duel `seat_call`
+  (below, under Queue). While a Duel seat is held for a called watcher and
+  it is the only free seat, a `human` or `agent` hello without that token is
+  refused with `match_full`; a second free seat is anybody's. The hello
+  carrying the token waits up to 2.5 s for the passing fighter's socket to
+  let the seat go, and the hold is spent only once its seat is taken. A
+  lapsed call (ten seconds) holds nothing. Never logged.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
   Current clients send `2`; omission means `1`. A shared arcade room requires `2`.
   A campaign map keeps that map's floor. Before `Welcome`, the server sends
@@ -357,6 +364,7 @@ message and then a policy close whose reason is the same code:
 | `address_banned` | address on the ban list, at accept or after an edit, or a venue-desk ban | removed |
 | `address_not_allowed` | allow list set and address not on it | removed |
 | `venue_kick` | the venue desk asked that seat to leave | removed |
+| `duel_seat_passed` | gameplay 59: a Duel fighter lost the round and the next watcher in line takes the seat | removed |
 
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
@@ -1030,6 +1038,46 @@ The retained state and ordinary `RoundEnd.winning_team` convey the result.
 Point, ticket and occupancy transitions remain reliable outbound facts even
 when quiet movement snapshots are coalesced.
 
+#### Queue
+
+Gameplay 59. A Duel watcher joins the line for the next fighter seat, or
+steps out of it:
+
+```json
+{"type": "queue", "wait": true}
+```
+
+Only a spectator connection on a `--mode duel` server is heard; a fighter's
+queue and any queue outside Duel are ignored. The line holds at most 16 and
+is first come, first served; a seventeenth watcher is answered with an
+`error` `queue_full` that does not close the connection. Each queued watcher
+is told its own place, unicast, whenever it changes (names on the shared
+line can repeat):
+
+```json
+{"type": "queue_place", "place": 2, "of": 3}
+```
+
+`place` counts from 1, and 0 means out of line (called, or stepped out). Whenever a seat can be had (a free seat, or a
+rule bot's seat under automatic fill) the server calls the head of the line
+with a unicast `seat_call`:
+
+```json
+{"type": "seat_call", "seat": "<32 lowercase hex>"}
+```
+
+and holds that seat for it for ten seconds. The client reconnects as a fighter
+with `seat` in its Hello. **Winner stays.** When a Duel round between two
+`human` fighters with live sockets ends with a winner and somebody is
+waiting, the loser's socket is closed with `duel_seat_passed` (removed pawn,
+resume token forgotten) and the head of the line is called to that seat; the
+native client then watches again and rejoins the back of the line. An agent
+(MCP or the brain) never passes its seat, because it has no line to return
+to, and a person who lost to a rule bot stays for the rematch. A level round
+passes nobody, and rule bots never queue.
+Each call is a `next_up` Host caption. The snapshot's `duel_queue` names the
+line for every viewer. MCP has no queue tool, so an agent is never called.
+
 #### SetDisplayBehavior
 
 Agent-only observe chip. Echoed into Snapshot `PlayerState.behavior`. Never trusted for combat. Rule-bot behaviors still come from server `BotController`.
@@ -1679,6 +1727,7 @@ receives those same bytes; targeted messages are encoded per session.
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended and during sudden death.
 - `sudden_death`: (optional) `true` while an Active round is in sudden death: an arcade clock ran out level after somebody scored, so the clock stopped and the next score wins, or a level Sabotage match is playing its one deciding round. Omitted when false. A quiet sudden death ends level after 120 s.
 - `podium`: (optional) between rounds, while the round is `Ended` and either a seated person or agent is waited on or a Duel series exists: `{"again": ["<uuid>"], "voters": 2, "duel": [{"id": "<uuid>", "name": "Nightfall", "wins": 2}, {"id": "<uuid>", "name": "Probe", "wins": 1}]}`. `again` lists the fighters who have pressed `Action.again`, in id order, omitted when empty; `voters` counts the seated people and agents the ready-up waits for (rule bots never count, and Sabotage and the campaign have no ready-up, so it is 0 there); `duel` is the series between the Duel's two fighters in id order, present once they have finished a round together and reset when the pair changes. Mid-round it is omitted. Readers refuse unknown fields.
+- `duel_queue`: (optional, gameplay 59) Duel only: the watchers waiting for a fighter seat, by name, first in line first. Omitted while nobody waits. See Queue under Client to Server.
 - `frag_limit`: (optional) Frag limit for current round
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
@@ -1700,7 +1749,7 @@ receives those same bytes; targeted messages are encoded per session.
 - `flags`: (CTF only) exactly two entries, Union then Coalition. Each has `team`, `stand` and `position` as `[x, floor, z]` metres, `status` (`home`, `carried`, `dropped`), optional `carrier` UUID only when carried, and `return_ticks` only when dropped. Stands stay fixed for the round; carried positions follow the authoritative fighter. Present during warmup, active play and intermission.
 - `capture_scores`: (CTF only) side capture counts, independent of fighter and team frags. `capture_limit` is the host's capture target (default 3).
 - `mvp` / `mvp_frags`: (optional, present while Ended) Structured round MVP name and frag count for mid-join / `round_state` rehydrate. Omitted during Warmup and Active. Same selection as `round_end` MVP (top score / frags).
-- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor, the Custody Plate). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"` / `"plate"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health, armor and plate pads), `x`/`y`/`z`, `available`. The shared world carries no live return clock: a fighter learns the published clocks below the way a regular does, and only the booth (`spectator_facts`) reports the time left. Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100) and is no use above 100. The Custody Plate (`plate`, Larak Lot's `larak_custody_plate` in the Roof's valet circle) adds 100 armour to a cap of 150; armour over 100 drains back one point a second. Clocks follow the rule sheet (`crate::rules`): the Plate 35 s in every mode; in free-for-all and Duel the Rail, Sniper, Arc and Rocket 25 s, other guns 15 s, a spare Pistol 8 s, health and armour 25 s; team modes 30 s for guns and 15 s for health and armour. Larak Lot lays a Rocket pad in the Pit behind the Stack (`larak_rocket_pit`) only where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), because an arsenal bag cannot hold the Rocket. An arsenal fighter never takes a pad for a gun it cannot hold. Touch claim is authoritative on the server; clients only render.
+- `pickups`: (optional, omitted when empty) Scrap layout: `map_id` (1 Larak Lot / 2 Compliance Yard) and `map_name`. Mid-map pads (weapons, health, armor, the Custody Plate). Each entry: `id`, `kind` (`"weapon"` / `"health"` / `"armor"` / `"plate"`, default `"weapon"`), optional `weapon` (weapon pads), optional `amount` (health, armor and plate pads), `x`/`y`/`z`, `available`. The shared world carries no live return clock: a fighter learns the published clocks below the way a regular does, and only the booth (`spectator_facts`) reports the time left. Health pads heal +40 (cap max HP); armor scrap grants +25 (cap 100) and is no use above 100. The Custody Plate (`plate`, Larak Lot's `larak_custody_plate` in the Roof's valet circle) adds 100 armour to a cap of 150; armour over 100 drains back one point a second. Clocks follow the rule sheet (`crate::rules`): the Plate 35 s in every mode; in free-for-all and Duel the Rail, Sniper, Arc and Rocket 25 s, other guns 15 s, a spare Pistol 8 s, health and armour 25 s; team modes 30 s for guns and 15 s for health and armour. Larak Lot lays a Rocket pad in the Pit behind the Stack (`larak_rocket_pit`) only where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), because an arsenal bag cannot hold the Rocket. An arsenal fighter never takes a pad for a gun it cannot hold. Touch claim is authoritative on the server; clients only render. **Dropped guns (gameplay 59).** Where lives start on the Pistol (the same free-for-all and Duel rule, never a weapon-only mutator, Golden Rail, Full Arsenal, a team mode, Sabotage, the campaign or the benchmark), a fragged fighter leaves the gun in their hands where they fell: `id` `drop_<n>`, `kind` `"weapon"`, `weapon`, `amount` the rounds it carries (what they still had for its ammunition type, at most that gun's pad grant), `available` true, and `dropped: true` (omitted on every pad). The Pistol, Fists, the Shiv, the Article Blade, the Flechette (the common pad gun) and a gun with no rounds left are not dropped. It lies 15 s (`sim::drops::DROPPED_GUN_TICKS`), then is gone; it never returns. At most 16 lie at once (`MAX_DROPPED_GUNS`); a new drop past that replaces the oldest. The first fighter on it who can use it takes it as a weapon pad grant, with an ordinary `pickup` event naming the `drop_<n>` id. Rule bots and joined MCP agents know a drop only once they have seen it and keep believing it lies there, as last seen, until they see its spot empty or 15 s from first sight pass; a joined agent's `observe` shows exactly that belief, and its events leave out the claim of a drop it cannot see. The row carries no expiry timer, like a pad's: the native client blinks a drop for its last 3 s from the time it first drew it.
 
 **Notes:**
 - Ordinary dead fighters are omitted; campaign corpses remain for their bounded
@@ -2582,8 +2631,9 @@ holds 5 s, or 8 s before a swap or after a match.
 
 A Host beat from an authoritative fact. The server sends no words: the client
 renders `HOST_REACTION_<KIND>_<VARIANT>` from `client/i18n/match.en.po`, filling
-`{player}`, `{other}` and `{team}`; a `lead_change` or `match_point` without
-`player` is about a side and keys `HOST_REACTION_<KIND>_SIDE_<VARIANT>`.
+`{player}`, `{other}` and `{team}`; a `lead_change`, `match_point` or
+`tickets_low` without `player` is about a side and keys
+`HOST_REACTION_<KIND>_SIDE_<VARIANT>`.
 `variant` is 0 to 2 and rotates per kind across the session. `player`, `other`
 and `team` are each omitted when they do not apply.
 
@@ -2591,8 +2641,8 @@ Host calls are rare. `big` (omitted when false) marks a big moment the Host
 voices; every other kind is a text caption. A big call lands only eight seconds
 or more after the last big call, and a caption only eight seconds or more after
 any call, so a caption never holds back a big moment and two voices never
-stack. `golden_rail` and `sudden_death` are information and are never held
-back. A scored frag makes at most one call, the first that applies of: first
+stack. `golden_rail`, `sudden_death` and `next_up` are information and are never
+held back. A scored frag makes at most one call, the first that applies of: first
 blood, a multikill of three or more, a comeback, a spree tier, an ended spree,
 the Larak Lot special, a double, a new leader. A held-back match point is tried again each tick while
 the position holds.
@@ -2626,6 +2676,8 @@ in Sabotage.
 | `sudden_death` | yes | The clock ran out level and stopped, or a level Sabotage match starts its deciding round | None |
 | `golden_rail` | no | Somebody takes the golden Railgun | `player` the holder, `team` their side |
 | `larak_lot_special` | no | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
+| `next_up` | no | Gameplay 59, Duel: the head of the line is called to a seat. Never held back | `player` the watcher called, `other` the winner who stays when a round passed the seat (absent for a free seat, which keys `HOST_REACTION_NEXT_UP_OPEN_<VARIANT>`) |
+| `tickets_low` | yes | Gameplay 59, Conquest: a side falls under `CONQUEST_BLEED_TICKETS` (25), once per side per round; a call held back by the spacing is made when the spacing allows | `team` the side (keys `_SIDE`) |
 
 ## Implementation Notes
 
@@ -3855,3 +3907,16 @@ removes the pad's live `respawn_in` clock from the shared snapshot, so no
 fighter's client receives a pad timer, another fighter's spree or an open
 multikill chain. The server pings every session every 5 s, and the pong's
 echoed payload times the round trip. Arcade rooms require 58.
+
+### Arena rules depth (capability 59)
+
+Gameplay 59 adds guns dropped on death (`pickups` rows with `dropped`, under
+Snapshot), the Duel line (`queue`, `seat_call`, Hello `seat`, the close code
+`duel_seat_passed`, the unicast `queue_place` and the snapshot's `duel_queue`, a list of watcher names
+first in line first, omitted while empty), and the `next_up` and
+`tickets_low` Host reactions. The Conquest bleed line is
+`CONQUEST_BLEED_TICKETS` (25): under it the client flashes the bleeding
+side's ticket count inverse (ink on a warm-white plate, never a faction
+colour), sounds a low siren every four seconds and a
+heartbeat on the last ten tickets, from the ticket counts it already
+receives. Arcade rooms require 59.

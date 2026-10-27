@@ -32,6 +32,17 @@ reported scene before attributing a failure to game balance; known routes and
 synthetic aim do not establish fresh-player acceptance. Extend this one seam
 after its limits are understood, rather than adding another campaign controller.
 
+`--survey-mission m02-carry` keeps the Recall Notice trial unchanged, writes
+it through the server's durable run file and enters M02 only by resuming the
+saved departure. A bounded 60-second M02 window uses the same policy and the
+same public-objective guidance; every death is reopened from disk, a dropped
+request must leave it unchanged, and stale and duplicate Continue requests must
+be refused before exactly one is spent. This is earned carry and retry
+evidence for one window, not an M02 clear or acceptance of carried difficulty.
+Finding: the local child's fixed process seed makes a deterministic agent
+replay the same death on every reopened Continue; the harness declares a
+per-attempt seed to vary attempts, which does not change the game.
+
 `--survey-mission m19-teaching` ends at the first tram-street Paver, before
 the market. Its standalone earned kit, disclosed hop hints, sampled floor-strip
 vision and bounded last-seen search are separate from inherited campaign proof.
@@ -45,7 +56,19 @@ magazine receipts at its boundaries and failed attempts before the market.
 Objective-stage windows keep the street lesson separate from market work and
 simultaneous strips. The shared inventory controller already seeks compatible
 visible supply when out of usable ranged ammunition; diagnose actual supply
-use before changing authored quantities.
+use before changing authored quantities. Per-action stage facts attribute
+strip contacts, work-pulse loss, shot loss and the fatal step, so read them
+before an attempt-wide flag. In the wave 11 matched cohort, 25 of 27 market
+deaths were shots, 26 died with no ranged rounds left and the strip hits
+that remained were strips absent from the delayed observation; the visible-supply
+detour never took the gallery Scatter and took the pocket Repeater in 3 of
+35 entries. Treat that as an evaluator supply and perception limit to
+measure, not a reason to add ammunition.
+
+`--survey-mission m19-tanks` carries the same run on to the next authored
+objective, `water_tanks`, as a separate standalone endpoint. Keep its market
+boundary byte-identical to the market survey and report deaths, exhaustion
+and timeouts on the continuation separately.
 
 The historical measurements below describe their dated builds, not today's game.
 

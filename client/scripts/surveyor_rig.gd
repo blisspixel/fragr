@@ -5,19 +5,33 @@ extends Node3D
 ## one muted cyan working indicator, per the art bible's restoration machines.
 ## Local +X is the server's forward; feet registration never bobs or scales.
 ##
-## Swap seam: the generated production model drops in at SOURCE_SCENE. When it
-## exists it replaces the placeholder body below; the lens, iris and
-## indicator nodes are looked up by name in either form, so presentation of
-## the authoritative phases does not change with the art.
+## The prepared model (tools/inheritance_models_20261027.json) faces +Z with
+## its lens housing as a separate Head mesh about the mast yoke. The rig turns
+## it to +X, hangs the housing on a Head pivot and seats the authored lens
+## glass, six-blade iris and cyan indicator on its lens, so the lens, iris and
+## indicator nodes are found by name in either form and presentation of the
+## authoritative phases does not change with the art. Without the model the
+## placeholder body below stands in.
 const SOURCE_SCENE: String = "res://assets/models/surveyor.glb"
+## Turns the model's +Z lens to the rig's +X.
+const SOURCE_YAW: float = PI * 0.5
+## The model's lens face, in Head pivot space.
+const SOURCE_LENS: Vector3 = Vector3(0.17, 0.22, 0.0)
+const SOURCE_LENS_RADIUS: float = 0.15
+## The housing is drawn a third larger than the source so the lens reads from
+## a tower at fighting range; it grows about the lens, which stays at
+## LENS_HEIGHT inside the authoritative body.
+const SOURCE_HEAD_SCALE: float = 1.3
 const BONE: Color = Color("d6d0c2")
 const BONE_SHADE: Color = Color("a9a395")
 const INK: Color = Color("202528")
 ## The art bible swatch, never brighter: restoration light is muted.
 const CYAN: Color = Color("4a8a92")
 const LENS_GLASS: Color = Color("cfe6e1")
-## Lens centre above the feet, also the origin of the projected mark.
-const LENS_HEIGHT: float = 2.05
+## Lens centre above the feet, also the origin of the projected mark. It sits
+## at the server's eye height so a shot at the open lens lands inside the
+## authoritative 1.8 m body.
+const LENS_HEIGHT: float = 1.6
 const PETALS: int = 6
 
 var phase: String = "idle"
@@ -39,9 +53,7 @@ func _init() -> void:
 		if packed != null:
 			var source: Node3D = packed.instantiate() as Node3D
 			if source != null:
-				source.name = "Source"
-				add_child(source)
-				placeholder = false
+				placeholder = not _build_from_source(source)
 	if placeholder:
 		_build_placeholder()
 	_head = find_child("Head", true, false) as Node3D
@@ -60,6 +72,53 @@ func _init() -> void:
 	_hit_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_hit_material.albedo_color = Color(1.0, 0.95, 0.85, 0.5)
 
+## Seats the prepared model; false (and the source freed) when its Head is
+## missing, so the placeholder takes over whole.
+func _build_from_source(source: Node3D) -> bool:
+	var shell: MeshInstance3D = source.find_child("Head", true, false) as MeshInstance3D
+	if shell == null or source.find_child("Body", true, false) == null:
+		source.free()
+		return false
+	source.name = "Source"
+	source.rotation.y = SOURCE_YAW
+	add_child(source)
+	var turn: Basis = Basis(Vector3.UP, SOURCE_YAW)
+	var head: Node3D = Node3D.new()
+	head.name = "Head"
+	head.position = turn * shell.position
+	add_child(head)
+	var placed: Transform3D = Transform3D(turn, Vector3.ZERO) * shell.transform
+	shell.get_parent().remove_child(shell)
+	shell.name = "HeadShell"
+	head.add_child(shell)
+	shell.transform = Transform3D(placed.basis, placed.origin - head.position)
+	for node: Node in find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = node as MeshInstance3D
+		for index: int in range(mesh.get_surface_override_material_count()):
+			var finish: BaseMaterial3D = mesh.get_active_material(index) as BaseMaterial3D
+			if finish != null:
+				finish.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	# The painted lens cannot open or glow: the glass and iris sit on it.
+	var glass: MeshInstance3D = cylinder("LensGlass", SOURCE_LENS_RADIUS * 0.8, SOURCE_LENS_RADIUS * 0.8, 0.02, SOURCE_LENS, LENS_GLASS, true)
+	glass.rotation.z = PI * 0.5
+	head.add_child(glass)
+	var iris: Node3D = Node3D.new()
+	iris.name = "Iris"
+	iris.position = SOURCE_LENS + Vector3(0.015, 0.0, 0.0)
+	head.add_child(iris)
+	for index: int in range(PETALS):
+		var hinge: Node3D = Node3D.new()
+		hinge.name = "IrisPetal%d" % index
+		hinge.rotation.x = float(index) * TAU / float(PETALS)
+		hinge.add_child(part("Blade", Vector3(0.015, SOURCE_LENS_RADIUS, SOURCE_LENS_RADIUS * 1.15), Vector3(0, SOURCE_LENS_RADIUS * 0.5, 0), INK))
+		iris.add_child(hinge)
+	var ring: MeshInstance3D = cylinder("Indicator", SOURCE_LENS_RADIUS * 1.12, SOURCE_LENS_RADIUS * 1.12, 0.012, SOURCE_LENS - Vector3(0.006, 0.0, 0.0), CYAN, true)
+	ring.rotation.z = PI * 0.5
+	head.add_child(ring)
+	head.scale = Vector3.ONE * SOURCE_HEAD_SCALE
+	head.position.y = LENS_HEIGHT - SOURCE_LENS.y * SOURCE_HEAD_SCALE
+	return true
+
 ## A tripod clamp, a slim mast, a yoke and a long head whose front is the
 ## lens: one continuous bone form with few seams, no face and no serials.
 func _build_placeholder() -> void:
@@ -72,8 +131,8 @@ func _build_placeholder() -> void:
 		var foot: MeshInstance3D = part("Foot%d" % index, Vector3(0.22, 0.06, 0.22), Vector3(cos(angle) * 0.98, 0.03, sin(angle) * 0.98), INK)
 		add_child(foot)
 	add_child(cylinder("Clamp", 0.32, 0.38, 0.36, Vector3(0, 0.24, 0), BONE_SHADE))
-	add_child(cylinder("Mast", 0.11, 0.13, 1.2, Vector3(0, 0.98, 0), BONE))
-	add_child(cylinder("MastCollar", 0.17, 0.17, 0.1, Vector3(0, 1.58, 0), INK))
+	add_child(cylinder("Mast", 0.11, 0.13, 0.9, Vector3(0, 0.83, 0), BONE))
+	add_child(cylinder("MastCollar", 0.17, 0.17, 0.1, Vector3(0, 1.3, 0), INK))
 	_head = Node3D.new()
 	_head.name = "Head"
 	_head.position = Vector3(0, LENS_HEIGHT, 0)

@@ -410,6 +410,7 @@ async fn spectator_task(
     sink.send(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
             body: None,
+            seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: Role::Spectator,

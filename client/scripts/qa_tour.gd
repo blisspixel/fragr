@@ -249,6 +249,15 @@ func _run() -> void:
 				(boot.get("_host_mode") as OptionButton).select(index)
 				boot.call("_change_host_mode", index)
 				await process_frame
+			if menu_page == "host" and state.has("host_preset"):
+				# A preset, any stacked twists and the fold, as a host picks them.
+				var host_boot: Node = get_root().get_node("BootMenu")
+				(host_boot.get("_host_presets")[str(state["host_preset"])] as Button).button_pressed = true
+				if state.get("host_more", false):
+					(host_boot.get("_host_more") as CheckButton).button_pressed = true
+				for twist: Variant in state.get("host_twists", []):
+					(host_boot.get("_host_twists")[str(twist)] as CheckButton).button_pressed = true
+				await process_frame
 			if menu_page == "records":
 				var panel: RecordsPanel = get_root().get_node("BootMenu").get("_root").get_node("ServiceRecord")
 				panel._select_kind(str(state.get("record_kind", "mission")))
@@ -443,6 +452,26 @@ func _run() -> void:
 			if _snapshot_round_state() != wanted:
 				push_error("qa_tour: %s never saw round state %s" % [state_name, wanted])
 				_failed = true
+		if state.get("await_dropped_gun", false):
+			# Wait for a gun a fragged fighter dropped (gameplay 59).
+			var drop_until: int = Time.get_ticks_msec() + int(float(state.get("await_timeout_seconds", 120.0)) * 1000.0)
+			while _dropped_gun() == null and Time.get_ticks_msec() < drop_until:
+				await create_timer(0.05).timeout
+			if _dropped_gun() == null:
+				push_error("qa_tour: %s never saw a dropped gun" % state_name)
+				_failed = true
+		if state.get("press_join", false):
+			# The watcher's Join key: in a Duel it asks for a place in line.
+			var join_press := InputEventAction.new()
+			join_press.action = &"join_as_human"
+			join_press.pressed = true
+			Input.parse_input_event(join_press)
+			await process_frame
+			var join_lift := InputEventAction.new()
+			join_lift.action = &"join_as_human"
+			join_lift.pressed = false
+			Input.parse_input_event(join_lift)
+			await create_timer(0.6).timeout
 		if state.get("press_again", false):
 			# One fire press on the podium: the ordinary key asks for one more.
 			var press := InputEventAction.new()
@@ -3247,6 +3276,23 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
+		"dropped_gun":
+			# Frame the newest dropped gun from a few metres off, at eye height.
+			var gun: Node3D = _dropped_gun()
+			if gun != null and cam is Node3D:
+				cam.set("spectator_first_person", false)
+				if "follow_mode" in cam:
+					cam.set("follow_mode", false)
+				if "fp_mode" in cam:
+					cam.set("fp_mode", false)
+				var distance: float = float(state.get("camera_distance", 3.2))
+				var at: Vector3 = gun.global_position
+				var n3: Node3D = cam
+				n3.global_position = at + Vector3(distance * 0.7, 1.4, distance * 0.7)
+				n3.look_at(at + Vector3(0.0, 0.2, 0.0), Vector3.UP)
+				cam.set("tip_locked_transform", cam.global_transform)
+				cam.set("tip_has_locked_transform", true)
+				cam.set("tip_pose_lock", true)
 		"sabotage_site":
 			var layout: Dictionary = _game_manager().get("sabotage_layout") if _game_manager() != null else {}
 			var wanted_site: String = str(state.get("site", "a"))
@@ -3529,6 +3575,24 @@ static func release_camera_pose_lock(cam: Node) -> void:
 func _spectator_camera() -> Node:
 	var gm: Node = _game_manager()
 	return gm.get_node_or_null("SpectatorCamera") if gm != null else null
+
+## The newest gun on the floor from a fragged fighter, or null.
+func _dropped_gun() -> Node3D:
+	var game: Node = _game_manager()
+	if game == null:
+		return null
+	var newest: Node3D = null
+	var serial: int = -1
+	var nodes: Dictionary = game.get("pickups")
+	for id: Variant in nodes.keys():
+		var node: Variant = nodes[id]
+		if not is_instance_valid(node) or not bool(node.get("dropped")):
+			continue
+		var n: int = str(id).trim_prefix("drop_").to_int()
+		if n > serial:
+			serial = n
+			newest = node
+	return newest
 
 func _game_manager() -> Node:
 	for child in get_root().get_children():

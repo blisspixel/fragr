@@ -757,6 +757,7 @@ pub async fn run_bot(
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: Some(config.body),
+        seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
@@ -1004,6 +1005,8 @@ pub async fn run_bot(
                     Ok(ServerMessage::Board(_)) => {}
                     // The booth is for watchers; a fighter never uses it.
                     Ok(ServerMessage::SpectatorFacts(_)) => {}
+                    // The brain joins as a fighter; it is never called from the Duel line.
+                    Ok(ServerMessage::SeatCall { .. } | ServerMessage::QueuePlace { .. }) => {}
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
                         if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {
@@ -3235,6 +3238,7 @@ mod tests {
         sink.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                seat: None,
                 gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,

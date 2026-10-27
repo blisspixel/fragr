@@ -26,7 +26,8 @@ struct Cli {
         "traffic_spectators", "traffic_seconds", "traffic_hz", "traffic_bots", "traffic_server"
     ])]
     campaign_survey: bool,
-    /// Bounded campaign endpoint. M19 starts with its standalone discovery kit.
+    /// Bounded campaign endpoint. M19 starts with its standalone discovery kit;
+    /// m02-carry saves an earned M01 departure and reopens a bounded M02 window.
     #[arg(long, value_enum, requires = "campaign_survey", default_value_t = fragr_playtest::campaign::Scenario::RecallNotice)]
     survey_mission: fragr_playtest::campaign::Scenario,
     /// Prove a joined fighter takes and scores a flag through a real socket.
@@ -380,6 +381,10 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.rocket_damaging,
             row.plate_claims_per_3min,
             row.self_deaths
+        );
+        println!(
+            "{}: {} guns dropped on death, {} taken ({} Rockets)",
+            row.scenario, row.guns_dropped, row.drop_claims, row.rocket_drop_claims
         );
     }
 }
@@ -811,6 +816,28 @@ mod tests {
             fragr_playtest::campaign::Scenario::M19Market
         );
         assert!(Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-market"]).is_err());
+        let carry = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m02-carry",
+        ])
+        .unwrap();
+        assert_eq!(
+            carry.survey_mission,
+            fragr_playtest::campaign::Scenario::M02Carry
+        );
+        let tanks = Cli::try_parse_from([
+            "fragr-playtest",
+            "--campaign-survey",
+            "--survey-mission",
+            "m19-tanks",
+        ])
+        .unwrap();
+        assert_eq!(
+            tanks.survey_mission,
+            fragr_playtest::campaign::Scenario::M19Tanks
+        );
         for args in [
             ["--map", "2"],
             ["--mode", "tdm"],

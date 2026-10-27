@@ -69,12 +69,47 @@ func _run() -> void:
 	markers.apply(sample)
 	hud.apply(sample)
 	_check(hud.state.points[0].progress == 80 and hud.state.points[0].contested, "contest retains exact server progress")
+	# The bleed: under the line the counter pulses red on a level baseline,
+	# a siren sounds at once and every four seconds, and the last tickets
+	# add a heartbeat. The harness counts the cues; headless audio would keep
+	# their playbacks past exit, so the streams are unloaded here.
+	for cue: String in ["_siren", "_heartbeat"]:
+		(hud.get(cue) as AudioStreamPlayer).stream = null
+	sample = snapshot()
+	sample.conquest.tickets.union = ConquestHud.BLEED_TICKETS
+	hud.apply(sample)
+	_check(not hud.bleeding, "at the line is not bleeding")
+	sample.conquest.tickets.union = ConquestHud.BLEED_TICKETS - 1
+	hud.apply(sample)
+	_check(hud.bleeding and not hud.last_tickets, "under the line bleeds")
+	hud._process(0.1)
+	_check(hud.siren_count == 1, "the siren sounds on crossing")
+	hud._process(0.4)
+	var label: Label = hud.get("_tickets")
+	var free_label: Label = hud.get("_tickets_free")
+	var plate: ColorRect = hud.get("_flash_union")
+	var colour: Color = label.get_theme_color("font_color")
+	_check(label.rotation == 0.0 and plate.color.a > 0.5 and colour.get_luminance() < MenuTheme.BONE.get_luminance(), "the bleeding side flashes inverse without tilting")
+	_check(not (colour.r > colour.g * 1.5) and not (plate.color.r > plate.color.g * 1.5), "the warning is not Union red")
+	_check(free_label.get_theme_color("font_color") == MenuTheme.BONE and (hud.get("_flash_free") as ColorRect).color.a == 0.0, "the healthy side stays bone")
+	hud._process(3.6)
+	_check(hud.siren_count == 2, "the siren repeats every four seconds: %d" % hud.siren_count)
+	_check(hud.heartbeat_count == 0, "no heartbeat before the last tickets")
+	sample.conquest.tickets.union = ConquestHud.LAST_TICKETS
+	hud.apply(sample)
+	hud._process(0.1)
+	_check(hud.last_tickets and hud.heartbeat_count == 1, "the last tickets beat")
+	sample = snapshot()
+	hud.apply(sample)
+	_check(not hud.bleeding and label.get_theme_color("font_color") == MenuTheme.BONE and plate.color.a == 0.0, "a reset round stops the bleed")
 	hud.apply({})
 	markers.apply({})
 	_check(not hud.visible and markers.markers.is_empty(), "leave removes state and markers")
 	markers.queue_free()
 	hud.queue_free()
 	await process_frame
+	# Stopped playbacks leave the audio server a few mixes later.
+	await create_timer(0.3).timeout
 	_check(Input.mouse_mode != Input.MOUSE_MODE_CAPTURED, "automated scene never captures pointer")
 	if failures.is_empty():
 		print("test_conquest_state: PASS")

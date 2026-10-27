@@ -34,6 +34,18 @@ pub struct JetpackState {
 pub const MAX_PAVER_STRIPS: usize = 8;
 
 impl PaverStripState {
+    /// The authoritative work test: feet on this strip's floor rectangle,
+    /// within the floor band. The same rule the work pulse applies.
+    pub fn contains(&self, feet: [f32; 3]) -> bool {
+        crate::encounters::enemy::paver::Strip {
+            origin: self.origin,
+            yaw: self.yaw,
+            length: self.length,
+            half_width: self.half_width,
+        }
+        .contains(feet)
+    }
+
     pub fn validate(&self, tick: u64, half_extent: f32) -> Result<(), &'static str> {
         if !self.origin.iter().all(|v| v.is_finite())
             || self.origin[0].abs() > half_extent

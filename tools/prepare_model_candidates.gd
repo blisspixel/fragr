@@ -33,6 +33,10 @@ extends SceneTree
 ##                    `to` ramp at its own shade, or at `shade` when given.
 ##                    Re-marks a Union band the lock lost or flattens a
 ##                    patch onto one ramp; never a ramp the faction excludes
+##   `parts`          rows {"name", "box": [[min], [max]], "pivot": [x, y, z]} in
+##                    fitted metres split the kept mesh into named child meshes
+##                    stored about their pivots (a Paver's projector head, a
+##                    Surveyor's lens housing); the rest stays `Body`
 ##
 ## godot --headless --path client --script ../tools/prepare_model_candidates.gd -- \
 ##   <catalog.json> <raw dir> <prepared dir> [exact candidate id]
@@ -268,22 +272,33 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 		prepared.normal_texture = ImageTexture.create_from_image(normal)
 		prepared.normal_scale = 0.2
 	var colour: Dictionary = _faction_colour(paint, keys, placed, uv, indices, entry["faction"], id)
-	var surface: SurfaceTool = SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for index: int in indices:
-		surface.set_normal(basis * normals[index])
-		surface.set_uv(uv[index])
-		surface.add_vertex(placed[index])
-	surface.index()
-	surface.generate_tangents()
+	var groups: Dictionary = _split_parts(entry.get("parts", []), placed, indices)
+	if groups.has("error"):
+		original.free()
+		_fail("%s: %s" % [id, groups["error"]])
+		return false
 	var result: Node3D = Node3D.new()
 	result.name = id.to_pascal_case()
 	root.add_child(result)
-	var body: MeshInstance3D = MeshInstance3D.new()
-	body.name = "Body"
-	body.mesh = surface.commit()
-	body.material_override = prepared
-	result.add_child(body)
+	var part_receipts: Array = []
+	for group: Dictionary in groups["groups"]:
+		var pivot_at: Vector3 = group["pivot"]
+		var surface: SurfaceTool = SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for index: int in group["indices"]:
+			surface.set_normal(basis * normals[index])
+			surface.set_uv(uv[index])
+			surface.add_vertex(placed[index] - pivot_at)
+		surface.index()
+		surface.generate_tangents()
+		var body: MeshInstance3D = MeshInstance3D.new()
+		body.name = group["name"]
+		body.mesh = surface.commit()
+		body.material_override = prepared
+		body.position = pivot_at
+		result.add_child(body)
+		if group["name"] != "Body":
+			part_receipts.append({"name": group["name"], "pivot_m": [pivot_at.x, pivot_at.y, pivot_at.z], "triangles": (group["indices"] as PackedInt32Array).size() / 3})
 	var ship: bool = bool(entry.get("ship", false))
 	var output: String = out_dir.path_join(str(entry.get("output", id)) + ".glb")
 	var exporter: GLTFDocument = GLTFDocument.new()
@@ -304,6 +319,8 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 		"normal_map_px": mini(size * 2, 512) if material.normal_texture != null else 0, "faction_colour": colour, "runtime_selected": ship}
 	if not (cleanup["applied"] as Dictionary).is_empty():
 		receipt["cleanup"] = cleanup["applied"]
+	if not part_receipts.is_empty():
+		receipt["parts"] = part_receipts
 	if entry.get("swatches") is Array:
 		receipt["palette"] += " + venue swatches %s" % [entry["swatches"]]
 	if entry.get("provenance") is Dictionary:
@@ -321,6 +338,44 @@ func _prepare(repo: String, raw_dir: String, out_dir: String, entry: Dictionary)
 	else:
 		print("prepared %s: %d tris, open edges %d (%d loops), %d px paint, %.1f texel/m, %s" % [id, indices.size() / 3, topology["boundary_edges"], topology["boundary_loops"], size, receipt["texels_per_metre"], colour["verdict"]])
 	return success
+
+## Splits the kept triangles into the named moving parts and the remaining
+## Body. Each part row is {"name", "box": [[min x, y, z], [max x, y, z]],
+## "pivot": [x, y, z]} in fitted metres; a triangle whose centroid falls in a
+## part's box joins the first such part. A part's mesh is stored relative to
+## its pivot so a presenter can rotate it there.
+func _split_parts(rows: Variant, placed: PackedVector3Array, indices: PackedInt32Array) -> Dictionary:
+	if not rows is Array:
+		return {"error": "parts must be an array"}
+	var groups: Array[Dictionary] = []
+	for row: Variant in rows:
+		if not row is Dictionary or not row.get("box") is Array or not row.get("pivot") is Array or str(row.get("name", "")) in ["", "Body"]:
+			return {"error": "parts rows need a name other than Body, a box and a pivot"}
+		var box: Array = row["box"]
+		groups.append({"name": str(row["name"]), "low": Vector3(box[0][0], box[0][1], box[0][2]), "high": Vector3(box[1][0], box[1][1], box[1][2]),
+			"pivot": Vector3(row["pivot"][0], row["pivot"][1], row["pivot"][2]), "indices": PackedInt32Array()})
+	var body: Dictionary = {"name": "Body", "pivot": Vector3.ZERO, "indices": PackedInt32Array()}
+	for slot: int in range(0, indices.size(), 3):
+		var centre: Vector3 = (placed[indices[slot]] + placed[indices[slot + 1]] + placed[indices[slot + 2]]) / 3.0
+		var target: Dictionary = body
+		for group: Dictionary in groups:
+			var low: Vector3 = group["low"]
+			var high: Vector3 = group["high"]
+			if centre.x >= low.x and centre.y >= low.y and centre.z >= low.z and centre.x <= high.x and centre.y <= high.y and centre.z <= high.z:
+				target = group
+				break
+		# Packed arrays are values: append to the stored copy and store it back.
+		var kept: PackedInt32Array = target["indices"]
+		kept.append_array([indices[slot], indices[slot + 1], indices[slot + 2]])
+		target["indices"] = kept
+	for group: Dictionary in groups:
+		if (group["indices"] as PackedInt32Array).is_empty():
+			return {"error": "part %s holds no triangles" % group["name"]}
+	if (body["indices"] as PackedInt32Array).is_empty():
+		return {"error": "parts took every triangle from the body"}
+	var ordered: Array[Dictionary] = [body]
+	ordered.append_array(groups)
+	return {"groups": ordered}
 
 ## Local cleanup on the fitted mesh, in the order the header lists. Returns the
 ## kept indices and what was applied, or an error.

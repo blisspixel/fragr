@@ -20,6 +20,8 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 59 understands guns dropped on death, the Duel line and its seat call, and
+# the Conquest bleed and Duel hand-over Host calls;
 # 58 understands the booth: `spectator_facts` for a watcher only, each
 # fighter's measured ping, and pads without a live return clock;
 # 57 connects Still Here: the survival-gated epilogue's two worlds, the
@@ -34,7 +36,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 58
+const GAMEPLAY_VERSION: int = 59
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -101,6 +103,21 @@ var _requires_flags: bool = false
 var _requires_conquest: bool = false
 
 signal session_resumed
+## Duel winner-stays (capability 59). The server calls the watcher at the
+## head of the queue to an open seat with a one-time token; the next Hello as
+## a fighter carries it. A loser who passes the seat is closed with
+## `duel_seat_passed` and comes back as a watcher.
+signal seat_called(token: String)
+signal seat_passed
+## The server would not add this watcher to a full line (`queue_full`).
+signal queue_refused(message: String)
+## This watcher's place in the Duel line from the server (0: not in line),
+## and the line's length. The shared `duel_queue` names can repeat.
+var queue_place: int = 0
+var queue_of: int = 0
+## Sent once in the next fighter Hello, then forgotten.
+var seat_token: String = ""
+const SEAT_PASSED: String = "duel_seat_passed"
 
 func _ready():
 	set_process(false)
@@ -119,6 +136,8 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	duck_supported = false
 	remote_supported = false
 	accepted_body = ""
+	queue_place = 0
+	queue_of = 0
 	_leaving = false
 	_resume_used = false
 	_version_told = false
@@ -166,6 +185,8 @@ func disconnect_from_server():
 	duck_supported = false
 	remote_supported = false
 	accepted_body = ""
+	queue_place = 0
+	queue_of = 0
 	record.clear()
 	equipment.clear()
 	mission.clear()
@@ -290,7 +311,34 @@ func send_hello():
 	if role == "human" or role == "agent":
 		hello["resume"] = _resume_token
 		hello["body"] = PlayerBody.preference(requested_body)
+		if not seat_token.is_empty():
+			hello["seat"] = seat_token
+	seat_token = ""
 	send_json(hello)
+
+## A watcher asks to wait for a Duel seat, or leaves the queue.
+func send_queue(wait: bool) -> void:
+	if connection_state == WebSocketPeer.STATE_OPEN and role == "spectator":
+		send_json({"type": "queue", "wait": wait})
+
+## A one-time seat token is short and plain: anything else is not ours.
+static func valid_seat_token(value: Variant) -> bool:
+	if not value is String:
+		return false
+	var token: String = value
+	if token.is_empty() or token.length() > 64:
+		return false
+	for index: int in token.length():
+		var code: int = token.unicode_at(index)
+		var ok: bool = (code >= 48 and code <= 57) or (code >= 97 and code <= 102) or code == 45
+		if not ok:
+			return false
+	return true
+
+func _pass_seat() -> void:
+	_resume_token = ""
+	disconnect_from_server()
+	seat_passed.emit()
 
 func send_action(action: Dictionary):
 	var msg = {
@@ -420,6 +468,9 @@ func _process(_delta):
 		stutter_trace.record_poll(drain_started, Time.get_ticks_usec() - drain_started, drained_packets, drained_bytes)
 	if state == WebSocketPeer.STATE_CLOSED:
 		var reason: String = socket.get_close_reason()
+		if reason == SEAT_PASSED:
+			_pass_seat()
+			return
 		if _admission_error(reason):
 			return
 		# idle_timeout keeps the plain-drop resume path below; it only needs
@@ -518,6 +569,16 @@ func _handle_message(text: String):
 	var msg_type = data.get("type", "")
 	
 	match msg_type:
+		"queue_place":
+			var place: Variant = data.get("place")
+			var of: Variant = data.get("of")
+			if role == "spectator" and (place is int or place is float) and (of is int or of is float) \
+					and float(place) >= 0.0 and float(of) >= float(place) and float(of) <= 64.0:
+				queue_place = int(place)
+				queue_of = int(of)
+		"seat_call":
+			if role == "spectator" and valid_seat_token(data.get("seat")):
+				seat_called.emit(str(data["seat"]))
 		"welcome":
 			_movement_ack_previous.clear()
 			var body_problem: String = PlayerBody.welcome_error(data, role)
@@ -700,6 +761,12 @@ func _handle_message(text: String):
 		"error":
 			if data.get("code") is String:
 				var code: String = str(data["code"])
+				if code == SEAT_PASSED:
+					_pass_seat()
+					return
+				if code == "queue_full":
+					queue_refused.emit(str(data.get("message", "")) if data.get("message") is String else "")
+					return
 				if code == "unsupported_gameplay" or code == "unsupported_geometry":
 					if not _version_told:
 						_version_told = true

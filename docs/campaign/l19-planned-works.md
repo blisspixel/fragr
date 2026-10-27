@@ -14,11 +14,13 @@ The free local agent completes it on all three difficulties: the seeded
 (seeds 1 and 2 on each tier, 2026-10-23: all six departed; Severe seed 1 after
 one retry). The worn and racked jetpack is the generated candidate prepared by
 `tools/prepare_jetpack_source.gd` (`JetpackRig.MODEL_PATH`, receipt beside
-the model). The Paver and the scene figures are placeholder forms. Both
-generated Paver candidates are low four-legged sledges about 0.55 by 1.9 m,
-while the Paver fights in the ordinary 1.8 m fighter volume, so swapping one
-in through `PaverRig.MODEL_PATH` waits on a Paver-specific broad, low shot and
-contact volume or a candidate at the authored proportions. The night dressing
+the model). The scene figures are placeholder forms. The Paver is a prepared
+generated model drawn upright at the authored proportions of its ordinary
+1.8 m fighter volume (wave 11, 2026-10-27; `PaverRig.MODEL_PATH`, receipt
+`client/assets/models/paver.glb.json`, brief
+[`c-paver.md`](../plans/meshy-assets/c-paver.md)): its projector head and both
+shoulder plates move on local pivots for the preparation tell. Nick's model
+pick is pending; the low sledge candidates stay retained. The night dressing
 (`low_water_dressing.gd`: homes, lit and interrupted windows, survey marks, tanks, tram, rails, lamps, trench,
 concourse and workshop) only follows exact authored solids;
 `client/qa/m19_static_review.gd` and `m19_live_review.gd` photograph it.
@@ -41,6 +43,17 @@ windows from full inherited runs and human route discovery. A completed arrival
 while airborne does not qualify the landing. Paver preparation, working damage,
 interruption and clean avoidance remain distinct outcomes; no successful trial
 is substituted for the retained deaths, retries or stalls.
+The market survey (#487) attributes its failures per action. The unresolved
+overlapping-strip death involved a controller defect sufficient to hold the
+body inside the first strip: beside a stall corner the shared escape reversed
+its chosen edge every tick. The single-strip replay does not exclude a
+contribution from the second strip. Keeping one exit per stay removes that
+reversal without changing content. In the matched cohort, market deaths are
+mostly shots at a fighter with no ranged rounds left; the remaining strip
+hits are strips that were not in the delayed observation at that step. Eight
+earned market clears also reach the water tanks with no further loss; that
+`m19-tanks` endpoint is standalone evaluation, not an inherited clear or
+fresh-player acceptance.
 The middle third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10

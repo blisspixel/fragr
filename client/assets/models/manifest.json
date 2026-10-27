@@ -134,6 +134,10 @@
 			"sha256": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951"
 		},
 		{
+			"file": "paver.glb",
+			"sha256": "e3fa0a10d319fb734523e3e1b780b45ccaede6c2e3ad4647a637b47faab6fdc7"
+		},
+		{
 			"file": "repair_workbench.glb",
 			"sha256": "4b5daf71e1378b13fd281493f7d94feee9da824cd5f93ac2cbd68493d0663783"
 		},
@@ -148,6 +152,10 @@
 		{
 			"file": "splice_live.glb",
 			"sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98"
+		},
+		{
+			"file": "surveyor.glb",
+			"sha256": "3cd3f4cb51b673d6bdc7cdaee7503a03bb54b7a830d7f7df77ab14bdcf3f7456"
 		},
 		{
 			"file": "sweeper.glb",

@@ -20,6 +20,8 @@ pub enum Stage {
     #[default]
     Teaching,
     Market,
+    /// After `market_strips`, only when the survey continues to the tanks.
+    Tanks,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
@@ -96,9 +98,17 @@ pub(super) struct Recorder {
     recent: VecDeque<Snapshot>,
     windows: Vec<Window>,
     seen_windows: BTreeSet<(u32, Stage, &'static str)>,
+    /// Label steps after `market_strips` as their own stage.
+    through_tanks: bool,
 }
 
 impl Recorder {
+    /// Keep recording past the market under a separate tanks stage.
+    pub(super) fn through_tanks(mut self) -> Self {
+        self.through_tanks = true;
+        self
+    }
+
     pub(super) fn new(
         id: Uuid,
         seed: u64,
@@ -121,6 +131,7 @@ impl Recorder {
             recent: VecDeque::new(),
             windows: Vec::new(),
             seen_windows: BTreeSet::new(),
+            through_tanks: false,
         }
     }
 
@@ -167,7 +178,14 @@ impl Recorder {
         let Some(facts) = &state.m19 else {
             return false;
         };
-        let stage = if facts
+        let stage = if self.through_tanks
+            && facts
+                .completed
+                .iter()
+                .any(|objective| objective == "market_strips")
+        {
+            Stage::Tanks
+        } else if facts
             .completed
             .iter()
             .any(|objective| objective == "tram_street")
@@ -293,6 +311,20 @@ impl Recorder {
             }
             if pack.thrusting {
                 self.window("jetpack_flight", me, map_info);
+            }
+        }
+        if self.stage == Stage::Tanks {
+            // The walk out of the market, then the first rise toward the
+            // tank top, whichever way the body gets there.
+            self.window("tanks_leg", me, map_info);
+            // Open only once the retained pre-roll already shows more than a
+            // metre of rise, so every climb window carries its own baseline.
+            let baseline = self
+                .recent
+                .front()
+                .and_then(|frame| frame.players.iter().find(|p| p.id == self.id).map(|p| p.y));
+            if baseline.is_some_and(|y| me.y - y > 1.0) {
+                self.window("tanks_climb", me, map_info);
             }
         }
         for strip in &snapshot.paver_strips {

@@ -321,8 +321,7 @@ async fn run_server_impl(
         }
     })
     .await??;
-    let mut run_store: Option<RunStore> = None;
-    let mut last_run_document: Option<RunDocument> = None;
+    let mut durable_run: Option<DurableRun> = None;
     let epilogue =
         session.state.map.campaign_mission_id() == Some(crate::protocol::MissionId::StillHere);
     if epilogue {
@@ -362,80 +361,16 @@ async fn run_server_impl(
         {
             return Err("durable local run requires a bundled campaign mission".into());
         }
-        let content_sha256 = session
-            .state
-            .map
-            .content_sha256()
-            .ok_or("durable local run requires authored content")?;
-        let current = session.state.map.campaign_mission_id();
-        let hashes: crate::mission::run_file::store::ContentHashes = std::array::from_fn(|index| {
-            let mission = crate::mission::run_file::store::CAMPAIGN_MISSIONS[index];
-            if current == Some(mission) {
-                content_sha256
-            } else {
-                crate::maps::AuthoredSource::bundled_content_sha256(mission)
-            }
-        });
-        let store = RunStore::open_with_hashes(&local_run.directory, hashes)?;
-        if local_run.resume {
-            let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
-            let target = session
-                .state
-                .map
-                .campaign_mission_id()
-                .ok_or("missing mission identity")?;
-            if matches!(
-                saved.step,
-                crate::mission::run_file::SavedStep::AwaitingMission { .. }
-            ) {
-                if target == crate::protocol::MissionId::RecallNotice {
-                    return Err("a saved transition cannot return to M01".into());
-                }
-                // Entering the next mission is the one gameplay transition a
-                // resume writes: carried outcomes, refills and entry stock.
-                saved = saved.promote_next(
-                    target,
-                    hashes[crate::mission::run_file::store::stage_index(target)],
-                )?;
-                store.save(&saved)?;
-            } else if saved.stage_mission() != target {
-                return Err("saved campaign run names another mission".into());
-            }
-            if !matches!(
-                saved.step,
-                crate::mission::run_file::SavedStep::MissionEntry { .. }
-                    | crate::mission::run_file::SavedStep::PendingContinue { .. }
-            ) {
-                return Err("saved campaign run is not playable".into());
-            }
-            session.state.load_campaign_run(&saved)?;
-            last_run_document = Some(saved);
-        } else {
-            if session.state.map.campaign_mission_id()
-                != Some(crate::protocol::MissionId::RecallNotice)
-            {
-                return Err("new durable run must start at M01".into());
-            }
-            session
-                .state
-                .set_campaign_difficulty(options.difficulty.unwrap_or_default())?;
-            session.state.enable_campaign_run()?;
-            let mission = session
-                .state
-                .mission_state()
-                .ok_or("campaign mission is missing")?;
-            let initial = RunDocument::new(
-                mission.run.ok_or("campaign run is missing")?.id,
-                mission.rules,
-                content_sha256,
-            );
-            store.save(&initial)?;
-            last_run_document = Some(initial);
-        }
+        let run = DurableRun::open(
+            &mut session,
+            &local_run.directory,
+            local_run.resume,
+            options.difficulty,
+        )?;
         let _ = local_run
             .difficulty_ready
             .send(session.state.campaign_rules().difficulty);
-        run_store = Some(store);
+        durable_run = Some(run);
     } else {
         if let Some(difficulty) = options.difficulty {
             session.state.set_campaign_difficulty(difficulty)?;
@@ -611,6 +546,7 @@ async fn run_server_impl(
     }
     if let Some(slots) = session.configure_fighter_seats() {
         net_server.set_fighter_seats(slots, session.state.config.rules.mode());
+        net_server.set_seat_holds(session.seat_holds());
     }
     if options.bot_policy == crate::bot_fill::BotPolicy::Auto {
         session.set_auto_fill(options.fill_target);
@@ -832,7 +768,7 @@ async fn run_server_impl(
                     session.drop_expired_pawn(player_id);
                 }
                 let messages = session.tick_messages(TICK.as_secs_f32());
-                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
+                persist_local_run(&session.state, durable_run.as_mut())?;
                 if session.state.round_state == crate::sim::RoundState::Ended {
                     save_head_to_head(&mut session.state, head_to_head.as_deref(), &mut head_to_head_warned);
                 }
@@ -891,6 +827,13 @@ async fn run_server_impl(
                     }
                     if let Ok(mut slot) = live.try_write() {
                         *slot = next;
+                    }
+                }
+                let passes = session.take_seat_passes();
+                if !passes.is_empty() {
+                    let clients_lock = clients.lock().await;
+                    for client in clients_lock.iter().filter(|client| passes.contains(&client.id)) {
+                        client.seat_passed();
                     }
                 }
                 let unicasts = session.take_unicasts();
@@ -965,7 +908,7 @@ async fn run_server_impl(
                     }
                 }
                 let _ = call.reply.send(outcome);
-                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
+                persist_local_run(&session.state, durable_run.as_mut())?;
             }
 
             Some(cmd) = game_rx.recv() => {
@@ -976,7 +919,7 @@ async fn run_server_impl(
                 for (player_id, action) in game_tx.take_pending_actions() {
                     session.apply_command(crate::net::GameCommand::Action { player_id, action });
                 }
-                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
+                persist_local_run(&session.state, durable_run.as_mut())?;
                 let unicasts = session.take_unicasts();
                 let delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;
                 tracker.record_overflows(std::time::Instant::now(), delivery.queue_overflows);
@@ -1128,18 +1071,115 @@ fn save_head_to_head(state: &mut crate::sim::GameState, path: Option<&Path>, war
 
 fn persist_local_run(
     state: &crate::sim::GameState,
-    store: Option<&RunStore>,
-    previous: &mut Option<RunDocument>,
+    run: Option<&mut DurableRun>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let Some(store) = store else { return Ok(()) };
-    let Some(document) = state.campaign_run_document()? else {
-        return Ok(());
-    };
-    if previous.as_ref() != Some(&document) {
-        store.save(&document)?;
-        *previous = Some(document);
+    run.map_or(Ok(()), |run| run.persist(state))
+}
+
+/// The one durable local run: the writer lock on `run.json`, how a session
+/// opens a new run or resumes a saved one, and the write after each change.
+/// The local child uses it, and in-process harnesses reach the same disk path
+/// through it instead of a second save API.
+pub struct DurableRun {
+    store: RunStore,
+    last: Option<RunDocument>,
+}
+
+impl DurableRun {
+    /// Open `directory` for `session` before anyone is admitted. A new run
+    /// must start at M01 and writes its initial document. A resume loads the
+    /// saved entry or pending Continue, first promoting a saved departure
+    /// into the next mission and writing that promotion.
+    pub fn open(
+        session: &mut GameSession,
+        directory: &Path,
+        resume: bool,
+        difficulty: Option<CampaignDifficulty>,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let content_sha256 = session
+            .state
+            .map
+            .content_sha256()
+            .ok_or("durable local run requires authored content")?;
+        let current = session.state.map.campaign_mission_id();
+        let hashes: crate::mission::run_file::store::ContentHashes = std::array::from_fn(|index| {
+            let mission = crate::mission::run_file::store::CAMPAIGN_MISSIONS[index];
+            if current == Some(mission) {
+                content_sha256
+            } else {
+                crate::maps::AuthoredSource::bundled_content_sha256(mission)
+            }
+        });
+        let store = RunStore::open_with_hashes(directory, hashes)?;
+        let last = if resume {
+            let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
+            let target = current.ok_or("missing mission identity")?;
+            if matches!(
+                saved.step,
+                crate::mission::run_file::SavedStep::AwaitingMission { .. }
+            ) {
+                if target == crate::protocol::MissionId::RecallNotice {
+                    return Err("a saved transition cannot return to M01".into());
+                }
+                // Entering the next mission is the one gameplay transition a
+                // resume writes: carried outcomes, refills and entry stock.
+                saved = saved.promote_next(
+                    target,
+                    hashes[crate::mission::run_file::store::stage_index(target)],
+                )?;
+                store.save(&saved)?;
+            } else if saved.stage_mission() != target {
+                return Err("saved campaign run names another mission".into());
+            }
+            if !matches!(
+                saved.step,
+                crate::mission::run_file::SavedStep::MissionEntry { .. }
+                    | crate::mission::run_file::SavedStep::PendingContinue { .. }
+            ) {
+                return Err("saved campaign run is not playable".into());
+            }
+            session.state.load_campaign_run(&saved)?;
+            saved
+        } else {
+            if current != Some(crate::protocol::MissionId::RecallNotice) {
+                return Err("new durable run must start at M01".into());
+            }
+            session
+                .state
+                .set_campaign_difficulty(difficulty.unwrap_or_default())?;
+            session.state.enable_campaign_run()?;
+            let mission = session
+                .state
+                .mission_state()
+                .ok_or("campaign mission is missing")?;
+            let initial = RunDocument::new(
+                mission.run.ok_or("campaign run is missing")?.id,
+                mission.rules,
+                content_sha256,
+            );
+            store.save(&initial)?;
+            initial
+        };
+        Ok(Self {
+            store,
+            last: Some(last),
+        })
     }
-    Ok(())
+
+    /// Write the session's current run document when it has changed.
+    pub fn persist(
+        &mut self,
+        state: &crate::sim::GameState,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let Some(document) = state.campaign_run_document()? else {
+            return Ok(());
+        };
+        if self.last.as_ref() != Some(&document) {
+            self.store.save(&document)?;
+            self.last = Some(document);
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -1175,6 +1215,73 @@ mod head_to_head_tests {
         save_head_to_head(&mut state, Some(&path), &mut warned);
         assert!(warned && state.head_to_head.is_dirty());
         assert_eq!(state.head_to_head.frags("Pi", "Nightfall"), 1);
+        std::fs::remove_dir_all(&directory).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod durable_run_tests {
+    use super::DurableRun;
+    use crate::maps::AuthoredSource;
+    use crate::protocol::{CampaignDifficulty, MissionId, Role};
+    use crate::session::GameSession;
+
+    fn session(mission: MissionId) -> GameSession {
+        GameSession::with_authored_map(AuthoredSource::Mission(mission).load().unwrap())
+    }
+
+    fn refusal(result: Result<DurableRun, Box<dyn std::error::Error + Send + Sync>>) -> String {
+        result.err().unwrap().to_string()
+    }
+
+    #[test]
+    fn one_run_file_opens_new_resumes_locks_and_writes_only_changes() {
+        let directory =
+            std::env::temp_dir().join(format!("fragr-durable-run-{}", uuid::Uuid::new_v4()));
+        let mut m02 = session(MissionId::PersonsUnknown);
+        assert_eq!(
+            refusal(DurableRun::open(&mut m02, &directory, true, None)),
+            "no saved campaign run to resume"
+        );
+        assert_eq!(
+            refusal(DurableRun::open(&mut m02, &directory, false, None)),
+            "new durable run must start at M01"
+        );
+        let mut m01 = session(MissionId::RecallNotice);
+        let mut run = DurableRun::open(
+            &mut m01,
+            &directory,
+            false,
+            Some(CampaignDifficulty::Severe),
+        )
+        .unwrap();
+        assert_eq!(
+            m01.state.campaign_rules().difficulty,
+            CampaignDifficulty::Severe
+        );
+        // The writer lock refuses a second owner of the same directory.
+        let mut second = session(MissionId::RecallNotice);
+        assert!(DurableRun::open(&mut second, &directory, true, None).is_err());
+        // An unchanged document is not written again; a changed one is.
+        std::fs::remove_file(directory.join("run.json")).unwrap();
+        run.persist(&m01.state).unwrap();
+        assert!(!directory.join("run.json").exists());
+        m01.state
+            .add_player(uuid::Uuid::from_u128(1), "Owner".into(), Role::Human);
+        run.persist(&m01.state).unwrap();
+        assert!(directory.join("run.json").exists());
+        drop(run);
+        let mut m01 = session(MissionId::RecallNotice);
+        DurableRun::open(&mut m01, &directory, true, None).unwrap();
+        assert_eq!(
+            m01.state.campaign_rules().difficulty,
+            CampaignDifficulty::Severe
+        );
+        let mut m02 = session(MissionId::PersonsUnknown);
+        assert_eq!(
+            refusal(DurableRun::open(&mut m02, &directory, true, None)),
+            "saved campaign run names another mission"
+        );
         std::fs::remove_dir_all(&directory).unwrap();
     }
 }
