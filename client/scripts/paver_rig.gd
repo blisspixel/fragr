@@ -6,11 +6,20 @@ extends Node3D
 ## The phase poses read the authoritative windup (preparation) and firing
 ## (work) windows only; the strip itself is drawn by PaverStrips.
 ##
-## Swap seam: when the generated Paver model is delivered, set MODEL_PATH to
-## its scene. The rig then instances that scene in place of the placeholder
-## parts and drives an optional AnimationPlayer with clips named after the
-## server phases (idle, moving, windup, firing, recovery, hit, dead).
-const MODEL_PATH: String = ""
+## The prepared model (tools/inheritance_models_20261027.json) faces +Z and
+## carries its moving parts as separate meshes about their pivots: Head (the
+## projector) and ShoulderLeft/ShoulderRight (the plates that lift as the
+## preparation tell). The rig turns it to +X, hangs each part on its own
+## pivot and adds the emissive lens, lamps and vents the paint cannot carry,
+## so the model and the placeholder pose through the same code. Without the
+## model the placeholder parts below stand in.
+const MODEL_PATH: String = "res://assets/models/paver.glb"
+## Turns the model's +Z front to the rig's +X.
+const MODEL_YAW: float = PI * 0.5
+## Projector lens on the model's head, in head pivot space: matches
+## PaverStrips.LENS_HEIGHT (1.64 m) and LENS_FORWARD (0.3 m).
+const MODEL_LENS: Vector3 = Vector3(0.275, 0.21, 0.0)
+const MODEL_LENS_SIZE: Vector3 = Vector3(0.03, 0.09, 0.3)
 
 ## Matte off-white continuous body over ink joints, with no markings. The
 ## working indicators are the Inheritance's muted cyan, never a neon or a
@@ -28,7 +37,6 @@ const LAMP: Color = WORK_CYAN
 var phase: String = "idle"
 var progress: float = 0.0
 var model: Node3D
-var _animation: AnimationPlayer
 var _hull: Node3D
 var _head: Node3D
 var _pauldrons: Array[Node3D] = []
@@ -48,12 +56,9 @@ func _init() -> void:
 		var scene: Resource = load(MODEL_PATH)
 		if scene is PackedScene:
 			model = (scene as PackedScene).instantiate() as Node3D
-			if model != null:
-				model.name = "PaverModel"
-				add_child(model)
-				for node: Node in model.find_children("*", "AnimationPlayer", true, false):
-					_animation = node as AnimationPlayer
-					break
+	if model != null and not _build_from_model():
+		model.free()
+		model = null
 	if model == null:
 		_build_placeholder()
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
@@ -63,6 +68,64 @@ func _init() -> void:
 	_hit_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_hit_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_hit_material.albedo_color = Color(1.0, 0.92, 0.8, 0.45)
+
+## Hangs the prepared model's parts on rig-space pivots. False when the
+## model lacks a named part, so the placeholder takes over whole.
+func _build_from_model() -> bool:
+	var body: MeshInstance3D = model.find_child("Body", true, false) as MeshInstance3D
+	var head: MeshInstance3D = model.find_child("Head", true, false) as MeshInstance3D
+	var shoulders: Array[MeshInstance3D] = [model.find_child("ShoulderLeft", true, false) as MeshInstance3D, model.find_child("ShoulderRight", true, false) as MeshInstance3D]
+	if body == null or head == null or shoulders.has(null):
+		return false
+	model.name = "PaverModel"
+	_hull = Node3D.new()
+	_hull.name = "Hull"
+	add_child(_hull)
+	model.rotation.y = MODEL_YAW
+	_hull.add_child(model)
+	_finish(body)
+	_head = Node3D.new()
+	_head.name = "ProjectorHead"
+	_head.position = Basis(Vector3.UP, MODEL_YAW) * head.position
+	_hull.add_child(_head)
+	_adopt(head, _head)
+	_lens = part("ProjectorLens", MODEL_LENS_SIZE, MODEL_LENS, LENS, true)
+	_head.add_child(_lens)
+	for shoulder: MeshInstance3D in shoulders:
+		var pivot: Node3D = Node3D.new()
+		pivot.name = "Pauldron"
+		pivot.position = Basis(Vector3.UP, MODEL_YAW) * shoulder.position
+		pivot.set_meta("side", signf(pivot.position.z))
+		pivot.set_meta("rest_y", pivot.position.y)
+		_pauldrons.append(pivot)
+		_hull.add_child(pivot)
+		_adopt(shoulder, pivot)
+	# The paint's indicators cannot glow: two flank lamps and the rear
+	# recovery grille sit flush on the body in muted cyan and ink.
+	for side: float in [-1.0, 1.0]:
+		var lamp: MeshInstance3D = part("WorkLamp", Vector3(0.1, 0.05, 0.02), Vector3(0.14, 1.02, side * 0.5), LAMP, true)
+		_lamps.append(lamp)
+		_hull.add_child(lamp)
+	for index: int in range(3):
+		var vent: MeshInstance3D = part("RecoveryVent", Vector3(0.02, 0.3, 0.1), Vector3(-0.52, 0.95, -0.18 + index * 0.18), DARK, true)
+		_vents.append(vent)
+		_hull.add_child(vent)
+	return true
+
+## Moves a model part under a rig pivot, keeping where it stands.
+func _adopt(mesh: MeshInstance3D, pivot: Node3D) -> void:
+	var placed: Transform3D = Transform3D(Basis(Vector3.UP, MODEL_YAW), Vector3.ZERO) * mesh.transform
+	mesh.get_parent().remove_child(mesh)
+	pivot.add_child(mesh)
+	mesh.transform = Transform3D(placed.basis, placed.origin - pivot.position)
+	_finish(mesh)
+
+## Painted pixel clusters stay crisp at any distance.
+func _finish(mesh: MeshInstance3D) -> void:
+	for index: int in range(mesh.get_surface_override_material_count()):
+		var finish: BaseMaterial3D = mesh.get_active_material(index) as BaseMaterial3D
+		if finish != null:
+			finish.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 
 func _build_placeholder() -> void:
 	# Low tracked sledge, carrying a broad hull, two shoulder plates and a
@@ -106,6 +169,7 @@ func _build_placeholder() -> void:
 		pauldron.add_child(part("Plate", Vector3(0.62, 0.12, 0.34), Vector3(0.0, 0.04, side * 0.13), MATTE))
 		pauldron.add_child(part("PlateEdge", Vector3(0.64, 0.05, 0.05), Vector3(0.0, 0.01, side * 0.3), DARK))
 		pauldron.set_meta("side", side)
+		pauldron.set_meta("rest_y", pauldron.position.y)
 		_pauldrons.append(pauldron)
 		_hull.add_child(pauldron)
 	_head = Node3D.new()
@@ -153,8 +217,6 @@ func present(actor: Dictionary, tick: int, elapsed: float) -> void:
 	progress = clampf(age / duration, 0.0, 1.0)
 	# Work pulses land every four ticks from the start of the work cycle.
 	_pulse = 1.0 - fposmod(age, 4.0) / 4.0 if phase == "firing" else 0.0
-	if _animation != null and _animation.has_animation(phase) and _animation.current_animation != phase:
-		_animation.play(phase)
 	_pose()
 
 func advance(delta: float, moving: bool) -> void:
@@ -165,7 +227,7 @@ func advance(delta: float, moving: bool) -> void:
 	_pose()
 
 func _pose() -> void:
-	if model != null or _hull == null:
+	if _hull == null:
 		return
 	var raised: float = 0.0
 	match phase:
@@ -177,7 +239,7 @@ func _pose() -> void:
 		var side: float = float(pauldron.get_meta("side"))
 		# The shoulder plates lift and open: the readable preparation tell.
 		pauldron.rotation.x = side * (-0.62 * raised + (0.35 if dead else 0.0))
-		pauldron.position.y = 1.3 + 0.08 * raised - (0.12 if dead else 0.0)
+		pauldron.position.y = float(pauldron.get_meta("rest_y")) + 0.08 * raised - (0.12 if dead else 0.0)
 	_head.rotation.z = -0.42 * raised + (-0.5 if dead else 0.0)
 	var judder: float = 0.0
 	if phase == "firing":

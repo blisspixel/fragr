@@ -227,6 +227,14 @@ func _run() -> void:
 	root.add_child(rig)
 	rig.present({"phase": "windup", "phase_started": 10, "phase_ends": 54}, 32, 0.0)
 	_check(rig.phase == "windup" and rig.progress > 0.45 and rig.progress < 0.55, "the preparation tell follows its window")
+	_check(rig.model != null and rig._pauldrons.size() == 2 and rig.find_child("Head", true, false) != null,
+		"the prepared Paver model hangs its head and both shoulder plates on pivots")
+	var plate: Node3D = rig._pauldrons[0]
+	_check(absf(plate.rotation.x) > 0.1, "the shoulder plates lift during the preparation")
+	rig.present({"phase": "idle", "phase_started": 1, "phase_ends": 1}, 32, 0.0)
+	var lens: Vector3 = (rig.find_child("ProjectorLens", true, false) as Node3D).global_position - rig.global_position
+	_check(absf(lens.y - PaverStrips.LENS_HEIGHT) < 0.08 and lens.x > 0.15, "the projector lens sits where the strip's light fan starts")
+	rig.present({"phase": "windup", "phase_started": 10, "phase_ends": 54}, 32, 0.0)
 	rig.present({"phase": "firing", "phase_started": 54, "phase_ends": 66}, 58, 0.0)
 	_check(rig.phase == "firing", "the work pose follows the firing window")
 	# Restoration indicators are the Inheritance's muted cyan, never warm or white.

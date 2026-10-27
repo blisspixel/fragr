@@ -1,0 +1,31 @@
+{
+ "model": "marketing-studio/image",
+ "out_dir": "/home/pueo/Work/fragr/art/raw/H-W11/paver",
+ "style": "Original modern retro first-person shooter enemy reference for conversion into a 3D game model. Angular sculpted planes, broad painted matte material values, strong value separation between parts, pixel-friendly construction detail, quiet clean surfaces, no photographic material noise. Practical circa-2070 world, original design",
+ "view": "One isolated complete machine in front three-quarter view from slightly above, matching the camera angle of Image 1, entire silhouette visible with generous margins, centred. One object, one view, no collage",
+ "technical": "Entire background perfectly flat pure magenta #FF00FF, no gradient, no floor, no cast shadow, no checkerboard. Even neutral diffuse lighting showing every part, no baked shadows on the object. No text, letters, numbers, logos, border or watermark",
+ "negative": "words, letters, numbers, serial numbers, logos, watermark, signature, human faces, eyes, people, operator, environment, floor, ground shadow, cropped silhouette, multiple objects, alternate views, collage, glossy toy plastic, chrome, neon, cyberpunk glow, dense scratches, many panel lines, photographic noise, copied franchise design, fantasy spikes, skulls, weapons, guns, floating parts, magenta object parts, insignia, emblem, flag, red light, red optics, red paint, black and red colour scheme, warning stripes, hazard stripes, rust, stickers, humanoid body, arms, hands",
+ "params": {
+  "aspect_ratio": "1:1",
+  "resolution": "2k",
+  "quality": "medium",
+  "enhance_prompt": false
+ },
+ "frames": [
+  {
+   "id": "paver_a",
+   "subject": "REFERENCES: Image 1 = approved proportion and part-layout blockout (keep its proportions and part layout exactly; replace its plain boxes with finished sculpted forms). SUBJECT: one Inheritance restoration machine called a Paver, a road-works and demolition unit, standing about 1.75 metres tall, 1.0 metre wide across the body (1.3 metres across its two shoulder plates) and 1.2 metres long, upright and broad like a smooth paving stone standing on end. One continuous matte off-white bone body (#E8E2D6) with softly rounded edges and very few seams, sitting on two low continuous ink-black (#0A0A0C) crawler tracks. Two separate broad curved shoulder plates on top of the body, left and right, hinged at the inner edge on ink-black joints so they can lift open. A separate compact hooded projector head on a short ink-black neck on top front, with one wide horizontal slot lens facing forward and slightly down in muted cyan (#4A8A92). A low forward scraper apron at the front base with a few ink-black tamping ribs. Two tiny muted cyan working indicators on the body sides. Unfamiliar calm construction, no visible bolts, no plates, no serial numbers, no marks of any kind, not a military vehicle, not a robot with a face",
+   "params": {"image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2c96a732-a51d-496c-a73d-c2c65bdca9f6.png"]}
+  },
+  {
+   "id": "paver_b",
+   "subject": "REFERENCES: Image 1 = approved proportion and part-layout blockout (keep its proportions and part layout exactly; replace its plain boxes with finished sculpted forms). SUBJECT: one Inheritance restoration machine called a Paver, a road-works and demolition unit, standing about 1.75 metres tall, 1.0 metre wide across the body (1.3 metres across its two shoulder plates) and 1.2 metres long. Its body is one smooth matte off-white bone (#E8E2D6) form that tapers gently upward like a worn river stone or a kiln, continuous surfaces with only two or three seams, resting on two low ink-black (#0A0A0C) crawler tracks with smooth guards. Two separate wide shell-like shoulder plates sit on top left and right on ink-black hinge joints, slightly raised as if about to open. A separate hooded projector head on a short ink-black neck at the top front carries one broad horizontal slot lens facing forward and down, glowing faintly muted cyan (#4A8A92). A broad low scraper apron at the front base, ink-black ribs under it. Sparse tiny muted cyan indicators. Quiet, deliberate, unsettling order; no bolts, no plates, no serials, no markings, no face",
+   "params": {"image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2c96a732-a51d-496c-a73d-c2c65bdca9f6.png"]}
+  },
+  {
+   "id": "paver_c",
+   "subject": "REFERENCES: Image 1 = approved proportion and part-layout blockout (keep its proportions and part layout exactly; replace its plain boxes with finished sculpted forms). SUBJECT: one Inheritance restoration machine called a Paver, standing about 1.75 metres tall, 1.0 metre wide across the body (1.3 metres across its two shoulder plates) and 1.2 metres long: a heavy upright work machine whose matte off-white bone (#E8E2D6) body is a single chamfered block with large calm planes and almost no seams, over a dark ink-black (#0A0A0C) waist joint and two low ink-black crawler tracks. On top, two separate thick shoulder plates hinge on ink-black joints at the body's upper edges, and between them a separate box-shaped projector head with a deep hood over one long horizontal slot lens in muted cyan (#4A8A92) aimed forward and down at the ground ahead. At the front base, a wide angled scraper blade in the same bone colour with ink-black ribs. Two small muted cyan indicator lamps on the flanks. Restoration machinery of unfamiliar construction, quiet and precise; no bolts, panels, serials, plates, writing or face",
+   "params": {"image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2c96a732-a51d-496c-a73d-c2c65bdca9f6.png"]}
+  }
+ ]
+}
