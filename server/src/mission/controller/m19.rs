@@ -82,12 +82,8 @@ fn strip_exit(
     let lateral = [-forward[1], forward[0]];
     let dx = feet[0] - strip.origin[0];
     let dz = feet[2] - strip.origin[2];
-    let along = dx * forward[0] + dz * forward[1];
     let across = dx * lateral[0] + dz * lateral[1];
-    if !(0.0..=strip.length).contains(&along)
-        || across.abs() > strip.half_width
-        || (feet[1] - strip.origin[1]).abs() > crate::encounters::enemy::paver::STRIP_FLOOR_BAND
-    {
+    if !strip.contains(feet) {
         return None;
     }
     let side = if across >= 0.0 { 1.0 } else { -1.0 };

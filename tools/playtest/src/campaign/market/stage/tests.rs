@@ -309,3 +309,60 @@ fn a_work_pulse_on_the_fatal_step_is_a_strip_death() {
     assert_eq!(facts.death.as_ref().unwrap().cause, "strip");
     assert_eq!(facts.strip_hits[0].recognized, [true]);
 }
+
+#[test]
+fn a_replaced_or_unfinished_stay_is_closed_and_owners_are_counted_once() {
+    let mut tracker = Tracker::default();
+    let mut facts = Facts::default();
+    let first = [strip(7, [0.0, 0.0, 0.0], false)];
+    run(
+        &mut tracker,
+        &mut facts,
+        Step {
+            tick: 50,
+            feet: [5.0, 0.0, 0.0],
+            hp: 100,
+            recognized: vec![],
+            before: &first,
+            after: &first,
+            to: [5.0, 0.0, 0.0],
+            hp_after: 100,
+            shots: vec![],
+        },
+    );
+    // The same owner marks a new strip while the body still stands on the
+    // old one; unsorted repeated owners still count as two owners in all.
+    let replaced = [
+        strip(7, [0.5, 0.0, 0.0], false),
+        strip(8, [0.0, 0.0, 9.0], false),
+        strip(7, [0.5, 0.0, 0.0], false),
+    ];
+    run(
+        &mut tracker,
+        &mut facts,
+        Step {
+            tick: 51,
+            feet: [5.0, 0.0, 0.0],
+            hp: 100,
+            recognized: vec![],
+            before: &first,
+            after: &replaced,
+            to: [5.0, 0.0, 0.0],
+            hp_after: 100,
+            shots: vec![],
+        },
+    );
+    assert_eq!(facts.contacts.len(), 2);
+    assert_eq!(facts.contacts[0].left_tick, Some(51), "the old stay ended");
+    assert_eq!(facts.contacts[1].left_tick, None);
+    assert_eq!(facts.contacts[1].arrival, Arrival::PlacedOnBody);
+    assert_eq!(facts.contacts[1].other_strips, 1);
+    tracker.close(&mut facts, 60);
+    assert_eq!(
+        facts.contacts[1].left_tick,
+        Some(60),
+        "a boundary closes it"
+    );
+    tracker.close(&mut facts, 70);
+    assert_eq!(facts.contacts[1].left_tick, Some(60));
+}

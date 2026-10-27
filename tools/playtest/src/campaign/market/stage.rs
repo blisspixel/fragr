@@ -10,9 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-/// Same floor band as the authoritative work pulse.
-const FLOOR_BAND: f32 = 0.7;
-
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Facts {
     /// Rounds in the pools of owned ranged weapons at public market entry.
@@ -142,16 +139,6 @@ pub(crate) fn ranged_rounds(loadout: &LoadoutState) -> u32 {
     .sum()
 }
 
-fn contains(strip: &PaverStripState, feet: [f32; 3]) -> bool {
-    let dx = feet[0] - strip.origin[0];
-    let dz = feet[2] - strip.origin[2];
-    let along = dx * strip.yaw.cos() + dz * strip.yaw.sin();
-    let across = -dx * strip.yaw.sin() + dz * strip.yaw.cos();
-    (0.0..=strip.length).contains(&along)
-        && across.abs() <= strip.half_width
-        && (feet[1] - strip.origin[1]).abs() <= FLOOR_BAND
-}
-
 fn name(names: &BTreeMap<Uuid, String>, owner: Uuid) -> String {
     names
         .get(&owner)
@@ -162,6 +149,14 @@ fn name(names: &BTreeMap<Uuid, String>, owner: Uuid) -> String {
 impl Tracker {
     pub(super) fn reset(&mut self) {
         self.inside.clear();
+    }
+
+    /// End every open stay at `tick`: a terminal receipt, or the start of the
+    /// continuation, closes market contacts instead of leaving them open.
+    pub(super) fn close(&mut self, facts: &mut Facts, tick: u64) {
+        for (_, (index, _)) in std::mem::take(&mut self.inside) {
+            facts.contacts[index].left_tick.get_or_insert(tick);
+        }
     }
 
     pub(super) fn step(
@@ -181,13 +176,14 @@ impl Tracker {
         };
         let owners: Vec<Uuid> = {
             let mut owners: Vec<Uuid> = outcome.strips.iter().map(|s| s.owner_id).collect();
+            owners.sort();
             owners.dedup();
             owners
         };
         // Contacts follow the geometry after this step.
         let first_step = facts.decision_steps == 1;
         for strip in outcome.strips {
-            if !contains(strip, after.feet) {
+            if !strip.contains(after.feet) {
                 continue;
             }
             if self
@@ -204,11 +200,16 @@ impl Tracker {
                 .find(|old| old.owner_id == strip.owner_id && old.origin == strip.origin);
             let arrival = match before {
                 _ if first_step => Arrival::AlreadyInside,
-                Some(old) if !contains(old, decision.feet) => Arrival::MovedIn,
+                Some(old) if !old.contains(decision.feet) => Arrival::MovedIn,
                 Some(_) => Arrival::AlreadyInside,
-                None if contains(strip, decision.feet) => Arrival::PlacedOnBody,
+                None if strip.contains(decision.feet) => Arrival::PlacedOnBody,
                 None => Arrival::MovedIn,
             };
+            // The same owner marking a new strip under a body still on its
+            // old one ends that earlier stay here.
+            if let Some((index, _)) = self.inside.remove(&strip.owner_id) {
+                facts.contacts[index].left_tick = Some(decision.tick);
+            }
             facts.contacts.push(Contact {
                 tick: decision.tick,
                 owner: name(decision.names, strip.owner_id),
@@ -224,19 +225,19 @@ impl Tracker {
             self.inside
                 .insert(strip.owner_id, (facts.contacts.len() - 1, strip.origin));
         }
-        let still: Vec<Uuid> = self
+        let left: Vec<Uuid> = self
             .inside
             .iter()
             .filter(|(owner, (_, origin))| {
                 !outcome.strips.iter().any(|strip| {
                     strip.owner_id == **owner
                         && strip.origin == *origin
-                        && contains(strip, after.feet)
+                        && strip.contains(after.feet)
                 })
             })
             .map(|(owner, _)| *owner)
             .collect();
-        for owner in still {
+        for owner in left {
             let (index, _) = self.inside.remove(&owner).expect("tracked contact");
             facts.contacts[index].left_tick = Some(decision.tick);
         }
@@ -253,7 +254,7 @@ impl Tracker {
             .strips
             .iter()
             .chain(outcome.strips)
-            .filter(|strip| strip.working && contains(strip, after.feet))
+            .filter(|strip| strip.working && strip.contains(after.feet))
             .collect();
         working.sort_by_key(|strip| strip.owner_id);
         working.dedup_by_key(|strip| strip.owner_id);
