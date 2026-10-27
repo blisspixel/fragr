@@ -5,6 +5,7 @@
 use fragr_server::protocol::{CampaignRunStatus, LoadoutState, MissionState};
 use serde::{Deserialize, Serialize};
 
+pub(super) mod stage;
 #[cfg(test)]
 mod tests;
 
@@ -21,6 +22,9 @@ pub struct Attempt {
     pub receipts: Vec<Receipt>,
     pub interruption: Attribution,
     pub strip_damage: Attribution,
+    /// Per-action market facts after public market entry. Absent before entry.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<stage::Facts>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -79,6 +83,7 @@ pub struct Status {
 pub(super) struct Recorder {
     metrics: Metrics,
     previous_flags: [bool; 2],
+    tracker: stage::Tracker,
 }
 
 impl Recorder {
@@ -103,8 +108,10 @@ impl Recorder {
                 receipts: vec![receipt(Event::Entry, tick, state, status.clone())],
                 interruption: Attribution::Unknown,
                 strip_damage: Attribution::Unknown,
+                stage: None,
             });
             self.previous_flags = flags;
+            self.tracker.reset();
         }
         let row = self.metrics.attempts.last_mut().expect("attempt inserted");
         if row.outcome != Outcome::InProgress {
@@ -119,6 +126,12 @@ impl Recorder {
             }
         } else if facts.completed.iter().any(|id| id == "tram_street") {
             row.entered_market = true;
+            row.stage = Some(stage::Facts {
+                entry_ranged_rounds: status
+                    .as_ref()
+                    .map_or(0, |status| stage::ranged_rounds(&status.loadout)),
+                ..Default::default()
+            });
             row.receipts
                 .push(receipt(Event::MarketEntry, tick, state, status.clone()));
         }
@@ -140,6 +153,27 @@ impl Recorder {
         if let Some((outcome, event)) = terminal {
             row.outcome = outcome;
             row.receipts.push(receipt(event, tick, state, status));
+        }
+    }
+
+    /// True while an attempt that entered the market is still unresolved.
+    pub(super) fn in_market(&self) -> bool {
+        self.metrics
+            .attempts
+            .last()
+            .is_some_and(|row| row.outcome == Outcome::InProgress && row.stage.is_some())
+    }
+
+    /// Record one chosen action and its simulated result. Diagnostic only.
+    pub(super) fn step(&mut self, decision: &stage::Decision<'_>, outcome: stage::Outcome<'_>) {
+        if let Some(facts) = self
+            .metrics
+            .attempts
+            .last_mut()
+            .filter(|row| row.outcome == Outcome::InProgress)
+            .and_then(|row| row.stage.as_mut())
+        {
+            self.tracker.step(facts, decision, outcome);
         }
     }
 

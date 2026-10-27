@@ -240,3 +240,58 @@ fn timeout_and_missing_participant_facts_do_not_invent_completion_or_equipment()
     recorder.finish_attempt(1, &state, None);
     assert!(recorder.finish().attempts.is_empty());
 }
+
+#[test]
+fn per_action_market_facts_start_at_public_entry_and_stop_at_the_terminal_receipt() {
+    let (mut state, mut status) = fixture();
+    let mut recorder = Recorder::default();
+    recorder.observe(0, &state, Some(status.clone()));
+    assert!(
+        !recorder.in_market(),
+        "the teaching prefix has no stage facts"
+    );
+    assert!(recorder.metrics.attempts[0].stage.is_none());
+    completed(&mut state, 4);
+    status.loadout.weapons = vec![WeaponType::Fists, WeaponType::Flechette];
+    for count in &mut status.loadout.ammo {
+        count.rounds = if count.pool == AmmoPool::Bullets {
+            9
+        } else {
+            12
+        };
+    }
+    recorder.observe(5, &state, Some(status.clone()));
+    assert!(recorder.in_market());
+    let entry = recorder.metrics.attempts[0].stage.as_ref().unwrap();
+    assert_eq!(entry.entry_ranged_rounds, 9, "shells need a Scatter");
+    completed(&mut state, 5);
+    recorder.observe(9, &state, Some(status.clone()));
+    assert!(
+        !recorder.in_market(),
+        "completion ends per-action recording"
+    );
+    let names = std::collections::BTreeMap::new();
+    recorder.step(
+        &stage::Decision {
+            tick: 9,
+            feet: status.feet,
+            hp: 100,
+            armor: 0,
+            airborne: false,
+            moving: false,
+            telling: false,
+            guard: None,
+            recognized: Vec::new(),
+            strips: &[],
+            names: &names,
+        },
+        stage::Outcome {
+            strips: &[],
+            status: Some(status),
+            shots: Vec::new(),
+        },
+    );
+    let row = &recorder.finish().attempts[0];
+    assert_eq!(row.outcome, Outcome::Complete);
+    assert_eq!(row.stage.as_ref().unwrap().decision_steps, 0);
+}

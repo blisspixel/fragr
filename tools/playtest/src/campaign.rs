@@ -839,6 +839,7 @@ fn scenario_trial_with_actions(
         }
         action = apply_reload(action, &gear, reload_down);
         action = constrain(action, me, &observed, profile, seed, arena);
+        let mut guard = None;
         if let Some(shared) = market_escape {
             let shared = constrain(
                 apply_reload(shared, &gear, reload_down),
@@ -848,7 +849,10 @@ fn scenario_trial_with_actions(
                 seed,
                 arena,
             );
-            action = market_guard::protect(shared, action, me, &observed, arena);
+            let (arbitrated, branch) =
+                market_guard::arbitrate(shared, action, me, &observed, arena);
+            action = arbitrated;
+            guard = Some(branch);
         }
         action = actions(action);
         reload_down = action.reload;
@@ -877,8 +881,54 @@ fn scenario_trial_with_actions(
             .filter(|p| visible_aim(me, p, arena, profile).is_some())
             .map(|p| p.id)
             .collect();
+        // Diagnostic market step facts: captured after the decision is final.
+        let market_step = market
+            .as_ref()
+            .filter(|recorder| recorder.in_market())
+            .map(|_| {
+                (
+                    snapshot
+                        .players
+                        .iter()
+                        .map(|p| (p.id, p.name.clone()))
+                        .collect::<BTreeMap<_, _>>(),
+                    action.forward || action.back || action.left || action.right || action.jump,
+                    market_guard::airborne(me, arena),
+                )
+            });
         session.state.set_action(id, action);
         let messages = session.tick_messages(DT);
+        if let (Some(recorder), Some((names, moving, airborne))) = (&mut market, market_step) {
+            let decision = market::stage::Decision {
+                tick: snapshot.tick,
+                feet,
+                hp: me.hp,
+                armor: me.armor,
+                airborne,
+                moving,
+                telling: telling.is_some(),
+                guard,
+                recognized: observed.paver_strips.iter().map(|s| s.owner_id).collect(),
+                strips: &snapshot.paver_strips,
+                names: &names,
+            };
+            let strips = session.state.snapshot().paver_strips;
+            let shots = session
+                .state
+                .shot_results
+                .iter()
+                .filter(|shot| shot.target_id == Some(id) && shot.shooter_id != id)
+                .map(|shot| (shot.shooter.clone(), shot.damage))
+                .collect();
+            recorder.step(
+                &decision,
+                market::stage::Outcome {
+                    strips: &strips,
+                    status: market_status(&session, id),
+                    shots,
+                },
+            );
+        }
         for shot in &session.state.shot_results {
             if shot.shooter_id == id {
                 report.shots += 1;
@@ -1112,7 +1162,7 @@ pub fn run_scenario(
     let observation = match scenario {
         Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
         Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
-        Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
+        Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Per-action stage facts after public market entry record authoritative strip contacts, unshot loss inside a working strip, shot loss by shooter, the guard branch and the fatal step cause; they are read after each action and never feed a decision. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
     Ok(Report {
         schema: 3,
