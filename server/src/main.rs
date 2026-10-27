@@ -78,7 +78,7 @@ struct Args {
     /// Stay up and rotate the built-in night list of maps and modes.
     /// Sabotage plays its short match, including the half-time swap, before
     /// the list moves. A fixed map, mode, mutator, or limit cannot combine.
-    #[arg(long, default_value_t = false, help_heading = "Match", conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
+    #[arg(long, default_value_t = false, help_heading = "Match", conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "preset", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
     playlist: bool,
 
     /// Scrap League Solo Broadcast Episode 0 (Calibration / Larak Lot).
@@ -100,6 +100,11 @@ struct Args {
     /// licence-to-kill, golden-rail, two-lives.
     #[arg(long = "mutator", value_enum, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mutators: Vec<fragr_server::protocol::Mutator>,
+
+    /// A named rule package: standard, licence-to-kill, golden-rail,
+    /// slappers-only or shotgun-wedding. Any `--mutator` stacks on top.
+    #[arg(long, value_enum, default_value_t = fragr_server::rules::preset::Preset::Standard, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    preset: fragr_server::rules::preset::Preset,
 
     /// Team damage lands. Needs a team mode. Off by default.
     #[arg(long, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
@@ -376,14 +381,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         eprintln!("{error}");
         std::process::exit(1);
     }
-    let rules =
-        match fragr_server::rules::RuleSet::new(args.mode, &args.mutators, args.friendly_fire) {
-            Ok(rules) => rules,
-            Err(error) => {
-                eprintln!("invalid rule set: {error}");
-                std::process::exit(2);
-            }
-        };
+    let rules = match fragr_server::rules::RuleSet::new(
+        args.mode,
+        &args.preset.stack(&args.mutators),
+        args.friendly_fire,
+    ) {
+        Ok(rules) => rules,
+        Err(error) => {
+            eprintln!("invalid rule set: {error}");
+            std::process::exit(2);
+        }
+    };
     if rules.mode() == fragr_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
         return Err("ctf uses --capture-limit, not --frag-limit".into());
     }
@@ -838,8 +846,54 @@ mod tests {
         assert_eq!(ctf_config.boss_spawn_ticks, None);
         assert_eq!(ctf_config.compliance_ping_ticks, None);
 
+        let stacked = Args::try_parse_from([
+            "fragr-server",
+            "--preset",
+            "shotgun-wedding",
+            "--mutator",
+            "licence-to-kill",
+            "--mutator",
+            "two-lives",
+        ])
+        .unwrap();
+        let rules = fragr_server::rules::RuleSet::new(
+            stacked.mode,
+            &stacked.preset.stack(&stacked.mutators),
+            stacked.friendly_fire,
+        )
+        .unwrap();
+        assert_eq!(
+            rules.mutators(),
+            [
+                Mutator::ShotgunOnly,
+                Mutator::LicenceToKill,
+                Mutator::TwoLives
+            ]
+        );
+        let clash = Args::try_parse_from([
+            "fragr-server",
+            "--preset",
+            "golden-rail",
+            "--mutator",
+            "licence-to-kill",
+        ])
+        .unwrap();
+        assert!(fragr_server::rules::RuleSet::new(
+            clash.mode,
+            &clash.preset.stack(&clash.mutators),
+            clash.friendly_fire
+        )
+        .is_err());
+        assert_eq!(
+            defaults.preset,
+            fragr_server::rules::preset::Preset::Standard
+        );
+
         for bad in [
             vec!["fragr-server", "--mutator", "low-gravity"],
+            vec!["fragr-server", "--preset", "proximity-party"],
+            vec!["fragr-server", "--playlist", "--preset", "golden-rail"],
+            vec!["fragr-server", "--preset", "golden-rail", "--bench", "4"],
             vec!["fragr-server", "--frag-limit", "0"],
             vec!["fragr-server", "--mode", "tdm", "--solo-broadcast"],
             vec!["fragr-server", "--mutator", "rail-only", "--bench", "4"],

@@ -169,6 +169,32 @@
       "bytes": 28844,
       "generated_unix": 1790950654
     },
+    "conquest/heartbeat": {
+      "kind": "sfx",
+      "file": "conquest/heartbeat.wav",
+      "prompt": "a single heavy heartbeat, two deep low muffled thumps lub dub, very close and dry, tense, no music, no voice, no reverb tail",
+      "model": "eleven_text_to_sound_v2",
+      "format": "pcm_24000",
+      "title": "Conquest last tickets heartbeat",
+      "seconds": 1.0,
+      "looping": false,
+      "channels": 2,
+      "bytes": 96044,
+      "generated_unix": 1793110747
+    },
+    "conquest/siren": {
+      "kind": "sfx",
+      "file": "conquest/siren.wav",
+      "prompt": "one low warning siren wail from an old outdoor loudspeaker tower, a slow rise and fall lasting about two seconds, deep and ominous, carried on wind over an island battlefield, slightly distorted, no voice, no music",
+      "model": "eleven_text_to_sound_v2",
+      "format": "pcm_24000",
+      "title": "Conquest bleed siren",
+      "seconds": 2.5,
+      "looping": false,
+      "channels": 2,
+      "bytes": 238124,
+      "generated_unix": 1793110745
+    },
     "down/body": {
       "kind": "sfx",
       "file": "down/body.wav",

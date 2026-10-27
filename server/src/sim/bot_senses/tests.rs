@@ -540,6 +540,78 @@ fn lone_bot_with_rail_pad(ahead: f32) -> (GameState, BotController, [f32; 3]) {
     (state, bot, feet)
 }
 
+/// A lone free-for-all bot on the Pistol, with a Rocket dropped `ahead`
+/// metres along +x, the bot facing `yaw`.
+fn bot_and_drop(yaw: f32, ahead: f32) -> (GameState, BotController, [f32; 3]) {
+    let mut state = GameState::new();
+    state.seed(42);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.start_round();
+    let bot = BotController::new(Uuid::from_u128(9), BotBehavior::Balanced);
+    state.add_player(bot.player_id, "Observer".into(), Role::Agent);
+    assert!(state.drops_guns());
+    let (x, z, floor) = (-5.0, 0.0, 0.0);
+    // Only the drop to want: no pads to weigh it against.
+    state.pickups.clear();
+    let player = &mut state.players[0];
+    player.x = x;
+    player.z = z;
+    player.y = PLAYER_FLOOR_Y + floor;
+    player.yaw = yaw;
+    let feet = [x + ahead, floor, z];
+    state.dropped_guns.push(crate::sim::drops::DroppedGun {
+        serial: 1,
+        weapon: WeaponType::Rocket,
+        rounds: 3,
+        x: feet[0],
+        y: floor + 0.4,
+        z: feet[2],
+        floor,
+        expires_at: 10_000,
+    });
+    (state, bot, feet)
+}
+
+fn look_around(state: &mut GameState, bot: &BotController, from: u64) {
+    for tick in 0..16 {
+        observe(state, bot, from + tick);
+    }
+}
+
+#[test]
+fn a_bot_knows_a_dropped_gun_only_once_it_has_seen_it() {
+    // Behind the bot and past underfoot reach: unknown, so not a goal.
+    let (mut state, bot, feet) = bot_and_drop(PI, 6.0);
+    look_around(&mut state, &bot, 100);
+    assert!(state.players[0].bot_senses.pads.drops().is_empty());
+    let goal = bot.intent(&state).goal.map(|goal| goal.feet);
+    assert_ne!(goal, Some(feet));
+
+    // In view: a gun it cannot fire, close by, is where it goes.
+    let (mut state, bot, feet) = bot_and_drop(0.0, 6.0);
+    look_around(&mut state, &bot, 100);
+    assert_eq!(state.players[0].bot_senses.pads.drops().len(), 1);
+    assert_eq!(bot.intent(&state).goal.map(|goal| goal.feet), Some(feet));
+
+    // Somebody takes it while the bot watches: it forgets the gun.
+    state.dropped_guns.clear();
+    look_around(&mut state, &bot, 120);
+    assert!(state.players[0].bot_senses.pads.drops().is_empty());
+
+    // Taken out of view: the bot still believes it is there, until it has
+    // surely gone, and walks to see.
+    let (mut state, bot, feet) = bot_and_drop(0.0, 6.0);
+    look_around(&mut state, &bot, 100);
+    state.dropped_guns.clear();
+    state.players[0].yaw = PI;
+    look_around(&mut state, &bot, 120);
+    assert_eq!(bot.intent(&state).goal.map(|goal| goal.feet), Some(feet));
+    let expiry = u64::from(crate::sim::drops::DROPPED_GUN_TICKS);
+    look_around(&mut state, &bot, 200 + expiry);
+    assert!(state.players[0].bot_senses.pads.drops().is_empty());
+}
+
 fn rail_eta(state: &GameState) -> Option<u64> {
     state.players[0]
         .bot_senses

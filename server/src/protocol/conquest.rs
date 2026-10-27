@@ -2,6 +2,11 @@
 use super::{Team, TeamScores};
 use serde::{Deserialize, Serialize};
 
+/// Under this many tickets a side is bleeding out: the Host calls it once a
+/// round and clients pulse the counter, sound a siren and, on the last
+/// tickets, a heartbeat (`client/scripts/conquest_hud.gd` mirrors it).
+pub const CONQUEST_BLEED_TICKETS: u32 = 25;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CapturePoint {

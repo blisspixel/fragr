@@ -21,11 +21,26 @@ msgstr "READY  //  NEXT ROUND LOADING"
 msgid "HUD_DUEL_SERIES"
 msgstr "SERIES  {a} {a_wins} : {b_wins} {b}"
 
+msgid "HUD_DUEL_NEXT_UP"
+msgstr "NEXT UP  {names}"
+
+msgid "HUD_DUEL_NEXT_MORE"
+msgstr "  +{more}"
+
+msgid "HUD_DUEL_IN_LINE"
+msgstr "{join} LEAVE THE LINE  //  YOU ARE {place} OF {count}"
+
+msgid "HUD_DUEL_QUEUE_PROMPT"
+msgstr "{join} WAIT FOR THE NEXT SEAT  //  WINNER STAYS"
+
 msgid "MODE_CONQUEST"
 msgstr "CONQUEST"
 
-msgid "CONQUEST_TICKETS"
-msgstr "UNION {union}  :  {coalition} FREE COALITION"
+msgid "CONQUEST_TICKETS_UNION"
+msgstr "UNION {union}"
+
+msgid "CONQUEST_TICKETS_COALITION"
+msgstr "{coalition} FREE COALITION"
 
 msgid "CONQUEST_HOLD_MAJORITY"
 msgstr "HOLD THREE SITES TO DRAIN ENEMY TICKETS"
@@ -227,6 +242,21 @@ msgstr "{flag} FLAG RETURNS HOME"
 
 msgid "FLAG_EVENT_CAPTURED"
 msgstr "{player} CAPTURES THE {flag} FLAG"
+
+msgid "PRESET_STANDARD"
+msgstr "Standard"
+
+msgid "PRESET_LICENCE_TO_KILL"
+msgstr "Licence to Kill"
+
+msgid "PRESET_GOLDEN_RAIL"
+msgstr "Golden Rail"
+
+msgid "PRESET_SLAPPERS_ONLY"
+msgstr "Slappers Only"
+
+msgid "PRESET_SHOTGUN_WEDDING"
+msgstr "Shotgun Wedding"
 
 msgid "MUTATOR_RAIL_ONLY"
 msgstr "RAIL ONLY"
@@ -572,6 +602,42 @@ msgstr "SUDDEN DEATH: NEXT SCORE WINS"
 
 msgid "HUD_SUDDEN_DEATH_ROUND"
 msgstr "SUDDEN DEATH: THIS ROUND DECIDES"
+
+msgid "HOST_REACTION_NEXT_UP_0"
+msgstr "HOST: {other} STAYS. {player}, YOU'RE UP!"
+
+msgid "HOST_REACTION_NEXT_UP_1"
+msgstr "HOST: WINNER STAYS! {player} STEPS IN AGAINST {other}!"
+
+msgid "HOST_REACTION_NEXT_UP_2"
+msgstr "HOST: {other} HOLDS THE SEAT. NEXT: {player}!"
+
+msgid "HOST_REACTION_NEXT_UP_OPEN_0"
+msgstr "HOST: {player} TAKES THE SEAT!"
+
+msgid "HOST_REACTION_NEXT_UP_OPEN_1"
+msgstr "HOST: NEXT UP, {player}!"
+
+msgid "HOST_REACTION_NEXT_UP_OPEN_2"
+msgstr "HOST: {player} STEPS IN!"
+
+msgid "HOST_REACTION_TICKETS_LOW_0"
+msgstr "HOST: {team} IS BLEEDING OUT!"
+
+msgid "HOST_REACTION_TICKETS_LOW_1"
+msgstr "HOST: {team} UNDER TWENTY-FIVE! HOLD SOMETHING!"
+
+msgid "HOST_REACTION_TICKETS_LOW_2"
+msgstr "HOST: LAST TICKETS FOR {team}!"
+
+msgid "HOST_REACTION_TICKETS_LOW_SIDE_0"
+msgstr "HOST: {team} IS BLEEDING OUT!"
+
+msgid "HOST_REACTION_TICKETS_LOW_SIDE_1"
+msgstr "HOST: {team} UNDER TWENTY-FIVE! HOLD SOMETHING!"
+
+msgid "HOST_REACTION_TICKETS_LOW_SIDE_2"
+msgstr "HOST: LAST TICKETS FOR {team}!"
 
 msgid "HOST_REACTION_LARAK_LOT_SPECIAL_0"
 msgstr "HOST: THE LARAK LOT SPECIAL."

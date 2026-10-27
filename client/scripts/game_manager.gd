@@ -10,6 +10,8 @@ extends Node
 
 var players = {}
 var pickups = {}
+## Rejoin the Duel line once the watcher connection is up (after passing a seat).
+var _queue_after_connect: bool = false
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
 var arena_vehicles: ArenaVehicles = null
@@ -367,6 +369,8 @@ func _ready():
 	net_client.session_resumed.connect(_on_session_resumed)
 	net_client.disconnected_from_server.connect(_on_disconnected)
 	net_client.server_error.connect(_on_server_error)
+	net_client.seat_called.connect(_on_seat_called)
+	net_client.seat_passed.connect(_on_seat_passed)
 	
 	_load_audio_streams()
 	
@@ -1612,7 +1616,11 @@ func _input(_event):
 		get_viewport().set_input_as_handled()
 		return
 	# InputMap actions (keyboard + joypad). Same join/leave path.
-	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
+	if Input.is_action_just_pressed("join_as_human") and not is_human_player and _duel_room():
+		# A Duel seats by the line: join it, or step out of it. The server
+		# calls the head of the line to the next open seat.
+		net_client.send_queue(not _in_duel_queue())
+	elif Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
 	elif Input.is_action_just_pressed("leave_match") and is_human_player:
 		change_role(false)
@@ -1624,6 +1632,29 @@ func _input(_event):
 		_choose_weapon(_next_weapon_swap(-1))
 	elif is_human_player:
 		_choose_weapon(_slot_from_event(_event))
+
+## A watched Duel on a shared server, where seats go to the queue.
+func _duel_room() -> bool:
+	return local_match == null and str(hud.match_rules.get("mode", "")) == "duel"
+
+func _in_duel_queue() -> bool:
+	var queue: Variant = latest_snapshot.get("duel_queue", [])
+	return queue is Array and (queue as Array).has(net_client.player_name)
+
+## The server opened a seat for the head of the line: rejoin as a fighter
+## carrying its one-time token.
+func _on_seat_called(token: String) -> void:
+	if is_human_player or role_transition:
+		return
+	net_client.seat_token = token
+	change_role(true)
+
+## Winner stays: this fighter lost and passed the seat on. Watch again, at
+## the back of the line.
+func _on_seat_passed() -> void:
+	is_human_player = true
+	_queue_after_connect = true
+	change_role(false)
 
 ## One transition for input, the menu, and the real-wire visual tour.
 func change_role(play: bool) -> void:
@@ -2642,6 +2673,9 @@ func _apply_map_from_snapshot(snapshot: Dictionary) -> void:
 		hud.set_map_name(map_name)
 
 func _on_connected():
+	if _queue_after_connect and not is_human_player:
+		net_client.send_queue(true)
+	_queue_after_connect = false
 	_reset_prediction_for_connection("connected")
 	if ack_probe.active:
 		ack_probe.interrupted = true
@@ -2965,7 +2999,7 @@ func _on_snapshot_received(data):
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
 	if hud.has_method("show_podium"):
-		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
+		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.player_name, _duel_room())
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -3426,7 +3460,7 @@ func _sync_pickups(pickup_list):
 				push_warning("game_manager: pickup instantiate returned null for " + pid)
 				continue
 			arena.add_child(node)
-			node.setup(pid, weapon, pos, kind, amount, str(pad.get("pool", "")))
+			node.setup(pid, weapon, pos, kind, amount, str(pad.get("pool", "")), pad.get("dropped", false) == true)
 			node.set_reduced_motion(bool(settings.get_value("accessibility", "reduced_motion")))
 			pickups[pid] = node
 		if pickups.has(pid):

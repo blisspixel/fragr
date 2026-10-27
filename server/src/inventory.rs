@@ -336,6 +336,11 @@ impl Inventory {
         gained || acquired
     }
 
+    /// Everything carried for `pool`, loaded magazines included.
+    pub fn carried(&self, pool: AmmoPool) -> u16 {
+        self.ammo[pool.index()]
+    }
+
     pub fn needs_ammo(&self, pool: AmmoPool) -> bool {
         self.policy == EquipmentPolicy::Discovery && self.ammo[pool.index()] < pool.capacity()
     }

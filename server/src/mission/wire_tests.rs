@@ -159,6 +159,7 @@ async fn connect(
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                seat: None,
                 role,
                 name: format!("{role:?}"),
                 geometry_version: 2,

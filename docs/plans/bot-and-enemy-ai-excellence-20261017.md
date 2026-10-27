@@ -201,3 +201,30 @@ No client code changed; the spread is the host's.
 Looked at (Vulkan, Balanced, 1280x720): the Larak Lot tour against the wave 4 baseline (no presentation change; the follow camera finds a bot in the Pit), the Duel tour with the intro in the Host corner, upright ("HOST: LARAK LOT DUEL. NANA SIX-SEVEN AGAINST MEAT PROXY. FIRST TIME ON THE BOOK."), and `client/qa/larak-bots.json`, strips of the Pit while the Rocket is claimed and fired and of the Roof while a regular walks up for the Plate.
 
 Still open after this slice: the Rocket target above, voiced grudges (text only), and spectator-facing grudge facts.
+
+**Fourth slice, 2026-10-27 (`wave11/mp-rules`, Refs #431 and #432).** Implemented, not merged. Weapons drop on death (Nick's supply decision, 2026-10-27).
+
+- Where lives start on the Pistol (free-for-all and Duel without Full Arsenal or Golden Rail), a fragged fighter leaves the gun in their hands where they fell, with the rounds they still had for it, never more than that gun's pad grant (`server/src/sim/drops.rs`). The Pistol, Fists, the Shiv, the Article Blade and an empty gun stay behind. It lies 15 s, then is gone. The first fighter on it who can use it takes it as a pad grant. Team modes, weapon-only mutators, Golden Rail (its gun returns to the pad), Full Arsenal, Sabotage (its own primary drop), the campaign and the benchmark keep their guns.
+- Rule bots know a drop only once they have seen it (the pad senses: cone, range, cover or underfoot), believe it there until they see the spot empty or a regular's sense of its lifetime runs out, and value it by the same habits as a pad: a gun they cannot fire is worth leaving a search for, a habit gun (the Rocket for Rocket regulars) close by, the favourite gun a detour. Joined MCP agents see drops the same way (`agent-adapter/src/pads.rs`).
+
+Measured with `fragr-playtest --bot-survey --survey-lot --seed 1 --survey-seeds 24 --time-limit-seconds 180` in release, `main` at `7f90dd70` against this slice. The survey now reports guns dropped and taken.
+
+| Larak Lot, 24 seeds of 180 s | Frags/min | Rocket share of frags | Rockets fired (hurt someone) | Plate claims per 3 min | Flechette / Pistol share of shots | Guns dropped (taken, Rockets taken) |
+|---|---|---|---|---|---|---|
+| FFA, 6 | 20.3 to 20.9 | 3.9% to 5.2% | 321 (117) to 441 (160) | 3.3 to 3.4 | 41% / 40% to 50% / 27% | 1031 (875, 90) |
+| FFA, 4 | 11.0 to 11.2 | 7.2% to 8.4% | 308 (122) to 413 (175) | 3.3 to 3.2 | 50% / 20% to 52% / 15% | 685 (546, 80) |
+| Duel, 2 | 2.3 to 2.3 | 28.9% to 24.6% | 239 (131) to 276 (153) | 3.7 to 4.0 | 37% / 6% to 34% / 5% | 166 (75, 24) |
+
+Lifetime, six bots, same survey (bots aware of drops):
+
+| Drop lifetime | Rocket share | Flechette share | Drops taken | Frags/min |
+|---|---|---|---|---|
+| 10 s | 5.4% | 50% | 759 of 1021 | 20.9 |
+| 15 s (shipped) | 5.2% | 50% | 875 of 1031 | 20.9 |
+| 20 s | 4.8% | 51% | 903 of 1026 | 21.0 |
+| 30 s | 4.2% | 49% | 972 of 1038 | 21.0 |
+
+Drops alone, before bots learned them (15 s): Rocket 3.7%, Flechette 45%,
+26.1 pickups a minute against 30.4 once bots walk to what they see.
+
+The Rocket target (15 to 25% at six) is **not met**: 3.9% to 5.2%. Lifetime moves it inside noise (4.2% to 5.4%); a longer lifetime only lets more Flechettes circulate. Drops added about 90 Rocket lives over 72 minutes of six-bot play to the 140 the pad gives, and 441 rockets were fired against 321, but a rocket still kills about once in five (160 of 441 hurt someone). The Rocket's frag share at six is limited by how often a launcher is in a living hand in its band, and a dropped launcher mostly goes to whoever just won the fight nearby, usually with a Flechette in hand. Reaching 15% needs the lot to carry more launchers (a second pad), or bots that hold the Rocket longer in mid-range trades; both are map or controller decisions outside a drop rule. The Flechette share rose past the 45% gate (41% to 50%), because dropped Flechettes keep circulating; frags per minute, the Plate and spawn deaths held. Nick's call whether drops stay in Duel, where the Rocket share fell from 29% to 25%.

@@ -70,7 +70,11 @@ var _host_auto_counts: Dictionary = {"tdm": 4, "sabotage": 10, "conquest": 4, "f
 var _host_selected_mode: String = "tdm"
 var _host_lan: CheckButton
 var _host_port: SpinBox
-var _host_mutator: OptionButton
+## The rules preset row (one pick, MatchRules.PRESETS) and the twists that
+## stack on it (MatchRules.TWISTS), folded with the other options.
+var _host_presets: Dictionary[String, Button] = {}
+var _host_preset: String = "standard"
+var _host_twists: Dictionary[String, CheckButton] = {}
 ## One line naming what a fresh life holds under the chosen mode and mutator.
 var _host_kit_hint: Label
 var _host_friendly_fire: CheckButton
@@ -1204,6 +1208,9 @@ func _page_host() -> void:
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
+	var remembered: Array = _host_settings.get("mutators", [])
+	_host_preset = MatchRules.preset_of(remembered)
+	_build_host_presets()
 	_host_kit_hint = _label("")
 	_host_kit_hint.name = "HostKitHint"
 	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
@@ -1234,21 +1241,7 @@ func _page_host() -> void:
 	_host_advanced.name = "HostAdvanced"
 	_host_advanced.add_theme_constant_override("separation", 8)
 	_root.add_child(_host_advanced)
-	_host_mutator = _host_option("Mutators", "HostMutator", _host_advanced)
-	_host_mutator.add_item("Standard Rules")
-	_host_mutator.add_item(tr("MUTATOR_GOLDEN_RAIL"))
-	_host_mutator.add_item(tr("MUTATOR_LICENCE_TO_KILL"))
-	_host_mutator.add_item(tr("MUTATOR_SHOTGUN_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_RAIL_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_FISTS_ONLY"))
-	_host_mutator.add_item(tr("MUTATOR_TWO_LIVES"))
-	_host_mutator.add_item(tr("MUTATOR_FULL_ARSENAL"))
-	_host_mutator.set_item_disabled(6, _host_selected_mode not in ["tdm", "ffa", "duel"])
-	_host_mutator.set_item_disabled(7, _host_selected_mode not in ["ffa", "duel"])
-	var mutator_index: int = ["", "golden-rail", "licence-to-kill", "shotgun-only", "rail-only", "fists-only", "two-lives", "full-arsenal"].find(str(_host_settings.get("mutator", "")))
-	if mutator_index > 0 and not _host_mutator.is_item_disabled(mutator_index):
-		_host_mutator.select(mutator_index)
-	_host_mutator.item_selected.connect(func(_index: int) -> void: _refresh_host_kit())
+	var stacked: bool = _build_host_twists(remembered)
 	_refresh_host_kit()
 	_host_friendly_fire = CheckButton.new()
 	_host_friendly_fire.name = "HostFriendlyFire"
@@ -1275,7 +1268,7 @@ func _page_host() -> void:
 	_host_mode.item_selected.connect(_change_host_mode)
 	_rebuild_host_bots(false)
 	# A profile already using an option shows it. Folding never hides state.
-	if mutator_index > 0 or bool(_host_settings.get("friendly_fire", false)) or bool(_host_settings["lan"]):
+	if stacked or bool(_host_settings.get("friendly_fire", false)) or bool(_host_settings["lan"]):
 		_host_more_open = true
 	_host_more.button_pressed = _host_more_open
 	_host_advanced.visible = _host_more_open
@@ -1289,15 +1282,7 @@ func _change_host_mode(_index: int) -> void:
 	if _host_bot_selection == "auto":
 		_host_auto_counts[_host_selected_mode] = int(_host_bots.value)
 	_host_selected_mode = HOST_MODES[_host_mode.selected]
-	if _host_mutator != null:
-		var finite_lives_allowed: bool = _host_selected_mode in ["tdm", "ffa", "duel"]
-		_host_mutator.set_item_disabled(6, not finite_lives_allowed)
-		if not finite_lives_allowed and _host_mutator.selected == 6:
-			_host_mutator.select(0)
-		var arsenal_allowed: bool = _host_selected_mode in ["ffa", "duel"]
-		_host_mutator.set_item_disabled(7, not arsenal_allowed)
-		if not arsenal_allowed and _host_mutator.selected == 7:
-			_host_mutator.select(0)
+	_refresh_host_twists()
 	_refresh_host_kit()
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	if _host_friendly_fire != null:
@@ -1354,46 +1339,114 @@ func _rebuild_host_maps() -> void:
 	var selected: int = int(_host_settings["map_id"]) - 1
 	_host_map.select(clampi(selected, 0, names.size() - 1))
 
-func _selected_mutator() -> String:
-	if _host_mutator == null:
-		return ""
-	match _host_mutator.selected:
-		1: return "golden-rail"
-		2: return "licence-to-kill"
-		3: return "shotgun-only"
-		4: return "rail-only"
-		5: return "fists-only"
-		6: return "two-lives"
-		7: return "full-arsenal"
-	return ""
+## The preset row: five named rule packages, one pressed at a time. It sits
+## under the map because picking the rules is part of picking the match.
+func _build_host_presets() -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "HostPresetRow"
+	_root.add_child(row)
+	var text: Label = Label.new()
+	text.text = tr("HOST_RULES")
+	text.custom_minimum_size.x = 210.0
+	row.add_child(text)
+	var flow: HFlowContainer = HFlowContainer.new()
+	flow.name = "HostPresets"
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
+	row.add_child(flow)
+	var group: ButtonGroup = ButtonGroup.new()
+	_host_presets.clear()
+	for preset: String in MatchRules.PRESETS:
+		var button: Button = Button.new()
+		button.name = "Preset_" + preset.validate_node_name()
+		button.text = MatchRules.preset_name(preset)
+		button.toggle_mode = true
+		button.button_group = group
+		button.custom_minimum_size.y = 42.0
+		button.button_pressed = preset == _host_preset
+		# Toggled, not pressed: keyboard, pad and a set state all land here.
+		button.toggled.connect(func(on: bool) -> void:
+			if on:
+				_pick_host_preset(preset))
+		flow.add_child(button)
+		_host_presets[preset] = button
+
+func _pick_host_preset(preset: String) -> void:
+	_host_preset = preset
+	_refresh_host_twists()
+
+## Twists that stack on the preset: each is offered only where the server
+## would accept it with this mode and preset. Returns whether any was on.
+func _build_host_twists(remembered: Array) -> bool:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "HostStackRow"
+	_host_advanced.add_child(row)
+	var text: Label = Label.new()
+	text.text = tr("HOST_STACK")
+	text.custom_minimum_size.x = 210.0
+	row.add_child(text)
+	var base: Array = MatchRules.PRESET_MUTATORS[_host_preset]
+	var any: bool = false
+	_host_twists.clear()
+	for twist: String in MatchRules.TWISTS:
+		var check: CheckButton = CheckButton.new()
+		check.name = "Twist_" + twist.validate_node_name()
+		check.text = tr("HOST_TWIST_" + twist.to_upper().replace("-", "_"))
+		check.button_pressed = remembered.has(twist) and not base.has(twist)
+		any = any or check.button_pressed
+		check.toggled.connect(func(_on: bool) -> void: _refresh_host_kit())
+		row.add_child(check)
+		_host_twists[twist] = check
+	_refresh_host_twists()
+	return any
+
+func _refresh_host_twists() -> void:
+	for twist: String in _host_twists:
+		var check: CheckButton = _host_twists[twist]
+		var allowed: bool = MatchRules.twist_allowed(_host_selected_mode, _host_preset, twist)
+		check.disabled = not allowed
+		if not allowed:
+			check.set_pressed_no_signal(false)
+	_refresh_host_kit()
+
+## The preset's mutators plus every stacked twist, as the server takes them.
+func _selected_mutators() -> Array[String]:
+	var mutators: Array[String] = []
+	for mutator: Variant in MatchRules.PRESET_MUTATORS.get(_host_preset, []):
+		mutators.append(str(mutator))
+	for twist: String in _host_twists:
+		if _host_twists[twist].button_pressed and not _host_twists[twist].disabled and not mutators.has(twist):
+			mutators.append(twist)
+	return mutators
 
 ## What every fresh life holds, said once under the mode: the free-for-all
 ## Pistol start, a weapon-only mutator's one gun, or the arena arsenal.
 func _refresh_host_kit() -> void:
 	if _host_kit_hint == null:
 		return
-	var mutator: String = _selected_mutator()
+	var mutators: Array[String] = _selected_mutators()
+	var armed: bool = mutators.has("golden-rail") or mutators.has("full-arsenal")
 	var key: String = "HOST_KIT_ARSENAL"
-	match mutator:
-		"rail-only", "shotgun-only", "fists-only":
-			key = "HOST_KIT_ONE_WEAPON"
-		_:
-			if _host_selected_mode == "sabotage":
-				key = "HOST_KIT_SABOTAGE"
-			elif _host_selected_mode == "duel" and mutator not in ["golden-rail", "full-arsenal"]:
-				key = "HOST_KIT_DUEL"
-			elif _host_selected_mode == "ffa" and mutator not in ["golden-rail", "full-arsenal"]:
-				key = "HOST_KIT_SIDEARM"
-	_host_kit_hint.text = tr(key)
+	if mutators.has("rail-only") or mutators.has("shotgun-only") or mutators.has("fists-only"):
+		key = "HOST_KIT_ONE_WEAPON"
+	elif _host_selected_mode == "sabotage":
+		key = "HOST_KIT_SABOTAGE"
+	elif _host_selected_mode == "duel" and not armed:
+		key = "HOST_KIT_DUEL"
+	elif _host_selected_mode == "ffa" and not armed:
+		key = "HOST_KIT_SIDEARM"
+	var preset: String = "" if _host_preset == "standard" else tr("PRESET_HINT_" + _host_preset.to_upper().replace("-", "_")) + " "
+	_host_kit_hint.text = preset + tr(key)
 
 func _start_host() -> void:
-	var mut: String = _selected_mutator()
+	var mutators: Array[String] = _selected_mutators()
 	_host_settings = {"mode": HOST_MODES[_host_mode.selected],
 		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value) if _host_bot_selection == "fixed" else 0,
 		"bot_policy": _host_bot_selection, "fill_target": int(_host_bots.value) if _host_bot_selection == "auto" else 0,
 		"lan": _host_lan.button_pressed, "port": int(_host_port.value) if _host_lan.button_pressed else 0}
-	if not mut.is_empty():
-		_host_settings["mutator"] = mut
+	if not mutators.is_empty():
+		_host_settings["mutators"] = mutators
 	if _host_friendly_fire != null and _host_friendly_fire.visible and _host_friendly_fire.button_pressed:
 		_host_settings["friendly_fire"] = true
 	_local_host.start_host(_host_settings)

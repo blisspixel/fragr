@@ -9,6 +9,7 @@ pub(crate) mod contact;
 pub mod ctf;
 #[cfg(test)]
 mod death_lifecycle_tests;
+pub mod drops;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
@@ -474,6 +475,8 @@ struct ReactionState {
     match_point: [bool; 2],
     match_point_fighter: bool,
     sudden_death_called: bool,
+    /// Conquest: each side's fall under the bleed line, called once.
+    tickets_low: [bool; 2],
     /// Larak Lot: ticks of the round's recent frags, oldest first, and when
     /// the Host last called the Larak Lot special.
     lot_frags: std::collections::VecDeque<u64>,
@@ -601,6 +604,7 @@ impl ArenaPickup {
             y: self.y,
             z: self.z,
             available: self.available,
+            dropped: false,
         }
     }
 
@@ -718,6 +722,9 @@ pub struct GameState {
     conquest_orders: conquest::coordination::Orders,
     /// The golden Railgun when the Golden Rail mutator is on.
     pub golden_rail: Option<GoldenRail>,
+    /// Guns fragged fighters dropped, until taken or gone (`drops.rs`).
+    pub dropped_guns: Vec<drops::DroppedGun>,
+    drop_serial: u32,
     pub(crate) article_blade: Option<blade::ArticleBladePlinth>,
     reactions: ReactionState,
     /// Reactions called per kind across the session, so variants rotate.
@@ -728,6 +735,11 @@ pub struct GameState {
     pub(crate) again: std::collections::BTreeSet<Uuid>,
     /// A Duel's running series while the same two fighters play on.
     pub(crate) duel_series: Option<podium::DuelSeries>,
+    /// The last Duel round's [winner, loser], when it had one.
+    pub(crate) duel_result: Option<[Uuid; 2]>,
+    /// Watchers waiting for a Duel seat, by name, first in line first. The
+    /// session owns the line (`session/queue.rs`).
+    pub duel_queue: Vec<String>,
     /// Who has fragged whom, by callsign: the grudges rule bots hold and
     /// the book the Host reads at a Duel. A desktop host loads and saves it.
     pub(crate) head_to_head: crate::statistics::HeadToHead,
@@ -2499,6 +2511,7 @@ impl GameState {
         }
 
         self.tick_pickups();
+        self.tick_dropped_guns();
         self.advance_m04_patients(dt);
         self.advance_m05_captives(dt);
         self.advance_m09_crew(dt);
@@ -3357,6 +3370,7 @@ impl GameState {
             self.drop_flag_from(target_id);
             self.conquest_death(victim_team);
             self.drop_charge_from(target_id);
+            self.drop_gun_from(victim_idx);
             self.drop_primary_from(victim_idx);
             let victim = &mut self.players[victim_idx];
             if victim.inventory.article_blade_uses() > 0 {
@@ -3814,6 +3828,7 @@ impl GameState {
                 .pickups
                 .iter()
                 .map(|p| p.to_state())
+                .chain(self.dropped_guns.iter().map(drops::DroppedGun::to_state))
                 .chain(self.golden_rail.as_ref().map(|gold| PickupState {
                     claim: crate::protocol::SupplyClaim::Contested,
                     pool: None,
@@ -3825,6 +3840,7 @@ impl GameState {
                     y: gold.y,
                     z: gold.z,
                     available: gold.holder.is_none(),
+                    dropped: false,
                 }))
                 .chain(
                     self.article_blade
@@ -3874,6 +3890,7 @@ impl GameState {
             conquest: self.conquest.clone(),
             article_blade: self.article_blade_snapshot(),
             podium: self.podium(),
+            duel_queue: self.duel_queue.clone(),
         }
     }
 
@@ -4325,6 +4342,7 @@ impl GameState {
         self.reset_vehicles();
         self.pickups = self.map.pickups();
         self.golden_rail = None;
+        self.dropped_guns.clear();
         if let Some(blade) = self.article_blade.as_mut() {
             blade.reset(self.tick);
         }
@@ -5033,6 +5051,10 @@ impl Default for GameState {
             conquest: None,
             conquest_orders: conquest::coordination::Orders::default(),
             golden_rail: None,
+            dropped_guns: Vec::new(),
+            drop_serial: 0,
+            duel_result: None,
+            duel_queue: Vec::new(),
             article_blade: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],

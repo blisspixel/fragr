@@ -1066,7 +1066,7 @@ msgid "HOST_RUNNING_CHOICE"
 msgstr "Nobody joins for you. Watch and Join are separate choices; Stop server ends the match for everyone."
 
 msgid "HOST_MORE_OPTIONS"
-msgstr "Rules, LAN and port"
+msgstr "Stacked rules, LAN and port"
 
 msgid "MULTI_FIND_NOTE"
 msgstr "Watch or play on someone's server: nearby, saved, or by address."
@@ -1139,6 +1139,33 @@ msgstr "Duel"
 
 msgid "HOST_DUEL_SEATS"
 msgstr "A duel has two seats. One fixed bot fights you; automatic bots give their seats to people as they join."
+
+msgid "HOST_RULES"
+msgstr "Rules"
+
+msgid "HOST_STACK"
+msgstr "Stack"
+
+msgid "HOST_TWIST_LICENCE_TO_KILL"
+msgstr "Licence to Kill"
+
+msgid "HOST_TWIST_TWO_LIVES"
+msgstr "Two Lives"
+
+msgid "HOST_TWIST_FULL_ARSENAL"
+msgstr "Full Arsenal"
+
+msgid "PRESET_HINT_LICENCE_TO_KILL"
+msgstr "Any hit that lands is a kill."
+
+msgid "PRESET_HINT_GOLDEN_RAIL"
+msgstr "One golden Railgun kills in one hit and goes home when its holder drops."
+
+msgid "PRESET_HINT_SLAPPERS_ONLY"
+msgstr "Fists only. Get close."
+
+msgid "PRESET_HINT_SHOTGUN_WEDDING"
+msgstr "Shotguns for everyone, till death."
 
 msgid "HOST_KIT_DUEL"
 msgstr "One versus one on Larak Lot. Pistol and Fists, guns and the Plate on timed pads. Both press fire on the podium for an instant rematch; others watch until a seat opens."

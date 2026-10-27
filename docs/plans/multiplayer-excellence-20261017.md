@@ -1,6 +1,6 @@
 # Multiplayer Excellence: The Golden Era Benchmark
 
-Status: **in flight**, 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built, and so are [blast push, the Plate, Duel and the rematch](#movement-depth-and-the-rematch-431-wave-3) (Pillar 3 and the GoldenEye "couch friction"); voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
+Status: **in flight**, 2026-10-27: [rules depth](#rules-depth-431-and-432-wave-11) (dropped guns, the Duel line, Host presets and the Conquest bleed) is built; 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built, and so are [blast push, the Plate, Duel and the rematch](#movement-depth-and-the-rematch-431-wave-3) (Pillar 3 and the GoldenEye "couch friction"); voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
 
 ---
 
@@ -162,8 +162,8 @@ an announcer setting (On, Big moments only, Off) and an announcer volume.
   recording exists, so recorded lines drop in without code. The setting uses
   the same keys as PR #448.
 
-**Not done.** Casting and recordings (asset round E-1, E-2). Conquest lead and
-ticket calls (Pillar 6). Quad and frag storm rarely voice, because the triple
+**Not done.** Casting and recordings (asset round E-1, E-2). Conquest lead calls
+(the ticket bleed call landed in wave 11). Quad and frag storm rarely voice, because the triple
 just spoke inside the eight seconds; that is the rarity rule working, revisit
 after a listening pass.
 
@@ -188,9 +188,41 @@ Built on `wave3/mp-depth`, 2026-10-24. Linux evidence only.
   spawn at full health.
 - **Duel.** `--mode duel`: free-for-all rules, two seats with bot hand-over,
   no Continuance pressure, a running series and a Host rematch line, no MVP
-  for a level round. Not built: a spectator queue that seats the next
-  watcher, winner-stays rotation, and a local head-to-head record across
-  sessions.
+  for a level round. The spectator queue and winner-stays landed in wave
+  11 and the head-to-head book in wave 4.
+
+## Rules depth (#431 and #432, wave 11)
+
+Built on `wave11/mp-rules`, 2026-10-27. Linux evidence only.
+
+- **Weapons drop on death** in the Pistol start (free-for-all and Duel): the
+  gun in hand with its rounds, 15 s on the floor, known to bots and agents
+  only once seen. Rules, exceptions and measurements are in the
+  [bot plan](bot-and-enemy-ai-excellence-20261017.md#6-progress). The Rocket
+  share target at six bots is still not met.
+- **The Duel line and winner-stays.** A watcher presses Join to wait in line
+  (`queue`); the head of the line is called to any seat that opens with a
+  one-time token the server holds for ten seconds (`seat_call`, Hello
+  `seat`). When a round between two people ends with a winner and somebody
+  waits, the loser's socket closes with `duel_seat_passed`, the caller takes
+  the seat, and the native client returns the loser to the back of the line.
+  A level round passes nobody. The line shows on the watcher's plate and on
+  the podium (`duel_queue`), and each hand-over is a `next_up` Host caption
+  ("NIGHTFALL STAYS. STATIC KID, YOU'RE UP!"). Server-owned
+  (`server/src/session/queue.rs`); MCP has no queue tool.
+- **Host presets and stacking (Pillar 5).** Standard, Licence to Kill, Golden
+  Rail, Slappers Only and Shotgun Wedding as one row on the Host page, with a
+  short Stack line (Licence to Kill, Two Lives, Full Arsenal) disabled where
+  the server would refuse the combination. Dedicated parity:
+  `fragr-server --preset <id>` stacks with repeated `--mutator`
+  (`server/src/rules/preset.rs`). Proximity Party is not built: the server
+  has no Pistol and mines start kit.
+- **Conquest bleed (Pillar 6).** Under 25 tickets (`CONQUEST_BLEED_TICKETS`)
+  the side's counter pulses between bone and warning red on a level
+  baseline, a low siren sounds every four seconds, and from ten tickets a
+  heartbeat joins it (`client/scripts/conquest_hud.gd`). The Host calls each
+  side's fall once a round (`tickets_low`, a voiced slot; the recording is
+  for the Host voice round).
 
 ## 4. Verification and Delivery Sequence
 

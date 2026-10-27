@@ -15,6 +15,7 @@ mod desk;
 mod fill;
 #[cfg(test)]
 mod five_seats_tests;
+pub(crate) mod queue;
 
 /// Connections include spectators, which have no player identity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -61,6 +62,13 @@ pub struct GameSession {
     board: crate::board::Board,
     population: crate::admission_bounds::Population,
     population_enforced: bool,
+    /// The Duel line: watcher sockets, first in line first (`queue.rs`).
+    duel_queue: Vec<Uuid>,
+    seat_holds: queue::SeatHolds,
+    /// Sockets of fighters who passed their Duel seat, to be closed.
+    seat_passes: Vec<Uuid>,
+    /// The round whose end already passed a seat.
+    benched_round: Option<u32>,
 }
 
 struct SpectatorSeat {
@@ -142,6 +150,10 @@ impl GameSession {
             board: crate::board::Board::default(),
             population: crate::admission_bounds::Population::default(),
             population_enforced: false,
+            duel_queue: Vec::new(),
+            seat_holds: queue::SeatHolds::default(),
+            seat_passes: Vec::new(),
+            benched_round: None,
         }
     }
 
@@ -534,7 +546,9 @@ impl GameSession {
                 }
             }
 
+            GameCommand::Queue { client_id, wait } => self.queue_request(client_id, wait),
             GameCommand::Disconnected { id } => {
+                self.leave_queue(id);
                 self.client_versions.remove(&id);
                 if self.spectators.remove(&id).is_some() {
                     self.population.release_spectator(id);
@@ -545,6 +559,7 @@ impl GameSession {
                 }
             }
             GameCommand::Detached { id } => {
+                self.leave_queue(id);
                 if self.spectators.remove(&id).is_some() {
                     self.population.release_spectator(id);
                 }
@@ -963,6 +978,7 @@ impl GameSession {
         }
 
         self.state.tick(dt);
+        self.tick_duel_queue();
         self.send_records();
         let magazines = self
             .state

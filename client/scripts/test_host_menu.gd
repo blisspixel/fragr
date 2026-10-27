@@ -59,9 +59,35 @@ func _run() -> void:
 	_check(menu._host_bot_policy.is_visible_in_tree() and not menu._host_more.button_pressed and not menu._host_advanced.visible
 		and menu._root.get_node("HostMoreOptions").get_index() < menu._root.get_node("StartServer").get_index(),
 		"default hosting shows mode, map and an explicit bot policy; rules and network fold before Start")
+	_check(menu._host_presets.size() == 5 and menu._host_presets["standard"].button_pressed
+		and menu._host_presets["shotgun-wedding"].is_visible_in_tree()
+		and menu._root.get_node("HostPresetRow").get_index() < menu._root.get_node("HostMoreOptions").get_index(),
+		"the five presets are one visible pick, Standard first, above the fold")
 	menu._host_more.button_pressed = true
-	_check(menu._host_advanced.visible and menu._host_lan.is_visible_in_tree() and menu._host_mutator.is_visible_in_tree(),
-		"one switch discloses rules, friendly fire, LAN and port")
+	_check(menu._host_advanced.visible and menu._host_lan.is_visible_in_tree() and menu._host_twists["two-lives"].is_visible_in_tree(),
+		"one switch discloses stacked rules, friendly fire, LAN and port")
+	# Presets and stacking follow the server's own compatibility (TDM here).
+	_check(not menu._host_twists["licence-to-kill"].disabled and not menu._host_twists["two-lives"].disabled
+		and menu._host_twists["full-arsenal"].disabled, "TDM stacks Licence to Kill and Two Lives, never Full Arsenal")
+	menu._host_presets["golden-rail"].button_pressed = true
+	_check(menu._host_twists["licence-to-kill"].disabled and str(menu._selected_mutators()) == str(["golden-rail"]),
+		"Golden Rail refuses Licence to Kill")
+	menu._host_presets["shotgun-wedding"].button_pressed = true
+	menu._host_twists["licence-to-kill"].button_pressed = true
+	menu._host_twists["two-lives"].button_pressed = true
+	_check(str(menu._selected_mutators()) == str(["shotgun-only", "licence-to-kill", "two-lives"])
+		and menu._host_kit_hint.text.begins_with(tr("PRESET_HINT_SHOTGUN_WEDDING")),
+		"Shotgun Wedding stacks Licence to Kill and Two Lives and says what it is")
+	menu._host_presets["licence-to-kill"].button_pressed = true
+	_check(menu._host_twists["licence-to-kill"].disabled and str(menu._selected_mutators()) == str(["licence-to-kill", "two-lives"]),
+		"a preset's own twist is not offered twice")
+	menu._host_mode.select(2)
+	menu._host_mode.item_selected.emit(2)
+	_check(menu._host_twists["two-lives"].disabled and not menu._host_twists["two-lives"].button_pressed,
+		"Conquest drops Two Lives")
+	menu._host_mode.select(0)
+	menu._host_mode.item_selected.emit(0)
+	menu._host_presets["standard"].button_pressed = true
 	await menu._show("host")
 	_check(menu._host_advanced.visible, "the disclosure stays open across a page rebuild")
 	menu._host_more.button_pressed = false

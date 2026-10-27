@@ -2117,6 +2117,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
         }
         Ok(protocol::ServerMessage::Board(_)) => {}
+        // The Duel line is a watcher queue for people; MCP has no queue tool,
+        // so an agent is never called. Joining stays `join`.
+        Ok(protocol::ServerMessage::SeatCall { .. }) => {}
         Ok(protocol::ServerMessage::SpectatorFacts(facts)) => {
             // The booth is never a fighter's business. The server does not
             // send it to one; a seat that somehow hears it still drops it.
@@ -3891,6 +3894,7 @@ mod mcp_tests {
         let name = "ArenaFox";
         let hello = protocol::ClientMessage::Hello {
             body: None,
+            seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,

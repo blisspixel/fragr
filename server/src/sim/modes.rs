@@ -195,7 +195,7 @@ impl GameState {
         true
     }
 
-    pub(super) fn name_of(&self, id: Uuid) -> Option<String> {
+    pub(crate) fn name_of(&self, id: Uuid) -> Option<String> {
         self.players
             .iter()
             .find(|p| p.id == id)

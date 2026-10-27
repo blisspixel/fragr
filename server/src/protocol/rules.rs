@@ -313,10 +313,17 @@ pub enum HostReactionKind {
     /// Larak Lot only: the frag count spikes across the lot, and the Host
     /// calls it what the league calls it. Text only.
     LarakLotSpecial,
+    /// Duel: the head of the line takes a seat; `player` is who, `other`
+    /// the winner who stays, when a round passed it. Text only, and always
+    /// said: it is who fights next.
+    NextUp,
+    /// Conquest: a side falls under the bleed line
+    /// (`rules::CONQUEST_BLEED_TICKETS`), once a round. `team` is that side.
+    TicketsLow,
 }
 
 impl HostReactionKind {
-    pub const ALL: [Self; 19] = [
+    pub const ALL: [Self; 21] = [
         Self::FirstBlood,
         Self::StreakEnded,
         Self::LastStanding,
@@ -336,11 +343,13 @@ impl HostReactionKind {
         Self::MatchPoint,
         Self::SuddenDeath,
         Self::LarakLotSpecial,
+        Self::NextUp,
+        Self::TicketsLow,
     ];
 
     /// Information rather than drama: never held back by the reaction gap.
     pub const fn always(self) -> bool {
-        matches!(self, Self::GoldenRail | Self::SuddenDeath)
+        matches!(self, Self::GoldenRail | Self::SuddenDeath | Self::NextUp)
     }
 
     /// A big moment: the Host voices it and the announcer's Big moments only
@@ -348,7 +357,7 @@ impl HostReactionKind {
     pub const fn big(self) -> bool {
         !matches!(
             self,
-            Self::GoldenRail | Self::DoubleFrag | Self::LeadChange | Self::FlagTaken
+            Self::GoldenRail | Self::DoubleFrag | Self::LeadChange | Self::FlagTaken | Self::NextUp
         )
     }
 
@@ -496,7 +505,20 @@ mod tests {
         let small: Vec<K> = K::ALL.into_iter().filter(|k| !k.big()).collect();
         assert_eq!(
             small,
-            [K::GoldenRail, K::DoubleFrag, K::LeadChange, K::FlagTaken]
+            [
+                K::GoldenRail,
+                K::DoubleFrag,
+                K::LeadChange,
+                K::FlagTaken,
+                K::NextUp
+            ]
+        );
+        assert!(K::TicketsLow.big() && !K::TicketsLow.always());
+        assert!(K::NextUp.always());
+        assert_eq!(serde_json::to_string(&K::NextUp).unwrap(), "\"next_up\"");
+        assert_eq!(
+            serde_json::to_string(&K::TicketsLow).unwrap(),
+            "\"tickets_low\""
         );
         let ids: std::collections::HashSet<String> = K::ALL
             .iter()

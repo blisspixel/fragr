@@ -401,6 +401,7 @@ pub(crate) mod fixtures {
             y: 0.0,
             z,
             available,
+            dropped: false,
         }
     }
 
@@ -449,6 +450,7 @@ pub(crate) mod fixtures {
             jammer_dish: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         }
     }
 }

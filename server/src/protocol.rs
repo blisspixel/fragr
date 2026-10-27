@@ -69,7 +69,7 @@ pub use actors::{
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
-pub use conquest::{CapturePoint, ConquestState};
+pub use conquest::{CapturePoint, ConquestState, CONQUEST_BLEED_TICKETS};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
@@ -824,7 +824,10 @@ pub const STILL_HERE_GAMEPLAY_VERSION: u32 = 57;
 pub const BOOTH_GAMEPLAY_VERSION: u32 = 58;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = BOOTH_GAMEPLAY_VERSION;
+/// Guns dropped on death, the Duel line and seat calls, the Conquest bleed
+/// call and the hand-over call.
+pub const ARENA_RULES_GAMEPLAY_VERSION: u32 = 59;
+pub const GAMEPLAY_VERSION: u32 = ARENA_RULES_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1011,6 +1014,11 @@ pub enum ClientMessage {
         /// spectator, and a resumed pawn keeps the body it already has.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         body: Option<BodyKind>,
+        /// A Duel seat's one-time token from `SeatCall` (capability 59).
+        /// While a seat is held for somebody, only the fighter Hello carrying
+        /// its token is admitted. Never logged.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        seat: Option<String>,
     },
     /// Explicit leave. A later socket close removes the pawn now.
     Leave,
@@ -1023,6 +1031,16 @@ pub enum ClientMessage {
     /// Agent-only display label echoed into Snapshot PlayerState.behavior.
     /// Never trusted for combat. Rule-bot behaviors still come from BotController.
     SetDisplayBehavior(SetDisplayBehavior),
+    /// A Duel watcher joins the line for the next seat, or leaves it
+    /// (capability 59). Ignored from a fighter and outside Duel.
+    Queue(QueueRequest),
+}
+
+/// `{"type":"queue","wait":true}`: wait for a Duel seat; false steps out.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct QueueRequest {
+    pub wait: bool,
 }
 
 #[allow(clippy::large_enum_variant)] // Snapshot carries round chrome; boxing churns every tick.
@@ -1216,6 +1234,12 @@ pub enum ServerMessage {
     /// multikill chains. Broadcast only to spectator connections, never to
     /// a connection that holds a fighter, and never on a campaign map.
     SpectatorFacts(SpectatorFacts),
+    /// Unicast to the watcher at the head of the Duel line when a seat is
+    /// theirs (capability 59): reconnect as a fighter with `seat` in the
+    /// Hello within ten seconds. Nobody else is admitted to a held seat.
+    SeatCall {
+        seat: String,
+    },
 }
 
 /// Additive full-body extension to the legacy Ack root fields. An absent block
@@ -1495,6 +1519,11 @@ pub struct PickupState {
     pub y: f32,
     pub z: f32,
     pub available: bool,
+    /// A gun a fragged fighter dropped (`sim::drops`): it lies where they
+    /// fell for a short while, carries `amount` rounds and never returns.
+    /// Omitted for a pad.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dropped: bool,
 }
 
 impl PickupState {
@@ -1661,6 +1690,10 @@ pub struct Snapshot {
     /// series exists.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub podium: Option<Podium>,
+    /// Duel: the watchers waiting for a seat, first in line first
+    /// (capability 59). Omitted while nobody waits.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub duel_queue: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -2115,6 +2148,7 @@ mod protocol_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["shot_results"][0]["hit"], true);
@@ -2333,6 +2367,7 @@ mod protocol_tests {
             y: 0.4,
             z: 12.0,
             available: false,
+            dropped: false,
         };
         let snap = Snapshot {
             vehicles: Vec::new(),
@@ -2378,6 +2413,7 @@ mod protocol_tests {
             conquest: None,
             article_blade: None,
             podium: None,
+            duel_queue: Vec::new(),
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["pickups"][0]["id"], "pad_rail");

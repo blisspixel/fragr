@@ -420,9 +420,11 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         conquest,
         article_blade,
         podium,
+        duel_queue,
     } = old;
     article_blade == &new.article_blade
         && podium == &new.podium
+        && duel_queue == &new.duel_queue
         && walker == &new.walker
         && vehicles.len() == new.vehicles.len()
         && vehicles

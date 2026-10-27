@@ -6,6 +6,10 @@
 //! `observe` reports that belief for a joined agent. A spectator that never
 //! joined keeps the snapshot's full availability view, and `round_state`
 //! carries its booth clocks.
+//!
+//! A gun dropped on death (`dropped`) is not a pad: a joined agent learns of
+//! it only once it has seen it, the way a rule bot does, and an unseen drop
+//! is left out of `observe` altogether.
 use fragr_server::movement::Solid;
 use fragr_server::protocol::{PickupState, PlayerState, Snapshot, SupplyClaim};
 use serde_json::Value;
@@ -26,6 +30,8 @@ struct Belief {
     /// Expected return tick from the published clock, when seen empty.
     back_at: Option<u64>,
     in_view: bool,
+    /// Ever seen: a dropped gun is known only after this.
+    seen: bool,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -87,9 +93,11 @@ impl PadView {
                 up: true,
                 back_at: None,
                 in_view: false,
+                seen: false,
             });
             let seen = me.is_some_and(|me| sees(&self.solids, me, pad));
             belief.in_view = seen;
+            belief.seen |= seen;
             if seen {
                 if pad.available {
                     belief.up = true;
@@ -122,6 +130,13 @@ impl PadView {
         if pad.claim == SupplyClaim::Personal {
             return pad.available;
         }
+        if pad.dropped {
+            // A dropped gun is known only once seen.
+            return self
+                .beliefs
+                .get(&pad.id)
+                .is_some_and(|belief| belief.seen && belief.up);
+        }
         self.beliefs.get(&pad.id).is_none_or(|belief| belief.up)
     }
 
@@ -131,6 +146,11 @@ impl PadView {
         let Some(rows) = pickups.as_array_mut() else {
             return;
         };
+        rows.retain(|row| {
+            let dropped = row.get("dropped").and_then(Value::as_bool) == Some(true);
+            let id = row.get("id").and_then(Value::as_str).unwrap_or_default();
+            !dropped || self.beliefs.get(id).is_some_and(|belief| belief.seen)
+        });
         for row in rows {
             let Some(object) = row.as_object_mut() else {
                 continue;
@@ -282,5 +302,61 @@ mod tests {
             .beliefs
             .values()
             .all(|belief| !belief.in_view && belief.up));
+    }
+
+    #[test]
+    fn a_dropped_gun_is_in_observe_only_once_seen() {
+        let (mut state, me) = arena();
+        let mut view = view_for(&state);
+        stand_at(&mut state, me, 0, 0.0, 2.0);
+        let mine = state
+            .snapshot()
+            .players
+            .into_iter()
+            .find(|p| p.id == me)
+            .unwrap();
+        let drop = |x: f32, z: f32| PickupState {
+            claim: SupplyClaim::Contested,
+            pool: None,
+            id: "drop_1".into(),
+            kind: "weapon".into(),
+            weapon: "Rocket".into(),
+            amount: Some(3),
+            x,
+            y: mine.y - fragr_server::sim::PLAYER_FLOOR_Y + PAD_LIFT,
+            z,
+            available: true,
+            dropped: true,
+        };
+        // Behind the agent and far off: not seen, not in observe.
+        let mut snapshot = state.snapshot();
+        snapshot.pickups.push(drop(
+            mine.x - mine.yaw.cos() * 20.0,
+            mine.z - mine.yaw.sin() * 20.0,
+        ));
+        view.observe(&snapshot, Some(me));
+        assert!(!view.up(snapshot.pickups.last().unwrap()));
+        let mut rows = serde_json::to_value(&snapshot.pickups).unwrap();
+        view.redact(&mut rows);
+        assert!(rows
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|row| row["id"] != "drop_1"));
+        // Underfoot: seen, and kept from then on.
+        let mut snapshot = state.snapshot();
+        snapshot.pickups.push(drop(mine.x + 1.0, mine.z));
+        view.observe(&snapshot, Some(me));
+        let mut rows = serde_json::to_value(&snapshot.pickups).unwrap();
+        view.redact(&mut rows);
+        let row = rows
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["id"] == "drop_1")
+            .expect("a seen drop is observed");
+        assert_eq!(row["dropped"], true);
+        assert!(view.up(snapshot.pickups.last().unwrap()));
+        assert_eq!(row["in_view"], true);
     }
 }

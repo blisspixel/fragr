@@ -110,11 +110,29 @@ func _run() -> void:
 	var arsenal: Dictionary = _config(false, false)
 	arsenal["mode"] = "ffa"
 	arsenal["map_id"] = 1
-	arsenal["mutator"] = "full-arsenal"
+	arsenal["mutators"] = ["full-arsenal"]
 	_check(LocalHost.valid_settings(arsenal) and "full-arsenal" in LocalHost.arguments_for(arsenal),
 		"a free-for-all host can restore the full arsenal start")
 	arsenal["mode"] = "tdm"
 	_check(not LocalHost.valid_settings(arsenal), "full arsenal is refused where a mode keeps its own kit")
+	var wedding: Dictionary = _config(false, false)
+	wedding["mutators"] = ["shotgun-only", "licence-to-kill", "two-lives"]
+	var wedding_args: PackedStringArray = LocalHost.arguments_for(wedding)
+	_check(LocalHost.valid_settings(wedding) and wedding_args.count("--mutator") == 3
+		and wedding_args[wedding_args.find("shotgun-only") - 1] == "--mutator" and "two-lives" in wedding_args,
+		"a preset with stacked twists reaches the server as repeated --mutator")
+	for bad: Variant in [["golden-rail", "licence-to-kill"], ["shotgun-only", "fists-only"], ["golden-rail", "full-arsenal"],
+		["two-lives", "two-lives"], ["low-gravity"], "rail-only"]:
+		var refused: Dictionary = _config(false, false)
+		refused["mutators"] = bad
+		_check(not LocalHost.valid_settings(refused) and LocalHost.arguments_for(refused).is_empty(),
+			"a stack the server would refuse never starts: " + str(bad))
+	var lives: Dictionary = _config(false, true)
+	lives["mutators"] = ["two-lives"]
+	_check(not LocalHost.valid_settings(lives), "two lives is refused in Sabotage")
+	var old: Dictionary = _config(false, false)
+	old["mutator"] = "rail-only"
+	_check(not LocalHost.valid_settings(old), "the old single mutator key is refused, not migrated")
 	var duel: Dictionary = _config(false, false)
 	duel["mode"] = "duel"
 	duel["map_id"] = 1
