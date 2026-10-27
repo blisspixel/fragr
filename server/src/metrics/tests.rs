@@ -731,6 +731,10 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
             report.writer
         );
         assert!(report.broadcast_encode_ms.count >= 30);
+        // Every served tick is timed whole and against its deadline.
+        assert_eq!(report.tick_ms.count, report.session_ms.count);
+        assert_eq!(report.late_ms.count, report.session_ms.count);
+        assert!(report.tick_ms.max >= report.session_ms.max);
         let starts: std::collections::BTreeMap<u64, Instant> = metrics.tick_starts().collect();
         assert!(common.iter().all(|tick| starts.contains_key(tick)));
     }

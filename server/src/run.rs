@@ -21,6 +21,15 @@ pub struct RunMetrics {
     session_ns: crate::bench::Histogram,
     broadcast_encode_ns: crate::bench::Histogram,
     fanout_ns: crate::bench::Histogram,
+    /// The whole tick handler, start to the end of delivery queuing.
+    tick_ns: crate::bench::Histogram,
+    /// How long after its scheduled deadline each tick handler began.
+    late_ns: crate::bench::Histogram,
+    /// Whole periods the interval skipped because the loop fell behind.
+    pub skipped_periods: u64,
+    /// Handlers at or above the 50 ms budget.
+    pub over_budget: u64,
+    previous_deadline: Option<std::time::Instant>,
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
@@ -38,6 +47,12 @@ pub struct RunMetricsReport {
     /// Encoding every broadcast once on the tick task, which also counts its bytes.
     pub broadcast_encode_ms: crate::bench::Summary,
     pub fanout_enqueue_ms: crate::bench::Summary,
+    /// The whole tick handler: session, encode, enqueue and status refresh.
+    pub tick_ms: crate::bench::Summary,
+    /// Handler start after its scheduled deadline.
+    pub late_ms: crate::bench::Summary,
+    pub skipped_periods: u64,
+    pub over_budget: u64,
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
@@ -51,6 +66,10 @@ impl RunMetrics {
             session_ms: self.session_ns.summary(1e-6),
             broadcast_encode_ms: self.broadcast_encode_ns.summary(1e-6),
             fanout_enqueue_ms: self.fanout_ns.summary(1e-6),
+            tick_ms: self.tick_ns.summary(1e-6),
+            late_ms: self.late_ns.summary(1e-6),
+            skipped_periods: self.skipped_periods,
+            over_budget: self.over_budget,
             queued_messages: self.queued_messages,
             queue_high_water: self.queue_high_water,
             queue_overflows: self.queue_overflows,
@@ -64,6 +83,10 @@ impl RunMetrics {
         self.session_ns.clear();
         self.broadcast_encode_ns.clear();
         self.fanout_ns.clear();
+        self.tick_ns.clear();
+        self.late_ns.clear();
+        self.skipped_periods = 0;
+        self.over_budget = 0;
         self.queued_messages = 0;
         self.queue_high_water = 0;
         self.queue_overflows = 0;
@@ -82,6 +105,28 @@ impl RunMetrics {
             self.tick_starts.pop_front();
         }
         self.tick_starts.push_back((tick, started));
+    }
+
+    /// One served tick's deadline, lateness and whole handler duration.
+    fn record_schedule(
+        &mut self,
+        deadline: std::time::Instant,
+        started: std::time::Instant,
+        total: Duration,
+    ) {
+        self.skipped_periods =
+            self.skipped_periods
+                .saturating_add(crate::tick_trace::skipped_periods(
+                    self.previous_deadline,
+                    deadline,
+                    TICK,
+                ));
+        self.previous_deadline = Some(deadline);
+        let nanos = |duration: Duration| u64::try_from(duration.as_nanos()).unwrap_or(u64::MAX);
+        self.late_ns
+            .record(nanos(started.saturating_duration_since(deadline)));
+        self.tick_ns.record(nanos(total));
+        self.over_budget += u64::from(total >= TICK);
     }
 
     fn record_delivery(&mut self, delivery: DeliveryStats) {
@@ -867,6 +912,7 @@ async fn run_server_impl(
                     let encode = measured.saturating_sub(elapsed);
                     metrics.broadcast_encode_ns.record(encode.as_nanos().min(u64::MAX as u128) as u64);
                     metrics.fanout_ns.record(fanout_elapsed.as_nanos().min(u64::MAX as u128) as u64);
+                    metrics.record_schedule(deadline.into_std(), started, finished.saturating_duration_since(started));
                     if let Some(tick) = snapshot_tick(&broadcasts) {
                         metrics.record_tick_start(tick, started);
                     }
@@ -1283,5 +1329,32 @@ mod durable_run_tests {
             "saved campaign run names another mission"
         );
         std::fs::remove_dir_all(&directory).unwrap();
+    }
+
+    #[test]
+    fn measured_ticks_count_lateness_skips_and_budget() {
+        let mut metrics = RunMetrics::default();
+        let first = std::time::Instant::now();
+        metrics.record_schedule(
+            first,
+            first + Duration::from_millis(2),
+            Duration::from_millis(4),
+        );
+        // The next deadline is three periods on: two were skipped.
+        let late = first + TICK * 3;
+        metrics.record_schedule(late, late + Duration::from_millis(10), TICK);
+        let report = metrics.report();
+        assert_eq!(report.tick_ms.count, 2);
+        assert_eq!(report.late_ms.count, 2);
+        assert!(report.late_ms.max >= 10.0 && report.late_ms.max < 11.0);
+        assert_eq!(report.skipped_periods, 2);
+        assert_eq!(report.over_budget, 1);
+        // A measured window starts clean but keeps the deadline chain.
+        metrics.reset();
+        let next = late + TICK;
+        metrics.record_schedule(next, next, Duration::from_millis(1));
+        let report = metrics.report();
+        assert_eq!((report.skipped_periods, report.over_budget), (0, 0));
+        assert_eq!(report.tick_ms.count, 1);
     }
 }

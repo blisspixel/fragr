@@ -509,6 +509,8 @@ pub(crate) struct ServerSpec {
     pub map_rotate: bool,
     pub seed: u64,
     pub launch: Launch,
+    /// The server's own per-tick trace (`--tick-trace`), when wanted.
+    pub tick_trace: Option<PathBuf>,
 }
 
 pub(crate) async fn start_server(
@@ -538,6 +540,9 @@ pub(crate) async fn start_server(
                 .kill_on_drop(true);
             if spec.map_rotate {
                 command.arg("--map-rotate");
+            }
+            if let Some(trace) = &spec.tick_trace {
+                command.arg("--tick-trace").arg(trace);
             }
             let child = command.spawn().map_err(|error| {
                 Error::Server(format!("cannot start {}: {error}", binary.display()))
@@ -571,6 +576,7 @@ pub(crate) async fn start_server(
                 map_rotate: spec.map_rotate,
                 seed: spec.seed,
                 status_every_s: 0,
+                tick_trace: spec.tick_trace.clone(),
                 ..fragr_server::run::ServerOptions::default()
             };
             let handle = tokio::spawn(async move {
@@ -653,6 +659,7 @@ pub async fn run_soak(config: SoakConfig) -> Result<Verdict, Error> {
             map_rotate: config.map_rotate,
             seed: config.seed,
             launch: config.launch.clone(),
+            tick_trace: None,
         },
         &server_log,
     )
