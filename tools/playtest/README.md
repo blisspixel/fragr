@@ -6,7 +6,7 @@ authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
 sizes. These measurements support playtesting; they do not establish fun alone.
 
-The guided campaign survey runs Recall Notice, or M19's bounded teaching and market segments, through the authoritative
+The guided campaign survey runs Recall Notice, its earned carry into a bounded M02 window, or M19's bounded teaching and market segments, through the authoritative
 session at 20 simulated ticks per second. It uses the shared mission navigator
 and inventory controller with ordinary human actions, finite magazines, earned
 pickups, real deaths and the three episode continues. No equipment or health is
@@ -37,6 +37,41 @@ that market enemies first activate or become visible at that boundary.
 ```bash
 cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-market.json
 ```
+
+Select `--survey-mission m02-carry` to carry an earned Recall Notice departure
+into Persons Unknown through the real run file. The M01 leg is the Recall
+Notice trial itself, field for field, with the server's `DurableRun` writing
+`run.json` after every step into a scratch directory. M02 opens only by
+resuming that file, which promotes and loads the saved departure exactly as the
+local child does. The same policy then plays 60 seconds of active M02 time
+with the carried equipment, HP, armor and remaining continues; M02 has no route
+hints, grants or completion target. `--max-seconds` bounds the M01 leg only.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m02-carry --survey-seeds 8 --seed 42 --max-seconds 600 --report .agents/playtest/m02-carry.json
+```
+
+Each M02 death ends its session with the pending Continue saved. A fresh
+session reopens it from disk. A request dropped before delivery, stale
+mission, run and attempt requests and a duplicate after acceptance go through
+the ordinary session command path; each must be refused and leave the file
+unchanged, and only the accepted request may spend a continue. The restored
+kit must equal the M02 entry kit live and again after reopening a copy of the
+saved entry. Any violation fails the command. Exhaustion must save `failed`.
+The dropped request models transport loss; the client's own retry latch is
+covered by the Godot net client harness. Because the local child launches
+every process with one seed, an unchanged seed and entry replay a
+deterministic controller's death exactly, so attempt `n` declares simulation
+seed `seed + 1000 * (n - 1)`; aim phase keeps the trial seed.
+
+Outcomes are `m01_exhausted` or `m01_timeout` (no M02 entry), `window_elapsed`
+(alive when the window ends, after any retries), `exhausted` and `departed`.
+`carry` holds the M01 trial, exit and entry kits, per-attempt `segments` with
+ammunition at start and end, and `retries` with menu-preview receipts. M02
+supplies can refill ammunition, so compare shots with the ammunition receipts
+rather than reading net change as use. `review` is the first M02 fatal hit and
+`first_kill_review` the first later M02 kill; render them as below. A
+`window_elapsed` row is not an M02 clear.
 
 Every seed runs three stress profiles on Assisted, Standard and Severe:
 

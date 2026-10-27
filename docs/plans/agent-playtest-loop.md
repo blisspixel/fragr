@@ -32,6 +32,13 @@ reported scene before attributing a failure to game balance; known routes and
 synthetic aim do not establish fresh-player acceptance. Extend this one seam
 after its limits are understood, rather than adding another campaign controller.
 
+`--survey-mission m02-carry` keeps the Recall Notice trial unchanged, writes
+it through the server's durable run file and enters M02 only by resuming the
+saved departure. A bounded 60-second M02 window uses the same policy; every
+death is reopened from disk and must refuse dropped, stale and duplicate
+Continue requests before spending exactly one. This is earned carry and retry
+evidence for one window, not an M02 clear or acceptance of carried difficulty.
+
 `--survey-mission m19-teaching` ends at the first tram-street Paver, before
 the market. Its standalone earned kit, disclosed hop hints, sampled floor-strip
 vision and bounded last-seen search are separate from inherited campaign proof.
