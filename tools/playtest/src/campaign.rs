@@ -21,6 +21,13 @@ use uuid::Uuid;
 
 const DT: f32 = 0.05;
 
+/// The Recall Notice disclosure, shared with the carry report's M01 leg.
+macro_rules! recall_notice_observation {
+    () => {
+        "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim."
+    };
+}
+
 mod carry;
 mod market;
 mod market_guard;
@@ -1188,7 +1195,7 @@ pub fn run_scenario(
     }
     let observation = match scenario {
         Scenario::M02Carry => carry::OBSERVATION,
-        Scenario::RecallNotice => "Guided M01 route; known public objective and navigation geometry; constrained enemy/supply perception and ordinary human actions; immediate Continue acceptance with no simulated menu delay; no human-population calibration or rendered-readability claim.",
+        Scenario::RecallNotice => recall_notice_observation!(),
         Scenario::M19Teaching => "Standalone M19 discovery entry with Fists, ordinary earned supplies and a fresh three-continue budget, not inherited M18 progress. Guided public objectives and exact wire-authored jetpack launch/landing hints; constrained enemy, supply and sampled floor-strip perception, reaction and turning; ordinary finite-magazine human actions. Crossing/street search remembers at most 64 delayed visible enemy positions for less than 30 seconds; it investigates the last observed point without firing at hidden actors and retires reached, expired or confirmed-dead memories. An unfinished arrival gets another bounded sweep after three seconds without progress. Ends after tram_street, before the market. Supported powered ascent from below the gallery and optional Paver interruption/strip damage are reported separately. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
         Scenario::M19Market => "Standalone M19 discovery entry with Fists and a fresh three-continue budget, not inherited M18 progress. Same constrained profile, ordinary finite magazines, public objectives, authored jetpack hints, sampled floor-strip perception and last-observed enemy memory as the teaching survey. Search also applies during market_strips; no equipment, health or progress grants. Market-only evaluator revision: shared escape from a currently recognized strip takes priority over generic dodge, hearing and scanning. Outside strips, a grounded ordinary-key step predicted through existing movement and solids is withheld if it crosses a currently recognized strip; aim, fire and reload remain ordinary. No unseen-hazard memory or airborne-velocity inference. This repairs evaluator arbitration, not game balance. Ends immediately after market_strips, before acting on water_tanks. Full earned equipment, HP, armor and continues are recorded at entry, public market-objective entry, completion and each terminal attempt. Market actors may already have been encountered before tram_street completes. Challenge flags are attempt-monotone; a newly observed flag after market entry establishes timing only, not a particular Paver or hit count. Prior-true or absent attributable evidence is unknown. Immediate Continue with no menu delay; no human-population or rendered-readability claim.",
     };
