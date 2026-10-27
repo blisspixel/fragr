@@ -24,15 +24,60 @@ pub(super) struct HopState {
     attempt: u32,
     /// A gating straggler being hunted, kept until it falls or the objective moves.
     hunt: Option<(Uuid, usize)>,
+    /// The side chosen to leave the strip currently stood in.
+    exit: StripExit,
+}
+
+/// One chosen way out per stay on a strip. The wall check depends on where
+/// the body stands, so re-deciding every tick beside a corner can reverse the
+/// escape each step and keep the body inside until it is worked. The choice
+/// lasts while the body stays on the same half of the same strip geometry as
+/// seen; crossing the centre line, for any reason, decides afresh.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub(super) struct StripExit {
+    /// Owner, origin, the half it was chosen from and the side to cross.
+    chosen: Option<(Uuid, [f32; 3], f32, f32)>,
+}
+
+impl StripExit {
+    pub(super) fn yaw(
+        &mut self,
+        strips: &[PaverStripState],
+        feet: [f32; 3],
+        solids: &[Solid],
+    ) -> Option<f32> {
+        let found = strips.iter().find_map(|strip| {
+            let kept = self
+                .chosen
+                .filter(|(owner, origin, _, _)| *owner == strip.owner_id && *origin == strip.origin)
+                .map(|(_, _, half, sign)| (half, sign));
+            strip_exit(strip, feet, solids, kept).map(|exit| (strip, exit))
+        });
+        self.chosen =
+            found.map(|(strip, (_, half, sign))| (strip.owner_id, strip.origin, half, sign));
+        found.map(|(_, (yaw, _, _))| yaw)
+    }
 }
 
 /// The direction out of a strip that contains `feet`: across its nearer
 /// edge, or the farther one when the nearer side is walled within reach.
+#[cfg(test)]
 pub(crate) fn strip_escape(
     strip: &PaverStripState,
     feet: [f32; 3],
     solids: &[Solid],
 ) -> Option<f32> {
+    strip_exit(strip, feet, solids, None).map(|(yaw, _, _)| yaw)
+}
+
+/// Escape yaw, the half the feet stand in and the side to cross. `kept` is an
+/// earlier (half, side) choice, reused only from that same half.
+fn strip_exit(
+    strip: &PaverStripState,
+    feet: [f32; 3],
+    solids: &[Solid],
+    kept: Option<(f32, f32)>,
+) -> Option<(f32, f32, f32)> {
     let forward = [strip.yaw.cos(), strip.yaw.sin()];
     let lateral = [-forward[1], forward[0]];
     let dx = feet[0] - strip.origin[0];
@@ -55,12 +100,19 @@ pub(crate) fn strip_escape(
         ];
         crate::combat::line_of_sight([feet[0], feet[1] + 1.0, feet[2]], end, solids)
     };
-    let sign = if open(side) || !open(-side) {
-        side
-    } else {
-        -side
-    };
-    Some((lateral[1] * sign).atan2(lateral[0] * sign).rem_euclid(TAU))
+    let kept = kept.filter(|(half, _)| *half == side).map(|(_, sign)| sign);
+    let sign = kept.unwrap_or_else(|| {
+        if open(side) || !open(-side) {
+            side
+        } else {
+            -side
+        }
+    });
+    Some((
+        (lateral[1] * sign).atan2(lateral[0] * sign).rem_euclid(TAU),
+        side,
+        sign,
+    ))
 }
 
 use std::f32::consts::TAU;
@@ -174,10 +226,10 @@ impl MissionClient {
         }
         // A marked strip is the most urgent fact on the floor: step across
         // its nearer edge, still aiming and firing at the chosen target.
-        if let Some(yaw) = snapshot
-            .paver_strips
-            .iter()
-            .find_map(|strip| strip_escape(strip, feet, &self.m19_solids))
+        if let Some(yaw) = self
+            .m19_hops
+            .exit
+            .yaw(&snapshot.paver_strips, feet, &self.m19_solids)
         {
             self.m19_hops.flying = None;
             self.press_down = false;
@@ -454,5 +506,119 @@ mod tests {
         ] {
             assert!(strip_escape(&strip, outside, &[]).is_none(), "{outside:?}");
         }
+    }
+
+    /// Recorded market geometry (#487, seed 42 deliberate/Standard attempt 3,
+    /// ticks 4195 to 4227): a stall corner sits just past the nearer edge.
+    /// The per-tick side choice flipped as the body moved, so it never left.
+    fn market_corner() -> (PaverStripState, crate::movement::Arena) {
+        let strip = PaverStripState {
+            owner_id: Uuid::from_u128(0x1b),
+            origin: [13.326_842, 0.0, 32.135_853],
+            yaw: 2.191_645_9,
+            length: 6.0,
+            half_width: 1.6,
+            working: false,
+            phase_started: 4190,
+            phase_ends: 4224,
+        };
+        let stall = Solid {
+            min_x: 14.0,
+            max_x: 20.0,
+            min_z: 35.0,
+            max_z: 35.6,
+            bottom: 0.0,
+            top: 3.2,
+        };
+        (
+            strip,
+            crate::movement::Arena {
+                half: 64.0,
+                solids: vec![stall],
+            },
+        )
+    }
+
+    fn walk_out(
+        mut choose: impl FnMut(&PaverStripState, [f32; 3], &[Solid]) -> Option<f32>,
+    ) -> Option<usize> {
+        use crate::movement::{live_step, MoveInput, MoveState, ACTOR_REFERENCE_SPEED};
+        let (strip, arena) = market_corner();
+        let mut body = MoveState {
+            x: 12.63,
+            y: 0.0,
+            z: 34.68,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw: 0.0,
+        };
+        // The fighter keeps aiming at the Paver and strafes: ordinary keys
+        // nearest the escape direction in that fixed facing.
+        let facing = (31.4_f32 - 34.68).atan2(13.9 - 12.63).rem_euclid(TAU);
+        for step in 0..34 {
+            let Some(yaw) = choose(&strip, [body.x, body.y, body.z], &arena.solids) else {
+                return Some(step);
+            };
+            let keys = [
+                (true, false, false, false),
+                (false, true, false, false),
+                (false, false, true, false),
+                (false, false, false, true),
+                (true, false, true, false),
+                (true, false, false, true),
+                (false, true, true, false),
+                (false, true, false, true),
+            ];
+            let input = |k: (bool, bool, bool, bool)| MoveInput {
+                forward: k.0,
+                back: k.1,
+                left: k.2,
+                right: k.3,
+                yaw: facing,
+                ..Default::default()
+            };
+            let score = |k: &(bool, bool, bool, bool)| {
+                let (dx, dz) = crate::movement::wish_dir(&input(*k), facing);
+                dx * yaw.cos() + dz * yaw.sin()
+            };
+            let best = keys
+                .into_iter()
+                .max_by(|a, b| score(a).total_cmp(&score(b)))
+                .unwrap();
+            body = live_step(body, &input(best), ACTOR_REFERENCE_SPEED, 0.05, &arena);
+        }
+        None
+    }
+
+    #[test]
+    fn escape_beside_a_corner_leaves_before_the_strip_is_worked() {
+        // Re-deciding the side every tick reproduces the recorded stay.
+        assert_eq!(walk_out(strip_escape), None);
+        let mut exit = StripExit::default();
+        let left =
+            walk_out(|strip, feet, solids| exit.yaw(std::slice::from_ref(strip), feet, solids));
+        assert!(left.is_some_and(|step| step <= 8), "{left:?}");
+        assert_eq!(exit, StripExit::default(), "leaving forgets the choice");
+    }
+
+    #[test]
+    fn a_kept_exit_belongs_to_one_strip_geometry() {
+        let (strip, arena) = market_corner();
+        let mut exit = StripExit::default();
+        let feet = [12.63, 0.0, 34.68];
+        let first = exit.yaw(&[strip], feet, &arena.solids).unwrap();
+        // From a spot where a fresh check would choose the far edge, the
+        // stay keeps its first side.
+        let later = [12.86, 0.0, 34.76];
+        assert_ne!(strip_escape(&strip, later, &arena.solids), Some(first));
+        assert_eq!(exit.yaw(&[strip], later, &arena.solids), Some(first));
+        // A new preparation at another origin decides afresh.
+        let mut moved = strip;
+        moved.origin[0] += 0.5;
+        assert_eq!(
+            exit.yaw(&[moved], later, &arena.solids),
+            strip_escape(&moved, later, &arena.solids)
+        );
     }
 }
