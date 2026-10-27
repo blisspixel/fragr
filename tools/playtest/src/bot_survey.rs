@@ -4,9 +4,12 @@
 //! contest, focus fire on one body, hits landed outside the shooter's view,
 //! and which guns do the work. A survey is behaviour evidence for rule bots,
 //! never a human fun verdict.
-use fragr_server::protocol::{AmmoPool, GameEvent, GameMode, ServerMessage, WeaponType};
+use fragr_server::net::GameCommand;
+use fragr_server::protocol::{
+    AmmoPool, BodyKind, GameEvent, GameMode, Role, ServerMessage, WeaponType,
+};
 use fragr_server::rules::RuleSet;
-use fragr_server::session::GameSession;
+use fragr_server::session::{GameSession, Recipient};
 use fragr_server::sim::{MapKind, MatchConfig, PickupKind};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -420,6 +423,16 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         ..MatchConfig::default()
     });
     session.spawn_bots(scenario.bots);
+    // Side calls go only to their side and the booth, so the survey listens
+    // from one booth seat that holds no fighter.
+    let booth = Uuid::from_u128(u128::MAX);
+    session.apply_command(GameCommand::Connected {
+        body: BodyKind::Human,
+        id: booth,
+        role: Role::Spectator,
+        name: "Survey Booth".into(),
+        player_id: None,
+    });
     tally.matches += 1;
 
     // Per pad: the tick it last returned during live play, and whether that
@@ -436,7 +449,14 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
     let mut ended = false;
     let limit = u64::from(round_ticks) + 20 * 30;
     while session.state.tick < limit && !ended {
-        let messages = session.tick_messages(0.05);
+        let mut messages = session.tick_messages(0.05);
+        messages.extend(
+            session
+                .take_unicasts()
+                .into_iter()
+                .filter(|(recipient, _)| *recipient == Recipient::Client(booth))
+                .map(|(_, message)| message),
+        );
         let tick = session.state.tick;
         if live {
             tally.live_ticks += 1;

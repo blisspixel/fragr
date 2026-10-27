@@ -770,7 +770,8 @@ Templates stay plan-only the whole time.
    run 2026-10-27 (#434), tables in
    [BENCHMARK.md](../BENCHMARK.md#stage-1-stress-baseline-434): 16, 32 and
    64 connections on Larak Lot and Tripoint Works, up to 101 fighters with
-   bots, held every deadline on a lightly loaded 16-thread host; egress, not
+   bots, ran no tick over budget on a lightly loaded 16-thread host (one
+   host-scheduled skipped period per 96-bot run); egress, not
    CPU, grows fastest (17 MiB/s at 48 fighters and 64 connections). A slow
    reader is not closed until its kernel send buffer fills (38 s at half
    rate, 35 s stale), and a stalled one closes at about 29 s; healthy

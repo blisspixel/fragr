@@ -295,8 +295,9 @@ smaller rows are from the load 12 to 36 set. Fighters is the mean number of
 | 48 + 16, 96 | all | 101 | 0.19 | 9.7 | 3.4 / 16.1 / 20.9 | 0 / 1 | 32.5 | 33.2 |
 | 48 + 16, 96 | one | 101 | 0.17 | 8.4 | 4.7 / 13.6 / 16.4 | 0 / 1 | 33.7 | 33.0 |
 
-- **No deadline was missed up to the connection cap with 96 rule bots**,
-  about 101 fighters, on all CPUs or one. Saturation was not reached inside
+- **No tick ran over budget up to the connection cap with 96 rule bots**,
+  about 101 fighters, on all CPUs or one; each 96-bot run had one
+  host-scheduled skipped period. Saturation was not reached inside
   the server's own caps on this host. Offline beyond the caps (`--bench`, no
   sockets, Tripoint Works, 600 ticks, one run each at load 17 to 18), the
   simulation and encode stayed inside budget through 256 bots:

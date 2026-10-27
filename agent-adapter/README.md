@@ -551,8 +551,10 @@ participants. Prefer explicit IDs, including after bodies leave the snapshot.
   is for the whole room.
 - A `speak` event may instead carry an optional `team` (gameplay 60): the side
   a rule bot's objective callout is said to ("i have the flag. walk me home").
-  `get_events` keeps it. Every fact a callout names is already in `observe`;
-  an agent on the other side reads it as the other side's chatter.
+  `get_events` keeps it. The server sends a side call only to that side's
+  fighters and to spectators, and the adapter forwards only what its own
+  session received: a joined agent hears its own side's calls (alive, dead or
+  eliminated) and never the other side's, and a watching session hears both.
 - Events are also included in `observe` output under `recent_events`
 - Set `clear: true` to acknowledge events and reset buffer
 

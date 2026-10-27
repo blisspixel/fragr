@@ -5331,7 +5331,7 @@ impl BotController {
         } else if defending {
             (!errand).then_some(bot_senses::Leash::Defender(own.stand))
         } else if escorting {
-            Some(bot_senses::Leash::Escort)
+            (!errand).then_some(bot_senses::Leash::Escort)
         } else {
             (!errand).then_some(bot_senses::Leash::Runner)
         };

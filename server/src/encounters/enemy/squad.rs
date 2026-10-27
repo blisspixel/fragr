@@ -1,6 +1,6 @@
 //! Squad roles on top of the attack tokens. Anchors (the Heavy Sweeper and
 //! the Turret) hold a lane; while one of them is firing at a participant,
-//! skirmishers (the Sweeper, the Redactor and the Crawler) leave the anchor's
+//! skirmishers (the Sweeper and the Redactor) leave the anchor's
 //! line and go around to a side that still sees the participant; the Auditor
 //! keeps a heavy between itself and the participant. A guard that flanks
 //! still asks for a token before it raises its gun.
@@ -34,18 +34,20 @@ pub(super) const BACKLINE_DISTANCE: f32 = 3.0;
 pub(crate) enum SquadRole {
     /// Pins a lane: the Heavy Sweeper and the Turret.
     Anchor,
-    /// Goes around while an anchor fires: Sweeper, Redactor, Crawler.
+    /// Goes around while an anchor fires: Sweeper, Redactor.
     Skirmisher,
     /// Holds behind a heavy: the Auditor.
     Backline,
-    /// Everyone else fights as before.
+    /// Everyone else fights as before. The Crawler is a leaper, not a gun:
+    /// a flank point lies six metres or more out, past its four metre leap,
+    /// so a pack keeps closing and leaping while an anchor fires.
     Line,
 }
 
 pub(crate) fn role(kind: EnemyKind) -> SquadRole {
     match kind {
         EnemyKind::HeavySweeper | EnemyKind::Turret => SquadRole::Anchor,
-        EnemyKind::Sweeper | EnemyKind::Redactor | EnemyKind::Crawler => SquadRole::Skirmisher,
+        EnemyKind::Sweeper | EnemyKind::Redactor => SquadRole::Skirmisher,
         EnemyKind::Auditor => SquadRole::Backline,
         _ => SquadRole::Line,
     }

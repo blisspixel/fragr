@@ -3808,6 +3808,92 @@ mod mcp_tests {
         );
     }
 
+    /// The adapter forwards what its own session received. The server sends
+    /// a side call only to that side's fighters and the booth, so an agent
+    /// on the other side never hears it, and the booth hears both sides.
+    #[test]
+    fn a_side_call_reaches_only_the_sessions_the_server_sent_it_to() {
+        use fragr_server::net::GameCommand;
+        use fragr_server::session::{GameSession, Recipient};
+        let mut session = GameSession::with_map(fragr_server::sim::MapKind::Sector9, false);
+        session.min_bots = 0;
+        session.state.apply_config(fragr_server::sim::MatchConfig {
+            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Ctf, &[], false).unwrap(),
+            capture_limit: Some(3),
+            ..Default::default()
+        });
+        let seats: Vec<(Uuid, Uuid)> = (1..=2)
+            .map(|n| (Uuid::from_u128(100 + n), Uuid::from_u128(n)))
+            .collect();
+        for (n, (client, player)) in seats.iter().enumerate() {
+            session.apply_command(GameCommand::Connected {
+                body: protocol::BodyKind::Synthetic,
+                id: *client,
+                role: protocol::Role::Agent,
+                name: format!("Probe{n}"),
+                player_id: Some(*player),
+            });
+        }
+        let booth = Uuid::from_u128(900);
+        session.apply_command(GameCommand::Connected {
+            body: protocol::BodyKind::Human,
+            id: booth,
+            role: protocol::Role::Spectator,
+            name: "Booth".into(),
+            player_id: None,
+        });
+        session.state.start_round();
+        let team = |player: Uuid| {
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == player)
+                .and_then(|p| p.team)
+                .unwrap()
+        };
+        let (speaker, listener) = (seats[0], seats[1]);
+        let side = team(speaker.1);
+        assert_ne!(team(listener.1), side, "one agent a side");
+        let _ = session.tick_messages(0.05);
+        let _ = session.take_unicasts();
+        session.state.push_event(protocol::GameEvent::Speak {
+            player: "Probe0".into(),
+            player_id: speaker.1,
+            text: "i have the flag. walk me home".into(),
+            to_id: None,
+            team: Some(side),
+        });
+        let shared = session.tick_messages(0.05);
+        let targeted = session.take_unicasts();
+        let heard = |client: Uuid, player: Option<Uuid>| {
+            let mut state = ToolState {
+                player_id: player,
+                connected: true,
+                ..ToolState::default()
+            };
+            let own = targeted
+                .iter()
+                .filter(|(recipient, _)| *recipient == Recipient::Client(client))
+                .map(|(_, message)| message);
+            for message in shared.iter().chain(own) {
+                ingest_server_text(&mut state, &serde_json::to_string(message).unwrap()).unwrap();
+            }
+            state
+                .recent_events
+                .iter()
+                .filter(|e| e["event"] == "speak" && e["team"] == serde_json::json!(side))
+                .count()
+        };
+        assert_eq!(heard(speaker.0, Some(speaker.1)), 1, "own side hears it");
+        assert_eq!(
+            heard(listener.0, Some(listener.1)),
+            0,
+            "the other side never does"
+        );
+        assert_eq!(heard(booth, None), 1, "the booth hears both sides");
+    }
+
     #[test]
     fn optional_frag_provenance_reaches_mcp_events_and_legacy_events_stay_optional() {
         let mut state = ToolState::default();
