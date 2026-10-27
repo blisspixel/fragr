@@ -78,6 +78,25 @@ This repairs the measured escape/pursuit oscillation in the market evaluator.
 The teaching prefix is unchanged. Compare this explicit policy revision with
 its retained baseline; improved clears do not establish a game balance change.
 
+The shared mission controller's strip escape keeps the edge it chose while
+the body stays on the same half of the same strip. Re-deciding every tick
+beside a market stall corner reversed the escape each step and held a
+recognized body inside until the strip worked; crossing the centre line
+still decides afresh. This is a controller repair in
+`server/src/mission/controller/m19.rs`, shared with the free local agent; it
+changes no strip, damage or movement rule.
+
+Select `--survey-mission m19-tanks` to continue the same earned market run to
+the next authored objective, `water_tanks`, and stop as it completes, before
+acting on the roof loop. The market completion receipt stays as a
+non-terminal boundary; a death after it retries from the attempt start, so
+the market is earned again. No kit, save or objective is added. This is a
+standalone endpoint, not an inherited M19 clear or fresh-player acceptance.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-tanks --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-tanks.json
+```
+
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
 acquisition, not decision cadence. Continue is accepted immediately, with zero
 simulated menu delay; dead/menu time is not included in the active stall metric.
@@ -140,6 +159,18 @@ market-stage timing. Prior-true flags and absent attributable evidence remain
 `unknown`, not a claim that no event occurred. These receipts never feed the
 controller and do not assign damage to a particular Paver.
 
+Per-action `stage` facts separate those attempt-wide flags into steps. After
+public market entry each decision records, once the action has been chosen:
+contacts with authoritative strip rectangles (`moved_in`, `placed_on_body` or
+`already_inside`, whether that strip was in the delayed observation, the guard
+branch and other live strips), health plus armor lost to published shots by
+shooter, unshot loss on steps ending inside a working strip (`strip_loss`, a
+work-pulse inference, not a server hit count), remaining `unattributed_loss`,
+ranged rounds at entry and the fatal step's cause. Several owners on one
+strip hit means overlapping rectangles. The tanks endpoint records the same
+facts after market completion as `continuation`. None of this feeds the
+controller; the matched cohort report is byte-identical without the field.
+
 To reconstruct those recorded windows with the existing world, fighter and
 shot presenters (a real renderer is required):
 
@@ -158,6 +189,9 @@ M19 mechanic windows use numbered event directories, and reconstruct the
 recorded jetpack and work-strip state as well as fighters. Their observer data
 can include an unseen strip, so a visible reconstruction is not evidence the
 controller recognized it; consult the separate recognition timestamp.
+The tanks endpoint adds a `tanks` stage with a `tanks_leg` window from market
+completion and a `tanks_climb` window from the first rise above a metre; the
+renderer requires that rise to exist in the climb's frames.
 
 By default a completed survey writes every failure and exits successfully.
 `--assert` instead fails if **any** trial misses its scenario's endpoint, after writing the

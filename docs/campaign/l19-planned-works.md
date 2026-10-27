@@ -41,6 +41,15 @@ windows from full inherited runs and human route discovery. A completed arrival
 while airborne does not qualify the landing. Paver preparation, working damage,
 interruption and clean avoidance remain distinct outcomes; no successful trial
 is substituted for the retained deaths, retries or stalls.
+The market survey (#487) attributes its failures per action. The unresolved
+overlapping-strip death was a controller defect, not the second strip: beside
+a stall corner the shared escape reversed its chosen edge every tick. Keeping
+one exit per stay fixes it without changing content. In the matched cohort,
+market deaths are mostly shots at a fighter with no ranged rounds left; the
+remaining strip hits are strips behind or below the declared view. Eight
+earned market clears also reach the water tanks by the outdoor stair with no
+further loss; that `m19-tanks` endpoint is standalone evaluation, not an
+inherited clear or fresh-player acceptance.
 The middle third of
 [M10](m10-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10
