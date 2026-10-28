@@ -660,6 +660,9 @@ pub struct GameState {
     /// The generator lives here rather than in a crate so the value stream
     /// cannot change under a dependency upgrade.
     pub rng_state: u64,
+    /// The seed last passed to `seed()`. A campaign retry derives its own
+    /// stream from it, the run id and the attempt (`retry_seed`).
+    seed_base: u64,
     pub tick: u64,
     pub players: Vec<Player>,
     pub vehicles: Vec<crate::vehicles::Jeep>,
@@ -1131,6 +1134,10 @@ impl GameState {
         self.statistics_session = Uuid::nil();
     }
 
+    pub(crate) fn replay_ids(&self) -> bool {
+        self.replay_id_counter.is_some()
+    }
+
     pub(crate) fn new_entity_id(&mut self) -> Uuid {
         match self.replay_id_counter.as_mut() {
             Some(counter) => {
@@ -1148,11 +1155,23 @@ impl GameState {
     /// Fix the random stream. Two states with the same seed that are given the
     /// same inputs produce the same match.
     pub fn seed(&mut self, seed: u64) {
+        self.seed_base = seed;
+        self.restart_stream(seed);
+    }
+
+    /// Restart the random stream at `seed` without changing the seed a retry
+    /// derives from.
+    pub(crate) fn restart_stream(&mut self, seed: u64) {
         // Any non-zero state works; mixing keeps small seeds from starting cold.
         self.rng_state = seed ^ 0x9E37_79B9_7F4A_7C15;
         if self.rng_state == 0 {
             self.rng_state = 0x2545_F491_4F6C_DD1D;
         }
+    }
+
+    /// The seed last passed to `seed()` (zero if never seeded).
+    pub fn seed_base(&self) -> u64 {
+        self.seed_base
     }
 
     /// xorshift64star: one multiply and three shifts, a long period, and a
@@ -5041,6 +5060,7 @@ impl Default for GameState {
             walker: None,
             replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
+            seed_base: 0,
             tick: 0,
             players: Vec::new(),
             vehicles: Vec::new(),

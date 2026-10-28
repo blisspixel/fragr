@@ -9,6 +9,34 @@ use crate::protocol::{
 #[cfg(test)]
 mod tests;
 
+/// The simulation seed a campaign retry runs on: attempt `attempt` of run
+/// `run_id`, under the process seed `base`. The first attempt keeps the
+/// process seed. Each retry gets its own stream, so a deterministic player
+/// that reopens a saved death meets a different fight rather than the same
+/// one tick for tick, and the same run, attempt and process seed always
+/// replay the same stream, in this process or after a reopen from disk. The
+/// local child always runs with the default process seed, so there the
+/// stream follows the saved run id and attempt alone.
+pub fn retry_seed(base: u64, run_id: Uuid, attempt: u32) -> u64 {
+    // SplitMix64 finalizer over each word in turn: every input bit reaches
+    // every output bit.
+    fn mix(mut z: u64) -> u64 {
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^ (z >> 31)
+    }
+    let id = run_id.as_u128();
+    [(id >> 64) as u64, id as u64, u64::from(attempt)]
+        .into_iter()
+        .fold(mix(base), |acc, word| {
+            mix(acc ^ word.wrapping_add(0x9E37_79B9_7F4A_7C15))
+        })
+}
+
+/// The run id of a campaign run in a session with replay identities. A live
+/// run draws a random id; a seeded recording must repeat its retry streams.
+const REPLAY_RUN_ID: Uuid = Uuid::from_u128(0x7275_6e00_0000_0000_0000_0000_0000_0001);
+
 pub(super) struct SoloRun {
     pub state: CampaignRunState,
     pub carried_recall_cars: Vec<String>,
@@ -139,6 +167,11 @@ impl GameState {
         if self.tick != 0 || !self.players.is_empty() {
             return Err("campaign run must be configured before admission");
         }
+        let id = if self.replay_ids() {
+            REPLAY_RUN_ID
+        } else {
+            Uuid::new_v4()
+        };
         let mission = self
             .mission
             .as_mut()
@@ -148,7 +181,7 @@ impl GameState {
         }
         mission.solo = Some(SoloRun {
             state: CampaignRunState {
-                id: Uuid::new_v4(),
+                id,
                 status: CampaignRunStatus::Playing,
                 continues: CAMPAIGN_CONTINUES,
                 level_start_continues: CAMPAIGN_CONTINUES,
@@ -439,6 +472,13 @@ impl GameState {
         self.spawn_shields.clear();
         solo.state.continues -= 1;
         solo.state.status = CampaignRunStatus::Playing;
+        // The retry, and everything its reset draws, runs on its own stream,
+        // whether it opens in this process or from a saved pending Continue.
+        self.restart_stream(retry_seed(
+            self.seed_base(),
+            request.run_id,
+            request.attempt.saturating_add(1),
+        ));
         self.reset_mission();
         self.reset_campaign_encounters();
         self.ensure_m03_companion();
