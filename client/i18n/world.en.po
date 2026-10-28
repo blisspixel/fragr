@@ -259,7 +259,7 @@ msgid "LOCAL_SERVER_TIMEOUT"
 msgstr "The local game took too long to start. It has been stopped. Try again."
 
 msgid "NET_IDLE_TIMEOUT"
-msgstr "This server disconnected you for being idle."
+msgstr "This server stopped hearing back from your game and disconnected it."
 
 msgid "NET_RATE_LIMITED"
 msgstr "This server disconnected you for sending too fast."

@@ -381,9 +381,33 @@ A reader that falls behind is now closed within seconds, three ways, all in
   Linux grows to megabytes for a loopback or fast peer. It is longer than
   the frame-age bound so one long client frame hitch is not a disconnect.
 
-All three close quietly, like a dropped connection: no reason frame reaches a
-reader that is not reading, and a fighter that asked for resume keeps its
-pawn. Healthy readers, MapInfo before state, the reliable facts across world
+The unanswered ping closes with `idle_timeout`, which replaces the old 45 s
+no-frame rule (a client that sends nothing also answers no ping, so the ping
+always fired first and the old rule could not be reached); the other two
+close like a dropped connection. A fighter that asked for resume keeps its
+pawn either way.
+
+A client builds a level on its main thread and reads nothing meanwhile, so
+after the server sends a `MapInfo` or `Mission` neither the ping nor the
+frame-age close applies for 30 s (`LOAD_GRACE`), or until the client answers
+a ping sent after that message. Frames that waited out a load age from its
+end. Measured with the real Godot client joining as a spectator (a scratch
+probe timing every main-thread frame for 20 s against the release server,
+2026-10-28, Ryzen 7 7840U with Radeon 780M, shader caches warm): after the
+socket opened, the longest frame on M09, M14, M19 and Still Here was 0.21 s
+headless and 0.48 s with the Vulkan renderer at 1280 by 720; loading the
+match scene itself, before the socket opens, took 1.7 s. A cold pipeline
+cache was not measured; 30 s is about sixty times the measured stall and
+matches the roughly 29 s a stalled reader survived before this change. The
+64-message queue still bounds memory during a load and its overflow close
+is unchanged, but with the bounded kernel buffer it now fills sooner than
+behind the old 4 MiB one: a busy room with many shots in flight can
+disconnect a client whose load lasts several seconds. Tests:
+`a_reader_building_a_level_keeps_its_socket_until_the_load_grace_ends`,
+`an_answer_after_the_map_ends_the_load_grace_early`,
+`a_level_load_holds_off_the_frame_age_close_until_the_grace_ends`.
+
+Healthy readers, MapInfo before state, the reliable facts across world
 replacement and the access-list order are unchanged; the tests are in
 `server/src/net/tests.rs` (`a_frame_queued_past_its_age_...`,
 `a_blocked_send_closes_when_its_frame_goes_stale_...`,
@@ -453,7 +477,9 @@ The wire types and the one Rust reader (`protocol::WorldReader`) live in
 `client/scripts/snapshot_delta.gd` before its usual snapshot validation.
 Tests on both sides apply the same vectors
 (`client/golden/snapshot_delta_vectors.json`), and a seeded 400-tick fight
-rebuilds every world byte for byte.
+rebuilds every world byte for byte. The server parses JSON with
+`serde_json`'s `float_roundtrip`, so a value a delta repeats keeps the exact
+shortest text of the full world.
 
 Measured 2026-10-28 with the traffic generator against the `fragr-server`
 binary: Larak Lot, human fighters at 60 Hz plus spectators, no bots, 15 s

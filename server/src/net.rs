@@ -56,8 +56,53 @@ struct WriterPolicy {
     /// A ping the reader has not answered for this long closes the socket:
     /// what was sent before it is at least this stale on the reader's side.
     read_behind_after: Duration,
+    /// After a `MapInfo` or `Mission`, how long the reader may build the
+    /// level without reading before either close applies.
+    load_grace: Duration,
     /// This reader applies snapshot deltas (`DELTA_GAMEPLAY_VERSION`).
     deltas: bool,
+}
+
+/// A client stops reading while it builds a level from a `MapInfo` or
+/// `Mission`. From the writer taking that message until the client answers a
+/// ping sent after it, or the window ends, neither the unanswered-ping close
+/// nor the frame-age close applies. Frames that waited out a load age from
+/// its end, so a client that comes back is not closed for the wait itself.
+struct LoadGrace {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    window: Duration,
+    /// The window's end and the ping clock when it opened.
+    open: Option<(std::time::Instant, u64)>,
+    /// When the last window closed.
+    resumed_at: Option<std::time::Instant>,
+}
+
+impl LoadGrace {
+    fn begin(&mut self, now: std::time::Instant) {
+        self.open = Some((now + self.window, self.traffic.now_us()));
+    }
+
+    /// Whether a load window is open at `now`; closes it once it is over.
+    fn active(&mut self, now: std::time::Instant) -> bool {
+        if let Some((until, since)) = self.open {
+            if now < until && !self.traffic.answered_since(since) {
+                return true;
+            }
+            self.open = None;
+            self.resumed_at = Some(now.min(until));
+        }
+        false
+    }
+
+    fn until(&self) -> Option<std::time::Instant> {
+        self.open.map(|(until, _)| until)
+    }
+
+    /// When a frame queued at `queued_at` starts to age.
+    fn clock(&self, queued_at: std::time::Instant) -> std::time::Instant {
+        self.resumed_at
+            .map_or(queued_at, |resumed| resumed.max(queued_at))
+    }
 }
 
 /// The last world this writer put on its socket. The stream is ordered and
@@ -124,6 +169,12 @@ where
         deltas: limits.deltas,
         tick: None,
     };
+    let mut grace = LoadGrace {
+        traffic: Arc::clone(&traffic),
+        window: limits.load_grace,
+        open: None,
+        resumed_at: None,
+    };
     let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
     ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
@@ -134,7 +185,16 @@ where
                 if let Some(probe) = &probe {
                     probe.taken(delivery.queued_at, taken);
                 }
-                let stale_at = delivery.queued_at + limits.stale_after;
+                if matches!(
+                    delivery.frame.message(),
+                    ServerMessage::MapInfo { .. } | ServerMessage::Mission { .. }
+                ) {
+                    grace.begin(taken);
+                }
+                let mut stale_at = grace.clock(delivery.queued_at) + limits.stale_after;
+                if grace.active(taken) {
+                    stale_at = stale_at.max(grace.until().unwrap_or(stale_at));
+                }
                 if taken >= stale_at {
                     tracing::info!(
                         age_ms = taken.saturating_duration_since(delivery.queued_at).as_millis() as u64,
@@ -171,17 +231,26 @@ where
                 (Message::Text(json), Some(stale_at))
             }
             _ = ping.tick() => {
+                let now = std::time::Instant::now();
                 if let Some(behind) = traffic
                     .read_behind()
-                    .filter(|behind| *behind >= limits.read_behind_after)
+                    .filter(|behind| *behind >= limits.read_behind_after && !grace.active(now))
                 {
                     tracing::info!(
                         behind_ms = behind.as_millis() as u64,
-                        "reader has not answered a ping; closing slow reader"
+                        "reader has not answered a ping; closing with idle_timeout"
                     );
                     if let Some(probe) = &probe {
-                        probe.fell_behind(std::time::Instant::now());
+                        probe.fell_behind(now);
                     }
+                    shutdown.send_if_modified(|signal| {
+                        if *signal == StopSignal::Open {
+                            *signal = StopSignal::Idle;
+                            true
+                        } else {
+                            false
+                        }
+                    });
                     break;
                 }
                 (Message::Ping(traffic.ping_payload()), None)
@@ -247,6 +316,8 @@ enum StopSignal {
     },
     /// Duel winner-stays: the loser's socket closes with `duel_seat_passed`.
     SeatPassed,
+    /// The writer saw a ping go unanswered too long: `idle_timeout`.
+    Idle,
 }
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
@@ -295,14 +366,23 @@ const INBOUND_BURST: f32 = 64.0;
 /// the answer times the round trip each fighter's `ping` reports, and an
 /// answer that does not come shows how far behind the stream a reader is.
 const PING_EVERY: Duration = Duration::from_secs(1);
-/// A ping unanswered this long closes the socket (#492): the reader has not
-/// read what the server sent that long ago, wherever those bytes now sit
-/// (its own receive buffer, the kernel's send buffer or the path). Longer
-/// than the frame-age bound so a client's one long frame hitch, which it
-/// then reads past, is not a disconnect.
+/// A ping unanswered this long closes the socket with `idle_timeout` (#492):
+/// the reader has not read what the server sent that long ago, wherever
+/// those bytes now sit (its own receive buffer, the kernel's send buffer or
+/// the path). A client that stops reading and answering entirely is closed
+/// the same way, so this is also the idle rule. Longer than the frame-age
+/// bound so a client's one long frame hitch, which it then reads past, is
+/// not a disconnect.
 const READ_BEHIND_AFTER: Duration = Duration::from_secs(4);
-/// No frame at all for this long, not even a pong, closes with `idle_timeout`.
-const IDLE_AFTER: Duration = Duration::from_secs(45);
+/// After the server sends a `MapInfo` or `Mission`, the Godot client builds
+/// the level on its main thread and stops reading until it is done. For
+/// this long, or until it answers a ping sent after that message, neither
+/// the unanswered-ping close nor the frame-age close applies. The longest
+/// frame measured after a spectator joined M09, M14, M19 or Still Here was
+/// 0.2 s headless and 0.48 s with the Vulkan renderer (warm caches, Ryzen 7
+/// 7840U); 30 s leaves room for a cold pipeline cache on a slow machine and
+/// matches the roughly 29 s a stalled reader survived before #492.
+const LOAD_GRACE: Duration = Duration::from_secs(30);
 /// Dropped messages fill a strike level that drains at this rate. A client
 /// that renders uncapped sends one action per frame, so only a sustained rate
 /// far above any display (more than 4352 per second) grows the level.
@@ -319,7 +399,7 @@ const JUNK_LIMIT: f32 = 16.0;
 pub(crate) struct SessionLimits {
     pub ping_every: Duration,
     pub read_behind_after: Duration,
-    pub idle_after: Duration,
+    pub load_grace: Duration,
     pub flood_drain_per_sec: f32,
     pub flood_limit: f32,
     pub junk_drain_per_sec: f32,
@@ -331,7 +411,7 @@ impl Default for SessionLimits {
         Self {
             ping_every: PING_EVERY,
             read_behind_after: READ_BEHIND_AFTER,
-            idle_after: IDLE_AFTER,
+            load_grace: LOAD_GRACE,
             flood_drain_per_sec: FLOOD_DRAIN_PER_SEC,
             flood_limit: FLOOD_LIMIT,
             junk_drain_per_sec: JUNK_DRAIN_PER_SEC,
@@ -1710,8 +1790,6 @@ async fn read_session(
     if let Some(watcher) = access.as_mut() {
         watcher.mark_unchanged();
     }
-    let idle = tokio::time::sleep(limits.idle_after);
-    tokio::pin!(idle);
     let mut left = false;
     let mut board_window = crate::admission_bounds::fresh_board_window(std::time::Instant::now());
     let kick = loop {
@@ -1726,9 +1804,9 @@ async fn read_session(
                     StopSignal::Quiet => break None,
                     StopSignal::Venue { banned } => break Some(Kick::Venue { banned }),
                     StopSignal::SeatPassed => break Some(Kick::SeatPassed),
+                    StopSignal::Idle => break Some(Kick::Idle),
                 }
             }
-            () = &mut idle => break Some(Kick::Idle),
             changed = async {
                 match access.as_mut() {
                     Some(watcher) => watcher.changed().await,
@@ -1754,8 +1832,6 @@ async fn read_session(
         let inbound_frame = match msg {
             Err(_) | Ok(Message::Close(_)) => break None,
             Ok(frame) => {
-                idle.as_mut()
-                    .reset(tokio::time::Instant::now() + limits.idle_after);
                 match frame {
                     Message::Text(text) => {
                         traffic.received(text.len());
@@ -2439,6 +2515,7 @@ async fn handle_connection(
             send_timeout: OUTBOUND_SEND_TIMEOUT,
             stale_after: OUTBOUND_STALE_AFTER,
             read_behind_after: policy.limits.read_behind_after,
+            load_grace: policy.limits.load_grace,
             deltas: reader_version >= crate::protocol::DELTA_GAMEPLAY_VERSION,
         },
         policy.limits.ping_every,
