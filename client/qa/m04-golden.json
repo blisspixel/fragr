@@ -1,0 +1,28 @@
+{
+  "comment": "M04 Notice to Vacate golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. Eye-height spectator views of every beat on the authored route, from the tram stop to the roof stair, with the notice-board guards placed from the start. Look at each still against docs/design/earth.md (M04 Low Water), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"tram_stop_arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[0,1.65,-33],"camera_look_at":[0,1.6,-16],"allow_empty_roster":true,"note":"Arrival: the tram stop at the market's edge, the notice board ahead and the market beyond it."},
+    {"name":"tram_stop_skyline","camera":"overview","camera_position":[2,1.65,-33],"camera_look_at":[-22,4.75,2],"allow_empty_roster":true,"note":"Edda's clinic sign over the market and the homes of the town skyline."},
+    {"name":"tram_stop_bench","camera":"overview","camera_position":[3,1.65,-29],"camera_look_at":[-5,0.6,-34],"allow_empty_roster":true,"note":"The tram stop itself: the bench, what people left while packing."},
+    {"name":"notice_board","camera":"overview","camera_position":[-1,1.65,-22],"camera_look_at":[0,1.5,-16.5],"allow_empty_roster":true,"note":"The notice board with the Clerk and two Sweepers enforcing it: black and red must read against the market."},
+    {"name":"notary_square","camera":"overview","camera_position":[0,1.65,-14],"camera_look_at":[0,1.6,6],"allow_empty_roster":true,"note":"The empty square where the first Notary drifts alone, the stalls ahead."},
+    {"name":"market_sw_stall","camera":"overview","camera_position":[-4,1.65,-11],"camera_look_at":[-12,1.2,-4],"allow_empty_roster":true,"note":"A south-west stall at walking distance: the bench, awning and wares."},
+    {"name":"market_east","camera":"overview","camera_position":[3,1.65,0],"camera_look_at":[16,1.2,0],"allow_empty_roster":true,"note":"The market loop east toward the tram street entrance."},
+    {"name":"market_from_north","camera":"overview","camera_position":[2,1.65,14],"camera_look_at":[-2,1.4,-10],"allow_empty_roster":true,"note":"The whole market from the court gap: stalls as cover islands, the board beyond."},
+    {"name":"repair_bench","camera":"overview","camera_position":[-8,1.65,5],"camera_look_at":[-9,0.9,11],"allow_empty_roster":true,"note":"The shared repair bench: the market's resupply and its charging-cable argument."},
+    {"name":"clinic_front","camera":"overview","camera_position":[-13,1.65,1],"camera_look_at":[-22,2.2,2],"allow_empty_roster":true,"note":"The clinic shutter, the switch beside it and the lit sign above: the level's one door."},
+    {"name":"clinic_interior","camera":"overview","camera_position":[-24,1.65,3],"camera_look_at":[-34,1.4,1],"allow_empty_roster":true,"note":"Inside the clinic: bright and calm, beds and the care board."},
+    {"name":"clinic_counter","camera":"overview","camera_position":[-26,1.65,-4],"camera_look_at":[-29,0.9,12.5],"allow_empty_roster":true,"note":"The clinic's long view to the counter and supplies."},
+    {"name":"awning_pocket","camera":"overview","camera_position":[-11.5,4.65,-9.5],"camera_look_at":[-14,3.4,-2.5],"allow_empty_roster":true,"note":"On the awnings above the market: the noodle stall's six and the roof pocket."},
+    {"name":"tram_workshop","camera":"overview","camera_position":[16,1.65,-25],"camera_look_at":[29,1.4,-24],"allow_empty_roster":true,"note":"The tram workshop through its doorway, the paint locker inside."},
+    {"name":"tram_street","camera":"overview","camera_position":[17,1.65,-3],"camera_look_at":[28,1.6,-13],"allow_empty_roster":true,"note":"The tram half painted for the vote, the workshop gantry at the end of the street."},
+    {"name":"court_entry","camera":"overview","camera_position":[0,1.65,15],"camera_look_at":[0,2.2,36],"allow_empty_roster":true,"note":"Into the habitation court: balconies on three sides, the meal table, the roof stair."},
+    {"name":"court_meal_table","camera":"overview","camera_position":[-6,1.65,24],"camera_look_at":[0,0.8,28.5],"allow_empty_roster":true,"note":"The shared meal table left mid-meal."},
+    {"name":"court_balconies","camera":"overview","camera_position":[10,1.65,19],"camera_look_at":[-17,3.4,31],"allow_empty_roster":true,"note":"The west balconies and homes where the Clerks stand later."},
+    {"name":"court_printer","camera":"overview","camera_position":[4,1.65,26],"camera_look_at":[8,1.1,30],"allow_empty_roster":true,"note":"The Union field printer and its photographs."},
+    {"name":"roof_exit","camera":"overview","camera_position":[8,4.65,30],"camera_look_at":[15,4.6,37],"allow_empty_roster":true,"note":"The roof stair's top and the departure control."},
+    {"name":"court_from_roof","camera":"overview","camera_position":[14,5.65,37],"camera_look_at":[-10,0.5,20],"allow_empty_roster":true,"note":"Looking back over the court and the market from where the neighbours leave."}
+  ]
+}
