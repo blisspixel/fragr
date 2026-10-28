@@ -87,6 +87,10 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 		# The correction ward is the same building as the intake above it:
 		# the same bone enamel, under harder light and among issued steel.
 		return EARTH + "earth_clinic_bone_plaster.png"
+	elif venue == "earth_yard" and surface == "enamel":
+		# The yard's huts, office, signal box and cab are painted railway
+		# sheds: the same plain plaster under sage paint, never a blotched tile.
+		return EARTH + "earth_clinic_bone_plaster.png"
 	elif venue in ["earth_union", "earth_yard", "earth_scrap"]:
 		var prefix: String = {"earth_union": "union", "earth_yard": "yard", "earth_scrap": "scrap"}[venue]
 		match surface:

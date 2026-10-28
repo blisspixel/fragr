@@ -95,7 +95,10 @@ func _civilian_boundaries() -> void:
 		_check(ward.get_shader_parameter("warning_color") == (Color("8c1a1e") if surface == "enamel" else accent), "correction ward red stays on enamel: " + surface)
 	var ward_ground: Material = ArenaMaterials.authored("service_steel", "earth_union")
 	_check(ArenaMaterials.ground(ward_ground, "service_steel", "earth_union") == ward_ground, "correction ward retains its exact ground material instance")
-	for venue: String in ["moon_port", "earth_yard", "earth_scrap", "unknown"]:
+	for surface: String in ["concrete", "enamel", "service_steel"]:
+		var freight: ShaderMaterial = ArenaMaterials.authored(surface, "earth_yard") as ShaderMaterial
+		_check(freight.get_shader_parameter("trim_glow") == 0.0 and freight.get_shader_parameter("warning_color") == Color("9a7c3e"), "freight yard paint is worn ochre and never emits: " + surface)
+	for venue: String in ["moon_port", "earth_scrap", "unknown"]:
 		# Duplication materializes shader defaults on a real renderer. Compare
 		# both after that same operation, rather than an unset null to a default.
 		var institution: ShaderMaterial = ArenaMaterials.authored("enamel", venue).duplicate() as ShaderMaterial

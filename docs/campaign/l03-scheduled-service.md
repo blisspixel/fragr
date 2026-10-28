@@ -13,6 +13,50 @@ counterpart. [Story arc](story-arc.md).
 |---|---|---|---|---|---|
 | I Recall | Recall freight yard, the Perimeter's old rail | Jammer | 10 min | 4:00 | 0 |
 
+**Golden-slice pass (wave 14).** `client/scripts/m03_dressing.gd` dresses the
+built yard (`server/maps/m03-scheduled-service.json`) toward the Recall Notice
+bar without words and without a single new body: every piece is flush paint,
+ballast or sleepers, a face on an existing solid, a possession on an existing
+top, an overhead run or scenery outside the play square, and the server's
+solids are unchanged. The generic venue wall gives way to the yard's own: the
+correction complex closes the south side in the same bone enamel and green band
+as the ward, with Level 2's roller shutter stopped short of the floor behind the
+arrival; precast panels with wire and unlit floodlight masts run east and west;
+and a closed barred gate across both lines in the north shows the track running
+on past open country to Low Water as a smudge on the horizon. Both lines get a
+ballast bed, sleepers, tie plates, polished rail heads, platform coping and
+ochre safety lines over a weathered cast-concrete slab. The six cars are issued
+recall stock in green-grey with ribs, doors with a small red seal, bar-only
+number plates, bogies, couplers, corrugated ends and roof walkways; the open
+bays have plank floors, a restraint rail and one cold caged lamp. A bone
+processing lane runs from the dock door into the first car's bay, and the three
+cover crates are baggage carts carrying tagged bags in personal colours. The
+departures board gains a frame, canopy, clock and a back of blank flaps. The
+dispatcher's office has a roof, windows, a desk with timetable, telephone,
+stamp and lamp, manifests on clipboards and a key board. The brakemen clad their
+own hut in faded blue weatherboards with a timber lining: a kettle on a black
+iron stove with embers and a circled six on its door, mugs and a hand of cards
+on the table, coats on hooks and a brake wheel on the wall. The mast is a red
+and bone banded lattice over the column, with two jamming dishes, a whip and a
+beacon, so it reads from every point; when the server reports the shutdown it
+is rebuilt as a lattice lying on the fallen column and pod. The signal box is
+the platform's north end, with framed windows over a lever frame and a circled
+six on the back steps; the gantry gets a hoist beam, trolley and hook above head
+height; the locomotive gets engine-room grilles, three-axle bogies, handrails,
+warm cab windows, headlamps and a chevroned buffer beam. The last car carries
+the chalk 67 and a tally. `ArenaSky.freight_yard()` lowers the western sun so
+the consist's shadows cross the lanes and adds the actor fill, and the
+`earth_yard` materials lose their red paint (worn ochre, nothing emits), so red
+stays on the Union's guards and the mast alone. Readable signs: six placements
+(the schedule board, three TRANSFER stencils, the mast plate and the boarding
+panel). `client/qa/m03-golden.json` frames every beat and
+`m03-golden-guards.json` the loading crew against the dressed platform.
+Still open: the fallen mast has a structural test (`test_m03_dressing.gd`) but
+no inspected capture, because `m03-scheduled-service.json` stops at the roof
+car, where its waypoint lies between the two freed captives (this also fails on
+the wave 13 baseline); the brakemen's painted line and the 66/67 board listing;
+the yard PA voice; fresh-player pacing and GPU performance.
+
 **Premise.** The correction complex has its own rail spur, and a recall train
 is marshalling on it for Low Water. A red mast over the yard jams every free
 channel, so Mara cannot warn anyone. The only road home is the freight line.

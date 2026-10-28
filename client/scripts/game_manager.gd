@@ -118,6 +118,7 @@ var m01_intake: M01Intake
 var m20_hold: M20HoldStrip
 var m02_ward: M02Ward
 var m02_correction: M02Correction
+var m03_dressing: M03Dressing
 var m03_yard: M03Yard
 var m04_town: M04Town
 var m05_town: M05Town
@@ -413,6 +414,9 @@ func _ready():
 	m02_correction = M02Correction.new()
 	m02_correction.name = "M02Correction"
 	add_child(m02_correction)
+	m03_dressing = M03Dressing.new()
+	m03_dressing.name = "M03Dressing"
+	add_child(m03_dressing)
 	m03_yard = M03Yard.new()
 	m03_yard.name = "M03Yard"
 	add_child(m03_yard)
@@ -669,6 +673,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m02_ward.configure_map(info)
 	if m02_correction != null:
 		m02_correction.configure_map(info)
+	if m03_dressing != null:
+		m03_dressing.configure_map(info)
 	if m03_yard != null:
 		m03_yard.configure_map(info)
 	if m04_town != null:
@@ -2775,6 +2781,8 @@ func _clear_world() -> void:
 		m02_ward.clear_map()
 	if m02_correction != null:
 		m02_correction.clear_map()
+	if m03_dressing != null:
+		m03_dressing.clear_map()
 	if m03_yard != null:
 		m03_yard.clear_map()
 	if m04_town != null:

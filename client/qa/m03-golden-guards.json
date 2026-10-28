@@ -1,0 +1,13 @@
+{
+  "comment": "M03 golden-slice faction read. FRAGR_QA_BOTS=0, FRAGR_QA_DIFFICULTY=assisted, FRAGR_QA_MAP_FILE=server/maps/m03-scheduled-service.json, FRAGR_QA_MANIFEST=res://qa/m03-golden-guards.json. A joined player steps onto platform one, which wakes the loading crew, then posed views frame the two Clerks and two Sweepers against the dressed cars, slab and complex in the afternoon sun. Check black armour, red visors, armbands and optics at room distance; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[-13,1.2,-29],"note":"The unforced first-person arrival frame toward platform one."},
+    {"name":"platform_wake","camera":"first_person","walk_to":[[-19,0,-35],[-19,0,-33]],"look_at":[-14,1.2,-30],"settle_seconds":0.6,"note":"Stepping onto the platform wakes the loading crew."},
+    {"name":"clerks_at_car","camera":"overview","camera_position":[-21,1.65,-35],"camera_look_at":[-15,1.1,-30],"note":"The two Clerks at the first car's bay, about 6 m, against the car's green-grey and the plank deck."},
+    {"name":"sweeper_crossing","camera":"overview","camera_position":[-8,1.65,-36],"camera_look_at":[0,1.1,-24],"note":"The crossing Sweeper against the slab and the far cars, about 14 m."},
+    {"name":"sweeper_east","camera":"overview","camera_position":[2,1.65,-36],"camera_look_at":[15,1.1,-29],"note":"The east Sweeper against the yard office and the wall, about 14 m."},
+    {"name":"crew_wide","camera":"overview","camera_position":[-24,1.65,-40],"camera_look_at":[2,1.2,-27],"note":"The whole loading crew from the dock door, 8 to 28 m."}
+  ]
+}
