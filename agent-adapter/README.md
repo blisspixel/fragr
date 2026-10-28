@@ -495,6 +495,10 @@ Older recordings can omit this evidence. See `../docs/protocol.md`.
   must still be visible to the actual shot ray; target intent does not bypass cover.
   This is an agent tool. A shared-room human socket drops `look_at`. Yaw and
   pitch remain that pawn's aim.
+- There is no `view_tick`. From gameplay 62 a human client may report the tick
+  it drew other fighters at, and the server rewinds that human's hitscan shots
+  up to 200 ms. An agent aims at the present server state through `look_at`, so
+  its shots are never rewound and an `act` carrying `view_tick` is a schema error.
 - Server enforces weapon-specific cooldowns (Flechette: 200 ms, Rail: 1.0 s, Scatter: 450 ms)
 - Call rate: 1-10 Hz typical for MCP agents; faster allowed but limited by server tick rate
 

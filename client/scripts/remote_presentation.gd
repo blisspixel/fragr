@@ -50,6 +50,24 @@ func accept(tick: int, position: Vector3, yaw: float, pitch: float,
 	return true
 
 
+## Feed the timeline as a clock: one call per snapshot, with its tick and no
+## pose. Anything but a whole, non-negative tick is ignored.
+func observe(tick: Variant, arrival_usec: int) -> bool:
+	if not (tick is float or tick is int):
+		return false
+	var value: float = float(tick)
+	if not is_finite(value) or value < 0.0 or value != floorf(value) or value > 9.0e15:
+		return false
+	return accept(int(value), Vector3.ZERO, 0.0, 0.0, true, arrival_usec)
+
+
+## The fractional server tick this timeline draws at now, never newer than the
+## newest tick received; -1 before any snapshot.
+func view_tick(now_usec: int) -> float:
+	var shown: Dictionary = sample(now_usec)
+	return float(shown["tick"]) if shown.has("tick") else -1.0
+
+
 func sample(now_usec: int) -> Dictionary:
 	if samples.is_empty():
 		return {}

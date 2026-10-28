@@ -27,6 +27,7 @@ pub(crate) mod walker;
 pub(crate) use playlist::slot_playable as validate_show;
 pub mod remote_mine;
 pub(crate) mod repeater;
+pub mod rewind;
 mod rocket;
 pub mod sabotage;
 pub mod traveling_shot;
@@ -65,6 +66,19 @@ struct ResolvedPellet {
     distance: f32,
     end: [f32; 3],
     impact: ShotImpact,
+    /// Feet height and stance the struck fighter was tested at: the
+    /// present, or the rewound volume of a lag-compensated shot. The head
+    /// band reads these so it matches the volume the ray met.
+    struck_feet_y: f32,
+    struck_ducking: bool,
+}
+
+/// The present cover a hitscan pellet meets. Cover never rewinds.
+#[derive(Clone, Copy)]
+struct ShotCover<'a> {
+    arena: &'a crate::movement::Arena,
+    civilians: &'a [crate::movement::contact::ContactBody],
+    tableau: &'a [crate::movement::Solid],
 }
 
 struct ResolvedShot {
@@ -718,6 +732,9 @@ pub struct GameState {
     queued_show: Option<playlist::PlaylistSlot>,
     /// Fighters that just respawned and their remaining shield ticks.
     pub spawn_shields: HashMap<Uuid, u32>,
+    /// Recent hit volumes of ordinary fighters, for bounded hitscan rewind.
+    hit_history: rewind::HitHistory,
+    pub rewind_stats: rewind::RewindStats,
     /// Solo Broadcast Episode 0 (Calibration / Larak Lot). Off for MP.
     pub solo_broadcast: SoloBroadcastEp0,
     /// Side frags this round in a team mode.
@@ -818,6 +835,10 @@ pub struct Player {
     /// Newest numbered human Action admitted before a movement tick. Kept
     /// across resume and respawn so a stale sample cannot replace live input.
     last_received_seq: Option<u32>,
+    /// Ticks between this human's admitted view of other fighters and the
+    /// tick that consumes its newest Action, unclamped. None without a
+    /// valid `view_tick`, so the shot tests the present.
+    view_lag: Option<f64>,
     movement_epoch: u64,
     last_movement_tick: Option<u64>,
     /// Horizontal velocity the movement step carries into the next tick.
@@ -867,6 +888,7 @@ impl Player {
     pub(crate) fn clear_input(&mut self) {
         self.repeater_cycle.reset();
         self.bloom = 0.0;
+        self.view_lag = None;
         self.pending_action = Action::default();
         self.jump_requested = false;
         self.dodge_requested = false;
@@ -966,6 +988,7 @@ impl Player {
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
+            view_lag: None,
             movement_epoch: 1,
             last_movement_tick: None,
             vx: 0.0,
@@ -1228,6 +1251,8 @@ impl GameState {
     }
 
     pub fn start_round(&mut self) {
+        // Every body is placed afresh; no shot rewinds into the last round.
+        self.hit_history.clear();
         let previous_winner = if self.round_number > 0 {
             self.ranked_scores().first().map(|p| p.name.clone())
         } else {
@@ -1823,7 +1848,26 @@ impl GameState {
                     (None, Some(_)) => return,
                     (None, None) => {}
                 }
+                // The view rides with the Action that carried it. A refused
+                // or absent view means this input's shots test the present.
+                player.view_lag = match action
+                    .view_tick
+                    .map(|view| rewind::admit_view(view, self.tick))
+                {
+                    Some(Ok(lag)) => {
+                        self.rewind_stats.accepted += 1;
+                        Some(lag)
+                    }
+                    Some(Err(refusal)) => {
+                        self.rewind_stats.rejected += 1;
+                        tracing::debug!(player = %player.id, ?refusal, "view tick refused");
+                        None
+                    }
+                    None => None,
+                };
             }
+            // Only a human client draws others on a delayed timeline.
+            action.view_tick = None;
             if player.respawn_timer.is_some() {
                 // Awaiting respawn: keep only the newest held state. Presses
                 // made while dead are not queued into the next life, and a
@@ -2002,6 +2046,81 @@ impl GameState {
     }
 
     pub fn tick(&mut self, dt: f32) {
+        self.advance(dt);
+        self.record_hit_history();
+    }
+
+    /// Keep this tick's ordinary fighter volumes, exactly as the snapshot
+    /// that follows publishes them, for a later bounded rewind.
+    fn record_hit_history(&mut self) {
+        let mut history = std::mem::take(&mut self.hit_history);
+        let bodies = self
+            .players
+            .iter()
+            .filter(|p| p.campaign.is_none() && self.contact_eligible(p))
+            .map(|p| rewind::Volume {
+                id: p.id,
+                feet: [p.x, p.y - PLAYER_FLOOR_Y, p.z],
+                ducking: p.ducking,
+                epoch: p.movement_epoch,
+            });
+        history.record(self.tick, bodies);
+        self.hit_history = history;
+    }
+
+    /// Where each fighter is tested by a hitscan shot from `shooter_idx`:
+    /// feet and stance, by player index. The present unless the shooter is a
+    /// human with an admitted view, when ordinary fighters move back to that
+    /// view, at most `MAX_REWIND_TICKS`, while their history is unbroken.
+    /// None means every fighter is tested where it stands now.
+    fn shot_volumes(&mut self, shooter_idx: usize) -> Option<Vec<([f32; 3], bool)>> {
+        let lag = self.players[shooter_idx]
+            .view_lag
+            .filter(|_| self.players[shooter_idx].role == Role::Human)?;
+        let mut volumes: Vec<([f32; 3], bool)> = self
+            .players
+            .iter()
+            .map(|p| ([p.x, p.y - PLAYER_FLOOR_Y, p.z], p.ducking))
+            .collect();
+        let bound = rewind::MAX_REWIND_TICKS as f64;
+        if lag > bound {
+            self.rewind_stats.clamped += 1;
+        }
+        let view = self.tick as f64 - lag.min(bound);
+        self.rewind_stats.rewinds += 1;
+        for (index, target) in self.players.iter().enumerate() {
+            if index == shooter_idx || target.campaign.is_some() || !self.contact_eligible(target) {
+                continue;
+            }
+            let present = rewind::Volume {
+                id: target.id,
+                feet: volumes[index].0,
+                ducking: target.ducking,
+                epoch: target.movement_epoch,
+            };
+            match self.hit_history.volume_at(present, self.tick, view) {
+                Some(volume) => volumes[index] = volume,
+                None => self.rewind_stats.discontinuities += 1,
+            }
+        }
+        Some(volumes)
+    }
+
+    /// Resolve one hitscan shot from `shooter_idx` as the next tick would,
+    /// against an explicit arena and without moving anyone. The first
+    /// pellet's struck fighter index.
+    #[cfg(test)]
+    pub(crate) fn hitscan_target_next_tick(
+        &mut self,
+        shooter_idx: usize,
+        arena: &crate::movement::Arena,
+    ) -> Option<usize> {
+        self.tick += 1;
+        let shot = self.check_hitscan(shooter_idx, arena, &[], &[]);
+        shot.pellets.first().and_then(|pellet| pellet.target)
+    }
+
+    fn advance(&mut self, dt: f32) {
         self.tick += 1;
         self.update_m02_companion_phase();
         self.shot_results.clear();
@@ -2735,10 +2854,10 @@ impl GameState {
                         let head = target.is_some_and(|victim_idx| {
                             let victim = &self.players[victim_idx];
                             crate::combat::head_hit_for(
-                                victim.y - PLAYER_FLOOR_Y,
+                                pellet.struck_feet_y,
                                 pellet.end[1],
                                 victim.campaign,
-                                victim.ducking,
+                                pellet.struck_ducking,
                             )
                         });
                         crate::combat::traced_damage(
@@ -2771,15 +2890,13 @@ impl GameState {
                         connected = true;
                         let struck_head = {
                             let victim = &self.players[victim_idx];
-                            let feet_y = victim.y - PLAYER_FLOOR_Y;
                             let campaign = victim.campaign;
-                            let ducking = victim.ducking;
                             members.iter().any(|pellet| {
                                 crate::combat::head_hit_for(
-                                    feet_y,
+                                    pellet.struck_feet_y,
                                     pellet.end[1],
                                     campaign,
-                                    ducking,
+                                    pellet.struck_ducking,
                                 )
                             })
                         };
@@ -3580,11 +3697,17 @@ impl GameState {
         } else {
             weapon.spread_radians()
         };
+        let volumes = self.shot_volumes(shooter_idx);
         let pellets = (0..weapon.pellets())
             .map(|_| {
                 let samples = [self.next_f32(), self.next_f32()];
                 let ray = crate::combat::Ray::dispersed(origin, yaw, pitch, spread, samples);
-                self.resolve_pellet(shooter_idx, arena, ray, weapon, civilians, tableau)
+                let cover = ShotCover {
+                    arena,
+                    civilians,
+                    tableau,
+                };
+                self.resolve_pellet(shooter_idx, cover, ray, weapon, volumes.as_deref())
             })
             .collect();
         ResolvedShot {
@@ -3598,12 +3721,16 @@ impl GameState {
     fn resolve_pellet(
         &self,
         shooter_idx: usize,
-        arena: &crate::movement::Arena,
+        cover: ShotCover<'_>,
         ray: crate::combat::Ray,
         weapon: WeaponType,
-        civilians: &[crate::movement::contact::ContactBody],
-        tableau: &[crate::movement::Solid],
+        volumes: Option<&[([f32; 3], bool)]>,
     ) -> ResolvedPellet {
+        let ShotCover {
+            arena,
+            civilians,
+            tableau,
+        } = cover;
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
         let mut cover_solid = None;
@@ -3638,6 +3765,8 @@ impl GameState {
             }
         }
         let mut closest_idx = None;
+        // The struck fighter's tested feet height and stance, for the head band.
+        let mut struck = (0.0, false);
         for body in tableau {
             if let Some(hit) = ray.solid(body, closest_dist) {
                 if hit.distance < cover_distance
@@ -3667,20 +3796,28 @@ impl GameState {
             if i == shooter_idx || !self.contact_eligible(target) {
                 continue;
             }
-            let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            if let Some(hit) = ray.actor_stance(feet, target.campaign, target.ducking, closest_dist)
-            {
+            let (feet, ducking) = volumes.map_or(
+                (
+                    [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                    target.ducking,
+                ),
+                |volumes| volumes[i],
+            );
+            if let Some(hit) = ray.actor_stance(feet, target.campaign, ducking, closest_dist) {
                 if hit.distance < cover_distance
                     && (hit.distance < closest_dist || matches!(impact, ShotImpact::Range))
                 {
                     closest_dist = hit.distance;
                     closest_idx = Some(i);
+                    struck = (feet[1], ducking);
                     impact = ShotImpact::Fighter { normal: hit.normal };
                 }
             }
         }
         let distance = closest_dist.min(cover_distance);
         ResolvedPellet {
+            struck_feet_y: struck.0,
+            struck_ducking: struck.1,
             vehicle: if matches!(impact, ShotImpact::Solid { .. }) {
                 cover_vehicle
             } else {
@@ -4293,6 +4430,7 @@ impl GameState {
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
+            view_lag: None,
             movement_epoch: 1,
             last_movement_tick: None,
             vx: 0.0,
@@ -4786,6 +4924,7 @@ impl GameState {
             display_behavior: None,
             last_input_seq: None,
             last_received_seq: None,
+            view_lag: None,
             movement_epoch: 1,
             last_movement_tick: None,
             vx: 0.0,
@@ -5101,6 +5240,8 @@ impl Default for GameState {
             playlist_index: 0,
             queued_show: None,
             spawn_shields: HashMap::new(),
+            hit_history: rewind::HitHistory::default(),
+            rewind_stats: rewind::RewindStats::default(),
             solo_broadcast: SoloBroadcastEp0::default(),
             team_scores: TeamScores::default(),
             capture_scores: TeamScores::default(),
