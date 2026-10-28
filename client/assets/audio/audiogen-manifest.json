@@ -2723,7 +2723,7 @@
       "prompt": "News broadcast theme sting, 12 seconds, 120 BPM in B-flat major, brass fanfare over an urgent tom pattern, teletype clicks, a shortwave tuning sweep on beat one, 1980s AM network newscast production, compressed and nearly mono. Instrumental only. Three-note ascending brass motif, timpani hit, resolve on a sustained chord with a filtered static tail of two seconds for a voice to enter over. No vocals, no drums after the hit. It must sound official and slightly wrong, like a real newsroom run by a late-night conspiracy show.",
       "model": "music_v2_5",
       "format": "mp3_44100_128",
-      "title": "Contested Frequency News sting",
+      "title": "Perimeter Talk sting",
       "length_ms": 12000,
       "looping": false,
       "channels": 0,

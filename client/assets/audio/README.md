@@ -66,7 +66,7 @@ request, asset charge or weapon-gunshot substitution.
 | `m02/ward_machine_loop.wav`, `m02/ward_machine_stop.wav` | Correction ward machinery and its shutdown |
 | `m02/restraint_release.wav` | Latch's first restraint, the second bay and the optional side ward |
 | `m02/floor_machinery_loop.wav` | Processing-floor spatial machinery bed |
-| `radio/<station>/` | Contested Frequency radio tracks, grouped by station id; `radio/stations.json` names the stations |
+| `radio/<station>/` | Radio tracks, grouped by station id; `radio/stations.json` names the stations |
 
 The 2026-10-27 pass (`specs/hit-chime-scatter-20261027.json`,
 `specs/host-calls-callum-20261027.json`) added the hit chime tiers, the pump
