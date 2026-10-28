@@ -37,7 +37,11 @@ async fn enter(
     let mut token = None;
     tokio::time::timeout(Duration::from_secs(5), async {
         let mut welcomed = false;
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                 ServerMessage::Welcome {
                     player_id, resume, ..
@@ -190,7 +194,11 @@ async fn prove_wire(ready: &ArenaReady) {
             .unwrap();
         tokio::time::timeout(Duration::from_secs(5), async {
             let mut welcomed = false;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome { .. } => welcomed = true,
                     ServerMessage::MapInfo {

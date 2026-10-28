@@ -759,6 +759,7 @@ async fn run_scripted_bot(
     };
     tracing::info!("Bot connected, player_id: {bot_id}");
     let mut last_snapshot: Option<protocol::Snapshot> = None;
+    let mut world = protocol::WorldReader::new();
     let mut loadout: Option<protocol::LoadoutState> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
@@ -771,7 +772,7 @@ async fn run_scripted_bot(
         tokio::select! {
             msg = ws_stream.next() => {
                 match msg {
-                    Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text)? {
+                    Some(Ok(Message::Text(text))) => match world.read(&text)? {
                         ServerMessage::Mission { tick, state } => {
                             mission_client.observe(tick, state).map_err(io::Error::other)?;
                             if let Some(request) = mission_client.continuation(Some(bot_id)) {

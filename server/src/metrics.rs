@@ -169,7 +169,14 @@ pub struct ClientTraffic {
     totals: Arc<TrafficCounters>,
     /// Smoothed round trip in microseconds, or `NO_PING`.
     rtt_us: AtomicU32,
+    /// When the oldest ping the client has not answered left, as in
+    /// `ping_payload`, or `NO_PING_OUT`. A client answers a ping only once it
+    /// has read every frame before it, so this ages exactly as its backlog.
+    unanswered_us: AtomicU64,
 }
+
+/// No ping awaits an answer.
+const NO_PING_OUT: u64 = u64::MAX;
 
 impl ClientTraffic {
     pub fn new(role: Role, totals: Arc<TrafficCounters>) -> Arc<Self> {
@@ -179,14 +186,33 @@ impl ClientTraffic {
             own: TrafficCounters::default(),
             totals,
             rtt_us: AtomicU32::new(NO_PING),
+            unanswered_us: AtomicU64::new(NO_PING_OUT),
         })
+    }
+
+    fn now_us(&self) -> u64 {
+        u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(NO_PING_OUT - 1)
     }
 
     /// The payload of the writer's next WebSocket ping: when it left, in
     /// microseconds since the session opened. The client's pong echoes it.
+    /// The ping waits for its answer unless an older one already does.
     pub fn ping_payload(&self) -> Vec<u8> {
-        let sent = u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(u64::MAX);
+        let sent = self.now_us();
+        let _ = self.unanswered_us.compare_exchange(
+            NO_PING_OUT,
+            sent,
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+        );
         sent.to_be_bytes().to_vec()
+    }
+
+    /// How long the oldest unanswered ping has waited: how far behind the
+    /// stream this reader is, at least. None while every ping is answered.
+    pub fn read_behind(&self) -> Option<Duration> {
+        let since = self.unanswered_us.load(Ordering::Relaxed);
+        (since != NO_PING_OUT).then(|| Duration::from_micros(self.now_us().saturating_sub(since)))
     }
 
     /// A pong arrived. A payload that is not one of our pings, or claims a
@@ -197,10 +223,17 @@ impl ClientTraffic {
             return;
         };
         let sent = u64::from_be_bytes(bytes);
-        let now = u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(u64::MAX);
+        let now = self.now_us();
         let Some(sample) = now.checked_sub(sent) else {
             return;
         };
+        // The answer to the oldest outstanding ping, or a later one, means
+        // the client has read everything sent before it.
+        let _ = self
+            .unanswered_us
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |oldest| {
+                (oldest != NO_PING_OUT && sent >= oldest).then_some(NO_PING_OUT)
+            });
         let sample = u32::try_from(sample)
             .unwrap_or(NO_PING - 1)
             .min(NO_PING - 1);

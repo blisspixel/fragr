@@ -407,12 +407,13 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
             socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Ship reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut welcomed = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 let mut mapped = false;
                 loop {
                     let Message::Text(text) = socket.next().await.unwrap().unwrap() else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     // M10 facts carry the single-schema transit receipt, so an
                     // older reader is refused before it can misread them.
                     if version < crate::protocol::RECEIPT_GAMEPLAY_VERSION {
@@ -496,11 +497,12 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
                 socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let mut welcomed = false;
+                    let mut frames = crate::protocol::WorldReader::new();
                     loop {
                         let Message::Text(text) = socket.next().await.unwrap().unwrap() else {
                             continue;
                         };
-                        let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                        let value: serde_json::Value = frames.read_value(&text).unwrap();
                         if version < crate::protocol::GAMEPLAY_VERSION {
                             assert_eq!(
                                 value["type"], "error",

@@ -798,7 +798,14 @@ Templates stay plan-only the whole time.
    inventory are not replaced. Positions quantize to the precision the
    picture needs. Scores and counts stay exact. The delta stays JSON.
    Measure bytes, including a client that missed an update. A full write
-   buffer drops that client and leaves the match on time.
+   buffer drops that client and leaves the match on time. First step landed
+   2026-10-28 (#434, gameplay 61): JSON deltas against the last world the
+   reader's ordered stream delivered, a whole world after any replaced one,
+   no quantization yet; snapshot bytes per client fell by about two thirds
+   on Larak Lot at 6, 16 and 64 connections. The same change bounds the
+   socket send buffer and closes a writer whose oldest unsent frame is
+   2.5 s old (#492). Tables and the remaining steps:
+   [BENCHMARK.md](../BENCHMARK.md#snapshot-deltas-434-stage-4).
 6. **Interest and rate tiers, only if pass 5 shows 16 is tight.** Nearby and
    recently violent pawns stay at 20 Hz. A quiet pawn's priority accumulates
    until it is sent, so it is not starved. Distant, silent pawns update

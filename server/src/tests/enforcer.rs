@@ -248,13 +248,14 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
             }).to_string())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 let mut saw_welcome = false;
                 loop {
                     let message = socket.next().await.unwrap().unwrap();
                     let Message::Text(text) = message else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");

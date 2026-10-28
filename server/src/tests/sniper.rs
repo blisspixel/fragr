@@ -770,13 +770,14 @@ async fn the_range_refuses_pre_sniper_readers_and_sends_geometry_before_snapshot
                 .unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 let mut saw_welcome = false;
                 loop {
                     let message = socket.next().await.unwrap().unwrap();
                     let Message::Text(text) = message else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "pre-Sniper reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");

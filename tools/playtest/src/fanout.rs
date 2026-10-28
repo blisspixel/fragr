@@ -331,6 +331,7 @@ async fn watcher_task(
     let (mut welcomed, mut mapped) = (false, false);
     let mut ready = Some(ready);
     let mut result = WatchResult::default();
+    let mut world = fragr_server::protocol::WorldReader::new();
     loop {
         if kind == WatcherKind::Stalled && start.borrow().is_some() {
             // Read nothing for the window, then see whether the server closed.
@@ -368,7 +369,7 @@ async fn watcher_task(
         if start.borrow().is_some() {
             result.text_bytes += text.len();
         }
-        match serde_json::from_str::<ServerMessage>(&text).map_err(transport)? {
+        match world.read(&text).map_err(transport)? {
             ServerMessage::Welcome { role, .. } => {
                 if role != Role::Spectator {
                     return Err(Error::Server("watcher received wrong role".into()));
@@ -455,6 +456,7 @@ async fn probe_task(
     .map_err(transport)?;
     let mut ready = Some(ready);
     let mut result = ProbeResult::default();
+    let mut world = fragr_server::protocol::WorldReader::new();
     let mut pending = std::collections::VecDeque::new();
     let mut acknowledged = false;
     let mut step = 0u32;
@@ -492,7 +494,7 @@ async fn probe_task(
                 };
                 let Message::Text(text) = message else { continue };
                 let at = Instant::now();
-                match serde_json::from_str::<ServerMessage>(&text).map_err(transport)? {
+                match world.read(&text).map_err(transport)? {
                     ServerMessage::Ack { seq, movement, respawn_ticks, .. } => {
                         let applied = respawn_ticks.is_none()
                             && movement.as_ref().is_none_or(|movement| movement.applied);

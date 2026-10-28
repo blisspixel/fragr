@@ -20,6 +20,7 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 61 applies snapshot deltas: a world sent as the change from the one before;
 # 60 understands speak lines said to one side (rule bots' objective calls);
 # 59 understands guns dropped on death, the Duel line and its seat call, and
 # the Conquest bleed and Duel hand-over Host calls;
@@ -37,7 +38,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 60
+const GAMEPLAY_VERSION: int = 61
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -64,6 +65,9 @@ var walker_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
 var _movement_ack_previous: Dictionary = {}
+## The last world the server sent, whole or rebuilt: the base of the next
+## snapshot delta. Cleared with every new connection, map and mission.
+var _world: Dictionary = {}
 
 var socket = WebSocketPeer.new()
 var connection_state = WebSocketPeer.STATE_CLOSED
@@ -152,6 +156,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	_requires_flags = false
 	_requires_conquest = false
 	_movement_ack_previous.clear()
+	_world.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
 	# so J/L join-leave-reconnect cannot soft-prison on a dead peer.
@@ -197,6 +202,7 @@ func disconnect_from_server():
 	_mission_previous.clear()
 	_requires_flags = false
 	_requires_conquest = false
+	_world.clear()
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -568,7 +574,16 @@ func _handle_message(text: String):
 		return
 	
 	var msg_type = data.get("type", "")
-	
+	if msg_type == SnapshotDelta.TYPE:
+		# Rebuild the whole world first; it then meets every snapshot check.
+		var rebuilt: Dictionary = SnapshotDelta.apply(_world, data)
+		if rebuilt.is_empty():
+			disconnect_from_server()
+			server_error.emit(SnapshotDelta.INVALID)
+			return
+		data = rebuilt
+		msg_type = "snapshot"
+
 	match msg_type:
 		"queue_place":
 			var place: Variant = data.get("place")
@@ -582,6 +597,7 @@ func _handle_message(text: String):
 				seat_called.emit(str(data["seat"]))
 		"welcome":
 			_movement_ack_previous.clear()
+			_world.clear()
 			var body_problem: String = PlayerBody.welcome_error(data, role)
 			if not body_problem.is_empty():
 				disconnect_from_server()
@@ -731,9 +747,11 @@ func _handle_message(text: String):
 			mission_geometry = geometry
 			walker_geometry = data.duplicate(true) if data.get("walker") is Dictionary else {}
 			_movement_ack_previous.clear()
+			_world.clear()
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":
+			_world.clear()
 			var problem: String = MissionState.validation_error(data, mission_geometry, _mission_previous)
 			if not problem.is_empty():
 				disconnect_from_server()
@@ -812,6 +830,8 @@ func _handle_message(text: String):
 				disconnect_from_server()
 				server_error.emit(problem)
 				return
+			# A private copy: presenters may keep or change what they receive.
+			_world = data.duplicate(true)
 			snapshot_received.emit(data)
 		
 		"ack":

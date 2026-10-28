@@ -424,6 +424,7 @@ async fn spectator_task(
     .map_err(transport)?;
     let mut ready = Some(ready);
     let mut outcome = WatchOutcome::default();
+    let mut world = fragr_server::protocol::WorldReader::new();
     loop {
         let message = tokio::select! {
             _ = stop.changed() => break,
@@ -434,7 +435,7 @@ async fn spectator_task(
             break;
         };
         if let Message::Text(text) = message {
-            if let Ok(ServerMessage::Snapshot(_)) = serde_json::from_str::<ServerMessage>(&text) {
+            if let Ok(ServerMessage::Snapshot(_)) = world.read(&text) {
                 outcome.snapshots += 1;
                 if let Some(ready) = ready.take() {
                     let _ = ready.send(());
