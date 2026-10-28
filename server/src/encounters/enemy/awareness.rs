@@ -161,7 +161,7 @@ impl EnemyController {
                 self.pending_bark = Some(EnemyBarkKind::Sighting);
                 return true;
             }
-            (Some(id), _) => Some((id, guard_reaction(body, id, tick))),
+            (Some(id), _) => Some((id, guard_reaction(body, tick))),
             (None, _) => None,
         };
         self.awareness = Awareness::Alerted {

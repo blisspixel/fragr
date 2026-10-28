@@ -1967,7 +1967,13 @@ mod tests {
 
     #[test]
     fn formerly_stranded_fighter_reloads_and_finishes_with_earned_ammunition() {
-        let row = trial(42, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
+        // The scenario needs a death: the fighter that once stalled reloading
+        // must come back from a retry and still reload and finish on the
+        // ammunition it earns. Once guard reactions stopped following the
+        // participant id, seed 42 cleared without dying (4 reloads). Seed 43
+        // dies once, retries and departs with 5 reloads, so it keeps the
+        // retry in the trial. Of seeds 30 to 70, 11 die and still depart.
+        let row = trial(43, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
         assert_eq!(row.outcome, "departed");
         assert!(row.reloads > 0 && row.deaths > 0);
         assert!(row.longest_no_progress_seconds < 30.0);
