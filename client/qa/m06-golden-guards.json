@@ -1,0 +1,44 @@
+{
+  "comment": "M06 golden-slice faction read. A joined player waits in the dock while posed views frame the four freight guards, the only guards placed before activation (later groups and both Turrets spawn when their encounter wakes; client/qa/m06_port_of_entry.json reaches them through combat). Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m06_port_of_entry.json. Check black armour, red visors, armbands and optics against freight paint, pressure shell and fixture pools at room distance; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "note": "The unforced first-person arrival frame in the dock bay."
+    },
+    {
+      "name": "freight_guards",
+      "camera": "overview",
+      "camera_position": [
+        -28,
+        1.65,
+        -28
+      ],
+      "camera_look_at": [
+        -25,
+        1.1,
+        -20
+      ],
+      "note": "Two Clerks and two Sweepers among the freight at 4 to 9 m."
+    },
+    {
+      "name": "freight_guards_far",
+      "camera": "overview",
+      "camera_position": [
+        -37,
+        1.65,
+        -27.5
+      ],
+      "camera_look_at": [
+        -25,
+        1.1,
+        -20
+      ],
+      "note": "The freight guards from the bulkhead side at 8 to 18 m."
+    }
+  ]
+}
