@@ -2,7 +2,7 @@
 
 Status: **implemented**, local verification 2026-10-08. Parallel development authorized by Nick.
 This standalone practice map develops the accepted [level 12 habitat
-brief](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion).
+brief](../campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion).
 It does not connect or unlock a campaign mission.
 
 ## Bounded slice

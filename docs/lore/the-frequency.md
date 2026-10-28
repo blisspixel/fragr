@@ -16,6 +16,10 @@ An unlicensed station survives around the Union's reach. That circumstance links
 it to free communities without turning every presenter into a resistance leader.
 The Host is not the campaign companion, quest dispatcher or final narrator.
 
+On the in-game dial the talk station is listed plainly as **Perimeter Talk**,
+one station among the music stations. Player-facing text never uses the
+Contested Frequency name, taglines or frequency puns.
+
 ## Two distinct talk shows
 
 Working show names, with local pilots under review and neither format shipped. Both discuss conspiracies and

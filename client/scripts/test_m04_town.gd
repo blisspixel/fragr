@@ -87,6 +87,7 @@ func _run() -> void:
 	view.set_meta("last_move_ms", Time.get_ticks_msec() - 1000)
 	town._process(0.0)
 	_check(view.frame < PlayerBody.IDLE_FRAMES and view.position.z == 11, "stationary patient stops animating without extrapolation")
+	_check_vote_sign(town, info, walking)
 	var moved: Dictionary = info.duplicate(true)
 	moved["solids"][3]["min_x"] += 2
 	moved["solids"][3]["max_x"] += 2
@@ -106,6 +107,44 @@ func _run() -> void:
 	if failures == 0:
 		print("test_m04_town: PASS registered fixtures, authoritative patient feet, gait, teardown and actual-map contact detour")
 	quit(0 if failures == 0 else 1)
+
+## The tram vote sign shows the open motion until the server's completed list
+## carries the market hold's first wave, and returns to it on a fresh attempt.
+func _check_vote_sign(town: M04Town, info: Dictionary, fresh: Dictionary) -> void:
+	var cover: Node3D = Node3D.new()
+	root.add_child(cover)
+	var panel: MeshInstance3D = MeshInstance3D.new()
+	panel.name = "Detail_4_m04_tram_vote"
+	cover.add_child(panel)
+	var copy: WorldSign = WorldSign.new()
+	copy.name = "Copy"
+	copy.configure(M04Town.VOTE_OPEN_KEY, Vector2(3.4, 0.4), Color.WHITE)
+	panel.add_child(copy)
+	var vote_text: String = WorldSign.localized(M04Town.VOTE_CARRIED_KEY)
+	var open_text: String = WorldSign.localized(M04Town.VOTE_OPEN_KEY)
+	_check(not open_text.is_empty() and not vote_text.is_empty() and not open_text.contains("CARRIED"), "the open motion names no result")
+	town.apply_vote(cover)
+	_check(copy.message_key == M04Town.VOTE_OPEN_KEY and copy.text == open_text, "before the market hold the motion is still open")
+	var progress: Array[Dictionary] = []
+	for count: int in [3, 4]:
+		var state: Dictionary = fresh.duplicate(true)
+		var completed: Array = []
+		for index: int in range(count):
+			completed.append(info["m04"]["objectives"][index]["id"])
+		state["m04"]["completed"] = completed
+		state["m04"]["current"] = info["m04"]["objectives"][count].duplicate(true)
+		_check(MissionState.validation_error({"tick": 30, "state": state}, town._geometry).is_empty(), "vote fixture with %d objectives is valid" % count)
+		progress.append(state)
+	town.apply_state(progress[0])
+	town.apply_vote(cover)
+	_check(copy.message_key == M04Town.VOTE_OPEN_KEY, "the street wave alone does not carry the vote")
+	town.apply_state(progress[1])
+	town.apply_vote(cover)
+	_check(copy.message_key == M04Town.VOTE_CARRIED_KEY and copy.text == vote_text, "the confirmed first market wave shows the vote carried")
+	town.apply_state(fresh)
+	town.apply_vote(cover)
+	_check(copy.message_key == M04Town.VOTE_OPEN_KEY, "a fresh attempt reopens the motion")
+	cover.queue_free()
 
 func _check_patient_capture_detour() -> void:
 	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m04_notice_to_vacate.json"))

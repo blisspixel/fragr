@@ -839,7 +839,11 @@ pub const SIDE_CALLS_GAMEPLAY_VERSION: u32 = 60;
 /// contract may receive a world as the change from the one before it. Older
 /// readers keep receiving every world whole.
 pub const DELTA_GAMEPLAY_VERSION: u32 = 61;
-pub const GAMEPLAY_VERSION: u32 = DELTA_GAMEPLAY_VERSION;
+/// Bounded hitscan lag compensation: a human Action may carry `view_tick`,
+/// the server tick its client was drawing others at. An older strict Action
+/// reader refuses the field, so a shared room moves to this contract.
+pub const LAG_COMP_GAMEPLAY_VERSION: u32 = 62;
+pub const GAMEPLAY_VERSION: u32 = LAG_COMP_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1459,6 +1463,14 @@ pub struct Action {
     /// do not predict.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub seq: Option<u32>,
+    /// The fractional server tick this human client was drawing other
+    /// fighters at when it sampled the input (gameplay 62). A hint, not
+    /// authority: the server refuses a view that is not finite, negative or
+    /// newer than the newest tick it has produced, and rewinds a hitscan
+    /// shot no further than 200 ms. Absent means no rewind. Agents, rule
+    /// bots and older clients send none; an agent's view is ignored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub view_tick: Option<f64>,
 }
 
 /// One server-owned point still in flight. Absent from the snapshot when none are.

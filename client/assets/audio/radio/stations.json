@@ -60,16 +60,16 @@
       "dj": "Vacuum John",
       "badge": "LW",
       "color": "#8A3A58",
-      "tagline": "Every frequency on Earth, relayed through Larak Lot.",
+      "tagline": "Every station on Earth, relayed through Larak Lot.",
       "ducks_in_combat": true
     },
     {
       "id": "news",
-      "name": "Contested Frequency News",
+      "name": "Perimeter Talk",
       "dj": "The Host",
-      "badge": "CF",
+      "badge": "PT",
       "color": "#8B1E1E",
-      "tagline": "The late-night war-room desk that is not on the air.",
+      "tagline": "News, callers and paid reads. Mostly paid reads.",
       "ducks_in_combat": true
     }
   ]

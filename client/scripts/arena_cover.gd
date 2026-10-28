@@ -89,6 +89,11 @@ func apply_map_info(info: Dictionary) -> void:
 		remove_child(child)
 		child.queue_free()
 	_build_shell(_half_extent, 3.2 if venue == "holdfast_atoll" else BOUNDARY_HEIGHT)
+	if venue == "earth_yard":
+		# Scheduled Service: M03Dressing builds the yard wall, the gate and the
+		# correction complex's dock door in place of the generic venue wall.
+		for side: int in range(4):
+			(get_node("MapBoundary%d" % side) as Node3D).visible = false
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
 	# The intake presenter builds the annex's own street skyline instead.
@@ -136,6 +141,8 @@ func apply_map_info(info: Dictionary) -> void:
 		ocean.build(info)
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
+	if info.get("m06") is Dictionary:
+		M06Dressing.restyle(self, info, _solid_views)
 	if venue == "larak_lot":
 		var lot: LarakLot = LarakLot.new()
 		add_child(lot)

@@ -6,7 +6,7 @@ Shared [world direction](../design/moon.md) and
 and staging. This anchor is a production target, not finished-appearance evidence.
 
 **Status:** planned, accepted 2026-09-25, unbuilt. The second half of
-[M04](m04-port-of-entry.md) in the
+[M04](l06-port-of-entry.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the lunar town and
 the crater cut. [Story arc](story-arc.md).
 

@@ -1,0 +1,12 @@
+{
+  "comment": "M04 golden-slice faction read. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. A joined player waits at the tram stop while posed views frame the notice-board guards placed from the start: the Clerk behind the board and the two Sweepers either side of the square. Check black armour, red visors, armbands and optics against Low Water's warm plaster, setts and long late-afternoon shade at fighting distance; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","note":"The unforced first-person arrival frame at the tram stop."},
+    {"name":"board_guards_wide","camera":"overview","camera_position":[-9,1.65,-29],"camera_look_at":[0,1.1,-13],"note":"The three guards around the notice board from beside the stop, about 15 to 18 m, against the market."},
+    {"name":"board_clerk","camera":"overview","camera_position":[-10,1.65,-19.5],"camera_look_at":[-4,1.2,-15],"note":"The Clerk at about 7.5 m beside the board, the stalls behind."},
+    {"name":"west_sweeper_shade","camera":"overview","camera_position":[-12,1.65,-17.5],"camera_look_at":[-7,1.0,-12],"note":"The west Sweeper at about 7.4 m, the noodle stall and the crate stair behind."},
+    {"name":"east_sweeper_sun","camera":"overview","camera_position":[12,1.65,-17.5],"camera_look_at":[7,1.0,-12],"note":"The east Sweeper at about 7.4 m in the low sun, the cloth stall behind."}
+  ]
+}

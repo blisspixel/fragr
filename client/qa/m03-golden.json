@@ -1,0 +1,33 @@
+{
+  "comment": "M03 Scheduled Service golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m03-scheduled-service.json, FRAGR_QA_MANIFEST=res://qa/m03-golden.json. Eye-height spectator views of every beat on the authored route, with the placed Union watch in its yard. Look at each still against docs/design/earth.md (M03 freight yard), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-19,1.65,-38],"camera_look_at":[2,3.5,-10],"allow_empty_roster":true,"note":"The dock door opens onto the yard: two lanes of cars, the red mast over everything."},
+    {"name":"arrival_mast","camera":"overview","camera_position":[-18,1.65,-37],"camera_look_at":[22,7.5,17],"allow_empty_roster":true,"note":"The mast from the arrival: the objective must read at the far end of the yard."},
+    {"name":"schedule_board","camera":"overview","camera_position":[-21,1.65,-31],"camera_look_at":[-26,2.2,-35.5],"allow_empty_roster":true,"note":"The departures board facing the platform, the arrival kit at its foot."},
+    {"name":"platform_one","camera":"overview","camera_position":[-24,1.65,-34],"camera_look_at":[-12,1.2,-26],"allow_empty_roster":true,"note":"Platform one: the first sealed car and its loading crew."},
+    {"name":"first_car_door","camera":"overview","camera_position":[-19,1.65,-27],"camera_look_at":[-12,1.2,-29],"allow_empty_roster":true,"note":"The first car's open bay and the two people held in it."},
+    {"name":"first_crossing","camera":"overview","camera_position":[0,1.65,-24],"camera_look_at":[0,1.2,-10],"allow_empty_roster":true,"note":"The first crossing between the lanes, the solo Jammer's service platform ahead."},
+    {"name":"lane_east","camera":"overview","camera_position":[14,1.65,-36],"camera_look_at":[8,1.6,0],"allow_empty_roster":true,"note":"The east lane along the coupled cars."},
+    {"name":"yard_office","camera":"overview","camera_position":[21,1.65,-24.5],"camera_look_at":[26,1.0,-30],"allow_empty_roster":true,"note":"The yard office: the Shotgun on the dispatcher's floor."},
+    {"name":"roof_stair","camera":"overview","camera_position":[-24,1.65,-19],"camera_look_at":[-12,2.6,-24],"allow_empty_roster":true,"note":"The stair up to the car roofs."},
+    {"name":"roof_view","camera":"overview","camera_position":[-8,4.65,-27],"camera_look_at":[-6,3.4,0],"allow_empty_roster":true,"note":"Along the car roofs of lane two: the runner's line."},
+    {"name":"roof_crosswalk","camera":"overview","camera_position":[-7,4.65,-6.5],"camera_look_at":[10,3.6,-6],"allow_empty_roster":true,"note":"The roof crossover between the lanes, the roof Jammer's position."},
+    {"name":"roof_to_mast","camera":"overview","camera_position":[8,4.65,-8],"camera_look_at":[22,6,17],"allow_empty_roster":true,"note":"From the east roof toward the mast crest."},
+    {"name":"siding","camera":"overview","camera_position":[-25,1.65,-15],"camera_look_at":[-14,1.2,-6],"allow_empty_roster":true,"note":"The western siding and its sealed car."},
+    {"name":"hut_approach","camera":"overview","camera_position":[-16.5,1.65,-2],"camera_look_at":[-22,1.4,6],"allow_empty_roster":true,"note":"The brakemen's hut beside the points."},
+    {"name":"hut_inside","camera":"overview","camera_position":[-19.5,1.65,10.5],"camera_look_at":[-25,1.0,4],"allow_empty_roster":true,"note":"Inside the hut: table, stove, kettle still warm."},
+    {"name":"roof_car_67","camera":"overview","camera_position":[-20,1.65,13],"camera_look_at":[-13,1.2,8],"allow_empty_roster":true,"note":"The third car at the end of the consist."},
+    {"name":"mast_approach","camera":"overview","camera_position":[13,1.65,4],"camera_look_at":[22,6.5,17],"allow_empty_roster":true,"note":"The mast platform from the lower approach, the signal box beneath."},
+    {"name":"mast_stairs","camera":"overview","camera_position":[21.5,1.65,-1],"camera_look_at":[22,4,14],"allow_empty_roster":true,"note":"The stair up to the mast crest."},
+    {"name":"mast_crest","camera":"overview","camera_position":[22,4.15,12.5],"camera_look_at":[22,7.5,17],"allow_empty_roster":true,"note":"The transmitter pod from the precision position."},
+    {"name":"signal_box","camera":"overview","camera_position":[29,1.65,26],"camera_look_at":[22,2.6,19],"allow_empty_roster":true,"note":"The signal box from the yard edge."},
+    {"name":"mast_over_yard","camera":"overview","camera_position":[25,4.15,13],"camera_look_at":[-10,1.5,-20],"allow_empty_roster":true,"note":"From the mast crest back over both lanes."},
+    {"name":"gantry","camera":"overview","camera_position":[8,4.65,30],"camera_look_at":[-8,2.2,35],"allow_empty_roster":true,"note":"The gantry over the locomotive."},
+    {"name":"north_approach","camera":"overview","camera_position":[0,1.65,18],"camera_look_at":[-8,2.0,36],"allow_empty_roster":true,"note":"Platform two toward the locomotive."},
+    {"name":"locomotive","camera":"overview","camera_position":[-15,1.65,30],"camera_look_at":[-10,2.2,37],"allow_empty_roster":true,"note":"The locomotive and its boarding control."},
+    {"name":"yard_gate","camera":"overview","camera_position":[-2,1.65,30],"camera_look_at":[0,2.5,44],"allow_empty_roster":true,"note":"The yard gate at the far end: open country and the way home."},
+    {"name":"yard_back","camera":"overview","camera_position":[2,1.65,38],"camera_look_at":[-4,2.0,-30],"allow_empty_roster":true,"note":"The whole yard from the train end."}
+  ]
+}

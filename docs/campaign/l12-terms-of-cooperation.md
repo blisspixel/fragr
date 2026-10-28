@@ -1,4 +1,4 @@
-# M07: Terms of Cooperation
+# Level 12: Terms of Cooperation
 
 **Appearance anchor for level 12:** Martian habitat: pale shielding, contained agriculture and neutral working rooms against dusty amber exteriors; practical needs expose delayed coordination.
 Shared [world direction](../design/mars.md) and

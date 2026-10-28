@@ -1,4 +1,4 @@
-# M05: Custodian of Record
+# Level 8: Custodian of Record
 
 **Appearance anchor for level 8:** Sheltered custody archive: records machinery and personal remnants; evidence and captivity occupy one recognizable institution.
 Shared [world direction](../design/moon.md) and

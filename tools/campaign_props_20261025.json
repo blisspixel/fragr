@@ -67,7 +67,7 @@
    "intended": null,
    "axis": "longest",
    "metres": 5.5,
-   "canon": "m04-port-of-entry.md level 6: 'Through the customs glass, a tug drags Tern's ship past toward the impound berth'; Union port impound fleet: issued black, one red band, blank plates",
+   "canon": "l06-port-of-entry.md level 6: 'Through the customs glass, a tug drags Tern's ship past toward the impound berth'; Union port impound fleet: issued black, one red band, blank plates",
    "placement": "Port of Entry: on the sealed apron east of the customs glass (x 25..48, z 6..41 is outside every walkable volume), seen through customs_east_glass; no collision because nobody can reach it",
    "repaint": [
     {
@@ -131,7 +131,7 @@
    "intended": null,
    "axis": "y",
    "metres": 0.9,
-   "canon": "m06-common-carrier.md and design/space.md: the Carrier's command console, gunmetal, repaired, muted cyan only on navigation equipment; free side, personal",
+   "canon": "l10-common-carrier.md and design/space.md: the Carrier's command console, gunmetal, repaired, muted cyan only on navigation equipment; free side, personal",
    "placement": "Common Carrier bridge: two consoles side by side fill command_console (x 1.5..3.5, z -16.8..-16.0, y 7.6..8.5), screens aft toward the pilot's feet",
    "provenance": {
     "reference": {
@@ -173,7 +173,7 @@
    "intended": null,
    "axis": "y",
    "metres": 1.1,
-   "canon": "m06-common-carrier.md: the crew's galley, wood-tone doors and personal clutter; art bible: possessions and repairs show individuality",
+   "canon": "l10-common-carrier.md: the crew's galley, wood-tone doors and personal clutter; art bible: possessions and repairs show individuality",
    "placement": "Common Carrier crew deck: four units back to back, two along each face, fill the galley_counter island (x 4.5..7.3, z -5.8..-4.5, y 4.8..5.9)",
    "provenance": {
     "reference": {
@@ -215,7 +215,7 @@
    "intended": null,
    "axis": "y",
    "metres": 1.84,
-   "canon": "m06-common-carrier.md: Tern's crew berths, gunmetal with warm personal blankets (rust-orange, never Union red)",
+   "canon": "l10-common-carrier.md: Tern's crew berths, gunmetal with warm personal blankets (rust-orange, never Union red)",
    "placement": "Common Carrier crew deck: the lower berth only (the upper tier and roof cut away at 0.56 m) fills each 0.5 m berth slab, bunk_fore and bunk_aft, which a fighter can step onto",
    "clip": [
     {
@@ -264,7 +264,7 @@
    "intended": null,
    "axis": "y",
    "metres": 1.7,
-   "canon": "m08-weight-of-permission.md level 13: the Union-owned Martian works; Union issue in union_plate steel (the black body failed the lore-gate 2.4 P4 interim grayscale capture: a Clerk in front vanished into it), red kept to the headstock seal ring and band, coolant trays left rust, blank type-approval plate",
+   "canon": "l13-weight-of-permission.md level 13: the Union-owned Martian works; Union issue in union_plate steel (the black body failed the lore-gate 2.4 P4 interim grayscale capture: a Clerk in front vanished into it), red kept to the headstock seal ring and band, coolant trays left rust, blank type-approval plate",
    "placement": "Weight of Permission: four lathes in two rows fill edge_west_machine (x -23..-17, z -35..-31, y 0.3..2.0) at the works' north edge",
    "repaint": [
     {
@@ -337,7 +337,7 @@
    "intended": null,
    "axis": "y",
    "metres": 3.0,
-   "canon": "m08-weight-of-permission.md: the works' freight hoist on its overhead beam; Union issue, red kept to the hook block",
+   "canon": "l13-weight-of-permission.md: the works' freight hoist on its overhead beam; Union issue, red kept to the hook block",
    "placement": "Weight of Permission: the hoist trolley and hook (its own beam stub cut away above 2.42 m) hang under freight_hoist_beam with the hook block inside freight_hoist_hook (x -0.4..0.4, z 18.2..18.8, y 5.7..8.1)",
    "clip": [
     {

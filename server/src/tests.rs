@@ -7860,6 +7860,7 @@ mod enforcer;
 mod feel;
 mod heavy_turret;
 mod jammer;
+mod lag_comp;
 mod m01;
 mod modes;
 mod pellets;

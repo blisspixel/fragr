@@ -1,4 +1,4 @@
-# M04: Port of Entry
+# Level 6: Port of Entry
 
 **Appearance anchor for level 6:** Lunar cargo entry: pale dust, dark basalt, worn pressure shells and controlled thresholds; practical interior light balances exposed shade.
 Shared [world direction](../design/moon.md) and
@@ -160,3 +160,60 @@ grams. The customs PA: "Welcome to the Moon. You are being processed."
 
 **The moment.** Tern's wave through the customs glass as the tug drags the
 ship away, and then the Turret waking up.
+
+## Golden-slice dressing (wave 14)
+
+`client/scripts/m06_dressing.gd` raises the built route toward the Recall
+Notice bar without a new body: every piece is a wall fitting, flush paint, a
+small possession against a wall or on a top, an overhead run or scenery outside
+the shell, and the server's solids are unchanged. `M06Dressing.restyle` gives
+each solid view a surface by use. The pressure shell is bone-grey with dark
+seams and one faded ochre band; ceilings are dark ribbed steel; the bulkhead,
+confiscation cage and gallery stairs are issued dark steel with plates one step
+lighter. The freight lanes, which read as Union black with glowing red stripes
+behind every guard, are now rows of separate containers in practical, varied,
+mid-value paint, so a black-and-red guard stands out against them. No solid's
+paint emits light, so red stays the Union attack tell and nothing glows cyan.
+The pressure glass is neutral rather than blue, and the floor is laid in tiles
+so each keeps its own lights in the Compatibility renderer. Outside the glass a
+lit lunar apron of pale dust and dark basalt carries containers, a container on
+the gantry's cable, pad lights, rock and the tug's tow tracks to the impound
+cradle. `ArenaSky.port_of_entry()` lowers the ambient floor and the key so the
+hard light stays outside and the halls are shaped by high-bay pools, warm work
+lamps and the actor fill.
+
+The story is told in objects. In the dock the crew's own pressure suits hang
+by the ship-side cargo lock, each patched in its owner's colour, over a dust
+trap with grey dust tracked in across the sill; the crew lockers carry
+stickers. The freight hall has a gantry crane on runway rails with its hook
+block over the south aisle, painted handling lanes and wheel-worn dust. The
+confiscation cage has a mesh roof and mesh on its lane walls, and keeps a case,
+a duffel, a guitar case and a stack of hand-painted body panels, each with a
+small red destruction tag, under one hard light on the Railgun. The loading bay
+has its outer roller door stopped short of the floor with light and dust under
+it. The service corridor has pipe runs and a valve wheel, and the family room
+keeps planters by the glass. Customs has painted queue lanes and stand-here
+marks, hard pools over the desks with stamped forms, stamps, desk lamps and
+trays of confiscated personal things, two tall black banners with an original
+red seal high on the north wall, and the Chancellor's welcome loop on two
+hanging screens: a pixel picture of the podium, banners and a crowd's raised
+hands, with no words. The duty-free kiosk shelves rows of identical grey
+compliance goods with the same small red seal, above its scratched six. The
+transit end wall shows a dark tunnel mouth with receding lamps.
+
+**Signs.** Six readable signs, each placed once: the dust declaration form
+(`EARTH DUST: ___ GRAMS`), `CONFISCATED` on the cage, `FREIGHT HALL` under the
+Earth window (shortened from a six-word handling instruction), `IMPOUND` and
+`CUSTODY DEPOT` at the customs glass, and `TRANSIT / LUNAR TOWN` at the exit.
+The three secret sixes are the circled-six mark, not words; the declaration
+and scale screens are pictograms. The dressing adds no words.
+
+`client/qa/m06-golden.json` frames every beat on the route from a spectator
+camera; `m06-golden-guards.json` frames the four freight guards, the only
+guards placed before their encounter wakes, against the freight paint. Later
+groups and both Turrets appear only through the combat route in
+`client/qa/m06_port_of_entry.json`. Still open: the Turrets and later guards
+judged against the dressed customs hall in a combat capture; the tug, Tern's
+wave and the ship's provisional box hull; the window gantry and depot tower,
+which are plain shared backdrop boxes; the Voss welcome loop's voice and motion;
+fresh-player pacing and GPU performance.

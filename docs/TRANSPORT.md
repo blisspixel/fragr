@@ -26,7 +26,8 @@ a bounded tick timeline with a 100 ms render buffer, coherent yaw/pitch and
 hold-only stale fallback. Spectator eyes use the same transform time and chase
 weights are frame independent. Local prediction takes precedence. Campaign
 enemies and companions retain their existing phase/shot clock. This implements
-participant transform interpolation; it does not implement lag compensation,
+participant transform interpolation. Bounded hitscan lag compensation (gameplay
+62, 200 ms) rewinds fighters to the view a human client reports; it does not
 delay all combat facts or prove two-machine feel. Evidence and limitations are
 in [the presentation plan](plans/remote-participant-presentation.md).
 
@@ -83,7 +84,7 @@ Prediction and reconciliation already run on WebSocket. The [live step](plans/li
 ## Timeline
 
 - **Now:** WebSocket JSON for everyone; client-owned yaw, movement Acks and bounded local prediction shipped in v0.58.0.
-- **Before the pilot:** measure a two-machine WebSocket session, then complete interpolation and bounded lag compensation on that wire.
+- **Before the pilot:** measure a two-machine WebSocket session. Interpolation and bounded hitscan lag compensation (gameplay 62) are on that wire.
 - **Pilot:** compare a full datagram path against the same WebSocket session. Move humans only if play feel, security, interoperability and reconnect evidence pass.
 
 ## References

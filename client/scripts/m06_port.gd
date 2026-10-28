@@ -70,6 +70,10 @@ func configure_map(info: Dictionary) -> void:
 	var activity: M06PortActivity = M06PortActivity.new()
 	_root.add_child(activity)
 	activity.build(info)
+	var dressing: M06Dressing = M06Dressing.new()
+	dressing.name = "PortDressing"
+	_root.add_child(dressing)
+	dressing.configure_map(info)
 	ArenaSky.mark_world(self)
 
 func _window_frame(host: Dictionary) -> void:

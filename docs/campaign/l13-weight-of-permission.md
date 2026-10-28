@@ -1,4 +1,4 @@
-# M08: The Weight of Permission
+# Level 13: The Weight of Permission
 
 **Appearance anchor for level 13:** A working Martian foundry: dark frames, material handling and controlled production; fighters and red tells separate from rust terrain.
 Shared [world direction](../design/mars.md) and

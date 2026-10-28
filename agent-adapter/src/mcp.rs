@@ -384,9 +384,12 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         look_at,
         // MCP agents aim with look_at and the turn bits; they do not own a
         // facing and do not predict, so absolute angles and seq are unset.
+        // They aim at present server state, so they report no view tick and
+        // the schema refuses one.
         yaw: None,
         pitch: None,
         seq: None,
+        view_tick: None,
     })
 }
 
@@ -2323,6 +2326,21 @@ mod mcp_tests {
             assert!(validate_act_arguments(&serde_json::json!({"seat":value})).is_err());
         }
         assert!(validate_act_arguments(&serde_json::json!({"vehicle_id":1})).is_err());
+    }
+
+    #[test]
+    fn act_refuses_a_view_tick_and_never_sends_one() {
+        // Agents aim at present server state; lag compensation is a human
+        // client's fact, so the slow control plane neither accepts nor sends it.
+        let refused = validate_act_arguments(&serde_json::json!({"fire":true,"view_tick":10.5}));
+        assert_eq!(
+            refused.unwrap_err(),
+            "schema error: unknown act field 'view_tick'"
+        );
+        let action = validate_act_arguments(&serde_json::json!({"fire":true})).unwrap();
+        assert_eq!(action.view_tick, None);
+        let wire = serde_json::to_string(&action).unwrap();
+        assert!(!wire.contains("view_tick"), "{wire}");
     }
 
     #[test]

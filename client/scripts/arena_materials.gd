@@ -211,8 +211,16 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# ochre safety paint, light enough that a black uniform never vanishes
 		# into it. Nothing here glows red or cyan: red stays the Union
 		# attack tell and cyan belongs to the Inheritance (faction contract).
-		bases = [Color("6f716b"), Color("cbc6b0"), Color("4f5557"), Color("8e9b88"), Color("5a5e60")]
-		accents = [Color("5e6058"), Color("4e5844"), Color("595d60"), Color("43543f"), Color("7a6a44")]
+		bases = [Color("777972"), Color("cbc6b0"), Color("5d6366"), Color("8e9b88"), Color("5a5e60")]
+		accents = [Color("5e6058"), Color("4e5844"), Color("6b7073"), Color("43543f"), Color("7a6a44")]
+	if venue == "earth_yard":
+		# Scheduled Service's freight yard (docs/design/earth.md): weathered
+		# mid-grey cast concrete, railway sage enamel, recall-car green-grey
+		# steel and worn ochre safety paint. Mid values keep black-and-red
+		# guards readable in the afternoon sun; nothing paints or glows red
+		# except the mast, which stays the objective (faction contract).
+		bases = [Color("8a857a"), Color("9aa08a"), Color("5c6253"), Color("8e9b88"), Color("5a5e60")]
+		accents = [Color("75705f"), Color("4e5844"), Color("4c5245"), Color("43543f"), Color("7a6a44")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
@@ -228,6 +236,9 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# One restrained red pinline painted on the enamel. No surface emits red,
 		# so red light remains the Union attack tell (art bible faction table).
 		material.set_shader_parameter("warning_color", Color("8c1a1e"))
+		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "earth_yard":
+		material.set_shader_parameter("warning_color", Color("9a7c3e"))
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)

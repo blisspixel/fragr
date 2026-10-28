@@ -271,7 +271,9 @@ static func preset_for(map_name: String) -> Preset:
 		return holdfast()
 	if key.contains("common carrier") or key.contains("right of search"):
 		return carrier()
-	if key.contains("port of entry") or key.contains("passenger manifest"):
+	if key.contains("port of entry"):
+		return port_of_entry()
+	if key.contains("passenger manifest"):
 		return moon_port()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()
@@ -283,7 +285,9 @@ static func preset_for(map_name: String) -> Preset:
 		return still_here_later() if key.contains("years later") else still_here()
 	if key.contains("local exception"):
 		return waterworks()
-	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
+	if key.contains("notice to vacate"):
+		return notice_to_vacate()
+	if key == "low water" or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
@@ -392,6 +396,24 @@ static func moon_port() -> Preset:
 	preset.saturation = 0.90
 	return preset
 
+## Port of Entry (docs/design/moon.md): the port's lunar light with a lower
+## ambient floor and a dimmer key, so the hard exterior light stays outside
+## the pressure glass and the halls are shaped by their own fixtures. M06Dressing
+## lights the apron, the high bays and the work stations; the actor fill keeps
+## black-and-red guards readable against cargo and shell.
+static func port_of_entry() -> Preset:
+	var preset: Preset = moon_port()
+	preset.ambient_color = Color(0.70, 0.72, 0.72)
+	preset.ambient_energy = 0.55
+	preset.key_color = Color("f4f1e8")
+	preset.key_energy = 0.55
+	preset.practical_energy = 2.4
+	preset.practical_range = 11.0
+	preset.view_fill_energy = 0.7
+	preset.contrast = 1.12
+	preset.saturation = 0.95
+	return preset
+
 ## The custody archive: an enclosed lunar institution lit by desk lamps,
 ## the shaft's cold glow and the freight lane. Darker than the port, with
 ## warmer, shorter practical pools.
@@ -426,6 +448,27 @@ static func low_water() -> Preset:
 	preset.practical_color = Color("ffeac2")
 	preset.practical_energy = 0.9
 	preset.saturation = 0.92
+	return preset
+
+## Notice to Vacate, late afternoon (docs/design/earth.md "M04 Low Water"):
+## a low warm sun from the south-west throws long shadows across the square
+## and puts the court and the clinic side of the market in cool shade, so the
+## stall lamps, lit windows and the clinic read as practical light. A faint
+## actor fill keeps a black-and-red Union body readable in that shade.
+static func notice_to_vacate() -> Preset:
+	var preset: Preset = Preset.new(Color("6c87a8"), Color("e8b68a"),
+		Color("9a7f6c"), Color("cfae8e"), 0.0032, Color("a3a9b4"), 0.62)
+	preset.key_color = Color("ffc58a")
+	preset.key_energy = 1.5
+	preset.key_rotation_degrees = Vector3(-22.0, -118.0, 0.0)
+	preset.scene_fill_energy = 0.05
+	preset.practical_color = Color("ffe0b0")
+	preset.practical_energy = 1.0
+	preset.view_fill_energy = 0.28
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.08
+	preset.saturation = 0.98
+	preset.glow_intensity = 0.35
 	return preset
 
 ## Larak Lot: an old range's car park at night. Deep indigo over a sodium
@@ -561,9 +604,14 @@ static func freight_yard() -> Preset:
 		Color("777a68"), Color("adb6a8"), 0.003, Color("d1d4ca"), 0.8)
 	preset.key_color = Color("ffe1b0")
 	preset.key_energy = 1.3
+	# Scheduled Service's bright afternoon: a lower western sun rakes the car
+	# ribs and throws the consist's shadows across the lanes, and the actor
+	# fill keeps a black-and-red guard's front readable in that shade.
+	preset.key_rotation_degrees = Vector3(-36.0, -62.0, 0.0)
+	preset.view_fill_energy = 0.25
 	preset.scene_fill_energy = 0.15
 	preset.practical_energy = 0.8
-	preset.contrast = 1.04
+	preset.contrast = 1.08
 	preset.saturation = 0.94
 	return preset
 

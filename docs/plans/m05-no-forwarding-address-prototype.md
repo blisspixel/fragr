@@ -16,7 +16,7 @@ Release packaging must pass its own workflow before claiming artifacts available
 
 ## Goal
 
-Build the accepted [level 5 design](../campaign/m03-no-forwarding-address.md#level-5-design-twenty-level-expansion)
+Build the accepted [level 5 design](../campaign/l05-no-forwarding-address.md#level-5-design-twenty-level-expansion)
 as a playable Episode I finale: Low Water roofs and water tanks, crane walk,
 paint-bay grenade lesson, optional Splice/captive rescue, tram trench, isolated
 Heavy Sweeper introduction, freight hold and deliberate ship boarding. Retain

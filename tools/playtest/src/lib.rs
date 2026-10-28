@@ -23,6 +23,7 @@ pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
 mod provenance;
+pub mod rewind;
 pub mod sabotage;
 pub mod soak;
 pub mod traffic;

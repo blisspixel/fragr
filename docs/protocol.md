@@ -148,7 +148,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `61`; omission means `1`. Discovery-only maps first
+  and the Godot client send `62`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -376,17 +376,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`61`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`62`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-61 or geometry 2. An older hello is also sent to
+62 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 61 can
-still enter that mission, and a hello above 61 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 62 can
+still enter that mission, and a hello above 62 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -911,6 +911,7 @@ World-point aim:
   to +/-85 degrees. Missing or nonfinite values retain the last pitch, initially
   zero. Pitch does not redirect movement. Respawn resets it to zero.
 - `seq`: (optional) Input sequence number. For a numbered human, the server accepts only numbers newer than the last admitted sample in u32 half-range order, including wrap. The Godot sender uses 1 through 4294967295 and wraps back to 1. Duplicate and stale samples do not replace continuous input or latch a jump, interaction or weapon choice. Once a human sends a numbered Action, an unnumbered Action on that pawn is ignored. Humans that never number Actions, agents, and older clients retain their unnumbered path. The server echoes the selected sequence in an `ack` every tick after the first numbered movement step.
+- `view_tick`: (optional, gameplay 62, humans only) The fractional server tick this client was drawing other fighters at when it sampled the input, for example `12340.25`. A hint the server checks, never authority: see "Lag compensation (capability 62)". Omitted by agents, spectators and the MCP adapter.
 
 **Notes:**
 - Continuous action fields use the latest admitted value at the game-loop tick
@@ -3104,7 +3105,7 @@ Recording metadata is not sent on the live socket.
 - **Delta compression**: Send only changed fields
 - **Interest management**: Filter snapshots by visibility/distance
 - **UDP option**: Low-latency channels for actions (alongside WS for reliability)
-- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. The local presentation increment interpolates remote fighters on a bounded 100 ms timeline, clears discontinuities and keeps shots tied to resolved traces. Campaign-enemy timeline interpolation and bounded lag compensation remain later work.
+- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. The local presentation increment interpolates remote fighters on a bounded 100 ms timeline, clears discontinuities and keeps shots tied to resolved traces. Gameplay 62 adds bounded hitscan lag compensation from the client's reported view tick (200 ms bound). Campaign-enemy timeline interpolation remains later work.
 
 ## Participant records
 
@@ -4059,3 +4060,49 @@ the held world at those barriers), a world that replaced an unsent one, and
 every world for a reader below 61. Readers below 61 keep receiving exactly the
 bytes they did before. Quantization of coordinates and per-reader deltas
 after a replaced world are not part of this capability.
+
+### Lag compensation (capability 62)
+
+Gameplay 62 lets a human Action carry `view_tick`, the fractional server tick
+its client was drawing other fighters at when it sampled the input. Owner:
+`server/src/sim/rewind.rs`; the Godot sender is `game_manager.gd`, which reads
+it from the same timeline (`RemotePresentation`) that draws remote fighters.
+
+- **Admission.** The server reads `view_tick` only from a human pawn's
+  admitted Action (a stale or duplicate `seq` is dropped first). It refuses a
+  value that is not finite, is negative, or names a tick newer than the newest
+  tick it has produced when the Action arrives: no client can have drawn that
+  tick. A refused view is not an error and does not close anything; that
+  input's shots test the present. An agent's `view_tick` is ignored, and the
+  MCP `act` schema refuses the field.
+- **Lag.** An admitted view becomes a view lag: the tick that consumes the
+  Action less the view. The lag rides with the input, so a held trigger that
+  fires on a later tick keeps the same lag rather than a growing one. The
+  server never adds its own latency estimate, so interpolation and round trip
+  are not counted twice.
+- **Bound.** A hitscan shot rewinds by the lag, clamped to 4 ticks (200 ms).
+  The server keeps 5 ticks (250 ms) of ordinary fighters' hit volumes: feet,
+  stance and movement epoch, recorded at the end of each tick as the snapshot
+  publishes them, and interpolates between the two ticks around the view.
+- **What rewinds.** Only ordinary fighters' volumes, for hitscan shots
+  (pellets included) from that human. World solids, doors, vehicles,
+  civilians, campaign actors, the shooter, projectiles (rockets, grenades,
+  traveling shots, Jammer and Assessor pulses), mines, melee and explosions
+  stay in the present. Damage, armour, the head band and `ShotResult` come
+  from the ordinary path once; the trace ends where the ray met the rewound
+  body, which is where the shooter saw it.
+- **Discontinuities.** A body is tested in the present when its history does
+  not reach the view unbroken: absent from a recorded tick (dead, waiting or
+  detached), a different movement epoch (respawn, placement), a step longer
+  than 3 m between ticks, or a new round (which clears the history). Any
+  other placement over 3 m, such as a mission retry, meets the step rule.
+- **Fairness.** Walls are tested as they stand now, along the ray to where
+  the shooter saw the victim, so a victim who stepped behind cover inside the
+  bound can still be struck: at most 200 ms after the server moved them, so a high-ping shooter cannot
+  reach around a corner beyond that. A modified client can claim any view
+  inside the bound, so the bound, not the claim, is the fairness limit. Past
+  the bound the shooter leads the target by the excess.
+
+Readers below 62 are refused by a shared room under Protocol version; a
+campaign mission keeps its content floor and simply sees no rewind from a
+client that sends no view.

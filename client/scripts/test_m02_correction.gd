@@ -55,6 +55,12 @@ func _run() -> void:
 			warm += 1
 	_expect(warm >= 18, "warm lamps mark where staff work against the cold strips, found %d" % warm)
 	_expect(ward.find_children("FixturePool*", "SpotLight3D", true, false).size() >= 3, "hard fixture pools over the frame, the machine and the side ward")
+	for room: String in ["Stair", "Floor", "SideWard"]:
+		var battens: Array[Node] = ward.get_node(room).find_children("Batten", "OmniLight3D", true, false)
+		_expect(not battens.is_empty(), "cold battens give the big and service rooms a readable base: " + room)
+		for batten: Node in battens:
+			var cold: Color = (batten as OmniLight3D).light_color
+			_expect(absf(cold.r - cold.b) < 0.1 and cold.g >= cold.r, "battens are issued cold white, never warm or cyan: " + room)
 	_expect(ward.find_children("YardDaylight", "OmniLight3D", true, false).size() == 1, "the dock's daylight is the way out")
 	for node: Node in ward.find_children("*", "VisualInstance3D", true, false):
 		_expect(((node as VisualInstance3D).layers & ArenaSky.ACTOR_LAYERS) == 0, "dressing stays off the actor fill layer: " + node.name)

@@ -8,7 +8,7 @@ standalone map and its evidence remain historical artifacts.
 
 ## Source and intended behavior
 
-The accepted [level 12 brief](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
+The accepted [level 12 brief](../campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 owns the pressure arrival, market, maintenance bay, greenhouse, pumping court,
 shelter, galleries and mutual-aid depot. The required facts are
 `shelter_route_secured`, `aid_force_arrived` and `coalition_commitment`. Optional

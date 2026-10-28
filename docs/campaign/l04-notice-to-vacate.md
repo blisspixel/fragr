@@ -12,6 +12,45 @@ runner and difficulty acceptance remain open. The market, clinic and court follo
 [twenty-level expansion](../plans/campaign-expansion.md). The old combined
 district brief is historical. [Story arc](story-arc.md).
 
+The golden-slice pass (wave 14) dresses the built route through
+`client/scripts/m04_dressing.gd` toward the Recall Notice bar, without words
+and without a single new body: every piece is flush paint or relief on a
+registered face, a possession on an existing top or in a wall's own clearance,
+or an overhead run, and the server's solids are unchanged. `ArenaSky.notice_to_vacate()`
+gives the level its own late afternoon: a low warm sun from the south-west
+throws long shadows across the square and leaves the court and the clinic side
+of the market in cool shade, with a faint actor fill so black-and-red guards
+read in it; the shared Low Water sky is unchanged. The four boundary walls
+become rows of homes over shops in Low Water's plaster colours, shutters
+pulled down for leaving, some windows boarded, washing and pots on the
+balconies, and a tram portal where the rails leave the district. Setts replace
+the poured slab across the square and market, the tram street is dark asphalt
+with its rails, and the court is swept terracotta with a child's chalk squares.
+Belongings wait on the tram stop seat and at the top of the roof stair; the
+four stalls (noodles, radios, cloth, greens) are half packed into their own
+crates under their lamps and festoon lights, the cover boxes and the awning
+treads are stacked crates, and the repair bench has a tool board and a work
+lamp. The notice board's back carries the neighbours' own pinned papers. The
+clinic is bright and clean under four pendants: bone plaster over a sage dado,
+a cork care board with a card per patient, curtains drawn back, IV stands,
+shelves, the patients' drawings over the counter and Edda's satchels packed to
+move; outside it has its own sage render, lit windows, a lamp over the shutter
+and a painted hand holding a sprout. The tram wears its old terracotta and
+cream with three test colours and the green already started; the workshop is
+clad steel with a gantry crane on its roof as the street's landmark. The court
+gets doors on every home, washing high over the yard, stools under the meal
+table and a black Union field printer as the only Union object in it.
+The tram's vote sign shows the open motion (`WORLD_M04_TRAM_MOTION`) until the
+server's completed list carries `market_wave_a_cleared`, then the result;
+`M04Town` keys it to that existing objective fact and decides nothing, and a
+fresh attempt reopens the motion.
+`client/qa/m04-golden.json` frames every beat and `m04-golden-guards.json` the
+notice-board guards against the dressed square. Readable signs stay at six
+(notice, clinic sign, water tank, tram vote, workshop, roof control), all
+diegetic. Still open: the patient figures are borrowed player strips, the
+Notary photograph in the printer tray, neighbours in the square, the stall
+benches seen from behind, fresh-player pacing and GPU performance.
+
 | Episode | Place | New | First run | Par | Doors |
 |---|---|---|---|---|---|
 | I Recall | Low Water: repair market, clinic, habitation court | Notary | 11 min | 4:30 | 1 |

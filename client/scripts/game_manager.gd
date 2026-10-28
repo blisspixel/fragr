@@ -118,8 +118,10 @@ var m01_intake: M01Intake
 var m20_hold: M20HoldStrip
 var m02_ward: M02Ward
 var m02_correction: M02Correction
+var m03_dressing: M03Dressing
 var m03_yard: M03Yard
 var m04_town: M04Town
+var m04_dressing: M04Dressing
 var m05_town: M05Town
 var m06_port: M06Port
 var m08_archive: M08Archive
@@ -206,6 +208,9 @@ var _world_load_generation: int = 0
 var _world_reveal_pending: bool = false
 var input_device: InputDevice
 var local_prediction: LocalPrediction = LocalPrediction.new()
+## Remote fighters' presentation timeline as a clock: every snapshot tick, no
+## pose. Its render tick is the view tick an Action reports.
+var view_clock: RemotePresentation = RemotePresentation.new()
 var _adopt_local_spawn_snapshot: bool = false
 var _retired_environments: Array[Environment] = []
 
@@ -413,12 +418,18 @@ func _ready():
 	m02_correction = M02Correction.new()
 	m02_correction.name = "M02Correction"
 	add_child(m02_correction)
+	m03_dressing = M03Dressing.new()
+	m03_dressing.name = "M03Dressing"
+	add_child(m03_dressing)
 	m03_yard = M03Yard.new()
 	m03_yard.name = "M03Yard"
 	add_child(m03_yard)
 	m04_town = M04Town.new()
 	m04_town.name = "M04Town"
 	add_child(m04_town)
+	m04_dressing = M04Dressing.new()
+	m04_dressing.name = "M04Dressing"
+	add_child(m04_dressing)
 	m05_town = M05Town.new()
 	m05_town.name = "M05Town"
 	add_child(m05_town)
@@ -608,6 +619,7 @@ func _on_map_info(info: Dictionary) -> void:
 	if mission_hud != null:
 		mission_hud.geometry = net_client.mission_geometry
 	_clear_predicted_pawn()
+	view_clock.reset()
 	for pawn: Node in players.values():
 		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
 			pawn.reset_remote_presentation()
@@ -669,10 +681,14 @@ func _on_map_info(info: Dictionary) -> void:
 		m02_ward.configure_map(info)
 	if m02_correction != null:
 		m02_correction.configure_map(info)
+	if m03_dressing != null:
+		m03_dressing.configure_map(info)
 	if m03_yard != null:
 		m03_yard.configure_map(info)
 	if m04_town != null:
 		m04_town.configure_map(info)
+	if m04_dressing != null:
+		m04_dressing.configure_map(info)
 	if m05_town != null:
 		m05_town.configure_map(info)
 	if m06_port != null:
@@ -2095,6 +2111,14 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.erase("pitch")
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
+	# The server tick other fighters are being drawn at, a fact this client
+	# knows. The server checks it and decides any rewind; absent, it rewinds
+	# nothing.
+	var view: float = view_clock.view_tick(now_usec)
+	if view >= 0.0:
+		action_state["view_tick"] = view
+	else:
+		action_state.erase("view_tick")
 	action_state.weapon_swap = pending_weapon_swap
 	var seat: String = _vehicle_seat()
 	if not seat.is_empty():
@@ -2271,6 +2295,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		m03_yard.apply_state(state)
 	if m04_town != null:
 		m04_town.apply_state(state)
+		m04_town.apply_vote(arena_cover)
 	if m05_town != null:
 		m05_town.apply_state(state)
 	if m06_port != null:
@@ -2775,10 +2800,14 @@ func _clear_world() -> void:
 		m02_ward.clear_map()
 	if m02_correction != null:
 		m02_correction.clear_map()
+	if m03_dressing != null:
+		m03_dressing.clear_map()
 	if m03_yard != null:
 		m03_yard.clear_map()
 	if m04_town != null:
 		m04_town.clear_map()
+	if m04_dressing != null:
+		m04_dressing.clear_map()
 	if m05_town != null:
 		m05_town.clear_map()
 	if m06_port != null:
@@ -2879,6 +2908,7 @@ func _on_snapshot_received(data):
 	if m20_waterworks != null:
 		m20_waterworks.apply_snapshot(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
+	view_clock.observe(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
 	hud.spectator_panel.watching = not is_human_player and not _benchmark

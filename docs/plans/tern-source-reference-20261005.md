@@ -75,7 +75,7 @@ Manifest, Common Carrier and later travel, following
 [cast](../lore/cast.md#visual-continuity),
 [characters](../design/characters.md), [ships](../design/space.md), the
 [M09 brief](../campaign/l09-passenger-manifest.md) and
-[M10 treatment](../campaign/m06-common-carrier.md). Tern is a free embodied
+[M10 treatment](../campaign/l10-common-carrier.md). Tern is a free embodied
 agent, a person with dry humor, finite resources and obligations of their own.
 The existing anchors are tall lean ordinary-person proportions, compact head,
 flight harness, gunmetal and one small ember shoulder panel. Exact head shape,

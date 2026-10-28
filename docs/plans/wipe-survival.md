@@ -11,7 +11,7 @@ announced arena waves, shopping breaks or defeat of the whole intelligence.
 [The complete design](../design/wipe-finale-and-mode.md) owns map decisions,
 pressure compositions, device economy, control isolation, life/admission rules,
 art references and acceptance questions. [CAMPAIGN](../CAMPAIGN.md), the active
-[M18](../campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion),
+[M18](../campaign/l18-all-systems-normal.md#level-18-design-twenty-level-expansion),
 [M19](../campaign/l19-planned-works.md), [M20](../campaign/l20-local-exception.md)
 and [Still Here](../campaign/epilogue-still-here.md) own story and outcomes.
 The historical M10 filename does not reinstate a single 33-minute retry.

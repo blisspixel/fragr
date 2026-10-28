@@ -12,7 +12,7 @@ existing audio library only.
 
 ## Goal
 
-Build level 8, [Custodian of Record](../campaign/m05-custodian-of-record.md#level-8-design-twenty-level-expansion),
+Build level 8, [Custodian of Record](../campaign/l08-custodian-of-record.md#level-8-design-twenty-level-expansion),
 as a playable development prototype at least at M06's bar: the radial custody
 archive around a central shaft, through the existing authoritative mission,
 encounter, inventory, run and presentation seams. Introduce exactly one new

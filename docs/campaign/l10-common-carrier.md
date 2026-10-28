@@ -1,4 +1,4 @@
-# M06: Common Carrier
+# Level 10: Common Carrier
 
 **Appearance anchor for level 10:** An occupied repaired transport: gunmetal ribs, bone pressure doors, warm work light, finite supplies and rescued passengers.
 Shared [world direction](../design/space.md) and

@@ -7,8 +7,8 @@ bench and the playtest roster. The composed Arc, Assessor, connected M12 and
 live Edda gates remain v0.80.0. No mission grants the launcher. Viewmodel art,
 the optional M12 secret and connected M13 remain ahead. The [weapon brief](../WEAPONS.md),
 [readable arsenal](readable-arsenal.md),
-[M12 secret](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
-and [M13 introduction](../campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion)
+[M12 secret](../campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
+and [M13 introduction](../campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion)
 own the purpose. No paid calls or dependency changes.
 
 ## Proposed bounded behavior

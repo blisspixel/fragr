@@ -562,3 +562,31 @@ fn vehicle_driver_and_gunner_stances_are_preserved_in_active_tick() {
         "gunner must stay standing in turret during active ticks"
     );
 }
+
+#[test]
+fn a_seated_rider_is_tested_with_its_vehicle_in_the_present() {
+    let (mut state, rider) = scene();
+    let shooter = Uuid::from_u128(502);
+    state.add_player(shooter, "Shooter".into(), Role::Human);
+    let rider_idx = state.players.iter().position(|p| p.id == rider).unwrap();
+    let shooter_idx = state.players.iter().position(|p| p.id == shooter).unwrap();
+    state.spawn_shields.clear();
+    // Recorded history with the rider moving, as a lagged shooter would see.
+    for _ in 0..4 {
+        state.players[rider_idx].x += 0.5;
+        state.tick += 1;
+        state.record_hit_history();
+    }
+    state.players[shooter_idx].view_lag = Some(3.0);
+    let present = |state: &GameState| {
+        let p = &state.players[rider_idx];
+        [p.x, p.y - PLAYER_FLOOR_Y, p.z]
+    };
+    // On foot the rider is moved back along its history.
+    let on_foot = state.shot_volumes(shooter_idx).unwrap();
+    assert_ne!(on_foot[rider_idx].0, present(&state));
+    // Seated, it stays where the present vehicle carries it.
+    state.vehicles[0].state.driver = Some(rider);
+    let seated = state.shot_volumes(shooter_idx).unwrap();
+    assert_eq!(seated[rider_idx].0, present(&state));
+}
