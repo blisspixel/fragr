@@ -653,7 +653,7 @@
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 295,
+      "changed_at": 237,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -701,13 +701,13 @@
         "revision": 4
       }
     },
-    "tick": 295
+    "tick": 237
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 295,
+      "changed_at": 237,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -760,13 +760,13 @@
         "revision": 4
       }
     },
-    "tick": 723
+    "tick": 641
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 724,
+      "changed_at": 642,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -815,13 +815,13 @@
         "revision": 4
       }
     },
-    "tick": 724
+    "tick": 642
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 724,
+      "changed_at": 642,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -875,13 +875,13 @@
         "revision": 4
       }
     },
-    "tick": 949
+    "tick": 931
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 950,
+      "changed_at": 932,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -940,13 +940,13 @@
         "revision": 4
       }
     },
-    "tick": 950
+    "tick": 932
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 1114,
+      "changed_at": 1196,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -997,13 +997,13 @@
         "revision": 4
       }
     },
-    "tick": 1114
+    "tick": 1196
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 1114,
+      "changed_at": 1196,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1059,13 +1059,13 @@
         "revision": 4
       }
     },
-    "tick": 1241
+    "tick": 1366
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1242,
+      "changed_at": 1367,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1117,13 +1117,13 @@
         "revision": 4
       }
     },
-    "tick": 1242
+    "tick": 1367
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1242,
+      "changed_at": 1367,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1175,13 +1175,13 @@
         "revision": 4
       }
     },
-    "tick": 1418
+    "tick": 1505
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1242,
+      "changed_at": 1367,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1238,13 +1238,13 @@
         "revision": 4
       }
     },
-    "tick": 1433
+    "tick": 1520
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1434,
+      "changed_at": 1521,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1283,7 +1283,7 @@
         "revision": 4
       }
     },
-    "tick": 1434
+    "tick": 1521
   },
   {
     "map_index": 6,

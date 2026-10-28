@@ -21,6 +21,11 @@ const SIDE_OPEN: f32 = 2.4;
 const ASSESSOR_LANDING_RADIUS: f32 = 3.0;
 /// A drop deeper than this beside a strafing body is a ledge, not a step.
 const LEDGE_DROP: f32 = 1.0;
+/// Bearing step searched for a way out of a mark when the bearings near its
+/// push are all walled.
+const BLAST_FINE_TURN: f32 = 0.3;
+/// Steps each side: up to 1.5 rad, short of a quarter turn off the push.
+const BLAST_FINE_STEPS: u8 = 5;
 
 /// A tell, burst, leap or charge: an attack whose line is already chosen.
 fn committed(campaign: Option<CampaignActor>) -> bool {
@@ -281,6 +286,20 @@ fn blast_exit(
         .into_iter()
         .map(|turn| away + turn)
         .find(|yaw| open(arena, avoid, me, *yaw, 1.0))
+        .or_else(|| {
+            // Walls can close every bearing near the push, as in a trench
+            // under a barrage laid along it: the way out is along the wall.
+            // Never stop inside a mark while a bearing that still leads out
+            // of it (less than a quarter turn off the push) is open; one
+            // further round walks deeper in.
+            (1..=BLAST_FINE_STEPS)
+                .flat_map(|step| {
+                    let turn = step as f32 * BLAST_FINE_TURN;
+                    [turn, -turn]
+                })
+                .map(|turn| away + turn)
+                .find(|yaw| open(arena, avoid, me, *yaw, 1.0))
+        })
 }
 
 /// Movement keys closest to the world direction `yaw` in the facing the sim

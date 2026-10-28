@@ -396,6 +396,91 @@ fn a_shot_that_strikes_one_guard_puts_its_whole_group_in_the_fight() {
     );
 }
 
+/// The first tick each of `names` raises its gun within `limit` ticks, with
+/// the participant standing still.
+fn first_raises(session: &mut GameSession, names: &[&str], limit: usize) -> Vec<Option<usize>> {
+    let ids: Vec<Uuid> = names
+        .iter()
+        .map(|name| {
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.name == *name)
+                .unwrap()
+                .id
+        })
+        .collect();
+    let mut raised = vec![None; ids.len()];
+    for tick in 1..=limit {
+        advance(session, 1);
+        for (at, id) in ids.iter().enumerate() {
+            if raised[at].is_none() && phase(session, *id) == EnemyPhase::Windup {
+                raised[at] = Some(tick);
+            }
+        }
+    }
+    raised
+}
+
+/// A room of three: one guard behind the participant, authored first, and
+/// two ahead. Everyone faces the door, so nobody is startled.
+fn behind_and_ahead(facing: f32) -> GameSession {
+    let (mut session, id) = session(
+        json!([
+            {"id":"behind","kind":"clerk","feet":[0,0,-8],"yaw":AWAY},
+            {"id":"ahead_west","kind":"clerk","feet":[-2,0,8],"yaw":TOWARD_SPAWN},
+            {"id":"ahead_east","kind":"clerk","feet":[2,0,8],"yaw":TOWARD_SPAWN}
+        ]),
+        json!([]),
+        json!({"min":[-3,0,-3],"max":[3,2,3]}),
+    );
+    // The guards take their posts on the first tick, before the alarm.
+    advance(&mut session, 1);
+    place(&mut session, id, [0.0, 0.0, 0.0]);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .yaw = facing;
+    session
+}
+
+#[test]
+fn a_guard_out_of_view_waits_while_one_in_view_waits_for_a_token() {
+    // Facing the two ahead. The one behind saw the participant first in
+    // authored order, but the two in view raise first: two guns already on
+    // the participant, then one in view still waiting its turn, keep it off.
+    let mut session = behind_and_ahead(AWAY);
+    let raised = first_raises(&mut session, &["behind", "ahead_west", "ahead_east"], 120);
+    let (behind, west, east) = (raised[0], raised[1], raised[2]);
+    let west = west.expect("a guard in view raises");
+    let east = east.expect("both guards in view raise");
+    assert!(west.max(east) <= 20, "{raised:?}");
+    assert!(
+        behind.is_none_or(|behind| behind > west.max(east)),
+        "the guard behind waited for both in view: {raised:?}"
+    );
+}
+
+#[test]
+fn with_nobody_in_view_the_guard_behind_still_fights_first() {
+    // Facing the side wall, nobody stands in view: the authored order and the
+    // ordinary tokens decide, and the guard behind raises at once.
+    let mut session = behind_and_ahead(PI);
+    let raised = first_raises(&mut session, &["behind", "ahead_west", "ahead_east"], 120);
+    let behind = raised[0].expect("the guard behind raises");
+    assert!(behind <= 2, "{raised:?}");
+    assert!(
+        raised[1..]
+            .iter()
+            .all(|ahead| ahead.is_none_or(|ahead| ahead > behind)),
+        "{raised:?}"
+    );
+}
+
 #[test]
 fn a_skirmisher_goes_around_while_the_heavy_holds_the_lane() {
     let region = json!({"min":[-20,0,-20],"max":[20,2,20]});
