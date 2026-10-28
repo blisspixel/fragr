@@ -340,3 +340,69 @@ fn the_floor_holds_at_most_sixteen_and_the_oldest_goes_first() {
     assert_eq!(state.dropped_guns[0].serial, 4, "the three oldest went");
     assert_eq!(state.guns_dropped(), 19);
 }
+
+#[test]
+fn a_gun_dropped_off_a_ledge_rests_where_a_body_can_stand_and_be_routed_to() {
+    // Fighters on the lip of a Tripoint Works yard deck and stair, their
+    // centres out over the ground: the roster stall of 2026-10-27, where a
+    // gun at the foot of the face had no floor for the navigator and froze a
+    // Pistol-only fighter routing to it for its whole fifteen seconds.
+    for (x, z, feet) in [(57.541_02, 22.610_464, 2.0), (65.179_665, 28.280_99, 1.5)] {
+        let mut state = GameState::with_map(MapKind::TripointWorks, false);
+        state.seed(42);
+        state.config = MatchConfig {
+            warmup_ticks: 1,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            time_limit_ticks: None,
+            frag_limit: None,
+            ..MatchConfig::default()
+        };
+        state.start_round();
+        let killer = join(&mut state, 1);
+        let victim = join(&mut state, 2);
+        arm(&mut state, killer, WeaponType::Tack, -20.0);
+        let p = fighter(&mut state, victim);
+        p.inventory.grant_weapon(WeaponType::Scatter);
+        p.weapon = WeaponType::Scatter;
+        p.x = x;
+        p.z = z;
+        p.y = feet + PLAYER_FLOOR_Y;
+        let arena = state.current_arena().into_owned();
+        let fell_at = arena.support_height(x, z, feet);
+        assert!(
+            arena.blocked_body_at(x, z, fell_at, fell_at + crate::movement::STEP_UP),
+            "the fall spot itself is inside the face"
+        );
+
+        assert!(state.hit_for_test(killer, victim, 1000));
+        let gun = state.dropped_guns[0].clone();
+        assert_eq!(gun.floor, fell_at);
+        assert!(!arena.blocked_body_at(
+            gun.x,
+            gun.z,
+            gun.floor,
+            gun.floor + crate::movement::STEP_UP
+        ));
+        assert!(
+            (gun.x - x).hypot(gun.z - z) <= 1.2,
+            "it slides off the face, no further: ({}, {})",
+            gun.x,
+            gun.z
+        );
+        let world = crate::navigation::Navigation::shared(arena).unwrap();
+        assert_eq!(
+            world.coordinate_floor([gun.x, gun.y, gun.z]),
+            Some(gun.floor),
+            "a controller routing to the gun finds its floor"
+        );
+
+        // And it is still a gun someone walks up and takes.
+        let taker = join(&mut state, 3);
+        step_onto(&mut state, taker, gun.x, gun.z);
+        assert!(state.dropped_guns.is_empty());
+        assert!(fighter(&mut state, taker)
+            .inventory
+            .owns(WeaponType::Scatter));
+    }
+}
