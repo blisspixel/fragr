@@ -287,7 +287,9 @@ static func preset_for(map_name: String) -> Preset:
 		return waterworks()
 	if key.contains("notice to vacate"):
 		return notice_to_vacate()
-	if key == "low water" or key.contains("low water market") or key.contains("no forwarding address"):
+	if key.contains("no forwarding address"):
+		return no_forwarding_address()
+	if key == "low water" or key.contains("low water market"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
@@ -469,6 +471,19 @@ static func notice_to_vacate() -> Preset:
 	preset.contrast = 1.08
 	preset.saturation = 0.98
 	preset.glow_intensity = 0.35
+	return preset
+
+## No Forwarding Address (docs/design/earth.md "M05 Low Water roofs"): the
+## same afternoon as Notice to Vacate, ten minutes on. The sun is a little
+## lower and warmer, raking the roofs and throwing the trench covers' shadows
+## toward the freight platform's floodlights. The actor fill stays Level 4's:
+## any stronger and a black-and-red Heavy Sweeper facing into the sun washes
+## out to grey on the ramp.
+static func no_forwarding_address() -> Preset:
+	var preset: Preset = notice_to_vacate()
+	preset.key_color = Color("ffbd80")
+	preset.key_energy = 1.4
+	preset.key_rotation_degrees = Vector3(-18.0, -112.0, 0.0)
 	return preset
 
 ## Larak Lot: an old range's car park at night. Deep indigo over a sodium
