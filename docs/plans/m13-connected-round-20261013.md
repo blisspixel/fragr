@@ -11,7 +11,7 @@ Full build order. Spend: $0, using retained assets and local tools.
 
 Connect The Weight of Permission as campaign level 13, map 1013 and mission
 `weight_of_permission`. Follow the accepted level 13 section of
-[the foundry brief](../campaign/m08-weight-of-permission.md), the
+[the foundry brief](../campaign/l13-weight-of-permission.md), the
 [campaign contract](../CAMPAIGN.md), [art bible](../ART_STORY_BIBLE.md),
 [Mars direction](../design/mars.md) and current lore. The Walker and launch
 works belong to M14. Worker choices are voluntary and never an exit key.

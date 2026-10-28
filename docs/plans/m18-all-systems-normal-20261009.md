@@ -7,7 +7,7 @@ stays in the accepted level 18 text.
 ## Lore route
 
 [Level 18](../CAMPAIGN-MISSIONS.md#level-18-all-systems-normal) and the
-[level 18 design](../campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion)
+[level 18 design](../campaign/l18-all-systems-normal.md#level-18-design-twenty-level-expansion)
 own the scene. Episode V begins as recognizable recovery after the Office fell.
 Six weeks later the problem of the day is a tram part across town. The square
 is bright, the stalls are rebuilt, a tram is stalled, and Union bots that were

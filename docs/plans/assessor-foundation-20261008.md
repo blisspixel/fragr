@@ -2,7 +2,7 @@
 
 Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375),
 released as v0.80.0. This is the heavy drone required by the
-accepted [M12 brief](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
+accepted [M12 brief](../campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 and [flying-drone contract](flying-drones.md). The connected habitat passes
 its complete seventeen-state route and durable departure. Fresh-player and
 final-art acceptance remain open. This foundation runs

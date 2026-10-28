@@ -34,7 +34,7 @@ does not require unbounded enemy counts or an omniscient controller.
 
 ## Canon and scope
 
-[CAMPAIGN](../CAMPAIGN.md), the active [M18](../campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion),
+[CAMPAIGN](../CAMPAIGN.md), the active [M18](../campaign/l18-all-systems-normal.md#level-18-design-twenty-level-expansion),
 [M19](../campaign/l19-planned-works.md), [M20](../campaign/l20-local-exception.md)
 and [epilogue](../campaign/epilogue-still-here.md) retain their sequence:
 

@@ -1,6 +1,6 @@
 # Peace Without Interruption connected Forever Office
 
-Status: **in flight**, 2026-10-17. Follows [m16-connected-avenue-20261017.md](m16-connected-avenue-20261017.md). This document defines the campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 17 brief](../campaign/m09-peace-without-interruption.md#level-17-design-twenty-level-expansion). Spend for this increment: $0, using existing assets and local tools only.
+Status: **in flight**, 2026-10-17. Follows [m16-connected-avenue-20261017.md](m16-connected-avenue-20261017.md). This document defines the campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 17 brief](../campaign/l17-peace-without-interruption.md#level-17-design-twenty-level-expansion). Spend for this increment: $0, using existing assets and local tools only.
 
 ## Goal and limits
 

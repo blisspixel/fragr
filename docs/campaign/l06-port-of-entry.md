@@ -1,4 +1,4 @@
-# M04: Port of Entry
+# Level 6: Port of Entry
 
 **Appearance anchor for level 6:** Lunar cargo entry: pale dust, dark basalt, worn pressure shells and controlled thresholds; practical interior light balances exposed shade.
 Shared [world direction](../design/moon.md) and

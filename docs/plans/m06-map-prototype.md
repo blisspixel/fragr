@@ -17,7 +17,7 @@ subjective listening and final character acceptance remain open.
 
 Author an original compact lunar port: quiet dock, freight hall, found Railgun and a 58.25-metre lane, returning Heavy, optional inhabited service branch, two customs galleries, isolated flankable Turret, mixed customs fight and deliberate transit departure. Use map 1006 with a 48-metre half extent, ordinary supported stairs and one static collision world. Preserve M01-M05 authored bytes.
 
-The accepted [level 6 brief](../campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion) and [Moon guide](../design/moon.md) own appearance and story. Pale dust, weathered pressure shells, actual ballistic windows, cargo handling, useful desks and civilian possessions must make a settled port. Earth, the depot and Tern's impound berth are contextual landmarks. A static landmark does not prove the accepted ship movement or Tern performance. No low gravity, vacuum damage, pressure puzzle or cosmetic blocking geometry.
+The accepted [level 6 brief](../campaign/l06-port-of-entry.md#level-6-design-twenty-level-expansion) and [Moon guide](../design/moon.md) own appearance and story. Pale dust, weathered pressure shells, actual ballistic windows, cargo handling, useful desks and civilian possessions must make a settled port. Earth, the depot and Tern's impound berth are contextual landmarks. A static landmark does not prove the accepted ship movement or Tern performance. No low gravity, vacuum damage, pressure puzzle or cosmetic blocking geometry.
 
 ## Layout and contracts
 

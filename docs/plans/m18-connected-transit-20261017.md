@@ -1,6 +1,6 @@
 # All Systems Normal connected Recovery Square transit corridor
 
-Status: **in flight**, 2026-10-17. Follows [m17-connected-office-20261017.md](m17-connected-office-20261017.md). This document defines the campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 18 brief](../campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion). Spend for this increment: $0, using existing assets and local tools only.
+Status: **in flight**, 2026-10-17. Follows [m17-connected-office-20261017.md](m17-connected-office-20261017.md). This document defines the campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 18 brief](../campaign/l18-all-systems-normal.md#level-18-design-twenty-level-expansion). Spend for this increment: $0, using existing assets and local tools only.
 
 ## Goal and limits
 

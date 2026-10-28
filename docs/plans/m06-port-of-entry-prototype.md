@@ -35,7 +35,7 @@ flankable Turret, and make entry into Episode II refill the run's continues
 exactly once. Retain the Earth choices and exact carried equipment, including
 Grenades and the distinction between freed and actually evacuated workers.
 
-The accepted direction is [level 6 in the Port of Entry brief](../campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion),
+The accepted direction is [level 6 in the Port of Entry brief](../campaign/l06-port-of-entry.md#level-6-design-twenty-level-expansion),
 [the mission treatment](../CAMPAIGN-MISSIONS.md#level-6-port-of-entry),
 [Moon appearance](../design/moon.md), [character continuity](../design/characters.md)
 and [voice](../lore/voice.md). The older first section of the brief belongs to

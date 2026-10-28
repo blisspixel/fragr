@@ -6,7 +6,7 @@ Shared [world direction](../design/earth.md) and
 and staging. This anchor is a production target, not finished-appearance evidence.
 
 **Status:** planned, accepted 2026-09-25, unbuilt. The first half of
-[M09](m09-peace-without-interruption.md) in the
+[M09](l17-peace-without-interruption.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the motorcycle run to
 the Forever Office. [Story arc](story-arc.md).
 

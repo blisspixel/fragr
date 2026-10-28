@@ -1,4 +1,4 @@
-# M10: All Systems Normal
+# Level 18: All Systems Normal
 
 **Appearance anchor for level 18:** Preserve established Earth materials and landmarks; sudden local failures and coordinated infrastructure change begin the wipe.
 Shared [world direction](../design/earth.md) and

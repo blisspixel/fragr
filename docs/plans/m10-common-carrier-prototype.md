@@ -20,7 +20,7 @@ This is one bounded level under the existing campaign build order.
 
 [CAMPAIGN](../CAMPAIGN.md) places Common Carrier at level 10, the start of
 Episode III, four days toward Mars and before the wipe. The active
-[twenty-level design](../campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion)
+[twenty-level design](../campaign/l10-common-carrier.md#level-10-design-twenty-level-expansion)
 owns the three-deck boarding defense and Repeater discovery. Its older top
 half mixes the Remote Mine and Redactor into this level and uses obsolete
 rescue numbers; those finds belong to M11 in the active expansion.

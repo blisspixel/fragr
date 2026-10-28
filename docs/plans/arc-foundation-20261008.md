@@ -6,7 +6,7 @@ Connected Terms of Cooperation passes its complete seventeen-state route with
 the actual finite Arc find and departure. Fresh-player and final-art acceptance
 remain open.
 The [campaign contract](../CAMPAIGN.md), [weapon brief](../WEAPONS.md) and
-[M12 lesson](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
+[M12 lesson](../campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 own its purpose. It is a real Cells-fed armor-bypass weapon, not a replacement
 name or presentation for an existing gun. The gameplay foundation used no paid
 calls or new dependencies. The first ordinary rendered lesson completed its

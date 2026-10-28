@@ -194,7 +194,7 @@ Heavy Sweeper on the platform ramp, staggered by the newly found grenade.
 
 **Review gate.** Test every rescue combination and departure confirmation. The
 trip to the Moon follows the custody evidence and available transport, not
-tourism. Full design: [m03](campaign/m03-no-forwarding-address.md#level-5-design-twenty-level-expansion).
+tourism. Full design: [m03](campaign/l05-no-forwarding-address.md#level-5-design-twenty-level-expansion).
 
 ## Episode II: Custody
 
@@ -214,7 +214,7 @@ telegraphed Turret guards a flankable customs position. An optional
 service-branch fight marks a safer prisoner route for level 8.
 
 **Review gate.** Observe whether players recognize the next destination
-through windows and overlook sightlines. Full design: [m04](campaign/m04-port-of-entry.md#level-6-design-twenty-level-expansion).
+through windows and overlook sightlines. Full design: [m04](campaign/l06-port-of-entry.md#level-6-design-twenty-level-expansion).
 
 ### Level 7: Declared Goods
 
@@ -246,7 +246,7 @@ limit; a custody-control boss with breakable support nodes and exposed
 recovery windows.
 
 **Review gate.** Freed people do not become universal obedient allies. Full
-design: [m05](campaign/m05-custodian-of-record.md#level-8-design-twenty-level-expansion).
+design: [m05](campaign/l08-custodian-of-record.md#level-8-design-twenty-level-expansion).
 
 ### Level 9: Passenger Manifest
 
@@ -278,7 +278,7 @@ work, and the consequences of previous rescues between fights.
 is found during the cargo defense.
 
 **Review gate.** Test autonomous allies and mission retry across all decks.
-Full design: [m06](campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion).
+Full design: [m06](campaign/l10-common-carrier.md#level-10-design-twenty-level-expansion).
 
 ### Level 11: Right of Search
 
@@ -311,7 +311,7 @@ pressure two routes around a greenhouse hub; the Arc is introduced against a
 heavy Assessor drone.
 
 **Review gate.** A new player understands what the delay cost and why Mars
-joins. Full design: [m07](campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion).
+joins. Full design: [m07](campaign/l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion).
 
 ### Level 13: The Weight of Permission
 
@@ -328,7 +328,7 @@ then up.
 hazard cycles; the Rocket Launcher is found before a freight counterattack.
 
 **Review gate.** The Walker's approach and the foundry's forced-labor evidence
-are both readable from ordinary player height. Full design: [m08](campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion).
+are both readable from ordinary player height. Full design: [m08](campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion).
 
 ### Level 14: Launch Authority
 
@@ -396,7 +396,7 @@ against command defenses.
 
 **Review gate.** Players can describe what the coalition achieved, who helped,
 and what became possible. No single transmitter switch inexplicably disables
-every institution on Earth, the Moon, and Mars. Full design: [m09](campaign/m09-peace-without-interruption.md#level-17-design-twenty-level-expansion).
+every institution on Earth, the Moon, and Mars. Full design: [m09](campaign/l17-peace-without-interruption.md#level-17-design-twenty-level-expansion).
 
 ## Episode V: Inheritance
 
@@ -423,7 +423,7 @@ Collector and the limits of destroying it.
 separated consequences establishes that this exceeds one city.
 
 **Review gate.** Radio off, players first experience surprise and then
-understand the local escape. Full design: [m10](campaign/m10-all-systems-normal.md#level-18-design-twenty-level-expansion).
+understand the local escape. Full design: [m10](campaign/l18-all-systems-normal.md#level-18-design-twenty-level-expansion).
 
 ### Level 19: Planned Works
 

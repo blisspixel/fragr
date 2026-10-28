@@ -7,7 +7,7 @@ It does not turn them into three connected campaign missions.
 
 ## Goal and scope
 
-Follow the accepted [level 13 foundry brief](../campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion)
+Follow the accepted [level 13 foundry brief](../campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion)
 between [Terms of Cooperation](m12-habitat-development-20261008.md) and
 [Launch Authority](m14-vehicle-development-20261006.md). Build a service entrance,
 protected foundry edge, machine hall with short flanks, worker-quarter blockout,

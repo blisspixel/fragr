@@ -1,4 +1,4 @@
-# M09: Peace Without Interruption
+# Level 17: Peace Without Interruption
 
 **Appearance anchor for level 17:** Earth command institution: visible control machinery, restrained issued marks and occupied rooms make the Union's defeat tangible.
 Shared [world direction](../design/earth.md) and

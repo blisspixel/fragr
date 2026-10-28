@@ -28,7 +28,7 @@ client or dated development source changes belonged to that preparation.
 
 ## Accepted scope and existing source
 
-The accepted [level 13 expansion](../campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion)
+The accepted [level 13 expansion](../campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion)
 owns the on-foot foundry, first Rocket Launcher, worker choices, relay and freight
 lift exit. The older unsplit M08 text is historical scope: the jeep, exterior
 works and Continuance Walker belong to [level 14](../campaign/l14-launch-authority.md).

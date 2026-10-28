@@ -55,7 +55,7 @@ earned market clears also reach the water tanks with no further loss; that
 `m19-tanks` endpoint is standalone evaluation, not an inherited clear or
 fresh-player acceptance.
 The middle third of
-[M10](m10-all-systems-normal.md) in the
+[M10](l18-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 10
 to 21, the concourse and changed Low Water, the dark night.
 [Story arc](story-arc.md).

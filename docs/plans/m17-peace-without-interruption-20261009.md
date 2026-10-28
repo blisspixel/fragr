@@ -4,7 +4,7 @@ Status: **in flight**, 2026-10-09. Spend: $0. This is the first geometry pass fo
 level 17. It is not a connected mission, and it does not change the campaign
 contract in [CAMPAIGN.md](../CAMPAIGN.md) or the level text in
 [CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md) and
-[m09](../campaign/m09-peace-without-interruption.md).
+[m09](../campaign/l17-peace-without-interruption.md).
 
 ## Goal
 
@@ -37,7 +37,7 @@ these facts:
 - [CAMPAIGN.md](../CAMPAIGN.md) names Denial as the level 17 lesson. That
   weapon does not exist.
 
-The [level 17 design](../campaign/m09-peace-without-interruption.md#level-17-design-twenty-level-expansion)
+The [level 17 design](../campaign/l17-peace-without-interruption.md#level-17-design-twenty-level-expansion)
 still owns the longer interior: security core, secured chamber, liberated
 hall, three doors, the outer service stair, and the proposed Registrar
 Kessel scene. This pass does not replace that design.

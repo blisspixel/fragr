@@ -7,7 +7,7 @@ complete native/client checks and actual retained-reader wire proof. Parent
 integration passed in [PR #358](https://github.com/blisspixel/fragr/pull/358),
 with all eight exact-head CI jobs and all three desktop package checks passing.
 
-The [active Common Carrier brief](../campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion)
+The [active Common Carrier brief](../campaign/l10-common-carrier.md#level-10-design-twenty-level-expansion)
 introduces a genuine sustained-fire gun sharing finite Bullets. This bounded
 foundation prepares its behavior and strict contracts before a played lesson.
 M09's reviewed source remains unchanged. Nick accepted a short authoritative

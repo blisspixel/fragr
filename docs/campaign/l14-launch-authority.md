@@ -8,7 +8,7 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 **Status:** in flight, accepted 2026-09-25, connected development integration
 under the [October 15 plan](../plans/m14-launch-authority-integration-20261015.md).
 Full route, difficulty, fresh-player and final-art acceptance remain open. The second half of
-[M08](m08-weight-of-permission.md) in the
+[M08](l13-weight-of-permission.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the exterior launch
 works, the jeep and the Continuance Walker. The Episode III finale and the
 campaign's one combined-arms battle. [Story arc](story-arc.md).

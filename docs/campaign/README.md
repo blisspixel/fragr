@@ -41,20 +41,20 @@ research behind the split.
 | 2 | Persons Unknown | I Recall | Earth correction, free the companion early | [m02](m02-persons-unknown.md#level-2-design-twenty-level-expansion) |
 | 3 | Scheduled Service | I Recall | Perimeter rail yard, silence the jamming and free the recall cars | [l03](l03-scheduled-service.md) |
 | 4 | Notice to Vacate | I Recall | Low Water market and clinic, defend home before the sweep | [l04](l04-notice-to-vacate.md) |
-| 5 | No Forwarding Address | I Recall | Low Water roofs and tram trench, evacuate before wider recall | [m03](m03-no-forwarding-address.md#level-5-design-twenty-level-expansion) |
-| 6 | Port of Entry | II Custody | Lunar port, enter the custody network | [m04](m04-port-of-entry.md#level-6-design-twenty-level-expansion) |
+| 5 | No Forwarding Address | I Recall | Low Water roofs and tram trench, evacuate before wider recall | [m03](l05-no-forwarding-address.md#level-5-design-twenty-level-expansion) |
+| 6 | Port of Entry | II Custody | Lunar port, enter the custody network | [m04](l06-port-of-entry.md#level-6-design-twenty-level-expansion) |
 | 7 | Declared Goods | II Custody | Lunar town and crater cut, cross curfew ground to the depot | [l07](l07-declared-goods.md) |
-| 8 | Custodian of Record | II Custody | Lunar archive, free captives and obtain evidence | [m05](m05-custodian-of-record.md#level-8-design-twenty-level-expansion) |
+| 8 | Custodian of Record | II Custody | Lunar archive, free captives and obtain evidence | [m05](l08-custodian-of-record.md#level-8-design-twenty-level-expansion) |
 | 9 | Passenger Manifest | II Custody | Lunar launch berth, take back the ship | [l09](l09-passenger-manifest.md) |
-| 10 | Common Carrier | III Common Cause | The ship, survive boarding with rescued people | [m06](m06-common-carrier.md#level-10-design-twenty-level-expansion) |
+| 10 | Common Carrier | III Common Cause | The ship, survive boarding with rescued people | [m06](l10-common-carrier.md#level-10-design-twenty-level-expansion) |
 | 11 | Right of Search | III Common Cause | The Union's custody tender, board the boarders | [l11](l11-right-of-search.md) |
-| 12 | Terms of Cooperation | III Common Cause | Martian habitat, experience delayed cooperation | [m07](m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion) |
-| 13 | The Weight of Permission | III Common Cause | Martian foundry, win the means to break the blockade | [m08](m08-weight-of-permission.md#level-13-design-twenty-level-expansion) |
+| 12 | Terms of Cooperation | III Common Cause | Martian habitat, experience delayed cooperation | [m07](l12-terms-of-cooperation.md#level-12-design-twenty-level-expansion) |
+| 13 | The Weight of Permission | III Common Cause | Martian foundry, win the means to break the blockade | [m08](l13-weight-of-permission.md#level-13-design-twenty-level-expansion) |
 | 14 | Launch Authority | III Common Cause | Martian launch works, mobilize the coalition | [l14](l14-launch-authority.md) |
 | 15 | Civic Pressure Valve | IV Reckoning | The sanctioned games stadium, arm the uprising | [l15](l15-civic-pressure-valve.md) |
 | 16 | Freedom of Movement | IV Reckoning | The ceremonial avenue, ride for the Office | [l16](l16-freedom-of-movement.md) |
-| 17 | Peace Without Interruption | IV Reckoning | Earth command, defeat the Union | [m09](m09-peace-without-interruption.md#level-17-design-twenty-level-expansion) |
-| 18 | All Systems Normal | V Inheritance | Earth, the sudden wipe begins | [m10](m10-all-systems-normal.md#level-18-design-twenty-level-expansion) |
+| 17 | Peace Without Interruption | IV Reckoning | Earth command, defeat the Union | [m09](l17-peace-without-interruption.md#level-17-design-twenty-level-expansion) |
+| 18 | All Systems Normal | V Inheritance | Earth, the sudden wipe begins | [m10](l18-all-systems-normal.md#level-18-design-twenty-level-expansion) |
 | 19 | Planned Works | V Inheritance | Concourse and changed Low Water, the dark night | [l19](l19-planned-works.md) |
 | 20 | Local Exception | V Inheritance | Waterworks and pier, survive to the reprieve | [l20](l20-local-exception.md) |
 | E | Still Here | Epilogue | Survival unlocks immediate aftermath and years-later healing | [epilogue](epilogue-still-here.md#in-the-twenty-level-expansion) |
