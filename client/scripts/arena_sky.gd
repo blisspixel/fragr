@@ -283,7 +283,9 @@ static func preset_for(map_name: String) -> Preset:
 		return still_here_later() if key.contains("years later") else still_here()
 	if key.contains("local exception"):
 		return waterworks()
-	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
+	if key.contains("notice to vacate"):
+		return notice_to_vacate()
+	if key == "low water" or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
@@ -426,6 +428,27 @@ static func low_water() -> Preset:
 	preset.practical_color = Color("ffeac2")
 	preset.practical_energy = 0.9
 	preset.saturation = 0.92
+	return preset
+
+## Notice to Vacate, late afternoon (docs/design/earth.md "M04 Low Water"):
+## a low warm sun from the south-west throws long shadows across the square
+## and puts the court and the clinic side of the market in cool shade, so the
+## stall lamps, lit windows and the clinic read as practical light. A faint
+## actor fill keeps a black-and-red Union body readable in that shade.
+static func notice_to_vacate() -> Preset:
+	var preset: Preset = Preset.new(Color("6c87a8"), Color("e8b68a"),
+		Color("9a7f6c"), Color("cfae8e"), 0.0032, Color("a3a9b4"), 0.62)
+	preset.key_color = Color("ffc58a")
+	preset.key_energy = 1.5
+	preset.key_rotation_degrees = Vector3(-22.0, -118.0, 0.0)
+	preset.scene_fill_energy = 0.05
+	preset.practical_color = Color("ffe0b0")
+	preset.practical_energy = 1.0
+	preset.view_fill_energy = 0.28
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.08
+	preset.saturation = 0.98
+	preset.glow_intensity = 0.35
 	return preset
 
 ## Larak Lot: an old range's car park at night. Deep indigo over a sodium
