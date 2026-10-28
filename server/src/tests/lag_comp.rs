@@ -178,7 +178,7 @@ fn a_forged_view_is_refused_and_the_shot_tests_the_present() {
         assert_eq!(
             state.rewind_stats,
             RewindStats {
-                rejected: 1,
+                refused: 1,
                 ..RewindStats::default()
             }
         );
@@ -190,7 +190,7 @@ fn a_forged_view_is_refused_and_the_shot_tests_the_present() {
     now[0] += STEP;
     let results = fire_at(&mut state, chest(now), Some(-1.0));
     assert!(hit(&results), "{results:?}");
-    assert_eq!(state.rewind_stats.rejected, 1);
+    assert_eq!(state.rewind_stats.refused, 1);
     assert_eq!(state.rewind_stats.rewinds, 0);
 }
 
@@ -358,4 +358,91 @@ fn cover_stays_in_the_present() {
     assert_eq!(struck, None, "the wall stops it");
     let (struck, target) = shoot(false);
     assert_eq!(struck, target);
+}
+
+#[test]
+fn status_publishes_the_rewind_counters_and_names_nobody() {
+    // A clamped rewind, a refused view and a broken history, stamped the way
+    // the tick loop stamps the served status.
+    let mut session = crate::session::GameSession::new();
+    session.state = lane(Role::Agent);
+    let seen = strafe(&mut session.state, 16);
+    let drawn = session.state.tick as f64 - 10.0;
+    fire_at(
+        &mut session.state,
+        chest(feet_at(&seen, drawn)),
+        Some(drawn),
+    );
+    // Release the trigger and let the Rail cycle before each later shot.
+    let rest = |state: &mut GameState| {
+        state.set_action(SHOOTER, Action::default());
+        for _ in 0..60 {
+            state.tick(0.0);
+        }
+    };
+    rest(&mut session.state);
+    let seen = strafe(&mut session.state, 8);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == TARGET)
+        .unwrap()
+        .reset_movement_baseline();
+    let drawn = session.state.tick as f64 - 2.0;
+    fire_at(
+        &mut session.state,
+        chest(feet_at(&seen, drawn)),
+        Some(drawn),
+    );
+    rest(&mut session.state);
+    let future = session.state.tick as f64 + 2.0;
+    fire_at(&mut session.state, [0.0, 1.0, 8.0], Some(future));
+    let expected = RewindStats {
+        accepted: 2,
+        refused: 1,
+        rewinds: 2,
+        clamped: 1,
+        discontinuities: 1,
+    };
+    assert_eq!(session.state.rewind_stats, expected);
+
+    let totals = std::sync::Arc::new(crate::metrics::TrafficCounters::default());
+    let mut tracker = crate::metrics::StatusTracker::new(totals, crate::run::TICK);
+    let now = std::time::Instant::now();
+    tracker.refresh(now, &[]);
+    let mut live = session.state.live_status(0);
+    tracker.apply(&mut live, now);
+    session.stamp_ops(&mut live);
+    let served = crate::metrics::served_status(&live, true, crate::metrics::process_uptime());
+    let body = serde_json::to_string(&served).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&body).unwrap();
+    assert_eq!(
+        json["ops"]["rewind"],
+        serde_json::json!({
+            "accepted": 2,
+            "refused": 1,
+            "rewinds": 2,
+            "clamped": 1,
+            "discontinuities": 1
+        })
+    );
+    // Counts only: neither fighter's id nor callsign reaches the body.
+    for forbidden in [
+        SHOOTER.to_string(),
+        TARGET.to_string(),
+        "shooter".into(),
+        "target".into(),
+    ] {
+        assert!(!body.contains(&forbidden), "{forbidden}: {body}");
+    }
+    // An older body without the block reads as zeros.
+    let mut old = json.clone();
+    old["ops"].as_object_mut().unwrap().remove("rewind");
+    let parsed: crate::protocol::LiveStatus = serde_json::from_value(old).unwrap();
+    assert_eq!(parsed.ops.unwrap().rewind, RewindStats::default());
+    // Before the tracker's first refresh there is no block to stamp.
+    let mut bare = session.state.live_status(0);
+    session.stamp_ops(&mut bare);
+    assert!(bare.ops.is_none());
 }

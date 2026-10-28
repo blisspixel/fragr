@@ -608,6 +608,8 @@ impl StatusTracker {
             clients: Some(clients_rates),
             // Replaced from the session sheet after apply. Zeros until then.
             night: NightTotals::default(),
+            // Also from the session, after apply.
+            rewind: Default::default(),
         });
     }
 

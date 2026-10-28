@@ -615,19 +615,21 @@ server ignores one from an agent socket), because `look_at` aims at the
 present. The brain and the playtest harness agents send none. The traffic
 generator's synthetic humans send none, so their shots stay unrewound.
 
+The counters (`GameState::rewind_stats`: admitted, refused, rewound, clamped
+and discontinuous) are published on `GET /status` as `ops.rewind` since
+wave 15 (`ops` in [protocol](protocol.md)), so a host can read the clamped
+share of a real night.
+
 What stays open for #434 stage 5:
 
 1. **Field evidence.** Two machines, real jitter and loss: compare client
    hit-confirm against server results through the existing stutter traces.
    The matrix models fixed delays only.
-2. **Diagnostics on `/status`.** `GameState::rewind_stats` counts admitted,
-   refused, rewound, clamped and discontinuous shots; nothing publishes them
-   yet.
-3. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
+2. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
    object the victim can dodge in server time, and rewinding its collisions
    would hit a target that already dodged what it saw. Campaign actors are
    not on the delayed timeline (their own clock), so they are not rewound.
-4. **Spectator and agent views** are out of scope: neither shoots through a
+3. **Spectator and agent views** are out of scope: neither shoots through a
    delayed timeline.
 
 

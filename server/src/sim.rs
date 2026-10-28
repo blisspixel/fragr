@@ -1859,7 +1859,7 @@ impl GameState {
                         Some(lag)
                     }
                     Some(Err(refusal)) => {
-                        self.rewind_stats.rejected += 1;
+                        self.rewind_stats.refused += 1;
                         tracing::debug!(player = %player.id, ?refusal, "view tick refused");
                         None
                     }

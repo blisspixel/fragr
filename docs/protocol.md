@@ -471,6 +471,16 @@ second after start); a reader that does not know them ignores them:
     rule bots). Spectators are not fighters. Counts only, with no callsigns.
     `ops.version` stays 1 because the block is additive. An older body that
     omits `night` reads as zeros.
+  - `rewind`: hitscan lag compensation counters for this process (see "Lag
+    compensation (capability 62)"): `accepted` (human views admitted with an
+    Action), `refused` (views that were not finite, negative or newer than
+    the newest tick), `rewinds` (hitscan shots resolved against rewound
+    bodies), `clamped` (of those, shots whose view lag exceeded the 200 ms
+    bound) and `discontinuities` (bodies tested in the present because their
+    history broke). A rising `clamped` share means high round trips; a rising
+    `refused` count means a client whose clock is wrong. Neither is evidence
+    of cheating. Counts only, additive like `night`; an older body reads as
+    zeros.
   - `clients`: only for `GET /status?clients=1` from a loopback address.
     An IPv4-mapped IPv6 loopback counts as loopback. Another computer
     receives the plain body. One anonymous entry per

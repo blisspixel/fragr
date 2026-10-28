@@ -502,6 +502,7 @@ mod tests {
             traffic: TrafficTotals::default(),
             clients: None,
             night: NightTotals::default(),
+            rewind: Default::default(),
         }
     }
 

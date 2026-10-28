@@ -66,6 +66,28 @@ pub struct OpsStatus {
     /// Counts only. The session fills this after the tracker applies.
     #[serde(default)]
     pub night: NightTotals,
+    /// Hitscan lag compensation since process start (#434 stage 5). Counts
+    /// only. The session fills this after the tracker applies.
+    #[serde(default)]
+    pub rewind: RewindTotals,
+}
+
+/// Counters for the hitscan rewind path, kept by the simulation
+/// (`sim::rewind`) and published as they stand. Clamping and refusal are
+/// diagnostics, not evidence of cheating: a slow link clamps and a bad client
+/// clock is refused. No callsigns, ids or addresses.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RewindTotals {
+    /// Human views admitted with an Action.
+    pub accepted: u64,
+    /// Views refused: not finite, negative or newer than the newest tick.
+    pub refused: u64,
+    /// Hitscan shots resolved against rewound hit volumes.
+    pub rewinds: u64,
+    /// Of those, shots whose view lag exceeded the bound and was clamped.
+    pub clamped: u64,
+    /// Bodies tested in the present because their history broke.
+    pub discontinuities: u64,
 }
 
 /// Anonymous night counters. No callsigns.

@@ -143,7 +143,7 @@ pub use statistics::{
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
-    RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
+    RewindTotals, RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
 pub use vehicle::{VehicleKind, VehicleSeat, VehicleState, MAX_VEHICLES, VEHICLE_GAMEPLAY_VERSION};
 pub use water::{validate_water_regions, WaterRegion};

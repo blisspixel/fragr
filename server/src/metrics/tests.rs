@@ -423,9 +423,12 @@ fn plain_status_stays_small_and_keeps_schema_two() {
         "connections",
         "traffic",
         "night",
+        "rewind",
     ] {
         assert!(ops.get(key).is_some(), "{key}");
     }
+    assert_eq!(ops["rewind"]["accepted"], 0);
+    assert_eq!(ops["rewind"]["clamped"], 0);
     assert_eq!(ops["night"]["rounds_finished"], 0);
     assert_eq!(ops["night"]["peak_humans"], 0);
     assert_eq!(ops["night"]["peak_fighters"], 0);
