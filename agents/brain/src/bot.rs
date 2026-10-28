@@ -2729,10 +2729,27 @@ mod tests {
         })
         .await
         .expect("six compatible controllers become ready");
-        tokio::time::timeout(Duration::from_secs(5), async {
+        // Forty server ticks are not forty actions from a bot a loaded runner
+        // starves of CPU. The window ends on observed progress instead: at
+        // least forty ticks, and every fighter seen to change pose in at
+        // least twelve snapshots, each of which needs actions it sent.
+        let mut last_pose = std::collections::HashMap::new();
+        let mut changes = std::collections::HashMap::<Uuid, u32>::new();
+        tokio::time::timeout(READINESS_BOUND, async {
             while let Some(Ok(Message::Text(text))) = observer.next().await {
                 if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
-                    if snapshot.tick >= first_tick + 40 {
+                    for p in &snapshot.players {
+                        let pose = (p.x, p.z, p.yaw);
+                        if last_pose.insert(p.id, pose).is_some_and(|was| was != pose) {
+                            *changes.entry(p.id).or_default() += 1;
+                        }
+                    }
+                    if snapshot.tick >= first_tick + 40
+                        && snapshot
+                            .players
+                            .iter()
+                            .all(|p| changes.get(&p.id).copied().unwrap_or(0) >= 12)
+                    {
                         return;
                     }
                 }
@@ -2740,7 +2757,7 @@ mod tests {
             panic!("observer ended before the action window")
         })
         .await
-        .expect("forty actual server ticks elapse after roster readiness");
+        .expect("every fighter keeps acting after roster readiness");
         stop.store(true, Ordering::Relaxed);
         let mut receipts = Vec::new();
         for handle in handles {
