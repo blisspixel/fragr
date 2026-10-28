@@ -78,6 +78,14 @@ func _run() -> void:
 	_check(material != null and material.get_shader_parameter("normals_enabled") == true and
 		(material.get_shader_parameter("sprite_normals") as Texture2D).resource_path == NORMALS,
 		"actual view supplies paired normals to the shared sprite shader")
+	_check(is_equal_approx(float(material.get_shader_parameter("body_value")), 1.0), "a normal-mapped role keeps its own baked value")
+	var heavy_body: Sprite3D = Sprite3D.new()
+	var heavy_view: EnemyView = EnemyView.new()
+	heavy_view.update({"campaign":{"side":"union", "kind":"heavy_sweeper", "phase":"idle"}, "weapon":"Rifle"}, 100, heavy_body)
+	var heavy_material: ShaderMaterial = heavy_body.material_override as ShaderMaterial
+	_check(heavy_material != null and is_equal_approx(float(heavy_material.get_shader_parameter("body_value")), EnemyView.HEAVY_BODY_VALUE)
+		and EnemyView.HEAVY_BODY_VALUE < 0.6, "the Heavy's lighter plates are brought down to issued black, red points excluded")
+	heavy_body.free()
 	var charge_frame: int = body.frame
 	view.advance(50.0, 0.0)
 	view.render(body, 0.0, Vector3.RIGHT)
