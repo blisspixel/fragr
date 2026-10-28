@@ -549,6 +549,12 @@ participants. Prefer explicit IDs, including after bodies leave the snapshot.
 - A `speak` event may carry an optional `to_id`: the one fighter the line is
   said to, such as a rule bot's frag taunt to its victim. Without it the line
   is for the whole room.
+- A `speak` event may instead carry an optional `team` (gameplay 60): the side
+  a rule bot's objective callout is said to ("i have the flag. walk me home").
+  `get_events` keeps it. The server sends a side call only to that side's
+  fighters and to spectators, and the adapter forwards only what its own
+  session received: a joined agent hears its own side's calls (alive, dead or
+  eliminated) and never the other side's, and a watching session hears both.
 - Events are also included in `observe` output under `recent_events`
 - Set `clear: true` to acknowledge events and reset buffer
 
@@ -945,7 +951,14 @@ phase as an instant gun hit. A Turret in `moving` is turning its head, not walki
 every kind. A Crawler's `leaping` phase is committed movement after a crouched
 windup; its contact damage is resolved by the server. `crawler_scrabble` events
 in `recent_events` and `get_events` carry a finite world position for the
-mechanical warning, never text or a player identity. Never infer hostility from
+mechanical warning, never text or a player identity. `enemy_bark` events
+(`kind` `sighting`, `flanking` or `officer_down`; `register` `personnel` or
+`unit`) and `companion_bark` events (`kind` `flank_warning`,
+`priority_target` with `subject` `auditor` or `turret`, or `low_health`) carry
+a rotating `variant`, the speaker's id and feet, never caption text; a
+`flanking` bark means a skirmisher is walking around you while an anchor of its
+group fires, and a `flank_warning` means a gun was raised behind your shoulder
+(`docs/protocol.md`). Never infer hostility from
 a callsign,
 body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same

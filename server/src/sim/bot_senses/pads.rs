@@ -159,6 +159,18 @@ impl PadMemory {
         &self.drops
     }
 
+    /// Believe a `weapon` lies at `feet`, as if just seen there.
+    #[cfg(test)]
+    pub(in crate::sim) fn remember_drop(&mut self, weapon: WeaponType, feet: [f32; 3]) {
+        self.drops.push(DropBelief {
+            serial: self.drops.len() as u32 + 1,
+            weapon,
+            feet,
+            y: feet[1] + 0.4,
+            gone_at: u64::MAX,
+        });
+    }
+
     /// Ticks until the bot expects `index` to be claimable: zero when it
     /// believes the pad is up now, `None` when it has no estimate. A personal
     /// stash is the bot's own business and needs no looking.

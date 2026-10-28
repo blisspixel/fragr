@@ -1,0 +1,365 @@
+{
+  "out_dir": ".agents/wave12-campaign-ai/audio",
+  "items": [
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_0_a",
+      "text": "[clipped, routine radio voice] Contact. Unscheduled person on the floor. Opening a file.",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_0_b",
+      "text": "[clipped, routine radio voice] Contact. Unscheduled person on the floor. Opening a file.",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_1_a",
+      "text": "[clipped, routine radio voice] Eyes on the subject. Note the time and move.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_1_b",
+      "text": "[clipped, routine radio voice] Eyes on the subject. Note the time and move.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_2_a",
+      "text": "[clipped, routine radio voice] Visual confirmed. Subject is out of compliance.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/sighting_2_b",
+      "text": "[clipped, routine radio voice] Visual confirmed. Subject is out of compliance.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel sighting 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_0_a",
+      "text": "[low, focused] Keep them pinned. I'm going around.",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_0_b",
+      "text": "[low, focused] Keep them pinned. I'm going around.",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_1_a",
+      "text": "[low, focused] Hold that lane. Taking the side.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_1_b",
+      "text": "[low, focused] Hold that lane. Taking the side.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_2_a",
+      "text": "[low, focused] Suppress. I'll file this from the flank.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/flanking_2_b",
+      "text": "[low, focused] Suppress. I'll file this from the flank.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel flanking 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_0_a",
+      "text": "[tense, contained] Auditor down. Who signs for this now?",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_0_b",
+      "text": "[tense, contained] Auditor down. Who signs for this now?",
+      "voice": "XrExE9yKIg1WjnnlVkGX",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_1_a",
+      "text": "[tense, contained] We lost the Auditor. Hold until relief.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_1_b",
+      "text": "[tense, contained] We lost the Auditor. Hold until relief.",
+      "voice": "pNInz6obpgDQGcFmaJgB",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_2_a",
+      "text": "[tense, contained] Auditor's down. Nobody leaves without a signature.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_personnel/officer_down_2_b",
+      "text": "[tense, contained] Auditor's down. Nobody leaves without a signature.",
+      "voice": "cjVigY5qzO86Huf0OWal",
+      "model": "eleven_v4",
+      "stability": 0.5,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_personnel officer_down 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_0_a",
+      "text": "[flat, even, procedural] Unscheduled presence observed. Report filed.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_0_b",
+      "text": "[flat, even, procedural] Unscheduled presence observed. Report filed.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_1_a",
+      "text": "[flat, even, procedural] Subject located. Compliance check initiated.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_1_b",
+      "text": "[flat, even, procedural] Subject located. Compliance check initiated.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_2_a",
+      "text": "[flat, even, procedural] Visual acquired. Please remain where you are.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/sighting_2_b",
+      "text": "[flat, even, procedural] Visual acquired. Please remain where you are.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit sighting 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_0_a",
+      "text": "[flat, even, procedural] Repositioning per directive.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_0_b",
+      "text": "[flat, even, procedural] Repositioning per directive.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_1_a",
+      "text": "[flat, even, procedural] Lateral approach authorized.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_1_b",
+      "text": "[flat, even, procedural] Lateral approach authorized.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_2_a",
+      "text": "[flat, even, procedural] Adjusting angle. Thank you for your patience.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/flanking_2_b",
+      "text": "[flat, even, procedural] Adjusting angle. Thank you for your patience.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit flanking 2 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_0_a",
+      "text": "[flat, even, procedural] Supervising Auditor offline. Awaiting instruction.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 0 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_0_b",
+      "text": "[flat, even, procedural] Supervising Auditor offline. Awaiting instruction.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 0 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_1_a",
+      "text": "[flat, even, procedural] Supervisor unavailable. Continuing last approved task.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 1 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_1_b",
+      "text": "[flat, even, procedural] Supervisor unavailable. Continuing last approved task.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 1 take b"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_2_a",
+      "text": "[flat, even, procedural] Auditor offline. This incident has been noted.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 2 take a"
+    },
+    {
+      "kind": "tts",
+      "name": "barks/union_unit/officer_down_2_b",
+      "text": "[flat, even, procedural] Auditor offline. This incident has been noted.",
+      "voice": "hpp4J3VqNfWAUOO0d1Us",
+      "model": "eleven_v4",
+      "stability": 0.8,
+      "format": "mp3_44100_128",
+      "title": "Union bark union_unit officer_down 2 take b"
+    }
+  ]
+}

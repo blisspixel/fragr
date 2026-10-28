@@ -95,6 +95,9 @@ impl GameState {
             player_id: player,
             capture_scores: self.capture_scores,
         });
+        if let (FlagEventKind::Taken, Some(id)) = (kind, player) {
+            self.queue_callout(id, crate::roster::ObjectiveCall::HaveFlag);
+        }
     }
 
     pub(crate) fn drop_flag_from(&mut self, player: Uuid) {

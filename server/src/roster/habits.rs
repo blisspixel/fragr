@@ -113,7 +113,7 @@ pub fn habits(name: &str, behavior: BotBehavior) -> Habits {
 /// How a callsign settles a score, by register. NODS have no grudges: they
 /// answer only with Articles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Register {
+pub(super) enum Register {
     NightWatch,
     StaticKids,
     HangarCandy,
@@ -127,7 +127,7 @@ enum Register {
     Street,
 }
 
-fn register(name: &str) -> Option<Register> {
+pub(super) fn register(name: &str) -> Option<Register> {
     let fighter = find(name)?;
     if fighter.name.starts_with("NODS ") {
         return None;

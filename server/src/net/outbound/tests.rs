@@ -232,6 +232,7 @@ fn combat_facts_remain_exact_and_ordered_before_their_acknowledgement() {
         target_hp_after: Some(75),
         trace: None,
         killed: false,
+        head: false,
     });
     fired.explosions.push(ExplosionResult {
         id: 7,

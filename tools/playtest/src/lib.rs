@@ -1330,6 +1330,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             },
             GameEvent::Hit { .. }
             | GameEvent::CrawlerScrabble { .. }
+            | GameEvent::EnemyBark { .. }
+            | GameEvent::CompanionBark { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
             | GameEvent::Speak { .. }
@@ -3876,6 +3878,7 @@ mod combat_tests {
         ShotResult {
             trace: None,
             killed: false,
+            head: false,
             shooter_id: shooter,
             shooter: "S".to_string(),
             hit,

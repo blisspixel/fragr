@@ -225,6 +225,7 @@ impl EnemyController {
     pub(in crate::encounters) fn converge(&mut self, center: [f32; 3], until: u64, tick: u64) {
         self.converging = Some((center, until));
         self.alarm(center, tick);
+        self.wake();
     }
 
     pub(in crate::encounters) fn take_marks_broken(&mut self) -> u32 {

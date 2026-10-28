@@ -1,0 +1,17 @@
+{
+  "comment": "A rule bot's objective callout in the feed on a real Sector 9 server (gameplay 60). Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=4 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "ctf_side_call",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 3,
+      "camera": "ctf_carried",
+      "await_ctf": {"status": "carried"},
+      "await_timeout_seconds": 120,
+      "settle_seconds": 3.0,
+      "note": "A bot took the flag. Past the Host's two seconds its side call sits in the feed with the side's mark and colour, followed from the carrier's side."
+    }
+  ]
+}

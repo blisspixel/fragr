@@ -61,7 +61,10 @@ fn every_tier_keeps_real_tells_committed_aim_and_retaliation_windows() {
             CampaignDifficulty::Severe,
         ] {
             for dodge in [false, true] {
-                let (mut session, id) = fixture(difficulty, kind);
+                // Facing the visitor, as a guard at its door does: this is about
+                // tells, not about being caught from behind.
+                let facing = (-3.0f32).atan2(-2.0).rem_euclid(std::f32::consts::TAU);
+                let (mut session, id) = fixture_facing(difficulty, kind, facing);
                 for _ in 0..2 {
                     session.tick_messages(0.05);
                 }

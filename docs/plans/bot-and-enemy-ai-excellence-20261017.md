@@ -1,6 +1,6 @@
 # Bot and Enemy AI Excellence: Tactical Squads, Dynamic Companions, and Fun-First Combat
 
-Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) came with wave 3; the third (Larak Lot rule bots: the Rocket, callsign habits, grudges and the Scatter meatshot) is on `wave4/bots`; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
+Status: **in flight**, 2026-10-24 (planned 2026-10-17). The first slice (perception, pacing, flinch and pad timing) shipped in #471; the second (tells matched to tokens, Latch cover and seed-robust routes) came with wave 3; the third (Larak Lot rule bots: the Rocket, callsign habits, grudges and the Scatter meatshot) came with wave 4; the fourth (weapons dropped on death) with wave 11; the fifth (how a holder uses the Rocket, CTF pads and objective callouts) and the sixth (campaign guards that need to see you, squad roles and chatter) are implemented in wave 12; see section 6. Research and technical specification for advancing fragr's authoritative enemy state machines, multiplayer rule bots, and friendly companion mechanics. Grounded in classic and contemporary FPS best practices (F.E.A.R., Half-Life 2, Left 4 Dead, Boltgun, Unreal Tournament, Republic Commando). Spend: $0.
 
 ## 1. Executive Summary and Current Architecture Audit
 
@@ -57,7 +57,7 @@ An in-depth codebase audit of fragr's simulation and encounter systems reveals a
     - Enemies denied a token execute lateral repositions, strafing, or seeking cover.
   - Establish distinct squad roles:
     - **Suppression Anchors (Heavy Sweeper, Turret):** Lay down lane-denying fire to pin players behind cover.
-    - **Skirmishers (Sweeper, Redactor, Crawler):** When an anchor is firing, skirmishers calculate lateral flank paths (`NavigationGoal { feet, combat: false }`) to wrap around player cover.
+    - **Skirmishers (Sweeper, Redactor; the Crawler closes and leaps instead):** When an anchor is firing, skirmishers calculate lateral flank paths (`NavigationGoal { feet, combat: false }`) to wrap around player cover.
     - **Backline Support (Auditor):** Auditors path 3 meters behind heavy units, using them as mobile shields, and channel repairs only from protected angles.
 - **Verification:**
   - Unit tests proving no more than 2 enemies enter `Windup`/`Firing` concurrently within an encounter group.
@@ -242,3 +242,79 @@ Drops alone, before bots learned them (15 s): Rocket 3.7%, Flechette 45%,
 26.1 pickups a minute against 30.4 once bots walk to what they see.
 
 The Rocket target (15 to 25% at six) is **not met**: 3.9% to 6.1%. Lifetime moves it inside noise (4.2% to 5.4%); a longer lifetime only lets more Flechettes circulate. Drops added about 90 Rocket lives over 72 minutes of six-bot play to the 140 the pad gives, and 441 rockets were fired against 321, but a rocket still kills about once in five (160 of 441 hurt someone). The Rocket's frag share at six is limited by how often a launcher is in a living hand in its band, and a dropped launcher mostly goes to whoever just won the fight nearby, usually with a Flechette in hand. Reaching 15% needs the lot to carry more launchers (a second pad), or bots that hold the Rocket longer in mid-range trades; both are map or controller decisions outside a drop rule. With every found gun dropping, the Flechette share rose past the 45% gate (41% to 50%), because dropped Flechettes keep circulating; the shipped rule keeps the Flechette behind and lands at 36%. Frags per minute, the Plate and spawn deaths held. Nick's call whether drops stay in Duel, where the Rocket share moved from 29% to 26%.
+
+**Fifth slice, 2026-10-27 (`wave12/mp-bots`, Refs #432).** Implemented in wave 12. How a holder uses the Rocket, CTF bots that take pads, and objective callouts.
+
+- The Rocket, measured first. The survey now counts Rocket lives (from the moment a fighter holds a launcher with rounds until it dies or fires the last one), their length, how many end in death, and how much of the life the launcher is in hand. On the six-bot lot a life lasted 4.3 s and half of them ended with the rack fired dry, not in death: 470 rockets for about 91 frags. A diagnostic trace (not shipped) put the waste in range: rockets fired from 20 to 32 m hurt nobody four times in five, inside 10 m two in three found a body, and the holder mostly died inside 12 m, often to a Pistol, with the launcher held because the old 5 m safe distance refused the shot.
+- Close rockets. In the arena a fighter takes 0.6 of its own splash, so a blast 3 m off costs the shooter a few points and the target the whole rocket. The safe distance is now 3 m and the band starts at 3.5 m (`ROCKET_SAFE`, `ROCKET_BAND`).
+- A rack of four is spent where it lands. A holder fires on its own floor only inside 16 m (`ROCKET_SURE`), or from 1.5 m or more above a body within 24 m, whose floor catches the splash. Past that it keeps the launcher up and closes in rather than swapping to the Flechette.
+- Drops. A Rocket a bot has seen lying within 15 m, while it holds none, is worth leaving a fight past 12 m for, the way a timed power pad is.
+- CTF pads. Off the fight, a CTF bot takes a pad it needs inside its role's leash, from what it believes about the pads (seen, with published clocks; no live timer): health at 70 or under, armour under 50, rounds for a gun down to half its spawn kit. A carrier takes only health, and only a step (6 m) off its way home; an escort a step off its line; a runner a detour of up to 14 m; a defender only pads within 24 m of its stand. While its side's flag is stolen or lying out, the defender, the escort and the runners stop for no pad; only the carrier keeps its step for health.
+- Objective callouts (Milestone 5, multiplayer). A named rule bot tells its own side, in text, when it takes the enemy flag, when it sees the fighter carrying its side's flag (where, in thirds of the line between the stands, once per carry and only through its senses), when it plants the charge and when it starts defusing. Lines follow the callsign's register (`server/src/roster/callouts.rs`: the Night Watch in capitals, the Static Kids short of vowels, Union units in boilerplate, Hermes polite, L5 terse; NODS say nothing). They go out as `speak` events with the side they are said to (gameplay 60), at most one per side every 15 s, two seconds clear of any Host call, and a call that stopped being true before it could be said is dropped. The server delivers a side's call only to that side's fighters, alive, dead or eliminated, and to spectators, never as a broadcast. The client shows it with the side's shape mark and label colour; a spectator following a fighter sees that fighter's side, and a free camera sees both.
+
+Measured with `fragr-playtest --bot-survey --survey-lot --seed 1 --survey-seeds 24 --time-limit-seconds 180` in release, `wave11/integration` at `5b4ad2c3` against this slice:
+
+| Larak Lot, 24 seeds of 180 s | Frags/min | Rocket share of frags | Rockets fired (hurt someone) | Plate claims per 3 min | Flechette / Pistol share of shots | Spawn deaths per spawn | Rocket lives (s each, ended by death) |
+|---|---|---|---|---|---|---|---|
+| FFA, 6 | 20.7 to 20.5 | 6.1% to 8.2% | 470 (176) to 470 (254) | 3.4 to 3.6 | 36% / 35% to 33% / 38% | 0.022 to 0.026 | 207 (4.3, 51%) to 286 (4.7, 65%) |
+| FFA, 4 | 11.2 to 10.3 | 9.8% to 12.6% | 456 (181) to 437 (239) | 3.1 to 3.6 | 47% / 17% to 40% / 21% | 0.014 to 0.010 | 238 (6.9, 61%) to 238 (8.1, 58%) |
+| Duel, 2 | 2.3 to 2.4 | 26.3% to 32.0% | 279 (161) to 315 (188) | 4.0 to 3.9 | 35% / 4% to 34% / 4% | 0.000 to 0.005 | 137 (27.8, 47%) to 146 (26.1, 44%) |
+
+Rockets that hurt somebody went from 37% to 54% of those fired at six, and more launchers stay in play (286 lives against 207) because a holder now dies with rounds left and the gun drops. The Rocket target at six (15 to 25%) is still **not met**. Supply is no longer what limits it: a holder lives under five seconds and trades about one frag per death, because at bot accuracy a one-round launcher on a 0.8 s cycle loses most close trades to hitscan. Frags a minute at four fell from 11.2 to 10.3 while holders close in instead of firing long; six and Duel held.
+
+Tried and not shipped, same survey (Rocket share at six / four / Duel):
+
+| Variant on top of the shipped rules | Six | Four | Duel |
+|---|---|---|---|
+| Shipped | 8.2% | 12.6% | 32.0% |
+| Rocket regulars keep the Rocket pad as an appointment | 7.7% | 14.6% | 22.0% |
+| The holder perches on the nearest height between fights | 8.0% | 15.3% | 43.3% |
+| A holder under 50 health breaks off a fight past 8 m for health | 8.6% | 14.1% | 37.0% |
+| Both of the last two | 8.1% | 14.6% | 52.3% |
+| Band ends at 20 m (swap to hitscan past it) | 5.8% | 10.5% | 24.7% |
+
+None moves the six-bot share by more than the point or so that unrelated small rule changes move it, the perch tips Duel toward a Rocket game, and the appointment drags Duel bots off fights. Holder lifetime, not supply or shot choice, now sets the six-bot share; raising it further is a weapon decision (the Rocket's cycle, splash or rack) or the second launcher on the lot, both Nick's.
+
+CTF on Sector 9, `fragr-playtest --bot-survey --seed 1 --survey-seeds 24 --time-limit-seconds 150` (eight bots): 25 to 27 captures, 7.7 to 7.4 frags a minute, 0.2 to 0.6 pickups a minute (8 to 35 power returns). Side calls: 2.8 a minute in CTF across both sides, 0.7 in Sabotage; none in the free-for-all, TDM or Conquest rows. Sabotage and the other rows did not change.
+
+Still open: the Rocket target at six, which this slice shows is not a use problem; voiced callouts (text only here). Dormant guard cones and squad roles came with the sixth slice.
+
+**Sixth slice, 2026-10-27 (`wave12/campaign-ai`, Refs #432).** Implemented in wave 12. Campaign guards that need to see you, squad roles and chatter.
+
+- Guards on watch (Milestone 1, `server/src/encounters/enemy/awareness.rs`). A room still wakes where its level says: the authored entry region, or a shot that strikes a guard. A shot is gunfire in the room and puts the whole group in the fight at once, as before. The entry region is a quiet alarm: the group is dispatched as written, but a guard on foot (personnel and the Sweepers) that has not seen the participant only turns its eyes toward the alarm (half a turn in about 0.6 s) while its feet go there as before, and starts an attack only after it sees a participant through the shared senses (`sim/bot_senses/guard.rs`, additive: the arcade's 120 degree cone, a level gaze within 0.6 rad, cover). A guard already looking at the alarm was expecting someone and raises at once; one still turning is startled and takes the 200 to 400 ms reaction, drawn from its authored name so a seeded campaign repeats. Coming in behind a guard or from a gantry above it buys the first shots; after one second every alarmed guard is in the fight regardless. Office equipment (Turret, Jammer, Notary, Assessor), the marksman, the Surveyor and the Paver keep their own notice rules; a Crawler pack wakes with its scrabble.
+- Measured and not kept, each traced to a mechanism. Waking a room by sight before its region, even within six metres of it, broke authored beats tests guard (the Launch Authority resupply beside sleeping guards, the M09 Tack pickup before the encounter, the M02 Latch release) and took M19 teaching from 4 deaths to 60. Holding alarmed guards at their posts left Level 1's sorting Sweepers shooting from the side while the participant fought the dispatch desk. Using the walking body's facing as the cone turned guards away from the participant whenever their route bent. Giving the startled reaction to a guard already facing the alarm moved the Level 1 intake Clerk's tell 4 ticks later, so its committed aim landed on the line a participant walks to reach it: the hesitant/Assisted cohort took 40 to 160 damage from that one shot on every seed where it had taken none. And letting a struck peer's alarm only draw the others' eyes sent the sorting Sweepers walking toward the struck desk past the participant for a second, so they joined the fight from the participant's side.
+- Squad roles on the attack tokens (Milestone 2, `encounters/enemy/squad.rs`). Anchors (Heavy Sweeper, Turret) hold a lane: once a Heavy's burst has begun it finishes down its committed line into the cover; its tell still cancels on broken sight, and the Turret keeps its break-sight counterplay. While an anchor of its group is telling or firing at a participant, a skirmisher (Sweeper, Redactor) walks round to a point on the participant's floor that still sees them, swung 1.2 rad from the anchor's line, for at most 2.5 s, then rests 4 s before another flank; a Sweeper spends its recovery walking it, a Redactor recovery stays planted, and nobody flanks on Assisted. A Crawler never flanks: a flank point lies six metres or more out, past its four metre leap, so a pack keeps closing and leaping while an anchor fires. A flanking guard still asks for a token before it raises. An Auditor that cannot attack from where it stands keeps a Heavy Sweeper or Enforcer of its group between itself and the participant, 3 m behind it.
+- Chatter (Milestone 5, campaign part). `GameEvent::EnemyBark` (sighting, flanking, officer down; personnel or unit register) and `GameEvent::CompanionBark` (Latch: flank warning for a gun raised behind the participant's shoulder within 24 m, priority target for an Auditor's repair or a Turret's charge, low health below 35) are keyed facts; the client owns the words (`client/i18n/story.en.po`), captions (`bark_caption.gd`) and recordings (`bark_voice.gd`, slots under `client/assets/audio/barks/`). Lines are rare: a Union line waits 5 s after any line, Latch waits 5 s after Latch's own and may cut across Union radio, one kind repeats at most every 20 s (low health 30 s). Only Union-controlled personnel and Sweepers speak; equipment, Crawlers, absorbed bots and Inheritance machines never do. Union radio plays through a `UnionRadio` bus the client builds at runtime (band-pass and a light overdrive, sent to Voice), so the recordings stay dry. The 18 Union lines are recorded (ElevenLabs eleven_v4, four stock voices, 2,370 credits by price); Latch's 12 lines are captioned with empty slots because Latch's casting is Nick's pick (E-11). Nobody has listened to the takes yet.
+- Route controllers (`mission/route_skill.rs`, the shared tell-reading seam) gained two responses a player has: a strafe while trading fire never steps sideways off a stair or ledge into a drop deeper than a metre, and a visible Assessor canister's arc is read and the body walks out of where it lands or crosses the body. Both failures were traced: the late kit controller fell off the M18 stair landing mid-fight and stalled in the yard below, and died in the M16 forecourt to a volley it never stepped out of.
+
+Measured in release builds on the same seeds: base `wave11/integration` at `5b4ad2c3`, the first push of this slice (`f6677917`), and this slice. The M01 survey moves by four or five clears in 72 when only the reaction draws change, so M01 was widened to 288 trials.
+
+| Constrained survey | Base clears (deaths) | `f6677917` | This slice |
+|---|---|---|---|
+| M01, seeds 40 to 47, 72 trials | 50 (121) | 46 (130) | 46 (131) |
+| M01, seeds 48 to 55, 72 trials | 46 (132) | 47 (137) | 49 (133) |
+| M01, seeds 56 to 71, 144 trials | 98 (263) | not run | 94 (279) |
+| M01, all 288 trials | 194 (516) | | 189 (543) |
+| M19 teaching, seeds 40 to 43, 36 trials | 36 (4) | 36 (8) | 36 (1) |
+| M19 market, seeds 42 and 43, 18 trials | 8 (43) | 9 (43) | 9 (45) |
+| M19 market, seeds 44 to 47, 36 trials | 16 (97) | not run | 18 (88) |
+| CI seed 42: M01 / teaching / market, 9 trials each | 6 (18) / 9 (1) / 4 (22) | 5 (19) / 9 (1) / 5 (18) | 5 (22) / 9 (0) / 3 (27) |
+
+M01 by cohort over the 288 trials, base against this slice: reference holds (95 to 95 clears); Assisted is easier (deliberate 31 to 32, hesitant 18 to 20); deliberate Standard and Severe are harder (28 to 22 and 20 to 13 of 32 each, 117 to 151 deaths), with more damage from the dispatch room's Sweeper and guard and the sorting Sweepers, mostly from outside the participant's view. That residual was not traced to a single cause in this slice; it is the open item for Level 1. No evaluator, tell duration or `CAMPAIGN_RULES_REVISION` changed.
+
+| Route survey, sixteen seeds (`seed_survey -- --ignored`) | Base | `f6677917` | This slice |
+|---|---|---|---|
+| M02 Severe side ward | 16 | 15 (67) | 16 |
+| M14 ordinary infantry | 16 | 15 (1025) | 15 (1015) |
+| Late carried kit (M16 to M18) | 16 | 13 (43, 46, 52) | 16 |
+| Launch Authority on foot | 16 | 16 | 16 |
+| M19 Planned Works, Standard | 16 | 16 | 16 |
+| M20 pier, Standard | 16 | 16 | 16 |
+
+M14 seed 1015 (agent, no jeep) is a controller loss: it runs out of rounds at tick 2025 instead of 1825, reaches the depot resupply at 2475 instead of 1875, and dies there to the Walker's announced barrage, whose marked circle covers the resupply pad and which its blast exit does not leave. The guards' new behaviour only shifts when it gets there. The fixture seeds were restored (`late_campaign_carried_routes_hold_across_seeds` runs 40, 43 and 48 again; the carry and market fixtures run their original seeds) except the playtest exhausted-carry fixture: seed 43 deliberate/Assisted now leaves M01 with two continues, so its first M02 death is a retry, and no seed from 40 to 47 spends all three and then dies once; it uses seed 54 deliberate/Standard, which does. Two scripted tests changed with reasons in them: the M12 natural wreck brief now backs off from the Assessor's visible count (the Clerks facing away no longer claim both attack tokens on entry, so the volley comes early), and the every-tier tell test faces its guard toward the visitor.
+
+Looked at: the bark captions over M01 in first person at 1280x720 (Union radio, issued unit and Latch lines, stacked over the Crawler caption), level and clear of the health panel. Not done: listening to the recordings, a live capture of a flank or a pinned lane, Windows rendering, human play.
+
+This slice ships with a known regression: the deliberate Standard and Severe M01 cohorts are harder than on the base (above), and M14 route seed 1015 is lost. Both are open in #493.
+
+Still open: the deliberate Standard and Severe M01 regression and M14 route seed 1015 (#493), Latch's voice (casting), the Rocket share and voiced grudges. CTF bots taking pads came with the fifth slice.

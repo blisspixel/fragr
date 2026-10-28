@@ -4,12 +4,15 @@
 //! contest, focus fire on one body, hits landed outside the shooter's view,
 //! and which guns do the work. A survey is behaviour evidence for rule bots,
 //! never a human fun verdict.
-use fragr_server::protocol::{GameEvent, GameMode, ServerMessage, WeaponType};
+use fragr_server::net::GameCommand;
+use fragr_server::protocol::{
+    AmmoPool, BodyKind, GameEvent, GameMode, Role, ServerMessage, WeaponType,
+};
 use fragr_server::rules::RuleSet;
-use fragr_server::session::GameSession;
+use fragr_server::session::{GameSession, Recipient};
 use fragr_server::sim::{MapKind, MatchConfig, PickupKind};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
 
 /// A death this soon after the fighter's spawn counts against the spawn.
@@ -162,6 +165,17 @@ pub struct ScenarioReport {
     pub drop_claims: u64,
     /// Dropped Rockets taken.
     pub rocket_drop_claims: u64,
+    /// Rocket lives: from the moment a fighter holds a launcher with rounds
+    /// until it dies or fires the last one.
+    pub rocket_lives: u64,
+    /// Mean seconds a Rocket life lasts.
+    pub rocket_life_seconds: f64,
+    /// Share of Rocket lives that ended in the holder's death, not a dry rack.
+    pub rocket_lives_died: f64,
+    /// Share of a Rocket life the launcher was the gun in hand.
+    pub rocket_in_hand_share: f64,
+    /// Rule bots' objective callouts said to a side, per live minute.
+    pub side_calls_per_minute: f64,
 }
 
 /// The lane targets for rule bots on Larak Lot's free-for-all at six bots:
@@ -269,6 +283,11 @@ struct Tally {
     guns_dropped: u64,
     drop_claims: u64,
     rocket_drop_claims: u64,
+    rocket_lives: u64,
+    rocket_life_ticks: u64,
+    rocket_lives_died: u64,
+    rocket_in_hand_ticks: u64,
+    side_calls: u64,
 }
 
 fn power(kind: PickupKind) -> bool {
@@ -366,6 +385,15 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         guns_dropped: tally.guns_dropped,
         drop_claims: tally.drop_claims,
         rocket_drop_claims: tally.rocket_drop_claims,
+        rocket_lives: tally.rocket_lives,
+        rocket_life_seconds: if tally.rocket_lives == 0 {
+            0.0
+        } else {
+            tally.rocket_life_ticks as f64 / tally.rocket_lives as f64 / 20.0
+        },
+        rocket_lives_died: share(tally.rocket_lives_died, tally.rocket_lives),
+        rocket_in_hand_share: share(tally.rocket_in_hand_ticks, tally.rocket_life_ticks),
+        side_calls_per_minute: per_minute(tally.side_calls),
     }
 }
 
@@ -395,6 +423,16 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         ..MatchConfig::default()
     });
     session.spawn_bots(scenario.bots);
+    // Side calls go only to their side and the booth, so the survey listens
+    // from one booth seat that holds no fighter.
+    let booth = Uuid::from_u128(u128::MAX);
+    session.apply_command(GameCommand::Connected {
+        body: BodyKind::Human,
+        id: booth,
+        role: Role::Spectator,
+        name: "Survey Booth".into(),
+        player_id: None,
+    });
     tally.matches += 1;
 
     // Per pad: the tick it last returned during live play, and whether that
@@ -406,14 +444,47 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
     let mut last_hit: HashMap<Uuid, HashMap<Uuid, u64>> = HashMap::new();
     // Per (shooter, target): whether the shooter opened from outside the target's view.
     let mut openings: HashMap<(Uuid, Uuid), bool> = HashMap::new();
+    let mut rocket_lives: HashSet<Uuid> = HashSet::new();
     let mut live = false;
     let mut ended = false;
     let limit = u64::from(round_ticks) + 20 * 30;
     while session.state.tick < limit && !ended {
-        let messages = session.tick_messages(0.05);
+        let mut messages = session.tick_messages(0.05);
+        messages.extend(
+            session
+                .take_unicasts()
+                .into_iter()
+                .filter(|(recipient, _)| *recipient == Recipient::Client(booth))
+                .map(|(_, message)| message),
+        );
         let tick = session.state.tick;
         if live {
             tally.live_ticks += 1;
+            for player in &session.state.players {
+                let alive = player.hp > 0 && player.respawn_timer.is_none();
+                let armed = alive
+                    && player.inventory.owns(WeaponType::Rocket)
+                    && player.inventory.carried(AmmoPool::Rockets) > 0;
+                match (armed, rocket_lives.contains(&player.id)) {
+                    (true, false) => {
+                        rocket_lives.insert(player.id);
+                        tally.rocket_lives += 1;
+                    }
+                    (false, true) => {
+                        rocket_lives.remove(&player.id);
+                        if !alive {
+                            tally.rocket_lives_died += 1;
+                        }
+                    }
+                    _ => {}
+                }
+                if armed {
+                    tally.rocket_life_ticks += 1;
+                    if player.weapon == WeaponType::Rocket {
+                        tally.rocket_in_hand_ticks += 1;
+                    }
+                }
+            }
         }
         for (index, pad) in session.state.pickups.iter().enumerate() {
             if index >= was_available.len() {
@@ -610,6 +681,9 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 } if live => {
                     tally.objective_events += 1;
                 }
+                GameEvent::Speak { team: Some(_), .. } if live => {
+                    tally.side_calls += 1;
+                }
                 _ => {}
             }
         }
@@ -676,7 +750,30 @@ mod tests {
         assert!(row.spawns >= 4, "{row:?}");
         assert!(row.shot_share.values().sum::<f64>() > 0.99, "{row:?}");
         assert!(row.guns_dropped > 0, "the Pistol start drops guns: {row:?}");
+        assert!(row.rocket_lives > 0, "somebody held the Rocket: {row:?}");
+        assert!(row.rocket_life_seconds > 0.0, "{row:?}");
+        assert_eq!(
+            row.side_calls_per_minute, 0.0,
+            "a free-for-all has no sides"
+        );
         assert!(check_bot_survey(&report).is_empty(), "{row:?}");
+    }
+
+    #[test]
+    fn a_short_ctf_survey_hears_rare_side_calls() {
+        let report = run_bot_survey(&BotSurveyConfig {
+            scenarios: vec![Scenario {
+                mode: GameMode::Ctf,
+                map: MapKind::Sector9.id(),
+                bots: 8,
+            }],
+            seeds: vec![1, 2],
+            round_ticks: 20 * 150,
+        });
+        let row = &report.scenarios[0];
+        assert!(row.side_calls_per_minute > 0.0, "{row:?}");
+        // Two sides, one call each per fifteen seconds at the very most.
+        assert!(row.side_calls_per_minute <= 8.0, "{row:?}");
     }
 
     #[test]

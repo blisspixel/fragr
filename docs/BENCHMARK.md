@@ -83,6 +83,8 @@ on the retired Arena Duel field and are not comparable:
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
+cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-stress --fanout-seconds 30 --report .agents/fanout/stress.json
+cargo run -p fragr-playtest --release --locked -- --traffic --map 6 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 32 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/sat.json
 ```
 
 Each row starts a fresh server and records sample counts. The fighters are
@@ -90,8 +92,18 @@ in-process reflex agents and also receive every broadcast, so a row has
 fighters plus spectators recipients. The server admits eight loopback
 spectators per address, so each eight watchers connect from the next 127/8
 source address (Linux routes all of 127/8 to loopback; elsewhere the
-sixteen-watcher rows fail at the bind). Report schema 2 carries the build
-commit and the host environment beside the rows.
+sixteen-watcher rows fail at the bind). Report schema 3 carries the build
+commit and the host environment beside the rows, and names each row's
+`scenario`.
+
+`--fanout-stress` (with `--fanout-matrix`) runs the stress rows instead, all
+on Tripoint Works at seed 42 with sixteen reflex fighters and eight healthy
+watchers: `baseline`; `slow_readers`, plus four watchers that read one frame
+every 100 ms (half the snapshot rate); `stalled_readers`, plus four that stop
+reading when the window opens; and `steady_input` and `bursty_input`, plus
+four human input probes sending the same 60 actions a second either one every
+16.7 ms or 30 at once every 500 ms. Degraded watchers are summarized apart
+from the healthy ones (`degraded`), probes under `input`.
 
 The stages stay separate, all from one process and one monotonic clock:
 
@@ -106,6 +118,19 @@ The stages stay separate, all from one process and one monotonic clock:
 | `server_metrics.writer.send_ms` | Framing and the socket write: send completion, not peer receipt |
 | `tick_to_watcher_ms` | Server tick start to a watcher reading the Snapshot frame, before it parses |
 | `serialization_ms_per_second` | Tick and writer encode time per measured second |
+| `server_metrics.tick_ms`, `late_ms` | The whole tick handler, and how long after its scheduled deadline it began |
+| `server_metrics.over_budget`, `skipped_periods` | Handlers at or above 50 ms, and whole periods the loop skipped |
+| `server_metrics.writer.send_failures_ms` | When in the window a writer's send timed out or failed, closing that socket |
+| `degraded.tick_to_watcher_ms` | The same tick-start-to-read age for slow or stalled watchers: how stale their picture became |
+| `degraded.closed_by_server` | Degraded watchers whose socket the server closed before the harness stopped |
+| `input.input_to_ack_ms` | A probe writing an action to reading the first applied Ack whose sequence covers it |
+| `connection_losses_ms` | When `GET /status`, polled every 100 ms, first showed each lost connection |
+| `sockets` | Kernel memory of the server's established sockets at the window's end (`ss -m`, Linux) |
+
+A probe's action sent while an Ack shows it down, or before the server has
+applied its first input, is counted in `actions_unapplied` and not timed. A
+burst's later actions overwrite earlier ones within one tick, so a covered
+action was acknowledged, not necessarily applied by itself.
 
 Queue high water and overflow counts describe the bounded outbound FIFOs.
 Watcher snapshot intervals, missed tick numbers, and relative arrival spread
@@ -168,9 +193,174 @@ What this shows, and what it does not:
   fixing a measured bottleneck. It is not evidence of 32 to 64 player
   capacity, two-machine feel or public-server behavior.
 - Not measured here: slow or stalled readers under load, bursty input and
-  saturation. Slow-reader isolation, ordering, private targeted state and
+  saturation (the stage 1 stress baseline below). Slow-reader isolation, ordering, private targeted state and
   cancellation are covered by tests in `server/src/session.rs`,
   `server/src/net/tests.rs` and `server/src/net/outbound/tests.rs`.
+
+### Stage 1 stress baseline (#434)
+
+Measured 2026-10-27 on Linux x86_64 (kernel 7.2.8), AMD Ryzen 7 7840U, 16
+hardware threads, release builds, seed 42. The host was shared with other
+lanes' builds and playtests, so every step logged the load average beside its
+report; each cell is the median of three runs. Two harnesses: the in-process
+stress rows above (stage-separated server timings; clients share the process)
+and the traffic generator against the `fragr-server` binary as a child
+process (its own resident set, CPU time, sockets and tick trace; clients in
+the harness process). Server crate commit `8a5528c8`; the stress harness
+commit is `ea59ea97`, which changes only how probes time input. Kernel
+defaults: `tcp_wmem` 4 KiB / 16 KiB / 4 MiB, `tcp_rmem` 4 KiB / 128 KiB /
+32 MiB. Socket completion is not peer receipt, and loopback is not a public
+network.
+
+The first three runs of each harness were taken while the load average sat at
+24 to 52 on 16 threads. They are kept below as the contention result; the
+tables were rerun at load 7 to 36.
+
+**Slow and stalled readers, bursty input.** `--fanout-matrix --fanout-stress
+--fanout-seconds 30`, load 7 to 18. Tripoint Works, 16 reflex fighters and 8
+healthy watchers in every row; timings in ms.
+
+| Row | Tick p50 / p99 | Late p99 | Over budget / skipped | Healthy watcher tick to read p50 / p99 | Healthy missed ticks | Queue high water / overflows / replaced worlds | Degraded watchers or probes |
+|---|---|---|---|---|---|---|---|
+| baseline | 0.20 / 1.25 | 1.64 | 0 / 0 | 0.53 / 2.89 | 0 | 11 / 0 / 0 | |
+| 4 slow readers | 0.26 / 3.67 | 2.62 | 0 / 0 | 1.09 / 7.65 | 0 | 11 / 0 / 0 | never closed; picture 8.9 s stale at p50, 20.2 s at the end; 2.0 MiB unsent in the kernel per socket |
+| 4 stalled readers | 0.24 / 2.88 | 2.62 | 0 / 0 | 0.81 / 4.86 | 0 | 30 / 0 / 119 | all 12 (three runs) closed by the 2 s send timeout at 28.7 to 29.2 s |
+| 4 probes, steady 60 Hz | 0.24 / 3.80 | 1.57 | 0 / 0 | 0.59 / 6.38 | 0 | 10 / 0 / 0 | input to Ack p50 28.5, p99 50.9 (4844 timed) |
+| 4 probes, 30 every 500 ms | 0.22 / 1.18 | 1.88 | 0 / 0 | 0.52 / 1.58 | 0 | 8 / 0 / 0 | input to Ack p50 44.8, p99 46.6 (4860 timed) |
+
+- **Healthy readers and the tick are isolated.** No row missed a deadline,
+  skipped a period, dropped a healthy watcher or overflowed a queue; slow or
+  stalled sockets moved the healthy p99 by a few milliseconds.
+- **A stalled reader is closed after about 29 s.** Until then the kernel send
+  buffer absorbs its backlog: the 64-slot queue never overflowed, and only
+  once the writer blocked did world replacement start (about 120 replaced
+  worlds). `GET /status` showed each loss within one 100 ms poll.
+- **A slow reader is never closed in a 30 s window and falls ever further
+  behind.** Reading 10 frames a second against about 25 sent, it held 2 MiB
+  in the kernel per socket. One 120 s run (load 12 to 19) closed the four at
+  38 s, by then 35 s stale. The backlog sits in the kernel buffer, not the
+  queue, so neither world replacement nor overflow acts until that buffer
+  fills: the choke the [server plan](plans/server-excellence.md) asks to
+  bound. Bounding the socket send buffer, or closing a writer whose oldest
+  unsent frame is too old, are candidate fixes; neither is measured here.
+- **Bursty input costs the tick nothing measurable**, in process or against
+  the binary below. A probe's latency is the wait for the next tick plus the
+  Ack's way back; a burst lands at one phase of the tick, so its spread is
+  narrow. Actions sent while the probe was down, or before its first applied
+  Ack (2220 to 2346 per row), are not timed.
+
+Retained contention result (load 24 to 52): the same rows reported tick p99
+13 to 55 ms, eight over-budget ticks and fifteen missed healthy watcher ticks
+in the baseline, and healthy tick-to-read p99 25 to 71 ms. Identical rows at
+low load had none, so those misses track the host, not the roster.
+
+**Memory per connection.** `--traffic`, Larak Lot, no bots, 15 s held, load
+12 to 36. Resident set of the server process in MiB.
+
+| Roster | Connections | Before clients | Connected | End | After leave | Per connection, connected minus before | Server CPU, cores | Kernel socket memory at end |
+|---|---|---|---|---|---|---|---|---|
+| 16 spectators | 16 | 10.56 | 12.07 | 12.46 | 12.50 | 97 KiB | 0.01 | 0 |
+| 16 idle fighters | 16 | 10.61 | 12.13 | 12.82 | 12.86 | 99 KiB | 0.02 | 128 KiB |
+| 48 idle fighters, 16 spectators | 64 | 10.62 | 15.70 | 16.43 | 16.47 | 82 KiB | 0.04 | 0 |
+| 48 fighters at 60 Hz, 16 spectators | 64 | 10.73 | 16.13 | 18.83 | 18.84 | 86 KiB | 0.10 | 64 KiB |
+
+- About 80 to 100 KiB of resident set per connection, including the fighter
+  each joined human adds to the match; the fixed part amortizes over 64.
+- Active input grew the set 2.7 MiB in 15 s against 0.7 MiB idle, and the
+  allocator returned nothing when clients left: after-leave equals end in
+  every row.
+- Healthy sockets held at most 0.13 MiB of kernel memory in total; one slow
+  or stalled reader holds about 2 MiB on its own (above). Socket buffers are
+  outside the resident set.
+- Input load, 32 fighters and 8 spectators: idle, steady 60 Hz and bursts of
+  30 used 0.03, 0.08 and 0.05 cores, with tick p99 7.9, 7.8 and 11.0 ms and
+  nothing over budget.
+- Not measured: a per-structure heap breakdown. These are process totals,
+  not the size of a connection's own state.
+
+**Saturation.** `--traffic`, Tripoint Works, human fighters at 60 Hz, rule
+bots, 15 s held. The 48 + 16 rows sit at the 64-connection cap and ran free on
+all CPUs and pinned to one with `taskset`, interleaved, load 8 to 18; the
+smaller rows are from the load 12 to 36 set. Fighters is the mean number of
+`players` entries a spectator read.
+
+| Clients (fighters + spectators), bots | CPUs | Fighters | Server CPU, cores | CPU ms per tick | Tick p50 / p99 / max ms | Over budget / skipped | Snapshot KB | Egress MiB/s |
+|---|---|---|---|---|---|---|---|---|
+| 16 + 8, 0 | all | 16 | 0.04 | 1.9 | 0.25 / 5.1 / - | 0 / 0 | 5.4 | 2.6 |
+| 32 + 16, 0 | all | 32 | 0.07 | 3.3 | 0.37 / 8.2 / - | 0 / 0 | 9.2 | 9.0 |
+| 48 + 16, 0 | all | 48 | 0.08 | 4.1 | 0.44 / 1.8 / 3.1 | 0 / 0 | 13.3 | 17.1 |
+| 48 + 16, 0 | one | 48 | 0.07 | 3.4 | 0.43 / 2.3 / 9.8 | 0 / 0 | 13.3 | 17.1 |
+| 48 + 16, 32 | all | 69 | 0.13 | 6.4 | 1.6 / 5.5 / 11.1 | 0 / 0 | 20.2 | 25.5 |
+| 48 + 16, 32 | one | 68 | 0.11 | 5.4 | 2.6 / 6.7 / 9.2 | 0 / 0 | 20.2 | 25.3 |
+| 48 + 16, 96 | all | 101 | 0.19 | 9.7 | 3.4 / 16.1 / 20.9 | 0 / 1 | 32.5 | 33.2 |
+| 48 + 16, 96 | one | 101 | 0.17 | 8.4 | 4.7 / 13.6 / 16.4 | 0 / 1 | 33.7 | 33.0 |
+
+- **No tick ran over budget up to the connection cap with 96 rule bots**,
+  about 101 fighters, on all CPUs or one; each 96-bot run had one
+  host-scheduled skipped period. Saturation was not reached inside
+  the server's own caps on this host. Offline beyond the caps (`--bench`, no
+  sockets, Tripoint Works, 600 ticks, one run each at load 17 to 18), the
+  simulation and encode stayed inside budget through 256 bots:
+
+  | Bots | Tick p50 / p99 / max ms | Over budget | Broadcast bytes per tick |
+  |---|---|---|---|
+  | 64 | 1.2 / 3.7 / 5.0 | 0 | 15020 |
+  | 128 | 4.5 / 18.9 / 32.4 | 0 | 24687 |
+  | 192 | 6.3 / 24.1 / 31.3 | 0 | 34889 |
+  | 256 | 7.9 / 25.2 / 30.8 | 0 | 45339 |
+
+- Bytes, not CPU, grow fastest: every connection receives the whole snapshot,
+  13 KB at 48 fighters and 33 KB at 101, so egress at the cap reached 17 to
+  33 MiB/s (about 140 to 280 Mbit/s). The once-per-tick encode stayed under
+  0.1 ms at p50.
+- Retained contention result (load 30 to 47): the 48 + 16 rows missed 82 to
+  91 deadlines in 15 s with the server at half a core, and 48 + 16 with 96
+  bots failed to welcome its clients in one of three runs (18 ticks in 15 s).
+  A one-CPU sweep taken just after the load fell looked five times cheaper;
+  the interleaved A/B above shows that was the load falling, not the pinning.
+
+**Snapshot shape and relevance (stage 3).** One spectator parsed about one
+snapshot a second. For every live fighter, the share of the other live
+fighters farther away than each radius, straight-line distance only.
+
+| Map and roster | Fighters | Snapshot KB | Beyond 16 / 32 / 64 m |
+|---|---|---|---|
+| Larak Lot, 32 bots | 18.9 | 7.9 | 82 / 56 / 5 % |
+| Larak Lot, 48 synthetic fighters, 16 spectators | 45 | 13.5 | 79 / 60 / 8 % |
+| Tripoint Works, 32 bots | 27.3 | 9.8 | 99 / 92 / 81 % |
+| Tripoint Works, 64 bots | 49.1 | 16.8 | 98 / 91 / 79 % |
+
+(Larak Lot holds fewer bots alive at once than it was given: fighters waiting
+to respawn are not in the count.) A `players` entry is 250 to 300 bytes of
+JSON: the UUID `id` alone is 44, `name`, `behavior`, `just_fired`,
+`collidable`, `body` and `weapon` 15 to 22 each, each coordinate 8 to 14, and
+the cumulative counters (`score`, `deaths`, `attacks`, `connects`, `damage`,
+`heads`) about 50 together although they change rarely. The fixed part of a
+snapshot (pickups and round chrome) is about 1.4 KB.
+
+**Decision: no relevance change at the current scale.** Against the three
+reasons to cull per recipient:
+
+- CPU: the shared encode costs under 0.1 ms per tick at 101 fighters, so
+  encoding does not limit 32 to 64 players. Culling would trade the one
+  encode for one per recipient.
+- Bytes: per-recipient bytes do matter at 48 fighters and 64 connections
+  (17 MiB/s, past most home uplinks). But on Larak Lot, the hero arena, only
+  5 to 8 percent of fighters are beyond 64 m of each other, and nearer radii
+  (56 to 60 percent beyond 32 m) would hide fighters in plain sight across
+  the lot: distance is not visibility. Only Tripoint Works, not yet authored
+  for 32 or more, shows a large cut (about 80 percent beyond 64 m).
+- Contract: the client frees any fighter missing from a Snapshot, which today
+  means down or gone (`game_manager.gd`), so culling needs a wire change
+  (culled is not down), spectator, death-view and team exceptions, and
+  lifecycle rules. A 5
+  percent saving on the hero map does not pay for that or for losing the
+  shared payload.
+
+The larger byte lever on every map is stage 4: acknowledged deltas and a
+compact encoding of the entries above. Relevance is revisited when a map built
+for 32 or more fighters exists (pass 7 of the server plan), with these rows
+as its before table. No wire, client or server behavior changed.
 
 
 ## Trace version 1

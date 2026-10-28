@@ -355,6 +355,10 @@ fn ctf_rule_bot_roster_has_one_defender_per_side() {
         .apply_config(config(rules(GameMode::Ctf, &[])));
     session.spawn_bots(12);
     session.state.start_round();
+    // Armoured, so the armour by the hub is no step off anybody's route.
+    for player in &mut session.state.players {
+        player.armor = 100;
+    }
     let flags = session.state.snapshot().flags.unwrap();
     let mut defenders = [0; 2];
     let mut attackers = [0; 2];
@@ -381,7 +385,213 @@ fn ctf_bots(count: usize) -> GameSession {
     session.state.apply_config(match_config);
     session.spawn_bots(count);
     session.state.start_round();
+    // Kitted bodies: the role goals below are the subject. A pad a role
+    // takes on the way is its own rule (`ctf_roles_take_pads_inside_their_leash`).
+    for player in &mut session.state.players {
+        player.armor = 100;
+    }
     session
+}
+
+#[test]
+fn ctf_roles_take_pads_inside_their_leash() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let union_stand = flags[Team::Union.index()].stand;
+    let coalition = ids_on(&session, Team::Coalition);
+    let armour = session
+        .state
+        .pickups
+        .iter()
+        .find(|pad| pad.id == "pad_armor")
+        .map(|pad| [pad.x, pad.floor, pad.z])
+        .unwrap();
+    let runner = coalition[3];
+    // A runner just past the hub on its way west, bare: the armour by the
+    // hub is a step off its line.
+    place(&mut session.state, runner, 8.0, 6.0);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == runner)
+        .unwrap()
+        .armor = 0;
+    assert_eq!(
+        goal_feet(&session, runner),
+        armour,
+        "a bare runner takes armour on the way"
+    );
+    // Kitted, it keeps its route.
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == runner)
+        .unwrap()
+        .armor = 80;
+    assert_eq!(goal_feet(&session, runner)[0], union_stand[0]);
+    // Far from the hub the armour is a detour, not a step: it keeps its route.
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == runner)
+        .unwrap()
+        .armor = 0;
+    place(&mut session.state, runner, 40.0, -30.0);
+    assert_eq!(goal_feet(&session, runner)[0], union_stand[0]);
+
+    // The carrier never stops for armour, even beside it.
+    let carrier = coalition[1];
+    take_flag(&mut session, carrier, union_stand);
+    place(&mut session.state, carrier, 2.0, 10.0);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == carrier)
+        .unwrap()
+        .armor = 0;
+    assert_eq!(
+        goal_feet(&session, carrier)[0],
+        70.0,
+        "the flag goes home first"
+    );
+
+    // A hurt defender takes the health behind its own stand; a well one holds.
+    let defender = coalition[0];
+    let home = flags[Team::Coalition.index()].stand;
+    place(&mut session.state, defender, home[0] + 2.0, home[2]);
+    assert_eq!(goal_feet(&session, defender), home);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == defender)
+        .unwrap()
+        .hp = 40;
+    let health = session
+        .state
+        .pickups
+        .iter()
+        .find(|pad| pad.id == "pad_health_s")
+        .map(|pad| [pad.x, pad.floor, pad.z])
+        .unwrap();
+    assert_eq!(goal_feet(&session, defender), health);
+}
+
+#[test]
+fn ctf_a_pad_seen_taken_is_not_sought_and_errands_skip_pads() {
+    let mut session = ctf_bots(12);
+    let flags = session.state.snapshot().flags.unwrap();
+    let coalition = ids_on(&session, Team::Coalition);
+    let union = ids_on(&session, Team::Union);
+    let defender = coalition[0];
+    let home = flags[Team::Coalition.index()].stand;
+    place(&mut session.state, defender, home[0] + 2.0, home[2]);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == defender)
+        .unwrap()
+        .hp = 40;
+    let index = session
+        .state
+        .pickups
+        .iter()
+        .position(|pad| pad.id == "pad_health_s")
+        .unwrap();
+    let health = &session.state.pickups[index];
+    let health = [health.x, health.floor, health.z];
+    assert_eq!(goal_feet(&session, defender), health);
+    // Somebody took it from under the defender's feet, and it saw it go.
+    session.state.spawn_shields.clear();
+    session.state.pickups[index].available = false;
+    session.state.pickups[index].respawn_timer = Some(300);
+    place(&mut session.state, defender, health[0] - 1.5, health[2]);
+    let controller = session
+        .state
+        .bots
+        .iter()
+        .find(|bot| bot.player_id == defender)
+        .unwrap()
+        .clone();
+    for _ in 0..8 {
+        session
+            .state
+            .update_bot_senses(std::slice::from_ref(&controller));
+        session.state.tick += 1;
+    }
+    assert_eq!(
+        goal_feet(&session, defender),
+        home,
+        "a pad seen empty waits its clock"
+    );
+
+    // A bare escort beside its carrier takes the armour a step off its line.
+    session.state.pickups[index].available = true;
+    session.state.pickups[index].respawn_timer = None;
+    let union_stand = flags[Team::Union.index()].stand;
+    let carrier = coalition[3];
+    let escort = coalition[1];
+    take_flag(&mut session, carrier, union_stand);
+    let armour = session
+        .state
+        .pickups
+        .iter()
+        .find(|pad| pad.id == "pad_armor")
+        .map(|pad| [pad.x, pad.floor, pad.z])
+        .unwrap();
+    let park_escort = |session: &mut GameSession| {
+        place(&mut session.state, carrier, 2.0, 10.0);
+        place(&mut session.state, escort, -1.0, 12.0);
+        session
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == escort)
+            .unwrap()
+            .armor = 0;
+    };
+    park_escort(&mut session);
+    assert_eq!(
+        goal_feet(&session, escort),
+        armour,
+        "with no errand, a bare escort takes the armour beside it"
+    );
+
+    // With its own flag stolen nobody on the side stops for a pad.
+    take_flag(&mut session, union[0], home);
+    place(&mut session.state, union[0], 30.0, 0.0);
+    let thief = goal_feet(&session, defender);
+    assert!(
+        (thief[0] - 30.0).abs() < 0.05,
+        "the defender chases, hurt or not"
+    );
+    park_escort(&mut session);
+    assert_ne!(
+        goal_feet(&session, escort),
+        armour,
+        "an escort does not detour for a pad while its own flag is stolen"
+    );
+
+    // Nor while its own flag lies out.
+    let thief_at = player(&session.state, union[0]);
+    let (x, z) = (thief_at.x, thief_at.z);
+    assert!(session.state.hit_for_test(defender, union[0], 1000));
+    let dropped = session.state.snapshot().flags.unwrap()[Team::Coalition.index()].clone();
+    assert!(
+        dropped.status == crate::protocol::FlagStatus::Dropped,
+        "the stolen flag lies out at ({x}, {z}): {dropped:?}"
+    );
+    park_escort(&mut session);
+    assert_ne!(
+        goal_feet(&session, escort),
+        armour,
+        "an escort does not detour for a pad while its own flag lies out"
+    );
 }
 
 fn ids_on(session: &GameSession, team: Team) -> Vec<Uuid> {
@@ -813,6 +1023,8 @@ fn ctf_rule_bot_has_a_flag_route_without_an_enemy() {
     let bot_id = join(&mut state, 1, Role::Agent);
     state.start_round();
     let bot = crate::sim::BotController::new(bot_id, crate::sim::BotBehavior::Balanced);
+    // Armoured, so the armour by the hub is no step off the route.
+    state.players[0].armor = 100;
     let intent = bot.intent(&state);
     assert!(intent.action.forward);
     assert_eq!(intent.goal.unwrap().feet, [-70.0, 0.0, 0.0]);

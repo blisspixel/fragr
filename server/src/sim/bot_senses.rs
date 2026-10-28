@@ -14,6 +14,7 @@ use crate::roster::{Habits, PadHabit};
 use std::f32::consts::{FRAC_PI_3, PI, TAU};
 use uuid::Uuid;
 
+pub(crate) mod guard;
 mod pads;
 
 const OBSERVE_EVERY: u64 = 2;
@@ -41,12 +42,31 @@ const GRUDGE_PULL: f32 = 0.5;
 const APPOINTMENT_FIGHT: f32 = 12.0;
 /// Meters of walking one tick of waiting is worth when choosing a pad.
 const WAIT_COST: f32 = crate::movement::TOP_SPEED / 20.0;
-/// Closer than this a bot never fires the Rocket: its own splash reaches
-/// four metres, and the impact must land clear of it.
-const ROCKET_SAFE: f32 = 5.0;
+/// Closer than this a bot never fires the Rocket. The splash reaches four
+/// metres, but in the arena a fighter takes 0.6 of its own, so a blast three
+/// metres off costs the shooter a few points and the target the rocket's
+/// whole weight. On Larak Lot at six bots, rockets fired inside 6.5 m hurt
+/// someone four times in five, for about 50 damage each: the best shots the
+/// launcher has, and the range where a holder was dying with it holstered.
+const ROCKET_SAFE: f32 = 3.0;
 /// The Rocket's band: from a step outside the safe distance to where a
-/// strafing body has walked out of the splash before the rocket arrives.
-const ROCKET_BAND: (f32, f32) = (6.5, 32.0);
+/// strafing body has walked out of the splash before the rocket arrives. A
+/// holder keeps the launcher up anywhere in it, but fires only as close as
+/// `ROCKET_SURE` (or from height, `ROCKET_FROM_ABOVE`).
+const ROCKET_BAND: (f32, f32) = (3.5, 32.0);
+/// The furthest a bot fires the Rocket at a body on its own floor. Measured
+/// on Larak Lot at six bots, a rocket fired from 20 to 32 m hurt nobody four
+/// times in five; inside 16 m two in three found a body. Past this a holder
+/// closes in with the launcher up instead of spending its rack.
+const ROCKET_SURE: f32 = 16.0;
+/// A body at least this far below the shooter's floor is splashed off the
+/// ground it stands on: from height the rocket is worth a longer shot.
+const ROCKET_FROM_ABOVE: f32 = 1.5;
+/// How far that longer shot from height reaches.
+const ROCKET_FROM_ABOVE_REACH: f32 = 24.0;
+/// A dropped Rocket the bot has seen this close, while it holds none,
+/// outranks a fight across the lot the way a timed power pad does.
+const ROCKET_DROP_REACH: f32 = 15.0;
 /// The furthest a bot leads a rocket, in metres.
 const ROCKET_MAX_LEAD: f32 = 4.0;
 /// Height above the feet a bot aims the Rocket at: the shins. High error
@@ -94,11 +114,36 @@ struct PadPlan {
     feet: [f32; 3],
     /// Already standing on it, early for the clock.
     waiting: bool,
-    /// The power pad this callsign keeps time on.
+    /// The power pad this callsign keeps time on, or a Rocket dropped close
+    /// by while the bot holds none: worth leaving a long fight for.
     timed: bool,
     /// A gun for a bot that holds nothing better than the Pistol.
     arms: bool,
 }
+
+/// How far an objective role may stray for a pad (`objective_pad`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(super) enum Leash {
+    /// Carrying the flag: only health, and only a step off the way home.
+    Carrier,
+    /// Beside the carrier: a step off its line.
+    Escort,
+    /// On the way to the enemy flag: a short detour.
+    Runner,
+    /// Holding its own stand: pads within reach of it.
+    Defender([f32; 3]),
+}
+
+/// Metres a carrier or an escort may add to its route for a pad.
+const OBJECTIVE_DETOUR_CLOSE: f32 = 6.0;
+/// Metres a runner may add.
+const OBJECTIVE_DETOUR_RUNNER: f32 = 14.0;
+/// A defender takes pads this close to its stand.
+const OBJECTIVE_DEFENDER_REACH: f32 = 24.0;
+/// An objective bot wants health at or below this.
+const OBJECTIVE_HEALTH_NEED: i32 = 70;
+/// And armour below this.
+const OBJECTIVE_ARMOR_NEED: i32 = 50;
 
 #[derive(Debug, Clone, Default)]
 pub(super) struct BotSenses {
@@ -293,6 +338,14 @@ fn rocket_aim(state: &GameState, bot: &Player, observed: &Observation, distance:
     RocketAim { point, clear }
 }
 
+/// Whether a rocket at `observed`, `distance` away, is worth one of the four
+/// in the rack: inside `ROCKET_SURE`, or from height at a body below, whose
+/// floor catches the splash.
+fn rocket_shot(bot: &Player, observed: &Observation, distance: f32) -> bool {
+    let below = bot.y - super::PLAYER_FLOOR_Y - observed.feet[1];
+    distance <= ROCKET_SURE || (below >= ROCKET_FROM_ABOVE && distance <= ROCKET_FROM_ABOVE_REACH)
+}
+
 /// The next gun when the one in hand is dry and cannot reload.
 fn dry_swap(bot: &Player) -> Option<WeaponType> {
     if bot.inventory.usable(bot.weapon)
@@ -349,6 +402,14 @@ impl BotSenses {
     /// it believes the pad is up. Read from its own view, never a live timer.
     pub(super) fn pad_eta(&self, state: &GameState, bot: &Player, index: usize) -> Option<u64> {
         self.pads.eta(state, bot, index, state.tick)
+    }
+
+    /// The opponent in view at the latest observation, with the feet the
+    /// bot saw: what a callout may name. Nothing older than one look.
+    pub(super) fn sees_now(&self, tick: u64) -> Option<(Uuid, [f32; 3])> {
+        self.target
+            .filter(|target| target.visible && tick.saturating_sub(target.seen_at) < OBSERVE_EVERY)
+            .map(|target| (target.id, target.feet))
     }
 
     /// A damaging hit from `from`, who stood at `feet` when it landed.
@@ -700,13 +761,75 @@ impl BotController {
                     PadPlan {
                         feet: gun.feet,
                         waiting: false,
-                        timed: false,
+                        timed: weapon == WeaponType::Rocket
+                            && gain
+                            && distance <= ROCKET_DROP_REACH,
                         arms: pistol_only,
                     },
                 ));
             }
         }
         best.map(|(_, plan)| plan)
+    }
+
+    /// A pad worth a short detour off an objective route to `goal`, within
+    /// the role's `leash`. Only what the bot needs (health when hurt, armour
+    /// when thin, rounds for a gun down to half its spawn kit) and only a pad
+    /// it believes is up now, from its own view of the pads; never a live
+    /// timer.
+    pub(super) fn objective_pad(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        goal: [f32; 3],
+        leash: Leash,
+    ) -> Option<[f32; 3]> {
+        if !self.uses_senses(state, bot) || bot.is_boss {
+            return None;
+        }
+        let (budget, anchor) = match leash {
+            Leash::Carrier | Leash::Escort => (OBJECTIVE_DETOUR_CLOSE, None),
+            Leash::Runner => (OBJECTIVE_DETOUR_RUNNER, None),
+            Leash::Defender(stand) => (f32::MAX, Some(stand)),
+        };
+        let flat = |a: [f32; 3], b: [f32; 3]| (a[0] - b[0]).hypot(a[2] - b[2]);
+        let here = feet_of(bot);
+        let direct = flat(here, goal);
+        let mut best: Option<(f32, [f32; 3])> = None;
+        for (index, pad) in state.pickups.iter().enumerate() {
+            let needed = match pad.kind {
+                super::PickupKind::Health => bot.hp <= OBJECTIVE_HEALTH_NEED,
+                super::PickupKind::Armor | super::PickupKind::Plate => {
+                    leash != Leash::Carrier && bot.armor < OBJECTIVE_ARMOR_NEED
+                }
+                super::PickupKind::Weapon(weapon) => {
+                    leash != Leash::Carrier
+                        && bot.inventory.armed()
+                        && bot.inventory.owns(weapon)
+                        && bot.inventory.weapon_pad_useful(weapon)
+                        && weapon.ammo_pool().is_some_and(|pool| {
+                            bot.inventory.carried(pool) * 2 < pool.arcade_spawn()
+                        })
+                }
+                _ => false,
+            };
+            if !needed || bot.bot_senses.pad_eta(state, bot, index) != Some(0) {
+                continue;
+            }
+            let feet = [pad.x, pad.floor, pad.z];
+            let distance = flat(here, feet);
+            if anchor.is_some_and(|stand| flat(stand, feet) > OBJECTIVE_DEFENDER_REACH) {
+                continue;
+            }
+            let extra = distance + flat(feet, goal) - direct;
+            if extra > budget {
+                continue;
+            }
+            if best.is_none_or(|(old, _)| distance < old) {
+                best = Some((distance, feet));
+            }
+        }
+        best.map(|(_, feet)| feet)
     }
 
     pub(super) fn sensed_intent(&self, state: &GameState, bot: &Player) -> BotIntent {
@@ -756,7 +879,8 @@ impl BotController {
         // first real gun, also outranks a fight across the lot: a regular who
         // keeps time on the Plate walks away from a long trade to be there
         // when it lands, and a fresh life arms up before it duels with the
-        // Pistol. It still shoots what it sees on the way.
+        // Pistol; a Rocket somebody dropped close by is worth the same. It
+        // still shoots what it sees on the way.
         let walk_off = !visible || (observed_distance > APPOINTMENT_FIGHT && bot.hp >= HURT_HP);
         let appointment = walk_off
             .then(|| self.pad_plan(state, bot, supplied, true))
@@ -931,6 +1055,13 @@ impl BotController {
             // Too close for the launcher: give ground while the hand changes.
             intent.action.forward = false;
             intent.action.back = true;
+        }
+        if rocket.is_some() && !rocket_shot(bot, &observed, distance) {
+            // A long shot on the level mostly hits nobody and empties a rack
+            // of four: keep the launcher up and close to where it lands.
+            intent.action.fire = false;
+            intent.action.forward = true;
+            intent.action.back = false;
         }
         intent
     }

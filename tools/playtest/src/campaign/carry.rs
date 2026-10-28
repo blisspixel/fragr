@@ -659,13 +659,16 @@ mod tests {
 
     #[test]
     fn an_exhausted_carry_saves_failure_without_a_retry() {
-        // Seed 43 deliberate/Assisted spends all three continues in M01 and
-        // still departs; its first M02 death exhausts the run on disk.
+        // Seed 54 deliberate/Standard spends all three continues in M01 and
+        // still departs; its first M02 death exhausts the run on disk. (Seed
+        // 43 deliberate/Assisted now departs M01 with two continues left since
+        // Union guards need a sighting, wave 12, so its first M02 death is a
+        // retry, not exhaustion; no seed from 40 to 47 now fits.)
         let mut reviews = Reviews::default();
         let row = trial(
-            43,
+            54,
             PROFILES[1],
-            CampaignDifficulty::Assisted,
+            CampaignDifficulty::Standard,
             12_000,
             M02_WINDOW_TICKS,
             &mut reviews,

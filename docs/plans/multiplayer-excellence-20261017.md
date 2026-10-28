@@ -1,6 +1,6 @@
 # Multiplayer Excellence: The Golden Era Benchmark
 
-Status: **in flight**, 2026-10-27: [rules depth](#rules-depth-431-and-432-wave-11) (dropped guns, the Duel line, Host presets and the Conquest bleed) is built; 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built, and so are [blast push, the Plate, Duel and the rematch](#movement-depth-and-the-rematch-431-wave-3) (Pillar 3 and the GoldenEye "couch friction"); voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
+Status: **in flight**, 2026-10-27: the [Host voice, hit chime and Scatter pass](#host-voice-hit-chime-and-scatter-pass-431-wave-12) (Pillars 1, 2 and 4) and [rules depth](#rules-depth-431-and-432-wave-11) (dropped guns, the Duel line, Host presets and the Conquest bleed) are built; 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built, and so are [blast push, the Plate, Duel and the rematch](#movement-depth-and-the-rematch-431-wave-3) (Pillar 3 and the GoldenEye "couch friction"); the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
 
 ---
 
@@ -53,7 +53,7 @@ Currently, the Host reacts with textual barks in the combat chat feed (`FirstBlo
 
 ### Pillar 2: Visceral Hit Confirmation ("The Chime")
 Currently, scoring a hit displays crosshair tick marks and floating damage numbers, but produces zero shooter-side audio cue.
-- **Implementation:** Add a sharp, punchy metallic hit chime (`hit_confirm.wav`) triggered inside `hud.gd:show_hit_marker()`.
+- **Implementation:** Add a sharp, punchy metallic hit chime. Built in wave 12 as `hit_chime.gd` with body, headshot and kill tiers.
 - **Dynamic Pitch Modulation:** Modulate the audio pitch upwards based on damage magnitude and critical headshot placement (e.g. baseline pitch for Tack 20 dmg, +4 semitones for Railgun 80 dmg or headshot flechettes).
 
 ### Pillar 3: Blast Impulse & Rocket Jumping Physics
@@ -162,8 +162,8 @@ an announcer setting (On, Big moments only, Off) and an announcer volume.
   recording exists, so recorded lines drop in without code. The setting uses
   the same keys as PR #448.
 
-**Not done.** Casting and recordings (asset round E-1, E-2). Conquest lead calls
-(the ticket bleed call landed in wave 11). Quad and frag storm rarely voice, because the triple
+**Not done.** Conquest lead calls (the ticket bleed call landed in wave 11;
+casting and recordings in [wave 12](#host-voice-hit-chime-and-scatter-pass-431-wave-12)). Quad and frag storm rarely voice, because the triple
 just spoke inside the eight seconds; that is the rarity rule working, revisit
 after a listening pass.
 
@@ -227,6 +227,47 @@ Built on `wave11/mp-rules`, 2026-10-27. Linux evidence only.
   heartbeat joins it (`client/scripts/conquest_hud.gd`). The Host calls each
   side's fall once a round (`tickets_low`, a voiced slot; the recording is
   for the Host voice round).
+
+## Host voice, hit chime and Scatter pass (#431, wave 12)
+
+Built on `wave12/host-audio`, 2026-10-27. Measured, not listened to; Nick's
+listening pass is the acceptance.
+
+- **Host voice (Pillar 1).** Callum (Nick's pick, 2026-10-27) records every
+  voiced kind, three name-free variants each, 48 slots in
+  `client/assets/audio/host/<kind>_<variant>.mp3`: first blood, streak ended,
+  last standing, comeback, triple and quad frag, frag storm, rampage, riot,
+  untouchable, flag captured, charge planted, match point, sudden death,
+  tickets low and the Larak Lot special (voiced by `big()`; the protocol table
+  said otherwise and now matches the code). Scripts follow each caption variant
+  without the names, in the deadpan delivery Nick auditioned
+  (`tools/audiogen/specs/host-calls-callum-20261027.json`, `eleven_v4`, three
+  takes a slot). Each kept take passed a local transcript match, no clipping,
+  no cut tail, and was picked for pitch closest to the set's median so the set
+  reads as one voice; levelled to K50 -12 (within 0.7 dB across the set) through
+  a -3 dBFS peak limiter, mono 44.1 kHz MP3, 1.0 to 4.6 s. The transcriber
+  spells the venue Larik or Larrick, so those takes were matched on the other
+  words; "One away" was confirmed with a second, larger model. Captions-only kinds
+  (golden rail, double frag, lead change, flag taken, next up) have no
+  recording, and the harness checks both. Callum is a retiring default voice;
+  the same voice stays reachable after 2026-12-31 as the shared library voice
+  "Callum - Husky Trickster" (`fs2OqxduwXgp9foh2xjK`, 730-day notice), so a
+  re-record swaps that id into the spec. Remix and save-voice apply only to
+  voices the account owns, so no designed copy was made.
+- **Hit chime (Pillar 2).** `hit_chime.gd`, owned by the HUD and called once
+  per resolved shot from `game_manager.gd`: a steel tick whose pitch climbs
+  with damage (0.9 to 1.3 across 0 to 100), a brighter ping when the server's
+  new `shot_results[].head` says the head band doubled damage that landed, and
+  a heavy clang for the frag, on its own player. Inside 130 ms a confirm of the
+  same or a lower tier is dropped, so the Repeater chimes on every other hit
+  and the Arc and slower guns on every hit. Effects bus. It replaces the two
+  stacked chimes the HUD and the match scene used to play.
+- **Scatter pass (Pillar 4).** An original procedural sub kick (a sine sweeping
+  120 to 48 Hz, 75 ms decay) under the 10-02 blast lifts the 30 to 60 Hz band by
+  5.5 dB against the whole, with K50 held at -7.3 and integrated loudness
+  within 0.1 LU of before. The pump cycle is a new two-clack rack (generated,
+  declipped, soft-clipped) at K50 -13.1, up from -15 and brighter, so it reads
+  over the blast's tail.
 
 ## 4. Verification and Delivery Sequence
 

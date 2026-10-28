@@ -713,7 +713,7 @@ fn personalities_take_found_guns_to_their_distances() {
     assert_eq!(pick(own(BotBehavior::Aggressive), 15.0), WeaponType::Rocket);
     // Inside the Rocket's safe distance the rusher fights with the next gun.
     assert_eq!(
-        pick(own(BotBehavior::Aggressive), 5.0),
+        pick(own(BotBehavior::Aggressive), 3.0),
         WeaponType::Repeater
     );
     // A launcher in the bag is every personality's mid-range gun...
@@ -731,7 +731,7 @@ fn personalities_take_found_guns_to_their_distances() {
     let (mut state, bot) = pair(2);
     state.players[0].inventory = full_bag(&[WeaponType::Rocket]);
     state.players[0].weapon = WeaponType::Rocket;
-    state.players[1].x = -2.0;
+    state.players[1].x = -3.0;
     for tick in 0..20 {
         observe(&mut state, &bot, tick);
         let observed = state.players[0].bot_senses.target.unwrap();
@@ -839,7 +839,7 @@ fn observe_for(state: &mut GameState, bot: &BotController, ticks: std::ops::Rang
 #[test]
 fn the_rocket_holds_inside_its_safe_distance_and_gives_ground() {
     let (mut state, bot) = pair(31);
-    open_ground(&mut state, &[4.0]);
+    open_ground(&mut state, &[2.5]);
     state.players[0].inventory = full_bag(&[WeaponType::Rocket, WeaponType::Flechette]);
     state.players[0].weapon = WeaponType::Rocket;
     observe_for(&mut state, &bot, 0..2);
@@ -856,6 +856,68 @@ fn the_rocket_holds_inside_its_safe_distance_and_gives_ground() {
         let prefer = bot.observed_combat_intent(&state, &state.players[0], observed, None, true);
         assert_eq!(prefer.action.weapon_swap, Some(WeaponType::Flechette));
     }
+}
+
+#[test]
+fn the_rocket_fires_close_and_saves_its_rack_for_shots_that_land() {
+    let (mut state, bot) = pair(33);
+    open_ground(&mut state, &[4.5]);
+    state.players[0].inventory = full_bag(&[WeaponType::Rocket, WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Rocket;
+    observe_for(&mut state, &bot, 0..12);
+    let observed = state.players[0].bot_senses.target.unwrap();
+    let holder = &state.players[0];
+    // Four and a half metres out the blast lands clear of the shooter: the
+    // arena's own-splash share makes it the launcher's best shot.
+    let close = (observed.feet[0] - holder.x).hypot(observed.feet[2] - holder.z);
+    assert!(rocket_aim(&state, holder, &observed, close).clear);
+    assert!(rocket_shot(holder, &observed, close));
+    let fight = bot.observed_combat_intent(&state, holder, observed, None, true);
+    assert_eq!(fight.action.weapon_swap, None, "the launcher stays up");
+
+    // On the level past `ROCKET_SURE` it holds the rack and closes in with
+    // the launcher still up.
+    let mut far = observed;
+    far.feet[0] = holder.x + 24.0;
+    far.chest[0] = far.feet[0];
+    assert!(!rocket_shot(holder, &far, 24.0));
+    let press = bot.observed_combat_intent(&state, holder, far, None, true);
+    assert!(!press.action.fire, "a long shot on the level waits");
+    assert!(press.action.forward && !press.action.back, "it closes in");
+    assert_eq!(press.action.weapon_swap, None, "and keeps the Rocket");
+    // From height the floor under a body catches the splash: the same
+    // distance is a shot.
+    let mut below = far;
+    below.feet[1] -= ROCKET_FROM_ABOVE;
+    assert!(rocket_shot(holder, &below, 20.0));
+    assert!(!rocket_shot(holder, &below, ROCKET_FROM_ABOVE_REACH + 1.0));
+}
+
+#[test]
+fn a_rocket_dropped_close_by_outranks_a_long_fight() {
+    let (mut state, bot) = pair(34);
+    state.pickups.clear();
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    // Rocket regulars and everyone else: a launcher on the floor nearby is
+    // worth walking off a long trade for while the bot holds none.
+    let near = [state.players[0].x - 10.0, 0.0, state.players[0].z];
+    state.players[0]
+        .bot_senses
+        .pads
+        .remember_drop(WeaponType::Rocket, near);
+    let plan = bot
+        .pad_plan(&state, &state.players[0], true, true)
+        .expect("a seen Rocket is a plan");
+    assert!(plan.timed, "a close Rocket is an appointment");
+    // A far one is a plan for a quiet moment, not an appointment.
+    let far = [state.players[0].x - 40.0, 0.0, state.players[0].z];
+    state.players[0].bot_senses.pads = Default::default();
+    state.players[0]
+        .bot_senses
+        .pads
+        .remember_drop(WeaponType::Rocket, far);
+    let plan = bot.pad_plan(&state, &state.players[0], true, true);
+    assert!(plan.is_some_and(|plan| !plan.timed), "a far one is not");
 }
 
 #[test]

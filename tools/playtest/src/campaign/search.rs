@@ -189,6 +189,7 @@ mod tests {
             target_hp_after: Some(if killed { 0 } else { 70 }),
             trace: None,
             killed,
+            head: false,
         }
     }
 

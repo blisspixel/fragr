@@ -3777,8 +3777,17 @@ mod mcp_tests {
             player_id: bot,
             text: "scout ant deleted you".into(),
             to_id: Some(victim),
+            team: None,
         });
         ingest_server_text(&mut state, &serde_json::to_string(&addressed).unwrap()).unwrap();
+        let side_call = protocol::ServerMessage::Event(protocol::GameEvent::Speak {
+            player: "Nightfall".into(),
+            player_id: bot,
+            text: "CARRIER MID".into(),
+            to_id: None,
+            team: Some(protocol::Team::Union),
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&side_call).unwrap()).unwrap();
         ingest_server_text(
             &mut state,
             r#"{"type":"event","event":"speak","player":"Probe","player_id":"00000000-0000-0000-0000-000000000009","text":"gg"}"#,
@@ -3789,12 +3798,100 @@ mod mcp_tests {
             .iter()
             .filter(|e| e["event"] == "speak")
             .collect();
-        assert_eq!(speaks.len(), 2);
+        assert_eq!(speaks.len(), 3);
         assert_eq!(speaks[0]["to_id"], victim.to_string());
+        assert!(speaks[0].get("team").is_none(), "a taunt is said to one");
+        assert_eq!(speaks[1]["team"], "union", "a side call keeps its side");
         assert!(
-            speaks[1].get("to_id").is_none(),
+            speaks[2].get("to_id").is_none() && speaks[2].get("team").is_none(),
             "a room-wide line names nobody"
         );
+    }
+
+    /// The adapter forwards what its own session received. The server sends
+    /// a side call only to that side's fighters and the booth, so an agent
+    /// on the other side never hears it, and the booth hears both sides.
+    #[test]
+    fn a_side_call_reaches_only_the_sessions_the_server_sent_it_to() {
+        use fragr_server::net::GameCommand;
+        use fragr_server::session::{GameSession, Recipient};
+        let mut session = GameSession::with_map(fragr_server::sim::MapKind::Sector9, false);
+        session.min_bots = 0;
+        session.state.apply_config(fragr_server::sim::MatchConfig {
+            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Ctf, &[], false).unwrap(),
+            capture_limit: Some(3),
+            ..Default::default()
+        });
+        let seats: Vec<(Uuid, Uuid)> = (1..=2)
+            .map(|n| (Uuid::from_u128(100 + n), Uuid::from_u128(n)))
+            .collect();
+        for (n, (client, player)) in seats.iter().enumerate() {
+            session.apply_command(GameCommand::Connected {
+                body: protocol::BodyKind::Synthetic,
+                id: *client,
+                role: protocol::Role::Agent,
+                name: format!("Probe{n}"),
+                player_id: Some(*player),
+            });
+        }
+        let booth = Uuid::from_u128(900);
+        session.apply_command(GameCommand::Connected {
+            body: protocol::BodyKind::Human,
+            id: booth,
+            role: protocol::Role::Spectator,
+            name: "Booth".into(),
+            player_id: None,
+        });
+        session.state.start_round();
+        let team = |player: Uuid| {
+            session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == player)
+                .and_then(|p| p.team)
+                .unwrap()
+        };
+        let (speaker, listener) = (seats[0], seats[1]);
+        let side = team(speaker.1);
+        assert_ne!(team(listener.1), side, "one agent a side");
+        let _ = session.tick_messages(0.05);
+        let _ = session.take_unicasts();
+        session.state.push_event(protocol::GameEvent::Speak {
+            player: "Probe0".into(),
+            player_id: speaker.1,
+            text: "i have the flag. walk me home".into(),
+            to_id: None,
+            team: Some(side),
+        });
+        let shared = session.tick_messages(0.05);
+        let targeted = session.take_unicasts();
+        let heard = |client: Uuid, player: Option<Uuid>| {
+            let mut state = ToolState {
+                player_id: player,
+                connected: true,
+                ..ToolState::default()
+            };
+            let own = targeted
+                .iter()
+                .filter(|(recipient, _)| *recipient == Recipient::Client(client))
+                .map(|(_, message)| message);
+            for message in shared.iter().chain(own) {
+                ingest_server_text(&mut state, &serde_json::to_string(message).unwrap()).unwrap();
+            }
+            state
+                .recent_events
+                .iter()
+                .filter(|e| e["event"] == "speak" && e["team"] == serde_json::json!(side))
+                .count()
+        };
+        assert_eq!(heard(speaker.0, Some(speaker.1)), 1, "own side hears it");
+        assert_eq!(
+            heard(listener.0, Some(listener.1)),
+            0,
+            "the other side never does"
+        );
+        assert_eq!(heard(booth, None), 1, "the booth hears both sides");
     }
 
     #[test]
@@ -3887,6 +3984,42 @@ mod mcp_tests {
             observed["recent_events"][0]["position"],
             serde_json::json!([-11.5, 0.0, -28.5])
         );
+    }
+
+    #[test]
+    fn campaign_barks_reach_agents_as_keyed_facts() {
+        use protocol::{BarkRegister, CompanionBarkKind, EnemyBarkKind, EnemyKind, GameEvent};
+        let mut state = ToolState::default();
+        for event in [
+            GameEvent::EnemyBark {
+                kind: EnemyBarkKind::Sighting,
+                register: BarkRegister::Personnel,
+                variant: 1,
+                speaker_id: uuid::Uuid::from_u128(9),
+                position: [3.0, 0.0, 8.0],
+            },
+            GameEvent::CompanionBark {
+                kind: CompanionBarkKind::PriorityTarget,
+                subject: Some(EnemyKind::Turret),
+                variant: 0,
+                speaker_id: uuid::Uuid::from_u128(10),
+                position: [1.0, 0.0, 0.0],
+            },
+        ] {
+            let wire = protocol::ServerMessage::Event(event);
+            ingest_server_text(&mut state, &serde_json::to_string(&wire).unwrap()).unwrap();
+        }
+        let observed = build_observe_result(&state);
+        let events = &observed["recent_events"];
+        assert_eq!(events[0]["event"], "enemy_bark");
+        assert_eq!(events[0]["kind"], "sighting");
+        assert_eq!(events[0]["register"], "personnel");
+        assert_eq!(events[0]["position"], serde_json::json!([3.0, 0.0, 8.0]));
+        assert_eq!(events[1]["event"], "companion_bark");
+        assert_eq!(events[1]["kind"], "priority_target");
+        assert_eq!(events[1]["subject"], "turret");
+        // The words stay with the client: no caption text on the wire.
+        assert!(events[0].get("text").is_none() && events[1].get("text").is_none());
     }
 
     #[test]

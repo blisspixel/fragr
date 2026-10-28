@@ -86,8 +86,8 @@ var crosshair_edges: Dictionary = {}
 const CROSSHAIR_EDGE_PAD: float = 2.0
 var hit_marker = null
 var damage_numbers = null
-var hit_confirm_sound: AudioStreamPlayer = null
-const HIT_CONFIRM_PATH: String = "res://assets/audio/hit_confirm.wav"
+## The shooter's hit confirm (body, headshot and kill tiers, rate-limited).
+var hit_chime: HitChime = null
 
 var _standings: Array[Dictionary] = []
 ## Fighters the snapshot stopped listing (dead and waiting to respawn), kept
@@ -223,6 +223,7 @@ var scope_mode: int = 0
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
 var crawler_caption: CrawlerCaption
+var bark_caption: BarkCaption
 const FP_MUZZLE_SECONDS: float = 0.07
 ## One Shiv thrust: out toward the crosshair and back inside the 0.30 s cooldown.
 const FP_STAB_SECONDS: float = 0.22
@@ -268,6 +269,8 @@ func _ready():
 	add_child(sabotage_hud)
 	crawler_caption = CrawlerCaption.new()
 	add_child(crawler_caption)
+	bark_caption = BarkCaption.new()
+	add_child(bark_caption)
 	melee_view = MeleeView.new()
 	melee_view.name = "MeleeView"
 	add_child(melee_view)
@@ -338,6 +341,9 @@ func _ready():
 	}
 	hit_marker = get_node_or_null("HitMarker")
 	damage_numbers = get_node_or_null("DamageNumbers")
+	hit_chime = HitChime.new()
+	hit_chime.name = "HitChime"
+	add_child(hit_chime)
 
 	if round_message:
 		round_message.text = ""
@@ -1548,10 +1554,19 @@ func show_boss_down(message: String, killer: String = "") -> void:
 ## speak event's `to_id`, such as a frag taunt's "deleted you") shows only
 ## when that fighter is one of `viewers`: the local fighter or the fighter
 ## whose eyes the camera is behind. Anyone else would read "you" as themselves.
-func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = []) -> bool:
+## A line said to one side (`side`, a rule bot's objective callout) shows
+## only when the view hears that side (`viewer_side`: the local or followed
+## fighter's), or to a free camera, which hears both. It carries the side's
+## shape mark and label colour so it never reads as the other side's.
+func show_speak(player: String, line: String, addressee: String = "", viewers: Array[String] = [], side: String = "", viewer_side: String = "") -> bool:
 	if line.is_empty() or (not addressee.is_empty() and not viewers.has(addressee)):
 		return false
-	combat_feed.push(player + ": " + line)
+	if side.is_empty():
+		combat_feed.push(player + ": " + line)
+		return true
+	if not viewer_side.is_empty() and viewer_side != side:
+		return false
+	combat_feed.push(MatchRules.team_shape_mark(side) + " " + player + ": " + line, MatchRules.team_label_color(side))
 	return true
 
 func show_venue_notice(line: String) -> void:
@@ -2355,7 +2370,6 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 			if mark is ColorRect:
 				(mark as ColorRect).color = MenuTheme.alpha(col, 1.0)
 	if damage > 0:
-		_play_hit_chime(damage)
 		_spawn_floating_damage(damage, weapon_name)
 	# Fire presentation already owns recoil. A hit must not kick twice.
 
@@ -2374,17 +2388,12 @@ func show_kill_marker() -> void:
 		if mark is ColorRect:
 			(mark as ColorRect).color = MenuTheme.DANGER
 
-func _play_hit_chime(damage: int) -> void:
-	if not hit_confirm_sound and ResourceLoader.exists(HIT_CONFIRM_PATH):
-		hit_confirm_sound = AudioStreamPlayer.new()
-		hit_confirm_sound.name = "HitConfirmSound"
-		hit_confirm_sound.bus = &"Effects"
-		hit_confirm_sound.volume_db = -4.0
-		hit_confirm_sound.stream = load(HIT_CONFIRM_PATH)
-		add_child(hit_confirm_sound)
-	if hit_confirm_sound != null:
-		hit_confirm_sound.pitch_scale = clampf(1.0 + (float(damage) / 100.0) * 0.35, 0.95, 1.45)
-		hit_confirm_sound.play()
+## The hit confirm for one reported shot, from the server's facts: the damage
+## sets a body hit's pitch, `head` and `killed` pick their own tier.
+func confirm_hit(damage: int, head: bool = false, killed: bool = false) -> int:
+	if hit_chime == null:
+		return -1
+	return hit_chime.confirm(damage, head, killed)
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read
@@ -2585,6 +2594,11 @@ func show_damage_flash() -> void:
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
 		crawler_caption.push_scrabble()
+
+## One line of campaign chatter: the speaker label and the caption key.
+func show_bark_caption(speaker_key: String, caption_key: String, union: bool = true) -> void:
+	if bark_caption != null:
+		bark_caption.push(speaker_key, caption_key, union)
 
 ## The joined player's death card: three lines, or empty to clear it.
 func show_death_card(lines: PackedStringArray) -> void:

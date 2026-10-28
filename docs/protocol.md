@@ -1116,6 +1116,7 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - MCP adapter mirrors the cooldown and returns tool `isError` (never a success toast on a no-op)
 - Spectators cannot speak
 - Named server rule bots may emit occasional Speak taunts on frag, death, Warmup and a streak of 2, 3 or 5 via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
+- Named rule bots also make rare objective callouts to their own side in capture the flag and Sabotage (gameplay 60, the event's `team`); the same cooldown applies, and NODS make none
 
 #### Wire board
 
@@ -1732,7 +1733,7 @@ receives those same bytes; targeted messages are encoded per session.
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
   carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
-  `damage`, `killed`, and `trace`. Do not join only against surviving `players` to
+  `damage`, `killed`, optional `head`, and `trace`. Do not join only against surviving `players` to
   count shots or infer their weapon.
 - `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
@@ -1811,7 +1812,10 @@ at most once a tick, so all of one shooter's results in a tick are one shot.
 before armour absorption, including overkill; it is zero on a miss or when that
 committed ray reaches a fighter already killed earlier in the same tick.
 `killed` is true only for the shot that first takes the victim to zero HP. Older
-records default it to false. Committed shots can trade kills; later hits cannot
+records default it to false. `head` is present and true when a pellet of that
+result struck the head band of a gun with a head bonus and doubled damage that
+landed (a shield that took nothing is no headshot); `damage` already counts it.
+It drives only the shooter's headshot confirm sound. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
 
@@ -2114,6 +2118,33 @@ shot at a visible dormant Crawler can wake it before region entry without this
 event. Clients validate its finite three-component shape before playback; the event remains
 available to sound-muted players through the caption and visible attack tell.
 
+**Enemy Bark and Companion Bark Events:** (campaign chatter: Union squad radio
+and Latch's callouts, as keyed facts; the client owns the words, captions and
+recordings)
+```json
+{"type":"event","event":"enemy_bark","kind":"sighting","register":"personnel","variant":0,"speaker_id":"550e8400-e29b-41d4-a716-446655440000","position":[0,0,8]}
+{"type":"event","event":"companion_bark","kind":"priority_target","subject":"turret","variant":1,"speaker_id":"660e8400-e29b-41d4-a716-446655440000","position":[2,0,-1]}
+```
+
+`enemy_bark.kind` is `sighting` (a guard of a woken group saw a participant
+and reacted), `flanking` (a skirmisher leaves the line to go around while an
+anchor of its group fires) or `officer_down` (the group's Auditor fell; a
+living member speaks). `register` is `personnel` (Clerk, Auditor, Enforcer,
+Redactor: short orders) or `unit` (Sweeper, Heavy Sweeper, Ranged Sweeper:
+issued boilerplate). Only Union-controlled bodies speak; equipment, Crawlers,
+absorbed bots and Inheritance machines never do. `companion_bark.kind` is
+`flank_warning` (a gun raised behind a participant's shoulder within 24 m),
+`priority_target` with `subject` `auditor` (a repair channel began) or
+`turret` (a charge began), or `low_health` (a participant fell below 35
+health). It is sent only while Latch is alive and following. `variant` is
+`0..3`, rotated per kind. `position` is the speaker's feet for the spatial
+voice. Lines are rare: a Union line waits 5 s after any line; Latch waits 5 s
+after Latch's own last line and may cut across Union radio; one kind repeats at
+most every 20 s (low health every 30 s). The events are additive and change no
+gameplay contract; readers that do not know them ignore them. Clients validate
+the kind, register, subject, variant range and finite position, and show the
+caption even when the recording is missing or audio is muted.
+
 **Respawn Event:**
 ```json
 {
@@ -2156,6 +2187,29 @@ taunt carries its victim's id (`"scout ant deleted you"` is said to that
 fighter). The Godot client shows an addressed line only when its viewer is that
 fighter or is watching through that fighter's eyes; a line without `to_id` is
 for the whole room.
+
+Optional `team` (gameplay 60, `"union"` or `"coalition"`) names the side a
+line is said to: a named rule bot's objective callout in capture the flag or
+Sabotage, such as `"i have the flag. walk me home"` or
+`"CHARGE SET A HOLD"`. The server sends it only to that side's fighters and to
+spectators, never as a broadcast. The Godot client shows it with the side's
+shape mark and label colour: a fighter shows every side call it receives, a
+spectator following a fighter shows that fighter's side, and a free spectator
+camera shows both sides. The line names only facts every snapshot already
+carries (who holds a flag, where they stand, the charge); the delivery keeps
+the speaker, and so who has eyes on a carrier, from the other side. See
+[Side calls](#side-calls-capability-60).
+
+```json
+{
+  "type": "event",
+  "event": "speak",
+  "player": "Nightfall",
+  "player_id": "550e8400-e29b-41d4-a716-446655440000",
+  "text": "CARRIER MID",
+  "team": "union"
+}
+```
 
 **Venue notice.** The person at a dedicated `--console` desk, not a player
 and not the on-air Host. The text already begins `The venue: `.
@@ -2294,8 +2348,8 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`)
-- `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`)
+- `position`: (`crawler_scrabble`, `enemy_bark` and `companion_bark`) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"plate"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health, armor and plate pads carry `amount` (the armour actually gained).
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
 - `winning_team`: (round_end, team modes) the winning side, omitted for a draw. `team_scores` is the final side frags for TDM; `capture_scores` is the final captures for CTF. A CTF round can have an MVP by frags while its winning side is decided by captures.
@@ -2675,7 +2729,7 @@ in Sabotage.
 | `match_point` | yes | Once per round each: a side one frag or capture from the limit, a Sabotage side one round win from the match, or the first free-for-all fighter one frag from the limit | Free-for-all: `player`, `team`. Otherwise `team` the side |
 | `sudden_death` | yes | The clock ran out level and stopped, or a level Sabotage match starts its deciding round | None |
 | `golden_rail` | no | Somebody takes the golden Railgun | `player` the holder, `team` their side |
-| `larak_lot_special` | no | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
+| `larak_lot_special` | yes | Larak Lot (map 1) only: four frags land across the lot within four seconds; at most once every 45 seconds of a round. Four by one fighter are a multikill instead | `player` the fighter whose frag tipped it, `team` their side |
 | `next_up` | no | Gameplay 59, Duel: the head of the line is called to a seat. Never held back | `player` the watcher called, `other` the winner who stays when a round passed the seat (absent for a free seat, which keys `HOST_REACTION_NEXT_UP_OPEN_<VARIANT>`) |
 | `tickets_low` | yes | Gameplay 59, Conquest: a side falls under `CONQUEST_BLEED_TICKETS` (25), once per side per round; a call held back by the spacing is made when the spacing allows | `team` the side (keys `_SIDE`) |
 
@@ -3919,4 +3973,25 @@ first in line first, omitted while empty), and the `next_up` and
 side's ticket count inverse (ink on a warm-white plate, never a faction
 colour), sounds a low siren every four seconds and a
 heartbeat on the last ten tickets, from the ticket counts it already
-receives. Arcade rooms require 59.
+receives. Arcade rooms required 59 until 60.
+
+### Side calls (capability 60)
+
+Gameplay 60 adds the optional `team` on the `speak` event: the side a line
+is said to. Named rule bots use it for objective callouts in capture the flag
+and Sabotage (taking the flag, seeing the carrier of their own flag, planting,
+defusing), in their callsign's register. A side hears at most one such call
+every fifteen seconds, a call waits two seconds after any Host call, and a call
+that stopped being true before it could be said is dropped.
+
+A side call is not a broadcast. The server delivers it on the targeted path,
+as one message per recipient connection, only to the sessions of that side's
+fighters (alive, dead or eliminated) and to spectator sessions that hold no
+fighter. The other side's sessions never receive it, so the speaker's id never
+tells them who has eyes on a carrier. Every other event stays one shared,
+encode-once broadcast. A fighter's client shows every side call it receives
+and needs no pawn to do so; a spectator's client receives both sides, shows
+the followed fighter's side, and shows both from a free camera. The MCP
+adapter forwards only what its own session received. A spectator reader that
+ignored `team` would show one side's calls as room chatter, so arcade rooms
+require 60.

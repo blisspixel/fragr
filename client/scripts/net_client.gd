@@ -20,6 +20,7 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 60 understands speak lines said to one side (rule bots' objective calls);
 # 59 understands guns dropped on death, the Duel line and its seat call, and
 # the Conquest bleed and Duel hand-over Host calls;
 # 58 understands the booth: `spectator_facts` for a watcher only, each
@@ -36,7 +37,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 59
+const GAMEPLAY_VERSION: int = 60
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
