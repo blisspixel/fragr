@@ -239,7 +239,11 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
             .unwrap();
         tokio::time::timeout(Duration::from_secs(3), async {
             let mut joined_id = None;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome {
                         player_id, body, ..
@@ -382,7 +386,11 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         tokio::time::timeout(Duration::from_secs(3), async {
             let mut owner = None;
             let mut mapped = false;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome {
                         player_id, body, ..
@@ -510,7 +518,11 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         tokio::time::timeout(Duration::from_secs(3), async {
             let mut owner = None;
             let mut mapped = false;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome {
                         player_id, body, ..
@@ -650,7 +662,11 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
             let mut saw_mission = false;
             let mut saw_loadout = false;
             let mut saw_snapshot = false;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome {
                         player_id, body, ..
@@ -805,7 +821,11 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         tokio::time::timeout(Duration::from_secs(3), async {
             let mut owner = None;
             let mut mapped = false;
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                     ServerMessage::Welcome {
                         player_id, body, ..
@@ -906,7 +926,11 @@ async fn campaign_run_id(ready: &Ready) -> uuid::Uuid {
         .await
         .unwrap();
     tokio::time::timeout(Duration::from_secs(3), async {
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             if let ServerMessage::Mission { state, .. } =
                 serde_json::from_str::<ServerMessage>(&text).unwrap()
             {
@@ -955,7 +979,11 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
         .unwrap();
     tokio::time::timeout(Duration::from_secs(3), async {
         let mut saw_map = false;
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                 ServerMessage::MapInfo {
                     map_id, mission, ..
@@ -1097,7 +1125,11 @@ async fn explicit_leave_durably_abandons_a_local_run() {
         .await
         .unwrap();
     tokio::time::timeout(Duration::from_secs(3), async {
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             if let ServerMessage::Mission { state, .. } =
                 serde_json::from_str::<ServerMessage>(&text).unwrap()
             {
@@ -1319,7 +1351,11 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
         .unwrap();
     tokio::time::timeout(Duration::from_secs(3), async {
         let mut saw_map = false;
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             match serde_json::from_str::<ServerMessage>(&text).unwrap() {
                 ServerMessage::MapInfo {
                     map_id,

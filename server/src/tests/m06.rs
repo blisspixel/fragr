@@ -846,6 +846,7 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
                 .unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 let mut saw_mission = false;
                 let mut saw_welcome = false;
                 loop {
@@ -853,7 +854,7 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
                     let Message::Text(text) = message else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",

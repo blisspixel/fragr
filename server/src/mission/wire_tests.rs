@@ -285,8 +285,13 @@ async fn drive(
     let mut world = None;
     let mut id = None;
     let mut reported_record = false;
-    while let Some(Ok(Message::Text(text))) = socket.next().await {
-        let message = serde_json::from_str::<ServerMessage>(&text).unwrap();
+    let mut frames = crate::protocol::WorldReader::new();
+    while let Some(Ok(frame)) = socket.next().await {
+        // Pings arrive between text frames; skip them.
+        let Message::Text(text) = frame else {
+            continue;
+        };
+        let message = frames.read(&text).unwrap();
         probe.ingest(&message);
         match message {
             ServerMessage::Welcome { player_id, .. } => id = player_id,
@@ -410,9 +415,14 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
     let mut probe = spectator_probe;
     let mut saw_progress = false;
     let mut saw_departure = false;
+    let mut frames = crate::protocol::WorldReader::new();
     tokio::time::timeout(Duration::from_secs(20), async {
-        while let Some(Ok(Message::Text(text))) = spectator.next().await {
-            let message = serde_json::from_str::<ServerMessage>(&text).unwrap();
+        while let Some(Ok(frame)) = spectator.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
+            let message = frames.read(&text).unwrap();
             probe.ingest(&message);
             if let ServerMessage::Mission { state, .. } = message {
                 assert_eq!(
@@ -508,7 +518,11 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         // coverage. Start the delivery deadline after the probe is ready.
         let mut probe = MissionProbe::new();
         tokio::time::timeout(Duration::from_secs(2), async {
-            while let Some(Ok(Message::Text(text))) = socket.next().await {
+            while let Some(Ok(frame)) = socket.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
                 let message: ServerMessage = serde_json::from_str(&text).unwrap();
                 probe.ingest(&message);
                 if let ServerMessage::Mission { state, .. } = message {

@@ -148,7 +148,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `49`; omission means `1`. Discovery-only maps first
+  and the Godot client send `61`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -329,12 +329,17 @@ does not rewind the simulation. When it ends, the leave is the same as a
 disconnect: a solo run whose owner is gone becomes abandoned.
 
 **Liveness and conduct.** After `Welcome` the server sends a WebSocket ping
-every 15 seconds. Any frame from the client, including the pong every
+every second. Any frame from the client, including the pong every
 WebSocket library sends automatically while it reads, keeps the session.
 A quiet spectator that reads is never idle. No frame at all for 45 seconds
 closes the session with `idle_timeout`; a fighter that asked for resume keeps
-its pawn for the usual ten seconds. The server also closes a session with a
-stable code when it:
+its pawn for the usual ten seconds. A client answers a ping only after reading
+every frame sent before it, so a ping still unanswered after four seconds
+means that client's picture is at least that stale: the server then closes the
+socket without a reason frame (the reader is not reading), like a dropped
+connection, and a fighter that asked for resume keeps its pawn. The same
+quiet close follows a queued frame still unsent after two and a half seconds
+(see Snapshot). The server also closes a session with a stable code when it:
 
 - keeps flooding: dropped messages fill a strike level that drains at 4096 per
   second and closes past 8192 (`rate_limited`). Only a sustained rate above about
@@ -369,17 +374,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires gameplay `38` and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`61`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-37 or geometry 2. An older hello is also sent to
+61 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 37 can
-still enter that mission, and a hello above 37 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 61 can
+still enter that mission, and a hello above 61 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -1576,11 +1581,17 @@ queue. A newer world can replace it when exact discrete facts are unchanged.
 Motion and countdowns may skip ticks; resolved shots, explosions, score and
 roster changes, round transitions, and other discrete facts remain ordered.
 MapInfo and Mission form barriers even when the map ID stays the same. Events,
-inventory and acknowledgements are never replaced. A full reliable queue or
-a write stalled for two seconds disconnects that client. An in-progress write
-cannot be replaced, and combat-heavy queues can still reach this bound.
+inventory and acknowledgements are never replaced. A full reliable queue, or
+a queued message that is still unsent two and a half seconds after the tick
+queued it, disconnects that client; a keepalive ping stalled for two seconds
+does too. The kernel send buffer of a game socket is bounded (64 KiB asked),
+so a reader that falls behind fills that queue within a second or so instead
+of hiding megabytes of stale worlds in the kernel. An in-progress write cannot
+be replaced, and combat-heavy queues can still reach these bounds.
 The server encodes each broadcast once per tick and every initialized session
-receives those same bytes; targeted messages are encoded per session.
+receives those same bytes; targeted messages are encoded per session. A
+reader at gameplay 61 or later may receive a world as a `snapshot_delta`
+instead (see "Snapshot deltas (capability 61)").
 
 ```json
 {
@@ -1713,7 +1724,7 @@ receives those same bytes; targeted messages are encoded per session.
     omission defaults to true, still subject to HP and mission participation; a
     present nonboolean is invalid.
   - `ping`: (optional) round trip to this fighter's connection in whole
-    milliseconds, capped at 999. The server pings every session every 5 s
+    milliseconds, capped at 999. The server pings every session every second
     with an 8-byte payload and times the echoed pong, smoothing each reading
     by a quarter. Omitted for rule bots, campaign actors, a pawn held for a
     dropped connection and a fighter whose connection has not answered yet.
@@ -3959,7 +3970,7 @@ Gameplay 58 adds `spectator_facts`, sent only to spectator connections
 (above, under Server to Client), the snapshot's per-fighter `ping`, and
 removes the pad's live `respawn_in` clock from the shared snapshot, so no
 fighter's client receives a pad timer, another fighter's spree or an open
-multikill chain. The server pings every session every 5 s, and the pong's
+multikill chain. The server pings every session every second (5 s before gameplay 61), and the pong's
 echoed payload times the round trip. Arcade rooms require 58.
 
 ### Arena rules depth (capability 59)
@@ -3995,3 +4006,52 @@ the followed fighter's side, and shows both from a free camera. The MCP
 adapter forwards only what its own session received. A spectator reader that
 ignored `team` would show one side's calls as room chatter, so arcade rooms
 require 60.
+
+### Snapshot deltas (capability 61)
+
+Gameplay 61 lets the server send a world as the change from the world before
+it. Owner: `server/src/protocol/delta.rs`; the Godot decoder is
+`client/scripts/snapshot_delta.gd`, and every Rust reader (the MCP adapter,
+the playtest harness, the brain, `fragr-wire`) reads frames through
+`protocol::WorldReader`, so callers only ever see full `Snapshot`s.
+
+```json
+{
+  "type": "snapshot_delta",
+  "base": 12344,
+  "tick": 12345,
+  "set": {"round_time_left": 141, "host_line": "HOST: TWO DOWN."},
+  "unset": ["mvp"],
+  "players": [
+    {"id": "550e8400-e29b-41d4-a716-446655440000", "x": 10.75, "yaw": 1.62},
+    {"id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "hp": 0, "unset": ["ping"]},
+    {"id": "...", "name": "New Arrival", "x": 0.0, "...": "a whole entry"}
+  ]
+}
+```
+
+- `base` is the tick of the world the reader holds; `tick` is the world this
+  produces. A reader holding any other world, or none, refuses the delta and
+  closes the connection.
+- `set` holds every top-level Snapshot field whose encoded value changed or
+  appeared, whole (a changed `pickups` list is the whole list). `unset` lists
+  top-level fields the new world omits. Both are omitted when empty, and
+  neither names `type`, `tick` or `players`.
+- `players` is always present and is the new roster in order. An entry whose
+  `id` the base holds carries that `id`, the fields that changed or appeared,
+  and an `unset` list of fields it no longer has. An entry with an `id` the
+  base does not hold is a whole participant. A base entry missing from the
+  list has left the world. Ids are unique.
+- Applying the delta to its base yields exactly the full Snapshot's JSON
+  value, which then passes the same validation as a world sent whole.
+
+When it is sent: the tick encodes each world once in full and once as the
+delta from the previous tick's world, and keeps the delta only when it is
+shorter. A session writer sends the delta only when the last world it put on
+its socket is the delta's base; the stream is ordered and reliable, so that
+is the world the reader holds. Otherwise the world goes whole: the first world
+of a connection, the first after any `MapInfo` or `Mission` (both sides forget
+the held world at those barriers), a world that replaced an unsent one, and
+every world for a reader below 61. Readers below 61 keep receiving exactly the
+bytes they did before. Quantization of coordinates and per-reader deltas
+after a replaced world are not part of this capability.

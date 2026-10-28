@@ -548,12 +548,13 @@ async fn live_m03_refuses_retired_readers_and_current_reader_receives_geometry_b
             tokio::time::timeout(Duration::from_secs(5), async {
                 let (mut map, mut welcome, mut mission, mut snapshot) =
                     (false, false, false, false);
+                let mut frames = crate::protocol::WorldReader::new();
                 loop {
                     let message = socket.next().await.unwrap().unwrap();
                     let Message::Text(text) = message else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader received game state");
                         assert_eq!(value["code"], "unsupported_gameplay");

@@ -3,9 +3,10 @@ use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
 use std::path::PathBuf;
 use std::time::Duration;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::tungstenite::Message;
 
-type Socket = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+mod support;
+use support::{connect_async, Socket};
 
 fn map_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("maps/m01-recall-notice.json")
@@ -15,7 +16,7 @@ async fn receive(socket: &mut Socket) -> ServerMessage {
     tokio::time::timeout(Duration::from_secs(3), async {
         loop {
             if let Message::Text(text) = socket.next().await.unwrap().unwrap() {
-                return serde_json::from_str(&text).unwrap();
+                return socket.read(&text).unwrap();
             }
         }
     })

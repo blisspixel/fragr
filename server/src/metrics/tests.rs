@@ -615,7 +615,8 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
             .unwrap();
         if let Message::Text(text) = frame {
             received += text.len();
-            snapshots += usize::from(text.contains("\"type\":\"snapshot\""));
+            // A world arrives whole or as a delta.
+            snapshots += usize::from(text.contains("\"type\":\"snapshot"));
         }
     }
     // Past one refresh, so the operator block has seen this session.
@@ -633,8 +634,13 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
     assert!(ops.tick.window.p99_ms > 0.0);
     assert!(ops.tick.window.max_ms >= ops.tick.window.p99_ms);
     assert!(ops.tick.window.p99_ms >= ops.tick.window.p50_ms);
-    assert_eq!(ops.traffic.in_bytes, hello.len() as u64);
-    assert_eq!(ops.traffic.in_msgs, 1);
+    // The hello, plus the 8-byte pong to each once-a-second ping the client
+    // read past while it took its snapshots.
+    assert!(ops.traffic.in_msgs >= 1, "{:?}", ops.traffic);
+    assert_eq!(
+        ops.traffic.in_bytes,
+        hello.len() as u64 + 8 * (ops.traffic.in_msgs - 1)
+    );
     assert!(
         ops.traffic.out_bytes >= received as u64 / 2,
         "{:?}",
@@ -646,7 +652,9 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
     let clients = detailed.ops.unwrap().clients.expect("client list");
     assert_eq!(clients.len(), 1);
     assert_eq!(clients[0].role, Role::Spectator);
-    assert_eq!(clients[0].in_bytes, hello.len() as u64);
+    // The hello and whole 8-byte pongs, nothing else.
+    let pongs = clients[0].in_bytes.checked_sub(hello.len() as u64).unwrap();
+    assert_eq!(pongs % 8, 0, "{:?}", clients[0]);
     assert!(clients[0].out_bytes > 0 && clients[0].out_bytes_per_s > 0.0);
     drop(socket);
     let _ = stop_tx.send(());
@@ -694,9 +702,11 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
         socket.send(Message::Text(hello.clone())).await.unwrap();
         sockets.push(socket);
     }
-    // Snapshot text by tick, per watcher.
-    let mut seen = vec![std::collections::BTreeMap::<u64, String>::new(); 2];
+    // Snapshot text by tick, per watcher: what came on the wire and the world
+    // it rebuilds.
+    let mut seen = vec![std::collections::BTreeMap::<u64, (String, String)>::new(); 2];
     for (socket, seen) in sockets.iter_mut().zip(&mut seen) {
+        let mut frames = crate::protocol::WorldReader::new();
         while seen.len() < 30 {
             let frame = tokio::time::timeout(Duration::from_secs(5), socket.next())
                 .await
@@ -704,10 +714,10 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
                 .unwrap()
                 .unwrap();
             let Message::Text(text) = frame else { continue };
-            if let crate::protocol::ServerMessage::Snapshot(snapshot) =
-                serde_json::from_str(&text).unwrap()
-            {
-                seen.insert(snapshot.tick, text);
+            let message = frames.read(&text).unwrap();
+            if let crate::protocol::ServerMessage::Snapshot(snapshot) = &message {
+                let world = serde_json::to_string(&message).unwrap();
+                seen.insert(snapshot.tick, (text, world));
             }
         }
     }
@@ -718,12 +728,27 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
         .collect();
     assert!(common.len() >= 10, "{common:?}");
     for tick in &common {
-        assert_eq!(seen[0][tick], seen[1][tick], "tick {tick} differs");
+        assert_eq!(seen[0][tick].1, seen[1][tick].1, "tick {tick} differs");
+    }
+    // A world either watcher took as a delta is the one shared delta: the
+    // bytes match. (A first world, or one that replaced an unsent world while
+    // the other watcher was being read, goes whole.)
+    let delta = |text: &str| text.contains(r#""type":"snapshot_delta""#);
+    let both: Vec<&u64> = common
+        .iter()
+        .filter(|tick| delta(&seen[0][*tick].0) && delta(&seen[1][*tick].0))
+        .collect();
+    assert!(both.len() >= 5, "{both:?}");
+    for tick in both {
+        assert_eq!(seen[0][tick].0, seen[1][tick].0, "tick {tick} bytes differ");
     }
     {
         let metrics = metrics.lock().unwrap();
         let report = metrics.report();
         assert!(report.writer.shared_frames >= 60, "{:?}", report.writer);
+        // Worlds after the first go as deltas, and a delta is smaller.
+        assert!(report.writer.delta_frames >= 20, "{:?}", report.writer);
+        assert!(report.writer.delta_bytes < report.writer.shared_bytes);
         // Each writer encodes its own geometry; none re-encodes a broadcast.
         assert!(
             report.writer.encodes < report.writer.shared_frames / 4,
@@ -777,4 +802,30 @@ fn a_pong_times_the_round_trip_and_junk_is_ignored() {
         .rtt_us
         .store(u32::MAX - 1, std::sync::atomic::Ordering::Relaxed);
     assert_eq!(stalled.ping_ms(), Some(MAX_PING_MS));
+}
+
+#[test]
+fn an_unanswered_ping_ages_until_that_ping_or_a_later_one_is_answered() {
+    let traffic = ClientTraffic::new(Role::Spectator, Arc::default());
+    assert_eq!(traffic.read_behind(), None, "no ping out yet");
+    let first = traffic.ping_payload();
+    std::thread::sleep(Duration::from_millis(20));
+    let second = traffic.ping_payload();
+    // The oldest ping out is the one that ages.
+    let behind = traffic.read_behind().expect("a ping awaits its answer");
+    assert!(behind >= Duration::from_millis(20), "{behind:?}");
+    // Junk and a ping from the future answer nothing.
+    traffic.pong(&[1, 2, 3]);
+    traffic.pong(&u64::MAX.to_be_bytes());
+    assert!(traffic.read_behind().is_some());
+    // The later answer means everything before it was read.
+    traffic.pong(&second);
+    assert_eq!(traffic.read_behind(), None);
+    // A late answer to the first ping does not start a new wait.
+    traffic.pong(&first);
+    assert_eq!(traffic.read_behind(), None);
+    let third = traffic.ping_payload();
+    assert!(traffic.read_behind().is_some());
+    traffic.pong(&third);
+    assert_eq!(traffic.read_behind(), None);
 }

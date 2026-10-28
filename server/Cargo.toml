@@ -33,6 +33,9 @@ uuid = { version = "1.26", features = ["v4", "serde"] }
 rand = "0.8"
 getrandom = "=0.2.15"
 if-addrs = "0.15"
+# Already in the tree through tokio's net feature. Used only to bound the
+# kernel send buffer of a game socket (#492).
+socket2 = "0.6"
 
 # Already in the tree through tracing-subscriber's ansi feature. Used only to
 # switch on virtual terminal processing before colour reaches a Windows console.

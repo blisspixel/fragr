@@ -49,12 +49,13 @@ async fn live_campaign_rules_refuse_old_readers_and_deliver_geometry_first() {
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let (mut map, mut welcome, mut mission_seen, mut snapshot) =
                         (false, false, false, false);
+                    let mut frames = crate::protocol::WorldReader::new();
                     loop {
                         let message = socket.next().await.unwrap().unwrap();
                         let Message::Text(text) = message else {
                             continue;
                         };
-                        let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                        let value: serde_json::Value = frames.read_value(&text).unwrap();
                         if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                             assert_eq!(value["type"], "error", "retired reader received state");
                             assert_eq!(value["code"], "unsupported_gameplay");

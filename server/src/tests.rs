@@ -72,12 +72,13 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
             .unwrap();
         tokio::time::timeout(std::time::Duration::from_secs(3), async {
             let mut saw_map = false;
+            let mut frames = crate::protocol::WorldReader::new();
             loop {
                 let message = socket.next().await.unwrap().unwrap();
                 let Message::Text(text) = message else {
                     continue;
                 };
-                let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                let value: serde_json::Value = frames.read_value(&text).unwrap();
                 if value["type"] == "map_info" {
                     assert_eq!(value["map_id"], 5);
                     assert!(value["solids"].as_array().unwrap().len() > 1);

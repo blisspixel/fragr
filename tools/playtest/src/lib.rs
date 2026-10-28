@@ -2325,6 +2325,7 @@ async fn agent_task(
     .await
     .map_err(transport)?;
     let mut player_id: Option<Uuid> = None;
+    let mut world = fragr_server::protocol::WorldReader::new();
     let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
     let mut arena = Arena::default();
     let mut navigation = None;
@@ -2346,7 +2347,7 @@ async fn agent_task(
         let Ok(Message::Text(text)) = msg else {
             continue;
         };
-        match serde_json::from_str::<ServerMessage>(&text) {
+        match world.read(&text) {
             Ok(ServerMessage::Mission { tick, state }) => {
                 mission_client
                     .observe(tick, state)
@@ -2696,6 +2697,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
 
     let mut observation = Observation::default();
     let mut observation_deadline = ObservationDeadline::default();
+    let mut world = fragr_server::protocol::WorldReader::new();
     let deadline = Duration::from_secs_f64(config.max_ticks as f64 / TICKS_PER_SECOND + 15.0);
     let watch = async {
         loop {
@@ -2714,7 +2716,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
             let Ok(Message::Text(text)) = msg else {
                 continue;
             };
-            let parsed = serde_json::from_str::<ServerMessage>(&text);
+            let parsed = world.read(&text);
             if parsed
                 .as_ref()
                 .is_ok_and(|message| observation_deadline.before_message(message))

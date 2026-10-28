@@ -298,6 +298,131 @@ impl futures_util::Sink<Message> for RecordingSink {
     }
 }
 
+/// Consecutive worlds of a seeded fight, encoded as the tick encodes them.
+fn fought_worlds(count: usize) -> Vec<Arc<Broadcast>> {
+    let mut session = crate::session::GameSession::with_map(crate::sim::MapKind::ArenaDuel, false);
+    session.state.seed(42);
+    session.state.use_replay_ids();
+    session.state.config = crate::bench::fixture_config();
+    session.spawn_bots(4);
+    let mut encoder = crate::protocol::delta::WorldEncoder::default();
+    let mut worlds = Vec::new();
+    while worlds.len() < count {
+        let messages = session.tick_messages(crate::run::TICK.as_secs_f32());
+        for broadcast in Broadcast::encode_tick(messages, &mut encoder).unwrap() {
+            if broadcast.world().is_some() {
+                worlds.push(broadcast);
+            }
+        }
+    }
+    worlds
+}
+
+/// What a writer puts on its socket for `frames`, fed one at a time so no
+/// queued world replaces another.
+async fn written(frames: Vec<Outbound>, deltas: bool) -> Vec<String> {
+    let (tx, rx) = outbound_channel(4);
+    let (shutdown, _) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    let writer = tokio::spawn(run_outbound_writer(
+        RecordingSink::default(),
+        rx,
+        shutdown,
+        WriterPolicy {
+            deltas,
+            ..limits(Duration::from_secs(1))
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    ));
+    for frame in frames {
+        tx.try_send(frame).unwrap();
+        timeout(Duration::from_secs(1), async {
+            while tx.depth() > 0 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+    }
+    drop(tx);
+    let RecordingSink(sent) = writer.await.unwrap();
+    sent.into_iter()
+        .map(|frame| match frame {
+            Message::Text(text) => text,
+            other => panic!("unexpected frame {other:?}"),
+        })
+        .collect()
+}
+
+#[tokio::test]
+async fn a_writer_sends_a_delta_only_against_the_world_its_reader_holds() {
+    let worlds = fought_worlds(5);
+    let delta_of = |index: usize| worlds[index].world().unwrap().delta.as_ref().unwrap();
+    let map = crate::sim::GameState::with_map(crate::sim::MapKind::ArenaDuel, false).map_info();
+    let shared = |index: usize| Outbound::from(Arc::clone(&worlds[index]));
+    // 0 whole, 1 against 0, then a map: 2 whole, then 3 skipped (a replaced
+    // world), so 4 goes whole as well.
+    let sent = written(
+        vec![
+            shared(0),
+            shared(1),
+            map.clone().into(),
+            shared(2),
+            shared(4),
+        ],
+        true,
+    )
+    .await;
+    assert_eq!(
+        sent,
+        vec![
+            worlds[0].text().to_owned(),
+            delta_of(1).text.clone(),
+            serde_json::to_string(&map).unwrap(),
+            worlds[2].text().to_owned(),
+            worlds[4].text().to_owned(),
+        ]
+    );
+    assert!(delta_of(1).text.len() < worlds[1].text().len());
+    // Its reader rebuilds every world exactly.
+    let mut reader = crate::protocol::WorldReader::new();
+    let read: Vec<ServerMessage> = sent.iter().map(|text| reader.read(text).unwrap()).collect();
+    for (index, world) in [(1, 1), (3, 2), (4, 4)] {
+        assert_eq!(
+            serde_json::to_string(&read[index]).unwrap(),
+            worlds[world].text()
+        );
+    }
+    // A targeted world is not the base a shared delta names.
+    let sent = written(
+        vec![shared(0), worlds[1].message().clone().into(), shared(2)],
+        true,
+    )
+    .await;
+    assert_eq!(sent[2], worlds[2].text());
+    // Consecutive shared worlds go as deltas.
+    let sent = written(vec![shared(0), shared(1), shared(2)], true).await;
+    assert_eq!(sent[2], delta_of(2).text);
+}
+
+#[tokio::test]
+async fn a_reader_below_the_delta_contract_gets_every_world_whole() {
+    let worlds = fought_worlds(3);
+    let frames = worlds
+        .iter()
+        .map(|world| Outbound::from(Arc::clone(world)))
+        .collect();
+    let sent = written(frames, false).await;
+    let whole: Vec<String> = worlds.iter().map(|world| world.text().to_owned()).collect();
+    assert_eq!(sent, whole);
+    // A world encoded without a tick encoder has no delta at all.
+    let alone = Broadcast::encode(worlds[1].message().clone()).unwrap();
+    assert!(alone.world().unwrap().delta.is_none());
+}
+
 #[tokio::test]
 async fn writer_sends_a_shared_broadcast_unchanged_and_encodes_only_targeted_messages() {
     let (tx, rx) = outbound_channel(4);
@@ -317,7 +442,7 @@ async fn writer_sends_a_shared_broadcast_unchanged_and_encodes_only_targeted_mes
         RecordingSink::default(),
         rx,
         shutdown,
-        Duration::from_secs(1),
+        limits(Duration::from_secs(1)),
         Duration::from_secs(60),
         stop,
         WriterMeters {
@@ -363,7 +488,7 @@ async fn cancelled_stalled_writer_releases_every_shared_payload() {
         StalledSink,
         rx,
         shutdown,
-        Duration::from_secs(60),
+        limits(Duration::from_secs(60)),
         Duration::from_secs(60),
         stop,
         WriterMeters {
@@ -417,13 +542,10 @@ impl futures_util::Sink<Message> for StalledSink {
 
 #[tokio::test]
 async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
+    // Nothing is queued: the stalled send is the keepalive ping, which has
+    // the plain send timeout rather than a frame age.
     let (tx, rx) = outbound_channel(1);
     let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
-    tx.try_send(ServerMessage::Error {
-        code: "queued".into(),
-        message: "queued".into(),
-    })
-    .unwrap();
     let (_stop, stop) = tokio::sync::oneshot::channel();
     let probe = Arc::new(WriterProbe::default());
     probe.reset();
@@ -431,8 +553,8 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         StalledSink,
         rx,
         shutdown,
-        Duration::from_millis(20),
-        Duration::from_secs(60),
+        limits(Duration::from_millis(20)),
+        Duration::from_millis(5),
         stop,
         WriterMeters {
             traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
@@ -449,8 +571,372 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
     let failures = probe.report().send_failures_ms;
     assert_eq!(failures.len(), 1);
     assert!(failures[0] >= 20.0, "{failures:?}");
+    assert_eq!(probe.report().stale_closes, 0);
     probe.reset();
     assert!(probe.report().send_failures_ms.is_empty());
+    drop(tx);
+}
+
+/// Writer limits for tests that are not about staleness.
+fn limits(send_timeout: Duration) -> WriterPolicy {
+    WriterPolicy {
+        send_timeout,
+        stale_after: Duration::from_secs(60),
+        read_behind_after: Duration::from_secs(60),
+        deltas: false,
+    }
+}
+
+fn spectator_meters(probe: &Arc<WriterProbe>) -> WriterMeters {
+    WriterMeters {
+        traffic: crate::metrics::ClientTraffic::new(Role::Spectator, Default::default()),
+        probe: Some(Arc::clone(probe)),
+    }
+}
+
+fn reliable_fact(index: u32) -> ServerMessage {
+    ServerMessage::Event(crate::protocol::GameEvent::Respawn {
+        player: format!("Fighter {index}"),
+    })
+}
+
+/// A peer that takes one frame per `every`, like a reader on a link of that
+/// rate, and counts the text frames it took.
+struct PacedSink {
+    every: Duration,
+    next: std::pin::Pin<Box<tokio::time::Sleep>>,
+    taken: Arc<std::sync::atomic::AtomicUsize>,
+}
+
+impl PacedSink {
+    fn new(every: Duration) -> (Self, Arc<std::sync::atomic::AtomicUsize>) {
+        let taken = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        (
+            Self {
+                every,
+                next: Box::pin(tokio::time::sleep(Duration::ZERO)),
+                taken: Arc::clone(&taken),
+            },
+            taken,
+        )
+    }
+}
+
+impl futures_util::Sink<Message> for PacedSink {
+    type Error = std::io::Error;
+
+    fn poll_ready(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::future::Future::poll(self.next.as_mut(), cx).map(Ok)
+    }
+
+    fn start_send(mut self: std::pin::Pin<&mut Self>, frame: Message) -> Result<(), Self::Error> {
+        if matches!(frame, Message::Text(_)) {
+            self.taken.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+        let next = tokio::time::Instant::now() + self.every;
+        self.next.as_mut().reset(next);
+        Ok(())
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+}
+
+#[tokio::test]
+async fn a_frame_queued_past_its_age_closes_the_writer_before_it_is_sent() {
+    let (tx, rx) = outbound_channel(4);
+    tx.try_send(reliable_fact(0)).unwrap();
+    // The writer reaches the frame only after it has gone stale.
+    tokio::time::sleep(Duration::from_millis(60)).await;
+    let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    let RecordingSink(sent) = run_outbound_writer(
+        RecordingSink::default(),
+        rx,
+        shutdown,
+        WriterPolicy {
+            send_timeout: Duration::from_secs(60),
+            stale_after: Duration::from_millis(50),
+            read_behind_after: Duration::from_secs(60),
+            deltas: false,
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    )
+    .await;
+    assert!(sent.is_empty(), "a stale frame is never sent: {sent:?}");
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
+    let report = probe.report();
+    assert_eq!(report.stale_closes, 1);
+    assert_eq!(report.send_failures_ms.len(), 1);
+    // The queue closed with its writer, so the tick stops feeding it.
+    assert_eq!(tx.try_send(reliable_fact(1)), Err(QueueError::Closed));
+}
+
+#[tokio::test]
+async fn a_blocked_send_closes_when_its_frame_goes_stale_not_at_the_send_timeout() {
+    let (tx, rx) = outbound_channel(4);
+    tx.try_send(reliable_fact(0)).unwrap();
+    let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    let started = std::time::Instant::now();
+    let writer = tokio::spawn(run_outbound_writer(
+        StalledSink,
+        rx,
+        shutdown,
+        WriterPolicy {
+            send_timeout: Duration::from_secs(60),
+            stale_after: Duration::from_millis(40),
+            read_behind_after: Duration::from_secs(60),
+            deltas: false,
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    ));
+    timeout(Duration::from_secs(5), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
+    writer.await.unwrap();
+    let elapsed = started.elapsed();
+    assert!(elapsed >= Duration::from_millis(40), "{elapsed:?}");
+    let report = probe.report();
+    assert_eq!(report.stale_closes, 1);
+    assert_eq!(report.send_failures_ms.len(), 1);
+    drop(tx);
+}
+
+/// Queue a reliable fact every `every` until the writer closes or `window`
+/// ends. Returns whether the queue was closed and how many were queued.
+async fn produce(tx: &WsTx, every: Duration, window: Duration) -> (bool, u32) {
+    let end = tokio::time::Instant::now() + window;
+    let mut queued = 0;
+    let mut cadence = tokio::time::interval(every);
+    while tokio::time::Instant::now() < end {
+        cadence.tick().await;
+        match tx.try_send(reliable_fact(queued)) {
+            Ok(_) => queued += 1,
+            Err(QueueError::Closed) => return (true, queued),
+            Err(QueueError::Full) => panic!("the queue filled before the writer closed"),
+        }
+    }
+    (false, queued)
+}
+
+#[tokio::test]
+async fn a_reader_slower_than_the_tick_is_closed_once_its_backlog_goes_stale() {
+    let (tx, rx) = outbound_channel(256);
+    let (shutdown, _) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    // Facts every 20 ms, a peer that takes one every 60 ms: the backlog, and
+    // the age of its oldest frame, grow without bound.
+    let (sink, taken) = PacedSink::new(Duration::from_millis(60));
+    let writer = tokio::spawn(run_outbound_writer(
+        sink,
+        rx,
+        shutdown,
+        WriterPolicy {
+            send_timeout: Duration::from_secs(60),
+            stale_after: Duration::from_millis(300),
+            read_behind_after: Duration::from_secs(60),
+            deltas: false,
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    ));
+    let (closed, queued) = produce(&tx, Duration::from_millis(20), Duration::from_secs(4)).await;
+    assert!(closed, "the slow reader was never closed");
+    timeout(Duration::from_secs(1), writer)
+        .await
+        .unwrap()
+        .unwrap();
+    let delivered = taken.load(std::sync::atomic::Ordering::SeqCst);
+    assert!(
+        delivered > 0 && delivered < queued as usize,
+        "{delivered} of {queued}"
+    );
+    assert_eq!(probe.report().stale_closes, 1);
+}
+
+#[tokio::test]
+async fn a_slow_but_sufficient_link_is_never_closed() {
+    let (tx, rx) = outbound_channel(64);
+    let (shutdown, changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (stop_writer, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    // Every frame takes most of a tick to leave, but the link keeps up.
+    let (sink, taken) = PacedSink::new(Duration::from_millis(35));
+    let writer = tokio::spawn(run_outbound_writer(
+        sink,
+        rx,
+        shutdown,
+        WriterPolicy {
+            send_timeout: Duration::from_secs(60),
+            stale_after: Duration::from_millis(300),
+            read_behind_after: Duration::from_secs(60),
+            deltas: false,
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    ));
+    let (closed, queued) =
+        produce(&tx, Duration::from_millis(50), Duration::from_millis(1500)).await;
+    assert!(!closed, "a reader that keeps up was closed");
+    assert_eq!(*changed.borrow(), StopSignal::Open);
+    timeout(Duration::from_secs(1), async {
+        while taken.load(std::sync::atomic::Ordering::SeqCst) < queued as usize {
+            tokio::time::sleep(Duration::from_millis(5)).await;
+        }
+    })
+    .await
+    .unwrap();
+    let _ = stop_writer.send(());
+    timeout(Duration::from_secs(1), writer)
+        .await
+        .unwrap()
+        .unwrap();
+    let report = probe.report();
+    assert_eq!(report.stale_closes, 0);
+    assert!(report.send_failures_ms.is_empty());
+}
+
+/// A peer that takes every frame at once and, while `answering`, answers
+/// each ping the way a reading client does.
+struct PingAnswerer {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    answering: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl futures_util::Sink<Message> for PingAnswerer {
+    type Error = std::io::Error;
+
+    fn poll_ready(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn start_send(self: std::pin::Pin<&mut Self>, frame: Message) -> Result<(), Self::Error> {
+        if let Message::Ping(payload) = frame {
+            if self.answering.load(std::sync::atomic::Ordering::SeqCst) {
+                self.traffic.pong(&payload);
+            }
+        }
+        Ok(())
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+}
+
+#[tokio::test]
+async fn a_reader_that_stops_answering_pings_is_closed_once_it_falls_behind() {
+    let (tx, rx) = outbound_channel(4);
+    let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    let traffic = crate::metrics::ClientTraffic::new(Role::Spectator, Default::default());
+    let answering = Arc::new(std::sync::atomic::AtomicBool::new(true));
+    let writer = tokio::spawn(run_outbound_writer(
+        PingAnswerer {
+            traffic: Arc::clone(&traffic),
+            answering: Arc::clone(&answering),
+        },
+        rx,
+        shutdown,
+        WriterPolicy {
+            read_behind_after: Duration::from_millis(150),
+            ..limits(Duration::from_secs(60))
+        },
+        Duration::from_millis(10),
+        stop,
+        WriterMeters {
+            traffic: Arc::clone(&traffic),
+            probe: Some(Arc::clone(&probe)),
+        },
+    ));
+    // A reader that answers every ping stays, however long it is open.
+    tokio::time::sleep(Duration::from_millis(400)).await;
+    assert_eq!(*changed.borrow(), StopSignal::Open);
+    assert_eq!(probe.report().behind_closes, 0);
+    assert!(
+        traffic.ping_ms().is_some(),
+        "its answers time the round trip"
+    );
+    // Once it stops reading, the oldest unanswered ping ages past the bound.
+    answering.store(false, std::sync::atomic::Ordering::SeqCst);
+    let stopped = std::time::Instant::now();
+    timeout(Duration::from_secs(5), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
+    assert!(stopped.elapsed() >= Duration::from_millis(140));
+    writer.await.unwrap();
+    let report = probe.report();
+    assert_eq!(report.behind_closes, 1);
+    assert_eq!(report.stale_closes, 0);
+    assert_eq!(report.send_failures_ms.len(), 1);
+    drop(tx);
+}
+
+#[tokio::test]
+async fn accepted_game_socket_bounds_its_send_buffer() {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let connector =
+        tokio::spawn(async move { TcpStream::connect(("127.0.0.1", port)).await.unwrap() });
+    let (accepted, _) = listener.accept().await.unwrap();
+    bound_send_buffer(&accepted);
+    let size = socket2::SockRef::from(&accepted)
+        .send_buffer_size()
+        .unwrap();
+    // Linux reports double the request for its own bookkeeping; others report
+    // the request. Either way it is far below the 4 MiB autotuning ceiling.
+    assert!(
+        (SEND_BUFFER_BYTES..=2 * SEND_BUFFER_BYTES).contains(&size),
+        "{size}"
+    );
+    connector.abort();
 }
 
 #[tokio::test]

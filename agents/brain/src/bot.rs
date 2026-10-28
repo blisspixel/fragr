@@ -314,6 +314,7 @@ fn terminal_record_matches(
 
 async fn drain_terminal_record<S>(
     stream: &mut S,
+    frames: &mut fragr_server::protocol::WorldReader,
     id: Option<Uuid>,
     state: &MissionState,
     record: &mut Option<fragr_server::protocol::PlayerRecord>,
@@ -332,7 +333,7 @@ where
         while let Some(message) = stream.next().await {
             match message {
                 Ok(Message::Text(text)) => {
-                    let incoming: ServerMessage = serde_json::from_str(&text).map_err(|error| {
+                    let incoming: ServerMessage = frames.read(&text).map_err(|error| {
                         Error::Transport(format!("invalid server message: {error}"))
                     })?;
                     if let ServerMessage::Record(next) = incoming {
@@ -755,6 +756,8 @@ pub async fn run_bot(
         .map_err(|_| Error::Transport(format!("connect to {} timed out", config.server_url)))?
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
+    // The last world the server sent: snapshot deltas apply to it.
+    let mut frames = fragr_server::protocol::WorldReader::new();
     let hello = ClientMessage::Hello {
         body: Some(config.body),
         seat: None,
@@ -846,7 +849,7 @@ pub async fn run_bot(
         }
         tokio::select! {
             msg = stream.next() => match msg {
-                Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
+                Some(Ok(Message::Text(text))) => match frames.read(&text) {
                     Ok(ServerMessage::Mission { tick, state }) => {
                         let changed = DecisionEpoch::mission_changed(mission_client.state.as_ref(), &state);
                         if let Err(error) = mission_client.observe(tick, state) {
@@ -1269,7 +1272,16 @@ pub async fn run_bot(
         }
     }
     if let Some(state) = terminal_state.as_ref() {
-        match drain_terminal_record(&mut stream, me, state, &mut record, &mut summary).await {
+        match drain_terminal_record(
+            &mut stream,
+            &mut frames,
+            me,
+            state,
+            &mut record,
+            &mut summary,
+        )
+        .await
+        {
             Ok(complete) => summary.terminal_record_complete = Some(complete),
             Err(error) => {
                 summary.terminal_record_complete = Some(false);
@@ -1607,6 +1619,7 @@ mod tests {
         let started = tokio::time::Instant::now();
         let complete = drain_terminal_record(
             &mut stream,
+            &mut fragr_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -1627,6 +1640,7 @@ mod tests {
         let mut received = None;
         let complete = drain_terminal_record(
             &mut stream,
+            &mut fragr_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -2312,7 +2326,11 @@ mod tests {
             .await
             .unwrap();
             let healed = tokio::time::timeout(Duration::from_secs(3), async {
-                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                while let Some(Ok(frame)) = ws.next().await {
+                    // Pings arrive between text frames; skip them.
+                    let Message::Text(text) = frame else {
+                        continue;
+                    };
                     if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
                         if action.forward
                             && action
@@ -2344,7 +2362,11 @@ mod tests {
             // Observe controller output from the dead snapshot before allowing
             // the old answer to return. This separates setup and action timing.
             tokio::time::timeout(Duration::from_secs(3), async {
-                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                while let Some(Ok(frame)) = ws.next().await {
+                    // Pings arrive between text frames; skip them.
+                    let Message::Text(text) = frame else {
+                        continue;
+                    };
                     if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
                         if !action.forward && !action.fire {
                             break;
@@ -2691,9 +2713,14 @@ mod tests {
         // moved or turned since it was first seen: actions are arriving.
         let mut first_pose = std::collections::HashMap::new();
         let mut acted = std::collections::HashSet::new();
+        let mut frames = fragr_server::protocol::WorldReader::new();
         let first_tick = tokio::time::timeout(READINESS_BOUND, async {
-            while let Some(Ok(Message::Text(text))) = observer.next().await {
-                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+            while let Some(Ok(frame)) = observer.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
+                if let Ok(ServerMessage::Snapshot(snapshot)) = frames.read(&text) {
                     for p in &snapshot.players {
                         let pose = *first_pose.entry(p.id).or_insert((p.x, p.z, p.yaw));
                         if pose != (p.x, p.z, p.yaw) {
@@ -2736,8 +2763,12 @@ mod tests {
         let mut last_pose = std::collections::HashMap::new();
         let mut changes = std::collections::HashMap::<Uuid, u32>::new();
         tokio::time::timeout(READINESS_BOUND, async {
-            while let Some(Ok(Message::Text(text))) = observer.next().await {
-                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+            while let Some(Ok(frame)) = observer.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
+                if let Ok(ServerMessage::Snapshot(snapshot)) = frames.read(&text) {
                     for p in &snapshot.players {
                         let pose = (p.x, p.z, p.yaw);
                         if last_pose.insert(p.id, pose).is_some_and(|was| was != pose) {
@@ -2844,7 +2875,11 @@ mod tests {
                 tokio::time::timeout(Duration::from_secs(SAFETY_NET_SECONDS + 10), async {
                     let mut adopted = Vec::new();
                     let mut ready = None;
-                    while let Some(Ok(Message::Text(wire))) = socket.next().await {
+                    while let Some(Ok(frame)) = socket.next().await {
+                        // Pings arrive between text frames; skip them.
+                        let Message::Text(wire) = frame else {
+                            continue;
+                        };
                         let message = serde_json::from_str(&wire);
                         if matches!(
                             message,
@@ -3305,12 +3340,17 @@ mod tests {
         .await
         .unwrap();
         let mut saw = false;
+        let mut frames = fragr_server::protocol::WorldReader::new();
         let deadline = tokio::time::Instant::now() + Duration::from_secs(5);
         while tokio::time::Instant::now() < deadline {
-            let Some(Ok(Message::Text(text))) = stream.next().await else {
+            let Some(Ok(frame)) = stream.next().await else {
                 break;
             };
-            let Ok(ServerMessage::Snapshot(snap)) = serde_json::from_str(&text) else {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
+            let Ok(ServerMessage::Snapshot(snap)) = frames.read(&text) else {
                 continue;
             };
             if let Some(p) = snap.players.iter().find(|p| p.name == "Brain-1") {

@@ -6,7 +6,10 @@ use fragr_server::protocol::{Role, ServerMessage};
 use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
 use tokio::time::timeout;
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio_tungstenite::tungstenite::Message;
+
+mod support;
+use support::{connect_async, Socket};
 
 #[tokio::test]
 async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
@@ -107,17 +110,13 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
     server.await.unwrap().unwrap();
 }
 
-async fn welcome(
-    socket: &mut tokio_tungstenite::WebSocketStream<
-        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
-    >,
-) -> (Option<uuid::Uuid>, Option<String>) {
+async fn welcome(socket: &mut Socket) -> (Option<uuid::Uuid>, Option<String>) {
     let message = timeout(Duration::from_secs(2), socket.next())
         .await
         .expect("welcome")
         .unwrap()
         .unwrap();
-    match serde_json::from_str(message.to_text().unwrap()).unwrap() {
+    match socket.read(message.to_text().unwrap()).unwrap() {
         ServerMessage::Welcome {
             player_id,
             resume,
@@ -128,21 +127,18 @@ async fn welcome(
     }
 }
 
-async fn snapshot_has(
-    socket: &mut tokio_tungstenite::WebSocketStream<
-        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
-    >,
-    name: &str,
-) -> bool {
+async fn snapshot_has(socket: &mut Socket, name: &str) -> bool {
     loop {
         let message = timeout(Duration::from_secs(2), socket.next())
             .await
             .expect("snapshot")
             .unwrap()
             .unwrap();
-        if let ServerMessage::Snapshot(snapshot) =
-            serde_json::from_str(message.to_text().unwrap()).unwrap()
-        {
+        // Pings arrive between text frames; skip them.
+        let Message::Text(text) = message else {
+            continue;
+        };
+        if let ServerMessage::Snapshot(snapshot) = socket.read(&text).unwrap() {
             return snapshot.players.iter().any(|player| player.name == name);
         }
     }
