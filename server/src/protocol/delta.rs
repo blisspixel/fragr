@@ -578,6 +578,9 @@ impl WorldReader {
 pub struct EncodedWorld {
     pub tick: u64,
     pub delta: Option<WorldDelta>,
+    /// The base the tick already tried a delta against, kept or not. A writer
+    /// holding that base needs no second attempt.
+    pub tried: Option<u64>,
 }
 
 #[derive(Debug)]
@@ -600,6 +603,7 @@ impl WorldEncoder {
     pub fn observe(&mut self, message: &ServerMessage, text: &str) -> Option<EncodedWorld> {
         match message {
             ServerMessage::Snapshot(snapshot) => {
+                let tried = self.last.as_ref().map(|(base, _)| *base);
                 let delta = self.last.as_ref().and_then(|(base, last)| {
                     Some(WorldDelta {
                         base: *base,
@@ -614,6 +618,7 @@ impl WorldEncoder {
                 Some(EncodedWorld {
                     tick: snapshot.tick,
                     delta,
+                    tried,
                 })
             }
             ServerMessage::MapInfo { .. } | ServerMessage::Mission { .. } => {

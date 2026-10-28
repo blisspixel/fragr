@@ -693,8 +693,8 @@ server ignores one from an agent socket), because `look_at` aims at the
 present. The brain and the playtest harness agents send none. The traffic
 generator's synthetic humans send none, so their shots stay unrewound.
 
-The counters (`GameState::rewind_stats`: admitted, refused, rewound, clamped
-and discontinuous) are published on `GET /status` as `ops.rewind` since
+The counters (`GameState::rewind_stats`: `accepted`, `refused`, `rewinds`,
+`clamped` and `discontinuities`) are published on `GET /status` as `ops.rewind` since
 wave 15 (`ops` in [protocol](protocol.md)), so a host can read the clamped
 share of a real night.
 

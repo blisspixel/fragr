@@ -151,7 +151,9 @@ impl SentWorld {
         {
             return (Cow::Borrowed(&delta.text), WorldFrame::Delta);
         }
-        let Some(held) = held else {
+        // The tick already tried this base and kept no delta: it would not
+        // be shorter here either.
+        let Some(held) = held.filter(|_| held_tick != world.tried) else {
             return whole;
         };
         let started = std::time::Instant::now();

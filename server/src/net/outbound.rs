@@ -62,6 +62,7 @@ impl Broadcast {
                 ServerMessage::Snapshot(snapshot) => Some(EncodedWorld {
                     tick: snapshot.tick,
                     delta: None,
+                    tried: None,
                 }),
                 _ => None,
             },

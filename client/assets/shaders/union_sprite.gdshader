@@ -78,8 +78,9 @@ void fragment() {
 		float value = max(max(texel.r, texel.g), texel.b);
 		float dark = 1.0 - smoothstep(0.0, 0.06, value);
 		float red = red_mask(texel.rgb);
-		vec3 body = mix(texel.rgb, max(texel.rgb, charcoal), body_lift * dark);
-		body = mix(body * body_value, body, red);
+		// Scale before the lift, so the darkest texels still reach charcoal.
+		vec3 scaled = mix(texel.rgb * body_value, texel.rgb, red);
+		vec3 body = mix(scaled, max(scaled, charcoal), body_lift * dark);
 		// Dead optics: the red's own value, drained to an unlit oxblood.
 		vec3 dead = vec3(texel.r * 0.22, texel.r * 0.07, texel.r * 0.06);
 		vec3 albedo = mix(body, mix(body, dead, red), absorbed);
