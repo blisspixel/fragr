@@ -118,6 +118,19 @@ impl Broadcast {
     }
 }
 
+/// How a session writer sent a shared broadcast.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WorldFrame {
+    /// The full text: not a world, the reader holds no base, or no delta
+    /// was shorter.
+    Whole,
+    /// The tick's delta from the previous world.
+    Delta,
+    /// A delta this writer encoded from the world its reader held, after a
+    /// replaced world, and how long that encode took.
+    Rebased(Duration),
+}
+
 /// What a session queue holds: a shared broadcast or one targeted message.
 /// A message is several kilobytes inline, so a targeted one is boxed and a
 /// queue slot stays pointer sized.
@@ -334,6 +347,9 @@ struct WriterSamples {
     shared_bytes: u64,
     delta_frames: u64,
     delta_bytes: u64,
+    rebased_frames: u64,
+    rebased_bytes: u64,
+    rebase_ns: Histogram,
     /// When the measured window began: the last reset.
     since: Option<Instant>,
     /// Writers that gave up on a send (timeout or socket error), by when.
@@ -363,6 +379,12 @@ pub struct WriterReport {
     /// Of the shared frames, worlds sent as a delta, and their bytes.
     pub delta_frames: u64,
     pub delta_bytes: u64,
+    /// Of the deltas, those a writer encoded itself against the world its
+    /// reader held after a replaced world, their bytes, and the time each
+    /// encode took.
+    pub rebased_frames: u64,
+    pub rebased_bytes: u64,
+    pub rebase_ms: Summary,
     /// Milliseconds into the window at which a writer's send timed out or
     /// failed, closing that connection, stale closes included.
     pub send_failures_ms: Vec<f64>,
@@ -394,13 +416,18 @@ impl WriterProbe {
         samples.encoded_bytes += bytes as u64;
     }
 
-    pub(crate) fn shared(&self, bytes: usize, delta: bool) {
+    pub(crate) fn shared(&self, bytes: usize, frame: WorldFrame) {
         let mut samples = self.samples();
         samples.shared_frames += 1;
         samples.shared_bytes += bytes as u64;
-        if delta {
+        if frame != WorldFrame::Whole {
             samples.delta_frames += 1;
             samples.delta_bytes += bytes as u64;
+        }
+        if let WorldFrame::Rebased(elapsed) = frame {
+            samples.rebased_frames += 1;
+            samples.rebased_bytes += bytes as u64;
+            samples.rebase_ns.record(nanos(elapsed));
         }
     }
 
@@ -448,6 +475,9 @@ impl WriterProbe {
             shared_bytes: samples.shared_bytes,
             delta_frames: samples.delta_frames,
             delta_bytes: samples.delta_bytes,
+            rebased_frames: samples.rebased_frames,
+            rebased_bytes: samples.rebased_bytes,
+            rebase_ms: samples.rebase_ns.summary(1e-6),
             send_failures_ms: samples
                 .send_failures
                 .iter()

@@ -115,8 +115,8 @@ has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
 The adapter sends the server crate's current gameplay contract. A shared arcade room
-requires that exact hello. From gameplay 61 the server may send a world as a
-`snapshot_delta` against the world before it; the adapter reads every frame
+requires that exact hello. From gameplay 63 the server may send a world as a
+`snapshot_delta` against the world the adapter holds; it reads every frame
 through the server crate's `protocol::WorldReader`, so `observe` always sees
 the full snapshot, and a delta it cannot apply ends the game session as
 malformed server data does. M07 Declared Goods requires 32

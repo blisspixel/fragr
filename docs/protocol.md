@@ -148,7 +148,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `62`; omission means `1`. Discovery-only maps first
+  and the Godot client send `63`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -376,17 +376,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`62`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`63`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-62 or geometry 2. An older hello is also sent to
+63 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 62 can
-still enter that mission, and a hello above 62 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 63 can
+still enter that mission, and a hello above 63 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -1605,8 +1605,8 @@ of hiding megabytes of stale worlds in the kernel. An in-progress write cannot
 be replaced, and combat-heavy queues can still reach these bounds.
 The server encodes each broadcast once per tick and every initialized session
 receives those same bytes; targeted messages are encoded per session. A
-reader at gameplay 61 or later may receive a world as a `snapshot_delta`
-instead (see "Snapshot deltas (capability 61)").
+reader at gameplay 63 or later may receive a world as a `snapshot_delta`
+instead (see "Snapshot deltas (capability 63)").
 
 ```json
 {
@@ -4022,13 +4022,15 @@ adapter forwards only what its own session received. A spectator reader that
 ignored `team` would show one side's calls as room chatter, so arcade rooms
 require 60.
 
-### Snapshot deltas (capability 61)
+### Snapshot deltas (capability 63)
 
-Gameplay 61 lets the server send a world as the change from the world before
-it. Owner: `server/src/protocol/delta.rs`; the Godot decoder is
+Gameplay 63 lets the server send a world as the change from the world the
+reader holds. Owner: `server/src/protocol/delta.rs`; the Godot decoder is
 `client/scripts/snapshot_delta.gd`, and every Rust reader (the MCP adapter,
 the playtest harness, the brain, `fragr-wire`) reads frames through
-`protocol::WorldReader`, so callers only ever see full `Snapshot`s.
+`protocol::WorldReader`, so callers only ever see full `Snapshot`s. Gameplay
+61 introduced deltas that named every carried fighter by `id`; that shape is
+no longer sent, and a reader at 61 or 62 receives every world whole.
 
 ```json
 {
@@ -4038,9 +4040,10 @@ the playtest harness, the brain, `fragr-wire`) reads frames through
   "set": {"round_time_left": 141, "host_line": "HOST: TWO DOWN."},
   "unset": ["mvp"],
   "players": [
-    {"id": "550e8400-e29b-41d4-a716-446655440000", "x": 10.75, "yaw": 1.62},
-    {"id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "hp": 0, "unset": ["ping"]},
-    {"id": "...", "name": "New Arrival", "x": 0.0, "...": "a whole entry"}
+    {"x": 10.75, "yaw": 1.62},
+    {},
+    {"at": 4, "hp": 0, "unset": ["ping"]},
+    {"id": "550e8400-e29b-41d4-a716-446655440000", "name": "New Arrival", "...": "a whole entry"}
   ]
 }
 ```
@@ -4052,24 +4055,34 @@ the playtest harness, the brain, `fragr-wire`) reads frames through
   appeared, whole (a changed `pickups` list is the whole list). `unset` lists
   top-level fields the new world omits. Both are omitted when empty, and
   neither names `type`, `tick` or `players`.
-- `players` is always present and is the new roster in order. An entry whose
-  `id` the base holds carries that `id`, the fields that changed or appeared,
-  and an `unset` list of fields it no longer has. An entry with an `id` the
-  base does not hold is a whole participant. A base entry missing from the
-  list has left the world. Ids are unique.
+- `players` is always present and is the new roster in order. An entry with
+  an `id` is a whole participant the base does not hold, and carries neither
+  `at` nor `unset`. An entry without an `id` carries a base roster entry
+  forward: `at` is that entry's zero-based position in the base's `players`,
+  omitted when it is one past the previous carried entry's position (or 0
+  for the first carried entry). It holds only the fields that changed or
+  appeared, and an `unset` list of fields it no longer has; `{}` is a
+  fighter whose entry did not change. Each base position is carried at most
+  once, and a base entry no entry carries has left the world. The rebuilt
+  roster's ids are unique. In the example the first entry carries base
+  position 0, the second position 1, and the third position 4 (positions 2
+  and 3 left).
 - Applying the delta to its base yields exactly the full Snapshot's JSON
-  value, which then passes the same validation as a world sent whole.
+  value, every fighter's full `id` included, which then passes the same
+  validation as a world sent whole.
 
 When it is sent: the tick encodes each world once in full and once as the
 delta from the previous tick's world, and keeps the delta only when it is
-shorter. A session writer sends the delta only when the last world it put on
-its socket is the delta's base; the stream is ordered and reliable, so that
-is the world the reader holds. Otherwise the world goes whole: the first world
-of a connection, the first after any `MapInfo` or `Mission` (both sides forget
-the held world at those barriers), a world that replaced an unsent one, and
-every world for a reader below 61. Readers below 61 keep receiving exactly the
-bytes they did before. Quantization of coordinates and per-reader deltas
-after a replaced world are not part of this capability.
+shorter. A session writer sends that delta when the last world it put on its
+socket is the delta's base; the stream is ordered and reliable, so that is the
+world the reader holds. When the reader holds an older world, because the
+world in between was replaced while still unsent, the writer encodes a delta
+from the world it last sent instead, again only when it is shorter. A world
+goes whole when the reader holds none: the first world of a connection and
+the first after any `MapInfo` or `Mission` (both sides forget the held world
+at those barriers), and after a world sent only to that reader. Readers below
+63 receive every world whole. Quantization of coordinates is not part of this
+capability.
 
 ### Lag compensation (capability 62)
 

@@ -835,15 +835,17 @@ pub const ARENA_RULES_GAMEPLAY_VERSION: u32 = 59;
 /// `team` they are said to, and a reader that ignored it would show one
 /// side's calls to the other.
 pub const SIDE_CALLS_GAMEPLAY_VERSION: u32 = 60;
-/// Snapshot deltas (`snapshot_delta`, see `protocol::delta`): a reader at this
-/// contract may receive a world as the change from the one before it. Older
-/// readers keep receiving every world whole.
-pub const DELTA_GAMEPLAY_VERSION: u32 = 61;
 /// Bounded hitscan lag compensation: a human Action may carry `view_tick`,
 /// the server tick its client was drawing others at. An older strict Action
 /// reader refuses the field, so a shared room moves to this contract.
 pub const LAG_COMP_GAMEPLAY_VERSION: u32 = 62;
-pub const GAMEPLAY_VERSION: u32 = LAG_COMP_GAMEPLAY_VERSION;
+/// Snapshot deltas (`snapshot_delta`, see `protocol::delta`) in their current
+/// shape: a reader at this contract may receive a world as the change from
+/// the one it holds, with carried fighters keyed by base roster position
+/// rather than id. Gameplay 61 introduced deltas keyed by id; that shape is
+/// no longer sent, so a reader at 61 or 62 receives every world whole.
+pub const DELTA_GAMEPLAY_VERSION: u32 = 63;
+pub const GAMEPLAY_VERSION: u32 = DELTA_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

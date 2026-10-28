@@ -25,7 +25,7 @@ func _golden() -> Array:
 
 func _run() -> void:
 	var cases: Array = _golden()
-	_check(cases.size() >= 3, "golden vectors load")
+	_check(cases.size() >= 4, "golden vectors load")
 	for index: int in cases.size():
 		var case: Dictionary = cases[index]
 		var base: Dictionary = case["base"]
@@ -33,7 +33,7 @@ func _run() -> void:
 		var rebuilt: Dictionary = SnapshotDelta.apply(base, case["delta"])
 		_check(rebuilt == case["world"], "case %d rebuilds the server's world" % index)
 		_check(base == before, "case %d leaves the held world unchanged" % index)
-		if index > 0:
+		if index > 1:
 			_check(ActorState.validation_error(rebuilt).is_empty(), "case %d rebuilds a valid fought world" % index)
 	_refusals(cases[0]["base"] if not cases.is_empty() else {})
 	_net_client()
@@ -44,6 +44,11 @@ func _run() -> void:
 func _refusals(base: Dictionary) -> void:
 	var good: Dictionary = {"type": "snapshot_delta", "base": 7, "tick": 8, "players": []}
 	_check(not SnapshotDelta.apply(base, good).is_empty(), "a minimal delta applies")
+	# Carried entries by base position: swapped, one written out.
+	var swapped: Dictionary = SnapshotDelta.apply(base, {"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"at": 1}, {"at": 0.0, "x": 3.0}]})
+	var rows: Variant = swapped.get("players")
+	_check(rows is Array and (rows as Array).size() == 2 and rows[0]["id"] == "b" and rows[1]["id"] == "a" \
+			and rows[1]["x"] == 3.0 and not (rows[1] as Dictionary).has("at"), "carried entries follow their base position")
 	var bad: Array[Dictionary] = [
 		{"type": "snapshot", "base": 7, "tick": 8, "players": []},
 		{"type": "snapshot_delta", "base": 6, "tick": 8, "players": []},
@@ -59,10 +64,19 @@ func _refusals(base: Dictionary) -> void:
 		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [], "unset": [1]},
 		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [], "unset": ["type"]},
 		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [3]},
-		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"x": 1}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"id": 5}]},
 		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"id": "z"}, {"id": "z"}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"id": "z", "at": 0}]},
 		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"id": "a", "unset": ["id"]}]},
-		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"id": "a", "unset": "ping"}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"unset": ["id"]}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"unset": "ping"}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"at": 2}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"at": -1}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"at": 0.5}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{"at": "0"}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{}, {}, {}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{}, {"at": 0}]},
+		{"type": "snapshot_delta", "base": 7, "tick": 8, "players": [{}, {"id": "a"}]},
 	]
 	for index: int in bad.size():
 		_check(SnapshotDelta.apply(base, bad[index]).is_empty(), "bad delta %d is refused" % index)
@@ -82,7 +96,7 @@ func _net_client() -> void:
 	client.server_error.connect(func(message: String) -> void: errors.append(message))
 	client.snapshot_received.connect(func(data: Variant) -> void: worlds.append(data))
 	var cases: Array = _golden()
-	var fought: Dictionary = cases[1] if cases.size() > 1 else {}
+	var fought: Dictionary = cases[2] if cases.size() > 2 else {}
 	client._handle_message(JSON.stringify(fought.get("delta", {}), "", true, true))
 	_check(errors.size() == 1 and errors[0] == SnapshotDelta.INVALID, "a delta before any world closes the connection")
 	_check(worlds.is_empty(), "a refused delta presents nothing")
