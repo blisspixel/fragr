@@ -359,11 +359,32 @@ fn the_client_golden_is_the_server_delta() {
         "../../../../client/golden/snapshot_delta_vectors.json"
     ))
     .expect("parse the client golden");
-    assert_eq!(
-        client_cases(),
-        golden,
-        "client/golden/snapshot_delta_vectors.json is stale; regenerate it with write_snapshot_delta_golden"
+    let stale = "client/golden/snapshot_delta_vectors.json is stale; regenerate it with write_snapshot_delta_golden";
+    let fresh = client_cases();
+    let (fresh, golden) = (
+        fresh["cases"].as_array().unwrap(),
+        golden["cases"].as_array().unwrap(),
     );
+    assert_eq!(fresh.len(), golden.len(), "{stale}");
+    // The hand-written case is exact everywhere.
+    assert_eq!(fresh[0], golden[0], "{stale}");
+    // The recorded match worlds come from a simulation whose last float digit
+    // follows the platform's libm, so they are not compared against a fresh
+    // run. Every recorded case must still be exactly the server's delta of
+    // its worlds, and apply back to its world.
+    for case in golden {
+        let base = object(case["base"].clone());
+        let world = object(case["world"].clone());
+        assert_eq!(
+            Value::Object(encode(&base, &world).expect("worlds differ")),
+            case["delta"],
+            "{stale}"
+        );
+        assert_eq!(
+            apply(&base, &object(case["delta"].clone())).expect("the delta applies"),
+            world
+        );
+    }
 }
 
 #[test]
