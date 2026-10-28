@@ -5,7 +5,9 @@ Shared [world direction](../design/moon.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** planned, accepted 2026-09-25, unbuilt. The second half of
+**Status:** accepted 2026-09-25; a playable development mission on main
+(map 1007, `server/maps/m07_declared_goods.json`), dressed toward the golden
+slice in wave 15 (below). Fresh-player acceptance is open. The second half of
 [M04](l06-port-of-entry.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): the lunar town and
 the crater cut. [Story arc](story-arc.md).
@@ -88,3 +90,69 @@ suspended.*
 
 **The moment.** The lamps coming on down the curfew street, one window at a
 time, after you clear the square.
+
+## Golden-slice dressing (wave 15)
+
+`client/scripts/m07_dressing.gd` raises the built route toward the Recall
+Notice bar the way the port's dressing does, and reuses its helpers: every
+piece is frontage, flush paint, a small possession against a wall or on a top,
+a line overhead, scenery outside the playable square or practical light, and
+the server's solids are unchanged. `M07Town` builds it with the rest of the
+town, so a re-sent map rebuilds one dressed town. Its layout guard keys on
+walls that never move (the town wall, the market vault, the post's rack and
+window sill, both cut walls, the rim and the depot deck).
+
+The town has its own face, not the port's. `M07Dressing.restyle_town` paints
+each habitation block in its own faded colour (sage, terracotta, blue-grey,
+ochre, lilac grey), all mid values so a black-and-red guard reads against any
+of them; the curfew post and depot are issued steel one step lighter than a
+Union body; the market vault is old riveted steel; the cut is grey regolith,
+compacted berms, dark basalt walls and galvanised radiation shields with ochre
+edges. The `service_steel` that painted the post, the shields and the ramp in
+Union black with glowing red stripes is gone; no solid's paint emits light. The
+town floor is paved in tiles and lunar ground surrounds the walls.
+`ArenaSky.moon_town()` puts a low sun behind the town wall, so the streets lie
+in long shade under the dome and the only hard light inside is the Union's:
+cold curfew floods on brackets and the post's pools. Out in the cut the same
+sun is hard light on dust, with a jagged crater rim beyond both walls and the
+rim, and the port's side dropping low under Earth.
+
+The story is told in objects. Every street face carries doors in household
+colours, each with the same small red registration seal, a mat, a pot, boots or
+a crate at the threshold and a dark lamp over it; dark windows with curtains
+and window boxes; conduits, downpipes and a cornice; water tanks, vents and
+masts on the roofs. Washing hangs over the ring street. The stalls are covered
+for the night under roped tarps. The market's strongroom door is sealed by
+order with a red strip and a tag, and the Union's barriers carry hazard paint.
+Beside the lit window a neighbour keeps planters and a bicycle wheel; in the
+dead-end alley a chalk hopscotch, a ball, a chalk sun and a row of figures
+holding hands sit under the curfew notice and the 67. The square's planters
+hold dry stalks. The post's face to the square has two tall black banners with
+the original red seal, cold floods at its corners and painted stand-here marks
+before the gate. Inside, the register: a wall of household cards, each a small
+square portrait and a red stamp, over filing cabinets and a wall desk of forms
+and stamps; the confiscated long arms lean tagged at the rack's ends beside a
+crate of seized tools; upstairs a cot and a flask by the firing step. In the cut
+the shields have hazard feet and ribs with dust drifted against them, a power
+cable runs down the west wall and hauler tracks cross the floor. Each Ranged
+Sweeper position on the rim is a lit stage: a deck plate, a rail behind, a cold
+spot from a mast and a mid-grey blast screen behind the body, so the black
+marksman and its glint read through the scope across the cut. The depot's
+intake door is shut under chevrons between two sealed banners.
+
+**Signs.** Seven readable signs, all placed before this wave: `CLOSED BY
+ORDER` twice, `CURFEW / REMAIN INDOORS` three times (two kiosks and the alley),
+`CONFISCATED` on the Sniper Rifle rack, and `FREIGHT INTAKE / DECLARED GOODS`
+on the depot panel. The transit and port overlook plates are hidden; the chalk
+67 and the two sixes are marks, not words. The dressing adds no words.
+
+`client/qa/m07-golden.json` frames every beat on the route from a spectator
+camera; `m07-golden-guards.json` frames the curfew patrol, the only guards
+placed before their encounter wakes, against the frontage. The later groups,
+the gate Turret and every Ranged Sweeper appear only through the combat route
+in `client/qa/m07_declared_goods.json`, which still runs end to end to the
+freight departure with the dressing in place. Still open: the crater rim is
+flat-shaded ridge geometry rather than sculpted rock; the depot tower, dome and
+port are plain shared backdrop shapes; the lamp line's moment needs a motion
+capture judged against the dark street; the frontage repeats one door and
+window kit; fresh-player pacing and GPU performance.

@@ -114,6 +114,10 @@ func configure_map(info: Dictionary) -> void:
 		chime.stream = load(L07Assets.CURFEW_CHIME_SOUND)
 	_root.add_child(chime)
 	_geometry = M07MissionState.geometry_for(info)
+	var dressing: M07Dressing = M07Dressing.new()
+	dressing.name = "TownDressing"
+	_root.add_child(dressing)
+	dressing.configure_map(info)
 	ArenaSky.mark_world(_root)
 
 ## Server facts drive the curfew: the chime runs while the mission is live,
@@ -355,7 +359,8 @@ func _depot_tower() -> void:
 	depot.name = "DepotRadialTower"
 	depot.position = DEPOT_TOWER
 	_root.add_child(depot)
-	var shell: Material = _material(Color("b1b1a4"))
+	# Weathered issued steel: a Union building, never a pale Inheritance shell.
+	var shell: Material = _material(Color("7d817f"))
 	var basalt: Material = _material(Color("343b3c"))
 	var red: Material = _material(Color("8c1a1e"), true)
 	# Tall enough to stand over the town blocks from the tunnel mouth.

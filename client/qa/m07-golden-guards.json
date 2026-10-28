@@ -1,0 +1,11 @@
+{
+  "comment": "M07 golden-slice faction read. A joined player waits in the tunnel while posed views frame the curfew patrol, the only guards placed before activation (later groups, the gate Turret and every Ranged Sweeper spawn when their encounter wakes; client/qa/m07_declared_goods.json reaches them through combat). Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m07_declared_goods.json. Check black armour, red visors, armbands and optics against the frontage, awnings and dark shutters at street distance; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","note":"The unforced first-person arrival frame at the tunnel mouth."},
+    {"name":"patrol_near","camera":"overview","camera_position":[-34,1.65,-61],"camera_look_at":[-24,1.1,-62],"note":"Two Clerks among the stalls and porches at 7 to 14 m."},
+    {"name":"patrol_far","camera":"overview","camera_position":[-44,1.65,-62],"camera_look_at":[-10,1.1,-63],"note":"The patrol down the ring street at 17 to 40 m."},
+    {"name":"patrol_sweepers","camera":"overview","camera_position":[-6,1.65,-62],"camera_look_at":[15,1.1,-57],"note":"The patrol's two Sweepers toward the bend at 14 to 30 m."}
+  ]
+}
