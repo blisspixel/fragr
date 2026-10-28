@@ -4,6 +4,30 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.93.0 - 2026-10-28
+
+- Drop a dead fighter's found gun with its remaining rounds in free-for-all
+  and Duel, for 15 seconds, resting where a body can stand. Bots notice a
+  drop only once they have seen it.
+- Queue for a Duel seat with J and let the winner stay; an open seat is held
+  briefly for the next in line. Add six host presets with compatible mutator
+  stacking, and a ticket bleed alert, siren and heartbeat in Conquest.
+- Voice the Host with 48 recorded lines. A tiered hit confirm marks damage,
+  headshots and kills, and the Scatter gains a heavier kick and a pump sound.
+- Rule bots use the Rocket Launcher at sensible ranges and chase seen Rocket
+  drops, take Capture the Flag pads within their role, and post rare
+  objective calls heard only by their own side and spectators.
+- Campaign guards on foot need their own sighting and a short reaction
+  before they fire. Squads pin, flank and shield, and Union radio barks are
+  voiced, with captions for all barks.
+- Replace the Paver and Surveyor placeholders in Levels 19 and 20 with
+  final Inheritance models.
+- Fix a Planned Works controller that could stall at the corner of two
+  overlapping Paver strips. Extend constrained campaign evaluation to the
+  water tanks and through an earned Recall Notice save into Persons Unknown.
+- Measure network fan-out, slow readers, memory and snapshot shape in
+  [BENCHMARK.md](docs/BENCHMARK.md).
+
 ## v0.92.1 - 2026-10-26
 
 - Keep Continue available when its request fails to enter the network queue,
