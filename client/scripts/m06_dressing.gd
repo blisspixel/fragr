@@ -1,7 +1,7 @@
 class_name M06Dressing
 extends Node3D
 
-## Port of Entry's golden-slice dressing (docs/campaign/m04-port-of-entry.md,
+## Port of Entry's golden-slice dressing (docs/campaign/l06-port-of-entry.md,
 ## docs/design/moon.md). The server owns every solid; this presenter only
 ## restyles their views and furnishes them: surface materials by use, flush
 ## wall fittings, paint, small possessions on existing tops or against walls,
