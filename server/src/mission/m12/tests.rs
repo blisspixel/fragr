@@ -856,7 +856,9 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
     arrival(&mut s, id, 1);
     clear_group(&mut s, 1);
     arrival(&mut s, id, 1);
-    place(&mut s, id, [12.0, 0.3, 7.0]);
+    const HOLD: [f32; 3] = [12.0, 0.3, 7.0];
+    const HOLD_RADIUS: f32 = 3.0;
+    place(&mut s, id, HOLD);
     tick(&mut s);
     let owner = s
         .state
@@ -939,18 +941,25 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
         // way a player reads them: back off along one side until it is spent.
         // (Since guards need a sighting, the two Clerks facing away no longer
         // claim both attack tokens on entry, so the drone's volley comes
-        // early, while this input still stands in the squad's lane.)
-        if matches!(
+        // early, while this input still stands in the squad's lane.) The
+        // back-off holds the room: it gives ground only within a few metres
+        // of the entry spot and otherwise sidesteps, and once the volley is
+        // spent it closes back in. Backing out of the room instead drew the
+        // wounded guard after the input and out from under the drone.
+        let threatened = matches!(
             drone.campaign,
             Some(CampaignActor::Hostile {
                 phase: crate::protocol::EnemyPhase::Windup | crate::protocol::EnemyPhase::Firing,
                 ..
             })
-        ) || !snapshot.assessor_canisters.is_empty()
-        {
+        ) || !snapshot.assessor_canisters.is_empty();
+        let from_hold = (me.x - HOLD[0]).hypot(me.z - HOLD[2]);
+        if threatened {
             action.left = false;
             action.right = true;
-            action.back = true;
+            action.back = from_hold < HOLD_RADIUS;
+        } else if from_hold > HOLD_RADIUS {
+            action.forward = true;
         }
         s.state.set_action(id, action);
         tick(&mut s);
