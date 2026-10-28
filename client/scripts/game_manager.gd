@@ -123,6 +123,7 @@ var m03_yard: M03Yard
 var m04_town: M04Town
 var m04_dressing: M04Dressing
 var m05_town: M05Town
+var m05_dressing: M05Dressing
 var m06_port: M06Port
 var m08_archive: M08Archive
 var m07_town: M07Town
@@ -433,6 +434,9 @@ func _ready():
 	m05_town = M05Town.new()
 	m05_town.name = "M05Town"
 	add_child(m05_town)
+	m05_dressing = M05Dressing.new()
+	m05_dressing.name = "M05Dressing"
+	add_child(m05_dressing)
 	m06_port = M06Port.new()
 	m06_port.name = "M06Port"
 	add_child(m06_port)
@@ -691,6 +695,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m04_dressing.configure_map(info)
 	if m05_town != null:
 		m05_town.configure_map(info)
+	if m05_dressing != null:
+		m05_dressing.configure_map(info)
 	if m06_port != null:
 		m06_port.configure_map(info)
 	if m08_archive != null:
@@ -2298,6 +2304,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m04_town.apply_vote(arena_cover)
 	if m05_town != null:
 		m05_town.apply_state(state)
+	if m05_dressing != null:
+		m05_dressing.apply_state(state)
 	if m06_port != null:
 		m06_port.apply_state(state)
 	if m08_archive != null:
@@ -2810,6 +2818,8 @@ func _clear_world() -> void:
 		m04_dressing.clear_map()
 	if m05_town != null:
 		m05_town.clear_map()
+	if m05_dressing != null:
+		m05_dressing.clear_map()
 	if m06_port != null:
 		m06_port.clear_map()
 	if m08_archive != null:

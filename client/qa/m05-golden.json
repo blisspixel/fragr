@@ -1,0 +1,29 @@
+{
+  "comment": "M05 No Forwarding Address golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m05_no_forwarding_address.json. Eye-height spectator views of every beat on the authored route, from the roof stair among the water tanks to the Common Carrier on the pad, with the roof guards placed from the start. Look at each still against docs/design/earth.md (M05 Low Water roofs), the Level 4 stills and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"roof_arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-24,5.65,-31],"camera_look_at":[6,5.2,-26],"allow_empty_roster":true,"note":"Arrival: the roof stair from Level 4 comes out among the water tanks; the plank bridge and the far roof ahead, the Notaries over the crossing."},
+    {"name":"roof_tanks","camera":"overview","camera_position":[-20,5.65,-22],"camera_look_at":[-25,5.2,-32],"allow_empty_roster":true,"note":"The water tanks on the roof loop: the skyline that returns in the wipe."},
+    {"name":"roof_over_market","camera":"overview","camera_position":[-12,5.65,-22],"camera_look_at":[-30,1.5,-6],"allow_empty_roster":true,"note":"Over the roof edge to the market below: awning, stalls and the drop back down."},
+    {"name":"roof_bridge","camera":"overview","camera_position":[-5,5.65,-27.5],"camera_look_at":[20,4.8,-26],"allow_empty_roster":true,"note":"The plank bridge across the street gap toward the Clerks' roof."},
+    {"name":"street_gap","camera":"overview","camera_position":[0,5.65,-27.5],"camera_look_at":[0,0.5,-38],"allow_empty_roster":true,"note":"Down from the bridge into the street the sweep holds."},
+    {"name":"roof_skyline_workshop","camera":"overview","camera_position":[-10,5.65,-21],"camera_look_at":[8,1.5,10],"allow_empty_roster":true,"note":"From the roof edge over the open tram workshop to the trench and the freight platform beyond."},
+    {"name":"east_roof_crane","camera":"overview","camera_position":[14,5.65,-30],"camera_look_at":[26,5.5,-15],"allow_empty_roster":true,"note":"The far roof and Level 4's gantry crane, now underfoot, over the crane walk."},
+    {"name":"crane_walk_descent","camera":"overview","camera_position":[26,5.65,-21],"camera_look_at":[18,0.5,-4],"allow_empty_roster":true,"note":"Down the crane walk's treads into the workshop."},
+    {"name":"workshop_floor","camera":"overview","camera_position":[16,1.65,-4],"camera_look_at":[-16,1.6,-6],"allow_empty_roster":true,"note":"The workshop floor from the east door: paint bay, chassis, service bay, loading pen."},
+    {"name":"paint_bay","camera":"overview","camera_position":[9,1.65,-5],"camera_look_at":[12,0.9,-13],"allow_empty_roster":true,"note":"The paint-bay bench where the Grenades lie, with room to throw."},
+    {"name":"grenade_lesson","camera":"overview","camera_position":[12,2.55,-12],"camera_look_at":[2,0.6,-10],"allow_empty_roster":true,"note":"From the bench over the stripped tram chassis where the Sweeper squad crouches."},
+    {"name":"loading_pen","camera":"overview","camera_position":[-7,1.65,-3],"camera_look_at":[-18,1.2,1.5],"allow_empty_roster":true,"note":"The Union loading pen on the workshop floor, Splice and the captive agents inside."},
+    {"name":"service_bay","camera":"overview","camera_position":[-8,1.65,-8.5],"camera_look_at":[-8,1.2,-14],"allow_empty_roster":true,"note":"The tram service bay and its inspection pit, the secret six."},
+    {"name":"market_below","camera":"overview","camera_position":[-26,1.65,4],"camera_look_at":[-29,1.6,-14],"allow_empty_roster":true,"note":"The market strip below the roofs, its awning and the supply shortcut."},
+    {"name":"trench_from_workshop","camera":"overview","camera_position":[2,1.65,1],"camera_look_at":[0,1.6,30],"allow_empty_roster":true,"note":"The tram trench from the workshop mouth: Splice's patched tram, crossings and recesses, floodlights at the end."},
+    {"name":"patched_tram","camera":"overview","camera_position":[6,1.65,10],"camera_look_at":[0,0.8,6],"allow_empty_roster":true,"note":"Splice's patched tram at its dock, ready to roll."},
+    {"name":"trench_bridge","camera":"overview","camera_position":[-8,6.4,19],"camera_look_at":[4,1,31],"allow_empty_roster":true,"note":"From the foot crossing over the trench toward the platform ramp."},
+    {"name":"trench_recess","camera":"overview","camera_position":[-3,1.65,14],"camera_look_at":[-12,1.2,22],"allow_empty_roster":true,"note":"A trench wall with its maintenance recess and cover."},
+    {"name":"heavy_ramp","camera":"overview","camera_position":[-5,1.65,22],"camera_look_at":[8,1.1,30],"allow_empty_roster":true,"note":"The end ramp where the Heavy Sweeper comes alone."},
+    {"name":"freight_gate","camera":"overview","camera_position":[0,1.65,25],"camera_look_at":[0,2,34],"allow_empty_roster":true,"note":"The freight platform gate, the level's one door, and its floodlights."},
+    {"name":"carrier_pad","camera":"overview","camera_position":[7,1.65,35.0],"camera_look_at":[-12,3.2,38.5],"allow_empty_roster":true,"note":"Tern's ship on the pad beyond the gate."},
+    {"name":"roofs_from_trench","camera":"overview","camera_position":[3,1.65,30],"camera_look_at":[-6,5,-26],"allow_empty_roster":true,"note":"Looking back up the trench at the roofs and tanks the neighbours crossed."}
+  ]
+}
