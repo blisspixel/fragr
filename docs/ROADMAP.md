@@ -151,6 +151,26 @@ tick runs over budget at the 64-connection cap with about 101 fighters, and
 stage 3 relevance is deferred because distance cuts only 5 to 8% of entries on
 Larak Lot; slow readers linger (#492).
 
+What comes next, and why. Wave 13 starts where wave 12 left measured debts,
+in this order. First, #493: Recall Notice is the golden slice and the
+deliberate profile on Standard and Severe got harder in wave 12, so the
+campaign's reference level must be back within noise before anything is built
+on it; M14 route seed 1015 is the same squad change. Second, the network
+debts: the slow-reader close (#492) bounds a resource that lingers today, then
+#434 stage 4 (acknowledged deltas and compact encoding) and stage 5 (bounded
+lag compensation), because stage 1 showed the budget holds and stage 3
+relevance buys little on Larak Lot, so bytes on the wire and fairness under
+latency are the remaining wins. Third, harness trust: the residual roster deck
+pockets (#491, after #496 rested dropped guns where a body can stand), the
+Windows and macOS test flakes (#494), the seed 44 stranded case (#497) and the
+fixed-seed Continue replay (#489), so a red gate always means a real fault.
+After those, raise Levels 1 to 18 to the golden-slice bar in rendered passes,
+one episode at a time, because no level ships below that bar and Episode V is
+the only one already near it. Nick's calls stay optional and do not block:
+the listening pass on Callum's Host and the barks, the Rocket share (a weapon
+or map change to reach 15% from 8.2%), a minimum health on entering or
+retrying M02, the Paver and Surveyor model pick and Latch's voice (#472).
+
 Wave 5 adds twelve prepared campaign props, replaces repeated prose with
 physical and painted detail, shortens objectives while retaining control and
 threat cues, and reconciles rescue continuity with the saved outcomes. The

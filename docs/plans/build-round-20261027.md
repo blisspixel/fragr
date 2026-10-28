@@ -21,13 +21,13 @@ Non-goals: new modes, new services, transport rewrites, cloud apply, save migrat
 | `inheritance-models` | Lore-gated Meshy Paver and Surveyor, integrated and inspected in Levels 19 and 20 | [asset practices](asset-practices/README.md) |
 | `mp-rules` | Weapons drop on death with a measured Rocket share, Duel queue and winner-stays, host presets and mutator stacking, the Conquest ticket bleed | [multiplayer excellence](multiplayer-excellence-20261017.md), [bot and enemy AI](bot-and-enemy-ai-excellence-20261017.md) |
 
-## Wave 12 (shipped in its wave PR)
+## Wave 12 (shipped, #495)
 
-Host voice (Callum), the hit confirm and the Scatter pass; Rocket use, CTF pads and side calls for rule bots; campaign guard sighting, squad roles and barks; the #434 stage 1 baseline with stage 3 measured and deferred. Follow-ups: #491, #492, #493, #494.
+Host voice (Callum), the hit confirm and the Scatter pass; Rocket use, CTF pads and side calls for rule bots; campaign guard sighting, squad roles and barks; the #434 stage 1 baseline with stage 3 measured and deferred. The main hotfix #496 rests dropped guns where a body can stand (roster stall on map 6). Follow-ups: #489, #491, #492, #493, #494, #497.
 
 ## Wave 13 (planned)
 
-The Recall Notice deliberate-profile regression and M14 seed 1015 (#493); the slow-reader close (#492); #434 stage 4 (acknowledged deltas and compact encoding) and bounded lag compensation; the roster deck pockets (#491) and test flakes (#494); then raising levels 1 to 18 to the golden-slice bar in rendered passes.
+The Recall Notice deliberate-profile regression and M14 seed 1015 (#493); the slow-reader close (#492); #434 stage 4 (acknowledged deltas and compact encoding) and bounded lag compensation; the roster deck pockets (#491), test flakes (#494), the seed 44 stranded case (#497) and the fixed-seed Continue replay (#489); then raising levels 1 to 18 to the golden-slice bar in rendered passes.
 
 ## Verification
 
