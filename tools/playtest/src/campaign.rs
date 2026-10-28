@@ -1970,10 +1970,12 @@ mod tests {
         // The scenario needs a death: the fighter that once stalled reloading
         // must come back from a retry and still reload and finish on the
         // ammunition it earns. Once guard reactions stopped following the
-        // participant id, seed 42 cleared without dying (4 reloads). Seed 43
-        // dies once, retries and departs with 5 reloads, so it keeps the
-        // retry in the trial. Of seeds 30 to 70, 11 die and still depart.
-        let row = trial(43, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
+        // participant id, seed 42 cleared without dying (4 reloads). Once the
+        // participant's view ordered the attack tokens (#493), seed 43
+        // departed without dying too. Seed 40 dies once, retries and departs
+        // with 4 reloads, so it keeps the retry in the trial. Of seeds 40 to
+        // 103, 10 die and still depart.
+        let row = trial(40, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
         assert_eq!(row.outcome, "departed");
         assert!(row.reloads > 0 && row.deaths > 0);
         assert!(row.longest_no_progress_seconds < 30.0);

@@ -106,6 +106,14 @@ profiles are synthetic constraints, not measured novice populations. Compare
 game changes with the same evaluator revision and seed set; a controller change
 requires a new baseline.
 
+A body can stand where the shared navigation grid has no waypoint: a corridor
+exactly two body widths across, its walls on whole metres, such as Recall
+Notice's pocket behind the dispatch screen. A route from there now joins the
+grid by a longer straight walk (up to six cells) instead of failing. Before
+that, a tell sidestep into the pocket left seed 44 deliberate/Assisted standing
+still for 488 s until the trial bound (#497); with only that navigation change
+it departs at 119.8 s and no other trial of seeds 40 to 71 changes.
+
 During M19's crossing, tram street and market, it also remembers up to 64 positions
 seen after the reaction delay, for less than 30 seconds. Losing sight permits
 an investigation of that last position through the shared navigator; it never

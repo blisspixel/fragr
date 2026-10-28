@@ -836,14 +836,31 @@ impl Encounters {
         // Ranged tokens per participant: attacks already committed hold theirs.
         let tokens = &mut self.tokens;
         tokens.begin_tick();
-        for (group, enemy) in &self.enemies {
+        // The participant's view orders the tokens. A guard they can see that
+        // waits for a token on them (still reacting to its sighting, or
+        // shifting across its lane) keeps a guard they cannot see from
+        // starting first, and guards in view ask first each tick. A guard
+        // out of view still attacks whenever nobody in view is waiting.
+        let next = state.tick.saturating_add(1);
+        let mut seen = vec![false; self.enemies.len()];
+        for (index, (group, enemy)) in self.enemies.iter().enumerate() {
             if matches!(self.groups[*group], Group::Active { .. }) {
                 if let Some(target) = enemy.holds_token() {
                     tokens.take(target, enemy.phase_started());
                 }
+                seen[index] = enemy.in_view(state);
+                if let Some(target) = enemy.contending(next) {
+                    if enemy.in_view_of(state, target) {
+                        tokens.await_in_view(target);
+                    }
+                }
             }
         }
-        for (group, enemy) in &mut self.enemies {
+        let mut order: Vec<usize> = (0..self.enemies.len()).collect();
+        order.sort_by_key(|&index| !seen[index]);
+        let mut decided = Vec::with_capacity(self.enemies.len());
+        for index in order {
+            let (group, enemy) = &mut self.enemies[index];
             let Group::Active { ids, .. } = &self.groups[*group] else {
                 continue;
             };
@@ -861,18 +878,24 @@ impl Encounters {
             let was = (enemy.phase(), enemy.phase_started());
             let intent = enemy.paced_intent(state, &snapshot, tokens);
             tokens.settle(held, enemy.holds_token(), state.tick);
-            if let Some(kind) = enemy.take_bark() {
-                said.push((*group, enemy.id, kind));
-            }
-            if (enemy.phase(), enemy.phase_started()) != was {
-                if let (EnemyPhase::Windup, Some(target)) = (enemy.phase(), enemy.holds_token()) {
-                    raised.push((enemy.id, enemy.kind(), target));
-                }
-            }
+            let bark = enemy.take_bark().map(|kind| (*group, enemy.id, kind));
+            let raise = ((enemy.phase(), enemy.phase_started()) != was)
+                .then(|| match (enemy.phase(), enemy.holds_token()) {
+                    (EnemyPhase::Windup, Some(target)) => Some((enemy.id, enemy.kind(), target)),
+                    _ => None,
+                })
+                .flatten();
             if let Some(player) = state.players.iter_mut().find(|p| p.id == enemy.id) {
                 player.campaign = Some(enemy.identity());
             }
-            actions.push((enemy.id, intent));
+            decided.push((index, (enemy.id, intent), bark, raise));
+        }
+        // Everything else keeps the authored order.
+        decided.sort_by_key(|(index, ..)| *index);
+        for (_, action, bark, raise) in decided {
+            said.extend(bark);
+            raised.extend(raise);
+            actions.push(action);
         }
         for (group, enemy) in &self.enemies {
             if enemy.kind() == EnemyKind::Auditor

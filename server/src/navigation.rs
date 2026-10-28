@@ -20,6 +20,10 @@ const MAX_NODES: usize = 524_288;
 const MAX_EDGES: usize = 4_194_304;
 const MAX_BUILD_WORK: usize = 256_000_000;
 pub const SEARCH_LIMIT: usize = 16_384;
+/// Cells around a point searched for a node it walks straight to.
+const ANCHOR_REACH: i32 = 2;
+/// Cells searched instead from a start with no node within `ANCHOR_REACH`.
+const ANCHOR_ESCAPE: i32 = 6;
 const DIRECTIONS: [(i32, i32); 8] = [
     (1, 0),
     (0, 1),
@@ -432,11 +436,34 @@ impl Navigation {
         if !self.valid_point(point) {
             return None;
         }
+        self.anchor_within(point, starting, obstacles, ANCHOR_REACH)
+            .or_else(|| {
+                // A body can stand where no waypoint has room: a corridor
+                // exactly two body widths across, its walls on whole metres,
+                // leaves every cell centre touching a wall. From there the
+                // nearest waypoint is a longer straight walk away. Only a
+                // start widens; a goal keeps the usual reach.
+                starting
+                    .then(|| self.anchor_within(point, starting, obstacles, ANCHOR_ESCAPE))
+                    .flatten()
+            })
+    }
+
+    /// The nearest node within `reach` cells joined to `point` by a straight
+    /// walk.
+    fn anchor_within(
+        &self,
+        point: [f32; 3],
+        starting: bool,
+        obstacles: &[crate::movement::Solid],
+        reach: i32,
+    ) -> Option<usize> {
         let x = (point[0] / CELL + self.span as f32 - 0.5).round() as i32;
         let z = (point[2] / CELL + self.span as f32 - 0.5).round() as i32;
-        let mut candidates = Vec::with_capacity(25);
-        for dz in -2..=2 {
-            for dx in -2..=2 {
+        let side = (reach * 2 + 1) as usize;
+        let mut candidates = Vec::with_capacity(side * side);
+        for dz in -reach..=reach {
+            for dx in -reach..=reach {
                 let (nx, nz) = (x + dx, z + dz);
                 if nx < 0 || nz < 0 || nx >= self.width as i32 || nz >= self.width as i32 {
                     continue;
@@ -629,6 +656,72 @@ pub(crate) mod tests {
             solids: vec![]
         })
         .is_err());
+    }
+
+    /// A corridor two body widths across, its walls on whole metres, has no
+    /// waypoint inside: every cell centre touches a wall. A body that steps
+    /// in still routes out along it; a goal inside still finds no route.
+    #[test]
+    fn a_body_in_a_corridor_without_waypoints_still_routes_out() {
+        let navigation = Navigation::new(arena(vec![
+            Solid::from_center(-4.0, -0.5, 4.0, 0.5),
+            Solid::from_center(-4.0, 2.5, 4.0, 0.5),
+            Solid::from_center(-8.5, 1.0, 0.5, 2.0),
+        ]))
+        .unwrap();
+        let inside = [-3.6, 0.0, 1.0];
+        let outside = [6.0, 0.0, 1.0];
+        assert!(!navigation
+            .arena
+            .blocked_body_at(inside[0], inside[2], 0.0, STEP_UP));
+        assert!(
+            navigation
+                .anchor_within(inside, true, &[], ANCHOR_REACH)
+                .is_none(),
+            "no waypoint within the usual reach"
+        );
+        let route = navigation.route(inside, outside, SEARCH_LIMIT);
+        assert_eq!(route.status, RouteStatus::Complete);
+        assert!(navigation.walkable(inside, route.points[0]));
+        assert_ne!(
+            navigation.route(outside, inside, SEARCH_LIMIT).status,
+            RouteStatus::Complete
+        );
+    }
+
+    /// Recall Notice seed 44: a sidestep from a tell left the participant in
+    /// the pocket behind the dispatch screen. No route found a start there,
+    /// so the shared controller stood still for the rest of the trial.
+    #[test]
+    fn recall_notice_dispatch_pocket_routes_to_the_transfer_record() {
+        let map = crate::maps::AuthoredSource::Mission(crate::protocol::MissionId::RecallNotice)
+            .load()
+            .unwrap();
+        let session = crate::session::GameSession::with_authored_map(map);
+        let navigation = session.state.map.navigation();
+        let record = [-7.5, 3.0, 21.5];
+        let stranded = [-7.633_213_5, 3.0, 29.191_862];
+        assert_eq!(
+            navigation.route(stranded, record, SEARCH_LIMIT).status,
+            RouteStatus::Complete
+        );
+        // Every standing spot along the pocket, not only the recorded one.
+        let mut standing = 0;
+        for tenth in -114..=-61 {
+            let x = tenth as f32 / 10.0;
+            for z in [28.6, 29.0, 29.4] {
+                if navigation.arena.blocked_body_at(x, z, 3.0, 3.0 + STEP_UP) {
+                    continue;
+                }
+                standing += 1;
+                assert_eq!(
+                    navigation.route([x, 3.0, z], record, SEARCH_LIMIT).status,
+                    RouteStatus::Complete,
+                    "stranded at [{x}, {z}]"
+                );
+            }
+        }
+        assert!(standing > 100);
     }
 
     #[test]

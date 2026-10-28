@@ -34,6 +34,8 @@ pub(crate) struct AttackTokens {
     held: std::collections::HashMap<Uuid, usize>,
     started: std::collections::HashMap<Uuid, u64>,
     limit: Option<usize>,
+    /// Participants with a guard in their view waiting to attack them.
+    awaited: std::collections::HashSet<Uuid>,
 }
 
 impl Default for AttackTokens {
@@ -56,12 +58,26 @@ impl AttackTokens {
             held: Default::default(),
             started: Default::default(),
             limit: Some(limit),
+            awaited: Default::default(),
         }
     }
 
     /// Forget this tick's counts; the stagger clock stays.
     pub(crate) fn begin_tick(&mut self) {
         self.held.clear();
+        self.awaited.clear();
+    }
+
+    /// A guard in `target`'s view is waiting to attack them this tick.
+    pub(crate) fn await_in_view(&mut self, target: Uuid) {
+        self.awaited.insert(target);
+    }
+
+    /// Whether a guard may begin an attack on `target` at `tick`, given
+    /// whether it stands in their view. A guard out of view waits while one
+    /// in view is waiting.
+    pub(crate) fn free_for(&self, target: Uuid, tick: u64, in_view: bool) -> bool {
+        self.free(target, tick) && (in_view || !self.awaited.contains(&target))
     }
 
     /// Whether a new attack on `target` may begin at `tick`.
@@ -1259,7 +1275,8 @@ impl EnemyController {
                 return BotIntent { action, goal: None };
             }
             let in_range = distance <= body.weapon.range_units().min(ENGAGE_RANGE);
-            if !(in_range && tick >= self.yield_until && tokens.free(target.id, tick)) {
+            let free = tokens.free_for(target.id, tick, self.in_view_of(state, target.id));
+            if !(in_range && tick >= self.yield_until && free) {
                 // An Auditor that cannot attack from here keeps its heavy
                 // between itself and the participant.
                 if let Some(intent) = self.hold_behind(target, feet, tick) {
@@ -1268,9 +1285,10 @@ impl EnemyController {
             }
             if in_range {
                 let yielding = tick < self.yield_until;
-                if yielding || !tokens.free(target.id, tick) {
+                if yielding || !free {
                     // Two guns are already on this participant, or one just
-                    // began. Hold the lane and shift across it for a beat
+                    // began, or this guard is out of their view while one in
+                    // it waits. Hold the lane and shift across it for a beat
                     // rather than adding a simultaneous tell; a free token
                     // after the shift starts one.
                     if !yielding {
