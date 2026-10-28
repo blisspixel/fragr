@@ -36,8 +36,15 @@ func _run() -> void:
 	# M01 keeps a readable floor (energy times the tint's luminance) while its
 	# strips and warm lamps carry the pools; enemies keep the actor view fill.
 	var intake_floor: float = recall.ambient_energy * recall.ambient_color.get_luminance()
-	_check(recall.practical_energy > ward.practical_energy and intake_floor >= 0.3 and intake_floor < ward.ambient_energy * ward.ambient_color.get_luminance(),
+	var facility: ArenaSky.Preset = ArenaSky.facility()
+	_check(recall.practical_energy > facility.practical_energy and intake_floor >= 0.3 and intake_floor < facility.ambient_energy * facility.ambient_color.get_luminance(),
 		"the M01 intake lost its fixture-led light plan or its readable floor")
+	# M02's correction rooms: bounded fixture pools over a readable floor a step
+	# below the generic facility, and enemies keep the actor view fill.
+	var ward_floor: float = ward.ambient_energy * ward.ambient_color.get_luminance()
+	_check(ward_floor >= 0.3 and ward_floor < facility.ambient_energy * facility.ambient_color.get_luminance() and ward.practical_energy > ward.ambient_energy * 4.0,
+		"the M02 ward lost its fixture-led light plan or its readable floor")
+	_check(ward.view_fill_energy > 0.0 and ward.view_fill_range >= 30.0 and ward.accent_energy > 0.0, "M02 guards lost their readability fill or seal lamps")
 	_check(recall.interior and not scrap.interior and not yard.interior, "venue interiors are not matched explicitly")
 	_check(recall.ambient_color != scrap.ambient_color, "Recall Notice still uses the scrapyard fill")
 	_check(yard.ambient_color != scrap.ambient_color, "Compliance Yard lost its own sky")
