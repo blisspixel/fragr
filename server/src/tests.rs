@@ -7055,6 +7055,17 @@ mod map_roster {
         }
     }
 
+    /// Sector 9's inspection staging once stood a body width off the deck's
+    /// hall face. Anyone who stepped off the deck there, human or agent,
+    /// landed in the slot and could not move again (#491).
+    #[test]
+    fn no_map_traps_a_fighter_who_steps_off_a_ledge() {
+        for map in MapKind::ALL {
+            let traps = maps::ledge_traps(map);
+            assert!(traps.is_empty(), "{}", traps.join("\n"));
+        }
+    }
+
     #[test]
     fn arena_roster_retains_scale_and_low_water_keeps_its_compact_town_extent() {
         // The original arcade roster replaced the flat hundred metre square.

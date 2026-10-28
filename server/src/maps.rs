@@ -1009,7 +1009,9 @@ fn sector_9() -> MapDef {
     }
     // Inspection staging sits beside the decks, not across either stair.
     // It interrupts the side hall's uninterrupted north/south firing lane.
-    for (x, z) in [(46.0, 34.0), (-46.0, -34.0)] {
+    // It stands flush against the deck's hall face: a body-wide slot between
+    // them caught anyone who stepped off the deck there, with no way out.
+    for (x, z) in [(47.0, 34.0), (-47.0, -34.0)] {
         s.push(Solid::from_center(x, z, 3.0, 3.0));
     }
 
@@ -1682,6 +1684,90 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
         problems.push(format!(
             "{name}: only {reachable_spawns} of 16 spawn points are reachable from the origin"
         ));
+    }
+    problems
+}
+
+/// Every place a fighter can walk off a ledge and land where no direction
+/// moves it again. A fall keeps the body overlapping the ledge's inflated
+/// footprint, and movement then only lets it out through that ledge's nearest
+/// face; a wall closer than a body width beyond that face closes the only way
+/// out, so the fighter stands frozen until it dies. Walks the live step off
+/// every edge of every raised top, so it finds the trap the way a player does.
+#[cfg(test)]
+pub(crate) fn ledge_traps(kind: MapKind) -> Vec<String> {
+    use crate::movement::{live_step, MoveInput, MoveState, DT_LIVE, TOP_SPEED};
+    let arena = arena(kind);
+    let reach = Reach::from_origin(kind);
+    let name = kind.name();
+    let walk = |state: MoveState, yaw: f32, ticks: usize| {
+        let input = MoveInput {
+            forward: true,
+            yaw,
+            ..MoveInput::default()
+        };
+        (0..ticks).fold(state, |s, _| {
+            live_step(s, &input, TOP_SPEED, DT_LIVE, arena)
+        })
+    };
+    let mut problems = Vec::new();
+    for solid in &arena.solids {
+        let top = solid.top;
+        // (edge midpoint axis, outward yaw, fixed coordinate, span)
+        let edges = [
+            (true, 0.0, solid.max_x - 0.3, (solid.min_z, solid.max_z)),
+            (true, PI, solid.min_x + 0.3, (solid.min_z, solid.max_z)),
+            (
+                false,
+                PI / 2.0,
+                solid.max_z - 0.3,
+                (solid.min_x, solid.max_x),
+            ),
+            (
+                false,
+                -PI / 2.0,
+                solid.min_z + 0.3,
+                (solid.min_x, solid.max_x),
+            ),
+        ];
+        for (along_z, yaw, fixed, (low, high)) in edges {
+            let mut t = low + 0.25;
+            while t < high - 0.25 {
+                let (x, z) = if along_z { (fixed, t) } else { (t, fixed) };
+                t += 0.5;
+                let standing = (arena.support_height(x, z, top + STEP_UP) - top).abs() < 0.01
+                    && !arena.blocked_body_at(x, z, top, top + STEP_UP)
+                    && reach
+                        .floor_near(x, z, top)
+                        .is_some_and(|floor| (floor - top).abs() < 0.01);
+                if !standing {
+                    continue;
+                }
+                let start = MoveState {
+                    x,
+                    z,
+                    y: top,
+                    vx: 0.0,
+                    vz: 0.0,
+                    vy: 0.0,
+                    yaw,
+                };
+                let landed = walk(start, yaw, 30);
+                if landed.y >= top - STEP_UP {
+                    continue; // never left the ledge
+                }
+                let free = (0..8).any(|turn| {
+                    let out = walk(landed, PI / 4.0 * turn as f32, 10);
+                    (out.x - landed.x).hypot(out.z - landed.z) > 0.25
+                });
+                if !free {
+                    problems.push(format!(
+                        "{name}: walking off the ledge at ({x:.2}, {z:.2}) top {top:.2} traps a fighter at ({:.2}, {:.2})",
+                        landed.x, landed.z
+                    ));
+                }
+            }
+        }
     }
     problems
 }

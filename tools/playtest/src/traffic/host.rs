@@ -14,7 +14,11 @@ pub fn cpu_ns(pid: u32) -> Option<u64> {
     let tasks = std::fs::read_dir(format!("/proc/{pid}/task")).ok()?;
     let mut total = 0u64;
     for task in tasks.flatten() {
-        let text = std::fs::read_to_string(task.path().join("schedstat")).ok()?;
+        // A thread can exit between the listing and this read; it has no
+        // time left to add, and it does not make the process unreadable.
+        let Ok(text) = std::fs::read_to_string(task.path().join("schedstat")) else {
+            continue;
+        };
         total = total.saturating_add(parse_schedstat(&text)?);
     }
     Some(total)

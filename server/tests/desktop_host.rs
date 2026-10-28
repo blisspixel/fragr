@@ -65,6 +65,26 @@ async fn enter(
     (socket, identity, token)
 }
 
+/// One `GET /status` body, or `None` when this read did not complete: the
+/// connection was refused or reset, or closed before a full response. A
+/// listener accepts into its backlog before the accept loop and status
+/// preflight run, and a status probe over the slot cap is closed unanswered,
+/// so on a loaded runner (#494: `ConnectionReset` on macOS) any one read can
+/// fail while the server is healthy. Callers retry within their own bound and
+/// still assert on the answer they finally get.
+async fn status_body(address: &str) -> Option<String> {
+    let mut stream = tokio::net::TcpStream::connect(address).await.ok()?;
+    stream
+        .write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+        .await
+        .ok()?;
+    let mut bytes = Vec::new();
+    stream.take(65536).read_to_end(&mut bytes).await.ok()?;
+    let text = String::from_utf8(bytes).unwrap();
+    text.split_once("\r\n\r\n")
+        .map(|(_, body)| body.to_string())
+}
+
 async fn population(
     ready: &ArenaReady,
     humans: usize,
@@ -73,27 +93,19 @@ async fn population(
     bound: Duration,
 ) {
     let mut last = None;
+    let address = ready.url.strip_prefix("ws://").unwrap();
     let reached = tokio::time::timeout(bound, async {
         loop {
-            let mut stream =
-                tokio::net::TcpStream::connect(ready.url.strip_prefix("ws://").unwrap())
-                    .await
-                    .unwrap();
-            stream
-                .write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
-                .await
-                .unwrap();
-            let mut bytes = Vec::new();
-            stream.take(65536).read_to_end(&mut bytes).await.unwrap();
-            let text = String::from_utf8(bytes).unwrap();
-            let body = text.split_once("\r\n\r\n").unwrap().1;
             // The existing nonblocking status endpoint reports only its legacy
             // schema marker while the authoritative tick holds the write lock.
-            if body == "{\"schema_version\":1}" {
+            let Some(body) = status_body(address)
+                .await
+                .filter(|body| body != "{\"schema_version\":1}")
+            else {
                 tokio::time::sleep(Duration::from_millis(50)).await;
                 continue;
-            }
-            let status: fragr_server::protocol::LiveStatus = serde_json::from_str(body).unwrap();
+            };
+            let status: fragr_server::protocol::LiveStatus = serde_json::from_str(&body).unwrap();
             last = Some((status.humans, status.agents, status.bots, status.tick));
             if (status.humans, status.agents, status.bots) == (humans, agents, bots) {
                 assert_eq!(status.fighters, humans + agents + bots);
@@ -562,12 +574,15 @@ async fn ordinary_dedicated_server_does_not_treat_stdin_eof_as_shutdown() {
             .spawn()
             .unwrap(),
     );
+    // Without a ready line, readiness is the server answering its own status
+    // endpoint: a bare TCP connect only proves the listener is bound, before
+    // the accept loop runs.
     let deadline = Instant::now() + Duration::from_secs(30);
     loop {
-        if tokio::net::TcpStream::connect(address).await.is_ok() {
+        if status_body(&bind).await.is_some() {
             break;
         }
-        assert!(Instant::now() < deadline, "dedicated server did not bind");
+        assert!(Instant::now() < deadline, "dedicated server did not answer");
         assert!(child.0.try_wait().unwrap().is_none());
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
