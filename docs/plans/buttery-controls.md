@@ -1,6 +1,6 @@
 # Plan: buttery controls
 
-**Status:** in flight (stage 1 shipped 2026-09-18; the 2026-10-23 [feel pass](feel-pass-20261023.md) moved arena play to one momentum fighter model with a smoothed, phase-locked local view; interpolation of others, lag compensation and transport remain)
+**Status:** in flight (stage 1 shipped 2026-09-18; the 2026-10-23 [feel pass](feel-pass-20261023.md) moved arena play to one momentum fighter model with a smoothed, phase-locked local view; interpolation of others and transport remain; bounded hitscan lag compensation shipped in gameplay 62)
 **Branch:** `feat/controls-*` (one PR per stage below)
 **Spend:** $0.
 
@@ -47,7 +47,7 @@ selecting 60 Hz movement or a new transport.
 2. **Prediction and reconciliation for the local pawn only.** Number sampled inputs, then define which input each authoritative movement tick consumes, including repeated samples and one-shot edges. Predict and replay those movement steps against complete authoritative Ack state. The sequence alone cannot identify one server step while the server coalesces Actions. Other fighters are never predicted.
 3. **One live move function, mirrored.** Since the 2026-10-23 feel pass, arena participants run `fighter_step` (persistent velocity, friction, ground and air acceleration, dodge) live on the server and in replay, with golden vectors at 20 Hz and 60 Hz and the constants frozen in one block. A campaign mission keeps the immediate step, and the Ack version tells replay which one ran.
 4. **Timeline interpolation for others.** A ring of tick-stamped states, rendered at server time minus 100 ms at 20 Hz snapshots (150 ms while on TCP, because one loss stalls the stream), 33 to 50 ms once snapshots run at 60 Hz. Extrapolate at most 100 ms, then freeze. The exponential lerp goes away.
-5. **Lag compensation for hitscan.** The server rewinds targets by `clamp(RTT / 2 + interpolation delay, 0, 200 ms)` and keeps 250 ms of history. This matters even on a LAN: at 7 m/s a target moves 0.7 m during a 100 ms interpolation delay, more than a capsule radius.
+5. **Lag compensation for hitscan.** Shipped in gameplay 62. The client reports the tick it draws others at; the server rewinds targets by the resulting view lag (interpolation buffer, full round trip and tick wait, measured at 125 to 300 ms for 0 to 150 ms RTT), clamped to 200 ms, from 250 ms of history. This matters even on a LAN: at 7 m/s a target moves about 0.9 m in the 125 ms a 0 ms RTT client still trails, more than a capsule radius.
 6. **Sim at 60 Hz, snapshots at 20 Hz.** Input granularity would drop from 50 ms to 16.7 ms and the rewind history would become finer. Measure CPU and traffic before adopting this cadence. Convert tick constants to time units; snapshots and acknowledgements must carry the tick and 3D state needed by interpolation and replay.
 7. **One input per client physics step after the tick migration.** The present cap is 120 sends per second from the rendered client. Stage 3 must define how sampled inputs, acknowledgement and replay relate to the authoritative 60 Hz movement step. Bound the replay window; do not resend unbounded history.
 8. **Mouse feel in Godot 4.7.** Sum unscaled `screen_relative` motion while captured, apply it in the same frame, and never multiply it by delta or a viewport scale. Source units are 0.022 degrees per count at sensitivity 1, with a current default of 1.5. The player-settings pass persists that value and blocks input under overlays. This follows the official InputEventMouseMotion reference checked 2026-09-19. Camera interpolation and predicted-body positioning remain part of the movement work below.
@@ -83,11 +83,11 @@ replay and fallbacks. Review vector changes as code.
 
 ### Wire changes, exact
 
-`Action` already has optional `seq` and `yaw`. A later stage proposes `view_tick` for lag compensation:
+`Action` already has optional `seq` and `yaw`. Gameplay 62 adds `view_tick` for lag compensation:
 
 - `seq: u32` input sequence, increasing by one per input, wrapping. Absent means an unnumbered agent action.
 - `yaw: f32` absolute yaw in radians. Present means client-owned yaw; the server normalises and stores it.
-- `view_tick: u32` the server tick the client was rendering other fighters at when this input was sampled (for lag compensation). Absent means no rewind.
+- `view_tick: f64` the fractional server tick the client was rendering other fighters at when this input was sampled. Absent means no rewind. The server refuses a value newer than its newest tick.
 
 A separate human-only unicast Ack already exists. Its current shape includes
 the movement block (version 2 in arena play, 1 in a campaign mission):
@@ -127,7 +127,7 @@ A ring of recent tick-stamped snapshots supports interpolation of other fighters
 
 ### Lag compensation
 
-The server keeps, per fighter, a bounded history of the complete 3D hit volume and facing needed by `server/src/combat.rs`, not only `(x, z)`. A fire input carrying a validated `view_tick` proposes a rewind no further than 200 ms. Without it (agents and old clients), no rewind. The historical states are used for the shot test without changing present authoritative state; tests cover elevated fighters, cover, stairs and a too-old view tick.
+The server keeps, per fighter, a bounded history of the complete 3D hit volume and facing needed by `server/src/combat.rs`, not only `(x, z)`. A fire input carrying a validated `view_tick` rewinds hitscan targets no further than 200 ms (shipped, `server/src/sim/rewind.rs`). Without it (agents and old clients), no rewind. The historical states are used for the shot test without changing present authoritative state; tests cover elevated fighters, cover, stairs and a too-old view tick.
 
 ### Tick migration (stage 2)
 
@@ -183,6 +183,6 @@ Gabriel Gambetta's client-server series; Valve's Source multiplayer networking a
 - [x] Live-step prediction and replay with golden vectors passing in both languages (fighter model and immediate step, 2026-10-23 feel pass).
 - [ ] Others interpolate on a timeline; no lerp.
 - [ ] 60 Hz sim; constants in seconds.
-- [ ] Lag compensation bounded and tested.
+- [x] Lag compensation bounded and tested (gameplay 62, 2026-10-28): hitscan only, 200 ms bound, 250 ms history; deterministic matrix and tests in `docs/BENCHMARK.md`. Two-machine human acceptance remains open.
 - [ ] Gamepad response curve asserted by a headless harness at five stick magnitudes, and the aim friction cone by two.
 - [ ] Transport decided with a benchmark table in this file.

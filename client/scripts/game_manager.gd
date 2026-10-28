@@ -208,6 +208,9 @@ var _world_load_generation: int = 0
 var _world_reveal_pending: bool = false
 var input_device: InputDevice
 var local_prediction: LocalPrediction = LocalPrediction.new()
+## Remote fighters' presentation timeline as a clock: every snapshot tick, no
+## pose. Its render tick is the view tick an Action reports.
+var view_clock: RemotePresentation = RemotePresentation.new()
 var _adopt_local_spawn_snapshot: bool = false
 var _retired_environments: Array[Environment] = []
 
@@ -616,6 +619,7 @@ func _on_map_info(info: Dictionary) -> void:
 	if mission_hud != null:
 		mission_hud.geometry = net_client.mission_geometry
 	_clear_predicted_pawn()
+	view_clock.reset()
 	for pawn: Node in players.values():
 		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
 			pawn.reset_remote_presentation()
@@ -2107,6 +2111,14 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.erase("pitch")
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
+	# The server tick other fighters are being drawn at, a fact this client
+	# knows. The server checks it and decides any rewind; absent, it rewinds
+	# nothing.
+	var view: float = view_clock.view_tick(now_usec)
+	if view >= 0.0:
+		action_state["view_tick"] = view
+	else:
+		action_state.erase("view_tick")
 	action_state.weapon_swap = pending_weapon_swap
 	var seat: String = _vehicle_seat()
 	if not seat.is_empty():
@@ -2895,6 +2907,7 @@ func _on_snapshot_received(data):
 	if m20_waterworks != null:
 		m20_waterworks.apply_snapshot(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
+	view_clock.observe(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
 	hud.spectator_panel.watching = not is_human_player and not _benchmark

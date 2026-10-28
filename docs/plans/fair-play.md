@@ -42,9 +42,15 @@ See [home/LAN hosting](../../infra/docs/HOME-LAN.md). Address bans can affect
 shared networks and can be evaded by changing address; hosts need review and
 an easy way to remove mistaken entries.
 
+Bounded hitscan lag compensation shipped in gameplay 62 (2026-10-28): the
+server refuses a reported view newer than its newest tick, rewinds at most
+200 ms, keeps cover in the present and never rewinds agents, bots or
+projectiles; see `docs/protocol.md`, "Lag compensation (capability 62)". A
+clamped or refused view is a diagnostic, never proof of cheating.
+
 Full fighter snapshots currently expose information a modified client can use
 through cover; spectators can relay information too. Visibility-based interest
-management, spectator delay, bounded lag compensation and replay review are
+management, spectator delay and replay review are
 follow-ups, not proven protections today. There is no automatic-ban switch or
 reliable human-versus-agent classifier in the current server.
 

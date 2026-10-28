@@ -531,6 +531,105 @@ Next steps, in the order the numbers suggest; none is half built here:
    (UDP, [TRANSPORT.md](TRANSPORT.md)): then the base must be the last world
    the reader said it applied, and a delta may name an older base.
 
+### Lag compensation (#434 stage 5)
+
+Gameplay 62 lets a human Action carry `view_tick`, the tick its client draws
+other fighters at, and rewinds that human's hitscan shots by up to 200 ms
+(contract: [protocol](protocol.md#lag-compensation-capability-62); owner:
+`server/src/sim/rewind.rs`).
+
+**How far behind a client sees.** The client draws remote fighters two ticks
+(100 ms) behind the newest snapshot arrival (`RemotePresentation`). Its
+Action then travels to the server and waits for the next tick. Snapshot and
+Action each cross half the round trip, so the view trails the tick that
+fires by the interpolation buffer plus the **whole** round trip plus up to a
+tick: 100 to 150 ms at 0 ms RTT, 250 to 300 ms at 150 ms RTT. A strafer at
+7 m/s moves 0.9 m in the 125 ms a loopback client still trails, more than the
+0.5 m body radius.
+
+**Method.** `fragr-playtest --rewind-matrix` is deterministic and in process
+(no sockets, no wall clock). Each trial: a still human with a Rail (first
+shot, no bloom) 16 m from an agent strafing on a seeded schedule (runs of 3
+to 12 ticks, reversals and stops) on Arena Duel. The client is modelled
+exactly as `RemotePresentation` draws: the strafer interpolated at the
+view time, aimed at the chest, line checked open. The Action arrives at a
+seeded phase inside the tick before it fires. "On target on the client" is
+every trial (the lane is open); a server miss is a shot the player saw land.
+Fixed one-way delays only: no jitter, loss or TCP retransmission, so these
+rates are a floor on real misses, not a field measurement.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --rewind-matrix --seed 42 --report .agents/rewind/after.json
+```
+
+Measured 2026-10-28, seed 42, 1000 trials per row. Before is the rewind-off
+path (no `view_tick`), which is the unchanged pre-62 resolution: at 400
+trials it reproduced the numbers from main (`d705d1c9`) exactly.
+
+| RTT | View lag mean / max | Drawn vs present offset mean / p95 | Server misses of client-on-target shots, before | After (200 ms bound) |
+|---|---|---|---|---|
+| 0 ms | 125 / 150 ms | 0.48 / 0.87 m | 60.4 % (396 of 1000 hit) | 0.0 % |
+| 50 ms | 175 / 200 ms | 0.64 / 1.16 m | 64.3 % | 0.0 % |
+| 100 ms | 225 / 250 ms | 0.81 / 1.46 m | 64.9 % | 0.0 % (clamped; residual under 50 ms) |
+| 150 ms | 275 / 300 ms | 0.95 / 1.75 m | 68.8 % | 15.8 % (clamped by 75 ms on average) |
+
+**Choosing the bound.** The same matrix with other clamps, after rows only:
+
+| Bound | 0 ms | 50 ms | 100 ms | 150 ms |
+|---|---|---|---|---|
+| 150 ms (3 ticks) | 0.0 % | 0.0 % | 14.9 % | 58.8 % |
+| 200 ms (4 ticks, shipped) | 0.0 % | 0.0 % | 0.0 % | 15.8 % |
+| 250 ms (5 ticks) | 0.0 % | 0.0 % | 0.0 % | 0.0 % |
+
+200 ms is the planned bound (buttery-controls, #434) and the measurement
+keeps it: it covers LAN and same-region play in full in this model and lets
+a victim be struck at most 200 ms after reaching cover. 250 ms would also
+cover 150 ms RTT, but widening what a victim can be shot through is a fairness
+decision this lane does not take. A 150 ms bound would not even cover 100 ms
+RTT, because fragr's view trails by the whole round trip plus the buffer.
+
+**Cost at the 64-connection cap.** History: 64 fighters x 5 ticks x 40-byte
+volumes = 12,800 bytes, reused in place every tick (asserted in
+`rewind::tests`). Release microbench (`rewind_cost_at_64_fighters`, ignored
+test, two runs): recording 64 bodies 211 to 213 ns per tick; one body
+lookup 74 to 75 ns; one fully rewound shot against 63 targets about 4.7 us.
+Offline CPU benchmark, `--bench 64 --bench-ticks 2400 --seed 42` (Larak Lot,
+64 rule bots, so recording runs every tick but no shot rewinds), three
+interleaved runs each on an AMD Ryzen 7 7840U shared with other sessions
+(load 4 to 5):
+
+| Build | Tick mean ms | p50 ms | p99 ms | Trace hash |
+|---|---|---|---|---|
+| main `d705d1c9` | 0.949 / 0.922 / 0.949 | 0.508 / 0.492 / 0.508 | 1.97 / 1.97 / 2.03 | `baf7a41a8f97` |
+| lag compensation | 0.963 / 0.960 / 0.977 | 0.524 / 0.524 / 0.557 | 2.03 / 2.03 / 2.10 | `baf7a41a8f97` |
+
+The identical trace hash shows bot play is unchanged. The tick mean rose
+by 0.01 to 0.04 ms (1 to 4 %), more than the 0.2 us the recording itself
+measures; the remainder is not attributed and sits inside this host's
+run-to-run spread. Either way it is under 0.1 % of the 50 ms budget.
+
+**Clients.** The Godot client sends its presentation clock's render tick
+with every Action. Rule bots read the present server state and are never
+rewound; neither are agents (the MCP schema refuses `view_tick`, and the
+server ignores one from an agent socket), because `look_at` aims at the
+present. The brain and the playtest harness agents send none. The traffic
+generator's synthetic humans send none, so their shots stay unrewound.
+
+What stays open for #434 stage 5:
+
+1. **Field evidence.** Two machines, real jitter and loss: compare client
+   hit-confirm against server results through the existing stutter traces.
+   The matrix models fixed delays only.
+2. **Diagnostics on `/status`.** `GameState::rewind_stats` counts admitted,
+   refused, rewound, clamped and discontinuous shots; nothing publishes them
+   yet.
+3. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
+   object the victim can dodge in server time, and rewinding its collisions
+   would hit a target that already dodged what it saw. Campaign actors are
+   not on the delayed timeline (their own clock), so they are not rewound.
+4. **Spectator and agent views** are out of scope: neither shoots through a
+   delayed timeline.
+
 
 ## Trace version 1
 

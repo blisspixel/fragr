@@ -191,6 +191,48 @@ struct Cli {
     /// The `fragr-server` binary to stress. Defaults to the one beside this tool.
     #[arg(long)]
     traffic_server: Option<PathBuf>,
+    /// Deterministic lag-compensation matrix: in-process, no sockets. A still
+    /// shooter fires at a strafer it drew where the client's interpolation
+    /// would, at 0, 50, 100 and 150 ms round trips, with and without the
+    /// reported view time. Writes `--report` and prints the table.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey"
+    ])]
+    rewind_matrix: bool,
+    /// With --rewind-matrix: trials per row.
+    #[arg(long, requires = "rewind_matrix", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..=100_000))]
+    rewind_trials: u32,
+}
+
+fn rewind_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::rewind::{run_matrix, RewindMode};
+    let report = run_matrix(
+        cli.seed,
+        cli.rewind_trials,
+        &[RewindMode::Off, RewindMode::On],
+    );
+    println!("rtt_ms | mode | on target (client) | server hits | miss | view lag mean/max ms | drawn offset mean/p95 m");
+    for row in &report.rows {
+        println!(
+            "{} | {:?} | {} | {} | {:.1}% | {:.0}/{:.0} | {:.2}/{:.2}",
+            row.rtt_ms,
+            row.mode,
+            row.client_on_target,
+            row.server_hits,
+            row.miss_rate * 100.0,
+            row.mean_view_lag_ms,
+            row.max_view_lag_ms,
+            row.mean_offset_m,
+            row.p95_offset_m
+        );
+    }
+    if let Some(parent) = cli.report.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let text = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?;
+    std::fs::write(&cli.report, text).map_err(|e| e.to_string())
 }
 
 fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
@@ -527,6 +569,13 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.rewind_matrix {
+        if let Err(error) = rewind_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.campaign_survey {
         if let Err(error) = campaign_report(&cli) {
             eprintln!("error: {error}");
@@ -957,6 +1006,34 @@ mod tests {
         assert!(campaign_report(&cli).is_err());
         cli.seed = u64::MAX;
         assert_eq!(campaign_report(&cli).unwrap_err(), "seed range overflow");
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn rewind_matrix_writes_its_report_and_refuses_other_modes() {
+        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-trials", "5"]).is_err());
+        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-matrix", "--soak"]).is_err());
+        let dir = std::env::temp_dir().join(format!("fragr-rewind-{}", uuid::Uuid::new_v4()));
+        let report = dir.join("rewind.json");
+        let mut cli = Cli::try_parse_from([
+            "fragr-playtest",
+            "--rewind-matrix",
+            "--rewind-trials",
+            "4",
+            "--seed",
+            "3",
+        ])
+        .unwrap();
+        assert_eq!(cli.rewind_trials, 4);
+        cli.report = report.clone();
+        rewind_report(&cli).unwrap();
+        let written: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
+        assert_eq!(written["trials"], 4);
+        assert_eq!(written["rows"].as_array().unwrap().len(), 8);
+        // A report path under a file cannot be created.
+        cli.report = report.join("nested.json");
+        assert!(rewind_report(&cli).is_err());
         std::fs::remove_dir_all(dir).unwrap();
     }
 
