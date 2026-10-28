@@ -21,9 +21,10 @@
       "kind": "music",
       "name": "radio/news/bed-03-sung-id",
       "title": "We Are Not On The Air (station ID)",
-      "prompt": "Radio station jingle, 10 seconds, 128 BPM in C major, tight 1970s vocal-group harmony, brass hits, one snare crack, bright and clean jingle-house production. A four-part mixed choir sings the station ID once with crisp diction and clear vowels, then a big final chord with slap-back echo. Hook: \"Contested Frequency, we are not on the air.\" The ID line is the only lyric, sung straight and cheerful with no irony in the delivery; the joke is in the words. Two-second ring-out for the Host to talk over. No verse, no instrumental intro, start on the vocal.",
+      "prompt": "Radio station jingle, 10 seconds, 128 BPM in C major, tight 1970s vocal-group harmony, brass hits, one snare crack, bright and clean jingle-house production. A four-part mixed choir sings the station ID once with crisp diction and clear vowels, then a big final chord with slap-back echo. Hook: \"Perimeter Talk, we are not on the air.\" The ID line is the only lyric, sung straight and cheerful with no irony in the delivery; the joke is in the words. Two-second ring-out for the Host to talk over. No verse, no instrumental intro, start on the vocal.",
       "length_ms": 10000,
-      "instrumental": false
+      "instrumental": false,
+      "model": "music_v2_5"
     }
   ]
 }

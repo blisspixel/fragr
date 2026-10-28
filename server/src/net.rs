@@ -106,28 +106,61 @@ impl LoadGrace {
 }
 
 /// The last world this writer put on its socket. The stream is ordered and
-/// reliable, so it is the world the reader holds next: a delta whose base is
-/// that tick is safe to send, and anything else goes out whole.
+/// reliable, so it is the world the reader holds next: the tick's delta is
+/// safe to send when that world is its base. When it is not (the world in
+/// between was replaced unsent), the writer diffs against the world it holds
+/// here instead of resending the whole world to a reader whose link is
+/// already short. Only a reader with no world gets one whole.
 struct SentWorld {
     deltas: bool,
     tick: Option<u64>,
+    /// The broadcast that carried the world behind `tick`, shared with every
+    /// other queue. Kept only for a reader that applies deltas.
+    held: Option<Arc<Broadcast>>,
 }
 
 impl SentWorld {
-    /// The text to send for a shared broadcast, and whether it is a delta.
-    fn choose<'a>(&mut self, broadcast: &'a Broadcast) -> (&'a str, bool) {
+    fn new(deltas: bool) -> Self {
+        Self {
+            deltas,
+            tick: None,
+            held: None,
+        }
+    }
+
+    /// The text to send for a shared broadcast, and how it was chosen.
+    fn choose<'a>(
+        &mut self,
+        broadcast: &'a Arc<Broadcast>,
+    ) -> (std::borrow::Cow<'a, str>, WorldFrame) {
+        use std::borrow::Cow;
+        let whole = (Cow::Borrowed(broadcast.text()), WorldFrame::Whole);
         let Some(world) = broadcast.world() else {
             self.boundary(broadcast.message());
-            return (broadcast.text(), false);
+            return whole;
         };
-        let delta = world
+        let (held_tick, held) = (self.tick.replace(world.tick), self.held.take());
+        if !self.deltas {
+            return whole;
+        }
+        self.held = Some(Arc::clone(broadcast));
+        if let Some(delta) = world
             .delta
             .as_ref()
-            .filter(|delta| self.deltas && self.tick == Some(delta.base));
-        self.tick = Some(world.tick);
-        match delta {
-            Some(delta) => (&delta.text, true),
-            None => (broadcast.text(), false),
+            .filter(|delta| held_tick == Some(delta.base))
+        {
+            return (Cow::Borrowed(&delta.text), WorldFrame::Delta);
+        }
+        // The tick already tried this base and kept no delta: it would not
+        // be shorter here either.
+        let Some(held) = held.filter(|_| held_tick != world.tried) else {
+            return whole;
+        };
+        let started = std::time::Instant::now();
+        let full = broadcast.text();
+        match crate::protocol::delta::encode_text(held.text(), full, full.len()) {
+            Some(text) => (Cow::Owned(text), WorldFrame::Rebased(started.elapsed())),
+            None => whole,
         }
     }
 
@@ -135,7 +168,7 @@ impl SentWorld {
     /// map or mission starts a new world.
     fn targeted(&mut self, message: &ServerMessage) {
         if matches!(message, ServerMessage::Snapshot(_)) {
-            self.tick = None;
+            self.forget();
         }
         self.boundary(message);
     }
@@ -145,8 +178,13 @@ impl SentWorld {
             message,
             ServerMessage::MapInfo { .. } | ServerMessage::Mission { .. }
         ) {
-            self.tick = None;
+            self.forget();
         }
+    }
+
+    fn forget(&mut self) {
+        self.tick = None;
+        self.held = None;
     }
 }
 
@@ -165,10 +203,7 @@ where
     S: futures_util::Sink<Message> + Unpin,
 {
     let WriterMeters { traffic, probe } = meters;
-    let mut sent_world = SentWorld {
-        deltas: limits.deltas,
-        tick: None,
-    };
+    let mut sent_world = SentWorld::new(limits.deltas);
     let mut grace = LoadGrace {
         traffic: Arc::clone(&traffic),
         window: limits.load_grace,
@@ -209,10 +244,10 @@ where
                     // tungstenite 0.24 owns each frame's String, so a shared
                     // payload is copied, never serialized again.
                     Outbound::Shared(broadcast) => {
-                        let (text, delta) = sent_world.choose(&broadcast);
-                        let json = text.to_owned();
+                        let (text, frame) = sent_world.choose(&broadcast);
+                        let json = text.into_owned();
                         if let Some(probe) = &probe {
-                            probe.shared(json.len(), delta);
+                            probe.shared(json.len(), frame);
                         }
                         json
                     }
@@ -772,7 +807,7 @@ mod tests;
 mod outbound;
 pub use outbound::{
     channel as outbound_channel, Audience, Broadcast, Delivery, Outbound, QueueError, Queued,
-    WriterProbe, WriterReport, WsRx, WsTx,
+    WorldFrame, WriterProbe, WriterReport, WsRx, WsTx,
 };
 
 pub struct ClientSession {

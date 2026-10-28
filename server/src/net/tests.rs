@@ -321,6 +321,13 @@ fn fought_worlds(count: usize) -> Vec<Arc<Broadcast>> {
 /// What a writer puts on its socket for `frames`, fed one at a time so no
 /// queued world replaces another.
 async fn written(frames: Vec<Outbound>, deltas: bool) -> Vec<String> {
+    written_with_report(frames, deltas).await.0
+}
+
+async fn written_with_report(
+    frames: Vec<Outbound>,
+    deltas: bool,
+) -> (Vec<String>, crate::net::WriterReport) {
     let (tx, rx) = outbound_channel(4);
     let (shutdown, _) = tokio::sync::watch::channel(StopSignal::Open);
     let (_stop, stop) = tokio::sync::oneshot::channel();
@@ -349,12 +356,14 @@ async fn written(frames: Vec<Outbound>, deltas: bool) -> Vec<String> {
     }
     drop(tx);
     let RecordingSink(sent) = writer.await.unwrap();
-    sent.into_iter()
+    let sent = sent
+        .into_iter()
         .map(|frame| match frame {
             Message::Text(text) => text,
             other => panic!("unexpected frame {other:?}"),
         })
-        .collect()
+        .collect();
+    (sent, probe.report())
 }
 
 #[tokio::test]
@@ -364,8 +373,8 @@ async fn a_writer_sends_a_delta_only_against_the_world_its_reader_holds() {
     let map = crate::sim::GameState::with_map(crate::sim::MapKind::ArenaDuel, false).map_info();
     let shared = |index: usize| Outbound::from(Arc::clone(&worlds[index]));
     // 0 whole, 1 against 0, then a map: 2 whole, then 3 skipped (a replaced
-    // world), so 4 goes whole as well.
-    let sent = written(
+    // world), so the writer encodes 4 against 2, the world its reader holds.
+    let (sent, report) = written_with_report(
         vec![
             shared(0),
             shared(1),
@@ -376,6 +385,13 @@ async fn a_writer_sends_a_delta_only_against_the_world_its_reader_holds() {
         true,
     )
     .await;
+    let rebased = crate::protocol::delta::encode_text(
+        worlds[2].text(),
+        worlds[4].text(),
+        worlds[4].text().len(),
+    )
+    .expect("a short delta from the held world");
+    assert_ne!(rebased, delta_of(4).text, "not the tick's delta from 3");
     assert_eq!(
         sent,
         vec![
@@ -383,10 +399,13 @@ async fn a_writer_sends_a_delta_only_against_the_world_its_reader_holds() {
             delta_of(1).text.clone(),
             serde_json::to_string(&map).unwrap(),
             worlds[2].text().to_owned(),
-            worlds[4].text().to_owned(),
+            rebased.clone(),
         ]
     );
     assert!(delta_of(1).text.len() < worlds[1].text().len());
+    assert_eq!((report.delta_frames, report.rebased_frames), (2, 1));
+    assert_eq!(report.rebased_bytes, rebased.len() as u64);
+    assert_eq!(report.rebase_ms.count, 1);
     // Its reader rebuilds every world exactly.
     let mut reader = crate::protocol::WorldReader::new();
     let read: Vec<ServerMessage> = sent.iter().map(|text| reader.read(text).unwrap()).collect();
@@ -396,16 +415,35 @@ async fn a_writer_sends_a_delta_only_against_the_world_its_reader_holds() {
             worlds[world].text()
         );
     }
-    // A targeted world is not the base a shared delta names.
+    // A targeted world is not the base a shared delta names, and the writer
+    // holds no world to diff against after it.
     let sent = written(
         vec![shared(0), worlds[1].message().clone().into(), shared(2)],
         true,
     )
     .await;
     assert_eq!(sent[2], worlds[2].text());
-    // Consecutive shared worlds go as deltas.
-    let sent = written(vec![shared(0), shared(1), shared(2)], true).await;
+    // Consecutive shared worlds go as the tick's deltas.
+    let (sent, report) = written_with_report(vec![shared(0), shared(1), shared(2)], true).await;
     assert_eq!(sent[2], delta_of(2).text);
+    assert_eq!((report.delta_frames, report.rebased_frames), (2, 0));
+    // Any shared world the reader holds is a base, even one the tick encoded
+    // without a delta of its own.
+    let alone =
+        |index: usize| Outbound::from(Broadcast::encode(worlds[index].message().clone()).unwrap());
+    let (sent, report) = written_with_report(vec![alone(0), shared(2)], true).await;
+    assert_eq!(
+        Some(sent[1].clone()),
+        crate::protocol::delta::encode_text(
+            worlds[0].text(),
+            worlds[2].text(),
+            worlds[2].text().len()
+        )
+    );
+    assert_eq!(report.rebased_frames, 1);
+    // A world that does not advance on the held one goes whole.
+    let sent = written(vec![shared(2), alone(2)], true).await;
+    assert_eq!(sent[1], worlds[2].text());
 }
 
 #[tokio::test]

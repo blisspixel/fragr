@@ -287,7 +287,9 @@ static func preset_for(map_name: String) -> Preset:
 		return waterworks()
 	if key.contains("notice to vacate"):
 		return notice_to_vacate()
-	if key == "low water" or key.contains("low water market") or key.contains("no forwarding address"):
+	if key.contains("no forwarding address"):
+		return no_forwarding_address()
+	if key == "low water" or key.contains("low water market"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
@@ -428,15 +430,24 @@ static func moon_archive() -> Preset:
 	preset.contrast = 1.1
 	return preset
 
-## The curfew town: the port's lunar light with darker fill, colder practicals
-## and every window dark until the lamp line is lit.
+## The curfew town: a low sun behind the town wall, so the streets lie in
+## long shade under the dome and the crater cut beyond is hard light on dust.
+## M07Dressing puts the Union's cold floods and the post's pools in the shade;
+## every window stays dark until the lamp line is lit. The actor fill keeps a
+## black-and-red guard readable in the shaded street and on the rim.
 static func moon_town() -> Preset:
 	var preset: Preset = moon_port()
-	preset.scene_fill_energy = 0.07
+	preset.ambient_color = Color(0.66, 0.70, 0.72)
+	preset.ambient_energy = 0.5
+	preset.key_color = Color("fff3dc")
+	preset.key_energy = 1.15
+	preset.key_rotation_degrees = Vector3(-13.0, 165.0, 0.0)
+	preset.scene_fill_energy = 0.05
 	preset.practical_color = Color("d9e0dc")
 	preset.practical_energy = 1.6
 	preset.practical_range = 10.0
-	preset.view_fill_energy = 0.48
+	preset.view_fill_energy = 0.6
+	preset.contrast = 1.1
 	return preset
 
 static func low_water() -> Preset:
@@ -469,6 +480,19 @@ static func notice_to_vacate() -> Preset:
 	preset.contrast = 1.08
 	preset.saturation = 0.98
 	preset.glow_intensity = 0.35
+	return preset
+
+## No Forwarding Address (docs/design/earth.md "M05 Low Water roofs"): the
+## same afternoon as Notice to Vacate, ten minutes on. The sun is a little
+## lower and warmer, raking the roofs and throwing the trench covers' shadows
+## toward the freight platform's floodlights. The actor fill stays Level 4's:
+## any stronger and a black-and-red Heavy Sweeper facing into the sun washes
+## out to grey on the ramp.
+static func no_forwarding_address() -> Preset:
+	var preset: Preset = notice_to_vacate()
+	preset.key_color = Color("ffbd80")
+	preset.key_energy = 1.4
+	preset.key_rotation_degrees = Vector3(-18.0, -112.0, 0.0)
 	return preset
 
 ## Larak Lot: an old range's car park at night. Deep indigo over a sodium

@@ -1,0 +1,791 @@
+{
+ "comment": "M05 golden-slice faction read. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m05_no_forwarding_address.json, FRAGR_QA_SEED=42. A joined player waits among the tanks while posed views frame the roof guards placed from the start (both Notaries over the bridge, both Clerks on the far roof). The tour then follows the authored route of client/qa/m05-rooftops.json (the tank armor and the grenade lesson included; the optional release, the other secrets and the tram left out) to the trench end so the lone Heavy Sweeper can be framed when it wakes. Check black armour, red visors, armbands and optics against Low Water's warm plaster, roof tar, sky and trench shade at fighting distance; art review, not combat evidence.",
+ "width": 1280,
+ "height": 720,
+ "combat_travel": false,
+ "states": [
+  {
+   "name": "arrival",
+   "scene": "res://scenes/main.tscn",
+   "join": "human",
+   "camera": "first_person",
+   "look_at": [
+    0,
+    5.5,
+    -25
+   ],
+   "note": "The unforced first-person arrival among the tanks, the roof crossing ahead."
+  },
+  {
+   "name": "roof_notaries",
+   "camera": "overview",
+   "camera_position": [
+    -14,
+    5.65,
+    -27.5
+   ],
+   "camera_look_at": [
+    0,
+    6,
+    -23
+   ],
+   "note": "Both Notaries hovering over the plank bridge at drone height, about 10 to 18 m, against the far roof and sky."
+  },
+  {
+   "name": "roof_notary_close",
+   "camera": "overview",
+   "camera_position": [
+    -9,
+    5.65,
+    -25
+   ],
+   "camera_look_at": [
+    -4,
+    6,
+    -23
+   ],
+   "note": "The west Notary at about 5 m: black body, red optic."
+  },
+  {
+   "name": "roof_clerks",
+   "camera": "overview",
+   "camera_position": [
+    4,
+    5.65,
+    -30
+   ],
+   "camera_look_at": [
+    17,
+    5.0,
+    -26.5
+   ],
+   "note": "The two Clerks holding the far roof at 12 to 17 m, the gantry behind."
+  },
+  {
+   "name": "roof_clerk_close",
+   "camera": "overview",
+   "camera_position": [
+    10,
+    5.65,
+    -31
+   ],
+   "camera_look_at": [
+    15,
+    5.0,
+    -28
+   ],
+   "note": "The near Clerk at about 6 m against warm plaster."
+  },
+  {
+   "name": "roof_equipment",
+   "camera": "first_person",
+   "walk_to": [
+    [
+     -24,
+     4,
+     -30
+    ],
+    [
+     -22,
+     4,
+     -30
+    ],
+    [
+     -21,
+     4,
+     -30
+    ],
+    [
+     -19,
+     4,
+     -30
+    ]
+   ],
+   "expect_equipment": {
+    "personal_claims": [
+     "roof_rifle"
+    ]
+   },
+   "note": "Walk from the unchanged entry loadout to discover the normal Rifle, finite Bullets and armor before the crossing alarm."
+  },
+  {
+   "name": "roof_crossing_fight",
+   "camera": "first_person",
+   "weapon": "Flechette",
+   "combat_travel": true,
+   "combat_travel_targets": [
+    "roof_notary_a",
+    "roof_notary_b",
+    "roof_clerk_a",
+    "roof_clerk_b"
+   ],
+   "walk_to": [
+    [
+     -19,
+     4,
+     -30
+    ],
+    [
+     -18,
+     4,
+     -30
+    ],
+    [
+     -9,
+     4,
+     -27.5
+    ],
+    [
+     -6,
+     4,
+     -27.5
+    ],
+    [
+     0,
+     4,
+     -27.5
+    ],
+    [
+     8,
+     4,
+     -27.5
+    ],
+    [
+     21,
+     4,
+     -27.5
+    ],
+    [
+     21,
+     4,
+     -23
+    ]
+   ],
+   "combat": {
+    "kind": "union",
+    "required": [
+     "roof_notary_a",
+     "roof_notary_b",
+     "roof_clerk_a",
+     "roof_clerk_b"
+    ],
+    "target_required_only": true,
+    "evade_tells": true,
+    "search_route": [
+     [
+      21,
+      4,
+      -23
+     ],
+     [
+      21,
+      4,
+      -27.5
+     ],
+     [
+      8,
+      4,
+      -27.5
+     ],
+     [
+      0,
+      4,
+      -27.5
+     ],
+     [
+      -9,
+      4,
+      -27.5
+     ]
+    ]
+   },
+   "note": "The post-clear roof exit overlooks the crane and workshop. Required death receipts cover both Notaries and both Clerks; this strip does not establish their flight or attack animation."
+  },
+  {
+   "name": "tank_armor_secret",
+   "camera": "first_person",
+   "walk_to": [
+    [
+     21,
+     4,
+     -23
+    ],
+    [
+     21,
+     4,
+     -27.5
+    ],
+    [
+     8,
+     4,
+     -27.5
+    ],
+    [
+     0,
+     4,
+     -27.5
+    ],
+    [
+     -9,
+     4,
+     -27.5
+    ],
+    [
+     -11,
+     4,
+     -35
+    ],
+    [
+     -14,
+     4,
+     -35
+    ],
+    [
+     -11,
+     4,
+     -35
+    ],
+    [
+     -11,
+     4,
+     -29
+    ],
+    [
+     -14,
+     4,
+     -29
+    ]
+   ],
+   "look_at": [
+    -14.5,
+    5.25,
+    -31
+   ],
+   "note": "Claim armor behind the second tank, then walk around its open east side to inspect the registered six-marked service sign."
+  },
+  {
+   "name": "crane_walk_descent",
+   "camera": "first_person",
+   "walk_to": [
+    [
+     -11,
+     4,
+     -29
+    ],
+    [
+     -11,
+     4,
+     -35
+    ],
+    [
+     -9,
+     4,
+     -27.5
+    ],
+    [
+     0,
+     4,
+     -27.5
+    ],
+    [
+     8,
+     4,
+     -27.5
+    ],
+    [
+     26,
+     4,
+     -27.5
+    ],
+    [
+     26,
+     4,
+     -21
+    ],
+    [
+     26,
+     3.5,
+     -19
+    ],
+    [
+     26,
+     3,
+     -17
+    ],
+    [
+     26,
+     2.5,
+     -15
+    ],
+    [
+     26,
+     2,
+     -13
+    ],
+    [
+     26,
+     1.5,
+     -11
+    ],
+    [
+     26,
+     1,
+     -9
+    ],
+    [
+     26,
+     0.5,
+     -7
+    ],
+    [
+     26,
+     0,
+     -5
+    ]
+   ],
+   "look_at": [
+    20,
+    5,
+    -15
+   ],
+   "note": "The recognizable gantry is now underfoot. Seven half-metre treads lead to the workshop floor."
+  },
+  {
+   "name": "paint_bay_discovery",
+   "camera": "first_person",
+   "walk_to": [
+    [
+     26,
+     0,
+     -5
+    ],
+    [
+     20,
+     0,
+     -5
+    ],
+    [
+     15,
+     0,
+     -5
+    ],
+    [
+     12,
+     0.5,
+     -10
+    ],
+    [
+     12,
+     0.9,
+     -12
+    ],
+    [
+     10.8,
+     0.9,
+     -12
+    ]
+   ],
+   "expect_equipment": {
+    "personal_claims": [
+     "paint_bay_grenades",
+     "paint_bay_shotgun",
+     "roof_rifle"
+    ]
+   },
+   "look_at": [
+    12,
+    1,
+    -13
+   ],
+   "note": "The ordinary approach discovers the Shotgun before the service step leads onto the normal0.9m workbench and counted Grenades. Walk along its supported edge for a high lob."
+  },
+  {
+   "name": "grenade_lesson_throw",
+   "camera": "first_person",
+   "look_at": [
+    0,
+    20,
+    -10
+   ],
+   "trigger": "throw_grenade",
+   "grenade_follow": true,
+   "strip_frames": 24,
+   "strip_interval_seconds": 0.1,
+   "note": "Launch an ordinary high lob from first person, then follow the confirmed projectile's actual server position. The strip records flight, bounce, fuse and resolved blast hits toward the guarded bay."
+  },
+  {
+   "name": "grenade_lesson_clear",
+   "camera": "first_person",
+   "weapon": "Flechette",
+   "walk_to": [
+    [
+     12,
+     0.9,
+     -12
+    ],
+    [
+     12,
+     0.5,
+     -10
+    ],
+    [
+     15,
+     0,
+     -5
+    ],
+    [
+     8,
+     0,
+     -5
+    ],
+    [
+     0,
+     0,
+     -5
+    ]
+   ],
+   "combat": {
+    "kind": "union",
+    "required": [
+     "paint_sweeper_a",
+     "paint_sweeper_b"
+    ],
+    "target_required_only": true,
+    "evade_tells": true,
+    "search_route": [
+     [
+      0,
+      0,
+      -5
+     ],
+     [
+      0,
+      0,
+      -9
+     ],
+     [
+      0,
+      0,
+      -12
+     ],
+     [
+      0,
+      0,
+      -5
+     ]
+    ]
+   },
+   "note": "Both named Sweepers remain required, including anyone reached by the actual grenade."
+  },
+  {
+   "name": "paint_bay_recovery",
+   "camera": "first_person",
+   "walk_to": [
+    [
+     0,
+     0,
+     -5
+    ],
+    [
+     14,
+     0,
+     -5
+    ],
+    [
+     12,
+     0,
+     -5
+    ],
+    [
+     10,
+     0,
+     -5
+    ],
+    [
+     8,
+     0,
+     -5
+    ],
+    [
+     12,
+     0,
+     -5
+    ]
+   ],
+   "note": "Complete the physical paint-bay arrival and take finite Bullets, health and armor normally. The Shotgun was discovered on the earlier approach."
+  },
+  {
+   "name": "workshop_watch",
+   "camera": "first_person",
+   "combat_travel": true,
+   "combat_travel_targets": [
+    "workshop_sweeper_a",
+    "workshop_sweeper_b",
+    "workshop_clerk_a",
+    "workshop_clerk_b"
+   ],
+   "walk_to": [
+    [
+     12,
+     0,
+     -5
+    ],
+    [
+     0,
+     0,
+     -5
+    ],
+    [
+     -5,
+     0,
+     -5
+    ],
+    [
+     -12,
+     0,
+     -3
+    ]
+   ],
+   "combat": {
+    "kind": "union",
+    "required": [
+     "workshop_sweeper_a",
+     "workshop_sweeper_b",
+     "workshop_clerk_a",
+     "workshop_clerk_b"
+    ],
+    "target_required_only": true,
+    "evade_tells": true,
+    "search_route": [
+     [
+      -12,
+      0,
+      -3
+     ],
+     [
+      -11,
+      0,
+      -3
+     ],
+     [
+      -11,
+      0,
+      1.5
+     ],
+     [
+      -11,
+      0,
+      4.75
+     ]
+    ]
+   },
+   "note": "Two Sweepers and two Clerks hold the open loading pen; later Heavy guards remain absent."
+  },
+  {
+   "name": "trench_entry",
+   "camera": "first_person",
+   "combat_travel": true,
+   "combat_travel_targets": [
+    "trench_notary_a",
+    "trench_notary_b",
+    "trench_sweeper_a",
+    "trench_sweeper_b",
+    "trench_sweeper_c"
+   ],
+   "walk_to": [
+    [
+     -12,
+     0,
+     -3
+    ],
+    [
+     -11,
+     0,
+     -3
+    ],
+    [
+     -11,
+     0,
+     5
+    ],
+    [
+     -5,
+     0,
+     5
+    ],
+    [
+     -5,
+     0,
+     7
+    ],
+    [
+     -5,
+     0,
+     9
+    ],
+    [
+     -5,
+     0,
+     11
+    ]
+   ],
+   "note": "Out of the workshop into the trench along the walking alternative, taking the finite trench supplies."
+  },
+  {
+   "name": "trench_watch_clear",
+   "camera": "first_person",
+   "weapon": "Flechette",
+   "combat_travel": true,
+   "combat_travel_targets": [
+    "trench_notary_a",
+    "trench_notary_b",
+    "trench_sweeper_a",
+    "trench_sweeper_b",
+    "trench_sweeper_c"
+   ],
+   "walk_to": [
+    [
+     -5,
+     0,
+     11
+    ],
+    [
+     -5,
+     0,
+     18
+    ],
+    [
+     -5,
+     0,
+     22
+    ]
+   ],
+   "combat": {
+    "kind": "union",
+    "required": [
+     "trench_notary_a",
+     "trench_notary_b",
+     "trench_sweeper_a",
+     "trench_sweeper_b",
+     "trench_sweeper_c"
+    ],
+    "target_required_only": true,
+    "evade_tells": true,
+    "search_route": [
+     [
+      -5,
+      0,
+      22
+     ],
+     [
+      -5,
+      0,
+      18
+     ],
+     [
+      -5,
+      0,
+      14
+     ],
+     [
+      -5,
+      0,
+      10
+     ],
+     [
+      -5,
+      0,
+      3
+     ],
+     [
+      5,
+      0,
+      3
+     ],
+     [
+      5,
+      0,
+      18
+     ],
+     [
+      5,
+      0,
+      23
+     ]
+    ]
+   },
+   "note": "Defeat both Notaries and all three trench Sweepers on the ordinary walking path before boarding."
+  },
+  {
+   "name": "heavy_recovery",
+   "camera": "first_person",
+   "combat_travel": false,
+   "walk_to": [
+    [
+     -5,
+     0,
+     22
+    ],
+    [
+     -5,
+     0,
+     23
+    ],
+    [
+     -5,
+     0,
+     24
+    ],
+    [
+     -5,
+     0,
+     24.5
+    ]
+   ],
+   "look_at": [
+    8,
+    1,
+    30
+   ],
+   "note": "Take normal finite health, Bullets and reserve Grenades before crossing the isolated Heavy threshold. Travel fire remains off while preparing its observed lesson."
+  },
+  {
+   "name": "heavy_wakes",
+   "camera": "first_person",
+   "combat_travel": false,
+   "walk_to": [
+    [
+     -5,
+     0,
+     24.5
+    ],
+    [
+     -5,
+     0,
+     26
+    ]
+   ],
+   "look_at": [
+    8,
+    1.2,
+    30
+   ],
+   "note": "Crossing the ramp threshold wakes the lone Heavy Sweeper on the platform ramp; first-person read at about 13 m."
+  },
+  {
+   "name": "heavy_overview",
+   "camera": "overview",
+   "camera_position": [
+    -1,
+    1.65,
+    24
+   ],
+   "camera_look_at": [
+    8,
+    1.2,
+    30
+   ],
+   "note": "The Heavy Sweeper at about 10 m from the stalled-tram side: sunk head, two pauldrons, red lamps against the ramp and floodlights."
+  }
+ ]
+}

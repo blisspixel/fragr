@@ -11,6 +11,8 @@ const TYPE: String = "snapshot_delta"
 const FIELDS: Array[String] = ["type", "base", "tick", "set", "unset", "players"]
 ## Snapshot fields a delta carries outside `set`.
 const FRAMED: Array[String] = ["type", "tick", "players"]
+## A carried roster entry's position in the base roster.
+const AT: String = "at"
 ## Far above any snapshot's own field count, so a flood is refused early.
 const MAX_FIELDS: int = 128
 
@@ -51,27 +53,37 @@ static func apply(base: Dictionary, delta: Dictionary) -> Dictionary:
 		if name in FRAMED:
 			return {}
 		world.erase(name)
-	var by_id: Dictionary = {}
-	for entry: Variant in held_players:
-		if not entry is Dictionary or not (entry as Dictionary).get("id") is String:
+	var held_rows: Array = held_players
+	var known: Dictionary = {}
+	for entry: Variant in held_rows:
+		if not entry is Dictionary or not (entry as Dictionary).get("id") is String \
+				or known.has(entry["id"]):
 			return {}
-		by_id[entry["id"]] = entry
+		known[entry["id"]] = true
+	# An entry with an `id` is a whole arrival. Any other entry carries the
+	# base entry at position `at`, which defaults to one past the previous
+	# carried entry's position.
+	var carried: Dictionary = {}
+	var cursor: int = 0
 	var seen: Dictionary = {}
 	var players: Array = []
 	for entry: Variant in entries:
-		if not entry is Dictionary or not (entry as Dictionary).get("id") is String:
+		if not entry is Dictionary or (entry as Dictionary).size() > MAX_FIELDS:
 			return {}
 		var row: Dictionary = entry
-		var id: String = row["id"]
-		if seen.has(id) or row.size() > MAX_FIELDS:
-			return {}
-		seen[id] = true
-		if not by_id.has(id):
+		if row.has("id"):
+			if not row["id"] is String or row.has(AT) or row.has("unset"):
+				return {}
 			players.append(row)
 			continue
-		var merged: Dictionary = (by_id[id] as Dictionary).duplicate(true)
+		var at: Variant = row.get(AT, cursor)
+		if not EquipmentState.integer(at, held_rows.size() - 1) or carried.has(int(at)):
+			return {}
+		carried[int(at)] = true
+		cursor = int(at) + 1
+		var merged: Dictionary = (held_rows[int(at)] as Dictionary).duplicate(true)
 		for key: Variant in row.keys():
-			if key != "unset":
+			if key != "unset" and key != AT:
 				merged[key] = row[key]
 		var gone: Variant = _names(row.get("unset", []))
 		if gone == null or "id" in gone:
@@ -79,6 +91,10 @@ static func apply(base: Dictionary, delta: Dictionary) -> Dictionary:
 		for name: String in gone:
 			merged.erase(name)
 		players.append(merged)
+	for row: Dictionary in players:
+		if seen.has(row["id"]):
+			return {}
+		seen[row["id"]] = true
 	world["players"] = players
 	return world
 

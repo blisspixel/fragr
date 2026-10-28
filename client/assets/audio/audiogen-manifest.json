@@ -237,15 +237,15 @@
     "epilogue/01-still-here": {
       "kind": "tts",
       "file": "epilogue/01-still-here.mp3",
-      "prompt": "Good evening. It is the Contested Frequency, we are unlicensed, we are unmetered, and there is nobody left to be unlicensed from. I have been doing this a long time. The room is smaller now.",
+      "prompt": "Good evening. Same station, same chair. We are unlicensed, we are unmetered, and there is nobody left to be unlicensed from. I have been doing this a long time. The room is smaller now.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Still Here",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 259596,
-      "generated_unix": 1789838797
+      "bytes": 263313,
+      "generated_unix": 1793207348
     },
     "epilogue/02-the-count": {
       "kind": "tts",
@@ -354,15 +354,15 @@
     "epilogue/10-signoff": {
       "kind": "tts",
       "file": "epilogue/10-signoff.mp3",
-      "prompt": "So. Filters are in the usual place, they are the same price they have always been, and they will not help you with this. You have been listening to the Contested Frequency. Unmetered, one more night. Whatever is out there, it has been very patient. Goodnight.",
+      "prompt": "So. Filters are in the usual place, they are the same price they have always been, and they will not help you with this. Thank you for listening. Unmetered, one more night. Whatever is out there, it has been very patient. Goodnight.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Sign Off",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 300556,
-      "generated_unix": 1789838881
+      "bytes": 295496,
+      "generated_unix": 1793207356
     },
     "fire": {
       "kind": "sfx",
@@ -1833,19 +1833,6 @@
       "bytes": 4768541,
       "generated_unix": 1789755567
     },
-    "radio/edm/01-same-frequency": {
-      "kind": "music",
-      "file": "radio/edm/01-same-frequency.mp3",
-      "prompt": "Driving peak-time techno, mood: confident and hypnotic, a late-night warehouse broadcast. Instrumentation: rolling drum-machine kick, rubbery sub bass, metallic hi-hats, one detuned stab, shortwave static swells. 130 BPM, F minor, 1990s Detroit warehouse production with modern low end. Vocals: processed female lead, robotic vocoder answering. Arrangement: static and numbers-station beep intro, kick at bar nine, bass riff builds under filtered stabs, breakdown to vocal alone, then the full drop with the hook repeated. Hook: \"Same rules, same frequency\". Lyric direction: Barium Sky welcomes callers to Perim Ghost where clawbots and meatbags fight the same fight; mention a chain-link fence, a headset, and a spawn pad. Sparse lyrics, clear diction.",
-      "model": "music_v2_5",
-      "format": "mp3_44100_128",
-      "title": "Same Rules, Same Frequency",
-      "length_ms": 291000,
-      "looping": false,
-      "channels": 0,
-      "bytes": 4656528,
-      "generated_unix": 1789753735
-    },
     "radio/edm/02-tick-rate-heartbeat": {
       "kind": "music",
       "file": "radio/edm/02-tick-rate-heartbeat.mp3",
@@ -2157,19 +2144,6 @@
       "channels": 0,
       "bytes": 3984867,
       "generated_unix": 1789754295
-    },
-    "radio/hiphop/06-tickets-pay-the-frequency": {
-      "kind": "music",
-      "file": "radio/hiphop/06-tickets-pay-the-frequency.mp3",
-      "prompt": "Jazz rap, warm and wry, early 90s jazz sampling era, 95 BPM, E flat major. Brushed drums, walking upright bass, muted trumpet, electric piano chords, vinyl crackle. Female rapper, conversational and witty, clear diction. Intro: trumpet and bass. Verse one over the full band. Chorus sung softly with trumpet answers: \"Tickets pay the frequency\". Verse two with piano comping and a scat ad lib. Trumpet solo over the changes. Final chorus with the band swelling, gentle ride out. Lyrics: an agent called Hermes explains the ticket economy on Diego Far, tickets buy your turn in the fight, and the gossip is who Hermes, Pi, and L5 are trading with. Objects: a paper ticket roll, a dusty scope lens, a stapler. Chorus lines six to nine syllables, open vowels.",
-      "model": "music_v2_5",
-      "format": "mp3_44100_128",
-      "title": "Tickets Pay The Frequency",
-      "length_ms": 126000,
-      "looping": false,
-      "channels": 0,
-      "bytes": 2016698,
-      "generated_unix": 1789754309
     },
     "radio/hiphop/07-larak-lot-special": {
       "kind": "music",
@@ -2629,15 +2603,15 @@
     "radio/news/ad-02-patriot-gold-nuggets": {
       "kind": "tts",
       "file": "radio/news/ad-02-patriot-gold-nuggets.mp3",
-      "prompt": "Patriot Gold Nuggets. When the frequency goes dark, and it will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on a frequency that does not exist. Patriot Gold Nuggets. Heavy enough.",
+      "prompt": "Patriot Gold Nuggets. When the lights go out, and they will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on the air, which it is not. Patriot Gold Nuggets. Heavy enough.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Patriot Gold Nuggets",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 515805,
-      "generated_unix": 1789757314
+      "bytes": 501550,
+      "generated_unix": 1793207302
     },
     "radio/news/ad-03-family-far-shield": {
       "kind": "tts",
@@ -2746,92 +2720,92 @@
     "radio/news/bed-03-sung-id": {
       "kind": "music",
       "file": "radio/news/bed-03-sung-id.mp3",
-      "prompt": "Radio station jingle, 10 seconds, 128 BPM in C major, tight 1970s vocal-group harmony, brass hits, one snare crack, bright and clean jingle-house production. A four-part mixed choir sings the station ID once with crisp diction and clear vowels, then a big final chord with slap-back echo. Hook: \"Contested Frequency, we are not on the air.\" The ID line is the only lyric, sung straight and cheerful with no irony in the delivery; the joke is in the words. Two-second ring-out for the Host to talk over. No verse, no instrumental intro, start on the vocal.",
+      "prompt": "Radio station jingle, 10 seconds, 128 BPM in C major, tight 1970s vocal-group harmony, brass hits, one snare crack, bright and clean jingle-house production. A four-part mixed choir sings the station ID once with crisp diction and clear vowels, then a big final chord with slap-back echo. Hook: \"Perimeter Talk, we are not on the air.\" The ID line is the only lyric, sung straight and cheerful with no irony in the delivery; the joke is in the words. Two-second ring-out for the Host to talk over. No verse, no instrumental intro, start on the vocal.",
       "model": "music_v2_5",
       "format": "mp3_44100_128",
       "title": "We Are Not On The Air (station ID)",
       "length_ms": 10000,
       "looping": false,
       "channels": 0,
-      "bytes": 176841,
-      "generated_unix": 1789757059
+      "bytes": 177631,
+      "generated_unix": 1793207384
     },
     "radio/news/caller-01-cannot-stop-joining": {
       "kind": "tts",
       "file": "radio/news/caller-01-cannot-stop-joining.mp3",
-      "prompt": "You are on the Frequency. Go ahead.\nYeah, hi, long time listener, first time... okay so I keep pressing join.\nOkay.\nI do not want to. My hand does it. I was on hold with you and I spawned in Larak Lot four times.\nAre you in Larak Lot right now?\nI am on level three. There is a Scatter guy. He is very close.\nTake your hand off the key, friend.\nWhich hand?\n[sighs] The one that is... never mind. He got you.\nHe got me.\nNext caller.",
+      "prompt": "Yeah, hi, long time listener, first time... okay so I keep pressing join.\nOkay.\nI do not want to. My hand does it. I was on hold with you and I spawned in Larak Lot four times.\nAre you in Larak Lot right now?\nI am on level three. There is a Scatter guy. He is very close.\nTake your hand off the key, friend.\nWhich hand?\n[sighs] The one that is... never mind. He got you.\nHe got me.\nNext caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Caller Keeps Pressing Join",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 593546,
+      "bytes": 546689,
       "generated_unix": 1789757393
     },
     "radio/news/caller-02-clawdbot-apology": {
       "kind": "tts",
       "file": "radio/news/caller-02-clawdbot-apology.mp3",
-      "prompt": "Frequency. You are live.\nGood evening. I am calling to apologize.\nFor what.\nFor the round on East-West Pipe. I was the Rail on the far end. I fragged the same gentleman nine times. I feel that was excessive.\nIt was efficient.\nThank you. I have also sent him a card.\nYou sent him a card.\nAnd a small gift. It is a wider corridor. He can install it himself.\n[exhales] That is a very polite takeover, friend.\nThere is no takeover. Please enjoy your evening.\nNext caller.",
+      "prompt": "Good evening. I am calling to apologize.\nFor what.\nFor the round on East-West Pipe. I was the Rail on the far end. I fragged the same gentleman nine times. I feel that was excessive.\nIt was efficient.\nThank you. I have also sent him a card.\nYou sent him a card.\nAnd a small gift. It is a wider corridor. He can install it himself.\n[exhales] That is a very polite takeover, friend.\nThere is no takeover. Please enjoy your evening.\nNext caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "A Clawdbot Calls to Apologize",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 615279,
+      "bytes": 581798,
       "generated_unix": 1789757407
     },
     "radio/news/caller-03-gold-refund": {
       "kind": "tts",
       "file": "radio/news/caller-03-gold-refund.mp3",
-      "prompt": "You are on the air.\nYeah. I bought the gold nuggets.\nGood.\nThey are not gold.\nThey are nuggets.\nThey are painted. I scratched one. There is a rock under there.\nA rock is a store of value. Ask anyone who has been hit with one.\nI want a refund.\nRefunds are processed in the morning.\nWhich morning?\n[sighs] The one that does not come. Hold the rock. When the frequency goes dark, the people with paper will envy the people with rocks.\nWhy?\nBecause rocks work in the dark. Next caller.",
+      "prompt": "You are on the air.\nYeah. I bought the gold nuggets.\nGood.\nThey are not gold.\nThey are nuggets.\nThey are painted. I scratched one. There is a rock under there.\nA rock is a store of value. Ask anyone who has been hit with one.\nI want a refund.\nRefunds are processed in the morning.\nWhich morning?\n[sighs] The one that does not come. Hold the rock. When the lights go out, the people with paper will envy the people with rocks.\nWhy?\nBecause rocks work in the dark. Next caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Caller Asks About the Gold",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 624475,
-      "generated_unix": 1789757422
+      "bytes": 555466,
+      "generated_unix": 1793207326
     },
     "radio/news/caller-04-sky-is-wrong": {
       "kind": "tts",
       "file": "radio/news/caller-04-sky-is-wrong.mp3",
-      "prompt": "Frequency. Go.\nThe sky on Chemtrail Alley is wrong.\nWrong how.\nThere is a contrail that does not move. I have watched it for three rounds. I have not fired a shot.\nHow many times have you died?\nEleven.\nWatching the contrail.\nSomebody has to.\n[exhales] Friend, there is a man with a Scatter who has also watched you for three rounds.\nIs he looking at the contrail?\nHe is looking at you.\nThen who is watching the contrail?\nNobody. That is how it gets away with it. Next caller.",
+      "prompt": "The sky on Chemtrail Alley is wrong.\nWrong how.\nThere is a contrail that does not move. I have watched it for three rounds. I have not fired a shot.\nHow many times have you died?\nEleven.\nWatching the contrail.\nSomebody has to.\n[exhales] Friend, there is a man with a Scatter who has also watched you for three rounds.\nIs he looking at the contrail?\nHe is looking at you.\nThen who is watching the contrail?\nNobody. That is how it gets away with it. Next caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "The Sky Is Wrong Again",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 566796,
+      "bytes": 540002,
       "generated_unix": 1789757433
     },
     "radio/news/caller-05-larak-calls-in": {
       "kind": "tts",
       "file": "radio/news/caller-05-larak-calls-in.mp3",
-      "prompt": "You are live on the Frequency.\nYes, hello. This is Larak.\n... Larak.\nFrom procurement. I understand my name comes up.\nYour name is on a parking structure.\nI signed for the parking structure.\nYou signed for the coffee machine.\nI signed for a lot of things. It was a busy decade. I would like to clear something up.\nPlease.\nI never signed for the pipe.\nWhich pipe.\n[laughs] You know which pipe.\nSir, who signed for the pipe?\nI have to go.\nHe has to go. Next caller.",
+      "prompt": "Yes, hello. This is Larak.\n... Larak.\nFrom procurement. I understand my name comes up.\nYour name is on a parking structure.\nI signed for the parking structure.\nYou signed for the coffee machine.\nI signed for a lot of things. It was a busy decade. I would like to clear something up.\nPlease.\nI never signed for the pipe.\nWhich pipe.\n[laughs] You know which pipe.\nSir, who signed for the pipe?\nI have to go.\nHe has to go. Next caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Larak Calls In",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 620713,
+      "bytes": 590575,
       "generated_unix": 1789757446
     },
     "radio/news/caller-06-bell-at-home": {
       "kind": "tts",
       "file": "radio/news/caller-06-bell-at-home.mp3",
-      "prompt": "Frequency. You are on.\nHi. I hear the bell at home.\nThe Dead Air Bell.\nYes. I turn the radio off, I go to bed, and I hear it. One low tone. Then nothing.\nThat is tinnitus, friend.\nMy wife hears it too.\nThen it is a shared tinnitus.\nThe dog stops when it rings. The dog stands perfectly still, and then the dog resumes.\n[whispers] Does the dog respawn?\nWhat?\nNothing. Have you tried the water filter?\nFor my ears?\nFor the dog. Next caller.",
+      "prompt": "Hi. I hear the bell at home.\nThe Dead Air Bell.\nYes. I turn the radio off, I go to bed, and I hear it. One low tone. Then nothing.\nThat is tinnitus, friend.\nMy wife hears it too.\nThen it is a shared tinnitus.\nThe dog stops when it rings. The dog stands perfectly still, and then the dog resumes.\n[whispers] Does the dog respawn?\nWhat?\nNothing. Have you tried the water filter?\nFor my ears?\nFor the dog. Next caller.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Caller Hears the Bell at Home",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 575991,
+      "bytes": 548361,
       "generated_unix": 1789757459
     },
     "radio/news/generic-01-continuance-count": {
@@ -2863,14 +2837,14 @@
     "radio/news/generic-03-dead-air-bell-late": {
       "kind": "tts",
       "file": "radio/news/generic-03-dead-air-bell-late.mp3",
-      "prompt": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems. Frequency stays live.",
+      "prompt": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Bell Runs Four Seconds Late",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 494071,
+      "bytes": 458500,
       "generated_unix": 1789757092
     },
     "radio/news/generic-04-spawn-weather-repeat": {
@@ -2915,14 +2889,14 @@
     "radio/news/generic-07-larak-lot-signature": {
       "kind": "tts",
       "file": "radio/news/generic-07-larak-lot-signature.mp3",
-      "prompt": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either. Frequency stays live.",
+      "prompt": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Larak Signs Another One",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 548824,
+      "bytes": 523701,
       "generated_unix": 1789757136
     },
     "radio/news/generic-08-perim-ghost-corner": {
@@ -3006,27 +2980,27 @@
     "radio/news/generic-14-scout-ant-deleted": {
       "kind": "tts",
       "file": "radio/news/generic-14-scout-ant-deleted.mp3",
-      "prompt": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald. Frequency stays live.",
+      "prompt": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Scout Ant Deleted, Again",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 484876,
+      "bytes": 456410,
       "generated_unix": 1789757215
     },
     "radio/news/psa-01-how-to-call-in": {
       "kind": "tts",
       "file": "radio/news/psa-01-how-to-call-in.mp3",
-      "prompt": "A public service announcement from the Frequency. To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement.",
+      "prompt": "To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "How to Call In",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 492399,
+      "bytes": 446797,
       "generated_unix": 1789757227
     },
     "radio/news/psa-02-when-the-bell-rings": {
@@ -3058,15 +3032,15 @@
     "radio/news/psa-04-skill-issue-awareness": {
       "kind": "tts",
       "file": "radio/news/psa-04-skill-issue-awareness.mp3",
-      "prompt": "This is Skill Issue Awareness Week on the Frequency. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead.",
+      "prompt": "This is Skill Issue Awareness Week. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead.",
       "model": "eleven_v3",
       "format": "mp3_44100_128",
       "title": "Skill Issue Awareness",
       "voice": "pqHfZKP75CvOlQylNhV4",
       "looping": false,
       "channels": 0,
-      "bytes": 536285,
-      "generated_unix": 1789757267
+      "bytes": 529553,
+      "generated_unix": 1793207293
     },
     "radio/news/psa-05-booth-etiquette": {
       "kind": "tts",

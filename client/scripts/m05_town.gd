@@ -2,6 +2,8 @@ class_name M05Town
 extends M04Town
 
 var _splice: CivilianFigure
+## Held workers stand in the pen's shade; freed, they wear their own art.
+const HELD_SHADE: Color = Color(0.72, 0.72, 0.72)
 
 func clear_map() -> void:
 	super.clear_map()
@@ -76,7 +78,7 @@ func configure_map(info: Dictionary) -> void:
 		if captive["id"] == "splice":
 			_splice = CivilianFigure.new()
 			_splice.name = "Worker_splice"
-			_splice.configure("splice", Color("b8bda7"))
+			_splice.configure("splice", HELD_SHADE)
 			_root.add_child(_splice)
 			_splice.place_feet(_feet(captive["held"]))
 			continue
@@ -88,7 +90,11 @@ func configure_map(info: Dictionary) -> void:
 		view.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		view.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 		view.position = _feet(captive["held"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
-		view.modulate = Color("b8bda7")
+		# Free agents in their own art: lit like any body in the scene, never
+		# a whole-body tint toward off-white (faction readability contract).
+		view.shaded = true
+		view.layers = ArenaSky.ACTOR_LAYERS
+		view.modulate = HELD_SHADE
 		view.set_meta("walked", 0.0)
 		view.set_meta("last_move_ms", -1000)
 		_root.add_child(view)
@@ -104,7 +110,7 @@ func apply_state(state: Dictionary) -> void:
 			if _splice != null:
 				_splice.place_feet(_feet(captive["feet"]))
 				if _splice.strip != null:
-					_splice.strip.modulate = Color("e8e2d6") if state["m05"]["group_released"] else Color("b8bda7")
+					_splice.strip.modulate = Color.WHITE if state["m05"]["group_released"] else HELD_SHADE
 			continue
 		var view: Sprite3D = _views[captive["id"]]
 		var next: Vector3 = _feet(captive["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
@@ -113,4 +119,4 @@ func apply_state(state: Dictionary) -> void:
 			view.set_meta("walked", float(view.get_meta("walked")) + distance)
 			view.set_meta("last_move_ms", Time.get_ticks_msec())
 		view.position = next
-		view.modulate = Color("e8e2d6") if state["m05"]["group_released"] else Color("b8bda7")
+		view.modulate = Color.WHITE if state["m05"]["group_released"] else HELD_SHADE

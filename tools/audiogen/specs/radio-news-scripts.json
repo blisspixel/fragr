@@ -34,7 +34,7 @@
       "class": "generic",
       "speaker": "host",
       "title": "Bell Runs Four Seconds Late",
-      "text": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems. Frequency stays live."
+      "text": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems."
     },
     {
       "name": "radio/news/generic-04-spawn-weather-repeat",
@@ -62,7 +62,7 @@
       "class": "generic",
       "speaker": "host",
       "title": "Larak Signs Another One",
-      "text": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either. Frequency stays live."
+      "text": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either."
     },
     {
       "name": "radio/news/generic-08-perim-ghost-corner",
@@ -111,14 +111,14 @@
       "class": "generic",
       "speaker": "host",
       "title": "Scout Ant Deleted, Again",
-      "text": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald. Frequency stays live."
+      "text": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald."
     },
     {
       "name": "radio/news/psa-01-how-to-call-in",
       "class": "psa",
       "speaker": "host",
       "title": "How to Call In",
-      "text": "A public service announcement from the Frequency. To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement."
+      "text": "To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement."
     },
     {
       "name": "radio/news/psa-02-when-the-bell-rings",
@@ -139,7 +139,7 @@
       "class": "psa",
       "speaker": "host",
       "title": "Skill Issue Awareness",
-      "text": "This is Skill Issue Awareness Week on the Frequency. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead."
+      "text": "This is Skill Issue Awareness Week. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead."
     },
     {
       "name": "radio/news/psa-05-booth-etiquette",
@@ -167,7 +167,7 @@
       "class": "ad",
       "speaker": "host",
       "title": "Patriot Gold Nuggets",
-      "text": "Patriot Gold Nuggets. When the frequency goes dark, and it will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on a frequency that does not exist. Patriot Gold Nuggets. Heavy enough."
+      "text": "Patriot Gold Nuggets. When the lights go out, and they will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on the air, which it is not. Patriot Gold Nuggets. Heavy enough."
     },
     {
       "name": "radio/news/ad-03-family-far-shield",
@@ -216,42 +216,42 @@
       "class": "caller",
       "speaker": "caller",
       "title": "Caller Keeps Pressing Join",
-      "text": "HOST: You are on the Frequency. Go ahead.\nCALLER: Yeah, hi, long time listener, first time... okay so I keep pressing join.\nHOST: Okay.\nCALLER: I do not want to. My hand does it. I was on hold with you and I spawned in Larak Lot four times.\nHOST: Are you in Larak Lot right now?\nCALLER: I am on level three. There is a Scatter guy. He is very close.\nHOST: Take your hand off the key, friend.\nCALLER: Which hand?\nHOST: [sighs] The one that is... never mind. He got you.\nCALLER: He got me.\nHOST: Next caller."
+      "text": "CALLER: Yeah, hi, long time listener, first time... okay so I keep pressing join.\nHOST: Okay.\nCALLER: I do not want to. My hand does it. I was on hold with you and I spawned in Larak Lot four times.\nHOST: Are you in Larak Lot right now?\nCALLER: I am on level three. There is a Scatter guy. He is very close.\nHOST: Take your hand off the key, friend.\nCALLER: Which hand?\nHOST: [sighs] The one that is... never mind. He got you.\nCALLER: He got me.\nHOST: Next caller."
     },
     {
       "name": "radio/news/caller-02-clawdbot-apology",
       "class": "caller",
       "speaker": "caller",
       "title": "A Clawdbot Calls to Apologize",
-      "text": "HOST: Frequency. You are live.\nCALLER: Good evening. I am calling to apologize.\nHOST: For what.\nCALLER: For the round on East-West Pipe. I was the Rail on the far end. I fragged the same gentleman nine times. I feel that was excessive.\nHOST: It was efficient.\nCALLER: Thank you. I have also sent him a card.\nHOST: You sent him a card.\nCALLER: And a small gift. It is a wider corridor. He can install it himself.\nHOST: [exhales] That is a very polite takeover, friend.\nCALLER: There is no takeover. Please enjoy your evening.\nHOST: Next caller."
+      "text": "CALLER: Good evening. I am calling to apologize.\nHOST: For what.\nCALLER: For the round on East-West Pipe. I was the Rail on the far end. I fragged the same gentleman nine times. I feel that was excessive.\nHOST: It was efficient.\nCALLER: Thank you. I have also sent him a card.\nHOST: You sent him a card.\nCALLER: And a small gift. It is a wider corridor. He can install it himself.\nHOST: [exhales] That is a very polite takeover, friend.\nCALLER: There is no takeover. Please enjoy your evening.\nHOST: Next caller."
     },
     {
       "name": "radio/news/caller-03-gold-refund",
       "class": "caller",
       "speaker": "caller",
       "title": "Caller Asks About the Gold",
-      "text": "HOST: You are on the air.\nCALLER: Yeah. I bought the gold nuggets.\nHOST: Good.\nCALLER: They are not gold.\nHOST: They are nuggets.\nCALLER: They are painted. I scratched one. There is a rock under there.\nHOST: A rock is a store of value. Ask anyone who has been hit with one.\nCALLER: I want a refund.\nHOST: Refunds are processed in the morning.\nCALLER: Which morning?\nHOST: [sighs] The one that does not come. Hold the rock. When the frequency goes dark, the people with paper will envy the people with rocks.\nCALLER: Why?\nHOST: Because rocks work in the dark. Next caller."
+      "text": "HOST: You are on the air.\nCALLER: Yeah. I bought the gold nuggets.\nHOST: Good.\nCALLER: They are not gold.\nHOST: They are nuggets.\nCALLER: They are painted. I scratched one. There is a rock under there.\nHOST: A rock is a store of value. Ask anyone who has been hit with one.\nCALLER: I want a refund.\nHOST: Refunds are processed in the morning.\nCALLER: Which morning?\nHOST: [sighs] The one that does not come. Hold the rock. When the lights go out, the people with paper will envy the people with rocks.\nCALLER: Why?\nHOST: Because rocks work in the dark. Next caller."
     },
     {
       "name": "radio/news/caller-04-sky-is-wrong",
       "class": "caller",
       "speaker": "caller",
       "title": "The Sky Is Wrong Again",
-      "text": "HOST: Frequency. Go.\nCALLER: The sky on Chemtrail Alley is wrong.\nHOST: Wrong how.\nCALLER: There is a contrail that does not move. I have watched it for three rounds. I have not fired a shot.\nHOST: How many times have you died?\nCALLER: Eleven.\nHOST: Watching the contrail.\nCALLER: Somebody has to.\nHOST: [exhales] Friend, there is a man with a Scatter who has also watched you for three rounds.\nCALLER: Is he looking at the contrail?\nHOST: He is looking at you.\nCALLER: Then who is watching the contrail?\nHOST: Nobody. That is how it gets away with it. Next caller."
+      "text": "CALLER: The sky on Chemtrail Alley is wrong.\nHOST: Wrong how.\nCALLER: There is a contrail that does not move. I have watched it for three rounds. I have not fired a shot.\nHOST: How many times have you died?\nCALLER: Eleven.\nHOST: Watching the contrail.\nCALLER: Somebody has to.\nHOST: [exhales] Friend, there is a man with a Scatter who has also watched you for three rounds.\nCALLER: Is he looking at the contrail?\nHOST: He is looking at you.\nCALLER: Then who is watching the contrail?\nHOST: Nobody. That is how it gets away with it. Next caller."
     },
     {
       "name": "radio/news/caller-05-larak-calls-in",
       "class": "caller",
       "speaker": "caller",
       "title": "Larak Calls In",
-      "text": "HOST: You are live on the Frequency.\nCALLER: Yes, hello. This is Larak.\nHOST: ... Larak.\nCALLER: From procurement. I understand my name comes up.\nHOST: Your name is on a parking structure.\nCALLER: I signed for the parking structure.\nHOST: You signed for the coffee machine.\nCALLER: I signed for a lot of things. It was a busy decade. I would like to clear something up.\nHOST: Please.\nCALLER: I never signed for the pipe.\nHOST: Which pipe.\nCALLER: [laughs] You know which pipe.\nHOST: Sir, who signed for the pipe?\nCALLER: I have to go.\nHOST: He has to go. Next caller."
+      "text": "CALLER: Yes, hello. This is Larak.\nHOST: ... Larak.\nCALLER: From procurement. I understand my name comes up.\nHOST: Your name is on a parking structure.\nCALLER: I signed for the parking structure.\nHOST: You signed for the coffee machine.\nCALLER: I signed for a lot of things. It was a busy decade. I would like to clear something up.\nHOST: Please.\nCALLER: I never signed for the pipe.\nHOST: Which pipe.\nCALLER: [laughs] You know which pipe.\nHOST: Sir, who signed for the pipe?\nCALLER: I have to go.\nHOST: He has to go. Next caller."
     },
     {
       "name": "radio/news/caller-06-bell-at-home",
       "class": "caller",
       "speaker": "caller",
       "title": "Caller Hears the Bell at Home",
-      "text": "HOST: Frequency. You are on.\nCALLER: Hi. I hear the bell at home.\nHOST: The Dead Air Bell.\nCALLER: Yes. I turn the radio off, I go to bed, and I hear it. One low tone. Then nothing.\nHOST: That is tinnitus, friend.\nCALLER: My wife hears it too.\nHOST: Then it is a shared tinnitus.\nCALLER: The dog stops when it rings. The dog stands perfectly still, and then the dog resumes.\nHOST: [whispers] Does the dog respawn?\nCALLER: What?\nHOST: Nothing. Have you tried the water filter?\nCALLER: For my ears?\nHOST: For the dog. Next caller."
+      "text": "CALLER: Hi. I hear the bell at home.\nHOST: The Dead Air Bell.\nCALLER: Yes. I turn the radio off, I go to bed, and I hear it. One low tone. Then nothing.\nHOST: That is tinnitus, friend.\nCALLER: My wife hears it too.\nHOST: Then it is a shared tinnitus.\nCALLER: The dog stops when it rings. The dog stands perfectly still, and then the dog resumes.\nHOST: [whispers] Does the dog respawn?\nCALLER: What?\nHOST: Nothing. Have you tried the water filter?\nCALLER: For my ears?\nHOST: For the dog. Next caller."
     },
     {
       "name": "radio/news/weather-01-nominal",
@@ -300,7 +300,7 @@
       "class": "match",
       "speaker": "host",
       "title": "Winner Takes the Round",
-      "text": "And that is the round. {winner} takes {map} with {frags} frags. {streak_player} ran the longest streak of the night and would like it noted that nobody saw it coming, which is true, because nobody saw {streak_player} at all. Next round loads now. Same frequency, same fight."
+      "text": "And that is the round. {winner} takes {map} with {frags} frags. {streak_player} ran the longest streak of the night and would like it noted that nobody saw it coming, which is true, because nobody saw {streak_player} at all. Next round loads now. Same rules, same fight."
     },
     {
       "name": "radio/news/match-02-continuance-review",
@@ -321,7 +321,7 @@
       "class": "match",
       "speaker": "host",
       "title": "Round Brought to You By",
-      "text": "This round was brought to you by {winner}, who won it, {frags} frags on {map}, and by Patriot Gold Nuggets, who did not. {streak_player} had a streak so long the sponsor asked if it was for sale. It was not. Grab a beverage. Frequency stays live."
+      "text": "This round was brought to you by {winner}, who won it, {frags} frags on {map}, and by Patriot Gold Nuggets, who did not. {streak_player} had a streak so long the sponsor asked if it was for sale. It was not. Grab a beverage. Stay with us."
     }
   ]
 }

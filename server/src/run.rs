@@ -862,10 +862,8 @@ async fn run_server_impl(
                     drop(clients_lock);
                     let mut next = session.state.live_status(connections);
                     tracker.apply(&mut next, now);
-                    // The tracker does not know the match. The sheet does.
-                    if let Some(ops) = next.ops.as_mut() {
-                        ops.night = session.sheet.totals();
-                    }
+                    // The tracker does not know the match. The session does.
+                    session.stamp_ops(&mut next);
                     // Once a second, with the snapshot `/status` serves.
                     if let (Some(clock), Some(style), true) = (pulse.as_mut(), options.overview, refreshed) {
                         if clock.due(now, &next) {

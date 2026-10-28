@@ -8,6 +8,52 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 **Status:** proposed, unbuilt. Earth before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-5-no-forwarding-address).
 
+The golden-slice pass (wave 15) dresses the built route through
+`client/scripts/m05_dressing.gd`, which extends Level 4's presenter so the two
+levels share one district vocabulary (plaster colours, shutters, windows,
+washing, belongings, lamps and the tram's terracotta and cream). It adds no
+words and no bodies: every piece is flush paint or relief on a registered
+face, a possession on an existing top or in a wall's own clearance, or an
+overhead run, and the server's solids are unchanged. Its layout guard keys on
+geometry that never moves (both roofs, the plank bridge, the workshop wall,
+the stripped chassis, a freight wall and the carrier's hull), never the
+riding tram or the lifting gate, so a re-sent MapInfo keeps the district
+dressed. `ArenaSky.no_forwarding_address()` continues Level 4's afternoon ten
+minutes on: a slightly lower, warmer sun rakes the roofs and the trench,
+with Level 4's actor fill kept so the Heavy Sweeper's black armour does not
+wash out facing the sun. The street behind the roofs and the market lanes are Level 4's homes
+over shops with every shutter down, the notice pasted on doors and a chalk
+cross where a household has gone; Edda's clinic stands closed on the market
+strip, sage render and painted hand with a sprout, windows dark. The roof
+blocks are one storey of shopfronts under tar roofs with patches and
+skylights; timber duckboards lead from the stair head (door open, lamp lit,
+belongings set down) past Level 4's sage water tanks, ladder and aerial, to a
+lashed plank bridge, and a birdcage, a scarf and a glove lie where people
+hurried. Level 4's ochre gantry stands over the crane walk's checker treads.
+The workshop is clad steel with shelves of tins, wheels, tool boards and
+Splice's coat, mug and radio; the stripped tram on the siding wears the old
+livery with the voted green half on under masking paper; the Union pen is
+issued black with a restrained red seal band, mesh and seals; the service bay
+has lockers, an inspection pit and Splice's tool chest. The tram trench is a
+rail cut: ballast, sleepers and rails, concrete cess with painted edges, board
+foot crossings, stacks of old sleepers for cover, a retaining wall on each side
+with buttresses, weep holes, a cable tray and lit maintenance recesses under
+the backs of homes with washing out, span wires for the overhead line, and an
+ochre plate-girder footbridge. Splice's patched tram keeps the old livery with
+riveted plates, a magenta patch and a plank deck, and follows the server's
+tram along the trench. The freight platform has an ochre and black ramp edge,
+a dark roller gate that rises with the gate solid, the Union's black sign
+pylon, two warm floodlight masts and, over the wall, Tern's gunmetal carrier
+with an ember stripe, cockpit house, tail fin, engine pods and an open lit
+hatch. `client/qa/m05-golden.json` frames every beat and
+`client/qa/m05-golden-guards.json` the roof guards and, through the authored
+route, the lone Heavy Sweeper on the ramp. Readable signs stay at three
+worded panels (loading pen stencil, freight sign, carrier boarding) plus three
+painted sixes, all diegetic. Still open: the trench is implied by the
+retaining walls 80 m apart rather than cut by solids, the footbridge ends in
+air, neighbours crossing the roofs are not yet shown, the captive agents are
+borrowed strips, fresh-player pacing and GPU performance.
+
 ## People and dramatic purpose
 
 Low Water is home to the player, Latch, clinician Edda Vale and technician Splice.

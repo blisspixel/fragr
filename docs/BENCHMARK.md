@@ -463,7 +463,9 @@ part is needed. After is the branch head (deltas on, so frames are small).
 ### Snapshot deltas (#434 stage 4)
 
 Gameplay 61 sends a world as the change from the world before it
-(`snapshot_delta`, [protocol](protocol.md#snapshot-deltas-capability-61)).
+(`snapshot_delta`; gameplay 63 keys its roster by position and replaced this
+shape, see the next section and the
+[protocol](protocol.md#snapshot-deltas-capability-63)).
 The tick encodes each world once in full and once as the delta from the
 previous tick's world, and keeps the delta when it is shorter. A session
 writer sends the delta only when the last world it put on its socket is the
@@ -511,25 +513,101 @@ TCP framing.
   Unchanged entries cost the id alone. The pickups (1.1 KB) and round chrome
   no longer repeat.
 
-Next steps, in the order the numbers suggest; none is half built here:
+Next steps, in the order the numbers suggest. Items 1, 3 and 4 shipped in
+wave 15 (gameplay 63, next section):
 
-1. **Short roster keys.** A per-world index or a per-match small integer in
-   place of the 44-byte UUID inside a delta would cut the remaining bytes by
-   about a third. The rebuilt world keeps the UUID, so readers do not change.
+1. **Short roster keys.** Shipped: carried fighters are keyed by base roster
+   position.
 2. **Quantized motion.** Coordinates to millimetres and angles to 1e-4 rad
    would shorten each changed float by about four bytes and stop
    sub-millimetre jitter from counting as a change. This changes the values
    readers see, so it needs the movement mirror's reconciliation checked
    against the goldens first.
-3. **A per-reader delta after a replaced world.** Today a reader that fell
-   behind gets the next world whole, the larger frame exactly when its link
-   is short. The writer already knows that reader's last world; encoding a
-   delta against it costs one diff per such reader.
-4. **A cheaper encode.** A typed diff of `PlayerState` rows instead of a
-   parsed JSON value would take most of the 0.4 ms back.
+3. **A per-reader delta after a replaced world.** Shipped.
+4. **A cheaper encode.** Shipped as a text diff rather than a typed one.
 5. **Explicit acknowledgements** only arrive with an unreliable transport
    (UDP, [TRANSPORT.md](TRANSPORT.md)): then the base must be the last world
    the reader said it applied, and a delta may name an older base.
+
+### Roster keys, per-reader deltas and a text encoder (#434 stage 4, wave 15)
+
+Gameplay 63 changes the delta's roster
+([protocol](protocol.md#snapshot-deltas-capability-63)). A carried fighter
+no longer repeats its 44-byte `"id":"<uuid>",`: it is named by its position
+in the base world's roster (`at`), and the position is omitted when it is one
+past the previous carried entry's, which is every entry while the roster
+keeps its order. An unchanged fighter costs `{}`. A whole arrival still
+carries its `id`, and the rebuilt world has every full id, so facts and
+readers keep the UUID. The key needs no per-session mapping message: the base
+world both sides hold is the mapping. A reader at 61 or 62 now receives every
+world whole.
+
+Two server-side changes ride with it, neither a wire change:
+
+- **Per-reader deltas.** A writer whose reader holds an older world than the
+  tick's delta names (the world in between was replaced unsent) encodes its
+  own delta from the world it last sent, on its own task, instead of sending
+  the whole world. It keeps that world as the shared broadcast (`Arc`), so
+  nothing is copied. The writer probe counts these (`rebased_frames`,
+  `rebased_bytes`, `rebase_ms`).
+- **A cheaper encode.** The encoder diffs the two worlds' JSON text field by
+  field through borrowed `serde_json::value::RawValue` slices (the
+  `raw_value` feature of the existing `serde_json`), in serializer order, and
+  writes the delta directly. No number is parsed and no value is copied,
+  where the wave 13 encoder parsed every world into a `serde_json::Value` and
+  cloned what changed. Text equality is value equality here because both
+  worlds come from the same serializer; the golden test checks the recorded
+  deltas of fought worlds against it.
+
+Measured 2026-10-28 with the traffic generator against the `fragr-server`
+binary, the same setup as the table above: Larak Lot, human fighters at
+60 Hz plus spectators, no bots, 15 s held, seed 42. Three interleaved runs
+per row on an AMD Ryzen 7 7840U shared with other sessions (load 3 to 4).
+Before is `1a8574c8` (gameplay 62), after is the wave 15 branch. Values are
+the mean of three runs; ranges where runs differed visibly.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
+```
+
+| Connections (fighters + spectators) | Mean delta bytes before / after | KiB/s per client, all frames, before / after | Of which worlds | Server egress MiB/s | Tick encode p50 ms | Tick encode p99 ms | Server CPU cores |
+|---|---|---|---|---|---|---|---|
+| 6 (4 + 2) | 441 / 266 (-40 %) | 14.0 / 10.5 (-25 %) | 8.8 / 5.3 | 0.08 / 0.06 | 0.085 to 0.099 / 0.043 to 0.045 | 0.14 to 0.21 / 0.08 | 0.016 / 0.015 |
+| 16 (12 + 4) | 1,225 / 687 (-44 %) | 30.0 / 19.5 (-35 %) | 24.2 / 13.7 | 0.47 / 0.31 | 0.14 to 0.15 / 0.065 to 0.068 | 0.18 to 0.27 / 0.10 to 0.11 | 0.030 / 0.026 |
+| 64 (48 + 16) | 4,528 / 2,538 (-44 %) | 97.0 / 57.8 (-40 %) | 89.6 / 50.4 | 6.06 / 3.61 | 0.37 to 0.39 / 0.17 | 0.64 to 0.83 / 0.25 to 0.28 | 0.097 / 0.085 |
+
+- **Bytes.** The id was the measured 40 percent: a mean delta at 45 fighters
+  fell from 4.5 to 2.5 KB, and a 64-connection server's egress from 6.1 to
+  3.6 MiB/s (about 30 Mbit/s). Since wave 13's start, per-client traffic at
+  the cap is 287 to 58 KiB/s. At 6 connections worlds are now half of what a
+  fighter reads; the rest is acknowledgements and combat facts.
+- **Encode.** The tick encode (every broadcast of a tick, worlds included)
+  fell by more than half at every size, p50 0.38 to 0.17 ms at 48 fighters.
+  Release microbench (`delta_encode_cost_at_48_fighters`, ignored test, three
+  interleaved runs, 46 fighters on Larak Lot): observing one world, delta
+  included, took 100 to 102 us before and 41 to 42 us after; serializing the
+  world itself is 13 us. Parsing a world into a `Value` alone costs 60 us,
+  which is why the first text version, which read both worlds into ordered
+  maps, measured 114 us and was replaced by the field list in serializer
+  order.
+- **Every world still arrived.** Snapshot counts match before and after,
+  each connection's first world was its only whole one, and no tick ran
+  over budget.
+- **Per-reader deltas did not trigger on loopback.** The traffic rows never
+  replace a world (no reader falls behind), and in the `--fanout-stress`
+  slow-reader row (four watchers reading one frame per 100 ms) the readers'
+  backlog sits in the kernel's receive buffer, so the writer never blocks,
+  no world is replaced (`missing_snapshot_ticks` 0 before and after) and
+  `rebased_frames` stayed 0 until the slow-reader rules closed them. Those
+  slow readers did read 41 percent fewer bytes per world read, all frames
+  counted (1,385 to 818),
+  from the roster keys. The rebase path is covered by tests that force a
+  replaced world (`net::tests`, and a fought match rebuilt across gaps of 2
+  to 10 ticks in `protocol::delta::tests`); its value on a real short link
+  is not measured here.
+
+What stays open for stage 4: quantized motion (item 2 above), and field
+evidence of per-reader deltas on a real constrained link.
 
 ### Lag compensation (#434 stage 5)
 
@@ -615,19 +693,21 @@ server ignores one from an agent socket), because `look_at` aims at the
 present. The brain and the playtest harness agents send none. The traffic
 generator's synthetic humans send none, so their shots stay unrewound.
 
+The counters (`GameState::rewind_stats`: `accepted`, `refused`, `rewinds`,
+`clamped` and `discontinuities`) are published on `GET /status` as `ops.rewind` since
+wave 15 (`ops` in [protocol](protocol.md)), so a host can read the clamped
+share of a real night.
+
 What stays open for #434 stage 5:
 
 1. **Field evidence.** Two machines, real jitter and loss: compare client
    hit-confirm against server results through the existing stutter traces.
    The matrix models fixed delays only.
-2. **Diagnostics on `/status`.** `GameState::rewind_stats` counts admitted,
-   refused, rewound, clamped and discontinuous shots; nothing publishes them
-   yet.
-3. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
+2. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
    object the victim can dodge in server time, and rewinding its collisions
    would hit a target that already dodged what it saw. Campaign actors are
    not on the delayed timeline (their own clock), so they are not rewound.
-4. **Spectator and agent views** are out of scope: neither shoots through a
+3. **Spectator and agent views** are out of scope: neither shoots through a
    delayed timeline.
 
 

@@ -3,6 +3,9 @@ extends RefCounted
 
 const CAMERA = preload("res://scripts/spectator_cam.gd")
 const UNION_SPRITE: Shader = preload("res://assets/shaders/union_sprite.gdshader")
+## Linear plate scale that brings the Heavy Sweeper's sheet to the Clerk's
+## issued-black value in daylight, red points excluded.
+const HEAVY_BODY_VALUE: float = 0.4
 static var _textures: Dictionary[String, Texture2D] = {}
 ## The Auditor's atlas draws its shield plate; a gold rim keeps the officer
 ## distinct at range, and two lamps on the drawn plate count repairs left.
@@ -139,6 +142,9 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		if not _textures.has(normal_key):
 			_textures[normal_key] = load("res://assets/characters/union/" + normal_key + ".png") as Texture2D
 		material.set_shader_parameter("sprite_normals", _textures[normal_key])
+	# Issued black at distance: the Heavy's plates are baked lighter than any
+	# other Union sheet and carry no normal map (see union_sprite body_value).
+	material.set_shader_parameter("body_value", HEAVY_BODY_VALUE if kind == "heavy_sweeper" else 1.0)
 	if kind == "auditor":
 		material.set_shader_parameter("rim_color", AUDITOR_RIM)
 		_attach_plate(body)

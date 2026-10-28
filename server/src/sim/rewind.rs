@@ -48,21 +48,10 @@ struct Frame {
     bodies: Vec<Volume>,
 }
 
-/// Counters for the rewind path. Clamping and rejection are diagnostics, not
-/// evidence of cheating: a slow link clamps and a bad clock can reject.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct RewindStats {
-    /// Views admitted with an Action.
-    pub accepted: u64,
-    /// Views refused: not finite, negative or newer than the newest tick.
-    pub rejected: u64,
-    /// Hitscan shots resolved against rewound volumes.
-    pub rewinds: u64,
-    /// Of those, shots whose view lag exceeded the bound and was clamped.
-    pub clamped: u64,
-    /// Bodies tested in the present because their history broke.
-    pub discontinuities: u64,
-}
+/// Counters for the rewind path, kept for the life of the process and
+/// published on `GET /status` as `ops.rewind`. One type, so the status block
+/// cannot drift from what the simulation counts.
+pub type RewindStats = crate::protocol::RewindTotals;
 
 /// Why a reported view was refused.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

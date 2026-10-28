@@ -4,7 +4,7 @@
       "kind": "tts",
       "name": "epilogue/01-still-here",
       "stability": 0.5,
-      "text": "Good evening. It is the Contested Frequency, we are unlicensed, we are unmetered, and there is nobody left to be unlicensed from. I have been doing this a long time. The room is smaller now.",
+      "text": "Good evening. Same station, same chair. We are unlicensed, we are unmetered, and there is nobody left to be unlicensed from. I have been doing this a long time. The room is smaller now.",
       "title": "Still Here",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -76,7 +76,7 @@
       "kind": "tts",
       "name": "epilogue/10-signoff",
       "stability": 0.5,
-      "text": "So. Filters are in the usual place, they are the same price they have always been, and they will not help you with this. You have been listening to the Contested Frequency. Unmetered, one more night. Whatever is out there, it has been very patient. Goodnight.",
+      "text": "So. Filters are in the usual place, they are the same price they have always been, and they will not help you with this. Thank you for listening. Unmetered, one more night. Whatever is out there, it has been very patient. Goodnight.",
       "title": "Sign Off",
       "voice": "pqHfZKP75CvOlQylNhV4"
     }

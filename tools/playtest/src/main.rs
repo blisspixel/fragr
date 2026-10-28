@@ -304,6 +304,14 @@ fn print_traffic(report: &fragr_playtest::traffic::TrafficReport) {
             .unwrap_or_else(|| "unavailable".into()),
         report.health.as_deref().unwrap_or("unavailable"),
     );
+    let worlds = &report.worlds;
+    println!(
+        "worlds: {} whole ({:.0} KiB), {} delta ({:.0} KiB)",
+        worlds.whole,
+        worlds.whole_bytes as f64 / 1024.0,
+        worlds.delta,
+        worlds.delta_bytes as f64 / 1024.0,
+    );
     let cost = &report.server;
     let mib = |bytes: Option<u64>| {
         bytes

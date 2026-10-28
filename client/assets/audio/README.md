@@ -79,6 +79,20 @@ acceptance remains separate from these measurements.
 
 Loading paths: `client/scripts/player_pawn.gd` (per-weapon fire and hit, pump, melee, tells and falls), `client/scripts/game_manager.gd` (frag, round, Crawler, pickup and dry-trigger cues, and resolved-shot impacts), `client/scripts/hit_chime.gd` (hit confirm tiers, through `hud.gd`), `client/scripts/host_voice.gd` (Host calls), `client/scripts/grenade_effects.gd` (throw, bounce and blast), `client/scripts/m02_ward.gd` (ward and processing-floor cues), `client/scripts/radio.gd` (radio tracks, discovered through the manifest, never by directory listing). Import presets: keep WAV as samples, MP3 as streams, loop flags off unless the manifest marks a file as looping.
 
+The 2026-10-28 radio pass took the station's lore name and frequency puns out
+of spoken audio. Nine Perimeter Talk clips lost one sentence: the "Frequency
+stays live" sign-off of three bulletins, the Host's opener on five calls and the
+opening line of the call-in PSA, each cut in a measured pause with a 15 ms fade
+and kept at the clip's previous loudness. The gold ad, the gold-refund call, the
+skill-issue PSA and two epilogue lines were re-recorded in their original voices
+and settings with corrected text, and the sung station ID now sings "Perimeter
+Talk, we are not on the air." Re-recorded speech sits at -17.9 LUFS (bulletins)
+and -17.8 LUFS (epilogue), the medians of the existing clips, and the ID at
+-13.2 LUFS, all under -1 dBTP. Two songs whose sung hook was the pun left
+rotation; their specs carry new titles and hooks for a later regenerate. Each
+manifest prompt records the words the shipped file says. Selection was by
+transcript, clipping and level; listening acceptance is still owed.
+
 The 2026-10-02 [sound pass](../../../docs/plans/sound-pass-20261002.md)
 rebuilt the Shotgun from five full-band 48 kHz layers and added the pump cycle,
 the cues listed above and the Level 7 set. New cues are mono 48 kHz 16-bit PCM

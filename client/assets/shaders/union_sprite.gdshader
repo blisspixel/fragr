@@ -23,6 +23,12 @@ uniform sampler2D sprite_normals : filter_nearest;
 uniform bool normals_enabled = false;
 uniform vec3 charcoal : source_color = vec3(0.196, 0.196, 0.216); // a step above union_steel
 uniform float body_lift = 0.5;
+// Issued plate value for a sheet painted lighter than the issued black. The
+// Heavy Sweeper's plates are baked about 3.7x brighter (linear) than a
+// Clerk's cloth and it has no normal map, so its flat quad took the whole key
+// and fill and read tan in daylight. Scaling only non-red body texels keeps
+// the plate shading and leaves optics, visor, armbands and tells untouched.
+uniform float body_value = 1.0;
 uniform float red_glow = 1.6;
 uniform vec3 rim_color : source_color = vec3(0.42, 0.44, 0.50);
 uniform float rim_glow = 0.55;
@@ -71,8 +77,10 @@ void fragment() {
 	} else {
 		float value = max(max(texel.r, texel.g), texel.b);
 		float dark = 1.0 - smoothstep(0.0, 0.06, value);
-		vec3 body = mix(texel.rgb, max(texel.rgb, charcoal), body_lift * dark);
 		float red = red_mask(texel.rgb);
+		// Scale before the lift, so the darkest texels still reach charcoal.
+		vec3 scaled = mix(texel.rgb * body_value, texel.rgb, red);
+		vec3 body = mix(scaled, max(scaled, charcoal), body_lift * dark);
 		// Dead optics: the red's own value, drained to an unlit oxblood.
 		vec3 dead = vec3(texel.r * 0.22, texel.r * 0.07, texel.r * 0.06);
 		vec3 albedo = mix(body, mix(body, dead, red), absorbed);
