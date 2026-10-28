@@ -2089,7 +2089,14 @@ impl GameState {
         let view = self.tick as f64 - lag.min(bound);
         self.rewind_stats.rewinds += 1;
         for (index, target) in self.players.iter().enumerate() {
-            if index == shooter_idx || target.campaign.is_some() || !self.contact_eligible(target) {
+            // A seated rider stays with its vehicle, which is tested in the
+            // present: rewinding the body alone would pull it out of cover
+            // the shooter saw it inside.
+            if index == shooter_idx
+                || target.campaign.is_some()
+                || !self.contact_eligible(target)
+                || self.vehicle_seat(target.id).is_some()
+            {
                 continue;
             }
             let present = rewind::Volume {

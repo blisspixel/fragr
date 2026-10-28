@@ -4096,8 +4096,9 @@ it from the same timeline (`RemotePresentation`) that draws remote fighters.
   detached), a different movement epoch (respawn, placement), a step longer
   than 3 m between ticks, or a new round (which clears the history). Any
   other placement over 3 m, such as a mission retry, meets the step rule.
-- **Fairness.** Cover that exists now always blocks. A victim can be struck
-  at most 200 ms after the server moved them, so a high-ping shooter cannot
+- **Fairness.** Walls are tested as they stand now, along the ray to where
+  the shooter saw the victim, so a victim who stepped behind cover inside the
+  bound can still be struck: at most 200 ms after the server moved them, so a high-ping shooter cannot
   reach around a corner beyond that. A modified client can claim any view
   inside the bound, so the bound, not the claim, is the fairness limit. Past
   the bound the shooter leads the target by the excess.

@@ -44,8 +44,9 @@ an easy way to remove mistaken entries.
 
 Bounded hitscan lag compensation shipped in gameplay 62 (2026-10-28): the
 server refuses a reported view newer than its newest tick, rewinds at most
-200 ms, keeps cover in the present and never rewinds agents, bots or
-projectiles; see `docs/protocol.md`, "Lag compensation (capability 62)". A
+200 ms, tests cover as it stands now, never rewinds shots by agents or
+bots, never rewinds projectiles or vehicles and keeps seated riders with
+their vehicle; see `docs/protocol.md`, "Lag compensation (capability 62)". A
 clamped or refused view is a diagnostic, never proof of cheating.
 
 Full fighter snapshots currently expose information a modified client can use
