@@ -2,7 +2,11 @@
 //! wave 11 roster stall (a planner leaning on cover at a gun it could not
 //! walk to), and the offline stall probe that found it (ignored; run with
 //! `cargo test -p fragr-playtest --release --lib probe_planner_stalls --
-//! --ignored --nocapture`, `PROBE_SEEDS=1,2,3` to narrow).
+//! --ignored --nocapture`, `PROBE_SEEDS=1,2,3` to narrow, `PROBE_MAP` and
+//! `PROBE_AGENTS` for another roster case). The probe steers each agent
+//! through the same loadout controller and navigator as a roster client and
+//! counts stalls with the roster's own rule, so what it finds is what the
+//! roster gate trips on.
 use super::*;
 use fragr_server::net::GameCommand;
 use fragr_server::protocol::{BodyKind, Role, ServerMessage};
@@ -23,7 +27,17 @@ fn probe_planner_stalls_on_directive_17() {
         .ok()
         .and_then(|raw| raw.parse().ok())
         .unwrap_or(6);
+    // The roster's agents steer through the loadout controller and the
+    // navigation graph after their policy, exactly as `run_agent` does;
+    // `PROBE_RAW=1` drives the bare policy instead.
+    let wire = std::env::var("PROBE_RAW").is_err();
     let tiers = [Policy::Reflex, Policy::Planner];
+    let world = fragr_server::navigation::Navigation::shared(fragr_server::movement::Arena {
+        half: map.half_extent(),
+        solids: map.solids(),
+    })
+    .expect("navigation");
+    let mut stalls = 0;
     for seed in seeds {
         let mut session = fragr_server::session::GameSession::with_map(map, false);
         session.state.use_replay_ids();
@@ -50,6 +64,15 @@ fn probe_planner_stalls_on_directive_17() {
                 body: BodyKind::Human,
             });
         }
+        let mut steering: std::collections::HashMap<
+            Uuid,
+            (
+                fragr_server::navigation::Navigator,
+                fragr_server::mission::MissionClient,
+            ),
+        > = Default::default();
+        // The harness's own stall rule: under `IDLE_EPSILON` a snapshot,
+        // not firing, broken by a death.
         let mut last: std::collections::HashMap<Uuid, ((f32, f32), u64)> = Default::default();
         for _ in 0..20 * 62 {
             let snapshot = session
@@ -68,18 +91,59 @@ fn probe_planner_stalls_on_directive_17() {
                     last.remove(id);
                     continue;
                 };
-                let action = policy_action(*policy, *id, &snapshot, &arena);
+                let raw = policy_action(*policy, *id, &snapshot, &arena);
+                let loadout = session
+                    .state
+                    .players
+                    .iter()
+                    .find(|p| p.id == *id)
+                    .and_then(|p| p.inventory.state(*id, p.weapon, snapshot.tick));
+                let controlled = if wire {
+                    fragr_server::inventory::control_action_with_target_filter(
+                        *id,
+                        &snapshot,
+                        loadout.as_ref(),
+                        raw.clone(),
+                        false,
+                        |_, _| true,
+                    )
+                } else {
+                    raw.clone()
+                };
+                let action = if wire {
+                    let (navigator, client) = steering.entry(*id).or_default();
+                    client.steer_with_equipment(
+                        navigator,
+                        &world,
+                        *id,
+                        &snapshot,
+                        controlled.clone(),
+                        loadout.as_ref(),
+                    )
+                } else {
+                    raw.clone()
+                };
                 let pos = (me.x, me.z);
                 let entry = last.entry(*id).or_insert((pos, snapshot.tick));
                 let moved = (pos.0 - entry.0 .0).hypot(pos.1 - entry.0 .1);
-                if moved >= 0.05 || me.just_fired {
-                    *entry = (pos, snapshot.tick);
+                entry.0 = pos;
+                if moved >= IDLE_EPSILON || me.just_fired {
+                    entry.1 = snapshot.tick;
                 } else if snapshot.tick - entry.1 == 100 {
+                    stalls += 1;
                     let near: Vec<String> = snapshot
                         .pickups
                         .iter()
                         .filter(|p| (p.x - me.x).hypot(p.z - me.z) < 20.0)
-                        .map(|p| format!("{} {} y{:.1} avail {}", p.id, p.weapon, p.y, p.available))
+                        .map(|p| {
+                            format!(
+                                "{} {} d{:.1} y{:.1}",
+                                p.id,
+                                p.weapon,
+                                (p.x - me.x).hypot(p.z - me.z),
+                                p.y
+                            )
+                        })
                         .collect();
                     let bag: Vec<String> = session
                         .state
@@ -99,8 +163,17 @@ fn probe_planner_stalls_on_directive_17() {
                                 .collect()
                         })
                         .unwrap_or_default();
+                    let aim = |a: &Action| {
+                        a.look_at.as_ref().map(|l| {
+                            (
+                                l.x.map(|v| (v * 10.0).round() / 10.0),
+                                l.z.map(|v| (v * 10.0).round() / 10.0),
+                                l.player_id.map(|p| p.as_u128().wrapping_sub(999)),
+                            )
+                        })
+                    };
                     println!(
-                        "seed {seed} tick {} {} stuck at ({:.1},{:.1}) y {:.2} hp {} weapon {} fwd {} l {} r {} fire {} look {:?} near {near:?} bag {bag:?}",
+                        "seed {seed} tick {} {} stuck at ({:.1},{:.1}) y {:.2} hp {} weapon {} raw fwd {} back {} l {} r {} fire {} look {:?} control fwd {} look {:?} driven fwd {} back {} l {} r {} yaw {:?} look {:?} near {near:?} bag {bag:?}",
                         snapshot.tick,
                         me.name,
                         me.x,
@@ -108,11 +181,20 @@ fn probe_planner_stalls_on_directive_17() {
                         me.y,
                         me.hp,
                         me.weapon,
+                        raw.forward,
+                        raw.back,
+                        raw.left,
+                        raw.right,
+                        raw.fire,
+                        aim(&raw),
+                        controlled.forward,
+                        aim(&controlled),
                         action.forward,
+                        action.back,
                         action.left,
                         action.right,
-                        action.fire,
-                        action.look_at.as_ref().map(|l| (l.x, l.z, l.player_id))
+                        action.yaw,
+                        aim(&action),
                     );
                 }
                 session.apply_command(GameCommand::Action {
@@ -122,6 +204,7 @@ fn probe_planner_stalls_on_directive_17() {
             }
         }
     }
+    println!("probe: {stalls} stalls over 5 s");
 }
 
 /// A lone planner on Directive 17's north corridor, south of the cover block

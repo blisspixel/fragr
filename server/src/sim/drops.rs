@@ -74,6 +74,40 @@ pub(super) fn dropped_from(player: &Player) -> Option<(WeaponType, u16)> {
     (rounds > 0).then_some((weapon, rounds))
 }
 
+/// How far a gun slides off a ledge face to come to rest, in steps of
+/// `RESTING_STEP`: well inside the claim radius of where its fighter fell.
+const RESTING_STEPS: usize = 12;
+const RESTING_STEP: f32 = 0.1;
+/// Directions tried at each slide distance.
+const RESTING_BEARINGS: usize = 16;
+
+/// Where a gun dropped at `(x, z)` comes to rest on `floor`: there, when a
+/// body can stand on that spot, otherwise the nearest spot on the same floor
+/// that one can. A fighter standing on the lip of a deck or a stair has its
+/// centre out over the floor below, so the gun falls to the foot of the
+/// face, inside a body's width of it; nobody can stand there, and a
+/// controller routing to it finds no floor and stops dead.
+fn resting_spot(arena: &crate::movement::Arena, x: f32, z: f32, floor: f32) -> (f32, f32) {
+    let standable = |x: f32, z: f32| {
+        (arena.support_height(x, z, floor) - floor).abs() < 1e-3
+            && !arena.blocked_body_at(x, z, floor, floor + crate::movement::STEP_UP)
+            && arena.clamp(x, z) == (x, z)
+    };
+    if standable(x, z) {
+        return (x, z);
+    }
+    (1..=RESTING_STEPS)
+        .flat_map(|step| {
+            let reach = step as f32 * RESTING_STEP;
+            (0..RESTING_BEARINGS).map(move |bearing| {
+                let angle = std::f32::consts::TAU * bearing as f32 / RESTING_BEARINGS as f32;
+                (x + angle.cos() * reach, z + angle.sin() * reach)
+            })
+        })
+        .find(|&(x, z)| standable(x, z))
+        .unwrap_or((x, z))
+}
+
 impl GameState {
     /// Guns dropped on death since this state began, for surveys.
     pub fn guns_dropped(&self) -> u32 {
@@ -98,10 +132,12 @@ impl GameState {
             return;
         };
         let feet_y = player.y - PLAYER_FLOOR_Y;
-        let floor = self
-            .current_arena()
-            .support_height(player.x, player.z, feet_y);
-        let (x, z) = (player.x, player.z);
+        let (x, z, floor) = {
+            let arena = self.current_arena();
+            let floor = arena.support_height(player.x, player.z, feet_y);
+            let (x, z) = resting_spot(&arena, player.x, player.z, floor);
+            (x, z, floor)
+        };
         self.drop_serial = self.drop_serial.wrapping_add(1);
         let gun = DroppedGun {
             serial: self.drop_serial,
