@@ -25,7 +25,7 @@ Non-goals: new modes, new services, transport rewrites, cloud apply, save migrat
 
 Host voice (Callum), the hit confirm and the Scatter pass; Rocket use, CTF pads and side calls for rule bots; campaign guard sighting, squad roles and barks; the #434 stage 1 baseline with stage 3 measured and deferred. The main hotfix #496 rests dropped guns where a body can stand (roster stall on map 6). Follow-ups: #489, #491, #492, #493, #494, #497.
 
-## Wave 13 (in progress)
+## Wave 13 (shipped in its wave PR)
 
 Four lanes, each finishing inside the wave:
 
@@ -36,7 +36,11 @@ Four lanes, each finishing inside the wave:
 | `harness-trust` | The map 4 Sector 9 roster pocket (#491), the portability timing flakes (#494), a per-attempt retry seed (#489) | [harness guide](../../tools/playtest/README.md) |
 | `l02-dress` | Persons Unknown (Level 2) raised to the golden-slice bar in rendered passes | [m02](../campaign/m02-persons-unknown.md), [art bible](../ART_STORY_BIBLE.md) |
 
-The coordinator lands #498 (CLAUDE.md imports AGENTS.md).
+The coordinator lands #498 (CLAUDE.md imports AGENTS.md). Independent review added a guaranteed turn for an out-of-view guard and a 30 s load grace before the read-behind close. Lane evidence is in `.agents/lane-evidence-20261028/`.
+
+## Wave 14 (planned)
+
+Levels 3 and 4 toward the golden slice in rendered passes; #434 stage 5 (bounded lag compensation), then short roster keys and per-reader deltas; the radio overlay label and Level 2's dark rooms.
 
 ## Verification
 
