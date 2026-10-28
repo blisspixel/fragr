@@ -3441,8 +3441,10 @@ fn main() -> ExitCode {
                 .unwrap();
             // Map receipt starts blocking-pool topology preparation. Confirm
             // one action before measuring sustained traffic, so unrelated map
-            // builds cannot masquerade as action-clock starvation. The outer
-            // four-second bound still covers setup and both traffic phases.
+            // builds cannot masquerade as action-clock starvation; that check
+            // keeps its own two-second window after readiness. The outer
+            // bound only has to outlast connect and setup, which a loaded
+            // runner can stretch past seconds (#494), so it is generous.
             ws.send(Message::Text(
                 serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
             ))
@@ -3489,7 +3491,7 @@ fn main() -> ExitCode {
             }
         });
         let result = tokio::time::timeout(
-            std::time::Duration::from_secs(4),
+            std::time::Duration::from_secs(20),
             run_scripted_bot(url, "Probe".into(), protocol::BodyKind::Human),
         )
         .await

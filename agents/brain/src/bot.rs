@@ -2686,10 +2686,22 @@ mod tests {
                 stop.clone(),
             )));
         }
+        // A stance is published before the bot builds navigation, so it does
+        // not prove the controller runs. Readiness is every fighter having
+        // moved or turned since it was first seen: actions are arriving.
+        let mut first_pose = std::collections::HashMap::new();
+        let mut acted = std::collections::HashSet::new();
         let first_tick = tokio::time::timeout(READINESS_BOUND, async {
             while let Some(Ok(Message::Text(text))) = observer.next().await {
                 if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+                    for p in &snapshot.players {
+                        let pose = *first_pose.entry(p.id).or_insert((p.x, p.z, p.yaw));
+                        if pose != (p.x, p.z, p.yaw) {
+                            acted.insert(p.id);
+                        }
+                    }
                     if snapshot.players.len() == 6
+                        && snapshot.players.iter().all(|p| acted.contains(&p.id))
                         && snapshot
                             .players
                             .iter()
