@@ -32,7 +32,9 @@ const WARM_LAMP: Color = Color(1.0, 0.8, 0.56)
 const CLINIC_LAMP: Color = Color(1.0, 0.93, 0.82)
 const KEY_SOLIDS: Array = [
 	[Vector3(-3, 0, -17), Vector3(3, 3, -16.5)],
-	[Vector3(-22.5, 0, 0), Vector3(-22, 2.7, 4)],
+	# The clinic switch post, not the shutter: the shutter is a gate whose
+	# solid moves when it opens, and the dressing must survive that MapInfo.
+	[Vector3(-22.5, 0, -2.5), Vector3(-22, 2.5, -1)],
 	[Vector3(25, 0, -15), Vector3(32, 2.5, -9)],
 	[Vector3(-13, 0, 10), Vector3(-5, 0.8, 11.5)],
 	[Vector3(-3, 0.7, 27), Vector3(3, 0.9, 30)],

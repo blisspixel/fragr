@@ -4,6 +4,16 @@ extends Node3D
 const LivedDetail = preload("res://scripts/m04_lived_detail.gd")
 const ResidentialFacades = preload("res://scripts/m04_residential_facades.gd")
 
+## The tram paint vote is the neighbours' authored beat, not a simulated rule:
+## it carries during the market hold (docs/campaign/l04-notice-to-vacate.md).
+## The sign shows the open motion until the server confirms that objective in
+## the mission's completed list, then the result. Nothing here decides it.
+const VOTE_CARRIED_WITH: String = "market_wave_a_cleared"
+const VOTE_OPEN_KEY: String = "WORLD_M04_TRAM_MOTION"
+const VOTE_CARRIED_KEY: String = "WORLD_M04_TRAM_VOTE"
+## Whether the last valid M04 state carried the vote's objective.
+var vote_carried: bool = false
+
 ## Town fixtures follow registered server geometry. They never add collision.
 var _geometry: Dictionary = {}
 var _views: Dictionary[String, Sprite3D] = {}
@@ -18,6 +28,18 @@ func clear_map() -> void:
 	_geometry.clear()
 	_views.clear()
 	_clock = 0.0
+	vote_carried = false
+
+## Point the tram's vote sign (built by ArenaCover from the registered
+## decoration) at the open motion or at its result.
+func apply_vote(cover: Node) -> void:
+	if cover == null:
+		return
+	var key: String = VOTE_CARRIED_KEY if vote_carried and not _geometry.is_empty() else VOTE_OPEN_KEY
+	for panel: Node in cover.find_children("Detail_*_m04_tram_vote", "MeshInstance3D", false, false):
+		var copy: WorldSign = panel.get_node_or_null("Copy") as WorldSign
+		if copy != null and copy.message_key != key:
+			copy.configure(key, copy.bounds, copy.modulate, copy.fitted)
 
 func configure_map(info: Dictionary) -> void:
 	clear_map()
@@ -77,6 +99,7 @@ func apply_state(state: Dictionary) -> void:
 	if _geometry.is_empty() or state.is_empty() \
 		or not MissionState.validation_error({"tick": EquipmentState.MAX_EXACT_INTEGER, "state": state}, _geometry).is_empty():
 		return
+	vote_carried = VOTE_CARRIED_WITH in state["m04"]["completed"]
 	for patient: Dictionary in state["m04"]["patients"]:
 		if not _views.has(patient["id"]) or not is_instance_valid(_views[patient["id"]]):
 			return

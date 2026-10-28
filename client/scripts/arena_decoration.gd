@@ -89,7 +89,7 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m03_board_train": "WORLD_M03_BOARD_TRAIN",
 	"m04_clinic_sign": "WORLD_M04_CLINIC_SIGN",
 	"m04_notice_board": "WORLD_M04_NOTICE_BOARD",
-	"m04_tram_vote": "WORLD_M04_TRAM_VOTE",
+	"m04_tram_vote": "WORLD_M04_TRAM_MOTION",
 	"m04_water_tank": "WORLD_M04_WATER_TANK",
 	"m04_workshop": "WORLD_M04_WORKSHOP",
 	"m04_roof_departure": "WORLD_M04_ROOF_DEPARTURE",
