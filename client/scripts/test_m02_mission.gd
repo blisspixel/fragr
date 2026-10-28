@@ -23,7 +23,7 @@ func _expect(value: bool, message: String) -> void:
 
 ## The shape of the bundled graybox wire, reduced to one gate and one console.
 func _map(gate_bottom: float = 0.0) -> Dictionary:
-	return {"type": "map_info", "map_id": 1002, "map_name": "Persons Unknown: ward graybox", "geometry_version": 2,
+	return {"type": "map_info", "map_id": 1002, "map_name": "Persons Unknown", "geometry_version": 2,
 		"half_extent": 40, "m02_objectives": 3, "m02_side_ward": true,
 		"solids": [{"min_x": -3, "max_x": -1, "bottom": 0, "top": 1.2, "min_z": -2, "max_z": -1},
 			{"min_x": -2, "max_x": 2, "bottom": gate_bottom, "top": gate_bottom + 4, "min_z": 1, "max_z": 2}],

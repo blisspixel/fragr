@@ -1,7 +1,7 @@
 {
   "version": 1,
   "map_id": 1002,
-  "name": "Persons Unknown: ward graybox",
+  "name": "Persons Unknown",
   "half_extent": 40.0,
   "ground": "concrete",
   "equipment": "discovery",

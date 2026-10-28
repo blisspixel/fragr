@@ -236,7 +236,7 @@ a raised shutter and up arrow, so shape and colour both carry the state.
 use target. `gate_feedback.gd` plays a short code-built shutter clank at each
 solid a validated M02 MapInfo raised. The console copy reads WARD CONTROL and
 LOADING CONTROL from keys. Single Player has a development entry,
-"Persons Unknown: ward graybox", which starts the M02 child with no run mode and
+"Persons Unknown", which starts the M02 child with no run mode and
 no story page; the match menu says leaving keeps no progress.
 
 What a player sees with all text hidden (`.agents/qa/m02-graybox/*_world.png`,

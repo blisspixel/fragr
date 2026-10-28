@@ -19,7 +19,7 @@ const PARTS: Array[Array] = [
 
 static func layout(info: Dictionary) -> Dictionary:
 	if not MapGeometry.validation_error(info).is_empty() or info.get("map_id") != 1002 \
-		or info.get("map_name") != "Persons Unknown: ward graybox" or info.get("m02_objectives") == null:
+		or info.get("map_name") != "Persons Unknown" or info.get("m02_objectives") == null:
 		return {}
 	var hosts: Array[Dictionary] = []
 	for solid: Dictionary in info["solids"]:

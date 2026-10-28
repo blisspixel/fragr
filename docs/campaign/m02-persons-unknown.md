@@ -44,6 +44,39 @@ test the view a participant actually receives before input. The Shotgun and
 service stair remain reachable; recognizing Latch is still a fresh-player
 question.
 
+The golden-slice pass (wave 13) dresses the built route through
+`client/scripts/m02_correction.gd` to the Recall Notice bar, without words and
+without a single new body: every piece is a wall fitting, flush paint, a small
+possession on an existing top or an overhead run, and the server's solids are
+unchanged. The ward shares the intake's bone enamel and green band under its own
+`ArenaSky.correction()` light plan: a lower ambient floor, cold strips, warm
+caged lamps only where staff work, and one hard pool over the restraint frame so
+Latch is the brightest thing in the ward. Steel and machinery paint no longer
+glows red or cyan (`earth_union` in `arena_materials.gd`), so red stays the
+Union attack tell and nothing reads as Inheritance. On the gallery sill the
+watchers left coffee, clipboards and a camera on a tripod aimed at the frame,
+all clear of the spawn sightlines; the guard room has a hand of cards, two mugs,
+a lunch tin and a duty roster under a low lamp. The stair gets ochre tread
+nosing, pipes and landing lamps. The antechamber issues black handle plates with
+a red band from a hand press, hangs grey smocks on a rail and keeps what it cut
+off (hand-painted panels, stickers, an antenna) in a tagged surplus tray. A
+bone-painted processing lane with chevrons leads from the ward door to a stand
+box before the frame; floor and overhead cables tie the machine to the frame;
+the frame's own face (rails, head brace, wrist and ankle cuffs, a second empty
+position) replaces the graybox locker panel; four empty restraint backs line the
+north wall; PA horns carry the soft voice. The processing floor's presses get
+die plates, piston rods and crossbeams; personal panels ride in on the line and
+issued black plate stacks at the other end; hoist chains hang above head height
+and the mezzanine edge is painted. The side ward adds two empty bays and each
+captive's bagged belongings. The dock's yard door is a roller shutter stopped
+short of the floor with daylight under it and lit clerestory panes above, seen
+down the length of the processing floor. `client/qa/m02-golden.json` frames
+every room and `m02-golden-guards.json` the placed guards against the dressed
+rooms. Still open: painted Crawler and Notary art; Latch's pale body, which
+reads close to the faction contract's reserved off-white base at ward
+distance; the sill hiding most of Latch from the unforced spawn; the ward PA
+voice; fresh-player pacing and GPU performance.
+
 ## Story and cast
 
 Reach Latch before irreversible correction and rescue them early in the campaign.
