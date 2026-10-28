@@ -67,7 +67,11 @@ func configure_map(info: Dictionary) -> void:
 	_mast.mesh = lamp
 	_mast.position = Vector3((float(solid["min_x"]) + float(solid["max_x"])) * 0.5,
 		(float(solid["bottom"]) + float(solid["top"])) * 0.5, float(solid["min_z"]) - 0.035)
-	_mast.material_override = _material(Color("86332b") if info["m03"]["mast_shutdown"] else Color("ed4d30"))
+	_mast.material_override = _material(Color("ed4d30"))
+	if info["m03"]["mast_shutdown"]:
+		# The shot-out pod is dead: scorched dark red, no glow left in it.
+		_mast.material_override = _material(Color("4a2522"))
+		(_mast.material_override as StandardMaterial3D).emission_enabled = false
 	_root.add_child(_mast)
 	var shell: MeshInstance3D = MeshInstance3D.new()
 	shell.name = "RegisteredPodShell"

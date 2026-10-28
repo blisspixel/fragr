@@ -348,8 +348,8 @@ func _yard(info: Dictionary, fallen: Dictionary, freed: Dictionary, disabled: Di
 	_check(yard._mast.position.is_equal_approx(Vector3(0.0, 0.5, 1.965)),
 		"shutdown rebuild positions the lamp on the current fallen solid")
 	var material: StandardMaterial3D = yard._mast.material_override
-	_check(material.albedo_color.is_equal_approx(Color("86332b")), "shutdown world uses the inactive mast lamp")
-	_pod(yard, Vector3(0.0, 0.5, 3.0), Vector3(2.012, 1.012, 2.012), Color("86332b"))
+	_check(material.albedo_color.is_equal_approx(Color("4a2522")) and not material.emission_enabled, "shutdown world uses the dead, unlit mast lamp")
+	_pod(yard, Vector3(0.0, 0.5, 3.0), Vector3(2.012, 1.012, 2.012), Color("4a2522"))
 	var rebuilt_pair: Array = yard._views["platform_car"]
 	yard._process(0.0)
 	_check(is_zero_approx(float(rebuilt_pair[0].get_meta("walked")))

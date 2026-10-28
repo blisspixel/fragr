@@ -936,12 +936,26 @@ func _build_mast() -> void:
 ## and the pod (24.2..25.8, 3.5..5.1, 21.2..22.8). Every piece stays on
 ## those fallen bodies.
 func _build_fallen_mast(props: Node3D, red: StandardMaterial3D, white: StandardMaterial3D, steel: StandardMaterial3D, cable: StandardMaterial3D) -> void:
+	# The toppled lattice lies along the fallen column: four banded legs at its
+	# edges and X braces on the sides and top, the same red and bone sections
+	# that stood over the yard a moment ago.
+	var corners: Array[Vector2] = [Vector2(3.54, 19.21), Vector2(4.46, 19.21), Vector2(4.46, 20.29), Vector2(3.54, 20.29)]
 	for index: int in range(4):
-		var x0: float = 19.1 + float(index) * 1.45
+		var x0: float = 19.05 + float(index) * 1.475
+		var x1: float = x0 + 1.475
 		var paint: StandardMaterial3D = red if index % 2 == 0 else white
-		for side: float in [-1.0, 1.0]:
-			_shape.rod(props, "FallenBrace", Vector3(x0, 3.5, 19.75 + side * 0.52), Vector3(x0 + 1.45, 4.5, 19.75 + side * 0.52), 0.03, paint, 4)
-			_shape.rod(props, "FallenBrace", Vector3(x0, 4.5, 19.75 + side * 0.52), Vector3(x0 + 1.45, 3.5, 19.75 + side * 0.52), 0.03, paint, 4)
+		for corner: Vector2 in corners:
+			_shape.rod(props, "FallenLeg", Vector3(x0, corner.x, corner.y), Vector3(x1, corner.x, corner.y), 0.06, paint, 5)
+		for face: int in range(4):
+			var a: Vector2 = corners[face]
+			var b: Vector2 = corners[(face + 1) % 4]
+			if face == 3:
+				continue
+			_shape.rod(props, "FallenBrace", Vector3(x0, a.x, a.y), Vector3(x1, b.x, b.y), 0.03, paint, 4)
+			_shape.rod(props, "FallenBrace", Vector3(x0, b.x, b.y), Vector3(x1, a.x, a.y), 0.03, paint, 4)
+			_shape.rod(props, "FallenRing", Vector3(x1, a.x, a.y), Vector3(x1, b.x, b.y), 0.03, paint, 4)
+	# The dead beacon at the top end, its lens dark.
+	_shape.cylinder(props, "DeadBeacon", 0.14, 0.24, _mat("dead_beacon", Color("3a2422"), 0.2, 0.6), Vector3(19.0, 4.0, 19.75), 10).rotation.y = PI * 0.5
 	# The snapped upper lattice bent back over the pod, and a torn dish.
 	_shape.rod(props, "SnappedLeg", Vector3(24.4, 5.1, 21.4), Vector3(25.2, 6.0, 21.8), 0.06, red, 5)
 	_shape.rod(props, "SnappedLeg", Vector3(25.6, 5.1, 22.6), Vector3(25.4, 5.9, 22.1), 0.06, white, 5)
