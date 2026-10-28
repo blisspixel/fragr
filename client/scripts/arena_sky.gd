@@ -428,15 +428,24 @@ static func moon_archive() -> Preset:
 	preset.contrast = 1.1
 	return preset
 
-## The curfew town: the port's lunar light with darker fill, colder practicals
-## and every window dark until the lamp line is lit.
+## The curfew town: a low sun behind the town wall, so the streets lie in
+## long shade under the dome and the crater cut beyond is hard light on dust.
+## M07Dressing puts the Union's cold floods and the post's pools in the shade;
+## every window stays dark until the lamp line is lit. The actor fill keeps a
+## black-and-red guard readable in the shaded street and on the rim.
 static func moon_town() -> Preset:
 	var preset: Preset = moon_port()
-	preset.scene_fill_energy = 0.07
+	preset.ambient_color = Color(0.66, 0.70, 0.72)
+	preset.ambient_energy = 0.5
+	preset.key_color = Color("fff3dc")
+	preset.key_energy = 1.15
+	preset.key_rotation_degrees = Vector3(-13.0, 165.0, 0.0)
+	preset.scene_fill_energy = 0.05
 	preset.practical_color = Color("d9e0dc")
 	preset.practical_energy = 1.6
 	preset.practical_range = 10.0
-	preset.view_fill_energy = 0.48
+	preset.view_fill_energy = 0.6
+	preset.contrast = 1.1
 	return preset
 
 static func low_water() -> Preset:

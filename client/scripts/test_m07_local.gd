@@ -97,6 +97,9 @@ func _run() -> void:
 	_check(town._root != null and town.lamps.size() == 7 and town.lamps_lit_count == 0 and town.figure != null,
 		"the real town presents seven dark curfew lamps and the window figure")
 	_check(town._root.find_child("DepotRadialTower", true, false) != null and town.chime_count >= 1, "the depot tower stands and the curfew chime has rung")
+	var dressing: Node = town._root.find_child("TownDressing", true, false)
+	_check(dressing is M07Dressing and (dressing as M07Dressing).rooms.size() == M07Dressing.REGIONS.size(),
+		"the server's own town MapInfo passes the static-wall guard and is dressed in every region")
 	_check(game.current_map_info["map_name"] == "Declared Goods", "the bundled town map is loaded")
 	_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and game.mouse_capture.desired_mode() == Input.MOUSE_MODE_VISIBLE,
 		"automated local launch never captures the desktop")
