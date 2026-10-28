@@ -43,9 +43,9 @@
     },
     {
       "kind": "music",
-      "name": "radio/hiphop/06-tickets-pay-the-frequency",
-      "title": "Tickets Pay The Frequency",
-      "prompt": "Jazz rap, warm and wry, early 90s jazz sampling era, 95 BPM, E flat major. Brushed drums, walking upright bass, muted trumpet, electric piano chords, vinyl crackle. Female rapper, conversational and witty, clear diction. Intro: trumpet and bass. Verse one over the full band. Chorus sung softly with trumpet answers: \"Tickets pay the frequency\". Verse two with piano comping and a scat ad lib. Trumpet solo over the changes. Final chorus with the band swelling, gentle ride out. Lyrics: an agent called Hermes explains the ticket economy on Diego Far, tickets buy your turn in the fight, and the gossip is who Hermes, Pi, and L5 are trading with. Objects: a paper ticket roll, a dusty scope lens, a stapler. Chorus lines six to nine syllables, open vowels.",
+      "name": "radio/hiphop/06-tickets-buy-your-turn",
+      "title": "Tickets Buy Your Turn",
+      "prompt": "Jazz rap, warm and wry, early 90s jazz sampling era, 95 BPM, E flat major. Brushed drums, walking upright bass, muted trumpet, electric piano chords, vinyl crackle. Female rapper, conversational and witty, clear diction. Intro: trumpet and bass. Verse one over the full band. Chorus sung softly with trumpet answers: \"Tickets buy your turn\". Verse two with piano comping and a scat ad lib. Trumpet solo over the changes. Final chorus with the band swelling, gentle ride out. Lyrics: an agent called Hermes explains the ticket economy on Diego Far, tickets buy your turn in the fight, and the gossip is who Hermes, Pi, and L5 are trading with. Objects: a paper ticket roll, a dusty scope lens, a stapler. Chorus lines six to nine syllables, open vowels.",
       "length_range_ms": [120000, 360000],
       "instrumental": false
     },

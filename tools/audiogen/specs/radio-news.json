@@ -20,7 +20,7 @@
       "kind": "tts",
       "name": "radio/news/generic-03-dead-air-bell-late",
       "stability": 0.5,
-      "text": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems. Frequency stays live.",
+      "text": "Quick update on the Dead Air Bell. It rang four seconds late last round. Engineering says the bell is fine. The bell says engineering is fine. Both of them declined to explain the four seconds... which is now the longest anything on this program has gone without a sponsor. [sighs] If you set your watch by the bell, set it back. If you set your watch by me, you have bigger problems.",
       "title": "Bell Runs Four Seconds Late",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -52,7 +52,7 @@
       "kind": "tts",
       "name": "radio/news/generic-07-larak-lot-signature",
       "stability": 0.5,
-      "text": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either. Frequency stays live.",
+      "text": "A note from procurement. The signature of one Larak, first name unknown, rank unknown, pulse unknown, has turned up on another piece of equipment in this facility. This time it is the coffee machine in the booth. The coffee machine has not worked since 1996. Larak signed for it in 2009. [exhales] We have reached out to Larak for comment. We reached the parking structure. It had no comment either.",
       "title": "Larak Signs Another One",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -108,7 +108,7 @@
       "kind": "tts",
       "name": "radio/news/generic-14-scout-ant-deleted",
       "stability": 0.5,
-      "text": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald. Frequency stays live.",
+      "text": "Scout ant deleted. Third time this week. We were going to hold a moment of silence, but the moment was interrupted by the scout ant, who has apparently un-deleted itself and is now somewhere in the break room. [sarcastic] Excellent work, everybody. Facilities reminds you not to leave food in the break room, not to leave the break room, and not to name the ant. Somebody named the ant. Its name is Gerald.",
       "title": "Scout Ant Deleted, Again",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -116,7 +116,7 @@
       "kind": "tts",
       "name": "radio/news/psa-01-how-to-call-in",
       "stability": 0.5,
-      "text": "A public service announcement from the Frequency. To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement.",
+      "text": "To call in, press join. That is the whole procedure. There is no hold queue, no screener, no seven-second delay, and no one to stop you. Once you are on the air, you are on the air, and the other callers are armed. [sighs] If you do not wish to be on the air, do not press join. If you pressed join by accident, you are already late. This has been a public service announcement.",
       "title": "How to Call In",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -140,7 +140,7 @@
       "kind": "tts",
       "name": "radio/news/psa-04-skill-issue-awareness",
       "stability": 0.5,
-      "text": "This is Skill Issue Awareness Week on the Frequency. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead.",
+      "text": "This is Skill Issue Awareness Week. Know the warning signs. Blaming lag on a local server. Blaming the map on a map you chose. Blaming the Rail for a shot the Rail did not take. Saying the words, quote, he was not even there. [sarcastic] He was there. Skill issues affect one in one players. There is no cure. There is, however, a respawn. Talk to someone. Preferably someone who is not also dead.",
       "title": "Skill Issue Awareness",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -172,7 +172,7 @@
       "kind": "tts",
       "name": "radio/news/ad-02-patriot-gold-nuggets",
       "stability": 0.5,
-      "text": "Patriot Gold Nuggets. When the frequency goes dark, and it will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on a frequency that does not exist. Patriot Gold Nuggets. Heavy enough.",
+      "text": "Patriot Gold Nuggets. When the lights go out, and they will, what will you be holding? Paper? Tickets? A Flechette with two rounds left? Hold gold. Patriot Gold Nuggets come in a genuine tin, in nugget form, at nugget weight, and we will not be defining nugget on the air. [sighs] Every purchase keeps this program on the air, which it is not. Patriot Gold Nuggets. Heavy enough.",
       "title": "Patriot Gold Nuggets",
       "voice": "pqHfZKP75CvOlQylNhV4"
     },
@@ -228,10 +228,6 @@
       "kind": "tts",
       "lines": [
         {
-          "text": "You are on the Frequency. Go ahead.",
-          "voice_id": "pqHfZKP75CvOlQylNhV4"
-        },
-        {
           "text": "Yeah, hi, long time listener, first time... okay so I keep pressing join.",
           "voice_id": "bIHbv24MWmeRgasZH58o"
         },
@@ -279,10 +275,6 @@
     {
       "kind": "tts",
       "lines": [
-        {
-          "text": "Frequency. You are live.",
-          "voice_id": "pqHfZKP75CvOlQylNhV4"
-        },
         {
           "text": "Good evening. I am calling to apologize.",
           "voice_id": "bIHbv24MWmeRgasZH58o"
@@ -372,7 +364,7 @@
           "voice_id": "XrExE9yKIg1WjnnlVkGX"
         },
         {
-          "text": "[sighs] The one that does not come. Hold the rock. When the frequency goes dark, the people with paper will envy the people with rocks.",
+          "text": "[sighs] The one that does not come. Hold the rock. When the lights go out, the people with paper will envy the people with rocks.",
           "voice_id": "pqHfZKP75CvOlQylNhV4"
         },
         {
@@ -391,10 +383,6 @@
     {
       "kind": "tts",
       "lines": [
-        {
-          "text": "Frequency. Go.",
-          "voice_id": "pqHfZKP75CvOlQylNhV4"
-        },
         {
           "text": "The sky on Chemtrail Alley is wrong.",
           "voice_id": "XrExE9yKIg1WjnnlVkGX"
@@ -451,10 +439,6 @@
     {
       "kind": "tts",
       "lines": [
-        {
-          "text": "You are live on the Frequency.",
-          "voice_id": "pqHfZKP75CvOlQylNhV4"
-        },
         {
           "text": "Yes, hello. This is Larak.",
           "voice_id": "N2lVS1w4EtoT3dr4eOWO"
@@ -519,10 +503,6 @@
     {
       "kind": "tts",
       "lines": [
-        {
-          "text": "Frequency. You are on.",
-          "voice_id": "pqHfZKP75CvOlQylNhV4"
-        },
         {
           "text": "Hi. I hear the bell at home.",
           "voice_id": "XrExE9yKIg1WjnnlVkGX"

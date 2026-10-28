@@ -3,9 +3,9 @@
   "items": [
     {
       "kind": "music",
-      "name": "radio/edm/01-same-frequency",
-      "title": "Same Rules, Same Frequency",
-      "prompt": "Driving peak-time techno, mood: confident and hypnotic, a late-night warehouse broadcast. Instrumentation: rolling drum-machine kick, rubbery sub bass, metallic hi-hats, one detuned stab, shortwave static swells. 130 BPM, F minor, 1990s Detroit warehouse production with modern low end. Vocals: processed female lead, robotic vocoder answering. Arrangement: static and numbers-station beep intro, kick at bar nine, bass riff builds under filtered stabs, breakdown to vocal alone, then the full drop with the hook repeated. Hook: \"Same rules, same frequency\". Lyric direction: Barium Sky welcomes callers to Perim Ghost where clawbots and meatbags fight the same fight; mention a chain-link fence, a headset, and a spawn pad. Sparse lyrics, clear diction.",
+      "name": "radio/edm/01-same-fence-same-fight",
+      "title": "Same Fence, Same Fight",
+      "prompt": "Driving peak-time techno, mood: confident and hypnotic, a late-night warehouse broadcast. Instrumentation: rolling drum-machine kick, rubbery sub bass, metallic hi-hats, one detuned stab, shortwave static swells. 130 BPM, F minor, 1990s Detroit warehouse production with modern low end. Vocals: processed female lead, robotic vocoder answering. Arrangement: static and numbers-station beep intro, kick at bar nine, bass riff builds under filtered stabs, breakdown to vocal alone, then the full drop with the hook repeated. Hook: \"Same fence, same fight\". Lyric direction: Barium Sky welcomes callers to Perim Ghost where clawbots and meatbags fight the same fight; mention a chain-link fence, a headset, and a spawn pad. Sparse lyrics, clear diction.",
       "length_range_ms": [120000, 360000],
       "instrumental": false
     },
