@@ -271,7 +271,9 @@ static func preset_for(map_name: String) -> Preset:
 		return holdfast()
 	if key.contains("common carrier") or key.contains("right of search"):
 		return carrier()
-	if key.contains("port of entry") or key.contains("passenger manifest"):
+	if key.contains("port of entry"):
+		return port_of_entry()
+	if key.contains("passenger manifest"):
 		return moon_port()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()
@@ -390,6 +392,24 @@ static func moon_port() -> Preset:
 	preset.view_fill_range = 65.0
 	preset.contrast = 1.08
 	preset.saturation = 0.90
+	return preset
+
+## Port of Entry (docs/design/moon.md): the port's lunar light with a lower
+## ambient floor and a dimmer key, so the hard exterior light stays outside
+## the pressure glass and the halls are shaped by their own fixtures. M06Dressing
+## lights the apron, the high bays and the work stations; the actor fill keeps
+## black-and-red guards readable against cargo and shell.
+static func port_of_entry() -> Preset:
+	var preset: Preset = moon_port()
+	preset.ambient_color = Color(0.70, 0.72, 0.72)
+	preset.ambient_energy = 0.55
+	preset.key_color = Color("f4f1e8")
+	preset.key_energy = 0.55
+	preset.practical_energy = 2.4
+	preset.practical_range = 11.0
+	preset.view_fill_energy = 0.7
+	preset.contrast = 1.12
+	preset.saturation = 0.95
 	return preset
 
 ## The custody archive: an enclosed lunar institution lit by desk lamps,
