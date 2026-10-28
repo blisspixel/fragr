@@ -3,7 +3,7 @@
   "status": "offline candidates; no runtime selection",
   "date": "2026-10-13",
   "brief": "docs/plans/meshy-assets/e-foundry-ladle.md",
-  "lore": ["docs/ART_STORY_BIBLE.md", "docs/design/mars.md", "docs/campaign/m08-weight-of-permission.md"],
+  "lore": ["docs/ART_STORY_BIBLE.md", "docs/design/mars.md", "docs/campaign/l13-weight-of-permission.md"],
   "reference": {
     "file": "references/ladle-v1.png",
     "sha256": "81b1a507fe8c07610f5af5fd565581bdbc074490ac139c0aa93dd51891163ff7",
