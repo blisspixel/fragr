@@ -51,11 +51,12 @@ stays on the Union's guards and the mast alone. Readable signs: six placements
 (the schedule board, three TRANSFER stencils, the mast plate and the boarding
 panel). `client/qa/m03-golden.json` frames every beat and
 `m03-golden-guards.json` the loading crew against the dressed platform.
-Still open: the fallen mast has a structural test (`test_m03_dressing.gd`) but
-no inspected capture, because `m03-scheduled-service.json` stops at the roof
-car, where its waypoint lies between the two freed captives (this also fails on
-the wave 13 baseline); the brakemen's painted line and the 66/67 board listing;
-the yard PA voice; fresh-player pacing and GPU performance.
+The route tour `m03-scheduled-service.json` now walks round the freed roof-car
+captives and reloads through ordinary input before the pod, and runs to
+departure; its `mast_fallen` still shows the banded lattice lying on the signal
+box and the shot-out pod dark and unlit. Still open: the brakemen's painted
+line and the 66/67 board listing; the yard PA voice; fresh-player pacing and
+GPU performance.
 
 **Premise.** The correction complex has its own rail spur, and a recall train
 is marshalling on it for Low Water. A red mast over the yard jams every free
