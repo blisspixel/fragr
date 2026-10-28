@@ -38,9 +38,21 @@ Four lanes, each finishing inside the wave:
 
 The coordinator lands #498 (CLAUDE.md imports AGENTS.md). Independent review added a guaranteed turn for an out-of-view guard and a 30 s load grace before the read-behind close. Lane evidence is in `.agents/lane-evidence-20261028/`.
 
-## Wave 14 (planned)
+## Wave 14 (shipped in its wave PR)
 
-Levels 3 and 4 toward the golden slice in rendered passes; #434 stage 5 (bounded lag compensation), then short roster keys and per-reader deltas; the radio overlay label and Level 2's dark rooms.
+| Lane | Result |
+|---|---|
+| `l03-dress` | Scheduled Service dressed as a working rail yard; fallen mast and route tour fixed |
+| `l04-dress` | Notice to Vacate dressed as a late-afternoon Low Water town; vote sign timing and the shutter wipe fixed |
+| `l06-dress` | Port of Entry dressed; cargo moved off Union black and red |
+| `lag-comp` | #434 stage 5: bounded hitscan rewind, 200 ms, gameplay 62 |
+| `polish` | Perimeter Talk station name, Level 2's dark rooms, Level 2 sign audit (one sign) |
+
+Independent review kept seated riders with their vehicle and corrected the cover and rewind wording. The campaign briefs are renamed by level number.
+
+## Wave 15 (planned)
+
+Levels 5, 7 and 8 toward the golden slice; re-record the spoken "Frequency" radio lines within the ElevenLabs credits; the rest of #434 stage 4 and the rewind counters on `/status`; the Level 6 combat pass.
 
 ## Verification
 
