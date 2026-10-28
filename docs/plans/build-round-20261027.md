@@ -50,9 +50,18 @@ The coordinator lands #498 (CLAUDE.md imports AGENTS.md). Independent review add
 
 Independent review kept seated riders with their vehicle and corrected the cover and rewind wording. The campaign briefs are renamed by level number.
 
-## Wave 15 (planned)
+## Wave 15 (shipped in its wave PR)
 
-Levels 5, 7 and 8 toward the golden slice; re-record the spoken "Frequency" radio lines within the ElevenLabs credits; the rest of #434 stage 4 and the rewind counters on `/status`; the Level 6 combat pass.
+| Lane | Result |
+|---|---|
+| `l05-dress` | No Forwarding Address dressed in Level 4's district vocabulary; the Heavy Sweeper reads black and red in daylight |
+| `l07-dress` | Declared Goods dressed as a lived town; the off-white blocks and the Union-livery props are gone |
+| `radio-voice` | "Frequency" removed from spoken audio and song titles (3,912 credits, ledger W15-RV) |
+| `net-finish` | Roster positions in deltas, per-reader deltas, a text-level encoder (gameplay 63), rewind counters on `/status`, #502 root cause |
+
+## Wave 16 (planned)
+
+Levels 8, 9 and 10 toward the golden slice; Splice and Latch in personal colours after the Meshy reset; the Level 6 combat pass and the Level 19 Heavy check; the rest of #434.
 
 ## Verification
 

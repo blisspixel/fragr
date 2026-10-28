@@ -191,18 +191,40 @@ ordinary fighters to what the shooter saw, at most 200 ms:
 Cover is tested as it stands now, and seated riders stay with their vehicle.
 The campaign briefs are now named by their level number.
 
-What comes next, and why. Wave 15 continues in this order:
-1. **Levels 5, 7 and 8 toward the golden slice.** These finish Episode I and
-   open Episode II, so the first two episodes play to one standard.
-2. **Remove the spoken "Frequency" lines.** The station jingle and some news
-   clips still say it, which goes against the small-radio direction. The
-   ElevenLabs credits reset on 2026-11-06, so re-recording costs nothing
-   extra now.
-3. **Finish #434 stage 4.** Short roster keys and per-reader deltas after a
-   replaced world are the measured remainder. The rewind counters also go on
-   `/status`, so lag compensation can be observed in real matches.
-4. **Level 6 combat pass.** The turrets and later guards still need checking
-   against the darker customs hall in its full combat tour.
+Wave 15 finishes Episode I and opens the lunar town:
+- **Level 5, No Forwarding Address.** Low Water's roofs and tram trench now
+  share Level 4's district look.
+- **Level 7, Declared Goods.** Its blocks were plain off-white, which read as
+  Inheritance; they are now painted in household colours. The curfew post,
+  shields and ramp had worn Union black and red; they are restyled.
+- **Heavy Sweeper.** Its sprite was painted much lighter than a Clerk's and
+  had no normal map, so it read tan in daylight. It now reads issued black
+  and red. Captured in Levels 5, 6 and 12.
+- **Radio.** "Frequency" is gone from spoken audio for 3,912 ElevenLabs
+  credits: nine clips cut at natural pauses, five re-recorded, the station ID
+  regenerated, and two songs whose chorus is the pun left rotation. A
+  listening pass is owed.
+- **Network (gameplay 63).** Deltas name fighters by roster position, and the
+  encoder diffs JSON text without parsing. Delta bytes fell 40 to 44% on top
+  of wave 13, and encode cost about halved. The lag compensation counters are
+  on `/status`.
+- **#502.** The Level 1 fixture drew a random run id, so since wave 13 each
+  retry played a different fight in every process. It failed 19 of 300 times
+  locally. The fixture now uses replay ids, with the seed and count unchanged.
+
+What comes next, and why. Wave 16 continues in this order:
+1. **Levels 8, 9 and 10 toward the golden slice.** These finish Episode II and
+   open the ship in Episode III, so the campaign reaches the halfway point at
+   one standard.
+2. **Character readability.** Splice's 3D model renders pale grey-white, near
+   the off-white the Inheritance reserves, and Latch reads pale too (#455).
+   Both need an art pass in personal colours, using Meshy only after its
+   credits reset on 2026-11-03.
+3. **Level 6 combat pass and the Level 19 Heavy check.** Level 6's turrets have
+   not yet been checked against the darker customs hall, and the Heavy fix
+   has not been captured in Level 19.
+4. **#434.** What remains: quantized motion, evidence from a real constrained
+   link, two-machine jitter, and stage 6 (transport comparison).
 
 Nick's calls stay optional and do not block:
 - the listening pass on Callum's Host and the barks;
@@ -225,7 +247,7 @@ source and deterministic route checks do not close that acceptance work.
 2. **Optional Windows playtest of v0.93.0; no engineering wait.** Nick plays Larak Lot (free-for-all, the Pit Rocket and rocket jump, Duel and the podium rematch), Recall Notice, Persons Unknown with Latch covering, the Sniper scope modes and the menus on Windows with a real pad; every defect becomes an issue and a bounded fix. Judge whether the Heavy Sweeper and Turret optics read red or salmon at the top of a windup.
 3. **Integrate the picks.** Selected Meshy models and radio keepers go into the levels and the station library, seen in game and recaptured. Wave 3 put the nine Larak Lot props in on their review grades; Nick's review of the wave PR stands as their pick. Wave 5 put twelve campaign props in where a server solid already stands for them (`client/scripts/campaign_props.gd`, `tools/campaign_props_20261025.json`): the correction machine (level 2), the impound tug seen through the customs glass (6), the pilot consoles, galley and berths (10), the lathes and freight hoist (13), the stalled trams (19, 20) and the concourse stretcher, cases, duffels and crates (19). In issued black, the correction machine and the lathes failed the P4 interim grayscale check: a black-coated Clerk standing in front of either was readable only by his outline. Both now wear the Union's plate steel (`union_plate`) and keep their red seal marks. Nick's P4 answer can still move the lathes to a place colour. The other graded models wait on a matching solid, which needs a playtest, or on Nick (the wave PR lists each with its reason).
 4. **Still Here, technical acceptance covered; pacing and art remain.** The conditional epilogue walks the refuge the morning after and years later from the saved survival, read-only, and a run exhausted in the wipe gets The Last Page and its credits instead. Survival alone opens it; rescues change the people. Automated boundary and replay checks plus inspected walks cover the bounded ending slice above. Owed: human fresh-player timing and the voice, ambience and page stills [listed for the next asset round](campaign/epilogue-still-here.md#owed-to-the-next-asset-round). These do not block further technical acceptance.
-5. **Remaining scope.** #431 (multiplayer excellence) is built through wave 12: blast push and the rocket jump, the Custody Plate, Duel and the podium rematch (wave 3); the Scatter meatshot and the head-to-head book (wave 4); host presets with stacking, the Duel line with winner-stays and the Conquest bleed (wave 11); Callum's Host voice, the hit confirm and the Scatter sound pass (wave 12). Owed: Nick's listening pass and a two-human Duel hand-over. #432 (bot and enemy AI) is built through wave 12: perception, attack tokens, tells, Latch's cover, callsign habits, grudges, guns dropped on death, Rocket use, CTF pads, objective calls, guard sighting, squad roles and barks. Wave 13 orders attack tokens by the participant's view, which fixes the Recall Notice deliberate-profile regression (#493). Owed: the Rocket at 15% of frags at six (8.2% now; a weapon or map decision, see the [bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress)) and Latch's voice. #434: stages 1 and 2 are measured, and stage 3 is deferred with numbers in [BENCHMARK.md](BENCHMARK.md). Wave 13 closes slow readers (#492) and lands stage 4's snapshot deltas (66 to 73% less traffic per client). Wave 14 lands stage 5, bounded hitscan lag compensation at 200 ms. Next are two-machine jitter evidence for stage 5, the rest of stage 4 (short roster keys, per-reader deltas after a replaced world, cheaper encode) and stage 6 (transport comparison).
+5. **Remaining scope.** #431 (multiplayer excellence) is built through wave 12: blast push and the rocket jump, the Custody Plate, Duel and the podium rematch (wave 3); the Scatter meatshot and the head-to-head book (wave 4); host presets with stacking, the Duel line with winner-stays and the Conquest bleed (wave 11); Callum's Host voice, the hit confirm and the Scatter sound pass (wave 12). Owed: Nick's listening pass and a two-human Duel hand-over. #432 (bot and enemy AI) is built through wave 12: perception, attack tokens, tells, Latch's cover, callsign habits, grudges, guns dropped on death, Rocket use, CTF pads, objective calls, guard sighting, squad roles and barks. Wave 13 orders attack tokens by the participant's view, which fixes the Recall Notice deliberate-profile regression (#493). Owed: the Rocket at 15% of frags at six (8.2% now; a weapon or map decision, see the [bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress)) and Latch's voice. #434: stages 1 and 2 are measured, and stage 3 is deferred with numbers in [BENCHMARK.md](BENCHMARK.md). Wave 13 closes slow readers (#492) and lands stage 4's snapshot deltas (66 to 73% less traffic per client). Wave 14 lands stage 5, bounded hitscan lag compensation at 200 ms; wave 15 finishes stage 4's measured remainder (roster positions in deltas, per-reader deltas, a text-level encoder) and publishes the rewind counters. Next are quantized motion, evidence on a real constrained link, two-machine jitter evidence for stage 5 and stage 6 (transport comparison).
 6. **Next release follows acceptance fixes.** Keep automated portability,
    inspected Linux visuals, package checks and human acceptance distinct.
 
