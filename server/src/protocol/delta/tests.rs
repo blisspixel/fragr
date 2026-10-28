@@ -375,3 +375,27 @@ fn write_snapshot_delta_golden() {
     let text = serde_json::to_string_pretty(&client_cases()).expect("serialize vectors");
     std::fs::write(path, text + "\n").expect("write vectors");
 }
+
+#[test]
+fn a_value_reader_rebuilds_the_same_world_as_a_typed_one() {
+    let worlds = match_worlds(MapKind::ArenaDuel, 4, 3);
+    let mut encoder = WorldEncoder::default();
+    encoder.observe(&worlds[0].0, &worlds[0].1);
+    let delta = encoder
+        .observe(&worlds[1].0, &worlds[1].1)
+        .unwrap()
+        .delta
+        .unwrap();
+    let mut values = WorldReader::new();
+    assert!(matches!(
+        values.read_value(&delta.text),
+        Err(ReadError::Delta(DeltaError::NoBase))
+    ));
+    values.read_value(&worlds[0].1).unwrap();
+    let rebuilt = values.read_value(&delta.text).unwrap();
+    assert_eq!(
+        rebuilt,
+        serde_json::from_str::<Value>(&worlds[1].1).unwrap()
+    );
+    assert_eq!(values.tick(), rebuilt["tick"].as_u64());
+}

@@ -6,9 +6,10 @@ use fragr_server::sim::{MapKind, MatchConfig};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use std::time::Duration;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::tungstenite::Message;
 
-type Socket = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+mod support;
+use support::{connect_async, Socket};
 
 fn config(strict: bool) -> MatchConfig {
     MatchConfig {
@@ -26,7 +27,7 @@ async fn message(socket: &mut Socket) -> Value {
     tokio::time::timeout(Duration::from_secs(3), async {
         loop {
             match socket.next().await.expect("socket open").expect("frame") {
-                Message::Text(text) => break serde_json::from_str(&text).expect("server JSON"),
+                Message::Text(text) => break socket.read_value(&text).expect("server JSON"),
                 Message::Close(_) => panic!("closed before expected message"),
                 _ => {}
             }

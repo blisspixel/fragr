@@ -774,7 +774,8 @@ Templates stay plan-only the whole time.
    host-scheduled skipped period per 96-bot run); egress, not
    CPU, grows fastest (17 MiB/s at 48 fighters and 64 connections). A slow
    reader is not closed until its kernel send buffer fills (38 s at half
-   rate, 35 s stale), and a stalled one closes at about 29 s; healthy
+   rate, 35 s stale), and a stalled one closes at about 29 s (since #492
+   both close in 6 to 12 s); healthy
    readers are unaffected. Distance relevance would cut 5 to 8 percent of
    entries on Larak Lot at 64 m, so deltas (pass 5) come first. Bot path
    cache use was not recorded.
