@@ -1916,6 +1916,14 @@ mod tests {
     /// passing run actually waits out; `wait_for` bounds the setup side.
     const SAFETY_NET_SECONDS: u64 = 20;
 
+    /// The wait for observed readiness (a transport reached, a roster ready,
+    /// a charge settled) that includes connect, the bot's blocking navigation
+    /// build and ledger fsync. Those are unbounded relative to the decision
+    /// cadence on a loaded runner, and a bot under test ends its own run at
+    /// `SAFETY_NET_SECONDS`, so waiting any less only adds false failures
+    /// (#494). Cadence windows after readiness keep their own short bounds.
+    const READINESS_BOUND: Duration = Duration::from_secs(SAFETY_NET_SECONDS);
+
     #[test]
     fn decision_epoch_tracks_life_round_and_map_without_rejecting_motion() {
         let id = Uuid::from_u128(1);
@@ -2293,11 +2301,7 @@ mod tests {
                 ws.send(Message::Text(message)).await.unwrap();
             }
             assert!(
-                wait_for(
-                    || held.started.load(Ordering::SeqCst),
-                    Duration::from_secs(10)
-                )
-                .await,
+                wait_for(|| held.started.load(Ordering::SeqCst), READINESS_BOUND).await,
                 "wait for actual inference readiness"
             );
             scene.tick = 2;
@@ -2497,7 +2501,7 @@ mod tests {
         // cadence under contention; synchronize on the one paid call actually
         // reaching the transport before timing the cadence-only window below.
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one paid call never reached the transport"
         );
         // Local rules take over immediately after the fatal failure; the
@@ -2533,7 +2537,7 @@ mod tests {
             stop.clone(),
         ));
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one unreadable call never reached the transport"
         );
         // A malformed reply neither backs off nor disables the brain by
@@ -2682,7 +2686,7 @@ mod tests {
                 stop.clone(),
             )));
         }
-        let first_tick = tokio::time::timeout(Duration::from_secs(10), async {
+        let first_tick = tokio::time::timeout(READINESS_BOUND, async {
             while let Some(Ok(Message::Text(text))) = observer.next().await {
                 if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
                     if snapshot.players.len() == 6
@@ -2800,25 +2804,45 @@ mod tests {
             ] {
                 socket.send(Message::Text(wire)).await.unwrap();
             }
-            let adopted = tokio::time::timeout(Duration::from_secs(10), async {
-                let mut adopted = Vec::new();
-                while let Some(Ok(Message::Text(wire))) = socket.next().await {
-                    if let Ok(ClientMessage::SetDisplayBehavior(behavior)) =
-                        serde_json::from_str(&wire)
-                    {
-                        let stance = Stance::parse(&behavior.behavior).unwrap();
-                        if stance == expected[adopted.len()] {
-                            adopted.push(stance);
-                            if adopted.len() == expected.len() {
-                                break;
+            // Readiness is the bot's first action or stance after the scene:
+            // it has built navigation for the map (a blocking job that a
+            // loaded runner can stretch to seconds) and read the snapshot.
+            // The cadence bound
+            // starts there, not when the scene was written (#494). The outer
+            // bound only outlives the bot's own safety net, which ends its run
+            // and closes the socket if it never gets that far.
+            let (adopted, ready, done) =
+                tokio::time::timeout(Duration::from_secs(SAFETY_NET_SECONDS + 10), async {
+                    let mut adopted = Vec::new();
+                    let mut ready = None;
+                    while let Some(Ok(Message::Text(wire))) = socket.next().await {
+                        let message = serde_json::from_str(&wire);
+                        if matches!(
+                            message,
+                            Ok(ClientMessage::Action(_) | ClientMessage::SetDisplayBehavior(_))
+                        ) {
+                            ready.get_or_insert_with(std::time::Instant::now);
+                        }
+                        if let Ok(ClientMessage::SetDisplayBehavior(behavior)) = message {
+                            let stance = Stance::parse(&behavior.behavior).unwrap();
+                            if stance == expected[adopted.len()] {
+                                adopted.push(stance);
+                                if adopted.len() == expected.len() {
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                adopted
-            })
-            .await
-            .expect("three remote stances publish after actual readiness");
+                    (adopted, ready, std::time::Instant::now())
+                })
+                .await
+                .expect("the bot ends its own run within its safety net");
+            let ready = ready.expect("the controller acts on the scene");
+            assert!(
+                done.duration_since(ready) < Duration::from_secs(10),
+                "three remote stances publish within 10 s of actual readiness: {:?}",
+                done.duration_since(ready)
+            );
             socket.close(None).await.unwrap();
             adopted
         });
@@ -2925,7 +2949,7 @@ mod tests {
         ));
         // One stance request makes one play decision; wait for two decisions.
         assert!(
-            wait_for(|| transport.calls() >= 2, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 2, READINESS_BOUND).await,
             "the local model was never asked twice"
         );
         stop.store(true, Ordering::Relaxed);
@@ -2972,7 +2996,7 @@ mod tests {
         assert!(
             wait_for(
                 || transport.calls.load(Ordering::SeqCst) >= 1,
-                Duration::from_secs(10)
+                READINESS_BOUND
             )
             .await,
             "the slow model was never asked"
@@ -3008,7 +3032,7 @@ mod tests {
             stop.clone(),
         ));
         assert!(
-            wait_for(|| transport.calls() >= 3, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 3, READINESS_BOUND).await,
             "three unreadable answers never arrived"
         );
         tokio::time::sleep(Duration::from_millis(600)).await;
@@ -3119,7 +3143,7 @@ mod tests {
         // actually reaching the transport before timing the cadence-only
         // window below.
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one retryable call never reached the transport"
         );
         // A returned HTTP response still has to durably settle its estimated
@@ -3130,7 +3154,7 @@ mod tests {
                 || budget
                     .try_lock()
                     .is_ok_and(|guard| guard.ledger().calls() == 1),
-                Duration::from_secs(10),
+                READINESS_BOUND,
             )
             .await,
             "the failed call never recorded its estimated charge"
