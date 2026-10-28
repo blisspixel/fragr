@@ -25,9 +25,18 @@ Non-goals: new modes, new services, transport rewrites, cloud apply, save migrat
 
 Host voice (Callum), the hit confirm and the Scatter pass; Rocket use, CTF pads and side calls for rule bots; campaign guard sighting, squad roles and barks; the #434 stage 1 baseline with stage 3 measured and deferred. The main hotfix #496 rests dropped guns where a body can stand (roster stall on map 6). Follow-ups: #489, #491, #492, #493, #494, #497.
 
-## Wave 13 (planned)
+## Wave 13 (in progress)
 
-The Recall Notice deliberate-profile regression and M14 seed 1015 (#493); the slow-reader close (#492); #434 stage 4 (acknowledged deltas and compact encoding) and bounded lag compensation; the roster deck pockets (#491), test flakes (#494), the seed 44 stranded case (#497) and the fixed-seed Continue replay (#489); then raising levels 1 to 18 to the golden-slice bar in rendered passes.
+Four lanes, each finishing inside the wave:
+
+| Lane | Scope | Owning docs |
+|---|---|---|
+| `m01-trace` | Trace and fix the deliberate Standard/Severe regression and M14 seed 1015 (#493); diagnose the seed 44 strand (#497) | [m01](../campaign/m01-recall-notice.md), [harness guide](../../tools/playtest/README.md) |
+| `net-close` | Close slow readers on a measured bound (#492), then #434 stage 4 (acknowledged deltas, compact encoding) as far as it measures | [BENCHMARK.md](../BENCHMARK.md), [UDP and hosting plan](dedicated-server-udp-and-hosting.md) |
+| `harness-trust` | The map 4 Sector 9 roster pocket (#491), the portability timing flakes (#494), a per-attempt retry seed (#489) | [harness guide](../../tools/playtest/README.md) |
+| `l02-dress` | Persons Unknown (Level 2) raised to the golden-slice bar in rendered passes | [m02](../campaign/m02-persons-unknown.md), [art bible](../ART_STORY_BIBLE.md) |
+
+The coordinator lands #498 (CLAUDE.md imports AGENTS.md).
 
 ## Verification
 
