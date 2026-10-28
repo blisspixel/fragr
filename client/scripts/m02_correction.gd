@@ -19,6 +19,9 @@ const Geometry = preload("res://scripts/model_geometry.gd")
 const MAP_ID: int = 1002
 const DAYLIGHT: Color = Color(0.86, 0.9, 0.9)
 const OCHRE: Color = Color("8a7442")
+## Issued cold fluorescent, the same white as the ceiling strips: neutral
+## enough that it never reads as Inheritance cyan.
+const BATTEN_COLOR: Color = Color(0.86, 0.92, 0.9)
 ## Personal paint the Union strips off: warm, varied, never black-and-red.
 const PERSONAL: Array[Color] = [Color("b5652e"), Color("6f8a4e"), Color("c49a3c"), Color("8a3a58"), Color("4f6f8a"), Color("a8552c"), Color("7c5a8c")]
 
@@ -217,6 +220,21 @@ func _pool(room: Node3D, at: Vector3, size: Vector2, energy: float, reach: float
 	lamps += 1
 	return light
 
+## A cold issued batten: a long fluorescent tube in a hood on two drop rods,
+## giving a big room the readable base its few ceiling strips cannot reach.
+## Soft and wide, never a focus; the hard pools and warm lamps still lead.
+func _batten(room: Node3D, at: Vector3, length: float, energy: float = 3.0, reach: float = 9.5) -> OmniLight3D:
+	var props: Node3D = _props(room)
+	var hood: StandardMaterial3D = _mat("fixture_hood", Color("2c2d32"), 0.5, 0.5)
+	var rod: StandardMaterial3D = _mat("lamp_cage", Color("2f3030"), 0.4, 0.6)
+	_block(props, "BattenHood", Vector3(length, 0.1, 0.3), hood, at + Vector3(0, 0.05, 0))
+	_block(props, "BattenTube", Vector3(length - 0.1, 0.04, 0.12), _glow("batten_tube", Color("e6eeee"), 2.0), at + Vector3(0, -0.02, 0))
+	for side: float in [-1.0, 1.0]:
+		_shape.rod(props, "BattenDrop", at + Vector3(side * length * 0.4, 0.1, 0), Vector3(at.x + side * length * 0.4, 7.0, at.z), 0.012, rod, 4)
+	var light: OmniLight3D = _omni(room, "Batten", at + Vector3(0, -0.2, 0), BATTEN_COLOR, energy, reach)
+	light.omni_attenuation = 1.1
+	return light
+
 func _papers(props: Node3D, at: Vector3, count: int, seed_value: int) -> void:
 	var paper: StandardMaterial3D = _mat("paper", Color("e3dccb"), 0.0, 0.95)
 	var form: StandardMaterial3D = _mat("form_green", Color("b8c4a6"), 0.0, 0.95)
@@ -367,9 +385,11 @@ func _build_stair() -> void:
 	_shape.rod(props, "WellPipe", Vector3(-8.2, 5.8, -33.85), Vector3(-13.2, 5.8, -33.85), 0.08, pipe, 10)
 	_shape.rod(props, "WellPipe", Vector3(-8.2, 6.15, -33.85), Vector3(-13.2, 6.15, -33.85), 0.05, rust, 8)
 	_shape.rod(props, "WellRiser", Vector3(-13.2, 0.6, -33.85), Vector3(-13.2, 6.15, -33.85), 0.05, rust, 8)
-	_lamp(room, Vector3(-12.2, 4.4, -32.6), 3.2, 7.0)
-	_lamp(room, Vector3(-9.6, 3.4, -29.9), 3.0, 7.0)
-	_lamp(room, Vector3(-11.6, 3.0, -27.4), 2.6, 6.5)
+	_lamp(room, Vector3(-12.2, 4.4, -32.6), 2.4, 6.5)
+	_lamp(room, Vector3(-9.6, 3.4, -29.9), 2.2, 6.5)
+	_lamp(room, Vector3(-11.6, 3.0, -27.4), 2.0, 6.0)
+	# One cold batten high in the well so the treads read grey, not tungsten.
+	_batten(room, Vector3(-10.5, 6.3, -32.0), 2.0, 3.2, 9.0)
 	_finish(room)
 
 # --- pack landing and the maintenance cut -------------------------------------
@@ -662,6 +682,10 @@ func _build_floor() -> void:
 	_lamp(room, Vector3(5.5, 4.6, -4.5), 2.6, 7.5)
 	_lamp(room, Vector3(0.0, 4.6, 11.8), 2.6, 7.5)
 	_lamp(room, Vector3(-8.0, 4.6, -4.6), 2.4, 7.5)
+	# Cold battens between the ceiling strips: the floor reads end to end
+	# like the intake's halls, with the warm lamps still marking the work.
+	for at: Vector3 in [Vector3(-5.5, 5.0, -3.5), Vector3(4.0, 5.0, -3.5), Vector3(-3.0, 5.0, 8.0), Vector3(10.0, 5.0, 5.0), Vector3(4.0, 5.0, 13.5)]:
+		_batten(room, at, 2.4)
 	_finish(room)
 
 # --- side ward ------------------------------------------------------------------
@@ -686,6 +710,9 @@ func _build_side_ward() -> void:
 	_pool(room, Vector3(23.55, 4.2, 8.6), Vector2(2.6, 0.9), 7.0, 6.0, 42.0)
 	_lamp(room, Vector3(16.6, 3.4, 2.2), 2.4, 6.5)
 	_lamp(room, Vector3(21.5, 4.2, 5.2), 3.0, 8.0)
+	# The side ward has no ceiling strip of its own; two battens give it one.
+	_batten(room, Vector3(18.5, 4.8, 3.0), 2.4, 3.4)
+	_batten(room, Vector3(24.0, 4.8, 4.0), 2.4, 3.4)
 	_finish(room)
 
 # --- loading dock ------------------------------------------------------------

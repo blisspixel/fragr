@@ -211,8 +211,8 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# ochre safety paint, light enough that a black uniform never vanishes
 		# into it. Nothing here glows red or cyan: red stays the Union
 		# attack tell and cyan belongs to the Inheritance (faction contract).
-		bases = [Color("6f716b"), Color("cbc6b0"), Color("4f5557"), Color("8e9b88"), Color("5a5e60")]
-		accents = [Color("5e6058"), Color("4e5844"), Color("595d60"), Color("43543f"), Color("7a6a44")]
+		bases = [Color("777972"), Color("cbc6b0"), Color("5d6366"), Color("8e9b88"), Color("5a5e60")]
+		accents = [Color("5e6058"), Color("4e5844"), Color("6b7073"), Color("43543f"), Color("7a6a44")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])

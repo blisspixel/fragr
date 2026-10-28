@@ -53,7 +53,11 @@ unchanged. The ward shares the intake's bone enamel and green band under its own
 caged lamps only where staff work, and one hard pool over the restraint frame so
 Latch is the brightest thing in the ward. Steel and machinery paint no longer
 glows red or cyan (`earth_union` in `arena_materials.gd`), so red stays the
-Union attack tell and nothing reads as Inheritance. On the gallery sill the
+Union attack tell and nothing reads as Inheritance. The processing floor and
+side ward, out of reach of the ceiling strips, hang cold issued battens so they
+read as well as the intake's halls; the stair well gets one too, and its
+treads, decks and tops are quiet poured grey instead of speckled plate, so the
+landing lamps no longer turn it brown. On the gallery sill the
 watchers left coffee, clipboards and a camera on a tripod aimed at the frame,
 all clear of the spawn sightlines; the guard room has a hand of cards, two mugs,
 a lunch tin and a duty roster under a low lamp. The stair gets ochre tread
