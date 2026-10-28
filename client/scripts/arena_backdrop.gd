@@ -12,6 +12,10 @@ const VENUE_PAINT: Color = Color("2b2723")
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
+	if venue == "earth_yard":
+		# Scheduled Service: M03Dressing owns the complex, the wall and the
+		# open country past the yard gate.
+		return
 	if venue in ["holdfast_atoll", "earth_intake", "planned_works", "still_here"]:
 		# Recall Notice's street skyline belongs to its intake presenter;
 		# Planned Works: M19Works builds the night town, river and pier;

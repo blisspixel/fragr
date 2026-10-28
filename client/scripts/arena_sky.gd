@@ -584,9 +584,14 @@ static func freight_yard() -> Preset:
 		Color("777a68"), Color("adb6a8"), 0.003, Color("d1d4ca"), 0.8)
 	preset.key_color = Color("ffe1b0")
 	preset.key_energy = 1.3
+	# Scheduled Service's bright afternoon: a lower western sun rakes the car
+	# ribs and throws the consist's shadows across the lanes, and the actor
+	# fill keeps a black-and-red guard's front readable in that shade.
+	preset.key_rotation_degrees = Vector3(-36.0, -62.0, 0.0)
+	preset.view_fill_energy = 0.25
 	preset.scene_fill_energy = 0.15
 	preset.practical_energy = 0.8
-	preset.contrast = 1.04
+	preset.contrast = 1.08
 	preset.saturation = 0.94
 	return preset
 

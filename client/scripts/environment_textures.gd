@@ -91,6 +91,10 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 		# Stair treads, decks and tops: quiet poured grey, not the speckled
 		# plate that read brown and busy under the landing lamps.
 		return EARTH + "earth_yard_cast_concrete.png"
+	elif venue == "earth_yard" and surface == "enamel":
+		# The yard's huts, office, signal box and cab are painted railway
+		# sheds: the same plain plaster under sage paint, never a blotched tile.
+		return EARTH + "earth_clinic_bone_plaster.png"
 	elif venue in ["earth_union", "earth_yard", "earth_scrap"]:
 		var prefix: String = {"earth_union": "union", "earth_yard": "yard", "earth_scrap": "scrap"}[venue]
 		match surface:
