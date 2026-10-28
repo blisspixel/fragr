@@ -37,7 +37,7 @@ The project has been broad and thin. Every change now answers to craft, not pape
 3. `docs/ARCHITECTURE.md` (decisions) and `docs/ROADMAP.md` (sequencing and status)
 4. This file for operating rules
 
-If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, shipped and proven distinct. `CLAUDE.md` stays a thin pointer to this file.
+If prose and code disagree, code wins; fix the prose in the same change. Keep planned, implemented, shipped and proven distinct. `CLAUDE.md` is exactly `@AGENTS.md`, the import that loads this file.
 
 ## Hard constraints (project law)
 

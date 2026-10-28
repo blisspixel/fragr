@@ -399,13 +399,14 @@ async fn live_jammer_admission_rejects_old_roles_and_sends_geometry_before_snaps
             }).to_string())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 let mut saw_welcome = false;
                 loop {
                     let message = socket.next().await.unwrap().unwrap();
                     let Message::Text(text) = message else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                    let value: serde_json::Value = frames.read_value(&text).unwrap();
                     if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
@@ -482,12 +483,13 @@ async fn current_rules_three_readers_join_m02() {
         .unwrap();
     tokio::time::timeout(Duration::from_secs(5), async {
         let mut saw_map = false;
+        let mut frames = crate::protocol::WorldReader::new();
         loop {
             let message = socket.next().await.unwrap().unwrap();
             let Message::Text(text) = message else {
                 continue;
             };
-            let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+            let value: serde_json::Value = frames.read_value(&text).unwrap();
             assert_ne!(value["type"], "error", "current M02 reader was rejected");
             if value["type"] == "map_info" {
                 saw_map = true;

@@ -802,6 +802,8 @@ async fn run_server_impl(
     };
 
     tokio::pin!(shutdown);
+    // The last world the tick encoded, so the next is also sent as a delta.
+    let mut worlds = crate::protocol::delta::WorldEncoder::default();
 
     loop {
         tokio::select! {
@@ -819,7 +821,7 @@ async fn run_server_impl(
                 }
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
-                let broadcasts = crate::net::Broadcast::encode_all(messages)?;
+                let broadcasts = crate::net::Broadcast::encode_tick(messages, &mut worlds)?;
                 let bytes: usize = broadcasts.iter().map(|broadcast| broadcast.text().len()).sum();
                 let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);

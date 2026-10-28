@@ -115,7 +115,11 @@ has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
 The adapter sends the server crate's current gameplay contract. A shared arcade room
-requires that exact hello. M07 Declared Goods requires 32
+requires that exact hello. From gameplay 61 the server may send a world as a
+`snapshot_delta` against the world before it; the adapter reads every frame
+through the server crate's `protocol::WorldReader`, so `observe` always sees
+the full snapshot, and a delta it cannot apply ends the game session as
+malformed server data does. M07 Declared Goods requires 32
 for its strict town and crater envelope. M08 Custodian of Record requires 31
 for its strict archive envelope. A map that grants the Sniper Rifle or places a
 Ranged Sweeper requires 30. Maps that place a campaign Auditor or grant
@@ -855,7 +859,7 @@ The adapter speaks the same WebSocket JSON protocol as the Godot client and huma
 5. MCP client calls `act` / `speak`; adapter forwards on the open socket
 6. `leave` closes the socket cleanly; `join` reconnects and Hellos again
 
-The receive task answers the server's liveness ping every 5 seconds, so an
+The receive task answers the server's liveness ping every second, so an
 idle agent between tool calls stays connected. A server kick (`idle_timeout`,
 `rate_limited`, `malformed`, `address_banned`, `address_not_allowed`; see
 `docs/protocol.md`) arrives as a final `error` and a close, and the session

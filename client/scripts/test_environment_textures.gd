@@ -84,7 +84,18 @@ func _civilian_boundaries() -> void:
 	ground.set_shader_parameter("accent_color", Color("e8e2d6"))
 	_check(issued.get_shader_parameter("accent_color") == Color("9a302a"), "editing town ground cannot recolor the issued wall instance")
 	_check(ArenaMaterials.ground(dwelling, "enamel", "moon_town") == dwelling, "ground override is limited to the authored town steel deck")
-	for venue: String in ["moon_port", "earth_union", "earth_yard", "earth_scrap", "unknown"]:
+	# The correction ward paints its own quiet marks: a thin red enamel pinline,
+	# steel and machinery paint matching their plate, and nothing emissive, so
+	# no wall competes with a Union red tell or reads as Inheritance cyan.
+	for surface: String in ["enamel", "service_steel", "lift_panel"]:
+		var ward: ShaderMaterial = ArenaMaterials.authored(surface, "earth_union") as ShaderMaterial
+		_check(ward.get_shader_parameter("trim_glow") == 0.0, "correction ward marks never emit: " + surface)
+		var accent: Color = ward.get_shader_parameter("accent_color")
+		_check(not (accent.b > accent.r + 0.08 and accent.g > accent.r + 0.08), "correction ward accents avoid Inheritance cyan: " + surface)
+		_check(ward.get_shader_parameter("warning_color") == (Color("8c1a1e") if surface == "enamel" else accent), "correction ward red stays on enamel: " + surface)
+	var ward_ground: Material = ArenaMaterials.authored("service_steel", "earth_union")
+	_check(ArenaMaterials.ground(ward_ground, "service_steel", "earth_union") == ward_ground, "correction ward retains its exact ground material instance")
+	for venue: String in ["moon_port", "earth_yard", "earth_scrap", "unknown"]:
 		# Duplication materializes shader defaults on a real renderer. Compare
 		# both after that same operation, rather than an unset null to a default.
 		var institution: ShaderMaterial = ArenaMaterials.authored("enamel", venue).duplicate() as ShaderMaterial

@@ -899,3 +899,58 @@ fn native_launch_fact_vectors_match_client_fixture() {
         "native M14 fixture changed"
     );
 }
+
+/// Seed 1015's route stood on the trench bunker's ammunition while the Walker
+/// marked three shells down the trench. Every bearing near the marks' push
+/// ran into a trench wall, so the tell reader gave up at the bunker mouth and
+/// the route walked back onto the pad, over and over, until the shells landed.
+/// A reader that never stops inside a mark while a bearing is open walks out
+/// along the trench.
+#[test]
+fn tell_reader_walks_out_of_a_barrage_laid_along_the_trench() {
+    let (mut s, id) = session();
+    s.state.players.retain(|p| p.is_participant());
+    // On the pad where the route stood when the marks went down.
+    place(&mut s, id, [-0.35, 0.0, 16.55]);
+    let targets = [
+        [1.065_708, 0.0, 20.287_428],
+        [-0.347_567, 0.0, 16.545_416],
+        [-1.760_843, 0.0, 12.803_404],
+    ];
+    let outside = |p: &crate::sim::Player| {
+        targets
+            .iter()
+            .all(|t| (p.x - t[0]).hypot(p.z - t[2]) > crate::protocol::WALKER_SHELL_RADIUS)
+    };
+    let mut tells = crate::mission::route_skill::TellReader::default();
+    let mut escaped = None;
+    for step in 0..80 {
+        let mut snapshot = s.state.snapshot();
+        let walker = snapshot.walker.as_mut().expect("M14 has a Walker");
+        walker.phase = WalkerPhase::ArtilleryWarning;
+        walker.artillery_targets = targets;
+        // The route's own step, as recorded: on south down the trench,
+        // back through the marks.
+        let wanted = Action {
+            forward: true,
+            yaw: Some(-1.459_658),
+            ..Default::default()
+        };
+        let action = tells.evade(&s.state, &snapshot, id, wanted);
+        s.state.set_action(id, action);
+        s.tick_messages(0.05);
+        let me = s.state.players.iter().find(|p| p.id == id).unwrap();
+        assert!(me.hp > 0);
+        if outside(me) {
+            escaped = Some(step);
+            break;
+        }
+    }
+    let me = s.state.players.iter().find(|p| p.id == id).unwrap();
+    assert!(
+        escaped.is_some_and(|step| step < 60),
+        "still inside the marks at [{:.2}, {:.2}]",
+        me.x,
+        me.z
+    );
+}

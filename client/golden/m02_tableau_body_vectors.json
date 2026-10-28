@@ -309,7 +309,7 @@
 		"half_extent": 40.0,
 		"m02_objectives": 3,
 		"map_id": 1002,
-		"map_name": "Persons Unknown: ward graybox",
+		"map_name": "Persons Unknown",
 		"solids": [
 			{
 				"bottom": 0.0,

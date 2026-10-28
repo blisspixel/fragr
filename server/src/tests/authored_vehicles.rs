@@ -231,11 +231,12 @@ async fn authored_fleet_requires_vehicle_capability_for_every_role_and_sends_geo
                 .unwrap();
             tokio::time::timeout(std::time::Duration::from_secs(3), async {
                 let mut saw_map = false;
+                let mut frames = crate::protocol::WorldReader::new();
                 while let Some(message) = socket.next().await {
                     let Message::Text(body) = message.unwrap() else {
                         continue;
                     };
-                    let value: serde_json::Value = serde_json::from_str(&body).unwrap();
+                    let value: serde_json::Value = frames.read_value(&body).unwrap();
                     if value["type"] == "error" {
                         assert!(
                             version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION,

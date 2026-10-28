@@ -20,6 +20,19 @@ pub(crate) fn disable_nagle(stream: &TcpStream) {
     }
 }
 
+/// Bound the kernel send buffer of a game socket. Left to autotuning, Linux
+/// grows it to 4 MiB, which hides a slow reader's backlog from its writer for
+/// tens of seconds: every send completes while the picture goes stale. Bounded,
+/// the writer blocks within a fraction of a second, the backlog stays in the
+/// outbound queue where a newer world replaces an unsent one, and the age of
+/// the oldest unsent frame is known. Status probes share this socket and are
+/// small.
+pub(crate) fn bound_send_buffer(stream: &TcpStream) {
+    if let Err(error) = socket2::SockRef::from(stream).set_send_buffer_size(SEND_BUFFER_BYTES) {
+        tracing::warn!("could not bound the socket send buffer: {error}");
+    }
+}
+
 /// Tracing target for the host's audit trail: joins, rejects, kicks and bans.
 /// Never log a ticket, resume token or secret under it.
 pub const AUDIT_TARGET: &str = "fragr_server::audit";
@@ -31,13 +44,119 @@ struct WriterMeters {
     probe: Option<Arc<WriterProbe>>,
 }
 
+/// How a session writer treats its socket: when it gives up, and what it sends.
+#[derive(Debug, Clone, Copy)]
+struct WriterPolicy {
+    /// One send, from its start, may take this long.
+    send_timeout: Duration,
+    /// A queued frame older than this, counted from when the tick queued it,
+    /// closes the socket instead of being sent: that reader's picture is
+    /// already this stale, and every later frame waits behind it.
+    stale_after: Duration,
+    /// A ping the reader has not answered for this long closes the socket:
+    /// what was sent before it is at least this stale on the reader's side.
+    read_behind_after: Duration,
+    /// After a `MapInfo` or `Mission`, how long the reader may build the
+    /// level without reading before either close applies.
+    load_grace: Duration,
+    /// This reader applies snapshot deltas (`DELTA_GAMEPLAY_VERSION`).
+    deltas: bool,
+}
+
+/// A client stops reading while it builds a level from a `MapInfo` or
+/// `Mission`. From the writer taking that message until the client answers a
+/// ping sent after it, or the window ends, neither the unanswered-ping close
+/// nor the frame-age close applies. Frames that waited out a load age from
+/// its end, so a client that comes back is not closed for the wait itself.
+struct LoadGrace {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    window: Duration,
+    /// The window's end and the ping clock when it opened.
+    open: Option<(std::time::Instant, u64)>,
+    /// When the last window closed.
+    resumed_at: Option<std::time::Instant>,
+}
+
+impl LoadGrace {
+    fn begin(&mut self, now: std::time::Instant) {
+        self.open = Some((now + self.window, self.traffic.now_us()));
+    }
+
+    /// Whether a load window is open at `now`; closes it once it is over.
+    fn active(&mut self, now: std::time::Instant) -> bool {
+        if let Some((until, since)) = self.open {
+            if now < until && !self.traffic.answered_since(since) {
+                return true;
+            }
+            self.open = None;
+            self.resumed_at = Some(now.min(until));
+        }
+        false
+    }
+
+    fn until(&self) -> Option<std::time::Instant> {
+        self.open.map(|(until, _)| until)
+    }
+
+    /// When a frame queued at `queued_at` starts to age.
+    fn clock(&self, queued_at: std::time::Instant) -> std::time::Instant {
+        self.resumed_at
+            .map_or(queued_at, |resumed| resumed.max(queued_at))
+    }
+}
+
+/// The last world this writer put on its socket. The stream is ordered and
+/// reliable, so it is the world the reader holds next: a delta whose base is
+/// that tick is safe to send, and anything else goes out whole.
+struct SentWorld {
+    deltas: bool,
+    tick: Option<u64>,
+}
+
+impl SentWorld {
+    /// The text to send for a shared broadcast, and whether it is a delta.
+    fn choose<'a>(&mut self, broadcast: &'a Broadcast) -> (&'a str, bool) {
+        let Some(world) = broadcast.world() else {
+            self.boundary(broadcast.message());
+            return (broadcast.text(), false);
+        };
+        let delta = world
+            .delta
+            .as_ref()
+            .filter(|delta| self.deltas && self.tick == Some(delta.base));
+        self.tick = Some(world.tick);
+        match delta {
+            Some(delta) => (&delta.text, true),
+            None => (broadcast.text(), false),
+        }
+    }
+
+    /// A targeted world is not the shared one a delta names, and a targeted
+    /// map or mission starts a new world.
+    fn targeted(&mut self, message: &ServerMessage) {
+        if matches!(message, ServerMessage::Snapshot(_)) {
+            self.tick = None;
+        }
+        self.boundary(message);
+    }
+
+    fn boundary(&mut self, message: &ServerMessage) {
+        if matches!(
+            message,
+            ServerMessage::MapInfo { .. } | ServerMessage::Mission { .. }
+        ) {
+            self.tick = None;
+        }
+    }
+}
+
 /// Owns the socket's write half. Sends queued messages and a ping on a fixed
 /// cadence. Returns the sink so a kick can still send its reason and close.
 async fn run_outbound_writer<S>(
     mut sink: S,
     mut rx: WsRx,
     shutdown: watch::Sender<StopSignal>,
-    send_timeout: Duration,
+    limits: WriterPolicy,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
     meters: WriterMeters,
@@ -46,27 +165,59 @@ where
     S: futures_util::Sink<Message> + Unpin,
 {
     let WriterMeters { traffic, probe } = meters;
+    let mut sent_world = SentWorld {
+        deltas: limits.deltas,
+        tick: None,
+    };
+    let mut grace = LoadGrace {
+        traffic: Arc::clone(&traffic),
+        window: limits.load_grace,
+        open: None,
+        resumed_at: None,
+    };
     let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
     ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
-        let frame = tokio::select! {
+        let (frame, stale_at) = tokio::select! {
             delivery = rx.recv() => {
                 let Some(delivery) = delivery else { break };
                 let taken = std::time::Instant::now();
                 if let Some(probe) = &probe {
                     probe.taken(delivery.queued_at, taken);
                 }
+                if matches!(
+                    delivery.frame.message(),
+                    ServerMessage::MapInfo { .. } | ServerMessage::Mission { .. }
+                ) {
+                    grace.begin(taken);
+                }
+                let mut stale_at = grace.clock(delivery.queued_at) + limits.stale_after;
+                if grace.active(taken) {
+                    stale_at = stale_at.max(grace.until().unwrap_or(stale_at));
+                }
+                if taken >= stale_at {
+                    tracing::info!(
+                        age_ms = taken.saturating_duration_since(delivery.queued_at).as_millis() as u64,
+                        "outbound frame went stale; closing slow reader"
+                    );
+                    if let Some(probe) = &probe {
+                        probe.went_stale(taken);
+                    }
+                    break;
+                }
                 let json = match delivery.frame {
                     // tungstenite 0.24 owns each frame's String, so a shared
                     // payload is copied, never serialized again.
                     Outbound::Shared(broadcast) => {
-                        let json = broadcast.text().to_owned();
+                        let (text, delta) = sent_world.choose(&broadcast);
+                        let json = text.to_owned();
                         if let Some(probe) = &probe {
-                            probe.shared(json.len());
+                            probe.shared(json.len(), delta);
                         }
                         json
                     }
                     Outbound::Targeted(message) => {
+                        sent_world.targeted(&message);
                         let Ok(json) = serde_json::to_string(&message) else {
                             tracing::warn!("Failed to serialize outbound server message; dropping client send");
                             break;
@@ -77,9 +228,33 @@ where
                         json
                     }
                 };
-                Message::Text(json)
+                (Message::Text(json), Some(stale_at))
             }
-            _ = ping.tick() => Message::Ping(traffic.ping_payload()),
+            _ = ping.tick() => {
+                let now = std::time::Instant::now();
+                if let Some(behind) = traffic
+                    .read_behind()
+                    .filter(|behind| *behind >= limits.read_behind_after && !grace.active(now))
+                {
+                    tracing::info!(
+                        behind_ms = behind.as_millis() as u64,
+                        "reader has not answered a ping; closing with idle_timeout"
+                    );
+                    if let Some(probe) = &probe {
+                        probe.fell_behind(now);
+                    }
+                    shutdown.send_if_modified(|signal| {
+                        if *signal == StopSignal::Open {
+                            *signal = StopSignal::Idle;
+                            true
+                        } else {
+                            false
+                        }
+                    });
+                    break;
+                }
+                (Message::Ping(traffic.ping_payload()), None)
+            }
             _ = &mut stop => return sink,
         };
         let text_bytes = match &frame {
@@ -87,14 +262,28 @@ where
             _ => None,
         };
         let sending = std::time::Instant::now();
-        if !matches!(
-            tokio::time::timeout(send_timeout, sink.send(frame)).await,
-            Ok(Ok(()))
-        ) {
-            if let Some(probe) = &probe {
-                probe.send_failed(std::time::Instant::now());
+        // A text frame must be on its way before it goes stale, however fresh
+        // it was when taken. A ping has the plain send timeout.
+        let allowed = stale_at.map_or(limits.send_timeout, |stale_at| {
+            stale_at.saturating_duration_since(sending)
+        });
+        match tokio::time::timeout(allowed, sink.send(frame)).await {
+            Ok(Ok(())) => {}
+            outcome => {
+                let now = std::time::Instant::now();
+                let stale = outcome.is_err() && stale_at.is_some();
+                if stale {
+                    tracing::info!("outbound frame went stale while sending; closing slow reader");
+                }
+                if let Some(probe) = &probe {
+                    if stale {
+                        probe.went_stale(now);
+                    } else {
+                        probe.send_failed(now);
+                    }
+                }
+                break;
             }
-            break;
         }
         if let Some(bytes) = text_bytes {
             traffic.sent(bytes);
@@ -127,6 +316,8 @@ enum StopSignal {
     },
     /// Duel winner-stays: the loser's socket closes with `duel_seat_passed`.
     SeatPassed,
+    /// The writer saw a ping go unanswered too long: `idle_timeout`.
+    Idle,
 }
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
@@ -159,6 +350,12 @@ pub(crate) const fn address_cap() -> usize {
 }
 pub const OUTBOUND_QUEUE_CAPACITY: usize = 64;
 const OUTBOUND_SEND_TIMEOUT: Duration = Duration::from_secs(2);
+/// A queued frame this old closes its socket (#492). Two and a half seconds is
+/// fifty ticks: past any healthy link, including a join's geometry on a thin
+/// one, and far short of the half a minute a slow reader used to linger.
+const OUTBOUND_STALE_AFTER: Duration = Duration::from_millis(2500);
+/// The kernel send buffer of each game socket; see `bound_send_buffer`.
+const SEND_BUFFER_BYTES: usize = 64 * 1024;
 /// A displayed frame can send one action. 256 per second covers a fast
 /// monitor. A tighter flood is dropped before it reaches the tick queue.
 const INBOUND_PER_SEC: f32 = 256.0;
@@ -166,11 +363,26 @@ const INBOUND_BURST: f32 = 64.0;
 
 /// The server pings every open session on this cadence. Every WebSocket
 /// client answers a ping while it reads, so a quiet spectator stays live,
-/// and the answer times the round trip each fighter's `ping` reports.
-const PING_EVERY: Duration = Duration::from_secs(5);
-/// No frame at all for this long, not even a pong, closes with `idle_timeout`.
-/// Nine missed pings, so one long frame hitch is not a disconnect.
-const IDLE_AFTER: Duration = Duration::from_secs(45);
+/// the answer times the round trip each fighter's `ping` reports, and an
+/// answer that does not come shows how far behind the stream a reader is.
+const PING_EVERY: Duration = Duration::from_secs(1);
+/// A ping unanswered this long closes the socket with `idle_timeout` (#492):
+/// the reader has not read what the server sent that long ago, wherever
+/// those bytes now sit (its own receive buffer, the kernel's send buffer or
+/// the path). A client that stops reading and answering entirely is closed
+/// the same way, so this is also the idle rule. Longer than the frame-age
+/// bound so a client's one long frame hitch, which it then reads past, is
+/// not a disconnect.
+const READ_BEHIND_AFTER: Duration = Duration::from_secs(4);
+/// After the server sends a `MapInfo` or `Mission`, the Godot client builds
+/// the level on its main thread and stops reading until it is done. For
+/// this long, or until it answers a ping sent after that message, neither
+/// the unanswered-ping close nor the frame-age close applies. The longest
+/// frame measured after a spectator joined M09, M14, M19 or Still Here was
+/// 0.2 s headless and 0.48 s with the Vulkan renderer (warm caches, Ryzen 7
+/// 7840U); 30 s leaves room for a cold pipeline cache on a slow machine and
+/// matches the roughly 29 s a stalled reader survived before #492.
+const LOAD_GRACE: Duration = Duration::from_secs(30);
 /// Dropped messages fill a strike level that drains at this rate. A client
 /// that renders uncapped sends one action per frame, so only a sustained rate
 /// far above any display (more than 4352 per second) grows the level.
@@ -186,7 +398,8 @@ const JUNK_LIMIT: f32 = 16.0;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SessionLimits {
     pub ping_every: Duration,
-    pub idle_after: Duration,
+    pub read_behind_after: Duration,
+    pub load_grace: Duration,
     pub flood_drain_per_sec: f32,
     pub flood_limit: f32,
     pub junk_drain_per_sec: f32,
@@ -197,7 +410,8 @@ impl Default for SessionLimits {
     fn default() -> Self {
         Self {
             ping_every: PING_EVERY,
-            idle_after: IDLE_AFTER,
+            read_behind_after: READ_BEHIND_AFTER,
+            load_grace: LOAD_GRACE,
             flood_drain_per_sec: FLOOD_DRAIN_PER_SEC,
             flood_limit: FLOOD_LIMIT,
             junk_drain_per_sec: JUNK_DRAIN_PER_SEC,
@@ -1185,6 +1399,7 @@ impl NetServer {
                     // LAN is the delay a player calls lag. Status probes use
                     // this same socket.
                     disable_nagle(&stream);
+                    bound_send_buffer(&stream);
                     tracing::debug!("New connection from {}", addr);
                     let game_tx = self.game_tx.clone();
                     let clients = self.clients.clone();
@@ -1575,8 +1790,6 @@ async fn read_session(
     if let Some(watcher) = access.as_mut() {
         watcher.mark_unchanged();
     }
-    let idle = tokio::time::sleep(limits.idle_after);
-    tokio::pin!(idle);
     let mut left = false;
     let mut board_window = crate::admission_bounds::fresh_board_window(std::time::Instant::now());
     let kick = loop {
@@ -1591,9 +1804,9 @@ async fn read_session(
                     StopSignal::Quiet => break None,
                     StopSignal::Venue { banned } => break Some(Kick::Venue { banned }),
                     StopSignal::SeatPassed => break Some(Kick::SeatPassed),
+                    StopSignal::Idle => break Some(Kick::Idle),
                 }
             }
-            () = &mut idle => break Some(Kick::Idle),
             changed = async {
                 match access.as_mut() {
                     Some(watcher) => watcher.changed().await,
@@ -1619,8 +1832,6 @@ async fn read_session(
         let inbound_frame = match msg {
             Err(_) | Ok(Message::Close(_)) => break None,
             Ok(frame) => {
-                idle.as_mut()
-                    .reset(tokio::time::Instant::now() + limits.idle_after);
                 match frame {
                     Message::Text(text) => {
                         traffic.received(text.len());
@@ -1840,6 +2051,9 @@ async fn handle_connection(
     // A resume request parks the seat instead of returning it on a drop.
     let mut _party_seat;
     let mut keep_pawn = false;
+    // The gameplay contract this reader named; it decides whether its writer
+    // may send snapshot deltas.
+    let reader_version;
 
     let first = match tokio::time::timeout(policy.hello_timeout, ws_stream.next()).await {
         Ok(message) => message,
@@ -1890,6 +2104,7 @@ async fn handle_connection(
                 ) {
                     return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
+                reader_version = gameplay_version;
                 if let Some(rejection) = version_refusal(
                     "geometry",
                     geometry_version,
@@ -2296,7 +2511,13 @@ async fn handle_connection(
         ws_sink,
         rx,
         shutdown_tx,
-        OUTBOUND_SEND_TIMEOUT,
+        WriterPolicy {
+            send_timeout: OUTBOUND_SEND_TIMEOUT,
+            stale_after: OUTBOUND_STALE_AFTER,
+            read_behind_after: policy.limits.read_behind_after,
+            load_grace: policy.limits.load_grace,
+            deltas: reader_version >= crate::protocol::DELTA_GAMEPLAY_VERSION,
+        },
         policy.limits.ping_every,
         writer_stop,
         WriterMeters {
@@ -2320,11 +2541,11 @@ async fn handle_connection(
     .await;
 
     // A kick takes the write half back to send its reason. A stalled writer
-    // gives up within its own send timeout.
+    // gives up within its own send timeout or frame age.
     let sink = if end.kick.is_some() {
         let _ = stop_writer.send(());
         match tokio::time::timeout(
-            OUTBOUND_SEND_TIMEOUT + Duration::from_millis(500),
+            OUTBOUND_STALE_AFTER.max(OUTBOUND_SEND_TIMEOUT) + Duration::from_millis(500),
             &mut send_task,
         )
         .await

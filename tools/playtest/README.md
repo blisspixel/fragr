@@ -69,14 +69,17 @@ saved entry. Any violation fails the command. Exhaustion must save `failed`.
 The dropped request models transport loss; the client's own retry latch is
 covered by the Godot net client harness.
 
-Finding: the local child launches every process with one fixed seed (default
-1), and a Continue restores the same entry. A deterministic agent that
-reopens its saved death therefore replays that death exactly on every
-Continue. Seed 42 reference/Severe dies at tick 998 on attempt 1 and again at
-tick 998 when reopened with the same seed; a test pins this. To observe varied
-attempts, the harness instead opens attempt `n` with simulation seed
-`seed + 1000 * (n - 1)` and records the seed actually used in each segment;
-aim phase keeps the trial seed. This harness choice does not change the game.
+Every session opens with the trial seed, as the local child opens every
+process with its one seed (default 1). The first attempt runs on that seed.
+Each retry, accepted in the same session or reopened from the saved pending
+Continue, runs on its own stream derived from that seed, the run id and the
+attempt number (`fragr_server::mission::retry_seed`, #489). A deterministic
+agent that reopens a death therefore meets a new fight instead of replaying
+the old one tick for tick, and the same run and attempt always replay the
+same fight; a test pins both. Recorded sessions use a fixed run id, so a
+report still reproduces. Each segment records the seed its attempt runs on,
+derived with the server's own `retry_seed` rather than read back from the
+server; aim phase keeps the trial seed.
 
 Outcomes are `m01_exhausted` or `m01_timeout` (no M02 entry), `window_elapsed`
 (alive when the window ends, after any retries), `exhausted` and `departed`.
@@ -105,6 +108,14 @@ route discovery, human learning, sound perception or the rendered HUD. These
 profiles are synthetic constraints, not measured novice populations. Compare
 game changes with the same evaluator revision and seed set; a controller change
 requires a new baseline.
+
+A body can stand where the shared navigation grid has no waypoint: a corridor
+exactly two body widths across, its walls on whole metres, such as Recall
+Notice's pocket behind the dispatch screen. A route from there now joins the
+grid by a longer straight walk (up to six cells) instead of failing. Before
+that, a tell sidestep into the pocket left seed 44 deliberate/Assisted standing
+still for 488 s until the trial bound (#497); with only that navigation change
+it departs at 119.8 s and no other trial of seeds 40 to 71 changes.
 
 During M19's crossing, tram street and market, it also remembers up to 64 positions
 seen after the reaction delay, for less than 30 seconds. Losing sight permits

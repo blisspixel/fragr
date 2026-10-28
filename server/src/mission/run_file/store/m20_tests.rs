@@ -347,7 +347,11 @@ async fn open_still_here(
         .await
         .unwrap();
     let state = tokio::time::timeout(std::time::Duration::from_secs(5), async {
-        while let Some(Ok(Message::Text(text))) = socket.next().await {
+        while let Some(Ok(frame)) = socket.next().await {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
             if let Ok(ServerMessage::Mission { state, .. }) = serde_json::from_str(&text) {
                 if !state.party.is_empty() {
                     return state;

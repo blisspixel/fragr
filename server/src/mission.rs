@@ -32,6 +32,7 @@ pub(crate) mod m18;
 pub(crate) mod m19;
 pub(crate) mod m20;
 mod recovery;
+pub use recovery::retry_seed;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
 pub(crate) use m02::validate_m02_evacuation_route;

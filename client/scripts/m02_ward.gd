@@ -4,7 +4,7 @@ extends Node3D
 ## The server owns the ward win, release and shot bodies. Reconnect, retry and
 ## skip rebuild presentation from those facts without inventing actor feet.
 const MAP_ID: int = 1002
-const MAP_NAME: String = "Persons Unknown: ward graybox"
+const MAP_NAME: String = "Persons Unknown"
 const FIRST_FEET: Vector3 = Vector3(7.55, 0.0, -10.0)
 const SECOND_FEET: Vector3 = Vector3(7.55, 0.0, -14.8)
 const BAY_FEET: Vector3 = Vector3(8.35, 0.0, -16.0)

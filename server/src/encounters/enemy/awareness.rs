@@ -28,6 +28,18 @@
 //! letting a struck peer's alarm only draw the others' eyes sent Level 1's
 //! sorting Sweepers walking toward the struck desk past the participant for a
 //! second, so they joined the fight from the participant's side.
+//!
+//! The participant's view orders the attack tokens (#493). The startled
+//! reaction slows the guards a participant walks in facing, while one at
+//! their side that watched the door raises at once; first come, first served,
+//! that guard took the token. In Level 1's dispatch office the guard beside
+//! the door shot a participant facing the officer and the Sweeper across the
+//! desk, and the Sweeper then came round behind. A guard the participant can
+//! see (the same cone, gaze and cover a guard sees through, from their facing)
+//! that is waiting for a token on them, still reacting or shifting across its
+//! lane, keeps a guard they cannot see from starting first, and guards in view
+//! ask first each tick. Nobody waiting in view, a guard out of view attacks as
+//! before, so turning away from a room is never safe.
 
 use super::{turn, EnemyController, SIGHT_RANGE};
 use crate::navigation::NavigationGoal;
@@ -238,6 +250,42 @@ impl EnemyController {
                 goal: None,
             }
         })
+    }
+
+    /// Whether this guard stands where `participant` would see it: inside
+    /// the same cone, gaze and cover a guard sees through, from the
+    /// participant's own facing.
+    pub(in crate::encounters) fn in_view_of(&self, state: &GameState, participant: Uuid) -> bool {
+        let (Some(body), Some(viewer)) = (
+            state.players.iter().find(|p| p.id == self.id),
+            state.players.iter().find(|p| p.id == participant),
+        ) else {
+            return false;
+        };
+        guard_sees(state, viewer, viewer.yaw, SIGHT_RANGE, body)
+    }
+
+    /// Whether any participant would see this guard.
+    pub(in crate::encounters) fn in_view(&self, state: &GameState) -> bool {
+        state
+            .players
+            .iter()
+            .filter(|p| p.campaign == Some(CampaignActor::Participant {}) && p.hp > 0)
+            .any(|p| self.in_view_of(state, p.id))
+    }
+
+    /// The participant this guard is waiting to attack: reacting to its
+    /// sighting, or in the fight and shifting across its lane for a token
+    /// until the tick it asks again.
+    pub(in crate::encounters) fn contending(&self, tick: u64) -> Option<Uuid> {
+        match self.awareness {
+            Awareness::Alerted {
+                seen: Some((id, _)),
+                ..
+            } => Some(id),
+            Awareness::Aware if tick <= self.yield_until => self.target,
+            _ => None,
+        }
     }
 
     /// A line this guard would say, once.

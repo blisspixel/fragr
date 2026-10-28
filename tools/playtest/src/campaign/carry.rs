@@ -19,7 +19,7 @@ pub const M02_WINDOW_TICKS: u64 = 60 * 20;
 pub const OBSERVATION: &str = concat!(
     "M01 leg: ",
     recall_notice_observation!(),
-    " The M01 leg is written through the server's durable run file after every step. M02 is entered only by reopening that file: the saved departure is promoted and loaded by the same DurableRun code as the local child. Both legs are guided by public objectives and navigation geometry through the shared MissionClient; M02 adds no harness-specific route hints, grants or completion targets. The same constrained perception, turning, aim, reload and supply policy plays a bounded 60-second M02 window of active time. Harness sessions number entities deterministically for reproducible reports, where the local child draws random entity ids, and admit the participant directly rather than through a wire join; the simulation seed is applied after the run file opens, as in the local child. A death ends the session. Its pending Continue is reopened from disk in a fresh session. The local child launches every process with one fixed seed, so a deterministic controller replays the same death after each reopened Continue; to observe varied attempts this harness instead declares a per-attempt simulation seed (trial seed plus 1000 per earlier attempt), recorded in each segment. A request dropped before delivery must leave the saved file unchanged; stale mission/run/attempt requests and a duplicate after acceptance are sent through the ordinary session command path and must be refused. Only the accepted request may spend a continue. Restoration is compared with the M02 entry kit live and again from a copy of the saved file. Immediate Continue with no menu delay; no M02 clear, campaign, human-population or rendered-readability claim."
+    " The M01 leg is written through the server's durable run file after every step. M02 is entered only by reopening that file: the saved departure is promoted and loaded by the same DurableRun code as the local child. Both legs are guided by public objectives and navigation geometry through the shared MissionClient; M02 adds no harness-specific route hints, grants or completion targets. The same constrained perception, turning, aim, reload and supply policy plays a bounded 60-second M02 window of active time. Harness sessions number entities deterministically for reproducible reports, where the local child draws random entity ids, and admit the participant directly rather than through a wire join; the simulation seed is applied after the run file opens, as in the local child. A death ends the session. Its pending Continue is reopened from disk in a fresh session. Every session opens with the trial seed, as the local child opens every process with its one seed; the game itself runs each retry on a stream derived from that seed, the run id and the attempt, recorded in each segment. A request dropped before delivery must leave the saved file unchanged; stale mission/run/attempt requests and a duplicate after acceptance are sent through the ordinary session command path and must be refused. Only the accepted request may spend a continue. Restoration is compared with the M02 entry kit live and again from a copy of the saved file. Immediate Continue with no menu delay; no M02 clear, campaign, human-population or rendered-readability claim."
 );
 
 /// HP, armor and the ordinary authoritative loadout, without its clock.
@@ -65,20 +65,24 @@ impl Kit {
     }
 }
 
-/// Simulation seed of the session that plays M02 `attempt`. The local child
-/// launches every process with one fixed seed, so an unchanged seed and entry
-/// replay a deterministic controller's previous death exactly. Each reopened
-/// attempt therefore declares its own simulation stream; the policy's aim
-/// phase keeps the trial seed.
-pub fn attempt_seed(seed: u64, attempt: u32) -> u64 {
-    seed.wrapping_add(u64::from(attempt.saturating_sub(1)) * 1_000)
+/// The seed of the stream M02 `attempt` runs on. Every session opens with the
+/// trial seed, as the local child does; the first attempt runs on it and the
+/// game starts each retry on its own stream (`retry_seed`), so a reopened
+/// death is a new fight rather than a replay. The policy's aim phase keeps
+/// the trial seed.
+pub fn attempt_seed(seed: u64, run_id: Uuid, attempt: u32) -> u64 {
+    if attempt <= 1 {
+        seed
+    } else {
+        fragr_server::mission::retry_seed(seed, run_id, attempt)
+    }
 }
 
 /// One session of M02 play, ended by death, exhaustion, a clear or the window.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Segment {
     pub attempt: u32,
-    /// The simulation seed this session was actually opened with.
+    /// The seed of the simulation stream this attempt ran on.
     pub sim_seed: u64,
     pub outcome: String,
     pub ticks: u64,
@@ -478,11 +482,10 @@ pub(super) fn trial(
     }
     carry.m02_entry = Some(entry.clone());
     let mut remaining = window_ticks;
-    // The seed actually passed to `open` for the live session.
-    let mut sim_seed = seed;
     row.outcome = "window_elapsed".into();
     loop {
-        let attempt = run_state(&session)?.0;
+        let (attempt, state) = run_state(&session)?;
+        let sim_seed = attempt_seed(seed, state.id, attempt);
         let ammo_start = Kit::of(&session, id)?.loadout.ammo;
         let recording = reviews.recording();
         let (part, review, _) = drive(
@@ -517,9 +520,8 @@ pub(super) fn trial(
             "pending_continue" => {
                 drop(run);
                 drop(session);
-                sim_seed = attempt_seed(seed, attempt + 1);
                 let (next, next_run, _, retry) =
-                    reopen_pending(&directory.0, sim_seed, difficulty, &entry)?;
+                    reopen_pending(&directory.0, seed, difficulty, &entry)?;
                 carry.retries.push(retry);
                 row.continues_spent += 1;
                 session = next;
@@ -598,12 +600,14 @@ mod tests {
 
     #[test]
     fn earned_departure_reopens_m02_retries_through_the_saved_run() {
-        // Earned-run evidence: seed 42 reference/Severe departs M01 with
+        // Earned-run evidence: seed 41 reference/Severe departs M01 with
         // finite earned supply and dies in its M02 window. Every lifecycle
         // check inside `trial` is a hard error, never a reported outcome.
+        // (Seed 42 served until #489: once M01 retries ran on their own
+        // streams, its M02 window held no death.)
         let mut reviews = Reviews::default();
         let row = trial(
-            42,
+            41,
             PROFILES[0],
             CampaignDifficulty::Severe,
             12_000,
@@ -615,7 +619,7 @@ mod tests {
         // Durable persistence after every step must not perturb play: the M01
         // leg is the survey's own trial, field for field.
         let survey =
-            super::super::trial(42, PROFILES[0], CampaignDifficulty::Severe, 12_000).unwrap();
+            super::super::trial(41, PROFILES[0], CampaignDifficulty::Severe, 12_000).unwrap();
         assert_eq!(carry.m01, survey);
         assert_eq!(carry.m01.outcome, "departed");
         assert!(accepts(&row));
@@ -651,7 +655,13 @@ mod tests {
         }
         let active: u64 = carry.segments.iter().map(|s| s.ticks).sum();
         assert!(active <= M02_WINDOW_TICKS);
-        assert_eq!(carry.segments[0].sim_seed, 42);
+        assert_eq!(carry.segments[0].sim_seed, 41);
+        for pair in carry.segments.windows(2) {
+            assert_ne!(
+                pair[0].sim_seed, pair[1].sim_seed,
+                "each retry has its own stream"
+            );
+        }
         let fatal = reviews.fatal.expect("the M02 death keeps its scene window");
         assert_eq!(fatal["event"], "fatal_hit");
         assert_eq!(fatal["attempt"], 1);
@@ -659,14 +669,15 @@ mod tests {
 
     #[test]
     fn an_exhausted_carry_saves_failure_without_a_retry() {
-        // Seed 54 deliberate/Standard spends all three continues in M01 and
-        // still departs; its first M02 death exhausts the run on disk. (Seed
-        // 43 deliberate/Assisted now departs M01 with two continues left since
-        // Union guards need a sighting, wave 12, so its first M02 death is a
-        // retry, not exhaustion; no seed from 40 to 47 now fits.)
+        // Seed 42 deliberate/Standard spends all three continues in M01 and
+        // still departs; its first M02 death exhausts the run on disk. Earlier
+        // seeds stopped fitting as the game changed: 43 once Union guards
+        // needed a sighting (wave 12), 54 and 40 once the participant's view
+        // ordered the attack tokens (#493) and M01 retries ran on their own
+        // streams (#489).
         let mut reviews = Reviews::default();
         let row = trial(
-            54,
+            42,
             PROFILES[1],
             CampaignDifficulty::Standard,
             12_000,
@@ -742,8 +753,11 @@ mod tests {
         }
     }
 
+    /// What one M02 attempt did: outcome, end tick, end feet and shots.
+    type Played = (String, u64, [f32; 3], u32);
+
     /// The earned M01 leg and the first M02 attempt, ending at its saved death.
-    fn first_pending(seed: u64) -> (Scratch, Kit) {
+    fn first_pending(seed: u64) -> (Scratch, Kit, Played) {
         let difficulty = CampaignDifficulty::Severe;
         let directory = Scratch::new("pending").unwrap();
         {
@@ -785,11 +799,14 @@ mod tests {
         )
         .unwrap();
         assert_eq!(part.outcome, "pending_continue");
-        (directory, entry)
+        let first = (part.outcome, session.state.tick, part.last_feet, part.shots);
+        (directory, entry, first)
     }
 
-    /// Reopen a copy of the saved death with `sim_seed` and play attempt 2.
-    fn replay(pending: &Scratch, entry: &Kit, sim_seed: u64) -> (String, u64, [f32; 3], u32) {
+    /// Reopen a copy of the saved death in a process seeded `sim_seed`, as
+    /// the local child opens every process, and play attempt 2 with the
+    /// policy of trial seed `trial`.
+    fn replay(pending: &Scratch, entry: &Kit, trial: u64, sim_seed: u64) -> Played {
         let copy = Scratch::new("replay").unwrap();
         std::fs::copy(pending.0.join("run.json"), copy.0.join("run.json")).unwrap();
         let (mut session, mut run, id, _) =
@@ -797,7 +814,7 @@ mod tests {
         let (part, _, _) = drive(
             &mut session,
             id,
-            leg(42, Scenario::M02Carry, M02_WINDOW_TICKS, true),
+            leg(trial, Scenario::M02Carry, M02_WINDOW_TICKS, true),
             |action| action,
             persist(&mut run),
         )
@@ -806,22 +823,40 @@ mod tests {
     }
 
     #[test]
-    fn a_fixed_process_seed_replays_the_reopened_attempt_and_a_declared_seed_diverges() {
-        // Product finding: the local child launches every process with one
-        // seed, so reopening the same saved death replays a deterministic
-        // controller exactly. The harness's declared attempt seed diverges.
-        let (pending, entry) = first_pending(42);
-        let fixed = replay(&pending, &entry, 42);
-        assert_eq!(replay(&pending, &entry, 42), fixed);
-        let declared = replay(&pending, &entry, attempt_seed(42, 2));
-        assert_ne!(declared, fixed);
-        eprintln!("fixed seed attempt 2: {fixed:?}; declared seed: {declared:?}");
+    fn a_fixed_process_seed_reopens_the_retry_on_its_own_stream_and_replays_it() {
+        // #489: the local child opens every process with one seed. Before the
+        // game derived a retry stream, reopening a saved death with that seed
+        // replayed it: seed 42 reference/Severe died again at tick 998 at the
+        // same feet after 61 shots. Now attempt 2 runs on the stream of its
+        // run and attempt: a different fight from attempt 1, and the same
+        // fight every time the same death is reopened. (The fixture moved to
+        // seed 41: seed 42's M01 retries now run on their own streams, and
+        // its M02 window no longer holds a death to reopen.)
+        let (pending, entry, first) = first_pending(41);
+        let retried = replay(&pending, &entry, 41, 41);
+        assert_ne!(retried, first, "a reopened death is not replayed");
+        assert_eq!(
+            replay(&pending, &entry, 41, 41),
+            retried,
+            "the same run and attempt reopen the same retry"
+        );
+        // The process seed still feeds the retry stream.
+        let other = replay(&pending, &entry, 41, 42);
+        assert_ne!(other, retried);
+        eprintln!(
+            "attempt 1: {first:?}; reopened attempt 2: {retried:?}; process seed 42: {other:?}"
+        );
     }
 
     #[test]
-    fn attempt_seeds_are_declared_and_distinct() {
-        assert_eq!(attempt_seed(42, 1), 42);
-        assert_eq!(attempt_seed(42, 2), 1_042);
-        assert_ne!(attempt_seed(42, 3), attempt_seed(42, 2));
+    fn the_first_attempt_runs_on_the_trial_seed_and_each_retry_on_its_own() {
+        let run = Uuid::from_u128(7);
+        assert_eq!(attempt_seed(42, run, 1), 42);
+        assert_eq!(
+            attempt_seed(42, run, 2),
+            fragr_server::mission::retry_seed(42, run, 2)
+        );
+        assert_ne!(attempt_seed(42, run, 2), 42);
+        assert_ne!(attempt_seed(42, run, 3), attempt_seed(42, run, 2));
     }
 }

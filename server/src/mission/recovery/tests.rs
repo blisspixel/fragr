@@ -327,3 +327,132 @@ fn run_configuration_and_wire_reject_invalid_states() {
     value["run"]["extra"] = true.into();
     assert!(serde_json::from_value::<MissionState>(value).is_err());
 }
+
+#[test]
+fn retry_seed_is_a_pure_function_of_process_seed_run_and_attempt() {
+    let run = Uuid::from_u128(0xfeed);
+    let seed = retry_seed(1, run, 2);
+    assert_eq!(seed, retry_seed(1, run, 2), "the same inputs replay");
+    for other in [
+        retry_seed(2, run, 2),
+        retry_seed(1, Uuid::from_u128(0xfeee), 2),
+        retry_seed(1, Uuid::from_u128(0xfeed | 1 << 64), 2),
+        retry_seed(1, run, 3),
+    ] {
+        assert_ne!(seed, other, "every input moves the stream");
+    }
+    assert_ne!(retry_seed(1, run, 1), 1, "never the process seed itself");
+}
+
+/// Recall Notice's local child: the default process seed and a fresh run.
+fn seeded_m01(seed: u64) -> GameState {
+    let mut state = GameState::with_authored_map(
+        AuthoredSource::Mission(MissionId::RecallNotice)
+            .load()
+            .unwrap(),
+    );
+    // Stable entity ids, so two sessions can be compared field for field.
+    state.use_replay_ids();
+    state.seed(seed);
+    state
+}
+
+fn admit_owner(state: &mut GameState, attempt: u32) -> Uuid {
+    let id = Uuid::from_u128(479);
+    state.add_player(id, "Retry seed".into(), Role::Agent);
+    state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::RecallNotice,
+            attempt,
+        },
+    );
+    id
+}
+
+/// The same retry, reached in this process or by reopening the saved
+/// pending Continue, runs on one stream derived from the run and attempt;
+/// it never replays the process seed the first attempt ran on (#489).
+#[test]
+fn a_retry_runs_on_its_run_and_attempt_stream_live_or_reopened() {
+    let mut first = seeded_m01(1);
+    first.enable_campaign_run().unwrap();
+    assert_eq!(
+        first.rng_state,
+        seeded_m01(1).rng_state,
+        "the first attempt runs on the process seed"
+    );
+    let id = admit_owner(&mut first, 1);
+    for _ in 0..40 {
+        first.tick(0.05);
+    }
+    die(&mut first, id);
+    let pending = first.campaign_run_document().unwrap().unwrap();
+    assert!(matches!(pending.step, SavedStep::PendingContinue { .. }));
+    let retry = request(&first);
+    assert_eq!(retry.attempt, 1);
+
+    let mut expected = GameState::new();
+    expected.restart_stream(retry_seed(1, pending.id, 2));
+    let mut process = seeded_m01(1);
+    process.restart_stream(1);
+    assert_ne!(expected.rng_state, process.rng_state);
+
+    assert!(first.continue_mission(id, retry));
+    assert_eq!(first.mission_state().unwrap().attempt, 2);
+    assert_eq!(first.seed_base(), 1, "a retry keeps the process seed");
+
+    // Reopen the saved death twice, as two Continues from the menu would.
+    let reopen = || {
+        let mut state = seeded_m01(1);
+        state.load_campaign_run(&pending).unwrap();
+        let owner = admit_owner(&mut state, 1);
+        let before = state.rng_state;
+        assert!(state.continue_mission(owner, retry));
+        (state, before)
+    };
+    let (mut one, opened) = reopen();
+    let (mut two, _) = reopen();
+    assert_eq!(
+        opened, process.rng_state,
+        "the reopened process starts on its seed"
+    );
+    assert_eq!(one.mission_state().unwrap().attempt, 2);
+    // Restoring the entry draws nothing, so every path now stands at the
+    // start of the retry's own stream, not at the process seed.
+    for retried in [&first, &one, &two] {
+        assert_eq!(retried.rng_state, expected.rng_state);
+    }
+    for _ in 0..200 {
+        one.tick(0.05);
+        two.tick(0.05);
+    }
+    assert_eq!(
+        serde_json::to_value(one.snapshot()).unwrap(),
+        serde_json::to_value(two.snapshot()).unwrap(),
+        "the same run and attempt replay the same retry"
+    );
+}
+
+#[test]
+fn a_recorded_run_draws_a_fixed_id_and_a_live_run_a_fresh_one() {
+    let mut recorded = seeded_m01(42);
+    recorded.enable_campaign_run().unwrap();
+    let mut again = seeded_m01(42);
+    again.enable_campaign_run().unwrap();
+    let id = |state: &GameState| state.mission_state().unwrap().run.unwrap().id;
+    assert_eq!(id(&recorded), id(&again));
+    let live_run = || {
+        let mut state = GameState::with_authored_map(
+            AuthoredSource::Mission(MissionId::RecallNotice)
+                .load()
+                .unwrap(),
+        );
+        state.seed(42);
+        state.enable_campaign_run().unwrap();
+        state
+    };
+    let (live, other) = (live_run(), live_run());
+    assert_ne!(id(&live), id(&other));
+    assert_ne!(id(&live), id(&recorded));
+}

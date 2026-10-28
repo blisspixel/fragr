@@ -122,6 +122,16 @@ its own token; on Assisted it does not flank. An Auditor that cannot attack
 from where it stands keeps a Heavy Sweeper or Enforcer of its group between
 itself and the participant.
 
+The participant's view orders the tokens. A guard they can see (the same
+cone, gaze and cover a guard sees through, from their facing) that is waiting
+for a token on them, still reacting to its sighting or shifting across its
+lane, keeps a guard they cannot see from starting first, and guards in view
+ask first each tick. With nobody in view waiting, a guard out of view attacks
+as before. Without this, the startled reaction handed the first token to the
+guard at the participant's side that watched the door: in Level 1's dispatch
+office it shot a participant facing the desk, and the careful constrained
+profile lost clears it had held before guards needed a sighting (#493).
+
 Union personnel (Clerk, Auditor, Enforcer, Redactor) call short orders over
 compliance radio and issued units (the Sweepers) recite boilerplate: a
 sighting, a flank and an Auditor down. Latch calls a gun behind the

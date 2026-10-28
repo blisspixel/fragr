@@ -228,6 +228,25 @@ static func intake() -> Preset:
 	preset.saturation = 1.0
 	return preset
 
+## Persons Unknown's correction rooms (docs/design/earth.md): issued steel and
+## controlled enamel under bounded fixture light. The floor sits a step below
+## the intake's, so the cold strips, the hard pool over the restraint frame and
+## the few warm lamps where staff work shape each room; the actor fill keeps
+## black-and-red guards readable against the enamel and the dark machinery.
+static func correction() -> Preset:
+	var preset: Preset = facility()
+	preset.fog_color = Color(0.165, 0.180, 0.176)
+	preset.fog_density = 0.011
+	preset.ambient_color = Color(0.50, 0.53, 0.51)
+	preset.ambient_energy = 0.88
+	preset.practical_color = Color(0.84, 0.93, 0.92)  # issued cold fluorescent
+	preset.practical_energy = 3.8
+	preset.practical_range = 11.0
+	preset.practical_attenuation = 1.35
+	preset.contrast = 1.12
+	preset.saturation = 0.95
+	return preset
+
 ## The warm service lamp: a caged tungsten bulb over a counter, a stair or a
 ## service door. Short reach and no shadow map, so a room can carry several.
 const SERVICE_LAMP_COLOR: Color = Color(1.0, 0.74, 0.46)
@@ -270,7 +289,9 @@ static func preset_for(map_name: String) -> Preset:
 		return freight_yard()
 	if key.begins_with("recall notice"):
 		return intake()
-	if key.contains("recall") or key.contains("persons unknown"):
+	if key.contains("persons unknown"):
+		return correction()
+	if key.contains("recall"):
 		return facility()
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()

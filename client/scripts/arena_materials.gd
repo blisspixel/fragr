@@ -204,11 +204,25 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# steel with dark issued plates, green tile and cast street concrete.
 		bases = [Color("7d796f"), Color("d3cdb6"), Color("4a4d4c"), Color("8e9b88"), Color("343a3c")]
 		accents = [Color("62645a"), Color("4e5844"), Color("50524f"), Color("43543f"), Color("56575e")]
+	elif venue == "earth_union":
+		# Persons Unknown's correction rooms (docs/design/earth.md): bone enamel
+		# over the institutional green band, issued dark steel with plates one
+		# step lighter, and processing machinery in Union plate grey with worn
+		# ochre safety paint, light enough that a black uniform never vanishes
+		# into it. Nothing here glows red or cyan: red stays the Union
+		# attack tell and cyan belongs to the Inheritance (faction contract).
+		bases = [Color("6f716b"), Color("cbc6b0"), Color("4f5557"), Color("8e9b88"), Color("5a5e60")]
+		accents = [Color("5e6058"), Color("4e5844"), Color("595d60"), Color("43543f"), Color("7a6a44")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
 	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry", "waterworks"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
 		material.set_shader_parameter("warning_color", accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "earth_union":
+		# Enamel keeps one thin painted red pinline; steel and machinery paint
+		# matches their own plate, and no marking emits.
+		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
 	if venue == "earth_intake":
 		# One restrained red pinline painted on the enamel. No surface emits red,

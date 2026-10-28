@@ -314,6 +314,7 @@ fn terminal_record_matches(
 
 async fn drain_terminal_record<S>(
     stream: &mut S,
+    frames: &mut fragr_server::protocol::WorldReader,
     id: Option<Uuid>,
     state: &MissionState,
     record: &mut Option<fragr_server::protocol::PlayerRecord>,
@@ -332,7 +333,7 @@ where
         while let Some(message) = stream.next().await {
             match message {
                 Ok(Message::Text(text)) => {
-                    let incoming: ServerMessage = serde_json::from_str(&text).map_err(|error| {
+                    let incoming: ServerMessage = frames.read(&text).map_err(|error| {
                         Error::Transport(format!("invalid server message: {error}"))
                     })?;
                     if let ServerMessage::Record(next) = incoming {
@@ -755,6 +756,8 @@ pub async fn run_bot(
         .map_err(|_| Error::Transport(format!("connect to {} timed out", config.server_url)))?
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
+    // The last world the server sent: snapshot deltas apply to it.
+    let mut frames = fragr_server::protocol::WorldReader::new();
     let hello = ClientMessage::Hello {
         body: Some(config.body),
         seat: None,
@@ -846,7 +849,7 @@ pub async fn run_bot(
         }
         tokio::select! {
             msg = stream.next() => match msg {
-                Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text) {
+                Some(Ok(Message::Text(text))) => match frames.read(&text) {
                     Ok(ServerMessage::Mission { tick, state }) => {
                         let changed = DecisionEpoch::mission_changed(mission_client.state.as_ref(), &state);
                         if let Err(error) = mission_client.observe(tick, state) {
@@ -1269,7 +1272,16 @@ pub async fn run_bot(
         }
     }
     if let Some(state) = terminal_state.as_ref() {
-        match drain_terminal_record(&mut stream, me, state, &mut record, &mut summary).await {
+        match drain_terminal_record(
+            &mut stream,
+            &mut frames,
+            me,
+            state,
+            &mut record,
+            &mut summary,
+        )
+        .await
+        {
             Ok(complete) => summary.terminal_record_complete = Some(complete),
             Err(error) => {
                 summary.terminal_record_complete = Some(false);
@@ -1607,6 +1619,7 @@ mod tests {
         let started = tokio::time::Instant::now();
         let complete = drain_terminal_record(
             &mut stream,
+            &mut fragr_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -1627,6 +1640,7 @@ mod tests {
         let mut received = None;
         let complete = drain_terminal_record(
             &mut stream,
+            &mut fragr_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -1915,6 +1929,14 @@ mod tests {
     /// cadence a test asserts on, so this constant is never the thing a
     /// passing run actually waits out; `wait_for` bounds the setup side.
     const SAFETY_NET_SECONDS: u64 = 20;
+
+    /// The wait for observed readiness (a transport reached, a roster ready,
+    /// a charge settled) that includes connect, the bot's blocking navigation
+    /// build and ledger fsync. Those are unbounded relative to the decision
+    /// cadence on a loaded runner, and a bot under test ends its own run at
+    /// `SAFETY_NET_SECONDS`, so waiting any less only adds false failures
+    /// (#494). Cadence windows after readiness keep their own short bounds.
+    const READINESS_BOUND: Duration = Duration::from_secs(SAFETY_NET_SECONDS);
 
     #[test]
     fn decision_epoch_tracks_life_round_and_map_without_rejecting_motion() {
@@ -2293,11 +2315,7 @@ mod tests {
                 ws.send(Message::Text(message)).await.unwrap();
             }
             assert!(
-                wait_for(
-                    || held.started.load(Ordering::SeqCst),
-                    Duration::from_secs(10)
-                )
-                .await,
+                wait_for(|| held.started.load(Ordering::SeqCst), READINESS_BOUND).await,
                 "wait for actual inference readiness"
             );
             scene.tick = 2;
@@ -2308,7 +2326,11 @@ mod tests {
             .await
             .unwrap();
             let healed = tokio::time::timeout(Duration::from_secs(3), async {
-                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                while let Some(Ok(frame)) = ws.next().await {
+                    // Pings arrive between text frames; skip them.
+                    let Message::Text(text) = frame else {
+                        continue;
+                    };
                     if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
                         if action.forward
                             && action
@@ -2340,7 +2362,11 @@ mod tests {
             // Observe controller output from the dead snapshot before allowing
             // the old answer to return. This separates setup and action timing.
             tokio::time::timeout(Duration::from_secs(3), async {
-                while let Some(Ok(Message::Text(text))) = ws.next().await {
+                while let Some(Ok(frame)) = ws.next().await {
+                    // Pings arrive between text frames; skip them.
+                    let Message::Text(text) = frame else {
+                        continue;
+                    };
                     if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
                         if !action.forward && !action.fire {
                             break;
@@ -2497,7 +2523,7 @@ mod tests {
         // cadence under contention; synchronize on the one paid call actually
         // reaching the transport before timing the cadence-only window below.
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one paid call never reached the transport"
         );
         // Local rules take over immediately after the fatal failure; the
@@ -2533,7 +2559,7 @@ mod tests {
             stop.clone(),
         ));
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one unreadable call never reached the transport"
         );
         // A malformed reply neither backs off nor disables the brain by
@@ -2682,10 +2708,27 @@ mod tests {
                 stop.clone(),
             )));
         }
-        let first_tick = tokio::time::timeout(Duration::from_secs(10), async {
-            while let Some(Ok(Message::Text(text))) = observer.next().await {
-                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
+        // A stance is published before the bot builds navigation, so it does
+        // not prove the controller runs. Readiness is every fighter having
+        // moved or turned since it was first seen: actions are arriving.
+        let mut first_pose = std::collections::HashMap::new();
+        let mut acted = std::collections::HashSet::new();
+        let mut frames = fragr_server::protocol::WorldReader::new();
+        let first_tick = tokio::time::timeout(READINESS_BOUND, async {
+            while let Some(Ok(frame)) = observer.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
+                if let Ok(ServerMessage::Snapshot(snapshot)) = frames.read(&text) {
+                    for p in &snapshot.players {
+                        let pose = *first_pose.entry(p.id).or_insert((p.x, p.z, p.yaw));
+                        if pose != (p.x, p.z, p.yaw) {
+                            acted.insert(p.id);
+                        }
+                    }
                     if snapshot.players.len() == 6
+                        && snapshot.players.iter().all(|p| acted.contains(&p.id))
                         && snapshot
                             .players
                             .iter()
@@ -2713,10 +2756,31 @@ mod tests {
         })
         .await
         .expect("six compatible controllers become ready");
-        tokio::time::timeout(Duration::from_secs(5), async {
-            while let Some(Ok(Message::Text(text))) = observer.next().await {
-                if let Ok(ServerMessage::Snapshot(snapshot)) = serde_json::from_str(&text) {
-                    if snapshot.tick >= first_tick + 40 {
+        // Forty server ticks are not forty actions from a bot a loaded runner
+        // starves of CPU. The window ends on observed progress instead: at
+        // least forty ticks, and every fighter seen to change pose in at
+        // least twelve snapshots, each of which needs actions it sent.
+        let mut last_pose = std::collections::HashMap::new();
+        let mut changes = std::collections::HashMap::<Uuid, u32>::new();
+        tokio::time::timeout(READINESS_BOUND, async {
+            while let Some(Ok(frame)) = observer.next().await {
+                // Pings arrive between text frames; skip them.
+                let Message::Text(text) = frame else {
+                    continue;
+                };
+                if let Ok(ServerMessage::Snapshot(snapshot)) = frames.read(&text) {
+                    for p in &snapshot.players {
+                        let pose = (p.x, p.z, p.yaw);
+                        if last_pose.insert(p.id, pose).is_some_and(|was| was != pose) {
+                            *changes.entry(p.id).or_default() += 1;
+                        }
+                    }
+                    if snapshot.tick >= first_tick + 40
+                        && snapshot
+                            .players
+                            .iter()
+                            .all(|p| changes.get(&p.id).copied().unwrap_or(0) >= 12)
+                    {
                         return;
                     }
                 }
@@ -2724,7 +2788,7 @@ mod tests {
             panic!("observer ended before the action window")
         })
         .await
-        .expect("forty actual server ticks elapse after roster readiness");
+        .expect("every fighter keeps acting after roster readiness");
         stop.store(true, Ordering::Relaxed);
         let mut receipts = Vec::new();
         for handle in handles {
@@ -2800,25 +2864,49 @@ mod tests {
             ] {
                 socket.send(Message::Text(wire)).await.unwrap();
             }
-            let adopted = tokio::time::timeout(Duration::from_secs(10), async {
-                let mut adopted = Vec::new();
-                while let Some(Ok(Message::Text(wire))) = socket.next().await {
-                    if let Ok(ClientMessage::SetDisplayBehavior(behavior)) =
-                        serde_json::from_str(&wire)
-                    {
-                        let stance = Stance::parse(&behavior.behavior).unwrap();
-                        if stance == expected[adopted.len()] {
-                            adopted.push(stance);
-                            if adopted.len() == expected.len() {
-                                break;
+            // Readiness is the bot's first action or stance after the scene:
+            // it has built navigation for the map (a blocking job that a
+            // loaded runner can stretch to seconds) and read the snapshot.
+            // The cadence bound
+            // starts there, not when the scene was written (#494). The outer
+            // bound only outlives the bot's own safety net, which ends its run
+            // and closes the socket if it never gets that far.
+            let (adopted, ready, done) =
+                tokio::time::timeout(Duration::from_secs(SAFETY_NET_SECONDS + 10), async {
+                    let mut adopted = Vec::new();
+                    let mut ready = None;
+                    while let Some(Ok(frame)) = socket.next().await {
+                        // Pings arrive between text frames; skip them.
+                        let Message::Text(wire) = frame else {
+                            continue;
+                        };
+                        let message = serde_json::from_str(&wire);
+                        if matches!(
+                            message,
+                            Ok(ClientMessage::Action(_) | ClientMessage::SetDisplayBehavior(_))
+                        ) {
+                            ready.get_or_insert_with(std::time::Instant::now);
+                        }
+                        if let Ok(ClientMessage::SetDisplayBehavior(behavior)) = message {
+                            let stance = Stance::parse(&behavior.behavior).unwrap();
+                            if stance == expected[adopted.len()] {
+                                adopted.push(stance);
+                                if adopted.len() == expected.len() {
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                adopted
-            })
-            .await
-            .expect("three remote stances publish after actual readiness");
+                    (adopted, ready, std::time::Instant::now())
+                })
+                .await
+                .expect("the bot ends its own run within its safety net");
+            let ready = ready.expect("the controller acts on the scene");
+            assert!(
+                done.duration_since(ready) < Duration::from_secs(10),
+                "three remote stances publish within 10 s of actual readiness: {:?}",
+                done.duration_since(ready)
+            );
             socket.close(None).await.unwrap();
             adopted
         });
@@ -2925,7 +3013,7 @@ mod tests {
         ));
         // One stance request makes one play decision; wait for two decisions.
         assert!(
-            wait_for(|| transport.calls() >= 2, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 2, READINESS_BOUND).await,
             "the local model was never asked twice"
         );
         stop.store(true, Ordering::Relaxed);
@@ -2972,7 +3060,7 @@ mod tests {
         assert!(
             wait_for(
                 || transport.calls.load(Ordering::SeqCst) >= 1,
-                Duration::from_secs(10)
+                READINESS_BOUND
             )
             .await,
             "the slow model was never asked"
@@ -3008,7 +3096,7 @@ mod tests {
             stop.clone(),
         ));
         assert!(
-            wait_for(|| transport.calls() >= 3, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 3, READINESS_BOUND).await,
             "three unreadable answers never arrived"
         );
         tokio::time::sleep(Duration::from_millis(600)).await;
@@ -3119,7 +3207,7 @@ mod tests {
         // actually reaching the transport before timing the cadence-only
         // window below.
         assert!(
-            wait_for(|| transport.calls() >= 1, Duration::from_secs(10)).await,
+            wait_for(|| transport.calls() >= 1, READINESS_BOUND).await,
             "the one retryable call never reached the transport"
         );
         // A returned HTTP response still has to durably settle its estimated
@@ -3130,7 +3218,7 @@ mod tests {
                 || budget
                     .try_lock()
                     .is_ok_and(|guard| guard.ledger().calls() == 1),
-                Duration::from_secs(10),
+                READINESS_BOUND,
             )
             .await,
             "the failed call never recorded its estimated charge"
@@ -3252,12 +3340,17 @@ mod tests {
         .await
         .unwrap();
         let mut saw = false;
+        let mut frames = fragr_server::protocol::WorldReader::new();
         let deadline = tokio::time::Instant::now() + Duration::from_secs(5);
         while tokio::time::Instant::now() < deadline {
-            let Some(Ok(Message::Text(text))) = stream.next().await else {
+            let Some(Ok(frame)) = stream.next().await else {
                 break;
             };
-            let Ok(ServerMessage::Snapshot(snap)) = serde_json::from_str(&text) else {
+            // Pings arrive between text frames; skip them.
+            let Message::Text(text) = frame else {
+                continue;
+            };
+            let Ok(ServerMessage::Snapshot(snap)) = frames.read(&text) else {
                 continue;
             };
             if let Some(p) = snap.players.iter().find(|p| p.name == "Brain-1") {

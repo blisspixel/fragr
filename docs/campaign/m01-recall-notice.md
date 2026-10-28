@@ -154,6 +154,10 @@ reach the first interior. Reserve views between B, D and G to teach orientation.
    Both enter the same sorting room from useful different angles.
 5. Move around sorting's screens and into dispatch; three transfer guards supply
    the final crest. Guards already exist and may react before room entry if hit.
+   The dispatch guard beside the door watches the threshold from the
+   participant's left; guards the participant can see take the first attack
+   tokens ([enemies](../ENEMIES.md#guards-squads-and-chatter)), so the crest is
+   fought facing the desk rather than from the blind side.
 6. Recover the transfer record, open the lift route, and confirm departure.
 
 Do not add Crawler, cloaking, explosives or a boss here. Normal draft population

@@ -317,4 +317,34 @@ Looked at: the bark captions over M01 in first person at 1280x720 (Union radio, 
 
 This slice ships with a known regression: the deliberate Standard and Severe M01 cohorts are harder than on the base (above), and M14 route seed 1015 is lost. Both are open in #493.
 
-Still open: the deliberate Standard and Severe M01 regression and M14 route seed 1015 (#493), Latch's voice (casting), the Rocket share and voiced grudges. CTF bots taking pads came with the fifth slice.
+Still open: Latch's voice (casting), the Rocket share and voiced grudges. CTF bots taking pads came with the fifth slice. The M01 regression and M14 seed 1015 are traced and fixed below (#493).
+
+### Wave 13: the M01 regression, M14 seed 1015 and the seed 44 strand (#493, #497)
+
+Traced tick by tick with a local per-tick log of the participant and every guard within 30 m (pose, phase, view-relative bearing, visibility), on the base `5b4ad2c3` and on `main` (`009797ce`), for the deliberate Standard and Severe trials that cleared on the base and failed after wave 12. The two runs are identical until a dispatch or sorting alarm, then split on who takes the first attack token. Seed 50 deliberate/Standard at the dispatch alarm (tick 783): the participant stands in the doorway facing the officer and the Sweeper across the desk. On the base the Sweeper raises at once and the officer's shot lands in view. On `main` the Sweeper, 33 degrees off its post's facing, is startled and reacts for 200 to 400 ms; the guard at the participant's left, watching the door, raises at once and takes the second token as its yield ends 8 ticks before the Sweeper's, and shoots from 94 degrees off the participant's view (tick 807). Seed 65 deliberate/Severe is the same at tick 802, then the dispatch Sweeper comes round behind (bearing 171). The cause is token order, not alarm walk routes or the eyes/feet split: the sighting rule slows the guards a participant walks in facing and not the one at their side, and first come, first served gave that guard the first shot. Rendered at 1280x720 with `tools/review_campaign.gd` (tick 807, `main`): the officer and the Sweeper are on screen, the guard that hits is not.
+
+Fix (`encounters.rs`, `enemy.rs` `AttackTokens::free_for`, `enemy/awareness.rs`): the participant's view orders the tokens. A guard the participant can see (`guard_sees` from their facing: the same 120 degree cone, level gaze and cover) that is waiting for a token on them, still reacting to its sighting or shifting across its lane, keeps a guard they cannot see from starting first, and guards in view ask first each tick. With nobody in view waiting, a guard out of view attacks as before. Every guard still needs its own sighting. Tests: `a_guard_out_of_view_waits_while_one_in_view_waits_for_a_token` (fails without the rule: the guard behind raises first) and `with_nobody_in_view_the_guard_behind_still_fights_first`.
+
+M01 constrained survey, clears of 32 (deaths), release builds, same evaluator:
+
+| Seeds 40 to 71 (288 trials) | Base `5b4ad2c3` | `main` | This change |
+|---|---|---|---|
+| reference Assisted / Standard / Severe | 32 (3) / 32 (18) / 31 (37) | 32 (3) / 31 (20) / 31 (41) | 32 (0) / 32 (17) / 28 (44) |
+| deliberate Assisted / Standard / Severe | 31 (22) / 28 (46) / 20 (71) | 31 (14) / 21 (68) / 15 (84) | 32 (8) / 28 (40) / 19 (66) |
+| hesitant Assisted / Standard / Severe | 18 (70) / 2 (121) / 0 (128) | 23 (67) / 4 (121) / 1 (126) | 29 (45) / 7 (109) / 0 (128) |
+| All | 194 (516) | 189 (544) | 207 (457) |
+
+| Seeds 72 to 103 (288 trials) | Base | `main` | This change |
+|---|---|---|---|
+| reference | 92 (57) | 94 (57) | 92 (55) |
+| deliberate Assisted / Standard / Severe | 31 (18) / 22 (62) / 18 (77) | 32 (14) / 25 (52) / 11 (98) | 32 (7) / 27 (54) / 25 (55) |
+| hesitant | 20 (325) | 24 (311) | 36 (269) |
+| All | 183 (539) | 186 (532) | 212 (440) |
+
+The deliberate profile recovers to the base: Standard 28 and 27 against the base's 28 and 22 (`main` 21 and 25), Severe 19 and 25 against 20 and 18 (`main` 15 and 11). Reference Severe is 28 and 29 against 31 and 29: three fewer clears in 64 with deaths 82 against 72, at the edge of seed noise; its added damage is from the dispatch Sweeper and the sorting west Sweeper in view, the two guards that now ask first. M19 is unchanged within noise: teaching 36 of 36 (1 death) on both, market seeds 42 and 43 8 of 18 (44) against 9 (45), seeds 44 to 47 17 of 36 (87) against 18 (88).
+
+M14 seed 1015 is a route-controller loss, not the game. Out of rounds after the Walker's first cycle, the agent route takes the trench bunker's ammunition, and the Walker marks three shells down the trench over it. The trench is 1.5 m wide: every bearing within 1.8 rad of the marks' push ran into a trench wall, so `blast_exit` gave up at the bunker mouth and the route's own step walked the body back onto the pad, every other tick, until the shells landed (tick 2548). When the near bearings are walled, the tell reader (`mission/route_skill.rs`) now searches on in 0.3 rad steps to 1.5 rad either side of the push and never stops inside a mark while a bearing that still leads out is open; the body walks out along the trench. A bearing further round walks deeper in: allowing the full turn lost the ordinary M14 route on seed 1013. Regression: `tell_reader_walks_out_of_a_barrage_laid_along_the_trench` (fails without the fallback, oscillating at [0.26, 17.88]).
+
+Seed 44 (#497) is an evaluator problem in the shared navigator, not content or lifecycle: the run, its retry and every guard are in order. After its one death, deliberate/Assisted sidestepped a tell into the 2 m pocket behind the dispatch screen (between the screen at z 30 and the transfer wall at z 28). With walls on whole metres every navigation cell centre there touches a wall, so no route found a start and the shared steer returned no keys for 488 s; rendered, the view is the transfer wall at arm's length. A start with no waypoint within two cells now searches six (`navigation.rs`, starts only). Regressions: `a_body_in_a_corridor_without_waypoints_still_routes_out` and `recall_notice_dispatch_pocket_routes_to_the_transfer_record` (every standing spot along the pocket). On `main` with only that change, seed 44 deliberate/Assisted departs at 119.8 s with a 5.0 s longest stall, and no other trial of seeds 40 to 71 changes.
+
+The late-campaign carried routes (M16 to M18, seed 41) still depart; their recorded wire vectors in `client/golden/late_campaign_routes.json` were regenerated: only M17's objective ticks moved, by 18 to 125 ticks; M16 and M18 are unchanged. Two playtest fixtures moved with reasons in them: the formerly stranded reload fixture uses seed 40 deliberate/Assisted (seed 43 no longer dies), and the exhausted carry uses seed 42 deliberate/Standard (seeds 54 and 40 no longer spend all three continues once M01 retries run on their own streams, #489). The earned-departure and retry-seed pinning fixtures moved from seed 42 to 41 for #489, with reasons in the tests. Not done: human play of the dispatch office, Windows rendering.

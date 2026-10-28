@@ -1,0 +1,14 @@
+{
+  "comment": "M02 golden-slice faction read. A joined player waits on the gallery while posed views frame the guards placed from the start: the two seated Clerks in the guard room and the three ward guards around the machine and the frame. Check black armour, red visors, armbands and optics against the ward's enamel, steel and fixture pools at room distance; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","note":"The unforced first-person arrival frame on the gallery."},
+    {"name":"guard_room_clerks","camera":"overview","camera_position":[-1.8,4.65,-31.4],"camera_look_at":[-6.4,3.9,-30.4],"note":"Two seated Clerks at about 4.6 m under the guard-room lamp."},
+    {"name":"ward_from_glass","camera":"overview","camera_position":[3,4.65,-26.4],"camera_look_at":[2,1.0,-14],"note":"The ward guards from the gallery glass, about 8 to 15 m below."},
+    {"name":"ward_guards_door","camera":"overview","camera_position":[-8.5,1.65,-18.5],"camera_look_at":[3,1.1,-14],"note":"The three ward guards from the ward door at 9 to 14 m."},
+    {"name":"ward_clerk_close","camera":"overview","camera_position":[1.2,1.65,-21],"camera_look_at":[5,1.2,-19],"note":"The ward Clerk at about 4.3 m against the Notary bay wall."},
+    {"name":"machine_clerk_close","camera":"overview","camera_position":[-5.5,1.65,-9.5],"camera_look_at":[-2,1.1,-11.5],"note":"The machine Clerk at about 4 m in front of the correction machine."},
+    {"name":"ward_sweeper_frame","camera":"overview","camera_position":[-1,1.65,-17],"camera_look_at":[4,1.1,-11],"note":"The ward Sweeper beside the frame, about 7.8 m."}
+  ]
+}

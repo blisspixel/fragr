@@ -416,7 +416,7 @@ modes still need fresh human matches to establish clarity and fun.
 | `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM; unavailable in CTF. |
 | `--capture-limit <N>` | Captures to end a CTF round; valid only with `--mode ctf`. |
 | `--no-round-events` | Disable timed slowdowns and boss spawns. |
-| `--seed <N>` | Simulation seed, default 1. |
+| `--seed <N>` | Simulation seed, default 1. A campaign retry runs on a stream derived from it, the run id and the attempt. |
 | `--status-every-s <N>` | Status interval: the STATUS JSON log line, or the overview's status line. 0 disables the periodic one. |
 | `--output <MODE>` | `auto` (default), `overview` or `log`. See [the server terminal](#the-server-terminal). |
 | `--color <WHEN>` | `auto` (default), `always` or `never`. |

@@ -72,12 +72,13 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
             .unwrap();
         tokio::time::timeout(std::time::Duration::from_secs(3), async {
             let mut saw_map = false;
+            let mut frames = crate::protocol::WorldReader::new();
             loop {
                 let message = socket.next().await.unwrap().unwrap();
                 let Message::Text(text) = message else {
                     continue;
                 };
-                let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                let value: serde_json::Value = frames.read_value(&text).unwrap();
                 if value["type"] == "map_info" {
                     assert_eq!(value["map_id"], 5);
                     assert!(value["solids"].as_array().unwrap().len() > 1);
@@ -7052,6 +7053,17 @@ mod map_roster {
                 map.name(),
                 problems.join("\n  ")
             );
+        }
+    }
+
+    /// Sector 9's inspection staging once stood a body width off the deck's
+    /// hall face. Anyone who stepped off the deck there, human or agent,
+    /// landed in the slot and could not move again (#491).
+    #[test]
+    fn no_map_traps_a_fighter_who_steps_off_a_ledge() {
+        for map in MapKind::ALL {
+            let traps = maps::ledge_traps(map);
+            assert!(traps.is_empty(), "{}", traps.join("\n"));
         }
     }
 

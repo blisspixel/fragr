@@ -90,7 +90,7 @@ impl GameState {
         else {
             return;
         };
-        if self.map.id() != 1002 || self.map.name() != "Persons Unknown: ward graybox" {
+        if self.map.id() != 1002 || self.map.name() != "Persons Unknown" {
             return;
         }
         let Some(layout) = Layout::read(&self.map.arena().solids) else {

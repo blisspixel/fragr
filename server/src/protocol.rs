@@ -10,6 +10,8 @@ mod podium;
 pub use podium::{DuelRecord, Podium};
 mod conquest;
 mod decoration;
+pub mod delta;
+pub use delta::WorldReader;
 mod explosive;
 mod loadout;
 mod m04;
@@ -833,7 +835,11 @@ pub const ARENA_RULES_GAMEPLAY_VERSION: u32 = 59;
 /// `team` they are said to, and a reader that ignored it would show one
 /// side's calls to the other.
 pub const SIDE_CALLS_GAMEPLAY_VERSION: u32 = 60;
-pub const GAMEPLAY_VERSION: u32 = SIDE_CALLS_GAMEPLAY_VERSION;
+/// Snapshot deltas (`snapshot_delta`, see `protocol::delta`): a reader at this
+/// contract may receive a world as the change from the one before it. Older
+/// readers keep receiving every world whole.
+pub const DELTA_GAMEPLAY_VERSION: u32 = 61;
+pub const GAMEPLAY_VERSION: u32 = DELTA_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

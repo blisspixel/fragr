@@ -74,6 +74,8 @@ pub struct ToolState {
     /// The newest booth facts (`spectator_facts`), kept only while this
     /// session holds no fighter. The server sends them to nobody else.
     pub booth: Option<Value>,
+    /// The last world the server sent, so a snapshot delta can be applied.
+    pub world: protocol::WorldReader,
 }
 
 impl Default for ToolState {
@@ -95,6 +97,7 @@ impl Default for ToolState {
             pads: crate::pads::PadView::default(),
             watch: false,
             booth: None,
+            world: protocol::WorldReader::new(),
         }
     }
 }
@@ -1754,7 +1757,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         return Err("server message exceeds size limit");
     }
 
-    match serde_json::from_str::<protocol::ServerMessage>(text) {
+    match state.world.read(text) {
         Ok(protocol::ServerMessage::Mission {
             tick,
             state: mission,
@@ -2170,6 +2173,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 state.booth = serde_json::to_value(facts).ok();
             }
         }
+        Err(protocol::delta::ReadError::Delta(_)) => return Err("invalid snapshot delta"),
         Err(_) => {
             let raw = serde_json::from_str::<Value>(text).map_err(|_| "invalid server JSON")?;
             if !raw.is_object() {

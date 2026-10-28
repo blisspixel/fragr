@@ -241,8 +241,8 @@ healthy watchers in every row; timings in ms.
   38 s, by then 35 s stale. The backlog sits in the kernel buffer, not the
   queue, so neither world replacement nor overflow acts until that buffer
   fills: the choke the [server plan](plans/server-excellence.md) asks to
-  bound. Bounding the socket send buffer, or closing a writer whose oldest
-  unsent frame is too old, are candidate fixes; neither is measured here.
+  bound. Fixed and measured in
+  [Slow-reader close](#slow-reader-close-492) below (#492).
 - **Bursty input costs the tick nothing measurable**, in process or against
   the binary below. A probe's latency is the wait for the next tick plus the
   Ack's way back; a burst lands at one phase of the tick, so its spread is
@@ -361,6 +361,175 @@ The larger byte lever on every map is stage 4: acknowledged deltas and a
 compact encoding of the entries above. Relevance is revisited when a map built
 for 32 or more fighters exists (pass 7 of the server plan), with these rows
 as its before table. No wire, client or server behavior changed.
+
+### Slow-reader close (#492)
+
+A reader that falls behind is now closed within seconds, three ways, all in
+`server/src/net.rs`:
+
+- The kernel send buffer of a game socket is bounded (`SO_SNDBUF`, 64 KiB
+  asked; Linux doubles it for its bookkeeping), so the writer blocks within a
+  fraction of a second instead of after megabytes, and the backlog stays in
+  the outbound queue, where a newer world replaces an unsent one.
+- A queued frame still unsent 2.5 s after the tick queued it closes the
+  socket (`OUTBOUND_STALE_AFTER`), whether the writer reaches it late or
+  its send stalls. The 2 s send timeout now applies to the keepalive ping.
+- A ping unanswered for 4 s closes the socket (`READ_BEHIND_AFTER`), with
+  the ping every second instead of every five. A client answers a ping only
+  after reading every frame before it, so this bounds what the send buffer
+  cannot see: bytes already in the reader's own receive buffer, which
+  Linux grows to megabytes for a loopback or fast peer. It is longer than
+  the frame-age bound so one long client frame hitch is not a disconnect.
+
+The unanswered ping closes with `idle_timeout`, which replaces the old 45 s
+no-frame rule (a client that sends nothing also answers no ping, so the ping
+always fired first and the old rule could not be reached); the other two
+close like a dropped connection. A fighter that asked for resume keeps its
+pawn either way.
+
+A client builds a level on its main thread and reads nothing meanwhile, so
+after the server sends a `MapInfo` or `Mission` neither the ping nor the
+frame-age close applies for 30 s (`LOAD_GRACE`), or until the client answers
+a ping sent after that message. Frames that waited out a load age from its
+end. Measured with the real Godot client joining as a spectator (a scratch
+probe timing every main-thread frame for 20 s against the release server,
+2026-10-28, Ryzen 7 7840U with Radeon 780M, shader caches warm): after the
+socket opened, the longest frame on M09, M14, M19 and Still Here was 0.21 s
+headless and 0.48 s with the Vulkan renderer at 1280 by 720; loading the
+match scene itself, before the socket opens, took 1.7 s. A cold pipeline
+cache was not measured; 30 s is about sixty times the measured stall and
+matches the roughly 29 s a stalled reader survived before this change. The
+64-message queue still bounds memory during a load and its overflow close
+is unchanged, but with the bounded kernel buffer it now fills sooner than
+behind the old 4 MiB one: a busy room with many shots in flight can
+disconnect a client whose load lasts several seconds. Tests:
+`a_reader_building_a_level_keeps_its_socket_until_the_load_grace_ends`,
+`an_answer_after_the_map_ends_the_load_grace_early`,
+`a_level_load_holds_off_the_frame_age_close_until_the_grace_ends`.
+
+Healthy readers, MapInfo before state, the reliable facts across world
+replacement and the access-list order are unchanged; the tests are in
+`server/src/net/tests.rs` (`a_frame_queued_past_its_age_...`,
+`a_blocked_send_closes_when_its_frame_goes_stale_...`,
+`a_reader_slower_than_the_tick_is_closed_...`,
+`a_slow_but_sufficient_link_is_never_closed`,
+`a_reader_that_stops_answering_pings_...`,
+`accepted_game_socket_bounds_its_send_buffer`) and
+`server/src/metrics/tests.rs`.
+
+Measured 2026-10-28, same host as the stage 1 baseline (Ryzen 7 7840U, 16
+threads, kernel 7.2.8), release builds, `--fanout-matrix --fanout-stress
+--fanout-seconds 30`, Tripoint Works, 16 reflex fighters and 8 healthy
+watchers in every row, seed 42. One run per build, each with its load
+average; the host was shared with other lanes. Before is `009797ce`. The
+middle builds are this branch on the way, kept because they show why each
+part is needed. After is the branch head (deltas on, so frames are small).
+
+| Build (load) | Slow readers closed at | Slow picture age p50 / at close | Stalled readers closed at | Healthy tick to read p50 / p99 ms | Tick p99 ms | Over budget / healthy missed |
+|---|---|---|---|---|---|---|
+| Before (16 to 14) | never in 30 s (38 s in a 120 s run) | 8.9 s / 20 s at the window's end | 28.9 to 29.0 s, by the 2 s send timeout | 0.52 / 2.38 | 0.95 | 0 / 0 |
+| 128 KiB buffer, 2.5 s frame age (38 to 24) | 8.7 to 14.0 s | 4.2 s / about 6 s | 5.4 to 5.9 s, three by queue overflow | 2.48 / 11.8 | 6.0 | 0 / 0 |
+| 64 KiB buffer, 2.5 s frame age (29 to 37) | 8.0 to 9.3 s | 3.7 s / about 5 s | 5.3 to 5.4 s, by overflow and frame age | 3.43 / 10.5 | 6.0 | 0 / 0 |
+| Same, with deltas (28 to 30) | 18.4 to 18.7 s | 9.0 s / about 10 s | 16.0 to 16.8 s, by frame age | 3.54 / 16.0 | 6.6 | 0 / 0 |
+| After: 64 KiB, 2.5 s frame age, 4 s unanswered ping, deltas (18) | 7.0 to 12.0 s, by the unanswered ping | 4.0 s / 4 to 6 s | 5.9 s, by the unanswered ping | 1.30 / 11.5 | 5.2 | 0 / 0 |
+
+- **The kernel buffer was the whole delay.** Bounding it alone brought both
+  closes from about 29 to 38 s down to 5 to 14 s; 64 KiB against 128 KiB
+  saved about a second more, inside the host's noise.
+- **A byte bound is a time bound only for one frame size.** With deltas a
+  world is about 1.9 KB instead of 6, so the same buffers held three times
+  as many worlds and both closes slid back to 16 to 19 s. Most of those
+  bytes sat in the reader's own receive buffer, which no server setting
+  bounds. The unanswered ping measures time directly, whatever the frame
+  size or where the bytes wait, and brought both closes back under 12 s.
+- **A half-rate reader is closed once it is about four to six seconds
+  behind.** It falls behind half a second per second, so the 4 s ping bound
+  trips 8 to 12 s in. After the close it can still read what its own
+  receive buffer holds, so the harness's maximum age (14 s) includes that
+  drain; the server's part ends at the close.
+- **Nothing healthy was closed.** No healthy watcher or input probe dropped
+  in any row, no tick ran over budget and no healthy snapshot was missed.
+  The healthy and tick tails move with the host load in this table (load
+  18 to 38 against 14 to 16 before), not with the change: the baseline row,
+  which has no degraded reader, moved the same way.
+- The degraded summary counted three of four stalled watchers closed in two
+  middle runs while `GET /status` showed all four connections lost; the
+  harness's bounded drain after the window, not the server, missed one.
+- Not measured: a real thin link (tc netem) and Windows or macOS socket
+  buffers. A host that sets `SO_SNDBUF` gets no autotuning on that socket;
+  64 KiB carries a 48-fighter world of deltas (about 100 KB/s) on a link
+  with up to about half a second of round trip.
+
+### Snapshot deltas (#434 stage 4)
+
+Gameplay 61 sends a world as the change from the world before it
+(`snapshot_delta`, [protocol](protocol.md#snapshot-deltas-capability-61)).
+The tick encodes each world once in full and once as the delta from the
+previous tick's world, and keeps the delta when it is shorter. A session
+writer sends the delta only when the last world it put on its socket is the
+delta's base; the ordered, reliable stream makes that the reader's world, so
+no separate acknowledgement is needed on this transport. Anything else goes
+whole: a connection's first world, the first after `MapInfo` or `Mission`, a
+world that replaced an unsent one, and every world for a reader below 61.
+The wire types and the one Rust reader (`protocol::WorldReader`) live in
+`server/src/protocol/delta.rs`; the MCP adapter, playtest harness, brain and
+`fragr-wire` read through it, and the Godot client rebuilds the world in
+`client/scripts/snapshot_delta.gd` before its usual snapshot validation.
+Tests on both sides apply the same vectors
+(`client/golden/snapshot_delta_vectors.json`), and a seeded 400-tick fight
+rebuilds every world byte for byte. The server parses JSON with
+`serde_json`'s `float_roundtrip`, so a value a delta repeats keeps the exact
+shortest text of the full world.
+
+Measured 2026-10-28 with the traffic generator against the `fragr-server`
+binary: Larak Lot, human fighters at 60 Hz plus spectators, no bots, 15 s
+held, seed 42, one run per row. Before is `009797ce` (load 12 to 17); after
+is the branch head (load 14 to 15, with a workspace test run on the same
+host). Bytes per client are every text frame a connection read, divided by
+connections and seconds; a world as JSON text, not counting WebSocket and
+TCP framing.
+
+| Connections (fighters + spectators) | Fighters in a world | Full world bytes | KiB/s per client before / after | Change | Server egress MiB/s before / after | Tick encode p50 / p99 ms before / after | Server CPU cores before / after |
+|---|---|---|---|---|---|---|---|
+| 6 (4 + 2) | 4 | 2,333 | 51.7 / 14.0 | -73 % | 0.30 / 0.08 | 0.018 / 0.062, 0.108 / 0.887 | 0.019 / 0.020 |
+| 16 (12 + 4) | 12 | 4,270 | 92.0 / 29.8 | -68 % | 1.41 / 0.46 | 0.018 / 0.039, 0.171 / 1.818 | 0.028 / 0.037 |
+| 64 (48 + 16) | 45 | 13,617 | 286.6 / 97.4 | -66 % | 17.37 / 5.95 | 0.036 / 0.071, 0.483 / 4.914 | 0.090 / 0.097 |
+
+- **About two thirds fewer bytes at every size.** At the 64-connection cap
+  the server's egress fell from 17.4 to 6.0 MiB/s (about 146 to 50 Mbit/s),
+  and each reader's from 287 to 97 KiB/s. Every world still reached every
+  reader: snapshot counts matched before and after, and no tick ran over
+  budget.
+- **The encode is the cost.** Parsing the full world back to a JSON value,
+  diffing it and writing the delta take the tick's encode from 0.04 to
+  0.48 ms at the median at 48 fighters, about one percent of the 50 ms
+  budget (p99 4.9 ms on a host running a test suite). It is still paid once
+  per tick, not per reader.
+- **What a delta still carries.** A fighter who moved costs its 44-byte
+  `id` plus the changed coordinates and angles, each 8 to 14 bytes of
+  shortest-form float: about 110 bytes, of which the id is about 40 percent.
+  Unchanged entries cost the id alone. The pickups (1.1 KB) and round chrome
+  no longer repeat.
+
+Next steps, in the order the numbers suggest; none is half built here:
+
+1. **Short roster keys.** A per-world index or a per-match small integer in
+   place of the 44-byte UUID inside a delta would cut the remaining bytes by
+   about a third. The rebuilt world keeps the UUID, so readers do not change.
+2. **Quantized motion.** Coordinates to millimetres and angles to 1e-4 rad
+   would shorten each changed float by about four bytes and stop
+   sub-millimetre jitter from counting as a change. This changes the values
+   readers see, so it needs the movement mirror's reconciliation checked
+   against the goldens first.
+3. **A per-reader delta after a replaced world.** Today a reader that fell
+   behind gets the next world whole, the larger frame exactly when its link
+   is short. The writer already knows that reader's last world; encoding a
+   delta against it costs one diff per such reader.
+4. **A cheaper encode.** A typed diff of `PlayerState` rows instead of a
+   parsed JSON value would take most of the 0.4 ms back.
+5. **Explicit acknowledgements** only arrive with an unreliable transport
+   (UDP, [TRANSPORT.md](TRANSPORT.md)): then the base must be the last world
+   the reader said it applied, and a delta may name an older base.
 
 
 ## Trace version 1

@@ -6,6 +6,7 @@
 //! its own writer encodes, so private state never enters a shared payload.
 
 use crate::bench::{Histogram, Summary};
+use crate::protocol::delta::{EncodedWorld, WorldEncoder};
 use crate::protocol::{PlayerState, ServerMessage, Snapshot};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
@@ -39,16 +40,37 @@ pub struct Broadcast {
     message: ServerMessage,
     text: String,
     audience: Audience,
+    /// For a world, its tick and the delta from the tick's previous world.
+    world: Option<EncodedWorld>,
 }
 
 impl Broadcast {
+    /// One broadcast with no delta: every reader gets the full text.
     pub fn encode(message: ServerMessage) -> serde_json::Result<Arc<Self>> {
+        Self::encode_with(message, None)
+    }
+
+    fn encode_with(
+        message: ServerMessage,
+        encoder: Option<&mut WorldEncoder>,
+    ) -> serde_json::Result<Arc<Self>> {
         let text = serde_json::to_string(&message)?;
         let audience = Audience::of(&message);
+        let world = match encoder {
+            Some(encoder) => encoder.observe(&message, &text),
+            None => match &message {
+                ServerMessage::Snapshot(snapshot) => Some(EncodedWorld {
+                    tick: snapshot.tick,
+                    delta: None,
+                }),
+                _ => None,
+            },
+        };
         Ok(Arc::new(Self {
             message,
             text,
             audience,
+            world,
         }))
     }
 
@@ -61,6 +83,23 @@ impl Broadcast {
         messages: impl IntoIterator<Item = ServerMessage>,
     ) -> serde_json::Result<Vec<Arc<Self>>> {
         messages.into_iter().map(Self::encode).collect()
+    }
+
+    /// Encode a tick's broadcasts in order, each world also as a delta from
+    /// the world `encoder` saw last.
+    pub fn encode_tick(
+        messages: impl IntoIterator<Item = ServerMessage>,
+        encoder: &mut WorldEncoder,
+    ) -> serde_json::Result<Vec<Arc<Self>>> {
+        messages
+            .into_iter()
+            .map(|message| Self::encode_with(message, Some(&mut *encoder)))
+            .collect()
+    }
+
+    /// The world this broadcast carries, if it is one.
+    pub fn world(&self) -> Option<&EncodedWorld> {
+        self.world.as_ref()
     }
 
     /// Copies of borrowed test messages, encoded as a tick would.
@@ -293,10 +332,16 @@ struct WriterSamples {
     encoded_bytes: u64,
     shared_frames: u64,
     shared_bytes: u64,
+    delta_frames: u64,
+    delta_bytes: u64,
     /// When the measured window began: the last reset.
     since: Option<Instant>,
     /// Writers that gave up on a send (timeout or socket error), by when.
     send_failures: Vec<Duration>,
+    /// Of those, writers whose oldest unsent frame went stale.
+    stale_closes: u64,
+    /// Of those, writers whose reader fell behind the stream.
+    behind_closes: u64,
 }
 
 /// What every session writer did with its text frames.
@@ -315,9 +360,16 @@ pub struct WriterReport {
     pub shared_frames: u64,
     /// Bytes copied from shared payloads into per-socket frames.
     pub shared_bytes: u64,
+    /// Of the shared frames, worlds sent as a delta, and their bytes.
+    pub delta_frames: u64,
+    pub delta_bytes: u64,
     /// Milliseconds into the window at which a writer's send timed out or
-    /// failed, closing that connection.
+    /// failed, closing that connection, stale closes included.
     pub send_failures_ms: Vec<f64>,
+    /// Writers closed because their oldest unsent frame went stale.
+    pub stale_closes: u64,
+    /// Writers closed because their reader left a ping unanswered too long.
+    pub behind_closes: u64,
 }
 
 fn nanos(duration: Duration) -> u64 {
@@ -342,10 +394,14 @@ impl WriterProbe {
         samples.encoded_bytes += bytes as u64;
     }
 
-    pub(crate) fn shared(&self, bytes: usize) {
+    pub(crate) fn shared(&self, bytes: usize, delta: bool) {
         let mut samples = self.samples();
         samples.shared_frames += 1;
         samples.shared_bytes += bytes as u64;
+        if delta {
+            samples.delta_frames += 1;
+            samples.delta_bytes += bytes as u64;
+        }
     }
 
     pub(crate) fn sent(&self, elapsed: Duration) {
@@ -359,6 +415,18 @@ impl WriterProbe {
         samples
             .send_failures
             .push(at.saturating_duration_since(since));
+    }
+
+    /// A writer closed its socket because a queued frame went stale.
+    pub(crate) fn went_stale(&self, at: Instant) {
+        self.send_failed(at);
+        self.samples().stale_closes += 1;
+    }
+
+    /// A writer closed its socket because its reader left a ping unanswered.
+    pub(crate) fn fell_behind(&self, at: Instant) {
+        self.send_failed(at);
+        self.samples().behind_closes += 1;
     }
 
     pub fn reset(&self) {
@@ -378,11 +446,15 @@ impl WriterProbe {
             encoded_bytes: samples.encoded_bytes,
             shared_frames: samples.shared_frames,
             shared_bytes: samples.shared_bytes,
+            delta_frames: samples.delta_frames,
+            delta_bytes: samples.delta_bytes,
             send_failures_ms: samples
                 .send_failures
                 .iter()
                 .map(|at| at.as_secs_f64() * 1000.0)
                 .collect(),
+            stale_closes: samples.stale_closes,
+            behind_closes: samples.behind_closes,
         }
     }
 }

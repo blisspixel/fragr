@@ -6,14 +6,31 @@ use std::collections::{BTreeMap, HashMap};
 use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
 
-type Socket = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+/// One connection and the world it holds, so snapshot deltas read whole.
+struct Socket {
+    ws: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
+    frames: crate::protocol::WorldReader,
+}
+
+impl std::ops::Deref for Socket {
+    type Target = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+    fn deref(&self) -> &Self::Target {
+        &self.ws
+    }
+}
+
+impl std::ops::DerefMut for Socket {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.ws
+    }
+}
 
 async fn receive(socket: &mut Socket) -> ServerMessage {
     tokio::time::timeout(Duration::from_secs(3), async {
         loop {
-            let message = socket.next().await.expect("open stream").expect("frame");
+            let message = socket.ws.next().await.expect("open stream").expect("frame");
             if let Message::Text(text) = message {
-                return serde_json::from_str(&text).expect("server wire message");
+                return socket.frames.read(&text).expect("server wire message");
             }
         }
     })
@@ -22,7 +39,11 @@ async fn receive(socket: &mut Socket) -> ServerMessage {
 }
 
 async fn join(url: &str, role: Role, name: &str) -> (Socket, Option<Uuid>) {
-    let (mut socket, _) = connect_async(url).await.expect("connect");
+    let (ws, _) = connect_async(url).await.expect("connect");
+    let mut socket = Socket {
+        ws,
+        frames: crate::protocol::WorldReader::new(),
+    };
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {

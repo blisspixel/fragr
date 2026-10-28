@@ -46,12 +46,13 @@ async fn live_trace_ticks_join_the_snapshots_a_spectator_receives() {
         .await
         .unwrap();
     let mut received: Vec<u64> = Vec::new();
+    let mut frames = crate::protocol::WorldReader::new();
     tokio::time::timeout(Duration::from_secs(20), async {
         while received.len() < 12 {
             let Message::Text(text) = socket.next().await.unwrap().unwrap() else {
                 continue;
             };
-            let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+            let value: serde_json::Value = frames.read_value(&text).unwrap();
             if value["type"] == "snapshot" {
                 received.push(value["tick"].as_u64().unwrap());
             }

@@ -27,7 +27,7 @@ const EPSILON: float = 0.001
 ## degrees] with the box in world metres.
 static func sites() -> Dictionary:
 	return {
-		"Persons Unknown: ward graybox": [
+		"Persons Unknown": [
 			# The correction machine: the open intake toward the ward door.
 			{"host": [Vector3(-4, 0, -15), Vector3(0, 3.2, -13)], "hide": ["vent"],
 				"props": [["correction_machine", Vector3(-4, 0, -15), Vector3(0, 3.2, -13), 180]]},

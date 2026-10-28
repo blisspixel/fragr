@@ -269,6 +269,7 @@ async fn seat_task(
         ..SeatResult::default()
     };
     let mut step = 0u32;
+    let mut world = fragr_server::protocol::WorldReader::new();
     let (period, per_send) = plan.cadence.unwrap_or((Duration::from_secs(3600), 0));
     let mut interval = tokio::time::interval(period);
     interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -309,12 +310,16 @@ async fn seat_task(
                     continue;
                 };
                 result.text_bytes += text.len() as u64;
-                match serde_json::from_str::<ServerMessage>(&text) {
-                    Ok(ServerMessage::Snapshot(_)) => {
+                match world.read(&text) {
+                    Ok(ServerMessage::Snapshot(snapshot)) => {
                         result.snapshots += 1;
                         if result.snapshots % SHAPE_EVERY == 1 {
                             if let Some(shape) = result.shape.as_mut() {
-                                shape.observe(&text);
+                                // The world as a full snapshot, whether it
+                                // arrived whole or as a delta.
+                                let full = serde_json::to_string(&ServerMessage::Snapshot(snapshot))
+                                    .map_err(transport)?;
+                                shape.observe(&full);
                             }
                         }
                         if !result.welcomed {
@@ -326,6 +331,9 @@ async fn seat_task(
                     }
                     Ok(ServerMessage::Error { code, message }) if !result.welcomed => {
                         return Err(Error::Server(format!("{code}: {message}")));
+                    }
+                    Err(fragr_server::protocol::delta::ReadError::Delta(error)) => {
+                        return Err(Error::Server(error.to_string()));
                     }
                     _ => {}
                 }

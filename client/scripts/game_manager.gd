@@ -117,6 +117,7 @@ var mission_hud: MissionHud
 var m01_intake: M01Intake
 var m20_hold: M20HoldStrip
 var m02_ward: M02Ward
+var m02_correction: M02Correction
 var m03_yard: M03Yard
 var m04_town: M04Town
 var m05_town: M05Town
@@ -409,6 +410,9 @@ func _ready():
 	m01_intake = M01Intake.new()
 	m01_intake.name = "M01Intake"
 	add_child(m01_intake)
+	m02_correction = M02Correction.new()
+	m02_correction.name = "M02Correction"
+	add_child(m02_correction)
 	m03_yard = M03Yard.new()
 	m03_yard.name = "M03Yard"
 	add_child(m03_yard)
@@ -663,6 +667,8 @@ func _on_map_info(info: Dictionary) -> void:
 			hud.hide_radio()
 	if m02_ward != null:
 		m02_ward.configure_map(info)
+	if m02_correction != null:
+		m02_correction.configure_map(info)
 	if m03_yard != null:
 		m03_yard.configure_map(info)
 	if m04_town != null:
@@ -2767,6 +2773,8 @@ func _clear_world() -> void:
 		m20_hold.apply({}, {})
 	if m02_ward != null:
 		m02_ward.clear_map()
+	if m02_correction != null:
+		m02_correction.clear_map()
 	if m03_yard != null:
 		m03_yard.clear_map()
 	if m04_town != null:

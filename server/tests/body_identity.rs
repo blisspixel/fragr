@@ -8,16 +8,17 @@ use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::json;
 use tokio::time::timeout;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
-use uuid::Uuid;
+use tokio_tungstenite::tungstenite::Message;
 
-type Socket = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
+mod support;
+use support::{connect_async, Socket};
+use uuid::Uuid;
 
 async fn next_message(socket: &mut Socket) -> Option<ServerMessage> {
     timeout(Duration::from_secs(3), async {
         loop {
             match socket.next().await {
-                Some(Ok(Message::Text(text))) => return serde_json::from_str(&text).ok(),
+                Some(Ok(Message::Text(text))) => return socket.read(&text).ok(),
                 Some(Ok(Message::Close(_))) | None | Some(Err(_)) => return None,
                 Some(Ok(_)) => {}
             }

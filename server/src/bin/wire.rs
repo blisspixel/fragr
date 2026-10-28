@@ -114,6 +114,7 @@ async fn main() -> ExitCode {
         }
     };
     let (mut write, mut read) = socket.split();
+    let mut frames = fragr_server::protocol::WorldReader::new();
     let hello = serde_json::json!({
         "type": "hello",
         "role": "spectator",
@@ -125,7 +126,7 @@ async fn main() -> ExitCode {
         eprintln!("The hello did not leave this machine.");
         return ExitCode::from(1);
     }
-    match next_message(&mut read).await {
+    match next_message(&mut read, &mut frames).await {
         Some(ServerMessage::Welcome { .. }) => {}
         Some(ServerMessage::Error { message, .. }) => {
             eprintln!("{message}");
@@ -147,7 +148,7 @@ async fn main() -> ExitCode {
     print_prompt();
     loop {
         tokio::select! {
-            incoming = next_message(&mut read) => {
+            incoming = next_message(&mut read, &mut frames) => {
                 match incoming {
                     Some(ServerMessage::Board(page)) => {
                         println!("\r{}", render_page(&page));
@@ -216,11 +217,12 @@ async fn send_ask(write: &mut (impl SinkExt<Message> + Unpin), ask: &Ask) -> Res
 
 async fn next_message(
     read: &mut (impl StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin),
+    frames: &mut fragr_server::protocol::WorldReader,
 ) -> Option<ServerMessage> {
     loop {
         match read.next().await? {
             Ok(Message::Text(text)) => {
-                if let Ok(message) = serde_json::from_str::<ServerMessage>(&text) {
+                if let Ok(message) = frames.read(&text) {
                     return Some(message);
                 }
             }
