@@ -140,6 +140,8 @@ pub struct DegradedSummary {
     pub snapshots: usize,
     /// Ticks they never saw between two they did: replaced or dropped worlds.
     pub missing_snapshot_ticks: u64,
+    /// Text payload they read inside the window, all frames.
+    pub text_bytes: usize,
     /// Watchers the server closed before the harness stopped.
     pub closed_by_server: usize,
     /// Tick start to reading the frame: how stale their picture became.
@@ -666,6 +668,7 @@ fn summarize_degraded(
         watchers: results.len(),
         snapshots: 0,
         missing_snapshot_ticks: 0,
+        text_bytes: results.iter().map(|watcher| watcher.text_bytes).sum(),
         closed_by_server: results
             .iter()
             .filter(|watcher| watcher.disconnected)
@@ -1192,7 +1195,7 @@ mod tests {
                             at: at + Duration::from_millis(300),
                         },
                     ],
-                    text_bytes: 0,
+                    text_bytes: 700,
                     disconnected: true,
                 },
                 WatchResult::default(),
@@ -1206,6 +1209,7 @@ mod tests {
         assert_eq!(summary.snapshots, 3);
         assert_eq!(summary.missing_snapshot_ticks, 2);
         assert_eq!(summary.closed_by_server, 1);
+        assert_eq!(summary.text_bytes, 700);
     }
 
     #[test]

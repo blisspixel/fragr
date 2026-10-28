@@ -24,8 +24,9 @@ use tokio::sync::watch;
 use tokio_tungstenite::{client_async, tungstenite::Message, WebSocketStream};
 
 /// Report schema. Bump it when a field changes meaning. 2 added the server
-/// process costs, the tick window, bursts and idle fighters.
-pub const TRAFFIC_SCHEMA: u32 = 2;
+/// process costs, the tick window, bursts and idle fighters; 3 counts worlds
+/// that arrived whole and as deltas.
+pub const TRAFFIC_SCHEMA: u32 = 3;
 /// Rule bots the generator may ask for, beside the socket roster.
 pub const MAX_BOTS: usize = 96;
 /// Fighters per source address: under the loopback join rate (30 joins per
@@ -166,11 +167,33 @@ pub struct TrafficReport {
     pub out_bytes_per_s: Option<f64>,
     pub queue_overflows_total: Option<u64>,
     pub server: ServerCost,
+    /// How every connection's worlds arrived.
+    pub worlds: WorldFrames,
     /// Snapshot composition as the first spectator (or fighter) read it.
     pub snapshot: host::SnapshotShape,
     pub server_exit: String,
     pub passed: bool,
     pub problems: Vec<String>,
+}
+
+/// Worlds every connection read, by how they arrived. A connection's first
+/// world is always whole; a later whole world is one the server could not
+/// send as a delta.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+pub struct WorldFrames {
+    pub whole: u64,
+    pub whole_bytes: u64,
+    pub delta: u64,
+    pub delta_bytes: u64,
+}
+
+impl WorldFrames {
+    fn add(&mut self, other: &Self) {
+        self.whole += other.whole;
+        self.whole_bytes += other.whole_bytes;
+        self.delta += other.delta;
+        self.delta_bytes += other.delta_bytes;
+    }
 }
 
 #[derive(Debug, Default)]
@@ -179,6 +202,7 @@ struct SeatResult {
     actions_sent: u64,
     snapshots: u64,
     text_bytes: u64,
+    worlds: WorldFrames,
     disconnected: bool,
     shape: Option<host::SnapshotShape>,
 }
@@ -313,6 +337,14 @@ async fn seat_task(
                 match world.read(&text) {
                     Ok(ServerMessage::Snapshot(snapshot)) => {
                         result.snapshots += 1;
+                        let bytes = text.len() as u64;
+                        if world.last_was_delta() {
+                            result.worlds.delta += 1;
+                            result.worlds.delta_bytes += bytes;
+                        } else {
+                            result.worlds.whole += 1;
+                            result.worlds.whole_bytes += bytes;
+                        }
                         if result.snapshots % SHAPE_EVERY == 1 {
                             if let Some(shape) = result.shape.as_mut() {
                                 // The world as a full snapshot, whether it
@@ -666,6 +698,12 @@ async fn drive(
         out_bytes_per_s: ops.map(|ops| ops.traffic.out_bytes_per_s),
         queue_overflows_total: ops.map(|ops| ops.traffic.queue_overflows_total),
         server: probe.cost,
+        worlds: results
+            .iter()
+            .fold(WorldFrames::default(), |mut all, result| {
+                all.add(&result.worlds);
+                all
+            }),
         snapshot,
         server_exit,
         passed: false,
@@ -812,7 +850,17 @@ mod tests {
         assert_eq!(report.connections_end, 3);
         let saved: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&report_path).unwrap()).unwrap();
-        assert_eq!(saved["schema"], 2);
+        assert_eq!(saved["schema"], 3);
+        // Every world was read, each connection's first one whole and the
+        // rest as deltas against the world it held.
+        let worlds = report.worlds;
+        assert_eq!(
+            worlds.whole + worlds.delta,
+            report.fighter_snapshots + report.spectator_snapshots
+        );
+        assert!(worlds.whole >= 3, "{worlds:?}");
+        assert!(worlds.delta > worlds.whole, "{worlds:?}");
+        assert!(worlds.delta_bytes * 2 < worlds.whole_bytes * worlds.delta / worlds.whole);
         assert_eq!(saved["burst"], 2);
         // In process, the server's own trace still covers the held ticks, but
         // memory and CPU would mix with the clients and are not reported.

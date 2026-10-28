@@ -1112,6 +1112,15 @@ impl GameSession {
         );
     }
 
+    /// Stamp the match's own counters onto the operator block the status
+    /// tracker built: the night sheet and the rewind counters. Counts only.
+    pub fn stamp_ops(&self, live: &mut protocol::LiveStatus) {
+        if let Some(ops) = live.ops.as_mut() {
+            ops.night = self.sheet.totals();
+            ops.rewind = self.state.rewind_stats;
+        }
+    }
+
     /// Connections that watch and hold no fighter: the booth's audience.
     pub fn spectator_ids(&self) -> std::collections::HashSet<Uuid> {
         self.spectators

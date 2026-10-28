@@ -38,8 +38,10 @@ fn session() -> GameSession {
     GameSession::with_authored_map(decode(&definition()).unwrap())
 }
 
+/// A participant with the state's own identity policy: a counted id under
+/// replay identities, so a seeded fixture repeats, and a random one otherwise.
 fn add(state: &mut GameState, role: Role) -> Uuid {
-    let id = Uuid::new_v4();
+    let id = state.new_entity_id();
     add_with_id(state, id, role)
 }
 
@@ -432,6 +434,11 @@ fn solo_controller_finishes_actual_m01_with_combat_and_open_gate_retries() {
     let map =
         AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice()).unwrap();
     let mut session = GameSession::with_authored_map(map);
+    // Replay identities before the run is enabled: a live run draws a random
+    // run id, and the retry after the forced death runs on a stream derived
+    // from it (`recovery::retry_seed`), so without them every process fought
+    // a different second attempt (#502).
+    session.state.use_replay_ids();
     session.state.enable_campaign_run().unwrap();
     session.state.seed(67);
     drive_party(session, 1, true);
