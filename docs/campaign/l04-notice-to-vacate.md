@@ -40,6 +40,10 @@ cream with three test colours and the green already started; the workshop is
 clad steel with a gantry crane on its roof as the street's landmark. The court
 gets doors on every home, washing high over the yard, stools under the meal
 table and a black Union field printer as the only Union object in it.
+The tram's vote sign shows the open motion (`WORLD_M04_TRAM_MOTION`) until the
+server's completed list carries `market_wave_a_cleared`, then the result;
+`M04Town` keys it to that existing objective fact and decides nothing, and a
+fresh attempt reopens the motion.
 `client/qa/m04-golden.json` frames every beat and `m04-golden-guards.json` the
 notice-board guards against the dressed square. Readable signs stay at six
 (notice, clinic sign, water tank, tram vote, workshop, roof control), all

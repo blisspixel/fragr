@@ -2295,6 +2295,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		m03_yard.apply_state(state)
 	if m04_town != null:
 		m04_town.apply_state(state)
+		m04_town.apply_vote(arena_cover)
 	if m05_town != null:
 		m05_town.apply_state(state)
 	if m06_port != null:

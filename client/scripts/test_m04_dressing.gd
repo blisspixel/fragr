@@ -20,6 +20,7 @@ static func _solid(low: Vector3, high: Vector3) -> Dictionary:
 static func _info(map_id: int = 1004, cab_x: float = 25.0, half: float = 40.0) -> Dictionary:
 	return {"map_id": map_id, "map_name": "Notice to Vacate", "half_extent": half, "solids": [
 		_solid(Vector3(-3, 0, -17), Vector3(3, 3, -16.5)),
+		_solid(Vector3(-22.5, 0, -2.5), Vector3(-22, 2.5, -1)),
 		_solid(Vector3(-22.5, 0, 0), Vector3(-22, 2.7, 4)),
 		_solid(Vector3(cab_x, 0, -15), Vector3(32, 2.5, -9)),
 		_solid(Vector3(-13, 0, 10), Vector3(-5, 0.8, 11.5)),
@@ -62,6 +63,13 @@ func _run() -> void:
 		_expect(props != null and props.get_child_count() == 1, "each room's static props merge into one mesh: " + room)
 	town.configure_map(_info())
 	_expect(town.rooms.size() == expected.size() and town.get_child_count() == expected.size(), "a repeated MapInfo keeps one set of rooms")
+	# Opening the clinic re-sends MapInfo with the shutter gate lifted; the
+	# district stays dressed (a capture once lost every street mid-level).
+	var opened: Dictionary = _info()
+	opened["solids"][2] = _solid(Vector3(-22.5, 3.2, 0), Vector3(-22, 5.9, 4))
+	_expect(M04Dressing.authored(opened), "the opened clinic shutter keeps the authored layout")
+	town.configure_map(opened)
+	_expect(town.active() and town.get_child_count() == expected.size(), "the dressing survives the clinic opening")
 	town.configure_map(_info(1005))
 	_expect(not town.active(), "another map clears the M04 dressing")
 	await process_frame
