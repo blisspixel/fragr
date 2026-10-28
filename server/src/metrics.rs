@@ -173,6 +173,8 @@ pub struct ClientTraffic {
     /// `ping_payload`, or `NO_PING_OUT`. A client answers a ping only once it
     /// has read every frame before it, so this ages exactly as its backlog.
     unanswered_us: AtomicU64,
+    /// One past the send time of the newest ping the client answered, or 0.
+    answered_us: AtomicU64,
 }
 
 /// No ping awaits an answer.
@@ -187,10 +189,12 @@ impl ClientTraffic {
             totals,
             rtt_us: AtomicU32::new(NO_PING),
             unanswered_us: AtomicU64::new(NO_PING_OUT),
+            answered_us: AtomicU64::new(0),
         })
     }
 
-    fn now_us(&self) -> u64 {
+    /// Microseconds since the session opened, the clock pings carry.
+    pub(crate) fn now_us(&self) -> u64 {
         u64::try_from(self.connected.elapsed().as_micros()).unwrap_or(NO_PING_OUT - 1)
     }
 
@@ -215,6 +219,12 @@ impl ClientTraffic {
         (since != NO_PING_OUT).then(|| Duration::from_micros(self.now_us().saturating_sub(since)))
     }
 
+    /// Whether the client has answered a ping sent at or after `since`
+    /// (`now_us` time): it has read everything sent before that ping.
+    pub(crate) fn answered_since(&self, since: u64) -> bool {
+        self.answered_us.load(Ordering::Relaxed) > since
+    }
+
     /// A pong arrived. A payload that is not one of our pings, or claims a
     /// ping from the future, is ignored. Readings are smoothed, a quarter of
     /// each new one, so one slow frame does not jump the board.
@@ -234,6 +244,8 @@ impl ClientTraffic {
             .try_update(Ordering::Relaxed, Ordering::Relaxed, |oldest| {
                 (oldest != NO_PING_OUT && sent >= oldest).then_some(NO_PING_OUT)
             });
+        self.answered_us
+            .fetch_max(sent.saturating_add(1), Ordering::Relaxed);
         let sample = u32::try_from(sample)
             .unwrap_or(NO_PING - 1)
             .min(NO_PING - 1);

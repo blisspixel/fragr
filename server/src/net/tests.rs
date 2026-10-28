@@ -583,6 +583,7 @@ fn limits(send_timeout: Duration) -> WriterPolicy {
         send_timeout,
         stale_after: Duration::from_secs(60),
         read_behind_after: Duration::from_secs(60),
+        load_grace: Duration::ZERO,
         deltas: false,
     }
 }
@@ -674,6 +675,7 @@ async fn a_frame_queued_past_its_age_closes_the_writer_before_it_is_sent() {
             send_timeout: Duration::from_secs(60),
             stale_after: Duration::from_millis(50),
             read_behind_after: Duration::from_secs(60),
+            load_grace: Duration::ZERO,
             deltas: false,
         },
         Duration::from_secs(60),
@@ -707,6 +709,7 @@ async fn a_blocked_send_closes_when_its_frame_goes_stale_not_at_the_send_timeout
             send_timeout: Duration::from_secs(60),
             stale_after: Duration::from_millis(40),
             read_behind_after: Duration::from_secs(60),
+            load_grace: Duration::ZERO,
             deltas: false,
         },
         Duration::from_secs(60),
@@ -762,6 +765,7 @@ async fn a_reader_slower_than_the_tick_is_closed_once_its_backlog_goes_stale() {
             send_timeout: Duration::from_secs(60),
             stale_after: Duration::from_millis(300),
             read_behind_after: Duration::from_secs(60),
+            load_grace: Duration::ZERO,
             deltas: false,
         },
         Duration::from_secs(60),
@@ -799,6 +803,7 @@ async fn a_slow_but_sufficient_link_is_never_closed() {
             send_timeout: Duration::from_secs(60),
             stale_after: Duration::from_millis(300),
             read_behind_after: Duration::from_secs(60),
+            load_grace: Duration::ZERO,
             deltas: false,
         },
         Duration::from_secs(60),
@@ -909,13 +914,165 @@ async fn a_reader_that_stops_answering_pings_is_closed_once_it_falls_behind() {
         .await
         .unwrap()
         .unwrap();
-    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Idle);
     assert!(stopped.elapsed() >= Duration::from_millis(140));
     writer.await.unwrap();
     let report = probe.report();
     assert_eq!(report.behind_closes, 1);
     assert_eq!(report.stale_closes, 0);
     assert_eq!(report.send_failures_ms.len(), 1);
+    drop(tx);
+}
+
+/// A writer to a `PingAnswerer`, with a fast ping, a short unanswered-ping
+/// bound and the given load window.
+struct LoadingWriter {
+    tx: WsTx,
+    changed: tokio::sync::watch::Receiver<StopSignal>,
+    answering: Arc<std::sync::atomic::AtomicBool>,
+    probe: Arc<WriterProbe>,
+    writer: tokio::task::JoinHandle<PingAnswerer>,
+    /// Dropping it would stop the writer.
+    _stop: tokio::sync::oneshot::Sender<()>,
+}
+
+fn loading_writer(load_grace: Duration, answering: bool) -> LoadingWriter {
+    let (tx, rx) = outbound_channel(8);
+    let (shutdown, changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (stop_writer, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    let traffic = crate::metrics::ClientTraffic::new(Role::Spectator, Default::default());
+    let flag = Arc::new(std::sync::atomic::AtomicBool::new(answering));
+    let writer = tokio::spawn(run_outbound_writer(
+        PingAnswerer {
+            traffic: Arc::clone(&traffic),
+            answering: Arc::clone(&flag),
+        },
+        rx,
+        shutdown,
+        WriterPolicy {
+            read_behind_after: Duration::from_millis(60),
+            load_grace,
+            ..limits(Duration::from_secs(60))
+        },
+        Duration::from_millis(10),
+        stop,
+        WriterMeters {
+            traffic,
+            probe: Some(Arc::clone(&probe)),
+        },
+    ));
+    LoadingWriter {
+        tx,
+        changed,
+        answering: flag,
+        probe,
+        writer,
+        _stop: stop_writer,
+    }
+}
+
+fn map_info() -> ServerMessage {
+    crate::sim::GameState::with_map(crate::sim::MapKind::ArenaDuel, false).map_info()
+}
+
+#[tokio::test]
+async fn a_reader_building_a_level_keeps_its_socket_until_the_load_grace_ends() {
+    // It stops reading the moment the map arrives, as the client's main
+    // thread does while it builds the level.
+    let LoadingWriter {
+        tx,
+        mut changed,
+        probe,
+        writer,
+        answering: _answering,
+        _stop,
+    } = loading_writer(Duration::from_millis(500), false);
+    let started = std::time::Instant::now();
+    tx.try_send(map_info()).unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    assert_eq!(
+        *changed.borrow(),
+        StopSignal::Open,
+        "closed inside the grace"
+    );
+    assert_eq!(probe.report().behind_closes, 0);
+    // Still silent once the window ends: closed as idle.
+    timeout(Duration::from_secs(5), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Idle);
+    assert!(started.elapsed() >= Duration::from_millis(500));
+    writer.await.unwrap();
+    assert_eq!(probe.report().behind_closes, 1);
+    drop(tx);
+}
+
+#[tokio::test]
+async fn an_answer_after_the_map_ends_the_load_grace_early() {
+    let LoadingWriter {
+        tx,
+        mut changed,
+        answering,
+        probe,
+        writer,
+        _stop,
+    } = loading_writer(Duration::from_secs(30), true);
+    tx.try_send(map_info()).unwrap();
+    // The level is built: pings sent after the map come back.
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    assert_eq!(*changed.borrow(), StopSignal::Open);
+    answering.store(false, std::sync::atomic::Ordering::SeqCst);
+    let stopped = std::time::Instant::now();
+    // The ordinary bound applies again, far inside the 30 s window.
+    timeout(Duration::from_secs(5), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Idle);
+    assert!(stopped.elapsed() < Duration::from_secs(3));
+    writer.await.unwrap();
+    assert_eq!(probe.report().behind_closes, 1);
+    drop(tx);
+}
+
+#[tokio::test]
+async fn a_level_load_holds_off_the_frame_age_close_until_the_grace_ends() {
+    let (tx, rx) = outbound_channel(4);
+    let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
+    let (_stop, stop) = tokio::sync::oneshot::channel();
+    let probe = Arc::new(WriterProbe::default());
+    probe.reset();
+    tx.try_send(map_info()).unwrap();
+    let started = std::time::Instant::now();
+    let writer = tokio::spawn(run_outbound_writer(
+        StalledSink,
+        rx,
+        shutdown,
+        WriterPolicy {
+            stale_after: Duration::from_millis(40),
+            load_grace: Duration::from_millis(400),
+            ..limits(Duration::from_secs(60))
+        },
+        Duration::from_secs(60),
+        stop,
+        spectator_meters(&probe),
+    ));
+    timeout(Duration::from_secs(5), changed.changed())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
+    // Not at the 40 ms frame age: at the end of the load window.
+    assert!(
+        started.elapsed() >= Duration::from_millis(390),
+        "{:?}",
+        started.elapsed()
+    );
+    writer.await.unwrap();
+    assert_eq!(probe.report().stale_closes, 1);
     drop(tx);
 }
 
@@ -2259,7 +2416,8 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
 fn quick_limits() -> SessionLimits {
     SessionLimits {
         ping_every: Duration::from_millis(50),
-        idle_after: Duration::from_millis(400),
+        read_behind_after: Duration::from_millis(400),
+        load_grace: Duration::from_millis(400),
         ..SessionLimits::default()
     }
 }

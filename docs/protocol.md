@@ -329,17 +329,19 @@ does not rewind the simulation. When it ends, the leave is the same as a
 disconnect: a solo run whose owner is gone becomes abandoned.
 
 **Liveness and conduct.** After `Welcome` the server sends a WebSocket ping
-every second. Any frame from the client, including the pong every
-WebSocket library sends automatically while it reads, keeps the session.
-A quiet spectator that reads is never idle. No frame at all for 45 seconds
-closes the session with `idle_timeout`; a fighter that asked for resume keeps
-its pawn for the usual ten seconds. A client answers a ping only after reading
-every frame sent before it, so a ping still unanswered after four seconds
-means that client's picture is at least that stale: the server then closes the
-socket without a reason frame (the reader is not reading), like a dropped
-connection, and a fighter that asked for resume keeps its pawn. The same
-quiet close follows a queued frame still unsent after two and a half seconds
-(see Snapshot). The server also closes a session with a stable code when it:
+every second. Every WebSocket library answers a ping automatically, but only
+once it has read every frame sent before it, so a quiet spectator that reads
+is never idle. A ping still unanswered after four seconds means the client is
+not reading, or its picture is at least that stale: the server closes the
+session with `idle_timeout` (sent after whatever the client has not read, so
+a client that stopped reading may never see it) and a fighter that asked for
+resume keeps its pawn for the usual ten seconds. After the server sends a
+`MapInfo` or `Mission` it waits up to 30 seconds, or until the client answers
+a ping sent after that message, before applying this rule or the frame-age
+rule below: a client builds the level on its main thread and reads nothing
+meanwhile. A queued frame still unsent two and a half seconds after the tick
+queued it closes the socket quietly, like a dropped connection (see Snapshot).
+The server also closes a session with a stable code when it:
 
 - keeps flooding: dropped messages fill a strike level that drains at 4096 per
   second and closes past 8192 (`rate_limited`). Only a sustained rate above about
@@ -363,7 +365,7 @@ message and then a policy close whose reason is the same code:
 
 | Code | When | Pawn |
 |---|---|---|
-| `idle_timeout` | no frame for 45 seconds | parked if resume was asked |
+| `idle_timeout` | a ping unanswered for 4 seconds (30 after a `MapInfo` or `Mission`) | parked if resume was asked |
 | `rate_limited` | sustained flood past the budget | removed |
 | `malformed` | repeated unreadable frames | removed |
 | `address_banned` | address on the ban list, at accept or after an edit, or a venue-desk ban | removed |
@@ -1583,8 +1585,10 @@ roster changes, round transitions, and other discrete facts remain ordered.
 MapInfo and Mission form barriers even when the map ID stays the same. Events,
 inventory and acknowledgements are never replaced. A full reliable queue, or
 a queued message that is still unsent two and a half seconds after the tick
-queued it, disconnects that client; a keepalive ping stalled for two seconds
-does too. The kernel send buffer of a game socket is bounded (64 KiB asked),
+queued it, disconnects that client (after a `MapInfo` or `Mission` the
+frame age waits out the 30 s level-load window under Liveness); a keepalive
+ping stalled for two seconds does too. A long level load in a busy room can
+still fill the 64-message queue first, which disconnects it as before. The kernel send buffer of a game socket is bounded (64 KiB asked),
 so a reader that falls behind fills that queue within a second or so instead
 of hiding megabytes of stale worlds in the kernel. An in-progress write cannot
 be replaced, and combat-heavy queues can still reach these bounds.

@@ -23,7 +23,9 @@ tokio = { version = "1.40", features = ["full"] }
 tokio-tungstenite = "0.24"
 futures-util = "0.3"
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+# Exact float parsing: a snapshot delta repeats the values it parsed from the
+# full world, so they must round-trip to the same shortest text (#434).
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
 sha2 = "0.11"
 http = "1.5.0"
 clap = { version = "4.6", features = ["derive", "wrap_help"] }
