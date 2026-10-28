@@ -21,6 +21,19 @@ const TOWARD_SPAWN: f32 = 3.0 * FRAC_PI_2;
 const AWAY: f32 = FRAC_PI_2;
 
 fn session(enemies: Value, solids: Value, region: Value) -> (GameSession, Uuid) {
+    // Numbered bodies, so each guard's reaction repeats exactly.
+    session_with(enemies, solids, region, Uuid::from_u128(100), true)
+}
+
+/// The fixture with a chosen participant id, and with bodies numbered or
+/// drawn at random as a live session draws them.
+fn session_with(
+    enemies: Value,
+    solids: Value,
+    region: Value,
+    id: Uuid,
+    numbered: bool,
+) -> (GameSession, Uuid) {
     let doc = json!({
         "version":1,"map_id":1000,"name":"Campaign AI fixture","half_extent":24,
         "ground":"concrete","equipment":"discovery","solids":solids,
@@ -31,9 +44,9 @@ fn session(enemies: Value, solids: Value, region: Value) -> (GameSession, Uuid) 
     let map = AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
     let mut session = GameSession::with_authored_map(map);
     session.state.seed(42);
-    // Numbered bodies, so each guard's reaction repeats exactly.
-    session.state.use_replay_ids();
-    let id = Uuid::from_u128(100);
+    if numbered {
+        session.state.use_replay_ids();
+    }
     session.state.add_player(id, "Visitor".into(), Role::Human);
     (session, id)
 }
@@ -292,6 +305,44 @@ fn entering_a_region_behind_a_guard_buys_the_first_shots_then_it_turns() {
         ((turned - start_yaw + PI).rem_euclid(2.0 * PI) - PI).abs() > 2.0,
         "the clerk turned around: {start_yaw} to {turned}"
     );
+}
+
+#[test]
+fn a_startled_guard_reacts_the_same_whoever_joined_for_the_same_seed() {
+    // A live session draws every participant id at random, and the guards'
+    // ids too unless bodies are numbered. The startled reaction must not
+    // follow either, or one seeded campaign plays differently per join.
+    let region = json!({"min":[-6,0,-6],"max":[6,2,14]});
+    let startled = |id: Uuid, numbered: bool| {
+        let (mut session, id) = session_with(
+            json!([{"id":"clerk","kind":"clerk","feet":[0,0,8],"yaw":AWAY}]),
+            json!([]),
+            region.clone(),
+            id,
+            numbered,
+        );
+        place(&mut session, id, [0.0, 0.0, 4.0]);
+        advance(&mut session, 1);
+        let clerk = guard(&session, EnemyKind::Clerk);
+        let raised = raise(&mut session, clerk, 60).expect("the clerk joins the fight");
+        let shots = shots_over(&mut session, 40, clerk);
+        let hp = body(&session, id).hp;
+        (raised, shots, hp)
+    };
+    let reference = startled(Uuid::from_u128(100), true);
+    for n in 1..=12u64 {
+        let participant = Uuid::from_u64_pair(
+            n.wrapping_mul(0x9e37_79b9_7f4a_7c15),
+            n.wrapping_mul(0xbf58_476d_1ce4_e5b9),
+        );
+        for numbered in [true, false] {
+            assert_eq!(
+                startled(participant, numbered),
+                reference,
+                "participant {participant}, numbered bodies {numbered}"
+            );
+        }
+    }
 }
 
 #[test]

@@ -185,7 +185,7 @@
     "map_index": 1,
     "state": {
       "attempt": 1,
-      "changed_at": 357,
+      "changed_at": 346,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -233,13 +233,13 @@
         "revision": 4
       }
     },
-    "tick": 357
+    "tick": 346
   },
   {
     "map_index": 1,
     "state": {
       "attempt": 1,
-      "changed_at": 889,
+      "changed_at": 538,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -297,13 +297,13 @@
         "revision": 4
       }
     },
-    "tick": 889
+    "tick": 538
   },
   {
     "map_index": 1,
     "state": {
       "attempt": 1,
-      "changed_at": 890,
+      "changed_at": 539,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -362,13 +362,13 @@
         "revision": 4
       }
     },
-    "tick": 890
+    "tick": 539
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 972,
+      "changed_at": 620,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -419,13 +419,13 @@
         "revision": 4
       }
     },
-    "tick": 972
+    "tick": 620
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 972,
+      "changed_at": 620,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -481,13 +481,13 @@
         "revision": 4
       }
     },
-    "tick": 996
+    "tick": 644
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 997,
+      "changed_at": 645,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -525,7 +525,7 @@
         "revision": 4
       }
     },
-    "tick": 997
+    "tick": 645
   },
   {
     "map_index": 3,
@@ -653,7 +653,7 @@
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 215,
+      "changed_at": 295,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -701,13 +701,13 @@
         "revision": 4
       }
     },
-    "tick": 215
+    "tick": 295
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 215,
+      "changed_at": 295,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -760,13 +760,13 @@
         "revision": 4
       }
     },
-    "tick": 584
+    "tick": 723
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 585,
+      "changed_at": 724,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -815,13 +815,13 @@
         "revision": 4
       }
     },
-    "tick": 585
+    "tick": 724
   },
   {
     "map_index": 3,
     "state": {
       "attempt": 1,
-      "changed_at": 585,
+      "changed_at": 724,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -875,13 +875,13 @@
         "revision": 4
       }
     },
-    "tick": 782
+    "tick": 949
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 783,
+      "changed_at": 950,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": false,
@@ -940,13 +940,13 @@
         "revision": 4
       }
     },
-    "tick": 783
+    "tick": 950
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 949,
+      "changed_at": 1114,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -997,13 +997,13 @@
         "revision": 4
       }
     },
-    "tick": 949
+    "tick": 1114
   },
   {
     "map_index": 4,
     "state": {
       "attempt": 1,
-      "changed_at": 949,
+      "changed_at": 1114,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1059,132 +1059,13 @@
         "revision": 4
       }
     },
-    "tick": 1160
-  },
-  {
-    "map_index": 4,
-    "state": {
-      "attempt": 1,
-      "changed_at": 949,
-      "id": "peace_without_interruption",
-      "m17": {
-        "brief_completed": true,
-        "challenges": {
-          "approach_breached": true,
-          "core_defeated": true,
-          "kessel_secured": true,
-          "voss_captured": false
-        },
-        "completed": [
-          "approach_breached",
-          "hall_secured",
-          "kessel_secured",
-          "core_unsealed",
-          "core_defeated"
-        ],
-        "core_unsealed": true,
-        "current": {
-          "action": {
-            "kind": "use",
-            "target": {
-              "approach": [
-                0.0,
-                0.0,
-                28.5
-              ],
-              "decoration": 3
-            }
-          },
-          "id": "voss_captured"
-        },
-        "kessel_secured": true,
-        "voss_captured": false
-      },
-      "party": [
-        {
-          "aboard": false,
-          "alive": true,
-          "id": "00000000-0000-0000-0000-0000000277b6",
-          "name": "Route",
-          "ready": true
-        }
-      ],
-      "phase": "in_progress",
-      "prompts": [],
-      "rules": {
-        "difficulty": "standard",
-        "revision": 4
-      }
-    },
-    "tick": 1163
-  },
-  {
-    "map_index": 4,
-    "state": {
-      "attempt": 1,
-      "changed_at": 949,
-      "id": "peace_without_interruption",
-      "m17": {
-        "brief_completed": true,
-        "challenges": {
-          "approach_breached": true,
-          "core_defeated": true,
-          "kessel_secured": true,
-          "voss_captured": false
-        },
-        "completed": [
-          "approach_breached",
-          "hall_secured",
-          "kessel_secured",
-          "core_unsealed",
-          "core_defeated"
-        ],
-        "core_unsealed": true,
-        "current": {
-          "action": {
-            "kind": "use",
-            "target": {
-              "approach": [
-                0.0,
-                0.0,
-                28.5
-              ],
-              "decoration": 3
-            }
-          },
-          "id": "voss_captured"
-        },
-        "kessel_secured": true,
-        "voss_captured": false
-      },
-      "party": [
-        {
-          "aboard": false,
-          "alive": true,
-          "id": "00000000-0000-0000-0000-0000000277b6",
-          "name": "Route",
-          "ready": true
-        }
-      ],
-      "phase": "in_progress",
-      "prompts": [
-        {
-          "kind": "objective_use",
-          "player_id": "00000000-0000-0000-0000-0000000277b6"
-        }
-      ],
-      "rules": {
-        "difficulty": "standard",
-        "revision": 4
-      }
-    },
-    "tick": 1164
+    "tick": 1241
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1165,
+      "changed_at": 1242,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1236,13 +1117,13 @@
         "revision": 4
       }
     },
-    "tick": 1165
+    "tick": 1242
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1165,
+      "changed_at": 1242,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1294,13 +1175,13 @@
         "revision": 4
       }
     },
-    "tick": 1303
+    "tick": 1418
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1165,
+      "changed_at": 1242,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1357,13 +1238,13 @@
         "revision": 4
       }
     },
-    "tick": 1318
+    "tick": 1433
   },
   {
     "map_index": 5,
     "state": {
       "attempt": 1,
-      "changed_at": 1319,
+      "changed_at": 1434,
       "id": "peace_without_interruption",
       "m17": {
         "brief_completed": true,
@@ -1402,7 +1283,7 @@
         "revision": 4
       }
     },
-    "tick": 1319
+    "tick": 1434
   },
   {
     "map_index": 6,
