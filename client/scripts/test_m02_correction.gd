@@ -18,7 +18,7 @@ static func _solid(low: Vector3, high: Vector3) -> Dictionary:
 	return {"min_x": low.x, "max_x": high.x, "bottom": low.y, "top": high.y, "min_z": low.z, "max_z": high.z}
 
 static func _info(map_id: int = 1002, frame_x: float = 8.0) -> Dictionary:
-	return {"map_id": map_id, "map_name": "Persons Unknown: ward graybox", "solids": [
+	return {"map_id": map_id, "map_name": "Persons Unknown", "solids": [
 		_solid(Vector3(-5.5, 3.68, -32), Vector3(-4.7, 3.78, -29.5)),
 		_solid(Vector3(-4, 0, -15), Vector3(0, 3.2, -13)),
 		_solid(Vector3(frame_x, 0, -13), Vector3(9, 2.6, -9)),

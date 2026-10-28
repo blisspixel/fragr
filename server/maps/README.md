@@ -42,7 +42,7 @@ props. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
 prototype, not a finished M01 or the rescue. Checkpoints are not built.
 
-`m02-persons-unknown.json` is the Persons Unknown ward graybox, map 1002. The
+`m02-persons-unknown.json` is Persons Unknown, map 1002. The
 party enters on an observation gallery whose slot window faces the correction
 ward. Latch's repaired body and second-bay release mark the destination. One
 noncombat Notary scans from a sealed high bay beyond ballistic inspection glass;

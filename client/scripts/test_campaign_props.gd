@@ -9,7 +9,7 @@ extends SceneTree
 ## The concourse's stretcher, cases and seats are the prepared props too.
 
 const MAPS: Dictionary = {
-	"Persons Unknown: ward graybox": "m02-persons-unknown",
+	"Persons Unknown": "m02-persons-unknown",
 	"Port of Entry": "m06_port_of_entry",
 	"Common Carrier": "m10_common_carrier",
 	"The Weight of Permission": "m13-weight-of-permission",

@@ -14,7 +14,7 @@ func _run() -> void:
 	var recall: ArenaSky.Preset = ArenaSky.preset_for("Recall Notice")
 	var scrap: ArenaSky.Preset = ArenaSky.preset_for("Arena Duel")
 	var yard: ArenaSky.Preset = ArenaSky.preset_for("Compliance Yard")
-	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
+	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown")
 	var freight: ArenaSky.Preset = ArenaSky.preset_for("Scheduled Service: recall freight yard")
 	var town: ArenaSky.Preset = ArenaSky.preset_for("Notice to Vacate: Low Water market")
 	var launch: ArenaSky.Preset = ArenaSky.preset_for("Launch Authority (development)")
