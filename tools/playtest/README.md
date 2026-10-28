@@ -77,8 +77,9 @@ attempt number (`fragr_server::mission::retry_seed`, #489). A deterministic
 agent that reopens a death therefore meets a new fight instead of replaying
 the old one tick for tick, and the same run and attempt always replay the
 same fight; a test pins both. Recorded sessions use a fixed run id, so a
-report still reproduces. Each segment records the seed of the stream it ran
-on; aim phase keeps the trial seed.
+report still reproduces. Each segment records the seed its attempt runs on,
+derived with the server's own `retry_seed` rather than read back from the
+server; aim phase keeps the trial seed.
 
 Outcomes are `m01_exhausted` or `m01_timeout` (no M02 entry), `window_elapsed`
 (alive when the window ends, after any retries), `exhausted` and `departed`.

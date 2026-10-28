@@ -127,8 +127,9 @@ requests are refused, and exactly one continue restores the entry kit. Over 72
 trials, 50 departures entered M02, 42 were alive when the window closed and 8
 exhausted, with no lifecycle violation and no M02 clear claimed. Retries
 restore carried low health, so very low-health entries can exhaust a run (a
-design question), and the local child's fixed seed replays a deterministic
-agent's death on every Continue (#489).
+design question). The local child's fixed seed replayed a deterministic
+agent's death on every Continue (#489); since wave 13 each retry runs on its
+own stream derived from the run and attempt.
 
 Wave 12 of the same round voices and deepens the arena and the campaign.
 Callum records the 48 voiced Host slots, chosen and levelled by transcript and

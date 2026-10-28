@@ -454,13 +454,16 @@ fn a_guard_out_of_view_waits_while_one_in_view_waits_for_a_token() {
     // authored order, but the two in view raise first: two guns already on
     // the participant, then one in view still waiting its turn, keep it off.
     let mut session = behind_and_ahead(AWAY);
-    let raised = first_raises(&mut session, &["behind", "ahead_west", "ahead_east"], 120);
+    let raised = first_raises(&mut session, &["behind", "ahead_west", "ahead_east"], 240);
     let (behind, west, east) = (raised[0], raised[1], raised[2]);
     let west = west.expect("a guard in view raises");
     let east = east.expect("both guards in view raise");
     assert!(west.max(east) <= 20, "{raised:?}");
+    // Waiting is not a reprieve: once nobody in view is waiting, the guard
+    // behind takes its turn.
+    let behind = behind.expect("the guard behind still attacks");
     assert!(
-        behind.is_none_or(|behind| behind > west.max(east)),
+        behind > west.max(east),
         "the guard behind waited for both in view: {raised:?}"
     );
 }
