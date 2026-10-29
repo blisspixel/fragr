@@ -11,6 +11,9 @@
 # instead. A tiling compositor may resize the nested window; stills and frame
 # timing read Godot's own viewport at the manifest size, not the screen.
 #
+# FRAGR_QA_SCRIPT names a review script that extends the tour (for example
+# res://qa/m06_combat_review.gd); the default is res://scripts/qa_tour.gd.
+#
 # FRAGR_QA_QUALITY=performance|balanced|high runs the whole tour on that
 # graphics preset; a state's own "graphics" options still win for that state.
 #
@@ -160,7 +163,7 @@ stop_server() {
 run_client() {
   local dir="$1" manifest="${2:-}"
   local run=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
-       --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
+       --windowed --resolution 1280x720 --script "${FRAGR_QA_SCRIPT:-res://scripts/qa_tour.gd}")
   if [ -n "${FRAGR_QA_POSITION:-}" ]; then
     run+=(--position "$FRAGR_QA_POSITION")
   fi
