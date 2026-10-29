@@ -38,8 +38,19 @@ static func authored_info() -> Dictionary:
 		var placed: Dictionary = detail.duplicate(true)
 		placed["solid"] = index_of[detail["solid"]]
 		decorations.append(placed)
+	# The wire shape of the mission facts: arrivals as actions, and the
+	# departure panel as a presentation decoration named by index.
+	var authored: Dictionary = source["m10"]
+	var panel: Dictionary = authored["departure"]["panel"].duplicate(true)
+	panel["solid"] = index_of[panel["solid"]]
+	decorations.append(panel)
+	var objectives: Array = []
+	for objective: Dictionary in authored["objectives"]:
+		objectives.append({"id": objective["id"], "action": {"kind": "arrival", "feet": objective["approach"], "region": objective["arrival"]}})
+	var m10: Dictionary = {"objectives": objectives, "departure": {"decoration": decorations.size() - 1, "approach": authored["departure"]["approach"]},
+		"boarding": authored["departure"]["boarding"], "pilot": authored["pilot"], "companion_start": authored["companion_start"], "passengers": authored["passengers"]}
 	return {"type": "map_info", "geometry_version": 2, "map_id": source["map_id"], "map_name": source["name"],
-		"half_extent": source["half_extent"], "solids": solids, "m10": source["m10"],
+		"half_extent": source["half_extent"], "solids": solids, "m10": m10,
 		"presentation": {"ground": source.get("ground", "concrete"), "solids": surfaces, "decorations": decorations}}
 
 static func _reserved(colour: Color) -> bool:
@@ -114,16 +125,44 @@ func _run() -> void:
 		print("test_m10_dressing: PASS static-hull guard, re-sent map, eleven dressed regions, warm lamps without red or cyan, no words or bodies, outside beyond the glass, surfaces by use and lashed crates on their solids")
 	quit(0 if failures == 0 else 1)
 
-## The ship presenter keeps its dressing across a re-sent map and clears it
-## with the next map.
+## The ship presenter keeps one dressing across a re-sent map, even when a
+## solid the guard does not key on changes; it creates nothing off-map or
+## for a refused map, and drops the dressing for a different map.
 func _check_ship_node(info: Dictionary) -> void:
 	var presenter: M10Ship = M10Ship.new()
 	root.add_child(presenter)
+	presenter.configure_map({"type": "map_info", "map_id": 1, "map_name": "Scrap", "solids": []})
+	_expect(presenter.dressing == null and presenter.get_child_count() == 0, "an ordinary map creates no ship dressing")
+	var refused: Dictionary = info.duplicate(true)
+	refused["m10"].erase("departure")
+	_expect(not MissionState.map_error(refused).is_empty(), "the refused fixture really is refused")
+	presenter.configure_map(refused)
+	_expect(presenter.dressing == null and presenter.get_child_count() == 0, "a refused ship map gets no dressing")
+	_expect(MissionState.map_error(info).is_empty(), "the authored fixture passes the mission boundary")
 	presenter.configure_map(info)
 	_expect(presenter.dressing != null and presenter.dressing.active(), "the ship presenter dresses its own map")
 	var first: Node = presenter.dressing.get_node_or_null("CrewAft")
 	presenter.configure_map(info.duplicate(true))
-	_expect(presenter.dressing.get_node_or_null("CrewAft") == first and first != null, "a re-sent map never rebuilds the dressing")
+	_expect(presenter.dressing.get_node_or_null("CrewAft") == first and first != null, "an identical re-sent map never rebuilds the dressing")
+	var nudged: Dictionary = info.duplicate(true)
+	var moved_any: bool = false
+	for solid: Dictionary in nudged["solids"]:
+		if is_equal_approx(float(solid["min_x"]), -4.8) and is_equal_approx(float(solid["min_z"]), 9.3):
+			solid["top"] = 3.6
+			moved_any = true
+	_expect(moved_any, "the coolant bank exists to change")
+	_expect(M10Dressing.ship_layout(nudged), "a solid off the guard leaves the layout recognized")
+	presenter.configure_map(nudged)
+	var dressings: Array[Node] = presenter.find_children("ShipDressing*", "", false, false)
+	_expect(dressings.size() == 1 and presenter.dressing.get_node_or_null("CrewAft") == first, "a re-send with a changed non-key solid keeps one dressing")
+	_expect(presenter.dressing.rooms.size() == ROOMS.size(), "the kept dressing is not duplicated")
+	var other: Dictionary = info.duplicate(true)
+	for solid: Dictionary in other["solids"]:
+		if is_equal_approx(float(solid["min_x"]), -3.55) and is_equal_approx(float(solid["min_z"]), -13.0):
+			solid["max_z"] = -4.0
+	presenter.configure_map(other)
+	_expect(presenter.dressing == null and presenter.get_child_count() == 0, "a different layout removes the dressing")
+	presenter.configure_map(info)
 	presenter.clear_map()
 	_expect(presenter.dressing == null and presenter.get_child_count() == 0, "leaving the map removes the dressing")
 	presenter.queue_free()
