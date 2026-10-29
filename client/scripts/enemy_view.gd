@@ -6,6 +6,14 @@ const UNION_SPRITE: Shader = preload("res://assets/shaders/union_sprite.gdshader
 ## Linear plate scale that brings the Heavy Sweeper's sheet to the Clerk's
 ## issued-black value in daylight, red points excluded.
 const HEAVY_BODY_VALUE: float = 0.4
+## Sheets whose lamps are painted about three times the issued optic's linear
+## red (0.76 against 0.26). Their light is held to the issued optic's value
+## and the tell swells in a deeper red, so the top of a windup stays red.
+const BRIGHT_LAMP_KINDS: Array[String] = ["heavy_sweeper", "turret"]
+const ISSUED_OPTIC_LEVEL: float = 0.3
+const UNCAPPED_OPTIC_LEVEL: float = 1000.0
+const ISSUED_TELL_HUE: Vector3 = Vector3(1.0, 0.07, 0.05)
+const BRIGHT_TELL_HUE: Vector3 = Vector3(1.0, 0.03, 0.025)
 static var _textures: Dictionary[String, Texture2D] = {}
 ## The Auditor's atlas draws its shield plate; a gold rim keeps the officer
 ## distinct at range, and two lamps on the drawn plate count repairs left.
@@ -145,6 +153,11 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	# Issued black at distance: the Heavy's plates are baked lighter than any
 	# other Union sheet and carry no normal map (see union_sprite body_value).
 	material.set_shader_parameter("body_value", HEAVY_BODY_VALUE if kind == "heavy_sweeper" else 1.0)
+	# Lamps painted far above the issued optic would clip to salmon when the
+	# tell drives them; only these sheets cap and deepen their light.
+	var bright: bool = kind in BRIGHT_LAMP_KINDS
+	material.set_shader_parameter("optic_level", ISSUED_OPTIC_LEVEL if bright else UNCAPPED_OPTIC_LEVEL)
+	material.set_shader_parameter("tell_hue", BRIGHT_TELL_HUE if bright else ISSUED_TELL_HUE)
 	if kind == "auditor":
 		material.set_shader_parameter("rim_color", AUDITOR_RIM)
 		_attach_plate(body)
@@ -158,6 +171,7 @@ func _apply_absorbed(body: Sprite3D) -> void:
 		return
 	material.set_shader_parameter("absorbed", 1.0 if absorbed else 0.0)
 	material.set_shader_parameter("work_glow", WORK_GLOW)
+	material.set_shader_parameter("work_rest", WORK_ENERGY)
 
 ## Seconds on the shared server clock, smoothed by at most one tick.
 func shared_seconds() -> float:

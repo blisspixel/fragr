@@ -30,8 +30,11 @@ uniform float body_lift = 0.5;
 // the plate shading and leaves optics, visor, armbands and tells untouched.
 uniform float body_value = 1.0;
 uniform float red_glow = 1.6;
-// The issued optic's linear red value; brighter painted lamps emit at it.
-uniform float optic_level = 0.3;
+// Brightest linear red a lamp emits at; the default never caps. Sheets that
+// paint their lamps far above the issued optic (EnemyView.BRIGHT_LAMP_KINDS)
+// set it to the issued optic's value, with a deeper red for the tell swell.
+uniform float optic_level = 1000.0;
+uniform vec3 tell_hue = vec3(1.0, 0.07, 0.05);
 uniform vec3 rim_color : source_color = vec3(0.42, 0.44, 0.50);
 uniform float rim_glow = 0.55;
 // Redactor approach only: one texel of visible scan jitter, never invisibility.
@@ -103,13 +106,14 @@ void fragment() {
 		// The Heavy Sweeper and Turret sheets paint their lamps near 0.76
 		// linear, three times the issued optic: driven at that value the red
 		// channel clipped while green kept climbing, and the top of a windup
-		// read salmon. Every lamp emits at no more than the issued optic's
-		// level, in its own hue, so the tell swells in value and stays red.
+		// read salmon. Those two sheets set `optic_level`, so their lamps emit
+		// at no more than the issued optic's value, in their own hue, and swell
+		// with a deeper `tell_hue`. Every other sheet keeps the defaults, which
+		// leave its light exactly as painted.
 		float resting = min(red_glow, 1.6);
-		float level = min(texel.r, optic_level);
-		vec3 hue = texel.rgb / max(texel.r, 0.001);
-		vec3 union_light = (hue * level * resting
-			+ vec3(1.0, 0.03, 0.025) * level * max(red_glow - resting, 0.0)) * red;
+		vec3 lamp_rgb = texel.r > optic_level ? texel.rgb * (optic_level / texel.r) : texel.rgb;
+		vec3 union_light = lamp_rgb * red * resting
+			+ tell_hue * red * lamp_rgb.r * max(red_glow - resting, 0.0);
 		// The working light's swell keeps its hue the same way: past its
 		// resting energy it adds a deeper cyan with almost no red, so the top
 		// of an absorbed windup reads cyan rather than washing to pale mint.
