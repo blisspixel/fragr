@@ -141,6 +141,7 @@ func apply_map_info(info: Dictionary) -> void:
 		ocean.build(info)
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
+		M10Dressing.restyle_ship(self, info, _solid_views)
 	if info.get("m06") is Dictionary:
 		M06Dressing.restyle(self, info, _solid_views)
 	if info.get("m07") is Dictionary:

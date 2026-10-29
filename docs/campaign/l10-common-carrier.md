@@ -5,7 +5,12 @@ Shared [world direction](../design/space.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed, unbuilt. Interplanetary ship before the wipe. Target
+**Status:** a playable development mission on main (map 1010,
+`server/maps/m10_common_carrier.json`): three decks, two stair trunks, the
+freight shaft, four ordered boarding fights and a shared departure. Dressed
+toward the golden slice in wave 16 ([below](#golden-slice-dressing-wave-16)).
+The Repeater grant, mines, secrets beyond the three authored supplies, par and
+fresh-player acceptance are open. Interplanetary ship before the wipe. Target
 8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#level-10-common-carrier).
 
 ## Story and cast
@@ -179,3 +184,64 @@ explain it. Something else could too. The game never decides.
 A human asks why the agent booked the best bunk anyway. Neither wins.
 
 **The moment.** The message that knows the ledger.
+
+## Golden-slice dressing (wave 16)
+
+`M10Dressing` (`client/scripts/m10_dressing.gd`) furnishes the ship without
+touching gameplay: the server's solids are unchanged and the dressing adds no
+body. `M10Ship` owns it, so a re-sent map for the same layout keeps one dressed
+ship and any other map clears it. Its layout guard keys on geometry that never
+moves: the hull walls, the lower floor, the fore window, both stair trunk walls
+and the deck plates either side of the shaft.
+
+`M10Dressing.restyle_ship` paints the solids by use. The hull is gunmetal plate
+with real ribs every three metres up both sides and transverse beams under
+every plate, broken around the shaft and the trunks. The stair trunks are worn
+bone pressure walls (`#ad9d80`, warm and mid valued, never the Inheritance's
+matte off-white); the old pressure-bone tile with its cyan flecks is gone from
+this map. The cargo deck floor is grating, the crew and command decks worn
+plate. Both cargo stacks are drawn as prepared supply crates lashed with rust
+straps, standing a few centimetres proud of their solids, whose own views stay
+as the physical fallback. `ArenaSky.common_carrier()` lowers the
+ambient floor so the ship is shaped by its own caged work lamps and the crew's
+bulbs, keeps space through the window one even black, and keeps an actor fill
+so black-and-red boarders read against gunmetal and bone.
+
+Each deck is its own place. The cargo deck has ochre handling lanes, the stock
+locker on the fore bulkhead, the passengers' bags behind a cargo net, coolant
+and warm-water runs with valve wheels along the hull, the power bank's gauges
+and amber lamps, the coolant risers, oil-stained plate, the outer cargo door
+dogged shut on the aft bulkhead and the rescued people's luggage tied along
+the port hull. The crew deck is where people live: rugs, the berth curtain,
+the repair corner with its tool board and spare plates, galley shelves of tins
+and pots, the surplus locker with a cargo sticker and a small six, a wall of
+pinned photographs and drawings with coats on hooks at each trunk, bedrolls in
+their owners' colours with hangings behind them, lanterns, books and mugs,
+washing on a line under the plate, strings of warm bulbs, and a patchwork quilt
+on the aft bulkhead. The command deck is quieter: window mullions and sill,
+cable trays, the pilot's harnesses, a hand-drawn chart of two worlds and the
+line between them, the crew cubby's cot, note and lamp, and work suits in
+their owners' colours aft, with a riveted hull patch and strapped water
+bladders. The freight shaft has a hoist rail and hook under the roof, a warm
+flood down all three decks and ochre hazard edges on both upper plates.
+
+Every stair trunk opening has a bone pressure door latched open, with dogs, a
+port and a header, and a painted deck shape at eye height: a square on the
+cargo deck, a circle on the crew deck, a triangle on command, so the ship reads
+without words. Outside the window are stars and the custody tender riding
+alongside: black hull, one red seal, red running lights.
+
+**Signs.** Four readable signs, all placed before this wave: `CARGO / DECK 1`,
+`CREW / DECK 2`, `COMMAND / DECK 3` and `CONFIRM SHIP CLEAR`. The dressing adds
+no words; the deck shapes and the sixes are marks.
+
+`client/qa/m10-golden.json` frames every beat across the three decks from a
+spectator camera; `m10-golden-guards.json` wakes the first boarders and frames
+them against the crates, hull and trunk walls. The full combat route in
+`client/qa/m10_common_carrier.json` (run by `client/qa/live_crew_tour.gd`)
+still reaches the shared departure with the dressing in place. Still open: the
+Repeater is not yet granted by the server, so no locker lesson is staged; the
+tender is a simple silhouette; the hull plate and floors are tiled rather than
+modelled; Tern's skin is a light grey that should be checked against the
+faction contract in that character's own pass; the boarding tubes are not yet
+an authored server event; fresh-player pacing and GPU performance.
