@@ -399,6 +399,12 @@ async fn watcher_task(
                     result.delta_worlds += usize::from(world.last_was_delta());
                 }
             }
+            // A degraded watcher the server gives up on is told why first;
+            // that is the server closing it, which the row measures.
+            ServerMessage::Error { .. } if kind != WatcherKind::Healthy => {
+                result.disconnected = !*stop.borrow();
+                break;
+            }
             ServerMessage::Error { code, message } => {
                 return Err(Error::Server(format!("watcher {code}: {message}")));
             }
@@ -1117,10 +1123,17 @@ pub fn link_profiles() -> Vec<crate::link::LinkProfile> {
             ..broadband
         },
         LinkProfile {
-            // An outage longer than the server's unanswered-ping bound.
-            name: "outage_5s",
+            // Under the server's unanswered-ping bound with its ping period.
+            name: "outage_3_5s",
             outage_every_ms: 12_000,
-            outage_ms: 5_000,
+            outage_ms: 3_500,
+            ..broadband
+        },
+        LinkProfile {
+            // Past it: a ping sent as the link drops waits the whole outage.
+            name: "outage_6s",
+            outage_every_ms: 15_000,
+            outage_ms: 6_000,
             ..broadband
         },
         LinkProfile {
