@@ -316,12 +316,6 @@ impl Navigator {
         if !recovering_static {
             self.avoidance_motion = None;
         }
-        let static_obstructed = dx.hypot(dz) < 0.01;
-        if neighbours.is_empty() && !static_obstructed && !recovering_static {
-            self.avoidance_stalled = 0;
-            self.avoidance_position = None;
-            return action;
-        }
         if tick != self.avoidance_tick {
             // Wire readers can receive a newer snapshot after intervening ones
             // were coalesced. Require six observed stationary positions, while
@@ -340,6 +334,23 @@ impl Navigator {
             self.avoidance_tick = tick;
         }
         let stalled = self.avoidance_stalled >= 6;
+        // Wire rounding can put an observed body just outside a door jamb
+        // while its authoritative position still touches it. A clear local
+        // forecast must not erase consecutive observed immobility.
+        let rounded_edge = stalled
+            && arena.solids.iter().any(|solid| {
+                solid.top > me.from.y + STEP_UP
+                    && solid.bottom < me.from.y + me.height - crate::movement::CONTACT_EPSILON
+                    && solid.blocks(
+                        wanted.x,
+                        wanted.z,
+                        me.radius + 1.0 / crate::protocol::quantize::POSITION_SCALE,
+                    )
+            });
+        let static_obstructed = dx.hypot(dz) < 0.01 || rounded_edge;
+        if neighbours.is_empty() && !static_obstructed && !recovering_static {
+            return action;
+        }
         if dx.hypot(dz) < 0.01 {
             if !stalled && !recovering_static {
                 return action;
@@ -1228,6 +1239,125 @@ mod tests {
     }
 
     #[test]
+    fn rounded_tripoint_jamb_observations_cannot_hide_actual_immobility() {
+        let runtime = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::TripointWorks);
+        for route_to_gate in [false, true] {
+            // Seed 49's actual body is a few micrometres inside the inflated
+            // north gate edge. Its millimetre wire observation lies outside it.
+            let mut mover = crowd_body(1, -3.5000098, 0.0, 90.51098, std::f32::consts::FRAC_PI_2);
+            let mut nav = Navigator::default();
+            let start = mover.from;
+            let mut longest = 0;
+            let mut stationary = 0;
+            let goal = [0.0, 0.0, 95.0];
+            let mut arrived = false;
+            for tick in 1..=100 {
+                let mut observed = mover.clone();
+                observed.from.x = crate::protocol::quantize::position(mover.from.x);
+                observed.from.z = crate::protocol::quantize::position(mover.from.z);
+                // snapshot_bodies reconstructs ordinary stationary contacts.
+                observed.from.vx = 0.0;
+                observed.from.vz = 0.0;
+                observed.from.vy = 0.0;
+                observed.proposed = observed.from;
+                if tick == 1 {
+                    let predicted = crate::movement::live_step_with_height(
+                        observed.from,
+                        &crate::movement::MoveInput {
+                            forward: true,
+                            yaw: std::f32::consts::FRAC_PI_2,
+                            speed_scale: 1.0,
+                            ..Default::default()
+                        },
+                        crate::movement::ACTOR_REFERENCE_SPEED,
+                        0.05,
+                        runtime.arena(),
+                        mover.height,
+                    );
+                    assert!(
+                        predicted.z - observed.from.z > 0.2,
+                        "rounded forecast must actually miss this jamb"
+                    );
+                }
+                let intent = Action {
+                    forward: true,
+                    yaw: Some(std::f32::consts::FRAC_PI_2),
+                    pitch: Some(0.125),
+                    weapon_swap: Some(crate::protocol::WeaponType::Rail),
+                    ..Default::default()
+                };
+                let routed = if route_to_gate {
+                    nav.steer(
+                        runtime.navigation(),
+                        [observed.from.x, observed.from.y, observed.from.z],
+                        NavigationGoal {
+                            feet: goal,
+                            combat: false,
+                        },
+                        intent.clone(),
+                        tick,
+                        true,
+                    )
+                } else {
+                    intent.clone()
+                };
+                let driven = nav.avoid_bodies(
+                    runtime.arena(),
+                    Uuid::from_u128(1),
+                    &[observed],
+                    routed.clone(),
+                    tick,
+                );
+                assert_eq!(driven.yaw, routed.yaw);
+                assert_eq!(driven.pitch, intent.pitch);
+                assert_eq!(driven.weapon_swap, intent.weapon_swap);
+                let next = crate::movement::live_step_with_height(
+                    mover.from,
+                    &crate::movement::MoveInput {
+                        forward: driven.forward,
+                        back: driven.back,
+                        left: driven.left,
+                        right: driven.right,
+                        yaw: driven.yaw.unwrap(),
+                        speed_scale: 1.0,
+                        ..Default::default()
+                    },
+                    crate::movement::ACTOR_REFERENCE_SPEED,
+                    0.05,
+                    runtime.arena(),
+                    mover.height,
+                );
+                stationary = if (next.x - mover.from.x).hypot(next.z - mover.from.z) < 0.01 {
+                    stationary + 1
+                } else {
+                    0
+                };
+                longest = longest.max(stationary);
+                mover.from = next;
+                mover.proposed = next;
+                if route_to_gate && (next.x - goal[0]).hypot(next.z - goal[2]) < 0.4 {
+                    arrived = true;
+                    break;
+                }
+            }
+            assert!(
+                longest < 10,
+                "actual movement must escape despite clear rounded forecasts: {mover:?}"
+            );
+            assert!(
+                (mover.from.x - start.x).hypot(mover.from.z - start.z) > 4.0,
+                "must make real supported progress: {mover:?}"
+            );
+            if route_to_gate {
+                assert!(
+                    arrived,
+                    "full route must cross the gate, not only slide along its wall: {mover:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn actual_gulch_static_corners_recover_sustained_combat_movement() {
         let runtime = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::ReclamationGulch);
         for feet in [[73.28353, 0.0, 21.406975], [54.56577, 0.0, 37.4444]] {
@@ -1321,6 +1451,51 @@ mod tests {
                 "recovery needs actual net progress: {mover:?}"
             );
             eprintln!("static corner start={feet:?}, final={:?}, longest_stationary={longest}, first_escape={first_escape:?}", mover.from);
+        }
+    }
+
+    #[test]
+    fn rounded_edge_recovery_ignores_cover_on_other_floors() {
+        let arena = Arena {
+            half: 20.0,
+            solids: vec![
+                Solid {
+                    min_x: -5.0,
+                    max_x: 5.0,
+                    min_z: -5.0,
+                    max_z: 5.0,
+                    bottom: -1.0,
+                    top: 0.0,
+                },
+                Solid {
+                    min_x: -5.0,
+                    max_x: 5.0,
+                    min_z: -5.0,
+                    max_z: 5.0,
+                    bottom: 2.0,
+                    top: 3.0,
+                },
+            ],
+        };
+        let mut nav = Navigator::default();
+        let mover = crowd_body(1, 0.0, 0.0, 0.0, 0.0);
+        let intent = Action {
+            back: true,
+            fire: true,
+            ..Default::default()
+        };
+        for tick in 1..=20 {
+            let driven = nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                std::slice::from_ref(&mover),
+                intent.clone(),
+                tick,
+            );
+            assert_eq!(
+                serde_json::to_value(driven).unwrap(),
+                serde_json::to_value(&intent).unwrap()
+            );
         }
     }
 
