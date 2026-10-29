@@ -1,0 +1,29 @@
+{
+  "comment": "M10 golden-slice art review. Eye-height spectator views of every beat on the authored route through the Common Carrier's three decks: passenger deck, forward cargo, lower service, the freight shaft, the aft hold, the command approach and its window. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m10_common_carrier.json. Look at each still against docs/design/space.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Boarders appear in m10-golden-guards.json and through combat in client/qa/m10_common_carrier.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"passenger_arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[0,6.45,-15.5],"camera_look_at":[0,6.0,0],"allow_empty_roster":true,"settle_seconds":1.5,"note":"Arrival on the passenger deck, looking aft down the middle deck toward the freight shaft rails."},
+    {"name":"passenger_berths","camera":"overview","camera_position":[3.7,6.45,-13.6],"camera_look_at":[6.4,5.3,-15.8],"allow_empty_roster":true,"note":"The crew berths: personal blankets, belongings, a small lamp."},
+    {"name":"passenger_port","camera":"overview","camera_position":[-0.6,6.45,-13.0],"camera_look_at":[-5.5,5.6,-17.0],"allow_empty_roster":true,"note":"The port side of the passenger deck by the west stair trunk: rescued people's bedding and bags."},
+    {"name":"repair_bench","camera":"overview","camera_position":[3.0,6.45,-7.5],"camera_look_at":[5.9,5.4,-9.3],"allow_empty_roster":true,"note":"The body repair bench."},
+    {"name":"galley","camera":"overview","camera_position":[2.8,6.45,-2.5],"camera_look_at":[5.9,5.4,-5.15],"allow_empty_roster":true,"note":"The galley island and the queue."},
+    {"name":"passenger_aft","camera":"overview","camera_position":[-2.7,6.45,8.0],"camera_look_at":[-5.5,5.8,14.0],"allow_empty_roster":true,"note":"The aft end of the passenger deck."},
+    {"name":"west_stair","camera":"overview","camera_position":[-6.5,4.0,-8.5],"camera_look_at":[-6.5,2.5,-13.0],"allow_empty_roster":true,"note":"Inside the west stair trunk between the lower and middle decks."},
+    {"name":"forward_cargo","camera":"overview","camera_position":[0,3.65,-15.0],"camera_look_at":[0,3.0,0],"allow_empty_roster":true,"note":"The forward cargo hold on the lower deck: lashed cargo, a handling path, the shaft ahead."},
+    {"name":"forward_racks","camera":"overview","camera_position":[-1.0,3.65,-8.0],"camera_look_at":[4.2,3.0,-11.4],"allow_empty_roster":true,"note":"The lashed cargo and the two-level cargo face where the first boarders come through."},
+    {"name":"cargo_stock","camera":"overview","camera_position":[1.5,3.65,-11.0],"camera_look_at":[4.0,2.4,-14.5],"allow_empty_roster":true,"note":"The cargo stock lockers by the forward bulkhead."},
+    {"name":"lower_service","camera":"overview","camera_position":[-5.5,3.65,-1.0],"camera_look_at":[-4.0,3.0,10.0],"allow_empty_roster":true,"note":"The lower service deck: coolant machinery, pipes, work light."},
+    {"name":"power_bank","camera":"overview","camera_position":[0.5,3.65,-1.5],"camera_look_at":[3.8,2.9,1.2],"allow_empty_roster":true,"note":"The power bank at fighting distance."},
+    {"name":"shaft_up","camera":"overview","camera_position":[0,3.65,1.0],"camera_look_at":[0,10.0,1.6],"allow_empty_roster":true,"note":"The freight shaft from the lower deck, looking up through all three decks."},
+    {"name":"aft_hold","camera":"overview","camera_position":[0,3.65,6.0],"camera_look_at":[0,3.0,17.0],"allow_empty_roster":true,"note":"The aft hold and the second boarding point."},
+    {"name":"east_stair","camera":"overview","camera_position":[4.6,3.65,4.0],"camera_look_at":[4.6,4.8,12.0],"allow_empty_roster":true,"note":"The east stair trunk from the lower deck."},
+    {"name":"command_approach","camera":"overview","camera_position":[0,9.25,-8.0],"camera_look_at":[0,8.8,-18.0],"allow_empty_roster":true,"note":"The upper command approach and the long window: black space in a readable frame."},
+    {"name":"command_console","camera":"overview","camera_position":[0.2,9.25,-14.0],"camera_look_at":[2.5,8.3,-16.4],"allow_empty_roster":true,"note":"The pilot consoles under the window."},
+    {"name":"crew_cubby","camera":"overview","camera_position":[-0.5,9.25,-13.0],"camera_look_at":[-3.5,8.2,-16.5],"allow_empty_roster":true,"note":"The crew cubby by the west trunk on the upper deck."},
+    {"name":"upper_overlook","camera":"overview","camera_position":[-5.0,9.25,-1.0],"camera_look_at":[0,7.0,2.0],"allow_empty_roster":true,"note":"The upper overlook above the shaft: the drop to the lower deck."},
+    {"name":"aft_gallery","camera":"overview","camera_position":[0,9.25,6.0],"camera_look_at":[0,8.5,17.5],"allow_empty_roster":true,"note":"The aft gallery on the upper deck."},
+    {"name":"shaft_down","camera":"overview","camera_position":[-2.7,9.25,-2.0],"camera_look_at":[0,2.0,1.0],"allow_empty_roster":true,"note":"Down the freight shaft from the upper deck: three decks, one hull."},
+    {"name":"ship_long","camera":"overview","camera_position":[2.7,9.25,16.5],"camera_look_at":[0,7.0,-17.0],"allow_empty_roster":true,"note":"The whole ship forward from the aft gallery to the window."}
+  ]
+}

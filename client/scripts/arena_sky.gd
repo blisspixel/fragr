@@ -269,7 +269,9 @@ static func preset_for(map_name: String) -> Preset:
 		return mars_foundry()
 	if key.contains("holdfast"):
 		return holdfast()
-	if key.contains("common carrier") or key.contains("right of search"):
+	if key.contains("common carrier"):
+		return common_carrier()
+	if key.contains("right of search"):
 		return carrier()
 	if key.contains("port of entry"):
 		return port_of_entry()
@@ -380,6 +382,29 @@ static func carrier() -> Preset:
 	preset.practical_range = 8.0
 	preset.key_energy = 0.0
 	preset.scene_fill_energy = 0.1
+	return preset
+
+## Common Carrier (docs/design/space.md): the occupied ship shaped by its own
+## caged work lamps and the crew's warm bulbs, with a lower ambient floor so
+## the pools read, no haze over the stars in the long window, and an actor
+## fill that keeps black-and-red boarders readable against gunmetal.
+static func common_carrier() -> Preset:
+	var preset: Preset = carrier()
+	# Space through the window is one even black: no horizon band.
+	preset.sky_top = Color("040508")
+	preset.sky_horizon = Color("040508")
+	preset.ground_horizon = Color("040508")
+	preset.fog_color = Color("07090c")
+	preset.fog_density = 0.0015
+	preset.ambient_color = Color(0.80, 0.74, 0.64)
+	preset.ambient_energy = 0.55
+	preset.practical_color = Color("ffd9a6")
+	preset.practical_energy = 1.1
+	preset.practical_range = 7.0
+	preset.view_fill_energy = 0.7
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.08
+	preset.saturation = 0.96
 	return preset
 
 static func moon_port() -> Preset:
