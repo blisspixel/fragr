@@ -3,20 +3,45 @@ extends Node3D
 
 ## The ship's details add no collision. Current people and feet come only
 ## from accepted mission facts; named Tern and Edda share their M10 live skins.
+## The hull's name, the impound notice on the hatch and every state-driven
+## fitting live here; the static berth is M09Dressing, which survives the
+## MapInfo re-sent when the hatch opens.
 const TINTS: Dictionary[String, Color] = {"tern": Color("cfc4a5"), "berth_crew_a": Color("a7bbad"), "berth_crew_b": Color("c6a880"), "edda": Color("b8c5c7"), "splice": Color("b6abbe")}
+## Passenger windows on each side; they light as the gantries are cleared and
+## the people from the depot go aboard.
+const WINDOWS: int = 7
+const WINDOW_DARK: Color = Color("2c3133")
+const WINDOW_LIT: Color = Color("e0b273")
+const CLAMP_HELD: Color = Color("c9922f")
+const CLAMP_FREE: Color = Color("8eb58b")
+const ENGINE_COLD: Color = Color("1c1b1a")
 var _root: Node3D = null
+var _dressing: M09Dressing = null
 var _geometry: Dictionary = {}
 var _crew: Dictionary[String, CivilianFigure] = {}
 var _hatch_lamp: MeshInstance3D = null
 var _engine_lamps: Array[MeshInstance3D] = []
 var _glazing_views: Array[MeshInstance3D] = []
+var _windows: Array[MeshInstance3D] = []
+var _clamps: Array[Node3D] = []
+var _clamp_lamps: Array[MeshInstance3D] = []
 var state_applied: int = 0
 
 func clear_map() -> void:
+	_clear_presenters()
+	if is_instance_valid(_dressing):
+		remove_child(_dressing)
+		_dressing.queue_free()
+	_dressing = null
+
+func _clear_presenters() -> void:
 	_geometry.clear()
 	_crew.clear()
 	_engine_lamps.clear()
 	_glazing_views.clear()
+	_windows.clear()
+	_clamps.clear()
+	_clamp_lamps.clear()
 	_hatch_lamp = null
 	state_applied = 0
 	if is_instance_valid(_root):
@@ -25,19 +50,25 @@ func clear_map() -> void:
 	_root = null
 
 func configure_map(info: Dictionary) -> void:
-	clear_map()
+	_clear_presenters()
 	if not info.get("m09") is Dictionary or not MissionState.map_error(info).is_empty():
+		clear_map()
 		return
+	# The static berth keeps one set of rooms across a re-sent map.
+	if M09Dressing.berth_layout(info):
+		if not is_instance_valid(_dressing):
+			_dressing = M09Dressing.new()
+			_dressing.name = "BerthDressing"
+			add_child(_dressing)
+		_dressing.configure_map(info)
+	elif is_instance_valid(_dressing):
+		remove_child(_dressing)
+		_dressing.queue_free()
+		_dressing = null
 	_geometry = MissionState.geometry_for(info)
 	_root = Node3D.new()
 	_root.name = "PassengerBerthDetails"
 	add_child(_root)
-	var stern: Dictionary = {}
-	for candidate: Dictionary in info["solids"]:
-		if float(candidate["min_x"]) == -8.0 and float(candidate["max_x"]) == 8.0 \
-			and float(candidate["min_z"]) == -22.0 and float(candidate["max_z"]) == -18.0 \
-			and float(candidate["bottom"]) == 3.0 and float(candidate["top"]) == 12.0:
-			stern = candidate
 	# Detail attaches to the authoritative hull faces, not an invented ship body.
 	for index: int in range(info["solids"].size()):
 		var solid: Dictionary = info["solids"][index]
@@ -45,46 +76,82 @@ func configure_map(info: Dictionary) -> void:
 			_glazing(solid)
 		if float(solid["min_x"]) == -8.0 and float(solid["max_x"]) == 8.0 and float(solid["top"]) == 9.0 \
 			and float(solid["min_z"]) == -18.0 and float(solid["max_z"]) == 18.0:
-			_ship(solid, stern)
+			_ship(solid)
 	var control: Dictionary = info["m09"]["departure"]
 	var decoration: Dictionary = info["presentation"]["decorations"][int(control["decoration"])]
 	var transform: Transform3D = MapDecoration.placement(info["solids"][int(decoration["solid"])], decoration)
 	_hatch_lamp = _box("BoardingStatus", transform.origin + transform.basis.z * 0.035 + transform.basis.y * 0.75, Vector3(0.9, 0.1, 0.06), Color("9a4533"), true)
+	if not bool(info["m09"]["hatch_open"]):
+		_impound_notice(info["solids"][int(info["m09"]["hatch"])])
 	ArenaSky.mark_world(_root)
 
 func _glazing(solid: Dictionary) -> void:
-	# The seal already exists in the server. A restrained face tint makes its
-	# large pressure pane legible without changing glass in other venues.
+	# The seal already exists in the server. A faint neutral face makes its
+	# large pressure pane legible without tinting the sky behind it.
 	var size: Vector3 = Vector3(float(solid["max_x"]) - float(solid["min_x"]), 0.006, float(solid["max_z"]) - float(solid["min_z"]))
 	var at: Vector3 = Vector3((float(solid["min_x"]) + float(solid["max_x"])) * 0.5, float(solid["bottom"]) - MapDecoration.OFFSET, (float(solid["min_z"]) + float(solid["max_z"])) * 0.5)
-	var pane: MeshInstance3D = _box("PressureGlazing", at, size, Color(0.35, 0.55, 0.58, 0.22))
+	var pane: MeshInstance3D = _box("PressureGlazing", at, size, Color(0.58, 0.6, 0.58, 0.1))
 	var material: StandardMaterial3D = pane.material_override as StandardMaterial3D
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.emission_enabled = true
-	material.emission = Color(0.045, 0.075, 0.078)
-	material.emission_energy_multiplier = 0.7
 	material.roughness = 0.85
 	material.metallic_specular = 0.0
 	_glazing_views.append(pane)
 
-func _ship(hull: Dictionary, stern: Dictionary = {}) -> void:
-	var width: float = float(hull["max_x"]) - float(hull["min_x"])
-	var front_host: Dictionary = hull if stern.is_empty() else stern
-	var front: float = float(front_host["min_z"]) - 0.02
-	_box("CarrierHullStripe", Vector3(0, maxf(2.2, float(front_host["bottom"]) + 0.2), front), Vector3(width, 0.22, 0.025), Color("778f8a"))
+## The keel's own faces carry the name, the windows, the clamps and the
+## engines' ready strips. Everything is flush or under the keel.
+func _ship(hull: Dictionary) -> void:
+	var port: float = float(hull["min_x"]) - 0.06
 	var label: WorldSign = WorldSign.new()
 	label.name = "CommonCarrierHullName"
-	label.position = Vector3(0, 6.7, front - 0.015)
-	label.rotation.y = PI
-	label.configure("WORLD_M09_COMMON_CARRIER", Vector2(11.0, 1.7), WorldSign.PANEL_TEXT)
+	label.position = Vector3(port, 4.75, 7.0)
+	label.rotation.y = -PI * 0.5
+	label.configure("WORLD_M09_COMMON_CARRIER", Vector2(9.6, 1.25), WorldSign.PANEL_TEXT)
 	_root.add_child(label)
 	for side: float in [-1.0, 1.0]:
-		var x: float = side * 8.02
-		_box("CarrierSideStripe", Vector3(x, 2.2, 0), Vector3(0.025, 0.22, 36), Color("778f8a"))
-		for index: int in range(7):
-			_box("CarrierPassengerWindow", Vector3(x, 6.2, -10 + index * 3.0), Vector3(0.03, 0.8, 1.4), Color("728d91"))
-		var engine: MeshInstance3D = _box("CarrierEngineReady", Vector3(side * 11, 2.8, -17.025), Vector3(3, 0.55, 0.035), Color("473c32"), true)
+		var x: float = side * 8.03
+		for index: int in range(WINDOWS):
+			var z: float = -10.0 + float(index) * 3.0
+			_box("CarrierWindowFrame", Vector3(side * 8.02, 7.0, z), Vector3(0.03, 1.0, 1.6), Color("3d4244"))
+			_windows.append(_box("CarrierPassengerWindow", Vector3(x, 7.0, z), Vector3(0.03, 0.75, 1.3), WINDOW_DARK, true))
+		# The engine throat: dark until the engines light for departure.
+		var engine: MeshInstance3D = MeshInstance3D.new()
+		engine.name = "CarrierEngineReady"
+		var throat: CylinderMesh = CylinderMesh.new()
+		throat.top_radius = 0.9
+		throat.bottom_radius = 0.9
+		throat.height = 0.02
+		throat.radial_segments = 14
+		engine.mesh = throat
+		engine.position = Vector3(side * 11.0, 3.2, -17.18)
+		engine.rotation.x = PI * 0.5
+		engine.material_override = MoonBackdrop._material(ENGINE_COLD, true)
+		_root.add_child(engine)
 		_engine_lamps.append(engine)
+		# Clamp jaws on the keel at each chock: held until the cradle releases.
+		for z: float in [-13.5, 9.5]:
+			var clamp: Node3D = Node3D.new()
+			clamp.name = "CradleClamp"
+			clamp.position = Vector3(side * 8.0, 2.0, z)
+			_root.add_child(clamp)
+			MoonBackdrop._piece(clamp, "ClampJaw", Vector3(side * 0.16, 0.55, 0), Vector3(0.32, 1.1, 2.2), MoonBackdrop._material(Color("8c7642")))
+			MoonBackdrop._piece(clamp, "ClampRam", Vector3(side * 0.12, -0.35, 0), Vector3(0.24, 0.7, 0.5), MoonBackdrop._material(Color("4a4f50")))
+			_clamp_lamps.append(MoonBackdrop._piece(clamp, "ClampLamp", Vector3(side * 0.33, 0.95, 0.7), Vector3(0.03, 0.14, 0.3), MoonBackdrop._material(CLAMP_HELD, true)))
+			_clamps.append(clamp)
+
+## The hull notice the Union pasted on the closed hatch. When the hatch
+## opens the MapInfo moves it and the notice is gone: Tern kept it.
+func _impound_notice(hatch: Dictionary) -> void:
+	var face: float = float(hatch["min_z"]) - 0.02
+	var centre: float = (float(hatch["min_x"]) + float(hatch["max_x"])) * 0.5
+	var y: float = MoveStep.solid_bottom(hatch) + 2.3
+	_box("ImpoundNoticePaper", Vector3(centre + 1.2, y, face), Vector3(1.6, 1.15, 0.01), Color("b7ae96"))
+	_box("ImpoundNoticeBorder", Vector3(centre + 1.2, y + 0.52, face - 0.004), Vector3(1.6, 0.1, 0.01), Color("8c1a1e"))
+	var notice: WorldSign = WorldSign.new()
+	notice.name = "ImpoundNotice"
+	notice.position = Vector3(centre + 1.2, y - 0.06, face - 0.012)
+	notice.rotation.y = PI
+	notice.configure("WORLD_M09_IMPOUND_NOTICE", Vector2(1.4, 0.8), WorldSign.PANEL_INK)
+	_root.add_child(notice)
 
 func apply_state(state: Dictionary) -> void:
 	if _geometry.is_empty() or state.get("id") != MissionState.M09_ID \
@@ -103,8 +170,20 @@ func apply_state(state: Dictionary) -> void:
 		_crew[id].place_feet(_feet(person["feet"]))
 	if is_instance_valid(_hatch_lamp):
 		_hatch_lamp.material_override = MoonBackdrop._material(Color("8eb58b") if facts["hatch_open"] else Color("9a4533"), true)
+	var completed: Array = facts["completed"]
 	for engine: MeshInstance3D in _engine_lamps:
-		engine.material_override = MoonBackdrop._material(Color("d8a15e") if facts["completed"].size() >= 8 else Color("473c32"), true)
+		engine.material_override = MoonBackdrop._material(Color("d8a15e") if completed.size() >= 8 else ENGINE_COLD, true)
+	# Each cleared gantry puts more of the depot's people aboard.
+	var lit: int = clampi((completed.size() - 2) * 2, 0, WINDOWS)
+	for index: int in range(_windows.size()):
+		var row: int = index % WINDOWS
+		_windows[index].material_override = MoonBackdrop._material(WINDOW_LIT if row < lit else WINDOW_DARK, true)
+	var released: bool = "clamps_released" in completed
+	for index: int in range(_clamps.size()):
+		var side: float = signf(_clamps[index].position.x)
+		_clamps[index].position.x = side * (8.6 if released else 8.0)
+	for lamp: MeshInstance3D in _clamp_lamps:
+		lamp.material_override = MoonBackdrop._material(CLAMP_FREE if released else CLAMP_HELD, true)
 
 static func _feet(raw: Array) -> Vector3:
 	return Vector3(float(raw[0]), float(raw[1]), float(raw[2]))
