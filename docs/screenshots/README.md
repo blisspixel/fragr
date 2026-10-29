@@ -7,8 +7,8 @@ Level 1 map file (`client/qa/readme_m01.json`). The older `m01_*.png` files
 are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
-proof of good art. The README uses four stills: the boot menu, Recall Notice
-intake, multiplayer page and watched Larak Lot match. Refresh a selected still
+proof of good art. The README uses five stills: first-person Larak Lot, the boot
+menu, Recall Notice intake, multiplayer page and watched Larak Lot match. Refresh a selected still
 when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.

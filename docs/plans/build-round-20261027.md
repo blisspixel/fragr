@@ -69,9 +69,17 @@ Independent review kept seated riders with their vehicle and corrected the cover
 | `combat-checks` | Turret and Heavy tells stay red, absorbed swell stays cyan; Level 6 and Level 19 captured |
 | `net-motion` | Wire-only quantized motion (6 to 12% less per client), a loopback link shaper, rewind under jitter |
 
-## Wave 17 (planned)
+## Wave 17 (in progress)
 
-Characters in personal colours after the Meshy reset; Level 10's Repeater grant; Levels 11, 12 and 13 toward the golden slice; geometry the dressing cannot fix in Level 9.
+Level 10's Repeater from finite acquisition through visible, audible play;
+Levels 11, 12 and 13 toward the golden slice, with lore and design continuity,
+route clarity and enemy contrast reviewed in the renderer. Reconcile stale
+briefs, the roadmap and remaining issue acceptance in the same wave.
+
+Character production depends on live credits and unresolved choices. Level 9's
+ship geometry and two-machine networking evidence remain bounded follow-ups.
+The [roadmap](../ROADMAP.md#next-steps) owns the current sequence and Nick's
+separate review round.
 
 ## Verification
 
