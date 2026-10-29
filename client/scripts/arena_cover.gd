@@ -152,6 +152,10 @@ func apply_map_info(info: Dictionary) -> void:
 		M09Dressing.restyle_berth(self, info, _solid_views)
 	if info.get("m11") is Dictionary:
 		M11Dressing.restyle_tender(self, info, _solid_views)
+	if info.get("m12") is Dictionary:
+		M12Dressing.restyle_habitat(self, info, _solid_views)
+	if info.get("m13") is Dictionary:
+		M13Dressing.restyle_foundry(self, info, _solid_views)
 	if venue == "larak_lot":
 		var lot: LarakLot = LarakLot.new()
 		add_child(lot)

@@ -192,3 +192,29 @@ board: *Days without an unscheduled retirement: 0.*
 
 **The moment.** The first rocket across the freight loop, and the pallet it came
 on.
+
+## Foundry appearance pass
+
+The connected Level 13 is the foundry and ridden freight lift, not the combined
+foundry/launch-works proposal at the top of this document. The launch works and
+Walker belong to Level 14. Existing Rocket teaching, worker choices, hazard
+cycle, utility relay and lift outcomes remain server-owned.
+
+`M13Dressing` separates the machine hall, furnace, freight floor, maintenance
+ring, worker quarters and dispatch office. Worn neutral steel and muted safety
+paint replace the pale repeated enamel. Roof ribs and overhead service pipes
+explain the hall's scale; hanging work lights, operating aprons and handling
+lanes frame the existing machines. Head spindles, vents, bolted plates and
+controls dress their existing bodies. The modelled lathes and freight hoist
+remain in their authoritative volumes. The furnace keeps its protected amber
+process light, distinct from Union red attack tells. Personal cloths and pinned
+cards do not imply that restrained workers have been released.
+
+The immutable-layout guard excludes changed/custom geometry, and `ArenaCover`
+keeps one dressing on resends. Small foundation-top patches receive local work
+light without changing collision. No signs, hazards or objectives are added.
+`client/qa/m13-golden.json` covers nine eye-height art views, and the existing
+`m13_weight_of_permission.json` tour keeps route and lift evidence separate.
+`test_mars_dressing.gd` covers lifecycle, geometry and light-layer invariants.
+Fresh-player pacing, the open roof strips, remaining primitive machine silhouettes and the full
+golden-slice quality verdict remain open.
