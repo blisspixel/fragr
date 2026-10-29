@@ -63,6 +63,12 @@ func _run() -> void:
 	root.add_child(hud)
 	hud.apply(first["state"], PLAYER)
 	_check(hud._copy.text == tr("M11_OBJECTIVE_ARMORY_FOUND"), "HUD uses the current authoritative objective")
+	var patrol: Dictionary = first["state"].duplicate(true)
+	patrol["m11"]["completed"] = ["armory_found"]
+	patrol["m11"]["current"] = info["m11"]["objectives"][1].duplicate(true)
+	hud.apply(patrol, PLAYER)
+	var expected: String = InputGlyphs.plain("Clear the patrol. {remote} place, {detonator} detonate.")
+	_check(hud._copy.text == expected and not expected.contains("{") and not expected.contains("place_remote_mine"), "mine lesson resolves the actual device bindings instead of literal action names")
 	hud.queue_free()
 	var effects: RemoteMineEffects = RemoteMineEffects.new()
 	root.add_child(effects)
