@@ -68,9 +68,12 @@ golden-slice or fresh-player bar.
 - **Next engineering wave: layout and encounter design.** Too many spaces
   still read as rectangular rooms joined by straight connectors. Review routes
   and sightlines in play, then finish one area before extending the approach.
-  Draw on Counter-Strike's alternate approaches, rotations and controlled
-  chokepoints, and Battlefield 1942's landmarks, terrain and distinct infantry
-  and vehicle routes where the venue supports them. Judge meaningful choices,
+  Draw on Doom's changing combat loops, GoldenEye's connected objective rooms,
+  Counter-Strike's alternate approaches, rotations and controlled chokepoints,
+  and Battlefield 1942's landmarks, terrain and distinct infantry and vehicle
+  routes where the venue supports them. The [layout review](MAP-DESIGN.md#layout-variety-and-current-gaps)
+  identifies existing strengths and gaps across all eight multiplayer maps and
+  the campaign. Judge meaningful choices,
   readable threats and traversal, not the number of corners or added props.
   Level 9's boxed ship and hidden arrival view are a concrete starting candidate;
   Level 13's machine silhouettes and roof enclosure also need authored geometry,

@@ -59,7 +59,9 @@ the rover is lost; scarce vehicle ammunition cannot become a mandatory key.
 Broad stairs and catwalks climb from the machine hall to the gallery, with a
 view across the machinery on the way. No lifts to call, levers or timed waits.
 
-Vehicle and moving-lift systems are unbuilt. Prototype server authority, safe
+Vehicle and moving-lift systems were unbuilt when this superseded proposal was
+written. The current Level 13 lift and Level 14 jeep are implemented separately.
+The original proposal called for prototyping server authority, safe
 occupancy and dismounts, collision, aim, damage, spectator views and agent actions
 before authoring a fleet. Then playtest rover and infantry approaches, vehicle
 loss, mission retry and mixed threats. The goal is a compact battle with distinct
