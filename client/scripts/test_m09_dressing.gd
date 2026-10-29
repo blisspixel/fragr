@@ -182,8 +182,22 @@ func _check_presenter(source: Dictionary) -> void:
 	var name_signs: Array[Node] = berth.find_children("CommonCarrierHullName", "Label3D", true, false)
 	_expect(name_signs.size() == 1 and (name_signs[0] as Node3D).global_position.x < -8.0, "the hull name is painted on the port side, outside the keel")
 	_expect(berth._windows.size() == M09Berth.WINDOWS * 2 and berth._clamps.size() == 4, "the ship has its windows and clamps")
+	_expect(_clamps_clear(berth, geometry), "no held clamp piece sits inside a server solid")
+	# Facts drive the fittings: windows, clamps and engines, only on change.
+	berth.apply_state(_state(geometry, 3))
+	_expect(berth.state_applied == 1 and not berth.clamps_released() and not berth.engines_lit(), "the freed crew leave clamps held and engines cold")
+	var window: Material = berth._windows[0].material_override
+	berth.apply_state(_state(geometry, 3))
+	_expect(berth.state_applied == 2 and berth._windows[0].material_override == window, "a repeated message reuses the same finishes")
 	var open: Dictionary = _mission_info(true)
 	berth.configure_map(open)
+	berth.apply_state(_state(open, 7))
+	_expect(berth.state_applied == 1 and berth.clamps_released() and not berth.engines_lit(), "the cradle releases before the hatch is won")
+	_expect(_clamps_clear(berth, open), "no released clamp piece sits inside a server solid")
+	berth.apply_state(_state(open, 8))
+	_expect(berth.engines_lit(), "the engines light when the hatch is won, before departure")
+	var lit_finish: Material = berth._engine_lamps[0].material_override
+	_expect(lit_finish == berth._engine_lamps[1].material_override, "both engines share one lit finish")
 	_expect(berth.get_node_or_null("BerthDressing") == dressing, "the hatch's re-sent map keeps the same dressing")
 	_expect(berth.find_children("ImpoundNotice", "Label3D", true, false).is_empty(), "the opened hatch has no notice: Tern kept it")
 	berth.clear_map()
@@ -192,6 +206,40 @@ func _check_presenter(source: Dictionary) -> void:
 	berth.queue_free()
 	await process_frame
 	_expect(source.size() > 0, "the source map loaded")
+
+## Whether every clamp piece stays out of every solid (a touching face is fine).
+static func _clamps_clear(berth: M09Berth, info: Dictionary) -> bool:
+	var boxes: Array[AABB] = berth.clamp_boxes()
+	if boxes.size() != 12:
+		return false
+	for box: AABB in boxes:
+		var inner: AABB = box.grow(-0.005)
+		for solid: Dictionary in info["solids"]:
+			if M09Dressing._bounds(solid).intersects(inner):
+				return false
+	return true
+
+## A Mission message for the authored berth with `done` steps complete: the
+## crew stand on their recorded route as far as the facts let them.
+static func _state(info: Dictionary, done: int) -> Dictionary:
+	var crew: Array = []
+	var boarding: Dictionary = info["m09"]["boarding"]
+	for definition: Dictionary in info["m09"]["crew"]:
+		var at: int = 0
+		if done >= 3:
+			for index: int in range(definition["held_until"].size()):
+				if int(definition["held_until"][index]) <= done:
+					at = index
+		var feet: Array = definition["route"][at]
+		var inside: bool = M03MissionState._inside(feet, boarding)
+		crew.append({"id": definition["id"], "feet": feet, "aboard": done >= 3 and inside})
+	var facts: Dictionary = {"completed": M09MissionState.OBJECTIVES.slice(0, mini(done, 8)), "crew_released": done >= 3, "crew": crew,
+		"hatch_open": bool(info["m09"]["hatch_open"]), "charge_falls": 0}
+	if done < 9:
+		facts["current"] = M09MissionState.step(info["m09"], done)
+	return {"id": MissionState.M09_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION},
+		"attempt": 1, "phase": "in_progress", "changed_at": 10,
+		"party": [{"id": "00000000-0000-0000-0000-000000000009", "name": "Visitor", "ready": true, "alive": true, "aboard": done >= 8}], "prompts": [], "m09": facts}
 
 ## A MapInfo the client's M09 check accepts, built from the authored map:
 ## the server's control decorations and the hatch index, closed or opened.

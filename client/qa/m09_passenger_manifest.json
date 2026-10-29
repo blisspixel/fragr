@@ -816,6 +816,13 @@
       "note": "The boarding approach is won by actual combat and arrival."
     },
     {
+      "name": "m09_engines_lit",
+      "camera": "overview",
+      "camera_position": [16, 3, -31],
+      "camera_look_at": [11, 3.2, -17.2],
+      "note": "Art view only: with the hatch won, the engine throats on the nacelles' stern faces are lit for departure. The player stays at the hatch."
+    },
+    {
       "name": "m09_departure",
       "camera": "first_person",
       "walk_to": [
