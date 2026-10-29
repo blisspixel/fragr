@@ -1,0 +1,13 @@
+{
+  "comment": "M08 golden-slice faction read. A joined player steps through the checkpoint opening to wake the records hall, then posed views frame its Clerks and Sweepers against the cabinets, desks and lamps at fighting distance. Later groups are chained behind earlier clears, so the Auditor, the custody Sweepers it repairs and the Proximity Mine lesson are read through the combat route in client/qa/m08_custodian_of_record.json. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m08_custodian_of_record.json. Check black armour, red visors, armbands and optics against the archive's green enamel and warm pools; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"note":"The unforced first-person arrival frame at the checkpoint."},
+    {"name":"hall_wake","camera":"first_person","walk_to":[[-1,0,-31],[-5,0,-28],[-5,0,-23],[0,0,-21.5],[0,0,-19]],"look_at":[0,1.2,-10],"note":"Through the checkpoint opening into the records hall; its guards wake."},
+    {"name":"hall_clerks_near","camera":"overview","camera_position":[-2,1.65,-18],"camera_look_at":[-10,1.2,-10],"note":"A Clerk among the south-west desks and cabinets at about 10 m."},
+    {"name":"hall_clerk_east","camera":"overview","camera_position":[2,1.65,-18],"camera_look_at":[10,1.2,-10],"note":"The east Clerk against the records wall."},
+    {"name":"hall_far","camera":"overview","camera_position":[-16,1.65,-16],"camera_look_at":[-12,1.1,8],"note":"Down the west aisle toward the Sweeper at 20 to 25 m under the pendant lamps."},
+    {"name":"hall_far_east","camera":"overview","camera_position":[16,1.65,-16],"camera_look_at":[12,1.1,6],"note":"Down the east aisle toward the Sweeper and the lost-property cage."}
+  ]
+}

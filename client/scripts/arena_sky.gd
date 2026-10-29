@@ -275,6 +275,8 @@ static func preset_for(map_name: String) -> Preset:
 		return port_of_entry()
 	if key.contains("passenger manifest"):
 		return moon_port()
+	if key == "custodian of record":
+		return custodian_of_record()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()
 	if key.contains("declared goods"):
@@ -428,6 +430,25 @@ static func moon_archive() -> Preset:
 	preset.practical_range = 11.0
 	preset.view_fill_energy = 0.5
 	preset.contrast = 1.1
+	return preset
+
+## Custodian of Record: a sheltered institution with no sun in it. The key
+## is off; the archive is lit by M08Dressing's green-shaded pendants where
+## people sit, cold issued pools over intake, the platforms and the freight
+## lane, and a cold work light down the shaft. The ambient floor keeps the
+## galleries readable between pools; the actor fill keeps a black-and-red
+## guard lit against green enamel and olive cabinets.
+static func custodian_of_record() -> Preset:
+	var preset: Preset = moon_archive()
+	preset.interior = true
+	preset.ambient_color = Color(0.76, 0.76, 0.72)
+	preset.ambient_energy = 0.56
+	preset.key_energy = 0.0
+	preset.scene_fill_energy = 0.0
+	preset.practical_energy = 1.8
+	preset.view_fill_energy = 0.6
+	preset.contrast = 1.08
+	preset.saturation = 0.95
 	return preset
 
 ## The curfew town: a low sun behind the town wall, so the streets lie in
