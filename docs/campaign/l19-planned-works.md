@@ -143,3 +143,24 @@ not really one.
 
 **The moment.** Latch on the water tank, choosing to go, and the white work
 strips across every street you grew up on.
+
+## Absorbed Heavy readability (wave 16)
+
+`client/qa/m19_live_review.gd` now also photographs every absorbed Heavy
+Sweeper the agent comes within 30 metres of, at rest and past 80 percent of its
+windup, from 7 metres on the agent's side, with a pixel-scale crop. Two free
+local agent runs (seed 1, Standard) departed through the waterworks; the crossing,
+market and trench Heavies were captured.
+
+All three read as captured Union hardware: the wave 15 `body_value` keeps the
+chassis issued black under the warm market pools and the cold trench light, the
+plates stay one step lighter, and nothing washes toward tan or toward the
+off-white of the Pavers working beside them. At rest the working glow is the
+art bible's muted cyan (about `#4A878D` on screen). At the top of a windup the
+swell multiplied that swatch by 2.6 and the light read pale mint (about
+`#BFF3E8`), close to white. `union_sprite.gdshader` now holds the swatch at its
+resting energy and adds a deeper, almost red-free cyan above it, as the Union
+optic does with red; the same moment reads `#62C6CD`, brighter than rest and
+still cyan. Resting light, timing and the shared beat are unchanged. The
+review's fixed offset can place the camera inside a trench wall; those frames
+are discarded, not evidence.
