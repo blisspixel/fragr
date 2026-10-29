@@ -145,6 +145,8 @@ func apply_map_info(info: Dictionary) -> void:
 		M06Dressing.restyle(self, info, _solid_views)
 	if info.get("m07") is Dictionary:
 		M07Dressing.restyle_town(self, info, _solid_views)
+	if info.get("m08") is Dictionary:
+		M08Dressing.restyle_archive(self, info, _solid_views)
 	if venue == "larak_lot":
 		var lot: LarakLot = LarakLot.new()
 		add_child(lot)

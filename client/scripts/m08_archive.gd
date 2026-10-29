@@ -17,7 +17,8 @@ const CABINET_COLD: Color = Color("7fa6c2")
 const CABINET_TAKEN: Color = Color("e0b468")
 const NOISE_LAMP: Color = Color("d8d0a0")
 ## Captive and Renn figures reuse the participant body strip until final art.
-const CAPTIVE_TINTS: Array[Color] = [Color("d8c6a0"), Color("b8a888"), Color("c9b498"), Color("a9bcac")]
+## Captives keep their own clothes in varied personal colours.
+const CAPTIVE_TINTS: Array[Color] = [Color("c9a27a"), Color("a7b98e"), Color("a3b2c8"), Color("c79aa8")]
 const FALL_SECONDS: float = 1.4
 const ROOF_Y: float = 9.0
 ## The repeating rhythm under "Authorized noise": three short, one long.
@@ -40,8 +41,21 @@ var _machine_fallen: bool = false
 var _noise_clock: float = 0.0
 var _noise_on: bool = false
 var state_applied: int = 0
+## The archive's golden-slice dressing. It outlives a re-sent map for the
+## same layout (the seal lifting, the machine falling) and rebuilds nothing.
+var dressing: M08Dressing
 
 func clear_map() -> void:
+	_clear_presentation()
+	_drop_dressing()
+
+func _drop_dressing() -> void:
+	if is_instance_valid(dressing):
+		remove_child(dressing)
+		dressing.queue_free()
+	dressing = null
+
+func _clear_presentation() -> void:
 	_geometry.clear()
 	_neutral_layout.clear()
 	_solids.clear()
@@ -63,18 +77,22 @@ func clear_map() -> void:
 	_root = null
 
 func configure_map(info: Dictionary) -> void:
-	clear_map()
+	_clear_presentation()
 	if not info.get("m08") is Dictionary or not MapGeometry.validation_error(info).is_empty() \
 		or not M08MissionState.map_error(info).is_empty():
+		_drop_dressing()
 		return
+	if not is_instance_valid(dressing):
+		dressing = M08Dressing.new()
+		dressing.name = "ArchiveDressing"
+		add_child(dressing)
+	dressing.configure_map(info)
 	_root = Node3D.new()
 	_root.name = "CustodyArchiveDetails"
 	add_child(_root)
 	_solids = info["solids"]
 	_neutral_layout = M08NeutralBodies.layout(info)
 	var m08: Dictionary = info["m08"]
-	_records_machinery()
-	_hall_light()
 	for detail: Dictionary in info["presentation"]["decorations"]:
 		var host: Dictionary = _solids[int(detail["solid"])]
 		var transform: Transform3D = MapDecoration.placement(host, detail)
@@ -100,36 +118,6 @@ func configure_map(info: Dictionary) -> void:
 	_machine_fallen = bool(m08["machine_fallen"])
 	_apply_fallen(_machine_fallen)
 	ArenaSky.mark_world(self)
-
-## Records cabinets along the hall's outer wall: the institution's machinery.
-func _records_machinery() -> void:
-	for side: int in range(4):
-		for index: int in range(7):
-			var along: float = -15.0 + float(index) * 5.0
-			var at: Vector3
-			var size: Vector3
-			match side:
-				0: at = Vector3(along, 1.0, -19.55); size = Vector3(3.6, 2.0, 0.7)
-				1: at = Vector3(along, 1.0, 19.55); size = Vector3(3.6, 2.0, 0.7)
-				2: at = Vector3(-19.55, 1.0, along); size = Vector3(0.7, 2.0, 3.6)
-				_: at = Vector3(19.55, 1.0, along); size = Vector3(0.7, 2.0, 3.6)
-			# Leave the entry, the stair doors and the lost-property cage clear.
-			if (side == 0 and absf(along) < 6.0) or (side == 2 and along > -9.0 and along < -1.0) \
-				or (side == 1 and along > 12.0) or (side == 3 and along > 12.0):
-				continue
-			var cabinet: MeshInstance3D = _box("RecordsCabinet", at, size, Color("4d544f"))
-			_apply_surface(cabinet, "moon_union_service")
-			for drawer: int in range(3):
-				_box("RecordsDrawerLabel", at + Vector3(0, -0.6 + drawer * 0.6, 0) + (Vector3(0, 0, 0.37) if side == 0 else (Vector3(0, 0, -0.37) if side == 1 else (Vector3(0.37, 0, 0) if side == 2 else Vector3(-0.37, 0, 0)))),
-					Vector3(0.5, 0.12, 0.02) if side < 2 else Vector3(0.02, 0.12, 0.5), Color("c9c2a2"))
-
-## Practical light: desk lamps in the hall and the shaft's cold glow.
-func _hall_light() -> void:
-	for at: Vector3 in [Vector3(-12.5, 2.2, -13.5), Vector3(12.5, 2.2, -13.5), Vector3(0, 2.2, 12.5),
-			Vector3(-14, 5.2, -11.5), Vector3(13.5, 8.2, 9.5), Vector3(0, 5.0, 30.0)]:
-		_box("DeskLamp", at, Vector3(0.6, 0.06, 0.3), Color("e8d6a6"), true)
-		_light("PracticalLamp", at + Vector3.DOWN * 0.15, Color("ffe2ad"), 1.4, 9.0)
-	_light("ShaftGlow", Vector3(0, 4.5, 0), Color("c9dde8"), 1.2, 14.0)
 
 func _jackets(host: Dictionary) -> void:
 	# Confiscated jackets on the cage floor; one carries the six.
@@ -200,7 +188,7 @@ func _machine(m08: Dictionary) -> void:
 	var top: float = MoveStep.solid_top(machine)
 	_box("MachineChain", Vector3(centre.x, (top + ROOF_Y) * 0.5, centre.z),
 		Vector3(0.2, maxf(ROOF_Y - top, 0.05), 0.2), Color("3a3f40"))
-	_light("MachineCore", centre + Vector3.DOWN * 0.3, Color("ff7a4a"), 1.6, 10.0)
+	_light("MachineCore", centre + Vector3.DOWN * 0.3, Color("ff7a4a"), 0.9, 6.0)
 
 func apply_state(state: Dictionary) -> void:
 	if _geometry.is_empty() or state.get("id") != MissionState.M08_ID \
