@@ -11,8 +11,11 @@
 //! writes the same text for the same value (no libm). The result is the whole
 //! number of steps divided by the scale in `f32`, which is the nearest `f32`
 //! to that decimal, so its shortest text is that decimal. A value whose step
-//! count would not be a whole `f32` (past 16 km for a position; no map comes
-//! near it) and a non-finite value pass through unchanged.
+//! count reaches 2^23 (8,388.608 m for a position; no map comes near it) and
+//! a non-finite value pass through unchanged. Step counts up to 2^24 are
+//! still whole, but past 2^23 the `f32` spacing near the value is coarser
+//! than a step, so rounding a rounded value again could move it; below 2^23
+//! rounding is idempotent.
 
 use serde::Serializer;
 
@@ -20,8 +23,8 @@ use serde::Serializer;
 pub const POSITION_SCALE: f32 = 1000.0;
 /// Steps per radian for yaw and pitch.
 pub const ANGLE_SCALE: f32 = 10_000.0;
-/// Step counts below 2^24 are whole `f32` values.
-const MAX_STEPS: f64 = 16_777_216.0;
+/// Below 2^23 steps every rounded value rounds to itself again.
+const MAX_STEPS: f64 = 8_388_608.0;
 
 fn round(value: f32, scale: f32) -> f32 {
     let steps = (f64::from(value) * f64::from(scale)).round();
@@ -122,6 +125,22 @@ mod tests {
             assert!(out.to_bits() == value.to_bits(), "{value} became {out}");
         }
         assert_eq!(position(16_000.0), 16_000.0);
+    }
+
+    #[test]
+    fn the_rounding_bound_is_where_it_stays_idempotent() {
+        // The last whole steps below 2^23 (8,388,607 is the largest) are
+        // rounded, and rounding them again changes nothing.
+        for (value, steps) in [(8_388.607f32, 8_388_607.0f32), (-8_388.6, -8_388_600.0)] {
+            let near = position(value);
+            assert_eq!(near, steps / POSITION_SCALE);
+            assert_eq!(position(near).to_bits(), near.to_bits(), "{value}");
+            assert_eq!(serde_json::to_string(&near).unwrap(), format!("{value}"));
+        }
+        // From 2^23 steps on, the value passes through untouched.
+        for value in [8_388.608f32, 8_388.609, -8_388.61, 12_000.123] {
+            assert_eq!(position(value).to_bits(), value.to_bits(), "{value}");
+        }
     }
 
     #[test]

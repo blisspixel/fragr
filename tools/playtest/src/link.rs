@@ -348,33 +348,35 @@ async fn shape<R, W>(
         free_at: Duration::ZERO,
         last_arrival: Duration::ZERO,
     };
-    let chunk = CHUNK.min(profile.queue_bytes);
-    let mut buffer = vec![0u8; chunk];
+    let mut buffer = vec![0u8; CHUNK];
     loop {
-        // Wait for room for a whole chunk before reading, so a full link
-        // stops reading and the sender's socket fills.
+        // Read only while the link has room, and no more than that room, so
+        // a full link stops reading and the sender's socket fills. Only the
+        // time with no room at all counts as the link refusing bytes.
+        let full = room.available_permits() == 0;
         let wait = Instant::now();
-        let Ok(permit) = Arc::clone(&room).acquire_many_owned(chunk as u32).await else {
+        let Ok(first) = room.acquire().await else {
             break;
         };
-        if direction.down {
-            let waited = wait.elapsed();
-            if waited > Duration::from_millis(1) {
-                counters
-                    .down_blocked_ns
-                    .fetch_add(waited.as_nanos() as u64, Ordering::Relaxed);
-            }
+        if full && direction.down {
+            counters
+                .down_blocked_ns
+                .fetch_add(wait.elapsed().as_nanos() as u64, Ordering::Relaxed);
         }
-        let read = match from.read(&mut buffer).await {
+        // Only the delivery side adds room, so what is free now stays free.
+        let room_now = room.available_permits() + 1;
+        let want = room_now.min(CHUNK);
+        let read = match from.read(&mut buffer[..want]).await {
             Ok(0) | Err(_) => break,
             Ok(read) => read,
         };
-        // Keep only the room this chunk uses; the delivery side returns it.
-        drop(permit);
-        let Ok(held) = room.acquire_many(read as u32).await else {
-            break;
-        };
-        held.forget();
+        first.forget();
+        if read > 1 {
+            let Ok(rest) = room.acquire_many(read as u32 - 1).await else {
+                break;
+            };
+            rest.forget();
+        }
         if direction.down {
             let queued = (profile.queue_bytes - room.available_permits()) as u64;
             counters
@@ -551,6 +553,36 @@ mod tests {
         assert_eq!(report.down_bytes, 20_000);
         relay.reset();
         assert_eq!(relay.report().down_bytes, 0);
+    }
+
+    #[tokio::test]
+    async fn small_frames_keep_flowing_while_the_link_has_room() {
+        // Forty 100-byte frames 10 ms apart through a fast 100 ms link with
+        // a 16 KiB queue: they overlap in flight, so the last one lands
+        // about 100 ms after it was written, not after forty round trips.
+        let server = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let upstream = server.local_addr().unwrap();
+        let link = LinkProfile {
+            queue_bytes: 16 * 1024,
+            ..LinkProfile::clean("t", 100_000, 100)
+        };
+        let relay = start(upstream, link, 11).await.unwrap();
+        tokio::spawn(async move {
+            let (mut socket, _) = server.accept().await.unwrap();
+            for _ in 0..40 {
+                socket.write_all(&[7u8; 100]).await.unwrap();
+                tokio::time::sleep(ms(10)).await;
+            }
+            socket.shutdown().await.unwrap();
+        });
+        let started = std::time::Instant::now();
+        let mut client = TcpStream::connect(relay.addr).await.unwrap();
+        let mut received = Vec::new();
+        client.read_to_end(&mut received).await.unwrap();
+        assert_eq!(received.len(), 4000);
+        assert!(started.elapsed() < ms(1500), "{:?}", started.elapsed());
+        // The queue never filled, so the link never refused a byte.
+        assert_eq!(relay.report().down_blocked_ms, 0.0);
     }
 
     #[tokio::test]

@@ -4093,9 +4093,14 @@ exact values. Owner: `server/src/protocol/quantize.rs`.
   `end`, pellet `end`) are written to the nearest millimetre: at most three
   decimals, for example `10.123`.
 - Fighter `yaw` and `pitch` are written to the nearest 1e-4 rad: at most four
-  decimals.
+  decimals. Rounding can step just past a range the simulation keeps: a yaw
+  just below 2π is written `6.2832`, above `TAU`, and a pitch at its clamp
+  can be written up to 5e-5 rad past it. A reader wraps yaw and clamps
+  pitch (as `RemotePresentation` does); it must not refuse a row for
+  `yaw >= TAU` or a pitch past the clamp.
 - A value that rounds to zero is written `0.0`, never `-0.0`. A non-finite
-  value, or one past 16 km, is written unchanged.
+  value, or one past 8,388 m (2^23 steps, where rounding stops being
+  idempotent in `f32`), is written unchanged.
 - A change smaller than half a step is no change, so it is not in a delta.
 - Not rounded: the `Ack` (its `x`, `z`, `yaw`, `pitch` and `movement` stay
   exact, because local prediction replays from them), projectiles, grenades,
