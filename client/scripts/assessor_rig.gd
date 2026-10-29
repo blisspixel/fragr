@@ -3,9 +3,14 @@ extends Node3D
 
 ## Authored mechanical parts in the actual 2.6 m by 1.2 m target volume.
 ## Local +X is the server's forward. Feet registration never bobs or scales.
-const METAL: Color = Color("3b4146")
-const PLATE: Color = Color("6f746a")
-const RED: Color = Color("d74932")
+const METAL: Color = Color("1e2228")
+const PLATE: Color = Color("30353d")
+const RED: Color = Color("d32322")
+## Keep emitted red saturated. The countdown also grows physically, so its
+## brightness need not bleach the Union optic hue. Absorption retains its
+## existing cyan emission over a dead-red lens, which needs different energy.
+const OPTIC_REST_ENERGY: float = 0.35
+const OPTIC_WINDUP_ENERGY: float = 0.65
 ## The red optics' own value drained to unlit oxblood under absorption.
 const DEAD_OPTIC: Color = Color("4a2420")
 const LIGHT: Color = Color("f1cda0")
@@ -112,13 +117,15 @@ func present(actor: Dictionary, tick: int, elapsed: float) -> void:
 	# timing; only the light changes, from Union red to the Inheritance's
 	# muted working glow over dead optics.
 	var absorbed: bool = ActorState.control(actor) == "absorbed"
+	var rest_energy: float = 0.65 if absorbed else OPTIC_REST_ENERGY
+	var windup_energy: float = 1.5 if absorbed else OPTIC_WINDUP_ENERGY
 	for index: int in range(optics.size()):
 		# Visible optic area grows through the locked countdown and closes at death.
 		optics[index].scale.y = 0.25 if phase == "dead" else (1.0 + raised * (1.0 if index == 0 else 0.6))
 		var optic: StandardMaterial3D = optics[index].material_override as StandardMaterial3D
 		optic.albedo_color = DEAD_OPTIC if absorbed else RED
 		optic.emission = EnemyView.WORK_GLOW if absorbed else RED
-		optic.emission_energy_multiplier = 0.0 if phase == "dead" else (1.5 if phase == "windup" else 0.65)
+		optic.emission_energy_multiplier = 0.0 if phase == "dead" else (windup_energy if phase == "windup" else rest_energy)
 	for vent: MeshInstance3D in vents:
 		vent.scale.y = 1.0 if phase == "recovery" else 0.18
 		var material: StandardMaterial3D = vent.material_override as StandardMaterial3D

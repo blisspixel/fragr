@@ -54,6 +54,7 @@ func _run() -> void:
 	_envelope()
 	var rig: AssessorRig = AssessorRig.new()
 	root.add_child(rig)
+	_palette(rig)
 	var identity: Dictionary = _actor()["campaign"]
 	rig.present(identity, 10, 0.0)
 	var folded: float = rig.launcher.rotation.z
@@ -127,3 +128,39 @@ func _bounds(node: Node, origin: Node3D) -> void:
 			_check(absf(point.x) <= 1.3001 and absf(point.z) <= 1.3001 and point.y >= -0.0001 and point.y <= 1.2001, "actual mesh stays inside raised finite target: " + str(point))
 	for child: Node in node.get_children():
 		_bounds(child, origin)
+
+func _palette(rig: AssessorRig) -> void:
+	_check(AssessorRig.METAL.v < 0.18 and AssessorRig.PLATE.v < 0.26 and AssessorRig.PLATE.v > AssessorRig.METAL.v, "issued black hull retains slightly lighter graphite armor")
+	_check(AssessorRig.PLATE.b >= AssessorRig.PLATE.g and AssessorRig.PLATE.b >= AssessorRig.PLATE.r, "armor never drifts into olive livery")
+	_check(AssessorRig.RED.r > 0.7 and AssessorRig.RED.g < 0.17 and AssessorRig.RED.b < 0.17, "Union optics use saturated red rather than orange")
+	var hull: StandardMaterial3D = (rig.get_node("Hull") as MeshInstance3D).material_override as StandardMaterial3D
+	var plate: StandardMaterial3D = (rig.get_node("FrontPlate") as MeshInstance3D).material_override as StandardMaterial3D
+	var rest_shape: Vector3
+	var end_shape: Vector3
+	var union_launcher: float = 0.0
+	for absorbed: bool in [false, true]:
+		for phase_name: String in ["idle", "windup", "recovery", "dead"]:
+			var fact: Dictionary = {"side": "inheritance" if absorbed else "union", "phase": phase_name, "phase_started": 100, "phase_ends": 124}
+			if absorbed:
+				fact["control"] = "absorbed"
+			rig.present(fact, 124, 0.0)
+			_check(hull.albedo_color == AssessorRig.METAL and plate.albedo_color == AssessorRig.PLATE, "control and phase never repaint chassis")
+			var optic: StandardMaterial3D = rig.optics[0].material_override as StandardMaterial3D
+			_check(optic.albedo_color == (AssessorRig.DEAD_OPTIC if absorbed else AssessorRig.RED), "absorbed lens retains dead-red paint")
+			_check(optic.emission == (EnemyView.WORK_GLOW if absorbed else AssessorRig.RED), "only authoritative absorption selects cyan light")
+			var expected: float = 0.0 if phase_name == "dead" else ((1.5 if phase_name == "windup" else 0.65) if absorbed else (0.65 if phase_name == "windup" else 0.35))
+			_check(is_equal_approx(optic.emission_energy_multiplier, expected), "bounded phase energy preserves red and existing absorbed glow")
+			for vent: MeshInstance3D in rig.vents:
+				var material: StandardMaterial3D = vent.material_override as StandardMaterial3D
+				_check(material.albedo_color == (AssessorRig.LIGHT if phase_name == "recovery" else AssessorRig.METAL), "warm rear weakpoint appears only in recovery")
+				_check(is_equal_approx(material.emission_energy_multiplier, 0.8 if phase_name == "recovery" else 0.0), "recovery vent energy is unchanged")
+				_check(is_equal_approx(vent.scale.y, 1.0 if phase_name == "recovery" else 0.18), "recovery opening is unchanged")
+			if phase_name == "idle":
+				rest_shape = rig.optics[0].scale
+			if phase_name == "windup":
+				end_shape = rig.optics[0].scale
+				_check(end_shape.y > rest_shape.y, "countdown still grows physically")
+				if absorbed:
+					_check(is_equal_approx(rig.launcher.rotation.z, union_launcher), "absorption preserves launcher timing and pose")
+				else:
+					union_launcher = rig.launcher.rotation.z
