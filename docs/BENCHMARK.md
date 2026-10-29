@@ -700,33 +700,42 @@ not field or two-machine evidence.
 Tripoint Works, 16 reflex fighters, 8 healthy watchers connected directly,
 and 4 watchers behind the link, which read every frame as it arrives.
 Measured 2026-10-28, release build, seed 42, 30 s per row, two runs on the
-same AMD Ryzen 7 7840U (load 4 to 7, then 3 to 5); the table is the second
-run. The first had a 5 s outage row where the second has 3.5 and 6 s (see
-Outages); its other rows matched the second except where noted. A linked watcher's
-worlds are about 14.1 KiB/s of text (116 kbit/s) on this roster.
+same AMD Ryzen 7 7840U (load 9 falling to 4, then 4); the table is the
+first run, and the second matched it except where noted. A linked
+watcher's worlds are about 14.1 KiB/s of text (116 kbit/s) on this roster.
+
+A first version of the relay waited for room for a whole 16 KiB chunk
+before each read. Behind a 16 KiB queue that let only one frame be in
+flight at a time, so the thin links behaved as stop-and-wait and their
+"link full" time counted a queue that was merely not empty. The relay now
+reads whenever any room is free, at most that much, and counts the link as
+full only while no room is free (`small_frames_keep_flowing_while_the_link_has_room`).
+Every row below was measured after that fix; under the old relay the 128
+kbit row read a picture 1.2 s old at the median and its link counted as
+full for 29 of 30 s.
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-link --fanout-seconds 30 --report .agents/fanout/links.json
 ```
 
-| Link (down capacity, one-way delay, extra) | Linked picture age p50 / p99 / max ms | Worlds read whole / as deltas | Link full (refused bytes), s per watcher | Replaced worlds / per-reader deltas | Linked watchers closed |
-|---|---|---|---|---|---|
-| relay only (1 Gbit, 0 ms) | 1.2 / 3 / 3 | 0 / 2,400 | 0 | 0 / 0 | none |
-| broadband (20 Mbit, 20 ms, jitter 0 to 5 ms) | 24.5 / 28 / 30 | 4 / 2,396 | 0 | 0 / 0 | none |
-| jitter (20 Mbit, 30 ms, jitter 0 to 60 ms) | 62.9 / 92 / 94 | 1 / 2,401 | 0 | 0 / 0 | none |
-| loss (broadband, 5 % of chunks held 240 ms; 132 held) | 25.4 / 266 / 269 | 0 / 2,398 | 0 | 0 / 0 | none |
-| outage 1.5 s every 6 s (broadband) | 25.2 / 1,456 / 1,506 | 4 / 2,388 | 0 | 0 / 0 | none |
-| outage 3.5 s every 12 s (broadband) | 25.4 / 3,356 / 3,506 | 4 / 2,396 | 1.4 | 0 / 0 | none |
-| outage 6 s every 15 s (broadband) | 25.4 / 5,806 / 6,005 | 4 / 1,556 | 2.1 | 0 / 0 | all 4 at 19 to 20 s, unanswered ping |
-| thin 256 kbit, 40 ms, 16 KiB queue | 115 / 492 / 630 | 4 / 2,440 | 29.9 | 0 / 0 | none |
-| thin 128 kbit, 40 ms, 16 KiB queue | 1,216 / 2,485 / 2,638 | 4 / 2,308 | 29.2 | 0 / 0 | none |
-| thin 64 kbit, 40 ms, 16 KiB queue | 6,738 / 8,625 / 8,676 (run 1: 7,471 / 9,775 / 10,075) | 4 / 636 | 12.9 | 0 / 0 | all 4 at 5.9 s (run 1: 11.9 s), unanswered ping |
+| Link (down capacity, one-way delay, extra) | Linked picture age p50 / p99 / max ms | Worlds read whole / as deltas | Link full (no room), s per watcher | Peak link queue, bytes | Replaced worlds / per-reader deltas | Linked watchers closed |
+|---|---|---|---|---|---|---|
+| relay only (1 Gbit, 0 ms) | 1.3 / 3 / 4 | 0 / 2,400 | 0 | 4,955 | 0 / 0 | none |
+| broadband (20 Mbit, 20 ms, jitter 0 to 5 ms) | 24.5 / 28 / 30 | 4 / 2,396 | 0 | 4,955 | 0 / 0 | none |
+| jitter (20 Mbit, 30 ms, jitter 0 to 60 ms) | 62.5 / 92 / 93 | 2 / 2,399 | 0 | 5,391 | 0 / 0 | none |
+| loss (broadband, 5 % of chunks held 240 ms; 132 held) | 25.4 / 266 / 268 | 0 / 2,398 | 0 | 12,479 | 0 / 0 | none |
+| outage 1.5 s every 6 s (broadband, 64 KiB queue) | 25.3 / 1,456 / 1,507 | 4 / 2,388 | 0 | 26,037 | 0 / 0 | none |
+| outage 3.5 s every 12 s (broadband, 64 KiB queue) | 25.4 / 3,356 / 3,505 | 4 / 2,396 | 0 | 63,369 | 0 / 0 | none |
+| outage 6 s every 15 s (broadband, 64 KiB queue) | 25.5 / 5,805 / 6,005 | 4 / 1,576 | 0.9 (run 2: 0.6) | 65,536 | 0 / 0 | all 4 at 19 to 20 s, unanswered ping |
+| thin 256 kbit, 40 ms, 16 KiB queue | 57.6 / 162 / 213 | 4 / 2,436 | 0 | 8,052 | 0 / 0 | none |
+| thin 128 kbit, 40 ms, 16 KiB queue | 421 / 1,383 / 1,513 | 4 / 2,432 | 2.1 | 16,384 | 0 / 0 | none |
+| thin 64 kbit, 40 ms, 16 KiB queue | 6,505 / 8,805 / 9,154 (run 2: 6,593 / 9,004 / 9,153) | 4 / 811 | 13.2 (run 2: 14.7) | 16,384 | 0 / 0 | all 4 at 9.1 to 10.1 s (run 2: 8.2 to 11.2 s), unanswered ping |
 
-In every row the 8 healthy watchers read every world (no missing tick, no
-disconnect), their tick-to-read p50 / p99 stayed 0.57 to 0.60 / 1.3 to
-1.4 ms, no tick ran over budget (tick p99 0.72 to 0.85 ms), and no queue
-overflowed. "Whole" worlds are each linked connection's first world when
-it arrived inside the window.
+In every row of both runs the 8 healthy watchers read every world (no
+missing tick, no disconnect), their tick-to-read p50 / p99 stayed 0.57 to
+0.65 / 1.3 to 2.1 ms, no tick ran over budget (tick p99 0.72 to 0.88 ms),
+and no queue overflowed. "Whole" worlds are each linked connection's first
+world when it arrived inside the window.
 
 - **Deltas hold on every link that carries the world.** Each linked
   watcher's first world was its only whole one; jitter, held chunks and
@@ -740,21 +749,26 @@ it arrived inside the window.
   worlds that is about 12 s of backlog, while the unanswered ping closes a
   reader 4 to 5 s behind. Even the 64 kbit link, which carries about half
   the world rate, was closed by the ping before its writer blocked. So on
-  rosters up to 32 connections the per-reader path is a safety net, not a
+  the link rows' 28-connection roster the per-reader path is a safety net, not a
   path a short link takes; it would trigger only for a reader whose deficit
   fills those buffers inside the ping bound, about 44 KiB/s, which is
   more than a whole 64-connection world stream (43 KiB/s, table above).
-- **A link just under the world rate is not closed; its picture is late.**
-  128 kbit carries the 116 kbit/s of worlds with a full 16 KiB queue: a
-  picture 1.2 s old at the median and 2.6 s at worst, never closed in 30 s
-  because the reader answers pings within the 4 s bound. Bufferbloat, not
-  the server, sets that age; a deeper queue would make it older.
+- **A link just above the world rate is not closed; its picture is late.**
+  128 kbit (15.6 KiB/s) carries the 14.1 KiB/s of worlds with little to
+  spare: the 16 KiB queue filled for 2.1 s of the 30, at bursts, and the
+  picture was 0.42 s old at the median and 1.5 s at worst: a full 16 KiB
+  queue drains in about 1.0 s at that rate, and what waits behind it in
+  the relay's and the server's buffers adds the rest. The reader always
+  answered pings inside the 4 s bound, so it was never closed. The queue
+  depth (bufferbloat), not the server, sets that worst age; a deeper queue
+  would make it older. 256 kbit never filled its queue (peak 8 KiB) and
+  stayed under 0.22 s.
 - **Outages.** 1.5 and 3.5 s outages delivered the held worlds late and in
   order; a 6 s outage closed every linked watcher by the unanswered ping,
   4 to 5 s into it (19 to 20 s into the window, the outage started at about
   15 s). Where in the ping period the link drops decides that extra second.
-  An earlier version of this matrix used a 5 s outage every 12 s: in its
-  run the first outage (about 12 to 17 s) closed nobody and the second
+  An earlier version of this matrix, on the relay before the fix above,
+  used a 5 s outage every 12 s: in its run the first outage (about 12 to 17 s) closed nobody and the second
   (about 24 to 29 s) closed all four at 28 s, and a one-watcher probe of
   the same outage closed at exactly 4.0 s behind. 5 s is the edge, not a
   guarantee, which is why the rows use 3.5 and 6 s.
@@ -879,13 +893,13 @@ Measured 2026-10-28, seed 42, 1000 trials per row; deterministic. Misses
 are server misses of shots the client saw land; "beyond 200 ms" is the
 share of trials whose view lag exceeded the rewind bound.
 
-| Link (extra one-way delay) | RTT | View lag mean / max ms | Starved | Beyond 200 ms | Miss before (no `view_tick`) | Miss after |
+| Link (extra one-way delay) | RTT | View lag mean/max ms, per RTT | Starved | Beyond 200 ms | Miss before (no `view_tick`) | Miss after |
 |---|---|---|---|---|---|---|
-| none | 0 / 50 / 100 / 150 ms | 125 / 150 to 275 / 300 | 0 % | 0, 0, 100, 100 % | 60.4, 64.3, 64.9, 68.8 % | 0.0, 0.0, 0.0, 15.8 % |
-| 0 to 20 ms | 0 / 50 / 100 / 150 ms | 136 / 170 to 286 / 319 | 0 % | 0, 21, 100, 100 % | 62.8, 64.7, 65.9, 67.6 % | 0.0, 0.0, 0.0, 29.0 % |
-| 0 to 50 ms | 0 / 50 / 100 / 150 ms | 151 / 199 to 301 / 352 | 0 % | 0, 51, 100, 100 % | 63.5, 64.2, 67.5, 68.6 % | 0.0, 0.0, 3.2, 43.5 % |
-| 0 to 100 ms | 0 / 50 / 100 / 150 ms | 183 / 256 to 333 / 405 | 19 to 22 % | 30, 79, 100, 100 % | 65.7, 67.1, 68.2, 70.5 % | 0.0, 3.5, 27.7, 56.6 % |
-| 0 to 20 ms, 2 % loss | 0 / 50 / 100 / 150 ms | 150 / 550 to 301 / 700 | 8 to 9 % | 7, 29, 100, 100 % | 63.2, 65.3, 66.3, 68.7 % | 3.0, 4.3, 5.0, 32.3 % |
+| none (fixed delays, closed form: never starved by construction) | 0 / 50 / 100 / 150 ms | 125/150, 175/200, 225/250, 275/300 | 0 % | 0, 0, 100, 100 % | 60.4, 64.3, 64.9, 68.8 % | 0.0, 0.0, 0.0, 15.8 % |
+| 0 to 20 ms | 0 / 50 / 100 / 150 ms | 136/170, 186/220, 236/269, 286/319 | 0 % | 0, 21, 100, 100 % | 62.8, 64.7, 65.9, 67.6 % | 0.0, 0.0, 0.0, 29.0 % |
+| 0 to 50 ms | 0 / 50 / 100 / 150 ms | 151/199, 201/249, 251/299, 301/352 | 0 % | 0, 51, 100, 100 % | 63.5, 64.2, 67.5, 68.6 % | 0.0, 0.0, 3.2, 43.5 % |
+| 0 to 100 ms | 0 / 50 / 100 / 150 ms | 183/256, 232/314, 282/364, 333/405 | 19 to 22 % | 30, 79, 100, 100 % | 65.7, 67.1, 68.2, 70.5 % | 0.0, 3.5, 27.7, 56.6 % |
+| 0 to 20 ms, 2 % loss | 0 / 50 / 100 / 150 ms | 150/550, 202/550, 250/515, 301/700 | 8 to 9 % | 7, 29, 100, 100 % | 63.2, 65.3, 66.3, 68.7 % | 3.0, 4.3, 5.0, 32.3 % |
 
 - **Rewind follows the view the client drew, starved or not.** A starved
   timeline holds the newest snapshot and reports that tick, so the server

@@ -313,6 +313,15 @@ async fn connect_from(
     Ok(socket)
 }
 
+/// The one Error code the server sends before dropping a reader that left a
+/// ping unanswered too long (`net::Kick::Idle`). The frame-age and queue
+/// overflow closes send none; they show as a closed socket.
+const LAGGING_READER_CODE: &str = "idle_timeout";
+
+fn closes_lagging_reader(code: &str) -> bool {
+    code == LAGGING_READER_CODE
+}
+
 #[allow(clippy::too_many_arguments)] // One watcher: where, who, how, and its three signals.
 async fn watcher_task(
     url: String,
@@ -399,9 +408,12 @@ async fn watcher_task(
                     result.delta_worlds += usize::from(world.last_was_delta());
                 }
             }
-            // A degraded watcher the server gives up on is told why first;
-            // that is the server closing it, which the row measures.
-            ServerMessage::Error { .. } if kind != WatcherKind::Healthy => {
+            // A degraded watcher the server drops for falling behind is told
+            // why first; that is the close the row measures. Any other error
+            // is a harness failure.
+            ServerMessage::Error { code, .. }
+                if kind != WatcherKind::Healthy && closes_lagging_reader(&code) =>
+            {
                 result.disconnected = !*stop.borrow();
                 break;
             }
@@ -1352,6 +1364,20 @@ mod tests {
         assert_eq!(summary.text_bytes, 700);
         assert_eq!((summary.whole_worlds, summary.delta_worlds), (1, 2));
         assert!(summary.link.is_none());
+    }
+
+    #[test]
+    fn only_the_lagging_reader_close_counts_as_a_server_close() {
+        assert!(closes_lagging_reader("idle_timeout"));
+        for other in [
+            "rate_limited",
+            "malformed",
+            "banned",
+            "unsupported_gameplay",
+            "",
+        ] {
+            assert!(!closes_lagging_reader(other), "{other}");
+        }
     }
 
     #[test]
