@@ -4081,8 +4081,35 @@ from the world it last sent instead, again only when it is shorter. A world
 goes whole when the reader holds none: the first world of a connection and
 the first after any `MapInfo` or `Mission` (both sides forget the held world
 at those barriers), and after a world sent only to that reader. Readers below
-63 receive every world whole. Quantization of coordinates is not part of this
-capability.
+63 receive every world whole.
+
+### Quantized motion
+
+The server rounds some motion values when it encodes a Snapshot, whole or as
+a delta; the simulation, lag compensation, bots and every outcome use the
+exact values. Owner: `server/src/protocol/quantize.rs`.
+
+- Fighter `x`, `y`, `z` (`players` rows) and shot trace points (`origin`,
+  `end`, pellet `end`) are written to the nearest millimetre: at most three
+  decimals, for example `10.123`.
+- Fighter `yaw` and `pitch` are written to the nearest 1e-4 rad: at most four
+  decimals. Rounding can step just past a range the simulation keeps: a yaw
+  just below 2π is written `6.2832`, above `TAU`, and a pitch at its clamp
+  can be written up to 5e-5 rad past it. A reader wraps yaw and clamps
+  pitch (as `RemotePresentation` does); it must not refuse a row for
+  `yaw >= TAU` or a pitch past the clamp.
+- A value that rounds to zero is written `0.0`, never `-0.0`. A non-finite
+  value, or one past 8,388 m (2^23 steps, where rounding stops being
+  idempotent in `f32`), is written unchanged.
+- A change smaller than half a step is no change, so it is not in a delta.
+- Not rounded: the `Ack` (its `x`, `z`, `yaw`, `pitch` and `movement` stay
+  exact, because local prediction replays from them), projectiles, grenades,
+  rockets, vehicles, the walker, campaign blocks and impact normals.
+
+Every reader already parses these fields as JSON numbers, so this is no
+gameplay contract change and no reader changes. The rounding uses only IEEE
+multiply, round and divide, so every host writes the same text for the same
+value. Measured savings: [BENCHMARK.md](BENCHMARK.md#quantized-motion-434-stage-4-wave-16).
 
 ### Lag compensation (capability 62)
 

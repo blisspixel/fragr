@@ -269,12 +269,16 @@ static func preset_for(map_name: String) -> Preset:
 		return mars_foundry()
 	if key.contains("holdfast"):
 		return holdfast()
-	if key.contains("common carrier") or key.contains("right of search"):
+	if key.contains("common carrier"):
+		return common_carrier()
+	if key.contains("right of search"):
 		return carrier()
 	if key.contains("port of entry"):
 		return port_of_entry()
 	if key.contains("passenger manifest"):
-		return moon_port()
+		return launch_berth()
+	if key == "custodian of record":
+		return custodian_of_record()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()
 	if key.contains("declared goods"):
@@ -380,6 +384,29 @@ static func carrier() -> Preset:
 	preset.scene_fill_energy = 0.1
 	return preset
 
+## Common Carrier (docs/design/space.md): the occupied ship shaped by its own
+## caged work lamps and the crew's warm bulbs, with a lower ambient floor so
+## the pools read, no haze over the stars in the long window, and an actor
+## fill that keeps black-and-red boarders readable against gunmetal.
+static func common_carrier() -> Preset:
+	var preset: Preset = carrier()
+	# Space through the window is one even black: no horizon band.
+	preset.sky_top = Color("040508")
+	preset.sky_horizon = Color("040508")
+	preset.ground_horizon = Color("040508")
+	preset.fog_color = Color("07090c")
+	preset.fog_density = 0.0015
+	preset.ambient_color = Color(0.80, 0.74, 0.64)
+	preset.ambient_energy = 0.55
+	preset.practical_color = Color("ffd9a6")
+	preset.practical_energy = 1.1
+	preset.practical_range = 7.0
+	preset.view_fill_energy = 0.7
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.08
+	preset.saturation = 0.96
+	return preset
+
 static func moon_port() -> Preset:
 	var preset: Preset = Preset.new(Color("090b10"), Color("141a20"),
 		Color("343b3c"), Color("787b73"), 0.0006, Color("b8bdb6"), 0.58)
@@ -430,6 +457,25 @@ static func moon_archive() -> Preset:
 	preset.contrast = 1.1
 	return preset
 
+## Custodian of Record: a sheltered institution with no sun in it. The key
+## is off; the archive is lit by M08Dressing's green-shaded pendants where
+## people sit, cold issued pools over intake, the platforms and the freight
+## lane, and a cold work light down the shaft. The ambient floor keeps the
+## galleries readable between pools; the actor fill keeps a black-and-red
+## guard lit against green enamel and olive cabinets.
+static func custodian_of_record() -> Preset:
+	var preset: Preset = moon_archive()
+	preset.interior = true
+	preset.ambient_color = Color(0.76, 0.76, 0.72)
+	preset.ambient_energy = 0.56
+	preset.key_energy = 0.0
+	preset.scene_fill_energy = 0.0
+	preset.practical_energy = 1.8
+	preset.view_fill_energy = 0.6
+	preset.contrast = 1.08
+	preset.saturation = 0.95
+	return preset
+
 ## The curfew town: a low sun behind the town wall, so the streets lie in
 ## long shade under the dome and the crater cut beyond is hard light on dust.
 ## M07Dressing puts the Union's cold floods and the post's pools in the shade;
@@ -447,6 +493,27 @@ static func moon_town() -> Preset:
 	preset.practical_energy = 1.6
 	preset.practical_range = 10.0
 	preset.view_fill_energy = 0.6
+	preset.contrast = 1.1
+	return preset
+
+## The launch berth: one tall pressure hall with a glazed roof. A steep, soft
+## sun from the glazing throws the gantries' shadows down across the cradle,
+## and the hall lives on its own lamps: warm work light under the gantry
+## shelters, the Union's cold floods on the hull and the office landing.
+## M09Dressing places them; the actor fill keeps a black-and-red Enforcer
+## readable on every gantry.
+static func launch_berth() -> Preset:
+	var preset: Preset = moon_port()
+	preset.ambient_color = Color(0.70, 0.71, 0.70)
+	preset.ambient_energy = 0.6
+	preset.key_color = Color("fff3dc")
+	preset.key_energy = 0.95
+	preset.key_rotation_degrees = Vector3(-76.0, 200.0, 0.0)
+	preset.scene_fill_energy = 0.06
+	preset.practical_color = Color("ffe2b0")
+	preset.practical_energy = 2.0
+	preset.practical_range = 11.0
+	preset.view_fill_energy = 0.65
 	preset.contrast = 1.1
 	return preset
 

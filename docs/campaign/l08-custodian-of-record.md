@@ -5,7 +5,11 @@ Shared [world direction](../design/moon.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** development prototype built per the level 8 design below ([plan](../plans/l08-custodian-of-record-prototype.md)); fresh-player and difficulty acceptance open. Moon before the wipe. Target 10-14 minutes.
+**Status:** a playable development mission on main (map 1008,
+`server/maps/m08_custodian_of_record.json`) built per the level 8 design below
+([plan](../plans/l08-custodian-of-record-prototype.md)), dressed toward the
+golden slice in wave 16 ([below](#golden-slice-dressing-wave-16)). Fresh-player
+and difficulty acceptance are open. Moon before the wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-8-custodian-of-record).
 
 ## Story and people
@@ -181,3 +185,75 @@ inconvenienced the service, from *not at all* to *greatly*. Latch ticks
 
 **The moment.** The custody machine falling down the shaft through all the
 galleries, and then an empty car arriving that nobody sent.
+
+## Golden-slice dressing (wave 16)
+
+`client/scripts/m08_dressing.gd` raises the built route toward the Recall
+Notice bar the way the port's and the town's dressing do, and reuses their
+helpers: every piece is a flush fitting, a small possession against a wall or
+on a top, a run overhead or practical light, and the server's solids are
+unchanged. `M08Archive` owns one `M08Dressing` that outlives a re-sent map:
+the server re-sends MapInfo when the seal lifts and again when the machine
+falls, so the layout guard keys only on walls that never move (the checkpoint
+wall, the archive's ring walls, both stair towers, the freight lane's end wall
+and the registry desk), and the seal, the machine and its nodes are never keys.
+
+The archive has its own face. The port is issued bone-grey shell and cargo
+light and the town is lived paint under curfew floods; the archive is an old
+institution. `M08Dressing.restyle_archive` paints its walls in institutional
+green-grey enamel with a green dado band at every deck under a brass pinline
+that never glows, lays green linoleum on the hall floor and both gallery decks
+over dark coffered ceilings, and gives the desks olive steel with linoleum
+tops. Rails and shaft screens are galvanised steel, stairs and platforms are
+issued steel with ochre nosing, the cooling columns are pale frosted steel and
+the custody machine is dark issued steel whose nodes carry the only hot light.
+The checkpoint is the Union's colder enamel and the freight lane bare concrete.
+The black-and-red `service_steel` that striped every rail, stair and screen in
+glowing red is gone. `ArenaSky.custodian_of_record()` has no sun: the archive
+is lit where people sit by green-shaded pendants with warm pools, while the
+Union's cold issued fixtures hang over intake, the custody platforms, the
+cooling ring, the shaft and the freight lane.
+
+Evidence and captivity share the building, told in objects. The hall's outer
+walls are runs of four-drawer olive cabinets, a card and a brass pull on every
+drawer, a few left open. Between the runs hang register boards: rows of small
+cards, each a portrait square and the same red stamp. Every desk carries a
+terminal with a warm phosphor face, trays of forms, a stamp rack and a card
+file, and brass pneumatic tubes run round the ceiling and drop to each desk.
+Intake has painted queue lanes and stand-here marks, a rack of blank forms,
+two black banners with the red seal and a camera over the hall opening, and
+confiscation bins along the wall, each full of somebody's bags under a red
+destruction tag. Lost property keeps tagged bags on shelves, boots, an
+instrument case and a child's toy blocks. The lower gallery is open steel
+shelving of archive boxes. The bays hold fold-down bunks on chains, each with
+a folded blanket, a cup and shoes, beside open restraint frames upstairs. The
+mine cage has a wire front over its rack, crates of charges, a work lamp and a
+hazard band at the alcove mouth; the corridor is evenly lit so a stuck charge
+and its lamp read. The cooling ring carries pipe runs, feeds, valve wheels,
+frost and drip trays; the bridge desk has the transfer files and a foundry
+crate. Gantry beams carry the machine's chain. The freight lane has rails to a
+dark portal where the car came in, chevrons at the boarding line and bundles
+where the released wait. The captives' provisional figures wear varied personal
+colours instead of four near-identical pale tints.
+
+**Signal beat.** The noise panel is a maintenance screen over the car. Its
+line, "Authorized noise. No action required.", is on screen in warm phosphor
+whether or not anything can be heard, with three short ticks and one long
+under it; the existing lamp blinks that rhythm once the evidence is taken.
+
+**Signs.** Eight readable signs, the level budget, counted with
+`tools/audit_world_signs.gd`: `REGISTRY`, `LOWER BAYS / RELEASE`, `PROXIMITY
+CHARGES`, `RECOVERED MINDS / KEEP COLD`, `FOUNDRY TRANSFERS`, `CUSTODY SHAFT`,
+`FREIGHT / BERTH LANE` and the authorized-noise screen. The intake and bay
+forms are pinned papers, not readable copy, and the three sixes are marks.
+The dressing adds only the screen's line, which the reduced-signage pass had
+hidden.
+
+`client/qa/m08-golden.json` frames every beat on the route from a spectator
+camera; `m08-golden-guards.json` wakes the records hall and frames its Clerks
+and Sweepers against the cabinets and pendants. Later groups are chained
+behind earlier clears, so the Auditor, the Sweepers it repairs and the mine
+lesson are read through the combat route in `client/qa/m08_custodian_of_record.json`.
+`client/scripts/test_m08_dressing.gd` holds the guard through both re-sent
+stages, the light and faction-colour rules and the surface roles.
+

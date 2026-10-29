@@ -212,8 +212,42 @@ and scale screens are pictograms. The dressing adds no words.
 camera; `m06-golden-guards.json` frames the four freight guards, the only
 guards placed before their encounter wakes, against the freight paint. Later
 groups and both Turrets appear only through the combat route in
-`client/qa/m06_port_of_entry.json`. Still open: the Turrets and later guards
-judged against the dressed customs hall in a combat capture; the tug, Tern's
+`client/qa/m06_port_of_entry.json`. Still open: the tug, Tern's
 wave and the ship's provisional box hull; the window gantry and depot tower,
 which are plain shared backdrop boxes; the Voss welcome loop's voice and motion;
 fresh-player pacing and GPU performance.
+
+## Combat readability in the dressed hall (wave 16)
+
+`client/qa/m06_combat_review.gd` runs the ordinary-input route above
+(`FRAGR_QA_SCRIPT=res://qa/m06_combat_review.gd` with `tools/qa_tour.sh`) and,
+from the player's own view, photographs each Turret and Heavy Sweeper at rest
+and past 80 percent of its windup, and every Railgun beam at three ages, each
+with a pixel-scale crop. Observations only; the route and its gates are the
+tour's. On seed 42 the whole route passed to the transit departure.
+
+- **Turret body.** Both Turrets read as a dark issued mass against the bone
+  customs walls; against the dark ceiling the one-texel rim and the optic carry
+  the head. Seen from behind on the gallery at arm's length the back plates
+  read dark slate, one step above the body, as the livery asks.
+- **Optics at the top of a windup.** The Turret and Heavy sheets paint their
+  lamps about three times brighter than the issued optic, so a driven tell
+  clipped red and kept raising green: the Turret's charge read salmon (about
+  `#DB7969` in the hall). For those two sheets only (`EnemyView.BRIGHT_LAMP_KINDS`),
+  `union_sprite.gdshader` now holds each lamp to the issued optic's level in its
+  own hue and swells it with a deeper red; the same charge reads `#D8241F`.
+  Every other Union sheet keeps its light as painted: in the tell lineup the
+  Clerk, Enforcer, Sweeper, Auditor and Redactor are pixel-identical to `main`
+  at rest and through the tell.
+- **Railgun.** The beam's near-white core and pale cyan edge read against the
+  bone walls, the dark ceiling and the containers, from the player's gun and
+  from a Turret's near miss; its spiral is visible to its fade. A beam stays
+  where it was fired, so a strafing shooter sees its start drift off the held
+  gun; that is the world-space trail, not a registration fault.
+- **Heavy Sweeper.** The loading and exit Heavies read black with red lamps
+  against the bone walls in both halls.
+
+The free local agent (`fragr-brain play --provider local`, seed 42, Standard)
+cleared every group and departed in about 85 seconds with full observations;
+that is authoring evidence. `fragr-playtest --campaign-survey` has no Level 6
+scenario, so there is no limited-perception survey of this level yet.

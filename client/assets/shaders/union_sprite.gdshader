@@ -30,6 +30,11 @@ uniform float body_lift = 0.5;
 // the plate shading and leaves optics, visor, armbands and tells untouched.
 uniform float body_value = 1.0;
 uniform float red_glow = 1.6;
+// Brightest linear red a lamp emits at; the default never caps. Sheets that
+// paint their lamps far above the issued optic (EnemyView.BRIGHT_LAMP_KINDS)
+// set it to the issued optic's value, with a deeper red for the tell swell.
+uniform float optic_level = 1000.0;
+uniform vec3 tell_hue = vec3(1.0, 0.07, 0.05);
 uniform vec3 rim_color : source_color = vec3(0.42, 0.44, 0.50);
 uniform float rim_glow = 0.55;
 // Redactor approach only: one texel of visible scan jitter, never invisibility.
@@ -38,6 +43,10 @@ uniform float shimmer_tick = 0.0;
 uniform float absorbed = 0.0;
 uniform vec3 work_glow : source_color = vec3(0.290, 0.541, 0.573); // #4A8A92
 uniform float work_energy = 1.1;
+// Resting working-light energy (EnemyView.WORK_ENERGY) and the deeper,
+// saturated cyan the windup swell adds above it, linear.
+uniform float work_rest = 1.1;
+uniform vec3 work_swell = vec3(0.01, 0.18, 0.20);
 
 void vertex() {
 	// Keep the scene camera basis during light-camera shadow draws as well.
@@ -94,10 +103,23 @@ void fragment() {
 		float lamp = red * smoothstep(0.13, 0.22, texel.r);
 		// Above its resting level the attack tell adds saturated red, never
 		// white: a lighter red pixel driven hard would otherwise clip to pink.
+		// The Heavy Sweeper and Turret sheets paint their lamps near 0.76
+		// linear, three times the issued optic: driven at that value the red
+		// channel clipped while green kept climbing, and the top of a windup
+		// read salmon. Those two sheets set `optic_level`, so their lamps emit
+		// at no more than the issued optic's value, in their own hue, and swell
+		// with a deeper `tell_hue`. Every other sheet keeps the defaults, which
+		// leave its light exactly as painted.
 		float resting = min(red_glow, 1.6);
-		vec3 union_light = texel.rgb * red * resting
-			+ vec3(1.0, 0.07, 0.05) * red * texel.r * max(red_glow - resting, 0.0);
-		vec3 working_light = work_glow * lamp * work_energy;
+		vec3 lamp_rgb = texel.r > optic_level ? texel.rgb * (optic_level / texel.r) : texel.rgb;
+		vec3 union_light = lamp_rgb * red * resting
+			+ tell_hue * red * lamp_rgb.r * max(red_glow - resting, 0.0);
+		// The working light's swell keeps its hue the same way: past its
+		// resting energy it adds a deeper cyan with almost no red, so the top
+		// of an absorbed windup reads cyan rather than washing to pale mint.
+		float working = min(work_energy, work_rest);
+		vec3 working_light = (work_glow * working
+			+ work_swell * max(work_energy - working, 0.0)) * lamp;
 		EMISSION = mix(union_light, working_light, absorbed) * tint;
 	}
 	ROUGHNESS = 1.0;

@@ -13,6 +13,11 @@ extends "res://scripts/qa_tour.gd"
 const MANIFEST: String = "res://qa/m19-live-review.json"
 const CHASE_BACK: float = 5.2
 const CHASE_UP: float = 2.4
+## Heavy review: photographed when the agent is this near, from this far.
+const HEAVY_REACH: float = 30.0
+const HEAVY_VIEW_METRES: float = 7.0
+## Square crop around a photographed subject, in metres at its distance.
+const CROP_METRES: float = 3.2
 
 var _review_shots: Array[Dictionary] = []
 var _review_taken: Dictionary = {}
@@ -88,21 +93,42 @@ func _process(delta: float) -> bool:
 		_shot("waterworks_open", feet + Vector3(-5.0, 3.0, -4.0), Vector3(53.0, 1.5, 53.0))
 	if mission.get("phase") == "departed":
 		_shot("departed", Vector3(30.0, 9.0, 40.0), Vector3(55.0, 0.0, 80.0))
+	# Absorbed Heavy Sweepers: captured Union hardware under the night's warm
+	# pools, at rest and near the top of a windup, from the agent's side.
+	for actor: Dictionary in snapshot.get("players", []):
+		var campaign: Variant = actor.get("campaign")
+		if not campaign is Dictionary or campaign.get("kind") != "heavy_sweeper" or int(actor.get("hp", 0)) <= 0:
+			continue
+		var heavy: Vector3 = Vector3(float(actor["x"]), float(actor["y"]) - 1.5, float(actor["z"]))
+		var toward: Vector3 = Vector3(feet.x - heavy.x, 0.0, feet.z - heavy.z)
+		if toward.length() < 0.5 or toward.length() > HEAVY_REACH:
+			continue
+		toward = toward.normalized()
+		var tick: int = int(snapshot.get("tick", 0))
+		var started: int = int(campaign.get("phase_started", tick))
+		var ends: int = int(campaign.get("phase_ends", tick))
+		var moment: String = "rest"
+		if campaign.get("phase") == "windup" and ends > started and float(tick - started) / float(ends - started) >= 0.8:
+			moment = "windup_late"
+		elif campaign.get("phase") != "idle" and campaign.get("phase") != "moving":
+			continue
+		var eye: Vector3 = heavy + toward * HEAVY_VIEW_METRES + Vector3(-toward.z, 0.0, toward.x) * 1.2 + Vector3(0.0, 1.7, 0.0)
+		_shot("heavy_%s_%s" % [actor["id"], moment], eye, heavy + Vector3(0.0, 1.2, 0.0), true)
 	# A chase frame every eight seconds for motion review.
 	if Time.get_ticks_msec() - _review_last_ms > 8000:
 		_review_chase += 1
 		_shot("chase_%02d" % _review_chase, feet - forward * CHASE_BACK + Vector3(0.0, CHASE_UP, 0.0), feet + forward * 3.0 + Vector3(0.0, 1.0, 0.0))
 	return false
 
-func _shot(key: String, eye: Vector3, focus: Vector3) -> void:
+func _shot(key: String, eye: Vector3, focus: Vector3, crop: bool = false) -> void:
 	if _review_taken.has(key) or _review_busy:
 		return
 	_review_taken[key] = true
 	_review_busy = true
 	_review_last_ms = Time.get_ticks_msec()
-	_take.call_deferred(key, eye, focus)
+	_take.call_deferred(key, eye, focus, crop)
 
-func _take(key: String, eye: Vector3, focus: Vector3) -> void:
+func _take(key: String, eye: Vector3, focus: Vector3, crop: bool = false) -> void:
 	var cam: Node3D = _spectator_camera() as Node3D
 	if cam != null:
 		cam.set("spectator_first_person", false)
@@ -116,6 +142,20 @@ func _take(key: String, eye: Vector3, focus: Vector3) -> void:
 	for _frame: int in range(3):
 		await RenderingServer.frame_post_draw
 	var frame: Image = _grab()
+	var camera: Camera3D = root.get_camera_3d()
+	if crop and frame != null and not frame.is_empty() and camera != null and not camera.is_position_behind(focus):
+		# The subject at pixel scale, before any resize: nearest blocks only.
+		var view: Vector2 = root.get_viewport().get_visible_rect().size
+		var scale: Vector2 = Vector2(frame.get_size()) / view
+		var centre: Vector2 = camera.unproject_position(focus) * scale
+		var edge: Vector2 = camera.unproject_position(focus + camera.global_transform.basis.x * CROP_METRES * 0.5) * scale
+		var side: int = mini(clampi(roundi(centre.distance_to(edge)), 24, 240) * 2, mini(frame.get_width(), frame.get_height()))
+		var corner: Vector2i = Vector2i(clampi(roundi(centre.x) - side / 2, 0, frame.get_width() - side),
+			clampi(roundi(centre.y) - side / 2, 0, frame.get_height() - side))
+		var detail: Image = frame.get_region(Rect2i(corner, Vector2i(side, side)))
+		var zoom: int = clampi(480 / side, 1, 6)
+		detail.resize(side * zoom, side * zoom, Image.INTERPOLATE_NEAREST)
+		detail.save_png(_out_dir.path_join("m19_%02d_%s_zoom.png" % [_review_shots.size(), key]))
 	if frame != null and frame.get_width() > 1280:
 		frame.resize(1280, roundi(float(frame.get_height()) * 1280.0 / float(frame.get_width())), Image.INTERPOLATE_BILINEAR)
 	var filename: String = "m19_%02d_%s.png" % [_review_shots.size(), key]

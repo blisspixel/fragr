@@ -1,0 +1,32 @@
+{
+  "comment": "M08 golden-slice art review. Eye-height spectator views of every beat on the authored route through the custody archive, before any guard wakes. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m08_custodian_of_record.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Guards, the Auditor's channel, the Proximity Mine and the machine's fall appear through client/qa/m08-golden-guards.json and the combat route in client/qa/m08_custodian_of_record.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"checkpoint_arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[0,1.65,-36],"camera_look_at":[0,1.4,-22],"allow_empty_roster":true,"settle_seconds":1.5,"note":"Arrival at the entry checkpoint: the intake desk, its form, the hall opening beyond."},
+    {"name":"checkpoint_desk","camera":"overview","camera_position":[-3,1.65,-30],"camera_look_at":[0.5,1.0,-25.6],"allow_empty_roster":true,"note":"The intake desk at fighting distance: forms, the queue, the issued kit."},
+    {"name":"observation_cage","camera":"overview","camera_position":[-2,1.65,-28],"camera_look_at":[5.5,2.4,-23],"allow_empty_roster":true,"note":"The desk-top route and the observation cage over the checkpoint, marked with a six."},
+    {"name":"hall_entrance","camera":"overview","camera_position":[0,1.65,-19],"camera_look_at":[0,2.5,-4],"allow_empty_roster":true,"note":"Through the checkpoint opening: the records hall around the shaft, the galleries stacked above."},
+    {"name":"hall_desks_west","camera":"overview","camera_position":[-4,1.65,-17],"camera_look_at":[-14,1.2,-12],"allow_empty_roster":true,"note":"Human-facing desks: where a person becomes a registered asset."},
+    {"name":"hall_records_wall","camera":"overview","camera_position":[-10,1.65,0],"camera_look_at":[-20,1.6,-4],"allow_empty_roster":true,"note":"The records wall: cabinets, drawers, the institution's machinery."},
+    {"name":"hall_shaft_up","camera":"overview","camera_position":[0,1.65,-7.5],"camera_look_at":[0,8.5,2],"allow_empty_roster":true,"note":"At the hall rail: the shaft rising through both galleries to the hanging custody machine."},
+    {"name":"lost_property","camera":"overview","camera_position":[10,1.65,10],"camera_look_at":[17,0.6,16],"allow_empty_roster":true,"note":"The lost-property cage: confiscated jackets, one with the six."},
+    {"name":"west_stair","camera":"overview","camera_position":[-28,1.65,-7],"camera_look_at":[-28,3.0,3],"allow_empty_roster":true,"note":"The west stair tower to the lower gallery."},
+    {"name":"lower_gallery","camera":"overview","camera_position":[-17,4.65,6],"camera_look_at":[-8,4.0,-14],"allow_empty_roster":true,"note":"The lower gallery: open bays, the shaft rail, the registry desk ahead."},
+    {"name":"registry_desk","camera":"overview","camera_position":[-10,4.65,-8],"camera_look_at":[-14,3.8,-11.5],"allow_empty_roster":true,"note":"The registry desk where Renn waits with a lowered case."},
+    {"name":"lower_bays","camera":"overview","camera_position":[0,4.65,-12],"camera_look_at":[0,4.2,-19.6],"allow_empty_roster":true,"note":"The lower custody bays: personal remnants behind the forms."},
+    {"name":"mine_alcove","camera":"overview","camera_position":[-13,4.65,14],"camera_look_at":[-19.5,4.0,14.5],"allow_empty_roster":true,"note":"The one-entrance alcove and its equipment cage of mines."},
+    {"name":"mine_corridor","camera":"overview","camera_position":[-10,4.65,19],"camera_look_at":[-10,4.0,10],"allow_empty_roster":true,"note":"The corridor the post Sweepers walk up: where the mine goes."},
+    {"name":"east_stair","camera":"overview","camera_position":[24,4.65,-6],"camera_look_at":[28,6.0,3],"allow_empty_roster":true,"note":"The east tower to the upper gallery."},
+    {"name":"upper_gallery","camera":"overview","camera_position":[17,7.65,4],"camera_look_at":[4,7.0,-12],"allow_empty_roster":true,"note":"The upper gallery: custody platforms, broad cover, the Auditor's ground."},
+    {"name":"upper_seal","camera":"overview","camera_position":[-2,7.65,-10],"camera_look_at":[-6,7.5,-14],"allow_empty_roster":true,"note":"The custody seal and the upper bay shutters."},
+    {"name":"service_ring","camera":"overview","camera_position":[-10,7.65,-14],"camera_look_at":[-18,7.2,-17],"allow_empty_roster":true,"note":"The cooling ring: pipes, a quiet loop, the junction marked with a six."},
+    {"name":"cold_cabinet","camera":"overview","camera_position":[-15,7.65,2],"camera_look_at":[-19.5,7.0,-2],"allow_empty_roster":true,"note":"Orrin's damaged backup in its cold cabinet."},
+    {"name":"machine_bridge","camera":"overview","camera_position":[-2,7.65,10],"camera_look_at":[0,7.6,0],"allow_empty_roster":true,"note":"The machinery bridge: the custody machine on four glowing support nodes."},
+    {"name":"machine_well","camera":"overview","camera_position":[4,7.65,10],"camera_look_at":[0,1,-2],"allow_empty_roster":true,"note":"Down the shaft from the bridge: every gallery to the hall floor."},
+    {"name":"evidence_desk","camera":"overview","camera_position":[10,7.65,7],"camera_look_at":[13.5,6.8,9.5],"allow_empty_roster":true,"note":"The transfer evidence on the bridge desk."},
+    {"name":"freight_landing","camera":"overview","camera_position":[8.5,7.65,22],"camera_look_at":[0,2,36],"allow_empty_roster":true,"note":"From the freight landing: the lane's lights below, the car, the panel."},
+    {"name":"freight_lane","camera":"overview","camera_position":[0,1.65,25],"camera_look_at":[0,2.5,37.5],"allow_empty_roster":true,"note":"The freight lane and the uncalled car under the maintenance panel."},
+    {"name":"noise_panel","camera":"overview","camera_position":[0,1.65,31],"camera_look_at":[0,4.0,37.7],"allow_empty_roster":true,"strip_frames":8,"strip_interval_seconds":0.15,"note":"Authorized noise. No action required. Readable with sound muted."}
+  ]
+}

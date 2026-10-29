@@ -416,6 +416,7 @@ Get the current game state. The default detail is `brief`: compact text in `cont
   attempt or successful Welcome clears the previous error; `act` stays refused
   until a usable snapshot arrives. Missing map identity is null, not Arena Duel.
 - Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
+- Fighter `x`/`y`/`z` and shot trace points are rounded to the millimetre, and fighter `yaw`/`pitch` to 1e-4 rad, on the wire only; the server simulates the exact values (see "Quantized motion" in `docs/protocol.md`)
 - `self_player_id`: UUID of your agent's player (null for spectators)
 - `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order. Each stored event is truncated near 2 KiB, and the ring also stops at 32 KiB. An inbound server frame above 64 KiB is ignored.
 - Dead players (HP <= 0) are omitted from players array

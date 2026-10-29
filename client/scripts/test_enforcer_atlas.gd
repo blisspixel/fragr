@@ -85,6 +85,14 @@ func _run() -> void:
 	var heavy_material: ShaderMaterial = heavy_body.material_override as ShaderMaterial
 	_check(heavy_material != null and is_equal_approx(float(heavy_material.get_shader_parameter("body_value")), EnemyView.HEAVY_BODY_VALUE)
 		and EnemyView.HEAVY_BODY_VALUE < 0.6, "the Heavy's lighter plates are brought down to issued black, red points excluded")
+	_check(is_equal_approx(float(heavy_material.get_shader_parameter("optic_level")), EnemyView.ISSUED_OPTIC_LEVEL)
+		and heavy_material.get_shader_parameter("tell_hue") == EnemyView.BRIGHT_TELL_HUE,
+		"the Heavy's bright painted lamps are held to the issued optic and swell in a deeper red")
+	_check(is_equal_approx(float(heavy_material.get_shader_parameter("work_rest")), EnemyView.WORK_ENERGY),
+		"the working light's resting energy comes from the view, not a matching default")
+	_check(float(material.get_shader_parameter("optic_level")) >= EnemyView.UNCAPPED_OPTIC_LEVEL
+		and material.get_shader_parameter("tell_hue") == EnemyView.ISSUED_TELL_HUE,
+		"an issued-optic role keeps its light exactly as painted")
 	heavy_body.free()
 	var charge_frame: int = body.frame
 	view.advance(50.0, 0.0)

@@ -22,6 +22,7 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
+pub mod link;
 mod provenance;
 pub mod rewind;
 pub mod sabotage;

@@ -1,0 +1,12 @@
+{
+  "comment": "M10 golden-slice faction read. A joined player walks from the passenger deck into the forward boarding region, which wakes the first boarders (Clerks and Sweepers on the cargo deck and one Sweeper on the crew deck); posed views then frame them against the lashed crates, gunmetal hull and bone trunk walls at 5 to 15 m. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m10_common_carrier.json. Check black armour, red visors, armbands and optics against the ship's warm work light; art review, not combat evidence. Later boarders are reached through combat in client/qa/m10_common_carrier.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","note":"The unforced first-person arrival frame on the passenger deck."},
+    {"name":"wake","camera":"first_person","walk_to":[[0,4.8,-12.1],[0,4.8,-10.4]],"look_at":[2,5.6,-7],"settle_seconds":1.0,"note":"Into the forward boarding region; the crew-deck Sweeper at the galley end."},
+    {"name":"cargo_near","camera":"overview","camera_position":[-0.5,3.65,-15.5],"camera_look_at":[0,2.9,-9],"settle_seconds":0.3,"note":"The Clerks and the lower Sweeper among the lashed cargo at 5 to 9 m."},
+    {"name":"cargo_far","camera":"overview","camera_position":[0.5,3.65,-1.5],"camera_look_at":[0,2.9,-11],"settle_seconds":0.3,"note":"The same boarders from the service deck at 6 to 10 m, against the forward hold and its work lamps."},
+    {"name":"crew_sweeper","camera":"overview","camera_position":[-2.7,6.45,-15.5],"camera_look_at":[2,5.6,-7],"settle_seconds":0.3,"note":"The crew-deck Sweeper by the galley and the repair corner at 9 m, against bone and gunmetal."}
+  ]
+}
