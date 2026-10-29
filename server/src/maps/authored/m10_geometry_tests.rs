@@ -258,12 +258,19 @@ fn m10_collision_shell_has_three_supported_decks_and_a_sealed_freight_volume() {
         map.mission.is_none(),
         "collision work alone is not a mission"
     );
-    assert_eq!(map.supplies.len(), 8, "only authored finite ship stock");
-    assert!(
+    assert_eq!(
+        map.supplies.len(),
+        9,
+        "authored finite ship stock and Repeater lesson"
+    );
+    assert_eq!(
         map.supplies
             .iter()
-            .all(|s| !matches!(s.kind, crate::sim::PickupKind::Weapon(_))),
-        "no gun grant before the real lesson presentation"
+            .filter(|s| matches!(s.kind, crate::sim::PickupKind::Weapon(_)))
+            .map(|s| s.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["cargo_repeater"],
+        "the cargo case is the only ship weapon find"
     );
     assert_eq!(map.arena.solids.len(), 129);
     for (feet, expected_ceiling) in [

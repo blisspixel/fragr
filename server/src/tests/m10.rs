@@ -540,3 +540,165 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
         std::fs::remove_file(path).unwrap();
     }
 }
+
+#[test]
+fn m10_repeater_is_reachable_before_boarding_and_personal_stock_is_finite() {
+    use crate::protocol::{AmmoPool, WeaponType};
+    for difficulty in [
+        CampaignDifficulty::Assisted,
+        CampaignDifficulty::Standard,
+        CampaignDifficulty::Severe,
+    ] {
+        let (mut s, id) = fixture(difficulty);
+        ready(&mut s, id);
+        for target in [
+            [0.0, 4.8, -17.2],
+            [-4.45, 4.8, -17.2],
+            [-4.45, 4.8, -14.5],
+            [-4.45, 3.4, -4.5],
+            [-6.55, 3.4, -4.5],
+            [-6.55, 2.0, -14.5],
+            [-6.55, 2.0, -15.5],
+            [0.0, 2.0, -15.5],
+            [1.5, 2.0, -14.0],
+        ] {
+            let mut arrived = false;
+            for _ in 0..1000 {
+                let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+                let feet = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+                if (feet[0] - target[0]).hypot(feet[2] - target[2]) < 0.25
+                    && (feet[1] - target[1]).abs() < 0.1
+                {
+                    arrived = true;
+                    break;
+                }
+                let action = Action {
+                    forward: true,
+                    yaw: Some((target[2] - feet[2]).atan2(target[0] - feet[0])),
+                    ..Action::default()
+                };
+                assert!(!action.jump);
+                s.state.set_action(id, action);
+                tick(&mut s, 1);
+                assert!(
+                    !s.state
+                        .players
+                        .iter()
+                        .any(|p| s.state.encounters.is_active_enemy(p.id)),
+                    "the Repeater is reachable before the first deliberate boarding threshold"
+                );
+            }
+            assert!(arrived, "cargo route stalled at {target:?}");
+        }
+        let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+        assert!(p.inventory.owns(WeaponType::Repeater));
+        assert!(p.inventory.claimed("cargo_repeater"));
+        let rounds = p
+            .inventory
+            .state(id, p.weapon, s.state.tick)
+            .unwrap()
+            .ammo
+            .iter()
+            .find(|a| a.pool == AmmoPool::Bullets)
+            .unwrap()
+            .rounds;
+        assert!(rounds > 0 && rounds <= AmmoPool::Bullets.capacity());
+        s.state.set_action(id, Action::default());
+        tick(&mut s, 400);
+        let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+        assert_eq!(
+            p.inventory
+                .state(id, p.weapon, s.state.tick)
+                .unwrap()
+                .ammo
+                .iter()
+                .find(|a| a.pool == AmmoPool::Bullets)
+                .unwrap()
+                .rounds,
+            rounds,
+            "standing by the personal case never refills bullets"
+        );
+        let peer = Uuid::from_u128(1012);
+        s.state
+            .add_player(peer, "Second boarder".into(), Role::Agent);
+        ready(&mut s, peer);
+        place(&mut s, peer, [1.5, 2.0, -14.0]);
+        tick(&mut s, 1);
+        assert!(
+            s.state
+                .players
+                .iter()
+                .find(|p| p.id == peer)
+                .unwrap()
+                .inventory
+                .owns(WeaponType::Repeater),
+            "each ready participant can take the lesson gun once"
+        );
+    }
+}
+
+#[test]
+fn m10_repeater_refuses_briefing_dead_and_wrong_deck_claims() {
+    use crate::protocol::WeaponType;
+    let (mut s, id) = fixture(CampaignDifficulty::Standard);
+    place(&mut s, id, [1.5, 2.0, -14.0]);
+    tick(&mut s, 1);
+    assert!(!s
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .owns(WeaponType::Repeater));
+    ready(&mut s, id);
+    place(&mut s, id, [1.5, 4.8, -14.0]);
+    tick(&mut s, 1);
+    assert!(!s
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .owns(WeaponType::Repeater));
+    place(&mut s, id, [1.5, 2.0, -14.0]);
+    s.state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    tick(&mut s, 1);
+    assert!(!s
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .owns(WeaponType::Repeater));
+}
+
+#[test]
+fn m10_authored_lesson_refuses_missing_secret_contested_or_moved_repeater() {
+    let original: serde_json::Value =
+        serde_json::from_str(include_str!("../../maps/m10_common_carrier.json")).unwrap();
+    for mutation in 0..5 {
+        let mut changed = original.clone();
+        let supplies = changed["supplies"].as_array_mut().unwrap();
+        let index = supplies
+            .iter()
+            .position(|s| s["id"] == "cargo_repeater")
+            .unwrap();
+        match mutation {
+            0 => {
+                supplies.remove(index);
+            }
+            1 => supplies[index]["secret"] = true.into(),
+            2 => supplies[index]["claim"] = "contested".into(),
+            3 => supplies[index]["feet"] = serde_json::json!([0, 2, 14]),
+            _ => supplies[index]["grant"]["weapon"] = "flechette".into(),
+        }
+        let bytes = serde_json::to_vec(&changed).unwrap();
+        assert!(
+            AuthoredMap::read(bytes.as_slice()).is_err(),
+            "mutation {mutation}"
+        );
+    }
+}

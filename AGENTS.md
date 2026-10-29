@@ -155,7 +155,7 @@ Playable smoke: `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4` st
 | Performance or scale claim | A measurement table in the PR or plan; no numbers in prose without it |
 | Asset generation | Manifest entry with prompt, model and format; the file loads and is seen in game |
 
-Run `tools/qa_tour.sh --publish` before every release tag and in any PR that changes what a player sees. The README embeds four stills (boot menu, Recall Notice intake, multiplayer page, one watched match); replace one only when that surface changes. A named tour state is not evidence unless it actually happened. Headless checks, inspected visuals, performance measurements, fresh-player acceptance and deployed hosting are separate kinds of evidence; one never stands in for another.
+Run `tools/qa_tour.sh --publish` before every release tag and in any PR that changes what a player sees. The README embeds five stills (first-person match, boot menu, Recall Notice intake, multiplayer page, one watched match); replace one only when that surface changes. A named tour state is not evidence unless it actually happened. Headless checks, inspected visuals, performance measurements, fresh-player acceptance and deployed hosting are separate kinds of evidence; one never stands in for another.
 
 ## Workflow
 

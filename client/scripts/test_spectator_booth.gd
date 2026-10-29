@@ -250,7 +250,7 @@ func _check_nameplate() -> void:
 	label.queue_free()
 
 func _check_feed_and_board() -> void:
-	_check(FragFeed.kill_glyph("Repeater") == null and not FragFeed.is_kill_icon("Repeater"), "a gun without art is spelled out")
+	_check(FragFeed.kill_glyph("Unsupported") == null and not FragFeed.is_kill_icon("Unsupported"), "a gun without art is spelled out")
 	for art: String in WeaponArt.KILL_ICON:
 		_check(FragFeed.kill_glyph(art) == WeaponArt.KILL_ICON[art] and FragFeed.is_kill_icon(art), "a dedicated kill icon wins over the profile: " + art)
 		_check(WeaponArt.KILL_ICON[art].get_size() == Vector2(48, 16), "kill icons are 48 by 16: " + art)

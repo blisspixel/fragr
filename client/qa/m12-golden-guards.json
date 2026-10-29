@@ -1,0 +1,6 @@
+{"comment":"Habitat arrival motion and actual market guard read. Ordinary joined input wakes the opening fight; posed views are art inspection, not a fresh-player test.","width":1280,"height":720,"states":[
+{"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"look_at":[0,1.95,-24]},
+{"name":"arrival_walk","camera":"first_person","look_at":[0,1.95,-24],"trigger":"walk","strip_frames":12,"strip_interval_seconds":0.06},
+{"name":"market_wake","camera":"first_person","walk_to":[[0,0.3,-23],[0,0.3,-20]],"look_at":[-6,1.5,-16]},
+{"name":"market_clerk","camera":"overview","camera_position":[-2,1.95,-21],"camera_look_at":[-6,1.4,-16]},
+{"name":"market_sweeper","camera":"overview","camera_position":[2,1.95,-22],"camera_look_at":[10,1.2,-12]}]}

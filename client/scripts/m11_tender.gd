@@ -5,9 +5,14 @@ extends Node3D
 var _geometry: Dictionary = {}
 var _people: Array[Sprite3D] = []
 var _carrier: Node3D
+var dressing: M11Dressing
 var state_applied: int = 0
 
 func clear_map() -> void:
+	if dressing != null:
+		remove_child(dressing)
+		dressing.queue_free()
+		dressing = null
 	_geometry.clear()
 	state_applied = 0
 	for figure: Sprite3D in _people:
@@ -24,6 +29,11 @@ func configure_map(info: Dictionary) -> void:
 	if not info.get("m11") is Dictionary or not MissionState.map_error(info).is_empty():
 		return
 	_geometry = MissionState.geometry_for(info)
+	if M11Dressing.tender_layout(info):
+		dressing = M11Dressing.new()
+		dressing.name = "TenderDressing"
+		add_child(dressing)
+		dressing.configure_map(info)
 	_build_carrier()
 	var shades: Array[Color] = [Color("a9b0a2"), Color("c2a087"), Color("9cabb9")]
 	for index: int in range(info["m11"]["transfer_people"].size()):
@@ -47,8 +57,8 @@ func _build_carrier() -> void:
 	_carrier = Node3D.new()
 	_carrier.name = "CarrierOutside"
 	add_child(_carrier)
-	var enamel: Material = ArenaMaterials.authored("enamel", "common_carrier")
-	var steel: Material = ArenaMaterials.authored("service_steel", "common_carrier")
+	var enamel: Material = M10Dressing.ship_surface("hull")
+	var steel: Material = M10Dressing.ship_surface("steel")
 	_carrier_part("Hull", Vector3(10, 9.6, 57), Vector3(-27, 3.0, 0), enamel)
 	_carrier_part("Bow", Vector3(7.5, 7.2, 5), Vector3(-27.8, 2.0, -30.5), steel)
 	_carrier_part("Stern", Vector3(8, 7.2, 4), Vector3(-27.5, 2.0, 30), steel)

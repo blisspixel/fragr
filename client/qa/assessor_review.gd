@@ -55,9 +55,17 @@ func _run() -> void:
 			{"name":"rear_recovery","phase":"recovery","tick":101,"camera":[-6,1.62,0]},
 			{"name":"fan_overview","phase":"windup","tick":124,"camera":[5,7,5]},
 			{"name":"supported_wreck","phase":"dead","tick":124,"camera":[5,1.62,3]},
+			{"name":"absorbed_idle","phase":"moving","tick":100,"camera":[6,1.62,0],"absorbed":true},
+			{"name":"absorbed_windup_full","phase":"windup","tick":124,"camera":[6,1.62,0],"absorbed":true},
+			{"name":"absorbed_recovery","phase":"recovery","tick":101,"camera":[-6,1.62,0],"absorbed":true},
+			{"name":"absorbed_wreck","phase":"dead","tick":124,"camera":[5,1.62,3],"absorbed":true},
 		]:
 			_rig.position.y = 0.0 if state.phase == "dead" else 3.5
-			_rig.present({"phase":state.phase,"phase_started":100,"phase_ends":124},state.tick,0.0)
+			var actor: Dictionary = {"side":"union", "phase":state.phase,"phase_started":100,"phase_ends":124}
+			if state.get("absorbed", false):
+				actor["side"] = "inheritance"
+				actor["control"] = "absorbed"
+			_rig.present(actor,state.tick,0.0)
 			_rig.advance(0.05)
 			_camera.position = Vector3(state.camera[0],state.camera[1],state.camera[2])
 			_camera.look_at(_rig.position + Vector3(0,0.55,0))
@@ -87,7 +95,7 @@ func _run() -> void:
 	file.close()
 	_viewport.free()
 	await process_frame
-	print("assessor_review: PASS, 16 bounded mechanical/lighting fixtures and one physical windup strip")
+	print("assessor_review: PASS, 24 bounded mechanical/lighting fixtures and one physical windup strip")
 	quit(0)
 
 func _capture(directory: String, name: String, state: Dictionary) -> void:
@@ -97,5 +105,15 @@ func _capture(directory: String, name: String, state: Dictionary) -> void:
 	var path: String = directory.path_join(name+".png")
 	var picture: Image = _viewport.get_texture().get_image()
 	assert(not picture.is_empty() and picture.save_png(path) == OK)
-	_rows.append({"name":name,"phase":state.phase,"tick":state.tick,"camera":state.camera,
-		"feet":[_rig.position.x,_rig.position.y,_rig.position.z],"path":path,"sha256":FileAccess.get_sha256(path)})
+	var optic_colour: String = ""
+	if state.phase == "windup" and int(state.tick) == 124 and float(state.camera[2]) == 0.0:
+		var centre: Vector2 = _camera.unproject_position(_rig.optics[0].global_position)
+		var pixel: Vector2i = Vector2i(centre.round()).clamp(Vector2i.ZERO, picture.get_size() - Vector2i.ONE)
+		var colour: Color = picture.get_pixelv(pixel)
+		optic_colour = colour.to_html(false)
+		if state.get("absorbed", false):
+			assert(minf(colour.g, colour.b) > colour.r * 1.2, "absorbed windup must render cyan, not grey or pale mint")
+		else:
+			assert(colour.r > maxf(colour.g, colour.b) * 3.0, "Union windup must render red, not salmon")
+	_rows.append({"name":name,"phase":state.phase,"tick":state.tick,"camera":state.camera,"absorbed":state.get("absorbed",false),
+		"feet":[_rig.position.x,_rig.position.y,_rig.position.z],"path":path,"sha256":FileAccess.get_sha256(path),"windup_optic_rgb":optic_colour})

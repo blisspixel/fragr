@@ -2507,6 +2507,13 @@
   ],
   "supplies": [
     {
+      "claim": "personal",
+      "feet": [1.5, 2.0, -14.0],
+      "grant": {"kind": "weapon", "weapon": "repeater"},
+      "id": "cargo_repeater",
+      "secret": false
+    },
+    {
       "claim": "contested",
       "feet": [
         5.5,

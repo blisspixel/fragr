@@ -83,6 +83,13 @@ fn probe_planner_stalls_on_directive_17() {
                     _ => None,
                 });
             let Some(snapshot) = snapshot else { continue };
+            // Exercise the same rounded observations as connected clients;
+            // full-precision positions conceal near-edge steering failures.
+            let snapshot: Snapshot = if wire {
+                serde_json::from_slice(&serde_json::to_vec(&snapshot).unwrap()).unwrap()
+            } else {
+                snapshot
+            };
             if snapshot.round_state.as_deref() != Some("Active") {
                 continue;
             }

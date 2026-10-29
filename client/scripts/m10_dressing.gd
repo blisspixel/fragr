@@ -39,8 +39,12 @@ const REGIONS: Array[String] = ["ForwardHold", "Service", "AftHold", "WestTrunk"
 
 static var _ship_surfaces: Dictionary[String, ShaderMaterial] = {}
 var _rooms_by_name: Dictionary[String, Node3D] = {}
+var _repeater_case: Node3D
 
 func clear_map() -> void:
+	if is_in_group(&"pickup_stage"):
+		remove_from_group(&"pickup_stage")
+	_repeater_case = null
 	_rooms_by_name.clear()
 	super.clear_map()
 
@@ -275,6 +279,44 @@ func configure_map(info: Dictionary) -> void:
 		ArenaSky.mark_world(room)
 		add_child(room)
 	_unattached.clear()
+	add_to_group(&"pickup_stage")
+
+## The open cargo case follows the accepted pickup's position, so a moved
+## supply never leaves a convincing false weapon station behind. Its shallow
+## tray is presentation, below step height, with no new obstruction.
+func stage_pickup(id: String, kind: String, weapon: String, floor_at: Vector3) -> float:
+	if not active() or id != "cargo_repeater" or kind != "weapon" or weapon != "Repeater":
+		return 0.0
+	if not is_instance_valid(_repeater_case):
+		_repeater_case = Node3D.new()
+		_repeater_case.name = "RepeaterCase"
+		_repeater_case.rotation.y = PI
+		_rooms_by_name["ForwardHold"].add_child(_repeater_case)
+		var steel: StandardMaterial3D = _mat("weapon_case", Color("6b6f58"), 0.3, 0.7)
+		var liner: StandardMaterial3D = _mat("case_liner", Color("393b34"), 0.0, 0.9)
+		_block(_repeater_case, "Tray", Vector3(1.2, 0.1, 0.65), steel, Vector3(0, 0.05, 0))
+		_block(_repeater_case, "Liner", Vector3(1.08, 0.02, 0.53), liner, Vector3(0, 0.11, 0))
+		_block(_repeater_case, "OpenLid", Vector3(1.2, 0.75, 0.05), steel, Vector3(0, 0.405, -0.34))
+		for x: float in [-0.45, 0.45]:
+			_block(_repeater_case, "Latch", Vector3(0.08, 0.035, 0.08), _mat("case_latch", Color("b5652e")), Vector3(x, 0.12, 0.3))
+		var label: Label3D = Label3D.new()
+		label.name = "HoldFireLabel"
+		label.text = tr("M10_REPEATER_CASE")
+		label.font_size = 24
+		label.pixel_size = 0.004
+		label.position = Vector3(0, 0.64, -0.308)
+		label.modulate = Color("dfc698")
+		_repeater_case.add_child(label)
+		var lamp: OmniLight3D = OmniLight3D.new()
+		lamp.name = "CaseLamp"
+		lamp.position = Vector3(0, 0.7, 0)
+		lamp.light_color = AMBER
+		lamp.light_energy = 0.65
+		lamp.omni_range = 2.5
+		_repeater_case.add_child(lamp)
+		ArenaSky.mark_world(_repeater_case)
+	_repeater_case.global_position = floor_at
+	return 0.12
 
 func _mat(key: String, tint: Color, metallic: float = 0.0, roughness: float = 0.82) -> StandardMaterial3D:
 	return _shape.material("m10_" + key, tint, metallic, roughness)

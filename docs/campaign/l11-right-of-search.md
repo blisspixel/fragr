@@ -5,10 +5,15 @@ Shared [world direction](../design/space.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** planned, accepted 2026-09-25, unbuilt. A new level in the
-[twenty-level expansion](../plans/campaign-expansion.md), the midpoint
-reversal. The Redactor and the Remote Mine move here from M06.
-[Story arc](story-arc.md).
+**Status:** connected development mission on main, map 1011,
+`server/maps/m11_right_of_search.json`. Six ordered arrivals, thirteen guards,
+finite Remote Mine stock, the Redactor, optional transfer release and records,
+the timed bridge brief and a shared stern departure are implemented. M10's
+actual entry equipment carries into M11 without a continue refill; retry
+restores that entry and retires placed devices. The three transfer people are
+anonymous and release does not establish evacuation or Sorrel's identity.
+The treatment below remains the production target where it exceeds those facts.
+[Story arc](story-arc.md), [wire contract](../protocol.md#right-of-search-and-deliberate-charges-capability-38).
 
 | Episode | Place | New | First run | Par | Doors |
 |---|---|---|---|---|---|
@@ -93,3 +98,31 @@ schedule keeps announcing the next inspection as the ship is taken.
 
 **The moment.** Three counter-boarders walking in step down the spotless spine
 into a chain of your mines.
+
+## Golden-slice dressing (wave 17)
+
+The tender shares the Carrier's industrial construction, but its rooms have
+issued fittings and repeated arrangements. Grey-green pressure panels and
+neutral work lights replace the pale walls and broad teal bands. Small painted
+red seals mark the spine frames; red light remains an enemy tell.
+
+The armory's existing rack carries paired boots and its counter has issue
+drawers. The mess has olive bedding, ordered trays and a warm table light.
+The transfer hold has washable sage backing, repeated restraint stations and
+a registry desk. Ochre case spines fill the records racks, with warm light on
+the sealed document. Slate console faces, gauges and discrete framed displays
+give the raised bridge its own purpose. The Carrier seen through the sealed
+windows uses the same gunmetal family as Level 10.
+
+`client/scripts/m11_dressing.gd` only dresses existing solids, wall faces and
+overhead space. It adds no collision, readable signs or mission facts. The
+layout guard binds the shell and furnished solids; map retirement removes
+the rooms and lights. The mine lesson uses the active input bindings through
+the shared glyph formatter.
+
+The eye-height review is `client/qa/m11-golden.json`; the entry and live patrol
+motion review is `m11-golden-guards.json`. The ordinary-input route remains
+`m11_right_of_search.json` through `qa_m11.gd`, starting from an explicitly
+representative completed-M10 fixture. Rendered authoring checks and that
+known-route clear do not establish a human fresh-player verdict, inherited
+whole-campaign pacing, Sorrel's proposed scene or a multi-kill mine lesson.

@@ -1222,13 +1222,22 @@ func _check_m10_route() -> void:
 			authored.append(enemy["id"])
 	var required: Array[String] = []
 	var selected: String = "Sniper"
+	var owned: Array[String] = ["Flechette", "Scatter", "Sniper"]
+	var ranges: Dictionary[String, float] = {"Flechette": 35.0, "Scatter": 12.0, "Sniper": 90.0, "Repeater": 35.0}
+	var repeater_supply: bool = false
+	for supply: Dictionary in map.get("supplies", []):
+		if supply.get("id") == "cargo_repeater":
+			var grant: Dictionary = supply.get("grant", {})
+			repeater_supply = grant.get("kind") == "weapon" and grant.get("weapon") == "repeater" and supply.get("claim") == "personal" and not supply.get("secret", false)
+	_check(repeater_supply, "ship lesson comes from its actual personal native Repeater supply")
+	var repeater_used: bool = false
 	_check(tour.get("combat_travel") == false, "ship travel combat requires an explicit scoped opt-in")
 	for state: Dictionary in tour["states"]:
 		if state.has("weapon"):
-			_check(state["weapon"] in ["Flechette", "Scatter"], "ship route selects only actual carried weapons")
+			_check(state["weapon"] in owned, "ship route selects only entry weapons or a previously observed acquisition")
 			selected = state["weapon"]
 		if TOUR.combat_travel_enabled(tour, state):
-			_check(selected == "Flechette", "travel selector's 24 metre band stays inside the actual owned gun range")
+			_check(selected in owned and ranges.get(selected, 0.0) >= 24.0, "travel selector's 24 metre band stays inside the actual owned gun range")
 			var targets: Variant = state.get("combat_travel_targets")
 			_check(targets is Array and not targets.is_empty(), "active ship travel requires explicit authored hostile targets")
 			if targets is Array:
@@ -1240,7 +1249,19 @@ func _check_m10_route() -> void:
 			for guard: String in combat["required"]:
 				_check(not required.has(guard), "a guard cannot satisfy two ship probes")
 				required.append(guard)
-			_check(combat.get("engagement_distance") == (12 if state.get("weapon") == "Scatter" else 35), "ship probes use the actual owned weapon range")
+			_check(combat.get("engagement_distance") == ranges.get(selected, 0.0), "ship probes use the actual owned weapon range")
+			if selected == "Repeater":
+				repeater_used = true
+				_check(state.get("name") == "m10_service_defense", "Repeater lesson is exercised in the largest boarding fight")
+		# Expectations are checked after this state's walk, so they can only
+		# authorize later selections, never a gun selected before acquisition.
+		if state.get("name") == "m10_cargo_stock":
+			var equipment: Dictionary = state.get("expect_equipment", {})
+			_check(repeater_supply and equipment.get("selected") == "repeater" and equipment.get("weapons", []) == ["fists", "flechette", "scatter", "sniper", "repeater"], "cargo approach observes the finite Repeater acquisition before combat")
+			if repeater_supply and "repeater" in equipment.get("weapons", []):
+				owned.append("Repeater")
+				selected = "Repeater"
+	_check(repeater_used, "ship route must actually exercise its acquired Repeater")
 	authored.sort()
 	required.sort()
 	_check(required == authored and required.size() == 17, "all seventeen original native ship guards remain required exactly once")

@@ -5,7 +5,10 @@ Shared [world direction](../design/mars.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed, unbuilt. Mars before the wipe. Target 10-14 minutes.
+**Status:** connected development mission on main (map 1012), with the Arc,
+Assessor, shelter and worker releases, pump damage and aid arrival. Appearance
+work is described below; fresh-player pacing remains unproven. Mars before the
+wipe. Target 10-14 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-12-terms-of-cooperation).
 
 ## Story and character work
@@ -166,3 +169,25 @@ still arguing about the crate."
 
 **The moment.** Bringing the Assessor down onto its own squad in the greenhouse
 trench.
+
+## Habitat appearance pass
+
+The habitat's infrastructure wears maintained sage, warm shielding and neutral
+steel, keeping issued black and red on the invading forces. Arrival benches
+carry individual seat cloths and bags. The market has stocked shelves and a
+striped shade; the maintenance bay has shared tools. Cultivation leaves and
+irrigation fit the existing crop solids, while the pump towers carry collars
+and gauge ticks. Personal cards and a patchwork hanging distinguish the shelter.
+The aid rack remains empty until the accepted server state presents supplies.
+
+`M12Dressing` owns the static detail and local work light. Its immutable-layout
+guard refuses different geometry reusing the mission id. `ArenaCover` owns its
+lifetime and tiled floor surface; no collision, weapon supply, atmosphere rule
+or rescue outcome changes. No readable signs are added. The open sections stay
+visibly open; this pass does not claim a newly enclosed pressure volume.
+
+`client/qa/m12-golden.json` covers ten eye-height art views. The existing
+`m12_terms_of_cooperation.json` tour exercises the connected route separately.
+`test_mars_dressing.gd` covers layout rejection, map resends, world light layers
+and unchanged solid views. Art, constrained route execution and fresh-player
+acceptance remain different evidence; this pass does not finish the latter.

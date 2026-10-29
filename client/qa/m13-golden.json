@@ -1,0 +1,10 @@
+{"comment":"Eye-height foundry art review. Presentation only; no combat, hazard, worker or lift outcome is inferred.","width":1280,"height":720,"states":[
+{"name":"arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[0,1.95,-47],"camera_look_at":[0,2.1,-30],"allow_empty_roster":true},
+{"name":"furnace","camera":"overview","camera_position":[7,1.95,-24],"camera_look_at":[20,3,-32],"allow_empty_roster":true},
+{"name":"machines","camera":"overview","camera_position":[-20,1.95,-7],"camera_look_at":[0,2.1,-12],"allow_empty_roster":true},
+{"name":"press","camera":"overview","camera_position":[8,1.95,1],"camera_look_at":[0,3,-3],"allow_empty_roster":true},
+{"name":"quarters","camera":"overview","camera_position":[-14,1.95,6],"camera_look_at":[-23,1.8,7],"allow_empty_roster":true},
+{"name":"office","camera":"overview","camera_position":[14,1.95,6],"camera_look_at":[23,1.8,8],"allow_empty_roster":true},
+{"name":"freight","camera":"overview","camera_position":[12,1.95,12],"camera_look_at":[0,3,20],"allow_empty_roster":true},
+{"name":"gallery","camera":"overview","camera_position":[-23.5,4.95,30],"camera_look_at":[0,7.5,37],"allow_empty_roster":true},
+{"name":"lift","camera":"overview","camera_position":[12,4.95,49],"camera_look_at":[0,6,52],"allow_empty_roster":true}]}

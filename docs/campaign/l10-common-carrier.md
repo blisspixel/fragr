@@ -9,7 +9,8 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 `server/maps/m10_common_carrier.json`): three decks, two stair trunks, the
 freight shaft, four ordered boarding fights and a shared departure. Dressed
 toward the golden slice in wave 16 ([below](#golden-slice-dressing-wave-16)).
-The Repeater grant, mines, secrets beyond the three authored supplies, par and
+The personal cargo Repeater is implemented, with its modelled presentation and
+finite held-fire lesson. Mines, par and
 fresh-player acceptance are open. Interplanetary ship before the wipe. Target
 8-12 minutes. [Treatment](../CAMPAIGN-MISSIONS.md#level-10-common-carrier).
 
@@ -231,17 +232,23 @@ cargo deck, a circle on the crew deck, a triangle on command, so the ship reads
 without words. Outside the window are stars and the custody tender riding
 alongside: black hull, one red seal, red running lights.
 
-**Signs.** Four readable signs, all placed before this wave: `CARGO / DECK 1`,
-`CREW / DECK 2`, `COMMAND / DECK 3` and `CONFIRM SHIP CLEAR`. The dressing adds
-no words; the deck shapes and the sixes are marks.
+**Signs.** Five readable signs: `CARGO / DECK 1`, `CREW / DECK 2`,
+`COMMAND / DECK 3`, `CONFIRM SHIP CLEAR` and the case's `REPEATER / HOLD FIRE`.
+The deck shapes and the sixes are marks.
 
 `client/qa/m10-golden.json` frames every beat across the three decks from a
 spectator camera; `m10-golden-guards.json` wakes the first boarders and frames
 them against the crates, hull and trunk walls. The full combat route in
 `client/qa/m10_common_carrier.json` (run by `client/qa/live_crew_tour.gd`)
-still reaches the shared departure with the dressing in place. Still open: the
-Repeater is not yet granted by the server, so no locker lesson is staged; the
-tender is a simple silhouette; the hull plate and floors are tiled rather than
+exercises the shared departure with the dressing in place. The Repeater now
+rests in an open personal cargo case on the safe approach from the west stair,
+with a short "Hold fire" label. It grants finite Bullets once per participant
+per attempt, and the route uses it in the service fight.
+Its drum, cooling shroud and side motor share one model across held and world
+views. `client/qa/m10_repeater_tour.gd` reuses the route's finite carry and
+stair approach for case, held-fire, release and reload captures with live audio.
+Still open: human weapon feel and discovery, dedicated spin-up/down
+cycle cues, the tender's simple silhouette; the hull plate and floors are tiled rather than
 modelled; Tern's skin is a light grey that should be checked against the
 faction contract in that character's own pass; the boarding tubes are not yet
 an authored server event; fresh-player pacing and GPU performance.

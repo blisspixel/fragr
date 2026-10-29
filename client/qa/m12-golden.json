@@ -1,0 +1,11 @@
+{"comment":"Eye-height habitat art review, not combat or fresh-player evidence. Use the canonical m12 map, no bots.","width":1280,"height":720,"states":[
+{"name":"arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[0,1.95,-31],"camera_look_at":[0,1.8,-23],"allow_empty_roster":true},
+{"name":"market","camera":"overview","camera_position":[0,1.95,-23],"camera_look_at":[-9,1.7,-15],"allow_empty_roster":true},
+{"name":"store","camera":"overview","camera_position":[-11,1.95,-15],"camera_look_at":[-12,1.7,-22],"allow_empty_roster":true},
+{"name":"maintenance","camera":"overview","camera_position":[15,1.95,-9],"camera_look_at":[18,1.5,-2],"allow_empty_roster":true},
+{"name":"greenhouse","camera":"overview","camera_position":[-12,1.95,-5],"camera_look_at":[0,2.2,5],"allow_empty_roster":true},
+{"name":"bridge","camera":"overview","camera_position":[0,2.95,2.4],"camera_look_at":[0,3.3,19],"allow_empty_roster":true},
+{"name":"pumps","camera":"overview","camera_position":[-12,1.95,25],"camera_look_at":[0,3.3,18],"allow_empty_roster":true},
+{"name":"shelter","camera":"overview","camera_position":[24,1.95,27],"camera_look_at":[24,1.4,19],"allow_empty_roster":true},
+{"name":"utility","camera":"overview","camera_position":[-23,1.95,-9],"camera_look_at":[-24,1.8,10],"allow_empty_roster":true},
+{"name":"depot","camera":"overview","camera_position":[0,1.95,27],"camera_look_at":[0,2.1,34],"allow_empty_roster":true}]}

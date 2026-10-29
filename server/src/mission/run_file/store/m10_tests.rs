@@ -736,3 +736,198 @@ fn m10_actual_transit_bodies_stop_shots_and_unknown_people_do_not() {
         }
     }
 }
+
+#[test]
+fn m10_actual_repeater_find_resets_on_retry_and_carries_spent_rounds_into_m11() {
+    use crate::protocol::{
+        Action, AmmoPool, LookAt, MissionObjectiveAction, MissionPhase, WeaponType,
+    };
+    let source = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
+        .load()
+        .unwrap();
+    let runtime = crate::maps::RuntimeMap::Authored(source.clone());
+    let hash = runtime.content_sha256().unwrap();
+    let entry = m09_receipt_tests::completed_berth(true, true)
+        .promote_next(MissionId::CommonCarrier, hash)
+        .unwrap();
+    let mut hashes = m09_tests::HASHES;
+    hashes[9] = hash;
+    let directory = std::env::temp_dir().join(format!("fragr-m10-repeater-{}", Uuid::new_v4()));
+    let mut state = GameState::with_authored_map(source.clone());
+    state.seed(42);
+    state.load_campaign_run(&entry).unwrap();
+    let id = Uuid::from_u128(101017);
+    state.add_player(id, "Repeater carry".into(), Role::Human);
+    assert!(state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::CommonCarrier,
+            attempt: 1
+        }
+    ));
+    // Isolated lifecycle fixture: position at the real supply, then simulate
+    // ordinary claims/fire. The separate route test walks here without moving guards.
+    let place = |state: &mut GameState, feet: [f32; 3]| {
+        let p = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        [p.x, p.y, p.z] = [feet[0], feet[1] + PLAYER_FLOOR_Y, feet[2]];
+        p.vy = 0.0;
+        p.clear_input();
+    };
+    place(&mut state, [0.0, 2.0, -14.0]);
+    state.tick(0.05);
+    assert!(state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .owns(WeaponType::Repeater));
+    state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    state.tick(0.05);
+    let failed = state.campaign_run_document().unwrap().unwrap();
+    {
+        let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+        store.save(&failed).unwrap();
+    }
+    let reopened = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    let saved = reopened.load().unwrap().unwrap();
+    let mut state = GameState::with_authored_map(source);
+    state.seed(42);
+    state.load_campaign_run(&saved).unwrap();
+    state.add_player(id, "Repeater retry".into(), Role::Human);
+    let request = MissionContinue {
+        id: MissionId::CommonCarrier,
+        run_id: entry.id,
+        attempt: 1,
+    };
+    assert!(state.continue_mission(id, request));
+    assert!(!state.continue_mission(id, request));
+    let p = state.players.iter().find(|p| p.id == id).unwrap();
+    assert!(!p.inventory.owns(WeaponType::Repeater));
+    assert!(!p.inventory.claimed("cargo_repeater"));
+    assert_eq!(
+        state
+            .campaign_run_document()
+            .unwrap()
+            .unwrap()
+            .remaining_continues,
+        2
+    );
+    assert_eq!(
+        state.mission_state().unwrap().phase,
+        MissionPhase::InProgress
+    );
+    place(&mut state, [0.0, 2.0, -14.0]);
+    state.tick(0.05);
+    assert!(state
+        .players
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .owns(WeaponType::Repeater));
+    let bullets = |state: &GameState| {
+        let p = state.players.iter().find(|p| p.id == id).unwrap();
+        p.inventory
+            .state(id, p.weapon, state.tick)
+            .unwrap()
+            .ammo
+            .iter()
+            .find(|a| a.pool == AmmoPool::Bullets)
+            .unwrap()
+            .rounds
+    };
+    let before = bullets(&state);
+    // Into the fore bulkhead, away from crew and dormant guards. Six warmup
+    // ticks spend nothing; held fire then spends only resolved shots.
+    for _ in 0..12 {
+        state.set_action(
+            id,
+            Action {
+                weapon_swap: Some(WeaponType::Repeater),
+                fire: true,
+                yaw: Some(-std::f32::consts::FRAC_PI_2),
+                ..Action::default()
+            },
+        );
+        state.tick(0.05);
+    }
+    let after = bullets(&state);
+    assert!(after < before && before - after <= 6);
+    state.set_action(id, Action::default());
+    // Explicit encounter authority fixture, not a combat-clear claim. Earn
+    // the departure state through all real triggers and required guard deaths.
+    for index in 0..4 {
+        let geometry = state.map.m10_geometry().unwrap();
+        let MissionObjectiveAction::Arrival { feet, .. } = geometry.objectives[index].action else {
+            panic!("arrival")
+        };
+        place(&mut state, feet);
+        state.tick(0.05);
+        let names: Vec<_> = state.map.encounters()[index]
+            .enemies
+            .iter()
+            .map(|e| e.id.clone())
+            .collect();
+        for name in names {
+            let p = state.players.iter_mut().find(|p| p.name == name).unwrap();
+            p.hp = 0;
+            state
+                .encounters
+                .hit(p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z], state.tick, true);
+        }
+        state.tick(0.05);
+        state.tick(0.05);
+    }
+    let target = state.map.m10_geometry().unwrap().departure;
+    place(&mut state, target.approach);
+    let point = target
+        .point(
+            state.map.presentation_ref().unwrap(),
+            &state.map.arena().solids,
+        )
+        .unwrap();
+    state.set_action(
+        id,
+        Action {
+            interact: true,
+            look_at: Some(LookAt {
+                x: Some(point[0]),
+                y: Some(point[1]),
+                z: Some(point[2]),
+                player_id: None,
+            }),
+            ..Action::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.mission_state().unwrap().phase, MissionPhase::Departed);
+    let completed = state.campaign_run_document().unwrap().unwrap();
+    reopened.save(&completed).unwrap();
+    drop(reopened);
+    let reopened = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    let completed = reopened.load().unwrap().unwrap();
+    let next = completed
+        .promote_next(MissionId::RightOfSearch, hashes[10])
+        .unwrap();
+    let SavedStep::MissionEntry {
+        entry: next_entry, ..
+    } = next.step
+    else {
+        panic!("M11 entry")
+    };
+    assert!(next_entry.equipment.weapons.contains(&WeaponType::Repeater));
+    assert_eq!(
+        next_entry
+            .equipment
+            .ammo
+            .iter()
+            .find(|a| a.pool == AmmoPool::Bullets)
+            .unwrap()
+            .rounds,
+        after
+    );
+    assert!(next_entry.equipment.personal_claims.is_empty());
+    drop(reopened);
+    fs::remove_dir_all(directory).unwrap();
+}

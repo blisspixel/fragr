@@ -178,7 +178,11 @@ func _check_melee_and_impact(pawn: Node3D) -> void:
 		"the Rocket presenter has a nonempty spatial Effects cue")
 	pawn.cancel_fire_feedback()
 	_check(not fire.playing, "Rocket launch feedback stops through the shared cancellation seam")
-	for weapon: String in ["Repeater", "UnsupportedGun"]:
+	pawn.show_muzzle_flash("Repeater")
+	_check(fire.playing and fire.stream == pawn.fire_streams["Repeater"]
+		and fire.stream.resource_path == "res://assets/audio/fire_repeater.wav"
+		and fire.stream != pawn.fire_streams["Flechette"], "Repeater has its own short report")
+	for weapon: String in ["UnsupportedGun"]:
 		pawn.show_muzzle_flash("Flechette")
 		_check(fire.playing and fire.stream == pawn.fire_streams["Flechette"], "known gun establishes actual prior voice")
 		pawn.show_muzzle_flash(weapon)
@@ -186,7 +190,7 @@ func _check_melee_and_impact(pawn: Node3D) -> void:
 	pawn.is_campaign_companion = true
 	pawn.show_muzzle_flash("Tack")
 	_check(fire.playing and fire.stream == pawn.fire_streams["Tack"], "companion known resolved gun retains its real cue")
-	pawn.show_muzzle_flash("Repeater")
+	pawn.show_muzzle_flash("UnsupportedGun")
 	_check(not fire.playing and fire.stream == null, "companion unsupported gun also clears prior voice")
 	pawn.is_campaign_companion = false
 	for weapon: String in ["Fists", "Shiv"]:

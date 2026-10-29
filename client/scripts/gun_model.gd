@@ -41,7 +41,7 @@ const MID: Dictionary[String, int] = {
 const SELF_LIT: Array[String] = ["glow"]
 
 ## The guns this source builds, by wire name.
-const GUNS: Array[String] = ["Tack", "Scatter", "Rail"]
+const GUNS: Array[String] = ["Tack", "Scatter", "Rail", "Repeater"]
 
 var _workshop: RefCounted = Workshop.new()
 var _materials: Dictionary[String, StandardMaterial3D] = {}
@@ -64,6 +64,10 @@ func build(weapon: String, hands: bool = false) -> Node3D:
 			_rail(gun)
 			if hands:
 				_rail_hands(gun)
+		"Repeater":
+			_repeater(gun)
+			if hands:
+				_repeater_hands(gun)
 		_:
 			push_error("GunModel: no model for " + weapon)
 	for part: Node in gun.find_children("*", "Node3D", true, false):
@@ -77,12 +81,14 @@ const GRIP: Dictionary[String, Vector3] = {
 	"Tack": Vector3(0.0, -0.055, 0.030),
 	"Scatter": Vector3(0.0, -0.035, 0.085),
 	"Rail": Vector3(0.0, -0.090, 0.130),
+	"Repeater": Vector3(0.0, -0.090, 0.130),
 }
 ## Each muzzle in gun space, matching the `Muzzle` marker the build places.
 const MUZZLE: Dictionary[String, Vector3] = {
 	"Tack": Vector3(0.0, 0.002, -0.183),
 	"Scatter": Vector3(0.0, 0.0, -0.605),
 	"Rail": Vector3(0.0, 0.0, -0.785),
+	"Repeater": Vector3(0.0, 0.0, -0.805),
 }
 static var _carried: Dictionary[String, ArrayMesh] = {}
 
@@ -538,3 +544,60 @@ static func pose_rail(gun: Node3D, cell: float) -> void:
 	pack.position.z += cell
 	pack.position.x += cell * 0.3
 	pack.visible = cell < 0.2
+
+# --- Repeater ------------------------------------------------------------------
+
+## A personally maintained, motor-driven support gun: broad vented shroud,
+## side motor and squat drum. Warm repair straps interrupt the issued metal;
+## it has neither the Rifle's narrow receiver nor the Railgun's glowing coils.
+func _repeater(gun: Node3D) -> void:
+	_prism(gun, "Receiver", PackedVector2Array([Vector2(-0.30, -0.05), Vector2(-0.31, 0.055), Vector2(0.15, 0.065), Vector2(0.19, -0.05)]), 0.12, "enamel")
+	_block(gun, "TopCover", Vector3(0.105, 0.025, 0.28), "steel", Vector3(0, 0.076, -0.09))
+	_block(gun, "RearBand", Vector3(0.122, 0.018, 0.035), "leather", Vector3(0, 0.02, 0.18))
+	for index: int in range(4):
+		_block(gun, "CoverRib", Vector3(0.11, 0.008, 0.012), "enamel", Vector3(0, 0.092, -0.17 + index * 0.06))
+	_tube(gun, "CoolingShroud", 0.065, Vector3(0, 0, -0.29), Vector3(0, 0, -0.74), "blued", "Shroud", 12)
+	for index: int in range(8):
+		var z: float = -0.32 - index * 0.05
+		for side: float in [-1.0, 1.0]:
+			_block(gun, "Vent", Vector3(0.008, 0.035, 0.025), "bore", Vector3(side * 0.063, 0, z), "Shroud")
+	_tube(gun, "MuzzleCollar", 0.048, Vector3(0, 0, -0.73), Vector3(0, 0, -0.79), "steel")
+	_tube(gun, "MuzzleBore", 0.025, Vector3(0, 0, -0.79), Vector3(0, 0, -0.805), "bore")
+	_tube(gun, "DriveMotor", 0.043, Vector3(0.09, -0.01, -0.11), Vector3(0.09, -0.01, 0.08), "steel")
+	for z: float in [-0.08, 0.05]:
+		_block(gun, "MotorStrap", Vector3(0.024, 0.094, 0.018), "leather", Vector3(0.09, -0.01, z))
+	var drum: Node3D = _workshop.group(gun, "Drum")
+	_tube(drum, "DrumBody", 0.095, Vector3(-0.065, -0.12, -0.055), Vector3(0.065, -0.12, -0.055), "enamel")
+	_tube(drum, "DrumRim", 0.098, Vector3(0.066, -0.12, -0.055), Vector3(0.073, -0.12, -0.055), "steel")
+	_tube(drum, "DrumHub", 0.026, Vector3(0.073, -0.12, -0.055), Vector3(0.079, -0.12, -0.055), "leather")
+	_prism(gun, "Grip", PackedVector2Array([Vector2(0.06, -0.04), Vector2(0.12, -0.04), Vector2(0.17, -0.18), Vector2(0.10, -0.18)]), 0.046, "wood")
+	_block(gun, "Foregrip", Vector3(0.04, 0.12, 0.055), "wood", Vector3(-0.015, -0.11, -0.25))
+	_prism(gun, "Stock", PackedVector2Array([Vector2(0.16, 0.035), Vector2(0.35, 0.02), Vector2(0.38, -0.095), Vector2(0.32, -0.11), Vector2(0.17, -0.04)]), 0.065, "wood")
+	_block(gun, "RearSight", Vector3(0.075, 0.03, 0.02), "blued", Vector3(0, 0.105, 0.055))
+	_block(gun, "RearNotch", Vector3(0.014, 0.02, 0.023), "bore", Vector3(0, 0.12, 0.055))
+	_block(gun, "FrontSight", Vector3(0.012, 0.055, 0.02), "steel", Vector3(0, 0.07, -0.715))
+	# A ground-off registration plate and a small owner-applied repair strap.
+	_block(gun, "GroundPlate", Vector3(0.004, 0.035, 0.08), "steel", Vector3(-0.062, 0.01, -0.11))
+	_block(gun, "RepairStrap", Vector3(0.13, 0.012, 0.025), "leather", Vector3(0, 0.09, -0.2))
+	_muzzle(gun, MUZZLE["Repeater"])
+
+func _repeater_hands(gun: Node3D) -> void:
+	var hands: Node3D = _workshop.group(gun, "Hands")
+	glove(hands, "TriggerHand", {
+		"wrist": Vector3(0.040, -0.110, 0.200), "knuckles": Vector3(0.030, -0.090, 0.112),
+		"across": Vector3(0.0, 1.0, -0.2), "back": Vector3(1.0, 0.1, 0.1),
+		"curl": [Vector3(0.5, 0.9, 0.5), Vector3(0.8, 1.25, 0.9), Vector3(0.8, 1.25, 0.9), Vector3(0.8, 1.25, 0.9)],
+		"thumb": [Vector3(0.010, -0.050, 0.170), Vector3(-0.012, -0.040, 0.140), Vector3(-0.024, -0.040, 0.110)],
+		"elbow": Vector3(0.170, -0.42, 0.50)})
+	glove(hands, "SupportHand", {
+		"wrist": Vector3(-0.070, -0.14, -0.19), "knuckles": Vector3(-0.04, -0.11, -0.26),
+		"across": Vector3(0, 1, 0.1), "back": Vector3(-1, 0, -0.2),
+		"curl": [Vector3(0.7, 1.2, 0.8), Vector3(0.75, 1.25, 0.8), Vector3(0.75, 1.25, 0.8), Vector3(0.75, 1.25, 0.8)],
+		"thumb": [Vector3(-0.035, -0.075, -0.20), Vector3(-0.026, -0.060, -0.24), Vector3(-0.02, -0.05, -0.28)],
+		"elbow": Vector3(-0.23, -0.42, 0.10)})
+
+static func pose_repeater(gun: Node3D, drum: float) -> void:
+	rest(gun)
+	var magazine: Node3D = gun.get_node("Drum") as Node3D
+	magazine.position.y -= drum
+	magazine.visible = drum < 0.25

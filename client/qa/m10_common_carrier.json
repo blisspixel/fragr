@@ -1,5 +1,5 @@
 {
-  "comment": "Common Carrier bounded prototype acceptance. Canonical M09-to-M10 locked promotion from a clearly labelled representative strict v12 departure fixture, Standard, synthetic body, 39 HP,17armor,76Bullets,32Shells,oneCell,two grenades,three mines. Actual crew release and berth subset remain separate from transit. All17guards/fourorderedgroups,real stairs/cover/finite claims/death/freshdeparture are strict. No Repeater grant, borrowed art, par or fresh human fun claim.",
+  "comment": "Common Carrier ordinary-input authoring route from a labelled finite M09 departure fixture. Claim the personal Repeater before the first boarding threshold and use it in the five-guard service fight. All seventeen guards, four ordered groups, finite supplies and fresh departure remain required. Accurate-aim controller evidence, not human first-play acceptance.",
   "width": 1280,
   "height": 720,
   "combat_travel": false,
@@ -157,15 +157,16 @@
         ]
       ],
       "expect_equipment": {
-        "selected": "flechette",
-        "pool_rounds": {"bullets": 136}
+        "selected": "repeater",
+        "pool_rounds": {"bullets": 196},
+        "weapons": ["fists", "flechette", "scatter", "sniper", "repeater"]
       },
       "look_at": [
         4.2,
         3.1,
         -11.4
       ],
-      "note": "Ordinary finite cargo rounds and shells approached outside the deliberate first encounter threshold."
+      "note": "The personal cargo Repeater and finite rounds are claimed outside the first encounter threshold. Each participant can take the gun once."
     },
     {
       "name": "m10_forward_lower",
@@ -375,7 +376,7 @@
           1
         ]
       ],
-      "weapon": "Flechette",
+      "weapon": "Repeater",
       "combat": {
         "kind": "union",
         "required": [
@@ -421,7 +422,7 @@
         3.5,
         8
       ],
-      "note": "Three real Crawlers and the original Clerk and Sweeper. Actual death fails; no difficulty or contact concession."
+      "note": "Hold through the real warmup and sustain the Repeater against three Crawlers, a Clerk and a Sweeper. Reloads spend the actual shared Bullets. Actual death fails."
     },
     {
       "name": "m10_repair_stock",

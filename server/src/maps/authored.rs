@@ -1114,6 +1114,9 @@ impl AuthoredMap {
         if m12.is_some() {
             m12::validate_supplies(&supplies)?;
         }
+        if m10.is_some() {
+            m10::validate_supplies(&supplies)?;
+        }
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         if let Some(blade) = &doc.article_blade {
             identity(&blade.pickup_id, &mut seen)?;

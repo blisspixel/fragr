@@ -1,0 +1,9 @@
+{
+  "comment":"Right of Search entry movement and live patrol read. Ordinary player movement obtains the armory objective; overview camera then observes live patrol at eye height. Rendered motion evidence, not a combat clear or fresh-player acceptance. Run FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m11_right_of_search.json.",
+  "width":1280,"height":720,
+  "states":[
+    {"name":"entry_walk","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"look_at":[-8,1.7,-27.5],"trigger":"walk","strip_frames":12,"strip_interval_seconds":0.08},
+    {"name":"armory","camera":"first_person","walk_to":[[-16,0.3,-26.5],[-9,0.3,-26.5],[-4,0.3,-26.5],[-4,0.3,-24.3]],"look_at":[-4,0.4,-25],"expect_m11_completed":["armory_found"]},
+    {"name":"patrol_motion","camera":"overview","camera_position":[0,1.95,-28],"camera_look_at":[0,1.6,-15],"strip_frames":12,"strip_interval_seconds":0.12,"settle_seconds":0.2}
+  ]
+}

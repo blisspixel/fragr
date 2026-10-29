@@ -1,0 +1,12 @@
+{
+  "channels": 1,
+  "file": "fire_repeater.wav",
+  "format": "signed 16-bit PCM WAV",
+  "purpose": "single Repeater shot report",
+  "sample_rate": 48000,
+  "seconds": 0.095,
+  "seed": 101017,
+  "sha256": "eab3ba3f54e7d74c605f5da5eccf53bf04651b09bd659d1bcb387909807d81a3",
+  "source": "tools/bake_repeater_audio.gd",
+  "source_sha256": "364edd26682805a07798be3c10303e63c48ca3e469c94c279c4d2d9b5cee49d3"
+}

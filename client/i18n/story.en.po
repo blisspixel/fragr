@@ -505,7 +505,7 @@ msgid "M11_OBJECTIVE_ARMORY_FOUND"
 msgstr "Take the remote charges."
 
 msgid "M11_OBJECTIVE_SPINE_SECURED"
-msgstr "Clear the patrol. [place_remote_mine] place, [trigger_remote_mines] detonate."
+msgstr "Clear the patrol. {remote} place, {detonator} detonate."
 
 msgid "M11_OBJECTIVE_HOLDS_SECURED"
 msgstr "Clear the side holds."
