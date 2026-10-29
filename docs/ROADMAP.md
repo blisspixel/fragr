@@ -17,7 +17,7 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 
 ## Where we are (2026-10-29)
 
-- **Release.** Waves 11 and 12 of the October 27 round ship in v0.93.0; waves 3 to 5 shipped in v0.92.0. Wave 4 integrates modelled guns, combat effects, Larak surfaces, lighting, spectator facts and bot habits. Wave 5 adds twelve campaign props, reduced signage, rescue continuity fixes, selectable Sniper scope modes and direct Rocket Launcher selection. The acceptance patch keeps Continue available after a failed send and qualifies campaign evaluation, recovery and ending boundaries. The [latest desktop release](https://github.com/blisspixel/fragr/releases/latest) records the published version and package validation. Windows human play, real controllers and human fresh-player acceptance remain separate unproven evidence.
+- **Release.** v0.93.0 is the latest desktop release and includes waves 11 and 12. Source now includes waves 13 through 17, not yet packaged. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages and validation. Current source and development captures are ahead of those packages. Windows human play, real controllers and fresh-player acceptance remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
@@ -39,39 +39,43 @@ This is the only active sequence. When the current rung changes, edit this secti
 
 <a id="next-steps"></a>
 
-### Current wave: 17, campaign readability (in progress)
+### Wave 17: implemented, acceptance continuing
 
 Finish the playable experience through the existing server and presentation
 seams. Read the level brief, lore, design guide and faction readability contract
 before changing content. A new place changes its surroundings, not the identity
 of its people or factions.
 
-1. **Level 10's Repeater, end to end.** The server does not grant the weapon,
-   and its CPU foundation has no production first-person art or firing sound.
-   Finish a finite, server-owned acquisition before the largest boarding wave,
-   the visible and audible weapon, and the lesson. Verify ordinary route play,
-   failed attempts and recovery without granting replacement supplies.
-2. **Levels 11 to 13 toward the golden slice.** Carry the ship's industrial
-   ancestry into the custody tender, then make the Martian habitat and foundry
-   distinct working places. Inspect route clarity, supplies, enemy contrast,
-   stills and motion as well as materials and dressing. Keep collision and
-   outcomes authoritative, and correct the briefs' stale implementation claims.
-3. **Reconcile the handoff.** Keep this execution list, issue status and release
-   boundary current. Review the integrated result, run required checks and the
-   publish tour, merge one PR, verify CI on `main`, then remove merged branches
-   and worktrees. Automated checks do not establish human acceptance.
+The Repeater now has a finite personal pickup in the Common Carrier's cargo
+approach, its own held/world art, reload frames and shot report. Native checks
+cover the walked acquisition, invalid claims, retry/save reopening and spent
+ammunition carried into M11. An ordinary-input route reaches M10 departure;
+separate inspected frames cover the pickup, sustained fire and reload. Dedicated
+spin-up/down cues and human discovery, listening and weapon feel remain open.
+
+Levels 11 to 13 have distinct working-room treatments: the issued custody
+tender, civilian Martian habitat and foundry. Their ordinary-input authoring
+routes reach departure or the lift exit. The Assessor's olive chassis and salmon
+countdown now read black and red; absorbed cyan and recovery cues remain intact.
+Mine instructions use active bindings. Rendered iterations and layout/lifecycle
+tests cover these changes; the briefs distinguish implementation from acceptance.
+Level 13's oversized machine housings and roof gaps still need geometry work.
+These are bounded improvements, not a claim that every level meets the finished
+golden-slice or fresh-player bar.
 
 ### After this wave
 
+- **Next engineering wave: geometry and route readability.** Level 9's ship
+  remains boxes under paint and is hidden from the arrival view. Level 13's
+  machine silhouettes and roof enclosure need authored geometry, collision
+  and route review. Finish these visible gaps before extending the dressing
+  sweep. Level 6's limited-perception survey remains an open acceptance slice.
 - **Character readability.** Splice, Latch and Tern read pale silver near the
   Inheritance off-white; Renn has no dedicated art and Level 8's captives share
   one figure. Resolve individual palettes against the faction contract and
   Nick's pending Latch choice. The recorded Meshy reset is November 3; no dated
   balance or reset date authorizes a batch. Check live usable balance, reserve
   the exact bounded operation and reconcile usage through the existing tools.
-- **Geometry and route evidence.** Level 9's ship remains boxes under paint and
-  is hidden from the arrival view. Level 6 lacks a limited-perception survey.
-  Give each a bounded pass with ordinary route and rendered evidence.
 - **Continue campaign acceptance.** Episode V remains open: broaden the earned
   M19 market/tanks prefix into the roof loop and later route, investigate supply
   discovery before tuning ammunition, and retain failure reports. Still Here
@@ -81,8 +85,8 @@ of its people or factions.
   client on a shaped link and stage 6's transport comparison remain open.
   Loopback simulation does not close them. Profile before pursuing more byte
   savings in `shot_results`; no speculative transport rewrite.
-- **Development release.** v0.93.0 contains waves 11 and 12. Waves 13 to 16 are
-  merged but unreleased. Package the next accepted checkpoint with release
+- **Development release.** v0.93.0 contains waves 11 and 12. Waves 13 to 17 are
+  not yet packaged. Package the next accepted checkpoint with release
   notes and install checks; keep Linux rendered evidence, automated portability
   and Windows/controller human play distinct.
 
@@ -95,12 +99,12 @@ Callum is already the selected Host; listening acceptance remains open.
 
 | Review | Decision or evidence still needed |
 |---|---|
-| Host, Union barks and edited radio | Listen in context; choose radio keepers through the existing review tool |
+| Narrator, Host, Union barks and edited radio | Choose the Narrator voice; listen to the selected Callum Host and barks in context; choose radio keepers through the existing review tool |
 | Rocket balance | Decide whether to change weapon or map balance against the measured shortfall in the [bot plan](plans/bot-and-enemy-ai-excellence-20261017.md#6-progress) |
 | Campaign difficulty | Review the easier hesitant Recall Notice profile and minimum health on M02 entry/retry |
-| Character and model art | Latch's palette and voice, character treatment, Paver/Surveyor alternates, Edda's lamp and Union seal C |
+| Character and model art | Latch's palette and voice, character treatment, enemy v1/v2 picks including Paver/Surveyor alternates, Edda's lamp and Union seal C |
 | Existing prop exceptions | Larak kiosk proportions and palette P10; foundry lathe place-colour choice P4; integrate other candidates only at a matching, verified location |
-| Human play | Windows and real pads, Larak FFA and Duel, menus, Recall Notice, Persons Unknown and Sniper scope modes; two-human Duel hand-over |
+| Human play | Windows and real pads, Larak FFA and Duel, menus, Recall Notice, Persons Unknown and Sniper scope modes; two-human Duel hand-over; dedicated terminal in Windows Terminal and stutter traces if reproduced |
 
 The existing local audition/model pages and `fragr-audiogen review` hold
 candidates. A proposed combined review page is not yet delivered. Keep the

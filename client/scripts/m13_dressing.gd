@@ -108,9 +108,11 @@ func _machines() -> void:
 			fitting(room, "ServiceDrop", Vector3(x, 7.85, z), Vector3(0.06, 1.2, 0.06), Color("515c54"))
 	for x: float in [-9, 9]:
 		lamp(room, Vector3(x, 4.0, -13), 8)
-		# Small control dials fit on top of existing low consoles.
+	# The consoles are offset from their lathe centres. Keep every key on
+	# the actual top, rather than floating beside it in the walking aisle.
+	for x: float in [-10.5, 7.5]:
 		for index: int in range(4):
-			fitting(room, "ControlKey", Vector3(x-0.6+index*0.3, 1.33, -7.5), Vector3(0.12, 0.035, 0.14), Color("b7ab81"))
+			fitting(room, "ControlKey_%s_%d" % [str(x), index], Vector3(x-0.6+index*0.3, 1.33, -7.5), Vector3(0.12, 0.035, 0.14), Color("b7ab81"))
 	for x: float in [-3.65, 3.65]:
 		for y: float in [0.8, 1.8, 2.8, 3.8, 4.8]:
 			fitting(room, "PressBolt", Vector3(x, y, 0.035), Vector3(0.1, 0.1, 0.04), Color("b7a770"))

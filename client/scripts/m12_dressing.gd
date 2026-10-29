@@ -199,7 +199,7 @@ func _shelter() -> void:
 		wall_pin(room, Vector3(20.9+index*0.75, 2.1, 29.67), PEOPLE_COLOURS[index%4])
 	# Folding bedding stays against the back wall, away from people and door.
 	for index: int in range(6):
-		fitting(room, "FoldedBlanket", Vector3(27.99, 1.1+index*0.15, 20.2), Vector3(0.3, 0.12, 0.6), PEOPLE_COLOURS[index%4])
+		fitting(room, "FoldedBlanket%d" % index, Vector3(28.05, 0.36+index*0.12, 20.2), Vector3(0.3, 0.12, 0.6), PEOPLE_COLOURS[index%4])
 	lamp(room, Vector3(24, 4.25, 23), 8, true)
 	lamp(room, Vector3(18, 2.8, 25), 6, true)
 	var depot: Node3D = _room("Depot")

@@ -69,12 +69,14 @@ Independent review kept seated riders with their vehicle and corrected the cover
 | `combat-checks` | Turret and Heavy tells stay red, absorbed swell stays cyan; Level 6 and Level 19 captured |
 | `net-motion` | Wire-only quantized motion (6 to 12% less per client), a loopback link shaper, rewind under jitter |
 
-## Wave 17 (in progress)
+## Wave 17 (implemented)
 
 Level 10's Repeater from finite acquisition through visible, audible play;
-Levels 11, 12 and 13 toward the golden slice, with lore and design continuity,
-route clarity and enemy contrast reviewed in the renderer. Reconcile stale
-briefs, the roadmap and remaining issue acceptance in the same wave.
+Levels 11, 12 and 13 dressed with lore and design continuity, route clarity
+and enemy contrast reviewed in the renderer. The Assessor now reads black/red
+and mine instructions show active bindings. Stale briefs and the roadmap are
+reconciled. Native and rendered authoring evidence remains distinct from human
+acceptance; spin cycle cues and Level 13's primitive geometry remain open.
 
 Character production depends on live credits and unresolved choices. Level 9's
 ship geometry and two-machine networking evidence remain bounded follow-ups.
