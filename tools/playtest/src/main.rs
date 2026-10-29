@@ -62,6 +62,11 @@ struct Cli {
     /// watchers, steady and bursty input probes) on Tripoint Works.
     #[arg(long, requires = "fanout_matrix")]
     fanout_stress: bool,
+    /// With --fanout-matrix: the link rows instead. Four watchers read
+    /// through a simulated link (capacity, delay, jitter, loss, outages) in
+    /// this process, on loopback; see `fragr_playtest::link`.
+    #[arg(long, requires = "fanout_matrix", conflicts_with = "fanout_stress")]
+    fanout_link: bool,
     /// Bots-only Sabotage survey on Sector 9: whole seeded matches of rule
     /// bots on the session, without sockets. Asserts plants, defuses, round
     /// wins for both sides and no stuck round when --assert is set.
@@ -204,19 +209,26 @@ struct Cli {
     /// With --rewind-matrix: trials per row.
     #[arg(long, requires = "rewind_matrix", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..=100_000))]
     rewind_trials: u32,
+    /// With --rewind-matrix: every row again on modelled links with jitter
+    /// and retransmission stalls (`fragr_playtest::rewind::JITTER_LINKS`).
+    #[arg(long, requires = "rewind_matrix")]
+    rewind_jitter: bool,
 }
 
 fn rewind_report(cli: &Cli) -> Result<(), String> {
-    use fragr_playtest::rewind::{run_matrix, RewindMode};
-    let report = run_matrix(
-        cli.seed,
-        cli.rewind_trials,
-        &[RewindMode::Off, RewindMode::On],
-    );
-    println!("rtt_ms | mode | on target (client) | server hits | miss | view lag mean/max ms | drawn offset mean/p95 m");
+    use fragr_playtest::rewind::{run_jitter_matrix, run_matrix, RewindMode};
+    let modes = [RewindMode::Off, RewindMode::On];
+    let report = if cli.rewind_jitter {
+        run_jitter_matrix(cli.seed, cli.rewind_trials, &modes)
+    } else {
+        run_matrix(cli.seed, cli.rewind_trials, &modes)
+    };
+    println!("jitter_ms | loss_per_mille | rtt_ms | mode | on target (client) | server hits | miss | view lag mean/max ms | drawn offset mean/p95 m | starved | beyond bound");
     for row in &report.rows {
         println!(
-            "{} | {:?} | {} | {} | {:.1}% | {:.0}/{:.0} | {:.2}/{:.2}",
+            "{} | {} | {} | {:?} | {} | {} | {:.1}% | {:.0}/{:.0} | {:.2}/{:.2} | {:.1}% | {:.1}%",
+            row.link.jitter_ms,
+            row.link.loss_per_mille,
             row.rtt_ms,
             row.mode,
             row.client_on_target,
@@ -225,7 +237,9 @@ fn rewind_report(cli: &Cli) -> Result<(), String> {
             row.mean_view_lag_ms,
             row.max_view_lag_ms,
             row.mean_offset_m,
-            row.p95_offset_m
+            row.p95_offset_m,
+            row.starved_share * 100.0,
+            row.beyond_bound_share * 100.0
         );
     }
     if let Some(parent) = cli.report.parent() {
@@ -717,6 +731,8 @@ async fn main() {
     if cli.fanout_matrix {
         let measured = if cli.fanout_stress {
             fragr_playtest::fanout::stress(cli.fanout_seconds).await
+        } else if cli.fanout_link {
+            fragr_playtest::fanout::links(cli.fanout_seconds).await
         } else {
             fragr_playtest::fanout::matrix(cli.fanout_seconds).await
         };
@@ -1039,6 +1055,15 @@ mod tests {
             serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
         assert_eq!(written["trials"], 4);
         assert_eq!(written["rows"].as_array().unwrap().len(), 8);
+        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-jitter"]).is_err());
+        cli.rewind_jitter = true;
+        rewind_report(&cli).unwrap();
+        let written: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
+        assert_eq!(
+            written["rows"].as_array().unwrap().len(),
+            8 * fragr_playtest::rewind::JITTER_LINKS.len()
+        );
         // A report path under a file cannot be created.
         cli.report = report.join("nested.json");
         assert!(rewind_report(&cli).is_err());
@@ -1064,6 +1089,18 @@ mod tests {
         let stress =
             Cli::try_parse_from(["fragr-playtest", "--fanout-matrix", "--fanout-stress"]).unwrap();
         assert!(stress.fanout_matrix && stress.fanout_stress);
+        assert!(!stress.fanout_link);
+        let link =
+            Cli::try_parse_from(["fragr-playtest", "--fanout-matrix", "--fanout-link"]).unwrap();
+        assert!(link.fanout_link && !link.fanout_stress);
+        assert!(Cli::try_parse_from(["fragr-playtest", "--fanout-link"]).is_err());
+        assert!(Cli::try_parse_from([
+            "fragr-playtest",
+            "--fanout-matrix",
+            "--fanout-link",
+            "--fanout-stress"
+        ])
+        .is_err());
     }
 
     #[test]

@@ -522,7 +522,9 @@ wave 15 (gameplay 63, next section):
    would shorten each changed float by about four bytes and stop
    sub-millimetre jitter from counting as a change. This changes the values
    readers see, so it needs the movement mirror's reconciliation checked
-   against the goldens first.
+   against the goldens first. Shipped in wave 16 on the Snapshot only; the
+   `Ack` that reconciliation replays from stays exact (see "Quantized
+   motion" below).
 3. **A per-reader delta after a replaced world.** Shipped.
 4. **A cheaper encode.** Shipped as a text diff rather than a typed one.
 5. **Explicit acknowledgements** only arrive with an unreliable transport
@@ -607,7 +609,164 @@ cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fi
   is not measured here.
 
 What stays open for stage 4: quantized motion (item 2 above), and field
-evidence of per-reader deltas on a real constrained link.
+evidence of per-reader deltas on a real constrained link. Wave 16 measured
+and shipped item 2 (next section) and measured per-reader deltas on a
+simulated link ("Simulated links", below); field evidence stays open.
+
+### Quantized motion (#434 stage 4, wave 16)
+
+The encoded Snapshot now writes fighter positions and shot trace points to
+the millimetre and fighter yaw and pitch to 1e-4 rad
+([protocol](protocol.md#quantized-motion); owner
+`server/src/protocol/quantize.rs`). Only the wire rounds: the struct the
+tick builds keeps the exact floats, so in-process readers of `snapshot()`
+(campaign controllers, bots), lag compensation and every outcome are
+unchanged, and the `Ack` that local prediction replays from is not rounded.
+The rounding is IEEE multiply, round and divide on literal scales, so no
+libm enters it, and its tests use literal inputs only.
+
+It is no gameplay contract change. Every reader parses these fields as
+numbers already; the Godot client and the Rust readers are untouched. What
+a reader sees moves by at most half a step: 0.5 mm of position and 0.05
+mrad of look. The client already read these as shortest `f32` text into a
+64-bit float, so it never held the server's exact bits before either. Its
+local prediction uses other fighters as contact bodies; a body 0.5 mm off
+can change a replayed contact step by that much until the next `Ack`
+corrects it.
+
+Measured 2026-10-28 with the traffic generator against the `fragr-server`
+binary, the same setup as the wave 15 table: Larak Lot, human fighters at
+60 Hz plus spectators, no bots, 15 s held, seed 42. Three interleaved runs
+per row on an AMD Ryzen 7 7840U shared with other sessions (load 4 to 8).
+Before is `989d9b68` (main, gameplay 63), after is the wave 16 branch.
+Bytes are the mean of three runs, encode times the median run.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
+```
+
+| Connections (fighters + spectators) | Mean delta bytes before / after | KiB/s per client, all frames, before / after | Of which worlds | Server egress MiB/s | Tick encode p50 ms | Tick encode p99 ms | Server CPU cores |
+|---|---|---|---|---|---|---|---|
+| 6 (4 + 2) | 266 / 234 (-12 %) | 10.54 / 9.91 (-6 %) | 5.20 / 4.57 | 0.061 / 0.057 | 0.044 / 0.044 | 0.098 / 0.095 | 0.016 / 0.017 |
+| 16 (12 + 4) | 695 / 593 (-15 %) | 19.70 / 17.63 (-11 %) | 13.57 / 11.53 | 0.304 / 0.273 | 0.068 / 0.078 | 0.136 / 0.136 | 0.030 / 0.034 |
+| 64 (48 + 16) | 2,502 / 2,177 (-13 %) | 57.30 / 50.63 (-12 %) | 49.11 / 42.79 | 3.51 / 3.10 | 0.172 / 0.184 | 0.288 / 0.301 | 0.091 / 0.099 |
+
+- **It pays, modestly.** A fighter entry's five motion fields (key text
+  included, sampled from whole worlds at 48 fighters) fell from 63.3 to
+  55.0 bytes, and a delta, which is mostly those fields, by 12 to 15
+  percent. Per-client traffic at the 64-connection cap fell 12 percent,
+  from 57.3 to 50.6 KiB/s; since wave 13's start that is 287 to 51 KiB/s.
+- **Encode cost is inside the noise.** The rounding runs in the serializer
+  once per tick; tick encode p50 moved by 0 to 0.012 ms and CPU by under a
+  hundredth of a core, both within this host's run-to-run spread.
+- **Every world still arrived.** Snapshot counts and whole worlds (one per
+  connection) match. One after run at 16 connections read 1.1 percent fewer
+  snapshots and recorded one tick over budget, a host stall during a
+  shared-load spike; its other two runs and every other row had none.
+- **What it does not do.** Traffic fighters move every tick, so the
+  sub-step rule (a change under half a step is no change) did not show in
+  these rows. Not rounded, because the measurement gave no reason:
+  projectiles, grenades, rockets and vehicles (no row here carries many),
+  and impact normals. `shot_results`, which a delta carries whole whenever
+  anyone fired, was 2,349 bytes of a sampled 48-fighter world before and
+  2,174 to 2,260 after: rounding its trace points cut it by 4 to 7 percent,
+  so the rest of a shot result, not its floats, is most of that cost.
+
+### Simulated links (#434, wave 16)
+
+There is no root, `tc netem` or container on the measuring host, so the
+harness carries its own link: `fragr_playtest::link`, a TCP relay in the
+playtest process between real WebSocket clients and the real server. It
+shapes the byte stream the way a TCP connection over such a link delivers
+it: each direction serializes at the link's capacity, adds a one-way delay
+and a seeded jitter draw while keeping order, holds the stream for a
+retransmission when a chunk is "lost", holds everything during an outage,
+and holds at most `queue_bytes` taken and undelivered. Past that it stops
+reading; its own receive buffer toward the server is 16 KiB, so the
+backlog moves into the server's bounded send buffer and the writer blocks,
+as behind a real full window. It connects from the watcher's own loopback
+source address, so admission is unchanged. Its tests check the schedule
+(capacity, order under jitter and loss, outages) and the backpressure on a
+live socket (`link::tests`).
+
+This is a simulated link on loopback in one process: no packets, no
+congestion control, no real radio. Loss is modelled as its effect on a TCP
+reader (a 240 ms hole, Linux's 200 ms minimum timeout plus a round trip),
+per chunk the relay reads, which on loopback is about one WebSocket frame.
+It shows how the server's delivery rules respond to a shaped stream; it is
+not field or two-machine evidence.
+
+`--fanout-matrix --fanout-link` runs one row per link on the stress base:
+Tripoint Works, 16 reflex fighters, 8 healthy watchers connected directly,
+and 4 watchers behind the link, which read every frame as it arrives.
+Measured 2026-10-28, release build, seed 42, 30 s per row, two runs on the
+same AMD Ryzen 7 7840U (load 4 to 7, then 3 to 5); the table is the second
+run. The first had a 5 s outage row where the second has 3.5 and 6 s (see
+Outages); its other rows matched the second except where noted. A linked watcher's
+worlds are about 14.1 KiB/s of text (116 kbit/s) on this roster.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-link --fanout-seconds 30 --report .agents/fanout/links.json
+```
+
+| Link (down capacity, one-way delay, extra) | Linked picture age p50 / p99 / max ms | Worlds read whole / as deltas | Link full (refused bytes), s per watcher | Replaced worlds / per-reader deltas | Linked watchers closed |
+|---|---|---|---|---|---|
+| relay only (1 Gbit, 0 ms) | 1.2 / 3 / 3 | 0 / 2,400 | 0 | 0 / 0 | none |
+| broadband (20 Mbit, 20 ms, jitter 0 to 5 ms) | 24.5 / 28 / 30 | 4 / 2,396 | 0 | 0 / 0 | none |
+| jitter (20 Mbit, 30 ms, jitter 0 to 60 ms) | 62.9 / 92 / 94 | 1 / 2,401 | 0 | 0 / 0 | none |
+| loss (broadband, 5 % of chunks held 240 ms; 132 held) | 25.4 / 266 / 269 | 0 / 2,398 | 0 | 0 / 0 | none |
+| outage 1.5 s every 6 s (broadband) | 25.2 / 1,456 / 1,506 | 4 / 2,388 | 0 | 0 / 0 | none |
+| outage 3.5 s every 12 s (broadband) | 25.4 / 3,356 / 3,506 | 4 / 2,396 | 1.4 | 0 / 0 | none |
+| outage 6 s every 15 s (broadband) | 25.4 / 5,806 / 6,005 | 4 / 1,556 | 2.1 | 0 / 0 | all 4 at 19 to 20 s, unanswered ping |
+| thin 256 kbit, 40 ms, 16 KiB queue | 115 / 492 / 630 | 4 / 2,440 | 29.9 | 0 / 0 | none |
+| thin 128 kbit, 40 ms, 16 KiB queue | 1,216 / 2,485 / 2,638 | 4 / 2,308 | 29.2 | 0 / 0 | none |
+| thin 64 kbit, 40 ms, 16 KiB queue | 6,738 / 8,625 / 8,676 (run 1: 7,471 / 9,775 / 10,075) | 4 / 636 | 12.9 | 0 / 0 | all 4 at 5.9 s (run 1: 11.9 s), unanswered ping |
+
+In every row the 8 healthy watchers read every world (no missing tick, no
+disconnect), their tick-to-read p50 / p99 stayed 0.57 to 0.60 / 1.3 to
+1.4 ms, no tick ran over budget (tick p99 0.72 to 0.85 ms), and no queue
+overflowed. "Whole" worlds are each linked connection's first world when
+it arrived inside the window.
+
+- **Deltas hold on every link that carries the world.** Each linked
+  watcher's first world was its only whole one; jitter, held chunks and
+  outages up to 3.5 s delivered every later world late, in order, as a
+  delta from the one before.
+- **Per-reader deltas never triggered, and the numbers say why.** A world
+  is replaced only when the writer blocks with a newer world queued, and
+  the writer blocks only after the link's queue, the relay's receive
+  buffer and the server's send buffer are all full (16, 32 and 128 KiB
+  here, the last two as Linux doubles the asked size). At 14 KiB/s of
+  worlds that is about 12 s of backlog, while the unanswered ping closes a
+  reader 4 to 5 s behind. Even the 64 kbit link, which carries about half
+  the world rate, was closed by the ping before its writer blocked. So on
+  rosters up to 32 connections the per-reader path is a safety net, not a
+  path a short link takes; it would trigger only for a reader whose deficit
+  fills those buffers inside the ping bound, about 44 KiB/s, which is
+  more than a whole 64-connection world stream (43 KiB/s, table above).
+- **A link just under the world rate is not closed; its picture is late.**
+  128 kbit carries the 116 kbit/s of worlds with a full 16 KiB queue: a
+  picture 1.2 s old at the median and 2.6 s at worst, never closed in 30 s
+  because the reader answers pings within the 4 s bound. Bufferbloat, not
+  the server, sets that age; a deeper queue would make it older.
+- **Outages.** 1.5 and 3.5 s outages delivered the held worlds late and in
+  order; a 6 s outage closed every linked watcher by the unanswered ping,
+  4 to 5 s into it (19 to 20 s into the window, the outage started at about
+  15 s). Where in the ping period the link drops decides that extra second.
+  An earlier version of this matrix used a 5 s outage every 12 s: in its
+  run the first outage (about 12 to 17 s) closed nobody and the second
+  (about 24 to 29 s) closed all four at 28 s, and a one-watcher probe of
+  the same outage closed at exactly 4.0 s behind. 5 s is the edge, not a
+  guarantee, which is why the rows use 3.5 and 6 s.
+- **The frame-age close (2.5 s) never fired.** It needs the writer to take a
+  frame late, which needs the writer to block, which none of these links
+  caused before the ping did.
+
+What these rows do not show: real congestion control (a real sender backs
+off and the bytes wait in its send buffer, not on the wire), packet
+reordering, asymmetric paths, Windows or macOS socket buffers, and anything
+the Godot client does under these links (the watchers here are Rust
+readers). Two machines and a real link remain the field evidence.
 
 ### Lag compensation (#434 stage 5)
 
@@ -698,11 +857,59 @@ The counters (`GameState::rewind_stats`: `accepted`, `refused`, `rewinds`,
 wave 15 (`ops` in [protocol](protocol.md)), so a host can read the clamped
 share of a real night.
 
+**Under modelled jitter and loss (wave 16).** `--rewind-jitter` reruns
+every row on modelled links: each snapshot and the Action draw an extra
+one-way delay from 0 to the jitter, a lost message (2 in 100 in the last
+link) holds the stream 250 ms for its retransmission (Linux's 200 ms
+minimum timeout plus a round trip), and the stream stays ordered. The
+client's clock is no longer a closed form: the model runs
+`RemotePresentation.sample` at every 60 Hz frame over the snapshots that
+have arrived, so its render tick follows the earliest arrival offset of the
+last 32 snapshots, never runs backwards, and holds at the newest snapshot
+when the next is late (starved). The view tick sent is that render tick.
+With no jitter the model lands on the fixed rows' closed form
+(`the_client_timeline_model_matches_the_fixed_delay_view`), and the fixed
+rows above reproduce exactly. Still a model in process, no sockets.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
+```
+
+Measured 2026-10-28, seed 42, 1000 trials per row; deterministic. Misses
+are server misses of shots the client saw land; "beyond 200 ms" is the
+share of trials whose view lag exceeded the rewind bound.
+
+| Link (extra one-way delay) | RTT | View lag mean / max ms | Starved | Beyond 200 ms | Miss before (no `view_tick`) | Miss after |
+|---|---|---|---|---|---|---|
+| none | 0 / 50 / 100 / 150 ms | 125 / 150 to 275 / 300 | 0 % | 0, 0, 100, 100 % | 60.4, 64.3, 64.9, 68.8 % | 0.0, 0.0, 0.0, 15.8 % |
+| 0 to 20 ms | 0 / 50 / 100 / 150 ms | 136 / 170 to 286 / 319 | 0 % | 0, 21, 100, 100 % | 62.8, 64.7, 65.9, 67.6 % | 0.0, 0.0, 0.0, 29.0 % |
+| 0 to 50 ms | 0 / 50 / 100 / 150 ms | 151 / 199 to 301 / 352 | 0 % | 0, 51, 100, 100 % | 63.5, 64.2, 67.5, 68.6 % | 0.0, 0.0, 3.2, 43.5 % |
+| 0 to 100 ms | 0 / 50 / 100 / 150 ms | 183 / 256 to 333 / 405 | 19 to 22 % | 30, 79, 100, 100 % | 65.7, 67.1, 68.2, 70.5 % | 0.0, 3.5, 27.7, 56.6 % |
+| 0 to 20 ms, 2 % loss | 0 / 50 / 100 / 150 ms | 150 / 550 to 301 / 700 | 8 to 9 % | 7, 29, 100, 100 % | 63.2, 65.3, 66.3, 68.7 % | 3.0, 4.3, 5.0, 32.3 % |
+
+- **Rewind follows the view the client drew, starved or not.** A starved
+  timeline holds the newest snapshot and reports that tick, so the server
+  rewinds to what was drawn; inside the bound every such shot landed.
+- **Jitter spends the bound.** The view lag grows by about half the jitter
+  (the Action's own delay; the clock tracks the earliest snapshot, so
+  snapshot jitter adds lag only when it starves the 100 ms buffer). At
+  50 ms RTT, rewind still lands every drawn hit up to 50 ms of jitter and
+  96.5 percent at 100 ms; at 100 ms RTT, 50 ms of jitter already costs 3.2
+  percent and 100 ms costs 27.7.
+- **A lost message is a miss when it pushes the lag past the bound.** 2
+  percent loss costs 3 to 5 percent of drawn hits at 0 to 100 ms RTT. A
+  held snapshot starves the view, which the client reports; a held Action
+  adds 250 ms after the view was sampled, which no client clock can
+  report. The matrix does not split the two.
+- Before-rewind misses barely move with jitter (60 to 70 percent in every
+  row): without `view_tick` the server was already wrong by the whole lag.
+
 What stays open for #434 stage 5:
 
 1. **Field evidence.** Two machines, real jitter and loss: compare client
    hit-confirm against server results through the existing stutter traces.
-   The matrix models fixed delays only.
+   The matrix models fixed delays and, since wave 16, uniform jitter and
+   retransmission stalls; real links have neither shape exactly.
 2. **Projectiles stay unrewound** by design: a rocket or grenade is a visible
    object the victim can dodge in server time, and rewinding its collisions
    would hit a target that already dodged what it saw. Campaign actors are

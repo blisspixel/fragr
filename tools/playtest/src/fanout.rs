@@ -44,8 +44,9 @@ impl Distribution {
     }
 }
 
-/// Report schema. 3 added the stress scenarios and the tick schedule.
-pub const FANOUT_SCHEMA: u32 = 3;
+/// Report schema. 3 added the stress scenarios and the tick schedule; 4 the
+/// linked watchers, their whole and delta worlds, and the link report.
+pub const FANOUT_SCHEMA: u32 = 4;
 
 /// How a watcher reads its stream.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -57,6 +58,9 @@ pub enum WatcherKind {
     Slow { pause_ms: u64 },
     /// Stops reading once the measured window opens.
     Stalled,
+    /// Reads every frame as it arrives, through a simulated link
+    /// (`crate::link`) between it and the server.
+    Linked { link: crate::link::LinkProfile },
 }
 
 /// How an input probe spaces its numbered actions.
@@ -146,6 +150,11 @@ pub struct DegradedSummary {
     pub closed_by_server: usize,
     /// Tick start to reading the frame: how stale their picture became.
     pub tick_to_watcher_ms: Distribution,
+    /// Of the snapshots they read, those that arrived whole and as deltas.
+    pub whole_worlds: usize,
+    pub delta_worlds: usize,
+    /// What the simulated link did, for linked watchers.
+    pub link: Option<crate::link::LinkReport>,
 }
 
 /// Input probes: numbered human actions and the Ack that covered each.
@@ -234,6 +243,8 @@ struct WatchResult {
     arrivals: Vec<Arrival>,
     text_bytes: usize,
     disconnected: bool,
+    /// Snapshots inside the window that arrived as a delta.
+    delta_worlds: usize,
 }
 
 /// After the window, read what a stalled watcher left in its socket until the
@@ -385,7 +396,14 @@ async fn watcher_task(
                         tick: snapshot.tick,
                         at: read_at,
                     });
+                    result.delta_worlds += usize::from(world.last_was_delta());
                 }
+            }
+            // A degraded watcher the server gives up on is told why first;
+            // that is the server closing it, which the row measures.
+            ServerMessage::Error { .. } if kind != WatcherKind::Healthy => {
+                result.disconnected = !*stop.borrow();
+                break;
             }
             ServerMessage::Error { code, message } => {
                 return Err(Error::Server(format!("watcher {code}: {message}")));
@@ -674,10 +692,15 @@ fn summarize_degraded(
             .filter(|watcher| watcher.disconnected)
             .count(),
         tick_to_watcher_ms: Distribution::from_values(&[]),
+        whole_worlds: 0,
+        delta_worlds: 0,
+        link: None,
     };
     let mut ages = Vec::new();
     for watcher in results {
         summary.snapshots += watcher.arrivals.len();
+        summary.delta_worlds += watcher.delta_worlds;
+        summary.whole_worlds += watcher.arrivals.len().saturating_sub(watcher.delta_worlds);
         for pair in watcher.arrivals.windows(2) {
             summary.missing_snapshot_ticks += pair[1].tick.saturating_sub(pair[0].tick + 1);
         }
@@ -818,14 +841,28 @@ async fn measured_row(
                 .flat_map(|(kind, count)| std::iter::repeat_n(kind, count)),
         )
         .collect();
+    // Linked watchers reach the server through one relay that shapes each
+    // of their connections; everyone else connects directly.
+    let relay = match degraded {
+        Some((WatcherKind::Linked { link }, _)) => Some(
+            crate::link::start(addr, link, seed)
+                .await
+                .map_err(Error::Server)?,
+        ),
+        _ => None,
+    };
     let mut watcher_tasks = Vec::new();
     let mut watcher_ready = Vec::new();
     for (index, kind) in kinds.iter().enumerate() {
         let (tx, rx) = oneshot::channel();
         watcher_ready.push(rx);
+        let target = match (kind, &relay) {
+            (WatcherKind::Linked { .. }, Some(relay)) => relay.addr,
+            _ => addr,
+        };
         watcher_tasks.push(tokio::spawn(watcher_task(
             url.clone(),
-            addr,
+            target,
             watcher_source(index)?,
             format!("Watcher-{}", index + 1),
             *kind,
@@ -854,6 +891,9 @@ async fn measured_row(
         .lock()
         .map_err(|_| Error::Server("fanout metrics lock poisoned".into()))?
         .reset();
+    if let Some(relay) = &relay {
+        relay.reset();
+    }
     let started = Instant::now();
     let _ = start_tx.send(Some(started));
     let losses = tokio::spawn(watch_connections(
@@ -867,6 +907,7 @@ async fn measured_row(
     // Kernel memory still held by the server side of every socket: a slow
     // or stalled reader pins its unsent bytes here, not in the queue.
     let sockets = super::traffic::host::socket_memory(addr.port()).ok();
+    let link = relay.as_ref().map(crate::link::Relay::report);
     if fighter_tasks
         .iter()
         .any(tokio::task::JoinHandle::is_finished)
@@ -923,8 +964,10 @@ async fn measured_row(
             .map_err(|_| Error::Timeout("fanout fighter stop"))?
             .map_err(|error| Error::Server(error.to_string()))??;
     }
-    let degraded = degraded
-        .map(|(kind, _)| summarize_degraded(kind, &degraded_results, &server_side.tick_starts));
+    let degraded = degraded.map(|(kind, _)| DegradedSummary {
+        link,
+        ..summarize_degraded(kind, &degraded_results, &server_side.tick_starts)
+    });
     let mut row = measure_arrivals(
         map,
         fighters,
@@ -1043,6 +1086,100 @@ pub async fn stress(seconds_per_row: u64) -> Result<FanoutReport, Error> {
     Ok(report(seconds_per_row, rows))
 }
 
+/// The simulated links the link rows put four watchers behind. Capacities
+/// are the server-to-client direction; the queue is what the link holds in
+/// flight and waiting, so a thin link's queue is also its worst added delay.
+pub fn link_profiles() -> Vec<crate::link::LinkProfile> {
+    use crate::link::LinkProfile;
+    let broadband = LinkProfile {
+        up_bytes_per_s: 5_000 * 125,
+        jitter_ms: 5,
+        ..LinkProfile::clean("broadband", 20_000, 20)
+    };
+    vec![
+        // Control: the relay with nothing to shape.
+        LinkProfile::clean("relay_only", 1_000_000, 0),
+        broadband,
+        LinkProfile {
+            name: "jitter_60ms",
+            delay_ms: 30,
+            jitter_ms: 60,
+            ..broadband
+        },
+        LinkProfile {
+            // About one lost segment a second at 20 frames a second; a lost
+            // segment costs Linux's 200 ms minimum retransmission timeout
+            // plus the round trip.
+            name: "loss_5pct",
+            loss_per_mille: 50,
+            loss_stall_ms: 240,
+            ..broadband
+        },
+        LinkProfile {
+            // A radio that drops out for 1.5 s every 6 s.
+            name: "outage_1_5s",
+            outage_every_ms: 6_000,
+            outage_ms: 1_500,
+            ..broadband
+        },
+        LinkProfile {
+            // Under the server's unanswered-ping bound with its ping period.
+            name: "outage_3_5s",
+            outage_every_ms: 12_000,
+            outage_ms: 3_500,
+            ..broadband
+        },
+        LinkProfile {
+            // Past it: a ping sent as the link drops waits the whole outage.
+            name: "outage_6s",
+            outage_every_ms: 15_000,
+            outage_ms: 6_000,
+            ..broadband
+        },
+        LinkProfile {
+            name: "thin_256k",
+            up_bytes_per_s: 128 * 125,
+            queue_bytes: 16 * 1024,
+            ..LinkProfile::clean("thin_256k", 256, 40)
+        },
+        LinkProfile {
+            name: "thin_128k",
+            up_bytes_per_s: 64 * 125,
+            queue_bytes: 16 * 1024,
+            ..LinkProfile::clean("thin_128k", 128, 40)
+        },
+        LinkProfile {
+            name: "thin_64k",
+            up_bytes_per_s: 32 * 125,
+            queue_bytes: 16 * 1024,
+            ..LinkProfile::clean("thin_64k", 64, 40)
+        },
+    ]
+}
+
+/// One row per simulated link, on the stress rows' base: sixteen reflex
+/// fighters, eight healthy watchers and four watchers behind the link.
+pub fn link_rows() -> Vec<RowSpec> {
+    link_profiles()
+        .into_iter()
+        .map(|link| RowSpec {
+            scenario: link.name,
+            degraded: Some((WatcherKind::Linked { link }, 4)),
+            ..RowSpec::plain(MapKind::TripointWorks, 16, 8)
+        })
+        .collect()
+}
+
+/// Run every link row once, each on a fresh seeded match.
+pub async fn links(seconds_per_row: u64) -> Result<FanoutReport, Error> {
+    check_seconds(seconds_per_row)?;
+    let mut rows = Vec::new();
+    for spec in link_rows() {
+        rows.push(one_row(spec, 42, seconds_per_row).await?);
+    }
+    Ok(report(seconds_per_row, rows))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1076,6 +1213,7 @@ mod tests {
                     ],
                     text_bytes: 240,
                     disconnected: false,
+                    delta_worlds: 1,
                 },
                 WatchResult {
                     arrivals: vec![Arrival {
@@ -1084,6 +1222,7 @@ mod tests {
                     }],
                     text_bytes: 80,
                     disconnected: true,
+                    ..WatchResult::default()
                 },
             ],
             ServerSide {
@@ -1108,7 +1247,7 @@ mod tests {
             rows: vec![row],
         })
         .unwrap();
-        assert_eq!(json["schema"], 3);
+        assert_eq!(json["schema"], 4);
         assert_eq!(json["rows"][0]["scenario"], "baseline");
         assert_eq!(json["rows"][0]["missing_snapshot_ticks"], 1);
         assert_eq!(json["rows"][0]["relative_snapshot_age_ms"]["samples"], 3);
@@ -1197,6 +1336,7 @@ mod tests {
                     ],
                     text_bytes: 700,
                     disconnected: true,
+                    delta_worlds: 2,
                 },
                 WatchResult::default(),
             ],
@@ -1210,6 +1350,53 @@ mod tests {
         assert_eq!(summary.missing_snapshot_ticks, 2);
         assert_eq!(summary.closed_by_server, 1);
         assert_eq!(summary.text_bytes, 700);
+        assert_eq!((summary.whole_worlds, summary.delta_worlds), (1, 2));
+        assert!(summary.link.is_none());
+    }
+
+    #[test]
+    fn link_rows_are_valid_and_named_by_their_link() {
+        let rows = link_rows();
+        assert_eq!(rows.len(), link_profiles().len());
+        for row in &rows {
+            row.validate().unwrap();
+            let Some((WatcherKind::Linked { link }, 4)) = row.degraded else {
+                panic!("{row:?}");
+            };
+            link.validate().unwrap();
+            assert_eq!(row.scenario, link.name);
+        }
+    }
+
+    /// Four watchers behind a thin link on a short live row: they still read
+    /// worlds, through the relay, and the link reports what it carried.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn a_short_linked_row_measures_watchers_behind_the_relay() {
+        let link = crate::link::LinkProfile {
+            jitter_ms: 20,
+            ..crate::link::LinkProfile::clean("t", 2_000, 20)
+        };
+        let row = one_row(
+            RowSpec {
+                scenario: "t",
+                degraded: Some((WatcherKind::Linked { link }, 2)),
+                ..RowSpec::plain(MapKind::ArenaDuel, 2, 1)
+            },
+            7,
+            2,
+        )
+        .await
+        .unwrap();
+        let degraded = row.degraded.as_ref().unwrap();
+        assert_eq!(degraded.watchers, 2);
+        assert!(degraded.snapshots > 0, "{degraded:?}");
+        assert_eq!(
+            degraded.whole_worlds + degraded.delta_worlds,
+            degraded.snapshots
+        );
+        let report = degraded.link.as_ref().unwrap();
+        assert_eq!(report.connections, 2);
+        assert!(report.down_bytes > 0 && report.up_bytes > 0, "{report:?}");
     }
 
     #[test]

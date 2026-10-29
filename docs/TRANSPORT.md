@@ -14,7 +14,8 @@
 - Multi-peer: Multiple spectators/players can connect to same match
 - Fan-out: each broadcast is encoded once per tick and every session's bounded queue shares that payload; targeted messages are encoded per session. Measured before and after in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out).
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
-- Limits: Ordered TCP delivery can stall newer updates after loss; JSON full-world snapshots consume more bytes than a compact, relevant-state format.
+- Size: worlds go as deltas from the world the reader holds (gameplay 63), with fighter motion rounded to the millimetre and 1e-4 rad on the wire. Measured in [BENCHMARK.md](BENCHMARK.md#quantized-motion-434-stage-4-wave-16): about 51 KiB/s per client at the 64-connection cap.
+- Limits: Ordered TCP delivery stalls newer updates behind a lost segment; JSON text is still larger than a binary, relevant-state format.
 
 LAN presence is a separate UDP broadcast on port 6768, `FRAGR/1 <game-port>`.
 It is not this transport and it does not carry snapshots or inputs.
@@ -30,6 +31,15 @@ participant transform interpolation. Bounded hitscan lag compensation (gameplay
 62, 200 ms) rewinds fighters to the view a human client reports; it does not
 delay all combat facts or prove two-machine feel. Evidence and limitations are
 in [the presentation plan](plans/remote-participant-presentation.md).
+
+**Simulated links, 2026-10-28.** `fragr-playtest --fanout-matrix --fanout-link`
+puts watchers behind an in-process TCP relay that imposes capacity, delay,
+jitter, retransmission stalls and outages, and `--rewind-matrix
+--rewind-jitter` models the same on the lag-compensation timeline. Results
+and limits are in [BENCHMARK.md](BENCHMARK.md#simulated-links-434-wave-16).
+They are loopback models on one machine: they show how the server's rules
+respond to a shaped stream, not how a real network or a second machine
+behaves.
 
 ## Planned: measured UDP pilot
 

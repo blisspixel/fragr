@@ -12,8 +12,14 @@
 //!
 //! "On target on the client" is true by construction for every trial whose
 //! client-side line is open; a server miss is a shot the player saw land.
-//! Snapshot and Action delivery are modelled as fixed one-way delays of half
-//! the round trip. Jitter, loss and TCP retransmission are not modelled.
+//! Snapshot and Action delivery are fixed one-way delays of half the round
+//! trip, unless the row names a `JitterLink`: then every snapshot and the
+//! Action each draw an extra delay, a lost segment holds the stream for a
+//! retransmission, and the stream stays ordered. The client's clock then
+//! runs `RemotePresentation::sample` itself over the snapshots it holds at
+//! each 60 Hz frame: the earliest arrival offset of its last 32 snapshots,
+//! less the buffer, never backwards, and held at the newest tick when it
+//! starves. That is still a model of a link, not a measured network.
 
 use fragr_server::protocol::{Action, EquipmentPolicy, Role, WeaponType};
 use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
@@ -40,10 +46,63 @@ pub enum RewindMode {
     On,
 }
 
+/// Extra one-way delay on a modelled link, on top of half the round trip.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Default)]
+pub struct JitterLink {
+    /// Each snapshot and the Action draw a delay from 0 to this.
+    pub jitter_ms: u32,
+    /// Messages in a thousand whose segment is lost and retransmitted.
+    pub loss_per_mille: u32,
+    /// What a loss holds the stream for.
+    pub loss_stall_ms: u32,
+}
+
+impl JitterLink {
+    fn is_fixed(&self) -> bool {
+        self.jitter_ms == 0 && self.loss_per_mille == 0
+    }
+}
+
+/// The links the jitter matrix covers, beside the fixed delays.
+pub const JITTER_LINKS: [JitterLink; 5] = [
+    JitterLink {
+        jitter_ms: 0,
+        loss_per_mille: 0,
+        loss_stall_ms: 0,
+    },
+    JitterLink {
+        jitter_ms: 20,
+        loss_per_mille: 0,
+        loss_stall_ms: 0,
+    },
+    JitterLink {
+        jitter_ms: 50,
+        loss_per_mille: 0,
+        loss_stall_ms: 0,
+    },
+    JitterLink {
+        jitter_ms: 100,
+        loss_per_mille: 0,
+        loss_stall_ms: 0,
+    },
+    JitterLink {
+        // Linux's 200 ms minimum retransmission timeout plus a round trip.
+        jitter_ms: 20,
+        loss_per_mille: 20,
+        loss_stall_ms: 250,
+    },
+];
+
 #[derive(Debug, Clone, Serialize)]
 pub struct RewindRow {
     pub rtt_ms: u32,
     pub mode: RewindMode,
+    pub link: JitterLink,
+    /// Trials whose client view was held at the newest snapshot because the
+    /// next had not arrived: the timeline starved.
+    pub starved_share: f64,
+    /// Trials whose view lag exceeded the 200 ms rewind bound.
+    pub beyond_bound_share: f64,
     /// Trials whose client-side line was open: shots the client saw land.
     pub client_on_target: u32,
     /// Of those, the shots the server also scored on the strafer.
@@ -93,6 +152,7 @@ struct Trial {
     hit: bool,
     view_lag_ticks: f64,
     offset_m: f64,
+    starved: bool,
 }
 
 fn strafe_action(direction: i8) -> Action {
@@ -115,7 +175,7 @@ fn lerp(a: [f32; 3], b: [f32; 3], t: f64) -> [f32; 3] {
     std::array::from_fn(|i| a[i] + (b[i] - a[i]) * t as f32)
 }
 
-fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode) -> Trial {
+fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode, link: JitterLink) -> Trial {
     let mut stream = Stream(
         (seed ^ 0x9E37_79B9_7F4A_7C15).wrapping_add(u64::from(trial).wrapping_mul(0xA24B_AED4)),
     );
@@ -143,11 +203,26 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode) -> Trial {
     // The fire tick. The Action arrives at a seeded phase inside the interval
     // before it, so its view time spans a whole tick of render phase.
     let lag_ticks = f64::from(rtt_ms) / TICK_MS;
-    let fire_tick = state.tick + WARMUP_TICKS + 8 + stream.below(16);
+    let nominal_fire = state.tick + WARMUP_TICKS + 8 + stream.below(16);
     let phase = stream.unit();
-    let arrival = (fire_tick - 1) as f64 + phase;
-    // Snapshot travel plus Action travel is the whole round trip.
-    let view = arrival - lag_ticks - BUFFER_TICKS;
+    let arrival = (nominal_fire - 1) as f64 + phase;
+    let (fire_tick, view, starved) = if link.is_fixed() {
+        // Snapshot travel plus Action travel is the whole round trip.
+        (nominal_fire, arrival - lag_ticks - BUFFER_TICKS, false)
+    } else {
+        let mut draws = Stream(
+            (seed ^ 0x51AB_1E0F_11CE_0001)
+                .wrapping_add(u64::from(trial).wrapping_mul(0x9E37_79B9))
+                .max(1),
+        );
+        // The client samples its input one base one-way delay before the
+        // nominal arrival, then the link adds its own delay to the Action.
+        let sampled_ms = arrival * TICK_MS - f64::from(rtt_ms) / 2.0;
+        let (view, starved) = client_view(&mut draws, state.tick, sampled_ms, rtt_ms, link);
+        let action_ms = sampled_ms + f64::from(rtt_ms) / 2.0 + extra_delay(&mut draws, link);
+        // The server applies an Action on the first tick after it arrives.
+        ((action_ms / TICK_MS).floor() as u64 + 1, view, starved)
+    };
 
     let mut feet: std::collections::BTreeMap<u64, ([f32; 3], bool)> = Default::default();
     let mut direction: i8 = if stream.below(2) == 0 { -1 } else { 1 };
@@ -156,6 +231,7 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode) -> Trial {
         on_target: false,
         hit: false,
         view_lag_ticks: fire_tick as f64 - view,
+        starved,
         offset_m: 0.0,
     };
     while state.tick < fire_tick {
@@ -217,9 +293,77 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode) -> Trial {
     trial
 }
 
+/// One draw of a link's extra one-way delay, in milliseconds.
+fn extra_delay(draws: &mut Stream, link: JitterLink) -> f64 {
+    let mut extra = draws.below(u64::from(link.jitter_ms) + 1) as f64;
+    if draws.below(1000) < u64::from(link.loss_per_mille) {
+        extra += f64::from(link.loss_stall_ms);
+    }
+    extra
+}
+
+/// `RemotePresentation` keeps this many arrival offsets.
+const PRESENTATION_SAMPLES: usize = 32;
+/// Client frames per second, and how long the timeline runs before the shot.
+const FRAME_MS: f64 = 1000.0 / 60.0;
+const SETTLE_MS: f64 = 2000.0;
+
+/// The tick the client draws at `sampled_ms`, and whether its timeline was
+/// starved there, from snapshots of every tick after `first` delivered over
+/// `link` in order. This is `RemotePresentation::sample` run at every frame.
+fn client_view(
+    draws: &mut Stream,
+    first: u64,
+    sampled_ms: f64,
+    rtt_ms: u32,
+    link: JitterLink,
+) -> (f64, bool) {
+    let one_way = f64::from(rtt_ms) / 2.0;
+    let last_tick = (sampled_ms / TICK_MS).ceil() as u64 + 1;
+    let mut arrivals: Vec<(u64, f64)> = Vec::new();
+    let mut previous = 0.0f64;
+    for tick in first + 1..=last_tick {
+        let at = (tick as f64 * TICK_MS + one_way + extra_delay(draws, link)).max(previous);
+        previous = at;
+        arrivals.push((tick, at));
+    }
+    let mut render = -1.0f64;
+    let mut starved = false;
+    let mut frame = (sampled_ms - SETTLE_MS).max(first as f64 * TICK_MS);
+    loop {
+        let now = frame.min(sampled_ms);
+        let held: Vec<&(u64, f64)> = arrivals.iter().filter(|(_, at)| *at <= now).collect();
+        let held = &held[held.len().saturating_sub(PRESENTATION_SAMPLES)..];
+        if let (Some(oldest), Some(newest)) = (held.first(), held.last()) {
+            let offset = held
+                .iter()
+                .map(|(tick, at)| at - *tick as f64 * TICK_MS)
+                .fold(f64::INFINITY, f64::min);
+            let desired = (now - offset) / TICK_MS - BUFFER_TICKS;
+            let (oldest, newest) = (oldest.0 as f64, newest.0 as f64);
+            starved = desired > newest;
+            render = render.max(desired).clamp(oldest, newest);
+        }
+        if now >= sampled_ms {
+            return (render, starved);
+        }
+        frame += FRAME_MS;
+    }
+}
+
 pub fn run_row(seed: u64, trials: u32, rtt_ms: u32, mode: RewindMode) -> RewindRow {
+    run_row_on(seed, trials, rtt_ms, mode, JitterLink::default())
+}
+
+pub fn run_row_on(
+    seed: u64,
+    trials: u32,
+    rtt_ms: u32,
+    mode: RewindMode,
+    link: JitterLink,
+) -> RewindRow {
     let results: Vec<Trial> = (0..trials)
-        .map(|trial| run_trial(seed, trial, rtt_ms, mode))
+        .map(|trial| run_trial(seed, trial, rtt_ms, mode, link))
         .collect();
     let seen: Vec<&Trial> = results.iter().filter(|t| t.on_target).collect();
     let client_on_target = seen.len() as u32;
@@ -234,9 +378,24 @@ pub fn run_row(seed: u64, trials: u32, rtt_ms: u32, mode: RewindMode) -> RewindR
             sum / f64::from(n)
         }
     };
+    let share = |count: usize| {
+        if seen.is_empty() {
+            0.0
+        } else {
+            count as f64 / seen.len() as f64
+        }
+    };
+    let bound_ticks = fragr_server::sim::rewind::MAX_REWIND_TICKS as f64;
     RewindRow {
         rtt_ms,
         mode,
+        link,
+        starved_share: share(seen.iter().filter(|t| t.starved).count()),
+        beyond_bound_share: share(
+            seen.iter()
+                .filter(|t| t.view_lag_ticks > bound_ticks)
+                .count(),
+        ),
         client_on_target,
         server_hits,
         miss_rate: if client_on_target == 0 {
@@ -265,7 +424,29 @@ pub fn run_matrix(seed: u64, trials: u32, modes: &[RewindMode]) -> RewindReport 
         .collect();
     RewindReport {
         // The seed and the trial count reproduce the report exactly.
-        schema: 1,
+        schema: REWIND_SCHEMA,
+        seed,
+        trials,
+        rows,
+    }
+}
+
+/// Report schema. 2 added each row's link, starved and beyond-bound shares.
+pub const REWIND_SCHEMA: u32 = 2;
+
+/// Every jitter link at every round trip, with and without the view time.
+pub fn run_jitter_matrix(seed: u64, trials: u32, modes: &[RewindMode]) -> RewindReport {
+    let rows = JITTER_LINKS
+        .iter()
+        .flat_map(|&link| {
+            modes
+                .iter()
+                .flat_map(move |&mode| RTTS_MS.iter().map(move |&rtt| (link, rtt, mode)))
+        })
+        .map(|(link, rtt, mode)| run_row_on(seed, trials, rtt, mode, link))
+        .collect();
+    RewindReport {
+        schema: REWIND_SCHEMA,
         seed,
         trials,
         rows,
@@ -306,5 +487,45 @@ mod tests {
         for rtt in [0, 50] {
             assert_eq!(row(rtt, RewindMode::On).miss_rate, 0.0);
         }
+        assert!(report.rows.iter().all(|row| row.starved_share == 0.0));
+    }
+
+    #[test]
+    fn the_client_timeline_model_matches_the_fixed_delay_view() {
+        // On a link with no jitter the frame-by-frame presentation clock
+        // lands on the closed form the fixed rows use.
+        let mut draws = Stream(5);
+        for (rtt, sampled) in [(0u32, 2010.0), (50, 2345.6), (150, 3333.3)] {
+            let (view, starved) = client_view(&mut draws, 10, sampled, rtt, JitterLink::default());
+            let fixed = sampled / TICK_MS - f64::from(rtt) / (2.0 * TICK_MS) - BUFFER_TICKS;
+            assert!((view - fixed).abs() < 1e-9, "{rtt}: {view} against {fixed}");
+            assert!(!starved);
+        }
+    }
+
+    #[test]
+    fn jitter_starves_the_timeline_and_rewind_still_follows_the_view() {
+        let jittery = JitterLink {
+            jitter_ms: 100,
+            ..JitterLink::default()
+        };
+        let off = run_row_on(42, 60, 50, RewindMode::Off, jittery);
+        let on = run_row_on(42, 60, 50, RewindMode::On, jittery);
+        assert_eq!(
+            serde_json::to_string(&on).unwrap(),
+            serde_json::to_string(&run_row_on(42, 60, 50, RewindMode::On, jittery)).unwrap()
+        );
+        assert!(on.starved_share > 0.0, "{on:?}");
+        assert!(on.miss_rate < off.miss_rate, "{on:?} {off:?}");
+        let lossy = JitterLink {
+            jitter_ms: 20,
+            loss_per_mille: 500,
+            loss_stall_ms: 250,
+        };
+        let held = run_row_on(42, 60, 0, RewindMode::On, lossy);
+        assert!(held.max_view_lag_ms > on.mean_view_lag_ms, "{held:?}");
+        let report = run_jitter_matrix(1, 2, &[RewindMode::On]);
+        assert_eq!(report.rows.len(), JITTER_LINKS.len() * RTTS_MS.len());
+        assert_eq!(report.schema, REWIND_SCHEMA);
     }
 }
