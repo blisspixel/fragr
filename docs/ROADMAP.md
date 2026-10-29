@@ -65,11 +65,18 @@ golden-slice or fresh-player bar.
 
 ### After this wave
 
-- **Next engineering wave: geometry and route readability.** Level 9's ship
-  remains boxes under paint and is hidden from the arrival view. Level 13's
-  machine silhouettes and roof enclosure need authored geometry, collision
-  and route review. Finish these visible gaps before extending the dressing
-  sweep. Level 6's limited-perception survey remains an open acceptance slice.
+- **Next engineering wave: layout and encounter design.** Too many spaces
+  still read as rectangular rooms joined by straight connectors. Review routes
+  and sightlines in play, then finish one area before extending the approach.
+  Draw on Counter-Strike's alternate approaches, rotations and controlled
+  chokepoints, and Battlefield 1942's landmarks, terrain and distinct infantry
+  and vehicle routes where the venue supports them. Judge meaningful choices,
+  readable threats and traversal, not the number of corners or added props.
+  Level 9's boxed ship and hidden arrival view are a concrete starting candidate;
+  Level 13's machine silhouettes and roof enclosure also need authored geometry,
+  collision and route review. Keep layouts consistent with each place's purpose
+  and canon, and author movement and encounter changes on the server. Level 6's
+  limited-perception survey remains an open acceptance slice.
 - **Character readability.** Splice, Latch and Tern read pale silver near the
   Inheritance off-white; Renn has no dedicated art and Level 8's captives share
   one figure. Resolve individual palettes against the faction contract and
