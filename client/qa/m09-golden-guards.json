@@ -1,0 +1,16 @@
+{
+  "comment": "M09 golden-slice faction read. A joined player frames the loading guards, the only group placed at the start, then clears them through the ordinary route (the same states as client/qa/m09_passenger_manifest.json) so the office lesson places the first Enforcer, and posed views frame it on the wide office landing at 6 to 15 m (it may step off its post once it sees the player). Later Enforcers spawn when their encounter wakes; the combat route reaches them. Run with FRAGR_QA_BOTS=0 FRAGR_QA_SEED=42 FRAGR_QA_MAP_FILE=server/maps/m09_passenger_manifest.json. Check the Enforcer's black powered armour, red armband, visor and optics against the bone pressure shell, the gunmetal hull and the warm berth light; art review, not combat evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","camera":"first_person","scene":"res://scenes/main.tscn","join":"human","radio_off":true,"look_at":[0,7,-18],"note":"The unforced first-person arrival frame in the lower loading lane."},
+    {"name":"loading_near","camera":"overview","camera_position":[-35,1.65,-41],"camera_look_at":[-26,1.1,-40],"note":"Two Clerks and a Sweeper among the cargo at 7 to 12 m."},
+    {"name":"loading_far","camera":"overview","camera_position":[-42,1.65,-45],"camera_look_at":[-18,1.1,-39],"note":"The loading guards down the lane at 15 to 25 m, the stair Turret to the left."},
+    {"name":"loading_equipment","camera":"first_person","walk_to":[[-35,0,-40],[-35,0,-37],[-36,0,-38.5]],"expect_equipment":{"personal_claims":["berth_scatter","berth_tack"]},"note":"Ordinary finite sidearm, shotgun, rounds and shells in the loading lane."},
+    {"name":"loading_clear","camera":"first_person","weapon":"Tack","combat":{"kind":"union","required":["loading_clerk_a","loading_clerk_b","loading_sweeper_a","loading_sweeper_b","office_stair_turret"],"target_required_only":true,"evade_tells":true,"engagement_distance":35,"search_route":[[-35.0,0,-44],[-35.0,0,-36.5],[-28,0,-36.5],[-22,0,-38],[-18,0,-36.5]]},"note":"The real loading fight; it places the office lesson."},
+    {"name":"loading_arrival","camera":"first_person","walk_to":[[-30,0,-36]],"expect_m09_completed":["loading_cleared"],"look_at":[-23,5,-31],"note":"From the lane, the first Enforcer on the landing above at about 9 m."},
+    {"name":"enforcer_close","camera":"overview","camera_position":[-29,5.65,-30],"camera_look_at":[-23,5.0,-31],"note":"The Enforcer at 6 m on the landing: powered black armour, red armband, red visor and optics."},
+    {"name":"enforcer_mid","camera":"overview","camera_position":[-36,5.65,-26.5],"camera_look_at":[-23,5.0,-31],"note":"From the office mouth at about 14 m, the open edge behind it."},
+    {"name":"enforcer_above","camera":"overview","camera_position":[-11,13.65,-34],"camera_look_at":[-23,5.0,-31],"note":"From the end of the hatch bridge at about 15 m, looking down on the landing."}
+  ]
+}

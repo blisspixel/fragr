@@ -1,0 +1,28 @@
+{
+  "comment": "M09 golden-slice art review. Eye-height spectator views of every beat on the authored route: the freight car's arrival under the impounded Common Carrier, the loading lanes, the office landing and its open edge, the berth office, the three cradle gantries, the control gallery, the hatch bridge and the boarding hatch. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m09_passenger_manifest.json. Look at each still against docs/design/moon.md, docs/design/space.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. The Enforcers appear through client/qa/m09-golden-guards.json and the combat route in client/qa/m09_passenger_manifest.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-33,1.65,-45],"camera_look_at":[0,7,-18],"allow_empty_roster":true,"settle_seconds":1.5,"note":"The freight car stops in the lower loading lane and the ship fills the view: hull name, sealed hatches, the cradle."},
+    {"name":"freight_car","camera":"overview","camera_position":[-29,1.65,-41],"camera_look_at":[-40,1.4,-45.5],"allow_empty_roster":true,"note":"The car nobody sent, at the end of the freight line under the receiving roof."},
+    {"name":"loading_lanes","camera":"overview","camera_position":[-42,1.65,-41],"camera_look_at":[-14,1.4,-38],"allow_empty_roster":true,"note":"The loading lanes: cargo, the lane cover and the office stair, under the receiving roof."},
+    {"name":"office_stair","camera":"overview","camera_position":[-28,1.65,-38],"camera_look_at":[-41,2.4,-31],"allow_empty_roster":true,"note":"The office stair from the lane, the Turret's lower gantry over it."},
+    {"name":"ship_stern","camera":"overview","camera_position":[-14,1.65,-34],"camera_look_at":[0,6,-20],"allow_empty_roster":true,"note":"The stern at fighting distance: the boarding stack, the hatch high above, impound notices."},
+    {"name":"office_landing","camera":"overview","camera_position":[-36,5.65,-30],"camera_look_at":[-18,4.6,-30],"allow_empty_roster":true,"note":"The wide office landing where the first Enforcer stands: the rail and the gap in it, the cradle beyond."},
+    {"name":"landing_edge","camera":"overview","camera_position":[-21,5.65,-31],"camera_look_at":[-6,2,-30],"allow_empty_roster":true,"note":"The open edge of the landing: the drop to the lane, what a charge carries over."},
+    {"name":"berth_office","camera":"overview","camera_position":[-21,5.65,-25.5],"camera_look_at":[-33,5.2,-18],"allow_empty_roster":true,"note":"The berth office: the impound clerk's desks, the crew manifest and the restraints."},
+    {"name":"customs_locker","camera":"overview","camera_position":[-31,5.65,-22],"camera_look_at":[-36,4.6,-21.5],"allow_empty_roster":true,"note":"The berth customs locker with a six scratched under its seal."},
+    {"name":"gantry_one","camera":"overview","camera_position":[-20,7.65,-11],"camera_look_at":[-12,6.5,4],"allow_empty_roster":true,"note":"The first cradle gantry along the ship's port side, the shelter overhead."},
+    {"name":"hull_port","camera":"overview","camera_position":[-17,7.65,2],"camera_look_at":[-8,6,-2],"allow_empty_roster":true,"note":"The hull at arm's length from gantry one: plating, windows, the cradle arm."},
+    {"name":"gantry_two","camera":"overview","camera_position":[-21,9.65,26],"camera_look_at":[12,8.6,25],"allow_empty_roster":true,"note":"The north gantry across the bow."},
+    {"name":"bow","camera":"overview","camera_position":[3,1.65,34],"camera_look_at":[0,4.5,22],"allow_empty_roster":true,"note":"The bow from the berth floor: the cockpit windscreen, the chock, the gantry over it."},
+    {"name":"gantry_three","camera":"overview","camera_position":[30,11.65,27],"camera_look_at":[30,10.6,-8],"allow_empty_roster":true,"note":"The east gantry, highest of the three, toward the control gallery."},
+    {"name":"hull_starboard","camera":"overview","camera_position":[27,11.65,4],"camera_look_at":[2,7,-4],"allow_empty_roster":true,"note":"The ship from the third gantry: the top of the hull, the upper freight hatch."},
+    {"name":"control_gallery","camera":"overview","camera_position":[37,11.65,-14],"camera_look_at":[18,11,-22],"allow_empty_roster":true,"note":"The control gallery, the Union's high ground: the impound clerk's cabinet and the clamp control."},
+    {"name":"rail_lane","camera":"overview","camera_position":[18,11.65,-17],"camera_look_at":[-20,6.5,-2],"allow_empty_roster":true,"note":"The long Railgun lane across the cradle from the gallery to the first gantry."},
+    {"name":"hatch_bridge","camera":"overview","camera_position":[21,13.65,-32],"camera_look_at":[0,14,-30.5],"allow_empty_roster":true,"note":"The hatch bridge toward the boarding hatch, the level's one door."},
+    {"name":"boarding_hatch","camera":"overview","camera_position":[0,13.65,-34],"camera_look_at":[0,14,-30.5],"allow_empty_roster":true,"note":"The boarding hatch face on: impound seal, the boarding status lamp."},
+    {"name":"roof_earth","camera":"overview","camera_position":[-4,13.65,-34],"camera_look_at":[2,40,4],"allow_empty_roster":true,"note":"Earth and black sky through the berth's pressure roof."},
+    {"name":"berth_overview","camera":"overview","camera_position":[-44,20,-44],"camera_look_at":[2,6,2],"allow_empty_roster":true,"note":"The whole berth: the ship in its cradle, the spiral of gantries, the gallery across."}
+  ]
+}
