@@ -13,6 +13,9 @@ var dressing: M10Dressing
 
 func clear_map() -> void:
 	_clear_occupants()
+	_drop_dressing()
+
+func _drop_dressing() -> void:
 	if dressing != null:
 		remove_child(dressing)
 		dressing.queue_free()
@@ -28,13 +31,19 @@ func _clear_occupants() -> void:
 
 func configure_map(info: Dictionary) -> void:
 	_clear_occupants()
-	if dressing == null:
-		dressing = M10Dressing.new()
-		dressing.name = "ShipDressing"
-		add_child(dressing)
-	dressing.configure_map(info)
-	if info.get("m10") is Dictionary and MissionState.map_error(info).is_empty():
-		_geometry = MissionState.geometry_for(info)
+	# Off-map, a refused map or another layout gets no dressing at all.
+	if not info.get("m10") is Dictionary or not MissionState.map_error(info).is_empty():
+		_drop_dressing()
+		return
+	if not M10Dressing.ship_layout(info):
+		_drop_dressing()
+	else:
+		if dressing == null:
+			dressing = M10Dressing.new()
+			dressing.name = "ShipDressing"
+			add_child(dressing)
+		dressing.configure_map(info)
+	_geometry = MissionState.geometry_for(info)
 
 func apply_state(state: Dictionary) -> void:
 	if _geometry.is_empty() or state.get("id") != MissionState.M10_ID or not MissionState.validation_error({"tick": EquipmentState.MAX_EXACT_INTEGER, "state": state}, _geometry).is_empty():
