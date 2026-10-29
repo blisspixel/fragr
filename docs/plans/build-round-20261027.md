@@ -59,9 +59,19 @@ Independent review kept seated riders with their vehicle and corrected the cover
 | `radio-voice` | "Frequency" removed from spoken audio and song titles (3,912 credits, ledger W15-RV) |
 | `net-finish` | Roster positions in deltas, per-reader deltas, a text-level encoder (gameplay 63), rewind counters on `/status`, #502 root cause |
 
-## Wave 16 (planned)
+## Wave 16 (shipped in its wave PR)
 
-Levels 8, 9 and 10 toward the golden slice; Splice and Latch in personal colours after the Meshy reset; the Level 6 combat pass and the Level 19 Heavy check; the rest of #434.
+| Lane | Result |
+|---|---|
+| `l08-dress` | Custodian of Record dressed as a green-enamel archive; the noise screen visible again; eight signs |
+| `l09-dress` | Passenger Manifest dressed; Tern's ship reads in its cradle; the Enforcer reads black and red |
+| `l10-dress` | Common Carrier's three decks distinct; the off-white walls and floor stripes gone |
+| `combat-checks` | Turret and Heavy tells stay red, absorbed swell stays cyan; Level 6 and Level 19 captured |
+| `net-motion` | Wire-only quantized motion (6 to 12% less per client), a loopback link shaper, rewind under jitter |
+
+## Wave 17 (planned)
+
+Characters in personal colours after the Meshy reset; Level 10's Repeater grant; Levels 11, 12 and 13 toward the golden slice; geometry the dressing cannot fix in Level 9.
 
 ## Verification
 
