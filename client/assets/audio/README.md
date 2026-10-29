@@ -20,6 +20,12 @@ The M02 ward and processing-floor machinery set is also original and baked offli
 
 ## Files the client loads
 
+The Repeater's short shot report is original offline procedural audio.
+`tools/bake_repeater_audio.gd` writes mono 48 kHz signed 16-bit PCM with a fixed
+seed. It combines a dry report, a low mechanical body and a short bolt click;
+successive actual shot cues form the sustained rattle. It does not announce
+warmup completion or add inferred hits. No external request or charge.
+
 The M04 Notary set is original and baked offline.
 `notary/bake_soundscape.gd` writes a quiet two-second ducted fan loop, a short
 mechanical shutter and a grounded casing impact, with source/output hashes,
@@ -43,6 +49,7 @@ request, asset charge or weapon-gunshot substitution.
 |---|---|
 | `fire.wav`, `hit.wav` | Fallback weapon fire and the generic hit (health drops without a resolved shot) |
 | `fire_tack.wav`, `fire_flechette.wav`, `fire_rail.wav`, `fire_scatter.wav` | Per-weapon fire |
+| `fire_repeater.wav` | The Repeater's short report, through the same firing-feedback seam |
 | `shotgun/cycle.wav` | Shotgun pump clack (rack back, slam forward), 0.22 s after each blast, inside the 0.60 s cooldown |
 | `hit_chime/body.wav`, `head.wav`, `kill.wav` | The shooter's hit confirm (`hit_chime.gd`): a steel tick pitched by the reported damage, a brighter ping when `shot_results` says `head`, a heavy clang for the frag; a stopped shot replays the tick low and quiet |
 | `host/<kind>_<variant>.mp3` | The Host's voiced calls, one name-free recording per voiced `HostReactionKind` and variant (`host_voice.gd`, Announcer bus) |

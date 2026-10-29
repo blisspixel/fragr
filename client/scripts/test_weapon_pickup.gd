@@ -23,6 +23,7 @@ const DRAWN: Array[Dictionary] = [
 	{"kind":"weapon", "weapon":"Flechette", "pool":""},
 	{"kind":"weapon", "weapon":"Scatter", "pool":""},
 	{"kind":"weapon", "weapon":"Rail", "pool":""},
+	{"kind":"weapon", "weapon":"Repeater", "pool":""},
 	{"kind":"weapon", "weapon":"Rocket", "pool":""},
 	{"kind":"weapon", "weapon":"Shiv", "pool":""},
 	{"kind":"ammo", "weapon":"", "pool":"bullets"},

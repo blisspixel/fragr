@@ -233,6 +233,10 @@ func _load_audio_streams():
 		elif ResourceLoader.exists(fallback_hit):
 			hit_streams[w] = load(fallback_hit)
 	
+	# The Repeater has its own short motor-driven report. Missing art/audio
+	# never falls back to another gun's identity.
+	if ResourceLoader.exists("res://assets/audio/fire_repeater.wav"):
+		fire_streams["Repeater"] = load("res://assets/audio/fire_repeater.wav")
 	# The Sniper Rifle's sounds come from the level 7 table, not a file name.
 	if ResourceLoader.exists(L07Assets.SNIPER_FIRE_SOUND):
 		fire_streams["Sniper"] = load(L07Assets.SNIPER_FIRE_SOUND)

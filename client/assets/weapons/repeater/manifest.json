@@ -1,0 +1,29 @@
+{
+  "baker": "tools/bake_viewmodels.gd",
+  "baker_sha256": "25f5ad45f1bef603a459011f81e540f48b1488d4d9a73b7ecb122ecd24828e08",
+  "files": {
+    "draw_0.png": "bf9867e3edeb3c12736ecba611f0b817d9b54af9da3c371966abce31b10ee006",
+    "draw_1.png": "afb75b8a5943b8177525c1f86c1b2b19736e4afe1d8a4cc2938bc42c9fa48d41",
+    "draw_2.png": "d8ca760d2f7b82eb4606daed5e257b03fb9d452edbc24e9d8a4f293c46f872d1",
+    "fire.png": "48bb2488e5421f5c9b09f1e219a6459e824e8983975c4b03b84265d918523f84",
+    "idle.png": "b59023ded8319b8ffa4c580572c9b0d8253266475dc304473e0e2badf04c5c9a",
+    "kill.png": "499f72c9400413a4c47186a2d9a82895af3dbb6f3e1ca7bbf8fe254c6c2eeef6",
+    "profile.png": "bc02897188bc47461942452362cd29cb4983a1d7f5d339a92125f401389e2bf3",
+    "recover_0.png": "59d85042ad8df879557372d446feb2c4399cd39929023f09b6562ee791fccf48",
+    "recover_1.png": "7f34d2f2ba725576c2e9774938dcb8c9c31fc611d3d42368c585c6384b1da253",
+    "reload_0.png": "052415ac67643cfe76bd091d3e88e12dfd09f1fb91417255d253194feaa9d08b",
+    "reload_1.png": "96be72b8abc6c5730419694b30e53b53a0a4ceb6657c9a5cf1e6c14db6c45740",
+    "reload_2.png": "59a2ba9632c2b7b38245fa6335f5515c48865d30d58e8bdda663e1cd6ac5d000",
+    "reload_3.png": "5212bfaa840373131a35a9062d34299623a260e784e31c74fd72d69113e7f432",
+    "reload_4.png": "a3319e97992c6cbb5e42bfaffb79d6e1988d2c9d69790a58862079bf81d70643",
+    "reload_5.png": "e06f3e213c8555a2672b32d08b6fcb0de6e39b27a4ad5f1b32d28e4d4398cef5"
+  },
+  "format": "RGBA8 PNG, nearest sampled, no mipmaps",
+  "held_canvas": [
+    384,
+    240
+  ],
+  "source": "client/scripts/gun_model.gd",
+  "source_sha256": "c8fde23f343532836abef19cc4a4b92a467f29f428ffe70b0c276d5d211c70d1",
+  "weapon": "Repeater"
+}

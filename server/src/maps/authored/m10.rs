@@ -21,6 +21,23 @@ pub(crate) const GROUPS: [&str; 4] = [
 ];
 pub(crate) const OBJECTIVES: [&str; 4] = M10_OBJECTIVE_IDS;
 
+/// The first sustained-fire lesson is finite, personal and on the safe cargo
+/// approach. It must remain available before the service encounter's five guards.
+pub(super) fn validate_supplies(supplies: &[crate::sim::ArenaPickup]) -> io::Result<()> {
+    if !supplies.iter().any(|s| {
+        s.id == "cargo_repeater"
+            && s.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Repeater)
+            && s.claim == crate::protocol::SupplyClaim::Personal
+            && !s.secret
+            && [s.x, s.floor, s.z] == [1.5, 2.0, -14.0]
+    }) {
+        return Err(invalid(
+            "M10 requires its reachable personal cargo Repeater",
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Definition {

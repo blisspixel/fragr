@@ -3,7 +3,7 @@ extends SceneTree
 ## Common Carrier golden-slice dressing: authored-layout guard keyed on hull,
 ## trunk walls and deck plates that never move; a re-sent map keeping one set
 ## of rooms; every deck dressed; local warm lamps with no red or cyan light;
-## no words and no collision of its own; the outside kept outside the hull;
+## one supply lesson label and no collision; the outside kept outside the hull;
 ## solid views restyled by use with no glowing paint, nothing in the Union's
 ## black and red, and bone trunk walls that never read as matte off-white;
 ## both cargo stacks drawn as crates a few centimetres proud of their
@@ -114,15 +114,27 @@ func _run() -> void:
 	# A re-sent MapInfo for the same layout keeps one set of rooms.
 	ship.configure_map(info.duplicate(true))
 	_expect(ship.rooms.size() == ROOMS.size() and ship.get_child_count() == ROOMS.size(), "a re-sent map keeps one set of rooms")
+	_expect(is_zero_approx(ship.stage_pickup("wrong", "weapon", "Repeater", Vector3.ZERO)), "unregistered supplies never grow a weapon case")
+	_expect(is_equal_approx(ship.stage_pickup("cargo_repeater", "weapon", "Repeater", Vector3(1.5, 2, -14)), 0.12), "real Repeater rests on its shallow case")
+	var cases: Array[Node] = ship.find_children("RepeaterCase", "Node3D", true, false)
+	_expect(cases.size() == 1 and (cases[0] as Node3D).global_position == Vector3(1.5, 2, -14), "case follows the authoritative supply")
+	for visual: Node in cases[0].find_children("*", "VisualInstance3D", true, false):
+		_expect((visual as VisualInstance3D).layers == ArenaSky.WORLD_LAYERS, "staged case and sign use world lighting")
+	ship.configure_map(info.duplicate(true))
+	ship.stage_pickup("cargo_repeater", "weapon", "Repeater", Vector3(1.6, 2, -14))
+	_expect(ship.find_children("RepeaterCase", "Node3D", true, false).size() == 1 and (cases[0] as Node3D).global_position == Vector3(1.6, 2, -14), "re-sent map and pickup never duplicate the case")
+	var words: Array[Node] = ship.find_children("*", "Label3D", true, false)
+	_expect(words.size() == 1 and (words[0] as Label3D).text == tr("M10_REPEATER_CASE"), "one short physical label teaches held fire")
 	ship.configure_map(other)
 	_expect(not ship.active(), "another map clears the ship dressing")
+	_expect(not ship.is_in_group(&"pickup_stage"), "off-map dressing cannot stage a weapon")
 	await process_frame
 	_expect(ship.get_child_count() == 0, "cleared rooms leave the tree")
 	ship.queue_free()
 	await _check_ship_node(info)
 	await _check_restyle(info)
 	if failures == 0:
-		print("test_m10_dressing: PASS static-hull guard, re-sent map, eleven dressed regions, warm lamps without red or cyan, no words or bodies, outside beyond the glass, surfaces by use and lashed crates on their solids")
+		print("test_m10_dressing: PASS static-hull guard, re-sent map, eleven dressed regions, warm lamps without red or cyan, staged supply label without bodies, outside beyond the glass, surfaces by use and lashed crates on their solids")
 	quit(0 if failures == 0 else 1)
 
 ## The ship presenter keeps one dressing across a re-sent map, even when a

@@ -322,6 +322,7 @@ func _outline_colour(key: String) -> Color:
 
 ## Where the gun rests in view space and the point it aims at.
 const HOLDS: Dictionary[String, Dictionary] = {
+	"Repeater": {"at": Vector3(0.14, -0.29, -0.70), "aim": Vector3(-10, 0, -30), "roll": -7.0, "fov": 42.0, "vp": 26.0, "chunk": Vector3(1.15, 1.1, 1.0), "reload_lift": 0.0, "tilt_roll": 24.0, "hide": ["Stock"]},
 	"Tack": {"at": Vector3(0.020, -0.046, -0.500), "aim": Vector3(0.0, 0.0, -30.0), "roll": -4.0, "fov": 16.0, "vp": 24.0, "chunk": Vector3(1.2, 1.1, 1.0)},
 	"Scatter": {"at": Vector3(0.036, -0.230, -0.420), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 30.0, "vp": 10.0, "reach": 1.2, "tilt_roll": 12.0, "reload_lift": 0.07, "chunk": Vector3(1.7, 1.5, 1.0), "hide": ["Stock", "ButtPad", "RepairPlate"]},
 	"Rail": {"at": Vector3(0.036, -0.215, -0.400), "aim": Vector3(0.0, 0.0, -30.0), "roll": -3.0, "fov": 34.0, "vp": 16.0, "reach": 1.2, "tilt_roll": 24.0, "reload_lift": 0.03, "chunk": Vector3(1.4, 1.3, 1.0), "hide": ["Stock"]},
@@ -376,16 +377,44 @@ func _bake(weapon: String) -> void:
 	_side_camera(KILL_ICON - Vector2i(2, 2), bare)
 	var icon: Image = await _capture(KILL_ICON - Vector2i(2, 2), false)
 	_save(KillIcons.glyph(icon), absolute.path_join("kill.png"))
+	var files: Array[String] = ["profile.png", "kill.png"]
+	for frame: Dictionary in frames:
+		files.append(str(frame["name"]) + ".png")
+	var hashes: Dictionary[String, String] = {}
+	for file: String in files:
+		hashes[file] = FileAccess.get_sha256(absolute.path_join(file))
+	var manifest: FileAccess = FileAccess.open(absolute.path_join("manifest.json"), FileAccess.WRITE)
+	if manifest == null:
+		push_error("bake_viewmodels: cannot write manifest")
+		failed = true
+	else:
+		manifest.store_string(JSON.stringify({"weapon": weapon, "format": "RGBA8 PNG, nearest sampled, no mipmaps",
+			"source": "client/scripts/gun_model.gd", "source_sha256": FileAccess.get_sha256("res://scripts/gun_model.gd"),
+			"baker": "tools/bake_viewmodels.gd", "baker_sha256": FileAccess.get_sha256("res://../tools/bake_viewmodels.gd"),
+			"held_canvas": [CANVAS.x, CANVAS.y], "files": hashes}, "  ") + "\n")
 	bare.queue_free()
 	await RenderingServer.frame_post_draw
 
 ## The Rifle's drawn muzzle flash (tools/bake_flechette_frames.gd), shared.
 const FLASH: String = "res://assets/weapons/flechette/flash.png"
-const PROFILE_SIZE: Dictionary[String, Vector2i] = {"Tack": Vector2i(40, 28), "Scatter": Vector2i(92, 22), "Rail": Vector2i(96, 26)}
+const PROFILE_SIZE: Dictionary[String, Vector2i] = {"Tack": Vector2i(40, 28), "Scatter": Vector2i(92, 22), "Rail": Vector2i(96, 26), "Repeater": Vector2i(92, 34)}
 
 
 func _frames(weapon: String) -> Array[Dictionary]:
 	match weapon:
+		"Repeater":
+			return [
+				{"name": "idle"},
+				{"name": "draw_0", "drop": 1.0}, {"name": "draw_1", "drop": 0.55}, {"name": "draw_2", "drop": 0.18},
+				{"name": "fire", "kick": 0.45, "flash": true},
+				{"name": "recover_0", "kick": 0.25}, {"name": "recover_1", "kick": 0.08},
+				{"name": "reload_0", "tilt": 0.5, "support": 0.4},
+				{"name": "reload_1", "tilt": 1.0, "drum": 0.08, "support": 0.8},
+				{"name": "reload_2", "tilt": 1.0, "drum": 0.3, "support": 1.0},
+				{"name": "reload_3", "tilt": 1.0, "drum": 0.12, "support": 0.6},
+				{"name": "reload_4", "tilt": 0.7, "support": 0.2},
+				{"name": "reload_5", "tilt": 0.2},
+			]
 		"Tack":
 			return [
 				{"name": "idle"},
@@ -453,6 +482,8 @@ func _pose(weapon: String, gun: Node3D, frame: Dictionary) -> void:
 	place.basis = place.basis * Basis.from_scale(hold.get("chunk", Vector3.ONE))
 	gun.transform = place
 	match weapon:
+		"Repeater":
+			GunModel.pose_repeater(gun, float(frame.get("drum", 0.0)))
 		"Tack":
 			GunModel.pose_tack(gun, float(frame.get("slide", 0.0)), float(frame.get("mag", 0.0)), float(frame.get("trigger", 0.0)))
 			GunModel.carry_magazine(gun, float(frame.get("fresh", -1.0)))

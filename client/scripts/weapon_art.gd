@@ -22,6 +22,12 @@ extends RefCounted
 ## from below (lowest first), the recovery after a shot, and the reload from
 ## the accepted request to the seated magazine. Every frame shares one canvas.
 const BAKED: Dictionary[String, Dictionary] = {
+	"Repeater": {
+		"draw": [preload("res://assets/weapons/repeater/draw_0.png"), preload("res://assets/weapons/repeater/draw_1.png"), preload("res://assets/weapons/repeater/draw_2.png")],
+		"recover": [preload("res://assets/weapons/repeater/recover_0.png"), preload("res://assets/weapons/repeater/recover_1.png")],
+		"reload": [preload("res://assets/weapons/repeater/reload_0.png"), preload("res://assets/weapons/repeater/reload_1.png"), preload("res://assets/weapons/repeater/reload_2.png"),
+			preload("res://assets/weapons/repeater/reload_3.png"), preload("res://assets/weapons/repeater/reload_4.png"), preload("res://assets/weapons/repeater/reload_5.png")],
+	},
 	"Tack": {
 		"draw": [preload("res://assets/weapons/tack/draw_0.png"), preload("res://assets/weapons/tack/draw_1.png"), preload("res://assets/weapons/tack/draw_2.png")],
 		"recover": [preload("res://assets/weapons/tack/recover_0.png"), preload("res://assets/weapons/tack/recover_1.png")],
@@ -55,6 +61,7 @@ const RECOVER: Dictionary[String, Array] = {
 ## 0.20 s, Scatter 0.60 s, Rail 1.00 s): the Rail's coils sit dark, then
 ## recharge.
 const SHOT_FRAMES: Dictionary[String, Array] = {
+	"Repeater": [0.03, 0.055, 0.08],
 	"Tack": [0.05, 0.10, 0.16],
 	"Flechette": [0.06, 0.11, 0.17],
 	"Scatter": [0.07, 0.16, 0.28],
@@ -69,6 +76,7 @@ static func recover_frames(weapon: String) -> Array:
 
 ## First-person pose at rest. Fists and the Shiv keep their own animation.
 const IDLE: Dictionary[String, Texture2D] = {
+	"Repeater": preload("res://assets/weapons/repeater/idle.png"),
 	"Fists": preload("res://assets/weapons/viewmodels/fists_idle.png"),
 	"Tack": preload("res://assets/weapons/tack/idle.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_idle.png"),
@@ -85,6 +93,7 @@ const IDLE: Dictionary[String, Texture2D] = {
 ## The frame at the instant of the shot, its muzzle flash painted in. Each was
 ## drawn from its own idle, so the two register on the same full canvas.
 const FIRE: Dictionary[String, Texture2D] = {
+	"Repeater": preload("res://assets/weapons/repeater/fire.png"),
 	"Tack": preload("res://assets/weapons/tack/fire.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_fire.png"),
 	"Scatter": preload("res://assets/weapons/scatter/fire.png"),
@@ -109,10 +118,9 @@ const ARC_RELOAD: Texture2D = preload("res://assets/weapons/arc/arc_reload.png")
 ## bottom of an accepted reload. The Rocket keeps its original tube drop. The
 ## Arc's drawn capacitor reset frame is its reload, so it does not also dip.
 ## Every other magazine gun lowers about a third and comes back up. The
-## Repeater has no first-person frame yet; its HUD line is its whole signal.
 ## A modelled gun's reload frames are its reload, so it does not dip either.
 const RELOAD_DIP: Dictionary[String, float] = {
-	"Tack": 0.0, "Flechette": 0.32, "Repeater": 0.32, "Scatter": 0.0,
+	"Tack": 0.0, "Flechette": 0.32, "Repeater": 0.0, "Scatter": 0.0,
 	"Rail": 0.0, "Sniper": 0.32, "Arc": 0.0, "Rocket": 0.55,
 }
 
@@ -184,6 +192,7 @@ const MINE_DEVICE_METRES: float = 0.34
 
 ## Side profiles: the world pickup and the gun a fighter holds.
 const PROFILE: Dictionary[String, Texture2D] = {
+	"Repeater": preload("res://assets/weapons/repeater/profile.png"),
 	"Tack": preload("res://assets/weapons/tack/profile.png"),
 	"Flechette": preload("res://assets/weapons/pickups/rifle.png"),
 	"Scatter": preload("res://assets/weapons/scatter/profile.png"),
@@ -202,6 +211,7 @@ const PROFILE: Dictionary[String, Texture2D] = {
 ## world profile (`tools/bake_kill_icons.gd`).
 const KILL_ICON_SIZE: Vector2i = Vector2i(48, 16)
 const KILL_ICON: Dictionary[String, Texture2D] = {
+	"Repeater": preload("res://assets/weapons/repeater/kill.png"),
 	"Fists": preload("res://assets/weapons/kill/fists.png"),
 	"Shiv": preload("res://assets/weapons/kill/shiv.png"),
 	"Tack": preload("res://assets/weapons/tack/kill.png"),

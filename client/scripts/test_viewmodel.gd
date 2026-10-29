@@ -32,6 +32,8 @@ func _column(weapon_name: String) -> int:
 		"Rocket":
 			# Heavy launcher shoulder rest and right glove cuff at 180.
 			return 180
+		"Repeater":
+			return 230
 		"Article Blade", "ArticleBlade":
 			# Right wrist and glove enter from bottom right at column 224.
 			return 224
@@ -148,7 +150,7 @@ func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 ## head bob off included. Reduced motion stills the gun but never the HUD line.
 func _check_reload_motion_every_gun(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Rocket"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Rocket", "Repeater"]:
 		var key: String = weapon_name.to_lower()
 		var size: int = int(EquipmentState.MAGAZINE_SIZES[key])
 		var pool: String = str(EquipmentState.POOLS[key])
@@ -226,7 +228,7 @@ func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 ## it, and every gun settles back to its idle pose.
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc", "Rocket", "Article Blade"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc", "Rocket", "Repeater", "Article Blade"]:
 		_select(hud, weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
@@ -291,10 +293,14 @@ func _check_missing_art(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.update_scope(1.0, "Sniper", true, true)
 	_check(hud.sniper_scope.scoped() and not weapon.visible, "known scoped Sniper hides its held frame")
 	hud.set_fp_weapon("Repeater")
-	_check(not weapon.visible and weapon.texture == null and hud.current_fp_weapon == "", "unsupported Repeater clears the prior gun rather than borrowing it")
+	_check(hud.current_fp_weapon == "Repeater", "Repeater selects its own held frame after the Sniper")
 	hud.update_scope(1.0, "Repeater", false, true)
-	_check(not hud.sniper_scope.scoped() and not weapon.visible, "scope release cannot reveal the prior Sniper for Repeater")
-	for unsupported: String in ["Repeater", "Unsupported"]:
+	_select(hud, "Repeater")
+	_check(not hud.sniper_scope.scoped() and weapon.visible and weapon.texture == WeaponArt.IDLE["Repeater"], "scope release reveals the genuine Repeater")
+	hud.show_fire_juice("Repeater")
+	_check(weapon.texture == WeaponArt.FIRE["Repeater"], "Repeater firing uses its own muzzle frame")
+	hud.set_fp_weapon("Unsupported")
+	for unsupported: String in ["Unsupported"]:
 		hud.show_fire_juice(unsupported)
 		_check(not hud.fp_muzzle.visible and hud.fp_muzzle_timer == 0.0 and is_inf(hud.fp_shot_age), "unsupported resolved fire has no borrowed frame or generic old-gun flash")
 	hud._process(0.2)

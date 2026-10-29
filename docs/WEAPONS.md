@@ -15,9 +15,10 @@ Rifle is implemented in level 7. Level 8 implements counted Proximity Mines,
 capped at four, through a separate place control. M11 implements separately
 counted Remote Mines, capped at six. M13 introduces the finite Rocket Launcher
 through the [connected foundry round](plans/m13-connected-round-20261013.md).
-Repeater has a locally implemented CPU-only combat and
-compatibility foundation, with its M10 find, actual art/audio and played feel
-still open. Arc has an implemented finite combat, inventory, compatibility and
+Repeater is found in a personal cargo case in M10 before its boarding fights,
+with finite Bullets, a modelled gun and its own shot report. Each participant
+can take it once per attempt. Its sustained-fire balance and human played feel
+remain open. Arc has an implemented finite combat, inventory, compatibility and
 client presentation foundation. Its separate development lesson and connected
 M12 introduction pass ordinary-input checks. The larger industrial presentation
 has [inspected correction evidence](evidence/presentation-corrections-20261008.md);
@@ -66,8 +67,10 @@ The save preserves those counts and every completed mission's outcome. Each
 stage refuses equipment it cannot yet contain: the Sniper Rifle before
 completed M07, the Repeater before completed M10, Remote Mines before completed
 M11, the Arc before completed M12 and the Rocket Launcher before completed M13.
-The current M10 prototype grants no
-Repeater; its actual source, cue and discovery lesson remain open.
+M10 places the Repeater in the forward cargo hold, on the safe stair approach.
+The open case's short "Hold fire" label introduces its warmup before the
+five-guard service fight. A retry restores the actual M10 entry kit, so the gun
+must be found again; departure carries the owned gun and remaining Bullets.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -136,7 +139,7 @@ There is one number per ammunition type and it is everything you carry, includin
 | 5 | **Scatter** (shipped) | Close shred | 7 pellets of 10, each falling to 4 | 0.60 s | 12 | Shells | Pad |
 | 6 | **Rail** (shipped) | Long precision | 80 | 1.00 s | 10 | Cells | Pad |
 | 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
-| 7 | **Repeater** (CPU foundation, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 lesson planned; no production find |
+| 7 | **Repeater** (implemented, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 cargo case |
 | 8 | **Rocket Launcher** (implemented) | Splash, projectile | 65 direct, 45 peak splash | 0.80 s | 4 | Rockets | M13 freight office; Larak pad |
 | 9 | **Arc** (implemented foundation) | 24 m energy, bypasses carried armour and registered plates | 18 | 0.15 s | 40 | Cells | Connected M12 prototype; fresh-player acceptance remains open |
 | 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
@@ -158,11 +161,15 @@ traced shots with a two-tick cooldown, 35 m reach and 0.035-radian spread. Each
 actual shot spends one shared Bullet; warmup spends none. Release, weapon
 change, inactivity, death, leave and attempt reset clear the private cycle.
 It keeps its own damage and weapon counters rather than aliasing Rifle.
-These numbers are a CPU prototype, pending an isolated played lesson. Maps
+These numbers remain initial tuning, pending a human played lesson. Maps
 granting it require capability 35 for humans, agents and spectators. Arena
-arsenal kits still contain their original three guns, and existing
-campaign stages never grant it. Unknown gun art stays absent and unsupported
-fire cues clear the prior stream; another gun's body or sound is not a stand-in.
+arsenal kits still contain their original three guns.
+M10 grants it through the ordinary personal-supply seam. The modelled drum,
+vented shroud and side drive motor supply its first-person, pickup, carried and
+kill-feed views. Its short original shot report follows ordinary firing
+feedback. Dedicated spin-up/down cycle cues remain open: the private server
+cycle has no public phase fact, and a trigger hold is not proof of a shot.
+Unknown gun art stays absent and unsupported fire cues clear the prior stream.
 See [the foundation](plans/repeater-foundation.md) and its
 [local evidence](evidence/repeater-foundation-20261004.md).
 
