@@ -19,6 +19,7 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+pub mod quantize;
 mod water;
 pub(crate) use m08::M08NeutralLayout;
 mod moon_residents;
@@ -1516,8 +1517,11 @@ pub struct ShotTrace {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vehicle_id: Option<u32>,
     pub weapon: WeaponType,
+    /// Points are rounded to the millimetre on the wire only.
+    #[serde(serialize_with = "quantize::wire_point")]
     pub origin: [f32; 3],
     /// The first pellet of this result when `pellets` is present.
+    #[serde(serialize_with = "quantize::wire_point")]
     pub end: [f32; 3],
     pub impact: ShotImpact,
     /// Scatter only: every pellet this result covers, in firing order, all
@@ -1528,6 +1532,7 @@ pub struct ShotTrace {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PelletTrace {
+    #[serde(serialize_with = "quantize::wire_point")]
     pub end: [f32; 3],
     pub impact: ShotImpact,
 }
@@ -1775,11 +1780,17 @@ pub struct PlayerState {
     pub campaign: Option<CampaignActor>,
     pub id: Uuid,
     pub name: String,
+    /// Position and look are rounded on the wire only (`protocol::quantize`):
+    /// the millimetre and 1e-4 rad. The sim keeps the exact values.
+    #[serde(serialize_with = "quantize::wire_position")]
     pub x: f32,
+    #[serde(serialize_with = "quantize::wire_position")]
     pub y: f32,
+    #[serde(serialize_with = "quantize::wire_position")]
     pub z: f32,
+    #[serde(serialize_with = "quantize::wire_angle")]
     pub yaw: f32,
-    #[serde(default)]
+    #[serde(default, serialize_with = "quantize::wire_angle")]
     pub pitch: f32,
     pub hp: i32,
     #[serde(default)]

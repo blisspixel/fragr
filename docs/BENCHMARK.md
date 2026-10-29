@@ -607,7 +607,68 @@ cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fi
   is not measured here.
 
 What stays open for stage 4: quantized motion (item 2 above), and field
-evidence of per-reader deltas on a real constrained link.
+evidence of per-reader deltas on a real constrained link. Wave 16 measured
+and shipped item 2 (next section) and measured per-reader deltas on a
+simulated link ("Simulated links", below); field evidence stays open.
+
+### Quantized motion (#434 stage 4, wave 16)
+
+The encoded Snapshot now writes fighter positions and shot trace points to
+the millimetre and fighter yaw and pitch to 1e-4 rad
+([protocol](protocol.md#quantized-motion); owner
+`server/src/protocol/quantize.rs`). Only the wire rounds: the struct the
+tick builds keeps the exact floats, so in-process readers of `snapshot()`
+(campaign controllers, bots), lag compensation and every outcome are
+unchanged, and the `Ack` that local prediction replays from is not rounded.
+The rounding is IEEE multiply, round and divide on literal scales, so no
+libm enters it, and its tests use literal inputs only.
+
+It is no gameplay contract change. Every reader parses these fields as
+numbers already; the Godot client and the Rust readers are untouched. What
+a reader sees moves by at most half a step: 0.5 mm of position and 0.05
+mrad of look. The client already read these as shortest `f32` text into a
+64-bit float, so it never held the server's exact bits before either. Its
+local prediction uses other fighters as contact bodies; a body 0.5 mm off
+can change a replayed contact step by that much until the next `Ack`
+corrects it.
+
+Measured 2026-10-28 with the traffic generator against the `fragr-server`
+binary, the same setup as the wave 15 table: Larak Lot, human fighters at
+60 Hz plus spectators, no bots, 15 s held, seed 42. Three interleaved runs
+per row on an AMD Ryzen 7 7840U shared with other sessions (load 4 to 8).
+Before is `989d9b68` (main, gameplay 63), after is the wave 16 branch.
+Bytes are the mean of three runs, encode times the median run.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
+```
+
+| Connections (fighters + spectators) | Mean delta bytes before / after | KiB/s per client, all frames, before / after | Of which worlds | Server egress MiB/s | Tick encode p50 ms | Tick encode p99 ms | Server CPU cores |
+|---|---|---|---|---|---|---|---|
+| 6 (4 + 2) | 266 / 234 (-12 %) | 10.54 / 9.91 (-6 %) | 5.20 / 4.57 | 0.061 / 0.057 | 0.044 / 0.044 | 0.098 / 0.095 | 0.016 / 0.017 |
+| 16 (12 + 4) | 695 / 593 (-15 %) | 19.70 / 17.63 (-11 %) | 13.57 / 11.53 | 0.304 / 0.273 | 0.068 / 0.078 | 0.136 / 0.136 | 0.030 / 0.034 |
+| 64 (48 + 16) | 2,502 / 2,177 (-13 %) | 57.30 / 50.63 (-12 %) | 49.11 / 42.79 | 3.51 / 3.10 | 0.172 / 0.184 | 0.288 / 0.301 | 0.091 / 0.099 |
+
+- **It pays, modestly.** A fighter entry's five motion fields (key text
+  included, sampled from whole worlds at 48 fighters) fell from 63.3 to
+  55.0 bytes, and a delta, which is mostly those fields, by 12 to 15
+  percent. Per-client traffic at the 64-connection cap fell 12 percent,
+  from 57.3 to 50.6 KiB/s; since wave 13's start that is 287 to 51 KiB/s.
+- **Encode cost is inside the noise.** The rounding runs in the serializer
+  once per tick; tick encode p50 moved by 0 to 0.012 ms and CPU by under a
+  hundredth of a core, both within this host's run-to-run spread.
+- **Every world still arrived.** Snapshot counts and whole worlds (one per
+  connection) match. One after run at 16 connections read 1.1 percent fewer
+  snapshots and recorded one tick over budget, a host stall during a
+  shared-load spike; its other two runs and every other row had none.
+- **What it does not do.** Traffic fighters move every tick, so the
+  sub-step rule (a change under half a step is no change) did not show in
+  these rows. Not rounded, because the measurement gave no reason:
+  projectiles, grenades, rockets and vehicles (no row here carries many),
+  and impact normals. `shot_results`, which a delta carries whole whenever
+  anyone fired, was 2,349 bytes of a sampled 48-fighter world before and
+  2,174 to 2,260 after: rounding its trace points cut it by 4 to 7 percent,
+  so the rest of a shot result, not its floats, is most of that cost.
 
 ### Lag compensation (#434 stage 5)
 

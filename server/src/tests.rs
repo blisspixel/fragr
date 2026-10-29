@@ -7558,9 +7558,21 @@ mod vertical_aim {
                     assert!(!result.hit);
                 }
             }
-            let decoded: crate::protocol::ShotResult =
-                serde_json::from_str(&serde_json::to_string(result).unwrap()).unwrap();
-            assert_eq!(&decoded, result);
+            // The wire rounds trace points to the millimetre
+            // (`protocol::quantize`): a decoded result is the rounded one,
+            // and it encodes to the same text.
+            let text = serde_json::to_string(result).unwrap();
+            let decoded: crate::protocol::ShotResult = serde_json::from_str(&text).unwrap();
+            let mut rounded = result.clone();
+            if let Some(trace) = rounded.trace.as_mut() {
+                trace.origin = trace.origin.map(crate::protocol::quantize::position);
+                trace.end = trace.end.map(crate::protocol::quantize::position);
+                for pellet in &mut trace.pellets {
+                    pellet.end = pellet.end.map(crate::protocol::quantize::position);
+                }
+            }
+            assert_eq!(decoded, rounded);
+            assert_eq!(serde_json::to_string(&decoded).unwrap(), text);
         }
         let old: crate::protocol::ShotResult = serde_json::from_value(serde_json::json!({
             "shooter_id": Uuid::nil(), "shooter": "Old", "hit": false, "damage": 0
