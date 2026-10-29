@@ -233,10 +233,12 @@ tour's. On seed 42 the whole route passed to the transit departure.
 - **Optics at the top of a windup.** The Turret and Heavy sheets paint their
   lamps about three times brighter than the issued optic, so a driven tell
   clipped red and kept raising green: the Turret's charge read salmon (about
-  `#DB7969` in the hall). `union_sprite.gdshader` now emits every lamp at no
-  more than the issued optic's level in its own hue and swells it with a deeper
-  red; the same charge reads `#D8241F`. Clerks and other issued optics are
-  unchanged at rest.
+  `#DB7969` in the hall). For those two sheets only (`EnemyView.BRIGHT_LAMP_KINDS`),
+  `union_sprite.gdshader` now holds each lamp to the issued optic's level in its
+  own hue and swells it with a deeper red; the same charge reads `#D8241F`.
+  Every other Union sheet keeps its light as painted: in the tell lineup the
+  Clerk, Enforcer, Sweeper, Auditor and Redactor are pixel-identical to `main`
+  at rest and through the tell.
 - **Railgun.** The beam's near-white core and pale cyan edge read against the
   bone walls, the dark ceiling and the containers, from the player's gun and
   from a Turret's near miss; its spiral is visible to its fade. A beam stays
