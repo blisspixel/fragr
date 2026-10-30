@@ -1115,3 +1115,119 @@ fn larak_bot_timing_table() {
         println!("| {name} | {bound:.1} s | {walk} |");
     }
 }
+
+/// The capture tour's pad routes (`client/qa/tour.json`) are straight legs,
+/// and its combat controller shoves the walker off them before it resumes
+/// heading straight for the waypoint. From points all along every leg of
+/// every Larak alternative a spawn selects, strafe up to a metre either way
+/// through the real movement step (falling off an edge if there is one), then
+/// walk straight on: each waypoint must still be reached at its own floor.
+/// A leg that only works dead on its line (#506) fails here, not in a
+/// rendered publish run.
+#[test]
+fn larak_tour_pad_routes_survive_combat_shoves() {
+    let tour: serde_json::Value =
+        serde_json::from_str(include_str!("../../../../client/qa/tour.json")).unwrap();
+    let routes = tour["pad_routes"]["1"].as_object().unwrap();
+    let arena = world();
+    let xyz = |v: &serde_json::Value| -> [f32; 3] {
+        let a = v.as_array().unwrap();
+        [0, 1, 2].map(|i| a[i].as_f64().unwrap() as f32)
+    };
+    let step = |state: MoveState, yaw: f32| {
+        let input = MoveInput {
+            forward: true,
+            yaw,
+            ..MoveInput::default()
+        };
+        crate::movement::fighter_step(state, &input, TOP_SPEED, crate::movement::DT_LIVE, arena)
+    };
+    let at = |x: f32, y: f32, z: f32| MoveState {
+        x,
+        z,
+        y,
+        vx: 0.0,
+        vz: 0.0,
+        vy: 0.0,
+        yaw: 0.0,
+    };
+    // Straight for the goal, as the tour walks between shoves.
+    let reaches = |mut state: MoveState, goal: [f32; 3]| {
+        for _ in 0..300 {
+            let (dx, dz) = (goal[0] - state.x, goal[2] - state.z);
+            if dx.hypot(dz) < 0.3 && (state.y - goal[1]).abs() < 0.05 {
+                return Ok(());
+            }
+            state = step(state, dz.atan2(dx));
+        }
+        Err(state)
+    };
+    let mut legs: Vec<(String, [f32; 3], [f32; 3])> = Vec::new();
+    for (weapon, alternatives) in routes {
+        let alternatives = alternatives.as_array().unwrap();
+        for spawn in SPAWNS {
+            let near = |alt: &serde_json::Value| {
+                let n = alt["near"].as_array().unwrap();
+                (n[0].as_f64().unwrap() as f32 - spawn[0])
+                    .hypot(n[1].as_f64().unwrap() as f32 - spawn[2])
+            };
+            let chosen = alternatives
+                .iter()
+                .min_by(|a, b| near(a).total_cmp(&near(b)))
+                .unwrap();
+            let mut from = [spawn[0], spawn[1], spawn[2]];
+            for goal in chosen["points"].as_array().unwrap().iter().map(xyz) {
+                legs.push((format!("{weapon} from spawn {spawn:?}"), from, goal));
+                from = goal;
+            }
+        }
+    }
+    for (label, from, goal) in legs {
+        let (dx, dz) = (goal[0] - from[0], goal[2] - from[2]);
+        let length = dx.hypot(dz);
+        // Unshoved first.
+        reaches(at(from[0], from[1], from[2]), goal).unwrap_or_else(|s| {
+            panic!(
+                "{label}: {from:?} -> {goal:?} stopped at ({:.2}, {:.2}, {:.2})",
+                s.x, s.y, s.z
+            )
+        });
+        let heading = dz.atan2(dx);
+        let samples = (length / 0.5).floor() as usize;
+        for i in 1..samples {
+            let t = i as f32 * 0.5 / length;
+            let (x, z) = (from[0] + dx * t, from[2] + dz * t);
+            let y = arena.support_height(x, z, from[1].max(goal[1]) + 0.01);
+            for side in [-1.0f32, 1.0] {
+                // A metre's strafe: about four ticks at walking speed.
+                let mut state = at(x, y, z);
+                for _ in 0..4 {
+                    state = step(state, heading + side * FRAC_PI_2);
+                }
+                // Let any fall finish before the walk resumes.
+                for _ in 0..20 {
+                    if state.vy == 0.0 {
+                        break;
+                    }
+                    state = crate::movement::fighter_step(
+                        state,
+                        &MoveInput::default(),
+                        TOP_SPEED,
+                        crate::movement::DT_LIVE,
+                        arena,
+                    );
+                }
+                let shoved = (state.x, state.y, state.z);
+                reaches(state, goal).unwrap_or_else(|s| {
+                    panic!(
+                        "{label}: shoved {side} at {:.0}% of {from:?} -> {goal:?} to {shoved:.2?}, stopped at ({:.2}, {:.2}, {:.2})",
+                        t * 100.0,
+                        s.x,
+                        s.y,
+                        s.z
+                    )
+                });
+            }
+        }
+    }
+}
