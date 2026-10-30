@@ -15,12 +15,13 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-10-29)
+## Where we are (2026-10-30)
 
 - **Release.** v0.94.0 is the development release checkpoint for waves 13 through 17, following the waves 11 and 12 packages in v0.93.0. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers and fresh-player acceptance remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
+- **Is it fun yet? Not proven, and not yet the bar.** The goal is the loop that made Counter-Strike, Battlefield 1942 and GoldenEye: a match so good the player wants another one immediately. Most of the parts that the October 23 study of Doom, Quake, Unreal Tournament, Counter-Strike, Battlefield and Halo found missing now exist: equal starts with power on timed pads, dropped guns, dodge and rocket jumps, a voiced Host for rare moments, Duel rematches and sudden death instead of draws. What still stops "one more game": only Larak Lot of the eight multiplayer maps is built to the bar; nothing after a match pulls the player into the next one (no map vote, no visible rival or personal best, although the server already keeps head-to-head records); dying in a team mode is waiting rather than watching a teammate; and no one but Nick has played. Waves 13 to 18 went mostly into the campaign. Wave 19 turns back to the match loop.
 
 <a id="full-build-order"></a>
 <a id="full-build-order-2026-09-27"></a>
@@ -33,59 +34,65 @@ This is the only active sequence. When the current rung changes, edit this secti
 1. **October 23 playtest round, shipped with Linux evidence.** The [round plan](plans/playtest-round-20261023.md) ran in waves, each returning to one reviewed, green `main`. Wave 1 (#457) fixed the death lifecycle (#441), HUD layout and upright results (#437), menu focus and structure (#435, #436), reload readability (#440) and operator console output (#438), and added stutter traces (#434), the music review tool and asset-tool ceilings. Wave 2 (#471) added benchmark UX (#439), the console pad layout, radio dial and announcer setting (#442), the Pistol and Fists FFA start with a 4 s respawn, the feel pass, bot senses, the rare Host spine, one save schema, the faction readability contract and the bot roster. Owed: Windows human play and real pads. v0.92.0 packages passed automated install checks.
 2. **Golden slice and hero map, implemented, evaluation continuing.** [Larak Lot](plans/larak-lot.md), a five-level car park, replaced Arena Duel on map 1 (#464), and Recall Notice is dressed as the Level 1 golden slice (#461). Both were judged from inspected Linux stills and motion; continue rendered inspection and constrained play now, while keeping physical-device and fresh-player evidence open. This slice is the quality bar for everything after it.
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
-4. **Raise everything else to the bar, current engineering wave.** Revisit levels 1 to 18 for art, pacing, encounter readability and fresh-player review. Wave 17 owns Level 10's Repeater and Levels 11 to 13. Continue the remaining [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431), [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432), weapon, character and venue work. Unfinished acceptance above stays explicit while local engineering progresses.
-5. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
-6. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
+4. **Raise the campaign to the bar, current engineering wave (18).** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilds layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
+5. **One more game, next (wave 19).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
+6. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
+7. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
 
 <a id="next-steps"></a>
 
-### Wave 17: implemented, acceptance continuing
+### Wave 18: layout and encounters, in progress
 
-Finish the playable experience through the existing server and presentation
-seams. Read the level brief, lore, design guide and faction readability contract
-before changing content. A new place changes its surroundings, not the identity
-of its people or factions.
+Too many spaces still read as rectangular rooms joined by straight connectors.
+Wave 18 rebuilds three levels where dressing could not fix the layout, using the
+[layout review](MAP-DESIGN.md#layout-variety-and-current-gaps): Doom's changing
+combat loops, GoldenEye's connected objective rooms and Counter-Strike's
+alternate approaches. Every new route is authored on the server and must not
+skip a required story fact.
 
-The Repeater now has a finite personal pickup in the Common Carrier's cargo
-approach, its own held/world art, reload frames and shot report. Native checks
-cover the walked acquisition, invalid claims, retry/save reopening and spent
-ammunition carried into M11. An ordinary-input route reaches M10 departure;
-separate inspected frames cover the pickup, sustained fire and reload. Dedicated
-spin-up/down cues and human discovery, listening and weapon feel remain open.
+| Lane | Scope |
+|---|---|
+| Level 9 | A visible ship at arrival, a parallel ship-side approach and a cross-cradle connection |
+| Level 13 | Machine silhouettes with matching collision, a closed roof, the gallery and maintenance loop |
+| Level 17 | The raised command galleries, two stair routes and the outer service stair its brief promises |
+| Characters | Splice, Tern, Renn and Level 8's held people in their own colours (merged; no credits spent) |
+| Presentation | A Blood setting, On by default, and a sweep for visual clipping |
 
-Levels 11 to 13 have distinct working-room treatments: the issued custody
-tender, civilian Martian habitat and foundry. Their ordinary-input authoring
-routes reach departure or the lift exit. The Assessor's olive chassis and salmon
-countdown now read black and red; absorbed cyan and recovery cues remain intact.
-Mine instructions use active bindings. Rendered iterations and layout/lifecycle
-tests cover these changes; the briefs distinguish implementation from acceptance.
-Level 13's oversized machine housings and roof gaps still need geometry work.
-These are bounded improvements, not a claim that every level meets the finished
-golden-slice or fresh-player bar.
+The coordinator fixed the capture tour's Rail route (#506) with a server test
+that walks every tour route under combat shoves. Renn's own model waits for the
+Meshy refresh on November 3; Latch waits for Nick's palette choice (#455).
+Wave 17 (Level 10's Repeater and Levels 11 to 13 dressed) is summarized in the
+table below.
 
-### After this wave
+<a id="wave-19-one-more-game"></a>
 
-- **Next engineering wave: layout and encounter design.** Too many spaces
-  still read as rectangular rooms joined by straight connectors. Review routes
-  and sightlines in play, then finish one area before extending the approach.
-  Draw on Doom's changing combat loops, GoldenEye's connected objective rooms,
-  Counter-Strike's alternate approaches, rotations and controlled chokepoints,
-  and Battlefield 1942's landmarks, terrain and distinct infantry and vehicle
-  routes where the venue supports them. The [layout review](MAP-DESIGN.md#layout-variety-and-current-gaps)
-  identifies existing strengths and gaps across all eight multiplayer maps and
-  the campaign. Judge meaningful choices,
-  readable threats and traversal, not the number of corners or added props.
-  Level 9's boxed ship and hidden arrival view are a concrete starting candidate;
-  Level 13's machine silhouettes and roof enclosure also need authored geometry,
-  collision and route review. Keep layouts consistent with each place's purpose
-  and canon, and author movement and encounter changes on the server. Level 6's
-  limited-perception survey remains an open acceptance slice.
-- **Character readability.** Splice, Latch and Tern read pale silver near the
-  Inheritance off-white; Renn has no dedicated art and Level 8's captives share
-  one figure. Resolve individual palettes against the faction contract and
-  Nick's pending Latch choice. The recorded Meshy reset is November 3; no dated
-  balance or reset date authorizes a batch. Check live usable balance, reserve
-  the exact bounded operation and reconcile usage through the existing tools.
+### Wave 19: one more game (next)
+
+The test for every lane: after a match, does the player want another one right
+away? Fewer, better things beat more things.
+
+| Lane | Scope |
+|---|---|
+| Fewer, better maps | Cut the default rotation to the three or four maps that play best by measurement. Bring Compliance Yard and Low Water up to Larak Lot's bar using the layout review. Hide the rest from default rotations (not deleted) until they earn their place. |
+| The between-match hook | On the podium: your nemesis, head-to-head against each rival (the server already keeps these records) and personal bests. Then a three-map vote that counts down into the next match with no menu. |
+| Death as a seat | In team modes, follow a living teammate after death and mark the clutch. Give the trailing Sabotage side a visible, earned way back (the loss bonus that kept Counter-Strike rounds alive). |
+| Story consistency | Fix the findings of the story audit: continuity, motivation, names and tone across the lore, the briefs and what each level actually shows and says, Recall Notice through Still Here. |
+
+Promote the October 23 multiplayer study into the wave 19 plan. Close the wave
+with a measured fun night of bots and agents on the curated rotation, then a
+human LAN night:
+
+| Signal | Target |
+|---|---|
+| Frags per minute, every map in rotation | 10 or more |
+| Lead changes per free-for-all match | 3 or more |
+| Most-used gun's share of shots | Under 45% |
+| Human signals | "One more", naming a rival, timing an item unprompted, quoting the Host |
+
+If the numbers move and the people do not, trust the people.
+
+### After these waves
+
 - **Continue campaign acceptance.** Episode V remains open: broaden the earned
   M19 market/tanks prefix into the roof loop and later route, investigate supply
   discovery before tuning ammunition, and retain failure reports. Still Here
@@ -131,6 +138,7 @@ current treatment until a choice is made; record defects as bounded work.
 | Wave 14 (#501) | Levels 3, 4 and 6 dressing, Level 2 lighting, radio naming and bounded hitscan rewind. |
 | Wave 15 (#503) | Levels 5 and 7 dressing, Heavy readability, radio edits, roster deltas/text encoding and deterministic fixture repair (#502). Radio listening remains open. |
 | Wave 16 (#504) | Levels 8 to 10 dressing, red Turret/Heavy tells and cyan absorbed Heavies, wire rounding and simulated link evidence. Merged at `166c14d8`; all CI jobs passed. Human play and two-machine evidence remain open. |
+| Wave 17 (v0.94.0) | Level 10's Repeater from finite pickup through fire and reload, Levels 11 to 13 dressed, the Assessor in black and red, mine prompts on active bindings. Spin cues, human weapon feel and Level 13 geometry remain open. |
 | Multiplayer (#431) | Implemented through wave 12. Listening and two-human Duel hand-over remain open. |
 | AI (#432) | Wave 13 fixed the deliberate-profile regression. Rocket balance and Latch voice remain open. |
 | Networking (#434) | Stages 1 and 2 measured; stage 3 deferred with evidence; stages 4 and 5 implemented with loopback measurements in [BENCHMARK.md](BENCHMARK.md). Field validation and stage 6 remain open. |
