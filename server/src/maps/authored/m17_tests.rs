@@ -257,3 +257,23 @@ fn m17_gallery_height_cannot_climb_out_of_the_command_block() {
         }
     }
 }
+
+#[test]
+fn m17_solids_never_overlap_so_no_face_fights_another() {
+    let (sealed, unsealed) = worlds();
+    for world in [&sealed, &unsealed] {
+        let solids = &world.arena().solids;
+        let mut overlaps = Vec::new();
+        for (i, a) in solids.iter().enumerate() {
+            for (j, b) in solids.iter().enumerate().skip(i + 1) {
+                let x = a.max_x.min(b.max_x) - a.min_x.max(b.min_x);
+                let y = a.top.min(b.top) - a.bottom.max(b.bottom);
+                let z = a.max_z.min(b.max_z) - a.min_z.max(b.min_z);
+                if x > 1e-4 && y > 1e-4 && z > 1e-4 {
+                    overlaps.push((i, j));
+                }
+            }
+        }
+        assert!(overlaps.is_empty(), "overlapping solids: {overlaps:?}");
+    }
+}

@@ -36,6 +36,12 @@ func configure_map(info: Dictionary) -> void:
 		return
 	_geometry = MissionState.geometry_for(info)
 	_build_office_visuals()
+	# The command galleries' furniture, windows and lamps (presentation only).
+	if M17Dressing.office_layout(info):
+		var dressing: M17Dressing = M17Dressing.new()
+		dressing.name = "OfficeDressing"
+		add_child(dressing)
+		dressing.configure_map(info)
 
 func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -55,11 +61,12 @@ func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstan
 func _build_office_visuals() -> void:
 	# Core seal indicator bar over the security bulkhead at z=18.0
 	_core_seal_light = _box("CoreSealLight", Vector3(0.0, 3.8, 18.0), Vector3(6.0, 0.3, 0.4), Color("c49a45"))
-	# The gallery bulkhead over the exposed stair carries the same status bar on
-	# both faces: amber while the Office holds it, green once the override opens
+	# The gallery bulkhead over the exposed stair carries status lamps on its
+	# jambs, both faces: amber while the Office holds it, green once the override opens
 	# it onto the outer court stair. Paint and lamp only; the server owns the door.
-	_bulkhead_lights.append(_box("BulkheadLightGallery", Vector3(-18.25, 5.3, 17.85), Vector3(2.5, 0.25, 0.3), Color("c49a45")))
-	_bulkhead_lights.append(_box("BulkheadLightCourt", Vector3(-18.25, 5.3, 20.15), Vector3(2.5, 0.25, 0.3), Color("c49a45")))
+	for jamb: float in [-19.82, -16.68]:
+		_bulkhead_lights.append(_box("BulkheadLightGallery", Vector3(jamb, 4.0, 17.95), Vector3(0.12, 0.6, 0.1), Color("c49a45")))
+		_bulkhead_lights.append(_box("BulkheadLightCourt", Vector3(jamb, 4.0, 20.05), Vector3(0.12, 0.6, 0.1), Color("c49a45")))
 
 func apply_state(state: Dictionary) -> void:
 	if state.get("id") != MissionState.M17_ID or not state.get("m17") is Dictionary:

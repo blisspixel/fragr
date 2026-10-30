@@ -247,6 +247,32 @@ static func correction() -> Preset:
 	preset.saturation = 0.95
 	return preset
 
+## The Forever Office at dawn after the night the front held: a smoke-grey
+## sky warming toward the uprising's fires on the eastern horizon, no sun disc,
+## a low warm key raking in from the east across the command block and cold
+## institutional practicals inside. The actor fill keeps black-and-red Union
+## bodies readable against the grey stone in the galleries' shade.
+static func forever_office() -> Preset:
+	var preset: Preset = Preset.new(Color("2a3140"), Color("9a7462"),
+		Color("3b3a3c"), Color("6a6466"), 0.0058, Color("9a9caa"), 0.6)
+	preset.outdoor_embers = false
+	preset.key_in_sky = false
+	preset.key_color = Color("f2c6a6")
+	preset.key_energy = 0.8
+	preset.key_rotation_degrees = Vector3(-24.0, 70.0, 0.0)
+	preset.scene_fill_energy = 0.08
+	preset.practical_color = Color(0.88, 0.94, 0.96)
+	preset.practical_energy = 2.4
+	preset.practical_range = 10.0
+	preset.practical_attenuation = 1.3
+	preset.accent_energy = 0.0
+	preset.view_fill_energy = 0.4
+	preset.view_fill_range = 40.0
+	preset.contrast = 1.07
+	preset.saturation = 0.9
+	preset.glow_intensity = 0.4
+	return preset
+
 ## The warm service lamp: a caged tungsten bulb over a counter, a stair or a
 ## service door. Short reach and no shadow map, so a room can carry several.
 const SERVICE_LAMP_COLOR: Color = Color(1.0, 0.74, 0.46)
@@ -289,6 +315,8 @@ static func preset_for(map_name: String) -> Preset:
 		return still_here_later() if key.contains("years later") else still_here()
 	if key.contains("local exception"):
 		return waterworks()
+	if key.contains("peace without interruption"):
+		return forever_office()
 	if key.contains("notice to vacate"):
 		return notice_to_vacate()
 	if key.contains("no forwarding address"):

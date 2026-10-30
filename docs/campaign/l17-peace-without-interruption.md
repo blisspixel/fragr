@@ -77,13 +77,25 @@ player personally to Voss. Do not stretch the approach into an empty parade grou
   Kessel's custody is still required first; standing under the console does
   not count as reaching the galleries. The service stair skips no fact.
 
-**Still open:** fresh-player timing and route choice; a rendered combat route
-through the gallery fight (only spectator geometry stills were inspected);
-gallery dressing beyond blockout (occupied rooms, control machinery props,
-tall windows on the city, the core's glow through floor grates); the return
-through the liberated public hall (departure stays at the east exit); Denial
-and its ante-room plinth; the gallery supply secret and the dome catwalk; the
-runner's-line par.
+- The Office has its own presentation (`client/scripts/m17_dressing.gd`, the
+  `forever_office` venue in `arena_materials.gd` and `arena_sky.gd`): mid grey
+  civic stone with a graphite dado and one painted red pinline, graphite issued
+  steel, walnut civic furniture; no green enamel and no off-white. Desks carry
+  monitors, files, lamps, pushed-back chairs and personal things; the plotting
+  table shows the city with districts gone dark; a status board above the
+  north gallery shows regional command sites going dark; dawn windows in the
+  west wall; cold floods on an issued beam; warm service lamps lead from mid
+  hall to the outer stair. The sky is a smoke-grey dawn with no sun disc.
+- `client/qa/m17-gallery-fight.json` is a rendered authoring route through
+  the approach, hall, ring and Kessel to the gallery fight, the override and
+  the opened bulkhead (accurate-aim authoring evidence, not fresh-player).
+
+**Still open:** fresh-player timing and route choice; the rest of the level's
+dressing (approach, hall, ring, core and chamber still read as plain
+geometry under the new palette); the core's glow through floor grates; the
+return through the liberated public hall (departure stays at the east exit);
+Denial and its ante-room plinth; the gallery supply secret and the dome
+catwalk; the runner's-line par.
 
 ## Encounter and equipment design
 

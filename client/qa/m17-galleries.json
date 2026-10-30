@@ -16,6 +16,10 @@
     {"name":"service_door_close","camera":"overview","camera_position":[-9,1.65,-7],"camera_look_at":[-14.5,2.2,-1],"allow_empty_roster":true,"note":"The service door in the hall's north-west corner under its steel lintel."},
     {"name":"service_stair","camera":"overview","camera_position":[-14.6,1.65,0.6],"camera_look_at":[-6,3.4,1.2],"allow_empty_roster":true,"note":"Inside the outer service stair."},
     {"name":"east_gallery","camera":"overview","camera_position":[-10,4.6,6.6],"camera_look_at":[-28,2,14],"allow_empty_roster":true,"note":"Arriving on the east gallery from the service stair, across the floor."},
-    {"name":"court_stair","camera":"overview","camera_position":[-27,1.65,30],"camera_look_at":[-18,2.4,21],"allow_empty_roster":true,"note":"The outer court stair to the sealed gallery bulkhead, the chamber's west door beside it."}
+    {"name":"court_stair","camera":"overview","camera_position":[-27,1.65,30],"camera_look_at":[-18,2.4,21],"allow_empty_roster":true,"note":"The outer court stair to the sealed gallery bulkhead, the chamber's west door beside it."},
+    {"name":"grazing_gallery_wall","camera":"overview","camera_position":[-8.6,4.6,17.4],"camera_look_at":[-17,4.4,18],"allow_empty_roster":true,"note":"Grazing along the north gallery wall where the upper wall meets the chamber wall: no face fighting."},
+    {"name":"grazing_chamber_wall","camera":"overview","camera_position":[-13.4,1.65,20.6],"camera_look_at":[-3,3.8,20],"allow_empty_roster":true,"note":"Grazing along the chamber's south wall under the gallery's upper wall."},
+    {"name":"west_windows","camera":"overview","camera_position":[-20,1.65,12],"camera_look_at":[-34,4.6,12],"allow_empty_roster":true,"note":"The dawn windows in the west wall above the sheltered stair."},
+    {"name":"hall_mid_door","camera":"overview","camera_position":[0,1.65,-10],"camera_look_at":[-14.5,1.8,-2],"allow_empty_roster":true,"note":"The service door from mid-hall, found by its warm lamp."}
   ]
 }

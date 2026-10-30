@@ -2671,6 +2671,7 @@ func _use_mission_control(expected_phase: String) -> void:
 			or (mission_state.get("id") == MissionState.M14_ID and expected_phase in mission_state.get("m14",{}).get("completed",[])) \
 			or (mission_state.get("id") == MissionState.M13_ID and (expected_phase in mission_state.get("m13",{}).get("completed",[]) or (expected_phase == "workers_released" and mission_state.get("m13",{}).get("challenges",{}).has("workers")))) \
 			or (mission_state.get("id") == MissionState.M09_ID and expected_phase in mission_state.get("m09", {}).get("completed", [])) \
+			or (mission_state.get("id") == MissionState.M17_ID and expected_phase in mission_state.get("m17", {}).get("completed", [])) \
 			or (mission_state.get("id") == MissionState.M11_ID and expected_phase in ["transfer_released", "records_read"] and mission_state.get("m11", {}).get("challenges", {}).get(expected_phase) == true) \
 			or (mission_state.get("id") == MissionState.M12_ID and (expected_phase in mission_state.get("m12", {}).get("completed", []) or (expected_phase in ["shelter_opened", "workers_released"] and mission_state.get("m12", {}).get("challenges", {}).get(expected_phase) == true))) \
 			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \

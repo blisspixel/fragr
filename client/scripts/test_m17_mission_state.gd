@@ -153,7 +153,7 @@ func _run() -> void:
 	_check(presenter._kessel_secured and notices.size() == 1, "presenter fires kessel secured notice")
 	presenter.apply_state(fixture_state(info, 4, 40)["state"])
 	_check(presenter._core_unsealed and notices.size() == 2, "presenter fires core unsealed notice")
-	_check(presenter._bulkhead_lights.size() == 2 and presenter._bulkhead_lights.all(func(lamp: MeshInstance3D) -> bool: return (lamp.material_override as StandardMaterial3D).albedo_color == Color("2ed158")), "gallery bulkhead lamps turn green with the override")
+	_check(presenter._bulkhead_lights.size() == 4 and presenter._bulkhead_lights.all(func(lamp: MeshInstance3D) -> bool: return (lamp.material_override as StandardMaterial3D).albedo_color == Color("2ed158")), "gallery bulkhead lamps turn green with the override")
 	presenter.apply_state(fixture_state(info, 6, 60)["state"])
 	_check(presenter._voss_captured and notices.size() == 3, "presenter fires voss captured notice")
 	presenter.clear_map()
