@@ -287,3 +287,116 @@ fn m09_route_segment_refuses_wall_teleport_and_unsupported_target() {
         [3.0, 0.0, -4.0]
     ));
 }
+
+#[test]
+fn m09_arrival_sees_the_named_hull_through_supported_office() {
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let doc: serde_json::Value = serde_json::from_str(SOURCE).unwrap();
+    let feet: [f32; 3] = serde_json::from_value(doc["spawns"][0]["feet"].clone()).unwrap();
+    let eye = [feet[0], feet[1] + crate::movement::EYE_HEIGHT, feet[2]];
+    assert!(standing(&map.arena, feet));
+    // The hull name's centre and the ember stripe under its aft half, seen
+    // under the impound office's belly between its piers.
+    for target in [[-8.1, 4.75, 7.0], [-8.1, 3.3, 3.0]] {
+        assert!(
+            crate::combat::line_of_sight(eye, target, &map.arena.solids),
+            "arrival must reveal actual port hull: {target:?}"
+        );
+    }
+    // The natural first view faces the name, not a wall or a dormant guard.
+    let yaw = doc["spawns"][0]["yaw"].as_f64().unwrap() as f32;
+    let toward = (7.0 - feet[2]).atan2(-8.1 - feet[0]);
+    assert!(
+        (yaw - toward).abs() < 0.2,
+        "spawn yaw {yaw} must face the hull name ({toward})"
+    );
+    // Ordinary forward movement from the arrival stays clear for several metres.
+    for metres in 1..=6 {
+        let step = [
+            feet[0] + yaw.cos() * metres as f32,
+            0.0,
+            feet[2] + yaw.sin() * metres as f32,
+        ];
+        assert!(
+            standing(&map.arena, step),
+            "arrival heading is obstructed at {step:?}"
+        );
+    }
+    assert!(standing(&map.arena, [-28.0, 0.0, -24.0]));
+    assert!(standing(&map.arena, [-28.0, 4.0, -24.0]));
+    // Opening the undercroft must not add a landing under the teaching edge.
+    assert_eq!(map.arena.support_height(-17.0, -31.0, 4.0), 0.0);
+}
+
+#[test]
+fn m09_parallel_approaches_walk_both_ways_and_do_not_open_hatch() {
+    let runtime = RuntimeMap::Authored(AuthoredMap::read(SOURCE.as_bytes()).unwrap());
+    let opened = runtime.prepared_m09_world().unwrap();
+    let inner = [
+        [-20.0, 6.0, -11.0],
+        [-12.0, 6.0, -11.0],
+        [-12.0, 6.0, 12.0],
+        [-20.0, 6.0, 12.0],
+        [-20.0, 8.0, 19.5],
+        [19.5, 8.0, 19.5],
+        [19.5, 8.0, 26.0],
+    ];
+    let outer = [
+        [-20.0, 6.0, -11.0],
+        [-20.0, 6.0, 13.4],
+        [-20.0, 8.0, 18.6],
+        [-20.0, 8.0, 26.0],
+        [19.5, 8.0, 26.0],
+    ];
+    for world in [&runtime, &opened] {
+        for route in [&inner[..], &outer[..]] {
+            for pair in route.windows(2) {
+                for (a, b) in [(pair[0], pair[1]), (pair[1], pair[0])] {
+                    assert!(
+                        crate::mission::m09_route_segment_valid(world.arena(), a, b),
+                        "branch must support ordinary return movement: {a:?} -> {b:?}"
+                    );
+                }
+            }
+        }
+        assert!(
+            !crate::combat::line_of_sight(
+                [-20.0, 7.6, -8.0],
+                [-12.0, 7.6, 3.0],
+                &world.arena().solids
+            ),
+            "service bank must separate approach sightlines"
+        );
+        assert!(
+            crate::combat::line_of_sight(
+                [-12.0, 7.6, 8.0],
+                [-20.0, 7.0, 10.0],
+                &world.arena().solids
+            ),
+            "inner approach must expose the north guard's flank"
+        );
+        assert!(
+            !crate::combat::line_of_sight(
+                [-8.0, 9.6, 19.5],
+                [-8.0, 9.6, 26.0],
+                &world.arena().solids
+            ),
+            "north service bank must provide real cover between routes"
+        );
+        assert!(
+            crate::combat::line_of_sight([0.0, 9.6, 19.5], [0.0, 9.6, 26.0], &world.arena().solids),
+            "crossing must have a useful central combat opening"
+        );
+    }
+    assert_ne!(
+        runtime
+            .navigation()
+            .route(
+                inner[4],
+                runtime.m09_geometry().unwrap().departure.approach,
+                SEARCH_LIMIT
+            )
+            .status,
+        RouteStatus::Complete
+    );
+}

@@ -52,7 +52,7 @@ func clear_map() -> void:
 	super.clear_map()
 
 ## Passenger Manifest's own authored layout only, keyed on solids that never
-## move: the berth's west shell, the office floor, the first gantry, the
+## move: the berth's west shell, the raised office floor, the first gantry, the
 ## control gallery, the ship's keel, the hatch bridge and the boarding stack.
 ## The boarding hatch moves when it opens and is never part of the guard. A
 ## custom map reusing the id with different structure gets no dressing
@@ -62,10 +62,12 @@ static func berth_layout(info: Dictionary) -> bool:
 		return false
 	var wanted: Array = [
 		[Vector3(-49, 0, -49), Vector3(-48, 26, 49)],
-		[Vector3(-38, 0, -25), Vector3(-18, 4, -15)],
+		[Vector3(-38, 3.5, -25), Vector3(-18, 4, -15)],
 		[Vector3(-24, 5.4, -13), Vector3(-16, 6, 14)],
 		[Vector3(16, 9.4, -24), Vector3(40, 10, -12)],
-		[Vector3(-8, 2, -18), Vector3(8, 9, 18)],
+		[Vector3(-8, 2, -18), Vector3(8, 9, 14)],
+		[Vector3(-14, 5.4, -13), Vector3(-10, 6, 14)],
+		[Vector3(-24, 7.4, 18), Vector3(22, 8, 21)],
 		[Vector3(-12, 11.4, -35), Vector3(24, 12, -28)],
 		[Vector3(-10, 0, -30), Vector3(10, 12, -22)],
 	]
@@ -139,7 +141,7 @@ static func berth_role(box: AABB, surface: String) -> String:
 	if surface == "enamel" and absf(centre.x) <= 8.0 and low.z >= -22.01 and high.z <= 23.01 and low.y >= 2.0:
 		if low.y >= 9.0:
 			return "deck_upper"
-		return "bow" if low.z >= 18.0 else "hull"
+		return "bow" if low.z >= 14.0 else "hull"
 	if surface == "service_steel" and is_equal_approx(low.y, 1.0) and absf(centre.x) >= 8.0 and absf(centre.x) <= 14.0:
 		return "engine"
 	if high.y <= 2.01 and low.y <= 0.01 and absf(centre.x) <= 8.0 and low.z >= -15.01 and high.z <= 21.01:
@@ -149,11 +151,21 @@ static func berth_role(box: AABB, surface: String) -> String:
 		if is_equal_approx(box.size.x, 6.0) and is_equal_approx(box.size.z, 1.0):
 			return "hatch"
 		return "tower"
-	# Stair treads, wherever they climb.
-	if surface == "service_steel" and low.y <= 0.01 and thin <= 0.41 and box.size.y <= 12.3:
+	# Stair treads, wherever they climb: solid flights from the deck, and the
+	# west flight that sits on the office's raised floor.
+	if surface == "service_steel" and (low.y <= 0.01 or is_equal_approx(low.y, 3.5)) and thin <= 1.01 \
+		and maxf(box.size.x, box.size.z) >= 3.0 and box.size.y <= 12.3:
 		return "stair"
-	# The impound office: its landing rails, the customs locker, the walls.
+	# The impound office: its landing rails, the customs locker, the walls,
+	# the raised floor and the piers under it.
 	if centre.x >= -44.5 and centre.x <= -17.0 and centre.z >= -35.5 and centre.z <= -14.9:
+		if box.size.x <= 0.61 and box.size.z <= 0.61:
+			return "column"
+		if is_equal_approx(low.y, 3.5) and high.y <= 4.01:
+			return "deck_block"
+		# Impounded freight stacked under the office, painted like the lane's.
+		if surface == "enamel" and low.y <= 0.01 and high.y <= 2.41:
+			return "goods"
 		if low.y >= 3.99 and high.y <= 5.11 and thin <= 0.31:
 			return "rail"
 		if surface == "enamel" and low.y >= 3.99 and high.y <= 5.01:
@@ -502,6 +514,20 @@ func _build_office() -> void:
 		_bag(Vector3(-37.4, 4.0, -24.2 + float(index) * 0.9), BAGS[(index * 3 + 1) % BAGS.size()], index)
 	_pool(room, Vector3(-33.0, 7.9, -20.5), 1.8, 6.0, 44.0, 8.0)
 	_lamp(room, Vector3(-24.0, 7.5, -20.0), 1.6, 7.0, 8.0)
+	# Under the office: impounded freight stacked on the deck, leaving one
+	# aisle that points at the ship. Warm lamps hang from the floor's belly
+	# along it; the Union's cold flood holds the hull name at its far end.
+	for entry: Array in [[Vector3(-36.9, 2.4, -32.6), 0], [Vector3(-34.6, 2.0, -27.4), 2], [Vector3(-32.0, 2.4, -21.2), 4],
+		[Vector3(-29.0, 2.0, -17.2), 1], [Vector3(-25.6, 2.4, -32.8), 3], [Vector3(-23.4, 2.0, -28.4), 5]]:
+		_bag(entry[0], BAGS[int(entry[1]) % BAGS.size()], int(entry[1]))
+	for face: Array in [[Vector3(-36.0 + 0.0, 1.3, -32.8), Vector3.RIGHT], [Vector3(-30.0, 1.3, -21.5), Vector3.RIGHT],
+		[Vector3(-28.5, 1.3, -32.8), Vector3.LEFT], [Vector3(-25.5, 1.1, -28.5), Vector3.LEFT]]:
+		_notice(face[0], face[1], 0.8)
+	# The floor's belly reads as plain steel soffit, not as the deck above it.
+	_block(props, "OfficeSoffit", Vector3(20.0, 0.01, 20.0), berth_surface("ceiling"), Vector3(-28.0, 3.494, -25.0))
+	for at: Vector3 in [Vector3(-33.2, 3.3, -31.0), Vector3(-29.0, 3.3, -24.6), Vector3(-25.0, 3.3, -18.8)]:
+		_lamp(room, at, 1.3, 6.0, 3.5)
+	_flood(Vector3(-13.0, 5.25, 3.0), Vector3(-8.1, 4.6, 7.0), 2.4, 10.0, 44.0)
 	# The office stair: a warm lamp at the turn.
 	_lamp(room, Vector3(-41.0, 7.6, -26.0), 1.4, 6.0, 8.4)
 	_lamp(room, Vector3(-41.0, 6.6, -32.0), 1.2, 6.0, 8.4)
@@ -553,18 +579,20 @@ func _build_ship() -> void:
 	for side: float in [-1.0, 1.0]:
 		var x: float = side * 8.012
 		# Belly band, the ember stripe, a plate seam, the gunwale under the deck.
-		_block(props, "HullBelly", Vector3(0.025, 1.0, 36.0), belly, Vector3(x, 2.5, 0.0))
-		_block(props, "HullEmber", Vector3(0.03, 0.34, 40.0), ember, Vector3(x + side * 0.002, 3.3, -2.0))
-		_block(props, "HullSeam", Vector3(0.026, 0.05, 40.0), seam, Vector3(x, 5.6, -2.0))
-		_block(props, "HullGunwale", Vector3(0.05, 0.22, 40.0), rib, Vector3(x + side * 0.01, 8.85, -2.0))
+		_block(props, "HullBelly", Vector3(0.025, 1.0, 32.0), belly, Vector3(x, 2.5, -2.0))
+		_block(props, "HullEmber", Vector3(0.03, 0.34, 36.0), ember, Vector3(x + side * 0.002, 3.3, -4.0))
+		_block(props, "HullSeam", Vector3(0.026, 0.05, 36.0), seam, Vector3(x, 5.6, -4.0))
+		_block(props, "HullGunwale", Vector3(0.05, 0.22, 36.0), rib, Vector3(x + side * 0.01, 8.85, -4.0))
 		# Gunmetal ribs every three metres along both sides.
 		var z: float = -21.0
-		while z <= 17.5:
+		while z <= 13.5:
 			_block(props, "HullRib", Vector3(0.05, 5.8, 0.14), rib, Vector3(x + side * 0.012, 5.95, z))
 			z += 3.0
 		# The bow's sides carry the stripe on round.
-		_block(props, "BowEmber", Vector3(0.03, 0.34, 5.0), ember, Vector3(side * 5.014, 3.3, 20.5))
-		_block(props, "BowBelly", Vector3(0.025, 1.0, 5.0), belly, Vector3(side * 5.012, 2.5, 20.5))
+		_block(props, "ShoulderEmber", Vector3(0.03, 0.34, 2.0), ember, Vector3(side * 7.014, 3.3, 15.0))
+		_block(props, "ShoulderGunwale", Vector3(0.04, 0.16, 2.0), rib, Vector3(side * 7.014, 7.9, 15.0))
+		_block(props, "BowEmber", Vector3(0.03, 0.34, 7.0), ember, Vector3(side * 5.014, 3.3, 19.5))
+		_block(props, "BowBelly", Vector3(0.025, 1.0, 7.0), belly, Vector3(side * 5.012, 2.5, 19.5))
 		# The bone deck's edge over the hull.
 		_block(props, "DeckEdge", Vector3(0.04, 0.14, 24.0), _mat("deck_edge", Color("7d7768"), 0.1, 0.8), Vector3(side * 5.015, 9.1, 0.0))
 	# The crew door on the port side near the stern: a bone pressure door
@@ -577,7 +605,7 @@ func _build_ship() -> void:
 	_block(props, "CrewDoorHeader", Vector3(0.04, 0.12, 1.5), rib, Vector3(-8.035, 5.32, -4.5))
 	_seal_tape(Vector3(-8.035, 4.0, -4.5), Vector3.LEFT, 1.1, 2.0)
 	_notice(Vector3(-8.035, 4.4, -2.6), Vector3.LEFT)
-	_notice(Vector3(-8.035, 4.2, 14.6), Vector3.LEFT)
+	_notice(Vector3(-7.035, 4.2, 14.6), Vector3.LEFT)
 	# The cargo door on the starboard side, chevroned, sealed.
 	_block(props, "CargoDoor", Vector3(0.03, 3.6, 4.2), bone, Vector3(8.02, 4.2, 0.0))
 	for index: int in range(7):
@@ -676,6 +704,23 @@ func _build_cradle() -> void:
 
 func _build_gantries() -> void:
 	# Every open edge toward the cradle is painted; nothing pretends to be a rail.
+	_edge(Vector3(-10.2, 6.0, -12.8), Vector3(-10.2, 6.0, 13.8))
+	_edge(Vector3(-13.8, 6.0, -8.8), Vector3(-13.8, 6.0, 9.8))
+	_edge(Vector3(-23.8, 8.0, 18.2), Vector3(21.8, 8.0, 18.2))
+	_edge(Vector3(-15.8, 8.0, 20.8), Vector3(17.8, 8.0, 20.8))
+	# Registered service banks give the outer route shelter. Their face-only
+	# vents never extend the cover footprint or invent another collision seam.
+	var machinery: StandardMaterial3D = _mat("bank_chassis", Color("777669"), 0.3, 0.75)
+	var vents: StandardMaterial3D = _mat("bank_vents", Color("3c4243"), 0.4, 0.65)
+	for at: Vector3 in [Vector3(-17.0, 7.4, -6.012), Vector3(-17.0, 7.4, 4.012)]:
+		_piece("ServiceBankFace", Vector3(1.8, 2.5, 0.02), machinery, at)
+		for slot: int in range(6):
+			_piece("ServiceBankVent", Vector3(1.4, 0.09, 0.03), vents, at + Vector3(0, -0.6 + slot * 0.23, 0))
+	for x: float in [-8.5, 7.5]:
+		for z: float in [21.985, 24.015]:
+			_piece("BowServiceFace", Vector3(8.7, 2.1, 0.02), machinery, Vector3(x, 9.2, z))
+			for slot: int in range(8):
+				_piece("BowServiceVent", Vector3(0.09, 1.4, 0.03), vents, Vector3(x - 3.0 + slot * 0.85, 9.2, z))
 	_edge(Vector3(-16.2, 6.0, -12.8), Vector3(-16.2, 6.0, 13.8))
 	_edge(Vector3(-23.8, 6.0, -12.8), Vector3(-23.8, 6.0, 13.8))
 	_edge(Vector3(-15.8, 8.0, 22.2), Vector3(21.8, 8.0, 22.2))

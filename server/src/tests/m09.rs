@@ -537,3 +537,51 @@ fn m09_severe_departure_after_all_resolved_gun_kills_does_not_require_charge_fal
     );
     assert_eq!(facts(&s).charge_falls, 0);
 }
+
+#[test]
+fn m09_parallel_routes_activate_their_fight_without_skipping_crew_or_hatch() {
+    let (mut s, id) = fixture(CampaignDifficulty::Standard);
+    // Geometry is freely walkable, but a future location is never a story fact.
+    place(&mut s, id, [-12.0, 8.0, 19.5]);
+    advance(&mut s, 2);
+    assert!(facts(&s).completed.is_empty());
+    assert!(!facts(&s).crew_released && !facts(&s).hatch_open);
+    assert!(!s.state.encounters.is_awake(4));
+    for index in 0..3 {
+        clear(&mut s, id, index);
+    }
+    place(&mut s, id, [-12.0, 6.0, 4.0]);
+    advance(&mut s, 2);
+    assert!(!s.state.encounters.is_awake(3));
+    use_at(&mut s, id, true, false);
+    use_at(&mut s, id, true, true);
+    for (index, branch) in [(3, [-12.0, 6.0, 4.0]), (4, [-12.0, 8.0, 19.5])] {
+        place(&mut s, id, branch);
+        advance(&mut s, 2);
+        assert!(
+            s.state.encounters.is_awake(index),
+            "inner approach must wake its fight before crossing it"
+        );
+        assert_eq!(facts(&s).completed.len(), index);
+        let enemies = s.state.map.encounters()[index].enemies.clone();
+        for enemy in enemies {
+            let p = s
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.name == enemy.id)
+                .unwrap();
+            p.hp = 0;
+            s.state
+                .encounters
+                .hit(p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z], s.state.tick, true);
+        }
+        advance(&mut s, 2);
+        assert_eq!(
+            facts(&s).completed.len(),
+            index + 1,
+            "clearing from either route must advance without an old-route arrival detour"
+        );
+        assert!(!facts(&s).hatch_open);
+    }
+}

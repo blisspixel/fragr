@@ -95,7 +95,7 @@ func configure_map(info: Dictionary) -> void:
 		if info["presentation"]["solids"][index] == "inspection_glass":
 			_glazing(solid)
 		if float(solid["min_x"]) == -8.0 and float(solid["max_x"]) == 8.0 and float(solid["top"]) == 9.0 \
-			and float(solid["min_z"]) == -18.0 and float(solid["max_z"]) == 18.0:
+			and float(solid["min_z"]) == -18.0 and float(solid["max_z"]) == 14.0:
 			_ship(solid)
 	var control: Dictionary = info["m09"]["departure"]
 	var decoration: Dictionary = info["presentation"]["decorations"][int(control["decoration"])]

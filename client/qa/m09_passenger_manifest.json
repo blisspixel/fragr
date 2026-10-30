@@ -10,21 +10,16 @@
       "scene": "res://scenes/main.tscn",
       "join": "human",
       "radio_off": true,
-      "look_at": [
-        0,
-        7,
-        -18
-      ],
-      "note": "The Common Carrier occupies the closed pressure berth. Real readiness follows ordinary story dismissal."
+      "note": "Natural first controllable view from the server spawn, with no camera aim override."
     },
     {
       "name": "m09_loading_equipment",
       "camera": "first_person",
       "walk_to": [
         [
-          -35,
+          -38,
           0,
-          -40
+          -39
         ],
         [
           -35,
@@ -264,8 +259,16 @@
       "name": "m09_crew_release",
       "camera": "first_person",
       "walk_to": [
-        [-34.25, 4, -24],
-        [-34.25, 4, -18],
+        [
+          -34.25,
+          4,
+          -24
+        ],
+        [
+          -34.25,
+          4,
+          -18
+        ],
         [
           -31.5,
           4,
@@ -290,8 +293,16 @@
       "name": "m09_office_supplies",
       "camera": "first_person",
       "walk_to": [
-        [-34.25, 4, -18],
-        [-34.25, 4, -24],
+        [
+          -34.25,
+          4,
+          -18
+        ],
+        [
+          -34.25,
+          4,
+          -24
+        ],
         [
           -34,
           4,
@@ -324,8 +335,16 @@
       "name": "m09_west_gantry_entry",
       "camera": "first_person",
       "walk_to": [
-        [-34.25, 4, -20],
-        [-34.25, 4, -25.5],
+        [
+          -34.25,
+          4,
+          -20
+        ],
+        [
+          -34.25,
+          4,
+          -25.5
+        ],
         [
           -30,
           4,
@@ -397,7 +416,7 @@
           0
         ],
         [
-          -18.5,
+          -19,
           6,
           0
         ],
@@ -418,7 +437,7 @@
         "crew_freed",
         "gantry_one_cleared"
       ],
-      "note": "Actual gantry arrival and finite middle resupply."
+      "note": "Walk the complete hull-side return loop and collect its existing finite bullets; outer shelter still carries health and shells."
     },
     {
       "name": "m09_north_gantry_entry",
@@ -818,8 +837,16 @@
     {
       "name": "m09_engines_lit",
       "camera": "overview",
-      "camera_position": [16, 3, -31],
-      "camera_look_at": [11, 3.2, -17.2],
+      "camera_position": [
+        16,
+        3,
+        -31
+      ],
+      "camera_look_at": [
+        11,
+        3.2,
+        -17.2
+      ],
       "note": "Art view only: with the hatch won, the engine throats on the nacelles' stern faces are lit for departure. The player stays at the hatch."
     },
     {

@@ -128,7 +128,7 @@ design applications, not copies or claims that every reference suits every mode.
 | 6 | Keep the Rail lesson and galleries; divide customs into working spaces with offset approaches and substantial sightline breaks |
 | 7 | Preserve the town's bend and crater screening; vary the decisions along its mostly mandatory chain |
 | 8 | Preserve stacked rings and staggered stairs; distinguish the spaces within each ring |
-| 9 | Its rising perimeter route is not a route-choice loop; test a parallel ship-side approach, a cross-cradle connection and a visible ship at arrival |
+| 9 | A hull-side lane parallels the first gantry and a bow crossing parallels the north gantry; the arrival aisle under the raised office shows the hull. Judge route use in play; the arrival is a glimpse, not a full reveal |
 | 10 and 11 | Preserve the Carrier's deck circuit and the tender's service route; differentiate repeated room thresholds while retaining the mine corridor's teaching purpose |
 | 12 and 13 | Give habitat branches different tactical identities; compose the foundry around its real gallery/maintenance loop and reduce empty margins around repeated machine blocks |
 | 14 | Preserve jeep, trench and berm choices; connect them at recognizable positions with sheltered infantry approaches |
