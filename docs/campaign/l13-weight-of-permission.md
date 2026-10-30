@@ -254,12 +254,27 @@ loop without changing a fight, fact, gate or supply.
 - *Purposeful margins.* The east bay holds a casting conveyor through an
   annealing hood and coil stacks; the west bay a press and annealing pots; the
   freight floor ingot racks; the ladle floor slag pots.
-- *Presentation.* Frames, presses, columns and decks are dark steel against
-  pale walls; process light stays amber. Dressing follows the new solids, and
-  `client/qa/m13-golden.json` adds service, east bay, stairwell, flank and
-  roofline views.
+- *Process and atmosphere.* The works is dark: a low warm floor, short
+  neutral work lamps and amber process light pooled at the crucible, the
+  furnace hearth, the annealing pot, the slag pots, the conveyor hood and the
+  pour, with sparks at the crucible, pour and moulds. An overhead crane
+  carries a teeming ladle over a new mould casting line in the formerly empty
+  floor. Walls are ribbed steel under a dark grated roof deck, and gallery
+  guards are a steel handrail with an open gap below it; kick plates and
+  posts are fittings. Process light is amber, never Union red, and the actor
+  fill keeps Union bodies readable in the shade. The service corridor carries
+  the town's armoured water main to the ring's protected feed.
+- *Route evidence.* The QA route fights the freight counterattack's ground
+  defenders before the isolated Assessor; fighting only the hovering Assessor
+  while five ground defenders closed killed the scripted player on main. The
+  relay check failed when its one-frame shot never reached a server tick: the
+  server reads fire as held state each tick, so the client now holds a fire
+  tap until an Ack shows a tick consumed it (at most 150 ms). That also keeps
+  a player's quick click from vanishing between ticks.
 
 **Still open.** Fresh-player pacing and whether players find and use the
-stair flank; bot and encounter tuning against the new cover; the stone-like
-wall texture and the heavy gallery guard rails; the long service corridor's
-character; the full golden-slice verdict.
+stair flank; bot and encounter tuning against the new cover and open
+railings; the lathe headstocks still read as dark boxes from some angles; a
+Standard-difficulty scripted route; the navigation build budget is close to
+its limit, so further solids need measuring first; the full golden-slice
+verdict.

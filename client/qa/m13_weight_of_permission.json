@@ -504,37 +504,6 @@
       "settle_seconds": 0.0
     },
     {
-      "name": "m13_freight_assessor",
-      "camera": "first_person",
-      "weapon": "Rocket",
-      "combat_travel": true,
-      "combat_travel_targets": [
-        "freight_assessor"
-      ],
-      "settle_seconds": 0.0,
-      "combat": {
-        "kind": "union",
-        "required": [
-          "freight_assessor"
-        ],
-        "target_required_only": true,
-        "evade_tells": true,
-        "engagement_distance": 35.0,
-        "search_route": [
-          [
-            25,
-            0.3,
-            12.5
-          ],
-          [
-            25,
-            0.3,
-            16
-          ]
-        ]
-      }
-    },
-    {
       "name": "m13_freight_counterattack",
       "camera": "first_person",
       "weapon": "Rail",
@@ -634,6 +603,37 @@
       ],
       "combat_travel": true,
       "settle_seconds": 0.0
+    },
+    {
+      "name": "m13_freight_assessor",
+      "camera": "first_person",
+      "weapon": "Rocket",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "freight_assessor"
+      ],
+      "settle_seconds": 0.0,
+      "combat": {
+        "kind": "union",
+        "required": [
+          "freight_assessor"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            25,
+            0.3,
+            12.5
+          ],
+          [
+            25,
+            0.3,
+            16
+          ]
+        ]
+      }
     },
     {
       "name": "m13_pre_gallery_stock",

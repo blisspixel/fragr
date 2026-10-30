@@ -76,6 +76,8 @@ func configure_map(info: Dictionary) -> void:
 	_freight()
 	_ladle()
 	_structure()
+	_process_light()
+	_railings(info)
 	for room: Node3D in _unattached:
 		_finish(room)
 		ArenaSky.mark_world(room)
@@ -111,8 +113,8 @@ func _machines() -> void:
 	# Fixtures here only dress their faces, tops and the services above them.
 	for z: float in [-22.5, -1.5]:
 		for x: float in [-20, -9, 9, 23]:
-			lamp(room, Vector3(x, 8.45, z), 10)
-			fitting(room, "ServiceDrop", Vector3(x, 7.85, z), Vector3(0.06, 1.2, 0.06), Color("515c54"))
+			lamp(room, Vector3(x, 6.6, z), 10)
+			fitting(room, "ServiceDrop", Vector3(x, 8.2, z), Vector3(0.06, 3.2, 0.06), Color("515c54"))
 	for x: float in [-9, 9]:
 		lamp(room, Vector3(x, 4.0, -13), 8)
 	# The consoles are offset from their lathe centres. Keep every key on
@@ -155,7 +157,13 @@ func _machines() -> void:
 	# The service corridor joins the entrance to the ring's south end.
 	for x: float in [-34, -24, -14]:
 		lamp(ring, Vector3(x, 4.15, -41.45), 8)
-	_shape.rod(_props(ring), "CorridorMain", Vector3(-39.3, 3.4, -43.2), Vector3(-8.4, 3.4, -43.2), 0.16, _mat("service_pipe", Color("a29571")), 8)
+	# The town's armoured water main enters here and runs to the ring's
+	# protected feed: the corridor exists to carry and service it.
+	_shape.rod(_props(ring), "CorridorMain", Vector3(-39.3, 3.4, -43.15), Vector3(-8.4, 3.4, -43.15), 0.3, _mat("water_main", Color("55665f"), 0.4, 0.7), 10)
+	_shape.rod(_props(ring), "FeedRiser", Vector3(-37.95, 3.4, -43.15), Vector3(-37.95, 3.4, -31.0), 0.3, _mat("water_main", Color("55665f"), 0.4, 0.7), 10)
+	for x: float in [-34.0, -29.0, -24.0, -16.0, -11.0]:
+		fitting(ring, "MainCollar", Vector3(x, 3.4, -43.15), Vector3(0.18, 0.7, 0.7), Color("3b403d"))
+	lamp(ring, Vector3(-20.5, 4.15, -42.2), 6, true)
 	# A valve bank on the main gives the corridor one piece of cover.
 	for x: float in [-21.2, -19.8]:
 		_shape.rod(_props(ring), "ValveStem", Vector3(x, 1.6, -43.05), Vector3(x, 3.25, -43.05), 0.06, _mat("service_pipe", Color("a29571")), 6)
@@ -260,3 +268,92 @@ func _structure() -> void:
 			fitting(room, "HeadDial", Vector3(face-sign*0.015, 2.5, -14.4+index*0.25), Vector3(0.04, 0.14, 0.09), Color("b7b58e"))
 		fitting(room, "BedWay", Vector3(sign*7.8, 1.265, -13.1), Vector3(3.6, 0.03, 0.14), Color("b5a579"))
 		fitting(room, "BedWay", Vector3(sign*7.8, 1.265, -13.9), Vector3(3.6, 0.03, 0.14), Color("b5a579"))
+
+## Process light: hot amber pools where metal is melted, poured and cast.
+## It is never red, which stays the Union attack tell, and it lights the
+## world layer only, so fighters keep their own readable fill.
+const PROCESS_LIGHT: Color = Color(1.0, 0.62, 0.3)
+const MOLTEN: Color = Color("e0802e")
+
+func _process_light() -> void:
+	var room: Node3D = _room("Process")
+	# The crucible and the furnace hearth behind its heat shields.
+	_omni(room, "CrucibleGlow", Vector3(19.5, 4.6, -31.5), PROCESS_LIGHT, 6.0, 16.0)
+	_omni(room, "HearthGlow", Vector3(19.5, 2.6, -25.6), PROCESS_LIGHT, 3.0, 9.0)
+	_sparks(room, "CrucibleSparks", Vector3(19.5, 3.6, -29.1), 0.6)
+	# The pour from the great ladle and its protected stream.
+	_omni(room, "PourGlow", Vector3(0, 2.2, 31.2), PROCESS_LIGHT, 5.0, 14.0)
+	_omni(room, "LadleGlow", Vector3(0, 5.6, 38.0), PROCESS_LIGHT, 4.5, 16.0)
+	_sparks(room, "PourSparks", Vector3(0, 0.9, 32.6), 1.0)
+	# The mould line takes the pour: molten tops and a low pool of heat.
+	for x: float in [-11.5, -6.0]:
+		_block(_props(room), "MouldCharge", Vector3(3.2, 0.03, 0.6), _glow("molten", MOLTEN, 1.6), Vector3(x, 1.515, -20.0))
+		_omni(room, "MouldGlow", Vector3(x, 2.3, -20.0), PROCESS_LIGHT, 2.6, 7.5)
+	for x: float in [-14.0, -3.5]:
+		fitting(room, "MouldStop", Vector3(x, 1.1, -20.0), Vector3(0.12, 0.3, 1.3), Color("2f3533"))
+	# The annealing pot, the slag pots and the conveyor hood.
+	_omni(room, "PotGlow", Vector3(-25.0, 3.4, -7.5), PROCESS_LIGHT, 3.0, 9.0)
+	_block(_props(room), "SlagCrust", Vector3(3.6, 0.03, 3.6), _glow("molten", MOLTEN, 1.6), Vector3(33.0, 1.815, 35.0))
+	_omni(room, "SlagGlow", Vector3(33.0, 2.8, 35.0), PROCESS_LIGHT, 3.5, 10.0)
+	_omni(room, "HoodGlow", Vector3(32.0, 1.6, -12.8), PROCESS_LIGHT, 2.6, 7.0)
+	# The overhead crane carries a teeming ladle over the mould line: a
+	# glowing pour falls from its lip into the waiting moulds.
+	fitting(room, "CraneTrolley", Vector3(-8.75, 7.3, -20.0), Vector3(2.4, 0.6, 1.6), Color("3b403d"))
+	for x: float in [-9.2, -8.3]:
+		fitting(room, "CraneCable", Vector3(x, 5.7, -20.0), Vector3(0.04, 2.6, 0.04), Color("2a2e2d"))
+	fitting(room, "LadleBail", Vector3(-8.75, 4.45, -20.0), Vector3(1.7, 0.1, 0.1), Color("2a2e2d"))
+	_block(_props(room), "LadleCharge", Vector3(1.3, 0.03, 1.2), _glow("molten", MOLTEN, 1.6), Vector3(-8.75, 4.415, -20.0))
+	fitting(room, "LadleLip", Vector3(-7.85, 3.1, -20.0), Vector3(0.3, 0.2, 0.4), Color("2a2e2d"))
+	_block(_props(room), "PourStream", Vector3(0.12, 1.5, 0.12), _glow("molten", MOLTEN, 1.6), Vector3(-7.6, 2.25, -20.0))
+	_sparks(room, "MouldSparks", Vector3(-7.6, 1.6, -20.0), 0.5)
+	_omni(room, "TeemGlow", Vector3(-8.75, 2.6, -20.0), PROCESS_LIGHT, 3.0, 9.0)
+	for z: float in [-20.62, -19.38]:
+		fitting(room, "GirderFlange", Vector3(5.2, 8.0, z), Vector3(67.6, 0.12, 0.04), Color("b29a57"))
+
+## Steel railings: the authoritative handrail blocks a body, so the kick
+## plate and thin posts below it are fittings that leave the open gap open.
+func _railings(info: Dictionary) -> void:
+	var room: Node3D = _room("Railings")
+	for solid: Dictionary in info["solids"]:
+		if not is_equal_approx(float(solid.get("bottom", 0.0)), 4.25) or not is_equal_approx(float(solid["top"]), 4.4):
+			continue
+		var low: Vector3 = Vector3(float(solid["min_x"]), 3.3, float(solid["min_z"]))
+		var high: Vector3 = Vector3(float(solid["max_x"]), 4.25, float(solid["max_z"]))
+		var size: Vector3 = high - low
+		var along_x: bool = size.x >= size.z
+		var length: float = size.x if along_x else size.z
+		var centre: Vector3 = (low + high) * 0.5
+		fitting(room, "KickPlate", Vector3(centre.x, 3.36, centre.z), Vector3(size.x, 0.12, size.z), Color("3b403d"))
+		var posts: int = maxi(1, ceili(length / 1.6))
+		for index: int in range(posts + 1):
+			var t: float = float(index) / float(posts)
+			var at: Vector3 = Vector3(lerpf(low.x+0.05, high.x-0.05, t) if along_x else centre.x, 3.775, centre.z if along_x else lerpf(low.z+0.05, high.z-0.05, t))
+			fitting(room, "RailPost", at, Vector3(0.07, 0.95, 0.07), Color("3b403d"))
+
+func _sparks(room: Node3D, label: String, at: Vector3, spread: float) -> void:
+	var sparks: CPUParticles3D = CPUParticles3D.new()
+	sparks.name = label
+	sparks.position = at
+	sparks.amount = 18
+	sparks.lifetime = 0.9
+	sparks.explosiveness = 0.0
+	sparks.randomness = 0.6
+	sparks.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	sparks.emission_sphere_radius = spread * 0.3
+	sparks.direction = Vector3.UP
+	sparks.spread = 70.0
+	sparks.initial_velocity_min = 1.2
+	sparks.initial_velocity_max = 2.6
+	sparks.gravity = Vector3(0, -6.0, 0)
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(0.05, 0.05, 0.05)
+	sparks.mesh = mesh
+	sparks.material_override = _glow("spark", Color("ffb050"), 2.4)
+	room.add_child(sparks)
+
+## Work lamps in a dark works throw a brighter, tighter pool than the
+## habitat's, so shade and light alternate down each aisle.
+func lamp(room: Node3D, at: Vector3, reach: float = 7.0, warm: bool = false) -> void:
+	_block(_props(room), "Fixture", Vector3(0.7, 0.09, 0.25), _mat("lamp_housing", Color("57625b")), at)
+	_block(_props(room), "Diffuser", Vector3(0.58, 0.035, 0.18), _glow("mars_lamp_warm" if warm else "mars_lamp", Color("e4c99c") if warm else Color("d8d9c8"), 1.2), at - Vector3(0, 0.05, 0))
+	_omni(room, "WorkLight%d" % lamps, at - Vector3(0, 0.25, 0), Color(1.0, 0.85, 0.65) if warm else Color(1.0, 0.97, 0.88), 2.4, reach * 1.25)

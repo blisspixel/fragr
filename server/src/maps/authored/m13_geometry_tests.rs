@@ -277,3 +277,45 @@ fn walk(map: &Arc<AuthoredMap>, from: [f32; 3], destinations: &[[f32; 3]]) {
         );
     }
 }
+
+#[test]
+fn m13_solids_share_no_visible_coplanar_face() {
+    // Two solids whose faces lie in one plane, facing the same way and
+    // overlapping, flicker. Floor-standing bottoms and two named contacts
+    // that are enclosed by neighbouring solids are not visible faces.
+    let source: serde_json::Value = serde_json::from_slice(SOURCE).unwrap();
+    let solids = source["solids"].as_array().unwrap();
+    let hidden = [
+        ("south_hall_wall_west", "ring_roof"),
+        ("ladle_basin", "protected_pour"),
+    ];
+    let bounds = |s: &serde_json::Value| {
+        let v = |k: &str, a: usize| s[k][a].as_f64().unwrap();
+        (
+            [v("min", 0), v("min", 1), v("min", 2)],
+            [v("max", 0), v("max", 1), v("max", 2)],
+        )
+    };
+    let mut found = Vec::new();
+    for (i, a) in solids.iter().enumerate() {
+        let (alo, ahi) = bounds(a);
+        for b in &solids[i + 1..] {
+            let (blo, bhi) = bounds(b);
+            for axis in 0..3 {
+                for (av, bv, low) in [(alo[axis], blo[axis], true), (ahi[axis], bhi[axis], false)] {
+                    if (av - bv).abs() > 1e-6 || (axis == 1 && low && (av - 0.3).abs() < 1e-6) {
+                        continue;
+                    }
+                    let overlap = (0..3)
+                        .filter(|k| *k != axis)
+                        .all(|k| ahi[k].min(bhi[k]) - alo[k].max(blo[k]) > 1e-3);
+                    let pair = (a["id"].as_str().unwrap(), b["id"].as_str().unwrap());
+                    if overlap && !hidden.contains(&pair) {
+                        found.push(pair);
+                    }
+                }
+            }
+        }
+    }
+    assert!(found.is_empty(), "coplanar faces: {found:?}");
+}

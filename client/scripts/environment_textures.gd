@@ -19,9 +19,10 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"enamel": return PRODUCTION + ("union_concrete.png" if horizontal else "scrap_enamel.png")
 			"records_tile": return EARTH + "earth_scrapyard_oxidized_plate.png" if not horizontal else PRODUCTION + "scrap_steel.png"
 	if venue == "mars_foundry":
+		# Works cladding: ribbed steel walls under a dark grated roof deck.
 		match surface:
 			"concrete": return PRODUCTION + "mars_floor.png"
-			"enamel": return OffworldMaterials.DIRECTORY + ("offworld_thermal_ceramic.png" if horizontal else "offworld_pressure_habitat.png")
+			"enamel": return OffworldMaterials.DIRECTORY + "offworld_mining_deck.png" if horizontal else VENUE_WALLS + "holdfast_ribbed_steel.png"
 			"service_steel", "lift_panel": return PRODUCTION + ("mars_floor.png" if horizontal else "mars_steel.png")
 			"records_tile": return OffworldMaterials.DIRECTORY + "offworld_thermal_ceramic.png"
 	if venue in ["launch_works", "mars_habitat"]:

@@ -12,4 +12,8 @@
 {"name":"east_bay","camera":"overview","camera_position":[18,1.95,-22],"camera_look_at":[33,1.4,-9],"allow_empty_roster":true},
 {"name":"stairwell","camera":"overview","camera_position":[-34,1.95,24],"camera_look_at":[-37.7,3.4,38],"allow_empty_roster":true},
 {"name":"flank","camera":"overview","camera_position":[-38,4.95,41.75],"camera_look_at":[-14,4.3,47],"allow_empty_roster":true},
-{"name":"roofline","camera":"overview","camera_position":[30,1.95,-30],"camera_look_at":[0,9,10],"allow_empty_roster":true}]}
+{"name":"roofline","camera":"overview","camera_position":[30,1.95,-30],"camera_look_at":[0,9,10],"allow_empty_roster":true},
+{"name":"casting","camera":"overview","camera_position":[-2,1.95,-28],"camera_look_at":[-9,2.2,-20],"allow_empty_roster":true},
+{"name":"pour","camera":"overview","camera_position":[-14,1.95,24],"camera_look_at":[0,3,33],"allow_empty_roster":true},
+{"name":"graze_back_bridge","camera":"overview","camera_position":[-18,3.42,49],"camera_look_at":[18,3.3,49],"allow_empty_roster":true},
+{"name":"graze_front_bridge","camera":"overview","camera_position":[-23.5,3.42,40],"camera_look_at":[-23.5,3.3,27],"allow_empty_roster":true}]}

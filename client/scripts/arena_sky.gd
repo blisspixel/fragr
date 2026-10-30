@@ -367,21 +367,27 @@ static func mars_habitat() -> Preset:
 	preset.key_energy = 1.1
 	return preset
 
-## The foundry is roofed working space. Neutral task lighting keeps fighters
-## separate from the protected warm process surfaces and exterior Mars dust.
+## The foundry is a dark roofed works. A low warm floor and short neutral
+## work lamps leave the hall in shade, so the amber process light pooled at
+## the furnace, crucible, moulds and pour shapes it. The actor fill keeps
+## black-and-red Union bodies and their red tells readable in that shade.
 static func mars_foundry() -> Preset:
 	var preset: Preset = mars_launch()
 	preset.interior = true
-	preset.ambient_color = Color("c9d0ca")
-	preset.ambient_energy = 0.82
+	preset.fog_color = Color("2e2621")
+	preset.fog_density = 0.011
+	preset.ambient_color = Color("b4a99a")
+	preset.ambient_energy = 0.36
 	preset.key_energy = 0.0
 	preset.scene_fill_energy = 0.0
 	preset.practical_color = Color("e3ede5")
-	preset.practical_energy = 2.1
-	preset.practical_range = 13.0
-	preset.view_fill_energy = 0.48
+	preset.practical_energy = 2.6
+	preset.practical_range = 11.0
+	preset.view_fill_energy = 0.95
 	preset.view_fill_range = 45.0
-	preset.fog_density = 0.0008
+	preset.contrast = 1.12
+	preset.saturation = 0.95
+	preset.glow_intensity = 0.5
 	return preset
 
 static func holdfast() -> Preset:

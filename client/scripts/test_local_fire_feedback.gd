@@ -301,7 +301,13 @@ func _live_seams() -> void:
 	_check(game.pending_fire, "failed send retains a sub-frame trigger tap")
 	game._send_local_action(2410000)
 	_check(not game.pending_fire and pawn.fired.size() == 5, "sub-frame trigger tap produces one cue on successful send")
+	# The server reads fire once per tick, so the tap stays on the wire until
+	# an Ack shows a tick consumed it, without a second local cue. Then it
+	# releases rather than becoming a held trigger.
 	game._send_local_action(2420000)
+	_check(network.sent.back()["fire"] and pawn.fired.size() == 5, "sub-frame trigger rides until a tick consumes it, with one cue")
+	game._on_ack_received({"seq": int(network.sent.back()["seq"]), "tick": 112})
+	game._send_local_action(2430000)
 	_check(not network.sent.back()["fire"] and pawn.fired.size() == 5, "sub-frame trigger does not remain held")
 	game.latest_snapshot["vehicles"] = [{"id": 1, "driver": "self", "gunner": null}]
 	Input.action_press("fire")

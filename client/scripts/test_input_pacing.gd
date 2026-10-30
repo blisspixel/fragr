@@ -112,8 +112,36 @@ func _run() -> void:
 	_check(network.sent.size() == 2 and not network.sent[1].get("jump", false) and
 		not network.sent[1].get("interact", false) and network.sent[1].get("weapon_swap") == null,
 		"one-shot inputs clear after a successful send")
+	# The server reads fire once per tick. A tap released before that tick
+	# stays held until an Ack shows a tick consumed it, never longer than the
+	# bound, so a quick click cannot vanish between two server ticks.
+	network.sent.clear()
+	var fire_down: InputEventAction = InputEventAction.new()
+	fire_down.action = "fire"
+	fire_down.pressed = true
+	manager.call("_input", fire_down)
+	var fire_up: InputEventAction = fire_down.duplicate()
+	fire_up.pressed = false
+	manager.call("_input", fire_up)
+	manager.call("_send_local_action", now + interval * 8)
+	var tap_seq: int = int(network.sent[0]["seq"])
+	manager.call("_send_local_action", now + interval * 9)
+	_check(network.sent.size() == 2 and network.sent[0].get("fire", false) and network.sent[1].get("fire", false),
+		"a released tap stays held until a tick consumes it")
+	manager.call("_on_ack_received", {"seq": tap_seq - 1, "tick": 7})
+	manager.call("_send_local_action", now + interval * 10)
+	_check(network.sent[2].get("fire", false), "an Ack for an older input does not release the tap")
+	manager.call("_on_ack_received", {"seq": tap_seq + 1, "tick": 8})
+	manager.call("_send_local_action", now + interval * 11)
+	_check(not network.sent[3].get("fire", false), "the Ack covering the tap releases it")
+	manager.call("_input", fire_down)
+	manager.call("_input", fire_up)
+	manager.call("_send_local_action", now + interval * 12)
+	manager.call("_send_local_action", now + interval * 12 + int(manager.get("FIRE_TAP_HOLD_USEC")) + 1)
+	_check(network.sent[4].get("fire", false) and not network.sent[5].get("fire", false),
+		"without an Ack the tap is released after its bound")
 	manager.free()
 	network.free()
 	if _failures == 0:
-		print("test_input_pacing: PASS sub-frame taps delivered once, sends paced under the inbound budget")
+		print("test_input_pacing: PASS sub-frame taps delivered once, fire taps held until a tick consumes them, sends paced under the inbound budget")
 	quit(0 if _failures == 0 else 1)
