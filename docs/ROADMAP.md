@@ -41,29 +41,24 @@ This is the only active sequence. When the current rung changes, edit this secti
 
 <a id="next-steps"></a>
 
-### Wave 18: layout and encounters, in progress
+### Wave 18: layout, presentation and score, implemented
 
 Too many spaces still read as rectangular rooms joined by straight connectors.
-Wave 18 rebuilds three levels where dressing could not fix the layout, using the
-[layout review](MAP-DESIGN.md#layout-variety-and-current-gaps): Doom's changing
-combat loops, GoldenEye's connected objective rooms and Counter-Strike's
-alternate approaches. Every new route is authored on the server and must not
-skip a required story fact.
+Wave 18 rebuilt three levels where dressing could not fix the layout, using the
+[layout review](MAP-DESIGN.md#layout-variety-and-current-gaps). Every new route
+is authored on the server, and tests show it skips no required story fact.
+Evidence is native tests, scripted routes and inspected Linux captures; no
+fresh player has tried these routes.
 
-| Lane | Scope |
-|---|---|
-| Level 9 | A visible ship at arrival, a parallel ship-side approach and a cross-cradle connection |
-| Level 13 | Machine silhouettes with matching collision, a closed roof, the gallery and maintenance loop |
-| Level 17 | The raised command galleries, two stair routes and the outer service stair its brief promises |
-| Characters | Splice, Tern, Renn and Level 8's held people in their own colours (merged; no credits spent) |
-| Presentation | A Blood setting, On by default, and a sweep for visual clipping |
-| Campaign score | An optional ambient bed for every campaign level and short cues for the biggest story scenes, On by default and quiet under play; the radio stays on the dial. Two takes ship for each slot with an in-game A or B switch per level, so Nick picks while playtesting and the unpicked takes are then removed |
-
-The coordinator fixed the capture tour's Rail route (#506) with a server test
-that walks every tour route under combat shoves. Renn's own model waits for the
-Meshy refresh on November 3; Latch waits for Nick's palette choice (#455).
-Wave 17 (Level 10's Repeater and Levels 11 to 13 dressed) is summarized in the
-table below.
+| Lane | Result | Still open |
+|---|---|---|
+| Level 9 | The office stands on piers so one aisle frames the ship from arrival; an outer gantry and a hull-side lane reach the first gantry; a bow crossing joins them | The ship is a glimpse at arrival, not a full reveal; the hatch capture route keeps the timing race it has on `main`; the hatch bridge and boarding floor share a 40 m² floor face |
+| Level 13 | The foundry is composed around its maintenance loop: a closed roof, a service corridor flank, a walled stair onto the gallery, machines whose collision matches their shape, dark works lit by amber process light, a casting line and crane | Lathes still read as boxes from some angles; the hall is murky away from process light; the map is at its navigation build budget |
+| Level 17 | Raised command galleries over a working floor, an exposed and a sheltered stair, the outer service stair and a shorter opened return, dressed as an occupied Union institution in grey stone, dark steel and red | The approach, hall, ring and chamber have the palette but no furniture; the gallery fight capture route passes 3 of 5 runs |
+| Characters | Splice ochre, Tern gunmetal, Renn in a dark coat, Level 8's four held people distinct; no credits spent | Renn's own model waits for the Meshy refresh; Nick accepts Splice and Tern; Latch waits for #455 |
+| Presentation | A Blood setting, On by default; the multiplayer death camera no longer flies into walls and ceilings; Screen Flashes now reaches the HUD | Live-play viewing of the death camera |
+| Campaign score | An optional ambient bed for every campaign map and six story cues, A and B takes each, switchable per level in the pause menu; the radio replaces the score when tuned | Nick auditions all 27 slots in play; unpicked takes are then removed |
+| Shared | A fire press is latched on the server like every other press, so a quick click between ticks fires exactly once; the capture tour's Rail route stays off the Toll stair edge (#506) | |
 
 <a id="wave-19-one-more-game"></a>
 

@@ -83,6 +83,29 @@ ship geometry and two-machine networking evidence remain bounded follow-ups.
 The [roadmap](../ROADMAP.md#next-steps) owns the current sequence and Nick's
 separate review round.
 
+## Wave 18 (implemented)
+
+Nick's calls on 2026-10-30: Level 17 instead of Compliance Yard ("do what makes
+sense and is fun"); a Blood setting, On by default; an optional ambient
+campaign score, with A and B takes he picks while playtesting rather than any
+automatic choice; wait for the Meshy refresh on 2026-11-03 (usable balance was
+zero under a retained hold); keep every multiplayer map and build each out
+before any cut.
+
+| Lane | Result |
+|---|---|
+| `m09-layout` | Arrival aisle under the office piers, outer gantry and hull-side lane, bow crossing |
+| `m13-foundry` | Maintenance loop, closed roof, machine collision, amber process light; the server fire-press latch |
+| `l17-gallery` | Raised command galleries, two stairs, the service stair, Union palette and dressing |
+| `characters` | Splice, Tern, Renn and Level 8's held people in their own colours, offline recolours |
+| `presentation` | Blood setting, wall-aware death camera, Screen Flashes reaching the HUD |
+| `score` | 21 ambient beds and 6 story cues, A and B each, 109,308 ElevenLabs credits of a 140,000 ceiling |
+
+The coordinator fixed the tour's Rail route (#506) and ran a read-only story
+audit (2 blockers, 12 confusing, 27 minor; 6 designed feelings delivered, 7
+partial, 2 on paper only), which feeds wave 19's story lane. The
+[roadmap](../ROADMAP.md#next-steps) owns what remains.
+
 ## Verification
 
 Each wave PR carries the AGENTS.md verification list run on the final tree, inspected captures for anything a player sees, and exact-head and exact-main CI. Headless checks, inspected visuals, measurements, fresh-player acceptance and installed releases stay distinct.
