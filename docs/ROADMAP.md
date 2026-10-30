@@ -57,7 +57,7 @@ skip a required story fact.
 | Level 17 | The raised command galleries, two stair routes and the outer service stair its brief promises |
 | Characters | Splice, Tern, Renn and Level 8's held people in their own colours (merged; no credits spent) |
 | Presentation | A Blood setting, On by default, and a sweep for visual clipping |
-| Campaign score | An optional ambient bed for every campaign level and short cues for the biggest story scenes, On by default and quiet under play; the radio stays on the dial |
+| Campaign score | An optional ambient bed for every campaign level and short cues for the biggest story scenes, On by default and quiet under play; the radio stays on the dial. Nick picks each take by ear in the audio review page; nothing ships unpicked |
 
 The coordinator fixed the capture tour's Rail route (#506) with a server test
 that walks every tour route under combat shoves. Renn's own model waits for the
