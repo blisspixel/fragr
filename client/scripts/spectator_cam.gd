@@ -665,14 +665,22 @@ func _process_death_view(delta: float) -> void:
 		# Killer gone, suicide or no killer: hold the last view exactly.
 		return
 	var target_pos: Vector3 = target.global_position
-	var cam_pos: Vector3 = target_pos + Vector3(0, 5.5, 10.5).rotated(Vector3.UP, target.rotation.y)
 	var look_target: Vector3 = target_pos + Vector3(0, 1.5, 0)
+	# The killer's boom keeps clear of walls, decks and ceilings like the
+	# chase view: a fixed offset parked the camera inside the viaduct wall or
+	# on top of the Impound's ceiling slab, with the killer out of sight.
+	var body: Vector3 = target_pos + Vector3(0, CHASE_BODY_PROBE, 0)
+	var cam_pos: Vector3 = chase_clear_position(body, target_pos + DEATH_BOOM.rotated(Vector3.UP, target.rotation.y), assist_solids)
 	if reduced_motion:
 		global_position = cam_pos
 		if not global_position.is_equal_approx(look_target):
 			look_at(look_target, Vector3.UP)
 		return
 	position = position.lerp(cam_pos, follow_weight(0.15, delta))
+	# The glide from the dead eye must not pass through a wall: once the
+	# killer is not in sight from where the camera is, cut to the clear spot.
+	if not AimAssist.line_of_sight(body, global_position, assist_solids):
+		global_position = cam_pos
 	if not global_position.is_equal_approx(look_target):
 		var desired: Transform3D = global_transform.looking_at(look_target, Vector3.UP)
 		global_transform = global_transform.interpolate_with(desired, follow_weight(0.2, delta))
@@ -691,17 +699,24 @@ const CHASE_DROP_DEGREES: Array[float] = [15.0, 5.0]
 ## The chase view looks at the fighter's head, this far above its server
 ## reference point (1.5 m above its feet).
 const CHASE_LOOK_RISE: float = 0.3
+## Room kept past the camera's spot along its boom, so a spot that only just
+## clears a wall or slab does not put the near plane through it.
+const CHASE_CAMERA_ROOM: float = 0.35
+## The death view's boom behind and above the killer.
+const DEATH_BOOM: Vector3 = Vector3(0, 5.5, 10.5)
 
 ## The chase camera's spot on its boom from `look` to `desired`. Cover on the
 ## boom first raises the boom at full length, lowest clear angle first, so the
 ## view stays a chase view; only cover tall enough to block every angle pulls
 ## the camera in.
 static func chase_clear_position(look: Vector3, desired: Vector3, solids: Array) -> Vector3:
-	var hit: float = AimAssist.first_hit(look, desired, solids)
-	if hit < 0.0:
-		return desired
 	var boom: Vector3 = desired - look
 	var length: float = boom.length()
+	if length <= 0.001 or not boom.is_finite():
+		return desired
+	var hit: float = AimAssist.first_hit(look, desired + boom / length * CHASE_CAMERA_ROOM, solids)
+	if hit < 0.0:
+		return desired
 	var flat: Vector3 = Vector3(boom.x, 0.0, boom.z)
 	var behind: Vector3 = flat.normalized() if flat.length() > 0.001 else Vector3.BACK
 	# The longest clear stretch seen so far, for when no boom is clear.
@@ -710,7 +725,7 @@ static func chase_clear_position(look: Vector3, desired: Vector3, solids: Array)
 	for degrees: float in CHASE_LIFT_DEGREES + CHASE_DROP_DEGREES:
 		var angle: float = deg_to_rad(degrees)
 		var spot: Vector3 = look + (behind * cos(angle) + Vector3.UP * sin(angle)) * length
-		var blocked: float = AimAssist.first_hit(look, spot, solids)
+		var blocked: float = AimAssist.first_hit(look, spot + (spot - look).normalized() * CHASE_CAMERA_ROOM, solids)
 		if blocked < 0.0:
 			return spot
 		if blocked > best_free:

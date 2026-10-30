@@ -1,0 +1,14 @@
+{
+  "comment": "Clipping sweep on Larak Lot: the death view's old fixed boom against its cleared spot for a killer in the Impound and in the Lane, and first-person eye positions at the closest legal approach to a shear wall corner and under the Bridge at a jump's head contact. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=4 FRAGR_QA_MANIFEST=res://qa/clipping-larak.json. Static camera placement; the killer is a point, not a posed pawn.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "death_boom_impound_fixed", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [24, 8.5, 30.5], "camera_look_at": [24, 3.0, 20], "allow_empty_roster": true, "settle_seconds": 0.4, "note": "The old death boom for a killer in the Impound: inside the viaduct wall."},
+    {"name": "death_boom_impound_clear", "camera": "overview", "camera_position": [24, 4.41, 27.52], "camera_look_at": [24, 3.0, 20], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "The cleared boom: under the Impound ceiling, killer in view."},
+    {"name": "death_boom_lane_fixed", "camera": "overview", "camera_position": [-31, 8.5, 28.5], "camera_look_at": [-31, 3.0, 18], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "The old death boom for a killer in the Lane: inside the viaduct."},
+    {"name": "death_boom_lane_clear", "camera": "overview", "camera_position": [-31, 3.23, 27.5], "camera_look_at": [-31, 3.0, 18], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "The cleared boom in the Lane."},
+    {"name": "eye_shear_corner", "camera": "overview", "camera_position": [-9.5, 3.1, 18.5], "camera_look_at": [-10, 3.0, 19.4], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "Eye at the body radius from the shear wall, looking into the door jamb corner."},
+    {"name": "eye_under_bridge", "camera": "overview", "camera_position": [0, 2.4, -6.2], "camera_look_at": [0.3, 3.4, -6.0], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "Eye at a jump's head contact under the Bridge, looking up at the slab."},
+    {"name": "eye_viaduct_hug", "camera": "overview", "camera_position": [5, 3.1, 27.5], "camera_look_at": [6.5, 2.4, 28.0], "allow_empty_roster": true, "settle_seconds": 0.3, "note": "Eye at the body radius from the viaduct wall on the Stands, looking along it."}
+  ]
+}
