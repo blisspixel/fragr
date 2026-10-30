@@ -5,7 +5,11 @@ Shared [world direction](../design/earth.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed, unbuilt. Earth before the wipe. Target 10-14 minutes.
+**Status:** implemented development mission. Earth before the wipe. Target
+10-14 minutes, not fresh-player timing evidence. The current route is roofs,
+bridge, workshop, tram trench and freight departure, with six ordered fights.
+The district-hub sketch below predates the Level 4/5 split. It is historical
+context, not implemented connectivity or the current Level 5 layout target.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-5-no-forwarding-address).
 
 The golden-slice pass (wave 15) dresses the built route through
@@ -67,7 +71,7 @@ Give Edda and Splice a short ordinary interaction before danger escalates. Their
 survival should matter because the player met them, not because a UI calls them
 an upgrade. Mara admits the coordination failure instead of blaming every victim.
 
-## Spatial plan
+## Earlier district sketch (before the Level 4/5 split)
 
 ```mermaid
 flowchart LR

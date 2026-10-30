@@ -53,7 +53,7 @@ fighters who fill it.
   modes and levels with the population to fill them: 16 to 32 or more fighters,
   allies fighting beside the player, and vehicles that cross the space in
   seconds. That means Battlefield 1942 fronts, Halo's Blood Gulch, and the
-  campaign's combined-arms levels 13 and 14. Agents and bots make that
+  campaign's launch works and vehicle avenue (Levels 14 and 16). Agents and bots make that
   population possible on any server, labelled honestly as agents.
 - **Long lanes are lessons, not travel.** A long sightline exists because a
   weapon needs it (the Rail, the Sniper Rifle), ends at an answerable position,
@@ -84,10 +84,63 @@ through. Preserve useful openness, flanks and varied sightlines while making
 rooms, infrastructure and transitions credible. Extra corridors or decorative
 clutter cannot substitute for a believable place.
 
-The current six arenas still have oversized open spaces, repetitive cover and
-weak landmarks. The [Compliance Yard study](plans/authored-compliance-yard.md)
-is deferred spatial research, not the campaign opening. The first campaign
-graybox follows M01's intake-facility story.
+The eight-map multiplayer roster has uneven spatial quality. Larak Lot has
+layered circulation; several other maps still have oversized open spaces,
+repetitive cover and weak landmarks. The [Compliance Yard study](plans/authored-compliance-yard.md)
+is deferred spatial research, not the campaign opening. Recall Notice owns
+the campaign's intake-facility opening.
+
+## Layout variety and current gaps
+
+Keep several kinds of play across the roster. Compact room circuits, tactical
+site approaches, looping campaign encounters and terrain-led vehicle fronts
+need different geometry. A rectangular building can work well when its walls,
+openings and floors create choices. A large footprint with scattered low cover
+does not become a battlefield through scale alone.
+
+The following is source and capture assessment, not a claim of human enjoyment
+or balance. It identifies design work within the roadmap's sequence, not a
+second implementation queue. Existing captures may predate current dressing;
+authoritative geometry determines which routes actually exist.
+
+| Multiplayer map | Preserve | Spatial work still needed |
+|---|---|---|
+| Larak Lot | Five walking levels, underpass, drops, stair returns and separated item routes | Keep this compact layered standard; judge actual route use and spawn fairness in play |
+| Compliance Yard | Connected rooms, perimeter circulation and inspection gantry | Differentiate room shapes and purposes; stagger aligned doorways that currently share long firing lines; give exits different retreat destinations |
+| Directive 17 | Exposed central pickup and reachable quadrant decks | Give its repeated stairs and square combat bowl distinct approaches and contested positions |
+| Sector 9 | Central, side and perimeter routes; two Sabotage sites | Give the sites different local spaces and retake angles; shorten empty hall transit and distinguish rotations |
+| Reclamation Gulch | Centre-versus-flank choice and compound approaches | Replace the impression of flat ground with slab ridges with purposeful terrain screening and connected local fights; it currently has no vehicle roster |
+| Tripoint Works | Three identifiable compound destinations | Resolve its role before further dressing: the intended three-faction ownership system is absent, leaving a sparse compound field in ordinary matches |
+| Holdfast Atoll | Horseshoe shore, Conquest points, roads and land/sea/air vehicles | Shape terrain and sheltered infantry connections around its existing fronts; its land remains broad flat panels |
+| Low Water | Three bridges, a walk-under tram trench, four stair returns and two Sabotage sites | Differentiate clinic and depot approaches and retakes; break the trench's long firing line and the broad banks' repeated stall-and-screen pattern |
+
+For compact multiplayer, use the interconnection and recognizable-room lessons
+of GoldenEye. For objective play, use Counter-Strike's distinct approach and
+rotation decisions. Holdfast is the existing combined-arms foundation for the
+Battlefield 1942 lesson: geography organizes fronts and flanks. These are
+design applications, not copies or claims that every reference suits every mode.
+
+| Campaign levels | Spatial assessment and direction |
+|---|---|
+| 1 to 3 | Preserve Recall Notice's rejoining records routes, Persons Unknown's side ward and mezzanine, and Scheduled Service's ground/roof choices |
+| 4 | Keep the court's vertical change; differentiate market circulation and approaches around repeated stalls |
+| 5 | The implemented roof/workshop/tram chain needs a real maintenance loop and useful cross-connections; its old pre-split district-hub sketch is not built as this mission |
+| 6 | Keep the Rail lesson and galleries; divide customs into working spaces with offset approaches and substantial sightline breaks |
+| 7 | Preserve the town's bend and crater screening; vary the decisions along its mostly mandatory chain |
+| 8 | Preserve stacked rings and staggered stairs; distinguish the spaces within each ring |
+| 9 | Its rising perimeter route is not a route-choice loop; test a parallel ship-side approach, a cross-cradle connection and a visible ship at arrival |
+| 10 and 11 | Preserve the Carrier's deck circuit and the tender's service route; differentiate repeated room thresholds while retaining the mine corridor's teaching purpose |
+| 12 and 13 | Give habitat branches different tactical identities; compose the foundry around its real gallery/maintenance loop and reduce empty margins around repeated machine blocks |
+| 14 | Preserve jeep, trench and berm choices; connect them at recognizable positions with sheltered infantry approaches |
+| 15 and 16 | Review the stadium's empty upper apron and the boulevard's flat sequential flow; extra area and parallel walls alone do not create choices |
+| 17 | Implement actual command-gallery height and reconnecting stair routes; the current map's gallery walls do not provide the vertical traversal promised by its brief |
+| 18 to 20 | Preserve the overlook ascent, Planned Works' ground/roof alternatives and Local Exception's water crossings; test the broad opening and freight-yard fights for useful relocation |
+| Still Here | Keep a calm, legible return through familiar places; improve inhabited landmarks and changed views without imposing combat complexity |
+
+Doom and Doom II inform changing encounter spaces, loops and useful returns;
+GoldenEye informs compact, recognizable objective interiors. Review the actual
+weapon reach, encounter order and allowed inventory before changing a route.
+An added flank must not accidentally skip required story or rescue facts.
 
 ## Rooms, routes, and readable height
 
@@ -119,8 +172,9 @@ Verticality needs decisions: drop to a flank, climb for a precision lane, cross
 an exposed gallery, shoot between floors. Stairs must be walkable without jump.
 Essential traversal must work with actual collision, jump height and headroom.
 The shared finite-solid contract supports stacked accessible rooms and ceilings.
-M01's lift gate has two validated, precomputed states. General moving lifts and
-doors remain unbuilt; a cosmetic object cannot supply their collision or logic.
+Use the existing authoritative mission geometry seams, including M01's lift
+gate and M13's moving lift. A cosmetic object cannot supply collision or logic;
+new movement must have a validated server-owned lifecycle.
 
 ## Flow, doors and lifts
 
@@ -148,21 +202,19 @@ collision path before animation. Verify standing on a lift, exit clearance,
 retry reset, duplicate use and late observation. Human input and agent actions
 operate the same controls.
 
-## One combined-arms campaign landmark
+## Combined-arms campaign landmarks
 
-M08's launch works is the planned vehicle showcase. Build a memorable chain of
-freight depot, bermed approach and launch gantry, with occupied buildings and
-covered infantry connections. A captured utility rover with a mounted weapon is
-the first proposed drivable vehicle. It changes routes and firing positions rather
-than turning the mission into a compulsory turret ride. Vehicle fire can relieve a
-defended approach. The player can park, leave it and continue on foot.
+Launch Authority (Level 14) introduces the jeep and Continuance Walker around
+the freight depot, bermed approach and launch gantry. Freedom of Movement
+(Level 16) introduces the motorcycle. These are implemented development
+missions; their pacing and human acceptance remain open. Level 8 is the
+custody archive, not the vehicle showcase from an older campaign outline.
 
-Prove the infantry layout first, then integrate and tune the vehicle encounter.
-Destroying or abandoning the rover must not strand the mission. Vehicle movement,
+Vehicles should change routes and exposure while keeping useful buildings and
+covered infantry connections. The player can park, leave and continue on foot.
+Destroying or abandoning a vehicle must not strand the mission. Vehicle movement,
 occupancy, damage and firing remain server-owned; entry/exit safety, controls,
-spectating, agent operation and performance need evidence before release. This
-capability is planned, not present in the current engine. Aircraft and a broad
-vehicle roster are not prerequisites for this first combined-arms mission.
+spectating, agent operation and performance require separate evidence.
 
 ## Shared level kit
 

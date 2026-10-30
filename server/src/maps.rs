@@ -711,12 +711,10 @@ fn armor_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
 
 /// Compliance Yard: a records and inspection block.
 ///
-/// Pretzel flow, and the GoldenEye Facility answer. Nine rooms on a three by
-/// three grid, every one with four doors, wrapped in a perimeter service
-/// corridor that closes every loop. No sightline anywhere is longer than a
-/// room and a doorway, so the scatter gun is right almost everywhere and the
-/// rail is nearly furniture. The inspection gantry over the north room is the
-/// only high ground, and the only place the rail earns its slot.
+/// Nine rooms on a three by three grid, wrapped in a perimeter service
+/// corridor. Aligned doorways retain long axial sightlines despite the room
+/// partitions. The north inspection gantry and two low corner platforms add
+/// height; their usefulness and the repeated room shapes need play review.
 fn compliance_yard() -> MapDef {
     let half = 55.0;
     let spawn = 26.0;
@@ -800,16 +798,11 @@ fn compliance_yard() -> MapDef {
     }
 }
 
-/// Directive 17 Substation: a decommissioned transformer bowl, terraces still
-/// numbered.
+/// Directive 17 Substation: a decommissioned transformer bowl.
 ///
-/// Fishbowl flow, and the Q3DM17 answer. Three square terraces step down to a
-/// pit at the origin, and because a shot only has to clear the tops between
-/// two fighters, every metre of the pit is visible from every metre of every
-/// rim. The rail lies on the pit floor. Taking it means standing at the bottom
-/// of a bowl with three terraces of people looking at you, and the way out is
-/// one of eight stair notches, because falling in is fast and climbing out is
-/// not.
+/// Four raised quadrant decks surround a ground-level cross and exposed
+/// central pickups. Stairs and drops connect the decks to the lower routes.
+/// This is the current bowl layout, not the earlier concentric terraces.
 fn directive_17() -> MapDef {
     let half = 75.0;
     let spawn = 50.0;

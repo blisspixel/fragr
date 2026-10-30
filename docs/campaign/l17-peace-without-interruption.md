@@ -5,7 +5,10 @@ Shared [world direction](../design/earth.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed level, unbuilt. Earth before the wipe. Target 12-16 minutes.
+**Status:** implemented development mission. Earth before the wipe. Target
+12-16 minutes, not fresh-player timing evidence. The built hall, administration,
+core and chamber sequence remains at floor level. The raised command galleries
+and service stairs described below are unfinished spatial targets.
 **Confirmed ending:** Voss is captured alive; the wipe later interrupts the
 promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#level-17-peace-without-interruption).
 
