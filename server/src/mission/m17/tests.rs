@@ -211,3 +211,110 @@ fn office_lifecycle_progresses_from_breach_to_departure() {
     let m17 = state.m17.unwrap();
     assert!(m17.completed.contains(&"party_departed".to_string()));
 }
+
+fn current(s: &GameSession) -> String {
+    s.state
+        .mission_state()
+        .unwrap()
+        .m17
+        .unwrap()
+        .current
+        .unwrap()
+        .id
+}
+
+/// Breach the approach and clear the hall, leaving the ring and Kessel open.
+fn through_the_hall(s: &mut GameSession, id: Uuid) {
+    tick(s);
+    clear_enemies(s);
+    tick(s);
+    place(s, id, [0.0, 0.0, -17.0]);
+    tick(s);
+    tick(s);
+    clear_enemies(s);
+    tick(s);
+    assert_eq!(current(s), "kessel_secured");
+}
+
+#[test]
+fn service_stair_reaches_the_galleries_without_skipping_the_ring_or_the_console() {
+    let (mut s, id) = session();
+    through_the_hall(&mut s, id);
+    let g = s.state.map.m17_geometry().unwrap();
+    // The runner's line arrives on the east gallery and walks to the console
+    // before the ring has fallen or Kessel is in custody: nothing advances,
+    // the override refuses and the bulkhead stays shut.
+    place(&mut s, id, [-10.0, 3.0, 8.0]);
+    tick(&mut s);
+    interact(&mut s, id, &g.core_override);
+    assert_eq!(current(&s), "kessel_secured");
+    let m17 = s.state.mission_state().unwrap().m17.unwrap();
+    assert!(!m17.core_unsealed);
+    assert_eq!(s.state.map.m17_stage(), 0);
+
+    // The ring fight is the required alternative to Kessel's custody.
+    place(&mut s, id, [-30.0, 0.0, -8.0]);
+    tick(&mut s);
+    clear_enemies(&mut s);
+    tick(&mut s);
+    assert_eq!(current(&s), "kessel_secured");
+    // Standing on the floor beneath the console is not reaching the galleries.
+    let below = [
+        g.core_override.approach[0],
+        0.0,
+        g.core_override.approach[2] - 2.0,
+    ];
+    place(&mut s, id, below);
+    tick(&mut s);
+    assert_eq!(current(&s), "kessel_secured");
+    // Climbing to the console deck is.
+    place(&mut s, id, g.core_override.approach);
+    tick(&mut s);
+    assert_eq!(current(&s), "core_unsealed");
+    assert!(!s.state.mission_state().unwrap().m17.unwrap().kessel_secured);
+}
+
+#[test]
+fn the_override_is_used_on_the_gallery_and_opens_the_bulkhead() {
+    let (mut s, id) = session();
+    through_the_hall(&mut s, id);
+    let g = s.state.map.m17_geometry().unwrap();
+    interact(&mut s, id, &g.kessel_desk);
+    assert_eq!(current(&s), "core_unsealed");
+    // From the floor under the deck the console cannot be worked.
+    let point = g
+        .core_override
+        .point(
+            s.state.map.presentation_ref().unwrap(),
+            &s.state.map.arena().solids,
+        )
+        .unwrap();
+    place(&mut s, id, [point[0], 0.0, 13.0]);
+    s.state.set_action(
+        id,
+        Action {
+            interact: true,
+            look_at: Some(LookAt {
+                x: Some(point[0]),
+                y: Some(point[1]),
+                z: Some(point[2]),
+                player_id: None,
+            }),
+            ..Default::default()
+        },
+    );
+    tick(&mut s);
+    assert_eq!(current(&s), "core_unsealed");
+    assert_eq!(s.state.map.m17_stage(), 0);
+    let bulkhead_shut = |s: &GameSession| {
+        s.state
+            .map
+            .arena()
+            .blocked_body_at(-18.25, 19.0, 3.0, 3.0 + crate::movement::BODY_HEIGHT)
+    };
+    assert!(bulkhead_shut(&s));
+    interact(&mut s, id, &g.core_override);
+    assert_eq!(current(&s), "core_defeated");
+    assert_eq!(s.state.map.m17_stage(), 1);
+    assert!(!bulkhead_shut(&s));
+}

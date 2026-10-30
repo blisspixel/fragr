@@ -133,7 +133,7 @@ design applications, not copies or claims that every reference suits every mode.
 | 12 and 13 | Give habitat branches different tactical identities; compose the foundry around its real gallery/maintenance loop and reduce empty margins around repeated machine blocks |
 | 14 | Preserve jeep, trench and berm choices; connect them at recognizable positions with sheltered infantry approaches |
 | 15 and 16 | Review the stadium's empty upper apron and the boulevard's flat sequential flow; extra area and parallel walls alone do not create choices |
-| 17 | Implement actual command-gallery height and reconnecting stair routes; the current map's gallery walls do not provide the vertical traversal promised by its brief |
+| 17 | Command-gallery height, two ordinary stairs, the outer service stair and the override-opened court stair are built; review the two-level gallery fight in rendered play and dress the floor as occupied command rooms |
 | 18 to 20 | Preserve the overlook ascent, Planned Works' ground/roof alternatives and Local Exception's water crossings; test the broad opening and freight-yard fights for useful relocation |
 | Still Here | Keep a calm, legible return through familiar places; improve inhabited landmarks and changed views without imposing combat complexity |
 

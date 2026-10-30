@@ -46,12 +46,13 @@ pub(super) struct Definition {
     core_override: UseTarget,
     voss_rostrum: UseTarget,
     core_seal: String,
+    gallery_bulkhead: String,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct Prepared {
     pub(crate) geometry: M17MapGeometry,
-    pub(crate) core_seal: usize,
+    pub(crate) sealed: Arena,
     pub(crate) unsealed: Arena,
     pub(crate) concluded: Arena,
     pub(crate) navigation: Arc<Navigation>,
@@ -75,7 +76,7 @@ impl Definition {
             &[Clerk, Clerk, Enforcer, Auditor],
             &[Sweeper, Sweeper, Enforcer],
             &[Turret, Turret, HeavySweeper],
-            &[Clerk, Enforcer],
+            &[Clerk, Clerk, Enforcer],
             &[HeavySweeper, Assessor, Enforcer, Auditor],
         ];
         if definitions.len() != 6
@@ -133,6 +134,9 @@ impl Definition {
         let core_seal = *ids
             .get(&self.core_seal)
             .ok_or_else(|| invalid("M17 core seal missing"))?;
+        let gallery_bulkhead = *ids
+            .get(&self.gallery_bulkhead)
+            .ok_or_else(|| invalid("M17 gallery bulkhead missing"))?;
 
         let geometry = M17MapGeometry {
             objectives,
@@ -181,6 +185,17 @@ impl Definition {
         {
             return Err(invalid("M17 start cannot reach kessel desk"));
         }
+        // The override console stands on the raised north gallery: the party must
+        // climb one of the ordinary stairs to reach it.
+        if geometry.core_override.approach[1] < 2.5
+            || !standing(arena, geometry.core_override.approach)
+            || navigation
+                .route(start, geometry.core_override.approach, SEARCH_LIMIT)
+                .status
+                != RouteStatus::Complete
+        {
+            return Err(invalid("M17 start cannot climb to the gallery console"));
+        }
 
         // Unsealed arena (core override triggered): core seal lowered/opened
         let mut unsealed = arena.clone();
@@ -192,11 +207,30 @@ impl Definition {
             top: 0.1,
             max_z: 20.0,
         };
+        // The override also opens the gallery bulkhead: its threshold stays at
+        // deck height and the outer court stair carries the party down to the
+        // security core.
+        let bulkhead = arena.solids[gallery_bulkhead];
+        if (bulkhead.top - 7.0).abs() > f32::EPSILON || bulkhead.bottom != 0.0 {
+            return Err(invalid("M17 gallery bulkhead must start closed"));
+        }
+        unsealed.solids[gallery_bulkhead] = Solid {
+            top: geometry.core_override.approach[1],
+            ..bulkhead
+        };
         let unsealed_navigation = Navigation::shared(unsealed.clone()).map_err(invalid)?;
         if unsealed_navigation
-            .route(start, geometry.voss_rostrum.approach, SEARCH_LIMIT)
+            .route(
+                geometry.core_override.approach,
+                geometry.voss_rostrum.approach,
+                SEARCH_LIMIT,
+            )
             .status
             != RouteStatus::Complete
+            || unsealed_navigation
+                .route(start, geometry.voss_rostrum.approach, SEARCH_LIMIT)
+                .status
+                != RouteStatus::Complete
         {
             return Err(invalid("M17 unsealed arena cannot reach voss rostrum"));
         }
@@ -220,7 +254,7 @@ impl Definition {
 
         Ok(Prepared {
             geometry,
-            core_seal,
+            sealed: arena.clone(),
             unsealed,
             concluded,
             navigation,

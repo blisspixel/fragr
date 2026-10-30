@@ -281,13 +281,15 @@ impl GameState {
             }
         } else if index == 2 {
             // Objective 2 is kessel_secured. If kessel was secured above, index is already 3.
-            // If player pushed ahead past ring holding:
+            // A party that cleared the ring and climbed to the gallery console
+            // (on the raised deck, not merely under it) also moves on.
             let ring_clear = self.encounters.is_complete(2);
             let arrived_at_galleries = match &g.objectives[3].action {
                 MissionObjectiveAction::Use { target } => self.players.iter().any(|a| {
                     a.is_participant()
                         && self.contact_eligible(a)
                         && (a.x - target.approach[0]).hypot(a.z - target.approach[2]) < 5.0
+                        && (a.y - PLAYER_FLOOR_Y - target.approach[1]).abs() < 1.0
                 }),
                 _ => false,
             };

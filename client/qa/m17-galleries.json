@@ -1,0 +1,21 @@
+{
+  "comment": "M17 command galleries layout review: the command floor under its raised galleries, both ordinary stairs, the outer service stair from the assembly hall, the bulkhead and court stair the core override opens, the cross-floor sightlines and the gallery rail cover. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json FRAGR_QA_MANIFEST=res://qa/m17-galleries.json. Spectator geometry and composition review in the sealed world, not combat or fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"galleries_overview","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-46,26,-6],"camera_look_at":[-21,0,12],"allow_empty_roster":true,"settle_seconds":1.5,"note":"The whole command block from above: floor, galleries, stairs, service stair, court stair."},
+    {"name":"galleries_plan","camera":"overview","camera_position":[-20,46,8.5],"camera_look_at":[-20,0,8.6],"allow_empty_roster":true,"note":"Near plan view of the command block."},
+    {"name":"ring_to_floor","camera":"overview","camera_position":[-25,1.65,-9],"camera_look_at":[-25,2.5,12],"allow_empty_roster":true,"note":"From the administration ring north through the gap onto the command floor and up at the north gallery."},
+    {"name":"floor_entry","camera":"overview","camera_position":[-25,1.65,5],"camera_look_at":[-21,3.2,16],"allow_empty_roster":true,"note":"First step onto the command floor: the plotting table, the exposed stair, the north gallery rail and the console above."},
+    {"name":"floor_west","camera":"overview","camera_position":[-29.5,1.65,7],"camera_look_at":[-12,3,13],"allow_empty_roster":true,"note":"The working floor east: desks, the exposed stair, the east gallery."},
+    {"name":"exposed_stair","camera":"overview","camera_position":[-18.75,1.65,6.8],"camera_look_at":[-18.75,3.8,16],"allow_empty_roster":true,"note":"The exposed direct stair rising to the bulkhead."},
+    {"name":"sheltered_stair","camera":"overview","camera_position":[-32.7,1.65,6.8],"camera_look_at":[-32.7,3.6,14],"allow_empty_roster":true,"note":"The sheltered west stair inside its screen wall."},
+    {"name":"gallery_down","camera":"overview","camera_position":[-16,4.6,15],"camera_look_at":[-24,0.8,7],"allow_empty_roster":true,"note":"The Enforcer's post on the north rail, looking down onto the floor."},
+    {"name":"gallery_console","camera":"overview","camera_position":[-31,4.6,16],"camera_look_at":[-21,4,16.5],"allow_empty_roster":true,"note":"From the sheltered stair's arrival along the north gallery to the console."},
+    {"name":"hall_service_door","camera":"overview","camera_position":[2,1.65,-12],"camera_look_at":[-14.5,2,-1],"allow_empty_roster":true,"note":"From the assembly hall toward the outer service stair door."},
+    {"name":"service_door_close","camera":"overview","camera_position":[-9,1.65,-7],"camera_look_at":[-14.5,2.2,-1],"allow_empty_roster":true,"note":"The service door in the hall's north-west corner under its steel lintel."},
+    {"name":"service_stair","camera":"overview","camera_position":[-14.6,1.65,0.6],"camera_look_at":[-6,3.4,1.2],"allow_empty_roster":true,"note":"Inside the outer service stair."},
+    {"name":"east_gallery","camera":"overview","camera_position":[-10,4.6,6.6],"camera_look_at":[-28,2,14],"allow_empty_roster":true,"note":"Arriving on the east gallery from the service stair, across the floor."},
+    {"name":"court_stair","camera":"overview","camera_position":[-27,1.65,30],"camera_look_at":[-18,2.4,21],"allow_empty_roster":true,"note":"The outer court stair to the sealed gallery bulkhead, the chamber's west door beside it."}
+  ]
+}

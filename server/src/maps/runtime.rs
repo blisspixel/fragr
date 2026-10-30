@@ -254,14 +254,7 @@ impl RuntimeMap {
         let mut selected = map.as_ref().clone();
         match stage {
             0 => {
-                selected.arena.solids[prepared.core_seal] = Solid {
-                    min_x: -3.0,
-                    bottom: 0.0,
-                    min_z: 18.0,
-                    max_x: 3.0,
-                    top: 4.5,
-                    max_z: 20.0,
-                };
+                selected.arena = prepared.sealed.clone();
                 selected.navigation = prepared.navigation.clone();
             }
             1 => {
