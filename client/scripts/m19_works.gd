@@ -8,6 +8,8 @@ extends Node3D
 ## jetpacks come from snapshot facts; Latch's departure comes from mission
 ## facts. Nothing here is collision, cover or an interaction target.
 signal notice_requested(text: String)
+## A campaign score cue for this moment (CampaignScore slot id). Presentation only.
+signal story_cue(slot: String)
 
 const CAMERA = preload("res://scripts/spectator_cam.gd")
 const TownDressing = preload("res://scripts/low_water_dressing.gd")
@@ -191,6 +193,7 @@ func apply_state(state: Dictionary) -> void:
 		if _latch_mode == "concourse":
 			_place_latch_tank()
 		_once("latch_lines", func() -> void:
+			story_cue.emit("cue-l19")
 			_say(TANK_LINES, _latch_leave))
 	elif progress["latch_departed"] and _latch_mode != "running":
 		_hide_latch()

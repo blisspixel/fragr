@@ -157,6 +157,36 @@ cargo run -p fragr-audiogen -- promote --apply
 
 Without `--apply` it only prints the plan. With it, each candidate keeper is copied to `client/assets/audio/radio/<station>/NN-slug.<ext>`, numbered after the station's highest existing track (on the news station a candidate named `ad-...`, `caller-...` and so on joins that series, so `ad-moon-soap` ships as `ad-09-moon-soap.mp3`), and gets an entry in `client/assets/audio/audiogen-manifest.json` copied from its candidate manifest entry (prompt, model, format, title, length), which is the record `radio.gd` reads. Rejected shipped tracks are deleted with their `.import` sidecar and manifest entry. A keeper without a candidate manifest entry has no provenance and blocks the run. A station that loses tracks may not end below 12 (`--min-tracks`, the radio's no-repeat window) unless `--force` is passed. Promoted candidates are recorded in the decisions file and hidden from the page, so a second run copies nothing twice. Afterwards run the Godot import (`tools/godot_check.sh`) to create `.import` files, check `git status client/assets/audio`, and stage with `git add -A client/assets/audio`. Promotion does not commit; the distribution basis in [Licensing of the output](#licensing-of-the-output) still applies.
 
+## Campaign score takes
+
+The campaign score (`client/assets/audio/README.md`, "Campaign score") ships two takes per slot, `client/assets/audio/score/<slot>/a.mp3` and `b.mp3`. Nick picks between them in game: the match menu's Score row switches the current level's take and the last story cue's take, and the game saves each pick in its settings file under `[score] takes`. None of these commands needs a key or spends credits.
+
+Listen side by side outside the game, one tab per level or cue with its designed feeling, prompt and length:
+
+```bash
+cargo run -p fragr-audiogen -- review --score
+```
+
+`--score` switches the review page to `score/slots.json`, the shipped score folders and `.agents/score-review/decisions.json`. Marking a take Reject and running `cargo run -p fragr-audiogen -- promote --score --apply` removes it; a slot always keeps at least one take.
+
+Collect the picks made in game:
+
+```bash
+cargo run -p fragr-audiogen -- score-picks
+cargo run -p fragr-audiogen -- score-picks --save .agents/score-picks.json
+```
+
+The settings file defaults to Godot's user data folder for the project: `~/.local/share/godot/app_userdata/fragr/settings.cfg` on Linux (or under ``), `~/Library/Application Support/Godot/app_userdata/fragr/settings.cfg` on macOS and `%APPDATA%\Godot\app_userdata\fragr\settings.cfg` on Windows; `--settings` names another. An unpicked slot plays take A.
+
+Then delete every take that was not picked, with its `.import` file and manifest entry, in one step:
+
+```bash
+cargo run -p fragr-audiogen -- score-prune
+cargo run -p fragr-audiogen -- score-prune --apply
+```
+
+Without `--apply` it only prints the plan. Slots without a pick keep both takes, and a slot whose pick no longer ships is reported and left alone. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.
+
 ## What it writes
 
 - The audio file at `<out-dir>/<name>.<ext>`. `pcm_*` formats become `.wav`, `mp3_*` become `.mp3`.

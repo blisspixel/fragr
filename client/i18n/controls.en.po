@@ -231,6 +231,27 @@ msgstr "No radio in this match."
 msgid "MENU_MUSIC_HEADER"
 msgstr "MUSIC / RADIO"
 
+msgid "MENU_SCORE"
+msgstr "SCORE"
+
+msgid "MENU_SCORE_ON"
+msgstr "Score: On"
+
+msgid "MENU_SCORE_OFF"
+msgstr "Score: Off"
+
+msgid "MENU_SCORE_TAKE"
+msgstr "Level take: %s"
+
+msgid "MENU_SCORE_TAKE_NONE"
+msgstr "No level score"
+
+msgid "MENU_SCORE_CUE_TAKE"
+msgstr "Story cue take: %s"
+
+msgid "SETTINGS_CAMPAIGN_SCORE"
+msgstr "CAMPAIGN SCORE"
+
 msgid "MENU_RADIO_NOW_PLAYING"
 msgstr "Now playing: {title}"
 

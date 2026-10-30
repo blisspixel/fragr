@@ -53,6 +53,18 @@ the world: painted stencils, image-led posters, screens, graffiti and stamped
 plates. No free-standing billboards of lore. Count repeated placements, not
 just unique strings, and inspect them at playing distance in stills and motion.
 
+### Score
+
+The campaign score is ambient, optional and never the plot. Each level has one
+quiet, slow bed in a shared palette (worn tape pads, spring-reverb guitar
+harmonics, felt piano, bowed metal, low cello) with an episode colour: warm
+Earth for Recall, cold glass for the Moon, dusty amber for Common Cause, low
+resolve for the Reckoning, and subtraction for the Inheritance. No vocals, no
+drums and no lead melody, so gunfire, tells and lines read first. Short cues
+mark only the biggest designed feelings and choose restraint over swell; the
+turn in Level 18 is nearly silent. The radio stays a separate small feature,
+and a station replaces the score rather than playing over it.
+
 ### Influences and the original house style
 
 | Influence | What guides fragr |

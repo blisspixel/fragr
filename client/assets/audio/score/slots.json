@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "gain_note": "gain_db per take matches each take to -16 LUFS integrated (cue-l18 to -24, near silence by design), within +-12 dB and a -1 dBTP ceiling, so A and B compare at the same level. Measured with ffmpeg ebur128 on 2026-10-30.",
+  "slots": [
+    {"id":"l01","kind":"bed","mission":"recall_notice","name":"Level 1: Recall Notice","color":"#A8743C","feeling":"Anger with a direction. Civic intake; custody equipment interrupts an ordinary public queue.","gain_db":{"a":-0.5,"b":-2.1}},
+    {"id":"l02","kind":"bed","mission":"persons_unknown","name":"Level 2: Persons Unknown","color":"#A8743C","feeling":"Relief, then the list with your street on it. Correction rooms; Latch's restraint.","gain_db":{"a":-2.0,"b":-1.9}},
+    {"id":"l03","kind":"bed","mission":"scheduled_service","name":"Level 3: Scheduled Service","color":"#A8743C","feeling":"Conviction costs time, and it is right. A daylight freight yard under a jamming mast.","gain_db":{"a":1.8,"b":-3.5}},
+    {"id":"l04","kind":"bed","mission":"notice_to_vacate","name":"Level 4: Notice to Vacate","color":"#A8743C","feeling":"Remember one place and person here. Low Water's market and clinic before the sweep.","gain_db":{"a":-2.1,"b":-1.9}},
+    {"id":"l05","kind":"bed","mission":"no_forwarding_address","name":"Level 5: No Forwarding Address","color":"#A8743C","feeling":"The personal rescue was not enough. Evacuating Low Water's roofs and tram trench.","gain_db":{"a":-2.3,"b":-1.9}},
+    {"id":"l06","kind":"bed","mission":"port_of_entry","name":"Level 6: Port of Entry","color":"#6F8C94","feeling":"Competence. Lunar cargo entry into the custody network.","gain_db":{"a":-4.1,"b":12.0}},
+    {"id":"l07","kind":"bed","mission":"declared_goods","name":"Level 7: Declared Goods","color":"#6F8C94","feeling":"Competence, under curfew. A lived lunar town and crater cut.","gain_db":{"a":-2.8,"b":10.7}},
+    {"id":"l08","kind":"bed","mission":"custodian_of_record","name":"Level 8: Custodian of Record","color":"#6F8C94","feeling":"The cost of Latch being right. A custody archive full of people and records.","gain_db":{"a":-3.0,"b":-1.9}},
+    {"id":"l09","kind":"bed","mission":"passenger_manifest","name":"Level 9: Passenger Manifest","color":"#6F8C94","feeling":"Take back the ship. A lunar launch berth, the end of Episode II.","gain_db":{"a":-2.0,"b":-2.2}},
+    {"id":"l10","kind":"bed","mission":"common_carrier","name":"Level 10: Common Carrier","color":"#B08A4A","feeling":"Something else is watching. Boarded on our own repaired ship with rescued passengers.","gain_db":{"a":6.4,"b":10.3}},
+    {"id":"l11","kind":"bed","mission":"right_of_search","name":"Level 11: Right of Search","color":"#B08A4A","feeling":"We are done running. Boarding the Union's custody tender.","gain_db":{"a":9.7,"b":-0.8}},
+    {"id":"l12","kind":"bed","mission":"terms_of_cooperation","name":"Level 12: Terms of Cooperation","color":"#B08A4A","feeling":"Freedom is a practice, and practice can be late. A Martian habitat where help was delayed.","gain_db":{"a":-1.6,"b":-1.1}},
+    {"id":"l13","kind":"bed","mission":"weight_of_permission","name":"Level 13: The Weight of Permission","color":"#B08A4A","feeling":"The freed can say no. A working Martian foundry.","gain_db":{"a":-3.1,"b":-0.4}},
+    {"id":"l14","kind":"bed","mission":"launch_authority","name":"Level 14: Launch Authority","color":"#B08A4A","feeling":"Earned momentum. Martian launch works as the coalition mobilises.","gain_db":{"a":-0.1,"b":-1.5}},
+    {"id":"l15","kind":"bed","mission":"civic_pressure_valve","name":"Level 15: Civic Pressure Valve","color":"#8E3A34","feeling":"Earned triumph begins. The sanctioned games stadium turns into an uprising.","gain_db":{"a":1.9,"b":11.6}},
+    {"id":"l16","kind":"bed","mission":"freedom_of_movement","name":"Level 16: Freedom of Movement","color":"#8E3A34","feeling":"Earned triumph, at speed. The ceremonial avenue toward the Office.","gain_db":{"a":-1.9,"b":-3.0}},
+    {"id":"l17","kind":"bed","mission":"peace_without_interruption","name":"Level 17: Peace Without Interruption","color":"#8E3A34","feeling":"The best the free side has ever had. Earth command, the Chancellor in custody.","gain_db":{"a":5.3,"b":-3.5}},
+    {"id":"l18","kind":"bed","mission":"all_systems_normal","name":"Level 18: All Systems Normal","color":"#D8D2C4","feeling":"The floor drops out of the victory, and it does not stop dropping.","gain_db":{"a":-2.0,"b":1.1}},
+    {"id":"l19","kind":"bed","mission":"planned_works","name":"Level 19: Planned Works","color":"#D8D2C4","feeling":"Grief, and the fear of losing Latch again. Low Water at night under white work lines.","gain_db":{"a":-1.2,"b":-2.0}},
+    {"id":"l20","kind":"bed","mission":"local_exception","name":"Level 20: Local Exception","color":"#D8D2C4","feeling":"Everything you learned, spent in one place, at the edge of losing everything. Hold the pier.","gain_db":{"a":-1.6,"b":3.7}},
+    {"id":"epilogue","kind":"bed","mission":"still_here","name":"Epilogue: Still Here","color":"#7E9A6A","feeling":"Relief that does not erase the loss. The refuge, then the same place years later, green.","gain_db":{"a":3.6,"b":0.0}},
+    {"id":"cue-l02","kind":"cue","scene":"m03_arrival","name":"Cue: Latch is out (after Level 2)","color":"#A8743C","feeling":"Relief, then the list with your street on it.","gain_db":{"a":-3.4,"b":-4.0}},
+    {"id":"cue-l05","kind":"cue","scene":"l05_l06","name":"Cue: Low Water lost (after Level 5)","color":"#A8743C","feeling":"The personal rescue was not enough.","gain_db":{"a":-0.3,"b":5.9}},
+    {"id":"cue-l17","kind":"cue","scene":"m18_arrival","name":"Cue: the victory's quiet page (after Level 17)","color":"#8E3A34","feeling":"Earned triumph, the best the free side has ever had.","gain_db":{"a":0.4,"b":9.4}},
+    {"id":"cue-l18","kind":"cue","scene":"m19_arrival","name":"Cue: after the turn (after Level 18)","color":"#D8D2C4","feeling":"The floor drops out of the victory, and it does not stop dropping.","gain_db":{"a":7.8,"b":-4.5}},
+    {"id":"cue-l19","kind":"cue","mission":"planned_works","moment":"latch_choice","name":"Cue: Latch's choice (Level 19, at the tank)","color":"#D8D2C4","feeling":"Grief, and the fear of losing Latch again; then the choice.","gain_db":{"a":0.7,"b":4.1}},
+    {"id":"cue-l20","kind":"cue","scene":"l20_still_here","name":"Cue: the crossing (after Level 20)","color":"#D8D2C4","feeling":"Relief that does not erase the loss.","gain_db":{"a":2.1,"b":0.8}}
+  ]
+}

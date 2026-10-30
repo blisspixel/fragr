@@ -89,6 +89,12 @@ const DEFAULTS: Dictionary = {
 		# bone damage edge instead; machines still spark and leak oil.
 		"blood": true,
 	},
+	# The optional campaign score (CampaignScore): on or off, and the take
+	# chosen per slot while both takes ship. A missing slot plays take A.
+	"score": {
+		"enabled": true,
+		"takes": {},
+	},
 }
 
 const FLASHES_FULL: int = 0
@@ -194,6 +200,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/pixel_scale":
 		if not value is int or value < 0 or value >= RenderQuality.PIXEL_TARGETS.size():
 			value = fallback
+	if path == "score/takes":
+		value = CampaignScore.clean_takes(value)
 	(_values[section] as Dictionary)[key] = value
 
 func draft() -> FragrSettings:

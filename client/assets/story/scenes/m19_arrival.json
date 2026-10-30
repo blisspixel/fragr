@@ -3,6 +3,7 @@
   "id": "m19_arrival",
   "title_key": "MISSION_M19_TITLE",
   "skip_key": "STORY_SKIP_SCENE",
+  "music": {"path": "res://assets/audio/score/cue-l18/a.mp3", "volume_db": -12.0},
   "shots": [
     {
       "id": "ARRIVAL",

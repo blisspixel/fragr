@@ -30,6 +30,12 @@ pub const DEFAULT_TARGET: usize = 30;
 pub const DEFAULT_MIN_TRACKS: usize = 12;
 /// Loopback port for the review page.
 pub const DEFAULT_PORT: u16 = 6780;
+/// Ignored folder for any extra score takes (`<dir>/<slot>/*.mp3`).
+pub const DEFAULT_SCORE_CANDIDATES_DIR: &str = ".agents/score-review/candidates";
+/// Where score review decisions persist.
+pub const DEFAULT_SCORE_DECISIONS_FILE: &str = ".agents/score-review/decisions.json";
+/// A score slot keeps at least one take.
+pub const SCORE_MIN_TAKES: usize = 1;
 
 const AUDIO_EXTENSIONS: [&str; 3] = ["mp3", "wav", "ogg"];
 const MANIFEST_FILE: &str = crate::MANIFEST_FILE;
@@ -81,6 +87,51 @@ impl Default for ReviewConfig {
             decisions_file: PathBuf::from(DEFAULT_DECISIONS_FILE),
             target: DEFAULT_TARGET,
         }
+    }
+}
+
+impl ReviewConfig {
+    /// The campaign score: one tab per level bed or story cue, its two shipped
+    /// takes side by side, the designed feeling and the prompt. Marking a take
+    /// Reject and running `promote --score --apply` removes it; at least one
+    /// take always stays.
+    pub fn score() -> Self {
+        ReviewConfig {
+            stations_file: PathBuf::from(crate::score::DEFAULT_SLOTS_FILE),
+            radio_dir: PathBuf::from(crate::score::DEFAULT_SCORE_DIR),
+            candidates_dir: PathBuf::from(DEFAULT_SCORE_CANDIDATES_DIR),
+            decisions_file: PathBuf::from(DEFAULT_SCORE_DECISIONS_FILE),
+            target: 1,
+        }
+    }
+
+    /// Swap each radio default for the score's, keeping any path passed explicitly.
+    pub fn for_score(self) -> Self {
+        let radio = ReviewConfig::default();
+        let score = ReviewConfig::score();
+        ReviewConfig {
+            stations_file: pick(self.stations_file, radio.stations_file, score.stations_file),
+            radio_dir: pick(self.radio_dir, radio.radio_dir, score.radio_dir),
+            candidates_dir: pick(
+                self.candidates_dir,
+                radio.candidates_dir,
+                score.candidates_dir,
+            ),
+            decisions_file: pick(
+                self.decisions_file,
+                radio.decisions_file,
+                score.decisions_file,
+            ),
+            target: pick(self.target, radio.target, score.target),
+        }
+    }
+}
+
+fn pick<T: PartialEq>(given: T, radio_default: T, score_default: T) -> T {
+    if given == radio_default {
+        score_default
+    } else {
+        given
     }
 }
 
@@ -149,6 +200,8 @@ fn is_audio(file: &str) -> bool {
 
 #[derive(Deserialize)]
 struct StationsFile {
+    /// The campaign score's slots.json names them slots.
+    #[serde(alias = "slots")]
     stations: Vec<StationInfo>,
 }
 
@@ -160,6 +213,8 @@ struct StationInfo {
     #[serde(default)]
     color: String,
     #[serde(default)]
+    /// A score slot shows its designed feeling here.
+    #[serde(alias = "feeling")]
     tagline: String,
 }
 
@@ -1778,5 +1833,79 @@ mod tests {
         let mut text = String::new();
         garbage.read_to_string(&mut text).unwrap();
         assert!(text.starts_with("HTTP/1.1 400"), "{text}");
+    }
+
+    #[test]
+    fn score_review_scans_slots_and_promote_keeps_one_take() {
+        let root = std::env::temp_dir().join(format!("fragr-review-score-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let audio = root.join("client/assets/audio");
+        let score = audio.join("score");
+        fs::create_dir_all(score.join("l04")).unwrap();
+        fs::create_dir_all(score.join("cue-l19")).unwrap();
+        fs::write(
+            score.join("slots.json"),
+            r#"{"format": 1, "slots": [{"id": "l04", "kind": "bed", "mission": "notice_to_vacate", "name": "Level 4", "feeling": "Remember one place."}, {"id": "cue-l19", "kind": "cue", "name": "Cue"}]}"#,
+        )
+        .unwrap();
+        let mut manifest = crate::Manifest::default();
+        for take in ["a", "b"] {
+            fs::write(score.join(format!("l04/{take}.mp3")), b"abc").unwrap();
+            manifest.entries.insert(
+                format!("score/l04/{take}"),
+                entry(&format!("score/l04/{take}.mp3"), "Level 4"),
+            );
+        }
+        save_manifest(&audio, &manifest).unwrap();
+        let config = ReviewConfig {
+            stations_file: score.join("slots.json"),
+            radio_dir: score.clone(),
+            candidates_dir: root.join("none"),
+            decisions_file: root.join("decisions.json"),
+            target: 1,
+        };
+        let mut decisions = Decisions::default();
+        let catalog = scan_catalog(&config, &decisions).unwrap();
+        assert_eq!(catalog.stations.len(), 2);
+        let bed = &catalog.stations[0];
+        assert_eq!(
+            (bed.name.as_str(), bed.tagline.as_str()),
+            ("Level 4", "Remember one place.")
+        );
+        assert_eq!(bed.tracks.len(), 2, "both takes side by side");
+        assert_eq!(bed.tracks[0].manifest_key.as_deref(), Some("score/l04/a"));
+        assert!(bed.tracks[0].prompt.is_some() && bed.tracks[0].duration_ms == Some(120_000));
+        assert!(
+            catalog.stations[1].tracks.is_empty(),
+            "a slot without files is an empty tab"
+        );
+        // Rejecting both takes leaves the slot below its one-take minimum.
+        decisions.set("shipped/l04/a.mp3", Some(Decision::Reject), 1);
+        decisions.set("shipped/l04/b.mp3", Some(Decision::Reject), 1);
+        let plan = plan_promotion(&config, &catalog, &decisions);
+        assert!(promotion_refusal(&plan, SCORE_MIN_TAKES, false).is_some());
+        decisions.set("shipped/l04/b.mp3", Some(Decision::Keep), 1);
+        let plan = plan_promotion(&config, &catalog, &decisions);
+        assert!(promotion_refusal(&plan, SCORE_MIN_TAKES, false).is_none());
+        apply_promotion(&config, &plan, &mut decisions, 2).unwrap();
+        assert!(!score.join("l04/a.mp3").exists() && score.join("l04/b.mp3").exists());
+        let after = crate::load_manifest(&audio).unwrap();
+        assert!(
+            !after.entries.contains_key("score/l04/a") && after.entries.contains_key("score/l04/b")
+        );
+        // Explicit paths win over the score defaults; radio defaults are swapped.
+        let swapped = ReviewConfig::default().for_score();
+        assert_eq!(swapped, ReviewConfig::score());
+        let explicit = ReviewConfig {
+            decisions_file: PathBuf::from("mine.json"),
+            ..ReviewConfig::default()
+        }
+        .for_score();
+        assert_eq!(explicit.decisions_file, PathBuf::from("mine.json"));
+        assert_eq!(
+            explicit.radio_dir,
+            PathBuf::from(crate::score::DEFAULT_SCORE_DIR)
+        );
+        fs::remove_dir_all(&root).unwrap();
     }
 }

@@ -42,6 +42,13 @@ var _announcer_volume: HSlider
 const MENU_AUDIO_KEYS: Array[String] = ["music", "announcer", "announcer_volume"]
 var _audio_draft: FragrSettings = null
 var _music_revision: int = -1
+## The campaign score, when this is a campaign: On or Off and the A or B take
+## for this level and for the last story cue, switched live.
+var score: CampaignScore = null
+var _score_row: HBoxContainer
+var _score_toggle: Button
+var _score_take: Button
+var _cue_take: Button
 
 func _ready() -> void:
 	layer = 100
@@ -176,6 +183,7 @@ func _build_music() -> void:
 	volume_row.add_child(_music_volume)
 	_music_volume_note = _music_line("VolumeNote")
 	_music_volume_note.add_theme_color_override("font_color", MenuTheme.MUTED)
+	_build_score()
 	_build_announcer()
 
 ## One row: who speaks (On, Big moments only, Off) and how loud.
@@ -224,6 +232,62 @@ func _music_line(node_name: String) -> Label:
 	line.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_music_box.add_child(line)
 	return line
+
+## One row under the radio: the score switch and the two take buttons.
+func _build_score() -> void:
+	_score_row = HBoxContainer.new()
+	_score_row.name = "Score"
+	_score_row.add_theme_constant_override("separation", 8)
+	_score_row.visible = false
+	_music_box.add_child(_score_row)
+	var label: Label = Label.new()
+	label.text = tr("MENU_SCORE")
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	_score_row.add_child(label)
+	_score_toggle = _score_button("ScoreToggle", func() -> void:
+		if score != null:
+			score.set_enabled(not score.enabled))
+	_score_take = _score_button("ScoreTake", func() -> void:
+		if score != null and not score.bed_slot().is_empty():
+			score.toggle_take(score.bed_slot()))
+	_cue_take = _score_button("CueTake", func() -> void:
+		if score != null and not score.last_cue.is_empty():
+			score.toggle_take(score.last_cue))
+
+func _score_button(node_name: String, handler: Callable) -> Button:
+	var button: Button = Button.new()
+	button.name = node_name
+	button.custom_minimum_size = Vector2(200.0, 42.0)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.pressed.connect(func() -> void:
+		handler.call()
+		refresh_score())
+	_score_row.add_child(button)
+	return button
+
+## Attach the campaign score, or null outside a campaign.
+func bind_score(node: CampaignScore) -> void:
+	if score != null and score.now_scoring_changed.is_connected(refresh_score):
+		score.now_scoring_changed.disconnect(refresh_score)
+	score = node
+	if score != null:
+		score.now_scoring_changed.connect(refresh_score)
+	refresh_score()
+
+## Labels from the score's own state, never from the last button pressed.
+func refresh_score() -> void:
+	if _score_row == null:
+		return
+	_score_row.visible = score != null
+	if score == null:
+		return
+	_score_toggle.text = tr("MENU_SCORE_ON") if score.enabled else tr("MENU_SCORE_OFF")
+	var slot: String = score.bed_slot()
+	_score_take.text = tr("MENU_SCORE_TAKE") % score.take_for(slot).to_upper() if not slot.is_empty() else tr("MENU_SCORE_TAKE_NONE")
+	_score_take.disabled = slot.is_empty()
+	_cue_take.visible = not score.last_cue.is_empty()
+	_cue_take.text = tr("MENU_SCORE_CUE_TAKE") % score.take_for(score.last_cue).to_upper()
+	_cue_take.disabled = not score.enabled
 
 ## Attach the match radio. Safe before or after the menu enters the tree.
 func bind_radio(node: Node) -> void:
@@ -407,6 +471,7 @@ func open() -> void:
 	_block_radio_shortcuts(true)
 	_refresh_note()
 	refresh_music()
+	refresh_score()
 	_fit_panel()
 	MouseCapture.release()
 	await get_tree().process_frame

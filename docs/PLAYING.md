@@ -266,6 +266,21 @@ also stops the radio dipping for the Host. Frags, objectives and result cards al
 Announcer volume sets the Host's own audio bus; the Host's calls are text
 today, so the slider has nothing to play until the voice is recorded.
 
+The campaign has an optional ambient **score**: a quiet bed for each level and
+the epilogue, and a few short cues on story pages and at Latch's choice in
+Level 19. **Campaign score** in Settings > Audio is On by default; the match
+menu has the same switch in its **Score** row. One rule joins it to the radio:
+a radio tuned to a station replaces the score, and switching the radio off
+gives the air back to it. With the score on, a campaign starts with the radio
+off and the dial still works. The bed dips under the Host, barks and heavy
+fighting, and rests while a story page plays. Multiplayer has no score.
+
+Every level and cue ships two takes, A and B, until one is chosen. The
+match menu's **Level take** button switches the current level's bed live,
+and **Story cue take** switches the last cue heard (it applies the next time
+that cue plays). Each choice is saved per level in the settings file; an
+unchosen level plays A.
+
 Hold Tab to list every fighter: rank, callsign and behaviour chip, frags,
 deaths and ping in milliseconds (a dash for a rule bot or a connection the
 server has not timed yet). A fighter waiting to respawn keeps their row.
@@ -422,7 +437,7 @@ The boot menu and in-match menu share Controls, Look, Display, Graphics,
 Audio and Accessibility settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, an optional frame counter, sensitivity, stick
 response and separate master, effects, announcer, radio and story voice
-levels. The tilde key opens a
+levels, and switch the campaign score on or off. The tilde key opens a
 console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
 counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during

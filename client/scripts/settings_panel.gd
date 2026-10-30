@@ -149,6 +149,7 @@ func show_page(page: String) -> void:
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider(tr("SETTINGS_VOICE"), "audio", "voice", 0.0, 1.0, 0.05)
 			_toggle(tr("SETTINGS_STORY_CAPTIONS"), "gameplay", "story_captions")
+			_toggle(tr("SETTINGS_CAMPAIGN_SCORE"), "score", "enabled")
 			_note.text = tr("SETTINGS_AUDIO_NOTE")
 
 func focus_first() -> void:
