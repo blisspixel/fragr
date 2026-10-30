@@ -69,17 +69,17 @@ table below.
 ### Wave 19: one more game (next)
 
 The test for every lane: after a match, does the player want another one right
-away? Fewer, better things beat more things.
+away? Finish and polish what exists before adding more.
 
 | Lane | Scope |
 |---|---|
-| Fewer, better maps | Cut the default rotation to the three or four maps that play best by measurement. Bring Compliance Yard and Low Water up to Larak Lot's bar using the layout review. Hide the rest from default rotations (not deleted) until they earn their place. |
+| Every map excellent | Keep all eight maps. Bug-hunt and fix each one in play (stuck spots, spawns, pad and route problems, clipping), then raise them toward Larak Lot's bar through the layout review, starting with Compliance Yard and Low Water. Add a per-map enable or disable switch for hosts, in the menu and on the server (today rotation cycles every map or a fixed night list); no map is cut until every map has had that full build-out and play evidence says otherwise. |
 | The between-match hook | On the podium: your nemesis, head-to-head against each rival (the server already keeps these records) and personal bests. Then a three-map vote that counts down into the next match with no menu. |
 | Death as a seat | In team modes, follow a living teammate after death and mark the clutch. Give the trailing Sabotage side a visible, earned way back (the loss bonus that kept Counter-Strike rounds alive). |
 | Story consistency | Fix the findings of the story audit: continuity, motivation, names and tone across the lore, the briefs and what each level actually shows and says, Recall Notice through Still Here. |
 
 Promote the October 23 multiplayer study into the wave 19 plan. Close the wave
-with a measured fun night of bots and agents on the curated rotation, then a
+with a measured fun night of bots and agents across every map, then a
 human LAN night:
 
 | Signal | Target |
