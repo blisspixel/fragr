@@ -848,7 +848,10 @@ World-point aim:
 - `forward` / `back`: Move forward/backward
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
-- `fire`: Fire weapon
+- `fire`: Fire weapon. Held state fires at the weapon's cadence. A rising edge
+  is also latched like `reload`: a press released before the next tick still
+  reaches that tick, which consumes it once whether or not the weapon can fire
+  (a cooldown, warm-up or empty magazine drops it rather than queueing a shot)
 - `reload`: Optional boolean, omitted while false. A rising edge starts one
   reload of the selected gun. Holding it does not start another until a packet
   omits the key. An unarmed pawn, an agent, melee, a full magazine, a bag with
@@ -930,7 +933,7 @@ World-point aim:
   later ticks until a newer Action replaces it. Weapon selection and a jump
   press survive intervening packets until an active tick consumes them.
 - Death ends that life's input. The server clears held movement and every
-  queued press (jump, use, grenade, mine, reload, remote mines) at the death
+  queued press (jump, use, grenade, mine, reload, remote mines, a fire tap) at the death
   tick. A `fire` still held at death stays latched: the next life fires only
   after an Action releases the trigger. While a fighter awaits respawn the
   server keeps only its newest held state; presses, weapon choices and seat

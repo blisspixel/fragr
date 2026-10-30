@@ -1812,7 +1812,13 @@ func _await_fire_strip(state: Dictionary, probe: Node) -> void:
 		if not _local_human_alive(manager):
 			receipt["interrupted_by_death"] = true
 			continue
-		Input.action_press("fire")
+		# An ordinary press event, as a mouse click delivers it, so the client's
+		# own press latch carries even a one-frame single shot to its next
+		# paced send. A bare action_press is invisible to that latch.
+		var fire_press: InputEventAction = InputEventAction.new()
+		fire_press.action = "fire"
+		fire_press.pressed = true
+		Input.parse_input_event(fire_press)
 		# The named effect must really appear. The timeout and the strip's
 		# visible-frame assertion are unchanged by respawn handling.
 		var deadline: int = Time.get_ticks_msec() + 2500

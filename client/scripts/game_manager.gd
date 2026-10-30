@@ -102,12 +102,6 @@ var pending_fire: bool = false
 var pending_again: bool = false
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
-## The server reads fire as held state once per tick, so a tap released
-## before the next tick would vanish. A sent tap stays held until an Ack
-## shows a tick consumed it, bounded by FIRE_TAP_HOLD_USEC.
-const FIRE_TAP_HOLD_USEC: int = 150000
-var _fire_tap_seq: int = 0
-var _fire_tap_usec: int = 0
 var jump_armed: bool = true
 var pending_interact: bool = false
 var interact_held: bool = false
@@ -1606,7 +1600,6 @@ func _input(_event):
 		remote_trigger_armed = true
 	if controls_blocked():
 		pending_fire = false
-		_fire_tap_seq = 0
 		pending_seat = ""
 		pending_throw = false
 		throw_armed = false
@@ -1759,9 +1752,6 @@ var stutter_trace_path: String = ""
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
-	if _fire_tap_seq != 0 and EquipmentState.integer(data.get("seq"), MAX_ACTION_SEQ) \
-			and (int(data["seq"]) - _fire_tap_seq + MAX_ACTION_SEQ + 1) % (MAX_ACTION_SEQ + 1) < 2147483648:
-		_fire_tap_seq = 0
 	local_fire.acknowledge(int(data.get("seq", -1)), int(data.get("tick", -1)))
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
@@ -2082,9 +2072,7 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
 	if not Input.is_action_pressed("fire") and not pending_fire:
 		fire_armed = true
-	if _fire_tap_seq != 0 and now_usec - _fire_tap_usec > FIRE_TAP_HOLD_USEC:
-		_fire_tap_seq = 0
-	action_state.fire = fire_armed and (pending_fire or Input.is_action_pressed("fire") or _fire_tap_seq != 0)
+	action_state.fire = fire_armed and (pending_fire or Input.is_action_pressed("fire"))
 	if not Input.is_action_pressed("jump") and not pending_jump:
 		jump_armed = true
 	action_state.jump = jump_armed and (pending_jump or Input.is_action_pressed("jump"))
@@ -2129,7 +2117,6 @@ func _send_local_action(now_usec: int) -> bool:
 	if controls_blocked():
 		interact_held = false
 		pending_fire = false
-		_fire_tap_seq = 0
 		pending_seat = ""
 		pending_jump = false
 		pending_dodge = false
@@ -2215,9 +2202,6 @@ func _send_local_action(now_usec: int) -> bool:
 			_note_reload_request()
 		_reload_sent_down = reload_sent
 		_present_local_fire(action_state, now_usec)
-		if pending_fire and bool(action_state.get("fire", false)):
-			_fire_tap_seq = input_seq
-			_fire_tap_usec = now_usec
 		pending_seat = ""
 		pending_again = false
 		pending_fire = false
@@ -2301,7 +2285,6 @@ func _view_camera() -> Camera3D:
 
 func _reset_local_fire() -> void:
 	pending_fire = false
-	_fire_tap_seq = 0
 	_cancel_local_fire_effect()
 	# A death snapshot can also confirm the last shot in a trade. Consume that
 	# receipt before forgetting the old life, even if the pawn was removed.
@@ -3852,7 +3835,6 @@ func _end_life_input() -> void:
 
 func _drop_life_presses() -> void:
 	pending_fire = false
-	_fire_tap_seq = 0
 	pending_jump = false
 	pending_dodge = false
 	pending_interact = false

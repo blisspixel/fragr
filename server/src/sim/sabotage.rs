@@ -480,6 +480,7 @@ impl GameState {
         }
         for player in self.players.iter_mut().filter(|p| p.contestant()) {
             player.pending_action.fire = false;
+            player.fire_requested = false;
             player.pending_action.throw_grenade = false;
             player.pending_action.place_mine = false;
             player.throw_requested = false;

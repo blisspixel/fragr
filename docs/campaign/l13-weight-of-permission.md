@@ -267,10 +267,12 @@ loop without changing a fight, fact, gate or supply.
 - *Route evidence.* The QA route fights the freight counterattack's ground
   defenders before the isolated Assessor; fighting only the hovering Assessor
   while five ground defenders closed killed the scripted player on main. The
-  relay check failed when its one-frame shot never reached a server tick: the
-  server reads fire as held state each tick, so the client now holds a fire
-  tap until an Ack shows a tick consumed it (at most 150 ms). That also keeps
-  a player's quick click from vanishing between ticks.
+  relay check failed when its one-frame shot never reached a server tick:
+  the server read fire only as held state, so a press and release between two
+  ticks was lost. The server now latches a fire press like jump and reload, so
+  one tick consumes it and fires once; a player's quick click no longer
+  vanishes either. The QA tour's single shot now arrives as an ordinary press
+  event, so the client's own press latch carries it to the next send.
 
 **Still open.** Fresh-player pacing and whether players find and use the
 stair flank; bot and encounter tuning against the new cover and open

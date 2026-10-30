@@ -157,6 +157,57 @@ fn a_trigger_held_through_death_needs_a_release_after_respawn() {
 }
 
 #[test]
+fn a_tap_after_respawn_fires_only_once_the_held_trigger_was_released() {
+    let mut duel = Duel::new();
+    duel.send(Action {
+        fire: true,
+        ..Default::default()
+    });
+    duel.kill();
+    // A tap while down is not queued into the next life.
+    duel.send(Action::default());
+    duel.send(Action {
+        fire: true,
+        ..Default::default()
+    });
+    duel.tick_to_respawn();
+    // Still held into the new body, then a release and re-press between
+    // two ticks: no tick saw the release, so the trigger stays latched.
+    duel.send(Action {
+        fire: true,
+        ..Default::default()
+    });
+    duel.state.tick(0.05);
+    assert!(
+        !duel.body().just_fired,
+        "held trigger fired into a new life"
+    );
+    duel.send(Action::default());
+    duel.send(Action {
+        fire: true,
+        ..Default::default()
+    });
+    duel.state.tick(0.05);
+    assert!(
+        !duel.body().just_fired,
+        "an unobserved release does not unlatch"
+    );
+    duel.send(Action::default());
+    duel.state.tick(0.05);
+    assert!(!duel.body().just_fired);
+    // After an observed release, a tap between ticks fires exactly once.
+    duel.send(Action {
+        fire: true,
+        ..Default::default()
+    });
+    duel.send(Action::default());
+    duel.state.tick(0.05);
+    assert!(duel.body().just_fired, "a tap after release fires");
+    duel.state.tick(0.05);
+    assert!(!duel.body().just_fired, "the tap is consumed by one tick");
+}
+
+#[test]
 fn presses_made_while_down_are_not_queued_into_the_next_life() {
     let mut duel = Duel::new();
     duel.kill();
@@ -176,6 +227,10 @@ fn presses_made_while_down_are_not_queued_into_the_next_life() {
     assert!(!body.jump_requested && !body.interaction_requested);
     assert!(!body.throw_requested && !body.place_requested && !body.reload_requested);
     assert!(!body.remote_place_requested && !body.remote_trigger_requested);
+    assert!(
+        !body.fire_requested,
+        "a trigger press while down is not queued"
+    );
     assert_eq!(body.pending_action.weapon_swap, None);
     assert!(body.fire_latched, "fire pressed while down is latched");
     // An input that releases the trigger while down clears the latch.
