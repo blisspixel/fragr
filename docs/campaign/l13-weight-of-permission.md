@@ -218,5 +218,48 @@ light without changing collision. No signs, hazards or objectives are added.
 `client/qa/m13-golden.json` covers nine eye-height art views, and the existing
 `m13_weight_of_permission.json` tour keeps route and lift evidence separate.
 `test_mars_dressing.gd` covers lifecycle, geometry and light-layer invariants.
-Fresh-player pacing, the open roof strips, remaining primitive machine silhouettes and the full
-golden-slice quality verdict remain open.
+The layout pass below closes the roof strips and replaces the primitive machine
+blocks.
+
+## Foundry layout pass
+
+Wave 18 recomposed the existing route around its gallery and maintenance
+loop without changing a fight, fact, gate or supply.
+
+**Implemented (server geometry, `m13_geometry_tests.rs`).**
+
+- *Closed works.* The open yards beside the service entrance are sealed
+  behind a full-height south hall wall and are no longer reachable. Clerestory
+  walls close the step from hall roof to ladle roof, the ring's low roof and
+  the entrance roof, and the ladle hall's side walls rise to its roof. The
+  freight lift keeps its daylight shaft under a hood. A test samples every
+  standing position for an open roof and every clerestory for a gap.
+- *Service corridor.* A door in the entrance's west wall leads along a low
+  corridor, with one valve bank for cover, into the ring's south end. The
+  first fight can be taken head-on from the entrance or flanked from the
+  ring's west door. Entering this way is still the first fact.
+- *Maintenance stair flank.* The ring's north end climbs a walled stairwell
+  to a landing on the west gallery, behind the front defenders and close to
+  the Heavy on the back bridge. The front stairs remain the exposed duel with
+  the marksman across the ladle. Tests prove the loop is walked both ways
+  without jumping, the stairwell hides a climbing body from the marksman and
+  the ladle floor, and standing on the flank early neither wakes the gallery
+  fight nor completes a later fact.
+- *Machine silhouettes with matching collision.* The lathes are bed,
+  headstock, tailstock and rear guard: waist cover a shot clears, backed by
+  cover that is not. The centre press and a new west press have a real window
+  between bolster and ram. The furnace hood stands on posts over a glowing
+  crucible; the hazard cycle belongs to a drop hammer frame; the west moulding
+  machine carries a hopper. Four roof columns give the hall its rhythm.
+- *Purposeful margins.* The east bay holds a casting conveyor through an
+  annealing hood and coil stacks; the west bay a press and annealing pots; the
+  freight floor ingot racks; the ladle floor slag pots.
+- *Presentation.* Frames, presses, columns and decks are dark steel against
+  pale walls; process light stays amber. Dressing follows the new solids, and
+  `client/qa/m13-golden.json` adds service, east bay, stairwell, flank and
+  roofline views.
+
+**Still open.** Fresh-player pacing and whether players find and use the
+stair flank; bot and encounter tuning against the new cover; the stone-like
+wall texture and the heavy gallery guard rails; the long service corridor's
+character; the full golden-slice verdict.

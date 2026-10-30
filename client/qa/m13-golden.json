@@ -7,4 +7,9 @@
 {"name":"office","camera":"overview","camera_position":[14,1.95,6],"camera_look_at":[23,1.8,8],"allow_empty_roster":true},
 {"name":"freight","camera":"overview","camera_position":[12,1.95,12],"camera_look_at":[0,3,20],"allow_empty_roster":true},
 {"name":"gallery","camera":"overview","camera_position":[-23.5,4.95,30],"camera_look_at":[0,7.5,37],"allow_empty_roster":true},
-{"name":"lift","camera":"overview","camera_position":[12,4.95,49],"camera_look_at":[0,6,52],"allow_empty_roster":true}]}
+{"name":"lift","camera":"overview","camera_position":[12,4.95,49],"camera_look_at":[0,6,52],"allow_empty_roster":true},
+{"name":"service","camera":"overview","camera_position":[-9.5,1.95,-41.4],"camera_look_at":[-34,1.6,-41.4],"allow_empty_roster":true},
+{"name":"east_bay","camera":"overview","camera_position":[18,1.95,-22],"camera_look_at":[33,1.4,-9],"allow_empty_roster":true},
+{"name":"stairwell","camera":"overview","camera_position":[-34,1.95,24],"camera_look_at":[-37.7,3.4,38],"allow_empty_roster":true},
+{"name":"flank","camera":"overview","camera_position":[-38,4.95,41.75],"camera_look_at":[-14,4.3,47],"allow_empty_roster":true},
+{"name":"roofline","camera":"overview","camera_position":[30,1.95,-30],"camera_look_at":[0,9,10],"allow_empty_roster":true}]}
