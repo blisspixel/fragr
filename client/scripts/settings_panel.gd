@@ -139,6 +139,7 @@ func show_page(page: String) -> void:
 			_option(tr("SETTINGS_TEAM_COLOURS"), "accessibility", "team_colours",
 				[tr("SETTINGS_TEAM_STANDARD"), tr("SETTINGS_TEAM_HIGH_CONTRAST")],
 				[FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST])
+			_toggle(tr("SETTINGS_BLOOD"), "accessibility", "blood")
 			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)

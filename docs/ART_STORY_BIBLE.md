@@ -206,7 +206,9 @@ Combat effects keep the same chunky pixel scale and the faction colour law
 (`client/scripts/shot_vfx.gd` owns the tables, `tools/bake_shot_vfx.gd` the
 art). Gunfire and blasts light the world amber to warm white, never red,
 which stays the Union attack tell. A body hit bleeds in dried-blood tones,
-not bright Union red; a free agent's synthetic body throws sparks and dark
+not bright Union red (Settings > Accessibility > Blood, On by default; Off
+swaps it for a dust and lint puff in bone and gunmetal, and the damage edge
+for bone); a free agent's synthetic body throws sparks and dark
 oil, never cyan, which belongs to the Inheritance. The Railgun is a cold
 near-white core with only a pale cyan edge and a near-white light. Every
 effect is a hard-alpha sprite or skinned model that fades through an ordered

@@ -185,6 +185,8 @@ const FP_BOTTOM_OVERLAP: float = 12.0
 const FP_TEXEL: float = 2.0
 var head_bob_enabled: bool = true
 var reduced_motion: bool = false
+## The Blood setting. Off, the damage edge flashes bone instead of red.
+var blood_enabled: bool = true
 ## Settings > Audio > Announcer: which Host calls reach the voice row.
 var announcer: int = FragrSettings.ANNOUNCER_ON
 var _round_pulse: Tween
@@ -1328,6 +1330,9 @@ func apply_preferences(settings: FragrSettings) -> void:
 		sniper_scope.set_mode(scope_mode)
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
 	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
+	blood_enabled = settings.blood()
+	if screen_flash != null:
+		screen_flash.set_flash_mode(settings.screen_flashes())
 	announcer = settings.announcer()
 	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob")) and not reduced_motion
 	if reduced_motion:
@@ -2589,7 +2594,12 @@ func show_damage_flash() -> void:
 	if not fp_juice_enabled:
 		return
 	if screen_flash != null:
-		screen_flash.trigger("damage", MenuTheme.DANGER, 0.22)
+		screen_flash.trigger("damage", damage_flash_colour(), 0.22)
+
+## The edge colour of the joined player's damage cue: red with Blood on, a
+## neutral bone with it off. Screen Flashes still decide whether it shows.
+func damage_flash_colour() -> Color:
+	return MenuTheme.DANGER if blood_enabled else MenuTheme.BONE
 
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:

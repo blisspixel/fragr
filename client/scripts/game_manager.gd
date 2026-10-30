@@ -787,6 +787,8 @@ func _apply_preferences() -> void:
 	settings.apply()
 	camera.apply_preferences(settings)
 	hud.apply_preferences(settings)
+	if shot_effects != null:
+		shot_effects.blood = settings.blood()
 	for pickup: Node in pickups.values():
 		if is_instance_valid(pickup):
 			pickup.set_reduced_motion(bool(settings.get_value("accessibility", "reduced_motion")))
@@ -3340,7 +3342,7 @@ func _on_event_received(data):
 		var killer_name = "" if killer_raw == null else str(killer_raw)
 		hud.show_boss_down(str(data.get("message", "")), killer_name)
 	elif event_type == "hit":
-		# Victim blood flash only. Shooter hit markers come from Snapshot shot_results.
+		# Victim damage cue only (red, or bone with Blood off). Shooter hit markers come from Snapshot shot_results.
 		var target_id = str(data.get("target_id", ""))
 		var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 		var dmg: Variant = data.get("damage")

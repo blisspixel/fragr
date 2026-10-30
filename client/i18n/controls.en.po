@@ -398,7 +398,10 @@ msgid "SETTINGS_TEAM_HIGH_CONTRAST"
 msgstr "HIGH CONTRAST"
 
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
-msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast."
+msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast. Blood Off turns body hits into a dust puff and the damage edge to bone."
+
+msgid "SETTINGS_BLOOD"
+msgstr "BLOOD"
 
 msgid "BIND_LAYOUT_REFUSED"
 msgstr "Your saved controls were made for an older default layout, so they were not loaded. These are the current defaults. Save to keep them, or rebind."

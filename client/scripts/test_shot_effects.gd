@@ -231,7 +231,7 @@ func _run() -> void:
 	var first: Rect2 = ShotVfx.impact_uv("flesh", 0.0, ShotEffects.LIFETIME)
 	var last: Rect2 = ShotVfx.impact_uv("flesh", ShotEffects.LIFETIME * 0.99, ShotEffects.LIFETIME)
 	_check(first.position.x == 0.0 and is_equal_approx(last.position.x, 5.0 / 6.0) and first.position.y == last.position.y
-		and is_equal_approx(first.position.y, 2.0 / 6.0), "an impact plays its row's six frames over its lifetime")
+		and is_equal_approx(first.position.y, 2.0 / ShotVfx.IMPACT_ROWS.size()), "an impact plays its row's six frames over its lifetime")
 	for weapon: String in ["Tack", "Flechette", "Repeater", "Scatter", "Rail", "Sniper", "Rocket"]:
 		var flash: Texture2D = ShotVfx.muzzle(weapon)
 		_check(flash != null and flash.get_width() == 32 and flash.get_height() == 32, weapon + " has its own third-person flash")

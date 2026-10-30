@@ -450,6 +450,12 @@ bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,
 scope, accepted firing/reloading frames, actors and machinery keep their normal
 behavior. The held gun's reload dip stops; the corner's reload line and bar stay. Your separate weapon-bob choice remains saved.
 
+Settings > Accessibility > Blood is On by default. Off turns a hit on a human
+body into a grey dust and lint puff and makes your own damage edge flash bone
+instead of red; Screen Flashes still decides whether that edge shows at all.
+Machines and free agents spark and leak oil either way, since that is not
+blood. It is presentation only: hits, damage and frags are unchanged.
+
 Health is bone above 50, ember at 50 or below and red at 25 or below, with an
 exact number and a filled bar. A fresh critical injury pulses once unless
 Reduced Motion is enabled. Ammunition uses the same numeral size; EMPTY means

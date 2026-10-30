@@ -46,7 +46,7 @@ const OLIVE_DARK: Color = Color8(72, 78, 56)
 const STEEL_UNION: Color = Color8(44, 45, 50)
 
 ## Row order in `impacts.png`; `ShotVfx.IMPACT_ROWS` reads the same order.
-const IMPACT_KINDS: Array[String] = ["concrete", "metal", "flesh", "synthetic", "rail", "melee"]
+const IMPACT_KINDS: Array[String] = ["concrete", "metal", "flesh", "synthetic", "rail", "melee", "fabric"]
 const IMPACT_FRAMES: int = 6
 ## Cell order in `marks.png`; `ShotVfx.MARKS` reads the same order.
 const MARK_KINDS: Array[String] = ["concrete", "concrete_b", "metal", "metal_b", "rail", "melee"]
@@ -324,6 +324,8 @@ func _impact(kind: String, frame: int) -> Image:
 			return _impact_synthetic(frame)
 		"rail":
 			return _impact_rail(frame)
+		"fabric":
+			return _impact_fabric(frame)
 	return _impact_melee(frame)
 
 ## Chips flung on a fixed seed: unit directions biased away from the wall
@@ -424,6 +426,38 @@ func _impact_flesh(frame: int) -> Image:
 			_put(image, floori(at.x), floori(at.y) + 1, BLOOD_DARK)
 	if frame == 1:
 		_disc(image, centre, 2.0, EMBER)
+	return image
+
+## Fabric: a body hit with Blood off. The same warm hit flash as flesh, then
+## a round puff of grey-beige cloth dust and pale lint flung all ways, which
+## falls and thins. No red at any frame, and no cyan.
+func _impact_fabric(frame: int) -> Image:
+	var image: Image = _blank()
+	var centre: Vector2 = Vector2(16, 15)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7311
+	var lint: Array[Vector2] = []
+	for fibre: int in range(10):
+		lint.append(Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.55, 1.0))
+	if frame == 0:
+		var splash: Callable = func(angle: float) -> float:
+			return 5.0 * (1.0 + 0.35 * _rag(angle, 7312, 0.0))
+		_burst(image, centre, splash, [WHITE_HOT, AMBER, BONE, DUST], [0.25, 0.5, 0.78, 1.0])
+		return image
+	var radius: float = [0.0, 6.0, 7.5, 8.5, 9.0, 9.5][frame]
+	var puff: Callable = func(angle: float) -> float:
+		return radius * (1.0 + 0.3 * _rag(angle, 7313, frame * 0.35))
+	_burst(image, centre - Vector2(0, frame * 0.6), puff, [BONE, DUST, GUNMETAL_LIGHT, GUNMETAL],
+		[0.25 if frame <= 2 else 0.0, 0.6, 0.86, 1.0])
+	if frame >= 2:
+		_dithered(image, [1.0, 1.0, 0.9, 0.7, 0.48, 0.26][frame])
+	for fibre: Vector2 in lint:
+		var at: Vector2 = centre + fibre * (6.0 + frame * 2.6) + Vector2(0, frame * frame * 0.45)
+		_put(image, floori(at.x), floori(at.y), BONE if frame <= 2 else DUST)
+		if frame < 4:
+			_put(image, floori(at.x) + 1, floori(at.y), GUNMETAL_LIGHT)
+	if frame == 1:
+		_disc(image, centre, 2.0, BONE)
 	return image
 
 ## Synthetic: an electric white spark burst, plate chips, then dark purple
