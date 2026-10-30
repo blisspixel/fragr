@@ -1,0 +1,211 @@
+{
+	"entries": [
+		{
+			"file": "captive_0.png",
+			"person": "captive_0",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.5,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#566b34",
+					"val": [
+						0.0,
+						0.8
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						240.0
+					],
+					"ref": 0.45,
+					"sat": [
+						0.15,
+						1.01
+					],
+					"to": "#c49a3e",
+					"val": [
+						0.0,
+						1.01
+					]
+				}
+			],
+			"sha256": "d6f93c7db7fbe17dd174783553d49b0a148540370478f652bbed19d247d2cece",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "captive_1.png",
+			"person": "captive_1",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#9c5a2a",
+					"val": [
+						0.28,
+						0.66
+					]
+				}
+			],
+			"sha256": "5a8215c77463b13d1603ae7dd2738ce0bcada68b99663c02652f0db0e09e0aa2",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "captive_2.png",
+			"person": "captive_2",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#6e4a78",
+					"val": [
+						0.28,
+						0.66
+					]
+				}
+			],
+			"sha256": "7d261b2e3ceca9a1aa838727bf4ec3b401d0a6473a07ca96e178e97fa8153ada",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "captive_3.png",
+			"person": "captive_3",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#4f6a8e",
+					"val": [
+						0.28,
+						0.66
+					]
+				}
+			],
+			"sha256": "e42029f6891823ea6b49066bc04ed6c3adf28661dc9e1e85d161009e839b9e01",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "renn.png",
+			"person": "renn",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.5,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#1d1e22",
+					"val": [
+						0.0,
+						0.8
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.5,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#1d1e22",
+					"val": [
+						0.0,
+						0.8
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						240.0
+					],
+					"ref": 0.45,
+					"sat": [
+						0.15,
+						1.01
+					],
+					"to": "#55585f",
+					"val": [
+						0.0,
+						1.01
+					]
+				}
+			],
+			"sha256": "bcb44c68dc99cf62340ad0c8fe681de66cd390369d19f0186d258a076082bdfa",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "splice.png",
+			"person": "splice",
+			"rules": [
+				{
+					"ref": 0.86,
+					"sat": [
+						0.0,
+						0.22
+					],
+					"to": "#a8782e",
+					"val": [
+						0.6,
+						1.01
+					]
+				}
+			],
+			"sha256": "65b50d73713dbc3b1e9383d7c8ff58729683df7970d75dfe8925220c2fc28284",
+			"source": "res://assets/models/splice_live.glb",
+			"source_sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98"
+		},
+		{
+			"file": "tern.png",
+			"person": "tern",
+			"rules": [
+				{
+					"ref": 0.36,
+					"sat": [
+						0.0,
+						0.22
+					],
+					"to": "#4a5262",
+					"val": [
+						0.0,
+						1.01
+					]
+				}
+			],
+			"sha256": "416d35aefdbf2d147a46a7299743147e382d6044cdc7435e65daa298ff1a5b7c",
+			"source": "res://assets/models/tern_live.glb",
+			"source_sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f"
+		}
+	],
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"method": "Offline recolour of each person's own source atlas by CastPaint rules; no generated or external art.",
+	"painter_sha256": "59ce23a159b4d51642ab08c9c552f84ddf6bbad673f56ca86c0e63f6bbfe85bb",
+	"schema": 1
+}

@@ -441,6 +441,12 @@ ember and magenta pair and high-contrast pair exist as `free_pair`),
 Inheritance machines and absorbed bots. The server carries no cosmetics, so it
 validates none. Review captures: `client/qa/faction_readability_review.gd` and
 the `faction-readability-*.json` tours.
+Campaign people on existing bodies wear `CastPaint` schemes
+(`client/scripts/cast_paint.gd`), recolours of their own art baked offline by
+`tools/bake_cast_paint.gd` and checked by `test_cast_paint.gd` against this
+rule: Splice's pale plates are workshop ochre, Tern is darker gunmetal with the
+ember shoulder panel, Renn keeps the black coat without red, and Level 8's
+held people are four different individuals.
 
 | Environment | Dominant materials and color | Light, landmarks and lived detail |
 |---|---|---|
