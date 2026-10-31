@@ -1,0 +1,15 @@
+{
+  "comment": "A watcher's podium on a rotating free-for-all of rule bots only: the room's loudest book and the bots' own vote. Run with FRAGR_QA_MAP_ROTATE=1, FRAGR_QA_MODE=ffa, FRAGR_QA_BOTS=4, FRAGR_QA_FRAG_LIMIT=4 and FRAGR_QA_MANIFEST=res://qa/podium-vote-watch.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "watch_live", "scene": "res://scenes/main.tscn", "at_seconds": 1, "radio_off": true, "settle_seconds": 1.0,
+     "note": "Watching rule bots on Larak Lot."},
+    {"name": "watch_podium", "await_round_state": "Ended", "await_timeout_seconds": 240, "settle_seconds": 0.8,
+     "note": "The room's widest book and the vote, with no keys offered to a watcher."},
+    {"name": "watch_bots_voted", "settle_seconds": 3.5,
+     "note": "The bots have voted: the tally moved and the leader is lit."},
+    {"name": "watch_next_map", "await_round_state": "Active", "await_timeout_seconds": 16, "settle_seconds": 7.0,
+     "note": "The next round opens on the bots' choice."}
+  ]
+}

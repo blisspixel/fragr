@@ -253,7 +253,26 @@ func _run() -> void:
 	round_two["round"] = 2
 	round_two["scope"]["round"] = 2
 	round_two["tick"] = 50
+	_check(store.arena_bests(round_two).is_empty(), "matching the old round sets no best")
 	_check(store.accept(round_two, "external") == OK, "second round persists")
+	var best_round: Dictionary = sample.duplicate(true)
+	best_round["round"] = 3
+	best_round["scope"]["round"] = 3
+	best_round["tick"] = 60
+	for counts: String in ["total", "attempt"]:
+		for weapon: Dictionary in best_round[counts]["weapons"]:
+			if int(weapon.get("kills", 0)) > 0:
+				weapon["kills"] = int(weapon["kills"]) + 1
+				weapon["damaging_attacks"] = int(weapon["damaging_attacks"]) + 1
+				weapon["attacks"] = int(weapon["attacks"]) + 1
+	_check(PlayerRecord.validation_error(best_round, best_round["player_id"]).is_empty(), "the better round is a valid record: " + PlayerRecord.validation_error(best_round, best_round["player_id"]))
+	var bests: Array[Dictionary] = store.arena_bests(best_round)
+	_check(bests.size() == 1 and bests[0] == {"stat": "frags", "value": 2, "was": 1}, "one more frag is a personal best: %s" % str(bests))
+	var first_time: PlayerRecords = PlayerRecords.new("")
+	_check(first_time.arena_bests(best_round).is_empty(), "a first round has nothing to beat")
+	var watching: Dictionary = best_round.duplicate(true)
+	watching["status"] = "active"
+	_check(store.arena_bests(watching).is_empty(), "a live round sets no best")
 	var loaded: PlayerRecords = PlayerRecords.new(path)
 	_check(loaded.profile_id == profile and loaded.entries.size() == 2, "latest generation loads with stable profile")
 	_check(PlayerRecord.sum_weapon(loaded.totals("arena"), "kills") == 2, "totals sum records")

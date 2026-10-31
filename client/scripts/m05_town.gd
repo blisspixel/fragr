@@ -2,12 +2,17 @@ class_name M05Town
 extends M04Town
 
 var _splice: CivilianFigure
+## Latch's one line at the roof tank, the place the two of you used to argue.
+## Level 19 comes back to the same tank.
+signal notice_requested(text: String)
+var _tank_seen: int = -1
 ## Held workers stand in the pen's shade; freed, they wear their own art.
 const HELD_SHADE: Color = Color(0.72, 0.72, 0.72)
 
 func clear_map() -> void:
 	super.clear_map()
 	_splice = null
+	_tank_seen = -1
 
 ## Surface repair, fixtures and passengers are tied to registered volumes.
 ## Nothing here adds cover, support, a moving body or an outcome.
@@ -105,6 +110,15 @@ func apply_state(state: Dictionary) -> void:
 	if _geometry.is_empty() or state.get("id") != MissionState.M05_ID \
 		or not MissionState.validation_error({"tick": EquipmentState.MAX_EXACT_INTEGER, "state": state}, _geometry).is_empty():
 		return
+	# Said once, as the party comes off the tank roof; a resume past it is quiet.
+	var crossed: int = (state["m05"]["completed"] as Array).size()
+	if _tank_seen == 0 and crossed == 1:
+		notice_requested.emit(tr("M05_LATCH_TANK"))
+	# Tram 4 in the trench, empty: the driver is one of the missing.
+	if _tank_seen >= 0 and _tank_seen < 4 and crossed >= 4:
+		notice_requested.emit(tr("M05_TRAM_FOUR"))
+		notice_requested.emit(tr("M05_LATCH_SORREL"))
+	_tank_seen = crossed
 	for captive: Dictionary in state["m05"]["captives"]:
 		if captive["id"] == "splice":
 			if _splice != null:

@@ -93,7 +93,7 @@ static func brief_completed(value: Dictionary, difficulty: String) -> bool:
 	return value["square_defended"] and (difficulty == "assisted" or (value["concourse_secured"] and (difficulty != "severe" or (value["aid_delivered"] and value["collector_neutralized"] and value["overlook_witnessed"]))))
 
 static func facts_error(value: Variant, phase: String, tick: int) -> String:
-	var keys: Array[String] = ["completed", "challenges", "roadblock_active", "aid_delivered", "overlook_witnessed", "concourse_secured", "brief_completed"]
+	var keys: Array[String] = ["completed", "challenges", "roadblock_active", "aid_delivered", "overlook_witnessed", "concourse_secured", "brief_completed", "turn_started"]
 	if value is Dictionary and value.has("current"):
 		keys.append("current")
 	if not M03MissionState._exact(value, keys):
@@ -103,6 +103,12 @@ static func facts_error(value: Variant, phase: String, tick: int) -> String:
 	for key: String in ["roadblock_active", "aid_delivered", "overlook_witnessed", "concourse_secured", "brief_completed"]:
 		if not value[key] is bool:
 			return MissionState.INVALID
+	# The delivery begins the turn on its own tick; a turn never runs ahead of the clock.
+	var turn: Variant = value["turn_started"]
+	if turn != null and not EquipmentState.integer(turn, tick):
+		return MissionState.INVALID
+	if (turn != null) != value["aid_delivered"]:
+		return MissionState.INVALID
 	var challenge_problem: String = challenge_error(value.get("challenges"))
 	if not challenge_problem.is_empty():
 		return challenge_problem

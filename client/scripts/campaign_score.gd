@@ -52,6 +52,8 @@ var mission_id: String = ""
 var radio_playing: bool = false
 ## A story page owns the music for now.
 var scene_hold: bool = false
+## A moment in a level wants no music at all (Level 18's turn).
+var hushed: bool = false
 var duck_timer: float = 0.0
 var combat_heat: float = 0.0
 ## The last cue the player heard in a scene or a level, for the take control.
@@ -262,6 +264,21 @@ func duck(seconds: float = DUCK_SECONDS) -> void:
 	duck_timer = maxf(duck_timer, seconds)
 
 
+## Level 18's turn: the air goes out at once, not on the fade, and comes
+## back on the ordinary fade when `on` is false.
+func hush(on: bool) -> void:
+	hushed = on
+	if not on:
+		return
+	_gain_db = SILENT_DB
+	for bed: AudioStreamPlayer in _beds:
+		bed.volume_db = SILENT_DB
+	if _cue != null and _cue.playing:
+		_cue.stop()
+		_cue_slot = ""
+		now_scoring_changed.emit()
+
+
 ## Resolved shots this tick, from the same results the shot effects use.
 func combat(shots: int) -> void:
 	combat_heat = minf(combat_heat + COMBAT_HEAT_PER_SHOT * float(maxi(shots, 0)), 1.5)
@@ -271,7 +288,7 @@ func combat(shots: int) -> void:
 func play_cue(slot: String) -> bool:
 	last_cue = slot
 	now_scoring_changed.emit()
-	if not enabled or _cue == null:
+	if not enabled or _cue == null or hushed:
 		return false
 	var stream: AudioStream = _load(_cue_path_for(slot))
 	if stream == null:
@@ -379,7 +396,7 @@ func _process(delta: float) -> void:
 	combat_heat = maxf(combat_heat - COMBAT_COOL_PER_SECOND * delta, 0.0)
 	if _beds.is_empty():
 		return
-	var target: float = target_db(enabled, not _bed_path.is_empty(), radio_playing, scene_hold, _cue != null and _cue.playing, duck_timer > 0.0, combat_heat)
+	var target: float = target_db(enabled, not _bed_path.is_empty(), radio_playing, scene_hold or hushed, _cue != null and _cue.playing, duck_timer > 0.0, combat_heat)
 	if target > SILENT_DB:
 		target += _bed_gain_db
 	var rate: float = FADE_OUT_DB_PER_SECOND if target < _gain_db else FADE_IN_DB_PER_SECOND

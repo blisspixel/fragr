@@ -19,6 +19,12 @@ desk with `--console`, shipped in v0.78.0. `fragr-playtest --traffic` can
 fill a local server with synthetic fighters and spectators. Neither one is
 a new mode. `--playlist` keeps one process up and rotates a built-in night
 list of the modes below. It is not a new mode. A playlist file is later.
+`--map-rotate` keeps the mode and moves the map: after each free-for-all,
+Duel, team or flag round the podium shows each fighter's nemesis and book this
+session, the personal bests the round set in the player's own service record,
+and a three-map vote that counts down into the next round (implemented in wave
+19; rendered captures only, no human night yet). `--map-off` and the desk's
+`rotation` switch maps out of it without removing them.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
@@ -128,6 +134,16 @@ Implemented for wave 2 (2026-10-23), not yet shipped: a free-for-all life starts
 
 Scrap in two sides: the Union in its issued black and red against the free coalition in personal colours under a warm amber team accent ([readability contract](ART_STORY_BIBLE.md#faction-readability-contract)). Every join, human, agent or rule bot, takes the smaller side, and a round start moves rule bots first when one side is two ahead. Each side spawns in its own half through the same spawn safety as free-for-all, weapons come back on a slower 30 second clock, friendly fire is off unless the host turns it on, and the first side to the team frag limit (25 by default) takes the round. The first team mode, because every later one needs sides, team spawns and team score.
 
+**Death is a seat (team modes).** In team deathmatch, capture the flag and
+Conquest the death view shows the killer for a beat (1.25 s), then the camera
+rides the eyes of the living teammate nearest where you fell, with their gun,
+health and armour on the HUD, until the server returns your body. The cycle
+key moves along living teammates and the view key trades their eyes for the
+chase camera behind them; there is no free camera while dead, so a death
+never scouts the other side. A fallen Sabotage fighter watches living
+teammates the same way for the rest of the round. Free-for-all and Duel keep
+the killer view.
+
 ### Capture the flag (three built layouts)
 
 Two flags, one per side on a stand in its back third. Take theirs home while
@@ -156,8 +172,15 @@ starts with a random attacker and falls where its carrier dies. Planting takes
 three seconds of held Use inside a site's ring and defusing six at the charge;
 movement, release or damage restarts either. A planted charge runs 35 seconds
 and its clock replaces the round's. Survivors carry their weapons and armour
-into the next round; generic Sabotage's fallen start empty and leave their best gun on the
-floor. Sides change uniform at half: halves of four, first to five, or halves
+into the next round; the fallen leave their best gun on the floor and start
+the next round empty, except for their side's resupply. That is fragr's loss
+bonus, without a shop or a currency: each round lost climbs a side's ladder
+one rung and each round won steps it one back, and while a side is not ahead
+on rounds its fallen are reissued at its rung: the Rifle, then the Rifle and
+half armour, then the Rifle, the Shotgun and half armour. The muster calls it for that side (the Union's office files a
+replacement issue; the free side passes on spares). The last fighter of a
+side against two or more is the clutch: an upright stamp for everyone, and a
+voiced Host call when the Host's spacing allows. Sides change uniform at half: halves of four, first to five, or halves
 of eight, first to nine, with extra time when level (the short format then plays one sudden death round, never a draw). Rule bots stage, push,
 plant, anchor, rotate, retake and defuse, and agents read the same objective
 through MCP. Evidence and the rules as built are in

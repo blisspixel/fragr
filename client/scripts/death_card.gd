@@ -9,6 +9,10 @@ const TOP_FRACTION: float = 0.56
 ## Wide enough for "FRAGGED BY" and a 16-character callsign on one line at
 ## the large pixel size; wrapping is the fallback for longer names.
 const PLATE_WIDTH: float = 960.0
+## In a teammate's seat the plate drops below their aim point and narrows,
+## so the fight being watched stays clear.
+const SEAT_TOP_FRACTION: float = 0.70
+const SEAT_PLATE_WIDTH: float = 720.0
 
 var _plate: PanelContainer
 var _headline: Label
@@ -16,6 +20,7 @@ var _detail: Label
 var _timing: Label
 ## The found weapons this life took with it. Hidden when nothing was lost.
 var _loss: Label
+var _seat: bool = false
 
 
 func _ready() -> void:
@@ -60,10 +65,11 @@ func _line(size: int, colour: Color) -> Label:
 
 ## Show cause, view and timing, then what was lost when a fourth line names
 ## it; anything shorter hides the card.
-func present(lines: PackedStringArray) -> void:
+func present(lines: PackedStringArray, seat: bool = false) -> void:
 	if lines.size() < 3:
 		clear()
 		return
+	_seat = seat
 	_headline.text = lines[0]
 	_detail.text = lines[1]
 	_timing.text = lines[2]
@@ -73,8 +79,13 @@ func present(lines: PackedStringArray) -> void:
 	_place()
 
 
+func seated() -> bool:
+	return visible and _seat
+
+
 func clear() -> void:
 	visible = false
+	_seat = false
 	if _headline != null:
 		_headline.text = ""
 		_detail.text = ""
@@ -107,7 +118,7 @@ func _place() -> void:
 	if _plate == null:
 		return
 	var view: Vector2 = size
-	var width: float = minf(PLATE_WIDTH, maxf(view.x - 32.0, 0.0))
+	var width: float = minf(SEAT_PLATE_WIDTH if _seat else PLATE_WIDTH, maxf(view.x - 32.0, 0.0))
 	# Wrapped labels measure their height from a known width, not from zero.
 	var text_width: float = maxf(64.0, width - 32.0)
 	_headline.custom_minimum_size.x = text_width
@@ -115,4 +126,4 @@ func _place() -> void:
 	_timing.custom_minimum_size.x = text_width
 	_loss.custom_minimum_size.x = text_width
 	_plate.size = Vector2(width, _plate.get_combined_minimum_size().y)
-	_plate.position = Vector2(roundf((view.x - _plate.size.x) * 0.5), roundf(view.y * TOP_FRACTION))
+	_plate.position = Vector2(roundf((view.x - _plate.size.x) * 0.5), roundf(view.y * (SEAT_TOP_FRACTION if _seat else TOP_FRACTION)))

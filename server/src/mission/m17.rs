@@ -20,6 +20,19 @@ pub(crate) struct M17Progress {
 mod tests;
 
 impl GameState {
+    /// Latch is with the party for this level, beside the authored start.
+    pub(crate) fn ensure_m17_companion(&mut self) {
+        if self
+            .mission
+            .as_ref()
+            .is_some_and(|r| r.m17.is_some() && r.phase == MissionPhase::InProgress)
+        {
+            if let Some(start) = self.map.m17_objectives().map(|p| p.companion_start) {
+                self.spawn_campaign_companion(start, false);
+            }
+        }
+    }
+
     pub(crate) fn m17_encounter_available(&self, index: usize) -> bool {
         let Some(p) = self.mission.as_ref().and_then(|r| r.m17.as_ref()) else {
             return true;

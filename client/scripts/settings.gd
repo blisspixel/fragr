@@ -89,6 +89,15 @@ const DEFAULTS: Dictionary = {
 		# bone damage edge instead; machines still spark and leak oil.
 		"blood": true,
 	},
+	# The desktop host's rotation (Multiplayer > Run a match): whether a
+	# free-for-all, team or flag match moves map with a podium vote, and the
+	# roster maps it skips. No map is removed; switching one off keeps it out
+	# of the rotation and the vote. Every map starts on: hosts choose, and
+	# the rotation itself skips a map that cannot host the mode.
+	"host": {
+		"rotate": true,
+		"maps_off": [],
+	},
 	# The optional campaign score (CampaignScore): on or off, and the take
 	# chosen per slot while both takes ship. A missing slot plays take A.
 	"score": {
@@ -200,6 +209,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/pixel_scale":
 		if not value is int or value < 0 or value >= RenderQuality.PIXEL_TARGETS.size():
 			value = fallback
+	if path == "host/maps_off":
+		value = clean_maps_off(value, fallback)
 	if path == "score/takes":
 		value = CampaignScore.clean_takes(value)
 	(_values[section] as Dictionary)[key] = value
@@ -266,6 +277,22 @@ func save_to_disk() -> Error:
 	if result != OK and FileAccess.file_exists(temporary):
 		DirAccess.remove_absolute(temporary)
 	return result
+
+## Roster map ids (1 to 8), each once, in roster order, never all eight.
+## Anything else falls back whole.
+static func clean_maps_off(value: Variant, fallback: Variant) -> Array:
+	if not value is Array:
+		return (fallback as Array).duplicate()
+	var out: Array = []
+	for entry: Variant in value:
+		if not (entry is int or entry is float) or not is_finite(float(entry)) or float(entry) != floorf(float(entry)) \
+			or int(entry) < 1 or int(entry) > 8 or out.has(int(entry)):
+			return (fallback as Array).duplicate()
+		out.append(int(entry))
+	if out.size() >= 8:
+		return (fallback as Array).duplicate()
+	out.sort()
+	return out
 
 static func clean_player_name(value: Variant) -> String:
 	if not value is String:

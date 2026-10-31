@@ -29,8 +29,24 @@ var _sabotage_team: String = ""
 ## The longest charge clock seen in this plant, for the HUD's draining timer.
 var _sabotage_charge_ticks: int = 700
 var _sabotage_watching_mates: bool = false
+## Respawning team modes (TDM, CTF, Conquest): a fallen fighter's seat. The
+## death view shows the killer for a beat, then the camera rides a living
+## teammate's eyes until the server returns the body, the way the
+## Counter-Strike death camera shows the killer and then a teammate.
+const TEAM_SEAT_KILLER_BEAT_USEC: int = 1250000
+var _team_seat: bool = false
+## The joined fighter's side and last position, kept through a death.
+var _seat_team: String = ""
+var _seat_spot: Vector3 = Vector3.ZERO
+## The teammate a new seat starts on: the one nearest where the fighter fell.
+var _seat_pick: Node3D = null
+var _seat_down_usec: int = -1
 ## A side-swap notice waiting for its round to open.
 var _sabotage_swap_notice: String = ""
+## The round and fighter whose clutch was stamped, and the round whose
+## resupply was called, so each is shown once.
+var _sabotage_clutch_key: String = ""
+var _sabotage_resupply_round: int = -1
 var traveling_shots: TravelingShots = null
 var jammer_audio: JammerAudio = null
 var notary_audio: NotaryAudio = null
@@ -100,6 +116,10 @@ var _dodge_was_down: bool = false
 var pending_fire: bool = false
 ## A fire press on the podium asks for one more round (`Action.again`).
 var pending_again: bool = false
+## A ballot in the podium's map vote (`Action.vote`): the map id, or 0.
+var pending_vote: int = 0
+## The personal bests this round set in the service record, for the podium.
+var podium_bests: Array[Dictionary] = []
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
 var jump_armed: bool = true
@@ -435,6 +455,8 @@ func _ready():
 	add_child(m04_dressing)
 	m05_town = M05Town.new()
 	m05_town.name = "M05Town"
+	m05_town.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m05_town)
 	m05_dressing = M05Dressing.new()
 	m05_dressing.name = "M05Dressing"
@@ -486,6 +508,14 @@ func _ready():
 	m18_transit.name = "M18Transit"
 	m18_transit.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
+	m18_transit.story_cue.connect(func(slot: String) -> void:
+		if campaign_score != null:
+			campaign_score.play_cue(slot))
+	m18_transit.hush.connect(_hush_for_story)
+	m18_transit.latch_expression.connect(func(expression: String) -> void:
+		for pawn: Variant in players.values():
+			if pawn is Node and is_instance_valid(pawn) and pawn.get("latch_view") is LatchView:
+				pawn.set("latch_hold", expression))
 	add_child(m18_transit)
 	m19_works = M19Works.new()
 	m19_works.name = "M19Works"
@@ -1101,6 +1131,9 @@ func _exit_tree() -> void:
 		local_match.stop()
 
 func _on_record_received(data: Dictionary) -> void:
+	var bests: Array[Dictionary] = records.arena_bests(data)
+	if not bests.is_empty():
+		podium_bests = bests
 	var result: Error = records.accept(data, "local" if local_match != null else "external", local_match.server_sha256 if local_match != null else "")
 	_report_record_save(result)
 	if result == OK:
@@ -1171,6 +1204,26 @@ func _setup_radio() -> void:
 	_setup_campaign_score()
 
 ## Campaign only, beside the radio under AudioPlayers. Multiplayer never has one.
+## A story moment in play takes the air: the score cuts at once and a tuned
+## station pauses where it is, both through their own seams.
+var _story_hush: bool = false
+
+## The radio pauses while a story page or a story moment in play owns the air.
+## Recomputed every frame, so a moment in play must be part of it, not only
+## a one-off hold that the next frame would release.
+func radio_scene_hold() -> bool:
+	return _story_hush or is_instance_valid(opening) or is_instance_valid(interlude) \
+		or (still_here != null and not still_here.geometry.is_empty()) \
+		or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda)
+
+func _hush_for_story(on: bool) -> void:
+	_story_hush = on
+	if campaign_score != null:
+		campaign_score.hush(on)
+	if radio != null:
+		radio.set_scene_hold(on)
+
+
 func _setup_campaign_score() -> void:
 	if local_match == null:
 		return
@@ -1617,6 +1670,12 @@ func _input(_event):
 		return
 	if is_human_player and _podium_waits_on_me() and _event.is_action_pressed("fire") and not _event.is_echo():
 		pending_again = true
+	if is_human_player and _podium_waits_on_me() and not _event.is_echo():
+		var pick: int = _podium_vote_press(_event)
+		if pick > 0:
+			pending_vote = pick
+			get_viewport().set_input_as_handled()
+			return
 	if is_human_player and not local_life.alive():
 		# Down: gameplay presses are not queued into the next life. Leaving
 		# and speaking still work.
@@ -1923,8 +1982,7 @@ func _process(_delta):
 		still_here.hearing = is_human_player and camera != null and bool(camera.get("fp_mode")) and not controls_blocked()
 	if radio != null:
 		# A story scene owns the music; the station resumes where it paused.
-		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude) or (still_here != null and not still_here.geometry.is_empty()) \
-			or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda))
+		radio.set_scene_hold(radio_scene_hold())
 	if campaign_score != null:
 		# Story pages own the music. The Still Here walk keeps its own bed.
 		campaign_score.scene_hold = is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(still_here_page) \
@@ -1953,7 +2011,7 @@ func _process(_delta):
 		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
-	elif is_human_player and pending_again and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
+	elif is_human_player and (pending_again or pending_vote > 0) and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
 		_send_podium_again()
 	var fire_allowed: bool = _local_fire_allowed()
 	if _local_fire_allowed_last_frame and not fire_allowed:
@@ -2153,6 +2211,10 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state["again"] = true
 	else:
 		action_state.erase("again")
+	if pending_vote > 0 and not controls_blocked():
+		action_state["vote"] = pending_vote
+	else:
+		action_state.erase("vote")
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
@@ -2204,6 +2266,7 @@ func _send_local_action(now_usec: int) -> bool:
 		_present_local_fire(action_state, now_usec)
 		pending_seat = ""
 		pending_again = false
+		pending_vote = 0
 		pending_fire = false
 		pending_jump = false
 		pending_dodge = false
@@ -2245,9 +2308,32 @@ func _show_fire_juice(weapon_name: String) -> void:
 func _send_podium_again() -> void:
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	net_client.last_send_ok = false
-	net_client.send_action({"again": true, "seq": input_seq})
+	var press: Dictionary = {"seq": input_seq}
+	if pending_again:
+		press["again"] = true
+	if pending_vote > 0:
+		press["vote"] = pending_vote
+	net_client.send_action(press)
 	if net_client.last_send_ok:
 		pending_again = false
+		pending_vote = 0
+
+## A vote key on the podium: 1 to 3 pick a map, the weapon cycle steps
+## from your ballot on a pad. The map id the press asks for, or 0.
+func _podium_vote_press(event: InputEvent) -> int:
+	var podium: Variant = latest_snapshot.get("podium")
+	if not podium is Dictionary or not (podium as Dictionary).get("vote") is Dictionary:
+		return 0
+	var vote: Dictionary = podium["vote"]
+	var me: String = str(net_client.player_id)
+	for slot: int in PodiumBoard.VOTE_KEYS.size():
+		if event.is_action_pressed(PodiumBoard.VOTE_KEYS[slot]):
+			return PodiumBoard.choice(vote, me, slot)
+	if event.is_action_pressed("weapon_next"):
+		return PodiumBoard.choice(vote, me, 0, 1)
+	if event.is_action_pressed("weapon_prev"):
+		return PodiumBoard.choice(vote, me, 0, -1)
+	return 0
 
 ## The podium is up and counts this fighter: a fire press asks for one more.
 func _podium_waits_on_me() -> bool:
@@ -2824,6 +2910,12 @@ func _clear_world() -> void:
 	sabotage_layout = {}
 	_sabotage_team = ""
 	_sabotage_watching_mates = false
+	_leave_team_seat()
+	_seat_team = ""
+	_sabotage_clutch_key = ""
+	_sabotage_resupply_round = -1
+	if camera != null:
+		camera.seat_locked = false
 	if traveling_shots != null:
 		traveling_shots.clear_shots()
 	pending_jump = false
@@ -2982,6 +3074,8 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m18_transit != null and m18_transit.active():
+		m18_transit.apply_snapshot(data)
 	if m19_works != null and m19_works.active():
 		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
 		m19_works.apply_snapshot(data)
@@ -3067,7 +3161,7 @@ func _on_snapshot_received(data):
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
 	if hud.has_method("show_podium"):
-		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room())
+		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room(), podium_bests if is_human_player else ([] as Array[Dictionary]))
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -3117,7 +3211,13 @@ func _on_snapshot_received(data):
 		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
 			targets.append(pawn)
 	if camera:
-		camera.set_available_targets(_sabotage_watch_targets(targets, player_list, str(data.get("round_state", ""))))
+		camera.set_available_targets(_watch_targets(targets, player_list, str(data.get("round_state", ""))))
+		if is_instance_valid(_seat_pick):
+			var picked: int = camera.available_targets.find(_seat_pick)
+			if picked >= 0:
+				camera.follow_target_index = picked
+		_seat_pick = null
+		_present_seat_hud()
 		
 		var followed = camera.get_followed_target()
 		for pawn in players.values():
@@ -3324,6 +3424,7 @@ func _on_event_received(data):
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
+		podium_bests.clear()
 		var mode_name = str(data.get("mode_name", "Scrap League"))
 		var playlist = str(data.get("playlist", "Larak Lot"))
 		hud.set_league_identity(mode_name, playlist)
@@ -3858,7 +3959,7 @@ func _drop_life_presses() -> void:
 ## Sabotage keeps its own teammate watch for a fallen fighter.
 func _begin_death_view() -> void:
 	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
-		or local_life.alive():
+		or _team_seat or local_life.alive():
 		return
 	if not local_fp_pawn_id.is_empty():
 		return
@@ -3911,7 +4012,8 @@ func _update_death_presentation(now_usec: int) -> void:
 	var carried: Array[String] = []
 	if not net_client.equipment.is_empty():
 		carried = _carried_weapons()
-	hud.show_death_card(local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried)))
+	var lines: PackedStringArray = local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried), _team_seat)
+	hud.show_death_card(lines, _team_seat)
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.
@@ -4091,6 +4193,99 @@ func _sabotage_eyes_id() -> String:
 	return ""
 
 
+## Who a joined fighter's camera may follow: everyone while alive; living
+## teammates only once fallen in a team mode.
+func _watch_targets(targets: Array, player_list: Array, round_state: String) -> Array:
+	if hud.sabotage():
+		_leave_team_seat()
+		return _sabotage_watch_targets(targets, player_list, round_state)
+	if _sabotage_watching_mates:
+		_sabotage_watching_mates = false
+		if camera != null:
+			camera.seat_locked = false
+	return _team_seat_targets(targets, player_list, round_state)
+
+
+## A fallen fighter in a respawning team mode keeps the killer for a beat
+## (none without a killer), then takes the seat: the eyes of the living
+## teammate nearest where they fell. F moves along the living teammates and
+## V trades their eyes for the chase view behind them. The view never leaves
+## the side, so a death shows only what a teammate can already see.
+func _team_seat_targets(targets: Array, player_list: Array, round_state: String) -> Array:
+	if not is_human_player or net_client == null or not MatchRules.teams(hud.match_rules) or _mission_map():
+		_leave_team_seat()
+		return targets
+	var my_id: String = str(net_client.player_id) if net_client.player_id != null else ""
+	var alive: bool = false
+	for player_data: Variant in player_list:
+		if player_data is Dictionary and my_id != "" and str(player_data.get("id", "")) == my_id:
+			alive = true
+			_seat_team = MatchRules.valid_team(player_data.get("team"))
+			_seat_spot = Vector3(float(player_data.get("x", 0.0)), float(player_data.get("y", 0.0)), float(player_data.get("z", 0.0)))
+	if alive or local_life.alive() or round_state != "Active" or _seat_team == "":
+		_leave_team_seat()
+		return targets
+	var mates: Array = []
+	var nearest: Node3D = null
+	var best: float = INF
+	for pawn: Variant in targets:
+		if not is_instance_valid(pawn) or str(pawn.get("team")) != _seat_team or str(pawn.get("player_id")) == my_id:
+			continue
+		mates.append(pawn)
+		var away: float = (pawn as Node3D).global_position.distance_squared_to(_seat_spot)
+		if away < best:
+			best = away
+			nearest = pawn as Node3D
+	if not _team_seat and mates.is_empty():
+		# Nobody to watch: the death view keeps the killer or holds.
+		return targets
+	var now: int = Time.get_ticks_usec()
+	if _seat_down_usec < 0:
+		_seat_down_usec = now
+	if not _team_seat:
+		var chasing: bool = camera != null and bool(camera.get("death_view")) and not local_life.chase_id().is_empty()
+		if chasing and now - _seat_down_usec < TEAM_SEAT_KILLER_BEAT_USEC:
+			return targets
+		_enter_team_seat(nearest)
+	return mates
+
+
+func _enter_team_seat(pick: Node3D) -> void:
+	_team_seat = true
+	_seat_pick = pick
+	if camera == null:
+		return
+	camera.end_death_view()
+	camera.set_fp_mode(false)
+	camera.follow_mode = true
+	camera.spectator_first_person = true
+	camera.seat_locked = true
+
+
+func _leave_team_seat() -> void:
+	if _team_seat and camera != null:
+		camera.seat_locked = false
+	_team_seat = false
+	_seat_pick = null
+	_seat_down_usec = -1
+
+
+## A seat reads the watched teammate's fight: their health and armour in the
+## vitals corner and their gun in hand, as a spectator sees them.
+func _present_seat_hud() -> void:
+	if not is_human_player or hud == null or camera == null or not (_team_seat or _sabotage_watching_mates):
+		return
+	var target: Variant = camera.get_followed_target()
+	if not is_instance_valid(target):
+		hud.set_fp_juice(false)
+		return
+	var eyes: bool = camera.is_observing_first_person()
+	hud.set_fp_juice(eyes)
+	if eyes and target.has_method("get_weapon_name"):
+		hud.set_fp_weapon(target.get_weapon_name())
+	hud.set_vitals(int(target.get("hp")), int(target.get("armor")))
+
+
 ## A fallen Sabotage fighter watches living teammates only, in first person or
 ## the follow camera, until the next round puts them back in their own eyes.
 func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: String) -> Array:
@@ -4107,6 +4302,7 @@ func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: St
 	if watching != _sabotage_watching_mates:
 		_sabotage_watching_mates = watching
 		if camera != null:
+			camera.seat_locked = watching
 			if watching:
 				camera.set_fp_mode(false)
 				camera.follow_mode = true
@@ -4153,6 +4349,46 @@ func _apply_sabotage(data: Dictionary) -> void:
 				var feet: Vector3 = Vector3(float(player_data.get("x", 0.0)), 0.0, float(player_data.get("z", 0.0)))
 				prompt = SabotageState.use_prompt(state, sabotage_layout, my_id, _sabotage_team, feet)
 	hud.set_sabotage_state(state, _sabotage_viewer_team(), _sabotage_charge_ticks, owner, carrier_id != "" and carrier_id == eyes, prompt)
+	_present_sabotage_moments(state, my_id)
+
+
+## Once a round each: the muster call for a resupplied side, and the clutch
+## stamp when the server names a last fighter standing.
+func _present_sabotage_moments(state: Dictionary, my_id: String) -> void:
+	var round_number: int = int(state.get("round", 0)) if state.get("round") is int or state.get("round") is float else 0
+	# A round start clears the call lane, and its event can land after the
+	# first muster snapshots: the call stays queued until it has been read.
+	if round_number != _sabotage_resupply_round and str(state.get("phase", "")) == "muster":
+		var lines: PackedStringArray = SabotageState.resupply_lines(state, _sabotage_viewer_team())
+		var queued: Array[String] = []
+		var shown: bool = lines.is_empty()
+		for entry: Dictionary in hud.objective_call.notices.active:
+			queued.append(str(entry.payload.get("text", "")))
+			# Read for a second, so a clear that lands just after it shows
+			# does not swallow it.
+			shown = shown or (lines.has(queued.back()) and float(entry.remaining) <= ObjectiveCall.LIFETIME - 1.0)
+		for entry: Dictionary in hud.objective_call.notices.pending:
+			queued.append(str(entry.get("text", "")))
+		if shown:
+			_sabotage_resupply_round = round_number
+		else:
+			for line: String in lines:
+				if not queued.has(line):
+					hud.objective_call.push(line)
+	var clutch: String = SabotageState.clutch_id(state)
+	if clutch.is_empty():
+		return
+	var key: String = "%d:%s" % [round_number, clutch]
+	if key == _sabotage_clutch_key:
+		return
+	_sabotage_clutch_key = key
+	var pawn: Variant = players.get(clutch)
+	var fighter: String = ""
+	var team: String = ""
+	if pawn is Node and is_instance_valid(pawn):
+		fighter = str(pawn.get("player_name"))
+		team = MatchRules.valid_team(pawn.get("team"))
+	hud.show_clutch(SabotageState.clutch_lines(state, my_id, _sabotage_viewer_team(), fighter, team), team)
 
 
 func _on_sabotage_event(data: Dictionary) -> void:

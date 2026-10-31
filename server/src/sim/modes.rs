@@ -484,32 +484,42 @@ impl GameState {
         called
     }
 
-    /// Lives-limited team rounds: one fighter left on a side against two or more.
-    pub(super) fn react_to_last_standing(&mut self) {
+    /// The clutch: in a lives-limited team round, the one fighter left on a
+    /// side of two or more, against two or more. At most one side at a time.
+    pub(crate) fn clutch_fighter(&self) -> Option<(Team, Uuid, String)> {
         if !self.config.rules.teams() || self.config.rules.lives().is_none() {
-            return;
+            return None;
         }
-        for team in Team::ALL {
-            if self.reactions.last_standing[team.index()] {
-                continue;
-            }
+        Team::ALL.into_iter().find_map(|team| {
             let side = |t: Team| {
                 self.players
                     .iter()
                     .filter(move |p| p.contestant() && p.team == Some(t))
             };
             let members = side(team).count();
-            let standing: Vec<String> = side(team)
-                .filter(|p| !p.eliminated)
-                .map(|p| p.name.clone())
-                .collect();
+            let mut standing = side(team).filter(|p| !p.eliminated);
+            let last = standing.next()?;
             let against = side(team.other()).filter(|p| !p.eliminated).count();
-            if members >= 2 && standing.len() == 1 && against >= 2 {
-                self.reactions.last_standing[team.index()] = true;
-                let name = standing.into_iter().next();
-                self.react(HostReactionKind::LastStanding, name, None, Some(team));
-            }
+            (members >= 2 && standing.next().is_none() && against >= 2)
+                .then(|| (team, last.id, last.name.clone()))
+        })
+    }
+
+    /// The clutch fighter's id, as Sabotage readers receive it.
+    pub(crate) fn clutch(&self) -> Option<Uuid> {
+        self.clutch_fighter().map(|(_, id, _)| id)
+    }
+
+    /// The Host calls the clutch once per side per round.
+    pub(super) fn react_to_last_standing(&mut self) {
+        let Some((team, _, name)) = self.clutch_fighter() else {
+            return;
+        };
+        if self.reactions.last_standing[team.index()] {
+            return;
         }
+        self.reactions.last_standing[team.index()] = true;
+        self.react(HostReactionKind::LastStanding, Some(name), None, Some(team));
     }
 
     /// A lives-limited round ends when one fighter (or one side) is left

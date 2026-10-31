@@ -1447,3 +1447,224 @@ fn sabotage_routes_meet_the_timing_targets() {
         }
     }
 }
+
+/// Every fighter of `team` falls to a fighter of the other side; the round
+/// goes to that other side by elimination. Ticks through to the next round's
+/// muster.
+fn wipe(state: &mut GameState, team: Team) -> Vec<GameEvent> {
+    let shooter = state
+        .players
+        .iter()
+        .find(|p| p.team == Some(team.other()) && p.standing())
+        .map(|p| p.id)
+        .expect("a shooter");
+    for id in side(state, team) {
+        if player(state, id).standing() {
+            state.hit_for_test(shooter, id, 1000);
+        }
+    }
+    let mut all = Vec::new();
+    for _ in 0..10 {
+        all.extend(run(state, 1));
+        if round_end(&all).is_some() {
+            break;
+        }
+    }
+    all
+}
+
+/// Tick past the result card into the next round's muster.
+fn next_round(state: &mut GameState) {
+    let wait = state.sabotage_end_delay().unwrap_or(0) + 2;
+    run(state, wait);
+    assert_eq!(phase(state), SabotagePhase::Muster);
+}
+
+#[test]
+fn the_fallen_of_a_losing_side_are_reissued_and_a_win_steps_the_ladder_back() {
+    let (mut state, _) = two_a_side(SabotageConfig {
+        live_ticks: 200,
+        ..quick()
+    });
+    let coalition = side(&state, Team::Coalition);
+    let union = side(&state, Team::Union);
+    // Round 1: the Union wipes the attack.
+    let events = wipe(&mut state, Team::Coalition);
+    let (winner, result) = round_end(&events).expect("round decided");
+    assert_eq!(
+        (winner, result.reason),
+        (Some(Team::Union), SabotageReason::Elimination)
+    );
+    next_round(&mut state);
+    let wire = state.snapshot().sabotage.unwrap();
+    assert_eq!((wire.resupply.union, wire.resupply.coalition), (0, 1));
+    for id in &coalition {
+        let p = player(&state, *id);
+        assert!(
+            p.inventory.owns(WeaponType::Flechette),
+            "rung 1 reissues the Rifle"
+        );
+        assert_eq!(
+            p.weapon,
+            WeaponType::Flechette,
+            "the reissued gun is in hand"
+        );
+        assert_eq!(p.armor, 0, "rung 1 is the gun alone");
+    }
+    for id in &union {
+        assert!(
+            !player(&state, *id).inventory.owns(WeaponType::Flechette),
+            "survivors keep only what they carried"
+        );
+    }
+    // Round 2: the Union wipes the attack again; rung 2 adds half armour.
+    let muster = state.config.sabotage.muster_ticks;
+    run(&mut state, muster + 1);
+    wipe(&mut state, Team::Coalition);
+    next_round(&mut state);
+    let sab = state.sabotage.as_ref().unwrap();
+    assert_eq!((sab.score.union, sab.score.coalition), (2, 0));
+    assert_eq!(sab.issued.coalition, 2);
+    for id in &coalition {
+        let p = player(&state, *id);
+        assert_eq!(p.armor, 50);
+        assert!(p.inventory.owns(WeaponType::Flechette) && !p.inventory.owns(WeaponType::Scatter));
+    }
+    // Round 3: the attack wins. Its ladder steps back to 1 and the Union's
+    // fallen, still ahead 2-1, are reissued nothing.
+    run(&mut state, muster + 1);
+    wipe(&mut state, Team::Union);
+    next_round(&mut state);
+    let sab = state.sabotage.as_ref().unwrap();
+    assert_eq!((sab.score.union, sab.score.coalition), (2, 1));
+    assert_eq!((sab.ladder.union, sab.ladder.coalition), (1, 1));
+    assert_eq!(
+        (sab.issued.union, sab.issued.coalition),
+        (0, 1),
+        "the side in front earns nothing; the attack, still behind, keeps a rung"
+    );
+    for id in &union {
+        let p = player(&state, *id);
+        assert!(
+            !p.inventory.owns(WeaponType::Flechette) && p.armor == 0,
+            "a leading side's fallen start empty"
+        );
+    }
+    let wire = state.snapshot().sabotage.unwrap().resupply;
+    assert_eq!((wire.union, wire.coalition), (0, 1));
+}
+
+#[test]
+fn a_weapon_only_sabotage_reissues_nothing() {
+    let mut state = GameState::with_map(MapKind::Sector9, false);
+    state.seed(11);
+    state.apply_config(config(
+        SabotageConfig {
+            live_ticks: 200,
+            ..quick()
+        },
+        &[Mutator::RailOnly],
+    ));
+    for n in 1..=4 {
+        join(&mut state, n);
+    }
+    state.start_round();
+    let muster = state.config.sabotage.muster_ticks;
+    run(&mut state, muster + 1);
+    wipe(&mut state, Team::Coalition);
+    next_round(&mut state);
+    let sab = state.sabotage.as_ref().unwrap();
+    assert_eq!(sab.ladder.coalition, 1, "the loss still counts");
+    assert_eq!(sab.issued.coalition, 0, "but Rail Only keeps its one gun");
+    for id in side(&state, Team::Coalition) {
+        assert_eq!(player(&state, id).weapon, WeaponType::Rail);
+    }
+}
+
+#[test]
+fn the_ladder_follows_the_people_across_the_swap_and_a_level_comeback_is_called() {
+    let mut state = arena(SabotageConfig {
+        live_ticks: 20,
+        ..quick()
+    });
+    for n in 1..=4 {
+        join(&mut state, n);
+    }
+    state.start_round();
+    let first_coalition = side(&state, Team::Coalition);
+    // Rounds 1-3 to the Union on the clock: the attack stands 0-3 on rung 3.
+    time_out_rounds(&mut state, 3);
+    next_round(&mut state);
+    assert_eq!(state.sabotage.as_ref().unwrap().ladder.coalition, 3);
+    // Round 4, the last of the half: the attack wipes the defence.
+    let muster = state.config.sabotage.muster_ticks;
+    run(&mut state, muster + 1);
+    wipe(&mut state, Team::Union);
+    next_round(&mut state);
+    // After the swap the first attackers wear the Union and keep their rung.
+    let sab = state.sabotage.as_ref().unwrap();
+    assert_eq!(player(&state, first_coalition[0]).team, Some(Team::Union));
+    assert_eq!((sab.score.union, sab.score.coalition), (1, 3));
+    assert_eq!(
+        sab.ladder.union, 2,
+        "3, stepped back once by the win, swapped with the people"
+    );
+    assert_eq!(sab.deficit.union, 3);
+    // Rounds 5 and 6 to the Union on the clock: 3-3, a comeback.
+    let events = time_out_rounds(&mut state, 1);
+    assert!(!events.iter().any(|e| matches!(
+        e,
+        GameEvent::HostReaction {
+            kind: HostReactionKind::Comeback,
+            ..
+        }
+    )));
+    next_round(&mut state);
+    let events = time_out_rounds(&mut state, 1);
+    let calls: Vec<(HostReactionKind, Option<Team>)> = events
+        .iter()
+        .filter_map(|e| match e {
+            GameEvent::HostReaction { kind, team, .. } => Some((*kind, *team)),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        calls.contains(&(HostReactionKind::Comeback, Some(Team::Union))),
+        "{calls:?}"
+    );
+    let sab = state.sabotage.as_ref().unwrap();
+    assert_eq!((sab.score.union, sab.score.coalition), (3, 3));
+}
+
+#[test]
+fn the_last_fighter_standing_against_two_is_the_clutch_on_the_wire() {
+    let mut state = arena(SabotageConfig {
+        live_ticks: 400,
+        ..quick()
+    });
+    for n in 1..=5 {
+        join(&mut state, n);
+    }
+    state.start_round();
+    let muster = state.config.sabotage.muster_ticks;
+    run(&mut state, muster + 1);
+    assert!(state.snapshot().sabotage.unwrap().clutch.is_none());
+    let union = side(&state, Team::Union);
+    let coalition = side(&state, Team::Coalition);
+    let (small, big) = if union.len() < coalition.len() {
+        (union, coalition)
+    } else {
+        (coalition, union)
+    };
+    assert_eq!((small.len(), big.len()), (2, 3));
+    state.hit_for_test(big[0], small[0], 1000);
+    run(&mut state, 1);
+    // The wire names the clutch whatever the Host's spacing does: first
+    // blood just spoke, so the voiced call waits out its gap.
+    assert_eq!(state.snapshot().sabotage.unwrap().clutch, Some(small[1]));
+    // One against one is a duel, not a clutch.
+    state.hit_for_test(small[1], big[0], 1000);
+    state.hit_for_test(small[1], big[1], 1000);
+    run(&mut state, 1);
+    assert!(state.snapshot().sabotage.unwrap().clutch.is_none());
+}

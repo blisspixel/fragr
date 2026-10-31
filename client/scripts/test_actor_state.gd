@@ -73,6 +73,13 @@ func _run() -> void:
 		invalid_seat["campaign"].merge(patch, true)
 		_check(not ActorState.validation_error({"tick":12, "players":[invalid_seat]}).is_empty(),
 			"reject invalid seated guard: " + str(patch))
+	var working: Dictionary = _actor()
+	working["campaign"]["kind"] = "sweeper"
+	working["campaign"]["phase"] = "working"
+	_check(ActorState.validation_error({"tick":12, "players":[working]}).is_empty(), "a Union machine at work is accepted")
+	var working_absorbed: Dictionary = _inheritance("absorbed", "sweeper")
+	working_absorbed["campaign"]["phase"] = "working"
+	_check(not ActorState.validation_error({"tick":12, "players":[working_absorbed]}).is_empty(), "only the Union has bodies at work")
 	for kind: String in ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "ranged_sweeper"]:
 		var other: Dictionary = _actor()
 		other["campaign"]["kind"] = kind

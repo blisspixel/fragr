@@ -100,7 +100,8 @@ func _test_mapping() -> void:
 			var music: Dictionary = scene.get("music", {})
 			_check(CampaignScore.slot_from_path(str(music.get("path", ""))) == slot["id"], "the scene's music slot plays its cue: " + str(slot["id"]))
 		else:
-			_check(slot.get("mission") == MissionState.M19_ID and slot.get("moment") == "latch_choice", "the in-level cue belongs to Latch's choice")
+			var moment: String = "%s/%s" % [str(slot.get("mission", "")), str(slot.get("moment", ""))]
+			_check(moment in [MissionState.M18_ID + "/the_turn", MissionState.M19_ID + "/latch_choice"], "an in-level cue belongs to Level 18's turn or Latch's choice: " + moment)
 	_check(cues >= 5, "the designed story cues are listed")
 	_check(CampaignScore.parse_slots("").is_empty() and CampaignScore.parse_slots("{\"slots\": [{\"id\": \"../x\", \"kind\": \"bed\"}, {\"id\": \"ok\", \"kind\": \"loud\"}]}").is_empty(),
 		"bad slot rows are dropped")
@@ -184,6 +185,19 @@ func _test_live_node() -> void:
 	for frame: int in 3:
 		await process_frame
 	_check(not score.audible(), "a station silences the bed")
+	# Level 18's turn: the air goes at once, no cue can play through it, and
+	# it comes back on the ordinary fade.
+	score.radio_playing = false
+	for frame: int in 30:
+		await process_frame
+	var was_audible: bool = score.audible()
+	score.hush(true)
+	_check(not score.audible() and score.hushed, "a hush cuts the bed at once, without the fade")
+	_check(not score.play_cue("cue-l18"), "no cue plays through the hush")
+	score.hush(false)
+	for frame: int in 30:
+		await process_frame
+	_check(score.audible() == was_audible, "the bed comes back after the hush")
 	score.note_scene({"music": {"path": "res://assets/audio/score/cue-l02/a.mp3"}})
 	_check(score.last_cue == "cue-l02", "a story page's cue is remembered for its take control")
 	score.queue_free()

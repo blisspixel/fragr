@@ -1,10 +1,34 @@
-//! Original Low Water town arena: clinic, repair market and a walkable tram trench.
-use super::{armor_pad, health_pad, weapon_pad, MapDef, SabotageLayout};
+//! Low Water town arena: the clinic, the repair market and the tram trench,
+//! with a Union checkpoint across the south bank. Map id 8, the team and
+//! Sabotage town for eight to ten.
+//!
+//! Two street banks stand 3 m over the dry tram trench, crossed by three
+//! bridges, with a stair return at each end of each bank. The two Sabotage
+//! sites are different places to take and to hold:
+//!
+//! - A, Clinic Steps, is a close forecourt. A low ambulance wall faces the
+//!   clinic bridge, so the attack from the bridge jinks through its gate,
+//!   turns west past the steps or east round the triage canopy's screen, and the west stair return
+//!   comes up out of the trench right beside the site. Close range, three
+//!   short ways in, hidden from both overwatch decks.
+//! - B, Tram Stop, is an open platform under a shelter roof. The defence
+//!   watches it from the depot's loading dock, the attack from the water tank
+//!   deck across the trench. Long range, overlooked from both sides.
+//!
+//! The trench is a chicane, not a lane: a stopped tram against the north wall
+//! and a sleeper shed against the south wall overlap across its width, two
+//! bridge piers stand against alternate walls, and the tram's roof is a step
+//! down from the north bank. The banks no longer
+//! repeat one stall and screen four times: a repair stall and counter and the
+//! water tank deck on the north bank, the canopy, the ticket kiosk, the tram
+//! shelter and the dock on the south bank.
+use super::{armor_pad, health_pad, stair_run, weapon_pad, MapDef, SabotageLayout};
 use crate::movement::Solid;
 use crate::protocol::{
-    Callout, MapPresentation, MapSurface, SabotageMap, SabotageSite, SiteId, Team, WeaponType,
+    Callout, MapDecoration, MapDecorationKind, MapFace, MapPresentation, MapSurface, SabotageMap,
+    SabotageSite, SiteId, Team, WeaponType,
 };
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 use std::sync::OnceLock;
 
 #[cfg(test)]
@@ -12,6 +36,58 @@ mod tests;
 
 const STREET: f32 = 3.0;
 const HALF: f32 = 42.0;
+/// The water tank deck on the north bank, two metres over the street.
+pub(crate) const TANK_DECK: f32 = 5.0;
+/// The depot's loading dock on the south bank, one and a half over it.
+pub(crate) const DOCK: f32 = 4.5;
+/// The stopped tram's roof, half a metre under the north bank.
+pub(crate) const TRAM_ROOF: f32 = 2.5;
+/// The trench chicane: the tram against the north wall and the sleeper shed
+/// against the south wall, overlapping across the trench (x0, z0, x1, z1).
+pub(crate) const TRAM: [f32; 4] = [-17.0, -4.0, -5.0, 0.4];
+pub(crate) const SHED: [f32; 4] = [12.0, -0.4, 17.0, 4.0];
+/// Bridge piers, one against each trench wall (x0, z0, x1, z1).
+pub(crate) const PIERS: [[f32; 4]; 2] = [[-23.0, 0.0, -21.0, 4.0], [21.0, -4.0, 23.0, 0.0]];
+/// The back terraces' west and east ends, on both banks.
+pub(crate) const TERRACES: [(f32, f32); 2] = [(-32.0, -14.0), (14.0, 32.0)];
+/// Street lamp posts (x, z) and their height.
+pub(crate) const LAMPS: [[f32; 2]; 4] = [[-8.0, -5.2], [16.0, -5.2], [-4.0, 5.2], [16.5, 5.2]];
+pub(crate) const LAMP_TOP: f32 = STREET + 6.4;
+/// Free-for-all and team spawn slots (x, floor, z, yaw), eight each side
+/// of the x = 0 line that splits team spawns. The generic ring ran across the
+/// open banks, so eight fighters at the opening stood in each other's
+/// lanes. Each slot here is tucked behind a terrace, a house, the depot or
+/// the dock, in the lee of the trench's tram, shed and piers, or on a bank
+/// out of the other slots' lanes, and no two slots see each other inside
+/// 30 m (`tests.rs`). Each faces its
+/// open side, never a wall.
+pub(crate) const SPAWNS: [[f32; 4]; 16] = [
+    [-24.0, STREET, -21.0, 0.719],
+    [-21.0, STREET, 24.0, -0.852],
+    [24.0, STREET, -24.0, 2.356],
+    [18.0, STREET, 21.0, -FRAC_PI_2],
+    [-33.0, STREET, -39.0, FRAC_PI_2],
+    [-33.0, STREET, 39.0, -FRAC_PI_2],
+    [-18.0, 0.0, -1.0, PI],
+    [-24.0, 0.0, 3.0, PI],
+    [-10.0, 0.0, 1.0, 0.0],
+    [-4.0, 0.0, -3.0, 0.0],
+    [33.0, STREET, -39.0, FRAC_PI_2],
+    [40.0, STREET, 16.0, -FRAC_PI_2],
+    [32.0, STREET, 27.0, FRAC_PI_2],
+    [40.0, STREET, 30.0, PI],
+    [24.0, 0.0, -3.0, 0.0],
+    [18.0, 0.0, 2.0, 0.0],
+];
+
+/// The slot for a ring angle, as Larak Lot's table does.
+pub(crate) fn spawn(angle: f32) -> (f32, f32, f32, f32) {
+    let count = SPAWNS.len();
+    let slot = (angle.rem_euclid(2.0 * PI) / (2.0 * PI) * count as f32).round() as usize % count;
+    let [x, floor, z, yaw] = SPAWNS[slot];
+    (x, z, crate::movement::normalize_yaw(yaw), floor)
+}
+
 struct Town {
     map: MapDef,
     presentation: MapPresentation,
@@ -22,7 +98,8 @@ fn town() -> &'static Town {
     TOWN.get_or_init(|| {
         let mut solids = Vec::new();
         let mut surfaces = Vec::new();
-        let mut add = |min: [f32; 3], max: [f32; 3], surface: MapSurface| {
+        let mut decorations: Vec<MapDecoration> = Vec::new();
+        let mut add = |min: [f32; 3], max: [f32; 3], surface: MapSurface| -> usize {
             solids.push(Solid {
                 min_x: min[0],
                 min_z: min[2],
@@ -32,6 +109,16 @@ fn town() -> &'static Town {
                 top: max[1],
             });
             surfaces.push(surface);
+            solids.len() - 1
+        };
+        let mut panel = |solid: usize, face: MapFace, center: [f32; 2], size: [f32; 2], kind| {
+            decorations.push(MapDecoration {
+                solid,
+                face,
+                center,
+                size,
+                kind,
+            });
         };
         // The street is a raised bank, so the base floor is the trench. Four
         // notches carry six ordinary half-metre treads between both banks.
@@ -83,14 +170,52 @@ fn town() -> &'static Town {
                 MapSurface::ServiceSteel,
             );
         }
-        // Civilian homes and clinic/depot footprints. No inaccessible inside
-        // room or cosmetic collider is required by an objective.
+        // The trench chicane. The tram stands against the north wall, its
+        // roof a step down from the bank; the sleeper shed against the south
+        // wall is a drop from the bank into the trench.
+        let tram = add(
+            [TRAM[0], 0.0, TRAM[1]],
+            [TRAM[2], TRAM_ROOF, TRAM[3]],
+            MapSurface::ServiceSteel,
+        );
+        add(
+            [SHED[0], 0.0, SHED[1]],
+            [SHED[2], 2.0, SHED[3]],
+            MapSurface::Concrete,
+        );
+        // Piers under the west bridge's south end and the east bridge's
+        // north end, so no half of the trench runs clear between obstacles.
+        for pier in PIERS {
+            add(
+                [pier[0], 0.0, pier[1]],
+                [pier[2], 2.7, pier[3]],
+                MapSurface::Concrete,
+            );
+        }
+        // Civilian homes at the four corners and the clinic and depot wings.
+        // No inaccessible inside room or cosmetic collider is required by an
+        // objective.
         for (left, right) in [(-40.0, -34.0), (34.0, 40.0)] {
             for (near, far) in [(-28.0, -19.0), (18.0, 28.0)] {
                 add([left, STREET, near], [right, 9.0, far], MapSurface::Enamel);
             }
         }
-        add(
+        // Terraces along the back of both banks, either side of the spawn
+        // yards: the town's streets have houses on them, not open paving.
+        for (left, right) in TERRACES {
+            for (near, far) in [(-HALF, -36.0), (36.0, HALF)] {
+                add([left, STREET, near], [right, 9.5, far], MapSurface::Enamel);
+            }
+        }
+        // Street lamps along both banks' trench edges, honest thin posts.
+        for [x, z] in LAMPS {
+            add(
+                [x - 0.15, STREET, z - 0.15],
+                [x + 0.15, LAMP_TOP, z + 0.15],
+                MapSurface::ServiceSteel,
+            );
+        }
+        let clinic = add(
             [-39.0, STREET, 10.0],
             [-34.0, 7.0, 17.0],
             MapSurface::Enamel,
@@ -104,39 +229,154 @@ fn town() -> &'static Town {
         for (left, right) in [(-28.0, -26.0), (26.0, 28.0)] {
             add([left, STREET, 15.0], [right, 3.5, 21.0], MapSurface::Enamel);
         }
-        // Repair stalls divide the long lanes. Their awnings retain standing
-        // clearance and their backs stop an end-to-end spawn shot.
-        for x in [-12.0, 12.0] {
-            for z in [-18.0, 15.0] {
-                add(
-                    [x - 3.0, STREET, z - 3.0],
-                    [x + 3.0, 4.0, z - 2.0],
-                    MapSurface::Enamel,
-                );
-                add(
-                    [x - 3.0, 5.6, z - 3.0],
-                    [x + 3.0, 5.9, z + 3.0],
-                    MapSurface::ServiceSteel,
-                );
-                add(
-                    [x - 3.0, STREET, z + 2.7],
-                    [x + 3.0, 5.6, z + 3.0],
-                    MapSurface::Enamel,
-                );
-            }
+        // North bank, west: the repair stall, an L of back and side wall under
+        // an awning, and the repair counter by the trench, half cover.
+        let stall = add(
+            [-17.0, STREET, -23.0],
+            [-11.0, 5.6, -22.0],
+            MapSurface::Enamel,
+        );
+        add(
+            [-17.0, STREET, -22.0],
+            [-16.0, 5.6, -17.0],
+            MapSurface::Enamel,
+        );
+        add(
+            [-17.0, 5.6, -23.0],
+            [-11.0, 5.9, -17.0],
+            MapSurface::ServiceSteel,
+        );
+        add(
+            [-14.0, STREET, -9.0],
+            [-10.0, STREET + 1.1, -8.0],
+            MapSurface::Enamel,
+        );
+        // North bank, east: the water tank deck, a flight up from the west,
+        // the tank on its north east corner. It looks across the trench at B.
+        add(
+            [10.0, STREET, -24.0],
+            [18.0, TANK_DECK, -16.0],
+            MapSurface::Concrete,
+        );
+        for tread in stair_run(2.0, -19.0, 1.0, 0.0, 1.5, STREET, TANK_DECK) {
+            add(
+                [tread.min_x, STREET, tread.min_z],
+                [tread.max_x, tread.top, tread.max_z],
+                MapSurface::Concrete,
+            );
         }
-        // Clock and notice faces explain the market. The offset clock is also
-        // a sight break between muster exits without obstructing the trench.
+        let tank = add(
+            [14.0, TANK_DECK, -24.0],
+            [18.0, 9.0, -20.0],
+            MapSurface::ServiceSteel,
+        );
+        // South bank at A: the ambulance bay wall facing the clinic bridge,
+        // its gate a step east of the bridge's line,
+        // and the triage canopy east of the site, its east side a hung screen.
+        for (west, east) in [(-24.0, -20.0), (-17.0, -14.0)] {
+            add([west, STREET, 9.0], [east, 6.0, 10.0], MapSurface::Concrete);
+        }
+        add(
+            [-10.6, STREET, 13.0],
+            [-10.0, 5.6, 21.0],
+            MapSurface::Enamel,
+        );
+        add(
+            [-16.0, 5.6, 13.0],
+            [-10.0, 5.9, 19.0],
+            MapSurface::ServiceSteel,
+        );
+        for (x, z) in [(-16.0, 13.0), (-16.0, 18.4)] {
+            add([x, STREET, z], [x + 0.6, 5.6, z + 0.6], MapSurface::Enamel);
+        }
+        // South bank at B: the ticket kiosk, the tram shelter over the stop
+        // with its back wall, and the depot's loading dock with a flight up
+        // from the checkpoint side.
+        let kiosk = add([10.5, STREET, 13.5], [13.5, 6.0, 16.5], MapSurface::Enamel);
+        add(
+            [18.0, 5.6, 20.0],
+            [26.0, 5.9, 25.5],
+            MapSurface::ServiceSteel,
+        );
+        add([18.0, STREET, 25.5], [26.0, 5.6, 26.5], MapSurface::Enamel);
+        add(
+            [28.0, STREET, 19.0],
+            [34.0, DOCK, 26.0],
+            MapSurface::Concrete,
+        );
+        for tread in stair_run(29.5, 32.0, 0.0, -1.0, 1.5, STREET, DOCK) {
+            add(
+                [tread.min_x, STREET, tread.min_z],
+                [tread.max_x, tread.top, tread.max_z],
+                MapSurface::Concrete,
+            );
+        }
+        // The market clock is the landmark between the banks' middles; the
+        // notice board explains the market from the north.
         add([-3.0, STREET, 9.0], [3.0, 8.0, 12.0], MapSurface::Enamel);
-        add([-4.0, STREET, -14.0], [4.0, 5.8, -12.0], MapSurface::Enamel);
+        let notice = add([-4.0, STREET, -14.0], [4.0, 5.8, -12.0], MapSurface::Enamel);
         // Short checkpoint screens prevent the five starting bodies seeing
         // the other side. Each has exits on both ends.
-        add(
+        let checkpoint = add(
             [-9.0, STREET, 25.0],
             [9.0, 5.8, 26.0],
             MapSurface::ServiceSteel,
         );
         add([-9.0, STREET, -27.0], [9.0, 5.8, -26.0], MapSurface::Enamel);
+
+        // Show, don't sign: the clinic's own sign, the tank's stencil, the
+        // tram vote on the kiosk, the market notices, a circled six on the
+        // tram, and one Union seal on the checkpoint.
+        panel(
+            clinic,
+            MapFace::East,
+            [0.0, 1.0],
+            [4.0, 1.2],
+            MapDecorationKind::M04ClinicSign,
+        );
+        panel(
+            tank,
+            MapFace::South,
+            [0.0, 0.0],
+            [2.4, 1.2],
+            MapDecorationKind::M04WaterTank,
+        );
+        panel(
+            kiosk,
+            MapFace::North,
+            [0.0, 0.2],
+            [2.0, 1.6],
+            MapDecorationKind::M04TramVote,
+        );
+        panel(
+            notice,
+            MapFace::North,
+            [0.0, 0.0],
+            [3.0, 1.6],
+            MapDecorationKind::M04NoticeBoard,
+        );
+        panel(
+            stall,
+            MapFace::South,
+            [0.0, 0.6],
+            [3.0, 1.0],
+            MapDecorationKind::M04Workshop,
+        );
+        panel(
+            tram,
+            MapFace::South,
+            [3.0, 0.2],
+            [1.2, 1.2],
+            MapDecorationKind::M04PaintLocker,
+        );
+        panel(
+            checkpoint,
+            MapFace::North,
+            [0.0, 0.0],
+            [1.6, 1.6],
+            MapDecorationKind::UnionSeal,
+        );
+
         let pickups = vec![
             weapon_pad(
                 "low_water_clinic_rifle",
@@ -148,21 +388,21 @@ fn town() -> &'static Town {
             weapon_pad(
                 "low_water_depot_rifle",
                 WeaponType::Flechette,
-                22.0,
-                26.0,
-                STREET,
+                31.0,
+                22.5,
+                DOCK,
             ),
             weapon_pad(
                 "low_water_trench_scatter",
                 WeaponType::Scatter,
-                -10.0,
-                0.0,
+                -11.0,
+                2.2,
                 0.0,
             ),
             weapon_pad("low_water_bridge_rail", WeaponType::Rail, 8.0, 0.0, STREET),
             health_pad("low_water_clinic_health", -24.0, 25.0, STREET),
             health_pad("low_water_market_health", 24.0, -25.0, STREET),
-            armor_pad("low_water_trench_armor", 14.0, 0.0, 0.0),
+            armor_pad("low_water_trench_armor", 14.5, -2.2, 0.0),
         ];
         Town {
             map: MapDef {
@@ -170,12 +410,17 @@ fn town() -> &'static Town {
                 spawn_radius: 34.0,
                 solids,
                 pickups,
-                scrap_pads: vec![],
+                scrap_pads: vec![
+                    // Free-for-all only: the corner slots behind the terraces
+                    // are a long walk from the street guns.
+                    weapon_pad("scrap_scatter_ne", WeaponType::Scatter, 26.0, -31.0, STREET),
+                    weapon_pad("scrap_scatter_sw", WeaponType::Scatter, -26.0, 31.0, STREET),
+                ],
             },
             presentation: MapPresentation {
                 ground: MapSurface::ServiceSteel,
                 solids: surfaces,
-                decorations: vec![],
+                decorations,
             },
         }
     })
@@ -188,7 +433,7 @@ pub(super) fn build() -> MapDef {
         spawn_radius: map.spawn_radius,
         solids: map.solids.clone(),
         pickups: map.pickups.clone(),
-        scrap_pads: vec![],
+        scrap_pads: map.scrap_pads.clone(),
     }
 }
 
@@ -267,7 +512,7 @@ pub(super) fn sabotage() -> SabotageLayout {
         ],
         holds: [
             vec![
-                point(-22.0, 12.0),
+                point(-21.0, 14.0),
                 point(-18.0, 18.0),
                 point(-22.0, 24.0),
                 point(-26.0, 24.0),

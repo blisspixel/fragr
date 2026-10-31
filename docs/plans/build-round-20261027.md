@@ -106,6 +106,24 @@ audit (2 blockers, 12 confusing, 27 minor; 6 designed feelings delivered, 7
 partial, 2 on paper only), which feeds wave 19's story lane. The
 [roadmap](../ROADMAP.md#next-steps) owns what remains.
 
+## Wave 19 (implemented)
+
+Nick's calls on 2026-10-30: build every multiplayer map out and bug-hunt it
+before any cut, with hosts switching maps in or out of rotation; make the
+campaign's designed feelings land in play.
+
+| Lane | Result |
+|---|---|
+| `between-match` (#509) | Podium nemesis and rivals, a three-map vote, per-map rotation switches |
+| `team-seat` (#510) | Teammate seat after death, clutch stamp, Sabotage resupply ladder |
+| `map-hunt` (#511) | Every map in every mode surveyed; a walked route to every pad |
+| `yard-water` (#512) | Compliance Yard and Low Water rebuilt, lit and dressed; Low Water spawn table |
+| `story` (#513) | The Level 18 turn in play; people introduced before they matter; pages and timeline |
+
+The coordinator kept one survey implementation where two lanes built the same
+lead-change counter, reconciled both lanes' wire bump to one gameplay 64, and
+fixed the radio playing through the Level 18 turn. Follow-up: #520.
+
 ## Verification
 
 Each wave PR carries the AGENTS.md verification list run on the final tree, inspected captures for anything a player sees, and exact-head and exact-main CI. Headless checks, inspected visuals, measurements, fresh-player acceptance and installed releases stay distinct.

@@ -132,11 +132,11 @@ func _run() -> void:
 	var notices: Array[String] = []
 	presenter.notice_requested.connect(func(text: String) -> void: notices.append(text))
 	presenter.apply_state(fixture_state(info, 3, 30)["state"])
-	_check(presenter._checkpoint_lifted and notices.size() == 1, "presenter fires checkpoint lifted notice")
+	_check(presenter._checkpoint_lifted and notices.size() == 2 and notices[1] == tr("M16_MARA_NOT_US"), "presenter fires checkpoint lifted notice, then Mara: that wasn't us")
 	presenter.apply_state(fixture_state(info, 4, 40)["state"])
-	_check(presenter._bus_freed and notices.size() == 2, "presenter fires bus freed notice")
+	_check(presenter._bus_freed and notices.size() == 3, "presenter fires bus freed notice")
 	presenter.apply_state(fixture_state(info, 6, 60)["state"])
-	_check(presenter._doors_open and notices.size() == 3, "presenter fires chamber doors notice")
+	_check(presenter._doors_open and notices.size() == 4, "presenter fires chamber doors notice once each, Mara once")
 	presenter.clear_map()
 	presenter.free()
 

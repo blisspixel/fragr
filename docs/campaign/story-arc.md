@@ -127,8 +127,10 @@ She never delivers a villain speech and never explains the Union. At capture
 she says one quiet, believable thing, proposed: "You will need someone to run
 it." Then an official asks somebody to sign for the confiscated command keys.
 
-**The Chancellor's voice.** English is reassurance, German is the mask slipping,
-and it happens exactly once in the campaign, at the opening. By level 17 the
+**The Chancellor's voice.** English is reassurance, German is the mask slipping.
+Captioned German podium addresses on Union screens are routine (level 1's
+screens carry them under the official caption track); Voss *shouting* in
+German, live, happens exactly once in the campaign, at the opening. By level 17 the
 mask has nothing left to hide behind: she stays in English and simply gets
 colder, which lands harder for being quieter than the crowd scene that opened
 the game. Captions are always accurate for the player; only in-world official
@@ -141,8 +143,11 @@ tender's transfer orders (11) and the games' correction pathway forms (15). It
 is set in the same place on every form, so players recognise the shape of it
 without reading it. In level 17 the administration ring holds a tired, polite
 man at a desk, who stands when you come in and asks whether you need a receipt.
-He is not a boss. The coalition takes him into custody with Voss's staff, and
-Latch reads him one line from the ledger of names he signed. Nobody shoots him.
+He is not a boss. The coalition takes him into custody with Voss's staff.
+Nobody shoots him. (Built: his countersignature is on the level 1 recall notice
+and the level 4 notice to vacate, and the level 17 page names him as the
+registrar whose name is on every recall; Latch's one line in level 17 is
+"They're everyone's", taking Voss's command keys, on the `l17_l18` page.)
 This is the understated evil: the man was never cruel to anyone in person.
 
 **Committed elites and sincere functionaries.** Enforcers wear the red armband
@@ -273,6 +278,25 @@ lines. Latch sits on the water tank where the two of you used to argue about
 tram motors and says the only despairing line they have in the game. Then they
 stand up and choose. The player's objective line does not change ("Get them to
 the pier"); only who is standing beside them does.
+
+### Built delivery of the beats (wave 19)
+
+What the build now does for each beat that was thin, so the briefs and the
+build agree. Lines are in `client/i18n/`, pages in `client/assets/story/scenes/`.
+
+| Beat | Built |
+|---|---|
+| Ledger | L1 prop "You 3. Me 3."; L2 Latch: "That's four. Don't let it go to your head."; L10 page: TELL LATCH IT IS FOUR TO THREE, "That's our count." |
+| Tank | L5 Latch at the roof tank: "Still think the motor was yours."; L19 the same tank |
+| Sorrel | L5 trench: TRAM 4: DOORS OPEN, DRIVER NOT FOUND, and Latch: "That's Sorrel's cap. They took Sorrel."; L11 receipt: SORREL FOUND IN THE TRANSFER HOLD |
+| Orrin | L8 cabinet and receipt name Orrin's backup |
+| Kessel | Countersigned on the L1 recall notice and the L4 notice to vacate; the L17 page names him |
+| Mara and Tern | Opening: Mara runs the neighbourhood's trucks; L5 departure check: "Tern's ship can leave now" (the narrated L5 to L6 pages keep their recorded words); L12 Mara's apology; L16 Mara: "That wasn't us." |
+| Latch present | Follows the party in L2 to L7, L15, L17 and L18 (server companion); stands with them in L8 to L11; the L11 to L12, L13 and L16 pages place Latch |
+| Recognition | L8 depot lamp, L13 relay lamp and L18's absorbed optics share one rhythm (`M08Archive.noise_lit`); the car nobody sent; the L10 message; the L16 green wave |
+| Victory's breath | `l17_l18`: Voss, "You will need someone to run it"; Latch takes the keys, "They're everyone's"; `m18_arrival`: six weeks later |
+| The turn | L18 in play, server authority: see the built-turn table in [level 18](l18-all-systems-normal.md) |
+| Scale | `l18_l19`: the Moon's cargo lifts, a Martian habitat's lights, the grid still reading ALL SYSTEMS NORMAL |
 
 ## The endings
 

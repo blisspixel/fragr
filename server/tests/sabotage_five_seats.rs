@@ -452,7 +452,14 @@ async fn five_seats_live_socket_join_waits_without_active_body_or_shots_until_ne
         .unwrap();
     assert_eq!(player["collidable"], true);
     assert_eq!(player["lives"], 1);
-    assert_eq!(player["weapon"], "Tack");
+    // A late joiner musters like anyone who fell: fists, the personal Tack pad,
+    // and the side's resupply rung (#510), which issues the Rifle from rung 1.
+    let side = player["team"].as_str().unwrap();
+    let rung = muster["sabotage"]["resupply"][side].as_u64().unwrap_or(0);
+    assert_eq!(
+        player["weapon"],
+        if rung >= 1 { "Flechette" } else { "Tack" }
+    );
     for socket in [&mut watcher, &mut first, &mut second, &mut late] {
         let _ = socket.close(None).await;
     }

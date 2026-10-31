@@ -83,6 +83,8 @@ fn settling_a_grudge_is_said_to_the_fighter_owed_and_written_in_the_book() {
     let _ = state.take_events();
     frag(&mut state, 0, 1);
     assert_eq!(state.head_to_head.frags("Nightfall", "Meat Proxy"), 1);
+    // The podium's session book takes the same frag.
+    assert_eq!(state.session_book.frags("Nightfall", "Meat Proxy"), 1);
     let said = spoken(&mut state);
     let (line, to) = said
         .iter()

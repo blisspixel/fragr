@@ -59,6 +59,9 @@ var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
 var latch_view: LatchView = null
+## A story moment's held expression for Latch ("" for none). A shot still
+## focuses the face; the hold returns when the shooting stops.
+var latch_hold: String = ""
 var character_view: SkinnedCharacter = null
 var _held_root: Node3D = null
 ## The modelled gun a live body carries in place of the profile card.
@@ -337,6 +340,8 @@ func _process(delta: float) -> void:
 			marksman_tell.present(campaign_actor, enemy_view.tick, enemy_view.elapsed)
 	elif latch_view != null:
 		latch_view.advance(delta, travel, str(campaign_actor.get("phase", "following")))
+		if not latch_hold.is_empty() and campaign_actor.get("phase") != "firing":
+			latch_view.set_expression(latch_hold)
 	elif character_view != null:
 		var gait_travel: float = presentation_speed * delta if prediction_active else travel
 		character_view.aim_pitch = presentation_pitch

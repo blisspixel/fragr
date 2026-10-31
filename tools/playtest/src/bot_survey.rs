@@ -27,6 +27,26 @@ const APPOINTMENT_TICKS: u64 = 20;
 /// Half the 120 degree view cone, with a little slack for the shooter's
 /// turn on the tick the shot resolved.
 const VIEW_HALF_ANGLE: f32 = std::f32::consts::FRAC_PI_3 + 0.1;
+/// The roster's stall rule: a living fighter that neither moves this far in a
+/// tick nor fires, for longer than five seconds, is stuck.
+const STALL_EPSILON: f32 = 0.01;
+const STALL_TICKS: u32 = 100;
+/// Stall and wall spots kept per scenario, so a report names places to look.
+const SPOTS_KEPT: usize = 24;
+
+/// Where a fighter stood still or stood inside geometry, for a hunt.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct Spot {
+    pub seed: u64,
+    pub tick: u64,
+    pub fighter: String,
+    /// Feet position.
+    pub at: [f32; 3],
+    pub seconds: f64,
+    pub in_vehicle: bool,
+    /// The fighter was asking to move: a wedge, not a hold.
+    pub pushing: bool,
+}
 
 /// One mode and map with its roster size.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -176,6 +196,49 @@ pub struct ScenarioReport {
     pub rocket_in_hand_share: f64,
     /// Rule bots' objective callouts said to a side, per live minute.
     pub side_calls_per_minute: f64,
+    /// Times the sole leader changed hands (fighter in free-for-all and Duel,
+    /// side in team deathmatch and CTF), per match. The first lead is not a change.
+    pub lead_changes: u64,
+    pub lead_changes_per_match: f64,
+    /// Over-five-second stalls by the roster's rule, and the longest one.
+    pub stalls: u64,
+    /// Stalls where the fighter kept asking to move: wedged on geometry.
+    pub pushing_stalls: u64,
+    pub longest_stall_seconds: f64,
+    pub stall_spots: Vec<Spot>,
+    /// Living fighter ticks with the body inside a map solid, or outside the
+    /// playable square; either is a collision bug, never play.
+    pub in_solid_ticks: u64,
+    pub in_solid_spots: Vec<Spot>,
+    pub out_of_bounds_ticks: u64,
+    /// The lowest feet height a living fighter reached.
+    pub lowest_feet: f32,
+    /// Authored pads nobody claimed in any surveyed match: a route failure or
+    /// a pad nobody wants.
+    pub unclaimed_pads: Vec<String>,
+    /// Fighter seconds spent in a vehicle seat (Holdfast's jeeps, boats and
+    /// aircraft).
+    pub vehicle_seconds: f64,
+}
+
+/// The wave 19 fun targets for every map in rotation.
+pub const MAP_FRAGS_PER_MINUTE: f64 = 10.0;
+pub const MAP_LEAD_CHANGES: f64 = 3.0;
+pub const MAP_TOP_GUN_SHARE: f64 = 0.45;
+
+impl ScenarioReport {
+    /// The gun that fired the most shots and its share.
+    pub fn top_gun(&self) -> (String, f64) {
+        self.shot_share
+            .iter()
+            .fold((String::new(), 0.0), |best, (gun, share)| {
+                if *share > best.1 {
+                    (gun.clone(), *share)
+                } else {
+                    best
+                }
+            })
+    }
 }
 
 /// The lane targets for rule bots on Larak Lot's free-for-all at six bots:
@@ -208,6 +271,36 @@ pub fn lot_scenarios() -> Vec<Scenario> {
             ..lot
         },
     ]
+}
+
+/// One map in the modes it hosts: free-for-all at six and eight, team
+/// deathmatch at eight, and Sabotage at ten where the map has sites.
+pub fn map_scenarios(map: MapKind) -> Vec<Scenario> {
+    let mut rows = vec![
+        Scenario {
+            mode: GameMode::Ffa,
+            map: map.id(),
+            bots: 6,
+        },
+        Scenario {
+            mode: GameMode::Ffa,
+            map: map.id(),
+            bots: 8,
+        },
+        Scenario {
+            mode: GameMode::Tdm,
+            map: map.id(),
+            bots: 8,
+        },
+    ];
+    if map.sabotage_map().is_some() {
+        rows.push(Scenario {
+            mode: GameMode::Sabotage,
+            map: map.id(),
+            bots: 10,
+        });
+    }
+    rows
 }
 
 /// Problems against the Larak Lot targets, for the lot's six-bot row.
@@ -288,6 +381,18 @@ struct Tally {
     rocket_lives_died: u64,
     rocket_in_hand_ticks: u64,
     side_calls: u64,
+    lead_changes: u64,
+    stalls: u64,
+    pushing_stalls: u64,
+    longest_stall_ticks: u32,
+    stall_spots: Vec<Spot>,
+    in_solid_ticks: u64,
+    in_solid_spots: Vec<Spot>,
+    out_of_bounds_ticks: u64,
+    lowest_feet: Option<f32>,
+    /// Claims by pad id, with every authored pad entered at zero.
+    pad_claims: BTreeMap<String, u64>,
+    vehicle_ticks: u64,
 }
 
 fn power(kind: PickupKind) -> bool {
@@ -301,6 +406,127 @@ fn power(kind: PickupKind) -> bool {
 fn angle_difference(to: f32, from: f32) -> f32 {
     use std::f32::consts::{PI, TAU};
     (to - from + PI).rem_euclid(TAU) - PI
+}
+
+/// The sole front of the round by the survey's own reading of the scores:
+/// a fighter id in free-for-all and Duel, a side in team modes. None when level.
+fn sole_leader(session: &GameSession, mode: GameMode) -> Option<String> {
+    let side = |scores: fragr_server::protocol::TeamScores| {
+        scores.leader().map(|team| team.id().to_string())
+    };
+    match mode {
+        GameMode::Tdm => side(session.state.team_scores),
+        GameMode::Ctf => side(session.state.capture_scores),
+        GameMode::Ffa | GameMode::Duel => {
+            let mut best: Option<(Uuid, u32)> = None;
+            let mut level = false;
+            for player in session.state.players.iter().filter(|p| !p.is_boss) {
+                let score = session.state.scores.get(&player.id).copied().unwrap_or(0);
+                match best {
+                    Some((_, top)) if score < top => {}
+                    Some((_, top)) if score == top => level = true,
+                    _ => {
+                        best = Some((player.id, score));
+                        level = false;
+                    }
+                }
+            }
+            best.filter(|(_, top)| !level && *top > 0)
+                .map(|(id, _)| id.to_string())
+        }
+        GameMode::Sabotage | GameMode::Conquest => None,
+    }
+}
+
+fn keep(spots: &mut Vec<Spot>, spot: Spot) {
+    // One spot per two metre cell, so one wedge does not fill the list.
+    let cell = |at: [f32; 3]| {
+        (
+            (at[0] / 2.0).floor() as i32,
+            (at[1] / 2.0).floor() as i32,
+            (at[2] / 2.0).floor() as i32,
+        )
+    };
+    if spots.len() < SPOTS_KEPT && !spots.iter().any(|s| cell(s.at) == cell(spot.at)) {
+        spots.push(spot);
+    }
+}
+
+/// Collision and stall facts for every living fighter on one live tick.
+fn track_bodies(
+    session: &GameSession,
+    seed: u64,
+    tick: u64,
+    half: f32,
+    still: &mut HashMap<Uuid, ([f32; 3], u32)>,
+    tally: &mut Tally,
+) {
+    use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON};
+    use fragr_server::protocol::VehicleSeat;
+    use fragr_server::sim::PLAYER_FLOOR_Y;
+    let arena = session.state.current_arena();
+    for player in &session.state.players {
+        let alive = player.hp > 0 && player.respawn_timer.is_none();
+        if !alive {
+            still.remove(&player.id);
+            continue;
+        }
+        let in_vehicle = session.state.vehicles.iter().any(|jeep| {
+            jeep.occupant(VehicleSeat::Driver) == Some(player.id)
+                || jeep.occupant(VehicleSeat::Gunner) == Some(player.id)
+        });
+        if in_vehicle {
+            tally.vehicle_ticks += 1;
+        }
+        let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+        tally.lowest_feet = Some(tally.lowest_feet.map_or(feet[1], |low| low.min(feet[1])));
+        let spot = |seconds: f64| Spot {
+            seed,
+            tick,
+            fighter: player.name.clone(),
+            at: feet,
+            seconds,
+            in_vehicle,
+            pushing: false,
+        };
+        if player.x.abs() > half || player.z.abs() > half {
+            tally.out_of_bounds_ticks += 1;
+        }
+        if !in_vehicle
+            && arena.solids.iter().any(|solid| {
+                solid.covers(player.x, player.z)
+                    && solid.top > feet[1] + CONTACT_EPSILON
+                    && solid.bottom < feet[1] + BODY_HEIGHT - CONTACT_EPSILON
+            })
+        {
+            tally.in_solid_ticks += 1;
+            keep(&mut tally.in_solid_spots, spot(0.0));
+        }
+        let entry = still.entry(player.id).or_insert((feet, 0));
+        let moved = (feet[0] - entry.0[0]).hypot(feet[2] - entry.0[2]);
+        entry.0 = feet;
+        if moved >= STALL_EPSILON || player.just_fired {
+            entry.1 = 0;
+            continue;
+        }
+        entry.1 += 1;
+        tally.longest_stall_ticks = tally.longest_stall_ticks.max(entry.1);
+        if entry.1 == STALL_TICKS + 1 {
+            let intent = &player.pending_action;
+            let pushing = intent.forward || intent.back || intent.left || intent.right;
+            tally.stalls += 1;
+            if pushing {
+                tally.pushing_stalls += 1;
+            }
+            keep(
+                &mut tally.stall_spots,
+                Spot {
+                    pushing,
+                    ..spot(f64::from(STALL_TICKS) / 20.0)
+                },
+            );
+        }
+    }
 }
 
 /// Run every scenario and seed and fold the facts.
@@ -394,7 +620,92 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         rocket_lives_died: share(tally.rocket_lives_died, tally.rocket_lives),
         rocket_in_hand_share: share(tally.rocket_in_hand_ticks, tally.rocket_life_ticks),
         side_calls_per_minute: per_minute(tally.side_calls),
+        lead_changes: tally.lead_changes,
+        lead_changes_per_match: if tally.matches == 0 {
+            0.0
+        } else {
+            tally.lead_changes as f64 / f64::from(tally.matches)
+        },
+        stalls: tally.stalls,
+        pushing_stalls: tally.pushing_stalls,
+        longest_stall_seconds: f64::from(tally.longest_stall_ticks) / 20.0,
+        stall_spots: tally.stall_spots.clone(),
+        in_solid_ticks: tally.in_solid_ticks,
+        in_solid_spots: tally.in_solid_spots.clone(),
+        out_of_bounds_ticks: tally.out_of_bounds_ticks,
+        lowest_feet: tally.lowest_feet.unwrap_or(0.0),
+        vehicle_seconds: tally.vehicle_ticks as f64 / 20.0,
+        unclaimed_pads: tally
+            .pad_claims
+            .iter()
+            .filter(|(_, claims)| **claims == 0)
+            .map(|(id, _)| id.clone())
+            .collect(),
     }
+}
+
+/// Every map in every mode it hosts, at the roster size the map is built
+/// for: the hunt's matrix. Duel is two seats on every map.
+pub fn every_map_scenarios() -> Vec<Scenario> {
+    let mut scenarios = Vec::new();
+    for map in MapKind::ALL {
+        let bots = match map {
+            MapKind::ArenaDuel => 6,
+            MapKind::ComplianceYard => 6,
+            MapKind::Directive17 | MapKind::Sector9 => 8,
+            MapKind::LowWater => 10,
+            MapKind::ReclamationGulch | MapKind::TripointWorks => 12,
+            MapKind::HoldfastAtoll => 16,
+        };
+        let mut modes = vec![GameMode::Ffa, GameMode::Tdm, GameMode::Duel];
+        if map.ctf_stands().is_some() {
+            modes.push(GameMode::Ctf);
+        }
+        if map.sabotage_map().is_some() {
+            modes.push(GameMode::Sabotage);
+        }
+        if map == MapKind::HoldfastAtoll {
+            modes.push(GameMode::Conquest);
+        }
+        for mode in modes {
+            scenarios.push(Scenario {
+                mode,
+                map: map.id(),
+                bots: if mode == GameMode::Duel { 2 } else { bots },
+            });
+        }
+    }
+    scenarios
+}
+
+/// Rows that miss the wave 19 fun targets. Frag pace is read on the
+/// deathmatch modes in rotation (a two-seat Duel trades far fewer frags by
+/// nature), lead changes on free-for-all, gun share everywhere.
+pub fn check_map_targets(row: &ScenarioReport, mode: GameMode) -> Vec<String> {
+    let mut misses = Vec::new();
+    if matches!(mode, GameMode::Ffa | GameMode::Tdm) && row.frags_per_minute < MAP_FRAGS_PER_MINUTE
+    {
+        misses.push(format!(
+            "{}: {:.1} frags/min, want {MAP_FRAGS_PER_MINUTE} or more",
+            row.scenario, row.frags_per_minute
+        ));
+    }
+    if mode == GameMode::Ffa && row.lead_changes_per_match < MAP_LEAD_CHANGES {
+        misses.push(format!(
+            "{}: {:.1} lead changes per match, want {MAP_LEAD_CHANGES} or more",
+            row.scenario, row.lead_changes_per_match
+        ));
+    }
+    let (gun, share) = row.top_gun();
+    if share >= MAP_TOP_GUN_SHARE {
+        misses.push(format!(
+            "{}: {gun} fires {:.0} percent of shots, want under {:.0}",
+            row.scenario,
+            share * 100.0,
+            MAP_TOP_GUN_SHARE * 100.0
+        ));
+    }
+    misses
 }
 
 fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tally) {
@@ -434,6 +745,9 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         player_id: None,
     });
     tally.matches += 1;
+    for pad in &session.state.pickups {
+        tally.pad_claims.entry(pad.id.clone()).or_default();
+    }
 
     // Per pad: the tick it last returned during live play, and whether that
     // return still waits for its first claim.
@@ -445,6 +759,11 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
     // Per (shooter, target): whether the shooter opened from outside the target's view.
     let mut openings: HashMap<(Uuid, Uuid), bool> = HashMap::new();
     let mut rocket_lives: HashSet<Uuid> = HashSet::new();
+    // Per fighter: last feet position and the current still run.
+    let mut still: HashMap<Uuid, ([f32; 3], u32)> = HashMap::new();
+    let mut leader: Option<String> = None;
+    let rounds = scenario.mode == GameMode::Sabotage;
+    let half = map.half_extent();
     let mut live = false;
     let mut ended = false;
     let limit = u64::from(round_ticks) + 20 * 30;
@@ -458,6 +777,17 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 .map(|(_, message)| message),
         );
         let tick = session.state.tick;
+        if live {
+            track_bodies(&session, seed, tick, half, &mut still, tally);
+            if let Some(now) = sole_leader(&session, scenario.mode) {
+                if leader.as_ref().is_some_and(|before| *before != now) {
+                    tally.lead_changes += 1;
+                }
+                leader = Some(now);
+            }
+        } else {
+            still.clear();
+        }
         if live {
             tally.live_ticks += 1;
             for player in &session.state.players {
@@ -516,6 +846,23 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 _ => continue,
             };
             match event {
+                // Sabotage plays rounds: live from each round's go to its end,
+                // so the muster freeze is not counted as standing still.
+                GameEvent::Sabotage {
+                    kind: fragr_server::protocol::SabotageEventKind::Live,
+                    ..
+                } if rounds => {
+                    live = true;
+                }
+                GameEvent::RoundEnd { .. } if rounds => {
+                    live = false;
+                }
+                GameEvent::RoundStart { .. } if rounds => {
+                    for player in &session.state.players {
+                        spawned_at.insert(player.id, tick);
+                        tally.spawns += 1;
+                    }
+                }
                 GameEvent::RoundStart { .. } => {
                     live = true;
                     for player in &session.state.players {
@@ -645,6 +992,9 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     ..
                 } if live => {
                     tally.pickups += 1;
+                    if let Some(claims) = tally.pad_claims.get_mut(pickup_id.as_str()) {
+                        *claims += 1;
+                    }
                     if pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX) {
                         tally.drop_claims += 1;
                         if weapon == WeaponType::Rocket.name() {
@@ -722,6 +1072,12 @@ pub fn check_bot_survey(report: &BotSurveyReport) -> Vec<String> {
                 "{}: {:.1} percent of hits landed outside the shooter's view",
                 row.scenario,
                 row.hits_outside_view_share * 100.0
+            ));
+        }
+        if row.in_solid_ticks > 0 || row.out_of_bounds_ticks > 0 {
+            problems.push(format!(
+                "{}: a living fighter stood inside a solid for {} ticks and outside the square for {}",
+                row.scenario, row.in_solid_ticks, row.out_of_bounds_ticks
             ));
         }
     }
@@ -808,6 +1164,30 @@ mod tests {
     }
 
     #[test]
+    fn a_map_survey_covers_the_modes_the_map_hosts() {
+        let labels = |map: MapKind| -> Vec<String> {
+            map_scenarios(map).iter().map(Scenario::label).collect()
+        };
+        assert_eq!(
+            labels(MapKind::ComplianceYard),
+            [
+                "ffa-compliance-yard-6",
+                "ffa-compliance-yard-8",
+                "tdm-compliance-yard-8"
+            ]
+        );
+        assert_eq!(
+            labels(MapKind::LowWater),
+            [
+                "ffa-low-water-6",
+                "ffa-low-water-8",
+                "tdm-low-water-8",
+                "sabotage-low-water-10"
+            ]
+        );
+    }
+
+    #[test]
     fn a_seeded_survey_repeats_exactly() {
         let config = BotSurveyConfig {
             scenarios: vec![lot_scenario()],
@@ -828,5 +1208,166 @@ mod tests {
             ..BotSurveyReport::default()
         };
         assert_eq!(check_bot_survey(&report).len(), 3);
+    }
+
+    #[test]
+    fn the_map_matrix_plays_every_map_in_every_mode_it_hosts() {
+        let scenarios = every_map_scenarios();
+        assert_eq!(scenarios.len(), 29);
+        for map in MapKind::ALL {
+            for mode in [GameMode::Ffa, GameMode::Tdm, GameMode::Duel] {
+                assert!(scenarios
+                    .iter()
+                    .any(|s| s.map == map.id() && s.mode == mode));
+            }
+        }
+        let hosts = |mode: GameMode| -> Vec<u32> {
+            scenarios
+                .iter()
+                .filter(|s| s.mode == mode)
+                .map(|s| s.map)
+                .collect()
+        };
+        assert_eq!(hosts(GameMode::Ctf), [3, 4]);
+        assert_eq!(hosts(GameMode::Sabotage), [4, 8]);
+        assert_eq!(hosts(GameMode::Conquest), [7]);
+        assert!(scenarios
+            .iter()
+            .all(|s| (s.mode == GameMode::Duel) == (s.bots == 2)));
+    }
+
+    #[test]
+    fn a_still_fighter_is_one_stall_and_a_pushing_one_is_a_wedge() {
+        let mut session = GameSession::with_map(MapKind::ArenaDuel, false);
+        let id = Uuid::from_u128(7);
+        session.state.add_player(id, "Still".into(), Role::Agent);
+        session.state.start_round();
+        let mut still = HashMap::new();
+        let mut tally = Tally::default();
+        let half = MapKind::ArenaDuel.half_extent();
+        for tick in 0..=u64::from(STALL_TICKS) + 20 {
+            track_bodies(&session, 1, tick, half, &mut still, &mut tally);
+        }
+        assert_eq!(tally.stalls, 1, "one run is one stall however long");
+        assert_eq!(tally.pushing_stalls, 0);
+        assert_eq!(tally.stall_spots.len(), 1);
+        assert!(!tally.stall_spots[0].pushing);
+        assert_eq!(tally.in_solid_ticks, 0, "a spawn is clear floor");
+        assert_eq!(tally.out_of_bounds_ticks, 0);
+
+        // The same fighter asking to walk while it stands still is wedged.
+        session.state.players[0].pending_action.forward = true;
+        still.clear();
+        let mut wedged = Tally::default();
+        for tick in 0..=u64::from(STALL_TICKS) + 1 {
+            track_bodies(&session, 1, tick, half, &mut still, &mut wedged);
+        }
+        assert_eq!((wedged.stalls, wedged.pushing_stalls), (1, 1));
+
+        // Firing breaks a run: a fighter holding an angle and shooting is not stuck.
+        session.state.players[0].just_fired = true;
+        still.clear();
+        let mut firing = Tally::default();
+        for tick in 0..=u64::from(STALL_TICKS) + 1 {
+            track_bodies(&session, 1, tick, half, &mut still, &mut firing);
+        }
+        assert_eq!(firing.stalls, 0);
+    }
+
+    #[test]
+    fn a_body_inside_a_solid_or_off_the_square_is_counted() {
+        let mut session = GameSession::with_map(MapKind::ArenaDuel, false);
+        let id = Uuid::from_u128(8);
+        session.state.add_player(id, "Wall".into(), Role::Agent);
+        session.state.start_round();
+        let solid = session
+            .state
+            .current_arena()
+            .solids
+            .iter()
+            .copied()
+            .find(|s| s.bottom == 0.0 && s.top > 2.0)
+            .unwrap();
+        let player = &mut session.state.players[0];
+        player.x = (solid.min_x + solid.max_x) * 0.5;
+        player.z = (solid.min_z + solid.max_z) * 0.5;
+        player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+        let mut tally = Tally::default();
+        let half = MapKind::ArenaDuel.half_extent();
+        track_bodies(&session, 1, 0, half, &mut HashMap::new(), &mut tally);
+        assert_eq!(tally.in_solid_ticks, 1);
+        assert_eq!(tally.in_solid_spots.len(), 1);
+        session.state.players[0].x = half + 1.0;
+        track_bodies(&session, 1, 1, half, &mut HashMap::new(), &mut tally);
+        assert_eq!(tally.out_of_bounds_ticks, 1);
+        let row = fold(&lot_scenario(), &tally);
+        assert_eq!(
+            check_bot_survey(&BotSurveyReport {
+                scenarios: vec![row],
+                ..BotSurveyReport::default()
+            })
+            .iter()
+            .filter(|p| p.contains("inside a solid"))
+            .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn a_free_for_all_counts_lead_changes_and_sabotage_plays_its_rounds() {
+        let report = run_bot_survey(&BotSurveyConfig {
+            scenarios: vec![
+                Scenario {
+                    mode: GameMode::Ffa,
+                    map: MapKind::Directive17.id(),
+                    bots: 8,
+                },
+                Scenario {
+                    mode: GameMode::Sabotage,
+                    map: MapKind::LowWater.id(),
+                    bots: 10,
+                },
+            ],
+            seeds: vec![1],
+            round_ticks: 20 * 120,
+        });
+        let ffa = &report.scenarios[0];
+        assert!(ffa.lead_changes > 0, "{ffa:?}");
+        assert!(
+            ffa.unclaimed_pads.len() < 4
+                && ffa.unclaimed_pads.iter().all(|id| !id.starts_with("drop")),
+            "pads are counted, and only authored pads: {ffa:?}"
+        );
+        assert_eq!(ffa.in_solid_ticks + ffa.out_of_bounds_ticks, 0);
+        let sabotage = &report.scenarios[1];
+        assert!(
+            sabotage.frags > 0 && sabotage.live_seconds > 30.0,
+            "{sabotage:?}"
+        );
+        assert_eq!(sabotage.lead_changes, 0, "sabotage has no frag lead");
+    }
+
+    #[test]
+    fn the_map_targets_read_pace_on_deathmatch_and_gun_share_everywhere() {
+        let row = ScenarioReport {
+            scenario: "x".into(),
+            frags_per_minute: 5.0,
+            lead_changes_per_match: 1.0,
+            shot_share: [("Flechette".to_string(), 0.6), ("Tack".to_string(), 0.4)]
+                .into_iter()
+                .collect(),
+            ..ScenarioReport::default()
+        };
+        assert_eq!(row.top_gun(), ("Flechette".to_string(), 0.6));
+        assert_eq!(check_map_targets(&row, GameMode::Ffa).len(), 3);
+        assert_eq!(check_map_targets(&row, GameMode::Tdm).len(), 2);
+        assert_eq!(check_map_targets(&row, GameMode::Duel).len(), 1);
+        let good = ScenarioReport {
+            frags_per_minute: 12.0,
+            lead_changes_per_match: 3.0,
+            shot_share: [("Tack".to_string(), 0.4)].into_iter().collect(),
+            ..row
+        };
+        assert!(check_map_targets(&good, GameMode::Ffa).is_empty());
     }
 }

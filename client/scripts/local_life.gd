@@ -116,7 +116,8 @@ func chase_id() -> String:
 ## Three lines for the death card: what happened, what you see, and when
 ## you are back. `watching` is the name the camera is actually following.
 ## A fourth names the found weapons `lost` with this life, when there were any.
-func card_lines(now_usec: int, watching: String, lost: Array[String] = []) -> PackedStringArray:
+## `seat` says the view is a teammate's seat, which F moves along.
+func card_lines(now_usec: int, watching: String, lost: Array[String] = [], seat: bool = false) -> PackedStringArray:
 	if phase == Phase.ALIVE:
 		return PackedStringArray()
 	var headline: String
@@ -128,8 +129,11 @@ func card_lines(now_usec: int, watching: String, lost: Array[String] = []) -> Pa
 			headline = TranslationServer.translate("HUD_DEATH_BY").format({"killer": shown})
 		_:
 			headline = TranslationServer.translate("HUD_DEATH_DOWN")
-	var view: String = TranslationServer.translate("HUD_DEATH_WATCHING").format({"name": watching}) \
-		if not watching.is_empty() else TranslationServer.translate("HUD_DEATH_HOLDING")
+	var view: String = TranslationServer.translate("HUD_DEATH_HOLDING")
+	if not watching.is_empty() and seat:
+		view = InputGlyphs.plain(TranslationServer.translate("HUD_DEATH_WATCHING_MATE")).format({"name": watching})
+	elif not watching.is_empty():
+		view = TranslationServer.translate("HUD_DEATH_WATCHING").format({"name": watching})
 	var timing: String
 	if phase == Phase.OUT:
 		timing = TranslationServer.translate("HUD_DEATH_OUT")

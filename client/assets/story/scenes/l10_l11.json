@@ -6,6 +6,12 @@
       "caption_key": "STORY_M10_DEPARTURE_SECURED",
       "id": "SECURED",
       "hold": 1.0
+    },
+    {
+      "id": "MESSAGE",
+      "caption_key": "STORY_L10_L11_MESSAGE",
+      "timing": "reader",
+      "hold": 1
     }
   ],
   "skip_key": "STORY_SKIP_SCENE",

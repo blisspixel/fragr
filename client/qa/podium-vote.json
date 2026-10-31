@@ -1,0 +1,18 @@
+{
+  "comment": "The between-match hook on a rotating free-for-all: a joined human who stands still, three rule bots and a short frag limit, so the bots become the human's nemesis. Run with FRAGR_QA_MAP_ROTATE=1, FRAGR_QA_MODE=ffa, FRAGR_QA_BOTS=3, FRAGR_QA_FRAG_LIMIT=3 and FRAGR_QA_MANIFEST=res://qa/podium-vote.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "vote_live", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "radio_off": true,
+     "settle_seconds": 1.0,
+     "note": "A rotating free-for-all on Larak Lot before the result."},
+    {"name": "podium_story", "camera": "first_person", "await_round_state": "Ended", "await_timeout_seconds": 240, "settle_seconds": 0.8,
+     "note": "The result card above, the board below: nemesis, the book, the three-map vote counting down and the ready-up."},
+    {"name": "podium_voted", "camera": "first_person", "press_vote": "weapon_2", "settle_seconds": 0.6,
+     "note": "Key 2 votes for the second map: it takes the lead and is marked as yours."},
+    {"name": "podium_board_alone", "camera": "first_person", "settle_seconds": 5.0,
+     "note": "The result card has gone; the board counts down on its own."},
+    {"name": "podium_next_map", "camera": "first_person", "press_again": true, "await_round_state": "Active", "await_timeout_seconds": 16, "settle_seconds": 7.0,
+     "note": "Fire asks for one more: the next round opens on the voted map."}
+  ]
+}

@@ -54,6 +54,9 @@ pub enum EnemyPhase {
     Channeling,
     /// An Enforcer's straight, committed ground charge.
     Charging,
+    /// Level 18 before the turn: a Union machine or its supervisor at work
+    /// under the recovery's ceasefire. Not an enemy to anyone until the turn.
+    Working,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -357,6 +360,18 @@ impl CampaignActor {
         matches!(self, Self::Hostile { .. })
     }
 
+    /// A Union body at work under a ceasefire (Level 18 before the turn):
+    /// nobody's enemy, nobody's target, until its phase changes.
+    pub fn at_work(self) -> bool {
+        matches!(
+            self,
+            Self::Hostile {
+                phase: EnemyPhase::Working,
+                ..
+            }
+        )
+    }
+
     pub fn is_participant(self) -> bool {
         matches!(self, Self::Participant {})
     }
@@ -375,7 +390,7 @@ impl CampaignActor {
 pub fn hostile(a: Option<CampaignActor>, b: Option<CampaignActor>) -> bool {
     match (a, b) {
         (None, None) => true,
-        (Some(a), Some(b)) => a.is_enemy() != b.is_enemy(),
+        (Some(a), Some(b)) => !a.at_work() && !b.at_work() && a.is_enemy() != b.is_enemy(),
         _ => false,
     }
 }
@@ -398,6 +413,37 @@ impl super::PlayerState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_body_at_work_is_nobodys_enemy_until_its_phase_changes() {
+        let working = CampaignActor::Hostile {
+            kind: EnemyKind::Sweeper,
+            phase: EnemyPhase::Working,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+            control: ControlDomain::Union,
+        };
+        let participant = Some(CampaignActor::Participant {});
+        assert!(working.at_work());
+        assert!(!hostile(Some(working), participant));
+        assert!(!hostile(participant, Some(working)));
+        let wire = serde_json::to_value(working).unwrap();
+        assert_eq!(wire["phase"], "working");
+        assert_eq!(
+            serde_json::from_value::<CampaignActor>(wire).unwrap(),
+            working
+        );
+        let turned = CampaignActor::Hostile {
+            kind: EnemyKind::Sweeper,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+            control: ControlDomain::Union,
+        };
+        assert!(!turned.at_work() && hostile(Some(turned), participant));
+    }
 
     #[test]
     fn allegiance_is_symmetric_and_missing_campaign_identity_fails_closed() {

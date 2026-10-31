@@ -156,6 +156,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "jump",
     "dodge",
     "again",
+    "vote",
     "duck",
     "turn_left",
     "turn_right",
@@ -347,6 +348,19 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             Some(value) => value
                 .as_bool()
                 .ok_or("schema error: again must be a boolean")?,
+        },
+        vote: match obj.get("vote") {
+            None => None,
+            Some(value) if value.is_null() => None,
+            Some(value) => Some(
+                value
+                    .as_u64()
+                    .and_then(|id| u32::try_from(id).ok())
+                    .filter(|id| *id >= 1)
+                    .ok_or(
+                        "schema error: vote must be a map_id from round_state.podium.vote.options",
+                    )?,
+            ),
         },
         interact: match obj.get("interact") {
             None => false,
@@ -795,6 +809,11 @@ fn tools_list_result() -> Value {
             "type": "boolean",
             "default": false,
             "description": "On the podium after a round, ask for the next one now. When every seated person and agent has asked, it starts two seconds after the result instead of waiting out the podium. round_state reports who is ready. Ignored mid-round and in Sabotage."
+        });
+        act["inputSchema"]["properties"]["vote"] = serde_json::json!({
+            "type": "integer",
+            "minimum": 1,
+            "description": "On the podium of a rotating server, vote for the next map: one map_id from round_state.podium.vote.options. Send it once; a later vote replaces it. The leader loads when the podium closes, ties going to the earlier option. Ignored mid-round, from a spectator and for a map not offered."
         });
     }
     tools
@@ -3641,6 +3660,75 @@ mod mcp_tests {
             .find(|tool| tool["name"] == "act")
             .unwrap();
         assert_eq!(act["inputSchema"]["properties"]["again"]["type"], "boolean");
+        assert_eq!(act["inputSchema"]["properties"]["vote"]["type"], "integer");
+    }
+
+    #[test]
+    fn act_vote_carries_a_map_id_and_round_state_shows_the_vote() {
+        let podium = serde_json::json!({
+            "voters": 1,
+            "story": [{"id": Uuid::nil(), "name": "Probe", "kind": "agent",
+                "nemesis": "Aunt Linda",
+                "rivals": [{"name": "Aunt Linda", "kind": "bot", "won": 1, "lost": 3}]}],
+            "vote": {
+                "options": [
+                    {"map_id": 2, "map_name": "Compliance Yard", "votes": 0},
+                    {"map_id": 4, "map_name": "Sector 9 Transit Hall", "votes": 1}
+                ],
+                "ballots": [{"id": Uuid::nil(), "map_id": 4}],
+                "leader": 4,
+                "closes_in": 180,
+                "bots_vote": false
+            }
+        });
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(serde_json::json!({
+                "round_state": "Ended",
+                "players": [{"id": Uuid::nil(), "hp": 50}],
+                "podium": podium
+            })),
+            ..Default::default()
+        };
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "act", "arguments": {"vote": 4}})),
+            ),
+            &mut state,
+        );
+        assert_eq!(out.pending_action.expect("pending").vote, Some(4));
+        for bad in [
+            serde_json::json!("Sector 9"),
+            serde_json::json!(0),
+            serde_json::json!(-1),
+            serde_json::json!(4.5),
+            serde_json::json!(u64::from(u32::MAX) + 1),
+        ] {
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name": "act", "arguments": {"vote": bad}})),
+                ),
+                &mut state,
+            );
+            assert!(out.pending_action.is_none(), "vote {bad} must be refused");
+        }
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"round_state","arguments":{}})),
+            ),
+            &mut state,
+        );
+        let result = tool_structured(out.response.result.unwrap());
+        assert_eq!(result["podium"]["vote"]["leader"], 4);
+        assert_eq!(result["podium"]["story"][0]["nemesis"], "Aunt Linda");
+        // The wire type reads the same podium.
+        let wire: fragr_server::protocol::Podium =
+            serde_json::from_value(result["podium"].clone()).unwrap();
+        assert_eq!(wire.vote.unwrap().options.len(), 2);
     }
 
     #[test]
@@ -5003,6 +5091,24 @@ mod mcp_tests {
         assert_eq!(round["self_callout"], "attacker_yard");
         assert_eq!(round["sabotage_objective"]["kind"], "walk");
         assert_eq!(round["self_team"], "coalition");
+        assert!(
+            round["sabotage"].get("resupply").is_none()
+                && round["sabotage"].get("clutch").is_none(),
+            "an even round names no resupply and no clutch"
+        );
+        // A trailing side's resupply rung and the clutch fighter reach agents.
+        let mut trailing = server.snapshot();
+        let sabotage = trailing.sabotage.as_mut().unwrap();
+        sabotage.resupply = protocol::TeamScores {
+            union: 0,
+            coalition: 2,
+        };
+        sabotage.clutch = Some(me);
+        let text = serde_json::to_string(&protocol::ServerMessage::Snapshot(trailing)).unwrap();
+        ingest_server_text(&mut state, &text).unwrap();
+        let round = build_round_state_result(&state);
+        assert_eq!(round["sabotage"]["resupply"]["coalition"], 2);
+        assert_eq!(round["sabotage"]["clutch"], me.to_string());
         // Off a Sabotage server the fields stay null.
         let plain = build_round_state_result(&ToolState::default());
         assert!(plain["sabotage"].is_null() && plain["sabotage_objective"].is_null());

@@ -132,6 +132,8 @@ impl Encounters {
         }
         let map = state.map.clone();
         let definitions = map.encounters();
+        // After Level 18's turn every Union machine placed is the Inheritance's.
+        let absorbed = state.m18_machines_absorbed();
         self.groups.resize_with(definitions.len(), Group::default);
         let living: Vec<[f32; 3]> = state
             .players
@@ -157,6 +159,9 @@ impl Encounters {
         state.ensure_m07_companion();
         state.ensure_m09_companion();
         state.ensure_m10_companion();
+        state.ensure_m15_companion();
+        state.ensure_m17_companion();
+        state.ensure_m18_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             // M04 introduces each airborne threat in order. Do not expose a
@@ -245,8 +250,13 @@ impl Encounters {
                             placement.seated,
                         )
                         .on_post()
+                        .at_work_if(state.m18_group_at_work(index), state.tick)
                         .with_hover(placement.hover.clone())
-                        .with_control(placement.control)
+                        .with_control(if absorbed && placement.kind.is_union_machine() {
+                            crate::protocol::ControlDomain::Absorbed
+                        } else {
+                            placement.control
+                        })
                         .with_spine_march(
                             map.m11_objectives()
                                 .filter(|_| index == 0)
@@ -298,7 +308,7 @@ impl Encounters {
             });
             // The authored region stays the alarm. Each guard then needs its
             // own sighting before it attacks (`enemy/awareness.rs`).
-            if let Some(&feet) = entered.filter(|_| ready) {
+            if let Some(&feet) = entered.filter(|_| ready && state.m18_group_may_wake(index)) {
                 self.activate(index, feet, state.tick, true);
                 if let Some(crawler) = definition
                     .enemies
@@ -603,6 +613,93 @@ impl Encounters {
         self.sync_identities(&mut state.players);
     }
 
+    /// Level 18's turn, at its heads-turn tick: every placed Union machine,
+    /// working or fighting, passes to the Inheritance at once.
+    pub(crate) fn absorb_union_machines(&mut self, players: &mut [Player]) -> usize {
+        let absorbed = self
+            .enemies
+            .iter_mut()
+            .filter(|(_, enemy)| enemy.kind().is_union_machine())
+            .map(|(_, enemy)| enemy.absorb())
+            .filter(|changed| *changed)
+            .count();
+        self.sync_identities(players);
+        absorbed
+    }
+
+    /// Level 18's turn ends: the absorbed group moves again, together and
+    /// aware, and the Union's people in it run with everyone else.
+    pub(crate) fn end_turn(
+        &mut self,
+        state: &mut GameState,
+        group: usize,
+        alarm: [f32; 3],
+        exits: &[[f32; 3]],
+        tick: u64,
+    ) {
+        if matches!(
+            self.groups.get(group),
+            Some(Group::Dormant(_) | Group::Active { .. })
+        ) {
+            self.activate(group, alarm, tick, false);
+        }
+        for (_, enemy) in &mut self.enemies {
+            if enemy.kind().is_union_machine() || enemy.kind().is_restoration_machine() {
+                continue;
+            }
+            let Some(body) = state.players.iter().find(|p| p.id == enemy.id && p.hp > 0) else {
+                continue;
+            };
+            let exit = exits
+                .iter()
+                .copied()
+                .min_by(|a, b| {
+                    (a[0] - body.x)
+                        .hypot(a[2] - body.z)
+                        .total_cmp(&(b[0] - body.x).hypot(b[2] - body.z))
+                })
+                .unwrap_or([body.x, body.y - PLAYER_FLOOR_Y, body.z]);
+            enemy.stand_down(exit, tick);
+        }
+        self.sync_identities(&mut state.players);
+    }
+
+    /// While Level 18's turn holds, nobody acts: each body stops, and each
+    /// machine's head comes round to `bearing_to` once its heads-turn tick
+    /// has passed. Returns the held bodies' intents.
+    fn turn_intents(
+        &mut self,
+        state: &mut GameState,
+        bearing_to: Option<[f32; 3]>,
+    ) -> Vec<(Uuid, BotIntent)> {
+        let tick = state.tick.saturating_add(1);
+        let mut actions = Vec::with_capacity(self.enemies.len());
+        for (_, enemy) in &mut self.enemies {
+            enemy.freeze(tick);
+            let Some(body) = state.players.iter_mut().find(|p| p.id == enemy.id) else {
+                continue;
+            };
+            body.campaign = Some(enemy.identity());
+            if body.hp <= 0 {
+                continue;
+            }
+            let yaw = bearing_to
+                .filter(|_| enemy.kind().is_union_machine())
+                .map(|to| (to[2] - body.z).atan2(to[0] - body.x));
+            actions.push((
+                enemy.id,
+                BotIntent {
+                    action: crate::protocol::Action {
+                        yaw: Some(yaw.unwrap_or(body.yaw)),
+                        ..Default::default()
+                    },
+                    goal: None,
+                },
+            ));
+        }
+        actions
+    }
+
     /// Stood-down machines leave the district: a walker at its exit, a
     /// hovering body after a short hold, anything after a bounded wait.
     fn retire_stood_down(&mut self, state: &mut GameState) {
@@ -816,6 +913,9 @@ impl Encounters {
     }
 
     pub fn intents(&mut self, state: &mut GameState) -> Vec<(Uuid, BotIntent)> {
+        if let Some(bearing_to) = state.m18_turn_hold() {
+            return self.turn_intents(state, bearing_to);
+        }
         self.advance_repairs(state);
         self.advance_marks(state);
         let snapshot = state.snapshot();
@@ -934,6 +1034,11 @@ impl Encounters {
                     break;
                 }
             }
+        }
+        // Level 18: after the turn Latch says the two lines that matter and
+        // nothing tactical over them for a while.
+        if state.m18_latch_quiet() {
+            return;
         }
         if !channels.is_empty() {
             self.barks.companion(

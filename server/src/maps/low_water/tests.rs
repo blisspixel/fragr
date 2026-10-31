@@ -492,3 +492,184 @@ fn low_water_ten_rule_bots_finish_a_normal_finite_match_and_swap_sides() {
         assert_eq!(session.state.players.len(), 10);
     }
 }
+
+#[test]
+fn the_trench_is_a_chicane_and_the_long_diagonals_shrank() {
+    // Before the tram and the shed, a fighter in the trench saw its whole
+    // 84 m length under the bridges.
+    let (trench, eye, dir) = crate::maps::longest_sightline(MapKind::LowWater, |[_, floor, z]| {
+        floor < 0.5 && z.abs() < 4.0
+    });
+    eprintln!("low_water longest trench line {trench:.1} m from {eye:?} along {dir:?}");
+    assert!(trench < 36.0, "{trench} m from {eye:?} along {dir:?}");
+    let (any, eye, dir) = crate::maps::longest_sightline(MapKind::LowWater, |_| true);
+    eprintln!("low_water longest line {any:.1} m from {eye:?} along {dir:?}");
+    // The banks stay a team map's long lanes: before this layout a corner
+    // to corner diagonal ran 117 m; the tank deck and dock now cut it.
+    assert!(any < 105.0, "{any} m from {eye:?} along {dir:?}");
+    // The chicane passes beside both obstacles at a walking width, and the
+    // tram's roof is a step down from the north bank.
+    let arena = crate::maps::arena(MapKind::LowWater);
+    for (x, z) in [(-11.0, 2.2), (14.5, -2.2)] {
+        for dz in [-1.2f32, 0.0, 1.2] {
+            assert!(
+                !arena.blocked_at(x, z + dz, crate::movement::STEP_UP),
+                "{x},{z}"
+            );
+        }
+    }
+    let roof = [(TRAM[0] + TRAM[2]) * 0.5, TRAM_ROOF, -2.0];
+    const { assert!(STREET - TRAM_ROOF <= crate::movement::STEP_UP) };
+    route([roof[0], STREET, -6.0], roof);
+    route(roof, [roof[0], STREET, -6.0]);
+    // The shed is a drop from the south bank into the trench.
+    route([14.5, STREET, 7.0], [14.5, 0.0, -2.2]);
+}
+
+#[test]
+fn the_two_sites_are_different_places_to_take_and_to_hold() {
+    let layout = MapKind::LowWater.sabotage_layout().unwrap();
+    let [a, b] = &layout.wire.sites;
+    let solids = &crate::maps::arena(MapKind::LowWater).solids;
+    let sees = |eye: [f32; 3], site: [f32; 3]| {
+        crate::combat::line_of_sight(eye, [site[0], site[1] + 1.2, site[2]], solids)
+    };
+    let dock_eye = [31.0, DOCK + 1.6, 22.5];
+    let tank_eye = [12.0, TANK_DECK + 1.6, -18.0];
+    // B, the open stop, is watched by the defence's dock and the attack's
+    // tank deck; A, the forecourt, by neither.
+    assert!(sees(dock_eye, b.center) && sees(tank_eye, b.center));
+    assert!(!sees(dock_eye, a.center) && !sees(tank_eye, a.center));
+    // A's quickest way in for the attack is the west stair out of the
+    // trench, not the bridge: the ambulance wall turns the bridge route.
+    let from_trench = route([-30.0, 0.0, -2.0], a.center);
+    let from_bridge = route([-22.0, STREET, -6.0], a.center);
+    eprintln!("low_water A: west stair {from_trench} ticks, clinic bridge {from_bridge} ticks");
+    let wall_free = [-22.0, STREET, 9.5];
+    // The bridge line runs into the wall; its gate is offset east.
+    assert!(crate::maps::arena(MapKind::LowWater).blocked_at(
+        wall_free[0],
+        wall_free[2],
+        STREET + crate::movement::STEP_UP
+    ));
+    // B is the straight bridge run: no wall between the bridge and the stop.
+    let b_bridge = route([22.0, STREET, -6.0], b.center);
+    eprintln!("low_water B: depot bridge {b_bridge} ticks");
+    assert!(b_bridge + 10 < from_bridge, "B's bridge is the direct one");
+    // The defence retakes B from the dock with a drop, and A on foot.
+    route([31.0, DOCK, 22.5], b.center);
+    route(b.center, [31.0, DOCK, 22.5]);
+    route([12.0, TANK_DECK, -18.0], [0.0, STREET, -19.0]);
+    route([0.0, STREET, -19.0], [12.0, TANK_DECK, -18.0]);
+}
+
+#[test]
+fn navigation_builds_within_its_budget() {
+    let started = std::time::Instant::now();
+    let navigation =
+        crate::navigation::Navigation::shared(crate::maps::arena(MapKind::LowWater).clone())
+            .expect("Low Water builds within the navigation budget");
+    let (nodes, edges) = navigation.size();
+    eprintln!(
+        "low_water navigation {nodes} nodes, {edges} edges, built in {:.0} ms",
+        started.elapsed().as_secs_f64() * 1000.0
+    );
+}
+
+/// Whether two standing fighters at these feet see each other: either eye
+/// on the other's chest.
+fn mutual_sight(a: [f32; 3], b: [f32; 3]) -> bool {
+    let solids = &crate::maps::arena(MapKind::LowWater).solids;
+    crate::combat::line_of_sight([a[0], a[1] + 1.6, a[2]], [b[0], b[1] + 1.2, b[2]], solids)
+        || crate::combat::line_of_sight([b[0], b[1] + 1.6, b[2]], [a[0], a[1] + 1.2, a[2]], solids)
+}
+
+#[test]
+fn spawn_slots_are_screened_from_each_other_and_split_between_the_sides() {
+    // The ring the map used to spawn on ran across the open banks: with
+    // eight fighters at the opening, some always stood in a lane under
+    // 30 m from another (the roster harness's opening spawn deaths).
+    for (i, a) in SPAWNS.iter().enumerate() {
+        for b in &SPAWNS[i + 1..] {
+            let distance = (a[0] - b[0]).hypot(a[2] - b[2]);
+            let (fa, fb) = ([a[0], a[1], a[2]], [b[0], b[1], b[2]]);
+            assert!(
+                distance >= 30.0 || !mutual_sight(fa, fb),
+                "slots {a:?} and {b:?} see each other at {distance:.1} m"
+            );
+        }
+    }
+    // Never facing a wall: each slot looks down at least 8 m of open ground.
+    for [x, floor, z, yaw] in SPAWNS {
+        let ahead = crate::maps::sight_length(
+            MapKind::LowWater,
+            [x, floor + 1.6, z],
+            [yaw.cos(), yaw.sin()],
+        );
+        assert!(
+            ahead >= 8.0,
+            "slot ({x}, {z}) faces a wall {ahead:.1} m away"
+        );
+    }
+    let west = SPAWNS.iter().filter(|s| s[0] < -0.5).count();
+    let east = SPAWNS.iter().filter(|s| s[0] > 0.5).count();
+    assert_eq!((west, east), (8, 8));
+}
+
+#[test]
+fn an_eight_fighter_opening_puts_nobody_in_another_s_close_lane() {
+    for seed in 40..48 {
+        let mut state = GameState::with_map(MapKind::LowWater, false);
+        state.seed(seed);
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        for i in 1..=8 {
+            state.add_player(Uuid::from_u128(i), format!("Opening{i}"), Role::Agent);
+        }
+        state.start_round();
+        let feet: Vec<[f32; 3]> = state
+            .players
+            .iter()
+            .map(|p| [p.x, p.y - PLAYER_FLOOR_Y, p.z])
+            .collect();
+        for (i, a) in feet.iter().enumerate() {
+            for b in &feet[i + 1..] {
+                let distance = (a[0] - b[0]).hypot(a[2] - b[2]);
+                assert!(
+                    distance >= 30.0 || !mutual_sight(*a, *b),
+                    "seed {seed}: opening spawns {a:?} and {b:?} see each other at {distance:.1} m"
+                );
+            }
+        }
+    }
+}
+
+/// The client's presenter is held to the server's solids through
+/// `client/golden/low_water_map_info.json` (`client/scripts/test_yard_water_dressing.gd`).
+/// Regenerate with `FRAGR_MAP_INFO_OUT=$PWD/client/golden/low_water_map_info.json cargo test
+/// -p fragr-server --lib low_water_write_map_info -- --ignored`.
+#[test]
+fn low_water_client_golden_is_the_server_map_info() {
+    let state = crate::sim::GameState::with_map(MapKind::LowWater, false);
+    let wire = serde_json::to_string(&state.map_info()).expect("serialize MapInfo");
+    let live: serde_json::Value = serde_json::from_str(&wire).expect("parse MapInfo");
+    let golden: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../client/golden/low_water_map_info.json"
+    ))
+    .expect("parse the client golden");
+    assert_eq!(
+        live, golden,
+        "client/golden/low_water_map_info.json is stale"
+    );
+}
+
+#[test]
+#[ignore = "writes the client golden MapInfo"]
+fn low_water_write_map_info() {
+    let Ok(path) = std::env::var("FRAGR_MAP_INFO_OUT") else {
+        return;
+    };
+    let state = crate::sim::GameState::with_map(MapKind::LowWater, false);
+    let message = serde_json::to_string(&state.map_info()).expect("serialize MapInfo");
+    std::fs::write(path, message).expect("write MapInfo");
+}

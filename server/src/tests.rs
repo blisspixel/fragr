@@ -4991,9 +4991,10 @@ fn test_sim_compliance_yard_blocks_move_into_post() {
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        // South of NE post at (5, -5); walk north into it.
-        p.x = 5.0;
-        p.z = -7.5;
+        // North of the court's confiscation cage (built at x 6.65 to 10.45,
+        // z 3.8 to 7.6), walking south (+z) into its face.
+        p.x = 8.5;
+        p.z = 0.0;
         p.yaw = std::f32::consts::FRAC_PI_2;
     }
     for _ in 0..40 {
@@ -5008,8 +5009,8 @@ fn test_sim_compliance_yard_blocks_move_into_post() {
     }
     let player = state.players.iter().find(|p| p.id == id).unwrap();
     assert!(
-        player.z <= -6.4,
-        "player should be stopped by yard post, z={}",
+        player.z <= 3.35 && player.z > 1.5,
+        "player should walk up to and be stopped by the cage, z={}",
         player.z
     );
 }
@@ -7068,6 +7069,17 @@ mod map_roster {
         }
     }
 
+    /// Every pad a rule bot might want can be walked to by the shared
+    /// navigator, not only reached by the static check.
+    #[test]
+    fn every_pad_has_a_walked_route_from_the_origin() {
+        let failures: Vec<String> = MapKind::ALL
+            .into_iter()
+            .flat_map(maps::pad_route_failures)
+            .collect();
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
     #[test]
     fn arena_roster_retains_scale_and_low_water_keeps_its_compact_town_extent() {
         // The original arcade roster replaced the flat hundred metre square.
@@ -7083,6 +7095,15 @@ mod map_roster {
                 // Larak Lot: a 72 x 56 m car park inside its wall bands, the
                 // small-map tier for two to eight fighters.
                 assert_eq!(extent, 76.0, "Larak Lot keeps its compact car park");
+                continue;
+            }
+            if map == MapKind::ComplianceYard {
+                // Compliance Yard: a 68 m records block inside its service
+                // corridor, the small-map tier for four to eight fighters.
+                assert!(
+                    (extent - 81.7).abs() < 0.01,
+                    "Compliance Yard keeps its compact block, {extent} m"
+                );
                 continue;
             }
             assert!(

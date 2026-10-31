@@ -272,3 +272,37 @@ func export_json(path: String) -> Error:
 	if result != OK:
 		DirAccess.remove_absolute(path)
 	return result
+
+## The arena personal bests a finished round sets against every earlier
+## finished arena round of this player's in the record: frags, then damage,
+## then head-band connects, each as {"stat", "value", "was"}. A first round
+## has nothing to beat and sets none. Read before `accept` stores the round.
+func arena_bests(record: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not PlayerRecord.validation_error(record, record.get("player_id")).is_empty() \
+		or record["status"] != "complete" or record["scope"]["kind"] != "arena" or record["role"] != "human":
+		return out
+	var now: Dictionary = arena_marks(record["total"])
+	var before: Dictionary = {}
+	for entry: Dictionary in entries:
+		var other: Dictionary = entry["record"]
+		if PlayerRecord.key(other) == PlayerRecord.key(record) or other["status"] != "complete" \
+			or other["scope"]["kind"] != "arena" or other["role"] != "human":
+			continue
+		var marks: Dictionary = arena_marks(other["total"])
+		for stat: String in marks:
+			before[stat] = maxi(int(before.get(stat, 0)), int(marks[stat]))
+	if before.is_empty():
+		return out
+	for stat: String in ["frags", "damage", "heads"]:
+		if int(now[stat]) > int(before[stat]):
+			out.append({"stat": stat, "value": int(now[stat]), "was": int(before[stat])})
+	return out
+
+static func arena_marks(counts: Dictionary) -> Dictionary:
+	var heads: int = 0
+	for index: int in range(counts["weapons"].size()):
+		heads += PlayerRecord.weapon_count(counts, index, "heads")
+	return {"frags": PlayerRecord.sum_combat(counts, "kills"),
+		"damage": PlayerRecord.sum_combat(counts, "hp_damage") + PlayerRecord.sum_combat(counts, "armor_damage"),
+		"heads": heads}

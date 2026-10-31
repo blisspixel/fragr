@@ -23,6 +23,7 @@ mod paver;
 mod playlist;
 mod podium;
 mod spawn;
+pub mod vote;
 pub(crate) mod walker;
 pub(crate) use playlist::slot_playable as validate_show;
 pub mod remote_mine;
@@ -239,7 +240,9 @@ impl MapKind {
             Self::ArenaDuel => {
                 "Car park. Plate on the roof, Rail down the low ramp, a cruiser hung over the Pit."
             }
-            Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
+            Self::ComplianceYard => {
+                "Records block. Nine rooms, a gantry over the court, a corridor round it."
+            }
             Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
             Self::ReclamationGulch => "Recovery site. Two compounds, open ground, two ridges.",
@@ -339,6 +342,9 @@ pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     }
     if map == MapKind::ArenaDuel {
         return crate::maps::larak_lot::spawn(angle);
+    }
+    if map == MapKind::LowWater {
+        return crate::maps::low_water::spawn(angle);
     }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
@@ -769,6 +775,13 @@ pub struct GameState {
     /// Who has fragged whom, by callsign: the grudges rule bots hold and
     /// the book the Host reads at a Duel. A desktop host loads and saves it.
     pub(crate) head_to_head: crate::statistics::HeadToHead,
+    /// The same book for this process only, never saved: the podium's
+    /// nemesis and rivals are this session's.
+    pub(crate) session_book: crate::statistics::HeadToHead,
+    /// Roster maps a host has switched on for the rotation.
+    pub(crate) rotation: vote::Rotation,
+    /// The podium's map vote while a rotating round has ended.
+    pub(crate) map_vote: Option<vote::MapVoteState>,
 }
 
 pub struct Player {
@@ -1535,6 +1548,7 @@ impl GameState {
         for player in &mut self.players {
             player.killstreak = 0;
         }
+        self.open_map_vote();
 
         self.events.push(GameEvent::RoundEnd {
             winner: winner.clone(),
@@ -1829,6 +1843,9 @@ impl GameState {
         // eliminated or waiting fighter can still ask for the next round.
         if action.again && !companion_intent {
             self.note_again(id);
+        }
+        if let Some(map_id) = action.vote.filter(|_| !companion_intent) {
+            self.note_vote(id, map_id);
         }
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
             if player.is_campaign_companion() != companion_intent {
@@ -2252,7 +2269,12 @@ impl GameState {
                 self.round_ticks += 1;
                 let delay = self
                     .sabotage_end_delay()
-                    .unwrap_or(self.config.end_delay_ticks);
+                    .unwrap_or(if self.map_vote.is_some() {
+                        self.vote_window()
+                    } else {
+                        self.config.end_delay_ticks
+                    });
+                self.tick_map_vote();
                 // The next round loads on its own clock, or at once when
                 // everyone seated has asked for another.
                 if self.round_ticks >= delay || self.again_ready() {
@@ -3600,6 +3622,7 @@ impl GameState {
             let payback = self.settles_grudge(shooter_id, &shooter_name, &target_name);
             if !victim_was_boss && !self.solo_broadcast.enabled {
                 self.head_to_head.record(&shooter_name, &target_name);
+                self.session_book.record(&shooter_name, &target_name);
             }
 
             self.events.push(GameEvent::Frag {
@@ -5291,6 +5314,9 @@ impl Default for GameState {
             again: std::collections::BTreeSet::new(),
             duel_series: None,
             head_to_head: crate::statistics::HeadToHead::default(),
+            session_book: crate::statistics::HeadToHead::default(),
+            rotation: vote::Rotation::default(),
+            map_vote: None,
         }
     }
 }

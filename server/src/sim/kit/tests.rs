@@ -524,6 +524,7 @@ fn free_for_all_supply_pads_are_laid_only_in_free_for_all() {
             MapKind::Sector9,
             vec![GameMode::Tdm, GameMode::Ctf, GameMode::Sabotage],
         ),
+        (MapKind::LowWater, vec![GameMode::Tdm, GameMode::Sabotage]),
     ] {
         let scrap: Vec<String> = map.scrap_pads().into_iter().map(|p| p.id).collect();
         assert!(!scrap.is_empty(), "{}", map.name());
@@ -553,7 +554,6 @@ fn free_for_all_supply_pads_are_laid_only_in_free_for_all() {
         });
         assert_eq!(laid(&state), 0, "{} full arsenal", map.name());
     }
-    assert!(MapKind::LowWater.scrap_pads().is_empty());
 }
 
 /// Walking metres from a spawn to the nearest weapon pad, by the same

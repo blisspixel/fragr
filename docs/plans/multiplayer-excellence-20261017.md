@@ -190,6 +190,16 @@ Built on `wave3/mp-depth`, 2026-10-24. Linux evidence only.
   no Continuance pressure, a running series and a Host rematch line, no MVP
   for a level round. The spectator queue and winner-stays landed in wave
   11 and the head-to-head book in wave 4.
+- **Between matches (wave 19, #509).** On a rotating server the podium
+  carries each fighter's nemesis and closest books this session
+  (`Podium.story`, a session copy of the head-to-head book), the personal
+  bests the round set in the local service record, and a three-map vote
+  (`Podium.vote`, `Action.vote`) that keeps the podium up 12 s unless the
+  room presses again. Ties go to the earlier option; rule bots vote only in a
+  room with nobody else seated; spectators never vote. `--map-off`, the
+  desk's `rotation` and the desktop host's **In rotation** switch maps out
+  without removing them. Evidence: deterministic server tests, adapter and
+  Godot harnesses, inspected Linux captures. No human night yet.
 
 ## Rules depth (#431 and #432, wave 11)
 
@@ -268,6 +278,134 @@ listening pass is the acceptance.
   within 0.1 LU of before. The pump cycle is a new two-clack rack (generated,
   declipped, soft-clipped) at K50 -13.1, up from -15 and brighter, so it reads
   over the blast's tail.
+
+## Death as a seat (#510, wave 19)
+
+Built on `wave19/team-seat`, 2026-10-30. Bots-only measurements and inspected
+Linux captures; no human has played it.
+
+- **Teammate seat.** In team deathmatch, capture the flag and Conquest a
+  death shows the killer for 1.25 s, then the camera rides the eyes of the
+  living teammate nearest where you fell, with their gun, health and armour,
+  until the server returns the body (`game_manager.gd` `_team_seat_targets`).
+  The cycle key moves along living teammates, the view key trades eyes for the
+  chase view, and a seat has no free camera (`spectator_cam.gd`
+  `seat_locked`), so a death never scouts the other side; fallen Sabotage
+  fighters get the same lock. The death card drops below the teammate's aim
+  and names the cycle key. Free-for-all and Duel keep the killer view.
+- **Clutch.** The server names the last fighter of a side of two or more
+  against two or more in `sabotage.clutch`; the client stamps it once,
+  upright, on a plate under the Sabotage header (`clutch_card.gd`). The
+  existing voiced `last_standing` call keeps the eight second rule, so the
+  stamp, not the voice, is what always lands.
+- **Resupply, the loss bonus without a shop.** Each round lost climbs a
+  side's ladder one rung (to 3), each round won steps it one back, and while
+  a side is not ahead on rounds its fallen are reissued at its rung: Rifle;
+  Rifle and 50 armour; Rifle, Shotgun and 50 armour (`rules::resupply_kit`).
+  The muster calls it for that side: the Union's replacement issue, the free
+  side's spares. A Sabotage side that draws level from three rounds down gets
+  the voiced `comeback` call.
+
+Seeded bots-only survey (`fragr-playtest --sabotage-survey`, 8 rule bots,
+short format; the same seeds before and after). A 0 to 3 group is followed
+across the side swap.
+
+| Kits | Seeds | Matches with 0 to 3 | Came back from 0 to 3 | Came back from 3 down | Attack round share | Matches to extra time |
+|---|---|---:|---:|---:|---:|---:|
+| Before (fallen start empty) | 1000 to 1767 | 334 of 768 (43%) | 48 of 334 (14%) | 53 of 456 (12%) | 75% | 33% |
+| Rifle; +50; +Shotgun (built) | 1000 to 1767 | 62 of 768 (8%) | 18 of 62 (29%) | 23 of 165 (14%) | 65% | 59% |
+| Rifle +50; +Shotgun +100; +Railgun +100 (rejected) | 1000 to 1383 | 4 of 384 (1%) | 0 of 4 | 0 of 26 | 62% | 75% |
+
+The ladder mostly stops the 0 to 3 hole from opening, and a side that still
+falls into it now climbs out 29% of the time, inside the 25 to 35% target
+(62 matches, so a wide interval). The strong kits made three matches in four
+level at regulation, so the milder ladder ships; even it sends 59% of short
+matches to the extra pair, against 33% before. Two things stay
+open: the attack still wins two rounds in three on Sector 9, which matters
+more than equipment, and only people can say whether a resupplied round
+feels earned.
+
+## Map bug hunt (#511, wave 19)
+
+Every multiplayer map in every mode it hosts, played by rule bots
+(`fragr-playtest --bot-survey --survey-maps`), by mixed agent tiers
+(`tools/playtest_roster.sh` on maps 1 to 7, plus Low Water FFA, TDM and
+Sabotage, Holdfast Conquest and Directive 17 CTF) and inspected in rendered
+stills. Bots and agents, not a human fun verdict.
+
+- **Survey.** `--survey-maps` plays a 29-row matrix (eight maps in FFA, TDM
+  and Duel, CTF on Directive 17 and Sector 9, Sabotage on Sector 9 and Low
+  Water, Conquest on Holdfast). Each row now reports lead changes per match,
+  the top gun's share of shots, over-five-second stalls by the roster's rule
+  (split into holds and wedges, where the fighter kept asking to move, each
+  with seed, tick and position), ticks a living body spent inside a solid or
+  outside the square, the lowest feet, pads nobody claimed and seconds spent
+  in vehicle seats. `--assert` fails a body inside geometry; rows that miss
+  the wave 19 targets print as `target:` lines.
+- **Routes.** `every_pad_has_a_walked_route_from_the_origin` walks the shared
+  navigator from the origin to every pad on every map within a minute. All
+  pass, so the pads nobody claims below are bot choices, not broken routes.
+- **No geometry defect found.** No body inside a solid, outside the square or
+  below a floor across 29 rows of eight 150 s matches; no wedge stalls; the
+  roster passed seven of seven maps with a longest stuck run of 0.35 s, and the
+  extra agent runs passed (longest 3.05 s, a Low Water Sabotage reflex agent
+  at (-22.5, 16.2)). Every over-five-second stall is in Sabotage or Conquest,
+  by a bot holding a position without asking to move. Overlapping boxes do
+  share faces on six maps (176 pairs, most of them equal-height wall caps
+  crossing at corners); static and moving-viewpoint captures of the cases at
+  player height (Sector 9's freight dividers, Larak Lot's Low Ramp wall)
+  show one face drawn consistently, no speckle, so the geometry stays.
+- **Open.** Duel off Larak Lot barely fights: two rule bots each walk their
+  own pad circuit (Sector 9 Duel: no shot in 20 minutes; 0.8 to 3.1 frags a
+  minute elsewhere). A restless-search experiment did not move it and was
+  dropped; Duel there needs a map pairing decision. Rule bots never take a
+  Holdfast vehicle (by design, no driving orders), and leave Holdfast's east
+  pads unclaimed in team modes. Health pads go unclaimed where nobody hurt
+  passes (Larak Lot's Stands health in 20 minutes of FFA). The Flechette fires
+  most shots on every map but Larak Lot, Compliance Yard and Low Water, where
+  the Pistol does: a weapon and kit question, not a map defect.
+
+`fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
+--time-limit-seconds 150`, release, eight seeded 150 s matches per row:
+
+| Row | Frags/min | Lead changes | Top gun (shots) | Stalls / wedges | Spawn deaths % |
+|---|---|---|---|---|---|
+| ffa-larak-lot-6 | 20.8 | 3.1 | Tack 41% | 0 / 0 | 3.1 |
+| tdm-larak-lot-6 | 15.7 | 3.1 | Flechette 73% | 0 / 0 | 2 |
+| duel-larak-lot-2 | 2.6 | 0 | Scatter 41% | 0 / 0 | 0 |
+| ffa-compliance-yard-6 | 21 | 2.1 | Tack 45% | 0 / 0 | 1.1 |
+| tdm-compliance-yard-6 | 22 | 2.1 | Flechette 75% | 0 / 0 | 1.5 |
+| duel-compliance-yard-2 | 3.1 | 0.9 | Scatter 34% | 0 / 0 | 0 |
+| ffa-directive-17-substation-8 | 25.7 | 4 | Flechette 64% | 0 / 0 | 0.4 |
+| tdm-directive-17-substation-8 | 25.6 | 1.4 | Flechette 79% | 0 / 0 | 2.8 |
+| duel-directive-17-substation-2 | 3 | 1 | Flechette 87% | 0 / 0 | 0 |
+| ctf-directive-17-substation-8 | 7.9 | 0 | Flechette 69% | 0 / 0 | 0 |
+| ffa-sector-9-transit-hall-8 | 11.4 | 2.9 | Flechette 64% | 0 / 0 | 0 |
+| tdm-sector-9-transit-hall-8 | 13.6 | 1.8 | Flechette 80% | 0 / 0 | 0.9 |
+| duel-sector-9-transit-hall-2 | 0 | 0 | none 0% | 0 / 0 | 0 |
+| ctf-sector-9-transit-hall-8 | 7.2 | 0.1 | Flechette 63% | 0 / 0 | 0 |
+| sabotage-sector-9-transit-hall-8 | 6.6 | 0 | Tack 100% | 172 / 0 | 0 |
+| ffa-reclamation-gulch-12 | 22 | 2.6 | Flechette 73% | 0 / 0 | 0.2 |
+| tdm-reclamation-gulch-12 | 20.5 | 1.5 | Flechette 79% | 0 / 0 | 0.4 |
+| duel-reclamation-gulch-2 | 1.4 | 0.3 | Flechette 72% | 0 / 0 | 0 |
+| ffa-tripoint-works-12 | 20.3 | 3.6 | Flechette 68% | 0 / 0 | 0 |
+| tdm-tripoint-works-12 | 17.9 | 1.4 | Flechette 79% | 0 / 0 | 0.7 |
+| duel-tripoint-works-2 | 0.9 | 0.1 | Flechette 83% | 0 / 0 | 0 |
+| ffa-holdfast-atoll-16 | 31.5 | 4.5 | Flechette 50% | 0 / 0 | 0 |
+| tdm-holdfast-atoll-16 | 13.2 | 0.9 | Flechette 86% | 0 / 0 | 0 |
+| duel-holdfast-atoll-2 | 0.8 | 0 | Repeater 64% | 0 / 0 | 0 |
+| conquest-holdfast-atoll-16 | 8.4 | 0 | Flechette 65% | 219 / 0 | 0 |
+| ffa-low-water-10 | 36.1 | 3.3 | Tack 51% | 0 / 0 | 2.1 |
+| tdm-low-water-10 | 33.3 | 3.1 | Flechette 75% | 0 / 0 | 2.3 |
+| duel-low-water-2 | 2.4 | 0.8 | Flechette 76% | 0 / 0 | 0 |
+| sabotage-low-water-10 | 13.1 | 0 | Tack 75% | 133 / 0 | 0 |
+
+Against the wave 19 targets: every FFA and TDM row clears 10 frags a minute;
+FFA lead changes reach 3 on Larak Lot, Directive 17, Tripoint, Holdfast and
+Low Water and fall short on Compliance Yard (2.1), Sector 9 (2.9) and the
+Gulch (2.6); only Larak Lot FFA (41 percent) and the Larak Lot and Compliance
+Yard Duels keep the top gun under 45 percent, and Compliance Yard FFA sits at
+45.5.
 
 ## 4. Verification and Delivery Sequence
 

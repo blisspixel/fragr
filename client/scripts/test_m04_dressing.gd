@@ -80,7 +80,7 @@ func _run() -> void:
 	var shared: ArenaSky.Preset = ArenaSky.preset_for("Low Water")
 	_expect(preset.key_rotation_degrees.x > -30.0 and preset.key_rotation_degrees.x < -10.0 and preset.key_color.r > preset.key_color.b,
 		"Notice to Vacate keeps its low warm late-afternoon sun")
-	_expect(preset.view_fill_energy > 0.0 and shared.key_rotation_degrees == Vector3.ZERO, "the M04 light plan stays its own; the shared Low Water sky is unchanged")
+	_expect(preset.view_fill_energy > 0.0 and preset.key_rotation_degrees != shared.key_rotation_degrees and preset.key_color != shared.key_color, "the M04 light plan stays its own, apart from the multiplayer town's evening")
 	if failures == 0:
 		print("test_m04_dressing: PASS authored guard, fourteen dressed rooms, warm local lamps, merged props, no words, no bodies and the late-afternoon sun")
 	quit(0 if failures == 0 else 1)

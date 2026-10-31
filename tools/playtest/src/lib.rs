@@ -2625,6 +2625,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         fill_target: 0,
         map: config.map,
         map_rotate: false,
+        map_off: Vec::new(),
         playlist: false,
         match_config: Some(match_config),
         // A harness run is reproducible and quiet: the report is the output.

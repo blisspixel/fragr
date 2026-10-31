@@ -160,6 +160,14 @@ func apply_map_info(info: Dictionary) -> void:
 		var lot: LarakLot = LarakLot.new()
 		add_child(lot)
 		lot.build(info, _solid_views)
+	if venue == "compliance_yard" and ComplianceYard.applies(info):
+		var yard: ComplianceYard = ComplianceYard.new()
+		add_child(yard)
+		yard.build(info)
+	if venue == "low_water" and LowWaterTown.applies(info):
+		var town: LowWaterTown = LowWaterTown.new()
+		add_child(town)
+		town.build(info)
 	var marked_terminal: int = -1
 	var terminal_key: String = "WORLD_LATCH_RECORD"
 	var mission: Variant = info.get("mission")
@@ -192,6 +200,9 @@ static func venue_for(info: Dictionary) -> String:
 		# The refuge is Low Water's own plaster and paint, both mornings.
 		"still here", "still here, years later": return "low_water"
 		"larak lot": return "larak_lot"
+		# A Union records and inspection block: the Office's civic stone and
+		# steel, never the scrap venues' painted containers.
+		"compliance yard": return "compliance_yard"
 		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"

@@ -22,5 +22,6 @@ done <<'CASES'
 5 12 42
 6 16 42
 7 16 42
+8 8 42
 CASES
 exit "$failed"

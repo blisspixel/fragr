@@ -43,6 +43,14 @@ impl GameSession {
             DeskVerb::Next => {
                 DeskOutcome::Text(self.state.queue_next_show().unwrap_or_else(str::to_string))
             }
+            DeskVerb::Rotation { change: None } => DeskOutcome::Text(self.state.desk_rotation()),
+            DeskVerb::Rotation {
+                change: Some((map, on)),
+            } => DeskOutcome::Text(
+                self.state
+                    .set_rotation(map, on)
+                    .unwrap_or_else(str::to_string),
+            ),
             DeskVerb::Map { map, mode } => DeskOutcome::Text(
                 self.state
                     .queue_show(map, mode)

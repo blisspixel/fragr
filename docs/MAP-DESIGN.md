@@ -106,13 +106,13 @@ authoritative geometry determines which routes actually exist.
 | Multiplayer map | Preserve | Spatial work still needed |
 |---|---|---|
 | Larak Lot | Five walking levels, underpass, drops, stair returns and separated item routes | Keep this compact layered standard; judge actual route use and spawn fairness in play |
-| Compliance Yard | Connected rooms, perimeter circulation and inspection gantry | Differentiate room shapes and purposes; stagger aligned doorways that currently share long firing lines; give exits different retreat destinations |
+| Compliance Yard | Nine rooms with their own jobs (records stacks, inspection hall and gantry, evidence lockup, intake queue, sorting court with inspection lanes, relay room, weighbridge, offices, dock), staggered doorways, a chicane corridor turning round L-shaped corner posts, an 82 m block crossed corner to corner in 24.5 s; no line over 46 m (was 110 m); Union night lighting, floor paint and work lamps | Judge in play whether the rooms read without signs and whether the gantry window over the court is too strong a perch |
 | Directive 17 | Exposed central pickup and reachable quadrant decks | Give its repeated stairs and square combat bowl distinct approaches and contested positions |
 | Sector 9 | Central, side and perimeter routes; two Sabotage sites | Give the sites different local spaces and retake angles; shorten empty hall transit and distinguish rotations |
 | Reclamation Gulch | Centre-versus-flank choice and compound approaches | Replace the impression of flat ground with slab ridges with purposeful terrain screening and connected local fights; it currently has no vehicle roster |
 | Tripoint Works | Three identifiable compound destinations | Resolve its role before further dressing: the intended three-faction ownership system is absent, leaving a sparse compound field in ordinary matches |
 | Holdfast Atoll | Horseshoe shore, Conquest points, roads and land/sea/air vehicles | Shape terrain and sheltered infantry connections around its existing fronts; its land remains broad flat panels |
-| Low Water | Three bridges, a walk-under tram trench, four stair returns and two Sabotage sites | Differentiate clinic and depot approaches and retakes; break the trench's long firing line and the broad banks' repeated stall-and-screen pattern |
+| Low Water | Three bridges, a walk-under trench broken by a tram, a shed and two piers (32 m longest line, was 84 m), four stair returns; a close walled clinic forecourt at A and an open, overlooked tram stop at B; terraces on both banks, an evening town of lamps, bunting and the market clock; sixteen screened spawn slots | The banks still carry long diagonals (about 100 m); bot Sabotage now favours the attack (61 to 69 percent of rounds); judge both in human Sabotage |
 
 For compact multiplayer, use the interconnection and recognizable-room lessons
 of GoldenEye. For objective play, use Counter-Strike's distinct approach and

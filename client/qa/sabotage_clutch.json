@@ -1,0 +1,30 @@
+{
+  "comment": "The Sabotage clutch stamp (#510), watched: eight rule bots on Sector 9 until the server names a last fighter standing against two or more. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_SEED=42 FRAGR_QA_MANIFEST=res://qa/sabotage_clutch.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "clutch_watch",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "camera": "none",
+      "await_sabotage": {
+        "clutch": true
+      },
+      "await_timeout_seconds": 400,
+      "settle_seconds": 0.4,
+      "note": "LAST ONE STANDING card, stamped upright under the Sabotage header, with the odds."
+    },
+    {
+      "name": "clutch_muster",
+      "camera": "none",
+      "await_sabotage": {
+        "phase": "muster",
+        "round_at_least": 2
+      },
+      "await_timeout_seconds": 200,
+      "note": "The next muster: the trailing side's resupply call, photographed while it is on screen.",
+      "await_objective": "/3:"
+    }
+  ]
+}

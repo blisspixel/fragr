@@ -5,11 +5,7 @@
   "skip_key": "STORY_SKIP_SCENE",
   "music": {"path": "res://assets/audio/score/cue-l17/a.mp3", "volume_db": -12.0},
   "shots": [
-    {
-      "id": "ARRIVAL",
-      "caption_key": "M18_RUN_DESCRIPTION",
-      "timing": "reader",
-      "hold": 1
-    }
+    {"id": "WEEKS", "caption_key": "STORY_M18_ARRIVAL_WEEKS", "timing": "reader", "hold": 1},
+    {"id": "SQUARE", "caption_key": "STORY_M18_ARRIVAL_SQUARE", "timing": "reader", "hold": 1}
   ]
 }

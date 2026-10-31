@@ -87,6 +87,12 @@ impl BuildBudget {
 }
 
 impl Navigation {
+    /// Nodes and edges, for the maps' build measurements.
+    #[cfg(test)]
+    pub(crate) fn size(&self) -> (usize, usize) {
+        (self.nodes.len(), self.edges.len())
+    }
+
     /// Whether a fighter can see a point through this navigation world's solids.
     pub fn line_of_sight(&self, origin: [f32; 3], target: [f32; 3]) -> bool {
         crate::combat::line_of_sight(origin, target, &self.arena.solids)

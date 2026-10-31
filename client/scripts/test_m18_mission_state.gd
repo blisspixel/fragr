@@ -76,6 +76,7 @@ static func fixture_state(info: Dictionary, stage: int = 0, tick: int = 10) -> D
 		"overlook_witnessed": stage >= 5,
 		"concourse_secured": stage >= 6,
 		"brief_completed": M18MissionState.brief_completed(challenges, "standard"),
+		"turn_started": 5 if stage >= 1 else null,
 	}
 	if stage < 6:
 		progress["current"] = info["m18"]["objectives"][stage].duplicate(true)
@@ -132,21 +133,71 @@ func _run() -> void:
 	premature_concourse["state"]["m18"]["challenges"]["square_defended"] = false
 	_check(not MissionState.validation_error(premature_concourse, geometry).is_empty(), "concourse security without square defense rejected")
 
+	var unturned: Dictionary = fixture_state(info, 1, 10)
+	unturned["state"]["m18"]["turn_started"] = null
+	_check(not MissionState.validation_error(unturned, geometry).is_empty(), "a delivery without its turn is rejected")
+	var early_turn: Dictionary = fixture_state(info, 0, 10)
+	early_turn["state"]["m18"]["turn_started"] = 4
+	_check(not MissionState.validation_error(early_turn, geometry).is_empty(), "a turn before the delivery is rejected")
+	var future_turn: Dictionary = fixture_state(info, 1, 10)
+	future_turn["state"]["m18"]["turn_started"] = 11
+	_check(not MissionState.validation_error(future_turn, geometry).is_empty(), "a turn ahead of the clock is rejected")
+
 	var presenter: M18Transit = M18Transit.new()
 	presenter.configure_map(info)
 	var notices: Array[String] = []
+	var cues: Array[String] = []
+	var hushes: Array[bool] = []
+	var lines: Array[String] = []
+	var faces: Array[String] = []
 	presenter.notice_requested.connect(func(text: String) -> void: notices.append(text))
+	presenter.story_cue.connect(func(slot: String) -> void: cues.append(slot))
+	presenter.hush.connect(func(on: bool) -> void: hushes.append(on))
+	presenter.caption.line_said.connect(func(text: String) -> void: lines.append(text))
+	presenter.latch_expression.connect(func(expression: String) -> void: faces.append(expression))
+	presenter.apply_state(fixture_state(info, 0, 4)["state"])
+	_check(lines == [tr("M18_LATCH_CURSED"), tr("M18_LATCH_CONTRACT")] and hushes.is_empty(), "the morning opens on Latch's joke and no silence")
 	presenter.apply_state(fixture_state(info, 1, 10)["state"])
-	_check(presenter._aid_delivered and notices.size() == 1, "presenter fires aid delivered notice")
+	_check(notices.size() == 1, "presenter fires the delivery notice")
+	# The turn on the snapshot clock: the air goes at once, the supervisor
+	# calls after the heads come round, the air and Latch come back after.
+	presenter.apply_snapshot({"tick": 5.0})
+	_check(hushes == [true] and presenter.hushed(), "the turn takes the air at its first tick")
+	_check(EnemyView.signal_window == Vector2i(5 + M18Transit.HEADS_TURN_TICKS, 5 + M18Transit.TURN_TICKS), "the bots carry the rhythm from the heads-turn tick")
+	presenter.apply_snapshot({"tick": 5.0 + M18Transit.SUPERVISOR_TICKS - 1})
+	_check(lines.size() == 2, "nobody speaks before the supervisor notices")
+	presenter.apply_snapshot({"tick": 5.0 + M18Transit.SUPERVISOR_TICKS})
+	_check(lines.size() == 3 and lines[2] == tr("M18_SUPERVISOR_RESPOND"), "the supervisor gets no answer")
+	presenter.apply_snapshot({"tick": 5.0 + M18Transit.TURN_TICKS})
+	_check(hushes == [true, false] and not presenter.hushed(), "the air comes back when the turn ends")
+	_check(faces == ["concerned"], "Latch looks at the party, concerned, and stays so")
+	_check(cues == ["cue-l18"], "the turn's score cue plays after the silence, once")
+	_check(lines.slice(3) == [tr("M18_LATCH_ALL_AT_ONCE"), tr("M18_LATCH_STILL_HERE")], "Latch speaks after the turn, and is still Latch")
+	_check(EnemyView.signal_window == Vector2i(-1, -1), "the rhythm ends with the turn")
+	presenter.apply_snapshot({"tick": 5.0 + M18Transit.TURN_TICKS + 40})
+	_check(cues.size() == 1 and hushes.size() == 2, "the turn presents once")
 	presenter.apply_state(fixture_state(info, 2, 20)["state"])
-	_check(presenter._square_defended and notices.size() == 2, "presenter fires square defended notice")
 	presenter.apply_state(fixture_state(info, 3, 30)["state"])
-	_check(presenter._collector_neutralized and notices.size() == 3, "presenter fires collector neutralized notice")
 	presenter.apply_state(fixture_state(info, 5, 50)["state"])
-	_check(presenter._overlook_witnessed and notices.size() == 4, "presenter fires overlook witnessed notice")
 	presenter.apply_state(fixture_state(info, 6, 60)["state"])
-	_check(presenter._concourse_secured and notices.size() == 5, "presenter fires concourse secured notice")
+	_check(notices.size() == 5, "presenter fires each later notice once")
+	# A retry starts the morning over and the turn can play again.
+	var retry: Dictionary = fixture_state(info, 0, 70)["state"]
+	retry["attempt"] = 2
+	presenter.apply_state(retry)
+	_check(lines[lines.size() - 2] == tr("M18_LATCH_CURSED"), "a retry starts the morning over")
+	_check(faces == ["concerned", ""], "a retry lets Latch's face go")
 	presenter.clear_map()
+	# A late join past the turn restages nothing of it.
+	var late: M18Transit = M18Transit.new()
+	late.configure_map(info)
+	var late_hush: Array[bool] = []
+	late.hush.connect(func(on: bool) -> void: late_hush.append(on))
+	late.apply_state(fixture_state(info, 2, 200)["state"])
+	late.apply_snapshot({"tick": 200.0})
+	_check(late_hush.is_empty() and EnemyView.signal_window == Vector2i(-1, -1), "a late join past the turn stays out of it")
+	late.clear_map()
+	late.free()
 	presenter.free()
 
 	if failures > 0:

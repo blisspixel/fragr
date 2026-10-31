@@ -340,6 +340,15 @@ instead of eight. `round_state.podium` shows who is ready and, in a Duel, the
 series. A Duel (`rules.mode` `duel`) has two fighter seats; a third fighter is
 refused with `match_full` and may watch.
 
+On a rotating server the podium also votes on the next map.
+`round_state.podium.vote.options` lists up to three `{map_id, map_name,
+votes}`; send `act` with `vote: <map_id>` once to cast a ballot, and again to
+change it. The leader loads when the podium closes (`closes_in` ticks), ties
+going to the earlier option. An agent that never votes abstains; rule bots
+vote only when no person or agent is seated. `round_state.podium.story`
+names each seated fighter's `nemesis` this session and its closest `rivals`
+(`won` and `lost` frags), each tagged `human`, `agent` or `bot`.
+
 Authored traversal maps use the same connection and action tools. `observe.map`
 includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.
@@ -637,10 +646,15 @@ Connected M15-M18 use `civic_pressure_valve`, `freedom_of_movement`,
 `map.m18` geometry must precede matching mission facts. Ordered completed
 prefixes, objective controls, prompts and world flags are validated together;
 a changed world suspends steering until fresh facts arrive. Minimum gameplay
-versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
+versions are 51, 52, 53 and 64 respectively, including spectators. Rejection
 retains the server's reason in `connection_error`, without a pending join.
 These missions keep the same readiness, action and continue tools. Saved runs
 refill continues only when entering M15 (Episode IV) and M18 (Episode V).
+Before the delivery M18's square bodies report phase `working` and are not
+targets. M18's `turn_started` names the delivery's tick; for the next 60 ticks no hostile
+attacks, and from tick 10 of it the square's machines report
+`side: inheritance`, `control: absorbed` (see `docs/protocol.md`). The scripted
+bot binds M16 to M18 geometry like the MCP session does.
 
 Connected M19 uses `planned_works` (minimum gameplay 55). `observe.map.m19`
 binds eight ordered objectives, the coalition stores and waterworks controls,
@@ -760,7 +774,10 @@ sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
 `map_name` are always present (defaulting to Larak Lot if the snapshot omitted
 them). `podium` is null mid-round; while Ended it is the Snapshot's podium:
 `again` (ids that pressed `act.again`), `voters` (seated people and agents
-waited on) and, in a Duel, `duel` (both fighters' round wins in this series).
+waited on), in a Duel `duel` (both fighters' round wins in this series),
+`story` (each seated fighter's nemesis and rivals this session) and, on a
+rotating server, `vote` (`options`, `ballots`, `leader`, `closes_in`,
+`bots_vote`; see `docs/protocol.md`).
 `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.
@@ -829,7 +846,10 @@ charge and send `act` with `interact: true` and no movement until `planted`
 arrives in `get_events` (60 ticks); to defuse, do the same within 1.75 m of the
 planted charge as a union fighter (120 ticks). Movement, release or any damage
 loses the progress. One life per round; after death you are absent from
-`players` until the next round. Sides swap at half, so read `self_team` each
+`players` until the next round. `sabotage.resupply`, when present, gives the
+rung (0 to 3, by uniform) a losing side's fallen were reissued this round, and
+`sabotage.clutch` names the last fighter standing for a side against two or
+more. Sides swap at half, so read `self_team` each
 round. The contract is in
 [`docs/protocol.md`](../docs/protocol.md#sabotage).
 

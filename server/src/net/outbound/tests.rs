@@ -178,6 +178,8 @@ fn sabotage_clock_and_carrier_motion_coalesce_but_charge_and_round_changes_do_no
         }),
         progress: None,
         swap_after: false,
+        resupply: TeamScores::default(),
+        clutch: None,
     });
     let (tx, mut rx) = channel(3);
     tx.try_send(ServerMessage::Snapshot(snapshot.clone()))

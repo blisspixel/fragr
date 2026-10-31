@@ -17,10 +17,17 @@ pub(crate) struct M18Progress {
     pub(super) overlook_witnessed: bool,
     pub(super) concourse_secured: bool,
     pub(super) roadblock_active: bool,
+    /// The tick the delivery was made: the turn begins with it.
+    pub(super) turn_started: Option<u64>,
+    /// The machines' heads have come round and their control has passed.
+    pub(super) heads_turned: bool,
+    /// The square moves again and its people have run.
+    pub(super) turn_ended: bool,
 }
 
 #[cfg(test)]
 mod tests;
+mod turn;
 
 impl GameState {
     pub(crate) fn m18_encounter_available(&self, index: usize) -> bool {
@@ -162,6 +169,7 @@ impl GameState {
                 overlook_witnessed: p.overlook_witnessed,
                 concourse_secured: p.concourse_secured,
                 brief_completed: p.challenges.brief_completed(run.rules.difficulty),
+                turn_started: p.turn_started,
             }),
             m19: None,
         })
@@ -184,6 +192,7 @@ impl GameState {
         let Some(g) = self.map.m18_geometry() else {
             return;
         };
+        self.advance_m18_turn();
         let old = self.m18_mission_state().unwrap().m18.unwrap();
         let index = self.mission.as_ref().unwrap().m18.as_ref().unwrap().index;
 
@@ -200,6 +209,7 @@ impl GameState {
                 let p = self.mission.as_mut().unwrap().m18.as_mut().unwrap();
                 p.aid_delivered = true;
                 p.challenges.aid_delivered = true;
+                p.turn_started = Some(self.tick);
                 p.index = 1;
                 advanced = true;
             }

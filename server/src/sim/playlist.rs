@@ -141,14 +141,18 @@ impl GameState {
             }
             return;
         }
-        if self.map_rotate && self.round_number > 0 {
-            if let crate::maps::RuntimeMap::BuiltIn(kind) = self.map {
-                self.map = crate::maps::RuntimeMap::BuiltIn(kind.next());
-                self.clear_grenades();
-                self.clear_mines();
-                tracing::info!("Map rotate -> {} ({})", self.map.name(), self.map.id());
+        // A Sabotage match keeps its map until the match is decided.
+        if self.map_rotate && self.round_number > 0 && self.playlist_show_finished() {
+            if let Some(next) = self.next_rotation_map() {
+                if self.map != next {
+                    self.map = crate::maps::RuntimeMap::BuiltIn(next);
+                    self.clear_grenades();
+                    self.clear_mines();
+                    tracing::info!("Map rotate -> {} ({})", self.map.name(), self.map.id());
+                }
             }
         }
+        self.map_vote = None;
     }
 
     fn playlist_show_finished(&self) -> bool {
@@ -238,7 +242,9 @@ impl GameState {
             let slot = NIGHT[(self.playlist_index + 1) % NIGHT.len()];
             lines.push(format!("Next: {} / {}", slot.map.name(), slot.mode.name()));
         } else if self.map_rotate {
-            lines.push("Map rotation is running.".into());
+            lines.push(
+                "Map rotation is running; the podium votes on the next map. See rotation.".into(),
+            );
         } else {
             lines.push("This show repeats. Use map <map> <mode> to queue another.".into());
         }

@@ -12,6 +12,8 @@ var _doors_open: bool = false
 var _checkpoint_notice_fired: bool = false
 var _bus_notice_fired: bool = false
 var _doors_notice_fired: bool = false
+## Every light on the avenue goes green for the ride. Mara did not do it.
+var _green_notice_fired: bool = false
 var state_applied: int = 0
 
 func clear_map() -> void:
@@ -23,6 +25,7 @@ func clear_map() -> void:
 	_checkpoint_notice_fired = false
 	_bus_notice_fired = false
 	_doors_notice_fired = false
+	_green_notice_fired = false
 	state_applied = 0
 	for child: Node in get_children():
 		remove_child(child)
@@ -89,6 +92,9 @@ func apply_state(state: Dictionary) -> void:
 
 	# Update traffic signal lights if green wave is active
 	var challenges: Dictionary = progress.get("challenges", {})
+	if challenges.get("green_wave_triggered") == true and not _green_notice_fired:
+		_green_notice_fired = true
+		notice_requested.emit(tr("M16_MARA_NOT_US"))
 	if challenges.get("green_wave_triggered") == true:
 		for sig: MeshInstance3D in _signals:
 			if sig.material_override is StandardMaterial3D:

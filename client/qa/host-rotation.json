@@ -1,0 +1,12 @@
+{
+  "comment": "The Run a match page's rotation: every map in, and with capture the flag the maps without stands dimmed with the reason. Menu only; any tour server will do.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "host_rotation_tdm", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "tdm",
+     "note": "Rotate maps on and every map in the rotation, the start map held in."},
+    {"name": "host_rotation_ctf", "camera": "none", "menu_page": "host", "host_mode": "ctf",
+     "note": "Capture the flag: Directive 17 and Sector 9 switchable, the rest dimmed and named as having no flag stands, still on."}
+  ]
+}

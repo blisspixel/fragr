@@ -21,6 +21,8 @@ const ATTACKERS: String = "coalition"
 const TICKS_PER_SECOND: int = 20
 ## The server's defuse reach, horizontally, for the prompt only.
 const DEFUSE_REACH: float = 1.75
+## The resupply ladder's top rung (`rules::RESUPPLY_MAX_TIER`).
+const RESUPPLY_MAX: int = 3
 
 
 ## Membership that tolerates any Variant: a typed array refuses a null probe.
@@ -121,6 +123,12 @@ static func snapshot_error(snapshot: Dictionary) -> String:
 	var swap: Variant = state.get("swap_after", false)
 	if not swap is bool:
 		return "invalid sabotage swap"
+	var resupply: Variant = state.get("resupply")
+	if resupply != null and not _sides(resupply, RESUPPLY_MAX):
+		return "invalid sabotage resupply"
+	var clutch: Variant = state.get("clutch")
+	if clutch != null and (not clutch is String or str(clutch).is_empty()):
+		return "invalid sabotage clutch"
 	var charge: Variant = state.get("charge")
 	if charge != null:
 		if not charge is Dictionary or not _one_of(CHARGE_STATUSES, charge.get("status")) or not _point(charge.get("position"), 3):
@@ -295,3 +303,57 @@ static func callout_at(layout: Dictionary, x: float, z: float) -> String:
 		if low.size() == 2 and high.size() == 2 and x >= float(low[0]) and x <= float(high[0]) and z >= float(low[1]) and z <= float(high[1]):
 			return str(callout.get("id", ""))
 	return ""
+
+
+## The rung `team`'s fallen were reissued at this round, 0 when none.
+static func resupply_rung(state: Dictionary, team: String) -> int:
+	var resupply: Variant = state.get("resupply")
+	if not resupply is Dictionary or not MatchRules.TEAMS.has(team):
+		return 0
+	return clampi(_count(resupply.get(team), RESUPPLY_MAX), 0, RESUPPLY_MAX)
+
+
+## The muster call for a resupplied side: the Union's office reissues, the
+## free side's network hands on spares. A fighter hears only its own side;
+## a spectator hears every side that drew on its ladder.
+static func resupply_lines(state: Dictionary, viewer_team: String) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	if str(state.get("phase", "")) != "muster":
+		return lines
+	for team: String in MatchRules.TEAMS:
+		if not viewer_team.is_empty() and team != viewer_team:
+			continue
+		var rung: int = resupply_rung(state, team)
+		if rung <= 0:
+			continue
+		lines.append(_text("SABOTAGE_RESUPPLY_" + team.to_upper()).format({
+			"rung": rung,
+			"kit": _text("SABOTAGE_RESUPPLY_KIT_%d" % rung),
+		}))
+	return lines
+
+
+## The clutch fighter's id, or empty.
+static func clutch_id(state: Dictionary) -> String:
+	var clutch: Variant = state.get("clutch")
+	return str(clutch) if clutch is String else ""
+
+
+## The clutch stamp's two lines for this viewer: the fighter themselves,
+## their side (and a spectator), or the side they face. `against` is the
+## other side's standing count.
+static func clutch_lines(state: Dictionary, viewer_id: String, viewer_team: String, name: String, team: String) -> PackedStringArray:
+	var id: String = clutch_id(state)
+	if id.is_empty() or not MatchRules.TEAMS.has(team):
+		return PackedStringArray()
+	var alive: Variant = state.get("alive")
+	var against: int = 0
+	if alive is Dictionary:
+		var other: String = "coalition" if team == "union" else "union"
+		against = maxi(_count(alive.get(other), 64), 0)
+	var shown: String = name.to_upper() if not name.is_empty() else _text("HUD_DEATH_SOMEONE")
+	if id == viewer_id:
+		return PackedStringArray([_text("SABOTAGE_CLUTCH_SELF"), _text("SABOTAGE_CLUTCH_ODDS").format({"own": 1, "other": against})])
+	if not viewer_team.is_empty() and viewer_team != team:
+		return PackedStringArray([_text("SABOTAGE_CLUTCH_ENEMY").format({"name": shown}), _text("SABOTAGE_CLUTCH_ODDS").format({"own": against, "other": 1})])
+	return PackedStringArray([_text("SABOTAGE_CLUTCH_SIDE").format({"name": shown}), _text("SABOTAGE_CLUTCH_ODDS").format({"own": 1, "other": against})])

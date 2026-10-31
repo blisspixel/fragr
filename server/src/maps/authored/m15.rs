@@ -47,6 +47,8 @@ pub(super) struct Definition {
     tunnel_gate: String,
     gate_west_leaf: String,
     gate_east_leaf: String,
+    /// Where Latch stands with the party when the level begins.
+    companion_start: [f32; 3],
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +60,7 @@ pub(crate) struct Prepared {
     pub(crate) navigation: Arc<Navigation>,
     pub(crate) sealed_navigation: Arc<Navigation>,
     pub(crate) released_navigation: Arc<Navigation>,
+    pub(crate) companion_start: [f32; 3],
 }
 
 impl Definition {
@@ -185,6 +188,20 @@ impl Definition {
         {
             return Err(invalid("M15 entry cannot reach arming crate"));
         }
+        if !standing(arena, self.companion_start)
+            || navigation
+                .route(
+                    self.companion_start,
+                    geometry.arming_crate.approach,
+                    SEARCH_LIMIT,
+                )
+                .status
+                != RouteStatus::Complete
+        {
+            return Err(invalid(
+                "M15 Latch must start on the party's ordinary route",
+            ));
+        }
 
         // Sealed arena (stage 1): players' tunnel closed
         let mut sealed = arena.clone();
@@ -234,6 +251,7 @@ impl Definition {
         }
 
         Ok(Prepared {
+            companion_start: self.companion_start,
             geometry,
             tunnel_gate,
             sealed,

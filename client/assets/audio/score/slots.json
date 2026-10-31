@@ -26,7 +26,7 @@
     {"id":"cue-l02","kind":"cue","scene":"m03_arrival","name":"Cue: Latch is out (after Level 2)","color":"#A8743C","feeling":"Relief, then the list with your street on it.","gain_db":{"a":-3.4,"b":-4.0}},
     {"id":"cue-l05","kind":"cue","scene":"l05_l06","name":"Cue: Low Water lost (after Level 5)","color":"#A8743C","feeling":"The personal rescue was not enough.","gain_db":{"a":-0.3,"b":5.9}},
     {"id":"cue-l17","kind":"cue","scene":"m18_arrival","name":"Cue: the victory's quiet page (after Level 17)","color":"#8E3A34","feeling":"Earned triumph, the best the free side has ever had.","gain_db":{"a":0.4,"b":9.4}},
-    {"id":"cue-l18","kind":"cue","scene":"m19_arrival","name":"Cue: after the turn (after Level 18)","color":"#D8D2C4","feeling":"The floor drops out of the victory, and it does not stop dropping.","gain_db":{"a":7.8,"b":-4.5}},
+    {"id":"cue-l18","kind":"cue","mission":"all_systems_normal","moment":"the_turn","name":"Cue: after the turn (Level 18, in the square)","color":"#D8D2C4","feeling":"The floor drops out of the victory, and it does not stop dropping.","gain_db":{"a":7.8,"b":-4.5}},
     {"id":"cue-l19","kind":"cue","mission":"planned_works","moment":"latch_choice","name":"Cue: Latch's choice (Level 19, at the tank)","color":"#D8D2C4","feeling":"Grief, and the fear of losing Latch again; then the choice.","gain_db":{"a":0.7,"b":4.1}},
     {"id":"cue-l20","kind":"cue","scene":"l20_still_here","name":"Cue: the crossing (after Level 20)","color":"#D8D2C4","feeling":"Relief that does not erase the loss.","gain_db":{"a":2.1,"b":0.8}}
   ]

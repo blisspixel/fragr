@@ -6,6 +6,17 @@ use super::{
 use crate::movement::Solid;
 use serde::{Deserialize, Serialize};
 
+/// The turn: ticks from the delivery, when every Union machine stops, until
+/// the same bodies move again under Inheritance control. Nothing attacks and
+/// nothing absorbed moves while it lasts.
+pub const M18_TURN_TICKS: u64 = 60;
+/// Ticks into the turn when every stopped machine's head comes round to the
+/// same bearing at once and its control passes to the Inheritance.
+pub const M18_HEADS_TURN_TICKS: u64 = 10;
+/// Ticks into the turn when Latch, who does not turn with them, looks at the
+/// party instead.
+pub const M18_LATCH_LOOKS_TICKS: u64 = 24;
+
 pub const M18_OBJECTIVE_IDS: [&str; 6] = [
     "aid_checkin",
     "square_defense",
@@ -75,6 +86,8 @@ pub struct M18ObjectiveState {
     pub overlook_witnessed: bool,
     pub concourse_secured: bool,
     pub brief_completed: bool,
+    /// The tick the delivery was made and the turn began; null before it.
+    pub turn_started: Option<u64>,
 }
 
 fn point(p: [f32; 3], half: f32) -> bool {
@@ -171,6 +184,11 @@ impl M18ObjectiveState {
             || (n >= 3) != self.roadblock_active
         {
             return Err("M18 facts disagree with ordered progress");
+        }
+        if self.turn_started.is_some() != self.aid_delivered
+            || self.turn_started.is_some_and(|at| at > tick)
+        {
+            return Err("M18 turn disagrees with the delivery");
         }
         if phase == MissionPhase::Briefing
             && (!self.completed.is_empty()

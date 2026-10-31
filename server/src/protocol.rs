@@ -7,7 +7,9 @@ pub use barks::{BarkRegister, CompanionBarkKind, EnemyBarkKind, BARK_VARIANTS};
 mod blade;
 mod body;
 mod podium;
-pub use podium::{DuelRecord, Podium};
+pub use podium::{
+    DuelRecord, FighterKind, MapBallot, MapVote, MapVoteOption, Podium, PodiumRival, PodiumStory,
+};
 mod conquest;
 mod decoration;
 pub mod delta;
@@ -805,8 +807,9 @@ pub const M15_GAMEPLAY_VERSION: u32 = 51;
 pub const M16_GAMEPLAY_VERSION: u32 = 52;
 /// Peace Without Interruption connected Forever Office, three door states, Kessel custody and Voss capture.
 pub const M17_GAMEPLAY_VERSION: u32 = 53;
-/// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
-pub const M18_GAMEPLAY_VERSION: u32 = 54;
+/// All Systems Normal connected transit evacuation, clinic roadblock, overlook
+/// recon and concourse defense, and since the turn its `working` square.
+pub const M18_GAMEPLAY_VERSION: u32 = TURN_GAMEPLAY_VERSION;
 /// Single-schema campaign receipts: the carried M08 outcome loses its `kind`
 /// tag and M10 practice transit is `unlinked`. Required for M09 and M10.
 pub const RECEIPT_GAMEPLAY_VERSION: u32 = 55;
@@ -846,7 +849,20 @@ pub const LAG_COMP_GAMEPLAY_VERSION: u32 = 62;
 /// rather than id. Gameplay 61 introduced deltas keyed by id; that shape is
 /// no longer sent, so a reader at 61 or 62 receives every world whole.
 pub const DELTA_GAMEPLAY_VERSION: u32 = 63;
-pub const GAMEPLAY_VERSION: u32 = DELTA_GAMEPLAY_VERSION;
+/// The podium's story (each fighter's nemesis and rivals this session) and
+/// the map vote: `Podium.story`, `Podium.vote` and `Action.vote`. A strict
+/// reader at 63 refuses the new podium fields, so a shared room moves here.
+pub const MAP_VOTE_GAMEPLAY_VERSION: u32 = 64;
+/// Level 18's turn: M18 `turn_started`, the campaign phase `working` for
+/// bodies at work before it, and their mid-life change of control. A reader
+/// without the phase refuses the square, so All Systems Normal requires it.
+pub const TURN_GAMEPLAY_VERSION: u32 = 64;
+/// One contract carries both: the map vote and Level 18's turn shipped together.
+pub const GAMEPLAY_VERSION: u32 = if MAP_VOTE_GAMEPLAY_VERSION > TURN_GAMEPLAY_VERSION {
+    MAP_VOTE_GAMEPLAY_VERSION
+} else {
+    TURN_GAMEPLAY_VERSION
+};
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1410,6 +1426,12 @@ pub struct Action {
     /// only while an arena round has ended; ignored everywhere else.
     #[serde(default, skip_serializing_if = "is_false")]
     pub again: bool,
+    /// A ballot in the podium's map vote (gameplay 64): the `map_id` of one
+    /// offered option. A seated person or agent may change it until the
+    /// podium closes. Ignored from a spectator, mid-round, and for a map the
+    /// vote does not offer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vote: Option<u32>,
     #[serde(default)]
     pub turn_left: bool,
     #[serde(default)]

@@ -23,6 +23,24 @@ const ROOF_Y: float = 9.0
 ## The repeating rhythm under "Authorized noise": three short, one long.
 const NOISE_PATTERN: Array[float] = [0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.5, 0.6]
 
+## One seam for the rhythm wherever it recurs (the depot lamp, the foundry
+## relay, the absorbed bots at Level 18's turn): its loop length in seconds,
+## and whether it is lit `seconds` into a loop.
+static func noise_period() -> float:
+	var total: float = 0.0
+	for part: float in NOISE_PATTERN:
+		total += part
+	return total
+
+static func noise_lit(seconds: float) -> bool:
+	var at: float = fposmod(seconds, noise_period())
+	var edge: float = 0.0
+	for index: int in range(NOISE_PATTERN.size()):
+		edge += NOISE_PATTERN[index]
+		if at < edge:
+			return index % 2 == 0
+	return false
+
 var _root: Node3D
 var _geometry: Dictionary = {}
 var _neutral_layout: Dictionary = {}
@@ -255,16 +273,8 @@ func _process(delta: float) -> void:
 	if is_instance_valid(noise_lamp):
 		var lit: bool = false
 		if _noise_on:
-			var total: float = 0.0
-			for part: float in NOISE_PATTERN:
-				total += part
-			_noise_clock = fposmod(_noise_clock + step, total)
-			var at: float = 0.0
-			for index: int in range(NOISE_PATTERN.size()):
-				at += NOISE_PATTERN[index]
-				if _noise_clock < at:
-					lit = index % 2 == 0
-					break
+			_noise_clock = fposmod(_noise_clock + step, noise_period())
+			lit = noise_lit(_noise_clock)
 		noise_lamp.visible = lit
 
 func _figure(label: String, person: String, feet: Vector3, facing: Vector3) -> CivilianFigure:

@@ -218,6 +218,7 @@
     "return_ticks": 300
   },
   "m15": {
+    "companion_start": [4.4, 0.0, -24.0],
     "objectives": [
       {
         "id": "pen_armed",

@@ -723,6 +723,46 @@ impl EnemyController {
         }
     }
 
+    /// Level 18's turn: every body stops where it stands. Any committed
+    /// tell, burst, disc or channel ends without resolving; nothing attacks
+    /// until the turn is over. A dead or reeling body keeps its phase.
+    pub(super) fn freeze(&mut self, tick: u64) {
+        self.end_mark(surveyor::MarkEnd::Expired);
+        self.target = None;
+        self.shots_left = 0;
+        self.photograph_pending = None;
+        self.canister_target = None;
+        self.channel_target = None;
+        self.spine_march = None;
+        self.converging = None;
+        if !matches!(
+            self.phase,
+            EnemyPhase::Dead | EnemyPhase::Hit | EnemyPhase::Idle
+        ) {
+            self.enter(EnemyPhase::Idle, tick, 0);
+        }
+    }
+
+    /// Level 18 before the turn: placed at work, not on guard.
+    pub(super) fn at_work_if(mut self, working: bool, tick: u64) -> Self {
+        if working {
+            self.enter(EnemyPhase::Working, tick, 0);
+        }
+        self
+    }
+
+    /// The turn hands a Union machine to the Inheritance in place: the same
+    /// chassis, the same learned attacks, another master.
+    pub(super) fn absorb(&mut self) -> bool {
+        if self.control == crate::protocol::ControlDomain::Union
+            && crate::protocol::ControlDomain::Absorbed.admits(self.kind)
+        {
+            self.control = crate::protocol::ControlDomain::Absorbed;
+            return true;
+        }
+        false
+    }
+
     pub(super) fn stood_down(&self) -> Option<(u64, [f32; 3])> {
         self.stood_down.map(|exit| (self.stood_down_at, exit))
     }

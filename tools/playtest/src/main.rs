@@ -93,6 +93,18 @@ struct Cli {
     /// minutes, Flechette under 45 percent of shots, 18 or more frags a minute.
     #[arg(long, requires = "bot_survey")]
     survey_lot: bool,
+    /// With --bot-survey: every map in every mode it hosts. --assert then
+    /// fails a fighter inside a solid or outside the square, and prints the
+    /// rows that miss the wave 19 targets (10 frags a minute, three lead
+    /// changes per free-for-all, top gun under 45 percent of shots).
+    #[arg(long, requires = "bot_survey", conflicts_with = "survey_lot")]
+    survey_maps: bool,
+    /// With --bot-survey: survey one map in the modes it hosts (free-for-all
+    /// at six and eight, team deathmatch at eight, Sabotage at ten where it
+    /// has sites). With --sabotage-survey: the Sabotage map, Sector 9 when
+    /// absent. A map ID or server map name.
+    #[arg(long, conflicts_with_all = ["survey_lot", "survey_maps"])]
+    survey_map: Option<String>,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -446,6 +458,24 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
         .collect();
     println!("death cells (3 or more): {}", tally(&hot));
     println!("unarmed when live: {}", tally(&report.unarmed_at_live));
+    println!(
+        "comeback after 0 to 3: {} of {} ({:.0} percent)",
+        report.comebacks,
+        report.comeback_chances,
+        report.comeback_rate * 100.0
+    );
+    println!(
+        "comeback after three behind: {} of {} ({:.0} percent)",
+        report.deficit3_comebacks,
+        report.deficit3_chances,
+        report.deficit3_rate * 100.0
+    );
+    println!(
+        "by site: plants {}, detonations {}, defuses {}",
+        tally(&report.plants_by_site),
+        tally(&report.detonations_by_site),
+        tally(&report.defuses_by_site)
+    );
 }
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
@@ -500,6 +530,41 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.rocket_in_hand_share * 100.0,
             row.side_calls_per_minute
         );
+        let (gun, share) = row.top_gun();
+        println!(
+            "{}: {:.1} lead changes per match, top gun {gun} {:.0}%, {} stalls over 5 s ({} pushing, longest {:.1} s), {} ticks inside a solid, {} outside the square, lowest feet {:.2}, {:.0} s in vehicles",
+            row.scenario,
+            row.lead_changes_per_match,
+            share * 100.0,
+            row.stalls,
+            row.pushing_stalls,
+            row.longest_stall_seconds,
+            row.in_solid_ticks,
+            row.out_of_bounds_ticks,
+            row.lowest_feet,
+            row.vehicle_seconds
+        );
+        if !row.unclaimed_pads.is_empty() {
+            println!(
+                "{}: pads never claimed: {}",
+                row.scenario,
+                row.unclaimed_pads.join(", ")
+            );
+        }
+        for spot in row.stall_spots.iter().chain(&row.in_solid_spots) {
+            println!(
+                "{}:   seed {} tick {} {} at ({:.2}, {:.2}, {:.2}){}{}",
+                row.scenario,
+                spot.seed,
+                spot.tick,
+                spot.fighter,
+                spot.at[0],
+                spot.at[1],
+                spot.at[2],
+                if spot.in_vehicle { " in a vehicle" } else { "" },
+                if spot.pushing { " pushing" } else { "" }
+            );
+        }
     }
 }
 
@@ -614,6 +679,16 @@ async fn main() {
         if cli.survey_lot {
             config.scenarios = fragr_playtest::bot_survey::lot_scenarios();
         }
+        if cli.survey_maps {
+            config.scenarios = fragr_playtest::bot_survey::every_map_scenarios();
+        }
+        if let Some(map) = &cli.survey_map {
+            let Some(map) = fragr_server::sim::MapKind::from_cli(map) else {
+                eprintln!("error: invalid --survey-map {map:?}");
+                std::process::exit(2);
+            };
+            config.scenarios = fragr_playtest::bot_survey::map_scenarios(map);
+        }
         let report = fragr_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
@@ -637,6 +712,13 @@ async fn main() {
                 problems.extend(fragr_playtest::bot_survey::check_lot_targets(row));
             }
         }
+        if cli.survey_maps {
+            for (row, scenario) in report.scenarios.iter().zip(&config.scenarios) {
+                for miss in fragr_playtest::bot_survey::check_map_targets(row, scenario.mode) {
+                    println!("target: {miss}");
+                }
+            }
+        }
         for problem in &problems {
             println!("threshold: {problem}");
         }
@@ -646,7 +728,20 @@ async fn main() {
         return;
     }
     if cli.sabotage_survey {
+        let map = match cli
+            .survey_map
+            .as_deref()
+            .map(fragr_server::sim::MapKind::from_cli)
+        {
+            None => fragr_server::sim::MapKind::Sector9,
+            Some(Some(map)) if map.sabotage_map().is_some() => map,
+            Some(_) => {
+                eprintln!("error: --survey-map needs a map with Sabotage sites");
+                std::process::exit(2);
+            }
+        };
         let config = fragr_playtest::sabotage::SurveyConfig {
+            map,
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             bots: cli.survey_bots as usize,
             format: cli.sabotage_format,

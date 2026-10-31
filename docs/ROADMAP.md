@@ -21,7 +21,7 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
-- **Is it fun yet? Not proven, and not yet the bar.** The goal is the loop that made Counter-Strike, Battlefield 1942 and GoldenEye: a match so good the player wants another one immediately. Most of the parts that the October 23 study of Doom, Quake, Unreal Tournament, Counter-Strike, Battlefield and Halo found missing now exist: equal starts with power on timed pads, dropped guns, dodge and rocket jumps, a voiced Host for rare moments, Duel rematches and sudden death instead of draws. What still stops "one more game": only Larak Lot of the eight multiplayer maps is built to the bar; nothing after a match pulls the player into the next one (no map vote, no visible rival or personal best, although the server already keeps head-to-head records); dying in a team mode is waiting rather than watching a teammate; and no one but Nick has played. Waves 13 to 18 went mostly into the campaign. Wave 19 turns back to the match loop.
+- **Is it fun yet? Not proven, and not yet the bar.** The goal is the loop that made Counter-Strike, Battlefield 1942 and GoldenEye: a match so good the player wants another one immediately. Most of the parts that the October 23 study of Doom, Quake, Unreal Tournament, Counter-Strike, Battlefield and Halo found missing now exist: equal starts with power on timed pads, dropped guns, dodge and rocket jumps, a voiced Host for rare moments, Duel rematches and sudden death instead of draws. Wave 19 added the between-match pull (nemesis and rivals on the podium, a map vote into the next match), watching a teammate after death, a Sabotage comeback ladder and rebuilt Compliance Yard and Low Water; wave 20 balances the guns and teaches bots to hunt. What still stops "one more game": Larak Lot remains the only map built to the full bar, and no one but Nick has played. Every fun number so far comes from bots.
 
 <a id="full-build-order"></a>
 <a id="full-build-order-2026-09-27"></a>
@@ -35,7 +35,7 @@ This is the only active sequence. When the current rung changes, edit this secti
 2. **Golden slice and hero map, implemented, evaluation continuing.** [Larak Lot](plans/larak-lot.md), a five-level car park, replaced Arena Duel on map 1 (#464), and Recall Notice is dressed as the Level 1 golden slice (#461). Both were judged from inspected Linux stills and motion; continue rendered inspection and constrained play now, while keeping physical-device and fresh-player evidence open. This slice is the quality bar for everything after it.
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
 4. **Raise the campaign to the bar, continuing.** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilt layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
-5. **One more game, current engineering wave (19).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
+5. **One more game, current engineering waves (19 and 20).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
 6. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
 7. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
 
@@ -62,21 +62,31 @@ fresh player has tried these routes.
 
 <a id="wave-19-one-more-game"></a>
 
-### Wave 19: one more game, in progress
+### Wave 19: one more game, implemented
 
 The test for every lane: after a match, does the player want another one right
-away? Finish and polish what exists before adding more.
+away? Evidence is bots-only surveys, native tests and inspected Linux captures;
+no human has played any of it.
+
+| Lane | Result | Still open |
+|---|---|---|
+| Between-match hook (#509) | The podium names your nemesis and rivals this session; a three-map vote counts into the next match; hosts switch each map in or out of rotation, every map on by default | Human couch play; personal bests have no capture; the example brain abstains from the vote |
+| Death as a seat (#510) | In team modes the dead follow a living teammate; a rare clutch stamp; a Sabotage resupply ladder took comebacks from 0 to 3 from 14% to 29% | 59% of short Sabotage matches now reach the extra pair |
+| Map bug hunt (#511) | No body in a wall, out of bounds or wedged across 232 bot matches on all eight maps; a survey of every map in every mode; a walked route to every pad | Findings carried into wave 20: Rifle dominance, quiet Duels off Larak Lot, unused vehicles |
+| Compliance Yard and Low Water (#512) | Compliance Yard rebuilt as nine rooms, crossing in 24.5 s with a 46 m longest line; Low Water's sites differentiated, the trench broken up, its own spawn table; both lit and dressed; Low Water joins the roster | Plain floors; Low Water Sabotage favours attackers (#520) |
+| Story that lands (#513) | Level 18's turn happens in play and no longer announces the wipe; Latch, Sorrel, Kessel, Orrin and Mara set up before they matter; story pages and timeline fixed; the radio stays silent through a story moment | The Level 18 square's dressing and Voss's capture moved to wave 20 (#518) |
+
+### Wave 20: balance, hunting bots and the campaign's middle, in progress
 
 | Lane | Scope |
 |---|---|
-| Every map excellent | Keep all eight maps. Bug-hunt and fix each one in play (stuck spots, spawns, pad and route problems, clipping), then raise them toward Larak Lot's bar through the layout review, starting with Compliance Yard and Low Water. Add a per-map enable or disable switch for hosts, in the menu and on the server (today rotation cycles every map or a fixed night list); no map is cut until every map has had that full build-out and play evidence says otherwise. |
-| The between-match hook | On the podium: your nemesis, head-to-head against each rival (the server already keeps these records) and personal bests. Then a three-map vote that counts down into the next match with no menu. |
-| Death as a seat | In team modes, follow a living teammate after death and mark the clutch. Give the trailing Sabotage side a visible, earned way back (the loss bonus that kept Counter-Strike rounds alive). |
-| Story that lands | Start with the audit's two blockers: Level 18 announces the wipe in its menu line and badge but never shows the rupture (its enemies are ordinary Union units and Latch is absent). Then fix the remaining findings on continuity, motivation, names and tone, across the lore, the briefs and what each level actually shows and says, Recall Notice through Still Here. Then make the [designed emotional beats](campaign/story-arc.md#structure) land in play, not on paper: anger as Latch's transport leaves, relief at the rescue, loss at Low Water, triumph at the Chancellor's capture, fear as the Union bots turn, grief as Latch chooses to go. Show them through what the player does, sees and hears, with the people made to matter earlier and restraint over melodrama. |
+| Weapon balance (#516) | No gun above 45% of free-for-all shots on any map, through pad supply rather than weapon stats |
+| Bots hunt (#517) | Bots seek a quiet fight by honest senses, Duel fights on every map, Conquest bots drive Holdfast's jeeps |
+| Level 18 and Voss (#518) | The Level 18 square dressed, Voss captured alive in play in Level 17, Latch with the party in Levels 12 to 16 |
+| Open levels (#519) | Level 9's shared floor split, Level 17 furnished throughout, Level 13's lathes and light, the berth crew's own figures |
 
-Tracked in #509 (between-match hook and rotation), #510 (death as a seat), #511 (map bug hunt), #512 (Compliance Yard and Low Water) and #513 (story); wave 18 leftovers in #514. Promote the October 23 multiplayer study into the wave 19 plan. Close the wave
-with a measured fun night of bots and agents across every map, then a
-human LAN night:
+Close the multiplayer work with a measured fun night of bots and agents across
+every map, then a human LAN night:
 
 | Signal | Target |
 |---|---|

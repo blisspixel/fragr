@@ -12,6 +12,8 @@ const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_host_pending"
 const GAMEPLAY_VERSION: int = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
+## Modes a desktop host can rotate, voting on the next map at the podium.
+const ROTATING_MODES: Array[String] = ["ffa", "tdm", "ctf"]
 
 var state: State = State.IDLE
 var url: String = ""
@@ -72,7 +74,15 @@ static func valid_settings(value: Variant) -> bool:
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false
-	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire"]
+	# Rotation with the podium's map vote, for a free-for-all, team or flag
+	# match. The start map stays in the rotation.
+	if data.has("rotate") and (not data["rotate"] is bool or (data["rotate"] and data["mode"] not in ROTATING_MODES)):
+		return false
+	if data.has("maps_off"):
+		if not data["maps_off"] is Array or not data.get("rotate", false) or FragrSettings.clean_maps_off(data["maps_off"], []) != data["maps_off"] \
+			or (data["maps_off"] as Array).is_empty() or (data["maps_off"] as Array).has(data["map_id"]):
+			return false
+	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire", "rotate", "maps_off"]
 	for k: Variant in data.keys():
 		if not k is String or k not in known_keys:
 			return false
@@ -92,6 +102,11 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 	for mutator: Variant in value.get("mutators", []):
 		args.append("--mutator")
 		args.append(str(mutator))
+	if value.get("rotate", false):
+		args.append("--map-rotate")
+		for map_id: Variant in value.get("maps_off", []):
+			args.append("--map-off")
+			args.append(str(int(map_id)))
 	return args
 
 func start_host(value: Dictionary) -> bool:

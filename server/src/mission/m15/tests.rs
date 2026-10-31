@@ -451,3 +451,42 @@ fn armed_entrants_hold_fire_through_the_participant() {
     at(&mut s, 10.0, 0.0);
     assert!(!s.state.participant_in_line(from, target), "past the guard");
 }
+
+#[test]
+fn latch_follows_the_party_from_the_authored_start() {
+    let (mut s, id) = session();
+    tick(&mut s);
+    let start = s.state.map.m15_objectives().unwrap().companion_start;
+    let latch = s
+        .state
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .expect("Latch is with the party");
+    assert!((latch.x - start[0]).hypot(latch.z - start[2]) < 0.5);
+    assert!(latch.hp > 0);
+    // Latch keeps up with the party on the level's ordinary routes.
+    let me = s.state.players.iter().find(|p| p.id == id).unwrap();
+    let away = [me.x, me.y - crate::sim::PLAYER_FLOOR_Y, me.z];
+    let before = (latch.x - away[0]).hypot(latch.z - away[2]);
+    place(&mut s, id, away);
+    for _ in 0..200 {
+        clear_enemies(&mut s);
+        tick(&mut s);
+    }
+    let latch = s
+        .state
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .unwrap();
+    let after = (latch.x - away[0]).hypot(latch.z - away[2]);
+    assert!(
+        after < before - 1.0 && after < 9.0,
+        "Latch follows: {before} -> {after}"
+    );
+    // A map that puts Latch in a wall is refused.
+    let mut wrong: serde_json::Value = serde_json::from_str(MAP).unwrap();
+    wrong["m15"]["companion_start"] = serde_json::json!([500.0, 0.0, 0.0]);
+    assert!(AuthoredMap::read(serde_json::to_vec(&wrong).unwrap().as_slice()).is_err());
+}

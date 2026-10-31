@@ -1,0 +1,8 @@
+{
+  "comment": "All Systems Normal live review: a spectator watches the free local agent (scripted bot) make the delivery; m18_live_review.gd takes stills of the morning square, the turn and after. Observations only, not fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "m18_watch", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "none", "allow_empty_roster": true, "settle_seconds": 150.0}
+  ]
+}

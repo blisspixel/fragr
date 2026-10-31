@@ -7,6 +7,8 @@ const SealCutPlateScript = preload("res://scripts/seal_cut_plate.gd")
 const StampCardScript = preload("res://scripts/stamp_card.gd")
 var vitals_seal_plate = null
 var stamp_card = null
+## The Sabotage clutch: last one standing, stamped once (#510).
+var clutch_card: ClutchCard = null
 var death_card: DeathCard = null
 ## The booth panel a watcher sees: power pads, the Plate and runs.
 var spectator_panel: SpectatorPanel = null
@@ -70,6 +72,8 @@ var _use_revision: int = -1
 ## The podium's own words on the use plate, so clearing it never hides a
 ## Sabotage plant or defuse prompt.
 var _podium_template: String = ""
+## The podium's story and map vote, built when a podium first carries one.
+var podium_board: PodiumBoard
 ## The narrowest the use plate's text may be, so a several-line podium wraps
 ## at its line breaks rather than between words. Zero for the plant prompt.
 var _use_plate_floor: float = 0.0
@@ -301,6 +305,8 @@ func _ready():
 	add_child(stamp_card)
 	death_card = DeathCard.new()
 	add_child(death_card)
+	clutch_card = ClutchCard.new()
+	add_child(clutch_card)
 	spectator_panel = SpectatorPanel.new()
 	add_child(spectator_panel)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
@@ -566,9 +572,18 @@ func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: in
 ## series for everyone, and for a seated fighter the ready-up for one more
 ## round (fire to press, then how many the room still waits on). `my_id` is
 ## empty for a spectator. Absent mid-round, which clears it.
-func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_place: int = 0, duel_room: bool = false) -> void:
+func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_place: int = 0, duel_room: bool = false, bests: Array[Dictionary] = []) -> void:
 	var lines: PackedStringArray = []
 	lines.append_array(duel_queue_lines(queue, my_place, duel_room and my_id.is_empty(), podium is Dictionary))
+	# A story or a map vote: the board carries the whole podium, the Duel
+	# line included, and the plate steps aside.
+	if PodiumBoard.wants(podium):
+		_ensure_podium_board()
+		podium_board.present(PodiumBoard.lines(podium, my_id, bests, InputDevice.is_gamepad(), lines))
+		lines.clear()
+		podium = null
+	elif podium_board != null:
+		podium_board.present([] as Array[Dictionary])
 	if podium is Dictionary:
 		var data: Dictionary = podium
 		var voters: int = int(data["voters"]) if data.get("voters") is int or data.get("voters") is float else 0
@@ -597,6 +612,14 @@ func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_place: 
 		widest = maxf(widest, MenuTheme.FONT.get_string_size(InputGlyphs.plain(line), HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x)
 	# A key glyph is drawn wider than its plain name.
 	_show_use_plate(template, widest + 64.0)
+
+
+func _ensure_podium_board() -> void:
+	if podium_board != null:
+		return
+	podium_board = PodiumBoard.new()
+	podium_board.name = "PodiumBoard"
+	add_child(podium_board)
 
 
 ## The Duel queue (`duel_queue`, capability 59), seen by the room: who takes
@@ -2611,13 +2634,25 @@ func show_bark_caption(speaker_key: String, caption_key: String, union: bool = t
 		bark_caption.push(speaker_key, caption_key, union)
 
 ## The joined player's death card: three lines, or empty to clear it.
-func show_death_card(lines: PackedStringArray) -> void:
+## `seat` lowers it out of a watched teammate's line of fire.
+func show_death_card(lines: PackedStringArray, seat: bool = false) -> void:
 	if death_card != null:
-		death_card.present(lines)
+		death_card.present(lines, seat)
 
 func hide_death_card() -> void:
 	if death_card != null:
 		death_card.clear()
+
+## The clutch stamp, in the side's colour. Reduced motion lands the ink at rest.
+func show_clutch(lines: PackedStringArray, team: String) -> void:
+	if clutch_card == null:
+		return
+	clutch_card.reduced_motion = reduced_motion
+	clutch_card.present(lines, MenuTheme.team_color(team) if MatchRules.TEAMS.has(team) else MenuTheme.EMBER)
+
+func hide_clutch() -> void:
+	if clutch_card != null:
+		clutch_card.clear()
 
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:

@@ -279,7 +279,6 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
         || options.authored.is_some()
         || options.difficulty.is_some()
         || options.campaign_run
-        || options.map_rotate
         || options.playlist
         || options.solo_broadcast
     {
@@ -304,6 +303,17 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     if !valid_mode {
         return Err(io::Error::other(
             "desktop host requires FFA, TDM, Duel on Larak Lot, CTF on maps with stands, five-per-side Sabotage on Sector 9 or Low Water, or Holdfast Conquest",
+        ));
+    }
+    // The podium's map vote rotates a free-for-all, team or flag match.
+    if options.map_rotate
+        && !matches!(
+            config.rules.mode(),
+            GameMode::Ffa | GameMode::Tdm | GameMode::Ctf
+        )
+    {
+        return Err(io::Error::other(
+            "desktop host rotates only free-for-all, team and capture the flag matches",
         ));
     }
     Ok(address)
@@ -636,10 +646,6 @@ mod tests {
                 ..base.clone()
             },
             ServerOptions {
-                map_rotate: true,
-                ..base.clone()
-            },
-            ServerOptions {
                 playlist: true,
                 ..base.clone()
             },
@@ -766,6 +772,33 @@ mod tests {
             config.rules = crate::rules::RuleSet::new(mode, &mutators, friendly_fire).unwrap();
             config.sabotage.five_vs_five = five;
             assert_eq!(validate_arena_options(&options).is_ok(), accepted);
+        }
+    }
+
+    #[test]
+    fn desktop_rotation_runs_free_for_all_team_and_flag_matches_only() {
+        for (mode, map, accepted) in [
+            (GameMode::Ffa, crate::sim::MapKind::ArenaDuel, true),
+            (GameMode::Tdm, crate::sim::MapKind::ComplianceYard, true),
+            (GameMode::Ctf, crate::sim::MapKind::Sector9, true),
+            (GameMode::Duel, crate::sim::MapKind::ArenaDuel, false),
+            (
+                GameMode::Conquest,
+                crate::sim::MapKind::HoldfastAtoll,
+                false,
+            ),
+        ] {
+            let mut options = arena_options();
+            options.map = map;
+            options.map_rotate = true;
+            options.map_off = vec![crate::sim::MapKind::LowWater];
+            options.match_config.as_mut().unwrap().rules =
+                crate::rules::RuleSet::new(mode, &[], false).unwrap();
+            assert_eq!(
+                validate_arena_options(&options).is_ok(),
+                accepted,
+                "{mode:?}"
+            );
         }
     }
 
@@ -1052,7 +1085,8 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
+        // Level 18's turn is the newest contract this binary speaks.
+        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {

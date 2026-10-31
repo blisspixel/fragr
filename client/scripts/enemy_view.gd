@@ -41,6 +41,12 @@ const OPTIC_SWELL: float = 2.2
 const OPTIC_PEAK: float = 3.6
 const OPTIC_FIRING: float = 2.8
 
+## Level 18's turn, in server ticks [from, to): while a snapshot tick is
+## inside it every absorbed bot's working light carries the custody depot's
+## rhythm (M08Archive.noise_lit, three short and one long) on the same
+## clock. Set by the M18 presenter from a server fact; (-1, -1) is none.
+static var signal_window: Vector2i = Vector2i(-1, -1)
+
 var actor: Dictionary = {}
 var weapon: String = ""
 var tick: int = 0
@@ -311,7 +317,11 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	var glow: ShaderMaterial = body.material_override as ShaderMaterial
 	if glow != null and glow.shader == UNION_SPRITE:
 		if absorbed:
-			glow.set_shader_parameter("work_energy", work_energy(actor, shared_seconds(), tick, elapsed))
+			var energy: float = work_energy(actor, shared_seconds(), tick, elapsed)
+			if tick >= signal_window.x and tick < signal_window.y and actor.get("phase") != "dead":
+				var since: float = float(tick - signal_window.x) * EnemyAnimation.TICK_SECONDS + clampf(elapsed, 0.0, EnemyAnimation.MAX_EXTRAPOLATION)
+				energy = WORK_ENERGY * (2.4 if M08Archive.noise_lit(since) else 0.1)
+			glow.set_shader_parameter("work_energy", energy)
 		else:
 			glow.set_shader_parameter("red_glow", tell_glow(actor, tick, elapsed))
 	var gait_travel: float = shared_travel() if absorbed else travel

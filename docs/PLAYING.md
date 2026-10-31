@@ -14,8 +14,8 @@ leave by the custody lift. The objective card leaves after a few seconds. A
 corner line keeps the bearing until you are at the panel.
 Assisted, Standard and Severe change enemy timing; health, damage and finite
 supplies stay consistent. M01 has an optional Shiv secret. **Persons Unknown**
-continues the run through the M02 ward, with Latch's rescue and optional patient
-evacuation. Finishing Recall Notice and pressing CONTINUE on the tally starts
+continues the run through the M02 ward, with Latch's rescue and an optional side-ward
+release. Finishing Recall Notice and pressing CONTINUE on the tally starts
 that next mission when the saved run names it. Its independent practice entry
 remains available alongside the durable **Continue Run** path. These missions still need fresh-player acceptance.
 

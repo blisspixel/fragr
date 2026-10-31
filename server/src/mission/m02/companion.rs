@@ -36,6 +36,9 @@ const ENGAGED_TICKS: u64 = 60;
 /// Ticks between support shots while the participant fights. Latch helps
 /// more on Assisted and leaves more of the fight to the participant on
 /// Severe.
+/// Level 15's floor-lift group, met with the Article Blade.
+const M15_BLADE_FLOOR: usize = 1;
+
 fn support_cadence(difficulty: crate::protocol::CampaignDifficulty) -> u64 {
     match difficulty {
         crate::protocol::CampaignDifficulty::Assisted => 12,
@@ -175,6 +178,8 @@ impl GameState {
                 self.encounters
                     .enemy_in_group(enemy.id, prepared.lesson_encounter)
             })
+            // The Article Blade floor is the participant's own lesson.
+            && !(run.m15.is_some() && self.encounters.enemy_in_group(enemy.id, M15_BLADE_FLOOR))
             && self.encounters.is_active_enemy(enemy.id)
             && distance(leader, [enemy.x, enemy.y - PLAYER_FLOOR_Y, enemy.z]) <= PARTY_RANGE
     }
@@ -186,6 +191,9 @@ impl GameState {
             && run.m04.is_none()
             && run.m06.is_none()
             && run.m07.is_none()
+            && run.m15.is_none()
+            && run.m17.is_none()
+            && run.m18.is_none()
         {
             return None;
         }
@@ -201,6 +209,23 @@ impl GameState {
         }
         let id = companion.id;
         let tick = self.tick;
+        // Level 18's turn: every machine stops and turns together. Latch does
+        // not. Latch stands where they are and then looks at the party.
+        if let Some(look) =
+            self.m18_latch_hold([companion.x, companion.y - PLAYER_FLOOR_Y, companion.z])
+        {
+            let yaw = look.unwrap_or(companion.yaw);
+            return Some((
+                id,
+                BotIntent {
+                    action: Action {
+                        yaw: Some(yaw),
+                        ..Action::default()
+                    },
+                    goal: None,
+                },
+            ));
+        }
         let reloaded = self
             .mission
             .as_mut()

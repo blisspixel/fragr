@@ -89,6 +89,68 @@ func _run() -> void:
 		var shown: String = _plate_text(hud) if _plate_up(hud) else ""
 		_check(not shown.contains("SERIES"), "a malformed podium shows no series: %s" % str(bad))
 
+	# The board: a story and a vote take the podium off the plate.
+	var story_podium: Dictionary = {"voters": 1, "again": [],
+		"story": [
+			{"id": ME, "name": "Probe", "kind": "human", "nemesis": "Aunt Linda", "rivals": [
+				{"name": "Aunt Linda", "kind": "bot", "won": 1, "lost": 5},
+				{"name": "Jev", "kind": "agent", "won": 2, "lost": 1},
+				{"name": "Dead Air Dan", "kind": "bot", "won": 3, "lost": 3}]},
+			{"id": RIVAL, "name": "Jev", "kind": "agent", "nemesis": "Probe", "rivals": [
+				{"name": "Probe", "kind": "human", "won": 1, "lost": 2}]}],
+		"vote": {"options": [
+			{"map_id": 2, "map_name": "Compliance Yard", "votes": 0},
+			{"map_id": 4, "map_name": "Sector 9 Transit Hall", "votes": 1},
+			{"map_id": 5, "map_name": "Reclamation Gulch", "votes": 0}],
+			"ballots": [{"id": ME, "map_id": 4}], "leader": 4, "closes_in": 181, "bots_vote": false}}
+	var bests: Array[Dictionary] = [{"stat": "frags", "value": 9, "was": 7}]
+	hud.show_podium(story_podium, ME, [], 0, false, bests)
+	var board: PodiumBoard = hud.podium_board
+	_check(board != null and board.visible, "a story and a vote raise the board")
+	_check(not _plate_up(hud), "the plate steps aside for the board")
+	var board_text: String = board._label.get_parsed_text()
+	_check(board_text.contains("NEMESIS  AUNT LINDA [BOT]  //  5 TO 1"), "the nemesis leads, tagged a bot: " + board_text)
+	_check(board_text.contains("UP 2 TO 1 ON JEV [AGENT]") and board_text.contains("LEVEL 3 ALL WITH DEAD AIR DAN [BOT]"), "the book in plain words: " + board_text)
+	_check(board_text.contains("PERSONAL BEST  9 FRAGS (WAS 7)"), "the round's best: " + board_text)
+	_check(board_text.contains("NEXT MAP IN 10") and board_text.contains("SECTOR 9 TRANSIT HALL  1 VOTE  < YOU"), "the vote counts down and marks the ballot: " + board_text)
+	_check(board_text.contains("ONE MORE") and board_text.contains("0 OF 1 READY"), "the ready-up closes the board: " + board_text)
+	var board_lines: Array[Dictionary] = PodiumBoard.lines(story_podium, ME, bests, false)
+	var leader_lit: bool = false
+	for line: Dictionary in board_lines:
+		if str(line["text"]).contains("SECTOR 9") and line["color"] == MenuTheme.EMBER:
+			leader_lit = true
+	_check(leader_lit, "the leader is lit")
+	# A watcher reads the room's loudest book and the vote, with no keys.
+	hud.show_podium(story_podium, "", [], 0, false)
+	board_text = board._label.get_parsed_text()
+	_check(board_text.contains("AUNT LINDA [BOT] OWNS PROBE  //  5 TO 1"), "the room's widest book first: " + board_text)
+	_check(not board_text.contains("ONE MORE") and not board_text.contains("< YOU") and not board_text.contains("PICK ONE"), "a watcher is never asked: " + board_text)
+	# A seated fighter who met nobody reads the room instead.
+	var unmet: Dictionary = story_podium.duplicate(true)
+	unmet["story"] = [unmet["story"][1]]
+	unmet["story"][0]["rivals"] = [{"name": "Static Kid", "kind": "bot", "won": 1, "lost": 4}]
+	unmet["story"][0]["nemesis"] = "Static Kid"
+	hud.show_podium(unmet, ME, [], 0, false)
+	_check(board._label.get_parsed_text().contains("STATIC KID [BOT] OWNS JEV [AGENT]  //  4 TO 1"), "an unmet fighter reads the room: " + board._label.get_parsed_text())
+	var bots_only: Dictionary = story_podium.duplicate(true)
+	bots_only["voters"] = 0
+	bots_only["vote"]["bots_vote"] = true
+	hud.show_podium(bots_only, "", [], 0, false)
+	_check(board._label.get_parsed_text().contains("THE BOTS ARE VOTING"), "bots say so when they vote")
+	# The keys: 1 to 3 pick, the pad's cycle steps from the ballot.
+	var vote: Dictionary = story_podium["vote"]
+	_check(PodiumBoard.choice(vote, ME, 0) == 2 and PodiumBoard.choice(vote, ME, 2) == 5 and PodiumBoard.choice(vote, ME, 3) == 0, "number keys pick options")
+	_check(PodiumBoard.choice(vote, ME, 0, 1) == 5 and PodiumBoard.choice(vote, ME, 0, -1) == 2, "the cycle steps from the ballot")
+	_check(PodiumBoard.choice(vote, RIVAL, 0, 1) == 5, "no ballot: the cycle steps from the leader")
+	_check(PodiumBoard.choice({"options": "x"}, ME, 0) == 0 and PodiumBoard.choice(null, ME, 0) == 0, "a malformed vote picks nothing")
+	_check(PodiumBoard.nemesis_key("AUNT LINDA", 5) == PodiumBoard.nemesis_key("AUNT LINDA", 5), "the nemesis line is stable")
+	# Upright: the board never rotates.
+	_check(is_zero_approx(board.rotation) and is_zero_approx(board._label.rotation), "the board sits level")
+	# No story and no vote: back to the plate.
+	hud.show_podium({"voters": 2}, ME)
+	_check(not board.visible and _plate_up(hud), "a plain podium uses the plate again")
+	hud.show_podium(null, ME)
+
 	# The key: a press on the podium rides the next Action and nothing else.
 	var wire := Wire.new()
 	root.add_child(wire)
@@ -106,6 +168,17 @@ func _run() -> void:
 	game._send_podium_again()
 	_check(wire.sent.size() == 1 and wire.sent[0].get("again") == true and wire.sent[0].has("seq"),
 		"a bodiless fighter's press is one numbered again: %s" % str(wire.sent))
+	# A ballot: the vote key rides the same Action, once.
+	wire.sent.clear()
+	game.pending_again = false
+	game.pending_vote = 4
+	game._send_podium_again()
+	_check(wire.sent.size() == 1 and wire.sent[0].get("vote") == 4 and not wire.sent[0].has("again"),
+		"a ballot is one numbered vote: %s" % str(wire.sent))
+	wire.sent.clear()
+	wire.send_action({"vote": 0, "seq": 6})
+	wire.send_action({"vote": "Sector 9", "seq": 7})
+	_check(wire.sent.size() == 2 and not wire.sent[0].has("vote") and not wire.sent[1].has("vote"), "a bad ballot is not sent: %s" % str(wire.sent))
 	game.latest_snapshot = {"round_state": "Active"}
 	_check(not game._podium_waits_on_me(), "mid-round nothing waits")
 	game.latest_snapshot = {"round_state": "Ended"}

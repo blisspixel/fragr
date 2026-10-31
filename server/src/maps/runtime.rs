@@ -962,6 +962,7 @@ impl RuntimeMap {
     pub fn presentation_ref(&self) -> Option<&crate::protocol::MapPresentation> {
         match self {
             Self::BuiltIn(MapKind::LowWater) => Some(super::low_water::presentation()),
+            Self::BuiltIn(MapKind::ComplianceYard) => Some(super::compliance_yard::presentation()),
             Self::BuiltIn(MapKind::ArenaDuel) => Some(super::larak_lot::presentation()),
             Self::BuiltIn(_) => None,
             Self::Authored(map) => Some(&map.presentation),
@@ -1020,6 +1021,7 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(MapKind::HoldfastAtoll) => 16,
             Self::BuiltIn(MapKind::ArenaDuel) => super::larak_lot::SPAWNS.len(),
+            Self::BuiltIn(MapKind::LowWater) => super::low_water::SPAWNS.len(),
             Self::BuiltIn(_) => 64,
             Self::Authored(map) => map.spawns.len(),
         }

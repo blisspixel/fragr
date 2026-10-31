@@ -21,6 +21,75 @@ msgstr "READY  //  NEXT ROUND LOADING"
 msgid "HUD_DUEL_SERIES"
 msgstr "SERIES  {a} {a_wins} : {b_wins} {b}"
 
+msgid "PODIUM_NEMESIS"
+msgstr "NEMESIS  {name}{tag}  //  {lost} TO {won}"
+
+msgid "PODIUM_NEMESIS_A"
+msgstr "{name} HAS YOUR NUMBER."
+
+msgid "PODIUM_NEMESIS_B"
+msgstr "{name} IS KEEPING THE RECEIPTS."
+
+msgid "PODIUM_NEMESIS_C"
+msgstr "{name} WOULD LIKE A WORD. SEVERAL."
+
+msgid "PODIUM_NEMESIS_D"
+msgstr "YOU ARE {name}'S FAVOURITE CUSTOMER."
+
+msgid "PODIUM_NO_NEMESIS"
+msgstr "NOBODY HAS YOUR NUMBER. YET."
+
+msgid "PODIUM_BOOK"
+msgstr "THE BOOK"
+
+msgid "PODIUM_UP"
+msgstr "UP {won} TO {lost} ON {name}{tag}"
+
+msgid "PODIUM_DOWN"
+msgstr "DOWN {lost} TO {won} ON {name}{tag}"
+
+msgid "PODIUM_LEVEL"
+msgstr "LEVEL {won} ALL WITH {name}{tag}"
+
+msgid "PODIUM_ROOM_OWNS"
+msgstr "{a}{a_tag} OWNS {b}{b_tag}  //  {won} TO {lost}"
+
+msgid "PODIUM_BEST_HEAD"
+msgstr "PERSONAL BEST"
+
+msgid "PODIUM_BEST"
+msgstr "{value} {stat} (WAS {was})"
+
+msgid "PODIUM_STAT_FRAGS"
+msgstr "FRAGS"
+
+msgid "PODIUM_STAT_DAMAGE"
+msgstr "DAMAGE"
+
+msgid "PODIUM_STAT_HEADS"
+msgstr "HEADS"
+
+msgid "PODIUM_VOTE_HEAD"
+msgstr "NEXT MAP IN {seconds}"
+
+msgid "PODIUM_VOTE_KEYS"
+msgstr "PICK ONE"
+
+msgid "PODIUM_VOTE_PAD"
+msgstr "{weapon_prev} {weapon_next} PICK ONE"
+
+msgid "PODIUM_VOTE_BOTS"
+msgstr "THE BOTS ARE VOTING"
+
+msgid "PODIUM_VOTES"
+msgstr "{votes} VOTES"
+
+msgid "PODIUM_VOTE_ONE"
+msgstr "1 VOTE"
+
+msgid "PODIUM_YOUR_VOTE"
+msgstr "< YOU"
+
 msgid "HUD_DUEL_NEXT_UP"
 msgstr "NEXT UP  {names}"
 
@@ -690,6 +759,33 @@ msgstr "HOLD {use}: DEFUSE"
 msgid "SABOTAGE_LINE_OVER_WATCH"
 msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE"
 
+msgid "SABOTAGE_RESUPPLY_UNION"
+msgstr "REPLACEMENT ISSUE {rung}/3: {kit}"
+
+msgid "SABOTAGE_RESUPPLY_COALITION"
+msgstr "SPARES {rung}/3: {kit}"
+
+msgid "SABOTAGE_RESUPPLY_KIT_1"
+msgstr "RIFLE"
+
+msgid "SABOTAGE_RESUPPLY_KIT_2"
+msgstr "RIFLE + HALF ARMOR"
+
+msgid "SABOTAGE_RESUPPLY_KIT_3"
+msgstr "RIFLE + SHOTGUN + HALF ARMOR"
+
+msgid "SABOTAGE_CLUTCH_SELF"
+msgstr "LAST ONE STANDING"
+
+msgid "SABOTAGE_CLUTCH_SIDE"
+msgstr "{name} IS THE LAST ONE"
+
+msgid "SABOTAGE_CLUTCH_ENEMY"
+msgstr "ONE LEFT: {name}"
+
+msgid "SABOTAGE_CLUTCH_ODDS"
+msgstr "{own} V {other}"
+
 msgid "SABOTAGE_SITE_A"
 msgstr "A FRAME"
 
@@ -806,6 +902,9 @@ msgstr "YOU WENT DOWN"
 
 msgid "HUD_DEATH_WATCHING"
 msgstr "WATCHING {name}"
+
+msgid "HUD_DEATH_WATCHING_MATE"
+msgstr "WATCHING {name}   {cycle}: NEXT TEAMMATE"
 
 msgid "HUD_DEATH_HOLDING"
 msgstr "YOUR LAST VIEW"

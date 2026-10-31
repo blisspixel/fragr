@@ -297,6 +297,14 @@ func _run() -> void:
 			else:
 				# Let the card arrive before the still.
 				await create_timer(0.8).timeout
+		if state.has("await_seat") and _joined:
+			# A team-mode death becomes a teammate's seat after the killer beat.
+			var seat_deadline: int = Time.get_ticks_msec() + roundi(float(state["await_seat"]) * 1000.0)
+			while not bool(_game_manager().get("_team_seat")) and Time.get_ticks_msec() < seat_deadline:
+				await process_frame
+			if not bool(_game_manager().get("_team_seat")):
+				push_error("qa_tour: %s never took a teammate's seat" % state_name)
+				_failed = true
 		if state.get("radio_off", false):
 			var radio: Node = _game_manager().get("radio") if _game_manager() != null else null
 			if radio == null:
@@ -482,6 +490,18 @@ func _run() -> void:
 			lift.action = &"fire"
 			lift.pressed = false
 			Input.parse_input_event(lift)
+			await create_timer(0.3).timeout
+		var vote_key: Variant = state.get("press_vote")
+		if vote_key is String and InputMap.has_action(vote_key):
+			# One vote key on the podium: 1 to 3 pick a map.
+			var vote_press := InputEventAction.new()
+			vote_press.action = StringName(vote_key)
+			vote_press.pressed = true
+			Input.parse_input_event(vote_press)
+			var vote_lift := InputEventAction.new()
+			vote_lift.action = StringName(vote_key)
+			vote_lift.pressed = false
+			Input.parse_input_event(vote_lift)
 			await create_timer(0.3).timeout
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
@@ -3226,6 +3246,8 @@ func _sabotage_matches(expected: Dictionary, observed: Dictionary) -> bool:
 	if expected.has("self_alive") and bool(expected["self_alive"]) != bool(observed.get("self_alive", false)):
 		return false
 	if expected.has("self_fallen") and bool(expected["self_fallen"]) != (observed.get("round_state") == "Active" and not bool(observed.get("self_alive", false))):
+		return false
+	if expected.has("clutch") and bool(expected["clutch"]) != (round.get("clutch") is String):
 		return false
 	if expected.has("hud_line_contains"):
 		var manager: Node = _game_manager()

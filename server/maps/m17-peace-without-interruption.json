@@ -266,6 +266,7 @@
     }
   ],
   "m17": {
+    "companion_start": [1.6, 0.0, -39.4],
     "departure": {
       "decoration": 6,
       "approach": [28.5, 0.0, 38.0]

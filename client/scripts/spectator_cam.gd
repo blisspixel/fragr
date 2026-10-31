@@ -65,6 +65,10 @@ var reduced_motion: bool = false
 ## gameplay input cannot become free flight or a jump into another fighter.
 var death_view: bool = false
 var death_chase_id: String = ""
+## A fallen fighter's seat in a team mode: the camera follows living
+## teammates only, in their eyes or behind them, and never flies free, so
+## being dead never scouts the other side.
+var seat_locked: bool = false
 
 ## The director. While a watcher lets the camera follow, it cuts to the
 ## fight that matters: an open multikill chain, a Rocket frag, a power pad
@@ -275,7 +279,7 @@ func _process(delta: float) -> void:
 		_follow_target(delta)
 	else:
 		_set_observed_pawn(null)
-		if can_control:
+		if can_control and not seat_locked:
 			_free_fly(delta)
 
 func _gamepad_move_active() -> bool:
@@ -419,7 +423,11 @@ func toggle_follow_mode():
 	if not pinned_player_id.is_empty():
 		return
 	# V cycles eye, chase, free. F changes the fighter without changing the view.
-	if follow_mode and spectator_first_person:
+	# A fallen fighter's seat has no free camera: V trades eye and chase.
+	if seat_locked:
+		follow_mode = true
+		spectator_first_person = not spectator_first_person
+	elif follow_mode and spectator_first_person:
 		spectator_first_person = false
 	elif follow_mode:
 		follow_mode = false

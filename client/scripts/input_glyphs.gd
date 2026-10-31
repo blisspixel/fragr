@@ -194,6 +194,14 @@ static func render(label: RichTextLabel, template: String, glyph_size: int = 32,
 	label.clear()
 	if centre:
 		label.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
+	append(label, template, glyph_size)
+	if centre:
+		label.pop()
+	return plain(template)
+
+## Add a template to what a RichTextLabel already holds, in whatever colour
+## and size the caller has pushed. Keycaps keep their own colours.
+static func append(label: RichTextLabel, template: String, glyph_size: int = 32) -> void:
 	var pad: bool = InputDevice.is_gamepad()
 	for part: Dictionary in parts(template):
 		if part.has("text"):
@@ -211,9 +219,6 @@ static func render(label: RichTextLabel, template: String, glyph_size: int = 32,
 		label.add_text(" %s " % token_name(token, InputDevice.pad_layout))
 		label.pop()
 		label.pop()
-	if centre:
-		label.pop()
-	return plain(template)
 
 ## --- Pixel glyphs -------------------------------------------------------------
 
