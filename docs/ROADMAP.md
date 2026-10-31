@@ -37,7 +37,7 @@ This is the only active sequence. When the current rung changes, edit this secti
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
 4. **Raise the campaign to the bar, continuing.** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilt layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
 5. **One more game, implemented in waves 19 and 20.** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
-6. **First human evidence, before more content (next).** Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. Fun, readability and onboarding are judged by people here, not at the end.
+6. **Close the largest craft gaps (wave 21, next), then first human evidence.** See [Wave 21](#wave-21-craft-gaps). Then Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. People validate the measured gates early and find what the numbers miss.
 7. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
 8. **Content complete to the bar.** Every campaign level, the epilogue and every multiplayer map that ships enabled by default meet the golden-slice bar; every weapon, fighter, surface and HUD element is final; the score, Host, barks and radio are picked by ear; nothing placeholder remains. Maps not yet at the bar may ship switched off.
 9. **Release candidates.** Versions 0.99.x: a full audit against [the 1.0 bar](#the-10-bar), a larger fresh-player round, clean-machine installs by people on Windows, macOS and Linux, the twenty-four hour soak and the public week. Fix what they find; do not add features.
@@ -93,6 +93,25 @@ Bots-only surveys, native tests and inspected Linux captures; no human play.
 
 The coordinator also freed CI runner disk after a test job ran out of space,
 and set the [1.0 bar](#the-10-bar) and the order of work toward it.
+
+<a id="wave-21-craft-gaps"></a>
+
+### Wave 21: close the largest craft gaps (next)
+
+The [1.0 bar](#the-10-bar)'s gates where fragr is furthest from the reference
+shooters, each lane delivering both the change and the measurement that proves
+it.
+
+| Lane | Gates it closes |
+|---|---|
+| Hear the fight | Player footsteps and landings audible 20 to 30 m and placeable by direction, silent when walking; a limiter and a -23 to -18 LUFS mix with combat ducking music and radio; a loudness measurement on tour audio |
+| Netcode and frame feel | Remote interpolation from 100 ms to 50 to 75 ms with jitter-driven widening; peeker's advantage and input-to-photon probes; movement goldens at 30, 60, 144 and 240 fps; a map ledge-height scan |
+| Bots with a ladder | Four or five bot difficulty tiers proven by a win matrix; time from respawn to first contact, kill distance bands and a navmesh timing tool for crossings and Sabotage site and rotation times, which also drives #520 |
+| Campaign checkpoints | Mid-level checkpoints no more than three minutes apart through the run-file seam; an encounter audit for enemy types per fight and teaching before testing |
+| Readable deaths | A death recap within 300 ms, a contrast scan of fighters against backgrounds at 10 to 40 m, a colour-blind preset and the transient whiteout (#521) |
+
+Fair play (each client receives only what its fighter could perceive) is the
+next large gate after this wave.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
@@ -183,22 +202,32 @@ Do not expand public dream modes before S1 through S3 have stranger evidence on 
 
 ## The 1.0 bar
 
-Version 1.0 is a promise to players, not a milestone count: a game strangers
-pick up, love and come back to, that holds up on their machines and does not
-fall over when they host it. Until every gate below is proven with the evidence
-it names, releases stay at 0.x, however much has shipped. Bots, headless checks
-and our own captures are development evidence; they never stand in for a gate
-that names people. Numbers marked *proposed* are Nick's to tune.
+The aspiration is a shooter that is fun as hell: the kind people play for
+"one more" without being asked. That is what every gate below serves, but it is
+not itself a gate. The gates are craft: properties that made Counter-Strike,
+Battlefield 1942, Quake, Unreal Tournament, Halo and GoldenEye exceptionally
+well made, each with a target and a repeatable measurement, researched with
+sources in [fun craft targets](plans/fun-craft-targets.md). Until every gate is
+met on the release build, releases stay at 0.x. Human play validates the gates
+and finds what the numbers miss; it never replaces a measurement.
 
-| Gate | What it means | Evidence that proves it |
-|---|---|---|
-| **People love it** | Fresh players want another match and finish the campaign wanting more. Multiplayer: they ask for "one more", name a rival, time an item unprompted, quote the Host. Campaign: they finish within the target time on their chosen difficulty and the designed beats land (they react at the turn, at Latch's choice, at the pier). | Recorded fresh-player sessions (*proposed*: at least 20 people across both modes, most never having seen fragr), with the fun bar's human signals observed in most of them; a return visit by at least a third of them without being asked |
-| **Every shipped surface at the golden-slice bar** | All twenty levels, the epilogue and every multiplayer map enabled by default look, sound and play at Larak Lot and Recall Notice's bar. No placeholder art, model, sprite, sound or copy anywhere a player can reach. The score, Host, barks, radio and character art are chosen by ear and eye, not by default. | Inspected rendered captures and motion of every level and map; Nick's review round (#472) closed; the story audit rerun with no blocker or confusing finding |
-| **Controls feel buttery** | Prediction and reconciliation with no rubber-banding on a LAN or good connection, input latency under 50 ms on a LAN, 60 frames per second at 1080p on a modest machine with a full server, mouse and gamepad both tuned ([buttery controls](plans/buttery-controls.md)). | Measured latency and frame times on named hardware; two-machine probes; human play with real controllers on Windows |
-| **Fair and readable fights** | Any fighter identifiable at 30 m, every weapon by silhouette and sound, every hit with three signals, no weapon dominating, Sabotage and team modes fair to both sides. | The fun bar targets met on every default map in bot surveys (10 or more frags a minute, 3 or more lead changes, no gun above 45% of shots, Sabotage sides within 45 to 55%), then confirmed by the fresh-player sessions |
-| **Runs everywhere it claims** | Windows, macOS and Linux packages install and boot to a fight on a clean machine, controllers work, accessibility settings work, and an agent joins through the adapter in minutes. | Clean-machine installs by people on all three platforms; the adapter and brain played end to end on a release package |
-| **Hosts can trust it** | A home or small cloud host runs for days without attention; strangers and their agents join safely; nothing loses a round. | A twenty-four hour soak with no crash (status JSON at start and end); a public week with strangers; the exposed-server hardening complete; no known bug that loses a round or a save |
-| **Honest and documented** | Players and hosts can learn, host and report problems without asking us. | Current README, playing, hosting and agent guides; a changelog matching the releases; release notes that separate measured, inspected and human evidence |
+| Area | Gate | How it is measured | Today |
+|---|---|---|---|
+| **Responsiveness** | Local shot and movement on screen within 60 ms at 60 fps; simulation identical at 30, 60, 144 and 240 fps | Frame-stamped input probe; movement goldens replayed at varied frame times | Fire to resolved shot 41 ms on one machine; frame-rate independence unproven |
+| **Netcode** | Remote players drawn 50 to 75 ms behind (100 ms today), widening only on measured jitter; peeker's advantage under 150 ms at 50 ms round trip; lag compensation never hits through present cover | Render-time probe; two clients with injected delay; rewind tests and shot audit | 100 ms interpolation; 200 ms rewind cap; no two-machine measurement |
+| **Movement** | Stop in 100 to 150 ms and reach top speed in 100 to 200 ms; jump apex 1.0 to 1.2 m with no "maybe jumpable" ledges; one owned speed trick capped near 2.3x run speed | Tick-count golden tests; map ledge-height scan | Inside the bands except the ledge scan, which does not exist |
+| **Fights** | Clean-hit time to kill 0.5 to 1.2 s with no non-power weapon under 0.5 s; median kill time 0.8 to 1.5 s; no weapon above 45% of shots or kills in any mode; each weapon's median kill distance in its own band | Sticky TTK table; bot survey kill-time quantiles, shot and kill share, kill distances | Free-for-all top gun at 42% or under; team deathmatch Rifle 62 to 71%; kill distance bands unmeasured |
+| **Power and pacing** | Power items on 90 to 120 s clocks, the Plate on 35 s; pad contest index above 15%; respawn 3 to 4 s; under 2% of spawns die within 3 s; 6 to 15 s from respawn to first contact | Bot survey pad, spawn and contact metrics | Clocks and respawn in band; time to contact not yet measured |
+| **Feedback** | Hit marker and sound on the first frame after the server hit event; body, head and kill told apart by sound; a death recap within 300 ms | Client harness timeline; blind listening check | Tiered hit chime exists; no death recap |
+| **Readability** | Every fighter at least 3:1 luminance contrast against its background from 10 to 40 m; faction readable in silhouette at 40 m; a colour-blind preset | Contrast scan of tour captures; silhouette review | Faction colour contract exists; no contrast scan |
+| **Audio** | Running footsteps and landings audible 20 to 30 m away and silent when walking, direction within 45 degrees; mix at -23 to -18 LUFS with true peak at or below -1 dBTP; combat always ducks music and radio | Attenuation-curve test; loudness analysis of tour audio; ducking harness | No player footsteps or landings; no limiter; loudness unmeasured |
+| **Maps** | Small maps crossed corner to corner in 25 s; Sabotage attackers reach a site in 15 to 25 s, defenders in 8 to 12 s, rotations 10 to 18 s; 10+ frags a minute and 3+ lead changes per free-for-all on every default map; Sabotage sides within 45 to 55% | Navmesh timing tool; bot survey | Frag pace met; lead changes short on three maps; Sabotage attack bias on two (#520) |
+| **Bots** | Four or five difficulty tiers, each beating the one below 65 to 80% of the time; no tier reacts under 150 ms; perception stays honest (sight and sound only); under 5% dithering | Bot survey win matrix; perception tests | One fixed skill; honest senses and 200 to 400 ms reactions in band |
+| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Level times and three continues per episode; no mid-level checkpoints |
+| **Performance and stability** | 1% low at or above 60 fps at 1080p on a reference integrated GPU, no frame over 50 ms after warmup; tick p99 under 25% of budget at 16 fighters and 8 spectators; a 24-hour soak with no crash; no known bug that loses a round or a save | Benchmark scenes and frame stats; bench; soak; issue triage | Tick headroom met; one GPU measured; 120 s soak only |
+| **Fair play** | A client receives only what its fighter could perceive (no wall information to modify); rate and size caps; resume and join tickets | Interest-filter tests; hardening plan checks | Every fighter receives full snapshots |
+| **Completeness** | No placeholder art, model, sprite, sound or copy anywhere a player can reach; every level, the epilogue and every default map at the golden-slice bar; score, voices and character art chosen by Nick | Asset manifest audit; inspected captures of every surface; Nick's review round (#472) closed; story audit rerun clean | Many surfaces open, tracked per wave |
+| **Platforms and docs** | Windows, macOS and Linux packages boot to a fight on a clean machine; controllers and accessibility work; guides, changelog and release notes current and honest | Package install checks plus clean-machine installs; docs review | Packages checked automatically; clean-machine and controller installs not done |
 
 Cutscene film waits for this same bar: every level, gun and character finished
 first, the narrated slideshow standing in until then, staged and capped per

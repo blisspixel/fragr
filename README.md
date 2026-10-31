@@ -41,7 +41,7 @@ The campaign is twenty levels across five episodes. All twenty are playable as c
 
 ## Road to 1.0
 
-fragr stays at 0.x until it earns 1.0. That means a game strangers pick up, love and come back to, not a feature count: fresh players asking for one more match and finishing the campaign moved by it, every shipped level and map built to the golden slice's bar with nothing placeholder left, controls that feel buttery on ordinary hardware, fair fights, clean installs on Windows, macOS and Linux, and a server hosts can leave running for days. Each gate names the evidence that proves it, and bots or screenshots never stand in for people. The gates, the order of work toward them, and the horizons after 1.0 are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar).
+The aim is a shooter that is fun as hell. 1.0 is defined by the craft that gets there, measured rather than hoped for: shots and movement on screen within 60 ms, remote players drawn no more than 75 ms behind, movement and time-to-kill inside the bands that made Counter-Strike, Quake and Halo feel right, no weapon above 45% of shots, footsteps you can hear and place, fair and readable fights on every default map, bots with real difficulty tiers, campaign checkpoints no more than three minutes apart, 60 fps lows on an integrated GPU, a 24-hour soak with no crash, a client that cannot see through walls, and nothing placeholder anywhere a player can reach. Each gate has a target and a repeatable measurement; fragr stays at 0.x until every one is met. The gates, where each stands today and the order of work toward them are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar), backed by sourced research in [fun craft targets](docs/plans/fun-craft-targets.md).
 
 ## In game
 
