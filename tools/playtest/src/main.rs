@@ -99,6 +99,12 @@ struct Cli {
     /// changes per free-for-all, top gun under 45 percent of shots).
     #[arg(long, requires = "bot_survey", conflicts_with = "survey_lot")]
     survey_maps: bool,
+    /// With --bot-survey: survey one map in the modes it hosts (free-for-all
+    /// at six and eight, team deathmatch at eight, Sabotage at ten where it
+    /// has sites). With --sabotage-survey: the Sabotage map, Sector 9 when
+    /// absent. A map ID or server map name.
+    #[arg(long, conflicts_with_all = ["survey_lot", "survey_maps"])]
+    survey_map: Option<String>,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -464,6 +470,12 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
         report.deficit3_chances,
         report.deficit3_rate * 100.0
     );
+    println!(
+        "by site: plants {}, detonations {}, defuses {}",
+        tally(&report.plants_by_site),
+        tally(&report.detonations_by_site),
+        tally(&report.defuses_by_site)
+    );
 }
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
@@ -670,6 +682,13 @@ async fn main() {
         if cli.survey_maps {
             config.scenarios = fragr_playtest::bot_survey::every_map_scenarios();
         }
+        if let Some(map) = &cli.survey_map {
+            let Some(map) = fragr_server::sim::MapKind::from_cli(map) else {
+                eprintln!("error: invalid --survey-map {map:?}");
+                std::process::exit(2);
+            };
+            config.scenarios = fragr_playtest::bot_survey::map_scenarios(map);
+        }
         let report = fragr_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
@@ -709,7 +728,20 @@ async fn main() {
         return;
     }
     if cli.sabotage_survey {
+        let map = match cli
+            .survey_map
+            .as_deref()
+            .map(fragr_server::sim::MapKind::from_cli)
+        {
+            None => fragr_server::sim::MapKind::Sector9,
+            Some(Some(map)) if map.sabotage_map().is_some() => map,
+            Some(_) => {
+                eprintln!("error: --survey-map needs a map with Sabotage sites");
+                std::process::exit(2);
+            }
+        };
         let config = fragr_playtest::sabotage::SurveyConfig {
+            map,
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             bots: cli.survey_bots as usize,
             format: cli.sabotage_format,

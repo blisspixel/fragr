@@ -4,7 +4,8 @@
 //! detonations, eliminations and clock wins) and whether any round sticks.
 //! A survey is objective-loop evidence, never a human fun verdict.
 use fragr_server::protocol::{
-    GameEvent, GameMode, SabotageEventKind, SabotageFormat, SabotageReason, ServerMessage, Team,
+    GameEvent, GameMode, SabotageEventKind, SabotageFormat, SabotageReason, ServerMessage, SiteId,
+    Team,
 };
 use fragr_server::rules::{RuleSet, SabotageConfig};
 use fragr_server::session::GameSession;
@@ -15,6 +16,8 @@ use std::collections::BTreeMap;
 /// What to survey.
 #[derive(Debug, Clone)]
 pub struct SurveyConfig {
+    /// A map with a Sabotage layout: Sector 9 or Low Water.
+    pub map: MapKind,
     pub seeds: Vec<u64>,
     /// Rule bots in the match; they split evenly between the sides.
     pub bots: usize,
@@ -27,6 +30,7 @@ impl Default for SurveyConfig {
     fn default() -> Self {
         Self {
             seeds: (40..56).collect(),
+            map: MapKind::Sector9,
             bots: 8,
             format: SabotageFormat::Short,
             max_ticks: 20 * 60 * 40,
@@ -89,6 +93,11 @@ pub struct SurveyReport {
     pub death_grid: BTreeMap<String, u32>,
     /// Fighters without a usable gun when weapons went live, by side.
     pub unarmed_at_live: BTreeMap<String, u32>,
+    /// Plants, detonations and defuses by site, as "a" or "b", so the two
+    /// sites can be compared.
+    pub plants_by_site: BTreeMap<String, u32>,
+    pub detonations_by_site: BTreeMap<String, u32>,
+    pub defuses_by_site: BTreeMap<String, u32>,
     pub attacker_round_share: f64,
     /// Matches where one group of fighters stood 0 to 3, and how many of
     /// those that group still won.
@@ -105,6 +114,14 @@ pub struct SurveyReport {
 
 fn reason_id(reason: SabotageReason) -> &'static str {
     reason.id()
+}
+
+fn site_id(site: Option<SiteId>) -> String {
+    site.map_or("unknown", |site| match site {
+        SiteId::A => "a",
+        SiteId::B => "b",
+    })
+    .to_string()
 }
 
 /// Run every seed and fold the facts into one report.
@@ -133,7 +150,7 @@ pub fn run_survey(config: &SurveyConfig) -> SurveyReport {
 }
 
 fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
-    let mut session = GameSession::with_map(MapKind::Sector9, false);
+    let mut session = GameSession::with_map(config.map, false);
     session.state.seed(seed);
     session.state.apply_config(MatchConfig {
         frag_limit: None,
@@ -148,9 +165,9 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
         ..MatchConfig::default()
     });
     session.spawn_bots(config.bots);
-    let layout = MapKind::Sector9
-        .sabotage_map()
-        .expect("Sector 9 has a Sabotage layout");
+    let Some(layout) = config.map.sabotage_map() else {
+        return;
+    };
     let callout = |x: f32, z: f32| layout.callout_at(x, z).unwrap_or("outside").to_string();
     let mut round_started: Option<u64> = None;
     let mut planted = false;
@@ -207,16 +224,23 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
                         }
                     }
                 }
-                GameEvent::Sabotage { kind, .. } => match kind {
+                GameEvent::Sabotage { kind, site, .. } => match kind {
                     SabotageEventKind::PlantStarted => report.plants_started += 1,
                     SabotageEventKind::Planted => {
                         report.plants += 1;
+                        *report.plants_by_site.entry(site_id(site)).or_default() += 1;
                         planted = true;
                     }
                     SabotageEventKind::PlantInterrupted => report.plants_interrupted += 1,
                     SabotageEventKind::DefuseStarted => report.defuses_started += 1,
-                    SabotageEventKind::Defused => report.defuses += 1,
-                    SabotageEventKind::Detonated => report.detonations += 1,
+                    SabotageEventKind::Defused => {
+                        report.defuses += 1;
+                        *report.defuses_by_site.entry(site_id(site)).or_default() += 1;
+                    }
+                    SabotageEventKind::Detonated => {
+                        report.detonations += 1;
+                        *report.detonations_by_site.entry(site_id(site)).or_default() += 1;
+                    }
                     SabotageEventKind::ChargeDropped => {
                         report.charge_drops += 1;
                         if let Some(charge) = session
@@ -452,5 +476,32 @@ mod tests {
         assert!(record.rounds >= 5);
         assert_eq!(report.rounds.len() as u32, record.rounds);
         assert!(report.rounds.iter().all(|r| r.seconds > 10.0));
+    }
+
+    #[test]
+    fn low_water_surveys_with_plants_named_by_site() {
+        let report = run_survey(&SurveyConfig {
+            map: MapKind::LowWater,
+            seeds: vec![7],
+            bots: 4,
+            ..SurveyConfig::default()
+        });
+        assert!(report.matches[0].finished, "{report:?}");
+        let plants: u32 = report.plants_by_site.values().sum();
+        assert_eq!(plants, report.plants);
+        assert!(report
+            .plants_by_site
+            .keys()
+            .all(|site| site == "a" || site == "b"));
+    }
+
+    #[test]
+    fn a_map_without_sites_surveys_nothing() {
+        let report = run_survey(&SurveyConfig {
+            map: MapKind::ComplianceYard,
+            seeds: vec![1],
+            ..SurveyConfig::default()
+        });
+        assert!(report.matches.is_empty() && report.rounds.is_empty());
     }
 }

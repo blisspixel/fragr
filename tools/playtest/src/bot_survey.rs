@@ -273,6 +273,36 @@ pub fn lot_scenarios() -> Vec<Scenario> {
     ]
 }
 
+/// One map in the modes it hosts: free-for-all at six and eight, team
+/// deathmatch at eight, and Sabotage at ten where the map has sites.
+pub fn map_scenarios(map: MapKind) -> Vec<Scenario> {
+    let mut rows = vec![
+        Scenario {
+            mode: GameMode::Ffa,
+            map: map.id(),
+            bots: 6,
+        },
+        Scenario {
+            mode: GameMode::Ffa,
+            map: map.id(),
+            bots: 8,
+        },
+        Scenario {
+            mode: GameMode::Tdm,
+            map: map.id(),
+            bots: 8,
+        },
+    ];
+    if map.sabotage_map().is_some() {
+        rows.push(Scenario {
+            mode: GameMode::Sabotage,
+            map: map.id(),
+            bots: 10,
+        });
+    }
+    rows
+}
+
 /// Problems against the Larak Lot targets, for the lot's six-bot row.
 pub fn check_lot_targets(row: &ScenarioReport) -> Vec<String> {
     let mut problems = Vec::new();
@@ -1130,6 +1160,30 @@ mod tests {
             4,
             "{:?}",
             check_lot_targets(&bad)
+        );
+    }
+
+    #[test]
+    fn a_map_survey_covers_the_modes_the_map_hosts() {
+        let labels = |map: MapKind| -> Vec<String> {
+            map_scenarios(map).iter().map(Scenario::label).collect()
+        };
+        assert_eq!(
+            labels(MapKind::ComplianceYard),
+            [
+                "ffa-compliance-yard-6",
+                "ffa-compliance-yard-8",
+                "tdm-compliance-yard-8"
+            ]
+        );
+        assert_eq!(
+            labels(MapKind::LowWater),
+            [
+                "ffa-low-water-6",
+                "ffa-low-water-8",
+                "tdm-low-water-8",
+                "sabotage-low-water-10"
+            ]
         );
     }
 
