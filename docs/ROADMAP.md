@@ -104,11 +104,11 @@ it.
 
 | Lane | Gates it closes |
 |---|---|
-| Hear the fight | Player footsteps and landings audible 20 to 30 m and placeable by direction, silent when walking; a limiter and a -23 to -18 LUFS mix with combat ducking music and radio; a loudness measurement on tour audio |
-| Netcode and frame feel | Remote interpolation from 100 ms to 50 to 75 ms with jitter-driven widening; peeker's advantage and input-to-photon probes; movement goldens at 30, 60, 144 and 240 fps; a map ledge-height scan |
-| Bots with a ladder | Four or five bot difficulty tiers proven by a win matrix; time from respawn to first contact, kill distance bands and a navmesh timing tool for crossings and Sabotage site and rotation times, which also drives #520 |
-| Campaign checkpoints | Mid-level checkpoints no more than three minutes apart through the run-file seam; an encounter audit for enemy types per fight and teaching before testing |
-| Readable deaths | A death recap within 300 ms, a contrast scan of fighters against backgrounds at 10 to 40 m, a colour-blind preset and the transient whiteout (#521) |
+| Hear the fight (#524) | Player footsteps and landings audible 20 to 30 m and placeable by direction, silent when walking; a limiter and a -23 to -18 LUFS mix with combat ducking music and radio; a loudness measurement on tour audio |
+| Netcode and frame feel (#525) | Remote interpolation from 100 ms to 50 to 75 ms with jitter-driven widening; peeker's advantage and input-to-photon probes; movement goldens at 30, 60, 144 and 240 fps; a map ledge-height scan |
+| Bots with a ladder (#526) | Four or five bot difficulty tiers proven by a win matrix; time from respawn to first contact, kill distance bands and a navmesh timing tool for crossings and Sabotage site and rotation times, which also drives #520 |
+| Campaign checkpoints (#527) | Mid-level checkpoints no more than three minutes apart through the run-file seam; an encounter audit for enemy types per fight and teaching before testing |
+| Readable deaths (#528) | A death recap within 300 ms, a contrast scan of fighters against backgrounds at 10 to 40 m, a colour-blind preset and the transient whiteout (#521) |
 
 Fair play (each client receives only what its fighter could perceive) is the
 next large gate after this wave.
