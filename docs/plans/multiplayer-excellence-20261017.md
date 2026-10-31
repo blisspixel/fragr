@@ -190,6 +190,16 @@ Built on `wave3/mp-depth`, 2026-10-24. Linux evidence only.
   no Continuance pressure, a running series and a Host rematch line, no MVP
   for a level round. The spectator queue and winner-stays landed in wave
   11 and the head-to-head book in wave 4.
+- **Between matches (wave 19, #509).** On a rotating server the podium
+  carries each fighter's nemesis and closest books this session
+  (`Podium.story`, a session copy of the head-to-head book), the personal
+  bests the round set in the local service record, and a three-map vote
+  (`Podium.vote`, `Action.vote`) that keeps the podium up 12 s unless the
+  room presses again. Ties go to the earlier option; rule bots vote only in a
+  room with nobody else seated; spectators never vote. `--map-off`, the
+  desk's `rotation` and the desktop host's **In rotation** switch maps out
+  without removing them. Evidence: deterministic server tests, adapter and
+  Godot harnesses, inspected Linux captures. No human night yet.
 
 ## Rules depth (#431 and #432, wave 11)
 

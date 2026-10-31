@@ -59,6 +59,12 @@ var _host_mode: OptionButton
 ## The host page's mode list, in the order the picker shows it.
 const HOST_MODES: Array[String] = ["tdm", "sabotage", "conquest", "ffa", "ctf", "duel"]
 var _host_map: OptionButton
+## The rotation: whether the match moves map with a podium vote, and one
+## switch per roster map. Saved in the settings file's host section.
+var _host_rotate: CheckButton
+var _host_rotation: HFlowContainer
+var _host_rotation_maps: Dictionary[int, CheckButton] = {}
+const ROSTER_NAMES: Array[String] = ["Larak Lot", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works", "Holdfast Atoll", "Low Water"]
 var _host_bots: SpinBox
 var _host_bot_policy: OptionButton
 var _host_bots_row: HBoxContainer
@@ -1208,6 +1214,7 @@ func _page_host() -> void:
 		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
 	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
+	_build_host_rotation()
 	var remembered: Array = _host_settings.get("mutators", [])
 	_host_preset = MatchRules.preset_of(remembered)
 	_build_host_presets()
@@ -1265,6 +1272,7 @@ func _page_host() -> void:
 	_host_advanced.add_child(_host_port)
 	_host_lan.toggled.connect(func(enabled: bool) -> void: _host_port.editable = enabled)
 	_rebuild_host_maps()
+	_host_map.item_selected.connect(func(_index: int) -> void: _refresh_host_rotation())
 	_host_mode.item_selected.connect(_change_host_mode)
 	_rebuild_host_bots(false)
 	# A profile already using an option shows it. Folding never hides state.
@@ -1323,6 +1331,10 @@ func _host_bot_summary(profile: Dictionary) -> String:
 	return tr("HOST_FIXED_SUMMARY") % int(profile["bots"])
 
 func _rebuild_host_maps() -> void:
+	_fill_host_maps()
+	_refresh_host_rotation()
+
+func _fill_host_maps() -> void:
 	_host_map.clear()
 	if _host_mode.selected == 1:
 		_host_map.add_item("Sector 9", 4)
@@ -1349,6 +1361,91 @@ func _rebuild_host_maps() -> void:
 		_host_map.add_item(names[index], index + 1)
 	var selected: int = int(_host_settings["map_id"]) - 1
 	_host_map.select(clampi(selected, 0, names.size() - 1))
+
+## The rotation row under the map: a switch that rotates the match with a
+## podium vote, then one switch per map the mode can visit. The start map
+## always stays in. Nothing is removed; an unticked map is only skipped.
+func _build_host_rotation() -> void:
+	_host_rotate = CheckButton.new()
+	_host_rotate.name = "HostRotate"
+	_host_rotate.text = tr("HOST_ROTATE")
+	_host_rotate.button_pressed = bool(_settings.get_value("host", "rotate"))
+	_root.add_child(_host_rotate)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "HostRotationRow"
+	_root.add_child(row)
+	var text: Label = Label.new()
+	text.text = tr("HOST_ROTATION")
+	text.custom_minimum_size.x = 210.0
+	row.add_child(text)
+	_host_rotation = HFlowContainer.new()
+	_host_rotation.name = "HostRotation"
+	_host_rotation.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_host_rotation.add_theme_constant_override("h_separation", 8)
+	_host_rotation.add_theme_constant_override("v_separation", 4)
+	row.add_child(_host_rotation)
+	_host_rotation_maps.clear()
+	var off: Array = _settings.get_value("host", "maps_off")
+	for index: int in ROSTER_NAMES.size():
+		var map_id: int = index + 1
+		var check: CheckButton = CheckButton.new()
+		check.name = "Rotation_%d" % map_id
+		check.text = ROSTER_NAMES[index]
+		check.button_pressed = not off.has(map_id)
+		_host_rotation.add_child(check)
+		_host_rotation_maps[map_id] = check
+	_host_rotate.toggled.connect(func(_on: bool) -> void: _refresh_host_rotation())
+
+## Maps a rotating mode can visit: flags need stands, the rest take all.
+static func host_rotation_maps(mode: String) -> Array[int]:
+	if mode == "ctf":
+		return [3, 4]
+	if mode in LocalHost.ROTATING_MODES:
+		return [1, 2, 3, 4, 5, 6, 7, 8]
+	return []
+
+func _refresh_host_rotation() -> void:
+	if _host_rotate == null or _host_mode == null:
+		return
+	var maps: Array[int] = host_rotation_maps(HOST_MODES[_host_mode.selected])
+	_host_rotate.visible = not maps.is_empty()
+	var row: Control = _host_rotation.get_parent() as Control
+	row.visible = _host_rotate.visible and _host_rotate.button_pressed
+	var start: int = _host_map.get_selected_id()
+	for map_id: int in _host_rotation_maps:
+		var check: CheckButton = _host_rotation_maps[map_id]
+		check.visible = maps.has(map_id)
+		check.disabled = map_id == start
+		if map_id == start:
+			check.set_pressed_no_signal(true)
+
+## Rotation choices as the host profile and the settings file take them.
+func _host_rotation_choice() -> Dictionary:
+	var choice: Dictionary = {}
+	if _host_rotate == null or not _host_rotate.visible or not _host_rotate.button_pressed:
+		return choice
+	choice["rotate"] = true
+	var off: Array = []
+	for map_id: int in _host_rotation_maps:
+		if not _host_rotation_maps[map_id].button_pressed and map_id != _host_map.get_selected_id():
+			off.append(map_id)
+	off.sort()
+	if not off.is_empty():
+		choice["maps_off"] = off
+	return choice
+
+func _save_host_rotation() -> void:
+	if _host_rotate == null or not _host_rotate.visible:
+		return
+	var off: Array = []
+	for map_id: int in _host_rotation_maps:
+		if not _host_rotation_maps[map_id].button_pressed:
+			off.append(map_id)
+	var draft: FragrSettings = _settings.draft()
+	draft.set_value("host", "rotate", _host_rotate.button_pressed)
+	draft.set_value("host", "maps_off", off)
+	if _settings.commit(draft) != OK:
+		push_warning("The host rotation could not be saved.")
 
 ## The preset row: five named rule packages, one pressed at a time. It sits
 ## under the map because picking the rules is part of picking the match.
@@ -1460,6 +1557,8 @@ func _start_host() -> void:
 		_host_settings["mutators"] = mutators
 	if _host_friendly_fire != null and _host_friendly_fire.visible and _host_friendly_fire.button_pressed:
 		_host_settings["friendly_fire"] = true
+	_host_settings.merge(_host_rotation_choice())
+	_save_host_rotation()
 	_local_host.start_host(_host_settings)
 
 func _probe_host() -> void:

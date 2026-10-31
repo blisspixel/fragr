@@ -116,6 +116,10 @@ var _dodge_was_down: bool = false
 var pending_fire: bool = false
 ## A fire press on the podium asks for one more round (`Action.again`).
 var pending_again: bool = false
+## A ballot in the podium's map vote (`Action.vote`): the map id, or 0.
+var pending_vote: int = 0
+## The personal bests this round set in the service record, for the podium.
+var podium_bests: Array[Dictionary] = []
 ## A trigger or jump held into a new life stays dead until it is released.
 var fire_armed: bool = true
 var jump_armed: bool = true
@@ -1117,6 +1121,9 @@ func _exit_tree() -> void:
 		local_match.stop()
 
 func _on_record_received(data: Dictionary) -> void:
+	var bests: Array[Dictionary] = records.arena_bests(data)
+	if not bests.is_empty():
+		podium_bests = bests
 	var result: Error = records.accept(data, "local" if local_match != null else "external", local_match.server_sha256 if local_match != null else "")
 	_report_record_save(result)
 	if result == OK:
@@ -1633,6 +1640,12 @@ func _input(_event):
 		return
 	if is_human_player and _podium_waits_on_me() and _event.is_action_pressed("fire") and not _event.is_echo():
 		pending_again = true
+	if is_human_player and _podium_waits_on_me() and not _event.is_echo():
+		var pick: int = _podium_vote_press(_event)
+		if pick > 0:
+			pending_vote = pick
+			get_viewport().set_input_as_handled()
+			return
 	if is_human_player and not local_life.alive():
 		# Down: gameplay presses are not queued into the next life. Leaving
 		# and speaking still work.
@@ -1969,7 +1982,7 @@ func _process(_delta):
 		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
-	elif is_human_player and pending_again and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
+	elif is_human_player and (pending_again or pending_vote > 0) and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN:
 		_send_podium_again()
 	var fire_allowed: bool = _local_fire_allowed()
 	if _local_fire_allowed_last_frame and not fire_allowed:
@@ -2169,6 +2182,10 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state["again"] = true
 	else:
 		action_state.erase("again")
+	if pending_vote > 0 and not controls_blocked():
+		action_state["vote"] = pending_vote
+	else:
+		action_state.erase("vote")
 	if _mission_controls_blocked():
 		action_state.erase("yaw")
 		action_state.erase("pitch")
@@ -2220,6 +2237,7 @@ func _send_local_action(now_usec: int) -> bool:
 		_present_local_fire(action_state, now_usec)
 		pending_seat = ""
 		pending_again = false
+		pending_vote = 0
 		pending_fire = false
 		pending_jump = false
 		pending_dodge = false
@@ -2261,9 +2279,32 @@ func _show_fire_juice(weapon_name: String) -> void:
 func _send_podium_again() -> void:
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	net_client.last_send_ok = false
-	net_client.send_action({"again": true, "seq": input_seq})
+	var press: Dictionary = {"seq": input_seq}
+	if pending_again:
+		press["again"] = true
+	if pending_vote > 0:
+		press["vote"] = pending_vote
+	net_client.send_action(press)
 	if net_client.last_send_ok:
 		pending_again = false
+		pending_vote = 0
+
+## A vote key on the podium: 1 to 3 pick a map, the weapon cycle steps
+## from your ballot on a pad. The map id the press asks for, or 0.
+func _podium_vote_press(event: InputEvent) -> int:
+	var podium: Variant = latest_snapshot.get("podium")
+	if not podium is Dictionary or not (podium as Dictionary).get("vote") is Dictionary:
+		return 0
+	var vote: Dictionary = podium["vote"]
+	var me: String = str(net_client.player_id)
+	for slot: int in PodiumBoard.VOTE_KEYS.size():
+		if event.is_action_pressed(PodiumBoard.VOTE_KEYS[slot]):
+			return PodiumBoard.choice(vote, me, slot)
+	if event.is_action_pressed("weapon_next"):
+		return PodiumBoard.choice(vote, me, 0, 1)
+	if event.is_action_pressed("weapon_prev"):
+		return PodiumBoard.choice(vote, me, 0, -1)
+	return 0
 
 ## The podium is up and counts this fighter: a fire press asks for one more.
 func _podium_waits_on_me() -> bool:
@@ -3089,7 +3130,7 @@ func _on_snapshot_received(data):
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
 	if hud.has_method("show_podium"):
-		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room())
+		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room(), podium_bests if is_human_player else ([] as Array[Dictionary]))
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -3352,6 +3393,7 @@ func _on_event_received(data):
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
+		podium_bests.clear()
 		var mode_name = str(data.get("mode_name", "Scrap League"))
 		var playlist = str(data.get("playlist", "Larak Lot"))
 		hud.set_league_identity(mode_name, playlist)

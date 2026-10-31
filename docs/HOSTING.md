@@ -24,7 +24,11 @@ to this computer on an available port. Open **Rules, LAN and port**, enable
 **Allow players on this LAN** and choose a port to invite another machine;
 peers enter your LAN address and that port under Multiplayer > Find / join a
 match. The same switch holds mutators and friendly fire, and it opens by
-itself when the remembered setup already uses any of them. The app shows its own loopback connection address, not a
+itself when the remembered setup already uses any of them. For free-for-all,
+team and flag matches, **Rotate maps** (on by default) moves the match to the
+map the podium votes for, and **In rotation** switches each map in or out; the
+start map always stays in, Holdfast Atoll and Low Water start out, and the
+choice is kept in the settings file. The app shows its own loopback connection address, not a
 detected external address. Existing releases before this increment use the
 dedicated command below.
 
@@ -78,6 +82,10 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --
 
 # Bot-filled 5v5, with equal human and external-agent admission priority.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
+
+# Keep the mode, rotate the map: the podium votes on the next one. Holdfast
+# Atoll and Low Water stay out of this rotation.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mode ffa --map-rotate --map-off holdfast --map-off low-water
 
 # Stay up and rotate maps and modes. Sabotage plays its short match first.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --playlist
@@ -347,7 +355,7 @@ caps see a reverse proxy's address if the proxy hides real peer addresses.
 
 A dedicated arcade server started with `--console` opens a venue desk on
 that terminal: `help`, `status`, `who`, `kick <name>`, `ban <name> [reason]`,
-`say <sentence>`, `stats`, `shows`, `next` and `map <map> <mode>`.
+`say <sentence>`, `stats`, `shows`, `next`, `map <map> <mode>` and `rotation`.
 `status` prints the current status line and the join addresses above the
 same table `who` prints. `who`, `status` and `stats` are for the operator.
 `who` is not added to `GET /status`. `stats` reads the night sheet: rounds
@@ -372,6 +380,15 @@ replaces it; an invalid choice leaves it alone. On a `--playlist` server,
 `next` cancels a queued manual choice and resumes the usual night order after
 the current show. It does not skip an active round. These verbs are attached
 operator controls, with no remote administration or playlist file implied.
+
+On a `--map-rotate` server, `rotation` lists every roster map as on, off, or
+on but unable to host the live mode; `rotation off <map>` keeps a map out of
+the rotation and the podium vote, and `rotation on <map>` brings it back. The
+last map on stays on, and a live round on a map just switched off finishes.
+Nothing is deleted. The podium vote offers the next three maps that are on
+and can host the mode, in roster order; seated people and agents vote with
+their weapon keys (or `act.vote`), rule bots vote only when nobody else is
+seated, spectators never do, and a tie goes to the earlier option.
 
 That same process keeps a wire board. `floor` is the room: a successful
 speak, and a venue `say`, are copied there. `notices` hold posted lines
@@ -400,7 +417,8 @@ modes still need fresh human matches to establish clarity and fun.
 | `--bot-policy <POLICY>` | `fixed` (default), `none` or `auto`. None and auto require `--bots 0`. |
 | `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to plain TDM and Sabotage, without mutators. |
 | `--map <ID>` | Arena ID or name; map 1 is Larak Lot (`larak`, `lot`; `arena` and `duel` still work). |
-| `--map-rotate` | Alternate arenas between rounds. The mode stays the one chosen at launch. Objective modes refuse it. |
+| `--map-rotate` | Move map between rounds with a podium vote on the next three. The mode stays the one chosen at launch; only maps that can host it are visited, and Sabotage keeps its map for the whole match. |
+| `--map-off <MAP>` | Repeatable, with `--map-rotate`: keep this map out of the rotation and the vote. Refuses switching every map off or starting on a map that is off. |
 | `--map-file <PATH>` | Authored development map; requires `--bots 0` and no arcade overrides. |
 | `--local-mission <ID>` | Desktop-owned mission on a loopback port with readiness and stdin lease. |
 | `--desktop-host` | App-owned TDM or 5v5 Sector 9 arena with typed readiness and a stdin lease; the desktop menu sets this flag. |

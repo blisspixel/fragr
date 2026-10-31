@@ -50,6 +50,27 @@ func _run() -> void:
 	await process_frame
 	await menu._show("host")
 	_check(menu._local_host == owner and menu._host_mode.selected == 0, "real menu resolves one existing root owner and defaults TDM")
+	# The rotation: on by default for a team match, every map switchable,
+	# the start map held in, and Holdfast and Low Water off until ticked.
+	_check(menu._host_rotate.visible and menu._host_rotate.button_pressed and menu._host_rotation_maps.size() == 8,
+		"a team match offers the rotation and every map")
+	_check(menu._host_rotation_maps[1].disabled and menu._host_rotation_maps[1].button_pressed, "the start map stays in the rotation")
+	_check(menu._host_rotation_choice() == {"rotate": true, "maps_off": [7, 8]}, "defaults skip the island and the town: %s" % str(menu._host_rotation_choice()))
+	menu._host_rotation_maps[2].button_pressed = false
+	_check(menu._host_rotation_choice()["maps_off"] == [2, 7, 8], "unticking a map keeps it out: %s" % str(menu._host_rotation_choice()))
+	menu._host_rotation_maps[2].button_pressed = true
+	var rotation_profile: Dictionary = {"mode": "tdm", "map_id": 1, "bots": 4, "bot_policy": "fixed", "fill_target": 0, "lan": false, "port": 0}
+	rotation_profile.merge(menu._host_rotation_choice())
+	_check(LocalHost.valid_settings(rotation_profile), "the menu's rotation is a legal host profile")
+	menu._host_mode.select(4)
+	menu._host_mode.item_selected.emit(4)
+	_check(menu._host_rotation_maps[3].visible and not menu._host_rotation_maps[1].visible and not menu._host_rotation_maps[2].visible,
+		"capture the flag offers only maps with stands")
+	menu._host_mode.select(5)
+	menu._host_mode.item_selected.emit(5)
+	_check(not menu._host_rotate.visible and menu._host_rotation_choice().is_empty(), "a duel stays on its map")
+	menu._host_mode.select(0)
+	menu._host_mode.item_selected.emit(0)
 	_check(menu._host_map.item_count == 6 and menu._host_map.get_selected_id() == 1,
 		"TDM offers all six registered maps with Larak Lot default")
 	_check(not menu._host_lan.button_pressed and not menu._host_port.editable,

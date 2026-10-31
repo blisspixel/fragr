@@ -525,7 +525,11 @@ fn invalid_desktop_configuration_and_busy_bind_never_emit_readiness() {
             "--mutator",
             "shotgun-only",
         ],
-        vec!["--mode", "tdm", "--map-rotate"],
+        // Rotation is for free-for-all, team and flag matches only, and
+        // the start map must stay in it.
+        vec!["--mode", "duel", "--map-rotate"],
+        vec!["--mode", "tdm", "--map-rotate", "--map-off", "1"],
+        vec!["--mode", "tdm", "--map-off", "2"],
         vec!["--local-mission", "recall_notice"],
         vec!["--local-run-preview"],
         vec!["--bench", "4"],

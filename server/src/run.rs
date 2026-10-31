@@ -160,6 +160,8 @@ pub struct ServerOptions {
     pub difficulty: Option<crate::protocol::CampaignDifficulty>,
     pub campaign_run: bool,
     pub map_rotate: bool,
+    /// Roster maps the rotation and the podium vote skip (`--map-off`).
+    pub map_off: Vec<MapKind>,
     /// Built-in night list. The process stays up and changes map and mode.
     pub playlist: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
@@ -208,6 +210,7 @@ impl Default for ServerOptions {
             difficulty: None,
             campaign_run: false,
             map_rotate: false,
+            map_off: Vec::new(),
             playlist: false,
             match_config: None,
             solo_broadcast: false,
@@ -283,6 +286,18 @@ async fn run_server_impl(
     }
     if playlist {
         crate::sim::GameState::validate_night_playlist().map_err(std::io::Error::other)?;
+    }
+    let rotation =
+        crate::sim::vote::Rotation::without(&options.map_off).map_err(std::io::Error::other)?;
+    if !options.map_off.is_empty() && (!rotate || options.authored.is_some()) {
+        return Err("--map-off needs --map-rotate on a roster map".into());
+    }
+    if !rotation.is_on(map) {
+        return Err(format!(
+            "--map {} is switched off by --map-off; start on a map in the rotation",
+            map.name()
+        )
+        .into());
     }
     if let Some(config) = options
         .match_config
@@ -366,6 +381,7 @@ async fn run_server_impl(
         }
     })
     .await??;
+    session.state.rotation = rotation;
     let mut durable_run: Option<DurableRun> = None;
     let epilogue =
         session.state.map.campaign_mission_id() == Some(crate::protocol::MissionId::StillHere);
@@ -1362,5 +1378,47 @@ mod metrics_tests {
         let report = metrics.report();
         assert_eq!((report.skipped_periods, report.over_budget), (0, 0));
         assert_eq!(report.tick_ms.count, 1);
+    }
+}
+
+#[cfg(test)]
+mod rotation_tests {
+    use super::{run_server, ServerOptions};
+    use crate::sim::MapKind;
+
+    async fn refusal(options: ServerOptions) -> String {
+        run_server(options, std::future::pending(), None)
+            .await
+            .expect_err("refused before bind")
+            .to_string()
+    }
+
+    #[tokio::test]
+    async fn a_rotation_that_cannot_start_is_refused_before_bind() {
+        let base = ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 0,
+            map_rotate: true,
+            ..ServerOptions::default()
+        };
+        let every = refusal(ServerOptions {
+            map_off: MapKind::ALL.to_vec(),
+            ..base.clone()
+        })
+        .await;
+        assert!(every.contains("every map"), "{every}");
+        let start = refusal(ServerOptions {
+            map_off: vec![MapKind::ArenaDuel],
+            ..base.clone()
+        })
+        .await;
+        assert!(start.contains("switched off"), "{start}");
+        let fixed = refusal(ServerOptions {
+            map_rotate: false,
+            map_off: vec![MapKind::LowWater],
+            ..base
+        })
+        .await;
+        assert!(fixed.contains("--map-rotate"), "{fixed}");
     }
 }

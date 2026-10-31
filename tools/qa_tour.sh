@@ -119,6 +119,14 @@ fi
 for mutator in ${FRAGR_QA_MUTATORS:-}; do
   SERVER_ARGS+=(--mutator "$mutator")
 done
+# Rotation and the podium's map vote: FRAGR_QA_MAP_ROTATE=1, and
+# FRAGR_QA_MAP_OFF="7 8" for maps the rotation skips.
+if [ "${FRAGR_QA_MAP_ROTATE:-0}" = "1" ]; then
+  SERVER_ARGS+=(--map-rotate)
+  for off in ${FRAGR_QA_MAP_OFF:-}; do
+    SERVER_ARGS+=(--map-off "$off")
+  done
+fi
 SERVER_PID=""
 cleanup() {
   [ -n "$SERVER_PID" ] && kill "$SERVER_PID" >/dev/null 2>&1
@@ -133,7 +141,7 @@ trap cleanup EXIT
 start_server() {
   local log="$1"
   shift
-  "$ROOT/target/release/fragr-server" "$@" >"$log" 2>&1 &
+  "${CARGO_TARGET_DIR:-$ROOT/target}/release/fragr-server" "$@" >"$log" 2>&1 &
   SERVER_PID=$!
   local up=0
   for _ in $(seq 1 50); do

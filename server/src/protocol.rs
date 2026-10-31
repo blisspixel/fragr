@@ -7,7 +7,9 @@ pub use barks::{BarkRegister, CompanionBarkKind, EnemyBarkKind, BARK_VARIANTS};
 mod blade;
 mod body;
 mod podium;
-pub use podium::{DuelRecord, Podium};
+pub use podium::{
+    DuelRecord, FighterKind, MapBallot, MapVote, MapVoteOption, Podium, PodiumRival, PodiumStory,
+};
 mod conquest;
 mod decoration;
 pub mod delta;
@@ -846,7 +848,11 @@ pub const LAG_COMP_GAMEPLAY_VERSION: u32 = 62;
 /// rather than id. Gameplay 61 introduced deltas keyed by id; that shape is
 /// no longer sent, so a reader at 61 or 62 receives every world whole.
 pub const DELTA_GAMEPLAY_VERSION: u32 = 63;
-pub const GAMEPLAY_VERSION: u32 = DELTA_GAMEPLAY_VERSION;
+/// The podium's story (each fighter's nemesis and rivals this session) and
+/// the map vote: `Podium.story`, `Podium.vote` and `Action.vote`. A strict
+/// reader at 63 refuses the new podium fields, so a shared room moves here.
+pub const MAP_VOTE_GAMEPLAY_VERSION: u32 = 64;
+pub const GAMEPLAY_VERSION: u32 = MAP_VOTE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1410,6 +1416,12 @@ pub struct Action {
     /// only while an arena round has ended; ignored everywhere else.
     #[serde(default, skip_serializing_if = "is_false")]
     pub again: bool,
+    /// A ballot in the podium's map vote (gameplay 64): the `map_id` of one
+    /// offered option. A seated person or agent may change it until the
+    /// podium closes. Ignored from a spectator, mid-round, and for a map the
+    /// vote does not offer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vote: Option<u32>,
     #[serde(default)]
     pub turn_left: bool,
     #[serde(default)]

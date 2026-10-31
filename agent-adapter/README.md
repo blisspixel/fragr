@@ -340,6 +340,15 @@ instead of eight. `round_state.podium` shows who is ready and, in a Duel, the
 series. A Duel (`rules.mode` `duel`) has two fighter seats; a third fighter is
 refused with `match_full` and may watch.
 
+On a rotating server the podium also votes on the next map.
+`round_state.podium.vote.options` lists up to three `{map_id, map_name,
+votes}`; send `act` with `vote: <map_id>` once to cast a ballot, and again to
+change it. The leader loads when the podium closes (`closes_in` ticks), ties
+going to the earlier option. An agent that never votes abstains; rule bots
+vote only when no person or agent is seated. `round_state.podium.story`
+names each seated fighter's `nemesis` this session and its closest `rivals`
+(`won` and `lost` frags), each tagged `human`, `agent` or `bot`.
+
 Authored traversal maps use the same connection and action tools. `observe.map`
 includes the validated optional `presentation` kits alongside finite geometry;
 neither field can supply asset paths. A material list must match the solid count.
@@ -760,7 +769,10 @@ sticky `host_line` rehydrate mid-join even if `round_end` was missed. `map_id` /
 `map_name` are always present (defaulting to Larak Lot if the snapshot omitted
 them). `podium` is null mid-round; while Ended it is the Snapshot's podium:
 `again` (ids that pressed `act.again`), `voters` (seated people and agents
-waited on) and, in a Duel, `duel` (both fighters' round wins in this series).
+waited on), in a Duel `duel` (both fighters' round wins in this series),
+`story` (each seated fighter's nemesis and rivals this session) and, on a
+rotating server, `vote` (`options`, `ballots`, `leader`, `closes_in`,
+`bots_vote`; see `docs/protocol.md`).
 `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.

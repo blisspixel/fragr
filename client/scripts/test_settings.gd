@@ -241,6 +241,29 @@ func _initialize() -> void:
 		push_error("test_settings: accessibility settings did not survive disk round-trip")
 		ok = false
 
+	# The host rotation: roster ids once each, sorted, never all eight.
+	var host: RefCounted = script.new(test_path)
+	if host.get_value("host", "maps_off") != [7, 8] or host.get_value("host", "rotate") != true:
+		push_error("test_settings: the host rotation defaults to Holdfast and Low Water off")
+		ok = false
+	host.set_value("host", "maps_off", [5, 2.0])
+	if host.get_value("host", "maps_off") != [2, 5]:
+		push_error("test_settings: switched-off maps keep roster order: " + str(host.get_value("host", "maps_off")))
+		ok = false
+	for bad_off: Variant in [[0], [9], [2, 2], [1, 2, 3, 4, 5, 6, 7, 8], "2", [2.5], [true]]:
+		host.set_value("host", "maps_off", bad_off)
+		if host.get_value("host", "maps_off") != [7, 8]:
+			push_error("test_settings: a bad rotation list falls back whole: " + str(bad_off))
+			ok = false
+	host.set_value("host", "maps_off", [])
+	host.set_value("host", "rotate", false)
+	host.save_to_disk()
+	var host_loaded: RefCounted = script.new(test_path)
+	host_loaded.load_from_disk()
+	if host_loaded.get_value("host", "maps_off") != [] or host_loaded.get_value("host", "rotate") != false:
+		push_error("test_settings: the host rotation did not survive the disk")
+		ok = false
+
 	DirAccess.remove_absolute(test_path)
 	if ok:
 		print("test_settings: PASS defaults, fallback, clamp, reset, a disk round trip, and %d tips" % int(tips.count()))

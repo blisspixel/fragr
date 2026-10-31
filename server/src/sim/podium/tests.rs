@@ -296,21 +296,58 @@ fn the_podium_and_the_again_key_round_trip_on_the_wire() {
                 wins: 1,
             },
         ]),
+        story: vec![crate::protocol::PodiumStory {
+            id: Uuid::from_u128(2),
+            name: "You".into(),
+            kind: crate::protocol::FighterKind::Human,
+            nemesis: Some("Nightfall".into()),
+            rivals: vec![crate::protocol::PodiumRival {
+                name: "Nightfall".into(),
+                kind: crate::protocol::FighterKind::Bot,
+                won: 1,
+                lost: 4,
+            }],
+        }],
+        vote: Some(crate::protocol::MapVote {
+            options: vec![crate::protocol::MapVoteOption {
+                map_id: 2,
+                map_name: "Compliance Yard".into(),
+                votes: 1,
+            }],
+            ballots: vec![crate::protocol::MapBallot {
+                id: Uuid::from_u128(1),
+                map_id: 2,
+            }],
+            leader: 2,
+            closes_in: 120,
+            bots_vote: false,
+        }),
     };
     let text = serde_json::to_string(&podium).unwrap();
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(value["story"][0]["rivals"][0]["kind"], "bot");
+    assert_eq!(value["vote"]["options"][0]["map_id"], 2);
     assert_eq!(serde_json::from_str::<Podium>(&text).unwrap(), podium);
     let empty = serde_json::to_value(Podium {
         again: Vec::new(),
         voters: 1,
         duel: None,
+        story: Vec::new(),
+        vote: None,
     })
     .unwrap();
     assert_eq!(empty, serde_json::json!({"voters": 1}));
     let action: Action = serde_json::from_str(r#"{"again": true}"#).unwrap();
     assert!(action.again);
+    let ballot: Action = serde_json::from_str(r#"{"vote": 4}"#).unwrap();
+    assert_eq!(ballot.vote, Some(4));
+    assert!(serde_json::from_str::<Action>(r#"{"vote": "Sector 9"}"#).is_err());
     assert!(!serde_json::to_string(&Action::default())
         .unwrap()
         .contains("again"));
+    assert!(!serde_json::to_string(&Action::default())
+        .unwrap()
+        .contains("vote"));
 }
 
 /// One rule-bot round on Larak Lot under a mode: frags, the first frag's

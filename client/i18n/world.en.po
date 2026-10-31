@@ -1215,6 +1215,12 @@ msgstr "Mode"
 msgid "HOST_MAP"
 msgstr "Map"
 
+msgid "HOST_ROTATE"
+msgstr "Rotate maps: the podium votes on the next one"
+
+msgid "HOST_ROTATION"
+msgstr "In rotation"
+
 msgid "HOST_BOTS"
 msgstr "Bots"
 

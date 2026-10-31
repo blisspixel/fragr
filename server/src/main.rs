@@ -46,7 +46,8 @@ struct Args {
 
     /// Own a desktop arcade server (FFA, TDM, CTF, Sabotage, Conquest, with mutators). Readiness is JSON
     /// on stdout; stdin shutdown or EOF ends only this explicit child.
-    #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
+    /// With --map-rotate, the podium votes on the next map.
+    #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
 
     /// Loopback child for `fragr-agent-adapter mcp --local`. One flushed ArenaReady
@@ -74,6 +75,17 @@ struct Args {
     /// Move to the next map in the roster each round.
     #[arg(long, default_value_t = false, help_heading = "Match")]
     map_rotate: bool,
+
+    /// Keep a map out of the rotation and the podium's map vote, repeatable:
+    /// --map-off low-water --map-off 2. Takes the --map tokens. The map is not
+    /// removed; the desk's rotation on brings it back.
+    #[arg(
+        long = "map-off",
+        value_name = "MAP",
+        requires = "map_rotate",
+        help_heading = "Match"
+    )]
+    map_off: Vec<String>,
 
     /// Stay up and rotate the built-in night list of maps and modes.
     /// Sabotage plays its short match, including the half-time swap, before
@@ -234,7 +246,7 @@ struct Args {
     allow_list: Option<PathBuf>,
 
     /// Local venue desk on this terminal: status, who, kick, ban, say, stats,
-    /// shows, next and map. Type help. Closing the input leaves the match running.
+    /// shows, next, map and rotation. Type help. Closing the input leaves the match running.
     #[arg(
         long,
         default_value_t = false,
@@ -323,6 +335,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             roster.join(", ")
         )
     })?;
+    let map_off = args
+        .map_off
+        .iter()
+        .map(|raw| {
+            fragr_server::sim::MapKind::from_cli(raw)
+                .ok_or_else(|| format!("invalid --map-off {raw:?}; it takes the --map tokens"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     if let Some(bots) = args.bench {
         let mut output = args
             .bench_trace
@@ -435,6 +455,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         difficulty: args.difficulty,
         campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
+        map_off,
         playlist: args.playlist,
         match_config,
         solo_broadcast: args.solo_broadcast,
@@ -758,6 +779,29 @@ mod tests {
         assert_eq!(args.map, "compliance-yard");
         assert!(args.map_rotate);
         assert!(fragr_server::sim::MapKind::from_cli(&args.map).is_some());
+    }
+
+    #[test]
+    fn map_off_is_repeatable_and_needs_a_rotation() {
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--map-rotate",
+            "--map-off",
+            "low-water",
+            "--map-off",
+            "7",
+        ])
+        .unwrap();
+        assert_eq!(args.map_off, ["low-water", "7"]);
+        assert!(Args::try_parse_from(["fragr-server", "--map-off", "2"]).is_err());
+        let desktop = Args::try_parse_from([
+            "fragr-server",
+            "--desktop-host",
+            "--map-rotate",
+            "--map-off",
+            "8",
+        ]);
+        assert!(desktop.is_ok(), "the desktop host may rotate");
     }
 
     #[test]
@@ -1331,6 +1375,7 @@ mod tests {
                     fill_target: 0,
                     map: fragr_server::sim::MapKind::ArenaDuel,
                     map_rotate: false,
+                    map_off: Vec::new(),
                     playlist: false,
                     match_config: None,
                     solo_broadcast: false,

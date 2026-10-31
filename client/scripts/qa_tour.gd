@@ -491,6 +491,18 @@ func _run() -> void:
 			lift.pressed = false
 			Input.parse_input_event(lift)
 			await create_timer(0.3).timeout
+		var vote_key: Variant = state.get("press_vote")
+		if vote_key is String and InputMap.has_action(vote_key):
+			# One vote key on the podium: 1 to 3 pick a map.
+			var vote_press := InputEventAction.new()
+			vote_press.action = StringName(vote_key)
+			vote_press.pressed = true
+			Input.parse_input_event(vote_press)
+			var vote_lift := InputEventAction.new()
+			vote_lift.action = StringName(vote_key)
+			vote_lift.pressed = false
+			Input.parse_input_event(vote_lift)
+			await create_timer(0.3).timeout
 		if state.get("empty_ammo", false):
 			await _empty_ammo()
 		if state.get("expect_prompt", false):

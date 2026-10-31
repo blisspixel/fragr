@@ -148,7 +148,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `63`; omission means `1`. Discovery-only maps first
+  and the Godot client send `64`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -376,17 +376,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`63`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`64`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-63 or geometry 2. An older hello is also sent to
+64 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 63 can
-still enter that mission, and a hello above 63 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 64 can
+still enter that mission, and a hello above 64 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -893,6 +893,13 @@ World-point aim:
   result has shown for 2 s (`rules::AGAIN_MIN_TICKS`) instead of waiting out
   the 8 s podium. Rule bots are always ready and never counted. The Godot
   client sends it on a fire press while the podium waits on its fighter.
+- `vote`: Optional map id (gameplay 64), omitted unless pressed. A ballot in
+  the podium's map vote: one `map_id` from `Snapshot.podium.vote.options`. The
+  server counts it only from a seated person or agent while that vote is open;
+  a later ballot replaces the earlier one, and a spectator's, a mid-round one
+  and one for a map not offered are ignored. The Godot client sends it on the
+  weapon keys 1 to 3, or on the weapon cycle with a pad, stepping from its
+  own ballot.
 - `duck`: Optional held boolean, omitted while false. This server advertises
   the key with `Welcome.duck`. A client must not send it until that flag is
   present, because an older `Action` rejects unknown fields and would drop the
@@ -1756,7 +1763,9 @@ instead (see "Snapshot deltas (capability 63)").
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended and during sudden death.
 - `sudden_death`: (optional) `true` while an Active round is in sudden death: an arcade clock ran out level after somebody scored, so the clock stopped and the next score wins, or a level Sabotage match is playing its one deciding round. Omitted when false. A quiet sudden death ends level after 120 s.
-- `podium`: (optional) between rounds, while the round is `Ended` and either a seated person or agent is waited on or a Duel series exists: `{"again": ["<uuid>"], "voters": 2, "duel": [{"id": "<uuid>", "name": "Nightfall", "wins": 2}, {"id": "<uuid>", "name": "Probe", "wins": 1}]}`. `again` lists the fighters who have pressed `Action.again`, in id order, omitted when empty; `voters` counts the seated people and agents the ready-up waits for (rule bots never count, and Sabotage and the campaign have no ready-up, so it is 0 there); `duel` is the series between the Duel's two fighters in id order, present once they have finished a round together and reset when the pair changes. Mid-round it is omitted. Readers refuse unknown fields.
+- `podium`: (optional) between rounds, while the round is `Ended` and a seated person or agent is waited on, a Duel series exists, somebody present has met somebody this session, or a map vote is open: `{"again": ["<uuid>"], "voters": 2, "duel": [{"id": "<uuid>", "name": "Nightfall", "wins": 2}, {"id": "<uuid>", "name": "Probe", "wins": 1}], "story": [...], "vote": {...}}`. `again` lists the fighters who have pressed `Action.again`, in id order, omitted when empty; `voters` counts the seated people and agents the ready-up waits for (rule bots never count, and Sabotage and the campaign have no ready-up, so it is 0 there); `duel` is the series between the Duel's two fighters in id order, present once they have finished a round together and reset when the pair changes. Mid-round it is omitted. Readers refuse unknown fields.
+  - `story` (gameplay 64, omitted when empty): one entry per seated fighter present who has met somebody present this session, in id order: `{"id", "name", "kind", "nemesis", "rivals"}`. `kind` is `human`, `agent` or `bot` (a rule bot is `bot` whatever its connection role). `nemesis`, omitted when nobody present is ahead of this fighter, is the rival with the widest lead over it, ties to the earlier callsign (`HeadToHead::grudge`). `rivals` holds at most three `{"name", "kind", "won", "lost"}`, most meetings first and then by name: `won` is this fighter's frags on the rival, `lost` the rival's on it. The counts are this server process's session book, never the desktop host's saved long book, and names compare as the head-to-head book does (without case or a rule bot's overflow suffix).
+  - `vote` (gameplay 64): on a `--map-rotate` server whose rotation has at least two maps that are switched on and can host the live mode (Sabotage, the night list, a desk-queued show and the campaign never vote): `{"options": [{"map_id": 2, "map_name": "Compliance Yard", "votes": 1}, ...], "ballots": [{"id": "<uuid>", "map_id": 2}], "leader": 2, "closes_in": 180, "bots_vote": false}`. `options` are at most three maps in roster order after the live map, with the live map last when fewer remain. `ballots` lists the counted ballots in voter id order, omitted when empty. `leader` is the map the next round loads if the vote closed now: most votes, a tie to the earlier option, no votes to the first. `closes_in` is ticks until the podium closes on its own clock: while a vote is open the podium lasts `max(end_delay, 240)` ticks (12 s), and a room that has all pressed `again` still opens the next round after 2 s. `bots_vote` is true only while no person or agent is seated: then each named rule bot casts one ballot, the first 2 s after the round ends and the rest 12 ticks apart, from its callsign and the round number; with anybody seated the bots abstain and their ballots do not count.
 - `duel_queue`: (optional, gameplay 59) Duel only: the watchers waiting for a fighter seat, by name, first in line first. Omitted while nobody waits. See Queue under Client to Server.
 - `frag_limit`: (optional) Frag limit for current round
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
@@ -4098,6 +4107,24 @@ goes whole when the reader holds none: the first world of a connection and
 the first after any `MapInfo` or `Mission` (both sides forget the held world
 at those barriers), and after a world sent only to that reader. Readers below
 63 receive every world whole.
+
+### The podium story and the map vote (capability 64)
+
+Gameplay 64 adds `Snapshot.podium.story`, `Snapshot.podium.vote` and
+`Action.vote` (shapes above). A strict reader at 63 refuses the new podium
+fields, so a shared room requires 64.
+
+A host chooses which roster maps a `--map-rotate` server visits with
+`--map-off <map>` (repeatable, the `--map` tokens, requires `--map-rotate`;
+switching every map off or starting on a map that is off is refused before
+bind) and, on `--console`, `rotation`, `rotation on <map>` and
+`rotation off <map>`; the last map on stays on. No map is removed. The
+rotation and the vote only reach maps that are on and can host the live mode
+(capture the flag needs stands, Conquest Holdfast Atoll). A Sabotage match on
+a rotating server keeps its map until the match is decided. With no vote (one
+map left to choose from) the rotation moves to the next map that is on and
+can host the mode, or stays. The desktop host (`--desktop-host`) accepts
+`--map-rotate` and `--map-off` for free-for-all, team and capture the flag.
 
 ### Quantized motion
 

@@ -40,6 +40,10 @@ pub enum DeskVerb {
         map: MapKind,
         mode: GameMode,
     },
+    /// The rotation table, or one map switched on or off for it.
+    Rotation {
+        change: Option<(MapKind, bool)>,
+    },
 }
 
 /// A person the desk has already resolved to one address.
@@ -92,6 +96,7 @@ enum Parsed {
     Shows,
     Next,
     Map { map: MapKind, mode: GameMode },
+    Rotation { change: Option<(MapKind, bool)> },
 }
 
 #[derive(Debug)]
@@ -101,6 +106,7 @@ enum ParseFault {
     NeedsSentence,
     TooLong,
     BadShow,
+    BadRotation,
 }
 
 /// Read desk lines until the channel closes. A closed channel is the end of
@@ -131,6 +137,9 @@ pub async fn serve<W: Write>(
             Ok(Parsed::Stats) => write_line(out, ask(&requests, DeskVerb::Stats).await.text()),
             Ok(Parsed::Shows) => write_line(out, ask(&requests, DeskVerb::Shows).await.text()),
             Ok(Parsed::Next) => write_line(out, ask(&requests, DeskVerb::Next).await.text()),
+            Ok(Parsed::Rotation { change }) => {
+                write_line(out, ask(&requests, DeskVerb::Rotation { change }).await.text());
+            }
             Ok(Parsed::Map { map, mode }) => {
                 // Topology construction must not stall the 20 Hz match loop.
                 if tokio::task::spawn_blocking(move || crate::maps::prepare_navigation(map, false))
@@ -171,13 +180,14 @@ pub async fn serve<W: Write>(
                 }
             }
             Err(ParseFault::Unknown) => {
-                write_line(out, "The desk knows help, status, who, kick, ban, say, stats, shows, next, and map.");
+                write_line(out, "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation.");
             }
             Err(ParseFault::NeedsName) => {
                 write_line(out, "Say who. Use the name from who.");
             }
             Err(ParseFault::NeedsSentence) => write_line(out, "Say the sentence."),
             Err(ParseFault::TooLong) => write_line(out, "That line is too long."),
+            Err(ParseFault::BadRotation) => write_line(out, "Use rotation, rotation on <map> or rotation off <map>. Maps: 1-8 or a --map token."),
             Err(ParseFault::BadShow) => write_line(out, "Use map <map> <mode>. Maps: 1-7 or a --map token. Modes: ffa, tdm, ctf, sabotage, conquest. The map must support the mode."),
         }
     }
@@ -193,7 +203,11 @@ stats
 shows
 next
 map <map> <mode>
+rotation
+rotation on|off <map>
 Map and next wait for the whole live show. A manual map then repeats. \
+Rotation lists the maps a --map-rotate server visits and its podium votes on; \
+off keeps a map out without removing it. \
 Status adds uptime, tick health and join addresses to the who table. \
 Names are what who prints. A ban keeps the address, not the name. \
 Closing this input leaves the match running. Ctrl-C stops the match.";
@@ -242,6 +256,25 @@ fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
             }
             Ok(Parsed::Map { map, mode })
         }
+        "rotation" if rest.is_empty() => Ok(Parsed::Rotation { change: None }),
+        "rotation" => {
+            let mut words = rest.split_whitespace();
+            let on = match words.next() {
+                Some("on") => true,
+                Some("off") => false,
+                _ => return Err(ParseFault::BadRotation),
+            };
+            let map = words
+                .next()
+                .and_then(MapKind::from_cli)
+                .ok_or(ParseFault::BadRotation)?;
+            if words.next().is_some() {
+                return Err(ParseFault::BadRotation);
+            }
+            Ok(Parsed::Rotation {
+                change: Some((map, on)),
+            })
+        }
         _ => Err(ParseFault::Unknown),
     }
 }
@@ -289,6 +322,37 @@ mod tests {
     use super::*;
     use std::net::Ipv4Addr;
     use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn rotation_lines_list_or_switch_one_map() {
+        assert!(matches!(
+            parse_line("rotation"),
+            Ok(Parsed::Rotation { change: None })
+        ));
+        assert!(matches!(
+            parse_line("rotation off low-water"),
+            Ok(Parsed::Rotation {
+                change: Some((MapKind::LowWater, false))
+            })
+        ));
+        assert!(matches!(
+            parse_line("rotation on 2"),
+            Ok(Parsed::Rotation {
+                change: Some((MapKind::ComplianceYard, true))
+            })
+        ));
+        for bad in [
+            "rotation drop 2",
+            "rotation off",
+            "rotation off atlantis",
+            "rotation on 2 3",
+        ] {
+            assert!(
+                matches!(parse_line(bad), Err(ParseFault::BadRotation)),
+                "{bad}"
+            );
+        }
+    }
 
     #[test]
     fn lines_parse_as_an_operator_would_type_them() {
@@ -411,7 +475,7 @@ mod tests {
         assert!(text.contains("Patch is off the floor."), "{text}");
         assert!(
             text.contains(
-                "The desk knows help, status, who, kick, ban, say, stats, shows, next, and map."
+                "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation."
             ),
             "{text}"
         );

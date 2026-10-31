@@ -1850,6 +1850,7 @@ mod tests {
                 MapKind::default()
             },
             map_rotate: false,
+            map_off: Vec::new(),
             playlist: false,
             solo_broadcast: false,
             match_config: Some(MatchConfig {

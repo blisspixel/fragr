@@ -2,7 +2,7 @@
 //! soon as everyone seated has asked for it, and a Duel's running series
 //! between the same two fighters.
 use super::{GameState, RoundState};
-use crate::protocol::{DuelRecord, GameMode, Podium, Role};
+use crate::protocol::{DuelRecord, FighterKind, GameMode, Podium, PodiumRival, PodiumStory, Role};
 use std::cmp::Ordering;
 use uuid::Uuid;
 
@@ -17,7 +17,7 @@ pub(crate) struct DuelSeries {
 impl GameState {
     /// The fighters the ready-up waits for: seated people and agents. A rule
     /// bot is always ready, and a parked resume pawn cannot press anything.
-    fn again_voters(&self) -> Vec<Uuid> {
+    pub(super) fn again_voters(&self) -> Vec<Uuid> {
         self.players
             .iter()
             .filter(|p| {
@@ -32,7 +32,7 @@ impl GameState {
 
     /// An ended arena round takes ready-ups. A Sabotage match keeps its own
     /// short break between rounds, and the campaign has no podium.
-    fn podium_open(&self) -> bool {
+    pub(super) fn podium_open(&self) -> bool {
         self.round_state == RoundState::Ended
             && self.sabotage.is_none()
             && !self.map.is_campaign()
@@ -68,7 +68,9 @@ impl GameState {
             Vec::new()
         };
         let duel = self.duel_records();
-        if voters.is_empty() && duel.is_none() {
+        let story = self.podium_story();
+        let vote = self.wire_map_vote();
+        if voters.is_empty() && duel.is_none() && story.is_empty() && vote.is_none() {
             return None;
         }
         Some(Podium {
@@ -80,7 +82,75 @@ impl GameState {
                 .collect(),
             voters: u32::try_from(voters.len()).unwrap_or(u32::MAX),
             duel,
+            story,
+            vote,
         })
+    }
+
+    /// How a podium row names a fighter: a rule bot as a bot whatever its
+    /// connection role, a person as a person, an agent as an agent.
+    fn fighter_kind(&self, player: &super::Player) -> FighterKind {
+        if self.is_rule_bot(player.id) {
+            FighterKind::Bot
+        } else if player.role == Role::Agent {
+            FighterKind::Agent
+        } else {
+            FighterKind::Human
+        }
+    }
+
+    /// Each seated fighter's book this session against the others present:
+    /// its nemesis (the one furthest ahead of it) and up to three rivals,
+    /// most meetings first. Fighters who have met nobody are left out.
+    pub(super) fn podium_story(&self) -> Vec<PodiumStory> {
+        let mut present: Vec<&super::Player> = self
+            .players
+            .iter()
+            .filter(|p| p.contestant() && !p.detached && p.role != Role::Spectator)
+            .collect();
+        present.sort_by_key(|p| p.id);
+        let book = &self.session_book;
+        let mut stories = Vec::new();
+        for fighter in &present {
+            let mut rivals: Vec<PodiumRival> = present
+                .iter()
+                .filter(|other| other.id != fighter.id)
+                .map(|other| PodiumRival {
+                    name: other.name.clone(),
+                    kind: self.fighter_kind(other),
+                    won: book.frags(&fighter.name, &other.name),
+                    lost: book.frags(&other.name, &fighter.name),
+                })
+                .filter(|rival| rival.won + rival.lost > 0)
+                .collect();
+            if rivals.is_empty() {
+                continue;
+            }
+            rivals.sort_by(|a, b| {
+                (b.won + b.lost)
+                    .cmp(&(a.won + a.lost))
+                    .then_with(|| a.name.cmp(&b.name))
+            });
+            rivals.dedup_by(|a, b| a.name == b.name);
+            rivals.truncate(3);
+            let nemesis = book
+                .grudge(
+                    &fighter.name,
+                    present
+                        .iter()
+                        .filter(|other| other.id != fighter.id)
+                        .map(|other| other.name.as_str()),
+                )
+                .map(str::to_string);
+            stories.push(PodiumStory {
+                id: fighter.id,
+                name: fighter.name.clone(),
+                kind: self.fighter_kind(fighter),
+                nemesis,
+                rivals,
+            });
+        }
+        stories
     }
 
     fn duel_records(&self) -> Option<[DuelRecord; 2]> {

@@ -90,6 +90,20 @@ func _run() -> void:
 		var contradictory: Dictionary = _config(false, false, policy)
 		contradictory["fill_target"] = 1
 		_check(not LocalHost.valid_settings(contradictory), "inactive automatic target must be zero")
+	# Rotation: free-for-all, team and flag matches; the start map stays in.
+	var rotating: Dictionary = _config()
+	rotating["rotate"] = true
+	rotating["maps_off"] = [7, 8]
+	_check(LocalHost.valid_settings(rotating), "a team match rotates with maps switched off")
+	var rotate_args: String = " ".join(LocalHost.arguments_for(rotating))
+	_check(rotate_args.contains("--map-rotate --map-off 7 --map-off 8"), "rotation reaches the server: " + rotate_args)
+	for bad: Dictionary in [{"maps_off": [4]}, {"maps_off": [8, 7]}, {"maps_off": [7, 7]}, {"maps_off": []},
+		{"maps_off": [9]}, {"maps_off": "7"}, {"rotate": "yes"}, {"mode": "sabotage"}, {"rotate": false}]:
+		var invalid: Dictionary = rotating.duplicate(true)
+		invalid.merge(bad, true)
+		_check(not LocalHost.valid_settings(invalid), "a bad rotation is refused: %s" % str(bad))
+	var plain: Dictionary = _config()
+	_check(not " ".join(LocalHost.arguments_for(plain)).contains("--map-rotate"), "no rotation unless asked")
 	var config: Dictionary = _config()
 	for item: Dictionary in [{"key": "mode", "value": "invalid_mode"}, {"key": "bots", "value": 11},
 		{"key": "bots", "value": -1}, {"key": "map_id", "value": 9}, {"key": "port", "value": 6767},

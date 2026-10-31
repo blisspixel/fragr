@@ -19,6 +19,12 @@ desk with `--console`, shipped in v0.78.0. `fragr-playtest --traffic` can
 fill a local server with synthetic fighters and spectators. Neither one is
 a new mode. `--playlist` keeps one process up and rotates a built-in night
 list of the modes below. It is not a new mode. A playlist file is later.
+`--map-rotate` keeps the mode and moves the map: after each free-for-all,
+Duel, team or flag round the podium shows each fighter's nemesis and book this
+session, the personal bests the round set in the player's own service record,
+and a three-map vote that counts down into the next round (implemented in wave
+19; rendered captures only, no human night yet). `--map-off` and the desk's
+`rotation` switch maps out of it without removing them.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
