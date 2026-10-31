@@ -239,7 +239,7 @@
     "map_index": 1,
     "state": {
       "attempt": 1,
-      "changed_at": 538,
+      "changed_at": 553,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -297,13 +297,13 @@
         "revision": 4
       }
     },
-    "tick": 538
+    "tick": 553
   },
   {
     "map_index": 1,
     "state": {
       "attempt": 1,
-      "changed_at": 539,
+      "changed_at": 554,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -362,13 +362,13 @@
         "revision": 4
       }
     },
-    "tick": 539
+    "tick": 554
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 620,
+      "changed_at": 636,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -419,13 +419,13 @@
         "revision": 4
       }
     },
-    "tick": 620
+    "tick": 636
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 620,
+      "changed_at": 636,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -481,13 +481,13 @@
         "revision": 4
       }
     },
-    "tick": 644
+    "tick": 661
   },
   {
     "map_index": 2,
     "state": {
       "attempt": 1,
-      "changed_at": 645,
+      "changed_at": 662,
       "id": "freedom_of_movement",
       "m16": {
         "bus_freed": false,
@@ -525,7 +525,7 @@
         "revision": 4
       }
     },
-    "tick": 645
+    "tick": 662
   },
   {
     "map_index": 3,
