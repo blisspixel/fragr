@@ -1,6 +1,68 @@
 {
 	"entries": [
 		{
+			"file": "berth_crew_a.png",
+			"person": "berth_crew_a",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.5,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#5f7a55",
+					"val": [
+						0.0,
+						0.8
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						240.0
+					],
+					"ref": 0.45,
+					"sat": [
+						0.15,
+						1.01
+					],
+					"to": "#b49a6a",
+					"val": [
+						0.0,
+						1.01
+					]
+				}
+			],
+			"sha256": "28dd44eef0d49d6a0285b8bed301b1d399ff736ce5f5a4e4a67e2d8cbfb173c1",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "berth_crew_b.png",
+			"person": "berth_crew_b",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#9a5238",
+					"val": [
+						0.28,
+						0.66
+					]
+				}
+			],
+			"sha256": "c922d37bbaba96866d714be99705227ad47e4c1761945f457b2f9072bffe22e6",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
 			"file": "captive_0.png",
 			"person": "captive_0",
 			"rules": [
@@ -206,6 +268,6 @@
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"method": "Offline recolour of each person's own source atlas by CastPaint rules; no generated or external art.",
-	"painter_sha256": "59ce23a159b4d51642ab08c9c552f84ddf6bbad673f56ca86c0e63f6bbfe85bb",
+	"painter_sha256": "17432ce834f43ae3da582edb3786df707266a64a9c97255b613e0640988fa686",
 	"schema": 1
 }

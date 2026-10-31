@@ -2,7 +2,8 @@ extends SceneTree
 
 ## Campaign people wear their own baked paint on existing bodies: Splice and
 ## Tern off the pale reserved base, Renn in the issued coat without red, and
-## Level 8's held people no longer one cloned figure.
+## Level 8's held people and the Common Carrier's berth crew no longer one
+## cloned figure.
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
@@ -82,7 +83,7 @@ func _baked() -> void:
 	expected_people.sort()
 	listed.sort()
 	_expect(listed == expected_people, "every scheme baked once")
-	var held: Array[String] = ["captive_0", "captive_1", "captive_2", "captive_3", "splice", "tern", "renn"]
+	var held: Array[String] = ["captive_0", "captive_1", "captive_2", "captive_3", "splice", "tern", "renn", "berth_crew_a", "berth_crew_b"]
 	for a: int in range(held.size()):
 		for b: int in range(a + 1, held.size()):
 			if paints.has(held[a]) and paints.has(held[b]):
@@ -107,7 +108,7 @@ func _rules() -> void:
 
 func _figures() -> void:
 	var worn: Dictionary[String, Texture2D] = {}
-	for person: String in ["splice", "tern", "renn", "captive_0", "captive_1", "captive_2", "captive_3"]:
+	for person: String in ["splice", "tern", "renn", "captive_0", "captive_1", "captive_2", "captive_3", "berth_crew_a", "berth_crew_b"]:
 		var figure: CivilianFigure = CivilianFigure.new()
 		root.add_child(figure)
 		figure.configure(person, Color.WHITE)
@@ -135,7 +136,7 @@ func _figures() -> void:
 			var panels: Array[Node] = figure.skin.find_children("ShoulderPanel", "MeshInstance3D", true, false)
 			_expect(panels.size() == 1 and ((panels[0] as MeshInstance3D).material_override as StandardMaterial3D).albedo_color == CastPaint.TERN_EMBER, "Tern wears one ember shoulder panel")
 		figure.free()
-	_expect(worn.size() == 7 and worn.values().filter(func(t: Texture2D) -> bool: return worn.values().count(t) > 1).is_empty(), "no two people share one paint")
+	_expect(worn.size() == 9 and worn.values().filter(func(t: Texture2D) -> bool: return worn.values().count(t) > 1).is_empty(), "no two people share one paint")
 	var renn: CivilianFigure = CivilianFigure.new()
 	root.add_child(renn)
 	renn.configure("renn", Color.WHITE)
