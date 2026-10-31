@@ -79,7 +79,8 @@ seat, so Latch is not on the avenue with the party. Built (wave 20): once the
 green wave lifts the checkpoint the server places Latch in the back lane behind
 the forecourt's north block (`m16.companion_arrival`), only on a tick when no
 participant has a line of sight to that spot, and Latch walks out to join the
-forecourt fight: "My ride went round the checkpoint twice. Never once let me steer." A
+forecourt fight. The chamber doors wait until Latch stands with the party at
+them, so the line is never skipped: "My ride went round the checkpoint twice. Never once let me steer." A
 retry rides the avenue without Latch again. Street screens loop
 Voss with the official caption; some already show the pirate track, patched in
 by someone in the crowd. The green wave is the most visible Inheritance help

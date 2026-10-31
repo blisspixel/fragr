@@ -7,6 +7,10 @@ use crate::protocol::{
 use crate::sim::{Player, PLAYER_FLOOR_Y};
 use std::collections::HashSet;
 
+/// Latch stands with the party at the chamber doors within this reach; the
+/// client's arrival line reaches further, so it is said before they go in.
+const LATCH_DOOR_REACH: f32 = 6.0;
+
 #[derive(Default)]
 pub(crate) struct M16Progress {
     pub(super) index: usize,
@@ -57,6 +61,27 @@ impl GameState {
         if !seen {
             self.spawn_campaign_companion(arrival, false);
         }
+    }
+
+    /// Nobody goes through the chamber doors without Latch: the doors wait
+    /// until Latch stands with someone in the party at them.
+    fn m16_latch_at_doors(&self, g: &crate::protocol::M16MapGeometry) -> bool {
+        if self.map.m16_objectives().is_none() {
+            return true;
+        }
+        let Some(latch) = self
+            .players
+            .iter()
+            .find(|p| p.is_campaign_companion() && p.hp > 0)
+        else {
+            return false;
+        };
+        self.players.iter().any(|p| {
+            p.is_participant()
+                && g.boarding.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                && (p.x - latch.x).hypot(p.z - latch.z) <= LATCH_DOOR_REACH
+                && (p.y - latch.y).abs() < 1.0
+        })
     }
 
     pub(crate) fn m16_encounter_available(&self, index: usize) -> bool {
@@ -128,8 +153,9 @@ impl GameState {
                 );
             }
             if p.index == 6 {
-                let departure_ready =
-                    !party.is_empty() && party.iter().all(|m| m.ready && m.alive && m.aboard);
+                let departure_ready = !party.is_empty()
+                    && party.iter().all(|m| m.ready && m.alive && m.aboard)
+                    && self.m16_latch_at_doors(&g);
                 if departure_ready {
                     prompts.extend(
                         self.players

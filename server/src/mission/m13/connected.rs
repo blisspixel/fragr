@@ -8,6 +8,9 @@ pub(in crate::mission) struct M13Progress {
     pub(in crate::mission) worker_feet: [[f32; 3]; 3],
     pub(in crate::mission) arrived: [bool; 3],
     pub(in crate::mission) surrendered: bool,
+    /// The lift control was used while Latch was still off the deck: the
+    /// lift leaves as soon as Latch is aboard, never without them.
+    pub(in crate::mission) lift_called: bool,
 }
 impl M13Progress {
     pub(in crate::mission) fn new(g: M13MapGeometry) -> Self {
@@ -16,6 +19,7 @@ impl M13Progress {
             worker_feet: g.workers,
             arrived: [false; 3],
             surrendered: false,
+            lift_called: false,
         }
     }
 }
@@ -41,6 +45,13 @@ impl GameState {
             && party
                 .iter()
                 .all(|p| run.ready.contains(&p.id) && self.m13_supported(p, g))
+    }
+    /// Latch, when with the party, stands in the deck's rider area.
+    fn m13_companion_aboard(&self, g: &M13MapGeometry) -> bool {
+        self.players
+            .iter()
+            .filter(|p| p.is_campaign_companion() && p.hp > 0)
+            .all(|latch| self.m13_supported(latch, g))
     }
     fn m13_supported(&self, player: &Player, g: &M13MapGeometry) -> bool {
         let Some(p) = self.foundry.as_ref() else {
@@ -327,8 +338,36 @@ impl GameState {
             && party
                 .iter()
                 .all(|a| eligible(a) && self.m13_supported(a, &g));
-        if index >= 6 && all && gates.lift_phase == lift::Phase::Parked && used(&g.departure) {
+        if p.lift_called && !all {
+            // The party stepped off: a later ride needs a fresh Use.
             drop(arena);
+            let run = self.mission.as_mut().unwrap();
+            run.m13.as_mut().unwrap().lift_called = false;
+            run.changed_at = self.tick;
+            return;
+        }
+        let parked = index >= 6 && all && gates.lift_phase == lift::Phase::Parked;
+        let called = p.lift_called || used(&g.departure);
+        if parked && called && !self.m13_companion_aboard(&g) {
+            // Wait for Latch, who is on the way to the deck.
+            drop(arena);
+            let run = self.mission.as_mut().unwrap();
+            let progress = run.m13.as_mut().unwrap();
+            if !progress.lift_called {
+                progress.lift_called = true;
+                run.changed_at = self.tick;
+            }
+            return;
+        }
+        if parked && called {
+            drop(arena);
+            self.mission
+                .as_mut()
+                .unwrap()
+                .m13
+                .as_mut()
+                .unwrap()
+                .lift_called = false;
             self.foundry.as_mut().unwrap().lift_phase = lift::Phase::Moving;
             let run = self.mission.as_mut().unwrap();
             run.m13.as_mut().unwrap().index = 7;

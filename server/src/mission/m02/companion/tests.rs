@@ -955,3 +955,149 @@ fn latch_walks_in_to_the_forecourt_unseen_once_the_checkpoint_lifts() {
         serde_json::json!([500.0, 0.0, 0.0]),
     );
 }
+
+#[test]
+fn the_freight_lift_waits_for_latch_and_leaves_with_them() {
+    let (mut session, id) = level(M13_MAP, MissionId::WeightOfPermission);
+    let g = session.state.map.m13_geometry().unwrap();
+    let lift = session.state.map.m13_companion().unwrap().lift;
+    let latch_id = latch(&session.state).unwrap().id;
+    clear_hostiles(&mut session.state);
+    {
+        let p = session
+            .state
+            .mission
+            .as_mut()
+            .unwrap()
+            .m13
+            .as_mut()
+            .unwrap();
+        p.index = 6;
+        p.surrendered = true;
+    }
+    session.state.foundry.as_mut().unwrap().relay_disabled = true;
+    place(&mut session.state, id, g.departure.approach);
+    // Latch is still back on the landing when the control is used.
+    place(&mut session.state, latch_id, [3.0, 3.3, 52.2]);
+    let point = g
+        .departure
+        .point(
+            session.state.map.presentation_ref().unwrap(),
+            &session.state.current_arena().solids,
+        )
+        .unwrap();
+    let press = Action {
+        interact: true,
+        look_at: Some(crate::protocol::LookAt {
+            x: Some(point[0]),
+            y: Some(point[1]),
+            z: Some(point[2]),
+            player_id: None,
+        }),
+        ..Default::default()
+    };
+    session.state.set_action(id, Action::default());
+    session.state.set_action(id, press.clone());
+    session.tick_messages(0.05);
+    session.state.set_action(id, Action::default());
+    let parked = |s: &GameSession| {
+        s.state.foundry.as_ref().unwrap().lift_phase == crate::mission::m13::LiftPhase::Parked
+    };
+    assert!(parked(&session), "the lift does not leave without Latch");
+    assert!(
+        session
+            .state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m13
+            .as_ref()
+            .unwrap()
+            .lift_called
+    );
+    // Latch walks onto the deck and the lift leaves with them, no second press.
+    for _ in 0..600 {
+        session.tick_messages(0.05);
+        if session.state.mission.as_ref().unwrap().phase == MissionPhase::Departed {
+            break;
+        }
+    }
+    assert_eq!(
+        session.state.mission.as_ref().unwrap().phase,
+        MissionPhase::Departed
+    );
+    let at = feet(latch(&session.state).unwrap());
+    assert!(
+        at[1] > g.lift_top - 0.1 && (at[0] - lift[0]).hypot(at[2] - lift[2]) < 0.5,
+        "Latch rode up in the rider area: {at:?}"
+    );
+}
+
+#[test]
+fn a_called_lift_needs_a_fresh_use_once_the_party_steps_off() {
+    // No companion intent here: Latch stands where placed.
+    let map = crate::maps::AuthoredMap::read(M13_MAP.as_bytes()).unwrap();
+    let mut state = GameState::with_authored_map(map);
+    let id = Uuid::from_u128(1316);
+    state.add_player(id, "Foundry party".into(), Role::Human);
+    assert!(state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::WeightOfPermission,
+            attempt: 1,
+        }
+    ));
+    state.tick(0.05);
+    let g = state.map.m13_geometry().unwrap();
+    let lift = state.map.m13_companion().unwrap().lift;
+    let latch_id = latch(&state).unwrap().id;
+    {
+        let p = state.mission.as_mut().unwrap().m13.as_mut().unwrap();
+        p.index = 6;
+        p.surrendered = true;
+    }
+    place(&mut state, id, g.departure.approach);
+    place(&mut state, latch_id, [3.0, 3.3, 52.2]);
+    state
+        .mission
+        .as_mut()
+        .unwrap()
+        .m13
+        .as_mut()
+        .unwrap()
+        .lift_called = true;
+    state.tick(0.05);
+    assert!(
+        state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m13
+            .as_ref()
+            .unwrap()
+            .lift_called
+    );
+    // The party steps off: the call lapses.
+    place(&mut state, id, [0.0, 3.3, 52.2]);
+    state.tick(0.05);
+    assert!(
+        !state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m13
+            .as_ref()
+            .unwrap()
+            .lift_called
+    );
+    // Everyone aboard again, nobody pressed: the lift stays.
+    place(&mut state, id, g.departure.approach);
+    place(&mut state, latch_id, lift);
+    for _ in 0..5 {
+        state.tick(0.05);
+    }
+    assert_eq!(
+        state.foundry.as_ref().unwrap().lift_phase,
+        crate::mission::m13::LiftPhase::Parked
+    );
+}

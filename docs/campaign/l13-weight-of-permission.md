@@ -199,7 +199,9 @@ participant's. When the overseer drops his baton, Latch: "Ask them. Don't
 free them like freight." When the workers have answered, Latch, of the one
 who stays: "Their call. That's the whole point." Once the galleries are
 taken, Latch steps onto the freight deck beside the lift control
-(`companion_lift`, inside the riders' inset) and rides up with the party.
+(`companion_lift`, inside the riders' inset) and rides up with the party. A
+lift control used before Latch is aboard waits for Latch and then leaves
+without a second press; if the party steps off first, the call lapses.
 
 **The moment.** The first rocket across the freight loop, and the pallet it came
 on.
