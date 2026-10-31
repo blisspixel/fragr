@@ -166,6 +166,14 @@ fn unseen_motion_does_not_update_memory_and_memory_expires() {
     assert_eq!(state.players[0].bot_senses.target.unwrap().feet, last.feet);
     observe(&mut state, &bot, MEMORY_TICKS + 2);
     assert!(state.players[0].bot_senses.target.is_none());
+    // The fighter is forgotten, not the place it was lost: the bot goes and
+    // looks there (`hunt.rs`), walking, never aiming, until the clue is old.
+    let search = bot.intent(&state).goal.unwrap();
+    assert_eq!(search.feet, last.feet);
+    assert!(!search.combat);
+    assert!(!bot.update(&state).fire);
+    observe(&mut state, &bot, 20 * 9);
+    assert!(state.players[0].bot_senses.target.is_none());
     assert_ne!(bot.intent(&state).goal.unwrap().feet, last.feet);
 }
 
@@ -667,9 +675,10 @@ fn a_bot_leaves_for_a_returning_rail_and_waits_on_it() {
         observe(&mut state, &bot, tick);
     }
     let back_at = 8 + rail_eta(&state).unwrap();
-    // Twelve seconds early is not an appointment: the bot roams.
-    let roam = bot.intent(&state);
-    assert_ne!(roam.goal.map(|goal| goal.feet), Some(feet));
+    // Twelve seconds early is not an appointment. A quiet bot may still pass
+    // by on patrol; it does not hold there for the clock.
+    let appointment = bot.pad_plan(&state, &state.players[0], true, true);
+    assert_ne!(appointment.map(|plan| plan.feet), Some(feet));
     // Inside the walk plus a little slack, it sets off before the return.
     state.players[0].yaw = PI;
     for tick in back_at - 70..back_at - 62 {
@@ -1030,4 +1039,174 @@ fn among_new_sightings_the_fighter_a_bot_owes_comes_first() {
     state.head_to_head.record("Owed", "Observer");
     observe_for(&mut state, &bot, 2..4);
     assert_eq!(state.players[0].bot_senses.target.unwrap().id, owed);
+}
+
+/// The pair with the target hidden behind the east gantry, 30 m off, and
+/// the observer facing away: nothing to see, only to hear.
+fn unseen_pair() -> (GameState, BotController) {
+    let (mut state, bot) = pair(7);
+    state.players[0].yaw = PI;
+    state.players[1].x = 25.0;
+    assert!(!crate::combat::line_of_sight(
+        fighter_eye(&state.players[0]),
+        fighter_eye(&state.players[1]),
+        &state.current_arena().solids,
+    ));
+    (state, bot)
+}
+
+#[test]
+fn gunfire_through_a_wall_is_a_place_to_look_never_a_shot() {
+    let (mut state, bot) = unseen_pair();
+    observe(&mut state, &bot, 0);
+    assert!(state.players[0]
+        .bot_senses
+        .hunt
+        .quarry(0)
+        .is_none_or(|quarry| !matches!(quarry, hunt::Quarry::Clue(_))));
+    state.players[1].just_fired = true;
+    observe(&mut state, &bot, 1);
+    let Some(hunt::Quarry::Clue(heard)) = state.players[0].bot_senses.hunt.quarry(1) else {
+        panic!("a shot 30 m off through one wall is heard");
+    };
+    let source = feet_of(&state.players[1]);
+    let off = (heard[0] - source[0]).hypot(heard[2] - source[2]);
+    let distance = (source[0] - state.players[0].x).hypot(source[2] - state.players[0].z);
+    assert!(
+        off <= distance * 0.15 + 0.01,
+        "a sound is a rough place: {off}"
+    );
+    assert!(
+        state.players[0].bot_senses.target.is_none(),
+        "nobody was seen"
+    );
+    // The bot goes to look, and nothing it heard can pull a trigger.
+    let intent = bot.intent(&state);
+    let goal = intent.goal.expect("it walks toward the sound");
+    assert!(!goal.combat);
+    assert_eq!(goal.feet, heard);
+    let mut action = intent.action;
+    action.fire = true;
+    assert!(!bot.guard_sensed_action(&state, action).fire);
+}
+
+#[test]
+fn hearing_has_a_reach_and_a_crouch_walks_quietly() {
+    // Gunfire past the walled reach, behind cover, is not heard.
+    let (mut state, bot) = unseen_pair();
+    state.players[1].x = 45.0;
+    assert!(!crate::combat::line_of_sight(
+        fighter_eye(&state.players[0]),
+        fighter_eye(&state.players[1]),
+        &state.current_arena().solids,
+    ));
+    state.players[1].just_fired = true;
+    observe(&mut state, &bot, 1);
+    assert!(state.players[0]
+        .bot_senses
+        .hunt
+        .quarry(1)
+        .is_none_or(|quarry| !matches!(quarry, hunt::Quarry::Clue(_))));
+    // Running feet behind the bot, close, are heard; the same walk ducked is not.
+    let (mut state, bot) = pair(8);
+    state.players[0].yaw = PI;
+    state.players[1].x = 8.0;
+    state.players[1].vx = 5.0;
+    state.players[1].ducking = true;
+    observe(&mut state, &bot, 1);
+    assert!(state.players[0].bot_senses.target.is_none());
+    assert!(state.players[0]
+        .bot_senses
+        .hunt
+        .quarry(1)
+        .is_none_or(|quarry| !matches!(quarry, hunt::Quarry::Clue(_))));
+    state.players[1].ducking = false;
+    observe(&mut state, &bot, 2);
+    assert!(matches!(
+        state.players[0].bot_senses.hunt.quarry(2),
+        Some(hunt::Quarry::Clue(_))
+    ));
+}
+
+#[test]
+fn a_quiet_bot_patrols_the_map_instead_of_standing_on_its_pads() {
+    let (mut state, bot) = unseen_pair();
+    state.players.truncate(1);
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Flechette;
+    for tick in 0..=hunt::QUIET_TICKS + 2 {
+        observe(&mut state, &bot, tick);
+    }
+    let tick = state.tick;
+    assert!(state.players[0].bot_senses.hunt.quiet(tick));
+    let Some(hunt::Quarry::Patrol(spot)) = state.players[0].bot_senses.hunt.quarry(tick) else {
+        panic!("a quiet bot has a patrol leg");
+    };
+    let here = feet_of(&state.players[0]);
+    assert!((spot[0] - here[0]).hypot(spot[2] - here[2]) >= 8.0);
+    let goal = bot.intent(&state).goal.expect("it walks the leg");
+    assert!(!goal.combat);
+    // The leg is a pad or a spawn: map knowledge, never a fighter.
+    let known = state
+        .pickups
+        .iter()
+        .any(|pad| [pad.x, pad.floor, pad.z] == goal.feet)
+        || (0..8).any(|index| {
+            let (x, z, _, floor) = state.map.spawn(index as f32 / 8.0 * TAU);
+            [x, floor, z] == goal.feet
+        });
+    assert!(known, "{goal:?}");
+    // Walking it, the head checks either side and the feet keep the route.
+    let walk = Action {
+        forward: true,
+        yaw: Some(0.4),
+        ..Action::default()
+    };
+    let mut turned = 0;
+    for tick in 0..64 {
+        let glanced = hunt::glance(&state.players[0], tick, walk.clone());
+        let keys = |action: &Action| crate::movement::MoveInput {
+            forward: action.forward,
+            back: action.back,
+            left: action.left,
+            right: action.right,
+            ..crate::movement::MoveInput::default()
+        };
+        let before = crate::movement::wish_dir(&keys(&walk), 0.4);
+        let after = crate::movement::wish_dir(&keys(&glanced), glanced.yaw.unwrap());
+        assert!((before.0 - after.0).abs() < 1e-5 && (before.1 - after.1).abs() < 1e-5);
+        if glanced.yaw != walk.yaw {
+            turned += 1;
+        }
+    }
+    assert!((16..=40).contains(&turned), "{turned} of 64 ticks glance");
+}
+
+#[test]
+fn a_pad_already_set_off_for_is_kept_when_its_clock_runs_long() {
+    let (mut state, bot, feet) = lone_bot_with_rail_pad(10.0);
+    for tick in 0..8 {
+        observe(&mut state, &bot, tick);
+    }
+    let back_at = 8 + rail_eta(&state).unwrap();
+    // Twenty ticks past the ordinary slack: a fresh choice stays away...
+    let tick = back_at - 30 - APPOINTMENT_SLACK - 20;
+    state.players[0].yaw = PI;
+    for tick in tick..tick + 2 {
+        observe(&mut state, &bot, tick);
+    }
+    let plan = |state: &GameState| bot.pad_plan(state, &state.players[0], true, false);
+    assert_ne!(plan(&state).map(|plan| plan.feet), Some(feet));
+    // ...but a bot already walking to it keeps the errand.
+    state.note_bot_goal(
+        bot.player_id,
+        Some(NavigationGoal {
+            feet,
+            combat: false,
+        }),
+    );
+    assert_eq!(plan(&state).map(|plan| plan.feet), Some(feet));
+    // A combat goal ends it.
+    state.note_bot_goal(bot.player_id, Some(NavigationGoal { feet, combat: true }));
+    assert_ne!(plan(&state).map(|plan| plan.feet), Some(feet));
 }

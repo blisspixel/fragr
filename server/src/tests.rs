@@ -7893,6 +7893,7 @@ mod encounters;
 mod enforcer;
 mod feel;
 mod heavy_turret;
+mod hunt;
 mod jammer;
 mod lag_comp;
 mod m01;

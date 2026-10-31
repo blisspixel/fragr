@@ -225,6 +225,8 @@ pub struct ScenarioReport {
 pub const MAP_FRAGS_PER_MINUTE: f64 = 10.0;
 pub const MAP_LEAD_CHANGES: f64 = 3.0;
 pub const MAP_TOP_GUN_SHARE: f64 = 0.45;
+/// A Duel finds its fight on every map (#517): one frag a minute between two.
+pub const MAP_DUEL_FRAGS_PER_MINUTE: f64 = 1.0;
 
 impl ScenarioReport {
     /// The gun that fired the most shots and its share.
@@ -679,14 +681,21 @@ pub fn every_map_scenarios() -> Vec<Scenario> {
 }
 
 /// Rows that miss the wave 19 fun targets. Frag pace is read on the
-/// deathmatch modes in rotation (a two-seat Duel trades far fewer frags by
-/// nature), lead changes on free-for-all, gun share everywhere.
+/// deathmatch modes in rotation, and on Duel against its own lower floor (two
+/// seats trade far fewer frags by nature), lead changes on free-for-all, gun
+/// share everywhere.
 pub fn check_map_targets(row: &ScenarioReport, mode: GameMode) -> Vec<String> {
     let mut misses = Vec::new();
     if matches!(mode, GameMode::Ffa | GameMode::Tdm) && row.frags_per_minute < MAP_FRAGS_PER_MINUTE
     {
         misses.push(format!(
             "{}: {:.1} frags/min, want {MAP_FRAGS_PER_MINUTE} or more",
+            row.scenario, row.frags_per_minute
+        ));
+    }
+    if mode == GameMode::Duel && row.frags_per_minute < MAP_DUEL_FRAGS_PER_MINUTE {
+        misses.push(format!(
+            "{}: {:.1} Duel frags/min, want {MAP_DUEL_FRAGS_PER_MINUTE} or more",
             row.scenario, row.frags_per_minute
         ));
     }
@@ -1362,6 +1371,11 @@ mod tests {
         assert_eq!(check_map_targets(&row, GameMode::Ffa).len(), 3);
         assert_eq!(check_map_targets(&row, GameMode::Tdm).len(), 2);
         assert_eq!(check_map_targets(&row, GameMode::Duel).len(), 1);
+        let quiet_duel = ScenarioReport {
+            frags_per_minute: 0.5,
+            ..row.clone()
+        };
+        assert_eq!(check_map_targets(&quiet_duel, GameMode::Duel).len(), 2);
         let good = ScenarioReport {
             frags_per_minute: 12.0,
             lead_changes_per_match: 3.0,

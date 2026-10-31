@@ -5,6 +5,7 @@ use crate::protocol::{CapturePoint, ConquestState, GameMode, Team, TeamScores};
 pub(super) mod coordination;
 #[cfg(test)]
 mod coordination_tests;
+mod driving;
 
 pub(crate) const CAPTURE_TICKS: u16 = 160;
 const START_TICKETS: u32 = 200;
@@ -191,10 +192,7 @@ impl BotController {
         let (Some(team), Some(conquest)) = (bot.team, &state.conquest) else {
             return BotIntent::default();
         };
-        if !state.contact_eligible(bot)
-            || bot.role == crate::protocol::Role::Spectator
-            || state.vehicle_seat(bot.id).is_some()
-        {
+        if !state.contact_eligible(bot) || bot.role == crate::protocol::Role::Spectator {
             return BotIntent::default();
         }
         let Some(point) = state.conquest_orders.point(bot.id, conquest).or_else(|| {
@@ -222,6 +220,17 @@ impl BotController {
         }) else {
             return BotIntent::default();
         };
+        if let Some((index, seat)) = state.vehicle_seat(bot.id) {
+            let drive = state.conquest_orders.drives.get(&bot.id);
+            return self.drive_intent(state, index, seat, point, drive);
+        }
+        // A long way to go and an empty jeep close by: take it, unless a
+        // fight is already in view.
+        if self.sensed_enemy(state, bot, f32::MAX).is_none() {
+            if let Some(index) = self.jeep_for(state, bot, point.position) {
+                return self.board_intent(state, bot, index);
+            }
+        }
         let feet = point.position;
         let near = (bot.x - feet[0]).hypot(bot.z - feet[2]) < point.radius * 0.6
             && (bot.y - PLAYER_FLOOR_Y - feet[1]).abs() <= 3.0;

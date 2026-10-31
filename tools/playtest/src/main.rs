@@ -105,6 +105,10 @@ struct Cli {
     /// absent. A map ID or server map name.
     #[arg(long, conflicts_with_all = ["survey_lot", "survey_maps"])]
     survey_map: Option<String>,
+    /// With --bot-survey: keep only rows whose label contains one of these
+    /// comma-separated pieces (for example `duel-,conquest-`).
+    #[arg(long, requires = "bot_survey", value_delimiter = ',')]
+    survey_only: Vec<String>,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -688,6 +692,14 @@ async fn main() {
                 std::process::exit(2);
             };
             config.scenarios = fragr_playtest::bot_survey::map_scenarios(map);
+        }
+        if !cli.survey_only.is_empty() {
+            config.scenarios.retain(|scenario| {
+                let label = scenario.label();
+                cli.survey_only
+                    .iter()
+                    .any(|piece| label.contains(piece.as_str()))
+            });
         }
         let report = fragr_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {

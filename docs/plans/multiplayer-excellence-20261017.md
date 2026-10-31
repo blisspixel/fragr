@@ -364,6 +364,12 @@ stills. Bots and agents, not a human fun verdict.
   passes (Larak Lot's Stands health in 20 minutes of FFA). The Flechette fires
   most shots on every map but Larak Lot, Compliance Yard and Low Water, where
   the Pistol does: a weapon and kit question, not a map defect.
+- **Wave 20 (#517).** Rule bots now hunt a quiet round by sound, lost
+  sightings and a patrol of the middle and the power pads, glance either
+  side as they walk, and keep to a pad errand instead of turning back and
+  forth between two clocks; Conquest bots drive Holdfast's jeeps. Duel rises
+  on every map but Holdfast (Sector 9 0 to 1.2 frags a minute); the table is
+  in `docs/plans/bot-and-enemy-ai-excellence-20261017.md`.
 
 `fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
 --time-limit-seconds 150`, release, eight seeded 150 s matches per row:

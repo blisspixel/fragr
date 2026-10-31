@@ -15,6 +15,7 @@ use std::f32::consts::{FRAC_PI_3, PI, TAU};
 use uuid::Uuid;
 
 pub(crate) mod guard;
+mod hunt;
 mod pads;
 
 const OBSERVE_EVERY: u64 = 2;
@@ -31,6 +32,10 @@ const FLINCH_AIM: f32 = 3.0;
 /// A bot leaves for a pad that is not back yet only when it would otherwise
 /// arrive no more than this early.
 const APPOINTMENT_SLACK: u64 = 40;
+/// Extra ticks of slack for the pad a bot is already walking to.
+const HEADING_SLACK: u64 = 20 * 6;
+/// The pad a bot is already walking to counts at this share of its cost.
+const HEADING_KEEP: f32 = 0.8;
 /// Below this a bot breaks off a search for health it knows about.
 const HURT_HP: i32 = 50;
 /// A habit pad breaks off a search only this close, in metres.
@@ -119,6 +124,8 @@ struct PadPlan {
     timed: bool,
     /// A gun for a bot that holds nothing better than the Pistol.
     arms: bool,
+    /// Health or armour for a body that has been worn down.
+    mend: bool,
 }
 
 /// How far an objective role may stray for a pad (`objective_pad`).
@@ -152,6 +159,10 @@ pub(super) struct BotSenses {
     hurt: Option<Hurt>,
     flinch_until: u64,
     pads: pads::PadMemory,
+    hunt: hunt::Hunt,
+    /// The pad this bot set off for last tick: kept to, so a walk toward a
+    /// returning pad does not turn back halfway (see `pad_plan`).
+    heading_for: Option<usize>,
 }
 
 fn angle_difference(to: f32, from: f32) -> f32 {
@@ -392,8 +403,11 @@ impl BotSenses {
     /// A new body: no target, no hurt, no flinch. Pad memory survives.
     pub(super) fn forget_fighters(&mut self) {
         let pads = std::mem::take(&mut self.pads);
+        let mut hunt = std::mem::take(&mut self.hunt);
+        hunt.respawned();
         *self = Self {
             pads,
+            hunt,
             ..Self::default()
         };
     }
@@ -529,11 +543,36 @@ impl BotSenses {
             hurt,
             flinch_until: self.flinch_until,
             pads,
+            hunt: self.hunt.clone(),
+            heading_for: self.heading_for,
         }
     }
 }
 
 impl GameState {
+    /// Remember which pad a rule bot is walking to, from the goal its
+    /// controller chose this tick: a pad's own feet, or none. Holding at a
+    /// pad early for its clock keeps the errand.
+    pub(crate) fn note_bot_goal(&mut self, id: Uuid, goal: Option<NavigationGoal>) {
+        let Some(index) = self.players.iter().position(|p| p.id == id) else {
+            return;
+        };
+        let bot = &self.players[index];
+        let heading_for = match goal {
+            Some(goal) if !goal.combat => self
+                .pickups
+                .iter()
+                .position(|pad| [pad.x, pad.floor, pad.z] == goal.feet),
+            Some(_) => None,
+            None => bot.bot_senses.heading_for.filter(|&pad| {
+                self.pickups
+                    .get(pad)
+                    .is_some_and(|pad| (pad.x - bot.x).hypot(pad.z - bot.z) < 1.5)
+            }),
+        };
+        self.players[index].bot_senses.heading_for = heading_for;
+    }
+
     pub(crate) fn update_bot_senses(&mut self, controllers: &[BotController]) {
         for controller in controllers {
             let Some(index) = self
@@ -555,7 +594,21 @@ impl GameState {
                 self.players[index].bot_senses.forget_fighters();
                 continue;
             }
-            let senses = bot.bot_senses.observe(self, bot);
+            let mut senses = bot.bot_senses.observe(self, bot);
+            let tick = self.tick;
+            let seen = senses.target.is_some_and(|target| {
+                target.visible && tick.saturating_sub(target.seen_at) < OBSERVE_EVERY
+            });
+            let lost = senses
+                .target
+                .filter(|target| !target.visible)
+                .map(|target| (target.feet, target.velocity, target.seen_at));
+            let hurt = senses
+                .hurt
+                .is_some_and(|hurt| tick.saturating_sub(hurt.at) <= 1);
+            senses
+                .hunt
+                .update(self, bot, seen, lost, hurt, &senses.pads);
             let bot = &mut self.players[index];
             bot.bot_senses = senses;
             if bot.contestant() && bot.inventory.policy() == EquipmentPolicy::FullArsenal {
@@ -699,10 +752,18 @@ impl BotController {
             };
             let distance = (pad.x - bot.x).hypot(pad.z - bot.z);
             let travel = (distance / WAIT_COST) as u64;
-            if eta > travel.saturating_add(APPOINTMENT_SLACK) {
+            // A pad already set off for keeps a longer slack: walking toward
+            // it shortens the walk, and without this the same clock that sent
+            // the bot would turn it back halfway, then send it again.
+            let heading = bot.bot_senses.heading_for == Some(index);
+            let slack = if heading {
+                APPOINTMENT_SLACK + HEADING_SLACK
+            } else {
+                APPOINTMENT_SLACK
+            };
+            if eta > travel.saturating_add(slack) {
                 continue;
             }
-            let wait = eta.saturating_sub(travel);
             // The favourite gun is worth a detour while the hand lacks it.
             let favourite = pad.kind.weapon() == Some(habits.favourite)
                 && !bot.inventory.usable(habits.favourite);
@@ -717,7 +778,11 @@ impl BotController {
             } else {
                 1.0
             };
-            let cost = distance * weight + wait as f32 * WAIT_COST;
+            // Time to the claim, walking or waiting, in metres: never cheaper
+            // for walking away. Weighing the walk but not the wait made a
+            // pad due later look cheaper with every step away from it.
+            let reach = distance.max(eta as f32 * WAIT_COST);
+            let cost = reach * weight * if heading { HEADING_KEEP } else { 1.0 };
             if best.as_ref().is_none_or(|(old, _)| cost < *old) {
                 best = Some((
                     cost,
@@ -726,6 +791,7 @@ impl BotController {
                         waiting: eta > 0 && distance < 1.5,
                         timed,
                         arms: pad.kind.weapon().is_some() && pistol_only,
+                        mend: pad.kind.weapon().is_none() && gain,
                     },
                 ));
             }
@@ -765,6 +831,7 @@ impl BotController {
                             && gain
                             && distance <= ROCKET_DROP_REACH,
                         arms: pistol_only,
+                        mend: false,
                     },
                 ));
             }
@@ -885,7 +952,16 @@ impl BotController {
         let appointment = walk_off
             .then(|| self.pad_plan(state, bot, supplied, true))
             .flatten()
-            .filter(|plan| !visible || plan.timed || plan.arms);
+            .filter(|plan| !visible || plan.timed || plan.arms)
+            // A quiet round is hunted, not spent collecting every gun on the
+            // floor: only the pad the callsign times, a first real gun, or
+            // mending a worn body still comes first.
+            .filter(|plan| {
+                !(supplied && bot.bot_senses.hunt.quiet(state.tick))
+                    || plan.timed
+                    || plan.arms
+                    || plan.mend
+            });
         if let Some(observed) = observation.filter(|_| supplied && appointment.is_none()) {
             if !observed.visible {
                 let mut action = super::face_flag_goal(bot, observed.feet);
@@ -907,10 +983,27 @@ impl BotController {
         }
 
         // Known supplies and spawn locations are navigation knowledge. No live
-        // opponent coordinates or live pad timers enter this search.
-        if let Some(PadPlan { feet, waiting, .. }) =
-            appointment.or_else(|| self.pad_plan(state, bot, supplied, false))
-        {
+        // opponent coordinates or live pad timers enter this search. A quiet
+        // round is hunted (`hunt.rs`): a sound or a lost sighting first, then
+        // a patrol of the stalest pads and spawns. Top-ups wait for a pad on
+        // the way; measured on Sector 9, two Duel bots each looping their own
+        // pad circuit never met in twenty minutes.
+        let hunt = &bot.bot_senses.hunt;
+        let quarry = supplied.then(|| hunt.quarry(state.tick)).flatten();
+        let clue = quarry.filter(|quarry| matches!(quarry, hunt::Quarry::Clue(_)));
+        let quiet = supplied && hunt.quiet(state.tick);
+        let top_up = || {
+            self.pad_plan(state, bot, supplied, false).filter(|plan| {
+                !quiet
+                    || plan.timed
+                    || plan.arms
+                    || (!plan.waiting
+                        && (plan.feet[0] - bot.x).hypot(plan.feet[2] - bot.z)
+                            <= hunt::QUIET_PAD_REACH)
+            })
+        };
+        let plan = appointment.or_else(|| if clue.is_some() { None } else { top_up() });
+        if let Some(PadPlan { feet, waiting, .. }) = plan {
             // Walking to an appointment past a fight still shoots what it
             // sees, the way an objective route does.
             let aim = observation
@@ -957,6 +1050,31 @@ impl BotController {
                     combat: false,
                 }),
             };
+        }
+        match quarry {
+            Some(hunt::Quarry::Clue(feet) | hunt::Quarry::Patrol(feet)) => {
+                let mut action = super::face_flag_goal(bot, feet);
+                action.weapon_swap = swap;
+                return BotIntent {
+                    action,
+                    goal: Some(NavigationGoal {
+                        feet,
+                        combat: false,
+                    }),
+                };
+            }
+            Some(hunt::Quarry::Sweep) => {
+                // Arrived and found nobody: look around before moving on.
+                return BotIntent {
+                    action: Action {
+                        turn_right: true,
+                        weapon_swap: swap,
+                        ..Action::default()
+                    },
+                    goal: None,
+                };
+            }
+            None => {}
         }
         let slot = mix(salt(bot.id) ^ (state.tick / 80)) % 16;
         let (x, z, _, floor) = state.map.spawn(slot as f32 / 16.0 * TAU);
@@ -1064,6 +1182,29 @@ impl BotController {
             intent.action.back = false;
         }
         intent
+    }
+
+    /// A hunting walk checks either side as it goes (`hunt::glance`). Only in
+    /// the deathmatch modes, only with nobody in view, and never in a seat.
+    pub(crate) fn glance_while_walking(&self, state: &GameState, action: Action) -> Action {
+        let Some(bot) = state.players.iter().find(|p| p.id == self.player_id) else {
+            return action;
+        };
+        let deathmatch = matches!(
+            state.config.rules.mode(),
+            GameMode::Ffa | GameMode::Duel | GameMode::Tdm
+        );
+        let in_view = bot.bot_senses.target.is_some_and(|target| {
+            target.visible && state.tick.saturating_sub(target.seen_at) < OBSERVE_EVERY
+        });
+        if !deathmatch
+            || !self.uses_senses(state, bot)
+            || in_view
+            || state.vehicle_seat(bot.id).is_some()
+        {
+            return action;
+        }
+        hunt::glance(bot, state.tick, action)
     }
 
     /// Routing may remove combat intent but cannot restore a blind or early shot.
