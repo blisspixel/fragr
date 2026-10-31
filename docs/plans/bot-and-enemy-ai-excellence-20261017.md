@@ -362,29 +362,29 @@ What changed (`server/src/sim/bot_senses.rs`, `bot_senses/hunt.rs`, `session.rs`
 
 Holdfast vehicles (`server/src/sim/conquest/driving.rs`, `conquest.rs`, `conquest/coordination.rs`): a Conquest bot whose ordered site is 60 m or more away walks to an empty jeep within 30 m (nobody in either seat, no person on its side within 15 m of it, no further from the site) and presses to board from beside the door. It drives the map's walking route toward the site, replanned every two seconds, steering for the first point 7 m ahead, lifting off for sharp turns and braking inside 26 m, and gets out within 14 m of the site, below 100 plating, or after three seconds without two metres of ground (backing off a wall when no door is clear). The site it set off for is kept while seated. Boats and the aircraft are left alone, and a bot never takes a gunner seat. Weapon choice and pads are unchanged.
 
-`fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8 --time-limit-seconds 150` (release, eight seeded 150 s rounds per row; `--survey-only` is new and filters rows). Before is `c957700f`.
+`fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8 --time-limit-seconds 150` (release, eight seeded 150 s rounds per row; `--survey-only` is new and filters rows). Before is `57d1f2b5`, with the rebuilt Compliance Yard and Low Water.
 
 | Row | Frags/min before | after | Lead changes before | after |
 |---|---|---|---|---|
 | duel-larak-lot-2 | 2.6 | 2.7 | 0 | 1 |
-| duel-compliance-yard-2 | 3.1 | 4.3 | 0.9 | 0.6 |
+| duel-compliance-yard-2 | 2.5 | 3.2 | 0 | 0.1 |
 | duel-directive-17-substation-2 | 3 | 3.9 | 1 | 0.4 |
 | duel-sector-9-transit-hall-2 | 0 | 1.2 | 0 | 0.5 |
 | duel-reclamation-gulch-2 | 1.4 | 2.4 | 0.3 | 0.3 |
 | duel-tripoint-works-2 | 0.9 | 1.2 | 0.1 | 0.5 |
 | duel-holdfast-atoll-2 | 0.8 | 0.7 | 0 | 0 |
-| duel-low-water-2 | 2.4 | 3.2 | 0.8 | 0.5 |
+| duel-low-water-2 | 2 | 2.7 | 0.4 | 0 |
 | ffa-larak-lot-6 | 20.8 | 21 | 3.1 | 3.5 |
-| ffa-compliance-yard-6 | 21 | 22 | 2.1 | 3 |
+| ffa-compliance-yard-6 | 17.4 | 17.5 | 3.4 | 3.3 |
 | ffa-directive-17-substation-8 | 25.7 | 26 | 4 | 4 |
 | ffa-sector-9-transit-hall-8 | 11.4 | 12.9 | 2.9 | 1.6 |
 | ffa-reclamation-gulch-12 | 22 | 22.6 | 2.6 | 3.5 |
 | ffa-tripoint-works-12 | 20.3 | 22 | 3.6 | 2.9 |
 | ffa-holdfast-atoll-16 | 31.5 | 33.9 | 4.5 | 4.1 |
-| ffa-low-water-10 | 36.1 | 37.6 | 3.3 | 2.8 |
-| tdm rows (seven maps) | 13.2 to 33.3 | 13.1 to 35.8 | | |
+| ffa-low-water-10 | 32.4 | 33.3 | 2.9 | 2.6 |
+| tdm rows (eight maps) | 13.2 to 28.5 | 13.1 to 30.7 | | |
 
-FFA lead changes on a second set of eight seeds (9 to 16), before and after: Larak Lot 2.5 / 2.3, Compliance Yard 2.5 / 3.4, Directive 17 4.8 / 3.8, Sector 9 2.8 / 3.3, Gulch 2.1 / 2.5, Tripoint 3.3 / 2.9, Holdfast 3.8 / 3.8, Low Water 2.6 / 3.1. Lead changes move by about one per match between seed sets, so the per-map changes above are inside seed noise; frag pace rises on every FFA row in both sets.
+FFA lead changes on a second set of eight seeds (9 to 16), before and after (Compliance Yard and Low Water on their earlier layouts): Larak Lot 2.5 / 2.3, Compliance Yard 2.5 / 3.4, Directive 17 4.8 / 3.8, Sector 9 2.8 / 3.3, Gulch 2.1 / 2.5, Tripoint 3.3 / 2.9, Holdfast 3.8 / 3.8, Low Water 2.6 / 3.1. Lead changes move by about one per match between seed sets, so the per-map changes above are inside seed noise; frag pace rises on every FFA row in both sets.
 
 | Conquest, Holdfast, 16 bots | Before | After |
 |---|---|---|
