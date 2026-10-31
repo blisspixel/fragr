@@ -18,7 +18,7 @@ Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then 
 
 ## Where we are (2026-10-31)
 
-- **Release.** v0.95.0 is the development release checkpoint for wave 18 (Levels 9, 13 and 17 layouts, cast colours, the Blood setting, the campaign score and the fire-press latch), following v0.94.0 for waves 13 through 17. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening to the score remain separate unproven evidence.
+- **Release.** v0.97.0 is the development release checkpoint for wave 20 (weapon balance, hunting bots and jeep drivers, the Level 18 square, Voss captured in play, Latch through Episode IV, and the shared-mesh fix), following v0.96.0 for wave 19. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening to the campaign score remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
@@ -36,8 +36,8 @@ This is the only active sequence. When the current rung changes, edit this secti
 2. **Golden slice and hero map, implemented, evaluation continuing.** [Larak Lot](plans/larak-lot.md), a five-level car park, replaced Arena Duel on map 1 (#464), and Recall Notice is dressed as the Level 1 golden slice (#461). Both were judged from inspected Linux stills and motion; continue rendered inspection and constrained play now, while keeping physical-device and fresh-player evidence open. This slice is the quality bar for everything after it.
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
 4. **Raise the campaign to the bar, continuing.** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilt layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
-5. **One more game, current engineering waves (19 and 20).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
-6. **First human evidence, before more content.** Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. Fun, readability and onboarding are judged by people here, not at the end.
+5. **One more game, implemented in waves 19 and 20.** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
+6. **First human evidence, before more content (next).** Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. Fun, readability and onboarding are judged by people here, not at the end.
 7. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
 8. **Content complete to the bar.** Every campaign level, the epilogue and every multiplayer map that ships enabled by default meet the golden-slice bar; every weapon, fighter, surface and HUD element is final; the score, Host, barks and radio are picked by ear; nothing placeholder remains. Maps not yet at the bar may ship switched off.
 9. **Release candidates.** Versions 0.99.x: a full audit against [the 1.0 bar](#the-10-bar), a larger fresh-player round, clean-machine installs by people on Windows, macOS and Linux, the twenty-four hour soak and the public week. Fix what they find; do not add features.
@@ -80,14 +80,19 @@ no human has played any of it.
 | Compliance Yard and Low Water (#512) | Compliance Yard rebuilt as nine rooms, crossing in 24.5 s with a 46 m longest line; Low Water's sites differentiated, the trench broken up, its own spawn table; both lit and dressed; Low Water joins the roster | Plain floors; Low Water Sabotage favours attackers (#520) |
 | Story that lands (#513) | Level 18's turn happens in play and no longer announces the wipe; Latch, Sorrel, Kessel, Orrin and Mara set up before they matter; story pages and timeline fixed; the radio stays silent through a story moment | The Level 18 square's dressing and Voss's capture moved to wave 20 (#518) |
 
-### Wave 20: balance, hunting bots and the campaign's middle, in progress
+### Wave 20: balance, hunting bots and the campaign's middle, implemented
 
-| Lane | Scope |
-|---|---|
-| Weapon balance (#516) | No gun above 45% of free-for-all shots on any map, through pad supply rather than weapon stats |
-| Bots hunt (#517) | Bots seek a quiet fight by honest senses, Duel fights on every map, Conquest bots drive Holdfast's jeeps |
-| Level 18 and Voss (#518) | The Level 18 square dressed, Voss captured alive in play in Level 17, Latch with the party in Levels 12 to 16 |
-| Open levels (#519) | Level 9's shared floor split, Level 17 furnished throughout, Level 13's lathes and light, the berth crew's own figures |
+Bots-only surveys, native tests and inspected Linux captures; no human play.
+
+| Lane | Result | Still open |
+|---|---|---|
+| Weapon balance (#516) | Pad supply rebalanced off Larak Lot: every free-for-all top gun at 42% or under across 24 seeds (the Rifle was 50 to 73% on five maps), no weapon stat changed, the Rocket 6 to 8% of frags where present | Team deathmatch stays 62 to 71% Rifle unless the fire rate changes (Nick's call); lead changes dipped on Directive 17 and Tripoint |
+| Bots hunt (#517) | Bots judge pads by when they can take them, hear gunfire, explosions, pads and footsteps without wallhacks, patrol and glance; Duel fights on every map but Holdfast (Sector 9 from 0 to 1.2 frags a minute); Conquest bots drive Holdfast's jeeps | Holdfast Duel (whether Duel should refuse large maps is Nick's call); bots do not use boats or aircraft |
+| Level 18 and Voss (#518) | Level 18's square dressed as Low Water's people rebuilding on a clear morning, its light and noise stopping at the turn; Voss taken alive in play at her rostrum, escorted by free people; Latch with the party in Levels 12, 13, 14 and 16, with the Level 13 lift and Level 16 doors waiting for Latch | Voss wears the generic human body; Latch does not react at the capture |
+| Open levels (#519) | Level 9's shared floor split; Level 17 furnished throughout; Level 13's lathes read as machines; the berth crew's own figures; a shared-mesh bug that hid rods and cylinders (shipped on Level 9) fixed at its root; the Level 17 fight capture runs from a carried kit, 6 of 6 | The Level 13 hall is still murky away from process light |
+
+The coordinator also freed CI runner disk after a test job ran out of space,
+and set the [1.0 bar](#the-10-bar) and the order of work toward it.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
@@ -112,7 +117,7 @@ If the numbers move and the people do not, trust the people.
   client on a shaped link and stage 6's transport comparison remain open.
   Loopback simulation does not close them. Profile before pursuing more byte
   savings in `shot_results`; no speculative transport rewrite.
-- **Release acceptance.** Review v0.94.0 on Windows with real controllers and
+- **Release acceptance.** Review the latest release on Windows with real controllers and
   fresh players. Its release notes separate Linux rendered evidence and
   automated package checks from human play. Keep later source changes and
   published packages distinct when the next engineering wave starts.
