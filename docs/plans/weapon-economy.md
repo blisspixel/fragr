@@ -35,6 +35,16 @@ Golden Rail, Sabotage, the campaign and the benchmark never drop. The
 measurements and the unmet Rocket target are in the [bot plan](bot-and-enemy-ai-excellence-20261017.md#6-progress). The gates still
 need the harness metrics named below before this economy is tuned.
 
+Current-state note (2026-10-30, wave 20, #516): every map's free-for-all floor
+now follows Larak Lot's mix. The Rifle is at most one weapon pad in three
+(`no_free_for_all_floor_is_mostly_the_rifle`); the extra free-for-all pads on
+Directive 17, Sector 9, Reclamation Gulch, Tripoint Works and Holdfast Atoll
+that were Rifles are now Shotguns, Railguns or a Rocket; the rebuilt
+Compliance Yard and Low Water already meet it.
+Rule bots past the Rifle's band take the Railgun they carry. The
+measurements are in the
+[multiplayer plan](multiplayer-excellence-20261017.md#weapon-balance-516-wave-20).
+
 ## Bounded increment: M01 discovery
 
 Implement fists, Tack and Flechette ownership and finite ammunition through one

@@ -162,8 +162,14 @@ pub struct ScenarioReport {
     pub mean_power_wait_s: f64,
     /// Frags within 8 m of a power pad inside 5 s of its return, per frag.
     pub pad_contest_index: f64,
-    /// Resolved shots by weapon, as a share of all shots.
+    /// Resolved shots by weapon, as a share of all shots; rockets launched
+    /// count as Rocket shots.
     pub shot_share: BTreeMap<String, f64>,
+    /// Share of living fighter ticks each gun was in hand, and share of them
+    /// it was owned with rounds: what a body carries against what it fires,
+    /// so a gun share reads as supply or as choice.
+    pub hand_share: BTreeMap<String, f64>,
+    pub owned_share: BTreeMap<String, f64>,
     /// Frags by the weapon that landed them.
     pub frag_weapons: BTreeMap<String, u64>,
     /// Captures in CTF; Conquest sites changing hands.
@@ -369,6 +375,9 @@ struct Tally {
     contested_frags: u64,
     shots: BTreeMap<String, u64>,
     frag_weapons: BTreeMap<String, u64>,
+    living_ticks: u64,
+    hand_ticks: BTreeMap<String, u64>,
+    owned_ticks: BTreeMap<String, u64>,
     objective_events: u64,
     plate_claims: u64,
     rocket_claims: u64,
@@ -538,13 +547,28 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
         round_seconds: f64::from(config.round_ticks) / 20.0,
         scenarios: Vec::new(),
     };
-    for scenario in &config.scenarios {
-        let mut tally = Tally::default();
-        for &seed in &config.seeds {
-            survey_match(*scenario, seed, config.round_ticks, &mut tally);
-        }
-        report.scenarios.push(fold(scenario, &tally));
+    // Scenarios share nothing, so each folds on its own thread; the report
+    // keeps the configured order and every row is the one a serial run gives.
+    let workers = std::thread::available_parallelism().map_or(1, usize::from);
+    let mut rows: Vec<Option<ScenarioReport>> = vec![None; config.scenarios.len()];
+    for (chunk, slots) in config
+        .scenarios
+        .chunks(workers)
+        .zip(rows.chunks_mut(workers))
+    {
+        std::thread::scope(|scope| {
+            for (scenario, slot) in chunk.iter().zip(slots.iter_mut()) {
+                scope.spawn(move || {
+                    let mut tally = Tally::default();
+                    for &seed in &config.seeds {
+                        survey_match(*scenario, seed, config.round_ticks, &mut tally);
+                    }
+                    *slot = Some(fold(scenario, &tally));
+                });
+            }
+        });
     }
+    report.scenarios = rows.into_iter().flatten().collect();
     report
 }
 
@@ -597,6 +621,16 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
             .shots
             .iter()
             .map(|(weapon, count)| (weapon.clone(), share(*count, shots)))
+            .collect(),
+        hand_share: tally
+            .hand_ticks
+            .iter()
+            .map(|(weapon, count)| (weapon.clone(), share(*count, tally.living_ticks)))
+            .collect(),
+        owned_share: tally
+            .owned_ticks
+            .iter()
+            .map(|(weapon, count)| (weapon.clone(), share(*count, tally.living_ticks)))
             .collect(),
         frag_weapons: tally.frag_weapons.clone(),
         objective_events: tally.objective_events,
@@ -801,6 +835,18 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
             tally.live_ticks += 1;
             for player in &session.state.players {
                 let alive = player.hp > 0 && player.respawn_timer.is_none();
+                if alive {
+                    tally.living_ticks += 1;
+                    *tally
+                        .hand_ticks
+                        .entry(player.weapon.name().to_string())
+                        .or_default() += 1;
+                    for gun in WeaponType::ALL {
+                        if gun != WeaponType::Fists && player.inventory.usable(gun) {
+                            *tally.owned_ticks.entry(gun.name().to_string()).or_default() += 1;
+                        }
+                    }
+                }
                 let armed = alive
                     && player.inventory.owns(WeaponType::Rocket)
                     && player.inventory.carried(AmmoPool::Rockets) > 0;
@@ -1053,6 +1099,14 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         if let Some(record) = session.state.player_record(id) {
             let rocket = record.total.weapon(WeaponType::Rocket);
             tally.rocket_launches += rocket.attacks;
+            // A rocket is a shot too: it leaves no hitscan trace, so the
+            // launcher would otherwise be missing from the gun share.
+            if rocket.attacks > 0 {
+                *tally
+                    .shots
+                    .entry(WeaponType::Rocket.name().to_string())
+                    .or_default() += rocket.attacks;
+            }
             tally.rocket_damaging += rocket.damaging_attacks;
         }
     }

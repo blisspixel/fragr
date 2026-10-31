@@ -258,6 +258,13 @@ fn preferred_weapon(
     let order: &[WeaponType] = match behavior {
         BotBehavior::Compliance => return bot.weapon,
         _ if bot.golden => &[rail],
+        // Past the Rifle's own band every personality reaches for the
+        // Railgun it carries: the long lane is the Railgun's one job.
+        BotBehavior::Aggressive | BotBehavior::Flanker
+            if distance > Flechette.preferred_range().1 =>
+        {
+            &[rail, Sniper, Rocket, Flechette, Repeater]
+        }
         BotBehavior::Aggressive if distance < 10.0 => &[Scatter, Rocket, Repeater, Flechette],
         BotBehavior::Aggressive => &[Rocket, Repeater, Flechette, rail],
         BotBehavior::Defensive if distance > 30.0 => &[Sniper, rail, Flechette],

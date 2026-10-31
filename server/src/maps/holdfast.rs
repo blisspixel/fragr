@@ -213,8 +213,8 @@ pub(super) fn build() -> MapDef {
             ),
             weapon_pad("bay_scatter_w", WeaponType::Scatter, -140.0, -10.0, 0.0),
             weapon_pad("bay_scatter_e", WeaponType::Scatter, 140.0, -10.0, 0.0),
-            weapon_pad("bay_flechette_nw", WeaponType::Flechette, -135.0, 90.0, 0.0),
-            weapon_pad("bay_flechette_ne", WeaponType::Flechette, 135.0, 90.0, 0.0),
+            weapon_pad("bay_rocket_nw", WeaponType::Rocket, -135.0, 90.0, 0.0),
+            weapon_pad("bay_rail_ne", WeaponType::Rail, 135.0, 90.0, 0.0),
         ],
     };
     for pickup in map.pickups.iter_mut().chain(map.scrap_pads.iter_mut()) {

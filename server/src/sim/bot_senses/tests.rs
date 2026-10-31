@@ -736,6 +736,32 @@ fn personalities_take_found_guns_to_their_distances() {
         WeaponType::Flechette
     );
     assert_eq!(pick(own(BotBehavior::Flanker), 3.0), WeaponType::Flechette);
+    // Past the Rifle's band every personality takes the Railgun it
+    // carries; inside it the rusher and the flanker keep the Rifle.
+    let (mut state, _) = pair(2);
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette, WeaponType::Rail]);
+    let bot = &state.players[0];
+    let pick = |(behavior, habits), distance| preferred_weapon(behavior, habits, bot, distance);
+    let edge = WeaponType::Flechette.preferred_range().1;
+    for behavior in [
+        BotBehavior::Aggressive,
+        BotBehavior::Flanker,
+        BotBehavior::Balanced,
+        BotBehavior::Defensive,
+    ] {
+        assert_eq!(
+            pick(own(behavior), edge + 6.0),
+            WeaponType::Rail,
+            "{behavior:?}"
+        );
+    }
+    for behavior in [BotBehavior::Aggressive, BotBehavior::Flanker] {
+        assert_eq!(
+            pick(own(behavior), 15.0),
+            WeaponType::Flechette,
+            "{behavior:?}"
+        );
+    }
     // A Rocket is never fired into a body at arm's length.
     let (mut state, bot) = pair(2);
     state.players[0].inventory = full_bag(&[WeaponType::Rocket]);

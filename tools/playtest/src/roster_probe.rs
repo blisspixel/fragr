@@ -293,7 +293,7 @@ fn a_planner_strafes_round_cover_on_the_way_to_a_pad() {
     state.pickups = full
         .pickups
         .into_iter()
-        .filter(|pad| pad.id == "scrap_flechette_n")
+        .filter(|pad| pad.id == "scrap_rocket_n")
         .collect();
     let pad = state.pickups[0].clone();
     let me = state.players.iter_mut().find(|p| p.id == id).unwrap();

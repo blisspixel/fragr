@@ -548,6 +548,18 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.lowest_feet,
             row.vehicle_seconds
         );
+        let shares = |map: &std::collections::BTreeMap<String, f64>| {
+            map.iter()
+                .map(|(weapon, share)| format!("{weapon} {:.0}%", share * 100.0))
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
+        println!(
+            "{}: in hand {}; owned {}",
+            row.scenario,
+            shares(&row.hand_share),
+            shares(&row.owned_share)
+        );
         if !row.unclaimed_pads.is_empty() {
             println!(
                 "{}: pads never claimed: {}",
