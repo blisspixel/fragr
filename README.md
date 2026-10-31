@@ -39,6 +39,10 @@ For the factions, machines, and history behind the scrap, see [The world and its
 
 The campaign is twenty levels across five episodes. All twenty are playable as connected development levels, from Recall Notice through Local Exception, and surviving Level 20 opens the Still Here epilogue, a walk through the refuge the morning after and years later. Level 1 is the golden slice the rest are being raised to. For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
 
+## Road to 1.0
+
+fragr stays at 0.x until it earns 1.0. That means a game strangers pick up, love and come back to, not a feature count: fresh players asking for one more match and finishing the campaign moved by it, every shipped level and map built to the golden slice's bar with nothing placeholder left, controls that feel buttery on ordinary hardware, fair fights, clean installs on Windows, macOS and Linux, and a server hosts can leave running for days. Each gate names the evidence that proves it, and bots or screenshots never stand in for people. The gates, the order of work toward them, and the horizons after 1.0 are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar).
+
 ## In game
 
 These are actual captures from the development build. They show provisional

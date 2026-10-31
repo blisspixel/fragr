@@ -7,15 +7,16 @@ Every item is **planned**, **in progress**, **shipped** (merged to `main`) or **
 ## The shape of the plan
 
 1. **Make it excellent locally.** Solo play, agents through the adapter, and small multiplayer on one machine or a LAN. Zero spend. Depth before breadth: one slice that looks, sounds and plays well sets the bar everything else is built to.
-2. **Expose it.** A hardened server on a spare home machine or a small VM where strangers and their agents join and it does not fall over. Home is a complete host, not a lesser path.
-3. **Make it deployable.** The same server as plan-only infrastructure, applied only after the exposed server is proven and spend is approved. The [server excellence plan](plans/server-excellence.md) owns this.
-4. **Deepen it.** More maps, modes, vehicles, progression and the tooling that makes watching as good as playing.
+2. **Prove it with people early.** Nick and friends on a LAN, then small rounds of fresh players, before the content is finished, so people steer what gets built.
+3. **Expose it.** A hardened server on a spare home machine or a small VM where strangers and their agents join and it does not fall over. Home is a complete host, not a lesser path.
+4. **Finish it to the 1.0 bar.** Every shipped level, map, sound and piece of art at the golden-slice bar, release candidates, then 1.0 only when [every gate](#the-10-bar) is proven.
+5. **Grow it after 1.0.** Deployed hosting once spend is approved ([server excellence plan](plans/server-excellence.md)), bigger nights and a bigger world, per [Beyond 1.0](#beyond-10).
 
-Scale runs through every phase: small squads first (four to twelve fighters), then full servers (thirty-two to sixty-four), then large agent-heavy arenas. No rung is claimed until measured.
+Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then full servers (thirty-two to sixty-four) and large agent-heavy arenas after it. No rung is claimed until measured.
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-10-30)
+## Where we are (2026-10-31)
 
 - **Release.** v0.95.0 is the development release checkpoint for wave 18 (Levels 9, 13 and 17 layouts, cast colours, the Blood setting, the campaign score and the fire-press latch), following v0.94.0 for waves 13 through 17. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening to the score remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
@@ -36,8 +37,11 @@ This is the only active sequence. When the current rung changes, edit this secti
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
 4. **Raise the campaign to the bar, continuing.** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilt layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
 5. **One more game, current engineering waves (19 and 20).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
-6. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
-7. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
+6. **First human evidence, before more content.** Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. Fun, readability and onboarding are judged by people here, not at the end.
+7. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
+8. **Content complete to the bar.** Every campaign level, the epilogue and every multiplayer map that ships enabled by default meet the golden-slice bar; every weapon, fighter, surface and HUD element is final; the score, Host, barks and radio are picked by ear; nothing placeholder remains. Maps not yet at the bar may ship switched off.
+9. **Release candidates.** Versions 0.99.x: a full audit against [the 1.0 bar](#the-10-bar), a larger fresh-player round, clean-machine installs by people on Windows, macOS and Linux, the twenty-four hour soak and the public week. Fix what they find; do not add features.
+10. **1.0.** Tag 1.0 only when every gate in the 1.0 bar is proven with the evidence it names. Cloud apply stays plan-only until the public week is real and spend is approved.
 
 <a id="next-steps"></a>
 
@@ -149,9 +153,7 @@ current treatment until a choice is made; record defects as bounded work.
 | AI (#432) | Wave 13 fixed the deliberate-profile regression. Rocket balance and Latch voice remain open. |
 | Networking (#434) | Stages 1 and 2 measured; stage 3 deferred with evidence; stages 4 and 5 implemented with loopback measurements in [BENCHMARK.md](BENCHMARK.md). Field validation and stage 6 remain open. |
 
-Later, after evidence: Wipe and large combined-arms modes, the
-[inheritance benchmark](plans/inheritance-benchmark.md),
-[agent discovery](plans/agent-door-2026.md), localization and a possible Steam build.
+Later work, after 1.0, is sorted into horizons in [Beyond 1.0](#beyond-10).
 
 ### Fun-compound lens (not a second build order)
 
@@ -172,14 +174,42 @@ it does not add a list to execute. The Full build order owns the rungs. The
 
 Do not expand public dream modes before S1 through S3 have stranger evidence on Scrap, team modes, and Sabotage carry.
 
+<a id="the-10-bar"></a>
+
 ## The 1.0 bar
 
-Version 1.0 is a promise, not a milestone count. Until every line below is proven, releases stay at 0.x no matter how much has shipped.
+Version 1.0 is a promise to players, not a milestone count: a game strangers
+pick up, love and come back to, that holds up on their machines and does not
+fall over when they host it. Until every gate below is proven with the evidence
+it names, releases stay at 0.x, however much has shipped. Bots, headless checks
+and our own captures are development evidence; they never stand in for a gate
+that names people. Numbers marked *proposed* are Nick's to tune.
 
-- **Controls feel buttery.** First-person movement and aim with client-side prediction and server reconciliation, interpolation on every other fighter, no rubber-banding on a LAN or a good connection, input latency under fifty milliseconds on a LAN, sixty frames per second at 1080p on a modest machine with a full server. Mouse and gamepad both tuned. Use the offline benchmark for CPU work, live two-machine probes for network behavior, and inspected play plus physical measurements for feel; publish only measured results in release notes. The design, the staged PRs, and the pass numbers are in `plans/buttery-controls.md`.
-- **Validated everywhere it claims to run.** A two-machine LAN session, a public server that stays up for a week with strangers on it, agents playing as rule bots, through the adapter, and as the decision-brain client, the single-player campaign complete through the wipe finale and its conditional epilogue, and desktop exports for Windows, macOS, and Linux that boot to Solo Scrap on a clean machine.
-- **Extremely polished.** No placeholder art anywhere: every weapon, fighter, map surface, and HUD element final; the radio, effects, and Host voice complete; onboarding to a fight in under a minute with no docs; a twenty-four hour soak with no crash, proven by the status JSON at start and end in the release notes; the fun bar passing on a recorded session; boot to first snapshot under ten seconds as measured by the playtest report; docs and hosting guides current. Cutscene film waits for this same bar: every level, gun and character finished first, the narrated slideshow standing in until then, staged and capped per [`plans/cutscene-film.md`](plans/cutscene-film.md).
-- **Hardened and honest.** The exposed-server phase complete (join tokens, rate and size caps, protocol versioning, reconnect resume, status endpoint, fair-play lanes and the profiler), the playtest harness thresholds tightened to the shipped feel, no known bugs that lose a round, and a changelog that matches the releases.
+| Gate | What it means | Evidence that proves it |
+|---|---|---|
+| **People love it** | Fresh players want another match and finish the campaign wanting more. Multiplayer: they ask for "one more", name a rival, time an item unprompted, quote the Host. Campaign: they finish within the target time on their chosen difficulty and the designed beats land (they react at the turn, at Latch's choice, at the pier). | Recorded fresh-player sessions (*proposed*: at least 20 people across both modes, most never having seen fragr), with the fun bar's human signals observed in most of them; a return visit by at least a third of them without being asked |
+| **Every shipped surface at the golden-slice bar** | All twenty levels, the epilogue and every multiplayer map enabled by default look, sound and play at Larak Lot and Recall Notice's bar. No placeholder art, model, sprite, sound or copy anywhere a player can reach. The score, Host, barks, radio and character art are chosen by ear and eye, not by default. | Inspected rendered captures and motion of every level and map; Nick's review round (#472) closed; the story audit rerun with no blocker or confusing finding |
+| **Controls feel buttery** | Prediction and reconciliation with no rubber-banding on a LAN or good connection, input latency under 50 ms on a LAN, 60 frames per second at 1080p on a modest machine with a full server, mouse and gamepad both tuned ([buttery controls](plans/buttery-controls.md)). | Measured latency and frame times on named hardware; two-machine probes; human play with real controllers on Windows |
+| **Fair and readable fights** | Any fighter identifiable at 30 m, every weapon by silhouette and sound, every hit with three signals, no weapon dominating, Sabotage and team modes fair to both sides. | The fun bar targets met on every default map in bot surveys (10 or more frags a minute, 3 or more lead changes, no gun above 45% of shots, Sabotage sides within 45 to 55%), then confirmed by the fresh-player sessions |
+| **Runs everywhere it claims** | Windows, macOS and Linux packages install and boot to a fight on a clean machine, controllers work, accessibility settings work, and an agent joins through the adapter in minutes. | Clean-machine installs by people on all three platforms; the adapter and brain played end to end on a release package |
+| **Hosts can trust it** | A home or small cloud host runs for days without attention; strangers and their agents join safely; nothing loses a round. | A twenty-four hour soak with no crash (status JSON at start and end); a public week with strangers; the exposed-server hardening complete; no known bug that loses a round or a save |
+| **Honest and documented** | Players and hosts can learn, host and report problems without asking us. | Current README, playing, hosting and agent guides; a changelog matching the releases; release notes that separate measured, inspected and human evidence |
+
+Cutscene film waits for this same bar: every level, gun and character finished
+first, the narrated slideshow standing in until then, staged and capped per
+[`plans/cutscene-film.md`](plans/cutscene-film.md).
+
+## Beyond 1.0
+
+Direction, not promises. Each horizon starts only after the one before it is
+proven with people, and the fun bar applies to everything added.
+
+| Horizon | Direction |
+|---|---|
+| **2.0: bigger nights** | Full servers of 32 to 64 fighters and large agent-heavy arenas, measured; Wipe and large combined-arms modes on Holdfast-style fronts with vehicles bots can use; a UDP transport if the measured spike earns it ([TRANSPORT.md](TRANSPORT.md)); deployed cloud hosting once spend is approved; the [agent discovery](plans/agent-door-2026.md) door for public agents |
+| **3.0: a bigger world** | New campaign chapters or optional co-op where the story supports them; the [inheritance benchmark](plans/inheritance-benchmark.md); localization; community maps and mutators; a possible Steam build |
+
+Ideas that do not fit a horizon stay in issues until evidence says they belong.
 
 ## The fun bar
 
