@@ -1412,12 +1412,20 @@ func _refresh_host_rotation() -> void:
 	var row: Control = _host_rotation.get_parent() as Control
 	row.visible = _host_rotate.visible and _host_rotate.button_pressed
 	var start: int = _host_map.get_selected_id()
+	var mode: String = HOST_MODES[_host_mode.selected]
 	for map_id: int in _host_rotation_maps:
 		var check: CheckButton = _host_rotation_maps[map_id]
-		check.visible = maps.has(map_id)
-		check.disabled = map_id == start
+		# Every map stays listed and keeps its switch. One that cannot host
+		# this mode is dimmed with the reason; the rotation skips it anyway.
+		var hosts: bool = maps.has(map_id)
+		check.text = ROSTER_NAMES[map_id - 1] + ("" if hosts else " " + tr(host_rotation_reason(mode)))
+		check.disabled = map_id == start or not hosts
 		if map_id == start:
 			check.set_pressed_no_signal(true)
+
+## Why a map is dimmed in the rotation for a mode.
+static func host_rotation_reason(mode: String) -> String:
+	return "HOST_ROTATION_NO_FLAGS" if mode == "ctf" else "HOST_ROTATION_CANNOT_HOST"
 
 ## Rotation choices as the host profile and the settings file take them.
 func _host_rotation_choice() -> Dictionary:

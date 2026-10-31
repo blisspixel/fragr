@@ -1221,6 +1221,12 @@ msgstr "Rotate maps: the podium votes on the next one"
 msgid "HOST_ROTATION"
 msgstr "In rotation"
 
+msgid "HOST_ROTATION_NO_FLAGS"
+msgstr "(no flag stands)"
+
+msgid "HOST_ROTATION_CANNOT_HOST"
+msgstr "(cannot host this mode)"
+
 msgid "HOST_BOTS"
 msgstr "Bots"
 

@@ -92,11 +92,11 @@ const DEFAULTS: Dictionary = {
 	# The desktop host's rotation (Multiplayer > Run a match): whether a
 	# free-for-all, team or flag match moves map with a podium vote, and the
 	# roster maps it skips. No map is removed; switching one off keeps it out
-	# of the rotation and the vote. Holdfast Atoll and Low Water start off,
-	# as the single-map picker does not offer them for those modes.
+	# of the rotation and the vote. Every map starts on: hosts choose, and
+	# the rotation itself skips a map that cannot host the mode.
 	"host": {
 		"rotate": true,
-		"maps_off": [7, 8],
+		"maps_off": [],
 	},
 	# The optional campaign score (CampaignScore): on or off, and the take
 	# chosen per slot while both takes ship. A missing slot plays take A.

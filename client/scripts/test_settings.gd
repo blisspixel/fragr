@@ -243,8 +243,8 @@ func _initialize() -> void:
 
 	# The host rotation: roster ids once each, sorted, never all eight.
 	var host: RefCounted = script.new(test_path)
-	if host.get_value("host", "maps_off") != [7, 8] or host.get_value("host", "rotate") != true:
-		push_error("test_settings: the host rotation defaults to Holdfast and Low Water off")
+	if host.get_value("host", "maps_off") != [] or host.get_value("host", "rotate") != true:
+		push_error("test_settings: the host rotation defaults to every map on")
 		ok = false
 	host.set_value("host", "maps_off", [5, 2.0])
 	if host.get_value("host", "maps_off") != [2, 5]:
@@ -252,15 +252,15 @@ func _initialize() -> void:
 		ok = false
 	for bad_off: Variant in [[0], [9], [2, 2], [1, 2, 3, 4, 5, 6, 7, 8], "2", [2.5], [true]]:
 		host.set_value("host", "maps_off", bad_off)
-		if host.get_value("host", "maps_off") != [7, 8]:
+		if host.get_value("host", "maps_off") != []:
 			push_error("test_settings: a bad rotation list falls back whole: " + str(bad_off))
 			ok = false
-	host.set_value("host", "maps_off", [])
+	host.set_value("host", "maps_off", [7])
 	host.set_value("host", "rotate", false)
 	host.save_to_disk()
 	var host_loaded: RefCounted = script.new(test_path)
 	host_loaded.load_from_disk()
-	if host_loaded.get_value("host", "maps_off") != [] or host_loaded.get_value("host", "rotate") != false:
+	if host_loaded.get_value("host", "maps_off") != [7] or host_loaded.get_value("host", "rotate") != false:
 		push_error("test_settings: the host rotation did not survive the disk")
 		ok = false
 

@@ -27,8 +27,9 @@ match. The same switch holds mutators and friendly fire, and it opens by
 itself when the remembered setup already uses any of them. For free-for-all,
 team and flag matches, **Rotate maps** (on by default) moves the match to the
 map the podium votes for, and **In rotation** switches each map in or out; the
-start map always stays in, Holdfast Atoll and Low Water start out, and the
-choice is kept in the settings file. The app shows its own loopback connection address, not a
+start map always stays in, every map starts in, a map that cannot host the
+mode (capture the flag needs stands) is dimmed with the reason and skipped,
+and the choice is kept in the settings file. The app shows its own loopback connection address, not a
 detected external address. Existing releases before this increment use the
 dedicated command below.
 

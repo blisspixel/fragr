@@ -1,5 +1,5 @@
 {
-  "comment": "The between-match hook on a rotating free-for-all: a joined human who stands still, three rule bots and a short frag limit, so the bots become the human's nemesis. Run with FRAGR_QA_MAP_ROTATE=1, FRAGR_QA_MAP_OFF=\"7 8\", FRAGR_QA_MODE=ffa, FRAGR_QA_BOTS=3, FRAGR_QA_FRAG_LIMIT=3 and FRAGR_QA_MANIFEST=res://qa/podium-vote.json.",
+  "comment": "The between-match hook on a rotating free-for-all: a joined human who stands still, three rule bots and a short frag limit, so the bots become the human's nemesis. Run with FRAGR_QA_MAP_ROTATE=1, FRAGR_QA_MODE=ffa, FRAGR_QA_BOTS=3, FRAGR_QA_FRAG_LIMIT=3 and FRAGR_QA_MANIFEST=res://qa/podium-vote.json.",
   "width": 1280,
   "height": 720,
   "states": [
