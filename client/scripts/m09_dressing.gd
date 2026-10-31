@@ -67,8 +67,8 @@ static func berth_layout(info: Dictionary) -> bool:
 		[Vector3(16, 9.4, -24), Vector3(40, 10, -12)],
 		[Vector3(-8, 2, -18), Vector3(8, 9, 14)],
 		[Vector3(-14, 5.4, -13), Vector3(-10, 6, 14)],
-		[Vector3(-24, 7.4, 18), Vector3(22, 8, 21)],
-		[Vector3(-12, 11.4, -35), Vector3(24, 12, -28)],
+		[Vector3(-16, 7.4, 18), Vector3(22, 8, 21)],
+		[Vector3(10, 11.4, -35), Vector3(24, 12, -28)],
 		[Vector3(-10, 0, -30), Vector3(10, 12, -22)],
 	]
 	for pair: Array in wanted:
@@ -152,8 +152,8 @@ static func berth_role(box: AABB, surface: String) -> String:
 			return "hatch"
 		return "tower"
 	# Stair treads, wherever they climb: solid flights from the deck, and the
-	# west flight that sits on the office's raised floor.
-	if surface == "service_steel" and (low.y <= 0.01 or is_equal_approx(low.y, 3.5)) and thin <= 1.01 \
+	# west flight that sits on the office's raised floor (its top at 4.0).
+	if surface == "service_steel" and (low.y <= 0.01 or is_equal_approx(low.y, 4.0)) and thin <= 1.01 \
 		and maxf(box.size.x, box.size.z) >= 3.0 and box.size.y <= 12.3:
 		return "stair"
 	# The impound office: its landing rails, the customs locker, the walls,
