@@ -28,7 +28,7 @@ use crate::protocol::{
     Callout, MapDecoration, MapDecorationKind, MapFace, MapPresentation, MapSurface, SabotageMap,
     SabotageSite, SiteId, Team, WeaponType,
 };
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 use std::sync::OnceLock;
 
 #[cfg(test)]
@@ -48,6 +48,45 @@ pub(crate) const TRAM: [f32; 4] = [-17.0, -4.0, -5.0, 0.4];
 pub(crate) const SHED: [f32; 4] = [12.0, -0.4, 17.0, 4.0];
 /// Bridge piers, one against each trench wall (x0, z0, x1, z1).
 pub(crate) const PIERS: [[f32; 4]; 2] = [[-23.0, 0.0, -21.0, 4.0], [21.0, -4.0, 23.0, 0.0]];
+/// The back terraces' west and east ends, on both banks.
+pub(crate) const TERRACES: [(f32, f32); 2] = [(-32.0, -14.0), (14.0, 32.0)];
+/// Street lamp posts (x, z) and their height.
+pub(crate) const LAMPS: [[f32; 2]; 4] = [[-8.0, -5.2], [16.0, -5.2], [-4.0, 5.2], [16.5, 5.2]];
+pub(crate) const LAMP_TOP: f32 = STREET + 6.4;
+/// Free-for-all and team spawn slots (x, floor, z, yaw), eight each side
+/// of the x = 0 line that splits team spawns. The generic ring ran across the
+/// open banks, so eight fighters at the opening stood in each other's
+/// lanes. Each slot here is tucked behind a terrace, a house, the depot or
+/// the dock, in the lee of the trench's tram, shed and piers, or on a bank
+/// out of the other slots' lanes, and no two slots see each other inside
+/// 30 m (`tests.rs`). Each faces its
+/// open side, never a wall.
+pub(crate) const SPAWNS: [[f32; 4]; 16] = [
+    [-24.0, STREET, -21.0, 0.719],
+    [-21.0, STREET, 24.0, -0.852],
+    [24.0, STREET, -24.0, 2.356],
+    [18.0, STREET, 21.0, -FRAC_PI_2],
+    [-33.0, STREET, -39.0, FRAC_PI_2],
+    [-33.0, STREET, 39.0, -FRAC_PI_2],
+    [-18.0, 0.0, -1.0, PI],
+    [-24.0, 0.0, 3.0, PI],
+    [-10.0, 0.0, 1.0, 0.0],
+    [-4.0, 0.0, -3.0, 0.0],
+    [33.0, STREET, -39.0, FRAC_PI_2],
+    [40.0, STREET, 16.0, -FRAC_PI_2],
+    [32.0, STREET, 27.0, FRAC_PI_2],
+    [40.0, STREET, 30.0, PI],
+    [24.0, 0.0, -3.0, 0.0],
+    [18.0, 0.0, 2.0, 0.0],
+];
+
+/// The slot for a ring angle, as Larak Lot's table does.
+pub(crate) fn spawn(angle: f32) -> (f32, f32, f32, f32) {
+    let count = SPAWNS.len();
+    let slot = (angle.rem_euclid(2.0 * PI) / (2.0 * PI) * count as f32).round() as usize % count;
+    let [x, floor, z, yaw] = SPAWNS[slot];
+    (x, z, crate::movement::normalize_yaw(yaw), floor)
+}
 
 struct Town {
     map: MapDef,
@@ -160,6 +199,21 @@ fn town() -> &'static Town {
             for (near, far) in [(-28.0, -19.0), (18.0, 28.0)] {
                 add([left, STREET, near], [right, 9.0, far], MapSurface::Enamel);
             }
+        }
+        // Terraces along the back of both banks, either side of the spawn
+        // yards: the town's streets have houses on them, not open paving.
+        for (left, right) in TERRACES {
+            for (near, far) in [(-HALF, -36.0), (36.0, HALF)] {
+                add([left, STREET, near], [right, 9.5, far], MapSurface::Enamel);
+            }
+        }
+        // Street lamps along both banks' trench edges, honest thin posts.
+        for [x, z] in LAMPS {
+            add(
+                [x - 0.15, STREET, z - 0.15],
+                [x + 0.15, LAMP_TOP, z + 0.15],
+                MapSurface::ServiceSteel,
+            );
         }
         let clinic = add(
             [-39.0, STREET, 10.0],
@@ -356,7 +410,12 @@ fn town() -> &'static Town {
                 spawn_radius: 34.0,
                 solids,
                 pickups,
-                scrap_pads: vec![],
+                scrap_pads: vec![
+                    // Free-for-all only: the corner slots behind the terraces
+                    // are a long walk from the street guns.
+                    weapon_pad("scrap_scatter_ne", WeaponType::Scatter, 26.0, -31.0, STREET),
+                    weapon_pad("scrap_scatter_sw", WeaponType::Scatter, -26.0, 31.0, STREET),
+                ],
             },
             presentation: MapPresentation {
                 ground: MapSurface::ServiceSteel,
@@ -374,7 +433,7 @@ pub(super) fn build() -> MapDef {
         spawn_radius: map.spawn_radius,
         solids: map.solids.clone(),
         pickups: map.pickups.clone(),
-        scrap_pads: vec![],
+        scrap_pads: map.scrap_pads.clone(),
     }
 }
 

@@ -1021,6 +1021,7 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(MapKind::HoldfastAtoll) => 16,
             Self::BuiltIn(MapKind::ArenaDuel) => super::larak_lot::SPAWNS.len(),
+            Self::BuiltIn(MapKind::LowWater) => super::low_water::SPAWNS.len(),
             Self::BuiltIn(_) => 64,
             Self::Authored(map) => map.spawns.len(),
         }

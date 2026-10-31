@@ -32,7 +32,7 @@ pub(crate) mod compliance_yard;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
-mod low_water;
+pub(crate) mod low_water;
 #[cfg(test)]
 pub(crate) use authored::epilogue as epilogue_authored;
 pub(crate) use authored::m11::SpinePatrol;
@@ -1462,7 +1462,11 @@ fn origin_floor(kind: MapKind) -> f32 {
 /// ring.
 #[cfg(test)]
 pub(crate) fn spawn_table(kind: MapKind) -> Option<&'static [[f32; 4]]> {
-    (kind == MapKind::ArenaDuel).then_some(&larak_lot::SPAWNS[..])
+    match kind {
+        MapKind::ArenaDuel => Some(&larak_lot::SPAWNS[..]),
+        MapKind::LowWater => Some(&low_water::SPAWNS[..]),
+        _ => None,
+    }
 }
 
 /// Every floor a fighter can walk to from the origin, by cell. A layered flood

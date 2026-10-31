@@ -343,6 +343,9 @@ pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     if map == MapKind::ArenaDuel {
         return crate::maps::larak_lot::spawn(angle);
     }
+    if map == MapKind::LowWater {
+        return crate::maps::low_water::spawn(angle);
+    }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
     for _ in 0..16 {
