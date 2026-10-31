@@ -636,3 +636,322 @@ fn companion_never_leads_down_the_participants_line_of_fire() {
         );
     }
 }
+
+// --- Latch in Levels 12, 13, 14 and 16 -------------------------------------
+
+const M12_MAP: &str = include_str!("../../../../maps/m12-terms-of-cooperation.json");
+const M13_MAP: &str = include_str!("../../../../maps/m13-weight-of-permission.json");
+const M14_MAP: &str = include_str!("../../../../maps/m14-launch-authority.json");
+const M16_MAP: &str = include_str!("../../../../maps/m16-freedom-of-movement.json");
+
+fn level(source: &str, mission: MissionId) -> (GameSession, Uuid) {
+    let map = crate::maps::AuthoredMap::read(source.as_bytes()).unwrap();
+    let mut session = GameSession::with_authored_map(map);
+    session.state.use_replay_ids();
+    session.state.seed(1200);
+    let id = Uuid::from_u128(1200);
+    session
+        .state
+        .add_player(id, "Coalition operative".into(), Role::Agent);
+    assert!(session.state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: mission,
+            attempt: 1,
+        }
+    ));
+    session.tick_messages(0.05);
+    (session, id)
+}
+
+fn latch(state: &GameState) -> Option<&Player> {
+    state.players.iter().find(|p| p.is_campaign_companion())
+}
+
+fn feet(player: &Player) -> [f32; 3] {
+    [player.x, player.y - PLAYER_FLOOR_Y, player.z]
+}
+
+/// Every enemy down, Latch untouched.
+fn clear_hostiles(state: &mut GameState) {
+    for index in 0..state.players.len() {
+        let p = &state.players[index];
+        if p.campaign.is_some_and(CampaignActor::is_enemy) && p.hp > 0 {
+            let damage = p.hp + p.armor;
+            state.environmental_self_damage(index, damage);
+        }
+    }
+}
+
+fn refused(source: &str, key: &str, field: &str, value: serde_json::Value) {
+    let mut map: serde_json::Value = serde_json::from_str(source).unwrap();
+    map[key][field] = value;
+    assert!(
+        crate::maps::AuthoredMap::read(serde_json::to_vec(&map).unwrap().as_slice()).is_err(),
+        "{key}.{field} accepted a Latch placement it should refuse"
+    );
+}
+
+#[test]
+fn latch_starts_with_the_party_and_follows_in_levels_twelve_to_fourteen() {
+    let levels: [(&str, MissionId, [f32; 3]); 3] = [
+        (M12_MAP, MissionId::TermsOfCooperation, [0.0, 0.3, -15.0]),
+        (M13_MAP, MissionId::WeightOfPermission, [-23.0, 0.3, -29.0]),
+        (M14_MAP, MissionId::LaunchAuthority, [-25.0, 0.0, -36.0]),
+    ];
+    for (source, mission, away) in levels {
+        let (mut session, id) = level(source, mission);
+        let start = match mission {
+            MissionId::TermsOfCooperation => {
+                session.state.map.m12_objectives().unwrap().companion_start
+            }
+            MissionId::WeightOfPermission => session.state.map.m13_companion().unwrap().start,
+            _ => session.state.map.m14_objectives().unwrap().companion_start,
+        };
+        let body =
+            latch(&session.state).unwrap_or_else(|| panic!("{mission:?}: Latch is with the party"));
+        let at = feet(body);
+        assert!(
+            (at[0] - start[0]).hypot(at[2] - start[2]) < 0.5,
+            "{mission:?}: {at:?}"
+        );
+        assert!(body.hp > 0);
+        let before = (at[0] - away[0]).hypot(at[2] - away[2]);
+        place(&mut session.state, id, away);
+        for _ in 0..240 {
+            clear_hostiles(&mut session.state);
+            session.tick_messages(0.05);
+        }
+        let at = feet(latch(&session.state).unwrap());
+        let after = (at[0] - away[0]).hypot(at[2] - away[2]);
+        assert!(
+            after < before - 1.0 && after < 9.0,
+            "{mission:?}: Latch follows {before} -> {after}"
+        );
+    }
+    // A Latch placed in a wall, or off the freight deck, is refused.
+    refused(
+        M12_MAP,
+        "m12",
+        "companion_start",
+        serde_json::json!([500.0, 0.3, 0.0]),
+    );
+    refused(
+        M14_MAP,
+        "m14",
+        "companion_start",
+        serde_json::json!([500.0, 2.0, 0.0]),
+    );
+    let mut map: serde_json::Value = serde_json::from_str(M13_MAP).unwrap();
+    map["m13"]["connected"]["companion_lift"] = serde_json::json!([0.0, 0.3, 40.0]);
+    assert!(crate::maps::AuthoredMap::read(serde_json::to_vec(&map).unwrap().as_slice()).is_err());
+    map["m13"]["connected"]["companion_lift"] = serde_json::json!([-1.3, 3.6, 49.0]);
+    map["m13"]["connected"]["companion_start"] = serde_json::json!([500.0, 0.3, 0.0]);
+    assert!(crate::maps::AuthoredMap::read(serde_json::to_vec(&map).unwrap().as_slice()).is_err());
+}
+
+#[test]
+fn latch_holds_fire_on_each_levels_weapon_lesson() {
+    let cases: [(&str, MissionId, &str, &str); 3] = [
+        // The Arc against the armored Assessor; the greenhouse Clerks are fair.
+        (
+            M12_MAP,
+            MissionId::TermsOfCooperation,
+            "greenhouse_assessor",
+            "greenhouse_clerk_west",
+        ),
+        // The first rocket at the Sweeper squad across the loop.
+        (
+            M13_MAP,
+            MissionId::WeightOfPermission,
+            "freight_sweeper_center",
+            "freight_clerk_west",
+        ),
+        // The jeep's mounted gun on the Notary pair.
+        (
+            M14_MAP,
+            MissionId::LaunchAuthority,
+            "road_notary_west",
+            "depot_clerk_west",
+        ),
+    ];
+    for (source, mission, lesson, fair) in cases {
+        let (mut session, _) = level(source, mission);
+        // Each lesson's group stands once the fights before it are done.
+        for _ in 0..3000 {
+            if [lesson, fair]
+                .iter()
+                .all(|name| session.state.players.iter().any(|p| p.name == *name))
+            {
+                break;
+            }
+            clear_hostiles(&mut session.state);
+            session.tick_messages(0.05);
+        }
+        let state = &session.state;
+        let run = state.mission.as_ref().unwrap();
+        let named = |name: &str| state.players.iter().find(|p| p.name == name).unwrap();
+        assert!(
+            state.participants_lesson(run, named(lesson)),
+            "{mission:?} {lesson}"
+        );
+        assert!(
+            !state.participants_lesson(run, named(fair)),
+            "{mission:?} {fair}"
+        );
+    }
+}
+
+#[test]
+fn latch_never_costs_the_habitat_a_pump() {
+    let (mut session, id) = level(M12_MAP, MissionId::TermsOfCooperation);
+    let latch_id = latch(&session.state).unwrap().id;
+    let solid = session.state.map.m12_geometry().unwrap().pumps[0].solids[0];
+    let host = session.state.map.arena().solids[solid];
+    let face = [(host.min_x + host.max_x) * 0.5, 1.5, host.min_z];
+    session
+        .state
+        .damage_m12_pump(latch_id, solid, face, [0.0, 0.0, -1.0], 25);
+    let health = |s: &GameSession| {
+        s.state
+            .mission
+            .as_ref()
+            .unwrap()
+            .m12
+            .as_ref()
+            .unwrap()
+            .challenges
+            .pump_health
+    };
+    assert_eq!(health(&session), [100, 100]);
+    // The same stray shot from the participant still lands.
+    session
+        .state
+        .damage_m12_pump(id, solid, face, [0.0, 0.0, -1.0], 25);
+    assert_eq!(health(&session), [75, 100]);
+}
+
+#[test]
+fn latch_steps_onto_the_freight_deck_and_rides_it_up() {
+    let (mut session, id) = level(M13_MAP, MissionId::WeightOfPermission);
+    let g = session.state.map.m13_geometry().unwrap();
+    let lift = session.state.map.m13_companion().unwrap().lift;
+    let latch_id = latch(&session.state).unwrap().id;
+    clear_hostiles(&mut session.state);
+    // Before the galleries are taken Latch keeps to the party, not the deck.
+    place(&mut session.state, id, [0.0, 3.3, 52.0]);
+    place(&mut session.state, latch_id, [3.0, 3.3, 52.2]);
+    for _ in 0..80 {
+        session.tick_messages(0.05);
+    }
+    let at = feet(latch(&session.state).unwrap());
+    assert!((at[0] - lift[0]).hypot(at[2] - lift[2]) > 0.3);
+    {
+        let p = session
+            .state
+            .mission
+            .as_mut()
+            .unwrap()
+            .m13
+            .as_mut()
+            .unwrap();
+        p.index = 6;
+        p.surrendered = true;
+    }
+    session.state.foundry.as_mut().unwrap().relay_disabled = true;
+    place(&mut session.state, id, g.departure.approach);
+    for _ in 0..200 {
+        session.tick_messages(0.05);
+    }
+    let at = feet(latch(&session.state).unwrap());
+    assert!(
+        (at[0] - lift[0]).hypot(at[2] - lift[2]) <= 0.35 && (at[1] - lift[1]).abs() < 0.05,
+        "Latch stands on the deck: {at:?}"
+    );
+    let point = g
+        .departure
+        .point(
+            session.state.map.presentation_ref().unwrap(),
+            &session.state.current_arena().solids,
+        )
+        .unwrap();
+    session.state.set_action(id, Action::default());
+    session.state.set_action(
+        id,
+        Action {
+            interact: true,
+            look_at: Some(crate::protocol::LookAt {
+                x: Some(point[0]),
+                y: Some(point[1]),
+                z: Some(point[2]),
+                player_id: None,
+            }),
+            ..Default::default()
+        },
+    );
+    for _ in 0..400 {
+        session.tick_messages(0.05);
+        session.state.set_action(id, Action::default());
+        if session.state.mission.as_ref().unwrap().phase == MissionPhase::Departed {
+            break;
+        }
+    }
+    assert_eq!(
+        session.state.mission.as_ref().unwrap().phase,
+        MissionPhase::Departed
+    );
+    let at = feet(latch(&session.state).unwrap());
+    assert!(at[1] > g.lift_top - 0.1, "Latch rode the deck up: {at:?}");
+}
+
+#[test]
+fn latch_walks_in_to_the_forecourt_unseen_once_the_checkpoint_lifts() {
+    let (mut session, id) = level(M16_MAP, MissionId::FreedomOfMovement);
+    let arrival = session
+        .state
+        .map
+        .m16_objectives()
+        .unwrap()
+        .companion_arrival;
+    // Latch rides behind an ally: nobody walks the avenue with the party.
+    assert!(latch(&session.state).is_none());
+    for _ in 0..20 {
+        session.tick_messages(0.05);
+    }
+    assert!(latch(&session.state).is_none());
+    let secure = |s: &mut GameSession| {
+        let p = s.state.mission.as_mut().unwrap().m16.as_mut().unwrap();
+        p.index = 4;
+        p.checkpoint_lifted = true;
+    };
+    secure(&mut session);
+    // Standing in the back lane with the spot in plain view: nobody appears.
+    place(&mut session.state, id, [21.0, 0.0, 16.0]);
+    for _ in 0..20 {
+        session.tick_messages(0.05);
+    }
+    assert!(latch(&session.state).is_none());
+    // On the forecourt, the corner hides the lane: Latch walks in from it.
+    place(&mut session.state, id, [26.5, 0.0, 0.0]);
+    session.tick_messages(0.05);
+    let at = feet(latch(&session.state).expect("Latch arrives"));
+    assert!((at[0] - arrival[0]).hypot(at[2] - arrival[2]) < 0.5);
+    for _ in 0..240 {
+        clear_hostiles(&mut session.state);
+        session.tick_messages(0.05);
+    }
+    let at = feet(latch(&session.state).unwrap());
+    assert!(
+        (at[0] - 26.5).hypot(at[2]) < 8.0,
+        "Latch joins the party on the forecourt: {at:?}"
+    );
+    // A retry rides the avenue again without Latch.
+    session.state.reset_mission();
+    assert!(latch(&session.state).is_none());
+    refused(
+        M16_MAP,
+        "m16",
+        "companion_arrival",
+        serde_json::json!([500.0, 0.0, 0.0]),
+    );
+}

@@ -19,6 +19,18 @@ const OBJECTIVES: usize = M12_OBJECTIVE_IDS.len();
 #[cfg(test)]
 mod tests;
 impl GameState {
+    /// Latch is with the party for this level, beside the authored start.
+    pub(crate) fn ensure_m12_companion(&mut self) {
+        if self
+            .mission
+            .as_ref()
+            .is_some_and(|r| r.m12.is_some() && r.phase == MissionPhase::InProgress)
+        {
+            if let Some(start) = self.map.m12_objectives().map(|p| p.companion_start) {
+                self.spawn_campaign_companion(start, false);
+            }
+        }
+    }
     fn m12_source_active(&self, source: Uuid) -> bool {
         self.mission
             .as_ref()
@@ -55,7 +67,13 @@ impl GameState {
         normal: [f32; 3],
         damage: i32,
     ) {
-        if damage <= 0 || !self.m12_source_active(shooter) {
+        if damage <= 0
+            || !self.m12_source_active(shooter)
+            || self
+                .players
+                .iter()
+                .any(|p| p.id == shooter && p.is_campaign_companion())
+        {
             return;
         }
         let Some(g) = self.map.m12_geometry() else {

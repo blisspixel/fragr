@@ -20,6 +20,18 @@ impl M13Progress {
     }
 }
 impl GameState {
+    /// Latch is with the party in the connected foundry, beside the start.
+    pub(crate) fn ensure_m13_companion(&mut self) {
+        if self
+            .mission
+            .as_ref()
+            .is_some_and(|r| r.m13.is_some() && r.phase == MissionPhase::InProgress)
+        {
+            if let Some(companion) = self.map.m13_companion() {
+                self.spawn_campaign_companion(companion.start, false);
+            }
+        }
+    }
     pub(super) fn m13_party_supported(&self, g: &M13MapGeometry) -> bool {
         let Some(run) = self.mission.as_ref() else {
             return false;

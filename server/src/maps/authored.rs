@@ -1208,6 +1208,25 @@ impl AuthoredMap {
         } else {
             Navigation::shared(arena.clone()).map_err(invalid)?
         };
+        if let Some(companion) = m13.as_ref().and_then(|p| p.companion) {
+            if navigation
+                .route(companion.start, start, crate::navigation::SEARCH_LIMIT)
+                .status
+                != crate::navigation::RouteStatus::Complete
+                || navigation
+                    .route(
+                        companion.start,
+                        companion.lift,
+                        crate::navigation::SEARCH_LIMIT,
+                    )
+                    .status
+                    != crate::navigation::RouteStatus::Complete
+            {
+                return Err(invalid(
+                    "M13 Latch must start on the party's ordinary route to the lift",
+                ));
+            }
+        }
         if let Some(prepared) = &m03 {
             for destination in doc
                 .spawns

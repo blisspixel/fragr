@@ -1068,6 +1068,21 @@ msgstr "The ceremonial avenue, that night. The uprisings are breaking enforcemen
 msgid "M16_MARA_NOT_US"
 msgstr "Mara, on the channel: \"Every light just went green. That wasn't us.\""
 
+msgid "M16_LATCH_NO_STEERING"
+msgstr "Latch: \"My ride went round the checkpoint twice. Never once let me steer.\""
+
+msgid "M12_LATCH_FRAMES"
+msgstr "Latch: \"I know those frames. Sat in one, back at the ward.\""
+
+msgid "M13_LATCH_ASK"
+msgstr "Latch: \"Ask them. Don't free them like freight.\""
+
+msgid "M13_LATCH_THEIR_CALL"
+msgstr "Latch, of the one who stays: \"Their call. That's the whole point.\""
+
+msgid "M14_LATCH_YOU_DRIVE"
+msgstr "Latch: \"You drive. I've seen you drive. I'll catch up.\""
+
 msgid "STORY_M17_ARRIVAL"
 msgstr "The Forever Office. Dawn. The front held all night.\n\nInside are the command galleries, the security core, Registrar Kessel, whose name is on every recall, and the woman whose voice has been on every screen since. Reach Voss."
 

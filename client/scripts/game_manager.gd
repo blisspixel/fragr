@@ -175,6 +175,8 @@ var _wipe_failure_started: bool = false
 const WIPE_FAILURE_DELAY: float = 3.0
 var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
+## Latch's lines in Levels 12, 13, 14 and 16.
+var latch_lines: LatchLines
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_context: String = ""
@@ -540,6 +542,9 @@ func _ready():
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
+	latch_lines = LatchLines.new()
+	latch_lines.name = "LatchLines"
+	add_child(latch_lines)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -2467,6 +2472,8 @@ func _on_mission_received(state: Dictionary) -> void:
 	_present_wipe_failure(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
+	if latch_lines != null:
+		latch_lines.apply_state(state)
 	hud.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -2996,6 +3003,8 @@ func _clear_world() -> void:
 	wipe_failure_coda = null
 	if m12_habitat != null:
 		m12_habitat.clear_map()
+	if latch_lines != null:
+		latch_lines.clear()
 	hud.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
@@ -3081,6 +3090,8 @@ func _on_snapshot_received(data):
 	if m19_works != null and m19_works.active():
 		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
 		m19_works.apply_snapshot(data)
+	if latch_lines != null:
+		latch_lines.apply_snapshot(data)
 	if conquest_hud != null:
 		conquest_hud.apply(data)
 		hud.observe_conquest(data)

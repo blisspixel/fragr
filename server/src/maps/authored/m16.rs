@@ -45,6 +45,9 @@ pub(super) struct Definition {
     motorcycle: super::Placement,
     checkpoint_barrier: String,
     chamber_doors: String,
+    /// Where Latch comes in on foot once the checkpoint is lifted: the back
+    /// lane behind the forecourt an ally's bike dropped them at.
+    companion_arrival: [f32; 3],
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +62,7 @@ pub(crate) struct Prepared {
     pub(crate) navigation: Arc<Navigation>,
     pub(crate) lifted_navigation: Arc<Navigation>,
     pub(crate) open_navigation: Arc<Navigation>,
+    pub(crate) companion_arrival: [f32; 3],
 }
 
 impl Definition {
@@ -220,7 +224,26 @@ impl Definition {
             return Err(invalid("M16 open arena cannot reach departure approach"));
         }
 
+        if !standing(arena, self.companion_arrival)
+            || lifted_navigation
+                .route(self.companion_arrival, forecourt_pt, SEARCH_LIMIT)
+                .status
+                != RouteStatus::Complete
+            || open_navigation
+                .route(
+                    self.companion_arrival,
+                    geometry.departure.approach,
+                    SEARCH_LIMIT,
+                )
+                .status
+                != RouteStatus::Complete
+        {
+            return Err(invalid(
+                "M16 Latch must arrive on ordinary ground and walk to the doors",
+            ));
+        }
         Ok(Prepared {
+            companion_arrival: self.companion_arrival,
             geometry,
             checkpoint_barrier,
             chamber_doors,

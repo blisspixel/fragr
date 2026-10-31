@@ -3031,6 +3031,7 @@
   ],
   "version": 1,
   "m14": {
+    "companion_start": [-44.2, 2.0, -53.0],
     "objectives": [
       {
         "id": "arrival",

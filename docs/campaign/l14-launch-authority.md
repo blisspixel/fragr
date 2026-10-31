@@ -83,6 +83,14 @@ the way home, and the Walker is the works' authority. Break the Walker." Tern,
 arriving on the pad after the fight: "Liberation. Lovely. Who's paying for the
 pad?" The page out closes Episode III: the coalition fleet lifts for Earth.
 
+**Latch in play (built, wave 20).** Latch comes off the freight lift with the
+party (`m14.companion_start`) and stays on foot: the jeep's two seats are the
+participants', and Latch never boards a vehicle. Latch holds fire on the Notary
+pair over the depot road, the mounted gun's lesson. When the depot is taken
+and the jeep is free, Latch: "You drive. I've seen you drive. I'll catch up."
+Latch follows the party's route on foot and meets them on the pad; the start
+is validated to reach the gantry in both Walker worlds.
+
 **Humor.** The jeep's dashboard placard: *Vehicle speed is a privilege.* Tern
 presents the coalition with a repair invoice for the pad before the smoke
 clears.

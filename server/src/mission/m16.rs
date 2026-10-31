@@ -4,7 +4,7 @@ use crate::protocol::{
     InteractionKind, InteractionPrompt, M16ChallengeState, M16ObjectiveState, MissionMember,
     MissionObjectiveAction, MissionPhase, M16_OBJECTIVE_IDS,
 };
-use crate::sim::PLAYER_FLOOR_Y;
+use crate::sim::{Player, PLAYER_FLOOR_Y};
 use std::collections::HashSet;
 
 #[derive(Default)]
@@ -21,6 +21,44 @@ pub(crate) struct M16Progress {
 mod tests;
 
 impl GameState {
+    /// Latch rode in behind an ally and does not steer. Once the green wave
+    /// lifts the checkpoint, Latch walks in from the back lane behind the
+    /// forecourt the bike left them in, in time for the forecourt fight,
+    /// and only while nobody in the party is looking at that spot, so Latch
+    /// never appears out of the air in front of anyone.
+    pub(crate) fn ensure_m16_companion(&mut self) {
+        let Some(run) = self.mission.as_ref() else {
+            return;
+        };
+        if run.phase != MissionPhase::InProgress
+            || !run.m16.as_ref().is_some_and(|p| p.checkpoint_lifted)
+            || self.players.iter().any(Player::is_campaign_companion)
+        {
+            return;
+        }
+        let Some(arrival) = self.map.m16_objectives().map(|p| p.companion_arrival) else {
+            return;
+        };
+        let solids = &self.map.arena().solids;
+        let eye = [
+            arrival[0],
+            arrival[1] + crate::movement::EYE_HEIGHT,
+            arrival[2],
+        ];
+        let seen = self.players.iter().any(|p| {
+            p.is_participant()
+                && p.hp > 0
+                && crate::combat::line_of_sight(
+                    [p.x, p.y - PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT, p.z],
+                    eye,
+                    solids,
+                )
+        });
+        if !seen {
+            self.spawn_campaign_companion(arrival, false);
+        }
+    }
+
     pub(crate) fn m16_encounter_available(&self, index: usize) -> bool {
         let Some(p) = self.mission.as_ref().and_then(|r| r.m16.as_ref()) else {
             return true;
@@ -300,6 +338,7 @@ impl GameState {
             }
         }
 
+        self.ensure_m16_companion();
         let new = self.m16_mission_state().unwrap();
         if advanced || new.m16.as_ref() != Some(&old) {
             self.mission.as_mut().unwrap().changed_at = self.tick;

@@ -27,6 +27,8 @@ pub(super) struct Definition {
     boarding: Region3,
     jeep: Placement,
     fallen: [Volume; 5],
+    /// Where Latch stands with the party on the freight lift deck.
+    companion_start: [f32; 3],
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -48,6 +50,7 @@ pub(crate) struct Prepared {
     pub(crate) fallen_navigation: Arc<Navigation>,
     pub(crate) fallen: [Solid; 5],
     pub(crate) origin: [f32; 3],
+    pub(crate) companion_start: [f32; 3],
 }
 impl Definition {
     pub(super) fn prepare(
@@ -196,6 +199,25 @@ impl Definition {
                 }
             }
         }
+        // Latch walks the launch works with the party: on foot in both
+        // worlds, to the gantry the party leaves from.
+        if !standing(arena, self.companion_start)
+            || [&navigation, &fallen_navigation].iter().any(|nav| {
+                nav.route(self.companion_start, start, SEARCH_LIMIT).status != RouteStatus::Complete
+                    || nav
+                        .route(
+                            self.companion_start,
+                            geometry.departure.approach,
+                            SEARCH_LIMIT,
+                        )
+                        .status
+                        != RouteStatus::Complete
+            })
+        {
+            return Err(invalid(
+                "M14 Latch must start on the party's ordinary route to the gantry",
+            ));
+        }
         let eye = [
             geometry.departure.approach[0],
             geometry.departure.approach[1] + EYE_HEIGHT,
@@ -221,6 +243,7 @@ impl Definition {
             fallen_navigation,
             fallen,
             origin: walker.geometry.stations[0],
+            companion_start: self.companion_start,
         })
     }
 }

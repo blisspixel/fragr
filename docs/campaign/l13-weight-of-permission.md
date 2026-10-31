@@ -192,6 +192,15 @@ announcing shift quotas to a shift that has left.
 **Humor.** The Rocket Launcher's pallet: *Office supplies. Qty 1.* The safety
 board: *Days without an unscheduled retirement: 0.*
 
+**Latch in play (built, wave 20).** Latch arrives with the party at the
+service entrance (`m13.connected.companion_start`) and follows. Latch holds
+fire on the Sweeper squad across the freight loop: the first rocket is the
+participant's. When the overseer drops his baton, Latch: "Ask them. Don't
+free them like freight." When the workers have answered, Latch, of the one
+who stays: "Their call. That's the whole point." Once the galleries are
+taken, Latch steps onto the freight deck beside the lift control
+(`companion_lift`, inside the riders' inset) and rides up with the party.
+
 **The moment.** The first rocket across the freight loop, and the pallet it came
 on.
 

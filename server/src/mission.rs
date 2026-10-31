@@ -326,6 +326,9 @@ impl GameState {
         self.ensure_m09_companion();
         self.ensure_m10_companion();
         self.ensure_m11_companion();
+        self.ensure_m12_companion();
+        self.ensure_m13_companion();
+        self.ensure_m14_companion();
         self.ensure_m15_companion();
         self.ensure_m17_companion();
         self.ensure_m17_figures();
@@ -474,6 +477,9 @@ impl GameState {
         self.ensure_m09_companion();
         self.ensure_m10_companion();
         self.ensure_m11_companion();
+        self.ensure_m12_companion();
+        self.ensure_m13_companion();
+        self.ensure_m14_companion();
         self.ensure_m15_companion();
         self.ensure_m17_companion();
         self.ensure_m17_figures();

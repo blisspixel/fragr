@@ -1,0 +1,8 @@
+{
+  "comment": "Latch in Levels 12, 13, 14 and 16 live review: a spectator watches the free local agent (scripted bot) play the level; latch_live_review.gd takes stills of Latch with the party, at each spoken line and on a chase. Observations only, not fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "latch_watch", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "none", "allow_empty_roster": true, "settle_seconds": 260.0}
+  ]
+}

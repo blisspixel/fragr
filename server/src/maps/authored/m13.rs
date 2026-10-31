@@ -13,6 +13,15 @@ use std::io;
 pub(crate) struct Prepared {
     pub(crate) gates: Gates,
     pub(crate) geometry: Option<crate::protocol::M13MapGeometry>,
+    /// The connected foundry's Latch: where Latch starts with the party, and
+    /// where Latch stands on the freight deck once the galleries are taken.
+    pub(crate) companion: Option<Companion>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Companion {
+    pub(crate) start: [f32; 3],
+    pub(crate) lift: [f32; 3],
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,6 +51,8 @@ struct Connected {
     workers: [[f32; 3]; 3],
     worker_destinations: [[f32; 3]; 3],
     overseer: [f32; 3],
+    companion_start: [f32; 3],
+    companion_lift: [f32; 3],
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -165,6 +176,26 @@ impl Definition {
             inset_max: self.inset.max,
             lift_top: self.lift_top,
         };
+        let companion = self.connected.as_ref().map(|c| Companion {
+            start: c.companion_start,
+            lift: c.companion_lift,
+        });
+        if let Some(c) = companion {
+            // Latch rides the freight deck inside the riders' inset, beside
+            // the lift control, never across the shaft edge.
+            if !standing(arena, c.start)
+                || !standing(arena, c.lift)
+                || (c.lift[1] - deck.top).abs() > 0.001
+                || c.lift[0] < self.inset.min[0]
+                || c.lift[0] > self.inset.max[0]
+                || c.lift[2] < self.inset.min[1]
+                || c.lift[2] > self.inset.max[1]
+            {
+                return Err(invalid(
+                    "M13 Latch needs ordinary ground and a place on the deck",
+                ));
+            }
+        }
         let geometry = self
             .connected
             .map(|c| {
@@ -380,7 +411,11 @@ impl Definition {
                 Ok(g)
             })
             .transpose()?;
-        Ok(Prepared { gates, geometry })
+        Ok(Prepared {
+            gates,
+            geometry,
+            companion,
+        })
     }
 }
 

@@ -4514,6 +4514,8 @@
     },
     "lift_top": 14.6,
     "connected": {
+      "companion_start": [1.6, 0.3, -50.0],
+      "companion_lift": [-1.3, 3.6, 49.0],
       "arrivals": [
         {
           "region": {

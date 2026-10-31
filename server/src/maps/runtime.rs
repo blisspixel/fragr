@@ -420,6 +420,12 @@ impl RuntimeMap {
             Self::Authored(map) => map.m13.as_ref()?.geometry.clone(),
         }
     }
+    pub(crate) fn m13_companion(&self) -> Option<super::authored::m13::Companion> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m13.as_ref()?.companion,
+        }
+    }
     pub(crate) fn m13_gates(&self) -> Option<&crate::mission::m13::Gates> {
         match self {
             Self::BuiltIn(_) => None,

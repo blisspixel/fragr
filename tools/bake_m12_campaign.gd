@@ -62,6 +62,7 @@ func _initialize() -> void:
 		"shelter_door":"shelter_door",
 		"shelter_people":[[24.0,0.3,21.0],[26.0,0.3,23.0],[24.0,0.3,27.0]],
 		"workers":[[-23.0,0.3,9.0],[-23.0,0.3,11.0],[-23.0,0.3,15.0]],
+		"companion_start":[1.6,0.3,-33.0],
 		"aid_vehicles":[{"id":"aid_west","feet":[-4.0,0.3,32.0],"yaw":PI/2.0},{"id":"aid_east","feet":[4.0,0.3,32.0],"yaw":PI/2.0}]
 	}
 	if not STAIR_ARCHITECTURE.append_enclosures(map,12):
