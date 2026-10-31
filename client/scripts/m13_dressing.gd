@@ -282,28 +282,24 @@ func _structure() -> void:
 func _lathes() -> void:
 	var room: Node3D = _room("Lathes")
 	var props: Node3D = _props(room)
-	# Merged fixtures keep turned and box parts on separate materials: one
-	# merged surface cannot mix the two mesh layouts.
 	var casting: StandardMaterial3D = _mat("lathe_casting", Color("56635a"), 0.45, 0.55)
-	var cast_round: StandardMaterial3D = _mat("lathe_casting_round", Color("56635a"), 0.45, 0.55)
 	var bright: StandardMaterial3D = _mat("spindle", Color("a69c7e"), 0.5, 0.6)
 	var dark: StandardMaterial3D = _mat("lathe_dark", Color("2f3533"), 0.4, 0.6)
-	var dark_round: StandardMaterial3D = _mat("lathe_dark_round", Color("2f3533"), 0.4, 0.6)
 	var line: StandardMaterial3D = _mat("service_pipe", Color("a29571"))
 	for side: float in [-1.0, 1.0]:
 		# Drive end: a round motor with cooling rings and a fan cowl.
-		_shape.rod(props, "MotorBody", Vector3(side * 12.6, 1.3, -13.6), Vector3(side * 12.95, 1.3, -13.6), 0.56, cast_round, 14)
-		_shape.rod(props, "MotorCowl", Vector3(side * 12.95, 1.3, -13.6), Vector3(side * 13.05, 1.3, -13.6), 0.46, dark_round, 14)
+		_shape.rod(props, "MotorBody", Vector3(side * 12.6, 1.3, -13.6), Vector3(side * 12.95, 1.3, -13.6), 0.56, casting, 14)
+		_shape.rod(props, "MotorCowl", Vector3(side * 12.95, 1.3, -13.6), Vector3(side * 13.05, 1.3, -13.6), 0.46, dark, 14)
 		for ring: float in [12.7, 12.82]:
-			_shape.rod(props, "MotorFin", Vector3(side * ring, 1.3, -13.6), Vector3(side * (ring + 0.03), 1.3, -13.6), 0.6, dark_round, 14)
+			_shape.rod(props, "MotorFin", Vector3(side * ring, 1.3, -13.6), Vector3(side * (ring + 0.03), 1.3, -13.6), 0.6, dark, 14)
 		# The belt cover climbs the head's end to the gearbox pulley.
 		_block(props, "BeltCover", Vector3(0.06, 0.62, 0.62), casting, Vector3(side * 12.03, 2.1, -13.6))
-		_shape.rod(props, "PulleyCover", Vector3(side * 11.7, 2.5, -13.7), Vector3(side * 11.82, 2.5, -13.7), 0.4, cast_round, 14)
+		_shape.rod(props, "PulleyCover", Vector3(side * 11.7, 2.5, -13.7), Vector3(side * 11.82, 2.5, -13.7), 0.4, casting, 14)
 		# A rounded spindle housing rides the head either side of the gearbox,
 		# so the head reads as a casting from the ends and the aisle.
-		_shape.rod(props, "SpindleHousing", Vector3(side * 10.8, 2.0, -16.0), Vector3(side * 10.8, 2.0, -11.0), 0.55, cast_round, 14)
+		_shape.rod(props, "SpindleHousing", Vector3(side * 10.8, 2.0, -16.0), Vector3(side * 10.8, 2.0, -11.0), 0.55, casting, 14)
 		# The guard's rounded top rail and ribs, so the back is not a slab.
-		_shape.rod(props, "GuardRail", Vector3(side * 9.6, 2.22, -14.9), Vector3(side * 6.0, 2.22, -14.9), 0.08, cast_round, 8)
+		_shape.rod(props, "GuardRail", Vector3(side * 9.6, 2.22, -14.9), Vector3(side * 6.0, 2.22, -14.9), 0.08, casting, 8)
 		for rib: float in [9.0, 7.8, 6.6]:
 			_block(props, "GuardRib", Vector3(0.08, 1.8, 0.06), casting, Vector3(side * rib, 1.3, -15.23))
 		# Rounded casting edges break the head and gearbox silhouettes.
@@ -313,7 +309,7 @@ func _lathes() -> void:
 				[Vector3(12.0, 0.3, -11.0), Vector3(12.0, 2.0, -11.0)], [Vector3(12.0, 0.3, -16.0), Vector3(12.0, 2.0, -16.0)]]:
 			var a: Vector3 = edge[0]
 			var b: Vector3 = edge[1]
-			_shape.rod(props, "CastingEdge", Vector3(side * a.x, a.y, a.z), Vector3(side * b.x, b.y, b.z), 0.06, cast_round, 8)
+			_shape.rod(props, "CastingEdge", Vector3(side * a.x, a.y, a.z), Vector3(side * b.x, b.y, b.z), 0.06, casting, 8)
 		# The carriage on the bed: saddle, cross slide, tool post and its bit.
 		_block(props, "Saddle", Vector3(0.7, 0.12, 2.1), casting, Vector3(side * 8.4, 1.31, -13.5))
 		_block(props, "CrossSlide", Vector3(0.5, 0.12, 0.9), dark, Vector3(side * 8.4, 1.43, -13.15))
@@ -322,8 +318,8 @@ func _lathes() -> void:
 		# The apron hangs on the bed's front with its handwheel and levers.
 		_block(props, "Apron", Vector3(0.8, 0.5, 0.06), casting, Vector3(side * 8.4, 0.95, -12.37))
 		_shape.cylinder(props, "ApronWheel", 0.17, 0.04, bright, Vector3(side * 8.6, 0.95, -12.31), 14)
-		_shape.rod(props, "ApronHandle", Vector3(side * 8.68, 1.05, -12.3), Vector3(side * 8.68, 1.05, -12.2), 0.015, dark_round, 4)
-		_shape.rod(props, "ApronLever", Vector3(side * 8.15, 0.85, -12.34), Vector3(side * 8.05, 0.7, -12.22), 0.015, dark_round, 4)
+		_shape.rod(props, "ApronHandle", Vector3(side * 8.68, 1.05, -12.3), Vector3(side * 8.68, 1.05, -12.2), 0.015, dark, 4)
+		_shape.rod(props, "ApronLever", Vector3(side * 8.15, 0.85, -12.34), Vector3(side * 8.05, 0.7, -12.22), 0.015, dark, 4)
 		# Lead screw and feed rod along the bed's front, in their brackets.
 		_shape.rod(props, "LeadScrew", Vector3(side * 9.6, 1.08, -12.34), Vector3(side * 6.0, 1.08, -12.34), 0.03, bright, 6)
 		_shape.rod(props, "FeedRod", Vector3(side * 9.6, 0.82, -12.34), Vector3(side * 6.0, 0.82, -12.34), 0.022, line, 6)
@@ -333,7 +329,7 @@ func _lathes() -> void:
 		wheel.basis = Basis(Vector3.BACK, Vector3.UP, Vector3.LEFT)
 		for spoke: int in range(3):
 			var angle: float = TAU * float(spoke) / 3.0
-			_shape.rod(props, "TailSpoke", Vector3(side * 6.13, 1.68, -13.5), Vector3(side * 6.13, 1.68 + sin(angle) * 0.19, -13.5 + cos(angle) * 0.19), 0.012, dark_round, 4)
+			_shape.rod(props, "TailSpoke", Vector3(side * 6.13, 1.68, -13.5), Vector3(side * 6.13, 1.68 + sin(angle) * 0.19, -13.5 + cos(angle) * 0.19), 0.012, dark, 4)
 		# At the back: the coolant line along the guard and the head's door.
 		_shape.rod(props, "CoolantLine", Vector3(side * 9.5, 2.05, -15.27), Vector3(side * 6.2, 2.05, -15.27), 0.035, line, 6)
 		_shape.rod(props, "CoolantDrop", Vector3(side * 6.2, 2.05, -15.27), Vector3(side * 6.2, 0.35, -15.27), 0.035, line, 6)
@@ -341,8 +337,8 @@ func _lathes() -> void:
 		_block(props, "HeadDoorPanel", Vector3(1.44, 1.04, 0.02), casting, Vector3(side * 10.8, 1.15, -16.03))
 		_block(props, "HeadDoorHandle", Vector3(0.05, 0.22, 0.05), bright, Vector3(side * 10.15, 1.2, -16.06))
 		# A task lamp over each lathe on the head's pillar: the turner's light.
-		_shape.rod(props, "TaskLampPost", Vector3(side * 11.4, 3.0, -15.0), Vector3(side * 11.4, 3.9, -15.0), 0.04, dark_round, 6)
-		_shape.rod(props, "TaskLampArm", Vector3(side * 11.4, 3.9, -15.0), Vector3(side * 9.2, 3.5, -13.8), 0.03, dark_round, 6)
+		_shape.rod(props, "TaskLampPost", Vector3(side * 11.4, 3.0, -15.0), Vector3(side * 11.4, 3.9, -15.0), 0.04, dark, 6)
+		_shape.rod(props, "TaskLampArm", Vector3(side * 11.4, 3.9, -15.0), Vector3(side * 9.2, 3.5, -13.8), 0.03, dark, 6)
 		_block(props, "TaskLampShade", Vector3(0.36, 0.14, 0.24), casting, Vector3(side * 9.2, 3.45, -13.8))
 		_block(props, "TaskLampLens", Vector3(0.3, 0.02, 0.18), _glow("mars_lamp_warm", Color("e4c99c"), 1.2), Vector3(side * 9.2, 3.37, -13.8))
 		_omni(room, "TaskLamp", Vector3(side * 9.2, 3.2, -13.8), Color(1.0, 0.9, 0.74), 2.2, 6.0)

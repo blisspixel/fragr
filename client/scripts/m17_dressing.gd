@@ -324,7 +324,7 @@ func _wall_bench(room: Node3D, centre: Vector3, face: String, length: float) -> 
 func _clock(room: Node3D, at: Vector3, face: String) -> void:
 	var props: Node3D = _props(room)
 	var normal: Vector3 = MapDecoration.face_basis(face).z
-	var rim: MeshInstance3D = _shape.cylinder(props, "ClockRim", 0.28, 0.06, _mat("rail_cap_round", STEEL, 0.5, 0.45), at + normal * 0.03, 16)
+	var rim: MeshInstance3D = _shape.cylinder(props, "ClockRim", 0.28, 0.06, _mat("rail_cap", STEEL, 0.5, 0.45), at + normal * 0.03, 16)
 	rim.basis = MapDecoration.face_basis(face)
 	var dial: MeshInstance3D = _shape.cylinder(props, "ClockFace", 0.24, 0.01, _mat("clock_face", Color("a39d8e")), at + normal * 0.065, 16)
 	dial.basis = rim.basis
@@ -413,7 +413,7 @@ func _build_hall() -> void:
 	_block(props, "RostrumLine", Vector3(6.04, 0.06, 0.035), _mat("seal_line", SEAL_LINE, 0.0, 0.9), Vector3(0, 1.0, -8.025))
 	_block(props, "Lectern", Vector3(0.7, 1.0, 0.45), _mat("walnut", WALNUT, 0.0, 0.7), Vector3(0, 1.7, -6.0))
 	_block(props, "LecternTop", Vector3(0.8, 0.05, 0.56), _mat("walnut_top", WALNUT.darkened(0.2), 0.0, 0.6), Vector3(0, 2.22, -6.0))
-	_shape.rod(props, "Microphone", Vector3(0.25, 2.24, -6.1), Vector3(0.25, 2.55, -6.35), 0.012, _mat("rail_cap_round", STEEL, 0.5, 0.45), 4)
+	_shape.rod(props, "Microphone", Vector3(0.25, 2.24, -6.1), Vector3(0.25, 2.55, -6.35), 0.012, _mat("rail_cap", STEEL, 0.5, 0.45), 4)
 	_block(props, "MicrophoneHead", Vector3(0.06, 0.06, 0.08), _mat("rail_cap", STEEL, 0.5, 0.45), Vector3(0.25, 2.56, -6.38))
 	_block(props, "Speech", Vector3(0.21, 0.004, 0.3), _mat("paper", PAPER), Vector3(-0.15, 2.25, -6.0))
 	_shape.cylinder(props, "Glass", 0.035, 0.12, _mat("glass_water", Color("8e9a98"), 0.2, 0.2), Vector3(-2.3, 1.26, -6.2), 8).rotation.x = PI * 0.5
@@ -481,26 +481,24 @@ func _build_core() -> void:
 	var room: Node3D = _room("SecurityCore")
 	var props: Node3D = _props(room)
 	var steel: StandardMaterial3D = _mat("rail_cap", STEEL, 0.5, 0.45)
-	# Turned parts keep their own material: a merged surface cannot mix
-	# them with boxes.
-	var conduit_round: StandardMaterial3D = _mat("conduit_round", Color("62676a"), 0.45, 0.55)
+	var conduit: StandardMaterial3D = _mat("conduit", Color("62676a"), 0.45, 0.55)
 	for side: float in [-1.0, 1.0]:
 		var wall: float = 3.0 * side
 		_block(props, "CableTray", Vector3(0.36, 0.1, 18.0), _mat("junction", Color("6a6f71"), 0.35, 0.55), Vector3(wall - side * 0.18, 5.6, 9.0))
 		for lift: float in [0.0, 0.07]:
 			_shape.rod(props, "Cable", Vector3(wall - side * (0.08 + lift), 5.68, 0.0), Vector3(wall - side * (0.08 + lift), 5.68, 18.0), 0.03, _mat("cable", Color("1f2224")), 4)
-		_shape.rod(props, "Conduit", Vector3(wall - side * 0.06, 4.6, 0.2), Vector3(wall - side * 0.06, 4.6, 17.8), 0.05, conduit_round, 6)
+		_shape.rod(props, "Conduit", Vector3(wall - side * 0.06, 4.6, 0.2), Vector3(wall - side * 0.06, 4.6, 17.8), 0.05, conduit, 6)
 		for z: float in [3.0, 9.0, 15.0]:
 			_block(props, "JunctionBox", Vector3(0.14, 0.6, 0.5), _mat("junction", Color("6a6f71"), 0.35, 0.55), Vector3(wall - side * 0.07, 4.2, z))
 			_block(props, "JunctionLamp", Vector3(0.02, 0.06, 0.06), _glow("console_keys", AMBER.darkened(0.25), 0.5), Vector3(wall - side * 0.145, 4.38, z + 0.15))
-			_shape.rod(props, "Drop", Vector3(wall - side * 0.06, 4.45, z), Vector3(wall - side * 0.06, 4.6, z), 0.04, conduit_round, 6)
+			_shape.rod(props, "Drop", Vector3(wall - side * 0.06, 4.45, z), Vector3(wall - side * 0.06, 4.6, z), 0.04, conduit, 6)
 		for z: float in [4.0, 12.0]:
 			_arm_pool(room, Vector3(wall, 6.8, z), Vector3(-side, 0, 0), 1.8, 9.5, 46.0)
 	# The seal: jamb plates, a head beam, hinge blocks and bolt rows.
 	for x: float in [-2.75, 2.75]:
 		_block(props, "SealJamb", Vector3(0.5, 3.5, 0.12), steel, Vector3(x, 1.75, 17.94))
 		for y: float in [0.7, 1.9, 3.1]:
-			_block(props, "SealHinge", Vector3(0.22, 0.4, 0.18), _mat("conduit", Color("4a4f50"), 0.45, 0.55), Vector3(x, y, 17.88))
+			_block(props, "SealHinge", Vector3(0.22, 0.4, 0.18), conduit, Vector3(x, y, 17.88))
 	_block(props, "SealHead", Vector3(6.0, 0.4, 0.14), steel, Vector3(0, 4.3, 17.93))
 	for x: int in range(9):
 		for y: float in [0.6, 3.0]:
@@ -536,7 +534,7 @@ func _build_chamber() -> void:
 	_block(props, "DeskCloth", Vector3(6.02, 1.1, 0.03), _mat("cloth", CLOTH, 0.0, 0.95), Vector3(0, 0.6, 29.98))
 	_block(props, "DeskClothLine", Vector3(6.04, 0.06, 0.035), _mat("seal_line", SEAL_LINE, 0.0, 0.9), Vector3(0, 1.08, 29.975))
 	for x: float in [-2.2, 2.2]:
-		_shape.rod(props, "DeskMicrophone", Vector3(x, 1.22, 30.5), Vector3(x, 1.5, 30.25), 0.012, _mat("rail_cap_round", STEEL, 0.5, 0.45), 4)
+		_shape.rod(props, "DeskMicrophone", Vector3(x, 1.22, 30.5), Vector3(x, 1.5, 30.25), 0.012, _mat("rail_cap", STEEL, 0.5, 0.45), 4)
 		_block(props, "DeskPapers", Vector3(0.3, 0.02, 0.4), _mat("paper", PAPER), Vector3(x + 0.5, 1.21, 30.6))
 	# Delegates' benches along both walls, and a clock with no numerals.
 	for side: Array in [[-14.0, "east", 20.3], [14.0, "west", 23.7]]:
