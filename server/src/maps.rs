@@ -1764,3 +1764,73 @@ pub(crate) fn ledge_traps(kind: MapKind) -> Vec<String> {
     }
     problems
 }
+
+/// Pads the shared navigator cannot walk a fighter to from the open floor at
+/// the map's origin within a minute: the route a rule bot would take to a pad
+/// it wants. A pad the static reach check passes can still be a pad no bot
+/// ever arrives at.
+#[cfg(test)]
+pub(crate) fn pad_route_failures(kind: MapKind) -> Vec<String> {
+    use crate::navigation::{NavigationGoal, Navigator};
+    use crate::protocol::{Action, Role};
+    use crate::sim::{GameState, PLAYER_FLOOR_Y};
+    let def = def(kind);
+    let start = origin_floor(kind);
+    let mut failures = Vec::new();
+    for pad in def.pickups.iter().chain(&def.scrap_pads) {
+        let mut state = GameState::with_map(kind, false);
+        state.config.time_limit_ticks = None;
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        let id = uuid::Uuid::from_u128(4242);
+        state.add_player(id, "Pad route".into(), Role::Human);
+        state.start_round();
+        state.vehicles.clear();
+        state.players[0].x = 0.0;
+        state.players[0].y = start + PLAYER_FLOOR_Y;
+        state.players[0].z = 0.0;
+        let goal = [pad.x, pad.floor, pad.z];
+        let mut navigator = Navigator::default();
+        let mut arrived = false;
+        for _ in 0..20 * 60 {
+            let player = &state.players[0];
+            let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+            if (feet[0] - goal[0]).hypot(feet[2] - goal[2]) <= 0.6
+                && (feet[1] - goal[1]).abs() <= 0.1
+            {
+                arrived = true;
+                break;
+            }
+            let action = navigator.steer(
+                state.map.navigation(),
+                feet,
+                NavigationGoal {
+                    feet: goal,
+                    combat: false,
+                },
+                Action::default(),
+                state.tick,
+                true,
+            );
+            state.set_action(id, action);
+            state.tick(0.05);
+            state.take_events();
+            state.players[0].hp = 100;
+        }
+        if !arrived {
+            let p = &state.players[0];
+            failures.push(format!(
+                "{}: no walked route to {} at ({:.1}, {:.1}, {:.1}); stopped at ({:.1}, {:.1}, {:.1})",
+                kind.name(),
+                pad.id,
+                pad.x,
+                pad.floor,
+                pad.z,
+                p.x,
+                p.y - PLAYER_FLOOR_Y,
+                p.z
+            ));
+        }
+    }
+    failures
+}

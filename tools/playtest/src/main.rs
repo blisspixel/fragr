@@ -93,6 +93,12 @@ struct Cli {
     /// minutes, Flechette under 45 percent of shots, 18 or more frags a minute.
     #[arg(long, requires = "bot_survey")]
     survey_lot: bool,
+    /// With --bot-survey: every map in every mode it hosts. --assert then
+    /// fails a fighter inside a solid or outside the square, and prints the
+    /// rows that miss the wave 19 targets (10 frags a minute, three lead
+    /// changes per free-for-all, top gun under 45 percent of shots).
+    #[arg(long, requires = "bot_survey", conflicts_with = "survey_lot")]
+    survey_maps: bool,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -512,6 +518,41 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.rocket_in_hand_share * 100.0,
             row.side_calls_per_minute
         );
+        let (gun, share) = row.top_gun();
+        println!(
+            "{}: {:.1} lead changes per match, top gun {gun} {:.0}%, {} stalls over 5 s ({} pushing, longest {:.1} s), {} ticks inside a solid, {} outside the square, lowest feet {:.2}, {:.0} s in vehicles",
+            row.scenario,
+            row.lead_changes_per_match,
+            share * 100.0,
+            row.stalls,
+            row.pushing_stalls,
+            row.longest_stall_seconds,
+            row.in_solid_ticks,
+            row.out_of_bounds_ticks,
+            row.lowest_feet,
+            row.vehicle_seconds
+        );
+        if !row.unclaimed_pads.is_empty() {
+            println!(
+                "{}: pads never claimed: {}",
+                row.scenario,
+                row.unclaimed_pads.join(", ")
+            );
+        }
+        for spot in row.stall_spots.iter().chain(&row.in_solid_spots) {
+            println!(
+                "{}:   seed {} tick {} {} at ({:.2}, {:.2}, {:.2}){}{}",
+                row.scenario,
+                spot.seed,
+                spot.tick,
+                spot.fighter,
+                spot.at[0],
+                spot.at[1],
+                spot.at[2],
+                if spot.in_vehicle { " in a vehicle" } else { "" },
+                if spot.pushing { " pushing" } else { "" }
+            );
+        }
     }
 }
 
@@ -626,6 +667,9 @@ async fn main() {
         if cli.survey_lot {
             config.scenarios = fragr_playtest::bot_survey::lot_scenarios();
         }
+        if cli.survey_maps {
+            config.scenarios = fragr_playtest::bot_survey::every_map_scenarios();
+        }
         let report = fragr_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
@@ -647,6 +691,13 @@ async fn main() {
             let lot = fragr_playtest::bot_survey::lot_scenario().label();
             for row in report.scenarios.iter().filter(|row| row.scenario == lot) {
                 problems.extend(fragr_playtest::bot_survey::check_lot_targets(row));
+            }
+        }
+        if cli.survey_maps {
+            for (row, scenario) in report.scenarios.iter().zip(&config.scenarios) {
+                for miss in fragr_playtest::bot_survey::check_map_targets(row, scenario.mode) {
+                    println!("target: {miss}");
+                }
             }
         }
         for problem in &problems {

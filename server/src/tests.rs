@@ -7068,6 +7068,17 @@ mod map_roster {
         }
     }
 
+    /// Every pad a rule bot might want can be walked to by the shared
+    /// navigator, not only reached by the static check.
+    #[test]
+    fn every_pad_has_a_walked_route_from_the_origin() {
+        let failures: Vec<String> = MapKind::ALL
+            .into_iter()
+            .flat_map(maps::pad_route_failures)
+            .collect();
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
     #[test]
     fn arena_roster_retains_scale_and_low_water_keeps_its_compact_town_extent() {
         // The original arcade roster replaced the flat hundred metre square.
