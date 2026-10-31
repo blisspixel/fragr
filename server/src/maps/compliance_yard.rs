@@ -30,11 +30,17 @@ use std::sync::OnceLock;
 #[cfg(test)]
 mod tests;
 
-/// Half width of the playable square: the block is 72 m across inside a
-/// corridor about seven and a half metres wide.
-pub(crate) const HALF: f32 = 44.0;
+/// Half width of the plan square: the block is drawn 72 m across (68 m as
+/// built at SCALE) inside a
+/// corridor about six and a half metres wide.
+pub(crate) const HALF: f32 = 43.0;
 /// The block's outer wall line.
 pub(crate) const BLOCK: f32 = 36.0;
+/// The plan is drawn on a whole-metre grid and built at this scale, so the
+/// farthest corners of the corridor cross inside the small-map rule's 25 s
+/// at a bot's walk. Heights, door clearances and tread rises are not
+/// scaled; plan coordinates (and the tests' rooms and spots) are.
+pub(crate) const SCALE: f32 = 0.95;
 /// Half the thickness of every partition.
 const THICK: f32 = 0.3;
 /// Half the width of every doorway: 4.5 m openings.
@@ -162,7 +168,7 @@ fn build_yard() -> Yard {
 
     // The block's own outer wall. Every corridor door is off the line of the
     // partition doors inside it.
-    let north = b.wall([-BLOCK, -BLOCK], [BLOCK, -BLOCK], &[-27.0, 29.0], Concrete);
+    let north = b.wall([-BLOCK, -BLOCK], [BLOCK, -BLOCK], &[-31.0, 29.0], Concrete);
     let south = b.wall(
         [-BLOCK, BLOCK],
         [BLOCK, BLOCK],
@@ -172,13 +178,13 @@ fn build_yard() -> Yard {
     let west = b.wall(
         [-BLOCK, -BLOCK],
         [-BLOCK, BLOCK],
-        &[-28.5, -1.0, 19.0],
+        &[-33.5, -1.0, 19.0],
         Concrete,
     );
     let east = b.wall(
         [BLOCK, -BLOCK],
         [BLOCK, BLOCK],
-        &[-19.0, 7.0, 33.5],
+        &[-19.0, 11.0, 34.0],
         Concrete,
     );
 
@@ -190,32 +196,36 @@ fn build_yard() -> Yard {
     // Inspection | court: a door at the east end, and the inspection window,
     // an open bay over a sill nobody can climb, which the gantry sees over.
     let window = (-6.0, 0.5);
-    b.wall([-12.0, -16.0], [window.0, -16.0], &[], Enamel);
+    b.wall([-12.0, -16.0], [window.0, -16.0], &[-9.0], Enamel);
     let sill = b.boxed(
         [window.0, -16.0 - THICK],
         [window.1, -16.0 + THICK],
         SILL_TOP,
         InspectionGlass,
     );
-    b.wall([window.1, -16.0], [14.0, -16.0], &[10.5], Enamel);
+    b.wall([window.1, -16.0], [14.0, -16.0], &[7.5], Enamel);
     b.wall([14.0, -BLOCK], [14.0, -8.0], &[-27.0], Enamel); // inspection | lockup
-    b.wall([14.0, -8.0], [14.0, 14.0], &[-3.5], Enamel); // court | relay
+    b.wall([14.0, -8.0], [14.0, 14.0], &[-5.5], Enamel); // court | relay
     b.wall([14.0, -8.0], [BLOCK, -8.0], &[18.5], Enamel); // lockup | relay
     b.wall([-BLOCK, 14.0], [-12.0, 14.0], &[-24.0], Enamel); // intake | weighbridge
     b.wall([-12.0, 12.0], [14.0, 12.0], &[3.0], Enamel); // court | offices
-    b.wall([12.0, 14.0], [BLOCK, 14.0], &[31.5], Enamel); // relay | dock
+    b.wall([12.0, 14.0], [BLOCK, 14.0], &[27.5], Enamel); // relay | dock
     b.wall([-8.0, 12.0], [-8.0, BLOCK], &[33.0], Enamel); // weighbridge | offices
     b.wall([12.0, 12.0], [12.0, BLOCK], &[27.0], Enamel); // offices | dock
 
     // Records: four shelving rows, each broken twice, the breaks staggered
     // so every aisle bends and nothing sees the length of the room.
     let mut shelves = Vec::new();
-    for (row, z) in [-31.0f32, -26.0, -21.0, -16.5].into_iter().enumerate() {
-        let gaps: [(f32, f32); 2] = if row % 2 == 0 {
-            [(-33.5, -30.0), (-22.5, -19.0)]
-        } else {
-            [(-28.5, -25.0), (-17.0, -12.3)]
-        };
+    // The breaks step east row by row from the north door, so the clerks'
+    // way through bends rather than zigzags, and no two breaks in
+    // neighbouring rows line up.
+    let rows: [(f32, [(f32, f32); 2]); 4] = [
+        (-31.0, [(-28.5, -25.0), (-17.0, -13.5)]),
+        (-26.0, [(-33.5, -30.0), (-22.0, -18.5)]),
+        (-21.0, [(-28.5, -25.0), (-17.0, -12.3)]),
+        (-16.5, [(-33.5, -30.0), (-22.5, -19.0)]),
+    ];
+    for (z, gaps) in rows {
         let mut cursor = -35.7;
         for (lo, hi) in gaps.into_iter().chain([(-12.3, -12.3)]) {
             if lo > cursor + 0.5 {
@@ -264,11 +274,19 @@ fn build_yard() -> Yard {
     for tread in stair_run(-5.5, 3.0 + run, 0.0, -1.0, 2.0, 0.0, TABLE_TOP) {
         b.add(tread, ServiceSteel);
     }
-    let court_cage = b.boxed([5.0, -11.0], [9.0, -7.0], WALL_TOP, RecordsTile);
+    let court_cage = b.boxed([7.0, 4.0], [11.0, 8.0], WALL_TOP, RecordsTile);
+    // Two inspection lanes between waist-high rails, ending at the
+    // inspector's desk by the cage, and a sorting bench under the window.
+    // All below a standing eye: cover, not walls, so no line reopens.
+    for z in [-1.5f32, 1.5, 4.5] {
+        b.boxed([0.0, z - 0.15], [6.0, z + 0.15], RAIL_TOP, ServiceSteel);
+    }
+    let inspector = b.boxed([6.0, -1.5], [7.2, 4.5], RAIL_TOP, Enamel);
+    let bench = b.boxed([-2.0, -11.5], [4.0, -10.3], RAIL_TOP, ServiceSteel);
 
     // Relay: a wall of relay cabinets splits the room into the west aisle and
     // the east lane, open at both ends so the room is a loop.
-    let cabinets = b.boxed([23.5, -3.0], [24.5, 9.0], WALL_TOP, ServiceSteel);
+    let cabinets = b.boxed([30.5, -3.0], [31.5, 7.0], WALL_TOP, ServiceSteel);
 
     // Weighbridge: the low inspection platform, a flight from east and west.
     let deck = b.boxed([-26.0, 21.0], [-18.0, 29.0], PLATFORM_TOP, ServiceSteel);
@@ -292,7 +310,7 @@ fn build_yard() -> Yard {
     // floor behind it to the corridor door.
     let dock = b.boxed([26.0, 21.0], [35.7, 31.0], PLATFORM_TOP, ServiceSteel);
     let run = stair_length(0.0, PLATFORM_TOP);
-    for tread in stair_run(30.5, 21.0 - run, 0.0, 1.0, 1.5, 0.0, PLATFORM_TOP) {
+    for tread in stair_run(27.5, 21.0 - run, 0.0, 1.0, 1.5, 0.0, PLATFORM_TOP) {
         b.add(tread, ServiceSteel);
     }
 
@@ -306,7 +324,7 @@ fn build_yard() -> Yard {
             (false, 1.0 * sign),
             (true, 21.0 * sign),
         ] {
-            let depth = 4.8;
+            let depth = 4.2;
             let (near, far) = if from_inner {
                 (inner, inner + sign * depth)
             } else {
@@ -322,17 +340,21 @@ fn build_yard() -> Yard {
         }
     }
 
-    // Guard posts fill the corridor's outer corners, so it turns rather
-    // than pooling into four empty squares.
+    // Guard posts fill the corridor's outer corners in an L, so each corner
+    // is a 3.2 m turn hugging the block rather than a pocket of dead floor.
+    let wall = BLOCK + THICK;
+    let turn = wall + 3.2;
     for (sx, sz) in [(-1.0f32, -1.0f32), (1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)] {
-        let (x0, x1) = (sx * (HALF - 4.0), sx * HALF);
-        let (z0, z1) = (sz * (HALF - 4.0), sz * HALF);
-        b.boxed(
-            [x0.min(x1), z0.min(z1)],
-            [x0.max(x1), z0.max(z1)],
-            WALL_TOP,
-            Concrete,
-        );
+        for ([ax, bx], [az, bz]) in [([turn, HALF], [wall, HALF]), ([wall, turn], [turn, HALF])] {
+            let (x0, x1) = (sx * ax, sx * bx);
+            let (z0, z1) = (sz * az, sz * bz);
+            b.boxed(
+                [x0.min(x1), z0.min(z1)],
+                [x0.max(x1), z0.max(z1)],
+                WALL_TOP,
+                Concrete,
+            );
+        }
     }
 
     // Union paper and hardware, flush to the walls they mark: the seal over
@@ -385,6 +407,20 @@ fn build_yard() -> Yard {
         MapFace::West,
         [0.0, 1.4],
         [8.0, 0.4],
+        MapDecorationKind::StripLight,
+    );
+    b.panel(
+        inspector,
+        MapFace::West,
+        [0.0, 0.0],
+        [1.6, 0.6],
+        MapDecorationKind::Terminal,
+    );
+    b.panel(
+        bench,
+        MapFace::South,
+        [0.0, 0.0],
+        [4.0, 0.3],
         MapDecorationKind::StripLight,
     );
     b.panel(
@@ -466,6 +502,12 @@ fn build_yard() -> Yard {
         }
     }
 
+    for solid in &mut b.solids {
+        solid.min_x *= SCALE;
+        solid.max_x *= SCALE;
+        solid.min_z *= SCALE;
+        solid.max_z *= SCALE;
+    }
     let pickups = vec![
         weapon_pad("pad_rail", WeaponType::Rail, -2.0, -33.0, GANTRY_TOP),
         weapon_pad("pad_scatter", WeaponType::Scatter, -24.0, -23.5, 0.0),
@@ -485,14 +527,24 @@ fn build_yard() -> Yard {
     };
     Yard {
         map: MapDef {
-            half_extent: HALF,
-            spawn_radius: 26.0,
+            half_extent: HALF * SCALE,
+            spawn_radius: 26.0 * SCALE,
             solids: b.solids,
-            pickups,
-            scrap_pads,
+            pickups: scale_pads(pickups),
+            scrap_pads: scale_pads(scrap_pads),
         },
         presentation,
     }
+}
+
+fn scale_pads(pads: Vec<crate::sim::ArenaPickup>) -> Vec<crate::sim::ArenaPickup> {
+    pads.into_iter()
+        .map(|pad| crate::sim::ArenaPickup {
+            x: pad.x * SCALE,
+            z: pad.z * SCALE,
+            ..pad
+        })
+        .collect()
 }
 
 pub(super) fn build() -> MapDef {

@@ -4991,10 +4991,10 @@ fn test_sim_compliance_yard_blocks_move_into_post() {
     let id = Uuid::new_v4();
     state.add_player(id, "Rusher".into(), Role::Human);
     if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
-        // North of the court's confiscation cage (x 5 to 9, z -11 to -7),
-        // walking south (+z) into its face.
-        p.x = 7.0;
-        p.z = -14.0;
+        // North of the court's confiscation cage (built at x 6.65 to 10.45,
+        // z 3.8 to 7.6), walking south (+z) into its face.
+        p.x = 8.5;
+        p.z = 0.0;
         p.yaw = std::f32::consts::FRAC_PI_2;
     }
     for _ in 0..40 {
@@ -5009,7 +5009,7 @@ fn test_sim_compliance_yard_blocks_move_into_post() {
     }
     let player = state.players.iter().find(|p| p.id == id).unwrap();
     assert!(
-        player.z <= -11.4 && player.z > -13.5,
+        player.z <= 3.35 && player.z > 1.5,
         "player should walk up to and be stopped by the cage, z={}",
         player.z
     );
@@ -7098,9 +7098,12 @@ mod map_roster {
                 continue;
             }
             if map == MapKind::ComplianceYard {
-                // Compliance Yard: a 72 m records block inside its service
+                // Compliance Yard: a 68 m records block inside its service
                 // corridor, the small-map tier for four to eight fighters.
-                assert_eq!(extent, 88.0, "Compliance Yard keeps its compact block");
+                assert!(
+                    (extent - 81.7).abs() < 0.01,
+                    "Compliance Yard keeps its compact block, {extent} m"
+                );
                 continue;
             }
             assert!(
