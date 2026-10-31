@@ -29,7 +29,8 @@ const AFTER_LINES: Array[String] = ["M18_LATCH_ALL_AT_ONCE", "M18_LATCH_STILL_HE
 
 var _geometry: Dictionary = {}
 var _gate_light: MeshInstance3D = null
-var _roadblock_marker: MeshInstance3D = null
+## The square itself, its morning and its turn (M18Square).
+var square: M18Square = null
 var _notices: Dictionary[String, bool] = {}
 var _beats: Dictionary[String, bool] = {}
 var _attempt: int = -1
@@ -50,7 +51,7 @@ func _init() -> void:
 func clear_map() -> void:
 	_geometry.clear()
 	_gate_light = null
-	_roadblock_marker = null
+	square = null
 	_reset_story()
 	_attempt = -1
 	state_applied = 0
@@ -70,6 +71,8 @@ func _reset_story() -> void:
 		latch_expression.emit("")
 	_beats.clear()
 	_release()
+	if square != null:
+		square.reset()
 
 func _release() -> void:
 	EnemyView.signal_window = Vector2i(-1, -1)
@@ -85,7 +88,7 @@ func configure_map(info: Dictionary) -> void:
 	if not info.get("m18") is Dictionary or not MissionState.map_error(info).is_empty():
 		return
 	_geometry = MissionState.geometry_for(info)
-	_build_transit_visuals()
+	_build_transit_visuals(info)
 
 func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -102,9 +105,13 @@ func _box(label: String, at: Vector3, size: Vector3, color: Color) -> MeshInstan
 	add_child(node)
 	return node
 
-func _build_transit_visuals() -> void:
-	# Warning barricade light at clinic roadblock
-	_roadblock_marker = _box("RoadblockMarker", Vector3(-4.0, 4.6, 0.0), Vector3(10.0, 0.3, 0.4), Color("e0633b"))
+func _build_transit_visuals(info: Dictionary) -> void:
+	square = M18Square.new()
+	square.name = "M18Square"
+	add_child(square)
+	if not square.configure(info):
+		square.queue_free()
+		square = null
 	# Concourse departure gate clearance light at x=61.0, y=8.8, z=0.0
 	_gate_light = _box("ConcourseGateLight", Vector3(61.0, 8.8, 0.0), Vector3(2.0, 0.3, 0.4), Color("c49a45"))
 
@@ -170,7 +177,10 @@ func present_turn(age: int) -> void:
 		return
 	if _first_age < 0:
 		_first_age = age
-	# Seen from the middle of a run that already turned: nothing to restage.
+	# Seen from the middle of a run that already turned: nothing to restage,
+	# and the square is simply as the turn left it.
+	if square != null:
+		square.present(age, _first_age < TURN_TICKS)
 	if _first_age >= TURN_TICKS:
 		return
 	if age < TURN_TICKS:

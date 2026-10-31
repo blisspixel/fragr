@@ -97,6 +97,65 @@ static func fixture_state(info: Dictionary, stage: int = 0, tick: int = 10) -> D
 		}
 	}
 
+## The recovery square's own solids, as the authored map places them.
+static func square_map() -> Dictionary:
+	var solids: Array = []
+	for pair: Array in M18Square.ANCHORS:
+		var low: Vector3 = pair[0]
+		var high: Vector3 = pair[1]
+		solids.append({"min_x": low.x, "max_x": high.x, "min_z": low.z, "max_z": high.z, "bottom": low.y, "top": high.y})
+	return {"map_id": M18Square.MAP_ID, "solids": solids}
+
+## The square's morning and its turn: everything stops together, the
+## infrastructure takes the rhythm on the Inheritance's light, the people
+## leave, a retry starts the morning over and a late join sees only the after.
+func _check_square() -> void:
+	var info: Dictionary = square_map()
+	_check(M18Square.authored(info), "the authored square is recognised")
+	var moved: Dictionary = info.duplicate(true)
+	moved["solids"][0]["max_x"] = -20.0
+	_check(not M18Square.authored(moved), "a moved tram solid gets no guessed dressing")
+	var square: M18Square = M18Square.new()
+	root.add_child(square)
+	_check(square.configure(info), "the square dresses its authored solids")
+	_check(square.find_children("*", "CollisionObject3D", true, false).is_empty(), "the square's dressing adds no collision")
+	_check(square.stage == M18Square.Stage.MORNING and square.people.size() == 6, "a populated morning")
+	var bulbs: Array[MeshInstance3D] = square.bulbs.duplicate()
+	var lamps: Array[MeshInstance3D] = square.tram_lamps
+	var windows: Array[MeshInstance3D] = square.far_windows
+	_check(bulbs.size() == 36 and lamps.size() == 4 and not windows.is_empty(), "stall bulbs, tram lamps and far windows are built")
+	var bulb_lit: Callable = func() -> bool:
+		var material: StandardMaterial3D = (bulbs[0] as MeshInstance3D).material_override as StandardMaterial3D
+		return material != null and material.emission_enabled
+	_check(bulb_lit.call() and not (lamps[0] as Node3D).visible and not (windows[0] as Node3D).visible, "the morning: bulbs lit, the stalled tram dark, the far district plain")
+	square.present(0, true)
+	_check(square.stage == M18Square.Stage.STOPPED and not bulb_lit.call(), "everything stops: the bulbs go out together")
+	for person: CivilianFigure in square.people:
+		_check(person.visible, "the square's people stand still through the stop")
+	square.present(M18Square.HEADS_TURN_TICKS, true)
+	_check(square.stage == M18Square.Stage.SIGNAL and (lamps[0] as Node3D).visible, "the tram's lamps take the rhythm when the heads come round")
+	var lamp_material: StandardMaterial3D = (lamps[0] as MeshInstance3D).material_override as StandardMaterial3D
+	_check(lamp_material != null and lamp_material.emission.is_equal_approx(EnemyView.WORK_GLOW), "on the Inheritance's working light, never red")
+	square.present(M18Square.HEADS_TURN_TICKS + 9, true)
+	_check(not (lamps[0] as Node3D).visible, "the rhythm's dark beat")
+	square.present(M18Square.TURN_TICKS, true)
+	_check(square.stage == M18Square.Stage.AFTER and (lamps[0] as Node3D).visible, "after the turn the tram holds the light")
+	for _step: int in range(400):
+		square._process(0.05)
+	var gone: bool = true
+	for person: CivilianFigure in square.people:
+		gone = gone and not person.visible
+	_check(gone, "the square's people leave by the corners")
+	square.reset()
+	_check(square.stage == M18Square.Stage.MORNING and bulb_lit.call() and square.people[0].visible, "a retry starts the morning over")
+	square.clear()
+	_check(square.configure(info), "the square dresses again")
+	bulbs.assign(square.bulbs)
+	square.present(400, false)
+	_check(square.stage == M18Square.Stage.AFTER and not square.people[0].visible and not bulb_lit.call(), "a late join past the turn sees only the after")
+	square.queue_free()
+	await process_frame
+
 func _run() -> void:
 	var info: Dictionary = fixture_map()
 	_check(MapGeometry.validation_error(info).is_empty() and MissionState.map_error(info).is_empty(), "fixture transit map crosses client boundary")
@@ -199,6 +258,8 @@ func _run() -> void:
 	late.clear_map()
 	late.free()
 	presenter.free()
+
+	await _check_square()
 
 	if failures > 0:
 		push_error("test_m18_mission_state FAILED with %d failures" % failures)

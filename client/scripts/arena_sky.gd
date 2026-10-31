@@ -321,6 +321,8 @@ static func preset_for(map_name: String) -> Preset:
 		return waterworks()
 	if key.contains("peace without interruption"):
 		return forever_office()
+	if key == "all systems normal":
+		return all_systems_normal()
 	if key.contains("notice to vacate"):
 		return notice_to_vacate()
 	if key.contains("no forwarding address"):
@@ -577,6 +579,30 @@ static func low_water() -> Preset:
 	preset.contrast = 1.1
 	preset.saturation = 1.0
 	preset.glow_intensity = 0.4
+	return preset
+
+## All Systems Normal (docs/campaign/l18-all-systems-normal.md): the recovery
+## square on a clear, ordinary morning, six weeks after the Office fell. A low
+## sun from the east over the overlook rakes the square and the stalls; the
+## shade under the awnings and along the south wall stays cool but open, and
+## a faint actor fill keeps a black-and-red Union body readable in it. The
+## sky is the brightest and plainest in the late campaign: nothing in the air
+## says what is about to happen.
+static func all_systems_normal() -> Preset:
+	var preset: Preset = Preset.new(Color("5d8ec7"), Color("d6dee0"),
+		Color("a99c87"), Color("c9d2d6"), 0.0018, Color("c9cfd4"), 0.7)
+	preset.outdoor_embers = false
+	preset.key_color = Color("fff1d8")
+	preset.key_energy = 1.55
+	preset.key_rotation_degrees = Vector3(-34.0, 62.0, 0.0)
+	preset.scene_fill_energy = 0.08
+	preset.practical_color = Color("ffe9c4")
+	preset.practical_energy = 0.8
+	preset.view_fill_energy = 0.24
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.04
+	preset.saturation = 1.0
+	preset.glow_intensity = 0.25
 	return preset
 
 ## Notice to Vacate, late afternoon (docs/design/earth.md "M04 Low Water"):

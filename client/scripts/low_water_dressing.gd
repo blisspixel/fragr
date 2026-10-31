@@ -139,7 +139,7 @@ const RAILS: Array[Dictionary] = [
 	{"with": {"low": Vector3(-24, 0, -21), "high": Vector3(-15, 3.2, -18)}, "from": Vector3(-28, 0, -19.5), "to": Vector3(10, 0, -19.5), "wall_a": -23.0, "wall_b": -9.0, "wire": 6.4},
 	{"with": {"low": Vector3(58, 0, 16), "high": Vector3(60, 10.5, 60)}, "from": Vector3(53, 0, 18), "to": Vector3(53, 0, 52), "wall_a": 48.0, "wall_b": 58.0, "wire": 7.2},
 ]
-const MOODS: Array[String] = ["night_works", "aftermath", "later", "day"]
+const MOODS: Array[String] = ["night_works", "aftermath", "later", "day", "morning"]
 
 var _geometry: RefCounted = Geometry.new()
 var _tools: Dictionary[String, SurfaceTool] = {}
@@ -155,8 +155,10 @@ var flicker: Array[Dictionary] = []
 ## Empty keeps Planned Works.
 var layout: Dictionary = {}
 ## night_works (Planned Works), aftermath (the first light after the wipe),
-## later (the same street years on) or day (the multiplayer town before the
-## wipe: lived in, shops open, windows glazed, nothing climbing the walls).
+## later (the same street years on), day (the multiplayer town before the
+## wipe: lived in, shops open, windows glazed, nothing climbing the walls) or
+## morning (All Systems Normal: the recovery square across town six weeks after
+## the Office fell, rebuilt and open, glazed, its shutters back, no survey marks).
 var mood: String = "night_works"
 
 func _list(key: String, fallback: Array) -> Array:
@@ -296,7 +298,8 @@ func _material(key: String) -> Material:
 		match key:
 			"frame": standard.albedo_color = Color("2b2824")
 			"glass":
-				standard.albedo_color = Color("2c3c44") if mood in ["later", "day"] else Color("141b20")
+				# Daylight panes catch the sky; night panes are dark.
+				standard.albedo_color = Color("2c3c44") if mood in ["later", "day"] else (Color("3d525a") if mood == "morning" else Color("141b20"))
 				standard.roughness = 0.28
 				standard.metallic_specular = 0.7
 			"void": standard.albedo_color = Color("0b0c0d")
@@ -501,7 +504,7 @@ func _window(basis: Basis, origin: Vector3, u: float, sill: float, level: int) -
 	if mood == "aftermath":
 		_window_aftermath(basis, origin, u, sill, level, w, h, roll)
 		return
-	if mood in ["later", "day"]:
+	if mood in ["later", "day", "morning"]:
 		_window_later(basis, origin, u, sill, w, h, roll)
 		return
 	if roll < 15:
@@ -571,7 +574,7 @@ func _window_later(basis: Basis, origin: Vector3, u: float, sill: float, w: floa
 			_slab(_tool(leaf), basis, origin, minf(edge, edge + side * 0.55), sill - 0.02, maxf(edge, edge + side * 0.55), sill + h + 0.02, 0.0, 0.05)
 	if roll % 3 == 0:
 		_slab(_tool("curtain"), basis, origin, u - w * 0.5, sill + h * 0.45, u - w * 0.16, sill + h, 0.034, 0.036)
-	if roll % 4 != 1:
+	if (roll % 4 != 1) if mood == "later" else (roll % 3 == 0):
 		# A window box: soil, leaves, and a little colour.
 		_slab(_tool("box"), basis, origin, u - w * 0.5 - 0.05, sill - 0.32, u + w * 0.5 + 0.05, sill - 0.08, 0.0, 0.26)
 		for sprig: int in range(6):
@@ -882,7 +885,7 @@ func _tram(low: Vector3, high: Vector3, cab: String = "") -> void:
 		var h: float = size.y * 0.5
 		# Cream over green, the colour the vote carried. Grimed the morning
 		# after; repainted, still green, years on.
-		var cream: String = "tintc9bd9a" if mood == "night_works" else ("tint8f8670" if mood == "aftermath" else "tinte4d8b4")
+		var cream: String = "tintc9bd9a" if mood in ["night_works", "morning"] else ("tint8f8670" if mood == "aftermath" else "tinte4d8b4")
 		var green: String = "tint3f6f62" if mood == "night_works" else ("tint2f4a42" if mood == "aftermath" else "tint3f7f62")
 		var band_low: float = -h + size.y * 0.45
 		var band_high: float = h - size.y * 0.12
@@ -974,7 +977,7 @@ func _planter(low: Vector3, high: Vector3) -> void:
 	var lid: Vector3 = (low + high) * 0.5 + Vector3(0.0, size.y * 0.5, 0.0)
 	_avoid = []
 	_slab(_tool("soil"), up, lid, -size.x * 0.5 + 0.12, -size.z * 0.5 + 0.12, size.x * 0.5 - 0.12, size.z * 0.5 - 0.12, 0.0, 0.01)
-	if mood in ["later", "day"]:
+	if mood in ["later", "day", "morning"]:
 		# Planted and watered: leaves, a few flowers.
 		for index: int in range(14):
 			var u: float = -size.x * 0.5 + 0.3 + float(index % 7) * (size.x - 0.6) / 6.0

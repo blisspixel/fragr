@@ -13,6 +13,7 @@ const MAPS: Dictionary = {
 	"Port of Entry": "m06_port_of_entry",
 	"Common Carrier": "m10_common_carrier",
 	"The Weight of Permission": "m13-weight-of-permission",
+	"All Systems Normal": "m18-all-systems-normal",
 }
 ## Visible meshes allowed inside a replaced volume, by map and node name. A
 ## face panel the model does not carry sits on its face; only a fixture's
