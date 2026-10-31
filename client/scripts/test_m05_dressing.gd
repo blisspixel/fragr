@@ -113,7 +113,7 @@ func _run() -> void:
 	_expect(preset.key_rotation_degrees.x > -30.0 and preset.key_rotation_degrees.x < -10.0 and preset.key_color.r > preset.key_color.b,
 		"No Forwarding Address keeps Level 4's low warm afternoon sun")
 	_expect(preset.key_rotation_degrees.x > level4.key_rotation_degrees.x, "ten minutes on, the sun is a little lower than Level 4's")
-	_expect(is_equal_approx(preset.view_fill_energy, level4.view_fill_energy) and shared.key_rotation_degrees == Vector3.ZERO, "Level 4 actor fill is kept; the shared Low Water sky is unchanged")
+	_expect(is_equal_approx(preset.view_fill_energy, level4.view_fill_energy) and preset.key_rotation_degrees != shared.key_rotation_degrees and preset.key_color != shared.key_color, "Level 4 actor fill is kept, apart from the multiplayer town's evening")
 	if failures == 0:
 		print("test_m05_dressing: PASS layout guard on fixed geometry, nineteen dressed rooms, warm lamps and floodlights, merged props, no words, no bodies, gate-lift survival and the rising gate, the riding tram and the afternoon sun")
 	quit(0 if failures == 0 else 1)
