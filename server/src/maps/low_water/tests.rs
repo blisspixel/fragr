@@ -492,3 +492,86 @@ fn low_water_ten_rule_bots_finish_a_normal_finite_match_and_swap_sides() {
         assert_eq!(session.state.players.len(), 10);
     }
 }
+
+#[test]
+fn the_trench_is_a_chicane_and_the_long_diagonals_shrank() {
+    // Before the tram and the shed, a fighter in the trench saw its whole
+    // 84 m length under the bridges.
+    let (trench, eye, dir) = crate::maps::longest_sightline(MapKind::LowWater, |[_, floor, z]| {
+        floor < 0.5 && z.abs() < 4.0
+    });
+    eprintln!("low_water longest trench line {trench:.1} m from {eye:?} along {dir:?}");
+    assert!(trench < 36.0, "{trench} m from {eye:?} along {dir:?}");
+    let (any, eye, dir) = crate::maps::longest_sightline(MapKind::LowWater, |_| true);
+    eprintln!("low_water longest line {any:.1} m from {eye:?} along {dir:?}");
+    // The banks stay a team map's long lanes: before this layout a corner
+    // to corner diagonal ran 117 m; the tank deck and dock now cut it.
+    assert!(any < 105.0, "{any} m from {eye:?} along {dir:?}");
+    // The chicane passes beside both obstacles at a walking width, and the
+    // tram's roof is a step down from the north bank.
+    let arena = crate::maps::arena(MapKind::LowWater);
+    for (x, z) in [(-11.0, 2.2), (14.5, -2.2)] {
+        for dz in [-1.2f32, 0.0, 1.2] {
+            assert!(
+                !arena.blocked_at(x, z + dz, crate::movement::STEP_UP),
+                "{x},{z}"
+            );
+        }
+    }
+    let roof = [(TRAM[0] + TRAM[2]) * 0.5, TRAM_ROOF, -2.0];
+    const { assert!(STREET - TRAM_ROOF <= crate::movement::STEP_UP) };
+    route([roof[0], STREET, -6.0], roof);
+    route(roof, [roof[0], STREET, -6.0]);
+    // The shed is a drop from the south bank into the trench.
+    route([14.5, STREET, 7.0], [14.5, 0.0, -2.2]);
+}
+
+#[test]
+fn the_two_sites_are_different_places_to_take_and_to_hold() {
+    let layout = MapKind::LowWater.sabotage_layout().unwrap();
+    let [a, b] = &layout.wire.sites;
+    let solids = &crate::maps::arena(MapKind::LowWater).solids;
+    let sees = |eye: [f32; 3], site: [f32; 3]| {
+        crate::combat::line_of_sight(eye, [site[0], site[1] + 1.2, site[2]], solids)
+    };
+    let dock_eye = [31.0, DOCK + 1.6, 22.5];
+    let tank_eye = [12.0, TANK_DECK + 1.6, -18.0];
+    // B, the open stop, is watched by the defence's dock and the attack's
+    // tank deck; A, the forecourt, by neither.
+    assert!(sees(dock_eye, b.center) && sees(tank_eye, b.center));
+    assert!(!sees(dock_eye, a.center) && !sees(tank_eye, a.center));
+    // A's quickest way in for the attack is the west stair out of the
+    // trench, not the bridge: the ambulance wall turns the bridge route.
+    let from_trench = route([-30.0, 0.0, -2.0], a.center);
+    let from_bridge = route([-22.0, STREET, -6.0], a.center);
+    eprintln!("low_water A: west stair {from_trench} ticks, clinic bridge {from_bridge} ticks");
+    let wall_free = [-22.0, STREET, 9.5];
+    // The bridge line runs into the wall; its gate is offset east.
+    assert!(crate::maps::arena(MapKind::LowWater).blocked_at(
+        wall_free[0],
+        wall_free[2],
+        STREET + crate::movement::STEP_UP
+    ));
+    // B is the straight bridge run: no wall between the bridge and the stop.
+    let b_bridge = route([22.0, STREET, -6.0], b.center);
+    eprintln!("low_water B: depot bridge {b_bridge} ticks");
+    assert!(b_bridge + 10 < from_bridge, "B's bridge is the direct one");
+    // The defence retakes B from the dock with a drop, and A on foot.
+    route([31.0, DOCK, 22.5], b.center);
+    route(b.center, [31.0, DOCK, 22.5]);
+    route([12.0, TANK_DECK, -18.0], [0.0, STREET, -19.0]);
+    route([0.0, STREET, -19.0], [12.0, TANK_DECK, -18.0]);
+}
+
+#[test]
+fn navigation_builds_within_its_budget() {
+    let started = std::time::Instant::now();
+    let navigation =
+        crate::navigation::Navigation::shared(crate::maps::arena(MapKind::LowWater).clone())
+            .expect("Low Water builds within the navigation budget");
+    let (nodes, edges) = navigation.size();
+    eprintln!(
+        "low_water navigation {nodes} nodes, {edges} edges, built in {:.0} ms",
+        started.elapsed().as_secs_f64() * 1000.0
+    );
+}

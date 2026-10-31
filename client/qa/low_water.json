@@ -1,0 +1,19 @@
+{
+  "comment": "Low Water live review: a real server on map 8 with rule bots, from eye height in the trench chicane, on both Sabotage approaches and both overwatch decks, a follow camera strip and a joined first-person fighter. Run with FRAGR_QA_MAP=8 FRAGR_QA_BOTS=8 FRAGR_QA_MODE=tdm FRAGR_QA_MANIFEST=res://qa/low_water.json. Camera placement is presentation only; no player pose injection.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "water_overview", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [0, 46, -55], "camera_look_at": [0, 1, 0], "settle_seconds": 0.4, "note": "The town from above the home yard: clinic west, depot east, the trench between the banks."},
+    {"name": "water_trench", "camera": "overview", "camera_position": [-38, 1.6, 1], "camera_look_at": [38, 1.6, 1], "settle_seconds": 0.3, "note": "Eye height in the trench: the pier, the tram and the shed break its length."},
+    {"name": "water_tram_roof", "camera": "overview", "camera_position": [-15, 4.1, -2], "camera_look_at": [10, 1.0, 2], "settle_seconds": 0.3, "note": "From the stopped tram's roof down the trench."},
+    {"name": "water_clinic_approach", "camera": "overview", "camera_position": [-22, 4.6, -6], "camera_look_at": [-22, 3.6, 18], "settle_seconds": 0.3, "note": "Off the clinic bridge: the ambulance wall turns the attack."},
+    {"name": "water_clinic_site", "camera": "overview", "camera_position": [-29, 4.6, 12], "camera_look_at": [-18, 3.6, 20], "settle_seconds": 0.3, "note": "A Clinic Steps from the west stair's head: the forecourt, the steps and the canopy screen."},
+    {"name": "water_depot_approach", "camera": "overview", "camera_position": [22, 4.6, -6], "camera_look_at": [22, 3.6, 18], "settle_seconds": 0.3, "note": "Off the depot bridge straight at B Tram Stop."},
+    {"name": "water_dock", "camera": "overview", "camera_position": [32, 6.1, 24], "camera_look_at": [20, 3.6, 16], "settle_seconds": 0.3, "note": "The defence's overwatch from the depot dock onto B."},
+    {"name": "water_tank_deck", "camera": "overview", "camera_position": [12, 6.6, -18], "camera_look_at": [22, 3.6, 18], "settle_seconds": 0.3, "note": "The attack's overwatch from the water tank deck across the trench."},
+    {"name": "water_north_bank", "camera": "overview", "camera_position": [-38, 4.6, -10], "camera_look_at": [38, 4.0, -14], "settle_seconds": 0.3, "note": "Along the north bank: repair stall and counter, notice board, tank deck."},
+    {"name": "water_south_bank", "camera": "overview", "camera_position": [38, 4.6, 12], "camera_look_at": [-38, 4.0, 16], "settle_seconds": 0.3, "note": "Along the south bank: kiosk, clock, canopy and the clinic."},
+    {"name": "water_follow", "camera": "follow", "settle_seconds": 1.0, "strip_frames": 8, "strip_interval_seconds": 0.5, "note": "Four seconds of a watched rule bot moving and fighting through the town."},
+    {"name": "water_first_person", "join": "human", "camera": "first_person", "settle_seconds": 1.0, "note": "A joined fighter at its spawn, weapon and HUD up."}
+  ]
+}
