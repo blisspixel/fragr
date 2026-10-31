@@ -133,8 +133,9 @@ func _run() -> void:
 	_check(splice.rigid != null and splice.skin == null and splice.strip == null, "actual carried Splice selects the named rigid source without a duplicate strip")
 	_check(splice.position == Vector3(-6, 0, -12), "named source stays registered to accepted berth feet")
 	for id: String in ["berth_crew_a", "berth_crew_b"]:
-		var human: Sprite3D = berth._crew[id].strip
-		_check(human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the existing human body fallback")
+		var crew: CivilianFigure = berth._crew[id]
+		_check(crew.strip == null and crew.skin != null and crew.skin.kind == CastPaint.BODIES[id],
+			id + " wears a live body in their own paint, not the tinted strip")
 	var tern: CivilianFigure = berth._crew["tern"]
 	_check(tern.skin != null and tern.skin.kind == "tern" and tern.strip == null,
 		"Tern uses the named weighted pilot skin without a duplicate strip")

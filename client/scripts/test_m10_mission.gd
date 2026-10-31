@@ -108,8 +108,9 @@ func _run() -> void:
 	actual_splice._process(0.05)
 	_check(actual_splice._moving_age > 0.15, "arrived ship passenger remains calm")
 	for id: String in ["berth_crew_a", "berth_crew_b"]:
-		var actual_human: Sprite3D = ship._figures[id].strip
-		_check(actual_human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the human ship body fallback")
+		var crew: CivilianFigure = ship._figures[id]
+		_check(crew.strip == null and crew.skin != null and crew.skin.kind == CastPaint.BODIES[id],
+			id + " wears a live body in their own paint aboard, not the tinted strip")
 	var actual_edda: CivilianFigure = ship._figures["edda"]
 	_check(actual_edda.skin != null and actual_edda.skin.kind == "edda" and actual_edda.strip == null,
 		"only recorded Edda arrival selects her repaired live skin")
