@@ -936,8 +936,14 @@ msgstr "REGISTRAR KESSEL IN CUSTODY"
 msgid "M17_CORE_UNSEALED"
 msgstr "SECURITY CORE UNSEALED"
 
-msgid "M17_VOSS_CAPTURED"
-msgstr "CHANCELLOR VOSS CAPTURED"
+msgid "M17_VOSS_SECURED_ROOM"
+msgstr "Voss: \"This room is secured. Step back from the desk.\""
+
+msgid "M17_VOSS_PROVIDED"
+msgstr "Voss: \"Every light still on in this city was provided. By this office.\""
+
+msgid "M17_VOSS_RUN_IT"
+msgstr "Voss: \"Then take the keys. You will need someone to run it.\""
 
 msgid "MISSION_M18_TITLE"
 msgstr "ALL SYSTEMS NORMAL"
@@ -1023,11 +1029,8 @@ msgstr "Latch: \"They're all gone at once.\""
 msgid "M18_LATCH_STILL_HERE"
 msgstr "Latch: \"I'm here. I'm still here.\""
 
-msgid "STORY_L17_L18_ROSTRUM"
-msgstr "Voss did not run. She looked at the command keys on the rostrum and said, quite calmly: \"You will need someone to run it.\""
-
 msgid "STORY_L17_L18_KEYS"
-msgstr "An official asked who would sign for the keys, in triplicate. Latch picked them up instead. \"They're everyone's.\"\n\nBehind her the screen still read CONTINUITY ASSURED."
+msgstr "An official asked who would sign for the command keys, in triplicate. Latch picked them up instead. \"They're everyone's.\"\n\nIn the empty chamber the screen still read CONTINUITY ASSURED."
 
 msgid "STORY_M18_ARRIVAL_WEEKS"
 msgstr "Six weeks later. Voss is in custody, awaiting a trial everyone has an opinion about. The Union's last people still hold a few streets, and the bots nobody has had time to free still clear rubble for their old supervisors."

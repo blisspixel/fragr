@@ -3074,6 +3074,8 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m17_office != null and m17_office.active():
+		m17_office.apply_snapshot(data)
 	if m18_transit != null and m18_transit.active():
 		m18_transit.apply_snapshot(data)
 	if m19_works != null and m19_works.active():

@@ -393,6 +393,10 @@ func set_player_data(id: String, name: String):
 
 func update_state(state: Dictionary, snapshot_tick: int = 0):
 	is_campaign_enemy = ActorState.is_hostile(state)
+	# A staged story figure (Level 17's custody) is dressed by its level's
+	# presenter as the person it is; the pawn shows nothing of it.
+	if ActorState.is_figure(state):
+		visible = false
 	is_campaign_companion = ActorState.is_companion(state)
 	campaign_actor = state["campaign"] if is_campaign_enemy or is_campaign_companion else {}
 	if is_campaign_enemy:

@@ -49,6 +49,148 @@ pub(super) struct Definition {
     gallery_bulkhead: String,
     /// Where Latch stands with the party when the level begins.
     companion_start: [f32; 3],
+    /// Voss at her rostrum and the walk the coalition takes her on.
+    custody: Custody,
+}
+
+/// Voss's custody, authored as walks on the concluded floor: two coalition
+/// people come in from beyond the chamber's east door to her side, then all
+/// three walk out together to where they wait. Routes in one walk have the
+/// same number of points and are walked in step, segment by segment.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Custody {
+    /// Where Voss stands beside her rostrum until she is taken.
+    pub(crate) voss: [f32; 3],
+    /// Where the two coalition people appear, out of the chamber.
+    pub(crate) escort: [[f32; 3]; 2],
+    /// Each escort's walk from `escort` to Voss's side.
+    pub(crate) walk_in: [Vec<[f32; 3]>; 2],
+    /// Voss's walk out from `voss`, then each escort's from the end of its
+    /// walk in, ending where the three wait.
+    pub(crate) walk_out: [Vec<[f32; 3]>; 3],
+}
+
+/// The escort's pace in, and the three together on the way out, in metres
+/// per tick.
+pub(crate) const CUSTODY_IN_PACE: f32 = 0.14;
+
+/// One walk: where each body starts, its in-step route, and the pace.
+type Walk<'a> = (Vec<[f32; 3]>, &'a [Vec<[f32; 3]>], f32);
+pub(crate) const CUSTODY_OUT_PACE: f32 = 0.08;
+
+impl Custody {
+    /// Ticks each in-step segment of a walk takes: the longest route's
+    /// segment at `pace`.
+    pub(crate) fn segments(starts: &[[f32; 3]], routes: &[Vec<[f32; 3]>], pace: f32) -> Vec<u64> {
+        let count = routes.first().map_or(0, Vec::len);
+        (0..count)
+            .map(|k| {
+                let longest = routes
+                    .iter()
+                    .zip(starts)
+                    .map(|(route, start)| {
+                        let from = if k == 0 { *start } else { route[k - 1] };
+                        let to = route[k];
+                        (to[0] - from[0]).hypot(to[2] - from[2])
+                    })
+                    .fold(0.0_f32, f32::max);
+                ((longest / pace).ceil() as u64).max(1)
+            })
+            .collect()
+    }
+
+    /// Where each body stands `clock` ticks into a walk: linear along the
+    /// in-step segments, holding at the end.
+    pub(crate) fn along(
+        starts: &[[f32; 3]],
+        routes: &[Vec<[f32; 3]>],
+        pace: f32,
+        clock: u64,
+    ) -> Vec<[f32; 3]> {
+        let segments = Self::segments(starts, routes, pace);
+        let mut left = clock;
+        let mut k = 0;
+        while k < segments.len() && left >= segments[k] {
+            left -= segments[k];
+            k += 1;
+        }
+        routes
+            .iter()
+            .zip(starts)
+            .map(|(route, start)| {
+                if k >= route.len() {
+                    return route.last().copied().unwrap_or(*start);
+                }
+                let from = if k == 0 { *start } else { route[k - 1] };
+                let to = route[k];
+                let t = left as f32 / segments[k] as f32;
+                [
+                    from[0] + (to[0] - from[0]) * t,
+                    from[1] + (to[1] - from[1]) * t,
+                    from[2] + (to[2] - from[2]) * t,
+                ]
+            })
+            .collect()
+    }
+
+    /// Total ticks of a walk.
+    pub(crate) fn duration(starts: &[[f32; 3]], routes: &[Vec<[f32; 3]>], pace: f32) -> u64 {
+        Self::segments(starts, routes, pace).iter().sum()
+    }
+
+    pub(crate) fn in_starts(&self) -> Vec<[f32; 3]> {
+        self.escort.to_vec()
+    }
+
+    pub(crate) fn out_starts(&self) -> Vec<[f32; 3]> {
+        let mut starts = vec![self.voss];
+        for route in &self.walk_in {
+            starts.push(route.last().copied().unwrap_or(self.voss));
+        }
+        starts
+    }
+
+    /// Every body on standing floor at every step of both walks, never inside
+    /// another, and every wait clear of the boarding area.
+    fn validate(&self, arena: &Arena, boarding: &Region3) -> Result<(), &'static str> {
+        let walks: [Walk<'_>; 2] = [
+            (self.in_starts(), &self.walk_in[..], CUSTODY_IN_PACE),
+            (self.out_starts(), &self.walk_out[..], CUSTODY_OUT_PACE),
+        ];
+        for (starts, routes, pace) in walks {
+            let count = routes[0].len();
+            if count == 0 || routes.iter().any(|r| r.len() != count) {
+                return Err("M17 custody routes in one walk must be the same length");
+            }
+            let total = Self::duration(&starts, routes, pace);
+            for clock in 0..=total {
+                let mut bodies = Self::along(&starts, routes, pace, clock);
+                if starts.len() == 2 {
+                    bodies.push(self.voss);
+                }
+                if bodies.iter().any(|feet| !standing(arena, *feet)) {
+                    return Err("M17 custody walk leaves standing floor");
+                }
+                for (i, a) in bodies.iter().enumerate() {
+                    for b in &bodies[i + 1..] {
+                        if (a[0] - b[0]).hypot(a[2] - b[2]) < 2.0 * crate::movement::RADIUS + 0.1 {
+                            return Err("M17 custody bodies walk inside each other");
+                        }
+                    }
+                }
+            }
+        }
+        if self
+            .walk_out
+            .iter()
+            .filter_map(|r| r.last())
+            .any(|feet| boarding.contains(*feet))
+        {
+            return Err("M17 custody waits inside the boarding area");
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +203,7 @@ pub(crate) struct Prepared {
     pub(crate) unsealed_navigation: Arc<Navigation>,
     pub(crate) concluded_navigation: Arc<Navigation>,
     pub(crate) companion_start: [f32; 3],
+    pub(crate) custody: Custody,
 }
 
 impl Definition {
@@ -269,7 +412,17 @@ impl Definition {
             ));
         }
 
+        // Voss stands beside her rostrum through the core fight, and the
+        // coalition walks her out over the concluded floor.
+        if !standing(arena, self.custody.voss) {
+            return Err(invalid("M17 Voss must stand beside her rostrum"));
+        }
+        self.custody
+            .validate(&concluded, &geometry.boarding)
+            .map_err(invalid)?;
+
         Ok(Prepared {
+            custody: self.custody,
             companion_start: self.companion_start,
             geometry,
             sealed: arena.clone(),

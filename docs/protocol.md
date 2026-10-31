@@ -14,14 +14,16 @@ Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
 the first campaign launcher. The standalone Walker foundation requires 48 and
 connected Launch Authority requires 49. Article Blade requires 50, connected
 Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
-and All Systems Normal 64 (54 before Level 18's turn). Passenger Manifest, Common Carrier and Planned
+and All Systems Normal 64 (54 before Level 18's turn); Peace Without
+Interruption requires 65 since Voss's custody (53 before). Passenger Manifest, Common Carrier and Planned
 Works require 55, which carries the untagged M08 outcome, the `unlinked` M10
 practice transit and connected Planned Works; the free-for-all Pistol start
 with `rules.start_kit` is the same contract 55. Local Exception requires 56,
 the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
 fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
-`turn_started`, the `working` campaign phase) is 64, the highest this build
-speaks.
+`turn_started`, the `working` campaign phase) is 64. Level 17's custody (the
+`figure` campaign side and M17 `custody_started`) is 65, the highest this
+build speaks.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -149,7 +151,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `64`; omission means `1`. Discovery-only maps first
+  and the Godot client send `65`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -377,17 +379,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`64`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`65`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-64 or geometry 2. An older hello is also sent to
+65 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 64 can
-still enter that mission, and a hello above 64 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 65 can
+still enter that mission, and a hello above 65 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -1927,6 +1929,17 @@ On encounter maps, each entry in `Snapshot.players` includes `campaign`:
 ```json
 {"side":"inheritance","control":"absorbed","kind":"sweeper","phase":"windup","phase_started":10,"phase_ends":22}
 ```
+
+```json
+{"side":"figure","kind":"voss"}
+```
+
+A `figure` (capability 65) is a person in a story beat the server stages:
+`kind` is `voss` (Chancellor Voss in Level 17) or `coalition` (a free
+coalition person who takes her into custody). A figure carries nothing else,
+holds `Fists`, is never a participant, party member, target or departure
+requirement, and nothing damages it, not even the world. The server moves it
+along authored walks; clients present it as that person and must not aim at it.
 
 A hostile body's `side` names who commands it, separately from its `kind`,
 combat role and hostility. `union` is the Union's own people and the bots still
@@ -3745,7 +3758,7 @@ readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4
 |---|---:|---:|---|---|
 | Civic Pressure Valve | 1015 | 51 | `m15` | `tunnel_closed`, `gates_open` |
 | Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
-| Peace Without Interruption | 1017 | 53 | `m17` | `core_unsealed`, `voss_captured` |
+| Peace Without Interruption | 1017 | 65 | `m17` | `core_unsealed`, `voss_captured` |
 | All Systems Normal | 1018 | 64 | `m18` | `roadblock_active`, `concourse_evac_completed` |
 | Planned Works | 1019 | 55 | `m19` | `gate_open` |
 
@@ -3786,7 +3799,17 @@ approach and its campaign actor changes from `side: union` to `side:
 inheritance`, `control: absorbed`; at `M18_LATCH_LOOKS_TICKS` (24) the companion
 faces the nearest ready participant; at 60 the square group wakes and the Union
 people in it stand down and leave. Machines placed later in the level arrive
-absorbed. A new attempt restores the authored Union control. Optional bus and Kessel outcomes are retained
+absorbed. A new attempt restores the authored Union control.
+M17 also carries `custody_started`: null until a ready participant uses the
+rostrum at stage 5, then the tick of that Use, never above the message tick and
+never before the core falls. The rostrum prompt ends at that tick. The level's
+one Voss `figure` stands beside her rostrum for the whole attempt; at the Use
+two `coalition` figures appear beyond the chamber's east door and walk to her
+side, and `M17_CUSTODY_TAKEN_TICKS` (220) after it, or later while somebody
+stands where a walking figure would step, the three walk out together and
+`voss_captured` completes with the executive world. They stop where the
+authored walk ends and stay. A late join or resume sees them where they are;
+a new attempt puts Voss back at her rostrum with nobody beside her. Optional bus and Kessel outcomes are retained
 separately from passing their ordered stages.
 
 Use prompts remain `{player_id, kind: "objective_use"}`. They require a ready,

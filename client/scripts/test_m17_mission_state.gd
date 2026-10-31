@@ -76,6 +76,7 @@ static func fixture_state(info: Dictionary, stage: int = 0, tick: int = 10) -> D
 		"voss_captured": stage >= 6,
 		"kessel_secured": stage >= 3,
 		"brief_completed": stage >= 5,
+		"custody_started": tick - 5 if stage >= 6 else null,
 	}
 	if stage < 6:
 		progress["current"] = info["m17"]["objectives"][stage].duplicate(true)
@@ -95,6 +96,83 @@ static func fixture_state(info: Dictionary, stage: int = 0, tick: int = 10) -> D
 			"m17": progress,
 		}
 	}
+
+static func figure_row(id: String, kind: String, at: Vector3) -> Dictionary:
+	return {"id": id, "name": "Voss" if kind == "voss" else "Coalition", "x": at.x, "y": at.y + 1.5, "z": at.z, "yaw": 0.0,
+		"hp": 100, "weapon": "Fists", "campaign": {"side": "figure", "kind": kind}}
+
+## Voss's custody: the server's tick, its order against the capture, the
+## staged figures in the snapshot, and lines said once from the start only.
+func _custody(info: Dictionary, geometry: Dictionary) -> void:
+	var matching: Dictionary = geometry.duplicate(true)
+	matching["m17"]["core_unsealed"] = true
+	var waiting: Dictionary = fixture_state(info, 5, 80)
+	waiting["state"]["m17"]["custody_started"] = 70
+	_check(MissionState.validation_error(waiting, matching).is_empty(), "custody under way before she is taken validates")
+	var early: Dictionary = fixture_state(info, 4, 80)
+	early["state"]["m17"]["custody_started"] = 70
+	_check(not MissionState.validation_error(early, matching).is_empty(), "custody before the core falls is refused")
+	var future: Dictionary = fixture_state(info, 5, 80)
+	future["state"]["m17"]["custody_started"] = 81
+	_check(not MissionState.validation_error(future, matching).is_empty(), "custody from the future is refused")
+	var taken: Dictionary = fixture_state(info, 6, 90)
+	taken["state"]["m17"]["custody_started"] = null
+	var captured: Dictionary = matching.duplicate(true)
+	captured["m17"]["voss_captured"] = true
+	_check(not MissionState.validation_error(taken, captured).is_empty(), "a capture without custody is refused")
+	var missing: Dictionary = fixture_state(info, 5, 80)
+	missing["state"]["m17"].erase("custody_started")
+	_check(not MissionState.validation_error(missing, matching).is_empty(), "custody_started is required")
+
+	# Staged figures cross the actor boundary; extra or armed ones do not.
+	var rows: Array = [
+		figure_row("v", "voss", Vector3(4.2, 0, 31.6)),
+		figure_row("a", "coalition", Vector3(23, 0, 25.6)),
+		figure_row("b", "coalition", Vector3(23, 0, 28.4)),
+	]
+	_check(ActorState.validation_error({"tick": 100, "players": rows}).is_empty(), "Voss and two coalition people validate")
+	_check(ActorState.participants(rows).is_empty(), "figures are never participants")
+	var two: Array = rows.duplicate(true)
+	two.append(figure_row("w", "voss", Vector3(0, 0, 0)))
+	_check(not ActorState.validation_error({"tick": 100, "players": two}).is_empty(), "a second Voss is refused")
+	var armed: Array = rows.duplicate(true)
+	armed[1]["weapon"] = "Tack"
+	_check(not ActorState.validation_error({"tick": 100, "players": armed}).is_empty(), "an armed figure is refused")
+	var odd: Array = rows.duplicate(true)
+	odd[0]["campaign"]["kind"] = "chancellor"
+	_check(not ActorState.validation_error({"tick": 100, "players": odd}).is_empty(), "an unknown figure is refused")
+
+	var presenter: M17Office = M17Office.new()
+	root.add_child(presenter)
+	presenter.configure_map(info)
+	_check(presenter.has_node("ChamberScreenCaption"), "the chamber screen carries its official caption")
+	var said: Array[String] = []
+	presenter.caption.line_said.connect(func(text: String) -> void: said.append(text))
+	presenter.apply_state(waiting["state"])
+	presenter.apply_snapshot({"tick": 71.0, "players": rows})
+	_check(presenter.figure_count() == 3, "the presenter dresses Voss and both coalition people")
+	_check(said.size() == M17Office.VOSS_LINES.size() and said[2] == tr("M17_VOSS_RUN_IT"), "Voss says her three lines once, from the start")
+	presenter.apply_snapshot({"tick": 90.0, "players": rows})
+	_check(said.size() == M17Office.VOSS_LINES.size(), "the lines are not said twice")
+	presenter.apply_snapshot({"tick": 91.0, "players": [rows[0]]})
+	_check(presenter.figure_count() == 1, "a figure gone from the snapshot is gone from the room")
+	# A retry: nobody has come for her yet; the next custody speaks again.
+	var retry: Dictionary = fixture_state(info, 5, 200)["state"]
+	retry["attempt"] = 2
+	presenter.apply_state(retry)
+	retry["m17"]["custody_started"] = 210
+	presenter.apply_state(retry)
+	presenter.apply_snapshot({"tick": 212.0, "players": rows})
+	_check(said.size() == M17Office.VOSS_LINES.size() * 2, "a retried custody is said again")
+	presenter.clear_map()
+	# Seen first long after it began (a late join), nothing is restaged.
+	presenter.configure_map(info)
+	var late_said: Array[String] = []
+	presenter.caption.line_said.connect(func(text: String) -> void: late_said.append(text))
+	presenter.apply_state(waiting["state"])
+	presenter.apply_snapshot({"tick": 70.0 + M17Office.LATE_TICKS, "players": rows})
+	_check(late_said.is_empty(), "a late joiner sees the custody but hears no lines")
+	presenter.queue_free()
 
 func _run() -> void:
 	var info: Dictionary = fixture_map()
@@ -155,9 +233,10 @@ func _run() -> void:
 	_check(presenter._core_unsealed and notices.size() == 2, "presenter fires core unsealed notice")
 	_check(presenter._bulkhead_lights.size() == 4 and presenter._bulkhead_lights.all(func(lamp: MeshInstance3D) -> bool: return (lamp.material_override as StandardMaterial3D).albedo_color == Color("2ed158")), "gallery bulkhead lamps turn green with the override")
 	presenter.apply_state(fixture_state(info, 6, 60)["state"])
-	_check(presenter._voss_captured and notices.size() == 3, "presenter fires voss captured notice")
+	_check(presenter._voss_captured and notices.size() == 2, "Voss's capture is the walk out, not a banner")
 	presenter.clear_map()
 	presenter.free()
+	_custody(info, geometry)
 
 	if failures > 0:
 		push_error("test_m17_mission_state FAILED with %d failures" % failures)

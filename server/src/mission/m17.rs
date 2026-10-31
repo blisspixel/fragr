@@ -14,8 +14,14 @@ pub(crate) struct M17Progress {
     pub(super) core_unsealed: bool,
     pub(super) voss_captured: bool,
     pub(super) kessel_secured: bool,
+    /// The tick the party secured Voss and the coalition came for her.
+    pub(super) custody_started: Option<u64>,
+    /// Ticks the custody walk has advanced. It holds while somebody stands
+    /// where a walking body is about to step.
+    pub(super) custody_clock: u64,
 }
 
+mod custody;
 #[cfg(test)]
 mod tests;
 
@@ -117,7 +123,7 @@ impl GameState {
                         }),
                 );
             }
-            if !p.voss_captured && p.index == 5 {
+            if !p.voss_captured && p.index == 5 && p.custody_started.is_none() {
                 prompts.extend(
                     self.players
                         .iter()
@@ -186,6 +192,7 @@ impl GameState {
                 voss_captured: p.voss_captured,
                 kessel_secured: p.kessel_secured,
                 brief_completed: p.challenges.brief_completed(run.rules.difficulty),
+                custody_started: p.custody_started,
             }),
             m18: None,
             m19: None,
@@ -328,7 +335,19 @@ impl GameState {
                     && self.contact_eligible(pl)
                     && can_use_in_arena(pl, &g.voss_rostrum, &self.map, self.map.arena())
             });
-            if used_voss {
+            let started = self
+                .mission
+                .as_ref()
+                .and_then(|r| r.m17.as_ref())
+                .is_some_and(|p| p.custody_started.is_some());
+            if used_voss && !started {
+                let tick = self.tick;
+                let p = self.mission.as_mut().unwrap().m17.as_mut().unwrap();
+                p.custody_started = Some(tick);
+                self.spawn_m17_escort();
+                tracing::info!("M17 custody: the coalition comes for Voss");
+            }
+            if self.advance_m17_custody() {
                 let Some(world) = self.map.prepared_m17_world(2) else {
                     return;
                 };
@@ -338,7 +357,10 @@ impl GameState {
                 p.challenges.voss_captured = true;
                 p.index = 6;
                 advanced = true;
+                tracing::info!("M17 custody: Voss is taken out");
             }
+        } else {
+            self.advance_m17_custody();
         }
         let new = self.m17_mission_state().unwrap();
         if new.m17.as_ref().unwrap() != &old {

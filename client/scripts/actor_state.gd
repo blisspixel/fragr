@@ -38,6 +38,17 @@ static func is_entrant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign is Dictionary and campaign.get("side") == "entrant"
 
+## A story figure the server stages (Level 17's custody): Voss and the
+## coalition people who take her. Nobody's enemy, nobody's target.
+const FIGURE_KINDS: Array[String] = ["voss", "coalition"]
+
+static func is_figure(actor: Dictionary) -> bool:
+	var campaign: Variant = actor.get("campaign")
+	return campaign is Dictionary and campaign.get("side") == "figure"
+
+static func figure_kind(actor: Dictionary) -> String:
+	return str(actor["campaign"]["kind"]) if is_figure(actor) else ""
+
 static func is_participant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign == null or (campaign is Dictionary and campaign.get("side") == "participant")
@@ -65,6 +76,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 	if (actors as Array).size() > MAX_PLAYERS:
 		return INVALID
 	var companions: int = 0
+	var figures: Dictionary[String, int] = {}
 	var seen: Dictionary = {}
 	for actor: Variant in actors:
 		if not actor is Dictionary:
@@ -90,6 +102,16 @@ static func validation_error(snapshot: Dictionary) -> String:
 			if campaign.size() != 3 or not EquipmentState.integer(campaign.get("placard"), 255) \
 				or int(campaign["placard"]) not in [4, 12, 44, 71] \
 				or typeof(campaign.get("armed")) != TYPE_BOOL:
+				return INVALID
+			continue
+		if campaign["side"] == "figure":
+			# One Voss, at most two people with her; unarmed and alive.
+			if campaign.size() != 2 or not campaign.get("kind") is String or campaign["kind"] not in FIGURE_KINDS \
+				or actor.get("weapon") != "Fists" \
+				or not EquipmentState.integer(actor.get("hp"), 100) or int(actor["hp"]) < 1:
+				return INVALID
+			figures[campaign["kind"]] = figures.get(campaign["kind"], 0) + 1
+			if figures.get("voss", 0) > 1 or figures.get("coalition", 0) > 2:
 				return INVALID
 			continue
 		if campaign["side"] == "companion":

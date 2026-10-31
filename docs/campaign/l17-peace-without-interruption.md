@@ -90,6 +90,40 @@ player personally to Voss. Do not stretch the approach into an empty parade grou
   the approach, hall, ring and Kessel to the gallery fight, the override and
   the opened bulkhead (accurate-aim authoring evidence, not fresh-player).
 
+## Built custody (wave 20)
+
+**Implemented** as server state (`server/src/mission/m17/custody.rs`, the
+`custody` block of the map, M17 `custody_started`, gameplay 65), presented by
+`client/scripts/m17_office.gd`:
+
+- Voss is in the Office for the whole attempt: a staged `figure` body beside
+  her rostrum, in the Union's black coat and red band, the seal behind her and
+  the chamber screen still captioned CONTINUITY ASSURED. She watches the core
+  fight from there. Nothing damages her, nobody aims at her, and she is never
+  a party member; there is no way to kill her and no hidden ending.
+- The rostrum Use, offered only once the core has fallen and only at the
+  rostrum, starts the custody. Voss speaks three lines in play, certainty
+  first and colder each time, never louder: "This room is secured. Step back
+  from the desk." "Every light still on in this city was provided. By this
+  office." "Then take the keys. You will need someone to run it."
+- Two free coalition people, a human and an agent in their own colours, come
+  in through the chamber's east door to her side, and after her last word the
+  three walk out together on authored walks over the concluded floor. That is
+  the capture: `voss_captured` completes as they take her, with no banner.
+  They wait under guard beside the way out, so the party passes her on the
+  way to the departure. The walk waits for anyone standing in its way.
+- A retry puts her back at the rostrum with nobody beside her; a late join
+  sees the three where they are and hears none of it again. The `l17_l18`
+  page keeps only the keys, signed for in triplicate, and Latch: "They're
+  everyone's."
+- Seeded tests: `server/src/mission/m17/tests.rs` (the beat, the refusals
+  before the core falls and from across the chamber, a body in the way,
+  retry, late join, shots and the world never hurting her, and malformed
+  walks refused). `client/qa/m17_live_review.gd` (with `m17-live-review.json`)
+  watches the free local agent clear the Office and takes a strip of the
+  custody from fixed cameras on the server's clock (observations only, not
+  fresh-player).
+
 **Still open:** fresh-player timing and route choice; the rest of the level's
 dressing (approach, hall, ring, core and chamber still read as plain
 geometry under the new palette); the core's glow through floor grates; the
@@ -230,6 +264,8 @@ Inside are the command galleries, the security core, and the woman whose voice
 has been on every screen since the recall. Reach Voss." Latch at the capture,
 very quietly: "That's everyone's." The page after this level is the quietest in
 the game: weeks of ordinary recovery, a trial promised, no threat on the page.
+**Built:** Voss's three lines and her custody are in play (see
+[Built custody](#built-custody-wave-20)); the closing page keeps the keys.
 
 **Humor.** The committee room's agenda: *Item 1. Renewal of emergency (annual).
 Estimated 11 minutes.* The command keys are signed for in triplicate while the

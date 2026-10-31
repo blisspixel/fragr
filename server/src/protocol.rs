@@ -72,7 +72,7 @@ mod status;
 mod vehicle;
 pub use actors::{
     hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, ControlDomain, EnemyKind,
-    EnemyPhase, SurveyorMarkState, AUDITOR_REPAIRS, SURVEYOR_MARK_RADIUS,
+    EnemyPhase, FigureKind, SurveyorMarkState, AUDITOR_REPAIRS, SURVEYOR_MARK_RADIUS,
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
@@ -805,8 +805,10 @@ pub const BLADE_GAMEPLAY_VERSION: u32 = 50;
 pub const M15_GAMEPLAY_VERSION: u32 = 51;
 /// Freedom of Movement connected ceremonial avenue, motorcycle traversal, green wave and chamber doors.
 pub const M16_GAMEPLAY_VERSION: u32 = 52;
-/// Peace Without Interruption connected Forever Office, three door states, Kessel custody and Voss capture.
-pub const M17_GAMEPLAY_VERSION: u32 = 53;
+/// Peace Without Interruption connected Forever Office, three door states,
+/// Kessel custody and Voss capture, and since the custody beat its staged
+/// `figure` bodies and M17 `custody_started`.
+pub const M17_GAMEPLAY_VERSION: u32 = VOSS_CUSTODY_GAMEPLAY_VERSION;
 /// All Systems Normal connected transit evacuation, clinic roadblock, overlook
 /// recon and concourse defense, and since the turn its `working` square.
 pub const M18_GAMEPLAY_VERSION: u32 = TURN_GAMEPLAY_VERSION;
@@ -857,12 +859,16 @@ pub const MAP_VOTE_GAMEPLAY_VERSION: u32 = 64;
 /// bodies at work before it, and their mid-life change of control. A reader
 /// without the phase refuses the square, so All Systems Normal requires it.
 pub const TURN_GAMEPLAY_VERSION: u32 = 64;
-/// One contract carries both: the map vote and Level 18's turn shipped together.
-pub const GAMEPLAY_VERSION: u32 = if MAP_VOTE_GAMEPLAY_VERSION > TURN_GAMEPLAY_VERSION {
-    MAP_VOTE_GAMEPLAY_VERSION
-} else {
-    TURN_GAMEPLAY_VERSION
-};
+/// Level 17's custody beat: the campaign side `figure` (Voss and the
+/// coalition people who take her) and M17 `custody_started`. A strict reader
+/// at 64 refuses the new side, so Peace Without Interruption requires it.
+pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
+/// The highest contract: Level 17's custody beat, after the map vote and
+/// Level 18's turn.
+pub const GAMEPLAY_VERSION: u32 = VOSS_CUSTODY_GAMEPLAY_VERSION;
+const _: () = assert!(
+    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
+);
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

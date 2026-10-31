@@ -6,6 +6,11 @@ use super::{
 use crate::movement::Solid;
 use serde::{Deserialize, Serialize};
 
+/// Voss's custody: ticks from the party securing her at the rostrum until
+/// the coalition people at her side walk her out. She is in custody, and the
+/// level's last objective is complete, from that tick.
+pub const M17_CUSTODY_TAKEN_TICKS: u64 = 220;
+
 pub const M17_OBJECTIVE_IDS: [&str; 6] = [
     "approach_breached",
     "hall_secured",
@@ -71,6 +76,9 @@ pub struct M17ObjectiveState {
     pub voss_captured: bool,
     pub kessel_secured: bool,
     pub brief_completed: bool,
+    /// The tick the party secured Voss at the rostrum and the coalition came
+    /// for her (gameplay 65); null before it.
+    pub custody_started: Option<u64>,
 }
 
 fn point(p: [f32; 3], half: f32) -> bool {
@@ -170,11 +178,18 @@ impl M17ObjectiveState {
         {
             return Err("M17 facts disagree with ordered progress");
         }
+        if self.custody_started.is_some_and(|at| at > tick)
+            || self.voss_captured && self.custody_started.is_none()
+            || self.custody_started.is_some() && n < 5
+        {
+            return Err("M17 custody disagrees with the capture");
+        }
         if phase == MissionPhase::Briefing
             && (!self.completed.is_empty()
                 || self.core_unsealed
                 || self.voss_captured
-                || self.kessel_secured)
+                || self.kessel_secured
+                || self.custody_started.is_some())
         {
             return Err("briefing M17 cannot carry progress");
         }

@@ -161,6 +161,7 @@ impl Encounters {
         state.ensure_m10_companion();
         state.ensure_m15_companion();
         state.ensure_m17_companion();
+        state.ensure_m17_figures();
         state.ensure_m18_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
