@@ -59,23 +59,23 @@
 		},
 		{
 			"file": "fixture_lockers.glb",
-			"sha256": "e42ed42db865b94bd83f214359b6008cc4de3521906c6f675e8bd7cfb89b42bd"
+			"sha256": "4457cd8ec360790bc526c34ff35414175c23b4253dabb064a36bf321ff379713"
 		},
 		{
 			"file": "fixture_property_sign.glb",
-			"sha256": "0a369237927ca6d0f24436ba7b40bf91a9ef79bb5e66ca68a235e06a9edc43be"
+			"sha256": "703207cb8b55b848302e8463f8dba419a612d6c645dfc5747d162438c5ddb520"
 		},
 		{
 			"file": "fixture_strip_light.glb",
-			"sha256": "d4cc74174a5a450ca0914192516d4f5465e29fbeb9a5aebefa4ffaa861491dcf"
+			"sha256": "8d3517215b083ef6faf39c2a566fdcb6fd1b8cae07e1021c3a29b5aece798228"
 		},
 		{
 			"file": "fixture_terminal.glb",
-			"sha256": "2cc6ce0b35e2cbe8ae283b49cae0128975815ce513ae7814b01621c731f48b31"
+			"sha256": "35535b1ca598de534b60244f51c623bca1b3bfac55d634d703bc83f4ca90c200"
 		},
 		{
 			"file": "fixture_vent.glb",
-			"sha256": "687728c02033818be4b2edf6da998b0e664669588b03a2a0c1c3f42f92ed9db3"
+			"sha256": "582c27cc93f3ddc98ee97753a1736859bb52351ae2ca16a5bb628c3bb72093c9"
 		},
 		{
 			"file": "free_human_live.glb",
@@ -143,11 +143,11 @@
 		},
 		{
 			"file": "shotgun.glb",
-			"sha256": "e42929991f9a678fbc2f3a6ac00fba412a021b6bff7a4c8f3d1c5b0d0035b38d"
+			"sha256": "d874cb1bfe914a0b78a71499998ec3504792c8c44533d44e8e1315ef9cb3ebe8"
 		},
 		{
 			"file": "shotgun_hands.glb",
-			"sha256": "f93eb3b972501b2fbd0f27a06759fe24051b25a20967c147ed84e6588a2cff34"
+			"sha256": "7e1947bb696ff61c730e86025ffc5b528095bd5781765b96f8ae2b6d4efb1d34"
 		},
 		{
 			"file": "splice_live.glb",
@@ -159,7 +159,7 @@
 		},
 		{
 			"file": "sweeper.glb",
-			"sha256": "b0d2e474d66ea969d5e8e76bb5acfdcf7b32969073d6c86a5aef67dcec6ae0e1"
+			"sha256": "6c5ff08b5895196cf3202a3a16a585acf82e8876c5a39d890c5a6f17537f3159"
 		},
 		{
 			"file": "tern_live.glb",
@@ -193,10 +193,10 @@
 		"res://assets/models/latch_stylized.glb": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
 		"res://assets/shaders/latch_near_clip.gdshader": "3d83749b972ca6a5c898804b3866fdb7f9262390d5dd34dfee5e10e4b4225937",
 		"res://scripts/facility_geometry.gd": "cf169e96605f837b59695babda7675159dfb5829f4c0161af5dac152046f45c3",
+		"res://scripts/gun_model.gd": "c8fde23f343532836abef19cc4a4b92a467f29f428ffe70b0c276d5d211c70d1",
 		"res://scripts/latch_face.gd": "dbae2a83d4414c8f67fc78fef5cf07d839a5767b2d1b96b18193248018436166",
 		"res://scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
 		"res://scripts/latch_view.gd": "ef8cddc038b40d4e36834a0df860b2cbbe876794556fcdeb0d7d040f8b8f7356",
-		"res://scripts/gun_model.gd": "c8fde23f343532836abef19cc4a4b92a467f29f428ffe70b0c276d5d211c70d1",
-		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
+		"res://scripts/model_geometry.gd": "f5603320371da8002a0f4b207d78ef0ca563d4cd3a74f4b8341aef3978d8f0e3"
 	}
 }

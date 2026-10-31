@@ -84,70 +84,49 @@
 			"brief": "Stylized angular human face, black peaked service cap and high-collar uniform, dark steel plates and a clear red band with a fictional registry seal.",
 			"file": "clerk.png",
 			"model": "skinned human security source with authored combat poses and paired view normals",
-			"sha256": "7832dc2dc990a3bab8ffad6c26ede8a1a9533e36422e49e0de1c4d0e6001f738"
+			"sha256": "7196e7683dd197e992f6a4a338b84ee7667ceade608bf9ce7fda0eaf48acea47"
 		},
 		{
 			"brief": "Same eight directions and phase cells as the matching albedo.",
 			"file": "clerk_normals.png",
 			"model": "paired normal atlas",
-			"sha256": "04a08884bbb4f66a331421b4eb03c2e25d4586a5adb9e2aa05785418595b262d"
-		},
-		{
-			"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp.",
-			"file": "turret.png",
-			"model": "fixed turret rig",
-			"sha256": "752bfe0a51fdb0934fee7a6e8a4752c6a5ea7157cef0f752c26b914966e957a1"
+			"sha256": "824502bb1776a8914f8ea6dbd27b251b33e2d856baeea48d97a9c62d4b7b11cb"
 		},
 		{
 			"brief": "Dark steel shells, recessed red optical slit, exposed mechanical joints and red issue panels. Earlier rigid GLB remains the separate mechanical library.",
 			"file": "sweeper.png",
 			"model": "skinned angular issued bot with two-handed rifle poses and paired view normals",
-			"sha256": "72ba2324123eff6a28050a04702f73849f04f0ef400b35ad2479a35018086218"
+			"sha256": "bc6d374c1b380c6f70f1b507c06081e642b4d7e388fae297510fcc68ba58f76d"
 		},
 		{
 			"brief": "Same eight directions and phase cells as the matching albedo.",
 			"file": "sweeper_normals.png",
 			"model": "paired normal atlas",
-			"sha256": "68b03b944cfc844268ec1a05e83445406c0db3829e8b0e84249ec9f6a77dd71d"
+			"sha256": "8e92b05b7f76c20d976883ebc0ad64dc7dba1e41e891b41d69fe5cdc479cc5fa"
 		},
 		{
 			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
 			"file": "heavy_sweeper.png",
 			"model": "articulated heavy bot rig",
-			"sha256": "3276223ded5c00f37ddc3bbf6b996d53f53e84b6815f557614ad237f51d3a661"
+			"sha256": "0c473bc5ab00ea3210fc654efd4f6ed504871ca3e4b9f69d70fa3c3cc5e7af65"
+		},
+		{
+			"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp.",
+			"file": "turret.png",
+			"model": "fixed turret rig",
+			"sha256": "f6f7028e3071a9c4151fbf18a5267b3e3e1216c45931accab974d05a87b3b474"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"poses": 55,
 	"rendered_kinds": [
-		"heavy_sweeper"
-	],
-	"retained_kinds": [
 		"clerk",
 		"sweeper",
+		"heavy_sweeper",
 		"turret"
 	],
-	"retained_receipt": {
-		"sha256": "0e214e006a153ca30281995a554d58c06f7e3ce0b9a9febefa2a3ccdfb822d9f",
-		"sources": {
-			"res://art/characters/bake.gd": "dd89b6bf5a4ad2f21ed8b95cf21e2e0871952b424792a770419109f7ab2939a7",
-			"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-			"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
-			"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
-			"res://art/models/candidates/clerk.glb": "166a6eab7a203f1e80fb089fc6dc2d39c37f72e2e77b09a234c9d15c22e4cf14",
-			"res://art/models/candidates/sweeper.glb": "5c76a57ee1c4239d546c41f65e2eebfee002def27951e991dec2a5927c88a3bd",
-			"res://art/models/candidates/sweeper.glb.import": "d43e6f95d643536b591127c31dbd8590d8c3b892fb55d37caf6bb3a789dffc64",
-			"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
-			"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
-			"res://art/models/sweeper_skinned_source.gd": "b25c659d1ef945c431ea97c587608439c584611ee3d5070febac15466788f3dc",
-			"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
-			"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
-			"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
-			"res://assets/models/finishes/wood.png": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
-			"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441",
-			"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
-		}
-	},
+	"retained_kinds": [],
+	"retained_receipt": {},
 	"rows": 25,
 	"schema": 1,
 	"sources": {
@@ -167,7 +146,7 @@
 		"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
 		"res://assets/models/finishes/wood.png": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
 		"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441",
-		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
+		"res://scripts/model_geometry.gd": "f5603320371da8002a0f4b207d78ef0ca563d4cd3a74f4b8341aef3978d8f0e3"
 	},
 	"tile_pixels": 160
 }
