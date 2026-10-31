@@ -1206,7 +1206,18 @@ func _setup_radio() -> void:
 ## Campaign only, beside the radio under AudioPlayers. Multiplayer never has one.
 ## A story moment in play takes the air: the score cuts at once and a tuned
 ## station pauses where it is, both through their own seams.
+var _story_hush: bool = false
+
+## The radio pauses while a story page or a story moment in play owns the air.
+## Recomputed every frame, so a moment in play must be part of it, not only
+## a one-off hold that the next frame would release.
+func radio_scene_hold() -> bool:
+	return _story_hush or is_instance_valid(opening) or is_instance_valid(interlude) \
+		or (still_here != null and not still_here.geometry.is_empty()) \
+		or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda)
+
 func _hush_for_story(on: bool) -> void:
+	_story_hush = on
 	if campaign_score != null:
 		campaign_score.hush(on)
 	if radio != null:
@@ -1971,8 +1982,7 @@ func _process(_delta):
 		still_here.hearing = is_human_player and camera != null and bool(camera.get("fp_mode")) and not controls_blocked()
 	if radio != null:
 		# A story scene owns the music; the station resumes where it paused.
-		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude) or (still_here != null and not still_here.geometry.is_empty()) \
-			or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda))
+		radio.set_scene_hold(radio_scene_hold())
 	if campaign_score != null:
 		# Story pages own the music. The Still Here walk keeps its own bed.
 		campaign_score.scene_hold = is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(still_here_page) \
