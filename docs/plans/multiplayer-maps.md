@@ -282,7 +282,7 @@ agents. Crossing times are corner to corner at the 6 m/s arena run.
 - **Compliance Yard** is nine identical rooms, eighteen doorways and a 19 m
   perimeter corridor. That is the guessing map the research warns about:
   contact is luck and nobody can say where they are. Wave 19 (#512) rebuilt it in
-  place as an 88 m block of nine rooms with different jobs, staggered
+  place as an 82 m block of nine rooms with different jobs, staggered
   doorways and a chicane corridor; see the layout review in
   [MAP-DESIGN.md](../MAP-DESIGN.md#layout-variety-and-current-gaps).
 - **Directive 17** has the best idea in the roster: the prize at the bottom of
