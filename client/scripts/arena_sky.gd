@@ -375,13 +375,15 @@ static func mars_habitat() -> Preset:
 ## work lamps leave the hall in shade, so the amber process light pooled at
 ## the furnace, crucible, moulds and pour shapes it. The actor fill keeps
 ## black-and-red Union bodies and their red tells readable in that shade.
+## The haze is thin and neutral enough that the far side of the hall still
+## reads as machines and lanes rather than brown murk.
 static func mars_foundry() -> Preset:
 	var preset: Preset = mars_launch()
 	preset.interior = true
-	preset.fog_color = Color("2e2621")
-	preset.fog_density = 0.011
-	preset.ambient_color = Color("b4a99a")
-	preset.ambient_energy = 0.36
+	preset.fog_color = Color("2b2926")
+	preset.fog_density = 0.006
+	preset.ambient_color = Color("b4ada2")
+	preset.ambient_energy = 0.5
 	preset.key_energy = 0.0
 	preset.scene_fill_energy = 0.0
 	preset.practical_color = Color("e3ede5")
