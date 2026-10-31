@@ -19,9 +19,9 @@ const TERN_EMBER: Color = Color("d9682a")
 const RENN_COAT: Color = Color("1d1e22")
 const RENN_SHIRT: Color = Color("55585f")
 ## Tern's berth crew in their own work colours.
-const BERTH_DECKHAND_JACKET: Color = Color("5f7a55")
+const BERTH_DECKHAND_JACKET: Color = Color("7d4a5c")
 const BERTH_DECKHAND_SHIRT: Color = Color("b49a6a")
-const BERTH_RIGGER_PLATES: Color = Color("9a5238")
+const BERTH_RIGGER_PLATES: Color = Color("3a7550")
 
 ## Each rule matches a band of the source art, hue in degrees (optional) and
 ## saturation and value from 0 to 1, and paints it `to`. `ref` is the source
@@ -56,8 +56,8 @@ const SCHEMES: Dictionary[String, Array] = {
 		{"sat": [0.0, 0.3], "val": [0.28, 0.66], "to": Color("4f6a8e"), "ref": 0.45},
 	],
 	# The Common Carrier's berth crew (Levels 9 and 10), Tern's people: a
-	# deckhand in a sage work jacket over a sand shirt, and an agent rigger
-	# in terracotta plates. Warm and mid-value beside Tern's gunmetal and
+	# deckhand in a berry work jacket over a sand shirt, and an agent rigger
+	# in bottle-green plates. Mid-value beside Tern's gunmetal and
 	# Splice's ochre, so the four free crew never read as one figure.
 	"berth_crew_a": [
 		{"hue": [0.0, 45.0], "sat": [0.42, 1.01], "val": [0.0, 0.8], "to": BERTH_DECKHAND_JACKET, "ref": 0.5},

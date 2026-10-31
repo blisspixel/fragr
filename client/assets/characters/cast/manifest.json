@@ -14,7 +14,7 @@
 						0.42,
 						1.01
 					],
-					"to": "#5f7a55",
+					"to": "#7d4a5c",
 					"val": [
 						0.0,
 						0.8
@@ -37,7 +37,7 @@
 					]
 				}
 			],
-			"sha256": "28dd44eef0d49d6a0285b8bed301b1d399ff736ce5f5a4e4a67e2d8cbfb173c1",
+			"sha256": "35823b841d5a9e4d8a25432e1c991928ae11d26367bd1795882a4f0def201b3f",
 			"source": "res://assets/models/free_human_live.glb",
 			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
 		},
@@ -51,14 +51,14 @@
 						0.0,
 						0.3
 					],
-					"to": "#9a5238",
+					"to": "#3a7550",
 					"val": [
 						0.28,
 						0.66
 					]
 				}
 			],
-			"sha256": "c922d37bbaba96866d714be99705227ad47e4c1761945f457b2f9072bffe22e6",
+			"sha256": "c00c4287e4a07885f62235655e84f5e31be8d3dd74b207a392bac2369ff11cef",
 			"source": "res://assets/models/free_synthetic_live.glb",
 			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
 		},
@@ -268,6 +268,6 @@
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"method": "Offline recolour of each person's own source atlas by CastPaint rules; no generated or external art.",
-	"painter_sha256": "17432ce834f43ae3da582edb3786df707266a64a9c97255b613e0640988fa686",
+	"painter_sha256": "102a8a2a64c2f03e9d288e03b4bf61abf17493ea9d1b5b38292372823911fda6",
 	"schema": 1
 }
