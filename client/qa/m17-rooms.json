@@ -1,0 +1,21 @@
+{
+  "comment": "M17 Forever Office rooms outside the galleries: the civic approach, the occupied assembly hall, the administration ring with Kessel's committee desk, the frontal lane to the security core and the assembly chamber behind it. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json FRAGR_QA_MANIFEST=res://qa/m17-rooms.json. Spectator composition and light review in the sealed world, not combat or fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"office_overview","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[30,34,-46],"camera_look_at":[-4,0,-4],"allow_empty_roster":true,"settle_seconds":1.5,"note":"The approach, hall, ring and lane from above the south-east."},
+    {"name":"approach","camera":"overview","camera_position":[0,1.65,-42.5],"camera_look_at":[0,2.2,-20],"allow_empty_roster":true,"note":"The civic approach from the street end: piers, the hall's door ahead."},
+    {"name":"approach_piers","camera":"overview","camera_position":[4.5,1.65,-35],"camera_look_at":[-3,1.4,-24],"allow_empty_roster":true,"note":"Between the approach piers toward the hall door."},
+    {"name":"hall_entry","camera":"overview","camera_position":[0,1.65,-19],"camera_look_at":[0,1.6,-4],"allow_empty_roster":true,"note":"Into the assembly hall: benches, the rostrum, the north wall."},
+    {"name":"hall_west","camera":"overview","camera_position":[13,1.65,-18],"camera_look_at":[-14,1.6,-6],"allow_empty_roster":true,"note":"Across the hall to the west benches and the ring door."},
+    {"name":"hall_from_rostrum","camera":"overview","camera_position":[0,2.85,-5.5],"camera_look_at":[0,1.2,-20],"allow_empty_roster":true,"note":"From the rostrum back over the benches to the door."},
+    {"name":"ring_south","camera":"overview","camera_position":[-18.5,1.65,-15],"camera_look_at":[-32,1.4,-6],"allow_empty_roster":true,"note":"The administration ring from the hall side: Kessel's committee desk, the records core."},
+    {"name":"ring_kessel","camera":"overview","camera_position":[-31,1.65,-15.5],"camera_look_at":[-26,1.0,-11],"allow_empty_roster":true,"note":"Kessel's committee desk up close."},
+    {"name":"ring_north","camera":"overview","camera_position":[-32,1.65,0],"camera_look_at":[-20,1.6,-10],"allow_empty_roster":true,"note":"The ring's north run behind the records core."},
+    {"name":"lane_to_core","camera":"overview","camera_position":[0,1.65,1],"camera_look_at":[0,2.2,18],"allow_empty_roster":true,"note":"The frontal lane to the security core's seal."},
+    {"name":"core_seal","camera":"overview","camera_position":[1.5,1.65,13],"camera_look_at":[0,2.2,18.5],"allow_empty_roster":true,"note":"The seal itself at fighting distance."},
+    {"name":"chamber","camera":"overview","camera_position":[0,1.65,21.5],"camera_look_at":[0,1.8,34],"allow_empty_roster":true,"note":"The assembly chamber from its south door: Voss's rostrum desk, the north wall."},
+    {"name":"chamber_from_rostrum","camera":"overview","camera_position":[0,2.85,33],"camera_look_at":[0,1.2,20],"allow_empty_roster":true,"note":"From behind the rostrum toward the seal."},
+    {"name":"chamber_side","camera":"overview","camera_position":[-12.5,1.65,22],"camera_look_at":[8,1.6,32],"allow_empty_roster":true,"note":"Across the chamber from the south-west corner."}
+  ]
+}

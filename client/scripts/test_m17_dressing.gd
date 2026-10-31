@@ -1,6 +1,6 @@
 extends SceneTree
 
-## The Forever Office's command galleries: an authored-layout guard, every
+## The Forever Office from the approach to the chamber: an authored-layout guard, every
 ## room furnished, local practical light with no red or cyan, no words and no
 ## bodies of its own, and the institution on the Union's palette: mid-value
 ## grey stone and graphite steel, never the late story's off-white, and no sun
@@ -96,7 +96,7 @@ func _run() -> void:
 	_expect(not sky.key_in_sky and not sky.outdoor_embers, "the dawn sky carries no sun disc or scrapyard embers")
 	_expect(sky.view_fill_energy > 0.0, "black-and-red bodies keep a lit front in the galleries' shade")
 	if failures == 0:
-		print("test_m17_dressing: PASS layout guard, five furnished rooms, local light without red or cyan, no words or bodies, Union palette and a dawn sky without a sun disc")
+		print("test_m17_dressing: PASS layout guard, ten furnished rooms, local light without red or cyan, no words or bodies, Union palette and a dawn sky without a sun disc")
 		quit(0)
 	else:
 		push_error("test_m17_dressing FAILED with %d failures" % failures)
