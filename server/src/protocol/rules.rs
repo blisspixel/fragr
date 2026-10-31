@@ -253,6 +253,17 @@ impl TeamScores {
     pub fn max(self) -> u32 {
         self.union.max(self.coalition)
     }
+
+    pub fn is_zero(&self) -> bool {
+        self.union == 0 && self.coalition == 0
+    }
+
+    pub fn set(&mut self, team: Team, value: u32) {
+        match team {
+            Team::Union => self.union = value,
+            Team::Coalition => self.coalition = value,
+        }
+    }
 }
 
 /// The rule set a server runs, as every reader sees it.

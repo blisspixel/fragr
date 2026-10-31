@@ -269,6 +269,52 @@ listening pass is the acceptance.
   declipped, soft-clipped) at K50 -13.1, up from -15 and brighter, so it reads
   over the blast's tail.
 
+## Death as a seat (#510, wave 19)
+
+Built on `wave19/team-seat`, 2026-10-30. Bots-only measurements and inspected
+Linux captures; no human has played it.
+
+- **Teammate seat.** In team deathmatch, capture the flag and Conquest a
+  death shows the killer for 1.25 s, then the camera rides the eyes of the
+  living teammate nearest where you fell, with their gun, health and armour,
+  until the server returns the body (`game_manager.gd` `_team_seat_targets`).
+  The cycle key moves along living teammates, the view key trades eyes for the
+  chase view, and a seat has no free camera (`spectator_cam.gd`
+  `seat_locked`), so a death never scouts the other side; fallen Sabotage
+  fighters get the same lock. The death card drops below the teammate's aim
+  and names the cycle key. Free-for-all and Duel keep the killer view.
+- **Clutch.** The server names the last fighter of a side of two or more
+  against two or more in `sabotage.clutch`; the client stamps it once,
+  upright, on a plate under the Sabotage header (`clutch_card.gd`). The
+  existing voiced `last_standing` call keeps the eight second rule, so the
+  stamp, not the voice, is what always lands.
+- **Resupply, the loss bonus without a shop.** Each round lost climbs a
+  side's ladder one rung (to 3), each round won steps it one back, and while
+  a side is not ahead on rounds its fallen are reissued at its rung: Rifle;
+  Rifle and 50 armour; Rifle, Shotgun and 50 armour (`rules::resupply_kit`).
+  The muster calls it for that side: the Union's replacement issue, the free
+  side's spares. A Sabotage side that draws level from three rounds down gets
+  the voiced `comeback` call.
+
+Seeded bots-only survey (`fragr-playtest --sabotage-survey`, 8 rule bots,
+short format; the same seeds before and after). A 0 to 3 group is followed
+across the side swap.
+
+| Kits | Seeds | Matches with 0 to 3 | Came back from 0 to 3 | Came back from 3 down | Attack round share | Matches to extra time |
+|---|---|---:|---:|---:|---:|---:|
+| Before (fallen start empty) | 1000 to 1767 | 334 of 768 (43%) | 48 of 334 (14%) | 53 of 456 (12%) | 75% | 33% |
+| Rifle; +50; +Shotgun (built) | 1000 to 1767 | 62 of 768 (8%) | 18 of 62 (29%) | 23 of 165 (14%) | 65% | 59% |
+| Rifle +50; +Shotgun +100; +Railgun +100 (rejected) | 1000 to 1383 | 4 of 384 (1%) | 0 of 4 | 0 of 26 | 62% | 75% |
+
+The ladder mostly stops the 0 to 3 hole from opening, and a side that still
+falls into it now climbs out 29% of the time, inside the 25 to 35% target
+(62 matches, so a wide interval). The strong kits made three matches in four
+level at regulation, so the milder ladder ships; even it sends 59% of short
+matches to the extra pair, against 33% before. Two things stay
+open: the attack still wins two rounds in three on Sector 9, which matters
+more than equipment, and only people can say whether a resupplied round
+feels earned.
+
 ## 4. Verification and Delivery Sequence
 
 1. **Phase 1: Audio Feedback & Sensory Juice:** Announcer voice lines, slang updates, and metallic hit confirmation chime.

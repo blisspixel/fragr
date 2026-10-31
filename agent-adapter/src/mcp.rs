@@ -5003,6 +5003,24 @@ mod mcp_tests {
         assert_eq!(round["self_callout"], "attacker_yard");
         assert_eq!(round["sabotage_objective"]["kind"], "walk");
         assert_eq!(round["self_team"], "coalition");
+        assert!(
+            round["sabotage"].get("resupply").is_none()
+                && round["sabotage"].get("clutch").is_none(),
+            "an even round names no resupply and no clutch"
+        );
+        // A trailing side's resupply rung and the clutch fighter reach agents.
+        let mut trailing = server.snapshot();
+        let sabotage = trailing.sabotage.as_mut().unwrap();
+        sabotage.resupply = protocol::TeamScores {
+            union: 0,
+            coalition: 2,
+        };
+        sabotage.clutch = Some(me);
+        let text = serde_json::to_string(&protocol::ServerMessage::Snapshot(trailing)).unwrap();
+        ingest_server_text(&mut state, &text).unwrap();
+        let round = build_round_state_result(&state);
+        assert_eq!(round["sabotage"]["resupply"]["coalition"], 2);
+        assert_eq!(round["sabotage"]["clutch"], me.to_string());
         // Off a Sabotage server the fields stay null.
         let plain = build_round_state_result(&ToolState::default());
         assert!(plain["sabotage"].is_null() && plain["sabotage_objective"].is_null());

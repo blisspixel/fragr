@@ -8,7 +8,8 @@ use crate::protocol::{
 pub mod preset;
 mod sabotage;
 pub use sabotage::{
-    match_outcome, match_point, round_slot, MatchOutcome, RoundSlot, SabotageConfig,
+    match_outcome, match_point, resupply_after, resupply_kit, resupply_tier, round_slot,
+    MatchOutcome, RoundSlot, SabotageConfig, RESUPPLY_MAX_TIER,
 };
 
 /// Lives each fighter has per round under Two Lives.
@@ -77,6 +78,8 @@ pub const REACTION_GAP_TICKS: u64 = 20 * 8;
 pub const MULTIKILL_WINDOW_TICKS: u64 = 20 * 3;
 /// A side this far behind that draws level is a comeback.
 pub const COMEBACK_DEFICIT: u32 = 4;
+/// A Sabotage side this many rounds down that draws level is a comeback.
+pub const SABOTAGE_COMEBACK_DEFICIT: u32 = 3;
 /// A free-for-all fighter needs this many frags before taking the lead is
 /// called, so the opening minute does not trade the lead every frag.
 pub const LEAD_CHANGE_MIN_FRAGS: u32 = 3;

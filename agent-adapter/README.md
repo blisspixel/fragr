@@ -829,7 +829,10 @@ charge and send `act` with `interact: true` and no movement until `planted`
 arrives in `get_events` (60 ticks); to defuse, do the same within 1.75 m of the
 planted charge as a union fighter (120 ticks). Movement, release or any damage
 loses the progress. One life per round; after death you are absent from
-`players` until the next round. Sides swap at half, so read `self_team` each
+`players` until the next round. `sabotage.resupply`, when present, gives the
+rung (0 to 3, by uniform) a losing side's fallen were reissued this round, and
+`sabotage.clutch` names the last fighter standing for a side against two or
+more. Sides swap at half, so read `self_team` each
 round. The contract is in
 [`docs/protocol.md`](../docs/protocol.md#sabotage).
 

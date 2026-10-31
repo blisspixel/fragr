@@ -690,6 +690,33 @@ msgstr "HOLD {use}: DEFUSE"
 msgid "SABOTAGE_LINE_OVER_WATCH"
 msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE"
 
+msgid "SABOTAGE_RESUPPLY_UNION"
+msgstr "REPLACEMENT ISSUE {rung}/3: {kit}"
+
+msgid "SABOTAGE_RESUPPLY_COALITION"
+msgstr "SPARES {rung}/3: {kit}"
+
+msgid "SABOTAGE_RESUPPLY_KIT_1"
+msgstr "RIFLE"
+
+msgid "SABOTAGE_RESUPPLY_KIT_2"
+msgstr "RIFLE + HALF ARMOR"
+
+msgid "SABOTAGE_RESUPPLY_KIT_3"
+msgstr "RIFLE + SHOTGUN + HALF ARMOR"
+
+msgid "SABOTAGE_CLUTCH_SELF"
+msgstr "LAST ONE STANDING"
+
+msgid "SABOTAGE_CLUTCH_SIDE"
+msgstr "{name} IS THE LAST ONE"
+
+msgid "SABOTAGE_CLUTCH_ENEMY"
+msgstr "ONE LEFT: {name}"
+
+msgid "SABOTAGE_CLUTCH_ODDS"
+msgstr "{own} V {other}"
+
 msgid "SABOTAGE_SITE_A"
 msgstr "A FRAME"
 
@@ -806,6 +833,9 @@ msgstr "YOU WENT DOWN"
 
 msgid "HUD_DEATH_WATCHING"
 msgstr "WATCHING {name}"
+
+msgid "HUD_DEATH_WATCHING_MATE"
+msgstr "WATCHING {name}   {cycle}: NEXT TEAMMATE"
 
 msgid "HUD_DEATH_HOLDING"
 msgstr "YOUR LAST VIEW"

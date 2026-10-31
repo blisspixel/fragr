@@ -446,6 +446,18 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
         .collect();
     println!("death cells (3 or more): {}", tally(&hot));
     println!("unarmed when live: {}", tally(&report.unarmed_at_live));
+    println!(
+        "comeback after 0 to 3: {} of {} ({:.0} percent)",
+        report.comebacks,
+        report.comeback_chances,
+        report.comeback_rate * 100.0
+    );
+    println!(
+        "comeback after three behind: {} of {} ({:.0} percent)",
+        report.deficit3_comebacks,
+        report.deficit3_chances,
+        report.deficit3_rate * 100.0
+    );
 }
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {

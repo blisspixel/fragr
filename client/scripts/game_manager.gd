@@ -29,8 +29,24 @@ var _sabotage_team: String = ""
 ## The longest charge clock seen in this plant, for the HUD's draining timer.
 var _sabotage_charge_ticks: int = 700
 var _sabotage_watching_mates: bool = false
+## Respawning team modes (TDM, CTF, Conquest): a fallen fighter's seat. The
+## death view shows the killer for a beat, then the camera rides a living
+## teammate's eyes until the server returns the body, the way the
+## Counter-Strike death camera shows the killer and then a teammate.
+const TEAM_SEAT_KILLER_BEAT_USEC: int = 1250000
+var _team_seat: bool = false
+## The joined fighter's side and last position, kept through a death.
+var _seat_team: String = ""
+var _seat_spot: Vector3 = Vector3.ZERO
+## The teammate a new seat starts on: the one nearest where the fighter fell.
+var _seat_pick: Node3D = null
+var _seat_down_usec: int = -1
 ## A side-swap notice waiting for its round to open.
 var _sabotage_swap_notice: String = ""
+## The round and fighter whose clutch was stamped, and the round whose
+## resupply was called, so each is shown once.
+var _sabotage_clutch_key: String = ""
+var _sabotage_resupply_round: int = -1
 var traveling_shots: TravelingShots = null
 var jammer_audio: JammerAudio = null
 var notary_audio: NotaryAudio = null
@@ -2824,6 +2840,12 @@ func _clear_world() -> void:
 	sabotage_layout = {}
 	_sabotage_team = ""
 	_sabotage_watching_mates = false
+	_leave_team_seat()
+	_seat_team = ""
+	_sabotage_clutch_key = ""
+	_sabotage_resupply_round = -1
+	if camera != null:
+		camera.seat_locked = false
 	if traveling_shots != null:
 		traveling_shots.clear_shots()
 	pending_jump = false
@@ -3117,7 +3139,13 @@ func _on_snapshot_received(data):
 		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
 			targets.append(pawn)
 	if camera:
-		camera.set_available_targets(_sabotage_watch_targets(targets, player_list, str(data.get("round_state", ""))))
+		camera.set_available_targets(_watch_targets(targets, player_list, str(data.get("round_state", ""))))
+		if is_instance_valid(_seat_pick):
+			var picked: int = camera.available_targets.find(_seat_pick)
+			if picked >= 0:
+				camera.follow_target_index = picked
+		_seat_pick = null
+		_present_seat_hud()
 		
 		var followed = camera.get_followed_target()
 		for pawn in players.values():
@@ -3858,7 +3886,7 @@ func _drop_life_presses() -> void:
 ## Sabotage keeps its own teammate watch for a fallen fighter.
 func _begin_death_view() -> void:
 	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
-		or local_life.alive():
+		or _team_seat or local_life.alive():
 		return
 	if not local_fp_pawn_id.is_empty():
 		return
@@ -3911,7 +3939,8 @@ func _update_death_presentation(now_usec: int) -> void:
 	var carried: Array[String] = []
 	if not net_client.equipment.is_empty():
 		carried = _carried_weapons()
-	hud.show_death_card(local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried)))
+	var lines: PackedStringArray = local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried), _team_seat)
+	hud.show_death_card(lines, _team_seat)
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.
@@ -4091,6 +4120,99 @@ func _sabotage_eyes_id() -> String:
 	return ""
 
 
+## Who a joined fighter's camera may follow: everyone while alive; living
+## teammates only once fallen in a team mode.
+func _watch_targets(targets: Array, player_list: Array, round_state: String) -> Array:
+	if hud.sabotage():
+		_leave_team_seat()
+		return _sabotage_watch_targets(targets, player_list, round_state)
+	if _sabotage_watching_mates:
+		_sabotage_watching_mates = false
+		if camera != null:
+			camera.seat_locked = false
+	return _team_seat_targets(targets, player_list, round_state)
+
+
+## A fallen fighter in a respawning team mode keeps the killer for a beat
+## (none without a killer), then takes the seat: the eyes of the living
+## teammate nearest where they fell. F moves along the living teammates and
+## V trades their eyes for the chase view behind them. The view never leaves
+## the side, so a death shows only what a teammate can already see.
+func _team_seat_targets(targets: Array, player_list: Array, round_state: String) -> Array:
+	if not is_human_player or net_client == null or not MatchRules.teams(hud.match_rules) or _mission_map():
+		_leave_team_seat()
+		return targets
+	var my_id: String = str(net_client.player_id) if net_client.player_id != null else ""
+	var alive: bool = false
+	for player_data: Variant in player_list:
+		if player_data is Dictionary and my_id != "" and str(player_data.get("id", "")) == my_id:
+			alive = true
+			_seat_team = MatchRules.valid_team(player_data.get("team"))
+			_seat_spot = Vector3(float(player_data.get("x", 0.0)), float(player_data.get("y", 0.0)), float(player_data.get("z", 0.0)))
+	if alive or local_life.alive() or round_state != "Active" or _seat_team == "":
+		_leave_team_seat()
+		return targets
+	var mates: Array = []
+	var nearest: Node3D = null
+	var best: float = INF
+	for pawn: Variant in targets:
+		if not is_instance_valid(pawn) or str(pawn.get("team")) != _seat_team or str(pawn.get("player_id")) == my_id:
+			continue
+		mates.append(pawn)
+		var away: float = (pawn as Node3D).global_position.distance_squared_to(_seat_spot)
+		if away < best:
+			best = away
+			nearest = pawn as Node3D
+	if not _team_seat and mates.is_empty():
+		# Nobody to watch: the death view keeps the killer or holds.
+		return targets
+	var now: int = Time.get_ticks_usec()
+	if _seat_down_usec < 0:
+		_seat_down_usec = now
+	if not _team_seat:
+		var chasing: bool = camera != null and bool(camera.get("death_view")) and not local_life.chase_id().is_empty()
+		if chasing and now - _seat_down_usec < TEAM_SEAT_KILLER_BEAT_USEC:
+			return targets
+		_enter_team_seat(nearest)
+	return mates
+
+
+func _enter_team_seat(pick: Node3D) -> void:
+	_team_seat = true
+	_seat_pick = pick
+	if camera == null:
+		return
+	camera.end_death_view()
+	camera.set_fp_mode(false)
+	camera.follow_mode = true
+	camera.spectator_first_person = true
+	camera.seat_locked = true
+
+
+func _leave_team_seat() -> void:
+	if _team_seat and camera != null:
+		camera.seat_locked = false
+	_team_seat = false
+	_seat_pick = null
+	_seat_down_usec = -1
+
+
+## A seat reads the watched teammate's fight: their health and armour in the
+## vitals corner and their gun in hand, as a spectator sees them.
+func _present_seat_hud() -> void:
+	if not is_human_player or hud == null or camera == null or not (_team_seat or _sabotage_watching_mates):
+		return
+	var target: Variant = camera.get_followed_target()
+	if not is_instance_valid(target):
+		hud.set_fp_juice(false)
+		return
+	var eyes: bool = camera.is_observing_first_person()
+	hud.set_fp_juice(eyes)
+	if eyes and target.has_method("get_weapon_name"):
+		hud.set_fp_weapon(target.get_weapon_name())
+	hud.set_vitals(int(target.get("hp")), int(target.get("armor")))
+
+
 ## A fallen Sabotage fighter watches living teammates only, in first person or
 ## the follow camera, until the next round puts them back in their own eyes.
 func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: String) -> Array:
@@ -4107,6 +4229,7 @@ func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: St
 	if watching != _sabotage_watching_mates:
 		_sabotage_watching_mates = watching
 		if camera != null:
+			camera.seat_locked = watching
 			if watching:
 				camera.set_fp_mode(false)
 				camera.follow_mode = true
@@ -4153,6 +4276,46 @@ func _apply_sabotage(data: Dictionary) -> void:
 				var feet: Vector3 = Vector3(float(player_data.get("x", 0.0)), 0.0, float(player_data.get("z", 0.0)))
 				prompt = SabotageState.use_prompt(state, sabotage_layout, my_id, _sabotage_team, feet)
 	hud.set_sabotage_state(state, _sabotage_viewer_team(), _sabotage_charge_ticks, owner, carrier_id != "" and carrier_id == eyes, prompt)
+	_present_sabotage_moments(state, my_id)
+
+
+## Once a round each: the muster call for a resupplied side, and the clutch
+## stamp when the server names a last fighter standing.
+func _present_sabotage_moments(state: Dictionary, my_id: String) -> void:
+	var round_number: int = int(state.get("round", 0)) if state.get("round") is int or state.get("round") is float else 0
+	# A round start clears the call lane, and its event can land after the
+	# first muster snapshots: the call stays queued until it has been read.
+	if round_number != _sabotage_resupply_round and str(state.get("phase", "")) == "muster":
+		var lines: PackedStringArray = SabotageState.resupply_lines(state, _sabotage_viewer_team())
+		var queued: Array[String] = []
+		var shown: bool = lines.is_empty()
+		for entry: Dictionary in hud.objective_call.notices.active:
+			queued.append(str(entry.payload.get("text", "")))
+			# Read for a second, so a clear that lands just after it shows
+			# does not swallow it.
+			shown = shown or (lines.has(queued.back()) and float(entry.remaining) <= ObjectiveCall.LIFETIME - 1.0)
+		for entry: Dictionary in hud.objective_call.notices.pending:
+			queued.append(str(entry.get("text", "")))
+		if shown:
+			_sabotage_resupply_round = round_number
+		else:
+			for line: String in lines:
+				if not queued.has(line):
+					hud.objective_call.push(line)
+	var clutch: String = SabotageState.clutch_id(state)
+	if clutch.is_empty():
+		return
+	var key: String = "%d:%s" % [round_number, clutch]
+	if key == _sabotage_clutch_key:
+		return
+	_sabotage_clutch_key = key
+	var pawn: Variant = players.get(clutch)
+	var fighter: String = ""
+	var team: String = ""
+	if pawn is Node and is_instance_valid(pawn):
+		fighter = str(pawn.get("player_name"))
+		team = MatchRules.valid_team(pawn.get("team"))
+	hud.show_clutch(SabotageState.clutch_lines(state, my_id, _sabotage_viewer_team(), fighter, team), team)
 
 
 func _on_sabotage_event(data: Dictionary) -> void:

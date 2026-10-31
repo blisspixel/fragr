@@ -1,0 +1,29 @@
+{
+  "comment": "Team deathmatch death as a seat (#510): a joined fighter stands on Larak Lot until a rule bot frags it, the death view shows the killer for a beat, then the camera rides the nearest living teammate's eyes. Run with FRAGR_QA_MODE=tdm FRAGR_QA_BOTS=7 FRAGR_QA_MANIFEST=res://qa/team_seat.json.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "seat_joined",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "first_person",
+      "join": "human",
+      "await_alive": 20,
+      "note": "Joined fighter on the floor before the frag."
+    },
+    {
+      "name": "seat_killer_beat",
+      "camera": "none",
+      "await_death": 120,
+      "note": "The killer beat: the death view chases who did it, the card names them. Waits at the spawn for a frag, so no walk can spend the death before the wait begins."
+    },
+    {
+      "name": "seat_teammate",
+      "camera": "none",
+      "await_seat": 3,
+      "settle_seconds": 0.3,
+      "note": "The seat: a living teammate's eyes, their gun, health and armour; the card sits low and names the F key."
+    }
+  ]
+}

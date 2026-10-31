@@ -2,7 +2,7 @@
 //! what wins the match and when a level match goes to sudden death. Pure functions of the
 //! format and the round count, so every edge is a unit test rather than a
 //! long simulation.
-use crate::protocol::{SabotageFormat, Team, TeamScores};
+use crate::protocol::{SabotageFormat, Team, TeamScores, WeaponType};
 
 /// Every Sabotage clock, at the 20 Hz simulation. Fields, not constants, so a
 /// host or a test can shape them; the defaults are the design's numbers.
@@ -135,9 +135,71 @@ pub fn match_point(format: SabotageFormat, round: u32, score: TeamScores) -> Opt
         .find(|team| score.get(*team) + 1 >= slot.rounds_to_win)
 }
 
+/// The resupply ladder's top rung.
+pub const RESUPPLY_MAX_TIER: u32 = 3;
+
+/// The resupply ladder after a round: a loss climbs one rung, a win steps
+/// one back down, the way the Counter-Strike loss bonus climbs and steps
+/// back. No currency: the rung is what a side's fallen are reissued.
+pub fn resupply_after(rung: u32, won: bool) -> u32 {
+    if won {
+        rung.saturating_sub(1)
+    } else {
+        (rung + 1).min(RESUPPLY_MAX_TIER)
+    }
+}
+
+/// The rung a side's fallen are actually reissued at this round: its
+/// ladder, but only while the side is not ahead on rounds. A side in front
+/// that drops one round earns nothing from it.
+pub fn resupply_tier(rung: u32, own: u32, other: u32) -> u32 {
+    if own > other {
+        0
+    } else {
+        rung.min(RESUPPLY_MAX_TIER)
+    }
+}
+
+/// What a fallen fighter is reissued at a rung, on top of the empty start:
+/// the guns, then the armour. Tuned on the bots-only survey: stronger kits
+/// (full armour, a Railgun) all but removed three-round deficits but sent
+/// three matches in four to extra time.
+pub fn resupply_kit(tier: u32) -> (&'static [WeaponType], i32) {
+    match tier {
+        0 => (&[], 0),
+        1 => (&[WeaponType::Flechette], 0),
+        2 => (&[WeaponType::Flechette], 50),
+        _ => (&[WeaponType::Flechette, WeaponType::Scatter], 50),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_resupply_ladder_climbs_on_a_loss_and_steps_back_on_a_win() {
+        let mut rung = 0;
+        for expected in [1, 2, 3, 3] {
+            rung = resupply_after(rung, false);
+            assert_eq!(rung, expected);
+        }
+        rung = resupply_after(rung, true);
+        assert_eq!(rung, 2, "a win steps one rung down, not to the floor");
+        assert_eq!(resupply_after(0, true), 0);
+        // Only a side that is not in front draws on its ladder.
+        assert_eq!(resupply_tier(2, 1, 3), 2);
+        assert_eq!(resupply_tier(2, 2, 2), 2);
+        assert_eq!(resupply_tier(2, 3, 1), 0);
+        assert_eq!(resupply_tier(9, 0, 4), RESUPPLY_MAX_TIER);
+        assert_eq!(resupply_kit(0), (&[][..], 0));
+        assert_eq!(resupply_kit(1), (&[WeaponType::Flechette][..], 0));
+        assert_eq!(resupply_kit(2), (&[WeaponType::Flechette][..], 50));
+        assert_eq!(
+            resupply_kit(3),
+            (&[WeaponType::Flechette, WeaponType::Scatter][..], 50)
+        );
+    }
 
     fn score(union: u32, coalition: u32) -> TeamScores {
         TeamScores { union, coalition }

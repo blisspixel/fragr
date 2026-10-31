@@ -2623,14 +2623,27 @@ every role, spectators included. Capability 28 is when the objective arrived.
 - `progress`: a held Use under way, with `kind` `plant` or `defuse`.
   Interruption removes it and loses all progress.
 - `swap_after`: present and true when this round ends a half.
+- `resupply`: the resupply rung, 0 to 3 by current uniform, that each side's
+  fallen were reissued at this round. Omitted when both are 0. A loss climbs
+  a side's ladder one rung and a win steps it one back (never below 0, never
+  above 3); the ladder swaps with the fighters at half and resets with a new
+  match. A side ahead on rounds draws nothing from its ladder, and a
+  weapon-only mutator reissues nothing. Rung 1 reissues the Rifle, rung 2
+  the Rifle and 50 armour, rung 3 the Rifle, the Shotgun and 50 armour, each
+  gun with its pickup ammunition, on top of the empty start. Survivors keep what they carried and draw nothing.
+- `clutch`: the player id of the last fighter standing for a side of two or
+  more against two or more standing. Absent otherwise. It is a fact for
+  presentation; the voiced `last_standing` Host call is separate and keeps
+  the Host's spacing.
 
 Rules the server enforces, in tick order after combat:
 
 - **Muster and spawns.** Every round, each side spawns in its zone: the Union
   in the West Hall's defender hall, the coalition in the attacker yard inside
   the East Hall's center door. Survivors keep every weapon, their ammunition
-  and armour, with health restored; anyone who fell, and everyone at the start
-  of a match, starts with fists. A personal Tack pad in each zone is within two
+  and armour, with health restored; anyone who fell starts with fists plus
+  their side's `resupply` rung, and everyone at the start of a match starts
+  with fists. A personal Tack pad in each zone is within two
   seconds of every spawn point and can be claimed once per round. Map pads stay
   on. The equipment is the discovery inventory, so private `loadout` messages
   flow as on a campaign map.
@@ -2750,7 +2763,7 @@ in Sabotage.
 | `rampage`, `riot`, `untouchable` | yes | A spree reaches one, two and three steps | As `double_frag` |
 | `streak_ended` | yes | A fighter on a spree of at least one step is killed (not on first blood) | `player` the streak's owner, `other` who ended it, `team` the owner's side |
 | `last_standing` | yes | A lives-limited team round leaves a side of two or more with one fighter against two or more | `player` that fighter, `team` the side |
-| `comeback` | yes | A side that trailed by four or more draws level | `team` the side |
+| `comeback` | yes | A team deathmatch side that trailed by four frags or more, or a Sabotage side that trailed by three rounds or more, draws level (not on a match-deciding round) | `team` the side |
 | `lead_change` | no | The front changes hands: a side in team deathmatch (three or more frags) or capture the flag, a fighter in free-for-all (three or more frags) | Free-for-all: `player` the new leader, `other` the one passed, `team` their side. Teams: `team` the side |
 | `flag_taken` | no | Somebody lifts the enemy flag | `player` the carrier, `team` their side |
 | `flag_captured` | yes | A capture scores | `player` the carrier, `team` the scoring side |

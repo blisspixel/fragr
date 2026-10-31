@@ -98,6 +98,14 @@ pub(crate) struct Sabotage {
     /// The last decided round's result. Tells the next round to swap or to
     /// begin a new match.
     pub result: Option<SabotageResult>,
+    /// The resupply ladder by current uniform: climbs on a loss, steps back on
+    /// a win, swaps with the fighters (`rules::resupply_after`).
+    pub ladder: TeamScores,
+    /// The rung each side's fallen were reissued at this round.
+    pub issued: TeamScores,
+    /// The worst round deficit each side has stood at this match, by current
+    /// uniform, for the Host's comeback call.
+    pub deficit: TeamScores,
     drops: u32,
 }
 
@@ -114,6 +122,9 @@ impl Sabotage {
             bot_push: false,
             bot_contact: None,
             result: None,
+            ladder: TeamScores::default(),
+            issued: TeamScores::default(),
+            deficit: TeamScores::default(),
             drops: 0,
         }
     }
@@ -173,6 +184,8 @@ impl GameState {
         if new_match {
             sab.round = 0;
             sab.score = TeamScores::default();
+            sab.ladder = TeamScores::default();
+            sab.deficit = TeamScores::default();
         }
         if swap {
             for player in self.players.iter_mut().filter(|p| p.contestant()) {
@@ -187,10 +200,13 @@ impl GameState {
                     self.rename_transferred_bot(index, team);
                 }
             }
-            sab.score = TeamScores {
-                union: sab.score.coalition,
-                coalition: sab.score.union,
+            let swapped = |scores: TeamScores| TeamScores {
+                union: scores.coalition,
+                coalition: scores.union,
             };
+            sab.score = swapped(sab.score);
+            sab.ladder = swapped(sab.ladder);
+            sab.deficit = swapped(sab.deficit);
             tracing::info!("SABOTAGE: sides swap");
         }
         sab.round += 1;
@@ -198,6 +214,7 @@ impl GameState {
         sab.phase_started = self.tick;
         sab.hold = None;
         sab.result = None;
+        sab.issued = TeamScores::default();
         sab.charge = None;
         sab.bot_push = false;
         sab.bot_contact = None;
@@ -218,12 +235,17 @@ impl GameState {
     }
 
     /// After balance: every fighter to its side's spawn, the dead with a fresh
-    /// arsenal, survivors with what they carried; then the charge to a seeded
-    /// attacker. `dead` lists who did not survive the last round.
+    /// arsenal plus their side's resupply, survivors with what they carried;
+    /// then the charge to a seeded attacker. `dead` lists who did not survive
+    /// the last round.
     pub(super) fn place_sabotage_round(&mut self, dead: &HashSet<Uuid>, fresh: bool) {
         let Some(layout) = self.map.sabotage_layout() else {
             return;
         };
+        let issued = self.resupply_rungs();
+        if let Some(sab) = self.sabotage.as_mut() {
+            sab.issued = issued;
+        }
         let mut next = [0usize; 2];
         let ids: Vec<(Uuid, Team)> = self
             .players
@@ -251,6 +273,13 @@ impl GameState {
                 player.weapon = weapon;
                 player.armor = 0;
                 player.golden = false;
+                let (guns, armor) = crate::rules::resupply_kit(issued.get(team));
+                for gun in guns {
+                    if player.inventory.grant_weapon(*gun) {
+                        player.weapon = *gun;
+                    }
+                }
+                player.armor = armor;
             } else {
                 player.inventory.clear_claims();
             }
@@ -260,6 +289,27 @@ impl GameState {
             }
         }
         self.assign_charge();
+    }
+
+    /// The rung each side's fallen are reissued at this round. A weapon-only
+    /// mutator keeps its one weapon, so it has nothing to reissue.
+    fn resupply_rungs(&self) -> TeamScores {
+        let mut rungs = TeamScores::default();
+        let Some(sab) = self.sabotage.as_ref() else {
+            return rungs;
+        };
+        if self.config.rules.only_weapon().is_some() {
+            return rungs;
+        }
+        for team in Team::ALL {
+            let rung = crate::rules::resupply_tier(
+                sab.ladder.get(team),
+                sab.score.get(team),
+                sab.score.get(team.other()),
+            );
+            rungs.set(team, rung);
+        }
+        rungs
     }
 
     /// The charge goes to a seeded standing attacker, when there is one.
@@ -825,6 +875,21 @@ impl GameState {
             return;
         };
         sab.score.add(winner);
+        for team in Team::ALL {
+            let rung = crate::rules::resupply_after(sab.ladder.get(team), team == winner);
+            sab.ladder.set(team, rung);
+            let behind = sab
+                .score
+                .get(team.other())
+                .saturating_sub(sab.score.get(team));
+            sab.deficit.set(team, sab.deficit.get(team).max(behind));
+        }
+        // A side that stood far behind on rounds has just drawn level.
+        let comeback = sab.score.leader().is_none()
+            && sab.deficit.get(winner) >= crate::rules::SABOTAGE_COMEBACK_DEFICIT;
+        if comeback {
+            sab.deficit.set(winner, 0);
+        }
         sab.phase = SabotagePhase::Over;
         sab.phase_started = self.tick;
         let outcome = match_outcome(format, sab.round, sab.score);
@@ -848,6 +913,9 @@ impl GameState {
             (_, SabotageReason::Defused) => "Charge defused",
             (_, SabotageReason::Time) => "Round clock expired",
         };
+        if comeback && !match_over {
+            self.react(HostReactionKind::Comeback, None, None, Some(winner));
+        }
         self.finish_round(text.to_string(), Some(Standing::Side(Some(winner))));
     }
 
@@ -934,6 +1002,8 @@ impl GameState {
                 },
             }),
             swap_after: slot.swap_after,
+            resupply: sab.issued,
+            clutch: self.clutch(),
         })
     }
 }

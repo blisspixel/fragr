@@ -56,6 +56,14 @@ pub struct MatchRecord {
     /// The uniform that won, absent for a draw or an unfinished match.
     pub winner: Option<Team>,
     pub seconds: f64,
+    /// One group of fighters (followed across the side swap) stood 0 to 3.
+    pub fell_behind_0_3: bool,
+    /// That group went on to win the match.
+    pub came_back: bool,
+    /// One group stood three rounds behind at any score.
+    pub fell_behind_3: bool,
+    /// The first group three behind went on to win the match.
+    pub came_back_3: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -82,6 +90,15 @@ pub struct SurveyReport {
     /// Fighters without a usable gun when weapons went live, by side.
     pub unarmed_at_live: BTreeMap<String, u32>,
     pub attacker_round_share: f64,
+    /// Matches where one group of fighters stood 0 to 3, and how many of
+    /// those that group still won.
+    pub comeback_chances: u32,
+    pub comebacks: u32,
+    pub comeback_rate: f64,
+    /// The same for a three-round deficit at any score.
+    pub deficit3_chances: u32,
+    pub deficit3_comebacks: u32,
+    pub deficit3_rate: f64,
     pub mean_round_seconds: f64,
     pub longest_round_seconds: f64,
 }
@@ -103,6 +120,13 @@ pub fn run_survey(config: &SurveyConfig) -> SurveyReport {
         .count();
     let total = report.rounds.len().max(1);
     report.attacker_round_share = attacker as f64 / total as f64;
+    report.comeback_chances = report.matches.iter().filter(|m| m.fell_behind_0_3).count() as u32;
+    report.comebacks = report.matches.iter().filter(|m| m.came_back).count() as u32;
+    report.comeback_rate = f64::from(report.comebacks) / f64::from(report.comeback_chances.max(1));
+    report.deficit3_chances = report.matches.iter().filter(|m| m.fell_behind_3).count() as u32;
+    report.deficit3_comebacks = report.matches.iter().filter(|m| m.came_back_3).count() as u32;
+    report.deficit3_rate =
+        f64::from(report.deficit3_comebacks) / f64::from(report.deficit3_chances.max(1));
     report.mean_round_seconds = report.rounds.iter().map(|r| r.seconds).sum::<f64>() / total as f64;
     report.longest_round_seconds = report.rounds.iter().map(|r| r.seconds).fold(0.0, f64::max);
     report
@@ -133,6 +157,7 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
     let mut frags = 0;
     let mut rounds = 0;
     let mut finished = None;
+    let mut people = PeopleScore::default();
     while session.state.tick < config.max_ticks {
         for message in session.tick_messages(0.05) {
             let ServerMessage::Event(event) = message else {
@@ -233,6 +258,10 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
                         planted,
                         frags,
                     });
+                    people.round(winning_team, result.match_winner, result.match_over);
+                    if result.sides_swap {
+                        people.swap();
+                    }
                     if result.match_over {
                         finished = Some(result.match_winner);
                     }
@@ -250,7 +279,52 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
         finished: finished.is_some(),
         winner: finished.flatten(),
         seconds: session.state.tick as f64 / 20.0,
+        fell_behind_0_3: people.trailed.is_some(),
+        came_back: people.trailed.is_some() && people.trailed == people.winner,
+        fell_behind_3: people.behind3.is_some(),
+        came_back_3: people.behind3.is_some() && people.behind3 == people.winner,
     });
+}
+
+/// The round score by the people rather than the uniform: group 0 wears the
+/// Union in the first half. The survey follows each group across a swap.
+#[derive(Debug, Clone, Default, PartialEq)]
+struct PeopleScore {
+    wins: [u32; 2],
+    /// Group 0 wears the Coalition uniform (after an odd number of swaps).
+    swapped: bool,
+    /// The first group seen at 0 to 3.
+    trailed: Option<usize>,
+    /// The first group seen three rounds behind at any score.
+    behind3: Option<usize>,
+    /// The group that won the match.
+    winner: Option<usize>,
+}
+
+impl PeopleScore {
+    fn group(&self, uniform: Team) -> usize {
+        usize::from((uniform == Team::Coalition) != self.swapped)
+    }
+
+    fn round(&mut self, winner: Option<Team>, match_winner: Option<Team>, over: bool) {
+        if let Some(uniform) = winner {
+            let group = self.group(uniform);
+            self.wins[group] += 1;
+        }
+        if self.trailed.is_none() {
+            self.trailed = (0..2).find(|&g| self.wins[g] == 0 && self.wins[1 - g] == 3);
+        }
+        if self.behind3.is_none() {
+            self.behind3 = (0..2).find(|&g| self.wins[1 - g] >= self.wins[g] + 3);
+        }
+        if over {
+            self.winner = match_winner.map(|uniform| self.group(uniform));
+        }
+    }
+
+    fn swap(&mut self) {
+        self.swapped = !self.swapped;
+    }
 }
 
 /// Problems that fail a survey: an unfinished match, a round longer than its
@@ -317,6 +391,10 @@ mod tests {
                 finished: true,
                 winner: Some(Team::Union),
                 seconds: 200.0,
+                fell_behind_0_3: false,
+                came_back: false,
+                fell_behind_3: false,
+                came_back_3: false,
             }],
             rounds: vec![
                 round(Team::Union, SabotageReason::Defused, 90.0),
@@ -333,6 +411,32 @@ mod tests {
         report.rounds[1].winner = Some(Team::Union);
         let problems = check_survey(&report);
         assert_eq!(problems.len(), 4, "{problems:?}");
+    }
+
+    #[test]
+    fn the_people_score_follows_each_group_across_the_swap() {
+        let mut people = PeopleScore::default();
+        // Group 0 (Union) takes three; group 1 is 0 to 3.
+        for _ in 0..3 {
+            people.round(Some(Team::Union), None, false);
+        }
+        assert_eq!(people.trailed, Some(1));
+        assert_eq!(people.behind3, Some(1));
+        people.round(Some(Team::Coalition), None, false);
+        people.swap();
+        // After the swap group 1 wears the Union and wins out.
+        for _ in 0..3 {
+            people.round(Some(Team::Union), None, false);
+        }
+        assert_eq!(people.wins, [3, 4]);
+        people.round(Some(Team::Union), Some(Team::Union), true);
+        assert_eq!(people.winner, Some(1));
+        assert_eq!(people.trailed, people.winner);
+        // A level round decides nothing and a later 0 to 3 is not recorded twice.
+        let mut level = PeopleScore::default();
+        level.round(None, None, false);
+        assert_eq!(level.wins, [0, 0]);
+        assert_eq!(level.trailed, None);
     }
 
     #[test]

@@ -273,6 +273,14 @@ pub struct SabotageState {
     /// This round is the last of its half: sides swap after it.
     #[serde(default, skip_serializing_if = "super::is_false")]
     pub swap_after: bool,
+    /// The resupply rung each side's fallen were reissued at this round, 0
+    /// to 3, by current uniform. Omitted when neither side drew on it.
+    #[serde(default, skip_serializing_if = "TeamScores::is_zero")]
+    pub resupply: TeamScores,
+    /// The last fighter standing for a side of two or more, against two or
+    /// more. Absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clutch: Option<Uuid>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -439,15 +447,34 @@ mod tests {
             }),
             progress: None,
             swap_after: false,
+            resupply: TeamScores::default(),
+            clutch: None,
         };
         let json = serde_json::to_value(&state).unwrap();
         assert!(json.get("swap_after").is_none());
         assert!(json.get("progress").is_none());
+        assert!(json.get("resupply").is_none() && json.get("clutch").is_none());
         assert_eq!(json["phase"], "live");
         assert_eq!(json["charge"]["status"], "carried");
         assert!(json["charge"].get("site").is_none());
         let back: SabotageState = serde_json::from_value(json).unwrap();
         assert_eq!(back, state);
+        let mut trailing = state.clone();
+        trailing.resupply = TeamScores {
+            union: 0,
+            coalition: 2,
+        };
+        trailing.clutch = Some(Uuid::from_u128(9));
+        let json = serde_json::to_value(&trailing).unwrap();
+        assert_eq!(
+            json["resupply"],
+            serde_json::json!({"union": 0, "coalition": 2})
+        );
+        assert_eq!(json["clutch"], Uuid::from_u128(9).to_string());
+        assert_eq!(
+            serde_json::from_value::<SabotageState>(json).unwrap(),
+            trailing
+        );
         let result = SabotageResult {
             reason: SabotageReason::Defused,
             round: 4,
