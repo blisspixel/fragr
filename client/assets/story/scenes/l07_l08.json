@@ -4,6 +4,16 @@
   "title_key": "STORY_M07_DEPARTURE_TITLE",
   "skip_key": "STORY_SKIP_SCENE",
   "shots": [
-    {"id": "DEPOT", "caption_key": "STORY_L05_L06_RECORDS", "image": "res://assets/story/images/m06/lunar_transit_departure.png", "motion": {"kind": "pan_right", "amount": 0.08}, "timing": "reader", "hold": 2.0}
+    {
+      "id": "DEPOT",
+      "caption_key": "STORY_L07_L08_CUSTODY",
+      "image": "res://assets/story/images/m06/lunar_transit_departure.png",
+      "motion": {
+        "kind": "pan_right",
+        "amount": 0.08
+      },
+      "timing": "reader",
+      "hold": 2.0
+    }
   ]
 }

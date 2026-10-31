@@ -115,11 +115,11 @@
       "id": "square_uprising",
       "regions": [{"min": [-58.0, 0.0, -24.0], "max": [-20.0, 5.0, 24.0]}],
       "enemies": [
-        {"id": "square_clerk_1", "kind": "clerk", "feet": [-40.0, 0.0, -6.0], "yaw": 0.0},
-        {"id": "square_clerk_2", "kind": "clerk", "feet": [-40.0, 0.0, 6.0], "yaw": 0.0},
-        {"id": "square_sweeper_1", "kind": "sweeper", "feet": [-30.0, 0.0, -6.0], "yaw": 3.14159265},
-        {"id": "square_sweeper_2", "kind": "sweeper", "feet": [-30.0, 0.0, 6.0], "yaw": 3.14159265},
-        {"id": "square_enforcer", "kind": "enforcer", "feet": [-24.0, 0.0, 0.0], "yaw": 3.14159265}
+        {"id": "square_supervisor", "kind": "clerk", "feet": [-41.0, 0.0, -5.0], "yaw": 0.3},
+        {"id": "square_sweeper_1", "kind": "sweeper", "feet": [-30.0, 0.0, -6.0], "yaw": 1.2},
+        {"id": "square_sweeper_2", "kind": "sweeper", "feet": [-30.0, 0.0, 6.0], "yaw": 4.3},
+        {"id": "square_sweeper_3", "kind": "sweeper", "feet": [-27.0, 0.0, -14.0], "yaw": 2.6},
+        {"id": "square_heavy", "kind": "heavy_sweeper", "feet": [-24.0, 0.0, 2.0], "yaw": 5.6}
       ]
     },
     {
@@ -140,7 +140,7 @@
             "approach": [-19.0, 0.0, 0.0]
           }
         },
-        {"id": "escort_auditor", "kind": "auditor", "feet": [-14.0, 0.0, 2.0], "yaw": 3.14159265}
+        {"id": "escort_sweeper", "kind": "sweeper", "feet": [-14.0, 0.0, 2.0], "yaw": 3.14159265}
       ]
     },
     {
@@ -158,8 +158,8 @@
       "after": "stair_ambush",
       "regions": [{"min": [20.0, 5.0, -18.0], "max": [44.0, 8.0, 16.0]}],
       "enemies": [
-        {"id": "overlook_enforcer_1", "kind": "enforcer", "feet": [30.0, 6.0, -8.0], "yaw": 3.14159265},
-        {"id": "overlook_enforcer_2", "kind": "enforcer", "feet": [38.0, 6.0, 8.0], "yaw": 3.14159265},
+        {"id": "overlook_marksman", "kind": "ranged_sweeper", "feet": [30.0, 6.0, -8.0], "yaw": 3.14159265},
+        {"id": "overlook_sweeper_2", "kind": "sweeper", "feet": [38.0, 6.0, 8.0], "yaw": 3.14159265},
         {"id": "overlook_sweeper", "kind": "sweeper", "feet": [30.0, 6.0, -4.0], "yaw": 3.14159265}
       ]
     },
@@ -182,7 +182,7 @@
             "approach": [48.0, 4.5, 0.0]
           }
         },
-        {"id": "concourse_enforcer", "kind": "enforcer", "feet": [54.0, 4.5, 0.0], "yaw": 3.14159265}
+        {"id": "concourse_sweeper", "kind": "sweeper", "feet": [54.0, 4.5, 0.0], "yaw": 3.14159265}
       ]
     }
   ],
@@ -206,6 +206,8 @@
     "maint_gate": "maint_gate_solid",
     "roadblock_rubble": "roadblock_rubble",
     "departure_gate": "concourse_departure_gate",
+    "companion_start": [-39.5, 0.0, -1.0],
+    "people_exits": [[-56.0, 0.0, -20.0], [-56.0, 0.0, 20.0]],
     "objectives": [
       {
         "id": "aid_checkin",

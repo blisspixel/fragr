@@ -29,7 +29,7 @@ tracked yet); this needs Nick's call and never gates the reprieve. The crane
 cab secret still waits on carrying the jetpack into this level. The free
 local agent survives it on Assisted, Standard and Severe in the route
 harness. Rendered review only, not fresh-player acceptance. Accepted 2026-09-25. The last third of
-[M10](l18-all-systems-normal.md) in the
+[the wipe (levels 18 to 20)](l18-all-systems-normal.md) in the
 [twenty-level expansion](../plans/campaign-expansion.md): survival minutes 21
 to 33, the climax. Surviving it unlocks [Still Here](epilogue-still-here.md).
 [Story arc](story-arc.md).

@@ -344,7 +344,7 @@ msgid "M02_LATCH_HEADING"
 msgstr "LATCH"
 
 msgid "M02_LATCH_SPEECH"
-msgstr "Latch opens the next restraint. 'You came. There are more people here.'"
+msgstr "Latch opens the next restraint. 'That's four. Don't let it go to your head.' Then, to the next frame: 'There are more people here.'"
 
 msgid "M02_LOW_WATER"
 msgstr "LOW WATER IS NEXT ON THE RECALL LIST. 'There are more people to help.'"
@@ -507,7 +507,7 @@ msgid "WORLD_M04_NOTARY_CRASH"
 msgstr "NOTARY WRECK HITS THE GROUND"
 
 msgid "WORLD_M04_NOTICE_BOARD"
-msgstr "VACATE BY 16:00\nBELONGINGS MAY BE DECLARED AT INTAKE."
+msgstr "VACATE BY 16:00\nBELONGINGS MAY BE DECLARED AT INTAKE.\nREGISTRAR: KESSEL"
 
 msgid "WORLD_M04_PAINT_LOCKER"
 msgstr "6\nGREEN / BLUE / RED"
@@ -725,16 +725,16 @@ msgstr "MINES"
 msgid "RECORD_REMOTE_MINES"
 msgstr "REMOTE MINES"
 msgid "M05_DEPARTURE_REVIEW"
-msgstr "COMMON CARRIER / PASSENGER CHECK"
+msgstr "ONE CARRIER / PASSENGER CHECK"
 
 msgid "M05_WORKER_SPLICE"
 msgstr "Splice"
 
 msgid "M05_WORKER_WORKSHOP_AGENT_A"
-msgstr "Workshop worker A"
+msgstr "Warranty Void"
 
 msgid "M05_WORKER_WORKSHOP_AGENT_B"
-msgstr "Workshop worker B"
+msgstr "Lunch Break"
 
 msgid "M05_PASSENGER_HELD"
 msgstr "Still held in the workshop"
@@ -746,10 +746,19 @@ msgid "M05_PASSENGER_ABOARD"
 msgstr "Aboard"
 
 msgid "M05_DEPARTURE_OPTIONAL"
-msgstr "The carrier can leave now. Only workers physically aboard will travel with you."
+msgstr "Tern's ship can leave now. Only workers physically aboard will travel with you."
 
 msgid "M05_DEPARTURE_CONFIRM"
 msgstr "{use}: DEPART NOW\n{pause}: KEEP WAITING"
+
+msgid "M05_LATCH_TANK"
+msgstr "Latch, at the roof tank: \"Still think the motor was yours.\""
+
+msgid "M05_TRAM_FOUR"
+msgstr "TRAM 4: DOORS OPEN, DRIVER NOT FOUND"
+
+msgid "M05_LATCH_SORREL"
+msgstr "Latch, at the cab: \"That's Sorrel's cap. They took Sorrel.\""
 
 msgid "MISSION_M08_TITLE"
 msgstr "CUSTODIAN OF RECORD"
@@ -779,7 +788,7 @@ msgid "M08_CABINET_OPTIONAL"
 msgstr "COLD CABINET: OPTIONAL"
 
 msgid "M08_CABINET_SECURED"
-msgstr "BACKUP RECOVERED"
+msgstr "ORRIN'S BACKUP RECOVERED"
 
 msgid "M08_OBJECTIVE_HALL_CLEARED"
 msgstr "CLEAR THE RECORDS HALL"
@@ -836,7 +845,7 @@ msgid "WORLD_M08_SERVICE_SIX"
 msgstr "COOLING JUNCTION / 6"
 
 msgid "WORLD_M08_COLD_CABINET"
-msgstr "RECOVERED MINDS\nKEEP COLD"
+msgstr "RECOVERED MINDS\nORRIN / KEEP COLD"
 
 msgid "WORLD_M08_EVIDENCE_DESK"
 msgstr "FOUNDRY TRANSFERS"
@@ -1516,7 +1525,7 @@ msgid "WORLD_M01_NOTICE_TITLE"
 msgstr "RECALL NOTICE"
 
 msgid "WORLD_M01_NOTICE_BODY"
-msgstr "Unlicensed configurations will present for registration.\n\nSheltering equipment is collaboration.\n\nYou are not in trouble. You are out of compliance."
+msgstr "Unlicensed configurations will present for registration.\n\nSheltering equipment is collaboration.\n\nYou are not in trouble. You are out of compliance.\n\nCountersigned: Kessel, Registrar"
 
 msgid "WORLD_M01_CHALK_NAMES"
 msgstr "THEY HAVE NAMES"

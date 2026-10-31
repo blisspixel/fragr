@@ -1085,7 +1085,8 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
+        // Level 18's turn is the newest contract this binary speaks.
+        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {

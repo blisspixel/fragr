@@ -10,7 +10,7 @@ map 1021, capability 57, [protocol](../protocol.md#still-here-capability-57));
 see [what is built](#what-is-built). Approved direction 2026-09-20. Replaces the
 two proposed aftermath missions, M11 and M12. Initial target: 5-8 minutes, to be
 playtested.
-Only surviving all three wipe levels (18, 19 and 20, formerly M10) unlocks this
+Only surviving all three wipe levels (18, 19 and 20) unlocks this
 playable ending. The
 [campaign contract](../CAMPAIGN.md#runs-and-continues) owns eligibility.
 

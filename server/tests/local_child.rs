@@ -1507,7 +1507,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                     name: "Berth reader".into(),
                     geometry_version: 2,
                     // The previous contract predates the untagged receipts.
-                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
+                    gameplay_version: fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
                     ticket: None,
                     resume: None,
                 })
@@ -1623,7 +1623,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                     name: "Ship reader".into(),
                     geometry_version: 2,
                     // The previous contract predates the untagged receipts.
-                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
+                    gameplay_version: fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
                     ticket: None,
                     resume: None,
                 })

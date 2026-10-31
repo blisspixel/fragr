@@ -14,12 +14,13 @@ Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
 the first campaign launcher. The standalone Walker foundation requires 48 and
 connected Launch Authority requires 49. Article Blade requires 50, connected
 Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
-and All Systems Normal 54. Passenger Manifest, Common Carrier and Planned
+and All Systems Normal 64 (54 before Level 18's turn). Passenger Manifest, Common Carrier and Planned
 Works require 55, which carries the untagged M08 outcome, the `unlinked` M10
 practice transit and connected Planned Works; the free-for-all Pistol start
 with `rules.start_kit` is the same contract 55. Local Exception requires 56,
 the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
-fighter's `ping`, pads without a live clock) is 58, the highest this build
+fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
+`turn_started`, the `working` campaign phase) is 64, the highest this build
 speaks.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
@@ -3745,7 +3746,7 @@ readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4
 | Civic Pressure Valve | 1015 | 51 | `m15` | `tunnel_closed`, `gates_open` |
 | Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
 | Peace Without Interruption | 1017 | 53 | `m17` | `core_unsealed`, `voss_captured` |
-| All Systems Normal | 1018 | 54 | `m18` | `roadblock_active`, `concourse_evac_completed` |
+| All Systems Normal | 1018 | 64 | `m18` | `roadblock_active`, `concourse_evac_completed` |
 | Planned Works | 1019 | 55 | `m19` | `gate_open` |
 
 Each block registers six ordered `objectives`, a `departure` Use target and
@@ -3773,7 +3774,19 @@ the door flags. M16 retains `bus_freed`, `forecourt_secured` and challenges
 `roadblock_active`, `overlook_witnessed`, `concourse_secured`, with challenges
 `aid_delivered`, `square_defended`, `collector_neutralized`, `overlook_witnessed`,
 `concourse_secured`. M17 and M18 `brief_completed` is derived from the accepted
-difficulty and those challenges. Optional bus and Kessel outcomes are retained
+difficulty and those challenges. Before the delivery the M18 square group is placed with
+campaign phase `working` (Union side only): such a body is nobody's enemy, so
+damage does not land on it and controllers do not aim at it. M18 also carries
+`turn_started`, the tick of
+the delivery (`aid_checkin`), or null before it: it is present exactly when
+`aid_delivered` is true and never exceeds the message tick. The turn runs from
+that tick for `M18_TURN_TICKS` (60): every hostile stops and no attack resolves;
+at `M18_HEADS_TURN_TICKS` (10) every Union machine faces the overlook console's
+approach and its campaign actor changes from `side: union` to `side:
+inheritance`, `control: absorbed`; at `M18_LATCH_LOOKS_TICKS` (24) the companion
+faces the nearest ready participant; at 60 the square group wakes and the Union
+people in it stand down and leave. Machines placed later in the level arrive
+absorbed. A new attempt restores the authored Union control. Optional bus and Kessel outcomes are retained
 separately from passing their ordered stages.
 
 Use prompts remain `{player_id, kind: "objective_use"}`. They require a ready,

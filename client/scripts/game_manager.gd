@@ -455,6 +455,8 @@ func _ready():
 	add_child(m04_dressing)
 	m05_town = M05Town.new()
 	m05_town.name = "M05Town"
+	m05_town.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m05_town)
 	m05_dressing = M05Dressing.new()
 	m05_dressing.name = "M05Dressing"
@@ -506,6 +508,14 @@ func _ready():
 	m18_transit.name = "M18Transit"
 	m18_transit.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
+	m18_transit.story_cue.connect(func(slot: String) -> void:
+		if campaign_score != null:
+			campaign_score.play_cue(slot))
+	m18_transit.hush.connect(_hush_for_story)
+	m18_transit.latch_expression.connect(func(expression: String) -> void:
+		for pawn: Variant in players.values():
+			if pawn is Node and is_instance_valid(pawn) and pawn.get("latch_view") is LatchView:
+				pawn.set("latch_hold", expression))
 	add_child(m18_transit)
 	m19_works = M19Works.new()
 	m19_works.name = "M19Works"
@@ -1194,6 +1204,15 @@ func _setup_radio() -> void:
 	_setup_campaign_score()
 
 ## Campaign only, beside the radio under AudioPlayers. Multiplayer never has one.
+## A story moment in play takes the air: the score cuts at once and a tuned
+## station pauses where it is, both through their own seams.
+func _hush_for_story(on: bool) -> void:
+	if campaign_score != null:
+		campaign_score.hush(on)
+	if radio != null:
+		radio.set_scene_hold(on)
+
+
 func _setup_campaign_score() -> void:
 	if local_match == null:
 		return
@@ -3045,6 +3064,8 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m18_transit != null and m18_transit.active():
+		m18_transit.apply_snapshot(data)
 	if m19_works != null and m19_works.active():
 		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
 		m19_works.apply_snapshot(data)

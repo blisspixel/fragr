@@ -38,10 +38,12 @@ machinery hazards and physical freight-lift departure. M14 adds the Continuance
 Walker battle and jeep traversal. M15 connects the stadium games, Article Blade
 and Episode IV continue refill. M16 connects motorcycle traversal, green wave
 and prison bus rescue. M17 connects the Forever Office breach, Kessel custody,
-core unseal and Voss capture. M18 connects Recovery Square relief depot check-in,
-bot diagnostic rupture defense, Collector clinic roadblock breach, maintenance flank ascent,
-Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V continue refill
-to 3, and departure into M19 Planned Works. M19 connects the concourse stores jetpack,
+core unseal and Voss capture. M18 connects the recovery square's ordinary delivery with
+Latch beside the party, the turn (every Union machine stops, their heads come round
+together, the same bodies pass to the Inheritance and move again; the supervisor runs;
+Latch does not turn and looks at the party), the clinic roadblock, the service ascent,
+the overlook's district grid, the evacuation concourse, Episode V continue refill to 3,
+and departure into M19 Planned Works. Collectors are omitted until that role exists. M19 connects the concourse stores jetpack,
 the broken-stair jetpack lesson, the concourse crossing, the lone tram-street Paver lesson,
 the striped market, Latch's departure from the water tanks, the reverse roof loop and the
 tram trench to the waterworks hatch, with departure into M20 Local Exception. Its
@@ -298,7 +300,11 @@ accepted structure; everything else in this table stays a proposal.
 Travel takes time. Transition text and changed conditions acknowledge it.
 No instantaneous Earth-Mars commute, and no urgent prisoner left waiting while
 we tour the system. The personal rescue is complete before departure. Propulsion
-technology and exact durations remain open world-building details.
+technology remains an open world-building detail. The built copy keeps one
+timeline: Earth to the Moon in three days; the Moon to Mars in eleven, with the
+boarding (level 10) four days out and the tender (level 11) an hour later; Mars
+back to Earth in nine; six weeks between the Office falling (level 17) and the
+recovery square (level 18).
 
 The last episode includes onset, collapse, and a conditional aftermath. The
 player cannot predict its timing from a giant countdown. A brief cutscene can
@@ -540,7 +546,7 @@ guidance checked 2026-09-19; no codec extension is selected here.
 
 ## Aftermath and multiplayer chronology
 
-Surviving level 20 (the wipe's third level, formerly M10) unlocks [Still
+Surviving level 20 (the wipe's third level) unlocks [Still
 Here](campaign/epilogue-still-here.md), a short playable epilogue replacing the
 earlier M11/M12 missions. First move through a damaged refuge with actual
 survivors, then revisit a recognizable recovering place years later. There is

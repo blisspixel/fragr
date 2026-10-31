@@ -10,6 +10,10 @@ var _baton: MeshInstance3D
 var _hazard: MeshInstance3D
 var _hazard_label: WorldSign
 var _relay: MeshInstance3D
+## The active relay's lamp beats the custody depot's rhythm, three short and
+## one long; disabled, it is dark.
+var _relay_live: bool = false
+var _relay_clock: float = 0.0
 var _relay_label: WorldSign
 var state_applied: int = 0
 
@@ -22,6 +26,7 @@ func clear_map() -> void:
 	_hazard = null
 	_hazard_label = null
 	_relay = null
+	_relay_live = false
 	_relay_label = null
 	state_applied = 0
 	for child: Node in get_children():
@@ -121,7 +126,14 @@ func apply_state(state: Dictionary) -> void:
 	var key: String = "M13_HAZARD_"+str(p["hazard_phase"]).to_upper()
 	if _hazard_label.message_key != key:
 		_hazard_label.configure(key,_hazard_label.bounds,WorldSign.PANEL_TEXT)
+	_relay_live = not p["relay_disabled"]
 	(_relay.material_override as StandardMaterial3D).albedo_color = Color("343d3d") if p["relay_disabled"] else Color("91aa7c")
 	var relay_key: String = "M13_RELAY_OFFLINE" if p["relay_disabled"] else "M13_RELAY_ACTIVE"
 	if _relay_label.message_key != relay_key:
 		_relay_label.configure(relay_key,_relay_label.bounds,WorldSign.PANEL_TEXT if p["relay_disabled"] else WorldSign.PANEL_INK)
+
+func _process(delta: float) -> void:
+	if _relay == null or not _relay_live or not _relay.material_override is StandardMaterial3D:
+		return
+	_relay_clock = fposmod(_relay_clock + clampf(delta, 0.0, 0.1), M08Archive.noise_period())
+	(_relay.material_override as StandardMaterial3D).albedo_color = Color("91aa7c") if M08Archive.noise_lit(_relay_clock) else Color("4b5944")

@@ -6,7 +6,7 @@
   "shots": [
     {
       "id": "ARRIVAL",
-      "caption_key": "M16_RUN_DESCRIPTION",
+      "caption_key": "STORY_M16_ARRIVAL",
       "timing": "reader",
       "hold": 1
     }

@@ -11,6 +11,12 @@
       "hold": 1
     },
     {
+      "id": "MARA",
+      "caption_key": "STORY_M12_ARRIVAL_MARA",
+      "timing": "reader",
+      "hold": 1
+    },
+    {
       "id": "AID",
       "caption_key": "STORY_M12_ARRIVAL_AID",
       "timing": "reader",

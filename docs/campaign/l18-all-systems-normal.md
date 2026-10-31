@@ -5,14 +5,36 @@ Shared [world direction](../design/earth.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** agreed survival-finale direction; detailed encounters proposed and
-unbuilt, revised 2026-09-20. Earth at the abrupt onset of the wipe. Initial target:
-about 33 active survival minutes after a short ordinary-life opening. The
-accepted twenty-level expansion supersedes that single-mission structure:
-M18 has a ten-minute clock, M19 eleven and M20 twelve, each with its own retry.
+**Status:** built and connected; the turn is server authority (wave 19). Earth
+at the abrupt onset of the wipe, with a ten-minute target and its own retry.
 Nick's 2026-10-04 direction places the larger strategic stand in M20; see the
-[shared Wipe plan](../plans/wipe-survival.md). Encounters remain unbuilt.
+[shared Wipe plan](../plans/wipe-survival.md). The Collector is not built, so
+the clinic route is a roadblock of absorbed Union machines.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-18-all-systems-normal).
+
+**Built turn (wave 19).** The square's machines are placed at work, authored
+under Union control, with one human supervisor (a Clerk), under the recovery's
+ceasefire: walking among them does not raise them and shots do not land on them
+(Latch: "Leave the bots be. They're on the rubble contract till somebody frees
+them."), so the turn is the first thing that happens to them. Latch stands at
+the depot with the party (`companion_start`) and follows as in Episode I. Handing in the tram
+part (`aid_checkin`) starts the turn at that tick (`m18.turn_started`):
+
+| Ticks into the turn | Server | Client |
+|---|---|---|
+| 0 | Every body stops; any tell, burst or channel ends unresolved | The score cuts at once and a tuned station pauses |
+| 10 | Every Union machine's head comes round to the overlook at once and its control passes to the Inheritance (`side: inheritance`, `control: absorbed`) | The absorbed working light carries the depot rhythm, three short and one long, on every bot together |
+| 16 | | Supervisor: "Unit, respond. Unit." |
+| 24 | Latch, who does not turn, looks at the nearest of the party | |
+| 60 | The square wakes, aware, as one; the supervisor runs to an exit and leaves; every machine placed later is absorbed from the start | The score cue `cue-l18` plays, then the bed returns; Latch: "They're all gone at once." "I'm here. I'm still here." |
+
+A retry starts the morning over under the Union. A late join or a resume past
+the turn restages none of it. Every hostile after the turn is a machine; the
+level's rosters carry no Union people past the square. The scale montage is the
+`l18_l19` page (the Moon's cargo lifts, a Martian habitat's lights, the district
+grid still reading ALL SYSTEMS NORMAL), and the overlook console reads the same.
+Seeded tests: `server/src/mission/m18/tests.rs`; presentation:
+`client/scripts/m18_transit.gd` and `test_m18_mission_state.gd`.
 
 ## Confirmed premise and cast
 
@@ -246,10 +268,13 @@ its exposed phase.
 **Par.** None. The clock is fixed; the result shows people helped and damage
 taken.
 
-**Story in play.** Page in: "The recovery square, six weeks later. The Union is
-gone. Voss is in custody, awaiting a trial everyone has an opinion about. Splice
-needs a tram part delivered across town. That is today's whole problem.
-Deliver the part." The rhythm from the depot and the ship plays through every
+**Story in play.** Page in: "Six weeks later. Voss is in custody, awaiting a
+trial everyone has an opinion about. The Union's last people still hold a few
+streets, and the bots nobody has had time to free still clear rubble for their
+old supervisors." Then: "The recovery square, across town. Low Water's stalls,
+rebuilt from the old ones. Splice needs a tram part delivered to the depot.
+That is today's whole problem." The `l17_l18` page before it gives the Office's
+fall its breath: Voss's one quiet line at the rostrum and Latch taking the keys. The rhythm from the depot and the ship plays through every
 absorbed bot at the rupture, a sound and a visible pulse in their optics, so
 players who noticed it before understand, and players who did not still run.
 Latch, watching the square: "They're all gone at once." Then: "I'm here. I'm

@@ -328,8 +328,8 @@ then up.
 **Fights and discovery.** Mixed squads between machines with visible, bypassable
 hazard cycles; the Rocket Launcher is found before a freight counterattack.
 
-**Review gate.** The Walker's approach and the foundry's forced-labor evidence
-are both readable from ordinary player height. Full design: [m08](campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion).
+**Review gate.** The foundry's forced-labor evidence is readable from ordinary
+player height. Full design: [m08](campaign/l13-weight-of-permission.md#level-13-design-twenty-level-expansion).
 
 ### Level 14: Launch Authority
 

@@ -646,10 +646,15 @@ Connected M15-M18 use `civic_pressure_valve`, `freedom_of_movement`,
 `map.m18` geometry must precede matching mission facts. Ordered completed
 prefixes, objective controls, prompts and world flags are validated together;
 a changed world suspends steering until fresh facts arrive. Minimum gameplay
-versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
+versions are 51, 52, 53 and 64 respectively, including spectators. Rejection
 retains the server's reason in `connection_error`, without a pending join.
 These missions keep the same readiness, action and continue tools. Saved runs
 refill continues only when entering M15 (Episode IV) and M18 (Episode V).
+Before the delivery M18's square bodies report phase `working` and are not
+targets. M18's `turn_started` names the delivery's tick; for the next 60 ticks no hostile
+attacks, and from tick 10 of it the square's machines report
+`side: inheritance`, `control: absorbed` (see `docs/protocol.md`). The scripted
+bot binds M16 to M18 geometry like the MCP session does.
 
 Connected M19 uses `planned_works` (minimum gameplay 55). `observe.map.m19`
 binds eight ordered objectives, the coalition stores and waterworks controls,

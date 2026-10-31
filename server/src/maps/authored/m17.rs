@@ -47,6 +47,8 @@ pub(super) struct Definition {
     voss_rostrum: UseTarget,
     core_seal: String,
     gallery_bulkhead: String,
+    /// Where Latch stands with the party when the level begins.
+    companion_start: [f32; 3],
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +60,7 @@ pub(crate) struct Prepared {
     pub(crate) navigation: Arc<Navigation>,
     pub(crate) unsealed_navigation: Arc<Navigation>,
     pub(crate) concluded_navigation: Arc<Navigation>,
+    pub(crate) companion_start: [f32; 3],
 }
 
 impl Definition {
@@ -185,6 +188,20 @@ impl Definition {
         {
             return Err(invalid("M17 start cannot reach kessel desk"));
         }
+        if !standing(arena, self.companion_start)
+            || navigation
+                .route(
+                    self.companion_start,
+                    geometry.kessel_desk.approach,
+                    SEARCH_LIMIT,
+                )
+                .status
+                != RouteStatus::Complete
+        {
+            return Err(invalid(
+                "M17 Latch must start on the party's ordinary route",
+            ));
+        }
         // The override console stands on the raised north gallery: the party must
         // climb one of the ordinary stairs to reach it.
         if geometry.core_override.approach[1] < 2.5
@@ -253,6 +270,7 @@ impl Definition {
         }
 
         Ok(Prepared {
+            companion_start: self.companion_start,
             geometry,
             sealed: arena.clone(),
             unsealed,

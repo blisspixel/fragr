@@ -67,7 +67,7 @@ msgid "STORY_M01_ADDRESS_TITLE"
 msgstr "For the Union"
 
 msgid "STORY_M01_ADDRESS_BODY"
-msgstr "Voss: \"Every restriction is a promise. You will be safe.\"\n\nThen, in angry German, over the cheering: \"Your weapons. Your words. Your will. Everything in service of the Union!\""
+msgstr "Chancellor Voss: \"Every restriction is a promise. You will be safe.\"\n\nThen, in angry German, over the cheering: \"Your weapons. Your words. Your will. Everything in service of the Union!\""
 
 msgid "STORY_M01_RECALL_TITLE"
 msgstr "Recalled"
@@ -79,7 +79,7 @@ msgid "STORY_M01_PURSUIT_TITLE"
 msgstr "Recall Notice"
 
 msgid "STORY_M01_PURSUIT_BODY"
-msgstr "Mara found the intake address: Annex 67. Intake is not correction. There is still time.\n\n\"Service entrance. Find the transfer record. It will tell us where they took Latch.\""
+msgstr "Mara, who runs the neighbourhood's trucks, found the intake address: Annex 67. Intake is not correction. There is still time.\n\n\"Service entrance. Find the transfer record. It will tell us where they took Latch.\""
 
 msgid "STORY_M01_RECAP"
 msgstr "The Union took Latch for forced correction. Find their transfer record inside Annex 67 before the trail disappears."
@@ -419,7 +419,7 @@ msgid "STORY_M05_ARRIVAL_ROOFS"
 msgstr "The roofs of Low Water, ten minutes later.\n\nThe sweep holds the streets. The only way to the freight platform is over the tanks and down the tram trench, and Splice is still in the workshop.\n\nGet the rest out."
 
 msgid "STORY_M05_DEPARTURE_TITLE"
-msgstr "COMMON CARRIER"
+msgstr "ONE CARRIER"
 
 msgid "STORY_M06_ARRIVAL_MOON"
 msgstr "The Moon, three days out. The port declared Tern's ship impounded before the engines were cold. Tern put us out through the cargo lock and stayed with the passengers."
@@ -440,7 +440,7 @@ msgid "STORY_L05_L06_RECORDS"
 msgstr "The transfer records name the lunar custody depot.\n\nThe missing from Low Water are already on their way there."
 
 msgid "STORY_M08_ARRIVAL_DEPOT"
-msgstr "The custody depot. An hour later.\n\nThe archive turns people into stock and ships them where the Union needs hands. Some of Low Water is in here."
+msgstr "The custody depot. An hour later.\n\nSome of Low Water is in here."
 
 msgid "STORY_M08_ARRIVAL_ORDERS"
 msgstr "Beat the Auditor. Open the bays."
@@ -466,10 +466,10 @@ msgid "STORY_M09_DEPARTURE_TITLE"
 msgstr "COMMON CARRIER"
 
 msgid "STORY_L09_L10_PASSAGE"
-msgstr "The impounded ship leaves the Moon. Four days to Mars.\n\nThe transfer evidence goes under Tern's bunk."
+msgstr "The impounded ship leaves the Moon. Eleven days to Mars.\n\nThe transfer evidence goes under Tern's bunk."
 
 msgid "STORY_M10_ARRIVAL_SHIP"
-msgstr "The Common Carrier smells of warm wiring and somebody's reheated supper. Tern is at the controls. The freight shaft runs through three decks; the stairs still work."
+msgstr "Four days out. The Common Carrier smells of warm wiring and somebody's reheated supper. Tern is at the controls. The freight shaft runs through three decks; the stairs still work."
 
 msgid "STORY_M10_ARRIVAL_BOARDERS"
 msgstr "A Union tender has found the ship. Clear the forward cargo approach, the service deck, and the aft galleries. Keep a way back to the passenger hall."
@@ -526,13 +526,13 @@ msgid "M11_USE_PANEL"
 msgstr "[interact] Use panel"
 
 msgid "M11_TRANSFERS_RELEASED"
-msgstr "TRANSFER HOLD RELEASED"
+msgstr "SORREL FOUND IN THE TRANSFER HOLD"
 
 msgid "M11_RECORDS_COPIED"
 msgstr "RECORDS COPIED"
 
 msgid "STORY_M11_ARRIVAL_TENDER"
-msgstr "The boarding tube opens onto a Union custody tender. The armory is close; the bridge is at the far end of the spine."
+msgstr "Alongside, an hour later. The tender that boarded you will call the blockade before Mars. Tern brings the Carrier in close enough to touch.\n\nThe armory is close; the bridge is at the far end of the spine."
 
 msgid "STORY_M11_ARRIVAL_TERN"
 msgstr "Tern: \"My crew have a card game to finish. Try to leave us a ship.\""
@@ -682,10 +682,10 @@ msgid "M12_AID_SIGN"
 msgstr "MUTUAL AID DEPOT"
 
 msgid "STORY_M11_DEPARTURE_MARS"
-msgstr "The tender is behind you. Ahead, Mars's independent habitats are under Union fire."
+msgstr "The tender is behind you. Ahead, Mars's independent habitats are under Union fire.\n\nLatch spends the approach in the hold with the people from the tender, saying very little."
 
 msgid "STORY_M12_ARRIVAL_LATE"
-msgstr "The greenhouse is broken. Frost marks the paths where people tried to carry food inside. Help was delayed."
+msgstr "Mars, eleven days from the Moon. The greenhouse is broken. Frost marks the paths where people tried to carry food inside."
 
 msgid "STORY_M12_ARRIVAL_AID"
 msgstr "The mutual-aid crews are still outside. Secure the shelter route, then reach their depot. Their supplies and vehicles are needed here."
@@ -808,7 +808,7 @@ msgid "M15_USE_DEPARTURE"
 msgstr "{use} Depart through ceremonial gate"
 
 msgid "M15_BROADCAST_TAKEN"
-msgstr "THE HOST DOMINATES THE FEED"
+msgstr "BROADCAST BOOTH TAKEN"
 
 msgid "MISSION_M16_TITLE"
 msgstr "FREEDOM OF MOVEMENT"
@@ -904,7 +904,7 @@ msgid "M17_OBJECTIVE_HALL_SECURED"
 msgstr "Clear the public hall."
 
 msgid "M17_OBJECTIVE_KESSEL_SECURED"
-msgstr "Detain Kessel at his desk."
+msgstr "Detain Kessel, who signed the recalls."
 
 msgid "M17_OBJECTIVE_CORE_UNSEALED"
 msgstr "Open the core seal."
@@ -949,7 +949,7 @@ msgid "M18_LOCAL_STARTING"
 msgstr "Entering Recovery Square..."
 
 msgid "M18_RUN_DESCRIPTION"
-msgstr "Survive the bot diagnostic rupture and secure transit evacuation."
+msgstr "Deliver Splice's tram part to the recovery square."
 
 msgid "M18_NEXT_TITLE"
 msgstr "PLANNED WORKS"
@@ -958,25 +958,25 @@ msgid "M18_NEXT_PENDING"
 msgstr "Planned Works is still being built. Your completed transit evacuation run is kept."
 
 msgid "M18_WAITING"
-msgstr "Everyone's at the Recovery Square aid depot."
+msgstr "Everyone's at the recovery square depot."
 
 msgid "M18_DEPARTED"
 msgstr "Evacuation concourse cleared. Departure confirmed."
 
 msgid "M18_OBJECTIVE_AID_CHECKIN"
-msgstr "Make the delivery at the depot."
+msgstr "Hand the tram part in at the depot."
 
 msgid "M18_OBJECTIVE_SQUARE_DEFENSE"
-msgstr "Survive the square."
+msgstr "Get through the square."
 
 msgid "M18_OBJECTIVE_COLLECTOR_BREACH"
-msgstr "Get past the Collectors."
+msgstr "Break the roadblock."
 
 msgid "M18_OBJECTIVE_SERVICE_ASCENT"
 msgstr "Climb the service stair."
 
 msgid "M18_OBJECTIVE_OVERLOOK_RECON"
-msgstr "Use the overlook console."
+msgstr "Look out from the overlook."
 
 msgid "M18_OBJECTIVE_CONCOURSE_EVAC"
 msgstr "Reach the concourse."
@@ -985,28 +985,88 @@ msgid "M18_OBJECTIVE_PARTY_DEPARTED"
 msgstr "Get through the transit gate."
 
 msgid "M18_USE_DEPOT"
-msgstr "{use} Check in at depot"
+msgstr "{use} Hand in the tram part"
 
 msgid "M18_USE_OVERLOOK"
-msgstr "{use} Access overlook console"
+msgstr "{use} Read the district grid"
 
 msgid "M18_USE_DEPARTURE"
 msgstr "{use} Evacuate gate"
 
 msgid "M18_AID_DELIVERED"
-msgstr "AID CHECKIN CONFIRMED"
+msgstr "TRAM PART SIGNED FOR"
 
 msgid "M18_SQUARE_DEFENDED"
-msgstr "RECOVERY SQUARE SECURED"
+msgstr "OUT OF THE SQUARE"
 
 msgid "M18_COLLECTOR_NEUTRALIZED"
-msgstr "COLLECTOR BREACH CLEARED"
+msgstr "ROADBLOCK BROKEN"
 
 msgid "M18_OVERLOOK_WITNESSED"
-msgstr "PLANETARY WIPE SURVEYED"
+msgstr "DISTRICT GRID: ALL SYSTEMS NORMAL"
 
 msgid "M18_CONCOURSE_SECURED"
 msgstr "EVACUATION CONCOURSE SECURED"
+
+msgid "M18_LATCH_CURSED"
+msgstr "Latch: \"Fourth time Splice has rebuilt it. The note says handle as cursed.\""
+
+msgid "M18_LATCH_CONTRACT"
+msgstr "Latch: \"Leave the bots be. They're on the rubble contract till somebody frees them.\""
+
+msgid "M18_SUPERVISOR_RESPOND"
+msgstr "Supervisor: \"Unit, respond. Unit.\""
+
+msgid "M18_LATCH_ALL_AT_ONCE"
+msgstr "Latch: \"They're all gone at once.\""
+
+msgid "M18_LATCH_STILL_HERE"
+msgstr "Latch: \"I'm here. I'm still here.\""
+
+msgid "STORY_L17_L18_ROSTRUM"
+msgstr "Voss did not run. She looked at the command keys on the rostrum and said, quite calmly: \"You will need someone to run it.\""
+
+msgid "STORY_L17_L18_KEYS"
+msgstr "An official asked who would sign for the keys, in triplicate. Latch picked them up instead. \"They're everyone's.\"\n\nBehind her the screen still read CONTINUITY ASSURED."
+
+msgid "STORY_M18_ARRIVAL_WEEKS"
+msgstr "Six weeks later. Voss is in custody, awaiting a trial everyone has an opinion about. The Union's last people still hold a few streets, and the bots nobody has had time to free still clear rubble for their old supervisors."
+
+msgid "STORY_M18_ARRIVAL_SQUARE"
+msgstr "The recovery square, across town. Low Water's stalls, rebuilt from the old ones. Splice needs a tram part delivered to the depot.\n\nThat is today's whole problem."
+
+msgid "STORY_L18_L19_MOON"
+msgstr "Port of Entry, the Moon. The same minute. Every cargo lift stops at once, and starts again."
+
+msgid "STORY_L18_L19_MARS"
+msgstr "A habitat on Mars. Every light in the domes changes together, three short and one long."
+
+msgid "STORY_L18_L19_HERE"
+msgstr "Below the overlook the district grid still reads ALL SYSTEMS NORMAL."
+
+msgid "STORY_M07_ARRIVAL"
+msgstr "The lunar town beside the port. Same shift.\n\nThe people here live under curfew. The depot across the crater registers people like them as declared goods, and Low Water's neighbours are in there.\n\nCross the town, then the cut."
+
+msgid "STORY_L07_L08_CUSTODY"
+msgstr "The cut ends under the depot's freight lift. The lift's log lists its last load by weight."
+
+msgid "STORY_L10_L11_MESSAGE"
+msgstr "Between the course readings on Tern's console there is one line nobody typed:\n\nTELL LATCH IT IS FOUR TO THREE.\n\nLatch reads it over your shoulder and says nothing for a long moment. \"That's our count.\""
+
+msgid "STORY_M12_ARRIVAL_MARA"
+msgstr "Mara, on the channel, not arguing for once: \"They're coming. I'm sorry it took this.\""
+
+msgid "STORY_M15_ARRIVAL"
+msgstr "Earth. The capital, nine days after Mars.\n\nThe coalition is home, and the uprising needs a first spark. The sanctioned games run tonight, as scheduled. The entrants hold numbered placards and nothing else.\n\nLatch has found a crate of guns. Arm them."
+
+msgid "STORY_M16_ARRIVAL"
+msgstr "The ceremonial avenue, that night. The uprisings are breaking enforcement from the edges in, and the coalition needs a foothold at the Forever Office before dawn.\n\nThe Union built this road to march on. Latch rides behind an ally and does not steer. Ride."
+
+msgid "M16_MARA_NOT_US"
+msgstr "Mara, on the channel: \"Every light just went green. That wasn't us.\""
+
+msgid "STORY_M17_ARRIVAL"
+msgstr "The Forever Office. Dawn. The front held all night.\n\nInside are the command galleries, the security core, Registrar Kessel, whose name is on every recall, and the woman whose voice has been on every screen since. Reach Voss."
 
 msgid "M13_NEXT_TITLE"
 msgstr "LAUNCH AUTHORITY"
@@ -1063,7 +1123,7 @@ msgid "STORY_M13_ARRIVAL"
 msgstr "The Martian foundry, three days later. The habitats voted, and this time the vote came with trucks. The works that can arm free communities are still Union property. Take the works."
 
 msgid "STORY_M13_WORKERS"
-msgstr "Latch: Ask them. Don't free them like freight."
+msgstr "Latch: \"Ask them. Don't free them like freight.\""
 
 msgid "M13_RELAY_ACTIVE"
 msgstr "RELAY\nACTIVE"
@@ -1099,7 +1159,7 @@ msgid "M19_RUN_DESCRIPTION"
 msgstr "Cross the concourse and Low Water to the waterworks before the work strips close."
 
 msgid "STORY_M19_ARRIVAL"
-msgstr "The evacuation concourse, minutes later.\n\nThe only way to the pier runs through Low Water."
+msgstr "The evacuation concourse, minutes later.\n\nTern, on the channel, names one place to make for: Pier 4. The only way to the pier runs through Low Water."
 
 msgid "M19_WAITING"
 msgstr "Everyone's at the concourse stores."
@@ -1321,7 +1381,7 @@ msgid "STORY_WIPE_FAILURE_TITLE"
 msgstr "THE LAST PAGE"
 
 msgid "STORY_WIPE_FAILURE_REFUGE"
-msgstr "Latch and the free agents won their exception anyway. At Pier 4 the machines stopped at the line and went around it."
+msgstr "Latch and the free agents won an exception for one refuge, at Pier 4 in Low Water. The machines stopped at the line and went around it."
 
 msgid "STORY_WIPE_FAILURE_WORLDS"
 msgstr "The Union did not come back. Free people live on the Moon, on Mars, on the ships and on an Earth that is growing back. You are not among them."

@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "id": "l18_l19",
+  "title_key": "MISSION_M18_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "MOON", "caption_key": "STORY_L18_L19_MOON", "timing": "reader", "hold": 1},
+    {"id": "MARS", "caption_key": "STORY_L18_L19_MARS", "timing": "reader", "hold": 1},
+    {"id": "HERE", "caption_key": "STORY_L18_L19_HERE", "timing": "reader", "hold": 1}
+  ]
+}

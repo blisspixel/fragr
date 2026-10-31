@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
 const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor", "paver", "surveyor"]
-const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging"]
+const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging", "working"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
 ## Union bots and equipment: the only bodies the Inheritance absorbs. Union
 ## people are never absorbed; only restoration machines are restoration.
@@ -12,7 +12,9 @@ const RESTORATION_KINDS: Array[String] = ["paver", "surveyor"]
 ## Hostile wire sides: the Union, and the Inheritance with its control domain.
 const HOSTILE_SIDES: Array[String] = ["union", "inheritance"]
 
-## A hostile campaign body, whoever commands it.
+## A hostile campaign body, whoever commands it. A body at work (phase
+## "working") still presents as its side; only the server's allegiance rule
+## keeps it out of the fight until the turn.
 static func is_hostile(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign is Dictionary and campaign.get("side") is String and campaign["side"] in HOSTILE_SIDES
@@ -123,6 +125,9 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if campaign["phase"] == "channeling" and campaign["kind"] != "auditor":
 			return INVALID
 		if campaign["phase"] == "charging" and campaign["kind"] != "enforcer":
+			return INVALID
+		# Level 18 before the turn: Union bodies at work, under the Union only.
+		if campaign["phase"] == "working" and campaign["side"] != "union":
 			return INVALID
 		if campaign["kind"] == "redactor" and campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
 			return INVALID

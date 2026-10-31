@@ -326,6 +326,9 @@ impl GameState {
         self.ensure_m09_companion();
         self.ensure_m10_companion();
         self.ensure_m11_companion();
+        self.ensure_m15_companion();
+        self.ensure_m17_companion();
+        self.ensure_m18_companion();
         self.ensure_m15_entrants();
     }
 
@@ -470,6 +473,9 @@ impl GameState {
         self.ensure_m09_companion();
         self.ensure_m10_companion();
         self.ensure_m11_companion();
+        self.ensure_m15_companion();
+        self.ensure_m17_companion();
+        self.ensure_m18_companion();
         self.article_blade = self
             .map
             .article_blade_info()

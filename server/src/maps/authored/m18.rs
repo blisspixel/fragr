@@ -46,6 +46,10 @@ pub(super) struct Definition {
     maint_gate: String,
     roadblock_rubble: String,
     departure_gate: String,
+    /// Where Latch stands with the party at the aid depot before the turn.
+    companion_start: [f32; 3],
+    /// Where the square's Union people run when their machines stop answering.
+    people_exits: Vec<[f32; 3]>,
 }
 
 #[derive(Debug, Clone)]
@@ -53,6 +57,8 @@ pub(crate) struct Prepared {
     pub(crate) geometry: M18MapGeometry,
     pub(crate) maint_gate: usize,
     pub(crate) departure_gate: usize,
+    pub(crate) companion_start: [f32; 3],
+    pub(crate) people_exits: Vec<[f32; 3]>,
     pub(crate) initial: Arena,
     pub(crate) presentation: MapPresentation,
     pub(crate) ruptured: Arena,
@@ -73,12 +79,15 @@ impl Definition {
         seen: &mut HashSet<String>,
     ) -> io::Result<Prepared> {
         use crate::protocol::EnemyKind::*;
+        // The square's supervisor is the level's only Union person: every
+        // group is the Union's machines, authored under Union control, and
+        // the turn hands each of them to the Inheritance at the delivery.
         let roles: [&[crate::protocol::EnemyKind]; 5] = [
-            &[Clerk, Clerk, Sweeper, Sweeper, Enforcer],
-            &[HeavySweeper, Assessor, Auditor],
+            &[Clerk, Sweeper, Sweeper, Sweeper, HeavySweeper],
+            &[HeavySweeper, Assessor, Sweeper],
             &[Turret, Sweeper, Sweeper],
-            &[Enforcer, Enforcer, Sweeper],
-            &[HeavySweeper, HeavySweeper, Notary, Enforcer],
+            &[RangedSweeper, Sweeper, Sweeper],
+            &[HeavySweeper, HeavySweeper, Notary, Sweeper],
         ];
         if definitions.len() != 5
             || definitions.iter().enumerate().any(|(i, g)| {
@@ -91,6 +100,15 @@ impl Definition {
             })
         {
             return Err(invalid("M18 requires five exact encounter rosters"));
+        }
+        if definitions
+            .iter()
+            .flat_map(|g| &g.enemies)
+            .any(|enemy| enemy.control != crate::protocol::ControlDomain::Union)
+        {
+            return Err(invalid(
+                "M18 machines start under Union control; the turn absorbs them",
+            ));
         }
         if self.objectives.len() != M18_OBJECTIVE_IDS.len() {
             return Err(invalid("M18 requires six ordered recovery objectives"));
@@ -185,6 +203,31 @@ impl Definition {
         {
             return Err(invalid("M18 start cannot reach depot station"));
         }
+        if !standing(arena, self.companion_start)
+            || navigation
+                .route(
+                    self.companion_start,
+                    geometry.depot_station.approach,
+                    SEARCH_LIMIT,
+                )
+                .status
+                != RouteStatus::Complete
+        {
+            return Err(invalid(
+                "M18 Latch must stand on the depot's ordinary route",
+            ));
+        }
+        if self.people_exits.is_empty()
+            || self.people_exits.iter().any(|exit| {
+                !standing(arena, *exit)
+                    || navigation
+                        .route(geometry.depot_station.approach, *exit, SEARCH_LIMIT)
+                        .status
+                        != RouteStatus::Complete
+            })
+        {
+            return Err(invalid("M18 people exits must be ordinary standing ground"));
+        }
 
         // Ruptured arena: maintenance gate opened (lowered)
         let mut ruptured = arena.clone();
@@ -235,6 +278,8 @@ impl Definition {
             geometry,
             maint_gate,
             departure_gate,
+            companion_start: self.companion_start,
+            people_exits: self.people_exits,
             initial: arena.clone(),
             presentation: presentation.clone(),
             ruptured,

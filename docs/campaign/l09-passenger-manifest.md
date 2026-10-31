@@ -80,7 +80,7 @@ gantry to the fourth landing, skipping the third level's fight.
 Tern's ship, still in its cradle, still sealed. Tern and the passengers are in
 the berth office. Free Tern. Get everyone aboard." Tern's line when freed: "I'm
 not a charity. I'm a common carrier. It's worse; I have to take everyone." The
-page out closes Episode II: four days to Mars, and the transfer evidence under
+page out closes Episode II: eleven days to Mars, and the transfer evidence under
 Tern's bunk.
 
 **Humor.** The manifest lists the passengers as *cargo (sentimental)*. The
