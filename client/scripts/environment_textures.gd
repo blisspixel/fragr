@@ -19,9 +19,10 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"enamel": return PRODUCTION + ("union_concrete.png" if horizontal else "scrap_enamel.png")
 			"records_tile": return EARTH + "earth_scrapyard_oxidized_plate.png" if not horizontal else PRODUCTION + "scrap_steel.png"
 	if venue == "mars_foundry":
+		# Works cladding: ribbed steel walls under a dark grated roof deck.
 		match surface:
 			"concrete": return PRODUCTION + "mars_floor.png"
-			"enamel": return OffworldMaterials.DIRECTORY + ("offworld_thermal_ceramic.png" if horizontal else "offworld_pressure_habitat.png")
+			"enamel": return OffworldMaterials.DIRECTORY + "offworld_mining_deck.png" if horizontal else VENUE_WALLS + "holdfast_ribbed_steel.png"
 			"service_steel", "lift_panel": return PRODUCTION + ("mars_floor.png" if horizontal else "mars_steel.png")
 			"records_tile": return OffworldMaterials.DIRECTORY + "offworld_thermal_ceramic.png"
 	if venue in ["launch_works", "mars_habitat"]:
@@ -74,6 +75,15 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"concrete": return EARTH + ("earth_intake_green_tile.png" if horizontal else "earth_yard_cast_concrete.png")
 			"enamel": return EARTH + "earth_clinic_bone_plaster.png"
 			"records_tile": return EARTH + "earth_intake_green_tile.png"
+			"service_steel", "lift_panel": return EARTH + "earth_service_dark_tread.png" if horizontal else PRODUCTION + "union_steel.png"
+	elif venue == "forever_office":
+		# The Forever Office (docs/campaign/l17-peace-without-interruption.md):
+		# grey civic stone and plaster, issued dark tread on decks and stairs,
+		# Union steel on walls. No green enamel and no off-white.
+		match surface:
+			"concrete": return PRODUCTION + ("union_floor.png" if horizontal else "union_concrete.png")
+			"enamel": return PRODUCTION + "union_plaster.png"
+			"records_tile": return ""
 			"service_steel", "lift_panel": return EARTH + "earth_service_dark_tread.png" if horizontal else PRODUCTION + "union_steel.png"
 	elif venue == "waterworks":
 		# Cast quay concrete with its stains on walls and floors alike; the

@@ -800,6 +800,12 @@ pub struct Player {
     mine_cooldown: u32,
     /// A reload press survives newer released input until one tick observes it.
     reload_requested: bool,
+    /// A trigger press, latched like a reload: a press and release between two
+    /// ticks still reaches the next tick, which consumes it whether or not the
+    /// weapon can fire then (a cooldown or empty magazine drops it).
+    fire_requested: bool,
+    /// The press this tick consumed, read by the shot pass alongside held fire.
+    fire_tap: bool,
     remote_place_requested: bool,
     remote_trigger_requested: bool,
     remote_cooldown: u32,
@@ -896,6 +902,8 @@ impl Player {
         self.throw_requested = false;
         self.place_requested = false;
         self.reload_requested = false;
+        self.fire_requested = false;
+        self.fire_tap = false;
         self.ducking = false;
         self.remote_place_requested = false;
         self.remote_trigger_requested = false;
@@ -959,6 +967,8 @@ impl Player {
             place_requested: false,
             mine_cooldown: 0,
             reload_requested: false,
+            fire_requested: false,
+            fire_tap: false,
             remote_place_requested: false,
             remote_trigger_requested: false,
             remote_cooldown: 0,
@@ -1875,6 +1885,7 @@ impl GameState {
                 action.weapon_swap = None;
                 action.seat = None;
                 player.fire_latched = action.fire;
+                player.fire_requested = false;
                 player.pending_action = action;
                 return;
             }
@@ -1888,6 +1899,7 @@ impl GameState {
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.place_requested |= action.place_mine && !player.pending_action.place_mine;
             player.reload_requested |= action.reload && !player.pending_action.reload;
+            player.fire_requested |= action.fire && !player.pending_action.fire;
             player.remote_place_requested |=
                 action.place_remote_mine && !player.pending_action.place_remote_mine;
             player.remote_trigger_requested |=
@@ -2334,6 +2346,10 @@ impl GameState {
         let muster = self.muster_hold();
         for player in &mut self.players {
             player.just_fired = false;
+            // Consumed by this tick in every case: a dead, waiting, inactive or
+            // eliminated body drops it rather than firing on a later life.
+            let fire_requested = std::mem::take(&mut player.fire_requested);
+            player.fire_tap = false;
             if player.eliminated {
                 player.clear_input();
                 continue;
@@ -2387,6 +2403,9 @@ impl GameState {
             if !player.pending_action.fire {
                 player.fire_latched = false;
             }
+            // A tap released before this tick still pulls the trigger once.
+            // A trigger held into this life stays latched until released.
+            player.fire_tap = fire_requested && !player.pending_action.fire;
             player.inventory.tick(player.pending_action.fire);
             player.inventory.finish_reload(self.tick);
 
@@ -2689,7 +2708,7 @@ impl GameState {
             if let Some((index, seat)) = self.vehicle_seat(self.players[i].id) {
                 if seat == crate::protocol::VehicleSeat::Gunner
                     && self.players[i].hp > 0
-                    && self.players[i].pending_action.fire
+                    && (self.players[i].pending_action.fire || self.players[i].fire_tap)
                     && self.vehicles[index].fire(self.tick)
                 {
                     let original = self.players[i].weapon;
@@ -2718,7 +2737,7 @@ impl GameState {
                 || remote_placements.contains(&player.id);
             let fire_permitted = player.repeater_cycle.step(
                 player.weapon,
-                player.pending_action.fire,
+                player.pending_action.fire || player.fire_tap,
                 true,
                 suppressed,
                 player.inventory.usable(player.weapon),
@@ -4417,6 +4436,8 @@ impl GameState {
             place_requested: false,
             mine_cooldown: 0,
             reload_requested: false,
+            fire_requested: false,
+            fire_tap: false,
             remote_place_requested: false,
             remote_trigger_requested: false,
             remote_cooldown: 0,
@@ -4911,6 +4932,8 @@ impl GameState {
             place_requested: false,
             mine_cooldown: 0,
             reload_requested: false,
+            fire_requested: false,
+            fire_tap: false,
             remote_place_requested: false,
             remote_trigger_requested: false,
             remote_cooldown: 0,

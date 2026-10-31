@@ -16,8 +16,7 @@ const NODE_DEAD: Color = Color("2e2420")
 const CABINET_COLD: Color = Color("7fa6c2")
 const CABINET_TAKEN: Color = Color("e0b468")
 const NOISE_LAMP: Color = Color("d8d0a0")
-## Captive and Renn figures reuse the participant body strip until final art.
-## Captives keep their own clothes in varied personal colours.
+## Confiscated clothing on the cage floor in varied personal colours.
 const CAPTIVE_TINTS: Array[Color] = [Color("c9a27a"), Color("a7b98e"), Color("a3b2c8"), Color("c79aa8")]
 const FALL_SECONDS: float = 1.4
 const ROOF_Y: float = 9.0
@@ -30,8 +29,8 @@ var _neutral_layout: Dictionary = {}
 var _solids: Array = []
 var node_lamps: Array[MeshInstance3D] = []
 var node_arms: Array[MeshInstance3D] = []
-var renn: Sprite3D
-var captives: Array[Sprite3D] = []
+var renn: CivilianFigure
+var captives: Array[CivilianFigure] = []
 var upper_shutters: Array[MeshInstance3D] = []
 var cabinet_lamp: MeshInstance3D
 var noise_lamp: MeshInstance3D
@@ -131,9 +130,9 @@ func _jackets(host: Dictionary) -> void:
 func _registry(transform: Transform3D, _host: Dictionary) -> void:
 	_box("RegistryCase", transform.origin + transform.basis.y * 0.62 + transform.basis.x * 0.6,
 		Vector3(0.55, 0.32, 0.4), Color("5a4a3a"))
-	# Renn stands behind the desk, across it from the party.
-	var behind: Vector3 = _neutral_layout["renn"] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
-	renn = _figure("RennProvisional", behind, Color("8f9aa2"))
+	# Renn stands behind the desk in the issued coat, rank and red removed,
+	# facing the party across it.
+	renn = _figure("Renn", "renn", _neutral_layout["renn"], transform.basis.z)
 	renn.visible = false
 
 func _lower_bays(transform: Transform3D) -> void:
@@ -150,8 +149,9 @@ func _lower_bays(transform: Transform3D) -> void:
 		Vector3(1.0, 0.02, 0.7), Color("b8aa87"))
 	cloth.material_override = possession_material(MEAL_CLOTH)
 	for index: int in range(4):
-		var captive: Sprite3D = _figure("CaptiveProvisional", _neutral_layout["held"][index] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT,
-			CAPTIVE_TINTS[index])
+		# Each held person in their own body, clothes and height, facing out.
+		var captive: CivilianFigure = _figure("Captive%d" % index, "captive_%d" % index,
+			_neutral_layout["held"][index], transform.basis.z)
 		captives.append(captive)
 
 func _upper_bays(m08: Dictionary) -> void:
@@ -205,7 +205,7 @@ func apply_state(state: Dictionary) -> void:
 	for index: int in range(captives.size()):
 		# Released captives walk to the freight lane and wait there.
 		var feet: Vector3 = _neutral_layout["released" if released else "held"][index]
-		captives[index].position = feet + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
+		captives[index].place_feet(feet)
 	_set_shutters(bool(facts["seal_open"]))
 	if is_instance_valid(cabinet_lamp):
 		_tint(cabinet_lamp, CABINET_TAKEN if facts["recovered_mind_secured"] else CABINET_COLD)
@@ -267,17 +267,13 @@ func _process(delta: float) -> void:
 					break
 		noise_lamp.visible = lit
 
-func _figure(label: String, at: Vector3, tint: Color) -> Sprite3D:
-	var figure: Sprite3D = Sprite3D.new()
+func _figure(label: String, person: String, feet: Vector3, facing: Vector3) -> CivilianFigure:
+	var figure: CivilianFigure = CivilianFigure.new()
 	figure.name = label
-	figure.texture = load(PlayerBody.strip_path(PlayerBody.HUMAN)) as Texture2D
-	figure.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
-	figure.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
-	figure.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	figure.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	figure.position = at
-	figure.modulate = tint
+	figure.configure(person, Color.WHITE)
 	_root.add_child(figure)
+	figure.place_feet(feet)
+	figure.rotation.y = atan2(facing.x, facing.z)
 	return figure
 
 func _light(label: String, at: Vector3, colour: Color, energy: float, reach: float) -> void:

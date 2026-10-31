@@ -50,6 +50,10 @@ mod m10_geometry_tests;
 #[cfg(test)]
 mod m11_geometry_tests;
 #[cfg(test)]
+mod m13_geometry_tests;
+#[cfg(test)]
+mod m17_tests;
+#[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]

@@ -64,6 +64,10 @@ func _ready() -> void:
 		return
 	choose_start_station()
 	_apply_volume(0.0, true)
+	if not enabled:
+		# Started off, as a campaign does while its score holds the air. The
+		# dial still works; nothing is announced until the player turns it.
+		return
 	play_random()
 	# Signals connected by the parent after add_child would miss an emit here.
 	call_deferred("announce_station")

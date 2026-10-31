@@ -289,6 +289,7 @@ impl GameState {
                 player.pending_action = Action::default();
                 player.jump_requested = false;
                 player.reload_requested = false;
+                player.fire_requested = false;
                 player.just_fired = false;
             } else {
                 player.inventory.refill_if_armed();

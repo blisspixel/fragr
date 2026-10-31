@@ -3,6 +3,7 @@
   "id": "l20_still_here",
   "title_key": "MISSION_M20_TITLE",
   "skip_key": "STORY_SKIP_SCENE",
+  "music": {"path": "res://assets/audio/score/cue-l20/a.mp3", "volume_db": -12.0},
   "shots": [
     {"id": "LINE", "caption_key": "STORY_M20_DEPARTURE_LINE", "timing": "reader", "hold": 1},
     {"id": "CROSSING", "caption_key": "STORY_M20_DEPARTURE_CROSSING", "timing": "reader", "hold": 1}

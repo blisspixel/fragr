@@ -253,7 +253,12 @@ fn m09_low_resource_carry_stays_safe_until_real_loading_crossing_after_tack_pick
     }
     assert!(
         crossed,
-        "ordinary movement must activate the complete loading roster"
+        "ordinary movement must activate the complete loading roster; feet {:?}",
+        game.players.iter().find(|p| p.id == owner).map(|p| [
+            p.x,
+            p.y - crate::sim::PLAYER_FLOOR_Y,
+            p.z
+        ])
     );
 }
 

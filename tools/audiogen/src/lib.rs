@@ -8,6 +8,7 @@
 
 pub mod casting;
 pub mod review;
+pub mod score;
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

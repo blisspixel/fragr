@@ -118,7 +118,10 @@ gear can cover them but must not silently change the character underneath.
 Latch's bone-and-rust scheme and warm screen glow are a proposed 2026-10-23
 adjustment under the [faction readability contract](../ART_STORY_BIBLE.md#faction-readability-contract),
 so a free agent never reads as an Inheritance machine at distance; it awaits
-Nick's acceptance. Every free principal follows that contract.
+Nick's acceptance. Splice's plates in the ochre of the Low Water paint bench
+(rust repairs and the magenta wrist band kept) and Tern's darker, bluer
+gunmetal are proposed 2026-10-30 adjustments for the same reason. Every free
+principal follows that contract.
 
 Do not establish specific ages, ethnicity, facial features or voice IDs through
 one stray generation. Approve and record the reference before producing sets.

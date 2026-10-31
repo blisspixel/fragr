@@ -96,6 +96,9 @@ impl GameState {
             .and_then(|r| r.m13.as_ref())
             .is_some_and(|p| p.index != 4)
         {
+            if self.map.m13_gates().is_some_and(|g| g.relay == solid) {
+                tracing::info!(?end, "Foundry relay hit refused before its objective");
+            }
             return;
         }
         let Some(gates) = self.map.m13_gates() else {
@@ -119,7 +122,11 @@ impl GameState {
                     progress.relay_disabled = true;
                 }
             }
-            relay::Hit::Relay => {}
+            relay::Hit::Relay => {
+                // A relay shot that lands off its face is refused; name it so a
+                // failed route can tell an aim miss from a mission defect.
+                tracing::info!(?end, ?normal, "Foundry relay hit refused off its face");
+            }
         }
     }
 

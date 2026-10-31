@@ -48,6 +48,8 @@ var current_map_id := 1
 
 var is_human_player = false
 var radio = null
+## The optional ambient campaign score; null outside a local campaign.
+var campaign_score: CampaignScore = null
 ## The Host's voiced calls on the Announcer bus, under AudioPlayers.
 var host_voice: HostVoice = null
 var local_fp_pawn_id = ""
@@ -490,6 +492,9 @@ func _ready():
 	m19_works.players = players
 	m19_works.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
+	m19_works.story_cue.connect(func(slot: String) -> void:
+		if campaign_score != null:
+			campaign_score.play_cue(slot))
 	add_child(m19_works)
 	m20_waterworks = M20Waterworks.new()
 	m20_waterworks.name = "M20Waterworks"
@@ -632,6 +637,8 @@ func _on_map_info(info: Dictionary) -> void:
 	if local_match != null and mission_id != local_match.mission:
 		_on_local_failure("LOCAL_SERVER_INVALID_READY")
 		return
+	if campaign_score != null:
+		campaign_score.set_mission(mission_id)
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -661,6 +668,8 @@ func _on_map_info(info: Dictionary) -> void:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
 			var scene_id: String = mission_id
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
+			if campaign_score != null:
+				campaign_score.note_scene(opening.scene)
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
 	elif not mission_id.is_empty():
@@ -773,6 +782,7 @@ func _setup_frontend() -> void:
 	pause_menu.stop_server_requested.connect(_on_stop_server_requested)
 	add_child(pause_menu)
 	pause_menu.bind_radio(radio)
+	pause_menu.bind_score(campaign_score)
 
 ## The play legend is a first-run hint: once a fighter has seen it, later
 ## joins keep the status bar clear. A harness on the default settings file
@@ -787,6 +797,8 @@ func _apply_preferences() -> void:
 	settings.apply()
 	camera.apply_preferences(settings)
 	hud.apply_preferences(settings)
+	if shot_effects != null:
+		shot_effects.blood = settings.blood()
 	for pickup: Node in pickups.values():
 		if is_instance_valid(pickup):
 			pickup.set_reduced_motion(bool(settings.get_value("accessibility", "reduced_motion")))
@@ -1139,6 +1151,10 @@ func _setup_radio() -> void:
 		return
 	radio = radio_script.new()
 	radio.name = "Radio"
+	# The score holds the air in a campaign: the radio starts off and the dial
+	# still works. A station replaces the score; radio off gives it back.
+	if local_match != null and CampaignScore.score_enabled(settings):
+		radio.enabled = false
 	var audio_parent = get_node_or_null("AudioPlayers")
 	if audio_parent:
 		audio_parent.add_child(radio)
@@ -1152,6 +1168,22 @@ func _setup_radio() -> void:
 				hud.show_now_playing(info))
 	if hud and hud.has_signal("host_spoke"):
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
+	_setup_campaign_score()
+
+## Campaign only, beside the radio under AudioPlayers. Multiplayer never has one.
+func _setup_campaign_score() -> void:
+	if local_match == null:
+		return
+	campaign_score = CampaignScore.new()
+	campaign_score.name = "CampaignScore"
+	campaign_score.preferences = settings
+	var audio_parent: Node = get_node_or_null("AudioPlayers")
+	if audio_parent != null:
+		audio_parent.add_child(campaign_score)
+	else:
+		add_child(campaign_score)
+	if hud != null and hud.has_signal("host_spoke"):
+		hud.host_spoke.connect(func(seconds: float) -> void: campaign_score.duck(seconds))
 
 ## Beside the radio, so leaving the match stops and clears it with the other
 ## match voices, and a voiced call lowers the station while it speaks.
@@ -1165,6 +1197,8 @@ func _setup_host_voice() -> void:
 		add_child(host_voice)
 	if radio != null:
 		host_voice.spoke.connect(func(seconds: float) -> void: radio.duck(seconds))
+	if campaign_score != null:
+		host_voice.spoke.connect(func(seconds: float) -> void: campaign_score.duck(seconds))
 
 func _venue_quiets_radio() -> bool:
 	return (m01_intake != null and m01_intake.active()) or (still_here != null and not still_here.geometry.is_empty())
@@ -1414,6 +1448,8 @@ func _on_bark(data: Dictionary) -> void:
 		bark_voice = BarkVoice.new()
 		add_child(bark_voice)
 	bark_voice.speak(data)
+	if campaign_score != null:
+		campaign_score.duck()
 
 func _accept_crawler_scrabble(position: Vector3, now_ms: int) -> bool:
 	if now_ms - crawler_last_ms < 300 and position.distance_squared_to(crawler_last_position) < 1.0:
@@ -1889,6 +1925,11 @@ func _process(_delta):
 		# A story scene owns the music; the station resumes where it paused.
 		radio.set_scene_hold(is_instance_valid(opening) or is_instance_valid(interlude) or (still_here != null and not still_here.geometry.is_empty()) \
 			or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda))
+	if campaign_score != null:
+		# Story pages own the music. The Still Here walk keeps its own bed.
+		campaign_score.scene_hold = is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(still_here_page) \
+			or is_instance_valid(wipe_failure_page) or is_instance_valid(wipe_failure_coda)
+		campaign_score.radio_playing = radio != null and str((radio.now_playing() as Dictionary).get("state", "")) in ["playing", "idle"]
 	_arm_continue()
 	_arm_onward()
 	if _opening_release and _opening_input_released():
@@ -2503,6 +2544,8 @@ func play_departure_scene(state: Dictionary) -> void:
 	if manifest.is_empty():
 		return
 	interlude = ScenePlayer.new(manifest)
+	if campaign_score != null:
+		campaign_score.note_scene(manifest)
 	interlude.completed.connect(_on_interlude_completed)
 	add_child(interlude)
 
@@ -3340,7 +3383,7 @@ func _on_event_received(data):
 		var killer_name = "" if killer_raw == null else str(killer_raw)
 		hud.show_boss_down(str(data.get("message", "")), killer_name)
 	elif event_type == "hit":
-		# Victim blood flash only. Shooter hit markers come from Snapshot shot_results.
+		# Victim damage cue only (red, or bone with Blood off). Shooter hit markers come from Snapshot shot_results.
 		var target_id = str(data.get("target_id", ""))
 		var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 		var dmg: Variant = data.get("damage")
@@ -3895,6 +3938,8 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 	last_shot_tick = tick
 	if shot_effects != null:
 		shot_effects.ingest(tick, results)
+	if campaign_score != null:
+		campaign_score.combat(results.size())
 	if m01_intake != null:
 		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""

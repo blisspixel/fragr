@@ -233,8 +233,12 @@ and its lamp read. The cooling ring carries pipe runs, feeds, valve wheels,
 frost and drip trays; the bridge desk has the transfer files and a foundry
 crate. Gantry beams carry the machine's chain. The freight lane has rails to a
 dark portal where the car came in, chevrons at the boarding line and bundles
-where the released wait. The captives' provisional figures wear varied personal
-colours instead of four near-identical pale tints.
+where the released wait. The four held people are individuals on the live
+bodies, one human and three agents, each in their own clothes or plates (moss
+jacket, terracotta, plum, denim blue) and height, facing out of their bays.
+Renn wears the human body in the issued black coat with the red and rank
+removed, behind the desk and facing the party. Both are `CastPaint` schemes
+baked from existing art; neither is Renn's own model yet.
 
 **Signal beat.** The noise panel is a maintenance screen over the car. Its
 line, "Authorized noise. No action required.", is on screen in warm phosphor

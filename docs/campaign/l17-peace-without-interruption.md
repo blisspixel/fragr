@@ -6,9 +6,10 @@ Shared [world direction](../design/earth.md) and
 and staging. This anchor is a production target, not finished-appearance evidence.
 
 **Status:** implemented development mission. Earth before the wipe. Target
-12-16 minutes, not fresh-player timing evidence. The built hall, administration,
-core and chamber sequence remains at floor level. The raised command galleries
-and service stairs described below are unfinished spatial targets.
+12-16 minutes, not fresh-player timing evidence. The command galleries are
+built with real height and their stairs (see
+[Built command galleries](#built-command-galleries)); the approach, hall, ring,
+core and chamber remain at floor level.
 **Confirmed ending:** Voss is captured alive; the wipe later interrupts the
 promised reckoning. [Treatment](../CAMPAIGN-MISSIONS.md#level-17-peace-without-interruption).
 
@@ -49,6 +50,52 @@ player personally to Voss. Do not stretch the approach into an empty parade grou
 | Security core | Final combined encounter with destructible local defenses | Defeat the apparatus rather than a defenseless person's HP bar |
 | Secured chamber | Safe surrender/capture state after defenses fail | Voss loses command and is taken alive |
 | Public hall return | Allied activity and freed people | Let liberation register before the next mission |
+
+## Built command galleries
+
+**Implemented** in `server/maps/m17-peace-without-interruption.json`, checked by
+`server/src/maps/authored/m17_tests.rs` and `server/src/mission/m17/tests.rs`:
+
+- A working command floor with operator desks and a plotting table under two
+  raised steel decks at 3 m: the north gallery, which holds the core override
+  console, and the east gallery. Waist-high rails are cover: crouched behind
+  one, a fighter is out of the floor's line; standing at it, head and chest show.
+- Two ordinary stairs with 0.2 m risers. The exposed stair rises in the open
+  straight at the gallery bulkhead, under the Enforcer's post at the north
+  rail. The sheltered stair climbs the west wall inside a screen and arrives on
+  the gallery's flank.
+- The outer service stair: a lintelled door in the assembly hall's north-west
+  corner, a steel flight and walkway, and a threshold onto the east gallery,
+  where a Clerk watches the arrival.
+- The gallery watch fights on both levels: a Clerk among the desks, a Clerk on
+  the east gallery and an Enforcer at the north rail.
+- The core override also opens the gallery bulkhead onto an outer court stair
+  beside the secured chamber's west door: a measurably shorter way from the
+  console to the core than back down through the floor. The bulkhead lamps
+  change with the core seal's.
+- Required facts hold. The console works only from the deck; the ring fight or
+  Kessel's custody is still required first; standing under the console does
+  not count as reaching the galleries. The service stair skips no fact.
+
+- The Office has its own presentation (`client/scripts/m17_dressing.gd`, the
+  `forever_office` venue in `arena_materials.gd` and `arena_sky.gd`): mid grey
+  civic stone with a graphite dado and one painted red pinline, graphite issued
+  steel, walnut civic furniture; no green enamel and no off-white. Desks carry
+  monitors, files, lamps, pushed-back chairs and personal things; the plotting
+  table shows the city with districts gone dark; a status board above the
+  north gallery shows regional command sites going dark; dawn windows in the
+  west wall; cold floods on an issued beam; warm service lamps lead from mid
+  hall to the outer stair. The sky is a smoke-grey dawn with no sun disc.
+- `client/qa/m17-gallery-fight.json` is a rendered authoring route through
+  the approach, hall, ring and Kessel to the gallery fight, the override and
+  the opened bulkhead (accurate-aim authoring evidence, not fresh-player).
+
+**Still open:** fresh-player timing and route choice; the rest of the level's
+dressing (approach, hall, ring, core and chamber still read as plain
+geometry under the new palette); the core's glow through floor grates; the
+return through the liberated public hall (departure stays at the east exit);
+Denial and its ante-room plinth; the gallery supply secret and the dome
+catwalk; the runner's-line par.
 
 ## Encounter and equipment design
 

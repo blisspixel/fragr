@@ -47,6 +47,8 @@ const CONCRETE: String = "concrete"
 const METAL: String = "metal"
 const FLESH: String = "flesh"
 const SYNTHETIC: String = "synthetic"
+## A human body hit with Blood off: a dust and fibre puff, never red.
+const FABRIC: String = "fabric"
 ## Registered map materials by the impact they show: plaster, tile and
 ## concrete crumble; steel, enamelled panels and glass ring and spark.
 const SURFACE_CLASS: Dictionary[String, String] = {
@@ -61,7 +63,7 @@ const SURFACE_CLASS: Dictionary[String, String] = {
 ## Six frames per row, one row per struck surface, 32 pixel cells.
 const IMPACTS: Texture2D = preload("res://assets/vfx/shots/impacts.png")
 const IMPACT_FRAMES: int = 6
-const IMPACT_ROWS: Array[String] = ["concrete", "metal", "flesh", "synthetic", "rail", "melee"]
+const IMPACT_ROWS: Array[String] = ["concrete", "metal", "flesh", "synthetic", "rail", "melee", "fabric"]
 
 ## World width of an impact, metres, by row.
 const IMPACT_METRES: Dictionary[String, float] = {
@@ -71,6 +73,7 @@ const IMPACT_METRES: Dictionary[String, float] = {
 	"synthetic": 0.5,
 	"rail": 0.7,
 	"melee": 0.28,
+	"fabric": 0.46,
 }
 
 ## The marks a shot leaves on a solid: 16 pixel cells in one strip.
@@ -147,8 +150,15 @@ static func impact_row(weapon: String, kind: String, surface: String = "") -> St
 	if weapon == "rail":
 		return "rail"
 	if kind == "fighter":
-		return SYNTHETIC if surface == SYNTHETIC else FLESH
+		return surface if surface in [SYNTHETIC, FABRIC] else FLESH
 	return METAL if surface == METAL else CONCRETE
+
+## The impact class of a struck fighter's body under the Blood setting: a
+## machine always sparks; a human bleeds, or puffs dust with Blood off.
+static func fighter_class(surface: Variant, blood: bool) -> String:
+	if surface == SYNTHETIC:
+		return SYNTHETIC
+	return FLESH if blood else FABRIC
 
 ## Atlas UV rectangle for `row` at `age` seconds into a `lifetime`.
 static func impact_uv(row: String, age: float, lifetime: float) -> Rect2:

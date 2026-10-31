@@ -56,11 +56,11 @@ func _run() -> void:
 	archive.configure_map(info)
 	_check(archive.captives.size() == 4 and is_instance_valid(archive.renn) and not archive.renn.visible, "four captives visible and Renn hidden before accepted facts")
 	for index: int in range(4):
-		_check(archive.captives[index].position.distance_to(bound["held"][index] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT) < 0.00001, "actual held Sprite3D feet equal mirrored bodies")
+		_check(archive.captives[index].position.distance_to(bound["held"][index]) < 0.00001, "actual held figure feet equal mirrored bodies")
 	archive.apply_state(ArchiveFixture.fixture_state(info, 4, {"custody_released": true})["state"])
-	_check(archive.renn.visible and archive.renn.position.distance_to(bound["renn"] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT) < 0.00001, "Renn visibility and node feet follow accepted facts")
+	_check(archive.renn.visible and archive.renn.position.distance_to(bound["renn"]) < 0.00001, "Renn visibility and node feet follow accepted facts")
 	for index: int in range(4):
-		_check(archive.captives[index].position.distance_to(bound["released"][index] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT) < 0.00001, "actual released Sprite3D feet equal mirrored bodies")
+		_check(archive.captives[index].position.distance_to(bound["released"][index]) < 0.00001, "actual released figure feet equal mirrored bodies")
 	var prediction: LocalPrediction = LocalPrediction.new()
 	prediction.configure_map(info)
 	prediction.accept_snapshot({"tick": 12, "players": []}, "visitor", {"phase": "in_progress", "m08": {"custodian_joined": true, "custody_released": true}}, 1000)

@@ -1,0 +1,22 @@
+{
+  "comment": "M17 command gallery fight, rendered. A joined human runs past the approach to the hall's personal Flechette, clears the approach, the hall and the ring, takes Kessel into custody, and steps onto the command floor so the gallery watch wakes: posed views frame the Enforcer at the north rail and the east-gallery Clerk from the floor, the exposed stair and the sheltered stair's arrival, then the ordinary fight clears them and the override is worked on the gallery. The joined player's camera is first person throughout. Run with FRAGR_QA_BOTS=0 FRAGR_QA_SEED=17 FRAGR_QA_DIFFICULTY=assisted FRAGR_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json FRAGR_QA_MANIFEST=res://qa/m17-gallery-fight.json. Accurate-aim authoring route and art review, not fresh-player evidence.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"look_at":[0,1.5,-20],"settle_seconds":0.3},
+    {"name":"hall_flechette","camera":"first_person","walk_to":[[5,0,-34],[5,0,-24],[1,0,-21],[-4,0,-19],[-10,0,-18]],"expect_equipment":{"personal_claims":["hall_flechette"]},"look_at":[0,1.5,-28]},
+    {"name":"approach_clear","camera":"first_person","weapon":"Flechette","combat":{"kind":"union","required":["approach_clerk","approach_sweeper"],"target_required_only":true,"evade_tells":true,"engagement_distance":30,"search_route":[[-4,0,-19],[0,0,-21],[0,0,-26]]}},
+    {"name":"hall_clear","camera":"first_person","weapon":"Flechette","walk_to":[[0,0,-19],[0,0,-15]],"combat":{"kind":"union","required":["hall_clerk_west","hall_clerk_east","hall_enforcer","hall_auditor"],"target_required_only":true,"evade_tells":true,"engagement_distance":30,"search_route":[[0,0,-15],[-5,0,-10],[5,0,-10],[0,0,-4]]}},
+    {"name":"ring_clear","camera":"first_person","weapon":"Flechette","walk_to":[[-10,0,-9],[-14,0,-9],[-19,0,-9]],"combat":{"kind":"union","required":["ring_sweeper_west","ring_sweeper_east","ring_enforcer"],"target_required_only":true,"evade_tells":true,"engagement_distance":30,"search_route":[[-20,0,-9],[-30,0,-10],[-31,0,-1],[-22,0,-1]]}},
+    {"name":"kessel","camera":"first_person","walk_to":[[-22,0,-9.5],[-26,0,-9.5]],"look_at":[-26,0.65,-11],"interact":"kessel_secured"},
+    {"name":"floor_arrival","camera":"first_person","walk_to":[[-30,0,-9],[-31,0,0],[-25,0,3],[-25,0,6.6]],"look_at":[-17,3.8,15],"settle_seconds":0.4},
+    {"name":"east_gallery_clerk","camera":"first_person","walk_to":[[-21,0,7.2]],"look_at":[-9.5,4.0,10.5],"settle_seconds":0.2,"note":"The east-gallery Clerk over its rail from the floor."},
+    {"name":"enforcer_at_rail","camera":"first_person","walk_to":[[-24,0,7.4]],"look_at":[-15.5,4.2,14.9],"settle_seconds":0.2,"note":"From the floor: the Enforcer at the north rail, head and chest over it."},
+    {"name":"from_exposed_stair","camera":"first_person","walk_to":[[-18.75,0,7],[-18.75,1.0,10]],"look_at":[-15.5,4.2,14.9],"settle_seconds":0.2,"note":"Halfway up the exposed stair, straight under the Enforcer's post."},
+    {"name":"from_sheltered_top","camera":"first_person","walk_to":[[-18.75,0,7],[-25,0,6.8],[-32.75,0,7],[-32.75,2.6,13.2]],"look_at":[-16,4.2,15.5],"settle_seconds":0.2,"note":"The sheltered stair's arrival on the gallery's flank, along the rail toward the Enforcer."},
+    {"name":"gallery_fight","camera":"first_person","weapon":"Flechette","combat":{"kind":"union","required":["gallery_clerk","gallery_clerk_east","gallery_enforcer"],"target_required_only":true,"evade_tells":true,"engagement_distance":30,"capture_interval_ms":800,"search_route":[[-32.75,3,15],[-24,3,15.4],[-12,3,16],[-10,3,8]]}},
+    {"name":"console","camera":"first_person","walk_to":[[-10,3,14.8],[-24,3,15.4]],"look_at":[-24,3.7,16.6],"interact":"core_unsealed"},
+    {"name":"bulkhead_open","camera":"first_person","walk_to":[[-18.25,3,16]],"look_at":[-18.25,2.0,26]}
+  ]
+}

@@ -174,6 +174,7 @@ func _run() -> void:
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
 	_check_chase_cadence(first)
 	_check_chase_cover()
+	_check_death_view_clear()
 	_check_punch()
 	await _check_board_browsing(first, second)
 	var blocker: InputBlocker = InputBlocker.new()
@@ -288,6 +289,59 @@ func _check_chase_cover() -> void:
 	var deck: Dictionary = {"min_x": -30.0, "max_x": 30.0, "min_z": -30.0, "max_z": 30.0, "bottom": 3.2, "top": 3.6}
 	var under: Vector3 = Cam.chase_clear_position(look, desired, [deck])
 	_check(AimAssist.line_of_sight(look, under, [deck]) and under.y < 3.2 and look.distance_to(under) > 8.0, "under a deck the chase boom drops instead of staring up: " + str(under))
+
+static func _inside_any(point: Vector3, solids: Array, room: float) -> bool:
+	for solid: Dictionary in solids:
+		if point.x > float(solid["min_x"]) - room and point.x < float(solid["max_x"]) + room \
+				and point.z > float(solid["min_z"]) - room and point.z < float(solid["max_z"]) + room \
+				and point.y > float(solid["bottom"]) - room and point.y < float(solid["top"]) + room:
+			return true
+	return false
+
+## The death view chased the killer from a fixed boom with no cover test, so
+## a killer in Larak Lot's Impound put the camera inside the viaduct wall or
+## on the ceiling slab. It now keeps the chase view's clearance, with room for
+## the near plane, and never glides through a wall from the dead eye.
+func _check_death_view_clear() -> void:
+	var Cam: GDScript = load("res://scripts/spectator_cam.gd")
+	var solids: Array = [
+		{"min_x": -38.0, "max_x": 38.0, "min_z": 28.0, "max_z": 38.0, "bottom": 0.0, "top": 9.0},
+		{"min_x": 14.0, "max_x": 36.0, "min_z": 12.0, "max_z": 28.0, "bottom": 4.6, "top": 5.0},
+	]
+	var killer: Fighter = Fighter.new()
+	killer.player_id = "killer"
+	root.add_child(killer)
+	killer.position = Vector3(24.0, 3.0, 20.0)
+	var fixed: Vector3 = killer.position + Vector3(0, 5.5, 10.5)
+	_check(_inside_any(fixed, solids, 0.0), "the old fixed death boom sat inside the viaduct: " + str(fixed))
+	var body: Vector3 = killer.position + Vector3(0, Cam.CHASE_BODY_PROBE, 0)
+	for reduced: bool in [false, true]:
+		var camera: Node3D = Cam.new()
+		root.add_child(camera)
+		camera.set_process(false)
+		camera.assist_solids = solids
+		camera.reduced_motion = reduced
+		camera.set_available_targets([killer])
+		# The dead eye, across the Impound with the killer in sight.
+		camera.global_position = Vector3(24.0, 3.1, 14.0)
+		camera.begin_death_view("killer")
+		var glided_clear: bool = true
+		for frame: int in range(90):
+			camera._process_death_view(1.0 / 60.0)
+			if _inside_any(camera.global_position, solids, 0.05) or not AimAssist.line_of_sight(body, camera.global_position, solids):
+				glided_clear = false
+		var mode: String = "reduced motion" if reduced else "full motion"
+		_check(glided_clear, mode + ": the death view never enters a wall or slab, nor loses the killer")
+		_check(not _inside_any(camera.global_position, solids, 0.15)
+			and camera.global_position.y < 4.6, mode + ": the death view settles under the ceiling with room: " + str(camera.global_position))
+		camera.free()
+	# A spot that only just clears a slab keeps room for the near plane.
+	var slab: Array = [{"min_x": -5.0, "max_x": 5.0, "min_z": -5.0, "max_z": 5.0, "bottom": 7.05, "top": 7.5}]
+	var look: Vector3 = Vector3(0, 1.5, 0)
+	var spot: Vector3 = Cam.chase_clear_position(look, Vector3(0, 7.0, 4.5), slab)
+	_check(spot.distance_to(Vector3(0, 7.0, 4.5)) > 0.1 and AimAssist.line_of_sight(look, spot, slab),
+		"a boom ending against a slab moves off it: " + str(spot))
+	killer.free()
 
 ## The camera punch is presentation: its peak is the asked-for angle, it has
 ## the same shape at any frame rate, it settles, and it never moves the aim.

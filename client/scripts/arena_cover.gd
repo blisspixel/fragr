@@ -198,6 +198,8 @@ static func venue_for(info: Dictionary) -> String:
 		"the weight of permission (development)": return "mars_foundry"
 		"the weight of permission": return "mars_foundry"
 		"local exception": return "waterworks"
+	if info.get("m17") is Dictionary:
+		return "forever_office"
 	if info.get("m11") is Dictionary:
 		return "right_of_search"
 	if info.get("m10") is Dictionary:

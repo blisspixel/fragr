@@ -68,7 +68,7 @@ class Effect:
 	var end: Vector3
 	var normal: Vector3
 	var kind: String
-	## Struck surface class (`ShotVfx` CONCRETE, METAL, FLESH or SYNTHETIC).
+	## Struck surface class (`ShotVfx` CONCRETE, METAL, FLESH, FABRIC or SYNTHETIC).
 	var surface: String = ""
 	var age: float = 0.0
 	## Where the drawn beam starts, fixed on its first draw.
@@ -77,6 +77,8 @@ class Effect:
 ## The surface class of a struck fighter by participant ID; set by the match.
 ## Unset or unknown fighters read as flesh.
 var fighter_surface: Callable = Callable()
+## The player's Blood setting; off, a human body hit shows a dust puff.
+var blood: bool = true
 ## The screen point of the first-person gun's drawn muzzle, or Vector2.INF;
 ## set by the match. Unset, a fixed point low and centre stands in.
 var first_person_muzzle: Callable = Callable()
@@ -138,7 +140,7 @@ func ingest(tick: int, results: Array) -> void:
 func _classify(effect: Effect) -> void:
 	if effect.kind == "fighter":
 		var surface: Variant = fighter_surface.call(effect.target) if fighter_surface.is_valid() else ShotVfx.FLESH
-		effect.surface = ShotVfx.SYNTHETIC if surface == ShotVfx.SYNTHETIC else ShotVfx.FLESH
+		effect.surface = ShotVfx.fighter_class(surface, blood)
 	elif effect.kind == "solid":
 		effect.surface = decals.surface_at(effect.end, effect.normal) if decals != null else ShotVfx.CONCRETE
 		if decals != null:
@@ -325,7 +327,7 @@ func _draw_effect(effect: Effect) -> void:
 
 ## The flash and puff are the impact sprite; these thrown bits add motion in
 ## the struck surface's own material: hot sparks off metal and machines, grit
-## off concrete, dark droplets off a body.
+## off concrete, dark droplets off a body (pale lint with Blood off).
 func _draw_debris(effect: Effect) -> void:
 	var normal: Vector3 = effect.normal
 	var tangent: Vector3 = normal.cross(Vector3.UP if absf(normal.y) < 0.9 else Vector3.RIGHT).normalized()
@@ -347,6 +349,10 @@ func _draw_debris(effect: Effect) -> void:
 			tint = Color("6e1218")
 			size = 0.1
 			speed = 1.2
+		"fabric":
+			tint = Color("b0a696")
+			size = 0.08
+			speed = 1.3
 	size *= 1.0 - effect.age / LIFETIME
 	var centre: Vector3 = effect.end + normal * 0.025
 	for i in range(count):

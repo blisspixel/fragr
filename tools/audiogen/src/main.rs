@@ -8,10 +8,10 @@ use fragr_audiogen::casting::{
     DesignParams, LibraryQuery, SaveVoiceParams, DEFAULT_DESIGN_FORMAT, DEFAULT_DESIGN_MODEL,
 };
 use fragr_audiogen::{
-    parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command, Command, Error,
-    Job, Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams,
-    API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL, DEFAULT_SFX_FORMAT,
-    DEFAULT_TTS_FORMAT, DEFAULT_TTS_MODEL,
+    parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command, score, Command,
+    Error, Job, Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport,
+    TtsParams, API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL,
+    DEFAULT_SFX_FORMAT, DEFAULT_TTS_FORMAT, DEFAULT_TTS_MODEL,
 };
 use std::io::Read;
 use std::path::PathBuf;
@@ -255,6 +255,38 @@ enum Cmd {
     },
     /// Show remaining credits for the configured key.
     Quota,
+    /// Print the campaign score takes picked in game (A or B per slot), read from
+    /// the game's settings file. Spends nothing.
+    ScorePicks {
+        #[command(flatten)]
+        score: ScorePaths,
+        /// Also write the picks as JSON to this file.
+        #[arg(long)]
+        save: Option<PathBuf>,
+    },
+    /// Delete every shipped score take that was not picked, with its .import file
+    /// and manifest entry. Slots without a pick keep both. Dry run unless --apply.
+    ScorePrune {
+        #[command(flatten)]
+        score: ScorePaths,
+        /// Delete the files. Without this the plan is only printed.
+        #[arg(long)]
+        apply: bool,
+    },
+}
+
+/// Where the score take commands read.
+#[derive(clap::Args, Debug, Clone, PartialEq)]
+struct ScorePaths {
+    /// The game's settings file. Defaults to Godot's user data folder for fragr.
+    #[arg(long)]
+    settings: Option<PathBuf>,
+    /// Score slot list.
+    #[arg(long, default_value = score::DEFAULT_SLOTS_FILE)]
+    slots: PathBuf,
+    /// Shipped takes (<dir>/<slot>/<take>.mp3); its parent holds audiogen-manifest.json.
+    #[arg(long, default_value = score::DEFAULT_SCORE_DIR)]
+    score_dir: PathBuf,
 }
 
 /// Where the review and promote commands read and write.
@@ -275,16 +307,25 @@ struct ReviewPaths {
     /// Keepers wanted per station, shown on the tabs.
     #[arg(long, default_value_t = review::DEFAULT_TARGET)]
     target: usize,
+    /// Review the campaign score instead: one tab per level bed or story cue,
+    /// with its shipped takes side by side (defaults switch to the score's paths).
+    #[arg(long)]
+    score: bool,
 }
 
 impl ReviewPaths {
     fn config(self) -> review::ReviewConfig {
-        review::ReviewConfig {
+        let config = review::ReviewConfig {
             stations_file: self.stations,
             radio_dir: self.radio_dir,
             candidates_dir: self.candidates,
             decisions_file: self.decisions,
             target: self.target,
+        };
+        if self.score {
+            config.for_score()
+        } else {
+            config
         }
     }
 }
@@ -461,11 +502,13 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
             description,
         }),
         Cmd::Quota => Command::Quota,
-        Cmd::Review { .. } | Cmd::Promote { .. } => {
-            return Err(Error::InvalidArgument(
-                "review and promote run locally, not through the generator".into(),
-            ))
-        }
+        Cmd::Review { .. }
+        | Cmd::Promote { .. }
+        | Cmd::ScorePicks { .. }
+        | Cmd::ScorePrune { .. } => return Err(Error::InvalidArgument(
+            "review, promote and the score take commands run locally, not through the generator"
+                .into(),
+        )),
     })
 }
 
@@ -592,6 +635,12 @@ fn run_promote(
     apply: bool,
     out: &mut dyn std::io::Write,
 ) -> Result<(), Error> {
+    // A score slot ships two takes and keeps at least one, not a station's twelve.
+    let min_tracks = if paths.score && min_tracks == review::DEFAULT_MIN_TRACKS {
+        review::SCORE_MIN_TAKES
+    } else {
+        min_tracks
+    };
     let config = paths.config();
     let mut decisions = review::load_decisions(&config.decisions_file)?;
     let catalog = review::scan_catalog(&config, &decisions)?;
@@ -621,6 +670,75 @@ fn run_promote(
     Ok(())
 }
 
+fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Error> {
+    let settings = match &paths.settings {
+        Some(path) => path.clone(),
+        None => score::default_settings_path().ok_or_else(|| {
+            Error::InvalidArgument(
+                "cannot find the game's user data folder; pass --settings <settings.cfg>".into(),
+            )
+        })?,
+    };
+    let text = std::fs::read_to_string(&settings).map_err(|err| {
+        Error::InvalidArgument(format!(
+            "cannot read {} ({err}); play a campaign level once or pass --settings",
+            settings.display()
+        ))
+    })?;
+    let takes = score::parse_takes(&text)?;
+    let slots = score::load_slots(&paths.slots)?;
+    Ok((
+        settings,
+        score::collect_picks(&slots, &takes, &paths.score_dir),
+    ))
+}
+
+fn run_score_picks(
+    paths: ScorePaths,
+    save: Option<PathBuf>,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let (settings, rows) = score_rows(&paths)?;
+    writeln!(out, "score picks from {}", settings.display())?;
+    write!(out, "{}", score::describe_picks(&rows))?;
+    if let Some(path) = save {
+        let json = serde_json::json!({ "settings": settings.display().to_string(), "slots": rows });
+        let text =
+            serde_json::to_string_pretty(&json).map_err(|err| Error::Spec(err.to_string()))?;
+        if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&path, format!("{text}\n"))?;
+        writeln!(out, "saved {}", path.display())?;
+    }
+    Ok(())
+}
+
+fn run_score_prune(
+    paths: ScorePaths,
+    apply: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let (settings, rows) = score_rows(&paths)?;
+    writeln!(out, "score picks from {}", settings.display())?;
+    let plan = score::plan_prune(&rows, &paths.score_dir);
+    write!(out, "{}", score::describe_prune(&plan))?;
+    if !apply {
+        writeln!(out, "dry run: nothing deleted; pass --apply to prune")?;
+        return Ok(());
+    }
+    if plan.removals.is_empty() {
+        return Ok(());
+    }
+    score::apply_prune(&plan, &paths.score_dir)?;
+    writeln!(
+        out,
+        "pruned {} take(s). Next: run tools/godot_check.sh, check `git status client/assets/audio` and stage with `git add -A client/assets/audio`",
+        plan.removals.len()
+    )?;
+    Ok(())
+}
+
 fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
     match cli.command {
         Cmd::Review {
@@ -634,6 +752,10 @@ fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
             force,
             apply,
         } => return run_promote(paths, min_tracks, force, apply && !cli.dry_run, out),
+        Cmd::ScorePicks { score, save } => return run_score_picks(score, save, out),
+        Cmd::ScorePrune { score, apply } => {
+            return run_score_prune(score, apply && !cli.dry_run, out)
+        }
         _ => {}
     }
     // Dry runs never need a key. Quota always does.
@@ -1167,5 +1289,103 @@ mod tests {
         .unwrap();
         let err = run(cli, &mut Vec::new()).unwrap_err();
         assert!(matches!(err, Error::Io(_)));
+    }
+
+    #[test]
+    fn score_commands_read_settings_and_prune_without_a_key() {
+        let dir =
+            std::env::temp_dir().join(format!("fragr-audiogen-main-score-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let score = dir.join("audio/score");
+        for slot in ["l01", "l02"] {
+            std::fs::create_dir_all(score.join(slot)).unwrap();
+            for take in ["a", "b"] {
+                std::fs::write(score.join(format!("{slot}/{take}.mp3")), b"x").unwrap();
+            }
+        }
+        std::fs::write(
+            score.join("slots.json"),
+            r#"{"slots": [{"id": "l01", "kind": "bed", "name": "Level 1"}, {"id": "l02", "kind": "bed"}]}"#,
+        )
+        .unwrap();
+        let settings = dir.join("settings.cfg");
+        std::fs::write(
+            &settings,
+            "[score]\n\nenabled=true\ntakes={\n\"l01\": \"b\"\n}\n",
+        )
+        .unwrap();
+        let args = |command: &str, extra: &[&str]| {
+            let mut args: Vec<String> = vec![
+                "fragr-audiogen".into(),
+                "--api-key-file".into(),
+                "definitely-missing.key".into(),
+                command.into(),
+                "--settings".into(),
+                settings.display().to_string(),
+                "--slots".into(),
+                score.join("slots.json").display().to_string(),
+                "--score-dir".into(),
+                score.display().to_string(),
+            ];
+            args.extend(extra.iter().map(|s| s.to_string()));
+            args
+        };
+        let saved = dir.join("picks/picks.json");
+        let mut out = Vec::new();
+        run(
+            Cli::try_parse_from(args("score-picks", &["--save", saved.to_str().unwrap()])).unwrap(),
+            &mut out,
+        )
+        .unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("l01       pick B  ships A+B  Level 1"),
+            "{text}"
+        );
+        assert!(text.contains("1 of 2 slots picked"), "{text}");
+        let json: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&saved).unwrap()).unwrap();
+        assert_eq!(json["slots"][0]["pick"], "b");
+        let mut out = Vec::new();
+        run(
+            Cli::try_parse_from(args("score-prune", &[])).unwrap(),
+            &mut out,
+        )
+        .unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("dry run"));
+        assert!(score.join("l01/a.mp3").exists());
+        let mut out = Vec::new();
+        run(
+            Cli::try_parse_from(args("score-prune", &["--apply"])).unwrap(),
+            &mut out,
+        )
+        .unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("pruned 1 take"));
+        assert!(!score.join("l01/a.mp3").exists() && score.join("l01/b.mp3").exists());
+        assert!(score.join("l02/a.mp3").exists() && score.join("l02/b.mp3").exists());
+        let missing = vec![
+            "fragr-audiogen".to_string(),
+            "score-picks".into(),
+            "--settings".into(),
+            dir.join("nope.cfg").display().to_string(),
+        ];
+        let err = run(Cli::try_parse_from(missing).unwrap(), &mut Vec::new()).unwrap_err();
+        assert!(err.to_string().contains("--settings"), "{err}");
+        let cli =
+            Cli::try_parse_from(["fragr-audiogen", "review", "--score", "--no-open"]).unwrap();
+        match cli.command {
+            Cmd::Review { paths, .. } => assert_eq!(paths.config(), review::ReviewConfig::score()),
+            other => panic!("unexpected {other:?}"),
+        }
+        let command = Cmd::ScorePicks {
+            score: ScorePaths {
+                settings: None,
+                slots: PathBuf::from("s"),
+                score_dir: PathBuf::from("d"),
+            },
+            save: None,
+        };
+        assert!(to_command(command).is_err());
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }

@@ -85,6 +85,15 @@ const DEFAULTS: Dictionary = {
 		"hud_scale": 100,       # 75 to 150 percent
 		"text_size": 0,         # 0 Standard, 1 Large
 		"team_colours": 0,      # 0 Standard, 1 High contrast
+		# Human bodies bleed when hit. Off shows a neutral dust puff and a
+		# bone damage edge instead; machines still spark and leak oil.
+		"blood": true,
+	},
+	# The optional campaign score (CampaignScore): on or off, and the take
+	# chosen per slot while both takes ship. A missing slot plays take A.
+	"score": {
+		"enabled": true,
+		"takes": {},
 	},
 }
 
@@ -191,6 +200,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/pixel_scale":
 		if not value is int or value < 0 or value >= RenderQuality.PIXEL_TARGETS.size():
 			value = fallback
+	if path == "score/takes":
+		value = CampaignScore.clean_takes(value)
 	(_values[section] as Dictionary)[key] = value
 
 func draft() -> FragrSettings:
@@ -355,3 +366,7 @@ func text_size() -> int:
 
 func team_colours() -> int:
 	return int(get_value("accessibility", "team_colours"))
+
+## Presentation only: whether a struck human body shows blood.
+func blood() -> bool:
+	return bool(get_value("accessibility", "blood"))

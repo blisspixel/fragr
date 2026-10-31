@@ -249,12 +249,12 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
     let landing_thickness =
         landing["max"][1].as_f64().unwrap() - landing["min"][1].as_f64().unwrap();
     assert!(landing_thickness > 2.0);
-    assert_eq!(value["solids"].as_array().unwrap().len(), 158);
+    assert_eq!(value["solids"].as_array().unwrap().len(), 241);
     let map = AuthoredMap::read(SUCCESSOR).expect("foundry successor");
     let world = RuntimeMap::Authored(map.clone());
     assert_eq!(world.id(), 1013);
     assert_eq!(world.name(), "The Weight of Permission");
-    assert_eq!(world.solids().len(), 158);
+    assert_eq!(world.solids().len(), 241);
     let state = GameState::with_authored_map(map.clone());
     assert_eq!(
         state.mission_state().unwrap().id,

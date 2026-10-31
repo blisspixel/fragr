@@ -17,8 +17,21 @@ func configure(person: String, color: Color) -> void:
 			rigid = candidate
 			rigid.name = "SpliceFigure"
 			add_child(rigid)
+			# Splice's own ochre plates, never the pale reserved base.
+			CastPaint.apply(rigid.source_body, "splice")
 			return
 		candidate.free()
+	if CastPaint.BODIES.has(person):
+		# Campaign people on an existing body in their own paint and height.
+		var worn: SkinnedCharacter = SkinnedCharacter.new()
+		if worn.configure(CastPaint.BODIES[person]):
+			skin = worn
+			skin.name = person.capitalize().replace(" ", "") + "Skin"
+			add_child(skin)
+			CastPaint.apply(skin.source_body, person)
+			skin.scale = Vector3.ONE * float(CastPaint.HEIGHTS.get(person, 1.0))
+			return
+		worn.free()
 	if person in ["tern", "edda", "free_human", "free_synthetic"]:
 		# Free citizens wear the player models in their own art. A free
 		# person's own colour is shoulder and arm tape, never a whole-body
@@ -29,6 +42,10 @@ func configure(person: String, color: Color) -> void:
 			skin = candidate
 			skin.name = body.capitalize() + "Skin"
 			add_child(skin)
+			if person == "tern":
+				# Darker gunmetal and the ember shoulder panel from the cast sheet.
+				CastPaint.apply(skin.source_body, person)
+				CastPaint.shoulder_panel(skin, "LeftArm", CastPaint.TERN_EMBER)
 			if person.begins_with("free_"):
 				var checked: Dictionary = FactionPalette.check({"base": skin.base_color(), "accent": color})
 				skin.dress("free", checked["scheme"].get("accent", color))
@@ -38,7 +55,7 @@ func configure(person: String, color: Color) -> void:
 		return
 	strip = Sprite3D.new()
 	strip.name = "CivilianStrip"
-	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice", "anonymous_synthetic", "free_synthetic"] else PlayerBody.HUMAN)) as Texture2D
+	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice", "anonymous_synthetic", "free_synthetic"] or CastPaint.BODIES.get(person) == "synthetic" else PlayerBody.HUMAN)) as Texture2D
 	strip.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
 	strip.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 	strip.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y

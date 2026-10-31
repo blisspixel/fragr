@@ -81,7 +81,8 @@ tells. Alien or dimensional visuals belong only to the brief sequel hint.
 
 Chunky and over the top, and different per faction, because how a thing dies is another quarter-second read.
 
-- **Human bodies** use brief readable blood feedback and bounded decals.
+- **Human bodies** use brief readable blood feedback and bounded decals. The
+  Blood setting (On by default) swaps it for a neutral dust puff when Off.
 - **Agent and bot bodies** expose oil, sparks and broken physical parts. Both can
   represent a person; material response does not establish moral status.
 - **Restoration machines** break into their matte components with a brief loss

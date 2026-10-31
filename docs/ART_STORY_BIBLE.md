@@ -53,6 +53,18 @@ the world: painted stencils, image-led posters, screens, graffiti and stamped
 plates. No free-standing billboards of lore. Count repeated placements, not
 just unique strings, and inspect them at playing distance in stills and motion.
 
+### Score
+
+The campaign score is ambient, optional and never the plot. Each level has one
+quiet, slow bed in a shared palette (worn tape pads, spring-reverb guitar
+harmonics, felt piano, bowed metal, low cello) with an episode colour: warm
+Earth for Recall, cold glass for the Moon, dusty amber for Common Cause, low
+resolve for the Reckoning, and subtraction for the Inheritance. No vocals, no
+drums and no lead melody, so gunfire, tells and lines read first. Short cues
+mark only the biggest designed feelings and choose restraint over swell; the
+turn in Level 18 is nearly silent. The radio stays a separate small feature,
+and a station replaces the score rather than playing over it.
+
 ### Influences and the original house style
 
 | Influence | What guides fragr |
@@ -206,7 +218,9 @@ Combat effects keep the same chunky pixel scale and the faction colour law
 (`client/scripts/shot_vfx.gd` owns the tables, `tools/bake_shot_vfx.gd` the
 art). Gunfire and blasts light the world amber to warm white, never red,
 which stays the Union attack tell. A body hit bleeds in dried-blood tones,
-not bright Union red; a free agent's synthetic body throws sparks and dark
+not bright Union red (Settings > Accessibility > Blood, On by default; Off
+swaps it for a dust and lint puff in bone and gunmetal, and the damage edge
+for bone); a free agent's synthetic body throws sparks and dark
 oil, never cyan, which belongs to the Inheritance. The Railgun is a cold
 near-white core with only a pale cyan edge and a near-white light. Every
 effect is a hard-alpha sprite or skinned model that fades through an ordered
@@ -441,6 +455,12 @@ ember and magenta pair and high-contrast pair exist as `free_pair`),
 Inheritance machines and absorbed bots. The server carries no cosmetics, so it
 validates none. Review captures: `client/qa/faction_readability_review.gd` and
 the `faction-readability-*.json` tours.
+Campaign people on existing bodies wear `CastPaint` schemes
+(`client/scripts/cast_paint.gd`), recolours of their own art baked offline by
+`tools/bake_cast_paint.gd` and checked by `test_cast_paint.gd` against this
+rule: Splice's pale plates are workshop ochre, Tern is darker gunmetal with the
+ember shoulder panel, Renn keeps the black coat without red, and Level 8's
+held people are four different individuals.
 
 | Environment | Dominant materials and color | Light, landmarks and lived detail |
 |---|---|---|

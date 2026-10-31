@@ -47,6 +47,8 @@ var _voiced: bool = false
 ## Once a shot loses audible narration, only its reader may advance it.
 var _reader_paced: bool = false
 var _still_path: String = ""
+## The loaded settings, so a score cue follows the Campaign score setting and take.
+var _preferences: FragrSettings = null
 
 func _init(manifest: Dictionary = {}) -> void:
 	scene = manifest
@@ -68,6 +70,7 @@ func _ready() -> void:
 		return
 	var preferences: FragrSettings = FragrSettings.for_tree(get_tree())
 	preferences.load_from_disk()
+	_preferences = preferences
 	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
 	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
 	var backdrop: MenuBackdrop = MenuBackdrop.new()
@@ -192,12 +195,16 @@ func _bed(key: String, bus: StringName) -> AudioStreamPlayer:
 	if not scene.get(key) is Dictionary:
 		return null
 	var bed: Dictionary = scene[key]
-	var stream: AudioStream = _stream(str(bed["path"]))
+	# A campaign score cue plays the chosen take, and nothing with the score off.
+	var path: String = CampaignScore.scene_music_path(str(bed["path"]), _preferences) if key == "music" else str(bed["path"])
+	var stream: AudioStream = _stream(path)
 	if stream == null:
 		return null
 	var player: AudioStreamPlayer = _player(bus)
 	player.stream = stream
 	player.volume_db = float(bed.get("volume_db", -8.0))
+	if key == "music":
+		player.volume_db += CampaignScore.gain_for_path(path, CampaignScore.shipped_slots())
 	player.play()
 	return player
 

@@ -213,6 +213,15 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# attack tell and cyan belongs to the Inheritance (faction contract).
 		bases = [Color("777972"), Color("cbc6b0"), Color("5d6366"), Color("8e9b88"), Color("5a5e60")]
 		accents = [Color("5e6058"), Color("4e5844"), Color("6b7073"), Color("43543f"), Color("7a6a44")]
+	if venue == "forever_office":
+		# The Forever Office near its fall (docs/campaign/l17-peace-without-interruption.md):
+		# mid grey civic stone and plaster with a graphite dado band and one
+		# painted red pinline, issued graphite steel with red plates, dark
+		# walnut civic furniture. Every wall stays mid-value so a black-and-red
+		# Union body reads against it; nothing is off-white, which belongs to
+		# the Inheritance late in the story (art bible faction contract).
+		bases = [Color("777570"), Color("7b7a76"), Color("45494c"), Color("5e4838"), Color("4a4d4c")]
+		accents = [Color("67635c"), Color("3d3f42"), Color("7c2020"), Color("3f2f25"), Color("5c5f60")]
 	if venue == "earth_yard":
 		# Scheduled Service's freight yard (docs/design/earth.md): weathered
 		# mid-grey cast concrete, railway sage enamel, recall-car green-grey
@@ -232,6 +241,14 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# matches their own plate, and no marking emits.
 		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "forever_office":
+		# Painted marks only: red stays the Union attack tell, never a lamp here.
+		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
+		if surface == "records_tile":
+			# Walnut civic furniture, not a tiled block.
+			material.set_shader_parameter("markings_enabled", false)
+			material.set_shader_parameter("panel_contrast", 0.3)
 	if venue == "earth_intake":
 		# One restrained red pinline painted on the enamel. No surface emits red,
 		# so red light remains the Union attack tell (art bible faction table).

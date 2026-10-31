@@ -12,6 +12,7 @@ use crate::session::GameSession;
 mod authored_vehicles;
 mod body;
 mod discovery;
+mod fire_tap;
 mod launch_authority;
 mod m03;
 mod m03_qa;

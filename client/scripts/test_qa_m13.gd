@@ -16,6 +16,12 @@ func _initialize() -> void:
 	_check(found["m13_worker_release"].get("interact")=="workers_released" and found["m13_lift_boarded"].get("interact")=="lift_boarded","optional release and physical lift retain distinct ordinary controls")
 	_check(found["m13_lift_boarded"].get("strip_frames")==8 and found["m13_lift_boarded"].get("strip_interval_seconds")==0.25,"ordinary accepted boarding records bounded live ascent before the departure still")
 	_check(found["m13_relay_disabled"].get("trigger")=="fire" and found["m13_lift_daylight"].get("expect_phase")=="departed","resolved relay and completed ride require observed facts")
+	# The counterattack wakes the Assessor with five ground defenders. A route
+	# that fights only the hovering Assessor first stands still while they
+	# close, so the ground fight comes first and the Assessor stays required.
+	var order: Array = tour["states"].map(func(state: Dictionary) -> String: return str(state["name"]))
+	_check(order.find("m13_freight_counterattack") >= 0 and order.find("m13_freight_counterattack") < order.find("m13_freight_assessor"),"ground counterattack is fought before the isolated Assessor")
+	_check(found["m13_freight_assessor"]["combat"]["required"]==["freight_assessor"] and found["m13_freight_counterattack"]["combat"]["required"].size()==5,"both counterattack fights keep every required defender")
 	for bad: Dictionary in [{"wait_ticks":401},{"wait_ticks":-1},{"expect_phase":"made_up"},{"expect_m13_lift_phase":"teleported"},{"expect_m13_workers_arrived":[true,true,true]},{"expect_m13_completed":["party_departed"]},{"expect_m13_hazard_hurt":-1}]:
 		_check(not script.valid_m13_expectations(bad),"bad foundry QA expectation rejected")
 	if failures==0:

@@ -231,6 +231,27 @@ msgstr "No radio in this match."
 msgid "MENU_MUSIC_HEADER"
 msgstr "MUSIC / RADIO"
 
+msgid "MENU_SCORE"
+msgstr "SCORE"
+
+msgid "MENU_SCORE_ON"
+msgstr "Score: On"
+
+msgid "MENU_SCORE_OFF"
+msgstr "Score: Off"
+
+msgid "MENU_SCORE_TAKE"
+msgstr "Level take: %s"
+
+msgid "MENU_SCORE_TAKE_NONE"
+msgstr "No level score"
+
+msgid "MENU_SCORE_CUE_TAKE"
+msgstr "Story cue take: %s"
+
+msgid "SETTINGS_CAMPAIGN_SCORE"
+msgstr "CAMPAIGN SCORE"
+
 msgid "MENU_RADIO_NOW_PLAYING"
 msgstr "Now playing: {title}"
 
@@ -398,7 +419,10 @@ msgid "SETTINGS_TEAM_HIGH_CONTRAST"
 msgstr "HIGH CONTRAST"
 
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
-msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast."
+msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast. Blood Off turns body hits into a dust puff and the damage edge to bone."
+
+msgid "SETTINGS_BLOOD"
+msgstr "BLOOD"
 
 msgid "BIND_LAYOUT_REFUSED"
 msgstr "Your saved controls were made for an older default layout, so they were not loaded. These are the current defaults. Save to keep them, or rebind."

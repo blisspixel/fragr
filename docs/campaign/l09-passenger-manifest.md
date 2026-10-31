@@ -92,12 +92,41 @@ and carrying straight on off the gantry.
 
 ## As built
 
-The development mission follows this shape with these differences: the arrival
-lane sits under the receiving roof behind the office, so the ship is first
-seen whole from the loading lane's east end and from the gantries rather than
-filling the arrival view; the hatch opens by a re-sent map and the engines
-light, but nothing lifts; and the cradle arm's maintenance cubby secret is not
-built (the customs locker and the gallery cabinet secrets are).
+The development mission follows this shape with these differences: the hatch
+opens by a re-sent map and the engines light, but nothing lifts; and the cradle
+arm's maintenance cubby secret is not built (the customs locker and the gallery
+cabinet secrets are).
+
+## Layout (wave 18)
+
+Implemented in `server/maps/m09_passenger_manifest.json`, with seeded tests in
+`server/src/maps/authored/m09_tests.rs` and `server/src/tests/m09.rs`:
+
+- **Arrival.** The impound office and its landing stand on piers over the
+  loading deck (a 3.5 m soffit). Impounded freight is stacked under it in two
+  rows, leaving one aisle from the freight car to the ship: the spawn faces
+  down that aisle at the port hull, its ember stripe and the `COMMON CARRIER`
+  name under a cold Union flood, 50 m away. The first steps forward are clear.
+  The loading roster wakes 3 m ahead of the spawn, after the Tack.
+- **Two ship-side approaches on the first gantry.** The outer gantry runs
+  along the wall with a service bank on its inner edge; a narrower hull-side
+  lane runs beside the port hull over open drops on both sides, joined to the
+  outer gantry at both ends. The bank separates the two sightlines; the inner
+  lane sees the north guard's flank.
+- **Cross-cradle connection.** A bow crossing at 8 m spans the cradle in front
+  of the bow from the west stair to the east return, parallel to the north
+  gantry, with two service banks between them as cover and an open centre.
+- **Gates.** Both approaches stay inside the existing encounter regions and
+  objective arrivals: neither skips the crew release, a gantry fight or the
+  hatch, and the ship is shortened to end at z 14 so the crossing clears the
+  bow.
+
+Still open: the arrival reveal is a framed glimpse down a low aisle, not the
+ship filling the view (the berth's geometry hides the hull behind the boarding
+stack and the gantries from every ground point); the inner lane and the bow
+crossing are not part of the ordinary capture route in
+`client/qa/m09_passenger_manifest.json`; fresh-player route choice, pacing and
+difficulty are unmeasured.
 
 ## Golden-slice dressing (wave 16)
 
@@ -156,7 +185,6 @@ ordinary route and frames the first Enforcer on the landing. The later
 Enforcers appear through the combat route in
 `client/qa/m09_passenger_manifest.json`, which runs end to end to the
 departure with the dressing in place. Still open: the ship is still the
-collision's boxes under its paint, with no hull curvature; the arrival view
-does not show it; the roof does not open for launch; the human crew share one
+collision's boxes under its paint, with no hull curvature; the roof does not open for launch; the human crew share one
 body; motion review of the clamps and engines; fresh-player pacing and GPU
 performance.

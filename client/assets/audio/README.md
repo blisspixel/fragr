@@ -8,6 +8,14 @@ Sound effects and music produced by `tools/audiogen` (see `tools/audiogen/README
 
 Generated files are owned by the project under the ElevenLabs terms for the account that produced them and are distributed with the repository under its Apache 2.0 license. Sound effects are stereo 24 kHz 16-bit WAV by default (the API returns stereo PCM). Music and the spoken news station are 44.1 kHz MP3.
 
+## Campaign score
+
+An optional ambient score for the campaign, generated with `fragr-audiogen` from `tools/audiogen/specs/campaign-score-20261030.json` (ElevenLabs `music_v2_5`, instrumental). `score/slots.json` lists every slot: one bed per level and the epilogue (`l01` to `l20`, `epilogue`, by mission id) and the story cues (`cue-l02`, `cue-l05`, `cue-l17`, `cue-l18`, `cue-l20` in their scene's `music` field, `cue-l19` at Latch's choice in Level 19). Each slot ships two takes, `score/<slot>/a.mp3` and `b.mp3`, with manifest entries `score/<slot>/a` and `b`, until Nick picks one while playing.
+
+The beds are 160 seconds and the cues 45 to 80 seconds, encoded by the service as `mp3_44100_64`: 64 kbps stereo is about 0.48 MB a minute, half the 128 kbps used for radio songs, and the beds are slow, quiet pads mixed well under a station, where the lower rate costs little. `campaign_score.gd` plays the bed on the Radio bus (the Music volume) 7 dB under a station, overlaps its own loop by six seconds so there is no seam, dips under the Host, barks and heavy fighting, and rests during story pages and while the radio is on a station. Settings: `[score] enabled` and `[score] takes` (slot to `a` or `b`). A missing take falls back to the other; a slot with neither is silent.
+
+After playtesting, `fragr-audiogen score-picks` prints the picks from the game's settings file and `fragr-audiogen score-prune --apply` deletes every unpicked take with its `.import` file and manifest entry (see `tools/audiogen/README.md`).
+
 ## Earlier procedural set (retired)
 
 The first effect set was synthesised procedurally and dedicated to the public domain under CC0 1.0 Universal. It has been replaced by generated effects with manifest entries; the old files remain in git history.

@@ -456,3 +456,64 @@ fn foundry_loader_requires_registered_fights_people_and_finite_rocket() {
         );
     }
 }
+
+#[test]
+fn maintenance_flank_reaches_the_galleries_without_advancing_ordered_facts() {
+    let (mut s, id) = fixture();
+    // The ring's stair lands on the west gallery behind its front defenders.
+    // Entering the works through the service corridor is the first fact,
+    // like entering at the front. Beyond that, standing on the flank early
+    // neither wakes the gallery fight nor completes any later fact.
+    for (feet, expected) in [
+        ([-34.0, 0.3, -38.0], 1),
+        ([-37.75, 3.3, 41.75], 1),
+        ([-23.5, 3.3, 41.75], 1),
+        ([12.0, 3.3, 49.0], 1),
+    ] {
+        place(&mut s, id, feet);
+        for _ in 0..40 {
+            s.tick(0.05);
+        }
+        let run = s.mission.as_ref().unwrap();
+        assert_eq!(
+            run.m13.as_ref().unwrap().index,
+            expected,
+            "flank at {feet:?}"
+        );
+        assert!(!s.encounters.is_awake(5), "gallery fight woke early");
+        let state = s.mission_state().unwrap();
+        assert_eq!(state.m13.as_ref().unwrap().completed, ["foundry_entered"]);
+    }
+}
+
+#[test]
+fn an_ordinary_shot_from_the_relay_approach_disables_it() {
+    // The ring around the relay changed; one real shot from the authored
+    // approach still reaches the relay face, not the protected feed.
+    let (mut s, id) = fixture();
+    let g = s.map.m13_geometry().unwrap();
+    let (approach, aim) = match g.objectives[4].action {
+        MissionObjectiveAction::Shoot { approach, aim, .. } => (approach, aim),
+        _ => unreachable!(),
+    };
+    s.mission.as_mut().unwrap().m13.as_mut().unwrap().index = 4;
+    place(&mut s, id, approach);
+    let player = s.players.iter_mut().find(|p| p.id == id).unwrap();
+    player.inventory.grant_weapon(WeaponType::Flechette);
+    s.set_action(
+        id,
+        Action {
+            weapon_swap: Some(WeaponType::Flechette),
+            fire: true,
+            look_at: Some(LookAt {
+                x: Some(aim[0]),
+                y: Some(aim[1]),
+                z: Some(aim[2]),
+                player_id: None,
+            }),
+            ..Default::default()
+        },
+    );
+    s.tick(0.05);
+    assert!(s.foundry.as_ref().unwrap().relay_disabled);
+}
