@@ -160,6 +160,14 @@ func apply_map_info(info: Dictionary) -> void:
 		var lot: LarakLot = LarakLot.new()
 		add_child(lot)
 		lot.build(info, _solid_views)
+	if venue == "compliance_yard" and ComplianceYard.applies(info):
+		var yard: ComplianceYard = ComplianceYard.new()
+		add_child(yard)
+		yard.build(info)
+	if venue == "low_water" and LowWaterTown.applies(info):
+		var town: LowWaterTown = LowWaterTown.new()
+		add_child(town)
+		town.build(info)
 	var marked_terminal: int = -1
 	var terminal_key: String = "WORLD_LATCH_RECORD"
 	var mission: Variant = info.get("mission")

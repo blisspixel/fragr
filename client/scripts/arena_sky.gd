@@ -166,6 +166,10 @@ static func compliance() -> Preset:
 	preset.contrast = 1.06
 	preset.saturation = 0.94
 	preset.glow_intensity = 0.35
+	# Practicals carry the rooms: work lamps and strip lights over a cold key.
+	preset.practical_energy = 1.8
+	preset.practical_range = 10.0
+	preset.view_fill_energy = 0.25
 	return preset
 
 
@@ -551,15 +555,26 @@ static func launch_berth() -> Preset:
 	preset.contrast = 1.1
 	return preset
 
+## Low Water (map 8), the town on an evening before the wipe: a low amber
+## sun from the west rakes down the trench and across the banks, the east
+## sides of the streets go to cool blue shade, and the street lamps and the
+## clock are already on. Warm free-town light, no Union red and no cyan; a
+## faint actor fill keeps a black-and-red body readable in the shade.
 static func low_water() -> Preset:
-	var preset: Preset = Preset.new(Color("778da2"), Color("d6b898"),
-		Color("948779"), Color("c6b298"), 0.0025, Color("e0d2bc"), 0.8)
-	preset.key_color = Color("ffdaa2")
-	preset.key_energy = 1.2
-	preset.scene_fill_energy = 0.12
-	preset.practical_color = Color("ffeac2")
-	preset.practical_energy = 0.9
-	preset.saturation = 0.92
+	var preset: Preset = Preset.new(Color("4f6f9c"), Color("f0a868"),
+		Color("8a6656"), Color("c99a76"), 0.0034, Color("9aa0b8"), 0.56)
+	preset.key_color = Color("ffb26a")
+	preset.key_energy = 1.65
+	preset.key_rotation_degrees = Vector3(-14.0, -100.0, 0.0)
+	preset.scene_fill_energy = 0.04
+	preset.practical_color = Color("ffcf8e")
+	preset.practical_energy = 1.6
+	preset.practical_range = 10.0
+	preset.view_fill_energy = 0.3
+	preset.view_fill_range = 30.0
+	preset.contrast = 1.1
+	preset.saturation = 1.0
+	preset.glow_intensity = 0.4
 	return preset
 
 ## Notice to Vacate, late afternoon (docs/design/earth.md "M04 Low Water"):
