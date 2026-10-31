@@ -52,7 +52,11 @@ fn place(s: &mut GameSession, id: Uuid, feet: [f32; 3]) {
 fn clear_enemies(s: &mut GameSession) {
     for i in 0..s.state.players.len() {
         let p = &s.state.players[i];
-        if !p.is_participant() && p.hp > 0 {
+        // Enemies only: Latch walks the launch works with the party.
+        if p.campaign
+            .is_some_and(crate::protocol::CampaignActor::is_enemy)
+            && p.hp > 0
+        {
             let damage = p.hp + p.armor;
             s.state.environmental_self_damage(i, damage);
         }

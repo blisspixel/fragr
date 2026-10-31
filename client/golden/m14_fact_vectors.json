@@ -3982,6 +3982,27 @@
           {
             "armor": 0,
             "campaign": {
+              "kind": "latch",
+              "phase": "following",
+              "phase_started": 0,
+              "side": "companion"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "just_fired": false,
+            "name": "Latch",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -44.499000549316406,
+            "y": 3.5,
+            "yaw": 1.5719000101089478,
+            "z": -51.43000030517578
+          },
+          {
+            "armor": 0,
+            "campaign": {
               "kind": "clerk",
               "phase": "dead",
               "phase_ends": 42,
@@ -4681,18 +4702,17 @@
               "side": "companion"
             },
             "collidable": true,
-            "deaths": 1,
             "hp": 100,
             "id": "00000000-0000-0000-0000-000000000001",
             "just_fired": false,
             "name": "Latch",
             "pitch": 0.0,
             "score": 0,
-            "weapon": "Fists",
-            "x": -39.50299835205078,
-            "y": 5.0,
-            "yaw": 1.5587999820709229,
-            "z": -16.77899932861328
+            "weapon": "Tack",
+            "x": -27.25,
+            "y": 1.5,
+            "yaw": 0.0,
+            "z": -14.5
           }
         ],
         "playlist": "Campaign development",
@@ -5143,18 +5163,17 @@
               "side": "companion"
             },
             "collidable": true,
-            "deaths": 1,
             "hp": 100,
             "id": "00000000-0000-0000-0000-000000000001",
             "just_fired": false,
             "name": "Latch",
             "pitch": 0.0,
             "score": 0,
-            "weapon": "Fists",
-            "x": -24.56800079345703,
+            "weapon": "Tack",
+            "x": -24.5,
             "y": 1.5,
-            "yaw": 1.3255000114440918,
-            "z": -13.772000312805176
+            "yaw": 1.5707999467849731,
+            "z": 2.2260000705718994
           }
         ],
         "playlist": "Campaign development",
@@ -5648,18 +5667,17 @@
               "side": "companion"
             },
             "collidable": true,
-            "deaths": 1,
             "hp": 100,
             "id": "00000000-0000-0000-0000-000000000001",
             "just_fired": false,
             "name": "Latch",
             "pitch": 0.0,
             "score": 0,
-            "weapon": "Fists",
-            "x": -32.0369987487793,
+            "weapon": "Tack",
+            "x": -26.5,
             "y": 1.5,
-            "yaw": 3.1415998935699463,
-            "z": -13.5
+            "yaw": 1.5707999467849731,
+            "z": 8.197999954223633
           },
           {
             "armor": 0,
@@ -6117,6 +6135,27 @@
             "y": 1.5,
             "yaw": 1.5707999467849731,
             "z": 44.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "latch",
+              "phase": "following",
+              "phase_started": 0,
+              "side": "companion"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "just_fired": false,
+            "name": "Latch",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -26.5,
+            "y": 1.5,
+            "yaw": 1.5707999467849731,
+            "z": 10.697999954223633
           },
           {
             "armor": 0,
@@ -6737,6 +6776,27 @@
             "y": 1.5,
             "yaw": 1.5707999467849731,
             "z": 44.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "latch",
+              "phase": "following",
+              "phase_started": 0,
+              "side": "companion"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "just_fired": false,
+            "name": "Latch",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -26.5,
+            "y": 1.5,
+            "yaw": 1.5707999467849731,
+            "z": 10.947999954223633
           },
           {
             "armor": 0,
