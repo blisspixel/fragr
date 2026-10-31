@@ -14,7 +14,7 @@ Status words: **proposed** (awaiting Nick's decision; directs no work), **planne
 
 ## Current round
 
-The [October 23 playtest round](playtest-round-20261023.md) is **shipped** with Linux evidence: wave 1 in PR #457 and wave 2 in PR #471, which also carried the golden slice (Larak Lot on map 1, Recall Notice) and Episode V (Levels 19 and 20). The [October 27 round](build-round-20261027.md) continues through wave 18. v0.93.0 is released; later merged waves, current engineering work, Nick's review and remaining human acceptance are distinguished in the roadmap's [next steps](../ROADMAP.md#next-steps). This index does not prescribe a separate sequence.
+The [October 23 playtest round](playtest-round-20261023.md) is **shipped** with Linux evidence: wave 1 in PR #457 and wave 2 in PR #471, which also carried the golden slice (Larak Lot on map 1, Recall Notice) and Episode V (Levels 19 and 20). The [October 27 round](build-round-20261027.md) continues through wave 18. v0.95.0 is released; later merged waves, current engineering work, Nick's review and remaining human acceptance are distinguished in the roadmap's [next steps](../ROADMAP.md#next-steps). This index does not prescribe a separate sequence.
 
 The [October 27 build round](build-round-20261027.md) is **in flight**: waves 11 through 16 are merged. Wave 17 implements the Level 10 Repeater presentation and lesson and improves Levels 11 to 13. Character picks, geometry refinement, human acceptance and two-machine evidence remain separate open work.
 
