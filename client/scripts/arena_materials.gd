@@ -222,6 +222,14 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# the Inheritance late in the story (art bible faction contract).
 		bases = [Color("777570"), Color("7b7a76"), Color("45494c"), Color("5e4838"), Color("4a4d4c")]
 		accents = [Color("67635c"), Color("3d3f42"), Color("7c2020"), Color("3f2f25"), Color("5c5f60")]
+	if venue == "compliance_yard":
+		# Compliance Yard, a working Union records block: mid grey civic stone
+		# and plaster with one painted red pinline, graphite steel with red
+		# plates, and cabinet-grey shelving and cages one step lighter than a
+		# black uniform. Mid values throughout so black and red bodies read;
+		# nothing off-white (the Inheritance's) and nothing emits red.
+		bases = [Color("7a7872"), Color("7e7c77"), Color("494d50"), Color("6c7173"), Color("4a4d4c")]
+		accents = [Color("67635c"), Color("3d3f42"), Color("7c2020"), Color("565b5e"), Color("5c5f60")]
 	if venue == "earth_yard":
 		# Scheduled Service's freight yard (docs/design/earth.md): weathered
 		# mid-grey cast concrete, railway sage enamel, recall-car green-grey
@@ -241,6 +249,13 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# matches their own plate, and no marking emits.
 		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
+	if venue == "compliance_yard":
+		# Painted marks only, as in the Forever Office; shelving and cages are
+		# plain cabinet steel, not a tiled block.
+		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
+		if surface == "records_tile":
+			material.set_shader_parameter("markings_enabled", false)
 	if venue == "forever_office":
 		# Painted marks only: red stays the Union attack tell, never a lamp here.
 		material.set_shader_parameter("warning_color", Color("8c1a1e") if surface == "enamel" else accents[index])

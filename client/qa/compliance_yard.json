@@ -1,0 +1,19 @@
+{
+  "comment": "Compliance Yard live review: a real server on map 2 with rule bots, from eye height in each named room, on the inspection gantry and in the service corridor, a follow camera strip and a joined first-person fighter. Run with FRAGR_QA_MAP=2 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/compliance_yard.json. Camera placement is presentation only; no player pose injection.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "yard_overview", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [36, 44, 50], "camera_look_at": [0, 0, 0], "settle_seconds": 0.4, "note": "The records block from above the south east corner: nine rooms of different shapes inside the corridor chicane."},
+    {"name": "yard_records", "camera": "overview", "camera_position": [-34, 1.6, -23.5], "camera_look_at": [-12, 1.4, -23.5], "settle_seconds": 0.3, "note": "Records: an aisle between staggered shelving rows, the Scatter on the way."},
+    {"name": "yard_inspection", "camera": "overview", "camera_position": [12, 1.6, -18], "camera_look_at": [-2, 3.5, -33], "settle_seconds": 0.3, "note": "Inspection hall from the floor: the gantry, its two flights and the Rail."},
+    {"name": "yard_gantry", "camera": "overview", "camera_position": [-2, 4.4, -31], "camera_look_at": [-1, 1.0, 0], "settle_seconds": 0.3, "note": "From the gantry over the sill into the court."},
+    {"name": "yard_court", "camera": "overview", "camera_position": [10, 1.6, 8], "camera_look_at": [-6, 1.5, -6], "settle_seconds": 0.3, "note": "Sorting court: the sorting table, the confiscation cage, the inspection window."},
+    {"name": "yard_lockup", "camera": "overview", "camera_position": [17, 1.6, -33], "camera_look_at": [30, 1.4, -12], "settle_seconds": 0.3, "note": "Evidence lockup: the cage block to circle."},
+    {"name": "yard_intake", "camera": "overview", "camera_position": [-34, 1.6, -9], "camera_look_at": [-14, 1.2, 10], "settle_seconds": 0.3, "note": "Intake: queue rails and the public counter."},
+    {"name": "yard_relay", "camera": "overview", "camera_position": [30, 1.6, -6], "camera_look_at": [30, 1.6, 30], "settle_seconds": 0.3, "note": "Relay lane: the room's one long line, ending on the dock."},
+    {"name": "yard_dock", "camera": "overview", "camera_position": [16, 1.6, 34], "camera_look_at": [31, 2.0, 24], "settle_seconds": 0.3, "note": "Dock: the loading platform and its flight."},
+    {"name": "yard_corridor", "camera": "overview", "camera_position": [-40, 1.6, 38], "camera_look_at": [-40, 1.6, -30], "settle_seconds": 0.3, "note": "The service corridor's chicane of trolley stacks."},
+    {"name": "yard_follow", "camera": "follow", "settle_seconds": 1.0, "strip_frames": 8, "strip_interval_seconds": 0.5, "note": "Four seconds of a watched rule bot moving and fighting through the rooms."},
+    {"name": "yard_first_person", "join": "human", "camera": "first_person", "settle_seconds": 1.0, "note": "A joined fighter at its spawn, weapon and HUD up."}
+  ]
+}

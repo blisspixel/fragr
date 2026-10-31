@@ -240,7 +240,9 @@ impl MapKind {
             Self::ArenaDuel => {
                 "Car park. Plate on the roof, Rail down the low ramp, a cruiser hung over the Pit."
             }
-            Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
+            Self::ComplianceYard => {
+                "Records block. Nine rooms, a gantry over the court, a corridor round it."
+            }
             Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
             Self::ReclamationGulch => "Recovery site. Two compounds, open ground, two ridges.",

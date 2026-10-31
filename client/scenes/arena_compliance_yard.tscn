@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bcompyardscrap02"]
+[gd_scene load_steps=19 format=3 uid="uid://bcompyardscrap02"]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/16/floor.png" id="1_floor"]
 [ext_resource type="Texture2D" path="res://assets/tiles/16/wall.png" id="2_wall"]
@@ -82,24 +82,8 @@ roughness = 1.0
 [sub_resource type="BoxMesh" id="BoxMesh_pillar"]
 size = Vector3(2.5, 4.5, 2.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_crate"]
-size = Vector3(2, 1.4, 2)
-
 [sub_resource type="BoxMesh" id="BoxMesh_lowwall"]
 size = Vector3(8, 1.6, 0.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_scrap"]
-albedo_color = Color(0.7, 0.66, 0.62, 1)
-albedo_texture = ExtResource("2_wall")
-texture_filter = 0
-uv1_scale = Vector3(4, 4, 1)
-roughness = 0.92
-
-[sub_resource type="BoxMesh" id="BoxMesh_pillar_yard"]
-size = Vector3(2, 4, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_bar"]
-size = Vector3(7, 1.6, 0.9)
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -199,93 +183,3 @@ surface_material_override/0 = SubResource("ZoneMaterial_Rust")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.02, 12)
 mesh = SubResource("ZoneMesh")
 surface_material_override/0 = SubResource("ZoneMaterial_Magenta")
-
-[node name="PillarNE" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2.0, -5)
-mesh = SubResource("BoxMesh_pillar_yard")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="PillarNW" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2.0, -5)
-mesh = SubResource("BoxMesh_pillar_yard")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="PillarSE" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2.0, 5)
-mesh = SubResource("BoxMesh_pillar_yard")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="PillarSW" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2.0, 5)
-mesh = SubResource("BoxMesh_pillar_yard")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarNL" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.8, -8)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarNR" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.8, -8)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarSL" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.8, 8)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarSR" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.8, 8)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarEN" type="MeshInstance3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 8, 0.8, -7)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarES" type="MeshInstance3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 8, 0.8, 7)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarWN" type="MeshInstance3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -8, 0.8, -7)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="BarWS" type="MeshInstance3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -8, 0.8, 7)
-mesh = SubResource("BoxMesh_bar")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateN" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -16)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateS" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 16)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateW" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.7, 0)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateE" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.7, 0)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateNE" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 14, 0.7, 14)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")
-
-[node name="CrateSW" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, -14, 0.7, -14)
-mesh = SubResource("BoxMesh_crate")
-surface_material_override/0 = SubResource("StandardMaterial3D_scrap")

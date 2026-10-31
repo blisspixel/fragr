@@ -28,6 +28,7 @@ use std::f32::consts::PI;
 use std::sync::OnceLock;
 
 mod authored;
+pub(crate) mod compliance_yard;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
@@ -709,95 +710,6 @@ fn armor_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
 // The roster
 // ---------------------------------------------------------------------------
 
-/// Compliance Yard: a records and inspection block.
-///
-/// Nine rooms on a three by three grid, wrapped in a perimeter service
-/// corridor. Aligned doorways retain long axial sightlines despite the room
-/// partitions. The north inspection gantry and two low corner platforms add
-/// height; their usefulness and the repeated room shapes need play review.
-fn compliance_yard() -> MapDef {
-    let half = 55.0;
-    let spawn = 26.0;
-    let thick = 0.6;
-    let door = 2.5;
-    let mut s = Vec::with_capacity(120);
-
-    // Interior partitions and the block's own outer wall, on the same pitch.
-    for line in [-36.0f32, -12.0, 12.0, 36.0] {
-        for along in [Along::Z, Along::X] {
-            s.extend(wall_with_doors(
-                along,
-                line,
-                (-36.0, 36.0),
-                thick,
-                WALL_TOP,
-                Doors {
-                    at: &[-24.0, 0.0, 24.0],
-                    half: door,
-                },
-            ));
-        }
-    }
-
-    // The inspection gantry in the north room, with a flight at each end.
-    let gantry_top = 2.8;
-    s.push(Solid::from_center_top(0.0, -30.0, 8.0, 2.5, gantry_top));
-    let run = stair_length(0.0, gantry_top);
-    for x in [-6.0f32, 6.0] {
-        s.extend(stair_run(x, -27.5 + run, 0.0, -1.0, 1.5, 0.0, gantry_top));
-    }
-
-    // Two low inspection platforms in the far corner rooms, reachable from
-    // both sides so neither is a corner to die in.
-    for cx in [-24.0f32, 24.0] {
-        let top = 1.4;
-        let run = stair_length(0.0, top);
-        s.push(Solid::from_center_top(cx, 24.0, 4.0, 4.0, top));
-        s.extend(stair_run(cx - 4.0 - run, 24.0, 1.0, 0.0, 1.5, 0.0, top));
-        s.extend(stair_run(cx + 4.0 + run, 24.0, -1.0, 0.0, 1.5, 0.0, top));
-    }
-
-    // Filing stacks in the middle room, off the origin and off the doors.
-    for (cx, cz) in [(-6.5, -6.5), (6.5, -6.5), (-6.5, 6.5), (6.5, 6.5)] {
-        s.push(Solid::from_center(cx, cz, 1.6, 1.6));
-    }
-
-    // Pallets in the perimeter corridor, placed off the spawn ring rather than
-    // on it: a fighter arriving in a nineteen metre corridor wants something
-    // to put between itself and the far end, and nothing on the point it
-    // arrives at.
-    for (cx, cz) in [
-        (46.0, 20.0),
-        (46.0, -20.0),
-        (-46.0, 20.0),
-        (-46.0, -20.0),
-        (20.0, 46.0),
-        (-20.0, 46.0),
-        (20.0, -46.0),
-        (-20.0, -46.0),
-    ] {
-        s.push(Solid::from_center(cx, cz, 2.0, 2.0));
-    }
-
-    MapDef {
-        half_extent: half,
-        spawn_radius: spawn,
-        solids: s,
-        pickups: vec![
-            weapon_pad("pad_rail", WeaponType::Rail, 0.0, -30.0, gantry_top),
-            weapon_pad("pad_scatter", WeaponType::Scatter, -24.0, -24.0, 0.0),
-            weapon_pad("pad_flechette", WeaponType::Flechette, 24.0, -24.0, 0.0),
-            health_pad("pad_health_n", -24.0, 0.0, 0.0),
-            health_pad("pad_health_s", 24.0, 0.0, 0.0),
-            armor_pad("pad_armor", 0.0, 6.0, 0.0),
-        ],
-        scrap_pads: vec![
-            weapon_pad("scrap_scatter_s", WeaponType::Scatter, 0.0, 14.0, 0.0),
-            weapon_pad("scrap_scatter_n", WeaponType::Scatter, 0.0, -14.0, 0.0),
-        ],
-    }
-}
-
 /// Directive 17 Substation: a decommissioned transformer bowl.
 ///
 /// Four raised quadrant decks surround a ground-level cross and exposed
@@ -1385,7 +1297,7 @@ fn tripoint_works() -> MapDef {
 fn build(kind: MapKind) -> MapDef {
     match kind {
         MapKind::ArenaDuel => larak_lot::build(),
-        MapKind::ComplianceYard => compliance_yard(),
+        MapKind::ComplianceYard => compliance_yard::build(),
         MapKind::Directive17 => directive_17(),
         MapKind::Sector9 => sector_9(),
         MapKind::ReclamationGulch => reclamation_gulch(),
@@ -1833,4 +1745,231 @@ pub(crate) fn pad_route_failures(kind: MapKind) -> Vec<String> {
         }
     }
     failures
+}
+
+#[cfg(test)]
+impl Reach {
+    /// Every reached standing floor, as (x, floor, z) on the 1 m grid.
+    pub(crate) fn floors(&self) -> impl Iterator<Item = [f32; 3]> + '_ {
+        self.floors
+            .iter()
+            .enumerate()
+            .flat_map(move |(index, floors)| {
+                let ix = (index % self.width) as i32 - self.span;
+                let iz = (index / self.width) as i32 - self.span;
+                floors
+                    .iter()
+                    .map(move |floor| [ix as f32, *floor, iz as f32])
+            })
+    }
+}
+
+/// How far a level line of sight runs from `eye` along `dir` (a unit vector
+/// in x and z) before a solid or the map's edge stops it. Solids are crossed
+/// only where they span the eye's height, so a bridge overhead or a kerb
+/// underfoot does not stop the line.
+#[cfg(test)]
+pub(crate) fn sight_length(kind: MapKind, eye: [f32; 3], dir: [f32; 2]) -> f32 {
+    let arena = arena(kind);
+    let half = arena.half;
+    // Leaving the square.
+    let mut best = f32::INFINITY;
+    for (p, d) in [(eye[0], dir[0]), (eye[2], dir[1])] {
+        if d > 1e-6 {
+            best = best.min((half - p) / d);
+        } else if d < -1e-6 {
+            best = best.min((-half - p) / d);
+        }
+    }
+    for solid in &arena.solids {
+        if !(solid.bottom < eye[1] && eye[1] < solid.top) {
+            continue;
+        }
+        let (mut near, mut far) = (0.0f32, best);
+        let mut hit = true;
+        for (p, d, lo, hi) in [
+            (eye[0], dir[0], solid.min_x, solid.max_x),
+            (eye[2], dir[1], solid.min_z, solid.max_z),
+        ] {
+            if d.abs() < 1e-6 {
+                if p < lo || p > hi {
+                    hit = false;
+                    break;
+                }
+            } else {
+                let (a, b) = ((lo - p) / d, (hi - p) / d);
+                near = near.max(a.min(b));
+                far = far.min(a.max(b));
+                if near > far {
+                    hit = false;
+                    break;
+                }
+            }
+        }
+        if hit {
+            best = best.min(near);
+        }
+    }
+    best.max(0.0)
+}
+
+/// The longest level sightline a standing fighter has anywhere on the map,
+/// along the eight compass directions from every reached floor cell that
+/// `keep` accepts: (length, eye, direction).
+#[cfg(test)]
+pub(crate) fn longest_sightline(
+    kind: MapKind,
+    keep: impl Fn([f32; 3]) -> bool,
+) -> (f32, [f32; 3], [f32; 2]) {
+    let reach = Reach::from_origin(kind);
+    let s = std::f32::consts::FRAC_1_SQRT_2;
+    let dirs = [
+        [1.0, 0.0],
+        [-1.0, 0.0],
+        [0.0, 1.0],
+        [0.0, -1.0],
+        [s, s],
+        [s, -s],
+        [-s, s],
+        [-s, -s],
+    ];
+    let mut best = (0.0, [0.0; 3], [0.0; 2]);
+    for [x, floor, z] in reach.floors().filter(|at| keep(*at)) {
+        if arena(kind).blocked_body_at(x, z, floor, floor + STEP_UP) {
+            continue;
+        }
+        let eye = [x, floor + 1.6, z];
+        for dir in dirs {
+            let length = sight_length(kind, eye, dir);
+            if length > best.0 {
+                best = (length, eye, dir);
+            }
+        }
+    }
+    best
+}
+
+/// Walk one fighter from `from` to `to` with the rule bots' own navigator
+/// through the real 20 Hz tick, on plain walking: no jumps. Returns the ticks
+/// taken, or `None` past `bound`.
+#[cfg(test)]
+pub(crate) fn walk_route(kind: MapKind, from: [f32; 3], to: [f32; 3], bound: u32) -> Option<u32> {
+    use crate::navigation::{NavigationGoal, Navigator};
+    use crate::protocol::{Action, Role};
+    use crate::sim::{GameState, PLAYER_FLOOR_Y};
+    let mut state = GameState::with_map(kind, false);
+    state.config.time_limit_ticks = None;
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    let id = uuid::Uuid::from_u128(100);
+    state.add_player(id, "Route".into(), Role::Agent);
+    state.start_round();
+    {
+        let p = &mut state.players[0];
+        p.x = from[0];
+        p.y = from[1] + PLAYER_FLOOR_Y;
+        p.z = from[2];
+        p.vy = 0.0;
+    }
+    let navigation = navigation(kind);
+    let mut nav = Navigator::default();
+    for elapsed in 0..bound {
+        let p = &state.players[0];
+        let here = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+        if std::env::var_os("FRAGR_ROUTE_TRACE").is_some() && elapsed % 40 == 0 {
+            eprintln!("route t{elapsed} {here:?}");
+        }
+        if (here[0] - to[0]).hypot(here[2] - to[2]) < 0.6 && (here[1] - to[1]).abs() < 0.2 {
+            return Some(elapsed);
+        }
+        let walking = state.walking_arena(arena(kind));
+        let action = nav.steer_with_visibility(
+            navigation,
+            here,
+            NavigationGoal {
+                feet: to,
+                combat: false,
+            },
+            Action {
+                forward: true,
+                ..Default::default()
+            },
+            state.tick,
+            true,
+            &walking.solids,
+        );
+        assert!(!action.jump, "{} routes use ordinary walking", kind.name());
+        state.set_action(id, action);
+        state.tick(0.05);
+        state.take_events();
+    }
+    None
+}
+
+/// Prints the layout measurements the wave 19 review compares before and
+/// after: longest level sightlines, the navigation graph and crossing walks.
+/// `cargo test -p fragr-server --lib yard_and_water_layout_table -- --ignored --nocapture`
+#[cfg(test)]
+#[test]
+#[ignore]
+fn yard_and_water_layout_table() {
+    let fmt = |(length, eye, dir): (f32, [f32; 3], [f32; 2])| {
+        format!(
+            "{length:.1} m from ({:.0}, {:.1}, {:.0}) along ({:.2}, {:.2})",
+            eye[0],
+            eye[1] - 1.6,
+            eye[2],
+            dir[0],
+            dir[1]
+        )
+    };
+    for kind in [MapKind::ComplianceYard, MapKind::LowWater] {
+        let name = kind.name();
+        let street = if kind == MapKind::LowWater { 3.0 } else { 0.0 };
+        eprintln!(
+            "{name}: extent {:.0} m, {} solids",
+            def(kind).half_extent * 2.0,
+            def(kind).solids.len()
+        );
+        eprintln!(
+            "{name}: longest line anywhere {}",
+            fmt(longest_sightline(kind, |_| true))
+        );
+        eprintln!(
+            "{name}: longest line from the main floor {}",
+            fmt(longest_sightline(kind, |[_, floor, _]| (floor - street)
+                .abs()
+                < 0.01
+                || floor < 0.01))
+        );
+        if kind == MapKind::LowWater {
+            eprintln!(
+                "{name}: longest trench line {}",
+                fmt(longest_sightline(kind, |[_, floor, z]| floor < 0.5 && z.abs() < 4.0))
+            );
+        }
+        let started = std::time::Instant::now();
+        let navigation = crate::navigation::Navigation::shared(arena(kind).clone()).unwrap();
+        let (nodes, edges) = navigation.size();
+        eprintln!(
+            "{name}: navigation {nodes} nodes, {edges} edges, built in {:.0} ms",
+            started.elapsed().as_secs_f64() * 1000.0
+        );
+        let corner = def(kind).half_extent - 5.5;
+        let floor = if kind == MapKind::LowWater {
+            street
+        } else {
+            0.0
+        };
+        for (from, to) in [
+            ([-corner, floor, -corner], [corner, floor, corner]),
+            ([corner, floor, -corner], [-corner, floor, corner]),
+        ] {
+            let ticks = walk_route(kind, from, to, 20 * 60);
+            eprintln!(
+                "{name}: corner walk {from:?} -> {to:?}: {}",
+                ticks.map_or("over 60 s".into(), |t| format!("{:.1} s", t as f32 / 20.0))
+            );
+        }
+    }
 }

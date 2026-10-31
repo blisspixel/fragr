@@ -76,6 +76,15 @@ static func path_for(surface: String, venue: String, horizontal: bool = false) -
 			"enamel": return EARTH + "earth_clinic_bone_plaster.png"
 			"records_tile": return EARTH + "earth_intake_green_tile.png"
 			"service_steel", "lift_panel": return EARTH + "earth_service_dark_tread.png" if horizontal else PRODUCTION + "union_steel.png"
+	elif venue == "compliance_yard":
+		# Compliance Yard: the Office's grey civic stone and plaster, issued
+		# dark tread on decks and stairs, Union steel on walls and cages, and
+		# grey archive steel for the shelving and evidence cages.
+		match surface:
+			"concrete": return PRODUCTION + ("union_floor.png" if horizontal else "union_concrete.png")
+			"enamel": return PRODUCTION + "union_plaster.png"
+			"records_tile": return PRODUCTION + "archive_steel.png"
+			"service_steel", "lift_panel": return EARTH + "earth_service_dark_tread.png" if horizontal else PRODUCTION + "union_steel.png"
 	elif venue == "forever_office":
 		# The Forever Office (docs/campaign/l17-peace-without-interruption.md):
 		# grey civic stone and plaster, issued dark tread on decks and stairs,

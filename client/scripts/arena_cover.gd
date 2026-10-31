@@ -192,6 +192,9 @@ static func venue_for(info: Dictionary) -> String:
 		# The refuge is Low Water's own plaster and paint, both mornings.
 		"still here", "still here, years later": return "low_water"
 		"larak lot": return "larak_lot"
+		# A Union records and inspection block: the Office's civic stone and
+		# steel, never the scrap venues' painted containers.
+		"compliance yard": return "compliance_yard"
 		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"

@@ -962,6 +962,7 @@ impl RuntimeMap {
     pub fn presentation_ref(&self) -> Option<&crate::protocol::MapPresentation> {
         match self {
             Self::BuiltIn(MapKind::LowWater) => Some(super::low_water::presentation()),
+            Self::BuiltIn(MapKind::ComplianceYard) => Some(super::compliance_yard::presentation()),
             Self::BuiltIn(MapKind::ArenaDuel) => Some(super::larak_lot::presentation()),
             Self::BuiltIn(_) => None,
             Self::Authored(map) => Some(&map.presentation),
