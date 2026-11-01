@@ -1218,8 +1218,8 @@ cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --
 
 Withheld rows vary by map: 21 to 23 percent on Larak Lot and Directive 17,
 which are open, to 77 percent on Sector 9. Holdfast Atoll's few fight-range
-reveals (53 to 55) carry 2 late ones at every round trip, a long sightline
-over the water that opens for a tick; Low Water is 0.55 to 1.1 percent, the
+reveals (53 to 55) carried 2 late ones at every round trip, a 0.3 m slit
+down the coast that wave 23 closed (below); Low Water is 0.55 to 1.1 percent, the
 worst map with many reveals. A late reveal is drawn one to five ticks late.
 The margins that buy this are the last column: about a fifth of the bodies
 a fighter receives are a wall away, close to a corner it could clear within
@@ -1277,6 +1277,60 @@ withheld row still carries the board, and a view goes as a per-reader
 delta from the world that socket last carried rather than the tick's
 shared delta. That per-reader encode runs on each socket's writer task, off
 the tick; with the line tracing on helper threads, it is the added CPU. Spectators keep the shared world.
+
+### Shots, throws and pickups by the senses (wave 23)
+
+Gameplay 67 applies the same senses to the rest of a fighter's world
+([protocol](protocol.md#interest-filtering-capability-66)): a heard
+shooter's shot is cut to where it sounds, an unperceived one's is left out,
+a thing in flight from an unseen thrower waits for a line, and an unseen
+fighter's pickup event is muted. Before is the wave 22 tip (`3b33e5f6`),
+after is the wave 23 follow-ups branch. Three interleaved runs each on the
+same AMD Ryzen 7 7840U, shared with other lanes' builds and Godot captures
+on 2026-11-01: **diagnostic on a busy shared machine**. Both builds play the
+identical match (same trace hash), so the bytes differ only by the cut.
+
+```bash
+cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --seed 42 --map 1
+cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
+```
+
+| Fighters (all readers) | World bytes per reader per tick, mean, before / after | `interest_ms` mean, three runs, before | after | Lines traced per tick, mean |
+|---|---|---|---|---|
+| 16 | 5,426 / 5,398 (-0.5 %) | 0.58, 1.46, 0.50 | 0.52, 1.00, 0.54 | 1,584 / 1,584 |
+| 64 | 14,190 / 13,861 (-2.3 %) | 4.57, 5.33, 3.66 | 4.77, 4.08, 3.70 | 21,531 / 21,531 |
+
+The added cost is within the machine's run-to-run noise: the shot cut reads
+rows the roster pass already decided, and the bench's rule bots throw
+nothing on Larak Lot, so no extra line was traced (a thing in flight costs
+at most four lines per reader that does not see its thrower). The bytes
+saved are the cut shots and their pellets.
+
+**Holdfast Atoll's late reveals.** The wave 22 survey's 2 late reveals of
+53 to 55 in fight range on Holdfast Atoll were the same pair at every
+round trip: two bots in neighbouring coastal bays at tick 100, both
+stepping off the bay wall onto the line x 140.97 and seeing each other
+64 m down the coast through a 0.3 m slit between the revetments (to
+x 140.7) and the bay dividers (from x 141.0). Not water and not vehicles:
+geometry no lead can predict. The dividers now reach the revetments
+(`maps/holdfast.rs`, with a test that no coastal line is open), and the
+margins are unchanged. `fragr-playtest --interest-survey --seed 42`:
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
+```
+
+| Round trip | Holdfast Atoll fight-range late, wave 22 / now | All maps fight-range late, now | All maps late, all ranges, now | Longest late, ticks |
+|---|---|---|---|---|
+| 0 ms | 2 of 55 / 0 of 53 | 2 of 3,858 (0.05 %) | 4 of 5,906 (0.07 %) | 2 |
+| 50 ms | 2 of 53 / 0 of 51 | 6 of 3,868 (0.16 %) | 9 of 5,905 (0.15 %) | 3 |
+| 100 ms | 2 of 53 / 0 of 51 | 4 of 3,868 (0.10 %) | 8 of 5,905 (0.14 %) | 2 |
+| 150 ms | not measured / 0 of 50 | 10 of 3,840 (0.26 %) | 19 of 5,872 (0.32 %) | 3 |
+
+With worlds up to 2 ticks late (`--interest-jitter 2 --interest-rtt
+0,50,100`) all maps pool 0.05, 0.23 and 0.14 percent in fight range. Both
+runs pass `--assert` (1 percent). Holdfast Atoll's withheld share is
+unchanged (57 to 59 percent).
 
 ## Trace version 1
 
