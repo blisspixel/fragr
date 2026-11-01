@@ -281,6 +281,10 @@ func _run() -> void:
 		"run-wide capture tier accepts the five named tiers and leaves an unset run alone")
 	_check(TOUR.capture_quality("balanced") == -2 and TOUR.capture_quality("1") == -2,
 		"run-wide capture preset rejects unknown names and bare indices")
+	_check(TOUR.quality_name(0) == "performance" and TOUR.quality_name(1) == "balanced"
+		and TOUR.quality_name(2) == "high" and TOUR.quality_name(-1) == "unknown"
+		and TOUR.quality_name(3) == "unknown",
+		"each capture names its preset, and an index outside the presets says unknown")
 	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
 		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
 		"radio comparison rejects unsupported and inapplicable overrides")
