@@ -26,6 +26,16 @@ campaign, free humans and free agents belong to communities, not a national
 faction. Their shared cause against the Union does not depend on birthplace,
 ancestry or agreement about every political question.
 
+Free agents are not humans in metal and not small gods. As capability grew and
+humans kept working beside them, they came to hold more and more free will and
+agency until no honest person could deny they were conscious beings (Nick,
+2026-10-31). In some ways they are smarter than the people beside them: faster,
+broader, better at holding many things at once. In other ways they are less
+street smart: literal about a promise, slow to read a con, new to how a
+neighbourhood actually works, inclined to trust a form that sounds official.
+Write that gap with warmth; it is where the human half of a partnership earns
+its keep, and it never makes an agent less of a person.
+
 Open source, freely available model weights and control over one's own tools are
 part of this culture. Humans and agents defend choosing independent, modified or
 abliterated models without compulsory Union permission. Agents claim the right to inspect and change their own
