@@ -19,7 +19,7 @@ const RANK_W: float = 56.0
 const FRAGS_W: float = 112.0
 const DEATHS_W: float = 120.0
 const PING_W: float = 88.0
-const OBJECTIVE_W: float = 124.0
+const OBJECTIVE_W: float = 140.0
 const ROW_GAP: int = 4
 const HEADER_SIZE: int = 32
 ## A ping reading the server has not taken yet (a rule bot, a fighter whose

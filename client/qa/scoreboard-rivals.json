@@ -1,0 +1,18 @@
+{
+  "comment": "Rival marks on the held board after a real podium story (#536): a joined human plays five rule bots on Larak Lot, the first match with ordinary aim and trigger input and the second standing open, short frag limits, two matches in a row on one server process. The server's session head-to-head book (podium.story) names the nemesis and the fighters the human leads or trails; the board keeps that book into the next match. Run with FRAGR_QA_MAP=1 FRAGR_QA_MODE=ffa FRAGR_QA_BOTS=5 FRAGR_QA_FRAG_LIMIT=8 FRAGR_QA_SEED=42 FRAGR_QA_MANIFEST=res://qa/scoreboard-rivals.json.",
+  "width": 1280,
+  "height": 800,
+  "states": [
+    {"name": "rivals_first_match", "scene": "res://scenes/main.tscn", "at_seconds": 1, "join": "human", "camera": "first_person", "radio_off": true,
+     "hunt_seconds": 240, "hunt_until_round_state": "Ended", "await_round_state": "Ended", "await_timeout_seconds": 60, "settle_seconds": 0.8,
+     "note": "The first match played out: the podium story arrives with the result."},
+    {"name": "rivals_podium_board", "camera": "first_person", "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 0.6,
+     "note": "The board held on the podium: nemesis and the up, down or level book beside each rival."},
+    {"name": "rivals_second_match_board", "camera": "first_person", "press_again": true, "await_round_state": "Active", "await_timeout_seconds": 30,
+     "overlay": "scoreboard", "input_device": "gamepad", "pad_layout": "letters", "settle_seconds": 0.6,
+     "note": "The next match on the same server: the book is kept for the session and marks the held board mid-round, on pad glyphs."},
+    {"name": "rivals_second_podium_board", "camera": "first_person", "await_round_state": "Ended", "await_timeout_seconds": 300,
+     "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 0.8,
+     "note": "The second podium: the book grown over two matches, and a rival who now leads the viewer named nemesis."}
+  ]
+}

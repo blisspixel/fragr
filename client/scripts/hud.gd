@@ -105,8 +105,15 @@ var _standings: Array[Dictionary] = []
 ## Fighters the snapshot stopped listing (dead and waiting to respawn), kept
 ## on the board with their last counts for a while: id -> {row, since}.
 var _board_absent: Dictionary = {}
-## A fighter missing this long has left, not died.
+## A fighter missing this long has left, not died. On the podium nobody
+## respawns, so the round's last rows stay until the next round opens.
 const BOARD_ABSENCE_MS: int = 10000
+## The fewest deaths a fighter's row may show, from frags the snapshot has not
+## counted yet: a body leaves the snapshot on the tick it dies, so the row the
+## board keeps would otherwise miss that death. id -> deaths.
+var _board_min_deaths: Dictionary = {}
+## The ids the last snapshot listed: their rows already carry the server's count.
+var _board_listed: Dictionary = {}
 var _standings_revision: int = 0
 ## Local callsign, so the hold-Tab board can mark that row.
 var board_name: String = ""
@@ -520,9 +527,7 @@ func set_match_rules(rules: Dictionary, new_map: bool = true) -> void:
 	episode_title_shown = false
 	pressure_id = ""
 	team_score_text = ""
-	_standings.clear()
-	_board_absent.clear()
-	_standings_revision += 1
+	_clear_standings()
 	board_id = ""
 	board_name = ""
 	viewer_team = ""
@@ -1009,6 +1014,9 @@ func set_round_info(state: String, time_left: Variant, frag_limit: int, level_cl
 	# where the separate RoundStart notice may not have been observed.
 	if state != "Warmup" and warmup_tv_active:
 		hide_warmup_tv()
+	# The podium keeps the round's final rows; a new round starts its own.
+	if round_chrome_state == "Ended" and state != "Ended":
+		_clear_standings()
 	if state == "Warmup" and round_chrome_state != "Warmup":
 		score_subject.clear()
 		result_subject = ""
@@ -1153,6 +1161,12 @@ func _place_leaderboard() -> void:
 	var top: float = 16.0
 	if spectator_panel != null and spectator_panel.visible:
 		top = spectator_panel.position.y + spectator_panel.size.y + 12.0
+	# The result card stays readable: a board held on the podium opens under
+	# it while there is room for most of a page, and over it otherwise.
+	if round_message != null and round_message.visible and round_backdrop != null and round_backdrop.visible:
+		var below: float = round_backdrop.get_global_rect().end.y + 12.0
+		if view.y - below >= view.y * 0.4:
+			top = maxf(top, below)
 	var page: Vector2i = _leaderboard.page()
 	var template: String = tr("HUD_BOARD_HOLD")
 	if page.y > 1:
@@ -1203,6 +1217,13 @@ func update_scoreboard():
 func _short_behavior(behavior: String) -> String:
 	return StanceChipScript.short(behavior)
 
+func _clear_standings() -> void:
+	_standings.clear()
+	_board_absent.clear()
+	_board_min_deaths.clear()
+	_board_listed.clear()
+	_standings_revision += 1
+
 func sync_scores_from_players(player_list: Array):
 	score_subject.observe(player_list)
 	var next: Array[Dictionary] = []
@@ -1228,15 +1249,23 @@ func sync_scores_from_players(player_list: Array):
 	var listed: Dictionary = {}
 	for row: Dictionary in next:
 		listed[row.id] = true
+	_board_listed = listed
 	for row: Dictionary in _standings:
 		if not str(row.id).is_empty() and not listed.has(row.id) and not _board_absent.has(row.id):
 			_board_absent[row.id] = {"row": row, "since": now}
 	for id: Variant in _board_absent.keys():
 		var absent: Dictionary = _board_absent[id]
-		if listed.has(id) or now - int(absent.since) > BOARD_ABSENCE_MS:
+		if listed.has(id) or (round_chrome_state != "Ended" and now - int(absent.since) > BOARD_ABSENCE_MS):
 			_board_absent.erase(id)
 		else:
 			next.append(absent.row)
+	for row: Dictionary in next:
+		var floor_deaths: int = int(_board_min_deaths.get(row.id, -1))
+		if floor_deaths < 0:
+			continue
+		if int(row.deaths) >= floor_deaths and listed.has(row.id):
+			_board_min_deaths.erase(row.id)
+		row.deaths = maxi(int(row.deaths), floor_deaths)
 	next.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a.kills != b.kills: return int(a.kills) > int(b.kills)
 		if a.name != b.name: return str(a.name) < str(b.name)
@@ -1341,6 +1370,27 @@ func show_frag(killer: String, victim: String, _killer_color: Color = MenuTheme.
 
 func show_frag_event(data: Dictionary, killer_id: String, victim_id: String) -> void:
 	frag_feed.push(data, killer_id, victim_id, board_id, viewer_team)
+	note_board_death(victim_id)
+
+## A frag the board has not seen in a snapshot row yet: the victim's row shows
+## at least one more death than it last did, until the server's count agrees.
+func note_board_death(victim_id: String) -> void:
+	if victim_id.is_empty() or _board_listed.has(victim_id):
+		return
+	var known: int = -1
+	for row: Dictionary in _standings:
+		if str(row.id) == victim_id:
+			known = int(row.deaths)
+	if known < 0:
+		return
+	_board_min_deaths[victim_id] = maxi(int(_board_min_deaths.get(victim_id, 0)), known) + 1
+	for row: Dictionary in _standings:
+		if str(row.id) == victim_id:
+			row.deaths = maxi(int(row.deaths), int(_board_min_deaths[victim_id]))
+	if _board_absent.has(victim_id):
+		var absent: Dictionary = _board_absent[victim_id]
+		absent.row.deaths = maxi(int(absent.row.deaths), int(_board_min_deaths[victim_id]))
+	_standings_revision += 1
 
 func reset_event_context(session: bool = false) -> void:
 	combat_feed.clear()
@@ -1686,9 +1736,8 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
 	host_duck(4.0, true)
-	# Round-end MVP / podium Host drama.
-	_standings.clear()
-	_board_absent.clear()
+	# Round-end MVP / podium Host drama. The board keeps the round's final
+	# rows, the fallen included, until the next round opens.
 	_standings_revision += 1
 	leader_name = mvp_name
 	pressure_id = ""
