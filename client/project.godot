@@ -230,7 +230,7 @@ radio_toggle={
 }
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/world.en.po", "res://i18n/story.en.po", "res://i18n/controls.en.po", "res://i18n/match.en.po")
+locale/translations=PackedStringArray("res://i18n/world.en.po", "res://i18n/story.en.po", "res://i18n/controls.en.po", "res://i18n/match.en.po", "res://i18n/tips.en.po")
 locale/fallback="en"
 
 [rendering]

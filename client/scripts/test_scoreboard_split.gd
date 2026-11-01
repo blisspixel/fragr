@@ -143,7 +143,7 @@ func _check_team_board(hud: CanvasLayer) -> void:
 	_check(rows[5].get_meta("marks") == ["nemesis"] and rows[6].get_meta("marks") == ["up"] and rows[7].get_meta("marks") == ["level"], "nemesis and head-to-head marks from the session book")
 	_check(rows[2].get_meta("marks") == [] and rows[3].get_meta("marks") == [], "own side rows the viewer never met are unmarked")
 	var nemesis: Label = rows[5].get_node("Content/Mark0")
-	_check(nemesis.text == "NEMESIS 1-5" and nemesis.get_theme_color("font_color") == MenuTheme.EMBER, "the nemesis mark reads the book: " + nemesis.text)
+	_check(nemesis.text == "AURA DEBT 1-5" and nemesis.get_theme_color("font_color") == MenuTheme.EMBER, "the nemesis mark reads the book: " + nemesis.text)
 	# The round ends: the server's MVP is marked, and a new round clears it.
 	hud.show_round_end("Meat Proxy", "Frag limit reached", 7)
 	hud.sync_scores_from_players(_roster())

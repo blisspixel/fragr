@@ -1198,7 +1198,7 @@ func update_scoreboard():
 	# the window, which the first visual QA tour caught, and a standing HUD is
 	# for who is winning. Hold Tab for every fighter.
 	var text: String = MatchRules.scoreboard_text(sorted_scores, {}, _board_line(), HUD_SCOREBOARD_ROWS)
-	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
+	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else tr("HUD_BOARD_EMPTY")
 
 func _short_behavior(behavior: String) -> String:
 	return StanceChipScript.short(behavior)

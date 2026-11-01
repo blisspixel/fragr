@@ -193,7 +193,7 @@ static func board_text(standings: Array, board_line: String, own: Callable, cont
 		for index: int in range(group_rows.size()):
 			body += row_text(group_rows[index], index, bool(own.call(group_rows[index])), row_context) + "\n"
 	if standings.is_empty():
-		body += "(waiting for scrap)"
+		body += tr_text("HUD_BOARD_EMPTY")
 	return body.strip_edges()
 
 static func columns_text(mode: String = "") -> String:

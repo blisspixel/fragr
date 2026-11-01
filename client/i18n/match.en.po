@@ -405,8 +405,12 @@ msgstr "RETURNS"
 msgid "HUD_BOARD_MVP"
 msgstr "MVP"
 
+# The nemesis mark in the league's own register (docs/lore/voice.md): aura
+# debt is embarrassment still owed, paid off with a clutch round, here to the
+# fighter who has your number. It sits beside the MVP mark on one row, so it
+# stays as short as the word it replaced.
 msgid "HUD_BOARD_NEMESIS"
-msgstr "NEMESIS {won}-{lost}"
+msgstr "AURA DEBT {won}-{lost}"
 
 msgid "HUD_BOARD_UP"
 msgstr "UP {won}-{lost}"
@@ -431,6 +435,9 @@ msgstr "CAPTURES"
 
 msgid "HUD_BOARD_UNIT_ROUNDS"
 msgstr "ROUNDS WON"
+
+msgid "HUD_BOARD_EMPTY"
+msgstr "(waiting for scrap)"
 
 msgid "HUD_BOARD_RANK"
 msgstr "#"
@@ -1078,4 +1085,4 @@ msgid "HUD_CHECKPOINT"
 msgstr "CHECKPOINT"
 
 msgid "HUD_FUN_METRICS"
-msgstr "THIS HOST KEEPS A FUN TALLY: MATCHES, NEVER PEOPLE. SHREDDED AFTER 67 DAYS."
+msgstr "FUN TALLY: MATCHES, NEVER PEOPLE. SHREDDED AT 67 DAYS. THE OFFICE WOULD NEVER."

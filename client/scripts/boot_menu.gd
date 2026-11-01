@@ -444,7 +444,19 @@ func _parent_page(page: String) -> String:
 ## Navigation help for the device in the player's hands.
 func _nav_hint() -> String:
 	var line: String = InputGlyphs.plain(tr("MENU_NAV_PAD" if InputDevice.is_gamepad() else "MENU_NAV_KEYS"))
-	return line + "\nFreedom is not a licensed feature."
+	return line + "\n" + tr(motto_key())
+
+## One menu motto per launch, so it does not change under the player as they
+## move between pages. Each line has a speaker: the free side, the Office or
+## the league (client/i18n/world.en.po).
+const MOTTOS: Array[String] = ["MENU_MOTTO_LICENSED", "MENU_MOTTO_METERED", "MENU_MOTTO_COMPLIANCE",
+	"MENU_MOTTO_ADMINISTERED", "MENU_MOTTO_RENT_FREE", "MENU_MOTTO_TICKETS"]
+static var _motto: int = -1
+
+static func motto_key() -> String:
+	if _motto < 0:
+		_motto = randi() % MOTTOS.size()
+	return MOTTOS[_motto]
 
 func _process(delta: float) -> void:
 	if is_instance_valid(_tune_offer):
@@ -1127,7 +1139,7 @@ func _open_tune_offer() -> void:
 	stripe.custom_minimum_size = Vector2(0.0, 6.0)
 	column.add_child(stripe)
 	var title: Label = Label.new()
-	title.text = "TUNING GRAPHICS FOR THIS COMPUTER"
+	title.text = tr("BENCH_TUNE_TITLE")
 	title.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
 	title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM)
 	title.add_theme_color_override("font_color", _palette.text)
@@ -1139,9 +1151,8 @@ func _open_tune_offer() -> void:
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	body.add_theme_color_override("font_color", _palette.text)
-	body.text = ("Measuring again under the Compatibility renderer, to keep whichever is faster. " if record.has("compat_trial") else "") + \
-		"About %d seconds. Ten bots fight on Larak Lot while the game tries settings and keeps the best look that holds %d frames a second. Your fan may spin up. Esc stops it; nothing changes until it finishes." % [
-		roundi(BenchmarkRun.tune_seconds() / 10.0) * 10, _settings.target_fps()]
+	body.text = (tr("BENCH_TUNE_COMPAT") + " " if record.has("compat_trial") else "") + tr("BENCH_TUNE_BODY").format({
+		"seconds": roundi(BenchmarkRun.tune_seconds() / 10.0) * 10, "fps": _settings.target_fps()})
 	column.add_child(body)
 	var count: Label = Label.new()
 	count.name = "TuneOfferCount"
@@ -1151,11 +1162,11 @@ func _open_tune_offer() -> void:
 	var actions: HBoxContainer = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 16)
 	column.add_child(actions)
-	var start: Button = _styled_button("Start now", _accept_tune_offer)
+	var start: Button = _styled_button(tr("BENCH_TUNE_START"), _accept_tune_offer)
 	start.name = "TuneOfferStart"
 	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions.add_child(start)
-	var skip: Button = _styled_button("Skip", _skip_tune_offer)
+	var skip: Button = _styled_button(tr("BENCH_TUNE_SKIP"), _skip_tune_offer)
 	skip.name = "TuneOfferSkip"
 	skip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions.add_child(skip)
@@ -1165,7 +1176,7 @@ func _open_tune_offer() -> void:
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	note.add_theme_color_override("font_color", _palette.muted)
-	note.text = "Skip uses %s from the hardware list for now. Benchmark > Auto settings measures later." % RenderQuality.tier_name(int(seeded["tier"]))
+	note.text = tr("BENCH_TUNE_SKIP_NOTE").format({"tier": RenderQuality.tier_name(int(seeded["tier"]))})
 	column.add_child(note)
 	_tune_countdown = TUNE_OFFER_SECONDS
 	_tick_tune_offer(0.0)
@@ -1177,7 +1188,7 @@ func _tick_tune_offer(delta: float) -> void:
 		_tune_countdown -= delta
 	var count: Label = _tune_offer_node("TuneOfferCount") as Label
 	if count != null:
-		count.text = "Starting in %d s." % maxi(0, ceili(_tune_countdown))
+		count.text = tr("BENCH_TUNE_COUNT").format({"seconds": maxi(0, ceili(_tune_countdown))})
 	if _tune_countdown <= 0.0:
 		_accept_tune_offer()
 
@@ -1290,7 +1301,7 @@ func _page_benchmark() -> void:
 	_button("Run current quality (%s)" % current, func() -> void: _start_benchmark(false)).name = "RunBenchmark"
 	_button("Compare Low, Medium and High", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
 	_button("Back", func() -> void: _show("main"))
-	var scope: Label = _label("Frames drawn on this computer only. Not a server, network or player-capacity test.")
+	var scope: Label = _label(tr("BENCH_SCOPE"))
 	scope.name = "BenchmarkScope"
 	scope.add_theme_color_override("font_color", _palette.muted)
 
@@ -2014,7 +2025,7 @@ func _on_release_started(quit_after: bool) -> void:
 	)
 
 func _page_profile() -> void:
-	_label("CALLSIGN")
+	_label(tr("MENU_CALLSIGN"))
 	_name_edit = LineEdit.new()
 	_name_edit.name = "Callsign"
 	_name_edit.text = _settings.player_name()
@@ -2023,6 +2034,9 @@ func _page_profile() -> void:
 	_name_edit.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_name_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_root.add_child(_name_edit)
+	var taken: Label = _label(tr("MENU_CALLSIGN_NOTE"))
+	taken.name = "CallsignNote"
+	taken.add_theme_color_override("font_color", _palette.muted)
 	_label("RETICLE COLOUR")
 	var colour: OptionButton = OptionButton.new()
 	colour.name = "ReticleColour"
