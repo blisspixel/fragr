@@ -95,6 +95,10 @@ class Preset extends RefCounted:
 	## without flattening the room the way a raised ambient floor would.
 	var view_fill_energy: float = 0.0
 	var view_fill_range: float = 24.0
+	## How strongly fighters' rim of light reads here (FighterRim), 0 to 1. A
+	## night or covered venue wants it; a bright open one, where a fighter
+	## reads as the darker shape against the sky and sand, turns it off.
+	var fighter_rim: float = 1.0
 	var exposure: float = 1.0
 	var contrast: float = 1.0
 	var saturation: float = 1.0
@@ -401,6 +405,9 @@ static func mars_foundry() -> Preset:
 static func holdfast() -> Preset:
 	var preset: Preset = Preset.new(Color("367c9a"), Color("aec8bd"),
 		Color("558886"), Color("adbfaa"), 0.0014, Color("c3d3bd"), 0.68)
+	# Fighters read dark against the bright atoll; a light rim only grays them
+	# toward the sand (contrast scan, #528).
+	preset.fighter_rim = 0.0
 	# The distant sea fades into the same haze below the horizon. A separate
 	# ground-sky color otherwise exposes a blue stripe beyond the camera's far plane.
 	preset.sky_horizon = preset.fog_color

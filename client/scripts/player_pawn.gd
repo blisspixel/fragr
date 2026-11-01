@@ -759,6 +759,7 @@ func _dress_live_body() -> void:
 	FighterLooks.wear(character_view, null if livery == "union" else FighterLooks.texture(body_kind, look))
 	character_view.dress(livery, accent)
 	FighterLooks.mark(character_view, personal, livery == "union", FighterLooks.union_rank(look))
+	FighterRim.apply(character_view, livery == "union")
 
 func _update_notary_shadow() -> void:
 	if _notary_shadow == null:

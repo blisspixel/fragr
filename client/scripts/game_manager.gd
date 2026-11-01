@@ -600,6 +600,7 @@ func _apply_arena_sky(map_name: String = "") -> void:
 	RenderQuality.apply_environment(world.environment, settings)
 	ArenaSky.apply_scene_lights(get_node_or_null("Arena/Layout"), map_name)
 	ArenaSky.apply_view_fill(get_node_or_null("SpectatorCamera/Camera3D") as Camera3D, map_name)
+	FighterRim.set_venue(ArenaSky.preset_for(map_name).fighter_rim)
 	RenderQuality.apply_practicals(self, settings)
 
 

@@ -431,7 +431,9 @@ simulates both conditions and holds every side pair at least 20 CIELAB apart.
 better in relative luminance from 10 to 40 m, measured by
 `client/qa/contrast_scan.gd` on live tour captures. Fix a failure through
 material value, light or a rim of light within this contract, never an outline
-round every body.
+round every body. Every live fighter carries a stepped rim of light
+(`client/scripts/fighter_rim.gd`): warm amber white on a free body, a cool
+plate value on the Union's issued black, never red, cyan or off-white.
 
 **Colour picker rule.** Any player colour picker, saved record or received
 cosmetic is validated on the composed body, not per swatch. Reject or snap to

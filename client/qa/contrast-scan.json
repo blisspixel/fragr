@@ -1,0 +1,11 @@
+{
+  "comment": "Fighter contrast scan (#528): a live bot match runs while client/qa/contrast_scan.gd reads fighters 10 to 40 m apart from each other's eyes and measures each against its local background. Run per map: FRAGR_QA_SCRIPT=res://qa/contrast_scan.gd FRAGR_QA_MANIFEST=res://qa/contrast-scan.json FRAGR_QA_MAP=<1..8> FRAGR_QA_BOTS=9 FRAGR_QA_SEED=1 tools/qa_tour.sh <out>.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "contrast_eyes", "scene": "res://scenes/main.tscn", "at_seconds": 6, "camera": "first_person", "note": "A fighter's own view of the fight."},
+    {"name": "contrast_eyes_later", "at_seconds": 45, "camera": "first_person", "note": "Further into the round, another fighter's eyes."},
+    {"name": "contrast_chase", "at_seconds": 75, "camera": "follow", "note": "Over the shoulder, where a spectator reads the fight."},
+    {"name": "contrast_eyes_last", "at_seconds": 105, "camera": "first_person", "note": "Late in the round."}
+  ]
+}
