@@ -32,11 +32,9 @@ const SILENT_DB: float = -80.0
 ## Host lines, Latch and Union barks.
 const DUCK_DB: float = -9.0
 const DUCK_SECONDS: float = 3.0
-## Heavy combat lowers the bed by up to this much.
-const COMBAT_DUCK_DB: float = -7.0
-## Heat added per resolved shot and lost per second; at 1.0 the duck is full.
-const COMBAT_HEAT_PER_SHOT: float = 0.08
-const COMBAT_COOL_PER_SECOND: float = 0.35
+## Heavy combat lowers the bed by up to this much: the shared CombatDuck,
+## which lowers the radio the same way.
+const COMBAT_DUCK_DB: float = CombatDuck.FULL_DB
 ## A bed's loop overlaps its own start this long, so it never lands on a seam.
 const CROSSFADE_SECONDS: float = 6.0
 const FADE_IN_DB_PER_SECOND: float = 18.0
@@ -55,7 +53,7 @@ var scene_hold: bool = false
 ## A moment in a level wants no music at all (Level 18's turn).
 var hushed: bool = false
 var duck_timer: float = 0.0
-var combat_heat: float = 0.0
+var combat_duck: CombatDuck = CombatDuck.new()
 ## The last cue the player heard in a scene or a level, for the take control.
 var last_cue: String = ""
 var slots: Array[Dictionary] = []
@@ -225,7 +223,7 @@ static func target_db(is_enabled: bool, has_bed: bool, is_radio_playing: bool, i
 	var db: float = BED_DB
 	if ducked:
 		db += DUCK_DB
-	return db + COMBAT_DUCK_DB * clampf(heat, 0.0, 1.0)
+	return db + CombatDuck.db_for(heat)
 
 
 ## Accepts only known slot ids with an A or B value.
@@ -279,9 +277,9 @@ func hush(on: bool) -> void:
 		now_scoring_changed.emit()
 
 
-## Resolved shots this tick, from the same results the shot effects use.
-func combat(shots: int) -> void:
-	combat_heat = minf(combat_heat + COMBAT_HEAT_PER_SHOT * float(maxi(shots, 0)), 1.5)
+## The listener's fight this tick: nearby resolved shots and blasts.
+func combat(shots: int, blasts: int = 0) -> void:
+	combat_duck.add(shots, blasts)
 
 
 ## A short cue in a level; the bed rests until it ends. Returns whether it plays.
@@ -393,10 +391,10 @@ func _refresh_bed() -> void:
 
 func _process(delta: float) -> void:
 	duck_timer = maxf(duck_timer - delta, 0.0)
-	combat_heat = maxf(combat_heat - COMBAT_COOL_PER_SECOND * delta, 0.0)
+	combat_duck.cool(delta)
 	if _beds.is_empty():
 		return
-	var target: float = target_db(enabled, not _bed_path.is_empty(), radio_playing, scene_hold or hushed, _cue != null and _cue.playing, duck_timer > 0.0, combat_heat)
+	var target: float = target_db(enabled, not _bed_path.is_empty(), radio_playing, scene_hold or hushed, _cue != null and _cue.playing, duck_timer > 0.0, combat_duck.heat)
 	if target > SILENT_DB:
 		target += _bed_gain_db
 	var rate: float = FADE_OUT_DB_PER_SECOND if target < _gain_db else FADE_IN_DB_PER_SECOND

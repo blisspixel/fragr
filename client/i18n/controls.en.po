@@ -249,6 +249,9 @@ msgstr "No level score"
 msgid "MENU_SCORE_CUE_TAKE"
 msgstr "Story cue take: %s"
 
+msgid "MENU_FOOTSTEPS_TAKE"
+msgstr "Footsteps take: %s"
+
 msgid "SETTINGS_CAMPAIGN_SCORE"
 msgstr "CAMPAIGN SCORE"
 

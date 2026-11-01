@@ -1058,8 +1058,10 @@ func _record_audio(seconds: float, state_index: int) -> Dictionary:
 	return _finish_audio("%02d_audio.wav" % state_index, seconds * 0.8)
 
 func _begin_audio(state_name: String) -> bool:
-	# Master receives Effects, Radio and Voice. The effect observes that bus
-	# before its final fader, so its level is useful for relative QA only.
+	# Master receives Effects, Radio and Voice. The effect is appended after the
+	# Master limiter and before the final fader (the Master volume setting,
+	# 0.9 by default, about -0.9 dB), so a loudness reading of the capture is
+	# that much above what leaves the game at default settings.
 	if _audio_recorder != null:
 		push_error("qa_tour: audio recording is already active")
 		return false

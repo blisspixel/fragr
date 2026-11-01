@@ -86,6 +86,10 @@ var target_pitch: float = 0.0
 var presentation_yaw: float = 0.0
 var presentation_pitch: float = 0.0
 var remote_presentation: RemotePresentation = RemotePresentation.new()
+## Running steps, jumps and landings at this body's feet (footsteps.gd).
+var footsteps: Footsteps = null
+## The local prediction's own airborne fact while it owns the body.
+var predicted_airborne: bool = false
 const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
@@ -190,6 +194,11 @@ func _ready():
 		highlight.visible = false
 	
 	_load_audio_streams()
+	footsteps = Footsteps.new()
+	footsteps.name = "Footsteps"
+	# The pawn origin is the server body point, PLAYER_FLOOR_Y over the feet.
+	footsteps.position = Vector3(0.0, -LocalPrediction.FLOOR_OFFSET, 0.0)
+	add_child(footsteps)
 	
 	muzzle_flash_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	
@@ -311,6 +320,7 @@ func _process(delta: float) -> void:
 		presentation_yaw = lerp_angle(-rotation.y, target_yaw, t)
 		presentation_pitch = lerpf(presentation_pitch, target_pitch, t)
 	var travel: float = Vector2(position.x - previous.x, position.z - previous.z).length()
+	_present_feet(delta, travel, position.y - previous.y, rendered)
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
 	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
@@ -466,6 +476,11 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	
 	if not is_campaign_enemy and not is_campaign_companion and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
 		_wear_body(state["body"])
+	if footsteps != null:
+		var kind: String = str(campaign_actor.get("kind", "")) if is_campaign_enemy else body_kind
+		footsteps.walks = Footsteps.walks_for(state["campaign"] if state.get("campaign") is Dictionary else {}, kind)
+		footsteps.base_pitch = Footsteps.pitch_for(kind)
+		footsteps.observe(snapshot_tick if snapshot_tick > 0 else -1, state.get("airborne") == true)
 	var next_team: String = MatchRules.valid_team(state.get("team"))
 	if next_team != team:
 		team = next_team
@@ -510,6 +525,11 @@ func set_ducking(value: bool) -> void:
 
 ## Only the local human body uses this path. Snapshot metadata still flows
 ## through update_state; the positional target is kept for safe fallback.
+## Local prediction says whether the body it owns is off the ground.
+func set_predicted_airborne(value: bool) -> void:
+	predicted_airborne = value
+
+
 func set_predicted_position(value: Vector3, speed: float) -> void:
 	prediction_active = true
 	predicted_position = value
@@ -1118,3 +1138,13 @@ func set_nameplate_enabled(enabled: bool) -> void:
 	nameplate_enabled = enabled
 	if label:
 		label.visible = enabled and not is_local_fp
+
+## Feet follow the drawn body: its travel this frame, and the server's
+## airborne flag as of the tick being drawn (or prediction's, for the body
+## it owns), so a landing is heard when it is seen.
+func _present_feet(delta: float, travel: float, rise: float, rendered: Dictionary) -> void:
+	if footsteps == null:
+		return
+	footsteps.own = is_local_fp
+	var airborne: bool = predicted_airborne if prediction_active else footsteps.airborne_at(float(rendered.get("tick", -1.0)))
+	footsteps.present(delta, travel, rise, airborne, ducking, hp > 0, vehicle_seated)

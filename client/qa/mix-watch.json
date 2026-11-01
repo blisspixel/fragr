@@ -1,0 +1,24 @@
+{
+  "comment": "Watched-match mix capture for the loudness gate: the default spectator follows a rule bot on Larak Lot for about 24 seconds with the radio on; the Master bus is recorded after its limiter (pre master fader). Measured with `cargo run -p fragr-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with FRAGR_QA_BOTS=6 and FRAGR_QA_MANIFEST=res://qa/mix-watch.json on a real audio driver.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "mix_watch",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "follow",
+      "record_audio_start": true,
+      "strip_frames": 24,
+      "strip_interval_seconds": 1.0,
+      "note": "A followed bot's fights at spectator radio level, as a strip."
+    },
+    {
+      "name": "mix_watch_end",
+      "camera": "follow",
+      "record_audio_stop": true,
+      "settle_seconds": 0.1,
+      "note": "Closes the live Master capture."
+    }
+  ]
+}

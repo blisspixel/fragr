@@ -104,6 +104,11 @@ const DEFAULTS: Dictionary = {
 		"enabled": true,
 		"takes": {},
 	},
+	# Which generated footstep set plays (Footsteps): "a" or "b", until Nick
+	# picks one by ear and the other is pruned.
+	"footsteps": {
+		"take": "a",
+	},
 }
 
 const FLASHES_FULL: int = 0
@@ -213,6 +218,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 		value = clean_maps_off(value, fallback)
 	if path == "score/takes":
 		value = CampaignScore.clean_takes(value)
+	if path == "footsteps/take":
+		value = Footsteps.valid_take(value)
 	(_values[section] as Dictionary)[key] = value
 
 func draft() -> FragrSettings:
@@ -356,6 +363,7 @@ func apply_audio() -> void:
 	_set_bus("Effects", float(get_value("audio", "effects")))
 	_set_bus("Voice", float(get_value("audio", "voice")))
 	_set_bus("Announcer", float(get_value("audio", "announcer_volume")))
+	Footsteps.take = Footsteps.valid_take(get_value("footsteps", "take"))
 
 static func _set_bus(name: String, linear: float) -> void:
 	var index: int = AudioServer.get_bus_index(name)

@@ -35,6 +35,8 @@ var station_index := 0
 var enabled := true
 var human_mode := false
 var duck_timer := 0.0
+## A fight near the listener (CombatDuck, shared with the campaign score).
+var combat_duck: CombatDuck = CombatDuck.new()
 ## A place's own level offset. Recall Notice has no radio of its own, so the
 ## station is only faint from the confiscated set in its bay (0 elsewhere).
 var venue_db := 0.0
@@ -319,18 +321,26 @@ func duck(seconds: float = DUCK_SECONDS) -> void:
 	duck_timer = maxf(duck_timer, seconds)
 
 
-## Volume for the current state. Pure so tests can check the table.
-static func target_db(is_human: bool, is_ducked: bool, ducks_in_combat: bool) -> float:
+## The listener's fight this tick: nearby resolved shots and blasts.
+func combat(shots: int, blasts: int = 0) -> void:
+	combat_duck.add(shots, blasts)
+
+
+## Volume for the current state. Pure so tests can check the table. A
+## station's `ducks_in_combat: false` (LOCK IN) keeps a playing human's
+## station up under the Host; the fight itself ducks every station, always.
+static func target_db(is_human: bool, is_ducked: bool, ducks_in_combat: bool, heat: float = 0.0) -> float:
 	var db := PLAYING_DB if is_human else SPECTATE_DB
 	if is_ducked and (ducks_in_combat or not is_human):
 		db += DUCK_DB
-	return db
+	return db + CombatDuck.db_for(heat)
 
 
 func _process(delta: float) -> void:
 	advance_holds(delta)
 	if duck_timer > 0.0:
 		duck_timer = maxf(duck_timer - delta, 0.0)
+	combat_duck.cool(delta)
 	_apply_volume(delta, false)
 
 
@@ -341,7 +351,7 @@ func _apply_volume(delta: float, immediate: bool) -> void:
 		player.volume_db = MUTE_DB
 		return
 	var station := current_station()
-	var target := target_db(human_mode, duck_timer > 0.0, bool(station.get("ducks_in_combat", true))) + venue_db
+	var target := target_db(human_mode, duck_timer > 0.0, bool(station.get("ducks_in_combat", true)), combat_duck.heat) + venue_db
 	if immediate:
 		player.volume_db = target
 		return

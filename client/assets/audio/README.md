@@ -78,6 +78,7 @@ request, asset charge or weapon-gunshot substitution.
 | `pickup/pad_return.wav` | Spatial arena pad return: a weapon, health or armour pad back on its clock |
 | `jammer/launch.wav` | Server-confirmed Jammer interference launch |
 | `notary/fan.wav`, `notary/shutter.wav`, `notary/crash.wav` | M04 spatial fan, resolved photograph and grounded wreck |
+| `footsteps/<take>/<set>_step_1..3.wav`, `<set>_land.wav`, `jump.wav` | Every walking fighter's running steps, landings and jump push-offs (`footsteps.gd`), by floor set `concrete`, `metal` or `tile` from the map's surface kits; two takes, `a` and `b` |
 | `m02/ward_machine_loop.wav`, `m02/ward_machine_stop.wav` | Correction ward machinery and its shutdown |
 | `m02/restraint_release.wav` | Latch's first restraint, the second bay and the optional side ward |
 | `m02/floor_machinery_loop.wav` | Processing-floor spatial machinery bed |
@@ -128,3 +129,15 @@ lines and sits lower while playing; LOCK IN never ducks for combat.
 
 Footsteps, landing, lifts, gates, objective and menu cues are not built yet;
 the sound pass plan ranks them.
+
+## Footsteps
+
+Running steps, landings and jump push-offs for every walking fighter, generated with `fragr-audiogen` from `tools/audiogen/specs/footsteps-20261031.json` (ElevenLabs `eleven_text_to_sound_v2`, 154 credits). Three floor sets follow the map's registered surface kits (`footstep_surface.gd`): `concrete`, `metal` (service steel, lift panel) and `tile` (enamel, records tile, inspection glass); a map without kits is concrete. Each set has three step variants and a landing; one jump serves every floor.
+
+Both takes ship, `footsteps/a/` and `footsteps/b/`, until Nick picks one by ear: the match menu's Footsteps button switches every fighter's feet at once and saves `[footsteps] take` (`a` by default). Prune the unpicked folder and its manifest entries by hand afterwards; the score's prune command does not cover footsteps.
+
+Every clip was levelled after generation with `fragr-audiogen loudness --level-to -18 --peak-ceiling -1`: summed to mono (the game places it at the fighter's feet, so a baked stereo image would fight the panning) and scaled so its loudest 400 ms block reads -18 LUFS unless that would take its true peak over -1 dBTP. The levelled clips read -18.0 to -25.5 LUFS; the manifest titles say so. Range, rolloff and direction are measured by `client/scripts/test_footsteps.gd`.
+
+## Mix and loudness
+
+The Master bus opens with a hard limiter (`default_bus_layout.tres`: +3 dB pre-gain, -1.5 dB ceiling, so true peak stays at or under -1 dBTP). The gameplay target is -23 to -18 LUFS integrated (`docs/plans/fun-craft-targets.md` row 19). Measure a QA tour capture with `cargo run -p fragr-audiogen -- loudness --check <capture>.wav`; `client/qa/mix-loudness.json` (joined human in a fight) and `client/qa/mix-watch.json` (watched match) record one each. Combat near the listener ducks the radio and the campaign score through one rule, `combat_duck.gd` (`client/scripts/test_combat_duck.gd`).
