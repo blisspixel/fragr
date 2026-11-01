@@ -26,6 +26,7 @@ var _failures: int = 0
 var _world: Node3D = null
 var _camera: Camera3D = null
 var _recorder: AudioEffectRecord = null
+var _mixer_warm: bool = false
 var _master: int = -1
 
 
@@ -239,6 +240,13 @@ static func _tone(dbfs: float) -> AudioStreamWAV:
 ## Left and right RMS in dBFS of `seconds` of the Master mix, skipping the
 ## first quarter while the player starts.
 func _record(seconds: float) -> Vector2:
+	if not _mixer_warm:
+		# Some drivers (Windows CI) start mixing only after the first frames; a
+		# recording taken before then is empty. Wait until the bus carries sound.
+		var deadline: int = Time.get_ticks_msec() + 5000
+		while AudioServer.get_bus_peak_volume_left_db(0, 0) < -80.0 and Time.get_ticks_msec() < deadline:
+			await process_frame
+		_mixer_warm = true
 	_recorder.set_recording_active(true)
 	await create_timer(seconds).timeout
 	var take: AudioStreamWAV = _recorder.get_recording()
