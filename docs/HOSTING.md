@@ -409,6 +409,15 @@ also close a connection. Audit logs for joins, refusals, kicks and bans use
 `GET /status` on the game port is a host probe, not a web client. Implemented
 modes still need fresh human matches to establish clarity and fun.
 
+## Privacy and fun metrics
+
+A fragr server sends nothing to the project. Its console shows who joined by
+callsign and the address of any connection it refused; it does not write that
+to disk. Fun metrics, match-level counts that help tune maps, weapons, bots and
+pacing, are planned to be off by default, announced to players when a host turns
+them on, kept only on the host's disk and shredded after 67 days. The
+[privacy policy](PRIVACY.md) is the whole promise.
+
 ## Server options
 
 | Option | Purpose |

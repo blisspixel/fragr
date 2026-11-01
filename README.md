@@ -153,6 +153,7 @@ a bring-your-own skill path. They are not a fifth mode.
 | Sound, voice and music review (developers) | [Audio generation](tools/audiogen/README.md), including a local page for marking radio tracks keep or reject |
 | Architecture and network contract | [Architecture](docs/ARCHITECTURE.md) and [protocol](docs/protocol.md) |
 | Current work and shipped changes | [Roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md) |
+| Privacy: no phoning home, opt-in fun metrics shredded after 67 days | [Privacy](docs/PRIVACY.md) |
 
 ## Contributing and license
 
