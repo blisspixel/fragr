@@ -1085,6 +1085,11 @@ pub enum GameCommand {
         player_id: Option<Uuid>,
         body: crate::protocol::BodyKind,
     },
+    /// A fighter's requested look and accent, sent right after its join.
+    Dress {
+        player_id: Uuid,
+        dress: crate::protocol::Dress,
+    },
     Disconnected {
         id: Uuid,
     },
@@ -2107,6 +2112,7 @@ async fn handle_connection(
                 ticket,
                 resume,
                 body: requested_body,
+                dress: requested_dress,
                 seat: seat_token,
             }) => {
                 let admitted = {
@@ -2483,6 +2489,12 @@ async fn handle_connection(
                         match result {
                             Ok(seat) => {
                                 _party_seat = Some(seat);
+                                if let Some(dress) = requested_dress {
+                                    game_tx.send(GameCommand::Dress {
+                                        player_id: player_id.expect("fighter admission"),
+                                        dress,
+                                    })?;
+                                }
                                 guard.armed = false;
                                 release_duel_seat(&policy, seat_token.as_deref(), seat_holder);
                             }
@@ -2510,6 +2522,9 @@ async fn handle_connection(
                             player_id,
                             body: accepted_body,
                         })?;
+                        if let (Some(player_id), Some(dress)) = (player_id, requested_dress) {
+                            game_tx.send(GameCommand::Dress { player_id, dress })?;
+                        }
                     }
                     if policy.solo_run {
                         if let Some(seat) = _party_seat.take() {

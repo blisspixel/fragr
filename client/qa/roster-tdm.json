@@ -1,0 +1,12 @@
+{
+  "comment": "Fighter roster in a team match (issue 530): the free side keeps personal looks with amber tape; the Union side wears issued livery with rank marks. Run FRAGR_QA_MODE=tdm FRAGR_QA_BOTS=8 FRAGR_QA_MANIFEST=res://qa/roster-tdm.json tools/qa_tour.sh.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "roster_coalition_human_08m", "scene": "res://scenes/main.tscn", "at_seconds": 6, "camera": "body", "body": "human", "body_team": "coalition", "body_distance": 8, "note": "A coalition human in its own look under amber tape."},
+    {"name": "roster_coalition_synthetic_08m", "camera": "body", "body": "synthetic", "body_team": "coalition", "body_distance": 8, "note": "A coalition free agent in its own look."},
+    {"name": "roster_union_human_08m", "camera": "body", "body": "human", "body_team": "union", "body_distance": 8, "note": "The Union side: issued black and red, its rank from the look."},
+    {"name": "roster_union_synthetic_08m", "camera": "body", "body": "synthetic", "body_team": "union", "body_distance": 8, "note": "A Union-side agent body in issued livery."},
+    {"name": "roster_tdm_follow", "camera": "follow", "settle_seconds": 1.0, "strip_frames": 12, "strip_interval_seconds": 0.5, "note": "Both sides in motion."}
+  ]
+}

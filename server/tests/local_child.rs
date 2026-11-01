@@ -225,6 +225,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
                     body: Some(BodyKind::Human),
+                    dress: None,
                     seat: None,
                     role: Role::Human,
                     name: "Saved owner".into(),
@@ -373,6 +374,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
                     role: Role::Human,
                     name: "Yard runner".into(),
                     body: Some(BodyKind::Human),
+                    dress: None,
                     seat: None,
                     geometry_version: 2,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
@@ -505,6 +507,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
                     role: Role::Human,
                     name: "Yard runner".into(),
                     body: Some(BodyKind::Human),
+                    dress: None,
                     seat: None,
                     geometry_version: 2,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
@@ -646,6 +649,7 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
                     role: Role::Human,
                     name: "Port runner".into(),
                     body: Some(BodyKind::Human),
+                    dress: None,
                     seat: None,
                     geometry_version: 2,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
@@ -808,6 +812,7 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
                     role: Role::Human,
                     name: "Yard runner".into(),
                     body: Some(BodyKind::Human),
+                    dress: None,
                     seat: None,
                     geometry_version: 2,
                     gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
@@ -913,6 +918,7 @@ async fn campaign_run_id(ready: &Ready) -> uuid::Uuid {
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Spectator,
                 name: "Run witness".into(),
@@ -964,6 +970,7 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Spectator,
                 name: "Local observer".into(),
@@ -1112,6 +1119,7 @@ async fn explicit_leave_durably_abandons_a_local_run() {
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Human,
                 name: "Run owner".into(),
@@ -1309,6 +1317,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     old.send(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
             body: None,
+            dress: None,
             seat: None,
             role: Role::Spectator,
             name: "Old side ward reader".into(),
@@ -1337,6 +1346,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Human,
                 name: "Ward walker".into(),
@@ -1429,6 +1439,7 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
                     body: None,
+                    dress: None,
                     seat: None,
                     role: Role::Spectator,
                     name: "Archive reader".into(),
@@ -1502,6 +1513,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
                     body: None,
+                    dress: None,
                     seat: None,
                     role,
                     name: "Berth reader".into(),
@@ -1532,6 +1544,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Spectator,
                 name: "Current berth reader".into(),
@@ -1618,6 +1631,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
             .send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
                     body: None,
+                    dress: None,
                     seat: None,
                     role,
                     name: "Ship reader".into(),
@@ -1648,6 +1662,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role: Role::Spectator,
                 name: "Current ship reader".into(),

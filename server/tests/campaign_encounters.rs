@@ -70,6 +70,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
             old.send(Message::Text(
                 serde_json::to_string(&ClientMessage::Hello {
                     body: None,
+                    dress: None,
                     seat: None,
                     role,
                     name: "Old client".into(),
@@ -101,6 +102,7 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                 .send(Message::Text(
                     serde_json::to_string(&ClientMessage::Hello {
                         body: None,
+                        dress: None,
                         seat: None,
                         role,
                         name: format!("{role:?}"),

@@ -10,6 +10,8 @@ extends RefCounted
 const EYE_HEIGHT: float = 0.52
 ## The free tape's ink edges: a shape cue that survives a jacket of the same hue.
 const TAPE_EDGE: Color = Color("16120e")
+## A Union rank collar stands out over the jacket or chassis collar.
+const COLLAR_FLARE: Vector3 = Vector3(1.5, 1.0, 1.5)
 
 ## Measured once per body kind from its own skinned vertices.
 static var _fittings: Dictionary = {}
@@ -71,7 +73,7 @@ static func fitting_for(view: SkinnedCharacter) -> Dictionary:
 			var bone: int = part.skin.get_bind_bone(bind)
 			var bone_name: String = view.skeleton.get_bone_name(bone) if bone >= 0 \
 				else str(part.skin.get_bind_name(bind))
-			if bone_name in ["LeftArm", "RightArm", "Head"]:
+			if bone_name in ["LeftArm", "RightArm", "Head", "LeftForeArm", "neck"]:
 				binds[bind] = bone_name
 				poses[bone_name] = part.skin.get_bind_pose(bind)
 		for surface: int in range(part.mesh.get_surface_count()):
@@ -84,6 +86,32 @@ static func fitting_for(view: SkinnedCharacter) -> Dictionary:
 			var band: Variant = _tape_fit(clouds[side], poses[side], length)
 			if band is Transform3D:
 				fitting["bands"].append({"bone": side, "transform": band})
+	if clouds.has("LeftForeArm"):
+		var length: float = _bone_length(view.skeleton, "LeftForeArm")
+		var cuff: Variant = _tape_fit(clouds["LeftForeArm"], poses["LeftForeArm"], length, 0.5, 0.82) if length > 0.0 else null
+		if cuff is Transform3D:
+			fitting["cuff"] = {"bone": "LeftForeArm", "transform": cuff}
+	var seals: Array = []
+	if clouds.has("neck"):
+		# Union rank, first grade: a red issued collar.
+		var neck_length: float = _bone_length(view.skeleton, "neck")
+		var collar: Variant = _tape_fit(clouds["neck"], poses["neck"], neck_length, 0.0, 0.6) if neck_length > 0.0 else null
+		if collar is Transform3D:
+			seals.append({"bone": "neck", "transform": (collar as Transform3D).scaled_local(COLLAR_FLARE)})
+	if seals.is_empty() and clouds.has("Head"):
+		# A body whose neck rides on the head bone wears it just below the jaw.
+		var head_length: float = _bone_length(view.skeleton, "Head")
+		var low_collar: Variant = _tape_fit(clouds["Head"], poses["Head"], head_length, -0.3, 0.05) if head_length > 0.0 else null
+		if low_collar is Transform3D:
+			seals.append({"bone": "Head", "transform": (low_collar as Transform3D).scaled_local(COLLAR_FLARE)})
+	if clouds.has("LeftArm") and not seals.is_empty():
+		# Second grade: thin stripes on the left upper arm below the armband.
+		var length: float = _bone_length(view.skeleton, "LeftArm")
+		for band: Vector2 in [Vector2(0.66, 0.74), Vector2(0.79, 0.87)]:
+			var seal: Variant = _tape_fit(clouds["LeftArm"], poses["LeftArm"], length, band.x, band.y) if length > 0.0 else null
+			if seal is Transform3D:
+				seals.append({"bone": "LeftArm", "transform": seal})
+	fitting["seals"] = seals
 	if clouds.has("Head"):
 		var visor: Variant = _visor_fit(clouds["Head"], poses["Head"])
 		if visor is Transform3D:
@@ -129,11 +157,11 @@ static func _bone_length(rig: Skeleton3D, bone_name: String) -> float:
 ## Tape around the upper arm, in the bone's own frame (its Y runs down the
 ## arm). It covers the upper arm from a sixth to three fifths of its length and
 ## sits just outside the sleeve, measured from the vertices that arm carries.
-static func _tape_fit(cloud: PackedVector3Array, bind: Transform3D, length: float) -> Variant:
+static func _tape_fit(cloud: PackedVector3Array, bind: Transform3D, length: float, from: float = 0.16, to: float = 0.6) -> Variant:
 	var band: Array[Vector3] = []
 	for point: Vector3 in cloud:
 		var local: Vector3 = bind * point
-		if local.y >= length * 0.16 and local.y <= length * 0.6:
+		if local.y >= length * from and local.y <= length * to:
 			band.append(local)
 	if band.size() < 12:
 		return null
@@ -150,8 +178,11 @@ static func _tape_fit(cloud: PackedVector3Array, bind: Transform3D, length: floa
 	deep.sort()
 	var radius_x: float = across[int(across.size() * 0.92)] * 1.1
 	var radius_z: float = deep[int(deep.size() * 0.92)] * 1.1
-	return Transform3D(Basis.from_scale(Vector3(radius_x, length * 0.38, radius_z)),
-		Vector3(centre.x, length * 0.36, centre.y))
+	# The arm tape's proportions (0.38 tall, centred at 0.36, over 0.16 to
+	# 0.6), carried to any span.
+	var span: float = (to - from) / 0.44
+	return Transform3D(Basis.from_scale(Vector3(radius_x, length * 0.38 * span, radius_z)),
+		Vector3(centre.x, length * (from + 0.2 * span), centre.y))
 
 
 ## A visor across the front of the head at eye height. Measured in the body's

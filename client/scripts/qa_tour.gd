@@ -228,6 +228,16 @@ func _run() -> void:
 				quit(1)
 				return
 
+		if state.has("profile_look") or state.has("profile_accent"):
+			# The saved look and accent the profile page and the next join use.
+			var dressing: FragrSettings = FragrSettings.for_tree(self)
+			dressing.load_from_disk()
+			for key: String in ["look", "accent"]:
+				if state.has("profile_" + key):
+					dressing.set_value("profile", key, int(state["profile_" + key]))
+					if _game_manager() != null:
+						_game_manager().settings.set_value("profile", key, int(state["profile_" + key]))
+			dressing.save_to_disk()
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
 		if not menu_page.is_empty():
@@ -812,6 +822,7 @@ func _run() -> void:
 				observed["local_feet"] = [feet.x, feet.y, feet.z]
 		if is_instance_valid(_body_pawn):
 			observed["body"] = _body_pawn.get("body_kind")
+			observed["body_look"] = _body_pawn.get("look")
 			observed["body_team"] = _body_pawn.get("team")
 			observed["body_name"] = _body_pawn.get("player_name")
 			observed["body_frame_clear"] = _body_frame_clear

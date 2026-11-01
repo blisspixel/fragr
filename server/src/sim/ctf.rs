@@ -395,6 +395,7 @@ mod tests {
             ducking: false,
             airborne: false,
             body: None,
+            dress: None,
             ping: None,
         }
     }

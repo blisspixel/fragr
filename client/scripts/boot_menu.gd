@@ -675,6 +675,10 @@ func _saved_body_choice(preview: Dictionary, can_choose: bool = true) -> void:
 			_label(tr("RUN_BODY_PENDING"))
 	else:
 		_label(tr("RUN_BODY_BOUND").format({"body": PlayerBody.label(str(preview["body"]))}))
+		var dress: Dictionary = FighterLooks.parse(preview.get("dress"), str(preview["body"]))
+		if preview.get("dress") != null and not dress.is_empty():
+			_label(tr("RUN_LOOK_BOUND").format({"look": FighterLooks.label(str(preview["body"]), int(dress["look"])),
+				"accent": FighterLooks.accent_label(int(dress["accent"]))}))
 
 func _page_new_confirm() -> void:
 	_label(tr("RUN_NEW_CONFIRM"))
@@ -1815,29 +1819,55 @@ func _page_profile() -> void:
 	_root.add_child(colour)
 	_label("BODY")
 	var body_row: HBoxContainer = HBoxContainer.new()
+	body_row.name = "LookRow"
 	body_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	body_row.add_theme_constant_override("separation", 18)
-	var body: OptionButton = OptionButton.new()
-	body.name = "Body"
-	body.custom_minimum_size = Vector2(300, 50)
-	body.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	var choices_column: VBoxContainer = VBoxContainer.new()
+	choices_column.add_theme_constant_override("separation", 8)
+	var body: OptionButton = _profile_option("Body")
 	for kind: String in PlayerBody.KINDS:
 		body.add_item(PlayerBody.label(kind))
 	body.select(PlayerBody.KINDS.find(_settings.player_body()))
-	var preview: TextureRect = TextureRect.new()
-	preview.name = "BodyPreview"
-	preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	preview.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
-	preview.custom_minimum_size = BODY_PREVIEW.size
-	_preview_body(preview, _settings.player_body())
+	var look: OptionButton = _profile_option("Look")
+	var accent: OptionButton = _profile_option("Accent")
+	accent.add_item("ACCENT: " + FighterLooks.accent_label(FighterLooks.AUTO))
+	for index: int in range(FighterLooks.ACCENTS.size()):
+		accent.add_item("ACCENT: " + FighterLooks.accent_label(index))
+	accent.select(_settings.player_accent() + 1)
+	var preview: LookPreview = LookPreview.new()
+	var refresh: Callable = func() -> void:
+		preview.show_look(_settings.player_body(), _settings.player_look(), _settings.player_accent())
+	var fill_looks: Callable = func() -> void:
+		look.clear()
+		look.add_item("LOOK: AUTO")
+		for index: int in range(FighterLooks.count(_settings.player_body())):
+			look.add_item("LOOK: " + FighterLooks.label(_settings.player_body(), index))
+		look.select(_settings.player_look() + 1)
+	fill_looks.call()
 	body.item_selected.connect(func(index: int) -> void:
 		_settings.set_value("profile", "body", PlayerBody.KINDS[index])
-		_preview_body(preview, PlayerBody.KINDS[index])
+		if _settings.player_look() == FighterLooks.AUTO:
+			_settings.set_value("profile", "look", FighterLooks.AUTO)
+		fill_looks.call()
+		refresh.call()
 	)
-	body_row.add_child(body)
+	look.item_selected.connect(func(index: int) -> void:
+		_settings.set_value("profile", "look", index - 1)
+		refresh.call()
+	)
+	accent.item_selected.connect(func(index: int) -> void:
+		_settings.set_value("profile", "accent", index - 1)
+		refresh.call()
+	)
+	choices_column.add_child(body)
+	choices_column.add_child(look)
+	choices_column.add_child(accent)
+	body_row.add_child(choices_column)
 	body_row.add_child(preview)
 	_root.add_child(body_row)
+	refresh.call()
 	_label(tr("MENU_BODY_PREFERENCE"))
+	_label(tr("MENU_LOOK_SIDES"))
 	var bob: CheckButton = CheckButton.new()
 	bob.name = "WeaponBob"
 	bob.text = "WEAPON BOB"
@@ -1861,18 +1891,13 @@ func _open_rewards() -> void:
 	_settings.set_value("profile", "name", _name_edit.text)
 	_show("rewards")
 
-## The standing figure inside the first idle cell of a baked body strip.
-const BODY_PREVIEW: Rect2 = Rect2(40, 22, 80, 114)
-
-func _preview_body(preview: TextureRect, kind: String) -> void:
-	var strip: Texture2D = load(PlayerBody.strip_path(kind))
-	if strip == null:
-		preview.texture = null
-		return
-	var cell: AtlasTexture = AtlasTexture.new()
-	cell.atlas = strip
-	cell.region = BODY_PREVIEW
-	preview.texture = cell
+## One choice row of the profile's look picker.
+func _profile_option(node_name: String) -> OptionButton:
+	var option: OptionButton = OptionButton.new()
+	option.name = node_name
+	option.custom_minimum_size = Vector2(340, 50)
+	option.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	return option
 
 func _save_profile() -> void:
 	_settings.set_value("profile", "name", _name_edit.text)

@@ -583,17 +583,19 @@ participants. Prefer explicit IDs, including after bodies leave the snapshot.
 
 ### `join`
 
-Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `FRAGR_AGENT_NAME`. Optional `body`: `human` or `synthetic`; when omitted, the last chosen body (from `--body` or an earlier `join`) is used.
+Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `FRAGR_AGENT_NAME`. Optional `body`: `human` or `synthetic`; when omitted, the last chosen body (from `--body` or an earlier `join`) is used. Optional `look` and `accent`: your fighter's roster look on that body and a personal accent colour; when omitted, the last chosen ones are used, and with none at all the server gives you the least-worn look so a room of agents is never a row of clones.
 
 **Input schema:**
 ```json
 {
   "name": "ArenaFox",
-  "body": "synthetic"
+  "body": "synthetic",
+  "look": 3,
+  "accent": 6
 }
 ```
 
-All fields optional. Unknown fields -> schema error (`isError: true`). Empty name -> schema error. A `body` other than `human` or `synthetic` -> schema error. The body is presentation only: it never changes the role, side, hit volume or any combat rule. Joining while already connected keeps the live pawn's body; leave and join to change it. A resumed pawn keeps its own.
+All fields optional. Unknown fields -> schema error (`isError: true`). Empty name -> schema error. A `body` other than `human` or `synthetic` -> schema error. The body is presentation only: it never changes the role, side, hit volume or any combat rule. Joining while already connected keeps the live pawn's body; leave and join to change it. A resumed pawn keeps its own. `look` is an integer from 0 to 7 for a human body and 0 to 4 for a synthetic one (look 0 is the body's own art; a look your body lacks is replaced by an assigned one); `accent` is 0 to 7 (ember, marigold, moss, magenta, violet, cobalt, lilac, sand). Anything else, including a path or a colour, is a schema error. Both are presentation only and ride Hello `dress` (`docs/protocol.md`). On the Union side of a team match everyone wears issued livery and rank marks instead of the accent.
 
 **Behavior:**
 - Already joined -> success, idempotent (`Already joined as '...'`)
@@ -787,7 +789,7 @@ waited on), in a Duel `duel` (both fighters' round wins in this series),
 rotating server, `vote` (`options`, `ballots`, `leader`, `closes_in`,
 `bots_vote`; see `docs/protocol.md`).
 `self_body` is your pawn's accepted body, null before a snapshot shows
-you. Every participant in `observe` carries its own `body`; Union and
+you. Every participant in `observe` carries its own `body` and `dress` (`look`, and `accent` when one was chosen); Union and
 companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`

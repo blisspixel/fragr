@@ -889,6 +889,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -1914,6 +1917,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -2940,6 +2946,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -4081,6 +4090,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -5225,6 +5237,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -6484,6 +6499,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -7808,6 +7826,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,
@@ -9212,6 +9233,9 @@
             "side": "participant"
           },
           "collidable": true,
+          "dress": {
+            "look": 0
+          },
           "hp": 100,
           "id": "00000000-0000-0000-0000-0000000003f7",
           "just_fired": false,

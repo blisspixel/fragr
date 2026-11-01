@@ -2315,6 +2315,7 @@ async fn agent_task(
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2686,6 +2687,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2856,6 +2858,7 @@ mod tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,
@@ -3806,6 +3809,7 @@ mod combat_tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,
@@ -4730,6 +4734,7 @@ mod planner_tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,
@@ -5644,6 +5649,7 @@ mod line_of_sight_tests {
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,
@@ -5724,6 +5730,7 @@ mod patrol_tests {
         fragr_server::protocol::PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,

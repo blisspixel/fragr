@@ -139,9 +139,14 @@ impl GameState {
             return;
         };
         tracing::info!("TEAM BALANCE: {current} signs on as {name}");
+        let look =
+            (self.players[index].body != fighter.body).then(|| self.least_worn_look(fighter.body));
         let player = &mut self.players[index];
         player.name = name;
         player.body = fighter.body;
+        if let Some(look) = look {
+            player.dress.look = Some(look);
+        }
     }
 
     /// Call a Host beat. The client owns the words; the server sends the

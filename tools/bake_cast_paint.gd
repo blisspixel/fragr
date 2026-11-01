@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Offline personal paint for campaign people (CastPaint). Paints each
+## Offline personal paint for campaign people and fighter looks (CastPaint). Paints each
 ## person's own source art once and records what it came from.
 ## Run: godot --headless --path client --script res://../tools/bake_cast_paint.gd
 
@@ -15,8 +15,7 @@ func _run() -> void:
 		quit(1)
 		return
 	var entries: Array[Dictionary] = []
-	var people: Array = CastPaint.SCHEMES.keys()
-	people.sort()
+	var people: Array[String] = CastPaint.people()
 	for person: String in people:
 		var source: String = CastPaint.source_for(person)
 		var scene: PackedScene = load(source) as PackedScene if ResourceLoader.exists(source, "PackedScene") else null
@@ -25,7 +24,9 @@ func _run() -> void:
 			quit(1)
 			return
 		var body: Node = scene.instantiate()
-		var image: Image = CastPaint.painted(CastPaint.source_texture(body), person)
+		var source_art: Texture2D = CastPaint.source_texture(body)
+		var zone_map: Image = CastPaint.zones(body, source_art.get_size()) if source_art != null else null
+		var image: Image = CastPaint.painted(source_art, person, zone_map)
 		body.free()
 		if image == null:
 			push_error("bake_cast_paint: unreadable source art for " + person)
@@ -37,7 +38,7 @@ func _run() -> void:
 			quit(1)
 			return
 		var rules: Array = []
-		for rule: Dictionary in CastPaint.SCHEMES[person]:
+		for rule: Dictionary in CastPaint.scheme(person):
 			var row: Dictionary = rule.duplicate()
 			row["to"] = "#" + (rule["to"] as Color).to_html(false)
 			rules.append(row)

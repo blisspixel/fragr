@@ -12,6 +12,7 @@ use crate::session::GameSession;
 mod authored_vehicles;
 mod body;
 mod discovery;
+mod dress;
 mod fire_tap;
 mod launch_authority;
 mod m03;
@@ -134,6 +135,7 @@ use uuid::Uuid;
 fn test_protocol_client_message_hello_serialization() {
     let hello = ClientMessage::Hello {
         body: None,
+        dress: None,
         seat: None,
         gameplay_version: crate::protocol::GAMEPLAY_VERSION,
         geometry_version: crate::protocol::GEOMETRY_VERSION,
@@ -151,6 +153,7 @@ fn test_protocol_client_message_hello_serialization() {
     match deserialized {
         ClientMessage::Hello {
             body: _,
+            dress: _,
             seat: None,
             role,
             name,
@@ -459,6 +462,7 @@ fn test_protocol_snapshot_serialization() {
         players: vec![PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,
@@ -2796,6 +2800,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::NoteClientVersion { .. } => "NoteClientVersion".into(),
         crate::net::GameCommand::Board { .. } => "Board".into(),
         crate::net::GameCommand::Queue { .. } => "Queue".into(),
+        crate::net::GameCommand::Dress { .. } => "Dress".into(),
     }
 }
 

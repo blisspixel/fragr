@@ -672,6 +672,7 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         ducking,
         airborne,
         body,
+        dress,
         // A newer ping reading supersedes an older one, like motion.
         ping: _,
     } = old;
@@ -696,6 +697,7 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         && ducking == &new.ducking
         && airborne == &new.airborne
         && body == &new.body
+        && dress == &new.dress
 }
 
 fn same_sabotage_facts(

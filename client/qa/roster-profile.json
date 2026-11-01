@@ -1,0 +1,10 @@
+{
+  "comment": "Profile look picker (issue 530): the live preview of a chosen look and accent. Run FRAGR_QA_MANIFEST=res://qa/roster-profile.json tools/qa_tour.sh. The tour keeps its own settings file.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "roster_profile_silver_magenta", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none", "profile_look": 2, "profile_accent": 3, "menu_page": "profile", "note": "The silver-haired look with a magenta wrist band in the live preview; upright text."},
+    {"name": "roster_profile_auto", "camera": "none", "profile_look": -1, "profile_accent": -1, "menu_page": "profile", "note": "AUTO: the body's own art and a callsign tape until the server assigns a look."},
+    {"name": "roster_join_dressed", "scene": "res://scenes/main.tscn", "at_seconds": 4, "profile_look": 5, "profile_accent": 6, "join": "human", "camera": "first_person", "settle_seconds": 1.0, "note": "A joined fighter that asked for the salvage look and a lilac accent; the tour records the accepted look."}
+  ]
+}

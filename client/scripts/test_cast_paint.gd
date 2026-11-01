@@ -43,6 +43,7 @@ func _baked() -> void:
 		# Spot-check the bake against the painter on the person's own source.
 		var body: Node = (load(CastPaint.source_for(person)) as PackedScene).instantiate()
 		var source: Texture2D = CastPaint.source_texture(body)
+		var zone_map: Image = CastPaint.zones(body, source.get_size()) if source != null else null
 		body.free()
 		_expect(source != null and source.get_size() == baked.get_size(), "bake keeps the source atlas size " + person)
 		if source == null:
@@ -58,7 +59,7 @@ func _baked() -> void:
 			var x: int = (index * 7919) % image.get_width()
 			var y: int = (index * 104729 / image.get_width() + index * 31) % image.get_height()
 			var texel: Color = original.get_pixel(x, y)
-			var rule: Dictionary = CastPaint._rule(CastPaint.SCHEMES[person], texel)
+			var rule: Dictionary = CastPaint._rule(CastPaint.scheme(person), texel, CastPaint.zone_at(zone_map, x, y))
 			var expected: Color = texel if rule.is_empty() else CastPaint.paint(texel, rule)
 			painted += 0 if rule.is_empty() else 1
 			var actual: Color = image.get_pixel(x, y)
@@ -79,8 +80,7 @@ func _baked() -> void:
 		var checked: Dictionary = FactionPalette.check({"base": base})
 		_expect(not checked["changed"], "colour picker rule keeps base " + person)
 		_expect(not (base.v >= FactionPalette.OFF_WHITE_VALUE and base.s <= FactionPalette.OFF_WHITE_SATURATION), "no matte off-white base " + person)
-	var expected_people: Array = CastPaint.SCHEMES.keys()
-	expected_people.sort()
+	var expected_people: Array[String] = CastPaint.people()
 	listed.sort()
 	_expect(listed == expected_people, "every scheme baked once")
 	var held: Array[String] = ["captive_0", "captive_1", "captive_2", "captive_3", "splice", "tern", "renn", "berth_crew_a", "berth_crew_b"]

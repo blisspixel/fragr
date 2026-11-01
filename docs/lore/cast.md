@@ -126,6 +126,39 @@ principal follows that contract. The Common Carrier's two unnamed berth crew
 deckhand in a berry jacket over a sand shirt and an agent rigger in bottle-green
 plates (proposed 2026-10-31); they stay unnamed and unvoiced.
 
+### Fighter roster (proposed 2026-10-31, for Nick to accept by eye)
+
+Multiplayer and the campaign hero draw from one roster of looks on the two
+shared bodies, offline recolours of their own art (`CastPaint`, baked by
+`tools/bake_cast_paint.gd`), so the rig, animation and hit volume never
+change. Three families stay readable apart:
+
+- **The free coalition** is the most individual: personal colours, repaired
+  and mismatched practical clothing, every fighter a person who chose their
+  own gear. Humans: workwear (the default rust jacket), a mechanic in a
+  mustard work jacket, a silver-haired grandmother in plum (Gen Alpha, aged),
+  copper hair in a forest field jacket, grey temples in faded indigo over an
+  ember shirt, dyed berry hair in a safety-orange salvage jacket, a blond in
+  waxed canvas over brick, and a violet bomber over mustard, across a range
+  of skin tones. Free agents: field plate (the default), moss, mustard, cobalt
+  and plum plates, each with its pale plates repainted so no free agent
+  stands on a bone base. A personal accent (ember, marigold, moss, magenta,
+  violet, cobalt, lilac or sand) rides a wrist band, and the tape when
+  sideless. No look uses Union black and red, off-white or cyan.
+- **The Union** is issued and uniform: on the Union side of a team match every
+  look gives way to the issued black livery with red armbands and visor.
+  Variety is rank, never taste: line (no mark), registrar (a red collar) and
+  warden (the collar and two arm stripes), the same for everyone of that rank.
+- **The Inheritance** has no player looks; its family stays off-white with
+  muted cyan, grown rather than repaired, and appears only as the late-story
+  machines.
+
+Rule bots and agents that do not choose take the least-worn look of their
+body, so a lobby is never a row of clones. Possible low contrast for the
+readability lane: the indigo and violet human jackets and the cobalt and
+plum agents are the darkest free looks in dim rooms; the deep skin tones
+with dark trousers lean on the tape and the plate.
+
 Do not establish specific ages, ethnicity, facial features or voice IDs through
 one stray generation. Approve and record the reference before producing sets.
 The personal story needs ordinary relationships and individual habits before

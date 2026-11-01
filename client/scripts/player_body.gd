@@ -64,6 +64,10 @@ static func snapshot_error(snapshot: Dictionary) -> String:
 	for player: Variant in players:
 		if player is Dictionary and player.get("body") != null and not valid(player["body"]):
 			return "The server sent an invalid player body. Connection closed."
+		# A look or accent outside the roster, or a dress without a body.
+		if player is Dictionary and player.get("dress") != null \
+				and (player.get("body") == null or FighterLooks.parse(player["dress"], str(player["body"])).is_empty()):
+			return "The server sent an invalid player look. Connection closed."
 	return ""
 
 ## Strip cell to show: idle breaths at rest, a gait that advances with the

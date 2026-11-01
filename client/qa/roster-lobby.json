@@ -1,0 +1,12 @@
+{
+  "comment": "Fighter roster in a live lobby (issue 530): rule bots dressed by the server in distinct roster looks, at gameplay distance. Run on a lit and a dark map, for example FRAGR_QA_MAP=1 FRAGR_QA_BOTS=8 FRAGR_QA_MANIFEST=res://qa/roster-lobby.json tools/qa_tour.sh (Larak Lot), then FRAGR_QA_MAP=6 (Tripoint Works foundry). Add FRAGR_QA_MODE=tdm for the Union side's issued livery and rank marks. The lineup of every look lives in client/qa/roster_review.gd.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "roster_human_08m", "scene": "res://scenes/main.tscn", "at_seconds": 6, "camera": "body", "body": "human", "body_distance": 8, "note": "A human rule bot in its assigned look at 8 m."},
+    {"name": "roster_synthetic_08m", "camera": "body", "body": "synthetic", "body_distance": 8, "note": "A free agent rule bot in its assigned look at 8 m."},
+    {"name": "roster_human_15m", "camera": "body", "body": "human", "body_distance": 15, "note": "The human at 15 m, the range a fight is read at."},
+    {"name": "roster_synthetic_15m", "camera": "body", "body": "synthetic", "body_distance": 15, "note": "The free agent at 15 m."},
+    {"name": "roster_follow", "camera": "follow", "settle_seconds": 1.0, "strip_frames": 16, "strip_interval_seconds": 0.5, "note": "Following a bot through the lobby: the fighters it meets should not be clones."}
+  ]
+}

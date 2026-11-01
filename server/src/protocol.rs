@@ -75,7 +75,7 @@ pub use actors::{
     EnemyPhase, FigureKind, SurveyorMarkState, AUDITOR_REPAIRS, SURVEYOR_MARK_RADIUS,
 };
 pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
-pub use body::BodyKind;
+pub use body::{BodyKind, Dress, ACCENTS, HUMAN_LOOKS, SYNTHETIC_LOOKS};
 pub use conquest::{CapturePoint, ConquestState, CONQUEST_BLEED_TICKETS};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
@@ -1055,6 +1055,12 @@ pub enum ClientMessage {
         /// spectator, and a resumed pawn keeps the body it already has.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         body: Option<BodyKind>,
+        /// Requested look and accent on that body (`Dress`). Omitted, or a
+        /// look the accepted body does not have, means the server assigns
+        /// the least-worn look. Ignored for a spectator and on resume; a
+        /// campaign run keeps the dress it first bound.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        dress: Option<Dress>,
         /// A Duel seat's one-time token from `SeatCall` (capability 59).
         /// While a seat is held for somebody, only the fighter Hello carrying
         /// its token is admitted. Never logged.
@@ -1870,6 +1876,10 @@ pub struct PlayerState {
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<BodyKind>,
+    /// The participant's accepted look and accent, beside `body`. Omitted
+    /// exactly when `body` is.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dress: Option<Dress>,
     /// Round trip to this fighter's connection in milliseconds, measured by
     /// the server's WebSocket pings. Omitted for rule bots, campaign actors,
     /// a fighter whose connection has not answered a ping yet, and a pawn

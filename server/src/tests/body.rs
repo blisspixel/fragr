@@ -131,6 +131,8 @@ fn body_changes_no_seeded_combat_outcome_and_survives_respawn() {
             for snapshot in &mut snapshots {
                 for player in snapshot["players"].as_array_mut().unwrap() {
                     player.as_object_mut().unwrap().remove("body");
+                    // The look is assigned per body, so it differs with it.
+                    player.as_object_mut().unwrap().remove("dress");
                 }
             }
             assert_eq!(

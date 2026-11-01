@@ -100,6 +100,8 @@ var duck_supported: bool = false
 var remote_supported: bool = false
 ## Body the next participant Hello asks for, from the saved profile.
 var requested_body: String = PlayerBody.HUMAN
+## The look and accent the next Hello asks for (FighterLooks.request).
+var requested_dress: Dictionary = {}
 ## The body the server accepted for our pawn; empty for a spectator or
 ## before Welcome. A resumed pawn keeps its own, whatever was requested.
 var accepted_body: String = ""
@@ -321,6 +323,10 @@ func send_hello():
 	if role == "human" or role == "agent":
 		hello["resume"] = _resume_token
 		hello["body"] = PlayerBody.preference(requested_body)
+		var dress: Dictionary = FighterLooks.request(int(requested_dress.get("look", FighterLooks.AUTO)),
+			int(requested_dress.get("accent", FighterLooks.AUTO)), PlayerBody.preference(requested_body))
+		if not dress.is_empty():
+			hello["dress"] = dress
 		if not seat_token.is_empty():
 			hello["seat"] = seat_token
 	seat_token = ""

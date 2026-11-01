@@ -150,6 +150,20 @@ Initial handshake message. Must be sent immediately after connection.
   the connection closes before `Welcome`. A spectator's body is ignored. A
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
+- `dress`: optional. `{"look": n, "accent": n}`, both parts optional: a roster
+  look on the chosen body (`0` to `7` for `human`, `0` to `4` for `synthetic`;
+  look `0` is the body's own art) and a personal accent colour from the
+  curated palette (`0` to `7`: ember, marigold, moss, magenta, violet, cobalt,
+  lilac, sand). Indices, never paths or colours, so no value can name a
+  reserved faction colour. A look or accent outside those ranges, or any other
+  key, fails Hello parsing like an unknown body. A look the accepted body does
+  not have, or an omitted look, gets the least-worn look of that body among
+  the participants already in the room (lowest index on a tie), the same rule
+  that dresses rule bots, so a room is never a row of clones. Presentation
+  only, like `body`: it never changes side, hit volume, speed or any outcome.
+  Ignored for a spectator and on resume. A campaign run binds the first dress
+  its owner wears and keeps it (see the run file). Additive: no gameplay
+  version gates it.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
   and the Godot client send `65`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
@@ -1768,6 +1782,12 @@ instead (see "Snapshot deltas (capability 63)").
     independent of name and behavior, so both sides of a team match field both. Omitted for Union campaign
     actors and the arena boss, which keep their own authored identity. Fixed for
     the pawn's life: respawn, resume and continue keep it.
+  - `dress`: (optional) `{"look": n, "accent": n}`, present exactly when `body`
+    is: the participant's accepted roster look (always present) and personal
+    accent (omitted when none was chosen; rule bots never choose one). Same
+    ranges and meaning as on Hello. A reader refuses a look outside the body's
+    roster. The Union side of a team match presents issued livery and rank
+    marks instead of the look and accent; the look still decides the rank.
 - `round_state`: (optional) Current round state ("Warmup", "Active", "Ended")
 - `round_time_left`: (optional) Seconds left in Active (time limit) or Warmup countdown. Omitted while Ended and during sudden death.
 - `sudden_death`: (optional) `true` while an Active round is in sudden death: an arcade clock ran out level after somebody scored, so the clock stopped and the next score wins, or a level Sabotage match is playing its one deciding round. Omitted when false. A quiet sudden death ends level after 120 s.
@@ -2966,8 +2986,8 @@ Omitting `--run-mode` retains independent development behavior. The read-only
 `--local-run-preview` identifies the saved mission, instead of using the
 launcher's guessed map. It prints one bounded JSON status line for the menu:
 `missing`, `ready` (mission, difficulty, attempt, continues, pending_continue,
-nullable body), `failed`, `abandoned`, `awaiting_mission` (next mission,
-difficulty, continues, nullable body), `incompatible`, or `corrupt`. The menu
+nullable body, nullable dress), `failed`, `abandoned`, `awaiting_mission` (next
+mission, difficulty, continues, nullable body, nullable dress), `incompatible`, or `corrupt`. The menu
 treats preview as advisory; launch validates again under the lock.
 
 The optional `--difficulty assisted|standard|severe` defaults to `standard` on
@@ -3071,7 +3091,7 @@ directory named by `FRAGR_RUN_DIR` or the platform data folder
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
-**One schema, no migration.** The document carries `"version": 24`, the only
+**One schema, no migration.** The document carries `"version": 25`, the only
 version this build reads or writes. Any other version, older or newer, is
 refused as `incompatible` before its shape is read. Nothing is upgraded,
 archived or carried forward from earlier formats. A change to the serialized
@@ -3107,8 +3127,8 @@ replaces whatever was there, including an incompatible or corrupt file.
 **Shape.**
 
 ```json
-{"version":24,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
- "level_start_continues":3,"body":"synthetic",
+{"version":25,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+ "level_start_continues":3,"body":"synthetic","dress":{"look":3,"accent":6},
  "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
  "step":{"kind":"mission_entry","mission":"recall_notice",
    "entry":{"hp":100,"armor":0,"equipment":{"selected":"fists","weapons":["fists"],
@@ -3116,6 +3136,9 @@ replaces whatever was there, including an incompatible or corrupt file.
              {"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
      "grenades":0,"proximity_mines":0,"remote_mines":0,"personal_claims":[]}}}}
 ```
+`dress` (version 25) is the look and accent the run bound with its body: `null`
+until the owner first joins, then fixed for the run, whatever a later Hello
+asks for.
 
 `step.kind` is `mission_entry`, `pending_continue`, `failed`, `abandoned` or
 `awaiting_mission` (`completed_mission`, `next_mission`, `exit`). An entry is

@@ -15,6 +15,10 @@ const DEFAULTS: Dictionary = {
 		"reticle_colour": "bone",
 		# Human or free agent; see PlayerBody. The next join uses it.
 		"body": "human",
+		# A roster look on that body and a personal accent (FighterLooks);
+		# -1 lets the server choose a look and leaves the accent off.
+		"look": -1,
+		"accent": -1,
 	},
 	"video": {
 		"display_mode": 2,      # 0 windowed, 2 fullscreen
@@ -189,6 +193,13 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 	elif path == "profile/body":
 		value = PlayerBody.preference(value)
+	elif path == "profile/look":
+		var most: int = maxi(FighterLooks.count(PlayerBody.HUMAN), FighterLooks.count(PlayerBody.SYNTHETIC))
+		if not value is int or value < FighterLooks.AUTO or value >= most:
+			value = fallback
+	elif path == "profile/accent":
+		if not value is int or (value != FighterLooks.AUTO and not FighterLooks.valid_accent(value)):
+			value = fallback
 	elif typeof(fallback) == TYPE_BOOL:
 		if not value is bool:
 			value = fallback
@@ -322,6 +333,19 @@ func player_name() -> String:
 
 func player_body() -> String:
 	return PlayerBody.preference(get_value("profile", "body"))
+
+## The saved look when the saved body has it, else AUTO.
+func player_look() -> int:
+	var value: Variant = get_value("profile", "look")
+	return int(value) if FighterLooks.valid_look(player_body(), value) else FighterLooks.AUTO
+
+func player_accent() -> int:
+	var value: Variant = get_value("profile", "accent")
+	return int(value) if FighterLooks.valid_accent(value) else FighterLooks.AUTO
+
+## The Hello `dress` for the saved choice: only the parts that are set.
+func player_dress() -> Dictionary:
+	return FighterLooks.request(player_look(), player_accent(), player_body())
 
 func reticle_colour() -> Color:
 	match get_value("profile", "reticle_colour"):

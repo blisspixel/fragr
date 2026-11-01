@@ -368,6 +368,7 @@ pub(crate) mod fixtures {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
             airborne: false,

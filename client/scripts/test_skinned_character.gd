@@ -233,7 +233,9 @@ func _skin(view: Node3D) -> Dictionary:
 	for node: Node in view.find_children("*", "MeshInstance3D", true, false):
 		var mesh: MeshInstance3D = node as MeshInstance3D
 		# Faction tape and visor ride bone attachments; they are not skin.
-		if view is SkinnedCharacter and (view as SkinnedCharacter).accent_parts().has(mesh):
+		# So do the personal band and Union rank marks (FighterLooks.mark).
+		if view is SkinnedCharacter and ((view as SkinnedCharacter).accent_parts().has(mesh) \
+				or FighterLooks.marks(view as SkinnedCharacter).has(mesh)):
 			continue
 		var rig: Skeleton3D = mesh.get_node_or_null(mesh.skeleton) as Skeleton3D
 		if rig == null or mesh.skin == null:

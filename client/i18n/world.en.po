@@ -126,6 +126,12 @@ msgstr "Choose body before continuing"
 msgid "MENU_BODY_PREFERENCE"
 msgstr "Your preferred body for new matches and unbound runs. Saved runs keep their body. It never changes how you fight."
 
+msgid "MENU_LOOK_SIDES"
+msgstr "Your look and accent show in free-for-all and on the free side. On the Union side of a team match everyone wears issued black and red with rank marks instead."
+
+msgid "RUN_LOOK_BOUND"
+msgstr "Run look: {look}, accent {accent}."
+
 msgid "MENU_PRACTICE_DEVELOPMENT"
 msgstr "Practice and development"
 

@@ -30,13 +30,27 @@ func _run() -> void:
 	colour.select(2)
 	colour.item_selected.emit(2)
 	var body: OptionButton = column.find_child("Body", true, false)
-	var preview: TextureRect = column.find_child("BodyPreview", true, false)
-	_check(body != null and preview != null and preview.texture != null, "profile shows a body choice with its preview")
-	var human_preview: Texture2D = preview.texture if preview != null else null
+	var preview: LookPreview = column.find_child("LookPreview", true, false) as LookPreview
+	_check(body != null and preview != null and preview.view != null and preview.body == PlayerBody.HUMAN,
+		"profile shows a body choice with its live preview")
 	body.select(1)
 	body.item_selected.emit(1)
-	_check(preview.texture != human_preview and (preview.texture as AtlasTexture).atlas.resource_path == PlayerBody.strip_path("synthetic"),
-		"choosing a body previews that body")
+	_check(preview.body == PlayerBody.SYNTHETIC and preview.view.kind == PlayerBody.SYNTHETIC, "choosing a body previews that body")
+	var look: OptionButton = column.find_child("Look", true, false)
+	var accent: OptionButton = column.find_child("Accent", true, false)
+	_check(look != null and look.item_count == FighterLooks.count(PlayerBody.SYNTHETIC) + 1 and look.selected == 0,
+		"the look list follows the chosen body and starts on AUTO")
+	look.select(3)
+	look.item_selected.emit(3)
+	_check(preview.look == 2 and FighterLooks.worn(preview.view) == FighterLooks.texture(PlayerBody.SYNTHETIC, 2) and FighterLooks.worn(preview.view) != null,
+		"choosing a look previews that look")
+	accent.select(5)
+	accent.item_selected.emit(5)
+	var band: Array[Node] = preview.view.find_children("PersonalBand", "MeshInstance3D", true, false)
+	_check(preview.accent == 4 and band.size() == 1 and (band[0] as MeshInstance3D).visible,
+		"choosing an accent previews it on the wrist band")
+	for label: Node in column.find_children("*", "Label", true, false):
+		_check(is_zero_approx((label as Label).rotation), "profile text sits on a level baseline")
 	var bob: CheckButton = column.get_node("WeaponBob")
 	bob.button_pressed = false
 	menu._save_profile()
@@ -47,6 +61,8 @@ func _run() -> void:
 	_check(saved.reticle_colour() == Color("8ee9df"), "profile selection must persist the chosen reticle")
 	_check(not bool(saved.get_value("gameplay", "head_bob")), "profile bob switch must persist")
 	_check(saved.player_body() == "synthetic", "profile save must persist the chosen body")
+	_check(saved.player_look() == 2 and saved.player_accent() == 4 and saved.player_dress() == {"look": 2, "accent": 4},
+		"profile save must persist the chosen look and accent")
 	var escape: InputEventKey = InputEventKey.new()
 	escape.physical_keycode = KEY_ESCAPE
 	escape.pressed = true

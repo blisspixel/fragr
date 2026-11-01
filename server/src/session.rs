@@ -458,6 +458,9 @@ impl GameSession {
                     self.remove_pawn(player_id);
                 }
             }
+            GameCommand::Dress { player_id, dress } => {
+                self.state.dress_player(player_id, dress);
+            }
             GameCommand::NoteSeat { client_id, peer } => {
                 self.remember_peer(client_id, peer);
             }
