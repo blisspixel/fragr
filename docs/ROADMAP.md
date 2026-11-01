@@ -117,7 +117,8 @@ disk, announced at join and shredded after 67 days per the
 matches and bot surveys are measured the same way. It also brings a roster of
 human and synthetic fighter looks for multiplayer (#530), a redesigned
 spectator pad timer board (#532), and locational damage: head, torso and
-limbs with armour and machine plating (#533). Benchmark and auto settings get
+legs, machine plating and faction weak points per the
+[locational damage plan](plans/locational-damage.md) (#533). Benchmark and auto settings get
 their own lane before 1.0: tiers from a 720p floor to great looks, an auto-tune
 that targets the 1% low, and player and developer docs
 ([graphics auto-tune plan](plans/graphics-autotune.md)), built after the
@@ -226,7 +227,7 @@ and finds what the numbers miss; it never replaces a measurement.
 | **Responsiveness** | Local shot and movement on screen within 60 ms at 60 fps; simulation identical at 30, 60, 144 and 240 fps | Frame-stamped input probe; movement goldens replayed at varied frame times | Fire to resolved shot 41 ms on one machine; frame-rate independence unproven |
 | **Netcode** | Remote players drawn 50 to 75 ms behind (100 ms today), widening only on measured jitter; peeker's advantage under 150 ms at 50 ms round trip; lag compensation never hits through present cover | Render-time probe; two clients with injected delay; rewind tests and shot audit | 100 ms interpolation; 200 ms rewind cap; no two-machine measurement |
 | **Movement** | Stop in 100 to 150 ms and reach top speed in 100 to 200 ms; jump apex 1.0 to 1.2 m with no "maybe jumpable" ledges; one owned speed trick capped near 2.3x run speed | Tick-count golden tests; map ledge-height scan | Inside the bands except the ledge scan, which does not exist |
-| **Fights** | Clean-hit time to kill 0.5 to 1.2 s with no non-power weapon under 0.5 s; median kill time 0.8 to 1.5 s; no weapon above 45% of shots or kills in any mode; each weapon's median kill distance in its own band | Sticky TTK table; bot survey kill-time quantiles, shot and kill share, kill distances | Free-for-all top gun at 42% or under; team deathmatch Rifle 62 to 71%; kill distance bands unmeasured |
+| **Fights** | Torso clean-hit time to kill 0.5 to 1.2 s; all-head kills take at least 0.4 s for every non-power gun (the Railgun's head one-shot is a deliberate signature); median kill time 0.8 to 1.5 s; no weapon above 45% of shots or kills in any mode; each weapon's median kill distance in its own band | Sticky TTK table; bot survey kill-time quantiles, shot and kill share, kill distances | Free-for-all top gun at 42% or under; team deathmatch Rifle 62 to 71%; kill distance bands unmeasured |
 | **Power and pacing** | Power items on 90 to 120 s clocks, the Plate on 35 s; pad contest index above 15%; respawn 3 to 4 s; under 2% of spawns die within 3 s; 6 to 15 s from respawn to first contact | Bot survey pad, spawn and contact metrics | Clocks and respawn in band; time to contact not yet measured |
 | **Feedback** | Hit marker and sound on the first frame after the server hit event; body, head and kill told apart by sound; a death recap within 300 ms | Client harness timeline; blind listening check | Tiered hit chime exists; no death recap |
 | **Readability** | Every fighter at least 3:1 luminance contrast against its background from 10 to 40 m; faction readable in silhouette at 40 m; a colour-blind preset | Contrast scan of tour captures; silhouette review | Faction colour contract exists; no contrast scan |
