@@ -171,7 +171,12 @@ impl Walkthrough {
         for target in &visible {
             self.seen.insert(target.id);
         }
-        let target = visible.iter().min_by(|a, b| {
+        let bullets_before = equipment_bullets(self);
+        // With no round left in the gun or the pack, an ordinary player stops
+        // facing a guard it cannot hurt and walks on toward the next supply.
+        let spent = bullets_before == 0
+            && self.session.state.players[0].weapon.ammo_pool() == Some(AmmoPool::Bullets);
+        let target = visible.iter().filter(|_| !spent).min_by(|a, b| {
             (a.x - me.x)
                 .hypot(a.z - me.z)
                 .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
@@ -179,7 +184,6 @@ impl Walkthrough {
         let intentional_miss = target.is_some()
             && self.miss_every > 0
             && (self.shots + 1).is_multiple_of(self.miss_every);
-        let bullets_before = equipment_bullets(self);
         let action = if let Some(target) = target {
             self.first_threat.get_or_insert(snapshot.tick);
             let player = &self.session.state.players[0];

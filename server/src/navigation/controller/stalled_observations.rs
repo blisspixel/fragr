@@ -135,3 +135,73 @@ fn stationary_recovery_requires_fresh_bounded_observations() {
         assert!(navigator.avoidance_motion.is_none());
     }
 }
+
+/// Two bodies pushing into each other on open ground: after a second of
+/// observed immobility only the later id yields, backing away from the
+/// earlier one for a short lease, so the pair cannot stay wedged.
+#[test]
+fn wedged_bodies_break_the_tie_by_id_and_the_later_one_backs_away() {
+    let arena = crate::movement::Arena {
+        half: 40.0,
+        solids: Vec::new(),
+    };
+    let body = |key: Uuid, x: f32, yaw: f32| crate::movement::contact::ContactBody {
+        key: key.to_string(),
+        from: crate::movement::MoveState {
+            x,
+            y: 0.0,
+            z: 0.0,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw,
+        },
+        proposed: crate::movement::MoveState {
+            x,
+            y: 0.0,
+            z: 0.0,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw,
+        },
+        height: FIGHTER_HEIGHT,
+        radius: crate::movement::RADIUS,
+        jump: false,
+    };
+    let (early, late) = (Uuid::from_u128(1), Uuid::from_u128(2));
+    // Face to face, touching, each walking into the other.
+    let bodies = [body(early, 0.0, 0.0), body(late, 1.0, std::f32::consts::PI)];
+    let walk = |yaw: f32| Action {
+        forward: true,
+        yaw: Some(yaw),
+        ..Default::default()
+    };
+    let mut earlier = Navigator::default();
+    let mut later = Navigator::default();
+    let mut yielded = None;
+    for tick in 1..=YIELD_STALL_TICKS as u64 + 2 {
+        let first = earlier.avoid_bodies(&arena, early, &bodies, walk(0.0), tick);
+        let second = later.avoid_bodies(&arena, late, &bodies, walk(std::f32::consts::PI), tick);
+        assert!(
+            !first.back,
+            "the earlier id never yields at tick {tick}: {first:?}"
+        );
+        if later.avoidance_stalled < YIELD_STALL_TICKS {
+            assert!(!second.back, "no yield before a second of contact");
+        } else if yielded.is_none() {
+            yielded = Some((tick, second));
+        }
+    }
+    let (tick, second) = yielded.expect("the later id yields once wedged");
+    // Facing the earlier body, backing away is the yield.
+    assert!(second.back && !second.forward, "{second:?}");
+    assert_eq!(later.avoidance_until, tick + YIELD_LEASE_TICKS);
+    // A body with no earlier neighbour in contact keeps its own choice.
+    let mut alone = Navigator::default();
+    let far = [body(early, 0.0, 0.0), body(late, 5.0, std::f32::consts::PI)];
+    for tick in 1..=YIELD_STALL_TICKS as u64 + 2 {
+        let action = alone.avoid_bodies(&arena, late, &far, walk(std::f32::consts::PI), tick);
+        assert!(!action.back, "nothing to yield to at tick {tick}");
+    }
+}
