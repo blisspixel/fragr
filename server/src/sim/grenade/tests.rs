@@ -91,6 +91,7 @@ fn blast_distance_uses_actual_cylinder_and_raised_notary_box() {
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     };
     let point = closest_body_point_stance([3.0, 0.0, 3.0], [0.0, 4.0, 0.0], Some(notary), false);

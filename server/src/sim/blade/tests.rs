@@ -141,6 +141,7 @@ fn test_exact_nine_tick_cadence_and_twelve_uses_exhaustion() {
         phase_started: 0,
         phase_ends: 100,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     });
 

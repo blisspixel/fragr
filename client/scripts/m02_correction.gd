@@ -54,7 +54,7 @@ static func authored(info: Dictionary) -> bool:
 		[Vector3(-4, 0, -15), Vector3(0, 3.2, -13)],
 		[Vector3(8, 0, -13), Vector3(9, 2.6, -9)],
 		[Vector3(-4, 0, 3), Vector3(-1, 2.2, 6)],
-		[Vector3(-5, 0, 19), Vector3(-3, 1.4, 21)],
+		[Vector3(-5, 0, 19), Vector3(-3, 1.5, 21)],
 		[Vector3(-7, 0, 24), Vector3(7, 7, 25)],
 	]
 	var found: int = 0

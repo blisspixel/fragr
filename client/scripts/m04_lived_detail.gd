@@ -39,7 +39,7 @@ func build(parent: Node3D, info: Dictionary) -> Node3D:
 		elif _footprint(low, high, Vector2(-3, 27), Vector2(3, 30)) and is_equal_approx(high.y, 0.9):
 			_meal_table((low + high) * 0.5, high.y)
 		elif _footprint(low, high, Vector2(-33, -5), Vector2(-30, -3)) or _footprint(low, high, Vector2(-33, 7), Vector2(-30, 9)):
-			if is_equal_approx(high.y, 0.65):
+			if is_equal_approx(high.y, 0.6):
 				_bed((low + high) * 0.5, high.y)
 		elif _footprint(low, high, Vector2(-20, 17), Vector2(-19.5, 39)) and is_equal_approx(high.y, 5.0):
 			for z: float in [21.0, 27.0, 35.0]:

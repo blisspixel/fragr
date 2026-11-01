@@ -28,6 +28,11 @@ const MAX_HISTORY_FILES: int = 64
 ## that the last one was cancelled.
 const AGAIN_META: StringName = &"fragr_benchmark_again"
 const CANCELLED_META: StringName = &"fragr_benchmark_cancelled"
+## Auto settings replay a shorter fight with the local server still running,
+## so the processor cost of solo play is in every frame (AutoTune).
+const TUNE_WORKLOAD_ID: String = "larak-lot-r2-10-bots-20s-orbit-host-running"
+## Set on the tree when an auto-tune run was cancelled.
+const TUNE_CANCELLED_META: StringName = &"fragr_tune_cancelled"
 
 var phase: String = "idle"
 var camera: Node3D = null
@@ -57,6 +62,18 @@ var _capture_started_usec: int = 0
 var _preparing_started_usec: int = 0
 var _since_refresh: float = 0.0
 var _restored: bool = false
+## Auto settings: the search this run measures for, the candidate on screen
+## and the machine it describes. Null for an ordinary benchmark.
+var tuner: AutoTune = null
+var tune_requested: bool = false
+var fingerprint: Dictionary = {}
+var power: String = "unknown"
+var _candidate: Dictionary = {}
+var _labels: PackedStringArray = PackedStringArray()
+var _gpu_ms: PackedFloat32Array = PackedFloat32Array()
+var _quiet_s: float = 0.0
+var _last_compiles: int = -1
+var _measuring_gpu: bool = false
 
 static func workload() -> Dictionary:
 	return {
@@ -69,8 +86,8 @@ static func workload() -> Dictionary:
 		"port": 0,
 	}
 
-static func boot_for(game_url: String, all_presets: bool = false) -> Dictionary:
-	return {"mode": "spectate", "host": game_url, "benchmark": true, "benchmark_compare": all_presets}
+static func boot_for(game_url: String, all_presets: bool = false, tune: bool = false) -> Dictionary:
+	return {"mode": "spectate", "host": game_url, "benchmark": true, "benchmark_compare": all_presets, "benchmark_tune": tune}
 
 ## A benchmark boot is a spectator of the match this menu just started.
 static func read_boot(meta: Variant) -> Dictionary:
@@ -83,7 +100,9 @@ static func read_boot(meta: Variant) -> Dictionary:
 	if host.is_empty():
 		return {}
 	var compare: Variant = meta.get("benchmark_compare", false)
-	return {"benchmark": true, "host": host, "benchmark_compare": typeof(compare) == TYPE_BOOL and bool(compare)}
+	var tune: Variant = meta.get("benchmark_tune", false)
+	return {"benchmark": true, "host": host, "benchmark_compare": typeof(compare) == TYPE_BOOL and bool(compare),
+		"benchmark_tune": typeof(tune) == TYPE_BOOL and bool(tune)}
 
 static func present_uncapped() -> void:
 	Engine.max_fps = 0
@@ -97,15 +116,12 @@ static func restore_presentation(settings: FragrSettings) -> void:
 	settings.apply_video()
 
 static func preset_label(quality: int) -> String:
-	match quality:
-		0:
-			return "Performance"
-		1:
-			return "Balanced"
-		2:
-			return "High"
-		_:
-			return "Preset %d" % quality
+	return RenderQuality.tier_name(quality)
+
+## About how long auto settings take: the recording plus a typical search of
+## four candidates and the confirm window, each with a short warm-up.
+static func tune_seconds() -> float:
+	return float(AutoTune.CAPTURE_TICKS) / 20.0 + 4.0 * (AutoTune.SCORE_SECONDS + 3.0) + AutoTune.CONFIRM_SECONDS + 3.0 + 10.0
 
 ## Content seconds a run plays, before loading and preset switches: the
 ## recording plus warm-up and scored time for each preset.
@@ -120,16 +136,42 @@ func begin() -> void:
 		return
 	# Without a match manager there is nothing to record: the headless checks
 	# drive the measurement clock directly through `advance`.
-	if presets.is_empty():
-		presets.append(1 if preferences == null else int(preferences.get_value("video", "quality")))
+	if tuner != null:
+		_take_candidate()
+	elif presets.is_empty():
+		presets.append(RenderQuality.DEFAULT_TIER if preferences == null else int(preferences.get_value("video", "quality")))
 	_begin_measurement()
 
 func _records() -> bool:
 	return manager != null
 
+## The tuner's next candidate becomes the next measured step.
+func _take_candidate() -> bool:
+	_candidate = tuner.next()
+	if _candidate.is_empty():
+		return false
+	presets.append(int(_candidate["tier"]))
+	_labels.append(AutoTune.label(_candidate))
+	return true
+
+func _step_label(index: int) -> String:
+	if tuner != null and index >= 0 and index < _labels.size():
+		return _labels[index]
+	return preset_label(presets[index]) if index >= 0 and index < presets.size() else ""
+
+func _prime_seconds() -> float:
+	return AutoTune.WARMUP_MAX if tuner != null else PRIME_SECONDS
+
+func _score_seconds() -> float:
+	return float(_candidate.get("seconds", AutoTune.SCORE_SECONDS)) if tuner != null else SCORE_SECONDS
+
 ## The step names the HUD lists: the recording, then each preset.
 func steps() -> PackedStringArray:
 	var names: PackedStringArray = PackedStringArray(["Record"]) if _records() else PackedStringArray()
+	if tuner != null:
+		names.append("Search")
+		names.append("Confirm")
+		return names
 	for quality: int in presets:
 		names.append(preset_label(quality))
 	return names
@@ -138,6 +180,8 @@ func steps() -> PackedStringArray:
 ## seconds; loading between presets is not counted, so the remaining time is
 ## an estimate and is labelled "about". A preparing step does not advance.
 func progress() -> Dictionary:
+	if tuner != null:
+		return _tune_progress()
 	var names: PackedStringArray = steps()
 	var offset: int = 1 if _records() else 0
 	var per_preset: float = PRIME_SECONDS + SCORE_SECONDS
@@ -193,8 +237,60 @@ func progress() -> Dictionary:
 		"scored_s": _scored_elapsed if phase == "scoring" else 0.0,
 	}
 
+## The auto-tune readout: the candidate being tried and a time estimate. The
+## search length depends on the machine, so the remaining time is "about".
+func _tune_progress() -> Dictionary:
+	var names: PackedStringArray = steps()
+	var label: String = _step_label(preset_index).to_upper().trim_suffix(" CONFIRM")
+	var total: float = tune_seconds()
+	var done: float = 0.0
+	var step: int = 0
+	var headline: String = "STARTING"
+	var detail: String = "Not scored."
+	var confirming: bool = str(_candidate.get("kind", "")) == "confirm"
+	var before: float = float(AutoTune.CAPTURE_TICKS) / 20.0 + float(preset_index) * (AutoTune.SCORE_SECONDS + 3.0)
+	match phase:
+		"capturing":
+			done = clampf(capture.elapsed(), 0.0, total)
+			headline = "RECORDING THE FIGHT"
+			detail = "Not scored. Ten bots fight once; every candidate replays it with the local server still running."
+		"preparing":
+			step = 2 if confirming else 1
+			done = before
+			headline = "LOADING " + label
+			detail = "Not scored."
+		"priming":
+			step = 2 if confirming else 1
+			done = before + minf(_since_start, 3.0)
+			headline = "WARMING UP " + label
+			detail = "Not scored. Waiting for shaders to finish compiling."
+		"scoring":
+			step = 2 if confirming else 1
+			done = before + 3.0 + _scored_elapsed
+			headline = ("CONFIRMING " if confirming else "TRYING ") + label
+			detail = "Scored. Holding a 1%% low of %d fps or more passes." % ceili(tuner.threshold)
+		"done":
+			step = names.size()
+			done = total
+			headline = "FINISHING"
+			detail = "Saving the choice."
+	if _records():
+		step = 0 if phase == "capturing" else step
+	else:
+		step = maxi(0, step - 1)
+	done = minf(done, total * 0.97) if phase != "done" else total
+	return {"state": phase, "steps": names, "step": mini(step, names.size()), "headline": headline, "detail": detail,
+		"overall": done / total, "marks": PackedFloat32Array([0.22, 0.8]) if _records() else PackedFloat32Array([0.8]),
+		"remaining_s": maxf(0.0, total - done),
+		"elapsed_s": float(Time.get_ticks_usec() - _run_started_usec) / 1000000.0 if _run_started_usec > 0 else 0.0,
+		"scored_frames": _scored.size() if phase == "scoring" else 0, "scored_s": _scored_elapsed if phase == "scoring" else 0.0}
+
 func _begin_measurement() -> void:
 	phase = "priming"
+	_quiet_s = 0.0
+	_last_compiles = -1
+	_gpu_ms = PackedFloat32Array()
+	_set_gpu_measure(tuner != null and manager != null)
 	_since_start = 0.0
 	_scored_elapsed = 0.0
 	_scored = PackedFloat32Array()
@@ -208,28 +304,33 @@ func _begin_measurement() -> void:
 	set_process(true)
 
 ## Advance the measurement clock by one whole drawn frame, in seconds.
-func advance(interval: float) -> void:
+## `compiled` is how many pipelines compiled during it; an auto-tune warm-up
+## ends once none has for AutoTune.WARMUP_QUIET seconds (at most WARMUP_MAX),
+## so shader compilation is never scored. `gpu_ms` is the frame's GPU time,
+## 0 where the renderer does not report it.
+func advance(interval: float, compiled: int = 0, gpu_ms: float = 0.0) -> void:
 	if phase != "priming" and phase != "scoring":
 		return
 	if not is_finite(interval) or interval <= 0.0:
 		return
-	var started_at: float = _since_start
 	_since_start += interval
 	if manager != null:
 		for snapshot: Dictionary in capture.due(_since_start):
 			manager._on_snapshot_received(snapshot)
 	if camera != null:
 		BenchmarkCamera.apply(camera, _since_start)
-	if started_at < PRIME_SECONDS:
-		if _since_start >= PRIME_SECONDS:
+	if phase == "priming":
+		_quiet_s = _quiet_s + interval if compiled <= 0 else 0.0
+		var settled: bool = tuner != null and _quiet_s >= AutoTune.WARMUP_QUIET
+		if settled or _since_start >= _prime_seconds():
 			phase = "scoring"
 			_refresh_hud()
 		return
-	phase = "scoring"
 	_scored.append(interval)
 	_scored_us.append(roundi(interval * 1000000.0))
+	_gpu_ms.append(gpu_ms if is_finite(gpu_ms) and gpu_ms > 0.0 else 0.0)
 	_scored_elapsed += interval
-	if _scored_elapsed >= SCORE_SECONDS:
+	if _scored_elapsed >= _score_seconds():
 		_preset_finished(FrameStats.report(_scored))
 
 ## The finished report, the saved files' folder and the actions a player has
@@ -285,7 +386,21 @@ func _measure_drawn_frame() -> void:
 	_last_usec = now
 	if hud != null:
 		hud.push_interval(interval)
-	advance(interval)
+	var compiled: int = 0
+	var gpu: float = 0.0
+	if tuner != null:
+		var total: int = StutterTrace.pipeline_compilations()
+		compiled = total - _last_compiles if _last_compiles >= 0 else 1
+		_last_compiles = total
+		if _measuring_gpu:
+			gpu = RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
+	advance(interval, compiled, gpu)
+
+func _set_gpu_measure(on: bool) -> void:
+	if on == _measuring_gpu or not is_inside_tree():
+		return
+	_measuring_gpu = on
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), on)
 
 func _ensure_hud() -> void:
 	if hud != null:
@@ -307,8 +422,14 @@ func _start_capture() -> void:
 		_fail("The benchmark could not read your graphics settings.")
 		return
 	presets.clear()
-	if compare_all:
-		presets.assign([0, 1, 2])
+	if tune_requested:
+		fingerprint = HardwareProfile.read()
+		power = HardwareProfile.power_state()
+		tuner = AutoTune.for_settings(preferences, fingerprint, get_window().size, power)
+		capture.duration_ticks = AutoTune.CAPTURE_TICKS
+		_take_candidate()
+	elif compare_all:
+		presets.assign([RenderQuality.LOW, RenderQuality.MEDIUM, RenderQuality.HIGH])
 	else:
 		presets.append(int(preferences.get_value("video", "quality")))
 	capture.map_info = manager.current_map_info.duplicate(true)
@@ -345,8 +466,11 @@ func _finish_capture() -> void:
 	if manager.net_client.snapshot_received.is_connected(_capture_snapshot):
 		manager.net_client.snapshot_received.disconnect(_capture_snapshot)
 	manager.net_client.disconnect_from_server()
+	# The player benchmark measures drawing alone and stops the host. Auto
+	# settings keep it running: in solo play the server and its bots share
+	# the processor, and a 4-core machine must not pass a scene it cannot play.
 	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
-	if host != null:
+	if host != null and tuner == null:
 		host.stop()
 	await get_tree().process_frame
 	_begin_preset()
@@ -359,6 +483,10 @@ func _begin_preset() -> void:
 	_refresh_hud()
 	render_settings = preferences.draft()
 	render_settings.set_value("video", "quality", presets[preset_index])
+	if tuner != null:
+		render_settings.set_value("video", "render_scale", int(_candidate.get("render_scale", 100)))
+		render_settings.set_value("video", "resolution_height", int(_candidate.get("resolution_height", 0)))
+		render_settings.set_value("video", "pixel_scale", int(_candidate.get("pixel_scale", render_settings.get_value("video", "pixel_scale"))))
 	manager._clear_world()
 	manager.hud.reset_host_chrome()
 	manager.ended_podium_shown = false
@@ -379,7 +507,7 @@ func _begin_preset() -> void:
 
 func _preset_finished(summary: Dictionary) -> void:
 	var quality: int = presets[preset_index]
-	summary["preset"] = preset_label(quality)
+	summary["preset"] = _step_label(preset_index)
 	summary["quality"] = quality
 	summary["replay_sha256"] = capture.digest
 	summary["replayed_snapshots"] = capture.cursor
@@ -394,6 +522,15 @@ func _preset_finished(summary: Dictionary) -> void:
 	# Every scored interval in whole microseconds, as measured. FrameStats on
 	# these values reproduces every figure above and the result timeline.
 	summary["frame_us"] = Array(_scored_us)
+	if tuner != null:
+		# The timeline's row label has room for a short name; the candidate
+		# table names the confirmed choice in full.
+		if str(_candidate.get("kind", "")) == "confirm":
+			summary["preset"] = "Confirm"
+		summary.merge(AutoTune.gpu_figures(_scored, _gpu_ms))
+		summary["candidate"] = _candidate.duplicate()
+		tuner.record(summary)
+		_take_candidate()
 	results.append(summary)
 	preset_index += 1
 	if preset_index < presets.size():
@@ -407,6 +544,8 @@ func _preset_finished(summary: Dictionary) -> void:
 		return
 	phase = "done"
 	set_process(false)
+	_set_gpu_measure(false)
+	var tuned: Dictionary = _finish_tune()
 	_restore()
 	final_report = {"schema_version": SCHEMA_VERSION, "state": "complete", "created_utc": Time.get_datetime_string_from_system(true),
 		"workload": {"id": WORKLOAD_ID, "description": "Larak Lot, ten bots, one recorded authoritative match replayed for each preset",
@@ -422,9 +561,63 @@ func _preset_finished(summary: Dictionary) -> void:
 		"percentile_definition": "inclusive linear rank (count - 1) * percentile / 100",
 		"capture": {"sha256": capture.digest, "snapshots": capture.frames.size(), "bytes": capture.bytes,
 			"first_tick": capture.first_tick, "last_tick": capture.last_tick}, "runs": results}
+	if not tuned.is_empty():
+		final_report["auto_tune"] = tuned
+		final_report["workload"]["id"] = TUNE_WORKLOAD_ID
+		final_report["workload"]["description"] = "Larak Lot, ten bots, one recorded authoritative match replayed for each auto settings candidate with the local server running"
+		final_report["workload"]["capture_seconds"] = float(AutoTune.CAPTURE_TICKS) / 20.0
+		final_report["workload"]["local_host"] = "running"
+		final_report["measurement"] += "; GPU time from viewport_get_measured_render_time_gpu; warm-up until no pipeline compiled for %.0f s" % AutoTune.WARMUP_QUIET
+		final_report["warmup_seconds"] = AutoTune.WARMUP_MAX
+		final_report["score_seconds"] = AutoTune.SCORE_SECONDS
 	final_report["compatibility"] = compatibility(final_report)
 	final_report["save_error"] = _save_report(final_report)
 	finished.emit(final_report)
+
+## The tuner's choice: written to the player's settings (only unpinned
+## options move), with its record and plain-words card. Returns the report
+## block, or {} for an ordinary benchmark.
+func _finish_tune() -> Dictionary:
+	if tuner == null or not tuner.done():
+		return {}
+	var result: Dictionary = tuner.result()
+	var refresh: int = int(fingerprint.get("refresh", -1))
+	var deck: Dictionary = {}
+	if HardwareProfile.is_steam_deck(fingerprint):
+		deck = HardwareProfile.deck_profile(refresh, power, float(result["low_1_count_fps"]), int(preferences.get_value("video", "target_fps")) if preferences != null else 0)
+	var context: Dictionary = {"adapter": fingerprint.get("adapter", RenderingServer.get_video_adapter_name()),
+		"driver": "%s %s" % [RenderQuality.renderer_name(str(fingerprint.get("renderer", ""))), str(fingerprint.get("driver", ""))],
+		"size": [get_window().size.x, get_window().size.y] if is_inside_tree() else [0, 0], "refresh": refresh,
+		"date": Time.get_date_string_from_system(), "power": power, "deck": deck}
+	if preferences != null:
+		context["cap_offer"] = AutoTune.cap_offer(int(result["target"]), refresh, bool(preferences.get_value("video", "vsync")))
+	var lines: PackedStringArray = AutoTune.describe(result, context)
+	var record: Dictionary = AutoTune.make_record(result, fingerprint, lines, "measured", power, deck)
+	var saved: String = ""
+	if preferences != null:
+		var previous: Dictionary = preferences.get_value("video", "tune")
+		var trial: Variant = previous.get("compat_trial")
+		if trial is Dictionary and str(fingerprint.get("renderer", "")) == "gl_compatibility":
+			lines = _settle_compatibility(lines, float(result["low_1_count_fps"]), float((trial as Dictionary)["forward_low_1"]))
+			record["lines"] = Array(lines)
+		var candidate: FragrSettings = preferences.draft()
+		AutoTune.apply_record(candidate, record)
+		candidate.set_value("video", "tune", record)
+		FrameGovernor.clear()
+		if preferences.commit(candidate) != OK:
+			saved = "The choice could not be saved; your settings are unchanged."
+	return {"result": result, "lines": Array(lines), "record": record, "save_error": saved, "fingerprint": fingerprint, "power": power}
+
+## After the restart into Compatibility: keep it only if it measured better
+## than Forward+ did on this machine; otherwise take the override away again.
+func _settle_compatibility(lines: PackedStringArray, compat_low: float, forward_low: float) -> PackedStringArray:
+	var out: PackedStringArray = lines.duplicate()
+	if compat_low > forward_low:
+		out.append("Compatibility measured %d against Forward+ %d, so it stays." % [roundi(compat_low), roundi(forward_low)])
+	else:
+		RendererOverride.clear()
+		out.append("Forward+ measured %d against Compatibility %d, so the next start goes back to Forward+." % [roundi(forward_low), roundi(compat_low)])
+	return out
 
 ## What two results must share before their numbers are compared across runs:
 ## the workload and metric versions, engine and build, the system, display
@@ -491,6 +684,7 @@ func _restore() -> void:
 		return
 	_restored = true
 	render_settings = null
+	_set_gpu_measure(false)
 	if is_instance_valid(manager) and manager.is_inside_tree():
 		manager._apply_render_preferences()
 	restore_presentation(preferences)
@@ -540,7 +734,7 @@ func _save_report(document: Dictionary) -> String:
 	output_directory = ProjectSettings.globalize_path(output_directory)
 	if DirAccess.make_dir_recursive_absolute(output_directory) != OK:
 		return "Results could not be saved."
-	var filename: String = "benchmark-" + str(document["created_utc"]).replace(":", "").replace("-", "") + "-%d" % OS.get_process_id()
+	var filename: String = ("autotune-" if document.has("auto_tune") else "benchmark-") + str(document["created_utc"]).replace(":", "").replace("-", "") + "-%d" % OS.get_process_id()
 	for extension: String in ["json", "csv"]:
 		var file: FileAccess = FileAccess.open(output_directory.path_join(filename + "." + extension), FileAccess.WRITE)
 		if file == null:

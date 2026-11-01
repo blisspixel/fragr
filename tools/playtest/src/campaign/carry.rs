@@ -606,7 +606,10 @@ mod tests {
         // finite earned supply and dies in its M02 window. Every lifecycle
         // check inside `trial` is a hard error, never a reported outcome.
         // (Seed 42 served until #489: once M01 retries ran on their own
-        // streams, its M02 window held no death.)
+        // streams, its M02 window held no death; seed 41 until #538 lowered
+        // the Recall Notice desks to 1.1 m and its M01 run spent every
+        // continue; 43 for #538 alone, 41 again once the plated machines of
+        // #533 joined it.)
         let mut reviews = Reviews::default();
         let row = trial(
             41,
@@ -671,17 +674,19 @@ mod tests {
 
     #[test]
     fn an_exhausted_carry_saves_failure_without_a_retry() {
-        // Seed 42 deliberate/Standard spends all three continues in M01 and
+        // Seed 12 deliberate/Severe spends all three continues in M01 and
         // still departs; its first M02 death exhausts the run on disk. Earlier
         // seeds stopped fitting as the game changed: 43 once Union guards
         // needed a sighting (wave 12), 54 and 40 once the participant's view
         // ordered the attack tokens (#493) and M01 retries ran on their own
-        // streams (#489).
+        // streams (#489), 42 once plated Sweepers changed the M01 fights
+        // (locational damage, #533), 4 once #538 lowered the Recall Notice
+        // desks on top of the plating.
         let mut reviews = Reviews::default();
         let row = trial(
-            42,
+            12,
             PROFILES[1],
-            CampaignDifficulty::Standard,
+            CampaignDifficulty::Severe,
             12_000,
             M02_WINDOW_TICKS,
             &mut reviews,
@@ -833,7 +838,9 @@ mod tests {
         // run and attempt: a different fight from attempt 1, and the same
         // fight every time the same death is reopened. (The fixture moved to
         // seed 41: seed 42's M01 retries now run on their own streams, and
-        // its M02 window no longer holds a death to reopen.)
+        // its M02 window no longer holds a death to reopen, then to seed 43
+        // when #538 lowered the Recall Notice desks and seed 41's M01 run
+        // spent every continue, and back to 41 once #533 and #538 met.)
         let (pending, entry, first) = first_pending(41);
         let retried = replay(&pending, &entry, 41, 41);
         assert_ne!(retried, first, "a reopened death is not replayed");

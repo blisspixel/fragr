@@ -76,6 +76,8 @@ pub struct ReadyFacts {
     pub status_every_s: u64,
     /// UDP 6768 presence packets are on (any bind that is not loopback).
     pub lan_beacon: bool,
+    /// Fun metrics are kept (`--fun-metrics`).
+    pub fun_metrics: bool,
 }
 
 /// The ready card printed under the `ready ws://...` line.
@@ -104,6 +106,7 @@ pub fn ready_card(facts: &ReadyFacts, style: Style) -> String {
         "Start fragr, open Multiplayer and join an address above. Watching and joining are optional.",
     );
     row(&mut out, "Desk", desk_line(facts.desk));
+    row(&mut out, "Tally", tally_line(facts.fun_metrics));
     row(
         &mut out,
         "Stop",
@@ -125,6 +128,25 @@ pub fn ready_card(facts: &ReadyFacts, style: Style) -> String {
         ),
     );
     out
+}
+
+/// The desk's `status` with the fun metrics row under it.
+pub fn with_tally(outcome: crate::desk::DeskOutcome, on: bool) -> crate::desk::DeskOutcome {
+    match outcome {
+        crate::desk::DeskOutcome::Text(text) => {
+            crate::desk::DeskOutcome::Text(format!("{text}\nTally   {}", tally_line(on)))
+        }
+        other => other,
+    }
+}
+
+/// The fun metrics row, in the policy's own words.
+pub fn tally_line(on: bool) -> &'static str {
+    if on {
+        "Fun metrics on: match tallies only, never callsigns, ids or addresses. Joiners are told; files stay in the run directory and are shredded after 67 days."
+    } else {
+        "Off. --fun-metrics keeps match-level tallies on this machine for tuning (docs/PRIVACY.md)."
+    }
 }
 
 fn bot_line(facts: &ReadyFacts) -> String {
@@ -462,6 +484,7 @@ mod tests {
             desk: DeskState::Off,
             status_every_s: 60,
             lan_beacon: true,
+            fun_metrics: false,
         }
     }
 
@@ -545,14 +568,38 @@ mod tests {
             "Ctrl-C, or close this window",
             "every 60 s",
             "--output log",
+            "Tally   Off. --fun-metrics keeps match-level tallies",
         ] {
             assert!(card.contains(needle), "missing {needle:?} in\n{card}");
         }
+        let tallied = ready_card(
+            &ReadyFacts {
+                fun_metrics: true,
+                ..facts()
+            },
+            Style { ansi: false },
+        );
+        assert!(
+            tallied.contains("Tally   Fun metrics on: match tallies only")
+                && tallied.contains("shredded after 67 days"),
+            "{tallied}"
+        );
         // LAN comes before the overlay, whatever order adapters arrive in.
         assert!(card.find("LAN").unwrap() < card.find("overlay").unwrap());
         for line in card.lines() {
             assert!(!line.contains('\u{2014}') && !line.contains('\u{2013}'));
         }
+    }
+
+    #[test]
+    fn the_desk_status_names_the_tally_either_way() {
+        use crate::desk::DeskOutcome;
+        let on = with_tally(DeskOutcome::Text("pulse".into()), true);
+        let off = with_tally(DeskOutcome::Text("pulse".into()), false);
+        assert!(
+            matches!(&on, DeskOutcome::Text(text) if text.starts_with("pulse\nTally   Fun metrics on"))
+        );
+        assert!(matches!(&off, DeskOutcome::Text(text) if text.ends_with("(docs/PRIVACY.md).")));
     }
 
     #[test]

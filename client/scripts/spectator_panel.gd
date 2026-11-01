@@ -1,58 +1,127 @@
 class_name SpectatorPanel
 extends Control
 
-## The booth panel a watcher sees down the left of the screen: the power
-## pads and when they return, who wears the Custody Plate, and who is on a
+## The booth strip a watcher sees under the scoreline: one tile per kind of
+## pad worth timing, each a pickup icon inside a countdown ring with its clock
+## under it, then one line for who wears the Custody Plate and who is on a
 ## run. The clocks come from the server's booth facts (`spectator_facts`),
-## which no fighter receives, and count down here between messages. Every
-## word is Silkscreen in capitals on a dark backing, on a level baseline.
-## Presentation only.
+## which no fighter receives, and count down here between messages.
+##
+## Power items (the Plate and the heavy guns) always show; ordinary guns,
+## armour and health join only in their last seconds, or all of them while
+## the watcher holds the scoreboard (`expanded`). Every word is Silkscreen in
+## capitals on a level baseline. Presentation only.
 
 ## Facts older than this are a booth that stopped talking: a joined fighter,
-## a campaign map or a dropped connection. The panel hides.
+## a campaign map or a dropped connection. The strip hides.
 const STALE_MS: int = 2500
 const TICKS_PER_SECOND: float = 20.0
-const ROW_HEIGHT: float = 40.0
-const ICON_SIZE: Vector2 = Vector2(64, 24)
-const VALUE_WIDTH: float = 132.0
-## A clock this close to zero is a fight about to start over the pad.
+## A clock this close to zero is a fight about to start over the pad, and
+## the window in which an ordinary pad earns a tile.
 const SOON_SECONDS: float = 5.0
-## Runs shorter than this stay off the panel; the feed already shows a double.
+## Runs shorter than this stay off the strip; the feed already shows a double.
 const MIN_RUN: int = 3
 const MAX_RUNS: int = 2
-## Pads worth a row, in the order a caster reads them. The Plate leads.
-const POWER_ORDER: Array[String] = ["Rail", "Rocket", "Sniper", "Arc", "Scatter", "Repeater", "Article Blade"]
+## The tile at full size: the ring's diameter and the column it sits in.
+const RING: float = 60.0
+const TILE_W: float = 84.0
+const TILE_GAP: int = 6
+const PAD_X: float = 12.0
+const PAD_Y: float = 8.0
+## Power items in the order a caster reads them. The Plate leads.
+const POWER_ORDER: Array[String] = ["Rail", "Rocket", "Sniper", "Arc", "Article Blade"]
+## Ordinary pads, shown only near their return or on the expanded strip.
+const ORDINARY_ORDER: Array[String] = ["Scatter", "Repeater", "Flechette", "Tack", "armor", "health"]
 const NAMES: Dictionary = {
 	"Rail": "BOOTH_PAD_RAIL", "Rocket": "BOOTH_PAD_ROCKET", "Sniper": "BOOTH_PAD_SNIPER",
 	"Arc": "BOOTH_PAD_ARC", "Scatter": "BOOTH_PAD_SCATTER", "Repeater": "BOOTH_PAD_REPEATER",
-	"Article Blade": "BOOTH_PAD_ARTICLE_BLADE", "armor": "BOOTH_PAD_ARMOR", "plate": "BOOTH_PAD_PLATE",
+	"Flechette": "BOOTH_PAD_FLECHETTE", "Tack": "BOOTH_PAD_TACK",
+	"Article Blade": "BOOTH_PAD_ARTICLE_BLADE", "armor": "BOOTH_PAD_ARMOR", "health": "BOOTH_PAD_HEALTH",
+	"plate": "BOOTH_PAD_PLATE",
 }
 
 ## True while this client watches rather than fights.
 var watching: bool = false
+## True while the watcher holds the scoreboard: every pad gets a tile.
+var expanded: bool = false
 var _covered: bool = false
 var _facts: Dictionary = {}
 var _facts_ms: int = -STALE_MS
 var _pickups: Array = []
 var _names: Dictionary = {}
-var _list: VBoxContainer
+var _backing: Panel
+var _tiles: HBoxContainer
+var _heading: Label
+var _notes: Label
 var _shown: Array = []
 var _region: Rect2 = Rect2()
 ## A clock reading for the harnesses: milliseconds since the facts arrived.
 var clock_override_ms: int = -1
-## The clocks change once a second; the rows are read ten times a second.
-const REFRESH_SECONDS: float = 0.1
+## The rings move every frame a clock runs; the tiles rebuild only when the
+## set of tiles or their words change.
+const REFRESH_SECONDS: float = 0.05
 var _refresh_in: float = 0.0
+
+## One countdown ring: a dark disc, the pickup icon, a track and the arc of
+## the clock still to run. Drawn level, never rotated.
+class PadRing extends Control:
+	var icon: Texture2D = null
+	## Share of the clock still to run, 0 when up.
+	var left: float = 0.0
+	var tone: String = "wait"
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	func _draw() -> void:
+		var centre: Vector2 = size * 0.5
+		var radius: float = minf(size.x, size.y) * 0.5 - 3.0
+		draw_circle(centre, radius + 2.0, MenuTheme.alpha(MenuTheme.INK, 0.85), true, -1.0, false)
+		var colour: Color = SpectatorPanel.tone_colour(tone)
+		draw_arc(centre, radius, 0.0, TAU, 48, MenuTheme.EDGE, 4.0, false)
+		var sweep: float = TAU if tone in ["up", "held"] else clampf(left, 0.0, 1.0) * TAU
+		if sweep > 0.0:
+			draw_arc(centre, radius, -PI * 0.5, -PI * 0.5 + sweep, maxi(4, int(48.0 * sweep / TAU)), colour, 4.0, false)
+		if icon != null:
+			var room: float = radius * 2.0 - 4.0
+			var art: Vector2 = icon.get_size()
+			var fit: float = minf(room / maxf(1.0, art.x), room / maxf(1.0, art.y))
+			# Whole pixels when the art fits at least once over: no smeared texels.
+			if fit >= 1.0:
+				fit = floorf(fit)
+			var drawn: Vector2 = (art * fit).floor()
+			var shade: Color = MenuTheme.UNTINTED if tone in ["up", "held"] else Color(0.8, 0.8, 0.8, 1.0)
+			draw_texture_rect(icon, Rect2((centre - drawn * 0.5).round(), drawn), false, shade)
 
 func _ready() -> void:
 	name = "SpectatorPanel"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
-	_list = VBoxContainer.new()
-	_list.name = "Rows"
-	_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_list.add_theme_constant_override("separation", 4)
-	add_child(_list)
+	_backing = Panel.new()
+	_backing.name = "Backing"
+	_backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_backing.add_theme_stylebox_override("panel", MenuTheme.backing())
+	add_child(_backing)
+	_heading = Label.new()
+	_heading.name = "Heading"
+	_heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MenuTheme.pixel_text(_heading, MenuTheme.BODY, MenuTheme.MUTED, 0)
+	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	add_child(_heading)
+	_tiles = HBoxContainer.new()
+	_tiles.name = "Rows"
+	_tiles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tiles.add_theme_constant_override("separation", TILE_GAP)
+	add_child(_tiles)
+	_notes = Label.new()
+	_notes.name = "Notes"
+	_notes.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notes.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_notes.clip_text = true
+	_notes.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
+	MenuTheme.pixel_text(_notes, MenuTheme.BODY, MenuTheme.BONE, 0)
+	add_child(_notes)
 
 ## The booth's latest facts, as `SpectatorFacts.parse` typed them.
 func observe_facts(facts: Dictionary) -> void:
@@ -81,6 +150,7 @@ func clear() -> void:
 	_pickups = []
 	_names.clear()
 
+## The room the strip may use: centred in it, as tall as it needs from its top.
 func set_region(rect: Rect2) -> void:
 	_region = rect
 
@@ -88,6 +158,11 @@ func set_covered(value: bool) -> void:
 	if value != _covered:
 		_refresh_in = 0.0
 	_covered = value
+
+func set_expanded(value: bool) -> void:
+	if value != expanded:
+		_refresh_in = 0.0
+	expanded = value
 
 func _elapsed_ms() -> int:
 	return clock_override_ms if clock_override_ms >= 0 else Time.get_ticks_msec() - _facts_ms
@@ -100,97 +175,119 @@ static func clock_text(seconds: float) -> String:
 	var whole: int = ceili(seconds)
 	return "%d:%02d" % [whole / 60, whole % 60]
 
-## The rows to show, as plain data: `{key, icon, label, value, tone}` where
-## tone is `up`, `wait`, `soon`, `held` or `run`. Empty while the booth is
-## quiet or stale.
-func rows() -> Array[Dictionary]:
+func _live() -> bool:
+	return not _facts.is_empty() and _elapsed_ms() <= STALE_MS
+
+## The tiles to show, as plain data: `{key, icon, label, value, tone, left,
+## power}`. `tone` is `up`, `wait`, `soon` or `held`; `left` is the share of
+## the clock still to run. Power items always; an ordinary pad only in its
+## last `SOON_SECONDS` or while expanded. Empty while the booth is quiet or
+## stale.
+func tiles(all: bool = expanded) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if _facts.is_empty() or _elapsed_ms() > STALE_MS:
+	if not _live():
 		return out
 	var clocks: Dictionary = {}
 	for pad: Dictionary in _facts.get("pads", []):
-		clocks[pad["id"]] = int(pad["back_in"])
+		clocks[pad["id"]] = pad
 	var plate: Dictionary = _facts.get("plate", {})
 	if not plate.is_empty():
-		var row: Dictionary = {"key": "plate", "icon": WeaponArt.SUPPLY.get("plate"), "label": tr(NAMES["plate"])}
+		var tile: Dictionary = {"key": "plate", "icon": WeaponArt.SUPPLY.get("plate"), "label": tr(NAMES["plate"]), "power": true, "left": 0.0}
 		if not str(plate.get("holder", "")).is_empty():
-			# Worn: the wearer's callsign and what the Plate has left on them.
-			row["label"] = str(_names.get(plate["holder"], "?")).to_upper()
-			row["value"] = str(plate.get("armor", 0))
-			row["tone"] = "held"
+			# Worn: what the Plate has left on its wearer; the name is a note.
+			tile["value"] = str(plate.get("armor", 0))
+			tile["tone"] = "held"
 		elif bool(plate.get("up")):
-			row["value"] = tr("BOOTH_UP")
-			row["tone"] = "up"
+			tile["value"] = tr("BOOTH_UP")
+			tile["tone"] = "up"
 		else:
 			var left: float = seconds_left(int(plate.get("back_in", 0)))
-			row["value"] = clock_text(left)
-			row["tone"] = "soon" if left <= SOON_SECONDS else "wait"
-		out.append(row)
-	for key: String in POWER_ORDER + ["armor"]:
-		var row: Dictionary = _pad_row(key, clocks)
-		if not row.is_empty():
-			out.append(row)
-	# Runs: a small heading, then each callsign and its frags without dying.
-	# The tier word names the longest one; the Host already calls the rest.
-	var step: int = maxi(1, int(_facts.get("spree_step", 5)))
-	var runs: Array[Dictionary] = []
-	var chains: Array = _facts.get("chains", [])
-	var chain_id: String = str(chains[0]["id"]) if not chains.is_empty() else ""
-	var chain_word: String = tr("BOOTH_CHAIN_" + str(clampi(int(chains[0]["frags"]), 2, 5))) if not chains.is_empty() else ""
-	for spree: Dictionary in _facts.get("sprees", []):
-		if int(spree["frags"]) >= MIN_RUN and runs.size() < MAX_RUNS:
-			var row: Dictionary = {"key": "run:" + str(spree["id"]), "icon": null, "label": str(_names.get(spree["id"], "?")).to_upper(),
-				"value": str(int(spree["frags"])), "tone": "run"}
-			# A run with an open chain says both on one row.
-			if str(spree["id"]) == chain_id:
-				row["value"] = chain_word + " " + row["value"]
-				chain_id = ""
-			runs.append(row)
-	var chain_row: Dictionary = {}
-	if not chain_id.is_empty():
-		chain_row = {"key": "chain:" + chain_id, "icon": null, "label": str(_names.get(chain_id, "?")).to_upper(),
-			"value": chain_word, "tone": "soon"}
-	if not runs.is_empty() or not chain_row.is_empty():
-		var top: int = int(_facts["sprees"][0]["frags"]) if not (_facts.get("sprees", []) as Array).is_empty() else 0
-		out.append({"key": "heading", "icon": null, "label": run_heading(top, step), "value": "", "tone": "heading"})
-		out.append_array(runs)
-		if not chain_row.is_empty():
-			out.append(chain_row)
+			tile["value"] = clock_text(left)
+			tile["tone"] = "soon" if left <= SOON_SECONDS else "wait"
+			var whole: float = float(plate.get("clock", -1)) / TICKS_PER_SECOND
+			tile["left"] = left / whole if whole > 0.0 else 1.0
+		out.append(tile)
+	for key: String in POWER_ORDER:
+		var tile: Dictionary = _pad_tile(key, clocks)
+		if not tile.is_empty():
+			tile["power"] = true
+			out.append(tile)
+	for key: String in ORDINARY_ORDER:
+		var tile: Dictionary = _pad_tile(key, clocks)
+		if tile.is_empty():
+			continue
+		tile["power"] = false
+		if all or tile["tone"] == "soon":
+			out.append(tile)
 	return out
 
-## One row per kind of power pad: up when any copy is, else the soonest.
-func _pad_row(key: String, clocks: Dictionary) -> Dictionary:
+## One tile per kind of pad: up when any copy is, else the soonest copy.
+func _pad_tile(key: String, clocks: Dictionary) -> Dictionary:
 	var any: bool = false
 	var up: bool = false
-	var soonest: int = -1
+	var soonest: Dictionary = {}
 	for pad: Variant in _pickups:
-		if not pad is Dictionary:
+		if not pad is Dictionary or pad.get("dropped") == true:
 			continue
 		var kind: String = str(pad.get("kind", "weapon"))
-		var matches: bool = (key == "armor" and kind == "armor") or (kind == "weapon" and str(pad.get("weapon", "")) == key)
+		var matches: bool = kind == key if key in ["armor", "health"] else (kind == "weapon" and str(pad.get("weapon", "")) == key)
 		if not matches:
 			continue
 		any = true
 		if pad.get("available") == true:
 			up = true
 		elif clocks.has(pad.get("id")):
-			var ticks: int = int(clocks[pad["id"]])
-			soonest = ticks if soonest < 0 else mini(soonest, ticks)
+			var clock: Dictionary = clocks[pad["id"]]
+			if soonest.is_empty() or int(clock["back_in"]) < int(soonest["back_in"]):
+				soonest = clock
 	if not any:
 		return {}
-	var icon: Texture2D = WeaponArt.SUPPLY.get("armor") if key == "armor" else WeaponArt.PROFILE.get(key)
-	var row: Dictionary = {"key": key, "icon": icon, "label": tr(str(NAMES.get(key, key)))}
+	# Guns wear their bone kill-feed silhouette, which reads on the dark disc.
+	var icon: Texture2D = WeaponArt.SUPPLY.get(key) if key in ["armor", "health"] else WeaponArt.kill_icon(key)
+	var tile: Dictionary = {"key": key, "icon": icon, "label": tr(str(NAMES.get(key, key))), "left": 0.0}
 	if up:
-		row["value"] = tr("BOOTH_UP")
-		row["tone"] = "up"
-	elif soonest >= 0:
-		var left: float = seconds_left(soonest)
-		row["value"] = clock_text(left)
-		row["tone"] = "soon" if left <= SOON_SECONDS else "wait"
+		tile["value"] = tr("BOOTH_UP")
+		tile["tone"] = "up"
+	elif not soonest.is_empty():
+		var left: float = seconds_left(int(soonest["back_in"]))
+		tile["value"] = clock_text(left)
+		tile["tone"] = "soon" if left <= SOON_SECONDS else "wait"
+		var whole: float = float(soonest.get("clock", 0)) / TICKS_PER_SECOND
+		tile["left"] = left / whole if whole > 0.0 else 1.0
 	else:
-		row["value"] = "--"
-		row["tone"] = "wait"
-	return row
+		tile["value"] = "--"
+		tile["tone"] = "wait"
+	return tile
+
+## The line under the tiles: who wears the Plate, then the longest runs and
+## any open chain, each `{text, tone}`. Empty while nothing is worth a word.
+func notes() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not _live():
+		return out
+	var plate: Dictionary = _facts.get("plate", {})
+	if not plate.is_empty() and not str(plate.get("holder", "")).is_empty():
+		out.append({"text": tr("BOOTH_PLATE_WORN").format({"name": str(_names.get(plate["holder"], "?")).to_upper()}), "tone": "held"})
+	var step: int = maxi(1, int(_facts.get("spree_step", 5)))
+	var chains: Array = _facts.get("chains", [])
+	var chain_id: String = str(chains[0]["id"]) if not chains.is_empty() else ""
+	var chain_word: String = tr("BOOTH_CHAIN_" + str(clampi(int(chains[0]["frags"]), 2, 5))) if not chains.is_empty() else ""
+	var runs: Array[String] = []
+	var top: int = 0
+	for spree: Dictionary in _facts.get("sprees", []):
+		if int(spree["frags"]) >= MIN_RUN and runs.size() < MAX_RUNS:
+			top = maxi(top, int(spree["frags"]))
+			var words: String = str(_names.get(spree["id"], "?")).to_upper() + " " + str(int(spree["frags"]))
+			# A run with an open chain says both at once.
+			if str(spree["id"]) == chain_id:
+				words += " " + chain_word
+				chain_id = ""
+			runs.append(words)
+	if not runs.is_empty():
+		out.append({"text": run_heading(top, step) + ": " + "  ".join(runs), "tone": "run"})
+	if not chain_id.is_empty():
+		out.append({"text": str(_names.get(chain_id, "?")).to_upper() + " " + chain_word, "tone": "soon"})
+	return out
 
 ## The runs heading in the Host's own tiers for the longest run: a step in
 ## this mode is a Rampage, two a Riot, three Untouchable; below a step it is
@@ -216,97 +313,106 @@ static func tone_colour(tone: String) -> Color:
 			return MatchRules.GOLD
 	return MenuTheme.MUTED
 
+## The tile column for `count` tiles in `width`: full size when they fit,
+## narrower (never under the clock's own width) when they do not.
+static func tile_width(count: int, width: float, heading: float) -> float:
+	if count <= 0:
+		return TILE_W
+	var room: float = width - 2.0 * PAD_X - heading - float(TILE_GAP * count)
+	return clampf(floorf(room / float(count)), 48.0, TILE_W)
+
 func _process(delta: float) -> void:
 	_refresh_in -= delta
 	if _refresh_in > 0.0:
 		return
 	_refresh_in = REFRESH_SECONDS
 	var shown: Array[Dictionary] = []
+	var lines: Array[Dictionary] = []
 	if watching:
-		shown = rows()
-	visible = not _covered and not shown.is_empty() and _region.has_area()
+		shown = tiles()
+		lines = notes()
+	visible = not _covered and not (shown.is_empty() and lines.is_empty()) and _region.has_area()
 	if not visible:
 		return
-	var key: Array = []
-	for row: Dictionary in shown:
-		key.append([row["key"], row["label"], row["value"], row["tone"]])
+	var key: Array = [expanded, TranslationServer.get_locale(), _region.size.x]
+	for tile: Dictionary in shown:
+		key.append([tile["key"], tile["value"], tile["tone"]])
+	for line: Dictionary in lines:
+		key.append([line["text"], line["tone"]])
 	if key != _shown:
 		_shown = key
-		_rebuild(shown)
-	position = _region.position
-	size = Vector2(_region.size.x, 0)
-	_list.position = Vector2.ZERO
-	_list.size = Vector2(_region.size.x, 0)
+		_rebuild(shown, lines)
+	# The rings sweep between rebuilds.
+	for index: int in range(mini(shown.size(), _tiles.get_child_count())):
+		var ring: PadRing = _tiles.get_child(index).get_node("Ring") as PadRing
+		if ring != null and not is_equal_approx(ring.left, float(shown[index]["left"])):
+			ring.left = float(shown[index]["left"])
+			ring.queue_redraw()
 
-func _rebuild(shown: Array[Dictionary]) -> void:
-	for child: Node in _list.get_children():
-		_list.remove_child(child)
+func _rebuild(shown: Array[Dictionary], lines: Array[Dictionary]) -> void:
+	for child: Node in _tiles.get_children():
+		_tiles.remove_child(child)
 		child.queue_free()
-	var room: int = maxi(1, int(_region.size.y / (ROW_HEIGHT + 4.0)))
-	for index: int in range(mini(shown.size(), room)):
-		_list.add_child(_row(shown[index]))
+	_heading.text = tr("BOOTH_HEADING_ALL") if expanded else tr("BOOTH_HEADING")
+	var heading_w: float = MenuTheme.FONT.get_string_size(_heading.text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x + 14.0 \
+		if not shown.is_empty() else 0.0
+	_heading.visible = not shown.is_empty()
+	var tile_w: float = tile_width(shown.size(), _region.size.x, heading_w)
+	var ring: float = minf(RING, tile_w - 8.0)
+	var caption: int = MenuTheme.BODY if tile_w >= 68.0 else MenuTheme.PIXEL_SIZES[0]
+	for tile: Dictionary in shown:
+		_tiles.add_child(_tile(tile, tile_w, ring, caption))
+	var tiles_w: float = 0.0 if shown.is_empty() else shown.size() * tile_w + (shown.size() - 1) * TILE_GAP
+	var tiles_h: float = 0.0 if shown.is_empty() else ring + 4.0 + MenuTheme.FONT.get_height(caption)
+	var note_parts: PackedStringArray = []
+	for line: Dictionary in lines:
+		note_parts.append(str(line["text"]))
+	_notes.text = "   ".join(note_parts)
+	_notes.visible = not note_parts.is_empty()
+	# The first note's tone colours the line: the Plate's gold leads.
+	_notes.add_theme_color_override("font_color", tone_colour(str(lines[0]["tone"])) if not lines.is_empty() else MenuTheme.BONE)
+	# Measured as drawn (capitals, outline); clipped only past the column.
+	_notes.clip_text = false
+	var note_w: float = ceilf(_notes.get_minimum_size().x) if _notes.visible else 0.0
+	_notes.clip_text = note_w > _region.size.x - 2.0 * PAD_X
+	var note_h: float = MenuTheme.FONT.get_height(MenuTheme.BODY) if _notes.visible else 0.0
+	var inner_w: float = minf(_region.size.x - 2.0 * PAD_X, maxf(heading_w + tiles_w, note_w))
+	var width: float = inner_w + 2.0 * PAD_X
+	var height: float = PAD_Y * 2.0 + tiles_h + (6.0 if tiles_h > 0.0 and note_h > 0.0 else 0.0) + note_h
+	position = Vector2(roundf(_region.position.x + (_region.size.x - width) * 0.5), roundf(_region.position.y))
+	size = Vector2(width, height)
+	_backing.position = Vector2.ZERO
+	_backing.size = size
+	var row_x: float = roundf((width - heading_w - tiles_w) * 0.5)
+	_heading.position = Vector2(row_x, PAD_Y)
+	_heading.size = Vector2(heading_w, ring)
+	_tiles.position = Vector2(row_x + heading_w, PAD_Y)
+	_tiles.size = Vector2(tiles_w, tiles_h)
+	_notes.position = Vector2(PAD_X, PAD_Y + tiles_h + (6.0 if tiles_h > 0.0 else 0.0))
+	_notes.size = Vector2(inner_w, note_h)
 
-func _row(row: Dictionary) -> PanelContainer:
-	var plate := PanelContainer.new()
-	plate.name = "Row"
-	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	plate.set_meta("row", row.duplicate())
-	plate.add_theme_stylebox_override("panel", MenuTheme.backing())
-	if row["tone"] == "heading":
-		var heading := Label.new()
-		heading.name = "Label"
-		heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		MenuTheme.pixel_text(heading, MenuTheme.BODY, MenuTheme.MUTED, 0)
-		heading.text = str(row["label"])
-		plate.add_child(heading)
-		return plate
-	plate.custom_minimum_size.y = ROW_HEIGHT
-	var content := HBoxContainer.new()
-	content.name = "Content"
-	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_theme_constant_override("separation", 10)
-	plate.add_child(content)
-	if row.get("icon") is Texture2D:
-		var icon := TextureRect.new()
-		icon.name = "Icon"
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.custom_minimum_size = ICON_SIZE
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon.texture = row["icon"]
-		content.add_child(icon)
-	else:
-		# A callsign row has no icon: the name takes the room, indented a
-		# little under the heading.
-		var indent := Control.new()
-		indent.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		indent.custom_minimum_size = Vector2(8, 0)
-		content.add_child(indent)
-	var label := Label.new()
-	label.name = "Label"
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	MenuTheme.pixel_text(label, MenuTheme.BODY, MenuTheme.BONE, 0)
-	# A callsign too long for its room is shortened the killfeed's way
-	# ("S. SIGHTING"), never cut mid-letter.
-	var has_icon: bool = row.get("icon") is Texture2D
-	var value_w: float = maxf(VALUE_WIDTH if has_icon else 0.0,
-		MenuTheme.FONT.get_string_size(str(row["value"]).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x)
-	var room: float = _region.size.x - 20.0 - (ICON_SIZE.x if has_icon else 8.0) - 20.0 - value_w
-	label.text = FragFeed.abbreviate(str(row["label"]), MenuTheme.FONT, MenuTheme.BODY, maxf(24.0, room))
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.clip_text = true
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	content.add_child(label)
+func _tile(tile: Dictionary, width: float, ring_size: float, caption: int) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.name = "Tile"
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.custom_minimum_size = Vector2(width, 0)
+	box.add_theme_constant_override("separation", 4)
+	box.set_meta("tile", tile.duplicate())
+	# The pad's name for a screen reader and the harnesses; the icon says it.
+	box.tooltip_text = str(tile["label"])
+	var ring := PadRing.new()
+	ring.name = "Ring"
+	ring.custom_minimum_size = Vector2(ring_size, ring_size)
+	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ring.icon = tile.get("icon") as Texture2D
+	ring.left = float(tile["left"])
+	ring.tone = str(tile["tone"])
+	box.add_child(ring)
 	var value := Label.new()
 	value.name = "Value"
 	value.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	MenuTheme.pixel_text(value, MenuTheme.BODY, tone_colour(str(row["tone"])), 0)
-	value.text = str(row["value"])
-	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	value.custom_minimum_size.x = VALUE_WIDTH if row.get("icon") is Texture2D else 0.0
-	content.add_child(value)
-	return plate
+	MenuTheme.pixel_text(value, caption, tone_colour(str(tile["tone"])), 3)
+	value.text = str(tile["value"])
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(value)
+	return box

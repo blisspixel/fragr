@@ -1,6 +1,13 @@
 # Graphics tiers and auto settings
 
-**Status:** planned, 2026-10-31. Research and design; nothing here is built.
+**Status:** built in wave 22 (2026-11-01): five tiers, the tuner, the in-match
+governor, the Deck profile, the Compatibility trial and both docs pages
+([GRAPHICS.md](../GRAPHICS.md), [BENCHMARK.md](../BENCHMARK.md#tiers-and-auto-settings)).
+Proven by logic harnesses and inspected captures only. Not done: every
+hardware-matrix row and gate measurement, the venue factor table, per-venue
+volumetric fog and SSR (no venue opts in yet), SDFGI, the export shader baker,
+a finer pixel target for large displays, and every Deck fact marked unverified.
+The audit below describes the build before tiers.
 **Spend:** $0. Local only, no telemetry, no service.
 **Owner:** one lane carries tiers, the tuner, the governor and both docs pages end to end, and plays the build on every machine it claims.
 
@@ -135,11 +142,13 @@ knobs the tuner may quietly spend.
 
 ### Renderer coverage in practice
 
-- Capture tooling defaults to Compatibility: `tools/qa_tour.sh:181` uses
-  `FRAGR_RENDER_DRIVER:-opengl3`, and `qa_watch.sh`, `capture_tip_screenshots.sh`
-  and `capture_jammer_dish_proof.sh` force `opengl3`. Shipped players run
-  Forward+. Most inspected stills are therefore from the renderer players do
-  not get by default.
+- `tools/qa_tour.sh` renders Forward+ (Vulkan on Linux), what shipped
+  players run, since #537; `FRAGR_QA_RENDERER=compatibility` is the labelled
+  fallback pass, and `--publish` runs one beside the published stills. Each
+  manifest records the renderer, driver and preset that drew it, and the
+  wrapper reports a fallback. `qa_watch.sh`, `capture_tip_screenshots.sh` and
+  `capture_jammer_dish_proof.sh` still force `opengl3` on Xvfb, which has no
+  Vulkan; their stills show the fallback path, not the default.
 - Every shader in `client/assets/shaders/` and `client/art/` is spatial with
   forward render modes, or canvas; the only screen read is the dither's
   `hint_screen_texture` (canvas). None reads `hint_normal_roughness_texture`
@@ -495,9 +504,8 @@ only).
     names.
   - Decals as nodes are unavailable (fragr's decals are a spatial shader,
     unaffected).
-- **Capture parity.** Because inspected stills mostly come from
-  `opengl3`, add Forward+ (`--rendering-driver vulkan`) to the tour runs that
-  gate a tier, and inspect both.
+- **Capture parity.** The tour now defaults to Forward+ (#537); gate a tier
+  on its Forward+ run and inspect the Compatibility pass beside it.
 
 ### (d) What looking great means for fragr
 

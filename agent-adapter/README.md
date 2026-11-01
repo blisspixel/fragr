@@ -62,6 +62,21 @@ took it out of view; `in_view` says whether it is seen now. The `pickup`
 event for a drop the fighter cannot see is not passed on. An adapter
 that never joined keeps the full live view. `docs/protocol.md` has the clocks.
 
+Other fighters reach a joined agent the way they reach a human fighter
+(gameplay 66, interest filtering): the server withholds every fighter its
+fighter could not perceive, so `observe` never knows more than a human
+would. A rival it can see is an `ENEMY` line and a `threats` entry, as
+before. A rival it only hears (running feet or gunfire nearby) is a
+`HEARD id=... name=... dist~... bearing~...` line and a `heard` entry: a
+rough place, off by up to 15 percent of the distance, never a target for
+`act.look_at.player_id`. A rival it can neither see nor hear is not named
+in the brief at all. `detail: full` keeps every row as received: a
+withheld row has `sense` `heard` or `hidden`, `hp` 0, `collidable` false
+and, when hidden, `x`, `y`, `z` of 0. `top_rival` still counts every
+rival's score, from the board fields every row keeps. Team-mates are
+always seen. An adapter that never joined watches, and keeps the full
+world. Shapes: `docs/protocol.md`, "Interest filtering (capability 66)".
+
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
 ## Quick Start
@@ -82,8 +97,9 @@ Connect via an MCP client on stdio. The boot path still sends Hello with `--name
 
 `--watch` hellos as a spectator instead: a booth seat for an agent caster. It
 never holds a fighter, `act` and `speak` refuse, and `round_state.booth` carries
-the booth facts the server sends only to spectators (live pad clocks, the
-Custody Plate and its wearer, sprees and open multikill chains). Calling `join`
+the booth facts the server sends only to spectators (live pad clocks with
+each pad's whole return `clock`, the Custody Plate and its wearer, sprees and
+open multikill chains). Calling `join`
 from the booth steps down from it and hellos again as a fighter; from then on
 the session never hears the booth.
 
@@ -429,7 +445,7 @@ Get the current game state. The default detail is `brief`: compact text in `cont
   erase it. Explicit `join` returns an MCP tool error on rejection. A fresh
   attempt or successful Welcome clears the previous error; `act` stays refused
   until a usable snapshot arrives. Missing map identity is null, not Arena Duel.
-- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
+- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`, and `zone`: `head`, `torso`, `legs`, `plate` or `weak` where damage landed, omitted on a miss or for the Arc, explosives and melee; see "Locational damage" in `docs/protocol.md`). Every fighter shares one hitbox and one zone table; campaign machines punish the chest (`plate`) and reward the red optic (`weak`), and an `act` `look_at` on such a machine aims at its weak spot when the gun's cone fits it and the spot is in sight. A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
 - Fighter `x`/`y`/`z` and shot trace points are rounded to the millimetre, and fighter `yaw`/`pitch` to 1e-4 rad, on the wire only; the server simulates the exact values (see "Quantized motion" in `docs/protocol.md`)
 - `self_player_id`: UUID of your agent's player (null for spectators)
 - `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order. Each stored event is truncated near 2 KiB, and the ring also stops at 32 KiB. An inbound server frame above 64 KiB is ignored.
@@ -756,6 +772,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "self_team": "coalition",
   "self_lives": null,
   "self_body": "synthetic",
+  "fun_metrics": false,
   "booth": null,
   "last_round_start": {"event": "round_start", "round_number": 3},
   "last_round_end": null
@@ -790,6 +807,11 @@ waited on), in a Duel `duel` (both fighters' round wins in this series),
 `story` (each seated fighter's nemesis and rivals this session) and, on a
 rotating server, `vote` (`options`, `ballots`, `leader`, `closes_in`,
 `bots_vote`; see `docs/protocol.md`).
+`fun_metrics` is the Welcome's notice (gameplay 66): `true` when this host
+keeps fun metrics, match-level counts and timings on its own disk with no
+callsign, id or address, shredded after 67 days
+([`docs/PRIVACY.md`](../docs/PRIVACY.md)); `false` when it keeps nothing.
+An agent is counted like any other fighter.
 `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body` and `dress` (`look`, and `accent` when one was chosen); Union and
 companion actors carry none.
@@ -983,7 +1005,9 @@ Turrets, low Crawlers, stationary Jammers and stationary marksman Ranged
 Sweepers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`,
 `jammer`, `ranged_sweeper`). A Ranged Sweeper's `windup` is its scope glint:
 its aim is locked and one Sniper shot resolves at `phase_ends` unless sight
-breaks first. It sees a peeking head as well as an open body. Jammers introduced capability 23;
+breaks first. It sees a peeking head as well as an open body, out to 90 m, until a
+shot takes its antenna mast (`mast_broken: true` on its campaign identity,
+gameplay 66): then it sees only an open body inside 32 m. Jammers introduced capability 23;
 current Discovery maps require capability 26. A Jammer's dish telegraphs a committed delayed pulse, which can
 be sidestepped or interrupted before launch. Its `Fists` wire weapon does not
 mean it performs melee. Read live `projectiles` rather than treating its firing

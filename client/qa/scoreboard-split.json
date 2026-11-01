@@ -1,0 +1,11 @@
+{
+  "comment": "The booth strip and the split hold-Tab board (#532, #536). A watcher's pad strip under the scoreline, expanded while the board is held; the board on keyboard and pad glyphs, watched and then joined. Run per mode and size: FRAGR_QA_MAP=1 (FFA, TDM with FRAGR_QA_MODE=tdm), FRAGR_QA_MAP=4 FRAGR_QA_MODE=sabotage, FRAGR_QA_MAP=7 FRAGR_QA_MODE=conquest; FRAGR_QA_BOTS=8; FRAGR_QA_MANIFEST=res://qa/scoreboard-split.json. The size comes from the manifest copy's width and height. Presentation only.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "strip_follow", "scene": "res://scenes/main.tscn", "at_seconds": 40, "camera": "follow", "settle_seconds": 1.0, "note": "The pad strip under the scoreline: power items, a returning ordinary pad, the runs line."},
+    {"name": "board_keys", "at_seconds": 55, "camera": "follow", "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 0.8, "note": "The held board for a watcher on keyboard glyphs, the strip expanded above it."},
+    {"name": "board_pad", "at_seconds": 70, "camera": "follow", "overlay": "scoreboard", "input_device": "gamepad", "pad_layout": "letters", "settle_seconds": 0.8, "note": "The same board on pad glyphs."},
+    {"name": "board_joined", "join": "human", "camera": "first_person", "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 8.0, "note": "Joined: the viewer's side first, their row marked."}
+  ]
+}

@@ -51,23 +51,24 @@ static func _pad(value: Variant) -> Dictionary:
 		return {}
 	var pad: Dictionary = value
 	for key: Variant in pad.keys():
-		if not key in ["id", "kind", "weapon", "power", "back_in"]:
+		if not key in ["id", "kind", "weapon", "power", "back_in", "clock"]:
 			return {}
 	if not _short_text(pad.get("id")) or not _short_text(pad.get("kind")) \
-		or not EquipmentState.integer(pad.get("back_in"), MAX_TICKS):
+		or not EquipmentState.integer(pad.get("back_in"), MAX_TICKS) or not EquipmentState.integer(pad.get("clock"), MAX_TICKS):
 		return {}
 	var weapon: Variant = pad.get("weapon", "")
 	var power: Variant = pad.get("power", false)
 	if not weapon is String or (weapon as String).length() > MAX_ID or not power is bool:
 		return {}
-	return {"id": pad["id"], "kind": pad["kind"], "weapon": weapon, "power": power, "back_in": int(pad["back_in"])}
+	return {"id": pad["id"], "kind": pad["kind"], "weapon": weapon, "power": power, "back_in": int(pad["back_in"]),
+		"clock": int(pad["clock"])}
 
 static func _plate(value: Variant) -> Dictionary:
 	if not value is Dictionary:
 		return {}
 	var plate: Dictionary = value
 	for key: Variant in plate.keys():
-		if not key in ["id", "up", "back_in", "holder", "armor"]:
+		if not key in ["id", "up", "back_in", "clock", "holder", "armor"]:
 			return {}
 	if not _short_text(plate.get("id")) or not plate.get("up") is bool:
 		return {}
@@ -76,6 +77,11 @@ static func _plate(value: Variant) -> Dictionary:
 		if not EquipmentState.integer(plate["back_in"], MAX_TICKS):
 			return {}
 		back_in = int(plate["back_in"])
+	var clock: int = -1
+	if plate.has("clock"):
+		if not EquipmentState.integer(plate["clock"], MAX_TICKS):
+			return {}
+		clock = int(plate["clock"])
 	var holder: String = ""
 	var armor: int = 0
 	if plate.has("holder") or plate.has("armor"):
@@ -83,7 +89,7 @@ static func _plate(value: Variant) -> Dictionary:
 			return {}
 		holder = str(plate["holder"])
 		armor = int(plate["armor"])
-	return {"id": plate["id"], "up": plate["up"], "back_in": back_in, "holder": holder, "armor": armor}
+	return {"id": plate["id"], "up": plate["up"], "back_in": back_in, "clock": clock, "holder": holder, "armor": armor}
 
 ## Rows of `{id, frags[, open_for]}`. A single empty row marks a refusal.
 static func _runs(value: Variant, keys: Array[String]) -> Array[Dictionary]:

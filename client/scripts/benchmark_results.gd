@@ -58,10 +58,11 @@ func _ready() -> void:
 	page.add_theme_constant_override("separation", 16)
 	margin.add_child(page)
 	var complete: bool = str(report.get("state", "")) == "complete" and report.get("runs") is Array and not (report["runs"] as Array).is_empty()
+	var tuned: bool = complete and report.get("auto_tune") is Dictionary
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 24)
 	page.add_child(header)
-	var title: Label = _label(header, "BENCHMARK COMPLETE" if complete else "BENCHMARK STOPPED", MenuTheme.DISPLAY_MEDIUM, MenuTheme.BONE, true)
+	var title: Label = _label(header, ("AUTO SETTINGS CHOSEN" if tuned else "BENCHMARK COMPLETE") if complete else "BENCHMARK STOPPED", MenuTheme.DISPLAY_MEDIUM, MenuTheme.BONE, true)
 	title.name = "Outcome"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -101,8 +102,10 @@ func _ready() -> void:
 	_notice = _label(page, _save_line() if complete else "", MenuTheme.BODY, MenuTheme.MUTED)
 	_notice.name = "Notice"
 	_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var again: Button = _button(actions, "Run again", func() -> void: again_requested.emit())
+	var again: Button = _button(actions, "Tune again" if tuned else "Run again", func() -> void: again_requested.emit())
 	again.name = "BenchmarkAgain"
+	if tuned and bool((report["auto_tune"] as Dictionary).get("result", {}).get("offer_compatibility", false)):
+		_button(actions, "Try Compatibility", _try_compatibility).name = "TryCompatibility"
 	if complete:
 		_button(actions, "Copy summary", _copy_summary).name = "BenchmarkCopy"
 		if str(report.get("save_error", "")).is_empty() and not directory.is_empty():
@@ -179,22 +182,83 @@ func pick_jingle(take: String) -> void:
 	_show_jingle(BenchmarkJingle.chosen_take(preferences))
 	jingle.sing(BenchmarkJingle.chosen_take(preferences), preferences.announcer())
 
+## Restart into the Compatibility renderer and measure again there; the
+## Forward+ figure travels in the record so the faster one is kept.
+func _try_compatibility() -> void:
+	var tuned: Dictionary = report.get("auto_tune", {})
+	var record: Dictionary = (preferences.get_value("video", "tune") as Dictionary).duplicate(true)
+	record["compat_trial"] = {"forward_low_1": float(tuned.get("result", {}).get("low_1_count_fps", 0.0))}
+	var candidate: FragrSettings = preferences.draft()
+	candidate.set_value("video", "tune", record)
+	if preferences.commit(candidate) != OK or RendererOverride.write("gl_compatibility") != OK:
+		_notice.text = "The renderer choice could not be saved."
+		return
+	RendererOverride.restart(get_tree())
+
+## The auto-tune card: the choice and why, in the tuner's own words, then
+## every candidate it measured with its 1% low against the line.
+func _tune_summary(body: VBoxContainer) -> void:
+	var tuned: Dictionary = report["auto_tune"]
+	var result: Dictionary = tuned.get("result", {}) if tuned.get("result") is Dictionary else {}
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "TuneCard"
+	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.SURFACE, MenuTheme.EDGE)
+	plate.content_margin_left = 28
+	plate.content_margin_right = 28
+	plate.content_margin_top = 16
+	plate.content_margin_bottom = 18
+	card.add_theme_stylebox_override("panel", plate)
+	body.add_child(card)
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	card.add_child(column)
+	var stripe: ColorRect = ColorRect.new()
+	stripe.color = MenuTheme.SUCCESS if bool(result.get("passed", false)) else MenuTheme.EMBER
+	stripe.custom_minimum_size = Vector2(0.0, 8.0)
+	column.add_child(stripe)
+	var lines: Array = tuned.get("lines", []) if tuned.get("lines") is Array else []
+	for index: int in lines.size():
+		var line: Label = _label(column, str(lines[index]), MenuTheme.DISPLAY_SMALL if index == 0 else MenuTheme.BODY, MenuTheme.BONE if index < 3 else MenuTheme.MUTED, index == 0)
+		line.name = "TuneLine%d" % index
+	var grid: GridContainer = GridContainer.new()
+	grid.name = "Candidates"
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 40)
+	grid.add_theme_constant_override("v_separation", 4)
+	body.add_child(grid)
+	for heading: String in ["TRIED", "1% LOW", "AVERAGE", "RESULT"]:
+		_label(grid, heading, MenuTheme.BODY, MenuTheme.EMBER)
+	var line_fps: float = float(result.get("threshold", 0.0))
+	for row: Variant in result.get("candidates", []):
+		if not row is Dictionary:
+			continue
+		_label(grid, str(row.get("label", "")).to_upper(), MenuTheme.BODY, MenuTheme.BONE)
+		_label(grid, "%d FPS" % roundi(float(row.get("low_1_count_fps", 0.0))), MenuTheme.BODY, MenuTheme.BONE)
+		_label(grid, "%d FPS" % roundi(float(row.get("fps", 0.0))), MenuTheme.BODY, MenuTheme.MUTED)
+		_label(grid, ("HOLDS %d" if bool(row.get("pass", false)) else "UNDER %d") % ceili(line_fps), MenuTheme.BODY, MenuTheme.SUCCESS if bool(row.get("pass", false)) else MenuTheme.DANGER)
+
 func _summary(body: VBoxContainer) -> void:
 	var runs: Array = report["runs"]
 	var first: Dictionary = runs[0]
+	if report.get("auto_tune") is Dictionary:
+		_tune_summary(body)
 	var size_text: String = "%d x %d" % [int(first["output_size"][0]), int(first["output_size"][1])]
 	# One line each at 1080p, so the cards, the whole timeline and the actions
 	# share one screen there; smaller windows scroll the body, never the actions.
-	_label(body, "One recorded Larak Lot fight per preset. %d s scored after %d s warm-up. %s." % [
-		int(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)), int(report.get("warmup_seconds", BenchmarkRun.PRIME_SECONDS)), size_text], MenuTheme.BODY, MenuTheme.BONE).name = "Scope"
+	var scope: String = "One recorded Larak Lot fight per preset. %d s scored after %d s warm-up. %s." % [
+		int(report.get("score_seconds", BenchmarkRun.SCORE_SECONDS)), int(report.get("warmup_seconds", BenchmarkRun.PRIME_SECONDS)), size_text]
+	if report.get("auto_tune") is Dictionary:
+		scope = "One recorded Larak Lot fight, replayed for each candidate with the local server running. %d s scored each after shaders settle. %s." % [int(AutoTune.SCORE_SECONDS), size_text]
+	_label(body, scope, MenuTheme.BODY, MenuTheme.BONE).name = "Scope"
 	var cards: HFlowContainer = HFlowContainer.new()
 	cards.name = "Presets"
 	cards.alignment = FlowContainer.ALIGNMENT_CENTER
 	cards.add_theme_constant_override("h_separation", 20)
 	cards.add_theme_constant_override("v_separation", 16)
 	body.add_child(cards)
-	for index: int in runs.size():
-		_card(cards, runs[index], index)
+	if not report.get("auto_tune") is Dictionary:
+		for index: int in runs.size():
+			_card(cards, runs[index], index)
 	_label(body, "Higher FPS is better. Lower MS is better. Definitions are under Details.", MenuTheme.BODY, MenuTheme.MUTED).name = "Direction"
 	var heading: Label = _label(body, "", MenuTheme.BODY, MenuTheme.EMBER)
 	heading.name = "TimelineHeading"
@@ -434,12 +498,18 @@ func _save_line() -> String:
 	var save_error: String = str(report.get("save_error", ""))
 	if not save_error.is_empty():
 		return save_error + " The figures above are still correct for this run."
+	if report.get("auto_tune") is Dictionary:
+		var tune_error: String = str((report["auto_tune"] as Dictionary).get("save_error", ""))
+		return tune_error if not tune_error.is_empty() else "Saved as JSON and CSV in your benchmark folder. Your graphics now use this choice; Settings > Graphics changes it."
 	return "Saved as JSON and CSV in your benchmark folder. Your settings are restored."
 
 ## Plain text for the clipboard: the run, the system and each preset's four figures.
 func summary_text() -> String:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("fragr benchmark, %s UTC" % str(report.get("created_utc", "")).replace("T", " "))
+	lines.append("fragr %s, %s UTC" % ["auto settings" if report.get("auto_tune") is Dictionary else "benchmark", str(report.get("created_utc", "")).replace("T", " ")])
+	if report.get("auto_tune") is Dictionary:
+		for line: Variant in (report["auto_tune"] as Dictionary).get("lines", []):
+			lines.append(str(line))
 	lines.append("Larak Lot, ten bots, recorded fight, %d s scored per preset after %d s warm-up" % [int(report.get("score_seconds", 0)), int(report.get("warmup_seconds", 0))])
 	var first: Dictionary = report["runs"][0]
 	lines.append("%s, %s, %s, %d x %d, engine %s %s" % [report.get("adapter", ""), RenderQuality.renderer_name(str(report.get("renderer", ""))), report.get("os", ""),

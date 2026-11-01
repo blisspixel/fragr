@@ -104,6 +104,18 @@ func _run() -> void:
 		_check(not LocalHost.valid_settings(invalid), "a bad rotation is refused: %s" % str(bad))
 	var plain: Dictionary = _config()
 	_check(not " ".join(LocalHost.arguments_for(plain)).contains("--map-rotate"), "no rotation unless asked")
+	# Fun metrics: off unless the host asks, and only ever a boolean.
+	_check(not LocalHost.arguments_for(plain).has("--fun-metrics"), "no fun tally unless asked")
+	var tallied: Dictionary = _config()
+	tallied["fun_metrics"] = true
+	_check(LocalHost.valid_settings(tallied) and LocalHost.arguments_for(tallied).has("--fun-metrics"),
+		"the host's fun tally reaches the server")
+	tallied["fun_metrics"] = false
+	_check(LocalHost.valid_settings(tallied) and not LocalHost.arguments_for(tallied).has("--fun-metrics"),
+		"a switched-off tally sends nothing")
+	tallied["fun_metrics"] = "yes"
+	_check(not LocalHost.valid_settings(tallied) and LocalHost.arguments_for(tallied).is_empty(),
+		"a tally that is not a boolean is refused")
 	var config: Dictionary = _config()
 	for item: Dictionary in [{"key": "mode", "value": "invalid_mode"}, {"key": "bots", "value": 11},
 		{"key": "bots", "value": -1}, {"key": "map_id", "value": 9}, {"key": "port", "value": 6767},

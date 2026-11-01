@@ -79,6 +79,9 @@ pub struct ToolState {
     pub booth: Option<Value>,
     /// The last world the server sent, so a snapshot delta can be applied.
     pub world: protocol::WorldReader,
+    /// The Welcome said this host keeps fun metrics: match-level tallies,
+    /// never a callsign or id, shredded after 67 days.
+    pub fun_metrics: bool,
 }
 
 impl Default for ToolState {
@@ -102,6 +105,7 @@ impl Default for ToolState {
             watch: false,
             booth: None,
             world: protocol::WorldReader::new(),
+            fun_metrics: false,
         }
     }
 }
@@ -789,6 +793,9 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "self_team": self_team,
         "self_lives": self_lives,
         "self_body": self_body,
+        // The host keeps fun metrics (match-level tallies, shredded after 67
+        // days), as its Welcome said. False when it keeps nothing.
+        "fun_metrics": state.fun_metrics,
         // The booth: live pad clocks, the Custody Plate, sprees and open
         // multikill chains. Present only for a session that watches and
         // never fights (`mcp --watch`); null for a fighter.
@@ -854,7 +861,7 @@ fn tools_list_body() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, and the round. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, rivals it only hears (HEARD, a rough place, never a target), and the round. A fighter receives only what it could perceive, the same as a human fighter: a rival it cannot see or hear is a hidden row with no place. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -979,7 +986,7 @@ fn tools_list_body() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm, ctf or sabotage; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, sabotage (phase, round, score by round, alive, clock, charge, plant or defuse progress), sabotage_map (sites and callouts), sabotage_objective (idle, walk with a point, plant or defuse for you), self_callout, self_team, self_lives and self_body, from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. In sabotage the free coalition (coalition) carries and plants the charge and the union defends or defuses; one life per round, sides swap at half. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm, ctf or sabotage; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, sabotage (phase, round, score by round, alive, clock, charge, plant or defuse progress), sabotage_map (sites and callouts), sabotage_objective (idle, walk with a point, plant or defuse for you), self_callout, self_team, self_lives, self_body and fun_metrics (true when this host keeps match-level tallies: never a callsign or id, shredded after 67 days), from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. In sabotage the free coalition (coalition) carries and plants the charge and the union defends or defuses; one life per round, sides swap at half. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -1206,6 +1213,28 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         });
         threats.truncate(8);
     }
+    // What the fighter hears but cannot see (gameplay 66): a rough place,
+    // never a target. The server already withheld everything else.
+    let mut heard: Vec<(Uuid, String, f32, i32)> = Vec::new();
+    if let Some(me) = me {
+        for other in &snapshot.players {
+            let Some(at) = other.heard_at().filter(|_| me.is_rival_of(other)) else {
+                continue;
+            };
+            let (dx, dz) = (at[0] - me.x, at[2] - me.z);
+            let dist = dx.hypot(dz);
+            if dist.is_finite() {
+                heard.push((
+                    other.id,
+                    other.name.clone(),
+                    dist,
+                    dz.atan2(dx).to_degrees().round() as i32,
+                ));
+            }
+        }
+        heard.sort_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)));
+        heard.truncate(8);
+    }
     let recent_damage = me
         .map(|player| recent_damage_on(state, player.id))
         .unwrap_or(0);
@@ -1213,7 +1242,8 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         let mut best = 0u32;
         if let Some(me) = me {
             for other in &snapshot.players {
-                if me.is_hostile_to(other) {
+                // The board counts every rival, seen or not.
+                if me.is_rival_of(other) {
                     best = best.max(other.score);
                 }
             }
@@ -1332,6 +1362,11 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             ));
         }
     }
+    for (id, name, dist, bearing) in &heard {
+        text.push_str(&format!(
+            "HEARD id={id} name={name} dist~{dist:.0} bearing~{bearing}\n"
+        ));
+    }
     text.push_str(&format!(
         "PADS health={} armor={}",
         dist_text(nearest("health")),
@@ -1387,6 +1422,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         "detail": "brief",
         "self": self_json,
         "threats": threat_json,
+        "heard": heard.iter().map(|(id, name, dist, bearing)| serde_json::json!({"id": id.to_string(), "name": name, "dist": dist, "bearing": bearing})).collect::<Vec<_>>(),
         "pads": {
             "health": nearest("health"),
             "armor": nearest("armor"),
@@ -2170,7 +2206,12 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 push_recent_event(state, event_value);
             }
         }
-        Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
+        Ok(protocol::ServerMessage::Welcome {
+            player_id,
+            fun_metrics,
+            ..
+        }) => {
+            state.fun_metrics = fun_metrics;
             state.connection_error = None;
             state.map = None;
             state.last_snapshot = None;
@@ -2715,6 +2756,58 @@ mod mcp_tests {
             build_observe_result(&state)["players"][0]["airborne"],
             serde_json::json!(true)
         );
+    }
+
+    #[test]
+    fn observe_full_names_the_zone_a_shot_struck_and_omits_it_on_a_miss() {
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        sim.pickups.clear();
+        let (shooter, target) = (Uuid::from_u128(94), Uuid::from_u128(95));
+        sim.add_player(shooter, "Shooter".into(), protocol::Role::Agent);
+        sim.add_player(target, "Target".into(), protocol::Role::Agent);
+        let floor = fragr_server::sim::PLAYER_FLOOR_Y;
+        for (index, x) in [(0, 0.0), (1, 8.0)] {
+            let p = &mut sim.players[index];
+            [p.x, p.y, p.z] = [x, floor, 0.0];
+            p.vy = 0.0;
+            p.weapon = protocol::WeaponType::Tack;
+        }
+        sim.spawn_shields.clear();
+        let mut state = ToolState {
+            player_id: Some(shooter),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        for (height, zone) in [(0.45, Some("legs")), (4.0, None)] {
+            sim.players[0].fire_cooldown = 0;
+            sim.set_action(
+                shooter,
+                protocol::Action {
+                    seq: Some(1),
+                    fire: true,
+                    look_at: Some(protocol::LookAt {
+                        x: Some(8.0),
+                        y: Some(height),
+                        z: Some(0.0),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            );
+            sim.tick(0.05);
+            let snapshot = protocol::ServerMessage::Snapshot(sim.snapshot());
+            ingest_server_text(&mut state, &serde_json::to_string(&snapshot).unwrap()).unwrap();
+            let observed = build_observe_result(&state);
+            let shot = &observed["shot_results"][0];
+            assert_eq!(shot.get("zone").and_then(|z| z.as_str()), zone, "{shot}");
+            assert!(shot.get("head").is_none(), "the old flag is gone: {shot}");
+            sim.set_action(shooter, protocol::Action::default());
+            for _ in 0..6 {
+                sim.tick(0.05);
+            }
+        }
     }
 
     #[test]
@@ -4906,6 +4999,35 @@ mod mcp_tests {
     }
 
     #[test]
+    fn the_welcome_s_fun_metrics_notice_reaches_round_state() {
+        let mut state = ToolState::default();
+        let round_state = |state: &mut ToolState| {
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"round_state","arguments":{}})),
+                ),
+                state,
+            );
+            tool_structured(out.response.result.unwrap())
+        };
+        assert_eq!(round_state(&mut state)["fun_metrics"], false);
+        let welcome = |on: bool| {
+            serde_json::json!({
+                "type": "welcome", "player_id": Uuid::nil(), "role": "agent",
+                "duck": true, "fun_metrics": on,
+            })
+            .to_string()
+        };
+        ingest_server_text(&mut state, &welcome(true)).unwrap();
+        assert!(state.connected && state.fun_metrics);
+        assert_eq!(round_state(&mut state)["fun_metrics"], true);
+        // A later Welcome from a host that keeps nothing says so.
+        ingest_server_text(&mut state, &welcome(false)).unwrap();
+        assert_eq!(round_state(&mut state)["fun_metrics"], false);
+    }
+
+    #[test]
     fn round_state_from_snapshot_and_events() {
         let mut state = ToolState {
             connected: true,
@@ -5353,6 +5475,7 @@ mod mcp_tests {
                 phase_started: 1,
                 phase_ends: 9,
                 seated: false,
+                mast_broken: false,
                 control,
             })
         };

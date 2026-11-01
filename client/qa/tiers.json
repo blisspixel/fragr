@@ -1,0 +1,22 @@
+{
+  "comment": "The five tiers at a fixed 1920x1080 window on Larak Lot, each from the same locked pose: the overview and a low ground view on the default Fine world pixels, then the overview with world pixels off. Run once with FRAGR_RENDER_DRIVER=vulkan (Forward+, the shipped renderer; Ultra only draws there) and once with the default opengl3 (Compatibility). Fighters move between stills; the room must not. Frame samples on a busy machine are diagnostic only.",
+  "width": 1920,
+  "height": 1080,
+  "states": [
+    {"name":"tier_potato","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":0,"upscaling":0,"resolution_height":0,"render_scale":100,"pixel_scale":1,"dither":false},"frame_sample":600,"scene":"res://scenes/main.tscn","at_seconds":4},
+    {"name":"tier_low","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":1,"upscaling":0,"resolution_height":0,"render_scale":100,"pixel_scale":1,"dither":false},"frame_sample":600},
+    {"name":"tier_medium","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":2,"upscaling":0,"resolution_height":0,"render_scale":100,"pixel_scale":1,"dither":false},"frame_sample":600},
+    {"name":"tier_high","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":3,"upscaling":0,"resolution_height":0,"render_scale":100,"pixel_scale":1,"dither":false},"frame_sample":600},
+    {"name":"tier_ultra","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":4,"upscaling":0,"resolution_height":0,"render_scale":100,"pixel_scale":1,"dither":false},"frame_sample":600},
+    {"name":"tier_ground_potato","camera":"overview","camera_position":[-16,2.4,12],"camera_look_at":[0,1.6,0],"graphics":{"quality":0},"frame_sample":600},
+    {"name":"tier_ground_low","camera":"overview","camera_position":[-16,2.4,12],"camera_look_at":[0,1.6,0],"graphics":{"quality":1},"frame_sample":600},
+    {"name":"tier_ground_medium","camera":"overview","camera_position":[-16,2.4,12],"camera_look_at":[0,1.6,0],"graphics":{"quality":2},"frame_sample":600},
+    {"name":"tier_ground_high","camera":"overview","camera_position":[-16,2.4,12],"camera_look_at":[0,1.6,0],"graphics":{"quality":3},"frame_sample":600},
+    {"name":"tier_ground_ultra","camera":"overview","camera_position":[-16,2.4,12],"camera_look_at":[0,1.6,0],"graphics":{"quality":4},"frame_sample":600},
+    {"name":"tier_native_potato","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":0,"pixel_scale":0},"frame_sample":600},
+    {"name":"tier_native_low","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":1,"pixel_scale":0},"frame_sample":600},
+    {"name":"tier_native_medium","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":2,"pixel_scale":0},"frame_sample":600},
+    {"name":"tier_native_high","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":3,"pixel_scale":0},"frame_sample":600},
+    {"name":"tier_native_ultra","camera":"overview","camera_position":[0,22,28],"camera_look_at":[0,0,0],"graphics":{"quality":4,"pixel_scale":0},"frame_sample":600}
+  ]
+}

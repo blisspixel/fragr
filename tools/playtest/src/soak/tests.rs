@@ -242,6 +242,7 @@ fn configuration_is_validated_before_anything_starts() {
         seed: 1,
         launch: Launch::InProcess,
         log: PathBuf::from(".agents/soak/test.ndjson"),
+        fun_metrics: None,
     };
     assert!(base.validate().is_ok());
     for broken in [
@@ -297,6 +298,7 @@ async fn a_missing_binary_is_a_start_error() {
         seed: 1,
         launch: Launch::Binary(dir.join("no-such-fragr-server")),
         log: dir.join("missing.ndjson"),
+        fun_metrics: None,
     })
     .await
     .unwrap_err();
@@ -333,6 +335,7 @@ async fn memory_probe_yields_to_clients_on_the_same_runtime() {
 #[tokio::test]
 async fn a_short_in_process_soak_samples_and_passes() {
     let dir = std::env::temp_dir().join(format!("fragr-soak-test-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
     let log = dir.join("soak.ndjson");
     let verdict = run_soak(SoakConfig {
         seconds: 3,
@@ -345,6 +348,8 @@ async fn a_short_in_process_soak_samples_and_passes() {
         seed: 7,
         launch: Launch::InProcess,
         log: log.clone(),
+        // The soak runs with fun metrics on: the tally rides along unnoticed.
+        fun_metrics: Some(dir.join("run")),
     })
     .await
     .unwrap();
@@ -375,5 +380,13 @@ async fn a_short_in_process_soak_samples_and_passes() {
     assert_eq!(first["schema_version"], 2);
     assert_eq!(first["ops"]["connections"]["agents"], 2);
     assert_eq!(first["ops"]["clients"].as_array().unwrap().len(), 3);
+    assert_eq!(first["fun_metrics"], true, "/status says the tally is on");
+    // Stopping mid-match files the match played so far, unfinished.
+    let (records, refused) =
+        fragr_server::fun_metrics::FunStore::read_all(&dir.join("run").join("fun-metrics"))
+            .unwrap();
+    assert!(refused.is_empty(), "{refused:?}");
+    assert_eq!(records.len(), 1, "one match, one file");
+    assert!(!records[0].finished && records[0].tally.live_ticks > 0);
     let _ = std::fs::remove_dir_all(dir);
 }

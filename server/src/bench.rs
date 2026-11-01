@@ -307,7 +307,20 @@ pub struct BenchReport {
     pub stats: StatsReport,
     pub session_ms: Summary,
     pub encode_ms: Summary,
+    /// Cutting every fighter's view as if each were a connected reader
+    /// (`crate::interest`): perception and view text. Inside `stats.tick_ms`.
+    pub interest_ms: Summary,
+    /// Rows withheld per reader per tick, out of the others it could see.
+    pub withheld_share: Summary,
+    /// Lines of sight traced per tick.
+    pub interest_rays: Summary,
+    /// Mean world bytes a reader receives per tick: its view, or the whole
+    /// world when nothing is withheld.
+    pub reader_world_bytes: Summary,
     pub unicast_bytes: Summary,
+    /// The fun metrics observer's time per tick, milliseconds, measured
+    /// beside the tick and never inside `stats`: what `--fun-metrics` costs.
+    pub fun_metrics_ms: Summary,
     /// SHA-256 of header/tick/score records, including LF separators.
     pub trace_sha256: String,
     /// Final round scores. Trace equality also covers intermediate movement,
@@ -415,6 +428,14 @@ pub fn run_bench_with_trace(
     let mut session_ns = Histogram::new();
     let mut encode_ns = Histogram::new();
     let mut unicast_bytes = Histogram::new();
+    // The fun metrics observer reads the same session and messages a host's
+    // run loop gives it. It never changes the match, so the trace is the same.
+    let mut fun_metrics = crate::fun_metrics::Observer::new(&session);
+    let mut fun_metrics_ns = Histogram::new();
+    let mut interest_ns = Histogram::new();
+    let mut withheld = Histogram::new();
+    let mut rays = Histogram::new();
+    let mut reader_bytes = Histogram::new();
     let dt = TICK.as_secs_f32();
     for _ in 0..ticks {
         let started = Instant::now();
@@ -425,10 +446,22 @@ pub fn run_bench_with_trace(
         let bytes = encoded_payload_bytes(messages.iter())?;
         let targeted = encoded_payload_bytes(unicasts.iter().map(|(_, message)| message))?;
         let encoded = encode_started.elapsed();
-        stats.record_tick(started.elapsed(), bytes);
+        let interest = interest_phase(&mut session, &messages)?;
+        stats.record_tick(simulated + encoded + interest.elapsed, bytes);
+        interest_ns.record(interest.elapsed.as_nanos().min(u64::MAX as u128) as u64);
+        // Shares in parts per million, so the histogram keeps them.
+        withheld.record(interest.withheld_ppm);
+        rays.record(interest.rays);
+        reader_bytes.record(interest.reader_bytes);
         session_ns.record(simulated.as_nanos().min(u64::MAX as u128) as u64);
         encode_ns.record(encoded.as_nanos().min(u64::MAX as u128) as u64);
         unicast_bytes.record(targeted as u64);
+        let observed = Instant::now();
+        fun_metrics.observe(&session, &messages);
+        if fun_metrics.finished() {
+            fun_metrics = crate::fun_metrics::Observer::new(&session);
+        }
+        fun_metrics_ns.record(observed.elapsed().as_nanos().min(u64::MAX as u128) as u64);
         recorder.record(&TraceRecord::Tick {
             tick: session.state.tick,
             broadcast: messages,
@@ -448,16 +481,81 @@ pub fn run_bench_with_trace(
     let fighters = session.state.players.len();
     let trace_sha256 = recorder.finish(ticks, frags.clone())?;
     Ok(BenchReport {
-        schema_version: 2,
+        schema_version: 3,
         config,
         environment: BenchEnvironment::current(),
         stats: stats.report(fighters, 0),
         session_ms: session_ns.summary(1e-6),
         encode_ms: encode_ns.summary(1e-6),
+        interest_ms: interest_ns.summary(1e-6),
+        withheld_share: withheld.summary(1e-6),
+        interest_rays: rays.summary(1.0),
+        reader_world_bytes: reader_bytes.summary(1.0),
         unicast_bytes: unicast_bytes.summary(1.0),
+        fun_metrics_ms: fun_metrics_ns.summary(1e-6),
         trace_sha256,
         frags,
         deterministic: None,
+    })
+}
+
+/// One tick of interest as a live server cuts it, with every fighter a
+/// connected reader: the bench's worst case for perception.
+struct InterestTick {
+    elapsed: Duration,
+    withheld_ppm: u64,
+    rays: u64,
+    reader_bytes: u64,
+}
+
+fn interest_phase(
+    session: &mut GameSession,
+    messages: &[crate::protocol::ServerMessage],
+) -> io::Result<InterestTick> {
+    let none = InterestTick {
+        elapsed: Duration::ZERO,
+        withheld_ppm: 0,
+        rays: 0,
+        reader_bytes: 0,
+    };
+    let Some(world) = messages
+        .iter()
+        .find(|message| matches!(message, crate::protocol::ServerMessage::Snapshot(_)))
+    else {
+        return Ok(none);
+    };
+    // The live tick encodes the world once already (`encode_ms`); only the
+    // views are this phase.
+    let world = crate::net::Broadcast::encode(world.clone()).map_err(io::Error::other)?;
+    let crate::protocol::ServerMessage::Snapshot(snapshot) = world.message() else {
+        return Ok(none);
+    };
+    let readers: Vec<uuid::Uuid> = session
+        .state
+        .players
+        .iter()
+        .filter(|player| player.is_participant())
+        .map(|player| player.id)
+        .collect();
+    let started = Instant::now();
+    session.interest.observe(messages);
+    let views = session.interest.views(&session.state, snapshot, &readers);
+    let cut = crate::interest::encode_views(&world, &views).map_err(io::Error::other)?;
+    let elapsed = started.elapsed();
+    let others = readers.len().saturating_sub(1).max(1) * readers.len().max(1);
+    let withheld = views.values().map(Vec::len).sum::<usize>();
+    let bytes: usize = readers
+        .iter()
+        .map(|reader| {
+            cut.get(reader)
+                .map_or(world.text().len(), |view| view.text().len())
+        })
+        .sum();
+    Ok(InterestTick {
+        elapsed,
+        withheld_ppm: (withheld as u64 * 1_000_000) / others as u64,
+        rays: session.interest.counts().rays,
+        reader_bytes: (bytes / readers.len().max(1)) as u64,
     })
 }
 
@@ -515,11 +613,25 @@ pub fn check_thresholds(report: &BenchReport, max_budget_p99: f64) -> Vec<String
             max_budget_p99 * 100.0
         ));
     }
+    // Fun metrics ride along on a host's tick; they must stay a rounding
+    // error beside it, whatever machine runs the bench.
+    let fun_budget_ms = TICK.as_secs_f64() * 1000.0 * FUN_METRICS_MAX_BUDGET;
+    if report.fun_metrics_ms.p99 > fun_budget_ms {
+        out.push(format!(
+            "fun metrics p99 {:.3} ms is over {:.1} ms ({:.0}% of the tick budget)",
+            report.fun_metrics_ms.p99,
+            fun_budget_ms,
+            FUN_METRICS_MAX_BUDGET * 100.0
+        ));
+    }
     if stats.ticks == 0 {
         out.push("no ticks were measured".to_string());
     }
     out
 }
+
+/// The share of the tick budget the fun metrics observer may take at p99.
+pub const FUN_METRICS_MAX_BUDGET: f64 = 0.05;
 
 #[cfg(test)]
 mod tests {
@@ -668,6 +780,7 @@ mod tests {
         }
         report.config.ticks = stats.ticks();
         report.stats = stats.report(4, 0);
+        report.fun_metrics_ms.p99 = 0.01;
         assert!(
             check_thresholds(&report, 0.5).is_empty(),
             "a healthy run has no complaints: {:?}",
@@ -699,6 +812,15 @@ mod tests {
         assert!(check_thresholds(&report, 0.5).is_empty());
         report.stats.budget_use_p99 = 0.500_001;
         assert!(check_thresholds(&report, 0.5)[0].contains("p99 tick"));
+        report.stats.budget_use_p99 = 0.5;
+        report.fun_metrics_ms.p99 = 2.6;
+        let complaints = check_thresholds(&report, 0.5);
+        assert!(
+            complaints.len() == 1
+                && complaints[0].contains("fun metrics p99 2.600 ms is over 2.5 ms"),
+            "{complaints:?}"
+        );
+        report.fun_metrics_ms.p99 = 0.01;
         report.stats.ticks = 0;
         assert!(check_thresholds(&report, 0.8)[0].contains("no ticks"));
     }

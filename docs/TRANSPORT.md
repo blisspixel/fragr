@@ -12,7 +12,7 @@
 - Client: Loopback default, accepts `FRAGR_SERVER` env var for remote connections
 - Tick rate: ~20 Hz server broadcast
 - Multi-peer: Multiple spectators/players can connect to same match
-- Fan-out: each broadcast is encoded once per tick and every session's bounded queue shares that payload; targeted messages are encoded per session. Measured before and after in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out).
+- Fan-out: each broadcast is encoded once per tick and every session's bounded queue shares that payload; targeted messages are encoded per session. Since gameplay 66 a fighter in a shared arcade room receives its own view of the world instead (other fighters it cannot perceive are withheld, `server/src/interest.rs`): fighters with the same view share one cut of the world text, and each view goes as a delta from the world that socket last carried. Spectators keep the shared world. Measured before and after in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out).
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
 - Size: worlds go as deltas from the world the reader holds (gameplay 63), with fighter motion rounded to the millimetre and 1e-4 rad on the wire. Measured in [BENCHMARK.md](BENCHMARK.md#quantized-motion-434-stage-4-wave-16): about 51 KiB/s per client at the 64-connection cap.
 - Limits: Ordered TCP delivery stalls newer updates behind a lost segment; JSON text is still larger than a binary, relevant-state format.

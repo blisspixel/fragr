@@ -16,7 +16,7 @@ use std::f32::consts::{FRAC_PI_3, PI, TAU};
 use uuid::Uuid;
 
 pub(crate) mod guard;
-mod hunt;
+pub(crate) mod hunt;
 mod pads;
 
 const OBSERVE_EVERY: u64 = 2;

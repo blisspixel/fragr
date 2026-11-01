@@ -37,20 +37,24 @@ impl GameState {
                         .unwrap_or_default(),
                     power: pad.kind.is_power(),
                     back_in: pad.respawn_timer?,
+                    clock: pad.clock(&self.config.rules),
                 })
             })
             .collect();
-        if let Some((id, back_in)) = self
-            .article_blade
-            .as_ref()
-            .and_then(|blade| Some((blade.pickup_state().id, blade.return_in()?)))
-        {
+        if let Some((id, back_in, clock)) = self.article_blade.as_ref().and_then(|blade| {
+            Some((
+                blade.pickup_state().id,
+                blade.return_in()?,
+                blade.return_ticks(),
+            ))
+        }) {
             pads.push(PadClock {
                 id,
                 kind: "weapon".to_string(),
                 weapon: crate::protocol::WeaponType::ArticleBlade.name().to_string(),
                 power: true,
                 back_in,
+                clock,
             });
         }
         pads.sort_by(|a, b| a.back_in.cmp(&b.back_in).then_with(|| a.id.cmp(&b.id)));
@@ -74,6 +78,7 @@ impl GameState {
                     } else {
                         pad.respawn_timer
                     },
+                    clock: (!pad.available).then(|| pad.clock(&self.config.rules)),
                     holder: holder.map(|p| p.id),
                     armor: holder.map(|p| p.armor),
                 }

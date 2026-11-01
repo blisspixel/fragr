@@ -1,0 +1,12 @@
+{
+  "comment": "#538 Larak Lot ledge review: the wrecks, drum and crash barriers raised from 1.4 m to a 1.5 m wall over their decks, seen from a fighter's eye height (1.6 m) beside each. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/larak-ledges.json, on Forward+ (the tour default) and with FRAGR_QA_RENDERER=compatibility. Camera placement is presentation only.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "ledge_pit_sedan", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "overview", "camera_position": [4.2, 1.6, 2.2], "camera_look_at": [4.2, 0.9, -3.0], "settle_seconds": 0.4, "note": "The nose-down sedan in the Pit from a fighter standing beside it."},
+    {"name": "ledge_roof_valet", "camera": "overview", "camera_position": [21.0, 7.6, -20.5], "camera_look_at": [29.0, 6.9, -21.5], "settle_seconds": 0.3, "note": "The valet circle's crash barriers and the roof sedan by the Plate."},
+    {"name": "ledge_roof_sedan_west", "camera": "overview", "camera_position": [16.2, 7.6, -19.5], "camera_look_at": [16.2, 6.8, -24.0], "settle_seconds": 0.3, "note": "The burned sedan by the Spiral's top."},
+    {"name": "ledge_toll_cruiser", "camera": "overview", "camera_position": [-18.5, 4.6, -21.0], "camera_look_at": [-13.0, 3.8, -25.0], "settle_seconds": 0.3, "note": "The slashed Union car at the Spiral foot on the Toll deck."},
+    {"name": "ledge_crane_drum", "camera": "overview", "camera_position": [20.0, 4.6, -1.5], "camera_look_at": [25.0, 3.8, -4.5], "settle_seconds": 0.3, "note": "The cable drum on the Crane landing."}
+  ]
+}

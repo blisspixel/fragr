@@ -1,0 +1,30 @@
+{
+  "comment": "Interest filtering (gameplay 66) as a joined fighter sees it: tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/fair-play.json on Larak Lot with rule bots. Fighters behind cover are withheld from this socket; review the strip for bodies that pop in at corners or hang at the origin, then the death card for the killer and its recap.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "fair_joined",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 6,
+      "camera": "first_person",
+      "join": "human",
+      "await_alive": 20,
+      "note": "Joined fighter at its spawn: nobody drawn through the walls around it."
+    },
+    {
+      "name": "fair_pit_walk",
+      "camera": "first_person",
+      "walk_into": [[0.0, 0.0, 0.0]],
+      "strip_frames": 32,
+      "strip_interval_seconds": 0.15,
+      "note": "Walking into the Pit past the Stands: rivals come round the corners already drawn, not popping in."
+    },
+    {
+      "name": "fair_death_card",
+      "camera": "first_person",
+      "await_death": 90,
+      "note": "Death card after a real frag: the killer named, its row on the recap, upright."
+    }
+  ]
+}

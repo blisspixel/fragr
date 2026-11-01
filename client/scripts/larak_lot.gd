@@ -62,6 +62,11 @@ const LEVEL_2: float = 3.0
 const LEVEL_3: float = 4.5
 const ROOF: float = 6.0
 const RAIL_LANDING: float = 0.5
+## A wreck, drum or crash barrier on a deck, mirrored from the server: a wall
+## to the jump, drawn to its full height (#538).
+const WRECK: float = 1.5
+## The burned sedan model's fitted height (its .glb.json fit).
+const SEDAN_MODEL_HEIGHT: float = 1.4
 
 ## Light plan (the other four are the registered strip lights).
 const SODIUM: Color = Color("ffb35c")
@@ -793,19 +798,19 @@ func _vehicles() -> void:
 		_van(Vector3(-32.9, LEVEL_1, 24.5), Vector3(2.2, 2.2, 5.0), false, "union")
 	# The wreck that went into the Pit nose first when the bays fell, and
 	# two more burnt out on the Roof: civilian bodies, lamps dead.
-	if _replace(2.0, -4.0, 6.4, -2.0, 1.4):
-		_prop("burned_sedan", Vector3(4.2, PIT, -3.0), 0.0, self, 0.05)
-	if _replace(-15.0, -26.0, -11.0, -24.0, 4.4):
-		_car(Vector3(-13.0, LEVEL_2, -25.0), Vector3(4.0, 1.4, 2.0), true, "union_slashed")
+	if _replace(2.0, -4.0, 6.4, -2.0, WRECK):
+		_prop("burned_sedan", Vector3(4.2, PIT, -3.0), 0.0, self, 0.05, WRECK / SEDAN_MODEL_HEIGHT)
+	if _replace(-15.0, -26.0, -11.0, -24.0, LEVEL_2 + WRECK):
+		_car(Vector3(-13.0, LEVEL_2, -25.0), Vector3(4.0, WRECK, 2.0), true, "union_slashed")
 	# Civilian cars clamped and caged in the Impound, awaiting an order.
 	for x: float in [16.0, 23.0]:
 		if _replace(x, 19.0, x + 4.4, 21.0, 2.9):
 			_prop("clamped_sedan", Vector3(x + 2.2, LEVEL_1, 20.0), 0.0 if x < 20.0 else PI)
 			_cage(Vector3(x + 2.2, LEVEL_1, 20.0), Vector3(4.4, 1.4, 2.0))
-	if _replace(14.0, -25.0, 18.4, -23.0, 7.4):
-		_prop("burned_sedan", Vector3(16.2, ROOF, -24.0), PI)
-	if _replace(30.0, -26.0, 34.4, -24.0, 7.4):
-		_prop("burned_sedan", Vector3(32.2, ROOF, -25.0), 0.0)
+	if _replace(14.0, -25.0, 18.4, -23.0, ROOF + WRECK):
+		_prop("burned_sedan", Vector3(16.2, ROOF, -24.0), PI, self, 0.0, WRECK / SEDAN_MODEL_HEIGHT)
+	if _replace(30.0, -26.0, 34.4, -24.0, ROOF + WRECK):
+		_prop("burned_sedan", Vector3(32.2, ROOF, -25.0), 0.0, self, 0.0, WRECK / SEDAN_MODEL_HEIGHT)
 	if _replace(19.0, -17.0, 21.2, -12.0, 8.2):
 		_van(Vector3(20.1, ROOF, -14.5), Vector3(2.2, 2.2, 5.0), true, "union")
 	# THE STACK: crushed cars piled on burnt tow trucks, two piles side by
@@ -813,7 +818,7 @@ func _vehicles() -> void:
 	if _replace(4.0, 3.0, 8.4, 8.0, 3.2):
 		_prop("car_stack", Vector3(5.1, PIT, 5.5), 0.0)
 		_prop("car_stack", Vector3(7.3, PIT, 5.5), PI)
-	if _replace(24.0, -6.0, 26.0, -3.0, 4.4):
+	if _replace(24.0, -6.0, 26.0, -3.0, LEVEL_2 + WRECK):
 		_drum(Vector3(25.0, LEVEL_2, -4.5))
 
 ## A sedan from boxes: body, cabin, glass, wheels and lamps. `size` is the
@@ -939,7 +944,7 @@ func _wheel(parent: Node3D, tyre: Material, at: Vector3, upright: bool) -> void:
 ## A prepared prop on its floor centre `at`, turned by `yaw`. Its painted
 ## clusters stay crisp at any distance. Null, with an error, when the asset
 ## is missing from the build.
-func _prop(prop: String, at: Vector3, yaw: float, parent: Node3D = self, tilt: float = 0.0) -> Node3D:
+func _prop(prop: String, at: Vector3, yaw: float, parent: Node3D = self, tilt: float = 0.0, stretch_y: float = 1.0) -> Node3D:
 	var scene: PackedScene = load(PROPS + prop + ".glb") as PackedScene
 	var node: Node3D = scene.instantiate() as Node3D if scene != null else null
 	if node == null:
@@ -948,6 +953,7 @@ func _prop(prop: String, at: Vector3, yaw: float, parent: Node3D = self, tilt: f
 	node.name = prop.to_pascal_case()
 	node.position = at
 	node.rotation = Vector3(0.0, yaw, tilt)
+	node.scale = Vector3(1.0, stretch_y, 1.0)
 	for child: Node in node.find_children("*", "MeshInstance3D", true, false):
 		var surface: MeshInstance3D = child as MeshInstance3D
 		for index: int in range(surface.get_surface_override_material_count()):
@@ -984,9 +990,9 @@ func _cage(base: Vector3, size: Vector3) -> void:
 func _drum(base: Vector3) -> void:
 	var wood: Material = _mat("drum_wood", Color("6b5236"))
 	var cable: Material = _mat("drum_cable", Color("202224"))
-	_cylinder("drum_wood", wood, base + Vector3(0.0, 0.7, -1.35), 0.7, 0.12, Vector3(PI * 0.5, 0.0, 0.0), 12)
-	_cylinder("drum_wood", wood, base + Vector3(0.0, 0.7, 1.35), 0.7, 0.12, Vector3(PI * 0.5, 0.0, 0.0), 12)
-	_cylinder("drum_cable", cable, base + Vector3(0.0, 0.7, 0.0), 0.55, 2.6, Vector3(PI * 0.5, 0.0, 0.0), 12)
+	_cylinder("drum_wood", wood, base + Vector3(0.0, WRECK * 0.5, -1.35), WRECK * 0.5, 0.12, Vector3(PI * 0.5, 0.0, 0.0), 12)
+	_cylinder("drum_wood", wood, base + Vector3(0.0, WRECK * 0.5, 1.35), WRECK * 0.5, 0.12, Vector3(PI * 0.5, 0.0, 0.0), 12)
+	_cylinder("drum_cable", cable, base + Vector3(0.0, WRECK * 0.5, 0.0), WRECK * 0.5 - 0.15, 2.6, Vector3(PI * 0.5, 0.0, 0.0), 12)
 
 ## ---------------------------------------------------------------------------
 ## Quarters

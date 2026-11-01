@@ -34,6 +34,7 @@ fn identity(kind: EnemyKind, phase: EnemyPhase) -> Option<CampaignActor> {
         phase_started: 0,
         phase_ends: 40,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     })
 }

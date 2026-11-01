@@ -413,10 +413,55 @@ modes still need fresh human matches to establish clarity and fun.
 
 A fragr server sends nothing to the project. Its console shows who joined by
 callsign and the address of any connection it refused; it does not write that
-to disk. Fun metrics, match-level counts that help tune maps, weapons, bots and
-pacing, are planned to be off by default, announced to players when a host turns
-them on, kept only on the host's disk and shredded after 67 days. The
-[privacy policy](PRIVACY.md) is the whole promise.
+to disk. The [privacy policy](PRIVACY.md) is the whole promise.
+
+### Fun metrics
+
+Fun metrics are match-level counts and timings that help a host tune maps,
+weapons, bots and pacing against real games: frag pace, lead changes, each
+gun's share of shots and frags, kill distances, time to kill, respawn to first
+contact, spawn deaths, pad pickups, Sabotage and Conquest outcomes and tick
+health. They are off by default. Turn them on with `--fun-metrics` on a
+dedicated arcade server, or **Fun tally** under the desktop host's more
+options. A campaign never records them.
+
+```bash
+FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-metrics --map-rotate --bots 6
+```
+
+- **Players are told.** Every Welcome carries `fun_metrics: true`, the match
+  feed says "This host keeps a fun tally" once on join, `GET /status` answers
+  `"fun_metrics": true` and the join page reads it out before Watch or Join.
+  The ready card's `Tally` row and the desk's `status` say it too.
+- **Where the files go.** One file per match, `match-YYYY-MM-DD-NNNN.json`
+  (the day, never the time), in `fun-metrics/` under the run directory:
+  `FRAGR_RUN_DIR` when set (it must be absolute), else the platform's user
+  data folder (`~/.local/share/fragr/runs` on Linux,
+  `~/Library/Application Support/fragr/runs` on macOS,
+  `%LOCALAPPDATA%\fragr\runs` on Windows). The server refuses to start with
+  `--fun-metrics` if it cannot name or create that folder. In a container,
+  set `FRAGR_RUN_DIR` to a mounted volume. A match the server stops mid-way
+  is filed with `finished: false`; one nobody played is not filed.
+- **What a file holds.** Exactly the fields listed in
+  [PRIVACY.md](PRIVACY.md#exactly-what-a-file-holds), and the build fails if
+  that list and the code disagree.
+- **Shredding.** At start and once a day, files in that folder older than 67
+  days are deleted by their file time, with a log line such as `Fun metrics:
+  shredded 3 match tallies older than 67 days. The Union would have kept them
+  forever.` Nothing else in the folder is touched.
+- **Reading them.** From a checkout, the summary folds the files with the same
+  definitions the bot survey uses and prints the table the
+  [1.0 bar](ROADMAP.md#the-10-bar) reads, plus any row that misses a map
+  target:
+
+  ```bash
+  cargo run -p fragr-playtest --release --locked -- --fun-summary /srv/fragr/fun-metrics --report .agents/fun-summary.json
+  ```
+
+  It reads only. Sharing a file with the project is your call, made by hand.
+- **Cost.** The recorder reads the tick the server already computed. The
+  benchmark measures it on every run (`fun_metrics_ms` in the report) and
+  `--bench-assert` fails if its p99 passes 5% of the tick budget.
 
 ## Server options
 
@@ -452,6 +497,7 @@ them on, kept only on the host's disk and shredded after 67 days. The
 | `--ban-list <PATH>` / `--allow-list <PATH>` | Address lists described above. |
 | `--console` | Local venue desk on a dedicated arcade match, including `status`. End of input does not stop the process. |
 | `--head-to-head <PATH>` | Keep the head-to-head book (frags between callsigns, which rule bots hold grudges from and the Host reads before a Duel) in this file across restarts, saved at each round end. A desktop host keeps it as `head-to-head.json` beside its campaign runs; a dedicated server keeps it in memory unless this is set. One file version: any other is refused with a warning, the book starts fresh and the next save replaces the file. |
+| `--fun-metrics` | Keep fun metrics: match-level tallies, one file per match in `fun-metrics/` under the run directory (`FRAGR_RUN_DIR`), shredded after 67 days. Announced in every Welcome and `/status`. Arcade only; off by default. See [fun metrics](#fun-metrics). |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |

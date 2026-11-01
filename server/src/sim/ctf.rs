@@ -95,6 +95,15 @@ impl GameState {
             player_id: player,
             capture_scores: self.capture_scores,
         });
+        match (kind, player) {
+            (FlagEventKind::Captured, Some(id)) => {
+                self.credit_objective(id, super::tally::Credit::Capture);
+            }
+            (FlagEventKind::Returned, Some(id)) => {
+                self.credit_objective(id, super::tally::Credit::Return);
+            }
+            _ => {}
+        }
         if let (FlagEventKind::Taken, Some(id)) = (kind, player) {
             self.queue_callout(id, crate::roster::ObjectiveCall::HaveFlag);
         }
@@ -369,6 +378,7 @@ mod tests {
 
     fn test_player(id: u128, team: Team, x: f32, z: f32, hp: i32) -> PlayerState {
         PlayerState {
+            objective: None,
             collidable: true,
             campaign: None,
             id: Uuid::from_u128(id),
@@ -397,6 +407,7 @@ mod tests {
             body: None,
             dress: None,
             ping: None,
+            sense: None,
         }
     }
 

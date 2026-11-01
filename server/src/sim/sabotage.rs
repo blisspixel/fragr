@@ -403,6 +403,15 @@ impl GameState {
             site,
             score,
         });
+        match (kind, player) {
+            (SabotageEventKind::Planted, Some(id)) => {
+                self.credit_objective(id, super::tally::Credit::Plant);
+            }
+            (SabotageEventKind::Defused, Some(id)) => {
+                self.credit_objective(id, super::tally::Credit::Defuse);
+            }
+            _ => {}
+        }
         let call = match (kind, site) {
             (SabotageEventKind::Planted, Some(site)) => {
                 Some(crate::roster::ObjectiveCall::Planted(site))

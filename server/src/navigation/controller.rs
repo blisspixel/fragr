@@ -11,6 +11,11 @@ use uuid::Uuid;
 #[cfg(test)]
 mod stalled_observations;
 
+/// Ticks of observed immobility in contact before the later body yields.
+const YIELD_STALL_TICKS: u32 = 20;
+/// How long a yielding body keeps backing away before it routes again.
+const YIELD_LEASE_TICKS: u64 = 15;
+
 #[derive(Debug, Clone, Copy)]
 pub struct NavigationGoal {
     pub feet: [f32; 3],
@@ -430,6 +435,58 @@ impl Navigator {
                 }
             }
             self.avoidance_motion = None;
+        }
+        // Bodies that push into each other from several sides can each find
+        // a sidestep that the others' simultaneous moves cancel, and stay
+        // wedged indefinitely. After a second of observed immobility in
+        // contact, the body with the later id yields: it backs away from the
+        // earliest neighbour for a short lease, so one body always proceeds.
+        if self.avoidance_stalled >= YIELD_STALL_TICKS {
+            let contact = me.radius * 2.0 + 0.3;
+            let leader = neighbours
+                .iter()
+                .filter(|b| {
+                    b.key < key && (b.from.x - me.from.x).hypot(b.from.z - me.from.z) < contact
+                })
+                .min_by(|a, b| a.key.cmp(&b.key));
+            if let Some(leader) = leader {
+                let away = [me.from.x - leader.from.x, me.from.z - leader.from.z];
+                let mut best: Option<(f32, Action)> = None;
+                for (forward, back, left, right) in [
+                    (false, true, false, false),
+                    (false, true, true, false),
+                    (false, true, false, true),
+                    (false, false, true, false),
+                    (false, false, false, true),
+                    (true, false, true, false),
+                    (true, false, false, true),
+                    (true, false, false, false),
+                ] {
+                    let mut candidate = action.clone();
+                    candidate.forward = forward;
+                    candidate.back = back;
+                    candidate.left = left;
+                    candidate.right = right;
+                    let Some(moved) = forecast(&candidate) else {
+                        continue;
+                    };
+                    let apart = moved[0] * away[0] + moved[1] * away[1];
+                    if moved[0].hypot(moved[1]) > 0.08
+                        && apart > 0.0
+                        && best
+                            .as_ref()
+                            .is_none_or(|(score, _)| apart > *score + 0.001)
+                    {
+                        best = Some((apart, candidate));
+                    }
+                }
+                if let Some((_, yielded)) = best {
+                    self.avoidance_motion =
+                        Some([yielded.forward, yielded.back, yielded.left, yielded.right]);
+                    self.avoidance_until = tick.saturating_add(YIELD_LEASE_TICKS);
+                    return yielded;
+                }
+            }
         }
         let progress = (original[0] * dx + original[1] * dz) / length;
         if progress >= length * 5.0 && !stalled {

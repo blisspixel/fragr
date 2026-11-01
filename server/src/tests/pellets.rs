@@ -99,14 +99,13 @@ fn a_full_band_blast_lands_every_pellet_and_two_blasts_kill() {
     let mut state = range(serde_json::json!([]), false);
     // Past the meatshot, inside the full-damage band.
     let victim = target(&mut state, 1, [3.0, 0.0, 0.0]);
-    // Pitch 0 is the face, and the chest cone still clips the head band.
-    // The belt is the body number: seven full pellets, Doom's average.
-    let pitch = crate::combat::aim_at(
-        [0.0, crate::movement::EYE_HEIGHT, 0.0],
-        [3.0, crate::movement::BODY_HEIGHT * 0.5, 0.0],
-    )
-    .unwrap()
-    .1;
+    // Pitch 0 is the face, and the chest cone still clips the head band;
+    // the belt cone clips the legs. The middle of the torso band is the body
+    // number: seven full pellets, Doom's average.
+    let torso = (crate::combat::LEG_GATE + crate::combat::HEAD_GATE) * 0.5;
+    let pitch = crate::combat::aim_at([0.0, crate::movement::EYE_HEIGHT, 0.0], [3.0, torso, 0.0])
+        .unwrap()
+        .1;
     let first = blast_at(&mut state, pitch);
     assert_eq!(first.len(), 1, "every pellet struck the same fighter");
     let shot = &first[0];
@@ -251,12 +250,15 @@ fn cover_stops_pellets_and_a_partial_wall_splits_the_blast() {
                 .pellets
                 .iter()
                 .map(|pellet| {
-                    let head = crate::combat::head_hit_for(0.0, pellet.end[1], None, false);
-                    crate::combat::traced_damage(
+                    let band = crate::combat::band_for(0.0, pellet.end[1], None, false);
+                    crate::combat::zoned_damage(
                         WeaponType::Scatter,
                         WeaponType::Scatter.damage_at(distance(trace.origin, pellet.end)),
-                        head,
+                        None,
+                        band,
+                        false,
                     )
+                    .0
                 })
                 .sum::<i32>()
         })
@@ -281,12 +283,15 @@ fn one_blast_spreads_across_two_fighters_with_one_frag_each() {
             .pellets
             .iter()
             .map(|pellet| {
-                let head = crate::combat::head_hit_for(0.0, pellet.end[1], None, false);
-                crate::combat::traced_damage(
+                let band = crate::combat::band_for(0.0, pellet.end[1], None, false);
+                crate::combat::zoned_damage(
                     WeaponType::Scatter,
                     WeaponType::Scatter.damage_at(distance(trace.origin, pellet.end)),
-                    head,
+                    None,
+                    band,
+                    false,
                 )
+                .0
             })
             .sum();
         assert_eq!(shot.damage, expected);
@@ -296,7 +301,8 @@ fn one_blast_spreads_across_two_fighters_with_one_frag_each() {
             .iter()
             .any(|pellet| crate::combat::head_hit_for(0.0, pellet.end[1], None, false));
         assert_eq!(
-            shot.head, headed,
+            shot.zone == Some(crate::protocol::HitZone::Head),
+            headed,
             "a blast reports its head band per fighter"
         );
     }

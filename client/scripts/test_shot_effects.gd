@@ -15,7 +15,9 @@ class HudProbe extends "res://qa/support/event_hud_probe.gd":
 	var blocked: Array[String] = []
 	func show_fire_juice(weapon: String) -> void:
 		fired.append(weapon)
-	func show_hit_marker(damage: int, weapon: String) -> void:
+	var zones: Array[String] = []
+	func show_hit_marker(damage: int, weapon: String, zone: String = "") -> void:
+		zones.append(zone)
 		if damage > 0:
 			hits.append(weapon)
 		else:
@@ -65,6 +67,19 @@ func _blast(target: String, kind: String, count: int, damage: int) -> Dictionary
 
 ## The Sniper's evidence draws a short streak at the far end, never the
 ## Railgun's line back to the muzzle.
+## A fighter hit carries the server's zone, validated; solids and misses
+## carry none.
+func _check_zone_evidence() -> void:
+	for case: Array in [["plate", "plate"], ["weak", "weak"], ["elbow", ""]]:
+		var shot: Dictionary = _shot("fighter", "flechette")
+		shot["zone"] = case[0]
+		var parsed: Array = ShotEffects._parse_all(shot)
+		_check(parsed.size() == 1 and parsed[0].zone == case[1], "fighter zone %s reads as %s" % [case[0], case[1]])
+	var wall: Dictionary = _shot("solid", "flechette")
+	wall["zone"] = "plate"
+	var solid: Array = ShotEffects._parse_all(wall)
+	_check(solid.size() == 1 and solid[0].zone == "", "a solid hit never carries a zone")
+
 func _check_sniper_tracer() -> void:
 	var far: Dictionary = _shot("fighter", "sniper")
 	far["trace"]["origin"] = [0.0, 1.6, 0.0]
@@ -219,6 +234,7 @@ func _run() -> void:
 	effects.ingest(1, [_shot(), _shot("fighter", "scatter"), _shot("range", "flechette")])
 	_check(effects.active_count() == 3 and effects.visible, "all impact kinds create bounded presentation")
 	_check_sniper_tracer()
+	_check_zone_evidence()
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 1, "effects share one mesh surface")
 	_check(effects.impact_count() == 2, "solid and fighter hits draw one impact sprite each, a miss none")
 	var sprites: ShaderMaterial = effects.get_node("Impacts").mesh.surface_get_material(0)

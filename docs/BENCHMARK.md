@@ -39,7 +39,7 @@ failure-message checks remain deterministic under coverage instrumentation.
 Actual speed remains enforced by CI's separate release benchmark and its
 unchanged budget gate. A synthetic sample is never performance evidence.
 
-## Report version 2
+## Report version 3
 
 `config` carries bots, ticks, map identity, seed, and crate version. `environment`
 carries OS, architecture, build profile, and available parallelism. The crate
@@ -51,8 +51,11 @@ version is not a source revision; retain the commit with published measurements.
 | `stats.tick_ms` | Total duration for that declared scope |
 | `session_ms` | Bot decisions, simulation, snapshot/event construction, and unicast collection |
 | `encode_ms` | Encode each broadcast and targeted payload once using the shared wire types |
+| `interest_ms` | Cutting every fighter's view as if each were a connected reader (`crate::interest`, wave 22): the lines of sight and the view text. Inside `stats.tick_ms` |
+| `withheld_share`, `interest_rays`, `reader_world_bytes` | Rows withheld per reader of the others, lines traced per tick, and the mean world a reader receives |
 | `stats.broadcast_bytes` | All broadcast payload bytes per tick before fan-out and framing |
 | `unicast_bytes` | All targeted payload bytes per tick, even if no socket receives them |
+| `fun_metrics_ms` | The fun metrics observer reading the finished tick (`--fun-metrics`), timed beside the tick and outside `stats`; `--bench-assert` fails when its p99 passes 5% of the tick budget |
 | `trace_sha256` | Complete recording content identity |
 | `deterministic` | `null` without a repeat, otherwise the complete-trace comparison result |
 | `frags` | Final round scores, sorted by callsign; not lifetime kills |
@@ -62,7 +65,8 @@ Percentiles use upper edges of 16 log-linear buckets per power of two, conservat
 overestimating by less than 6.25 percent. Budget violation counts use exact samples.
 The old `snapshot_bytes` field actually counted all broadcasts; version 2 renames
 it to `broadcast_bytes`. Old simulation-only tick results cannot be compared to
-version 2 total CPU step times without selecting the same phase.
+version 2 total CPU step times without selecting the same phase. Version 3 (wave 22) adds the interest phase to `stats.tick_ms`, so its
+times are not comparable to version 2 without subtracting `interest_ms`.
 
 Timers exclude hashing, trace construction/writing, sleeps, network fan-out,
 per-session encoding of targeted messages, transport framing, scheduler delay,
@@ -1082,53 +1086,197 @@ script and asserts identical bodies at every tick.
 measures the standing running jump's reach on the live step (1.26 m, below
 the 1.3 m apex because the body must rise over the lip while moving) and
 walks every edge of every solid top at least a body wide, at 0.25 m spacing,
-with a fighter standing just outside on the highest floor there. Runs of
-edge with a rise in the band:
+with a fighter standing just outside on the highest floor there. It counts
+only floors a fighter can reach (a flood fill from the spawns and pads that
+walks, steps, drops and climbs anything up to the reach), and skips a tread
+of a flight: a top with a solid a step or less below it beside it, whose open
+sides read as the side of a stair. It is the regression gate (#538): the
+scan exits nonzero, and `ledges::tests::the_ledge_gate_holds` fails, on any
+ledge in the step-plus, marginal or false-hope bands that the allow-list in
+`ledges.rs` does not name with a reason. Runs of edge with a rise in each band
+before the #538 fixes (no reach or tread rule, false hope to 1.41 m):
 
-| Map | Name | Solids | Step-plus 0.60 to 0.75 | Jump 0.75 to 1.11 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.41 | Ambiguous edge m |
+| Map | Name | Step-plus 0.60 to 0.75 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.41 | Ambiguous edge m |
+|---|---|---|---|---|---|
+| Map 1 | Larak Lot | 0 | 0 | 31 | 100.5 |
+| Map 2 | Compliance Yard | 0 | 0 | 4 | 5.0 |
+| Map 5 | Reclamation Gulch | 0 | 16 | 0 | 40.0 |
+| Map 7 | Holdfast Atoll | 4 | 4 | 0 | 2.0 |
+| L01 | Recall Notice | 0 | 22 | 0 | 68.5 |
+| L02 | Persons Unknown | 0 | 3 | 3 | 9.0 |
+| L03 | Scheduled Service | 0 | 12 | 3 | 36.0 |
+| L04 | Notice to Vacate | 24 | 3 | 0 | 78.0 |
+| L05 | No Forwarding Address | 0 | 20 | 0 | 58.0 |
+| L06 | Port of Entry | 4 | 0 | 2 | 48.0 |
+| L07 | Declared Goods | 0 | 14 | 26 | 70.0 |
+| L08 | Custodian of Record | 0 | 8 | 0 | 20.0 |
+| L11 | Right of Search | 0 | 8 | 0 | 20.2 |
+| L12 | Terms of Cooperation | 0 | 3 | 0 | 6.2 |
+| L13 | The Weight of Permission | 9 | 4 | 8 | 67.5 |
+| L14 | Launch Authority | 7 | 6 | 0 | 6.5 |
+| L15 | Civic Pressure Valve | 0 | 4 | 0 | 2.0 |
+| L16 | Freedom of Movement | 0 | 0 | 5 | 18.2 |
+| L17 | Peace Without Interruption | 0 | 10 | 0 | 34.0 |
+| L19 | Planned Works | 0 | 26 | 18 | 163.0 |
+| L20 | Local Exception | 0 | 6 | 12 | 55.0 |
+| Epilogue | Still Here | 4 | 3 | 5 | 46.0 |
+
+After them, with the reach and tread rules and false hope up to the 1.5 m
+wall (the Holdfast and Level 14 rows are the allow-list):
+
+| Map | Name | Solids | Step-plus 0.60 to 0.75 | Jump 0.75 to 1.11 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.50 | Ambiguous edge m |
 |---|---|---|---|---|---|---|---|
-| Map 1 | Larak Lot | 98 | 0 | 15 | 0 | 31 | 100.5 |
-| Map 2 | Compliance Yard | 125 | 0 | 38 | 0 | 4 | 5.0 |
-| Map 3 | Directive 17 Substation | 208 | 0 | 40 | 0 | 0 | 0.0 |
-| Map 4 | Sector 9 Transit Hall | 110 | 0 | 6 | 0 | 0 | 0.0 |
-| Map 5 | Reclamation Gulch | 151 | 0 | 36 | 16 | 0 | 40.0 |
-| Map 6 | Tripoint Works | 187 | 0 | 42 | 0 | 0 | 0.0 |
-| Map 7 | Holdfast Atoll | 123 | 4 | 37 | 4 | 0 | 2.0 |
-| Map 8 | Low Water | 82 | 0 | 18 | 0 | 0 | 0.0 |
-| L01 | Recall Notice | 119 | 0 | 6 | 22 | 0 | 68.5 |
-| L02 | Persons Unknown | 80 | 0 | 11 | 3 | 3 | 9.0 |
-| L03 | Scheduled Service | 74 | 0 | 16 | 12 | 3 | 36.0 |
-| L04 | Notice to Vacate | 95 | 24 | 40 | 3 | 0 | 78.0 |
-| L05 | No Forwarding Address | 47 | 0 | 21 | 20 | 0 | 58.0 |
-| L06 | Port of Entry | 106 | 4 | 30 | 0 | 2 | 48.0 |
-| L07 | Declared Goods | 146 | 0 | 61 | 14 | 26 | 70.0 |
-| L08 | Custodian of Record | 153 | 0 | 6 | 8 | 0 | 20.0 |
-| L09 | Passenger Manifest | 135 | 0 | 7 | 0 | 0 | 0.0 |
+| Map 1 | Larak Lot | 98 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 2 | Compliance Yard | 125 | 0 | 24 | 0 | 0 | 0.0 |
+| Map 3 | Directive 17 Substation | 208 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 4 | Sector 9 Transit Hall | 110 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 5 | Reclamation Gulch | 151 | 0 | 8 | 0 | 0 | 0.0 |
+| Map 6 | Tripoint Works | 187 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 7 | Holdfast Atoll | 123 | 4 | 33 | 4 | 0 | 2.0 |
+| Map 8 | Low Water | 82 | 0 | 5 | 0 | 0 | 0.0 |
+| L01 | Recall Notice | 119 | 0 | 25 | 0 | 0 | 0.0 |
+| L02 | Persons Unknown | 80 | 0 | 11 | 0 | 0 | 0.0 |
+| L03 | Scheduled Service | 74 | 0 | 22 | 0 | 0 | 0.0 |
+| L04 | Notice to Vacate | 95 | 0 | 36 | 0 | 0 | 0.0 |
+| L05 | No Forwarding Address | 47 | 0 | 36 | 0 | 0 | 0.0 |
+| L06 | Port of Entry | 106 | 0 | 18 | 0 | 0 | 0.0 |
+| L07 | Declared Goods | 146 | 0 | 60 | 0 | 0 | 0.0 |
+| L08 | Custodian of Record | 153 | 0 | 12 | 0 | 0 | 0.0 |
+| L09 | Passenger Manifest | 135 | 0 | 5 | 0 | 0 | 0.0 |
 | L10 | Common Carrier | 129 | 0 | 0 | 0 | 0 | 0.0 |
-| L11 | Right of Search | 107 | 0 | 16 | 8 | 0 | 20.2 |
-| L12 | Terms of Cooperation | 132 | 0 | 34 | 3 | 0 | 6.2 |
-| L13 | The Weight of Permission | 241 | 9 | 63 | 4 | 8 | 67.5 |
-| L14 | Launch Authority | 134 | 7 | 18 | 6 | 0 | 6.5 |
-| L15 | Civic Pressure Valve | 59 | 0 | 10 | 4 | 0 | 2.0 |
-| L16 | Freedom of Movement | 31 | 0 | 8 | 0 | 5 | 18.2 |
-| L17 | Peace Without Interruption | 126 | 0 | 16 | 10 | 0 | 34.0 |
-| L18 | All Systems Normal | 52 | 0 | 19 | 0 | 0 | 0.0 |
-| L19 | Planned Works | 150 | 0 | 61 | 26 | 18 | 163.0 |
-| L20 | Local Exception | 146 | 0 | 40 | 6 | 12 | 55.0 |
-| Epilogue | Still Here | 56 | 4 | 21 | 3 | 5 | 46.0 |
+| L11 | Right of Search | 109 | 0 | 15 | 0 | 0 | 0.0 |
+| L12 | Terms of Cooperation | 132 | 0 | 34 | 0 | 0 | 0.0 |
+| L13 | The Weight of Permission | 241 | 0 | 63 | 0 | 0 | 0.0 |
+| L14 | Launch Authority | 134 | 1 | 12 | 1 | 0 | 1.0 |
+| L15 | Civic Pressure Valve | 59 | 0 | 4 | 0 | 0 | 0.0 |
+| L16 | Freedom of Movement | 31 | 0 | 0 | 0 | 0 | 0.0 |
+| L17 | Peace Without Interruption | 126 | 0 | 26 | 0 | 0 | 0.0 |
+| L18 | All Systems Normal | 52 | 0 | 14 | 0 | 0 | 0.0 |
+| L19 | Planned Works | 150 | 0 | 74 | 0 | 0 | 0.0 |
+| L20 | Local Exception | 148 | 0 | 23 | 0 | 0 | 0.0 |
+| Epilogue | Still Here | 56 | 0 | 24 | 0 | 0 | 0.0 |
 
-Three heights account for most of it. Tops at 1.3 and 1.4 m look jumpable
-and are not (Larak Lot 100 m of edge, Level 7 49 m, Level 19 113 m at 1.4 m;
-Levels 13, 16, 20 and the epilogue at 1.3 m). Tops at 1.15 to 1.2 m clear
-only from a clean running jump (Level 1 68 m, Levels 5, 17 and 19, Reclamation
-Gulch). Tops at 0.65 to 0.7 m read as a step and stop the player (Levels 4, 6
-and 13). Changing them is map work for the owning lanes; the scan is the
-repeatable check.
+The fixes, in server geometry with each level's dressing kept on its solid:
+wrecks, crates, drums, crash barriers, chimneys, a fountain and the quay
+walls 1.3 to 1.4 m over their floor rose to a 1.5 m wall (Larak Lot's three
+sedans, Union car, cable drum and valet barriers each by 0.1 m, routes, pads
+and spawns unchanged); cover, counters, desks, consoles, Level 19's market
+crates (whose supply-crate dressing cannot stretch to 1.5 m) and Reclamation
+Gulch's knoll at 1.15 to 1.4 m came down to a 1.1 m jump; beds, benches and
+conveyor beds at 0.65 to 0.7 m came down to a 0.6 m step; two deck edges that
+only a clean jump cleared (Level 11's bridge, Level 20's east deck) gained a
+0.3 m kerb so they read as walls beside their stairs. Three ledges stay on
+the allow-list: a quarter metre at the end of each Holdfast boarding dock and
+the Level 14 depot roof edge beside its stair. Lowering cover moves seeded
+fights, so the playtest fixtures that pinned one seed's outcome moved to
+seeds that still show it (M19 market and tanks seed 43; the M01 to M02 carry
+fixtures seed 43), each noted in its test. Over 72 Recall Notice survey
+trials (seeds 40 to 47, three profiles, three tiers; diagnostic), the rule
+controller departed 53 times before the fixes and 48 after, with 107 and
+110 continues spent: the lower intake counters and desks are a little less
+cover.
 
 What stays open: quiet-machine runs of the commands above as gate evidence
 (hardware matrix), two machines and a human session, a photodiode or
 high-speed camera for true photon time, input to photon on Windows and
-macOS, the peek p95 and jittered mean above 150 ms, and the ledge fixes.
+macOS, and the peek p95 and jittered mean above 150 ms.
+
+### Interest filtering (wave 22)
+
+Gameplay 66 sends each fighter only what it could perceive
+([protocol](protocol.md#interest-filtering-capability-66); owner
+`server/src/interest.rs`). Three measurements, all on an AMD Ryzen 7 7840U
+shared with other sessions (load 4 to 12) on 2026-11-01: **diagnostic on a
+busy shared machine**. Before is `5e0ee3da` (main, gameplay 65), after is the
+wave 22 fair play branch.
+
+**Pop-in at corners.** `fragr-playtest --interest-survey` runs a seeded
+eight-bot free-for-all on every arena map for 120 s at each round trip and
+treats every bot as a connected reader. A reveal is a reader and target pair
+turning visible (any line from the reader's predicted eye to the target's
+chest, crown or shoulders as drawn, no margin); it is late when the drawn
+world still withheld the row: the body pops in. Fight range is 64 m, a rule
+bot's sight. `--assert` fails a round trip of 100 ms or less whose pooled
+fight-range late rate is over 1 percent. A modelled link in process, rule
+bots rather than people, and not the TCP link shaper; `--peek-probe` covers
+the shaped socket path, where the holder now watches.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
+cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --interest-jitter 2 --interest-rtt 0,50,100 --assert --report .agents/interest/jitter.json
+```
+
+| Round trip | Fight-range reveals, all maps | Late (pop-in) | Late, all ranges | Longest late, ticks | Rows withheld | Withheld rows heard | Rows sent while no line reached the body |
+|---|---|---|---|---|---|---|---|
+| 0 ms | 3,713 | 6 (0.16 %) | 17 of 5,733 (0.30 %) | 2 | 46.4 % | 1.9 % | 20.9 % |
+| 50 ms | 3,716 | 12 (0.32 %) | 24 of 5,741 (0.42 %) | 5 | 45.7 % | 1.8 % | 21.5 % |
+| 100 ms | 3,716 | 11 (0.30 %) | 23 of 5,741 (0.40 %) | 5 | 45.2 % | 1.7 % | 22.1 % |
+| 150 ms | 3,696 | 19 (0.51 %) | 33 of 5,724 (0.58 %) | 5 | 44.9 % | 1.7 % | 22.2 % |
+| 0 ms, worlds up to 2 ticks late | 4,189 | 8 (0.19 %) | 21 of 6,445 (0.33 %) | 3 | 46.4 % | 1.9 % | 20.8 % |
+| 50 ms, worlds up to 2 ticks late | 4,188 | 16 (0.38 %) | 29 of 6,412 (0.45 %) | 5 | 45.7 % | 1.8 % | 21.4 % |
+| 100 ms, worlds up to 2 ticks late | 4,188 | 19 (0.45 %) | 32 of 6,412 (0.50 %) | 5 | 45.2 % | 1.7 % | 22.0 % |
+
+Withheld rows vary by map: 21 to 23 percent on Larak Lot and Directive 17,
+which are open, to 77 percent on Sector 9. Holdfast Atoll's few fight-range
+reveals (53 to 55) carry 2 late ones at every round trip, a long sightline
+over the water that opens for a tick; Low Water is 0.55 to 1.1 percent, the
+worst map with many reveals. A late reveal is drawn one to five ticks late.
+The margins that buy this are the last column: about a fifth of the bodies
+a fighter receives are a wall away, close to a corner it could clear within
+its lead.
+
+The first cut traced from the eye now and after a one-way lead, every
+second tick: 4 to 26 percent of reveals were late. Measured causes, fixed
+in turn: the stagger (every pair now traces every tick); the lead (a world
+is drawn while the reader stands a whole round trip plus the buffer ahead,
+not half); stairs and ramps (a 0.5 m step up between ticks, now one step
+higher on the lead eye and the measured climb); a seat that moves the body
+with no walking velocity (measured motion); a reader turning or starting
+from rest (eyes a step across the line).
+
+**Tick cost.** The offline bench treats every bot as a connected reader:
+the worst case, since a live server cuts views only for fighters with a
+socket. Three interleaved runs each, all identical within a bucket.
+
+```bash
+cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
+```
+
+| Fighters (all readers) | Tick p50 before / after ms | Tick p99 before / after ms | `interest_ms` mean | Lines traced per tick, mean |
+|---|---|---|---|---|
+| 16 | 0.12 / 0.56 | 0.41 / 0.95 | 0.38 | 1,830 |
+| 64 | 0.56 / 2.23 | 3.01 / 4.98 | 1.29 | 20,280 |
+
+Those runs were at load 4. A repeat at load 10 to 14 measured 64 readers at
+2.4 to 5.5 ms p50 and 5.8 to 16.3 ms p99 after, against 0.59 to 0.75 and
+3.0 to 3.4 before: the added cost is CPU the host shares.
+
+Lines run through a floor-plan grid of the shot solids (`combat::SightGrid`,
+exactly `combat::line_of_sight`, checked against it on 32,000 random lines
+across every map) on up to eight threads. Before both, 64 readers cost
+8.5 ms a tick on average with p99 46 ms on this host; a first live 48
+fighter run reached a 105 ms tick p99.
+
+**Bandwidth and the live tick.** The traffic generator against each
+binary, as in the wave 15 and 16 tables: Larak Lot, human fighters at 60 Hz
+plus spectators, no bots, 15 s held, seed 42, three interleaved runs, means.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 0 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-0.json
+```
+
+| Connections (fighters + spectators) | KiB/s per client, all frames, before / after | Server egress MiB/s | Server CPU cores | Tick handler p99 ms (three runs) |
+|---|---|---|---|---|
+| 16 (12 + 4) | 17.7 / 16.7 (-6 %) | 0.274 / 0.259 | 0.026 / 0.047 | 0.36-0.48 / 1.11-1.21 |
+| 64 (48 + 16) | 50.2 / 43.6 (-13 %) | 3.09 / 2.70 | 0.073 / 0.212 | 1.44-1.64 / 3.80-4.06 |
+| 48 (48 + 0) | 51.9 / 43.3 (-17 %) | 2.40 / 2.01 | 0.066 / 0.210 | 1.25-1.90 / 3.54-4.46 |
+
+Every world still arrived (snapshot counts match), every run passed, and no
+tick ran over budget. Bytes fall less than the withheld share suggests: a
+withheld row still carries the board, and a view goes as a per-reader
+delta from the world that socket last carried rather than the tick's
+shared delta. That per-reader encode runs on each socket's writer task, off
+the tick; with the line tracing on helper threads, it is the added CPU. Spectators keep the shared world.
 
 ## Trace version 1
 
@@ -1164,8 +1312,10 @@ comparison below captures its own bounded in-memory snapshot sequence.
 
 ## Player benchmark
 
-Choose **Benchmark** from the main menu to measure the current preset or compare
-Performance, Balanced and High. It first records 28 seconds of an owned local
+Choose **Benchmark** from the main menu to measure the current quality tier or
+compare Low, Medium and High (the tiers that were the Performance, Balanced and
+High presets before tiers; their earlier results still describe them), or to
+run **Auto settings** (below). It first records 28 seconds of an owned local
 ten-bot Larak Lot match, then stops that host. Every preset replays the same
 authoritative snapshots and time-based camera path. Eight warm-up seconds are
 discarded, followed by twenty scored seconds. V-sync and the frame cap are
@@ -1245,6 +1395,268 @@ frame rates. A frame rate is not a CI gate. The server `--bench` results above
 remain separate CPU measurements. The
 [comparison plan](plans/benchmark-preset-comparison-20261006.md) records the
 actual renderer acceptance and remaining broader showcase work.
+
+## Tiers and auto settings
+
+The player page is [GRAPHICS.md](GRAPHICS.md); the plan of record is
+[graphics-autotune.md](plans/graphics-autotune.md). This section is the
+contract the code keeps.
+
+### Tiers as data
+
+`RenderQuality.TIERS` (`client/scripts/render_quality.gd`) is one table, one
+row per tier, `video/quality` 0 to 4: Potato, Low, Medium, High, Ultra. `apply`,
+`apply_environment`, `apply_practicals`, `preset_features` (the words the
+benchmark Details print), `FrameGovernor` and the effects budget all read
+`tier_spec`, which is the row for the drawn tier with renderer gates and any
+in-match governor steps applied. Nothing else decides a tier's cost.
+
+| Field | Potato | Low | Medium | High | Ultra |
+|---|---|---|---|---|---|
+| MSAA | off | off | 2x | 4x | 4x |
+| Directional / positional shadow atlas | 1024 / 512 | 1024 / 1024 | 2048 / 2048 | 4096 / 4096 | 4096 / 4096 |
+| Soft shadow filter | hard | project default | project default | project default | soft high |
+| Light fixture shadows | off | off | on, dual paraboloid | on, cube | on, cube, shadow fade x1.5 |
+| Practical lamp fade | 24 m | authored | authored | authored | authored |
+| SSAO | off | off | low sampler | medium sampler, radius 1.2, intensity 1.4 | high sampler |
+| SSIL (bounce) | off | off | off | off | medium, intensity 0.7 |
+| Glow (authored only) | off | off | on | on | on |
+| Volumetric fog, SSR | off | off | off | off | per venue opt-in (none yet) |
+| Island water quality | 0 | 0 | 1 | 2 | 2 |
+| Effects budget (marks, scorches, exhaust lights) | 25% | 50% | 100% | 100% | 100%, decal life x1.5 |
+| Mesh LOD threshold | 2.0 | 1.0 | 1.0 | 1.0 | 1.0 |
+
+Low, Medium and High are field for field the earlier Performance, Balanced and
+High presets (`test_render_quality.gd` asserts it), so earlier measurements in
+this file describe them. Ultra is Forward+ only: `effective_tier` draws it as
+High elsewhere, and the Graphics page disables it with a note. Compatibility
+keeps SSAO and drops light fixture shadow maps (#521) and everything Ultra
+adds. Volumetric fog and SSR are gated twice, by the tier and by a venue meta
+(`RenderQuality.VOLUMETRIC_META`, `SSR_META`) set by the venue's sky; no venue
+sets one until its look pass and measured cost, and SDFGI is not wired at all.
+
+**Art consistency rule.** A tier never changes the ambient floor, palette, fog
+colour or density, faction colours, sign budget or silhouettes. Before a tier
+change merges, capture `client/qa/tiers.json` (five tiers, same pose, overview,
+first person and world pixels off) on both renderers and inspect the contact
+sheet: same ambient floor, same fog, same faction colours, every fighter
+readable at 30 m, no new text, no tilted text.
+
+```bash
+# Forward+ (the shipped renderer; Ultra draws only here), then Compatibility.
+FRAGR_RENDER_DRIVER=vulkan FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-vulkan
+FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-opengl
+```
+
+**Revisions.** Bump `RenderQuality.RENDER_COST_REVISION` in any change to a
+tier's contents, a shader's cost, the benchmark scene or a venue's lighting
+cost; a saved tune from another revision is stale and the boot menu offers a
+re-tune. Bump `BenchmarkRun.WORKLOAD_ID` or `TUNE_WORKLOAD_ID` when the
+measured scene changes, `METRIC_VERSION` when a figure's definition changes.
+
+### Tuner contract
+
+`AutoTune` (`client/scripts/auto_tune.gd`) is pure decisions; `BenchmarkRun`
+measures what it asks for. Test: `client/scripts/test_auto_tune.gd` with fake
+measurements (deterministic, in CI). Real run: `client/scripts/qa_auto_tune.gd`.
+
+- **Triggers.** First launch with a window (the card, eight-second countdown,
+  Start now, Skip, Esc skips); Benchmark > Auto settings; Run again on the
+  result. Never unasked: a stale record only shows the boot menu notice and a
+  **Tune graphics again** button. `AutoTune.stale_reason` checks, in order,
+  the hardware key, `RENDER_COST_REVISION`, the governor's advice, then the
+  display key.
+- **Fingerprint** (`HardwareProfile.read`). Hardware key: adapter, vendor,
+  `OS.get_video_adapter_driver_info()` (Windows and Linux), API version,
+  renderer, driver, OS, display server, CPU name and count, memory in GB.
+  Display key: current screen size and refresh. Both are SHA-256 prefixes of
+  canonical JSON; the record keeps the keys, not the values.
+- **Seed.** `HardwareProfile.SEEDS`, lowercase substrings of the adapter name,
+  first match wins, unknown is Medium, a CPU adapter is Potato, the renderer
+  caps it (`effective_tier`), a Deck caps it at Low.
+- **Workload.** `TUNE_WORKLOAD_ID`: Larak Lot, ten bots, 20 s recorded
+  (`AutoTune.CAPTURE_TICKS` 400) with the local host kept running while every
+  candidate is scored. The player benchmark stops the host; the tuner must
+  not, or a 4-core machine passes a scene it cannot play.
+- **Warm-up.** Until `StutterTrace.pipeline_compilations()` has not moved for
+  `WARMUP_QUIET` 1 s, at most `WARMUP_MAX` 6 s. V-Sync and the cap are off.
+- **Score.** 8 s per candidate (`SCORE_SECONDS`), 12 s to confirm. Pass:
+  `low_1_count_fps >= target x HEADROOM (1.10)` and no frame at or over 50 ms.
+  Per frame it also reads `viewport_get_measured_render_time_gpu`;
+  `AutoTune.gpu_figures` gives the mean GPU time and the share of the slowest
+  1% of intervals spent on the GPU (`gpu_slow_share`). Unreported GPU time is 0
+  and reads as unknown, never as CPU bound.
+- **Tier search.** From the seed: a pass steps up one, or two when the mean
+  GPU time is under 40% of the frame budget; a fail steps down. A fail above a
+  pass fills the gap once. A pinned tier is measured and never moved.
+- **CPU-bound rule.** A fail whose `gpu_slow_share` is under 0.60 stops the
+  search: keep the passing tier below if any, else this tier; the card says
+  the processor limits it; no Compatibility offer.
+- **Resolution.** Only after the tier search and only when the pixel look is
+  off, nothing is pinned, the chosen tier is the top tier and nothing above
+  failed on the GPU: 125 then 150 percent (Bilinear supersampling).
+- **Floor path.** The lowest allowed tier fails on the GPU: pixel look off,
+  83, 67, 50 percent, then a 720-line render height if that is fewer lines;
+  pixel look on, one measured suggestion of the next coarser target, never
+  applied. Still failing on Forward+ and not CPU bound: offer Compatibility.
+- **Near the line.** A result within 5% of the threshold earns one more
+  window (`MAX_EXTRA` 2 per run); the mean of the two decides.
+- **Confirm.** Windows more than 10% apart are `variable` and the lower
+  counts. The choice drops one tier (once) when the lower figure fails the
+  threshold and either the machine is fragile (battery or integrated) or the
+  figure is under the target itself; a CPU-bound choice is never dropped.
+- **Apply.** `AutoTune.apply_record` moves `quality`, `render_scale`,
+  `resolution_height` and, on a Deck, `fps_cap` and `vsync`, each only when
+  not pinned. `video/tune` keeps the record (`AutoTune.clean_record`: version,
+  source measured or lookup, choice, target, revision, keys, date, limiter,
+  power, renderer, final 1% low, variable, the card's lines, the Deck profile,
+  a Compatibility trial). Governor steps are cleared.
+- **Time budget.** Load about 10 s, record 20 s, three to five candidates of
+  8 s plus a 1 to 6 s warm-up, confirm 12 s: about 90 s
+  (`BenchmarkRun.tune_seconds`).
+
+### Report fields
+
+An auto-tune report is schema 3 with an `auto_tune` block: `result` (tier,
+render scale, render height, target, threshold, final 1% low, passed, limiter
+`gpu`, `cpu` or `none`, variable, suggestion, offer_compatibility, pins, every
+candidate with its 1% low, GPU mean, GPU slow share and outcome), `lines` (the
+card), `record`, `fingerprint`, `power`, `save_error`. Rows carry `candidate`,
+`gpu_ms_mean` and `gpu_slow_share` besides the usual figures; the workload
+names `local_host: running`. Files are `autotune-*.json` and `.csv`, so
+`previous_compatible` never compares them with player benchmarks.
+
+### Governor contract
+
+`FrameGovernor` (`client/scripts/frame_governor.gd`), fed by the match manager
+one drawn frame at a time during play only (no pause menu, loading card or
+story scene, window focused). Windows of 30 s; an interval of 0.5 s or more is
+a gap and restarts the window. Three windows in a row with a 1% low under the
+target arm one step; it is taken at the next death, own respawn, checkpoint or
+round end, in `RenderQuality.GOVERNOR_ORDER` (volumetric fog, SSIL, SSR, SSAO
+one level, practical shadow distance halved, effects budget halved, MSAA one
+level), skipping steps that would not change the drawn spec. It never touches
+the pixel grid, output resolution, renderer or a pinned option, never steps up,
+and is off when auto is off, `video/governor` is off or the tier is pinned.
+Steps live in `RenderQuality.reductions` for the session only. After 900 s of
+play with more than half the windows failing, the record gets
+`retune_advised` and the boot menu offers a re-tune.
+
+### Renderer support and fallback
+
+| | Forward+ (Vulkan, D3D12, Metal) | Compatibility (OpenGL 3.3, ANGLE) |
+|---|---|---|
+| Tiers | Potato to Ultra | Potato to High (Ultra draws as High) |
+| FSR 1, FSR 2 | yes | no |
+| SSAO | yes | yes (4.6+) |
+| SSIL, volumetric fog, SSR | yes | no |
+| Light fixture shadows | yes | off in fragr (#521) |
+| Omni shadows | cube or dual paraboloid | cube |
+| V-Sync modes | all | enabled only |
+| Adapter type | reported | OTHER (seed keys on the name) |
+
+Startup fallbacks are Godot's own (`rendering_device/fallback_to_*`, defaults
+on). The tuner's Compatibility offer writes `user://renderer_override.cfg`,
+which `application/config/project_settings_override` in `client/project.godot`
+names (`RendererOverride`). Verified on the pinned 4.7.2-stable binary on this
+host: a missing file is ignored; a present file with
+`renderer/rendering_method="gl_compatibility"` starts Compatibility. After the
+restart the boot menu runs the tune at once (the record's `compat_trial` holds
+the Forward+ 1% low) and keeps Compatibility only when it measured higher,
+otherwise it removes the override. Recovery is documented on the player page.
+
+### Measuring a feature's cost
+
+One process, alternating: capture `client/qa/tiers.json` (or a manifest with
+two states that differ in one option) with `frame_sample` on, repeat the pair
+at least three times on a quiet machine, and compare medians of GPU time. A
+single run, a busy machine, or a clock-capped 780M is not evidence of a
+feature's cost on other hardware.
+
+### Tier costs
+
+Diagnostic only: this host is a shared development machine with other
+sessions running (see the busy-machine note in the lane rules), so these
+figures rank the tiers on one GPU and are not gate evidence.
+
+Radeon 780M (RADV PHOENIX and radeonsi), Linux, Wayland via the tour's
+rootful Xwayland, 1920x1080 window, Larak Lot with five bots, 600 frames per
+state, `client/qa/tiers.json`, one run each, 2026-11-01, load average about 36.
+Mean GPU milliseconds from `viewport_get_measured_render_time_gpu`:
+
+| Tier | Forward+ Fine overview | Forward+ ground view | Forward+ native overview | Compatibility Fine overview | Compatibility native overview |
+|---|---|---|---|---|---|
+| Potato | 2.38 | 2.40 | 5.18 | 4.96 | 10.51 |
+| Low | 2.58 | 2.65 | 5.69 | 10.39 | 6.67 |
+| Medium | 5.05 | 4.83 | 8.74 | 9.42 | 15.59 |
+| High | 6.81 | 6.38 | 10.53 | 10.15 | 17.54 |
+| Ultra | 8.65 | 7.85 | 13.37 | 7.68 (draws as High) | 18.85 (draws as High) |
+
+Forward+ ranks the tiers in order on every view; Potato saves little GPU time
+over Low here (the 780M is not shadow-bound at Fine), so its value is on weaker
+chips and is unproven until the floor row is measured. The Compatibility
+column is not monotonic (Low above Medium on one view, Ultra and High
+differing while drawing the same tier): on a loaded machine its GPU timer is
+noise at this size. Repeat on a quiet machine before trusting any single
+difference.
+
+### Hardware matrix
+
+Gate evidence comes only from quiet machines in this matrix. A tester runs
+Benchmark, then Auto settings, then Copy summary, and pastes both into an
+issue.
+
+| Machine | OS and driver | Who runs it | Status |
+|---|---|---|---|
+| Radeon 780M (dev host) | Linux, Vulkan RADV and OpenGL radeonsi; Wayland and X11 | here | tuner diagnostic runs only (busy machine) |
+| Radeon 780M | Windows 11, Vulkan and OpenGL | Nick's Windows host | Compatibility 720p measured before tiers |
+| Intel UHD 620 or Iris Xe | Windows and Linux | needs a machine | none |
+| Old NVIDIA GTX (750 Ti to 1050) | Windows, Linux | needs a machine | none |
+| Modern NVIDIA (RTX 30 or 40) | Windows, Linux | needs a machine | none |
+| Modern AMD discrete (RDNA 3 or 4) | Windows, Linux | needs a machine | none |
+| Apple M1 and M2 | macOS, Metal | needs a machine | none |
+| Steam Deck LCD (OLED optional) | SteamOS, RADV, native | needs a Deck | none |
+
+Gates before 1.0 (from the plan): Floor, 1% low at or above 60 at 1280x720 on
+Potato on the weak machine; Reference iGPU, 1% low at or above 60 at 1080p on
+auto on the 780M with no frame over 50 ms after warm-up; Steam Deck, an
+uncapped 1% low of 44 on the tuner replay and a capped 40 fps session with a 1%
+low at or above 36; Ceiling, Ultra or High chosen and held in a 15-minute
+session on modern discrete cards at 60 and 144; Tuner correctness, chosen
+settings hold for 15 minutes on three venues, pins survive a re-tune, a
+re-tune is offered after a driver change. None of these is met yet; each
+needs its row above.
+
+### Quiet-machine run commands
+
+```bash
+# Release build of the server; close other applications; plugged in.
+cargo build -p fragr-server --release --locked
+# A real auto-tune through the menu, isolated settings and results (repeat
+# five times for variance; compare the candidates' 1% lows and the choice).
+FRAGR_QA_DIR=.agents/autotune/run1 godot --path client --rendering-driver vulkan --script res://scripts/qa_auto_tune.gd
+# The same under Compatibility.
+FRAGR_QA_DIR=.agents/autotune/gl1 godot --path client --rendering-driver opengl3 --script res://scripts/qa_auto_tune.gd
+# The first-launch card alone.
+FRAGR_QA_DIR=.agents/autotune/card godot --path client --script res://scripts/qa_auto_tune.gd -- --card-only
+# Forced fallback: no Vulkan driver. Verified on the dev host with 4.7.2: Godot
+# warns, switches to OpenGL 3 and runs Compatibility; the tuner then caps at High.
+VK_ICD_FILENAMES=/nonexistent FRAGR_QA_DIR=.agents/autotune/fallback godot --path client --script res://scripts/qa_auto_tune.gd
+```
+
+On a Steam Deck: Desktop Mode, the native Linux build, Quick Access frame
+limiter and TDP off, Refresh Rate 40 Hz; run Auto settings and Copy summary;
+then play 15 minutes capped at 40 with the frame counter on detail and record
+the 1% low. Note the adapter name the summary prints and whether the refresh
+read 40: those confirm or correct `HardwareProfile.DECK_ADAPTERS` and the
+40 Hz assumption, which are unverified until then.
+
+### What is not evidence
+
+Headless checks prove the search, pins, records and governor logic, not frame
+rates. Runs on this busy development machine, clock-capped 780M runs and
+single runs are diagnostic. A spoofed Deck adapter proves the detector's
+logic, not that a Deck reports that name. Frame rates are never a CI gate.
 
 ## Stutter diagnosis traces
 

@@ -613,7 +613,7 @@ fn a_dropped_charge_waits_out_its_grace_before_anyone_takes_it() {
 #[test]
 fn a_defender_defuses_after_six_seconds_and_the_union_wins() {
     let (mut state, _) = two_a_side(quick());
-    plant_at_a(&mut state);
+    let planter = plant_at_a(&mut state);
     let defender = side(&state, Team::Union)[0];
     put(&mut state, defender, [A[0] + 1.0, 0.0, A[2]]);
     hold_use(&mut state, defender);
@@ -634,6 +634,38 @@ fn a_defender_defuses_after_six_seconds_and_the_union_wins() {
         .ended_host_line
         .as_deref()
         .is_some_and(|line| line.contains("DEFUSED")));
+    // The board credits the plant and the defuse, and a Sabotage match keeps
+    // them across its rounds the way it keeps frags.
+    let credit = |state: &GameState, id: Uuid| {
+        state
+            .snapshot()
+            .players
+            .into_iter()
+            .find(|p| p.id == id)
+            .and_then(|p| p.objective)
+            .unwrap_or_default()
+    };
+    assert_eq!(
+        (
+            credit(&state, planter).plants,
+            credit(&state, planter).defuses
+        ),
+        (1, 0)
+    );
+    assert_eq!(
+        (
+            credit(&state, defender).plants,
+            credit(&state, defender).defuses
+        ),
+        (0, 1)
+    );
+    next_round(&mut state);
+    assert_eq!(
+        credit(&state, planter).plants,
+        1,
+        "kept into the next round"
+    );
+    assert_eq!(credit(&state, defender).defuses, 1);
 }
 
 #[test]

@@ -3162,3 +3162,109 @@ async fn a_passed_seat_closes_with_its_code_and_forgets_the_resume_token() {
     );
     accept.abort();
 }
+
+#[tokio::test]
+async fn a_byte_flood_of_large_frames_is_rate_limited_under_the_message_rate() {
+    let (tx, mut commands) = game_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    // Sixty frames of 60 KiB: well under 256 messages a second, far over the
+    // byte budget. Each is a readable action, so none of it is junk.
+    let padding = "x".repeat(60 * 1024);
+    let heavy = format!(r#"{{"type":"action","forward":true,"note":"{padding}"}}"#);
+    for _ in 0..60 {
+        if fighter.send(Message::Text(heavy.clone())).await.is_err() {
+            break;
+        }
+    }
+    let mut actions = 0;
+    loop {
+        match next_command(&mut commands).await {
+            GameCommand::Action { .. } => actions += 1,
+            GameCommand::Disconnected { id: gone } => {
+                assert_eq!(gone, id, "a byte flood removes the pawn");
+                break;
+            }
+            _ => panic!("unexpected command"),
+        }
+    }
+    assert!(
+        actions <= 8,
+        "the byte budget passed {actions} heavy frames"
+    );
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(
+        (code.as_str(), reason.as_str()),
+        ("rate_limited", "rate_limited")
+    );
+    accept.abort();
+}
+
+#[test]
+fn the_inbound_budget_counts_messages_and_bytes_apart() {
+    let mut budget = InboundBudget::new();
+    // Four whole frames fit the burst; the fifth waits for the rate.
+    for _ in 0..4 {
+        assert_eq!(budget.allow(MAX_FRAME_BYTES), Budgeted::Allowed);
+    }
+    assert_eq!(budget.allow(MAX_FRAME_BYTES), Budgeted::TooLarge);
+    // Small actions still pass while the byte bucket refills.
+    let mut small = InboundBudget::new();
+    for _ in 0..INBOUND_BURST as usize {
+        assert_eq!(small.allow(300), Budgeted::Allowed);
+    }
+    assert_eq!(small.allow(300), Budgeted::TooMany);
+}
+
+#[tokio::test]
+async fn a_reader_moving_between_its_view_and_the_world_rebuilds_every_world() {
+    // A fighter reads its own view of worlds 1 and 2 (one rival withheld),
+    // then leaves to watch: world 3's shared delta is from the whole world 2,
+    // which this reader never held, so the writer must diff from its view.
+    let worlds = fought_worlds(5);
+    let view_of = |index: usize| {
+        let ServerMessage::Snapshot(snapshot) = worlds[index].message() else {
+            panic!("a world");
+        };
+        let views = std::collections::HashMap::from([(
+            Uuid::nil(),
+            vec![(1, crate::interest::Sense::Hidden)],
+        )]);
+        let mut cut = crate::interest::encode_views(&worlds[index], &views).unwrap();
+        assert!(snapshot.players.len() > 1);
+        cut.remove(&Uuid::nil()).expect("a cut view")
+    };
+    let (view1, view2) = (view_of(1), view_of(2));
+    let shared = |index: usize| Outbound::from(Arc::clone(&worlds[index]));
+    let sent = written(
+        vec![
+            shared(0),
+            Outbound::from(Arc::clone(&view1)),
+            Outbound::from(Arc::clone(&view2)),
+            shared(3),
+            Outbound::from(view_of(4)),
+        ],
+        true,
+    )
+    .await;
+    let tick_delta = &worlds[3].world().unwrap().delta.as_ref().unwrap().text;
+    assert_ne!(
+        &sent[3], tick_delta,
+        "the shared delta names a world this reader lacks"
+    );
+    let mut reader = crate::protocol::WorldReader::new();
+    let read: Vec<String> = sent
+        .iter()
+        .map(|text| serde_json::to_string(&reader.read(text).unwrap()).unwrap())
+        .collect();
+    assert_eq!(read[1], view1.text());
+    assert_eq!(read[2], view2.text());
+    assert_eq!(read[3], worlds[3].text());
+    assert!(read[2].contains(r#""sense":"hidden""#));
+    assert!(!read[3].contains(r#""sense""#));
+}

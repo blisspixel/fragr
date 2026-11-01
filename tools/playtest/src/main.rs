@@ -272,15 +272,71 @@ struct Cli {
     /// With --peek-probe: extra one-way jitter on the link, milliseconds.
     #[arg(long, requires = "peek_probe", default_value_t = 0, value_parser = clap::value_parser!(u32).range(0..=200))]
     peek_jitter_ms: u32,
-    /// Scan every arena map and campaign level for ledges in the ambiguous
-    /// jump band, above a step and up to just past a standing jump's reach.
-    /// Writes `--report` and prints the table.
+    /// Scan every arena map and campaign level for ledges a fighter can reach
+    /// in the ambiguous bands: just above a step, just under a standing
+    /// jump's reach, or between the reach and a 1.5 m wall. Writes
+    /// `--report`, prints the table and fails on any ledge in those bands the
+    /// allow-list does not name.
     #[arg(long, conflicts_with_all = [
         "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
         "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
         "sabotage_contested", "campaign_survey", "rewind_matrix"
     ])]
     ledge_scan: bool,
+    /// Run the harness or soak server with fun metrics on, keeping them under
+    /// this run directory (`<dir>/fun-metrics`), as `--fun-metrics` and
+    /// `FRAGR_RUN_DIR` do for a host.
+    #[arg(long, value_name = "RUN_DIR")]
+    fun_metrics: Option<PathBuf>,
+    /// Read a host's fun metrics folder and print the tables the bot survey
+    /// and the 1.0 bar use, with the rows that miss the map targets. Writes
+    /// `--report`. Reads only; nothing is sent anywhere.
+    #[arg(long, value_name = "FOLDER", conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan",
+        "fun_metrics", "interest_survey"
+    ])]
+    fun_summary: Option<PathBuf>,
+    /// Pop-in at corners under interest filtering (gameplay 66): seeded rule
+    /// bot matches on every arena map with every bot read as a fighter at
+    /// each round trip; counts bodies that turn visible before their row is
+    /// drawn. Writes `--report` and prints the table; `--assert` fails a round
+    /// trip of 100 ms or less whose pooled late rate in fight range is over
+    /// 1 percent.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan", "peek_probe"
+    ])]
+    interest_survey: bool,
+    /// With --interest-survey: the round trips, milliseconds.
+    #[arg(long, requires = "interest_survey", value_delimiter = ',', default_values_t = fragr_playtest::interest::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
+    interest_rtt: Vec<u32>,
+    /// With --interest-survey: a world may arrive up to this many ticks late.
+    #[arg(long, requires = "interest_survey", default_value_t = 0, value_parser = clap::value_parser!(u64).range(0..=10))]
+    interest_jitter: u64,
+    /// With --interest-survey: seconds per match.
+    #[arg(long, requires = "interest_survey", default_value_t = 120, value_parser = clap::value_parser!(u32).range(5..=3600))]
+    interest_seconds: u32,
+}
+
+fn interest_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::interest;
+    let report = interest::run(
+        &fragr_server::sim::MapKind::ALL,
+        &cli.interest_rtt,
+        cli.interest_jitter,
+        cli.interest_seconds,
+        cli.seed,
+    );
+    print!("{}", interest::table(&report));
+    write_json(&cli.report, &report)?;
+    let problems = interest::check(&report);
+    if cli.assert && !problems.is_empty() {
+        return Err(problems.join("; "));
+    }
+    Ok(())
 }
 
 async fn peek_report(cli: &Cli) -> Result<(), String> {
@@ -323,9 +379,23 @@ async fn peek_report(cli: &Cli) -> Result<(), String> {
 }
 
 fn ledge_report(cli: &Cli) -> Result<(), String> {
-    let report = fragr_server::maps::ledges::scan_all().map_err(|e| e.to_string())?;
-    print!("{}", fragr_server::maps::ledges::table(&report));
-    write_json(&cli.report, &report)
+    use fragr_server::maps::ledges;
+    let report = ledges::scan_all().map_err(|e| e.to_string())?;
+    print!("{}", ledges::table(&report));
+    write_json(&cli.report, &report)?;
+    // The scan is the regression gate (#538): any ledge in an ambiguous band
+    // that the allow-list does not name fails the run.
+    let mut problems = ledges::unexplained(&report);
+    problems.extend(
+        ledges::stale_allowances(&report)
+            .into_iter()
+            .map(|reason| format!("stale allowance: {reason}")),
+    );
+    if problems.is_empty() {
+        Ok(())
+    } else {
+        Err(problems.join("\n"))
+    }
 }
 
 fn write_json(path: &Path, value: &impl serde::Serialize) -> Result<(), String> {
@@ -391,6 +461,7 @@ fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
         seed: cli.seed,
         launch: fragr_playtest::soak::Launch::Binary(binary),
         log: cli.soak_log.clone(),
+        fun_metrics: cli.fun_metrics.clone(),
     })
 }
 
@@ -908,6 +979,10 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
             muster_ticks: 20 * 3,
             ..fragr_server::rules::SabotageConfig::default()
         },
+        fun_metrics: cli
+            .fun_metrics
+            .clone()
+            .map(|run_dir| run_dir.join(fragr_server::fun_metrics::store::DIRECTORY)),
     })
 }
 
@@ -929,6 +1004,13 @@ async fn main() {
     }
     if cli.bot_ladder {
         if let Err(error) = ladder_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.interest_survey {
+        if let Err(error) = interest_report(&cli) {
             eprintln!("error: {error}");
             std::process::exit(1);
         }
@@ -960,6 +1042,29 @@ async fn main() {
             eprintln!("error: {error}");
             std::process::exit(1);
         }
+        return;
+    }
+    if let Some(folder) = &cli.fun_summary {
+        let summary = match fragr_playtest::fun_summary::summarise_folder(folder) {
+            Ok(summary) => summary,
+            Err(error) => {
+                eprintln!("error: cannot read {}: {error}", folder.display());
+                std::process::exit(2);
+            }
+        };
+        if let Some(parent) = cli.report.parent().filter(|p| !p.as_os_str().is_empty()) {
+            if let Err(error) = std::fs::create_dir_all(parent) {
+                eprintln!("error: cannot create {}: {error}", parent.display());
+                std::process::exit(2);
+            }
+        }
+        let json = serde_json::to_string_pretty(&summary).expect("fun summary serializes");
+        if let Err(error) = std::fs::write(&cli.report, format!("{json}\n")) {
+            eprintln!("error: cannot write {}: {error}", cli.report.display());
+            std::process::exit(2);
+        }
+        print!("{}", fragr_playtest::fun_summary::table(&summary));
+        println!("report: {}", cli.report.display());
         return;
     }
     if cli.bot_survey {

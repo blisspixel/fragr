@@ -169,6 +169,7 @@ fn auditor_body_and_timing_rows_are_part_of_rules_revision_three() {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         })),
         0.4

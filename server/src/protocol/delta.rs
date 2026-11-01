@@ -630,5 +630,35 @@ impl WorldEncoder {
     }
 }
 
+/// Where a whole world's roster sits in its text: the `players` array and
+/// each entry, as byte ranges. A reader's view (`crate::interest`) is the same
+/// text with some entries swapped, so nothing else is encoded again.
+pub struct RosterSpans {
+    pub start: usize,
+    pub end: usize,
+    pub entries: Vec<(usize, usize)>,
+}
+
+/// The roster spans of a snapshot's text, or `None` when it has no roster.
+pub fn roster_spans(text: &str) -> Option<RosterSpans> {
+    let base = text.as_ptr() as usize;
+    let offset = |part: &str| part.as_ptr() as usize - base;
+    let fields: RawObject<'_> = serde_json::from_str(text).ok()?;
+    let players = fields.get("players")?.get();
+    let entries: Vec<&RawValue> = serde_json::from_str(players).ok()?;
+    let start = offset(players);
+    Some(RosterSpans {
+        start,
+        end: start + players.len(),
+        entries: entries
+            .iter()
+            .map(|entry| {
+                let from = offset(entry.get());
+                (from, from + entry.get().len())
+            })
+            .collect(),
+    })
+}
+
 #[cfg(test)]
 mod tests;

@@ -147,8 +147,6 @@ pub const TORSO_HEIGHT: f32 = 1.22;
 /// Where a standing fighter's head begins, metres above the feet. Just above
 /// the breastplate, so a chest aim stays a body shot and an eye-level ray does not.
 pub const HEAD_GATE: f32 = 1.45;
-/// Traced pellets in the head band. Fists and the Shiv never use it.
-pub const HEAD_DAMAGE_SCALE: i32 = 2;
 
 /// A pellet struck the head. Short bodies use the top quarter, so a shot
 /// through the middle of a Crawler or a Notary stays a body shot.
@@ -187,23 +185,203 @@ pub fn head_hit_for(
     impact_y >= gate && impact_y <= top
 }
 
-/// Whether a pellet in the head band doubles this weapon's damage.
-pub const fn head_bonus(weapon: crate::protocol::WeaponType) -> bool {
-    !matches!(
-        weapon,
-        crate::protocol::WeaponType::Fists
-            | crate::protocol::WeaponType::Shiv
-            | crate::protocol::WeaponType::ArticleBlade
+/// Where a standing fighter's legs end, metres above the feet: just under the
+/// hip line (half of [`FIGHTER_HEIGHT`] is 0.9). Arms count as torso; a
+/// yaw-free cylinder cannot place them.
+pub const LEG_GATE: f32 = 0.85;
+/// A Ranged Sweeper's antenna mast: a thin column on the crown, matching the
+/// rod and red tip its sheet draws from about 1.85 to 2.25 m, set a little
+/// behind the head, so the column is wide enough to cover it from every side.
+pub const MAST_RADIUS: f32 = 0.2;
+pub const MAST_HEIGHT: f32 = 0.4;
+
+/// Height band of a struck body, read on the volume the ray met (present or
+/// rewound) and dropped with a crouch.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Band {
+    Head,
+    Torso,
+    Legs,
+    /// Above the crown: only a Ranged Sweeper's intact mast reaches here.
+    Mast,
+}
+
+/// Whether this body still carries a mast that rays can strike.
+pub fn has_mast(identity: Option<CampaignActor>) -> bool {
+    matches!(
+        identity,
+        Some(CampaignActor::Hostile {
+            kind: EnemyKind::RangedSweeper,
+            mast_broken: false,
+            ..
+        })
     )
 }
 
-/// Body damage, or double when the pellet is in the head band. Fists, the
-/// Shiv and the Article Blade stay flat: a punch or sword cut has no head bonus.
-pub fn traced_damage(weapon: crate::protocol::WeaponType, body: i32, head: bool) -> i32 {
-    if head && head_bonus(weapon) {
-        body.saturating_mul(HEAD_DAMAGE_SCALE)
+/// The band an impact height falls in. Short and flying bodies keep the top
+/// quarter as the head and have no legs. `None` refuses non-finite input.
+pub fn band_for(
+    feet_y: f32,
+    impact_y: f32,
+    identity: Option<CampaignActor>,
+    ducking: bool,
+) -> Option<Band> {
+    if !feet_y.is_finite() || !impact_y.is_finite() {
+        return None;
+    }
+    let crown = feet_y + body_height(identity, ducking) + 0.05;
+    if impact_y > crown && has_mast(identity) {
+        return Some(Band::Mast);
+    }
+    if head_hit_for(feet_y, impact_y, identity, ducking) || impact_y > crown {
+        return Some(Band::Head);
+    }
+    if short_body(identity) {
+        return Some(Band::Torso);
+    }
+    let drop = if ducking {
+        crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT
     } else {
-        body
+        0.0
+    };
+    Some(if impact_y < feet_y + LEG_GATE - drop {
+        Band::Legs
+    } else {
+        Band::Torso
+    })
+}
+
+/// A damage multiplier as an integer ratio, applied rounded down.
+pub type Scale = (i32, i32);
+pub const FULL: Scale = (1, 1);
+/// Legs on every zoned gun: close to the body, so leg shots stay useful.
+pub const LEGS: Scale = (3, 4);
+/// Issued plate turns half of a hit.
+pub const PLATE: Scale = (1, 2);
+/// A Union bot's red optic (or the cyan light that replaced it), any gun.
+pub const OPTIC: Scale = (2, 1);
+/// A Heavy Sweeper's rear vent.
+pub const VENT: Scale = (3, 2);
+/// An Enforcer's head: powered armour leaves the face less exposed.
+pub const ENFORCER_HEAD: Scale = (3, 2);
+
+/// A gun's head multiplier, or `None` for weapons without zones: the Arc's
+/// beam, explosives and melee stay flat everywhere.
+pub const fn head_scale(weapon: crate::protocol::WeaponType) -> Option<Scale> {
+    use crate::protocol::WeaponType;
+    match weapon {
+        // Precision and the sidearm: the big reward for a placed shot. The
+        // Rail's bare-head one-shot is its signature (a decidable call; the
+        // alternative is 6/5, 96, never a one-shot).
+        WeaponType::Rail | WeaponType::Sniper | WeaponType::Tack => Some((2, 1)),
+        // Automatics: a small reward, so a spray to the head is no instant kill.
+        WeaponType::Flechette | WeaponType::Repeater => Some((3, 2)),
+        // Per pellet.
+        WeaponType::Scatter => Some((5, 4)),
+        WeaponType::Arc
+        | WeaponType::Rocket
+        | WeaponType::Fists
+        | WeaponType::Shiv
+        | WeaponType::ArticleBlade => None,
+    }
+}
+
+/// One zoned impact: what it reports and how it scales the pellet.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ZoneHit {
+    pub zone: crate::protocol::HitZone,
+    pub scale: Scale,
+}
+
+/// Whether a struck face points away from the body's facing: the back.
+pub fn rear_face(normal: [f32; 3], yaw: f32) -> bool {
+    normal[0] * yaw.cos() + normal[2] * yaw.sin() < -0.25
+}
+
+/// The zone table. Every participant shares one hitbox and one table: a
+/// human or synthetic look is cosmetic. Campaign bodies extend it by kind;
+/// absorbed bots keep their chassis table, the weak spot now the cyan light
+/// where the red optic was. `rear` is a strike on the back face; `working`
+/// is a Paver in recovery, its rear grille lit. `None`: no zones.
+pub fn zone_hit(
+    weapon: crate::protocol::WeaponType,
+    identity: Option<CampaignActor>,
+    band: Band,
+    rear: bool,
+) -> Option<ZoneHit> {
+    use crate::protocol::HitZone;
+    let head = head_scale(weapon)?;
+    let hit = |zone, scale| Some(ZoneHit { zone, scale });
+    let kind = match identity {
+        Some(CampaignActor::Hostile { kind, .. }) => Some(kind),
+        _ => None,
+    };
+    match kind {
+        Some(
+            EnemyKind::Sweeper
+            | EnemyKind::HeavySweeper
+            | EnemyKind::RangedSweeper
+            | EnemyKind::Turret
+            | EnemyKind::Crawler,
+        ) => match band {
+            Band::Head => hit(HitZone::Weak, OPTIC),
+            Band::Mast => hit(HitZone::Weak, FULL),
+            Band::Torso if rear && kind == Some(EnemyKind::HeavySweeper) => {
+                hit(HitZone::Weak, VENT)
+            }
+            Band::Torso => hit(HitZone::Plate, PLATE),
+            Band::Legs => hit(HitZone::Legs, LEGS),
+        },
+        Some(EnemyKind::Enforcer) => match band {
+            Band::Head | Band::Mast => hit(HitZone::Head, ENFORCER_HEAD),
+            Band::Torso => hit(HitZone::Plate, PLATE),
+            Band::Legs => hit(HitZone::Legs, FULL),
+        },
+        Some(EnemyKind::Paver) => {
+            let working = matches!(
+                identity,
+                Some(CampaignActor::Hostile {
+                    phase: crate::protocol::EnemyPhase::Recovery,
+                    ..
+                })
+            );
+            match band {
+                // The cyan projector lens faces forward on the head.
+                Band::Head | Band::Mast if !rear => hit(HitZone::Weak, FULL),
+                // The rear recovery grille glows cyan only while it recovers.
+                Band::Torso if rear && working => hit(HitZone::Weak, FULL),
+                _ => hit(HitZone::Plate, PLATE),
+            }
+        }
+        // The Surveyor's shutter and lens are its own phase rule (`shielded`).
+        Some(EnemyKind::Surveyor) => hit(HitZone::Torso, FULL),
+        _ => match band {
+            Band::Head | Band::Mast => hit(HitZone::Head, head),
+            Band::Torso => hit(HitZone::Torso, FULL),
+            Band::Legs => hit(HitZone::Legs, LEGS),
+        },
+    }
+}
+
+/// Apply a scale, rounded down, never turning a landed hit into nothing.
+pub fn scaled(damage: i32, scale: Scale) -> i32 {
+    if damage <= 0 || scale.1 <= 0 {
+        return damage;
+    }
+    (damage.saturating_mul(scale.0) / scale.1).max(1)
+}
+
+/// One pellet's damage and zone on the body it struck.
+pub fn zoned_damage(
+    weapon: crate::protocol::WeaponType,
+    damage: i32,
+    identity: Option<CampaignActor>,
+    band: Option<Band>,
+    rear: bool,
+) -> (i32, Option<crate::protocol::HitZone>) {
+    match band.and_then(|band| zone_hit(weapon, identity, band, rear)) {
+        Some(hit) => (scaled(damage, hit.scale), Some(hit.zone)),
+        None => (damage, None),
     }
 }
 
@@ -225,6 +403,55 @@ pub fn aim_height(identity: Option<CampaignActor>) -> f32 {
     } else {
         TORSO_HEIGHT
     }
+}
+
+/// The widest dispersion radius at a weak point that still keeps most of a
+/// gun's shots inside the 0.4 m head band.
+pub const WEAK_POINT_CONE: f32 = 0.3;
+
+/// Whether a gun of this spread, from this eye, keeps its cone on a weak point.
+pub fn weak_point_fits(eye: [f32; 3], point: [f32; 3], spread: f32) -> bool {
+    let distance = (0..3)
+        .map(|i| (point[i] - eye[i]).powi(2))
+        .sum::<f32>()
+        .sqrt();
+    distance.is_finite() && spread.is_finite() && spread.tan() * distance <= WEAK_POINT_CONE
+}
+
+/// Where a skilled participant aims at a campaign body that punishes the
+/// chest: the middle of its head band (a Union bot's optic, or the cyan light
+/// in its place; an Enforcer's face; a Paver's lens). `None` for every body
+/// whose chest is a fair target, every participant and every arcade fighter,
+/// so multiplayer aim never changes.
+pub fn weak_point(
+    feet: [f32; 3],
+    identity: Option<CampaignActor>,
+    ducking: bool,
+) -> Option<[f32; 3]> {
+    let Some(CampaignActor::Hostile { kind, .. }) = identity else {
+        return None;
+    };
+    if !matches!(
+        kind,
+        EnemyKind::Sweeper
+            | EnemyKind::HeavySweeper
+            | EnemyKind::RangedSweeper
+            | EnemyKind::Turret
+            | EnemyKind::Crawler
+            | EnemyKind::Enforcer
+            | EnemyKind::Paver
+    ) {
+        return None;
+    }
+    let crown = body_height(identity, ducking);
+    let gate = if short_body(identity) {
+        target_height(identity) * 0.75
+    } else if ducking {
+        HEAD_GATE - (crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT)
+    } else {
+        HEAD_GATE
+    };
+    Some([feet[0], feet[1] + (gate + crown) * 0.5, feet[2]])
 }
 
 /// `feet` is the world position of the feet.
@@ -365,6 +592,199 @@ pub fn line_of_sight(origin: [f32; 3], target: [f32; 3], solids: &[Solid]) -> bo
         })
 }
 
+/// [`line_of_sight`] through a uniform floor-plan grid of the same solids,
+/// for callers that trace many lines a tick (`crate::interest`). It tests
+/// only the solids whose footprint touches a cell the line crosses, and
+/// answers exactly as `line_of_sight` does over the whole list.
+#[derive(Debug, Clone)]
+pub struct SightGrid {
+    solids: Vec<Solid>,
+    min: [f32; 2],
+    max: [f32; 2],
+    dims: [usize; 2],
+    cells: Vec<Vec<u32>>,
+    key: u64,
+}
+
+impl SightGrid {
+    /// Cell side, metres.
+    const CELL: f32 = 4.0;
+    /// A footprint is filed into every cell it reaches past this margin, so
+    /// rounding at a cell edge never skips a solid.
+    const SLACK: f32 = 0.1;
+
+    /// An identity for a solid list: equal lists give equal keys.
+    pub fn key_of(solids: &[Solid]) -> u64 {
+        let mut key = 0xcbf2_9ce4_8422_2325_u64 ^ solids.len() as u64;
+        for solid in solids {
+            for value in [
+                solid.min_x,
+                solid.max_x,
+                solid.min_z,
+                solid.max_z,
+                solid.bottom,
+                solid.top,
+            ] {
+                key = (key ^ u64::from(value.to_bits())).wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        key
+    }
+
+    pub fn new(solids: &[Solid]) -> Self {
+        let mut min = [f32::INFINITY; 2];
+        let mut max = [f32::NEG_INFINITY; 2];
+        let finite: Vec<Solid> = solids
+            .iter()
+            .filter(|s| {
+                [s.min_x, s.max_x, s.min_z, s.max_z]
+                    .iter()
+                    .all(|v| v.is_finite())
+            })
+            .cloned()
+            .collect();
+        for solid in &finite {
+            min = [min[0].min(solid.min_x), min[1].min(solid.min_z)];
+            max = [max[0].max(solid.max_x), max[1].max(solid.max_z)];
+        }
+        if finite.is_empty() {
+            min = [0.0; 2];
+            max = [0.0; 2];
+        }
+        min = min.map(|v| v - Self::SLACK);
+        max = max.map(|v| v + Self::SLACK);
+        let dims = [0, 1]
+            .map(|axis| (((max[axis] - min[axis]) / Self::CELL).ceil() as usize).clamp(1, 4096));
+        let mut cells = vec![Vec::new(); dims[0] * dims[1]];
+        let grid = |value: f32, axis: usize, dims: [usize; 2], min: [f32; 2]| {
+            (((value - min[axis]) / Self::CELL).floor().max(0.0) as usize).min(dims[axis] - 1)
+        };
+        for (index, solid) in finite.iter().enumerate() {
+            let x0 = grid(solid.min_x - Self::SLACK, 0, dims, min);
+            let x1 = grid(solid.max_x + Self::SLACK, 0, dims, min);
+            let z0 = grid(solid.min_z - Self::SLACK, 1, dims, min);
+            let z1 = grid(solid.max_z + Self::SLACK, 1, dims, min);
+            for x in x0..=x1 {
+                for z in z0..=z1 {
+                    cells[z * dims[0] + x].push(index as u32);
+                }
+            }
+        }
+        Self {
+            key: Self::key_of(solids),
+            solids: finite,
+            min,
+            max,
+            dims,
+            cells,
+        }
+    }
+
+    pub fn key(&self) -> u64 {
+        self.key
+    }
+
+    fn cell(&self, value: f32, axis: usize) -> usize {
+        (((value - self.min[axis]) / Self::CELL).floor().max(0.0) as usize).min(self.dims[axis] - 1)
+    }
+
+    /// Exactly [`line_of_sight`] over the solids this grid was built from.
+    pub fn line_of_sight(&self, origin: [f32; 3], target: [f32; 3]) -> bool {
+        if origin.iter().chain(target.iter()).any(|v| !v.is_finite()) {
+            return false;
+        }
+        let delta: [f64; 3] = std::array::from_fn(|i| f64::from(target[i]) - f64::from(origin[i]));
+        let length = delta.iter().map(|v| v * v).sum::<f64>().sqrt();
+        if length == 0.0 {
+            return true;
+        }
+        let distance = length as f32;
+        if !distance.is_finite() {
+            return false;
+        }
+        let ray = Ray {
+            origin,
+            direction: delta.map(|v| (v / length) as f32),
+        };
+        if ray.floor(distance).is_some_and(|t| t < distance) {
+            return false;
+        }
+        // The share of the line inside the grid's rectangle.
+        let (o, d) = (
+            [origin[0], origin[2]],
+            [target[0] - origin[0], target[2] - origin[2]],
+        );
+        let (mut t0, mut t1) = (0.0_f32, 1.0_f32);
+        for axis in 0..2 {
+            if d[axis] == 0.0 {
+                if o[axis] < self.min[axis] || o[axis] > self.max[axis] {
+                    return true;
+                }
+            } else {
+                let a = (self.min[axis] - o[axis]) / d[axis];
+                let b = (self.max[axis] - o[axis]) / d[axis];
+                t0 = t0.max(a.min(b));
+                t1 = t1.min(a.max(b));
+            }
+        }
+        if t0 > t1 {
+            return true;
+        }
+        let at = |t: f32| [o[0] + d[0] * t, o[1] + d[1] * t];
+        let (start, end) = (at(t0), at(t1));
+        let mut cell = [self.cell(start[0], 0), self.cell(start[1], 1)];
+        let last = [self.cell(end[0], 0), self.cell(end[1], 1)];
+        let mut step = [0_isize; 2];
+        let mut next = [f32::INFINITY; 2];
+        let mut span = [f32::INFINITY; 2];
+        for axis in 0..2 {
+            if d[axis] > 0.0 {
+                step[axis] = 1;
+                next[axis] =
+                    (self.min[axis] + (cell[axis] + 1) as f32 * Self::CELL - o[axis]) / d[axis];
+                span[axis] = Self::CELL / d[axis];
+            } else if d[axis] < 0.0 {
+                step[axis] = -1;
+                next[axis] = (self.min[axis] + cell[axis] as f32 * Self::CELL - o[axis]) / d[axis];
+                span[axis] = -Self::CELL / d[axis];
+            }
+        }
+        // Solids already tested on this line: a wall files into many cells.
+        // Past the buffer a solid may be tested twice, which only costs time.
+        let mut tested = [0_u32; 32];
+        let mut count = 0_usize;
+        let mut blocked = |index: u32| {
+            if tested[..count].contains(&index) {
+                return false;
+            }
+            if count < tested.len() {
+                tested[count] = index;
+                count += 1;
+            }
+            ray.solid(&self.solids[index as usize], distance)
+                .is_some_and(|hit| hit.distance < distance)
+        };
+        for _ in 0..self.dims[0] + self.dims[1] + 2 {
+            for index in &self.cells[cell[1] * self.dims[0] + cell[0]] {
+                if blocked(*index) {
+                    return false;
+                }
+            }
+            if cell == last {
+                break;
+            }
+            let axis = usize::from(next[1] < next[0]);
+            let moved = cell[axis] as isize + step[axis];
+            if moved < 0 || moved as usize >= self.dims[axis] {
+                break;
+            }
+            cell[axis] = moved as usize;
+            next[axis] += span[axis];
+        }
+        true
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Ray {
     pub(crate) origin: [f32; 3],
@@ -418,12 +838,20 @@ impl Ray {
         if is_flying(identity) {
             return self.actor(feet, identity, range);
         }
-        self.fighter_with_height(
-            feet,
-            crate::movement::RADIUS,
-            body_height(identity, ducking),
-            range,
-        )
+        let height = body_height(identity, ducking);
+        let body = self.fighter_with_height(feet, crate::movement::RADIUS, height, range);
+        if !has_mast(identity) {
+            return body;
+        }
+        // A marksman's mast rises from the crown. Above the head band, so a
+        // strike there reads as the mast and never as the head.
+        let base = [feet[0], feet[1] + height + 0.05, feet[2]];
+        let mast = self.fighter_with_height(base, MAST_RADIUS, MAST_HEIGHT, range);
+        match (body, mast) {
+            (Some(body), Some(mast)) if mast.distance < body.distance => Some(mast),
+            (None, mast) => mast,
+            (body, _) => body,
+        }
     }
     pub fn point(self, distance: f32) -> [f32; 3] {
         std::array::from_fn(|i| self.origin[i] + self.direction[i] * distance)
@@ -573,6 +1001,54 @@ fn clip_slab(
 mod tests {
     use super::*;
 
+    #[test]
+    fn the_sight_grid_answers_exactly_as_the_whole_solid_list() {
+        let mut seed = 0x9e37_79b9_7f4a_7c15_u64;
+        let mut unit = move || {
+            seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+            (seed >> 40) as f32 / (1u64 << 24) as f32
+        };
+        let mut blocked = 0;
+        for map in crate::sim::MapKind::ALL {
+            let arena = crate::maps::arena(map);
+            let grid = SightGrid::new(&arena.solids);
+            assert_eq!(grid.key(), SightGrid::key_of(&arena.solids));
+            let reach = arena.half * 1.1;
+            for _ in 0..4000 {
+                let mut point = || {
+                    [
+                        (unit() * 2.0 - 1.0) * reach,
+                        unit() * 8.0,
+                        (unit() * 2.0 - 1.0) * reach,
+                    ]
+                };
+                let (origin, target) = (point(), point());
+                let whole = line_of_sight(origin, target, &arena.solids);
+                blocked += usize::from(!whole);
+                assert_eq!(
+                    grid.line_of_sight(origin, target),
+                    whole,
+                    "{map:?} {origin:?} {target:?}"
+                );
+            }
+            // Lines along an axis and through a cell corner.
+            for (origin, target) in [
+                ([-reach, 1.6, 0.0], [reach, 1.6, 0.0]),
+                ([0.0, 1.6, -reach], [0.0, 1.6, reach]),
+                ([-reach, 1.6, -reach], [reach, 1.6, reach]),
+                ([4.0, 1.6, 4.0], [4.0, 1.6, 4.0]),
+            ] {
+                assert_eq!(
+                    grid.line_of_sight(origin, target),
+                    line_of_sight(origin, target, &arena.solids)
+                );
+            }
+        }
+        assert!(blocked > 1000, "the sample crosses cover: {blocked}");
+        assert!(SightGrid::new(&[]).line_of_sight([0.0, 1.0, 0.0], [5.0, 1.0, 5.0]));
+        assert!(!SightGrid::new(&[]).line_of_sight([0.0, f32::NAN, 0.0], [5.0, 1.0, 5.0]));
+    }
+
     fn ray(origin: [f32; 3], direction: [f32; 3]) -> Ray {
         Ray { origin, direction }
     }
@@ -586,6 +1062,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             })
         };
@@ -611,6 +1088,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             })
         };
@@ -624,17 +1102,18 @@ mod tests {
         };
         assert!(head_hit(0.0, crate::movement::EYE_HEIGHT, None));
         assert!(!head_hit(0.0, TORSO_HEIGHT, None));
+        let head = Some(Band::Head);
         assert_eq!(
-            traced_damage(crate::protocol::WeaponType::Rail, 80, true),
+            zoned_damage(crate::protocol::WeaponType::Rail, 80, None, head, false).0,
             160
         );
         assert_eq!(
-            traced_damage(crate::protocol::WeaponType::Fists, 20, true),
-            20
+            zoned_damage(crate::protocol::WeaponType::Fists, 20, None, head, false),
+            (20, None)
         );
         assert_eq!(
-            traced_damage(crate::protocol::WeaponType::Shiv, 35, true),
-            35
+            zoned_damage(crate::protocol::WeaponType::Shiv, 35, None, head, false),
+            (35, None)
         );
         assert!(!head_hit(0.0, FIGHTER_HEIGHT + 0.2, None));
         let crawler = union(EnemyKind::Crawler);
@@ -722,6 +1201,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         assert_eq!(body_height(crawler, true), CRAWLER_HEIGHT);

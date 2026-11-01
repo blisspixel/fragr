@@ -75,7 +75,8 @@ func _run() -> void:
 			actor.visible = actor_count > 0
 			actor.process_mode = Node.PROCESS_MODE_INHERIT if actor_count > 0 else Node.PROCESS_MODE_DISABLED
 		for quality: int in range(3):
-			preferences.set_value("video", "quality", quality)
+			# Water levels 0, 1, 2 are drawn by Low, Medium and High.
+			preferences.set_value("video", "quality", RenderQuality.LOW + quality)
 			RenderQuality.apply(view, preferences, environment.environment)
 			water.apply_quality(quality)
 			for enabled: bool in [false, true]:

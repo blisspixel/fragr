@@ -96,7 +96,7 @@ func _camera() -> void:
 
 func _measurement() -> void:
 	var run: BenchmarkRun = BenchmarkRun.new()
-	run.presets.assign([0, 2])
+	run.presets.assign([1, 3])
 	root.add_child(run)
 	var reports: Array = []
 	run.finished.connect(func(report: Dictionary) -> void: reports.append(report))
@@ -104,9 +104,9 @@ func _measurement() -> void:
 	run.set_process(false)
 	_check(run.hud != null and run.hud.is_inside_tree(), "the run owns its HUD")
 	var view: Dictionary = run.progress()
-	_check(view["state"] == "priming" and str(view["headline"]).begins_with("WARMING UP PERFORMANCE"), "the warm-up names the preset: " + str(view["headline"]))
+	_check(view["state"] == "priming" and str(view["headline"]).begins_with("WARMING UP LOW"), "the warm-up names the preset: " + str(view["headline"]))
 	_check(str(view["detail"]).begins_with("Not scored."), "the warm-up says it is not scored")
-	_check(view["steps"] == PackedStringArray(["Performance", "High"]) and int(view["step"]) == 0, "steps list each preset")
+	_check(view["steps"] == PackedStringArray(["Low", "High"]) and int(view["step"]) == 0, "steps list each preset")
 	_near(float(view["remaining_s"]), 2.0 * (BenchmarkRun.PRIME_SECONDS + BenchmarkRun.SCORE_SECONDS), "remaining time covers both presets")
 	var headline: Label = run.hud.find_child("Headline", true, false) as Label
 	_check(headline != null and headline.text == view["headline"], "the HUD shows the state")
@@ -119,7 +119,7 @@ func _measurement() -> void:
 		last = overall
 	_check(run.phase == "scoring" and reports.is_empty(), "the warm-up is discarded")
 	view = run.progress()
-	_check(str(view["headline"]) == "MEASURING PERFORMANCE" and str(view["detail"]).begins_with("Scored."), "scoring is labelled scored")
+	_check(str(view["headline"]) == "MEASURING LOW" and str(view["detail"]).begins_with("Scored."), "scoring is labelled scored")
 	for _score_frame: int in range(39):
 		run.advance(0.5)
 		monotonic = monotonic and float(run.progress()["overall"]) >= last
@@ -153,7 +153,7 @@ func _measurement() -> void:
 		var again: Dictionary = FrameStats.report(reread)
 		for key: String in ["fps", "low_1_count_fps", "p99_ms", "over_33_count", "count", "max_ms"]:
 			_check(is_equal_approx(float(again[key]), float(rows[1][key])), "saved intervals reproduce %s" % key)
-		_check(rows[1]["preset"] == "High" and int(rows[1]["quality"]) == 2, "rows name their preset")
+		_check(rows[1]["preset"] == "High" and int(rows[1]["quality"]) == 3, "rows name their preset")
 	_check(report.get("compatibility") is Dictionary and report["compatibility"]["workload"] == BenchmarkRun.WORKLOAD_ID, "the report carries its compatibility key")
 	_check(str(report.get("save_error", "x")).is_empty() and FileAccess.file_exists(_result_dir.path_join(run.saved_basename + ".json")), "the result saves where the tree says")
 	run.advance(0.5)
@@ -165,7 +165,7 @@ func _measurement() -> void:
 	# A stopped run has no figures.
 	var stopped: BenchmarkRun = BenchmarkRun.new()
 	root.add_child(stopped)
-	stopped.presets.assign([1])
+	stopped.presets.assign([2])
 	stopped.begin()
 	stopped.set_process(false)
 	var failed: Array = []
@@ -173,8 +173,8 @@ func _measurement() -> void:
 	for _frame: int in range(20):
 		stopped.advance(0.5)
 	stopped._fail("Settings changed during the benchmark. Run again for a consistent comparison.")
-	_check(failed.size() == 1 and failed[0]["state"] == "failed" and (failed[0]["runs"] as Array).is_empty() and failed[0]["interrupted"] == "scoring" and failed[0]["interrupted_preset"] == "Balanced", "an interrupted run reports where it stopped and no result")
-	_check(BenchmarkResults.stopped_during(failed[0]) == "Measuring Balanced." and BenchmarkResults.stopped_during({"interrupted": "capturing"}) == "Recording the fight." and BenchmarkResults.stopped_during({}) == "Starting.", "a stopped run names the step it was on")
+	_check(failed.size() == 1 and failed[0]["state"] == "failed" and (failed[0]["runs"] as Array).is_empty() and failed[0]["interrupted"] == "scoring" and failed[0]["interrupted_preset"] == "Medium", "an interrupted run reports where it stopped and no result")
+	_check(BenchmarkResults.stopped_during(failed[0]) == "Measuring Medium." and BenchmarkResults.stopped_during({"interrupted": "capturing"}) == "Recording the fight." and BenchmarkResults.stopped_during({}) == "Starting.", "a stopped run names the step it was on")
 	stopped.queue_free()
 	await process_frame
 
@@ -199,7 +199,7 @@ func _hud_layout() -> void:
 	hud.reset_live()
 	_check(hud.live().is_empty() and (hud.find_child("LiveFps", true, false) as Label).text == "-- FPS", "a reset readout shows no number rather than zero")
 	var progress: Dictionary = {"state": "scoring", "headline": "WARMING UP PERFORMANCE", "detail": "Not scored. Shaders and caches settle first. 8 s left.",
-		"overall": 0.4, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Performance", "Balanced", "High"]),
+		"overall": 0.4, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Low", "Medium", "High"]),
 		"step": 1, "elapsed_s": 64.0, "remaining_s": 48.0, "scored_frames": 2810, "scored_s": 19.9}
 	hud.show_progress(progress)
 	_check((hud.find_child("Totals", true, false) as Label).text == "1:04 ELAPSED // ABOUT 0:48 LEFT", "totals read elapsed and an estimate")
@@ -247,11 +247,11 @@ func _hud_layout() -> void:
 
 func _sample_report() -> Dictionary:
 	var runs: Array = []
-	for quality: int in [0, 1, 2]:
+	for quality: int in [1, 2, 3]:
 		var frames: PackedFloat32Array = PackedFloat32Array()
 		var us: Array = []
 		for index: int in range(2000):
-			var interval: float = 0.004 + 0.002 * float(quality) + (0.045 if index == 900 else 0.0)
+			var interval: float = 0.004 + 0.002 * float(quality - 1) + (0.045 if index == 900 else 0.0)
 			frames.append(interval)
 			us.append(roundi(interval * 1000000.0))
 		var row: Dictionary = FrameStats.report(frames)
@@ -302,7 +302,7 @@ func _results_view() -> void:
 	var detail_copy: String = ""
 	for label: Node in details.find_children("*", "Label", true, false):
 		detail_copy += (label as Label).text + "\n"
-	_check(detail_copy.contains("Performance preset: no MSAA") and detail_copy.contains("Balanced preset: MSAA 2x") and detail_copy.contains("High preset: MSAA 4x"), "details name what each preset changes")
+	_check(detail_copy.contains("Low preset: no MSAA") and detail_copy.contains("Medium preset: MSAA 2x") and detail_copy.contains("High preset: MSAA 4x"), "details name what each preset changes")
 	_check(detail_copy.contains("Forward+ renderer") and not detail_copy.contains("forward_plus"), "details name the renderer in player words")
 	_check(detail_copy.contains("Linux, X11 display server."), "details name the display server the frames were presented through")
 	_check(RenderQuality.preset_features(2, "forward_plus", {"upscaling": 2, "pixel_scale": 0}, Vector2i(1920, 1080)).begins_with("no MSAA"), "FSR 2 turns MSAA off, and the description says so")
@@ -315,7 +315,7 @@ func _results_view() -> void:
 		widest = maxf(widest, span.y)
 	_near(widest, float(report["runs"][0]["max_ms"]), "the timeline keeps the single hitch")
 	var summary: String = view.summary_text()
-	_check(summary.contains("Balanced: %d fps average" % roundi(float(report["runs"][1]["fps"]))) and summary.contains("Test Adapter"), "the copied summary names figures and system")
+	_check(summary.contains("Medium: %d fps average" % roundi(float(report["runs"][1]["fps"]))) and summary.contains("Test Adapter"), "the copied summary names figures and system")
 	_inspect_type(view, "results")
 	var signals: Array = []
 	view.again_requested.connect(func() -> void: signals.append("again"))
@@ -325,14 +325,14 @@ func _results_view() -> void:
 	_check(signals == ["again", "back"], "run again and back reach their owners")
 	view.queue_free()
 	var stopped: BenchmarkResults = BenchmarkResults.new()
-	stopped.report = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "error": "The window size changed.", "finished_presets": ["Performance"], "runs": []}
+	stopped.report = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "error": "The window size changed.", "finished_presets": ["Low"], "runs": []}
 	root.add_child(stopped)
 	await process_frame
 	_check((stopped.find_child("Outcome", true, false) as Label).text == "BENCHMARK STOPPED", "a stopped run says stopped")
 	_check(stopped.find_child("Presets", true, false) == null and stopped.find_child("BenchmarkCopy", true, false) == null, "a stopped run shows no figures or copy")
 	_check(stopped.find_child("BenchmarkAgain", true, false) != null and stopped.find_child("BenchmarkBack", true, false) != null, "a stopped run can run again or go back")
 	var stopped_facts: Node = stopped.find_child("Facts", true, false)
-	_check(stopped_facts != null and stopped_facts.get_child_count() == 8 and (stopped_facts.get_child(3) as Label).text.begins_with("Performance."), "a stopped run lists where it stopped, what finished, that nothing was saved and the restore")
+	_check(stopped_facts != null and stopped_facts.get_child_count() == 8 and (stopped_facts.get_child(3) as Label).text.begins_with("Low."), "a stopped run lists where it stopped, what finished, that nothing was saved and the restore")
 	_inspect_type(stopped, "stopped")
 	stopped.queue_free()
 	var unsaved: BenchmarkResults = BenchmarkResults.new()
@@ -388,7 +388,7 @@ func _menu() -> void:
 	_check(int(preferences.get_value("video", "fps_cap")) == 45 and bool(preferences.get_value("video", "vsync")), "the saved pace is not overwritten")
 	BenchmarkRun.restore_presentation(preferences)
 	_check(Engine.max_fps == 45, "leaving the run restores the saved frame cap")
-	_check(BenchmarkRun.preset_label(2) == "High", "preset 2 is High")
+	_check(BenchmarkRun.preset_label(3) == "High" and BenchmarkRun.preset_label(0) == "Potato" and BenchmarkRun.preset_label(4) == "Ultra", "tier 3 is High, 0 Potato, 4 Ultra")
 	_check(is_equal_approx(BenchmarkRun.nominal_seconds(3), 112.0) and is_equal_approx(BenchmarkRun.nominal_seconds(1), 56.0), "nominal durations follow the documented windows")
 	var workload: Dictionary = BenchmarkRun.workload()
 	_check(LocalHost.valid_settings(workload), "the benchmark workload is a legal local host")
@@ -413,9 +413,11 @@ func _menu() -> void:
 	_check(first != null and first.text == "SINGLE PLAYER", "Benchmark does not take the first focus")
 	await menu._show("benchmark")
 	var run_button: Button = menu.find_child("RunBenchmark", true, false) as Button
-	_check(run_button != null and run_button.text == "RUN CURRENT PRESET (BALANCED)", "the benchmark page names the current preset: " + (run_button.text if run_button != null else ""))
+	_check(run_button != null and run_button.text == "RUN CURRENT QUALITY (MEDIUM)", "the benchmark page names the current preset: " + (run_button.text if run_button != null else ""))
 	var compare_button: Button = menu.find_child("CompareBenchmark", true, false) as Button
-	_check(compare_button != null and compare_button.text == "COMPARE ALL THREE", "the benchmark page can compare every preset")
+	_check(compare_button != null and compare_button.text == "COMPARE LOW, MEDIUM AND HIGH", "the benchmark page compares the three middle tiers")
+	var auto_button: Button = menu.find_child("AutoSettings", true, false) as Button
+	_check(auto_button != null and auto_button.text == "AUTO SETTINGS", "the benchmark page offers auto settings")
 	var setup: Control = menu.find_child("BenchmarkSetup", true, false) as Control
 	var copy: String = ""
 	if setup != null:

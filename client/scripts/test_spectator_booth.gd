@@ -26,10 +26,10 @@ func _check(condition: bool, message: String) -> void:
 
 func _facts() -> Dictionary:
 	return {"type": "spectator_facts", "tick": 400, "spree_step": 5,
-		"pads": [{"id": "rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 40},
-			{"id": "scatter_b", "kind": "weapon", "weapon": "Scatter", "power": true, "back_in": 300},
-			{"id": "health", "kind": "health", "back_in": 100}],
-		"plate": {"id": "plate", "up": false, "back_in": 520},
+		"pads": [{"id": "rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 40, "clock": 300},
+			{"id": "scatter_b", "kind": "weapon", "weapon": "Scatter", "power": true, "back_in": 300, "clock": 300},
+			{"id": "health", "kind": "health", "back_in": 100, "clock": 300}],
+		"plate": {"id": "plate", "up": false, "back_in": 520, "clock": 700},
 		"sprees": [{"id": A, "frags": 6}, {"id": B, "frags": 2}],
 		"chains": [{"id": C, "frags": 3, "open_for": 31}]}
 
@@ -62,7 +62,8 @@ func _run() -> void:
 func _check_boundary() -> void:
 	var facts: Dictionary = SpectatorFacts.parse(_facts())
 	_check(not facts.is_empty() and facts.tick == 400 and facts.pads.size() == 3 and facts.pads[0].power, "valid booth facts parse")
-	_check(facts.plate.back_in == 520 and facts.plate.holder == "" and not facts.plate.up, "a down plate keeps its clock and no wearer")
+	_check(facts.plate.back_in == 520 and facts.plate.clock == 700 and facts.plate.holder == "" and not facts.plate.up, "a down plate keeps its clocks and no wearer")
+	_check(facts.pads[0].clock == 300, "a pad carries its whole return clock")
 	_check(facts.sprees[0].id == A and facts.chains[0].open_for == 31, "runs keep their ids and window")
 	var quiet: Dictionary = SpectatorFacts.parse({"type": "spectator_facts", "tick": 1, "spree_step": 3})
 	_check(not quiet.is_empty() and quiet.pads.is_empty() and quiet.plate.is_empty(), "omitted lists read as empty")
@@ -74,18 +75,24 @@ func _check_boundary() -> void:
 	bad_id["sprees"] = [{"id": "nightfall", "frags": 6}]
 	refusals.append(bad_id)
 	var negative: Dictionary = _facts()
-	negative["pads"] = [{"id": "rail", "kind": "weapon", "back_in": -1}]
+	negative["pads"] = [{"id": "rail", "kind": "weapon", "back_in": -1, "clock": 300}]
 	refusals.append(negative)
 	var extra: Dictionary = _facts()
-	extra["pads"] = [{"id": "rail", "kind": "weapon", "back_in": 4, "x": 1}]
+	extra["pads"] = [{"id": "rail", "kind": "weapon", "back_in": 4, "clock": 300, "x": 1}]
 	refusals.append(extra)
+	var no_clock: Dictionary = _facts()
+	no_clock["pads"] = [{"id": "rail", "kind": "weapon", "back_in": 4}]
+	refusals.append(no_clock)
+	var bad_plate_clock: Dictionary = _facts()
+	bad_plate_clock["plate"] = {"id": "plate", "up": false, "back_in": 4, "clock": -2}
+	refusals.append(bad_plate_clock)
 	var half_holder: Dictionary = _facts()
 	half_holder["plate"] = {"id": "plate", "up": false, "holder": A}
 	refusals.append(half_holder)
 	var flood: Dictionary = _facts()
 	var many: Array = []
 	for index: int in range(SpectatorFacts.MAX_PADS + 1):
-		many.append({"id": "p%d" % index, "kind": "health", "back_in": 4})
+		many.append({"id": "p%d" % index, "kind": "health", "back_in": 4, "clock": 300})
 	flood["pads"] = many
 	refusals.append(flood)
 	for refused: Dictionary in refusals:
@@ -104,59 +111,80 @@ func _check_boundary() -> void:
 func _check_panel() -> void:
 	var panel := SpectatorPanel.new()
 	root.add_child(panel)
-	panel.set_region(Rect2(20, 120, 400, 600))
+	var region := Rect2(600, 90, 720, 400)
+	panel.set_region(region)
 	panel.observe_snapshot(_snapshot())
 	panel.observe_facts(SpectatorFacts.parse(_facts()))
 	panel.clock_override_ms = 0
-	var rows: Array[Dictionary] = panel.rows()
-	var keys: Array = rows.map(func(row: Dictionary) -> String: return str(row.key))
-	_check(keys == ["plate", "Rail", "Scatter", "armor", "heading", "run:" + A, "chain:" + C], "panel rows in caster order: " + str(keys))
-	_check(rows[0].value == "0:26" and rows[0].tone == "wait", "the Plate counts down from its clock: " + str(rows[0]))
-	_check(rows[1].value == "0:02" and rows[1].tone == "soon", "a power pad about to return is marked soon: " + str(rows[1]))
-	_check(rows[2].value == "UP" and rows[2].tone == "up", "a gun with any copy up reads up")
-	_check(rows[4].label == "RAMPAGE" and rows[5].label == "NIGHTFALL" and rows[5].value == "6", "the run names its tier, callsign and frags: " + str(rows.slice(4)))
-	_check(rows[6].label == "STATIC KID" and rows[6].value == "TRIPLE", "an open chain off the runs is its own row")
-	_check(not keys.has("run:" + B), "a two-frag run stays off the panel")
+	# Default: power items always, an ordinary pad only in its last seconds.
+	var tiles: Array[Dictionary] = panel.tiles(false)
+	var keys: Array = tiles.map(func(tile: Dictionary) -> String: return str(tile.key))
+	_check(keys == ["plate", "Rail", "health"], "power items lead and only a returning ordinary pad joins: " + str(keys))
+	_check(tiles[0].value == "0:26" and tiles[0].tone == "wait" and is_equal_approx(tiles[0].left, 26.0 / 35.0), "the Plate counts down round its ring: " + str(tiles[0]))
+	_check(tiles[1].value == "0:02" and tiles[1].tone == "soon" and is_equal_approx(tiles[1].left, 2.0 / 15.0), "a power pad about to return is marked soon: " + str(tiles[1]))
+	_check(tiles[2].value == "0:05" and tiles[2].tone == "soon" and not tiles[2].power, "health returning in five seconds earns a tile")
+	_check(not keys.has("Scatter") and not keys.has("armor") and not keys.has("Flechette"), "ordinary pads that are up stay off the default strip")
+	# Expanded while the scoreboard is held: every kind of pad on the map.
+	var all: Array = panel.tiles(true).map(func(tile: Dictionary) -> String: return str(tile.key))
+	_check(all == ["plate", "Rail", "Scatter", "Flechette", "armor", "health"], "the expanded strip shows every pad kind in order: " + str(all))
+	_check(panel.tiles(true)[2].value == "UP" and panel.tiles(true)[2].tone == "up" and is_zero_approx(panel.tiles(true)[2].left), "a gun with any copy up reads up with a full ring")
 	panel.clock_override_ms = 1500
-	_check(panel.rows()[1].value == "0:01" and panel.rows()[0].value == "0:25", "clocks count down between messages")
-	var worn: Dictionary = SpectatorFacts.parse(_facts())
-	worn.plate = {"id": "plate", "up": false, "back_in": 500, "holder": B, "armor": 143}
-	panel.observe_facts(worn)
+	_check(panel.tiles(false)[1].value == "0:01" and panel.tiles(false)[0].value == "0:25", "clocks count down between messages")
 	panel.clock_override_ms = 0
-	_check(panel.rows()[0].label == "AUNT LINDA" and panel.rows()[0].value == "143" and panel.rows()[0].tone == "held", "the wearer and the plated armour lead")
+	panel.observe_facts(SpectatorFacts.parse(_facts()))
+	var far: Dictionary = SpectatorFacts.parse(_facts())
+	far.tick = 401
+	far.pads[2].back_in = 200
+	panel.observe_facts(far)
+	_check(not panel.tiles(false).map(func(tile: Dictionary) -> String: return str(tile.key)).has("health"), "ordinary pads far from returning stay off")
+	# The notes: runs by tier, an open chain on its own.
+	var lines: Array[Dictionary] = panel.notes()
+	_check(lines.size() == 2 and lines[0].text == "RAMPAGE: NIGHTFALL 6" and lines[0].tone == "run", "the run names its tier, callsign and frags: " + str(lines))
+	_check(lines[1].text == "STATIC KID TRIPLE", "an open chain off the runs is its own note: " + str(lines))
+	var worn: Dictionary = SpectatorFacts.parse(_facts())
+	worn.tick = 402
+	worn.plate = {"id": "plate", "up": false, "back_in": 500, "clock": 700, "holder": B, "armor": 143}
+	panel.observe_facts(worn)
+	_check(panel.tiles(false)[0].value == "143" and panel.tiles(false)[0].tone == "held", "the worn Plate shows its armour in gold")
+	_check(panel.notes()[0].text == "PLATE: AUNT LINDA" and panel.notes()[0].tone == "held", "the wearer leads the notes")
 	var stale: Dictionary = SpectatorFacts.parse(_facts())
 	stale.tick = 10
 	panel.observe_facts(stale)
-	_check(panel.rows()[0].label == "AUNT LINDA", "older facts never replace newer ones")
+	_check(panel.tiles(false)[0].tone == "held", "older facts never replace newer ones")
 	panel.clock_override_ms = SpectatorPanel.STALE_MS + 1
-	_check(panel.rows().is_empty(), "a booth that stopped talking hides")
+	_check(panel.tiles(true).is_empty() and panel.notes().is_empty(), "a booth that stopped talking hides")
 	panel.clock_override_ms = 0
 	panel.watching = true
 	panel._process(1.0)
-	_check(panel.visible and panel.get_node("Rows").get_child_count() == 7, "a watcher sees the rows")
-	for row: Node in panel.get_node("Rows").get_children():
-		var plate: Control = row as Control
-		_check(Rect2(panel.global_position, Vector2(400, 600)).encloses(plate.get_global_rect()) or plate.size.x <= 400.0, "rows stay in their column")
-		for label: Node in plate.find_children("*", "Label", true, false):
-			_check((label as Label).uppercase and (label as Label).get_theme_font("font") == MenuTheme.FONT, "every booth word is Silkscreen in capitals")
-			_check(is_zero_approx((label as Label).rotation), "booth words sit level")
+	var strip: Node = panel.get_node("Rows")
+	_check(panel.visible and strip.get_child_count() == 3, "a watcher sees one tile per shown pad: " + str(strip.get_child_count()))
+	_check((panel.get_node("Heading") as Label).text == "PADS", "the strip says what it is")
+	_check(region.encloses(panel.get_global_rect()), "the strip stays in its column: " + str(panel.get_global_rect()))
+	_check(absf(panel.get_global_rect().get_center().x - region.get_center().x) <= 1.0, "the strip is centred under the scoreline")
+	for label: Node in panel.find_children("*", "Label", true, false):
+		_check((label as Label).uppercase and (label as Label).get_theme_font("font") == MenuTheme.FONT, "every booth word is Silkscreen in capitals")
+		_check(is_zero_approx((label as Label).rotation), "booth words sit level")
+	var ring: Control = strip.get_child(0).get_node("Ring")
+	_check(ring.size.x >= 40.0 and is_zero_approx(ring.rotation), "the ring is a level icon tile")
+	panel.set_expanded(true)
+	panel._process(1.0)
+	_check(strip.get_child_count() == 6 and (panel.get_node("Heading") as Label).text == "ALL PADS", "holding the scoreboard expands the strip")
+	_check(region.encloses(panel.get_global_rect()), "the expanded strip still fits its column: " + str(panel.get_global_rect()))
+	panel.set_expanded(false)
 	var long_run: Dictionary = SpectatorFacts.parse(_facts())
+	long_run.tick = 403
 	long_run.chains = [{"id": A, "frags": 2, "open_for": 30}]
 	panel._names[A] = "Second Sighting"
 	panel.observe_facts(long_run)
-	panel._process(1.0)
-	var run_row: Node = panel.get_node("Rows").get_child(5)
-	_check((run_row.get_node("Content/Value") as Label).text == "DOUBLE 6" and (run_row.get_node("Content/Label") as Label).text == "S. SIGHTING",
-		"a long callsign beside a chain is shortened, not cut: " + (run_row.get_node("Content/Label") as Label).text)
+	_check(panel.notes()[0].text == "RAMPAGE: SECOND SIGHTING 6 DOUBLE", "a run with an open chain says both at once: " + str(panel.notes()))
 	panel.watching = false
 	panel._process(1.0)
-	_check(not panel.visible, "a fighter never sees the booth panel")
+	_check(not panel.visible, "a fighter never sees the booth strip")
 	panel.watching = true
 	panel.set_covered(true)
 	panel._process(1.0)
 	_check(not panel.visible, "a card covers the booth")
 	panel.queue_free()
-
 func _check_director() -> void:
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	var fighters: Array = []
@@ -177,7 +205,7 @@ func _check_director() -> void:
 	_check(camera.follow_target_index == 1 and camera.director_reason == "", "a quiet booth makes no cut")
 	# A Rail returning in two seconds with a fighter beside it.
 	var rail: Dictionary = SpectatorFacts.parse({"type": "spectator_facts", "tick": 2, "spree_step": 5,
-		"pads": [{"id": "rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 40}]})
+		"pads": [{"id": "rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 40, "clock": 300}]})
 	camera.director_observe_facts(rail, pickups)
 	_check(camera.get_followed_target() == fighters[0] and camera.director_reason == "power", "the director cuts to the fighter by a returning power pad")
 	# A spree is a smaller moment and waits out the power cut's hold.

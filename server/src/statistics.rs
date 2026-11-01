@@ -68,6 +68,11 @@ impl CombatLedger {
         self.update(|counts| counts.weapons[weapon.index()].attacks += 1);
     }
 
+    /// Attacks with one weapon since the ledger began.
+    pub fn attacks_with(&self, weapon: WeaponType) -> u64 {
+        self.total.weapon(weapon).attacks
+    }
+
     /// One call per attack, summed over every fighter its pellets struck.
     ///
     /// `connect` is a body found, including a shield or a teammate that lost

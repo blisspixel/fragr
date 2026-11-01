@@ -418,7 +418,7 @@ fn hidden_peers_investigate_a_hit_then_dispatch_once_on_room_entry() {
         .iter_mut()
         .find(|p| p.id == guards[1])
         .unwrap()
-        .hp = 20;
+        .hp = 10; // one Pistol round even on a plate
     shoot(&mut session, id, guards[1]);
     assert_eq!(phase(&session, guards[1]), EnemyPhase::Dead);
     let investigation = session

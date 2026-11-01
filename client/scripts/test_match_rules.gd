@@ -318,7 +318,7 @@ func _check_large_board(hud: CanvasLayer) -> void:
 	var panel: Control = hud.get_node("Leaderboard")
 	var scroll: ScrollContainer = hud.get("_leaderboard_scroll")
 	var rows: VBoxContainer = hud.get("_leaderboard_rows")
-	var hint: Label = hud.get("_leaderboard_hint")
+	var hint: Control = hud.get("_leaderboard_hint")
 	_check(panel.get_global_rect().encloses(scroll.get_global_rect()), "large roster has a bounded scrolling viewport")
 	_check(panel.get_global_rect().encloses(hint.get_global_rect()), "scroll instructions stay inside the panel")
 	_check(rows.get_global_rect().end.x <= scroll.get_global_rect().end.x, "long Unicode names and counts wrap within the board width")

@@ -49,6 +49,7 @@ func _run() -> void:
 	await _check_direction()
 	await _check_playback()
 	await _check_limiter()
+	await _check_heard_pawn()
 	await _teardown()
 	if _failures == 0:
 		print("test_footsteps: PASS")
@@ -407,3 +408,31 @@ func _check_limiter() -> void:
 	_check(peak > 0 and peak_db <= ceiling + 0.2, "the limiter holds +9 dB over full scale under its ceiling: %.2f" % peak_db)
 	hot.queue_free()
 	await process_frame
+
+
+## Interest filtering (gameplay 66): a rival the reader only hears has feet
+## and no body. Its row is inert (hp 0), yet its running steps still play;
+## the same inert row without the sense is a body down and silent.
+func _check_heard_pawn() -> void:
+	var row: Dictionary = {"id": "heard", "name": "Heard", "hp": 0, "armor": 0, "collidable": false,
+		"x": 4.0, "y": 1.5, "z": 0.0, "yaw": 0.0, "pitch": 0.0, "weapon": "Fists", "body": "human", "sense": "heard"}
+	for heard: bool in [true, false]:
+		var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
+		root.add_child(pawn)
+		pawn.set("heard", heard)
+		pawn.call("update_state", row, 10)
+		await process_frame
+		var feet: Footsteps = pawn.get("footsteps")
+		var events: int = 0
+		for frame: int in 90:
+			pawn.call("_present_feet", 1.0 / 60.0, 6.0 / 60.0, 0.0, {})
+			if not feet.last_event.is_empty():
+				events += 1
+				feet.last_event = ""
+		if heard:
+			_check(not pawn.visible, "a heard rival draws no body")
+			_check(events > 0, "a heard rival's running feet still sound")
+		else:
+			_check(events == 0, "an inert row with no sense is silent: %d" % events)
+		pawn.queue_free()
+		await process_frame

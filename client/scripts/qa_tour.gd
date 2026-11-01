@@ -70,8 +70,11 @@ var _combat_travel: bool = false
 var _combat_travel_targets: Array[String] = []
 var _radio_compare_on: bool = false
 ## video/quality indices, in settings order.
-const CAPTURE_QUALITIES: Array[String] = ["performance", "balanced", "high"]
+const CAPTURE_QUALITIES: Array[String] = ["potato", "low", "medium", "high", "ultra"]
 var _capture_quality: int = -1
+## The preset the run starts on, whether named by FRAGR_QA_QUALITY or the
+## settings default a fresh player gets.
+var _run_quality: int = -1
 var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
 var _audio_recorder: AudioEffectRecord = null
@@ -151,6 +154,7 @@ func _run() -> void:
 		return
 	if _capture_quality >= 0:
 		capture_settings.set_value("video", "quality", _capture_quality)
+	_run_quality = int(capture_settings.get_value("video", "quality"))
 	if capture_settings.save_to_disk() != OK:
 		push_error("qa_tour: could not create isolated capture settings")
 		quit(1)
@@ -997,6 +1001,8 @@ func _run() -> void:
 			"hud_coverage": snappedf(measured.get("hud_coverage", 0.0), 0.0001),
 			"frame_ms": snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.01),
 			"frame_timing": frame_timing,
+			"renderer": RenderingServer.get_current_rendering_method(),
+			"quality": quality_name(_live_quality()),
 			"blank": _looks_blank(shot),
 			# The world behind the HUD. A tour run against a server that never
 			# started photographs an empty grey room, and the HUD panel alone
@@ -1352,6 +1358,22 @@ static func valid_m07_expectations(state: Dictionary) -> bool:
 
 ## The run-wide preset from FRAGR_QA_QUALITY: -1 when unset (the settings
 ## default), -2 when unrecognised, else the video/quality index.
+## A video/quality index as the manifest names it.
+static func quality_name(index: int) -> String:
+	return CAPTURE_QUALITIES[index] if index >= 0 and index < CAPTURE_QUALITIES.size() else "unknown"
+
+## The preset drawing this frame: the live match's preferences once a state's
+## own "graphics" options may have changed it, else the run's preset.
+func _live_quality() -> int:
+	var manager: Node = _game_manager()
+	if manager != null:
+		var preferences: Variant = manager.get("settings")
+		if preferences is FragrSettings:
+			var value: Variant = (preferences as FragrSettings).get_value("video", "quality")
+			if value is int:
+				return value
+	return _run_quality
+
 static func capture_quality(value: String) -> int:
 	if value.is_empty():
 		return -1
@@ -1457,7 +1479,7 @@ func _apply_graphics_capture(options: Variant) -> void:
 				return
 			draft.set_value("video", key, options[key])
 			continue
-		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale", "show_fps"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
+		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale", "show_fps", "render_scale"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
 			push_error("qa_tour: invalid graphics capture option")
 			_failed = true
 			return
@@ -1729,6 +1751,10 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			img.convert(Image.FORMAT_RGBA8)
 			if i == 0 and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_shot.png")) != OK:
 				push_error("qa_tour: could not save full-size acknowledged shot")
+				_failed = true
+			# Every frame at full size, for a mark too small to read in the strip.
+			if state.get("full_frames", false) and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_frame_%d.png" % i)) != OK:
+				push_error("qa_tour: could not save a full-size strip frame")
 				_failed = true
 			if state.get("bottom_crop", false):
 				img = img.get_region(Rect2i((img.get_width() - 384) / 2, img.get_height() - 256, 384, 256))
@@ -3671,10 +3697,15 @@ func _write_manifest(tour: Dictionary) -> void:
 	var out: Dictionary = {
 		"captured_utc": Time.get_datetime_string_from_system(true),
 		"godot": Engine.get_version_info().get("string", ""),
+		# What actually drew the stills, not what was asked for: a machine
+		# without Vulkan falls back to Compatibility and says so here (#537).
 		"renderer": RenderingServer.get_current_rendering_method(),
+		"renderer_name": RenderQuality.renderer_name(RenderingServer.get_current_rendering_method()),
+		"rendering_driver": RenderingServer.get_current_rendering_driver_name(),
 		"device": RenderingServer.get_video_adapter_name(),
 		"display_server": DisplayServer.get_name(),
-		"quality": CAPTURE_QUALITIES[_capture_quality] if _capture_quality >= 0 else "settings default",
+		"quality": quality_name(_run_quality),
+		"quality_source": "FRAGR_QA_QUALITY" if _capture_quality >= 0 else "settings default",
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"companion_shots": _combat_probe.companion_shots.duplicate(true),

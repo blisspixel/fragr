@@ -1,5 +1,5 @@
 {
-  "comment": "#521 transient light review: the spectator follows a fighter's eyes on Larak Lot while client/qa/transient_light_review.gd freezes and measures every frame a muzzle or blast light is up. Run FRAGR_QA_SCRIPT=res://qa/transient_light_review.gd FRAGR_QA_MANIFEST=res://qa/transient-lights.json FRAGR_QA_SEED=1 tools/qa_tour.sh <out>, on each renderer (FRAGR_RENDER_DRIVER=opengl3 is the tour default; vulkan for Forward+).",
+  "comment": "#521 transient light review: the spectator follows a fighter's eyes on Larak Lot while client/qa/transient_light_review.gd freezes and measures every frame a muzzle or blast light is up. Run FRAGR_QA_SCRIPT=res://qa/transient_light_review.gd FRAGR_QA_MANIFEST=res://qa/transient-lights.json FRAGR_QA_SEED=1 tools/qa_tour.sh <out>, on each renderer (Forward+ is the tour default; FRAGR_QA_RENDERER=compatibility for the fallback).",
   "width": 1280,
   "height": 720,
   "states": [

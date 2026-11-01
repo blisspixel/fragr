@@ -22,8 +22,14 @@ with `rules.start_kit` is the same contract 55. Local Exception requires 56,
 the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
 fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
 `turn_started`, the `working` campaign phase) is 64. Level 17's custody (the
-`figure` campaign side and M17 `custody_started`) is 65, the highest this
-build speaks.
+`figure` campaign side and M17 `custody_started`) is 65. Contract 66 adds
+locational damage (`ShotResult.zone` in place of `head`, and a Ranged
+Sweeper's `mast_broken`), the hold-Tab board's objective credits
+(`players[].objective`), the booth's whole pad clocks (`clock`), the fun
+metrics notice (`Welcome.fun_metrics`) and interest filtering (the
+per-fighter `sense` rows, below); it is the highest this build speaks.
+Declared Goods, Weight of Permission, Launch Authority and All Systems Normal,
+which place Ranged Sweepers, require 66.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -165,7 +171,7 @@ Initial handshake message. Must be sent immediately after connection.
   its owner wears and keeps it (see the run file). Additive: no gameplay
   version gates it.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `65`; omission means `1`. Discovery-only maps first
+  and the Godot client send `66`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -393,17 +399,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`65`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`66`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-65 or geometry 2. An older hello is also sent to
+66 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 65 can
-still enter that mission, and a hello above 65 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 66 can
+still enter that mission, and a hello above 66 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -417,7 +423,11 @@ is not an arena. Additive to schema 2, `mode` names the rule set's mode (`ffa`
 or `tdm`; a missing `mode` means `ffa`) and `mutators` lists its mutator ids,
 omitted when none, so a server list can show what a server plays. Additive
 `gameplay_version` and `geometry_version` name the contracts this process
-speaks, and are omitted by an older host. It does not list callsigns or addresses, and it does not take
+speaks, and are omitted by an older host. Additive `fun_metrics` is `true` when
+this host keeps fun metrics (match-level tallies on its own disk, shredded
+after 67 days, [`PRIVACY.md`](PRIVACY.md)) and `false` when it keeps nothing;
+it is a boolean and says nothing else about the host. The join page reads it
+out before a player chooses Watch or Join. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
 app, which reads only those fields and accepts exactly schema 2.
 
@@ -1589,7 +1599,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "mode_name": "Scrap League",
   "playlist": "Larak Lot",
   "body": "human" | "synthetic",
-  "duck": true
+  "duck": true,
+  "fun_metrics": false
 }
 ```
 
@@ -1604,6 +1615,14 @@ Server response to `Hello`. Confirms connection and provides player ID.
 - `duck`: present and true only when this server accepts a held `Action.duck`
   and publishes the resolved stance. Omitted by older servers. Absence means
   the client must not send the key.
+- `fun_metrics` (gameplay 66): always sent. `true` when this host keeps fun
+  metrics: match-level counts and timings (frag pace, lead changes, gun shares,
+  kill distances, time to contact, tick health) in one file per match on its
+  own disk, never a callsign, id, address, chat or hardware fact, shredded
+  after 67 days ([`PRIVACY.md`](PRIVACY.md)). Every role receives it before
+  any fight; the Godot client says so in the match feed once per Welcome and
+  the MCP adapter returns it from `round_state`. A reader refuses a value that
+  is not a boolean; absence reads `false`. Campaign missions never record.
 - `mode_name`: Named scrap-league identity (default Scrap League)
 - `playlist`: The current map's display name (default Larak Lot).
 
@@ -1784,6 +1803,19 @@ instead (see "Snapshot deltas (capability 63)").
     by a quarter. Omitted for rule bots, campaign actors, a pawn held for a
     dropped connection and a fighter whose connection has not answered yet.
     The hold-Tab board reads it.
+  - `objective`: (optional, gameplay 66) this fighter's objective credits for
+    the hold-Tab board: `{"plants", "defuses", "captures", "returns"}`, each
+    omitted while zero, the object omitted while all are. Sabotage credits the
+    planter on `planted` and the defuser on `defused`; capture the flag
+    credits the carrier on a capture and the toucher on a touch return (a
+    timed return credits nobody); Conquest credits every fighter of a side
+    standing on a point the tick it falls to that side (neutralising a point
+    is no capture). Counts reset when a round starts; a Sabotage match keeps
+    them across its rounds, as it keeps frags. Presentation only: nothing
+    scores from them. Readers refuse unknown fields inside it.
+  - `sense`: (optional, gameplay 66) what the reading fighter perceives of
+    this row: omitted when it is seen whole, `heard` or `hidden` when the
+    server withheld it. See [Interest filtering](#interest-filtering-capability-66).
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -1807,7 +1839,7 @@ instead (see "Snapshot deltas (capability 63)").
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
   carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
-  `damage`, `killed`, optional `head`, and `trace`. Do not join only against surviving `players` to
+  `damage`, `killed`, optional `zone`, and `trace`. Do not join only against surviving `players` to
   count shots or infer their weapon.
 - `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
@@ -1886,13 +1918,62 @@ at most once a tick, so all of one shooter's results in a tick are one shot.
 before armour absorption, including overkill; it is zero on a miss or when that
 committed ray reaches a fighter already killed earlier in the same tick.
 `killed` is true only for the shot that first takes the victim to zero HP. Older
-records default it to false. `head` is present and true when a pellet of that
-result struck the head band of a gun with a head bonus and doubled damage that
-landed (a shield that took nothing is no headshot); `damage` already counts it.
-It drives only the shooter's headshot confirm sound. Committed shots can trade kills; later hits cannot
+records default it to false. `zone` (gameplay 66) names where damage that landed struck: `head`, `torso`,
+`legs`, `plate` or `weak`; see "Locational damage" below. It is omitted on a
+miss, when nothing landed (a shield or a teammate that took nothing), and for
+weapons without zones (the Arc, explosives, melee) unless a plate or shutter
+turned part of the hit. `damage` already counts the zone's multiplier. It
+drives only presentation: the shooter's marker and sound, sparks, and the
+victim's death recap. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
 
+#### Locational damage
+
+Gameplay 66. Every traced pellet that strikes a body is scaled by the zone it
+lands in before pellets are summed, so armour, an Auditor's plate and the
+Arc's bypass still see one total. Zones are height bands on the body's
+cylinder, read on the volume the ray met (the rewound one for a
+lag-compensated shot), all dropped 0.45 m when the body is crouched:
+
+| Band | Standing | Notes |
+|---|---|---|
+| Head | 1.45 m to the crown | Short and flying bodies use the top quarter |
+| Torso | 0.85 to 1.45 m | Arms count as torso. Short and flying bodies below the head band |
+| Legs | feet to 0.85 m | None on short or flying bodies |
+
+Multipliers are integer ratios applied rounded down, never below 1:
+
+| Weapon | Head | Torso | Legs |
+|---|---|---|---|
+| Railgun, Sniper, Tack | 2 | 1 | 3/4 |
+| Flechette, Repeater | 3/2 | 1 | 3/4 |
+| Scatter (per pellet) | 5/4 | 1 | 3/4 |
+| Arc, Rocket, Fists, Shiv, Article Blade | no zones | | |
+
+Every participant, human or agent, synthetic or not, has the same volume and
+the same table. Campaign bodies extend it by kind; absorbed bots keep their
+chassis table (the cyan working light sits where the red optic was):
+
+| Body | Head band | Torso band | Legs |
+|---|---|---|---|
+| Sweeper, Heavy Sweeper, Ranged Sweeper, Turret, Crawler | `weak` 2 (the optic), any zoned gun | `plate` 1/2; a Heavy Sweeper struck on the back is `weak` 3/2 (the vent) | `legs` 3/4 |
+| Ranged Sweeper mast (a 0.2 m radius column 0.4 m tall on the crown) | | | `weak` 1, and the mast breaks |
+| Enforcer | `head` 3/2 | `plate` 1/2 | `legs` 1 |
+| Paver | front `weak` 1 (the lens); back `plate` 1/2 | `plate` 1/2; back while in `recovery` `weak` 1 (the grille) | `plate` 1/2 |
+| Surveyor | its shutter rule: `plate` (a third) while closed, `weak` (whole) while the lens is open | | |
+| Everyone else | weapon table | | |
+
+An Assessor's or an Auditor's plate that turns part of a hit reports `plate`.
+A broken mast is permanent for that body: its identity carries
+`mast_broken: true`, it no longer has a mast volume, and it loses the long
+sight (it sees to 32 m, not 90 m, and only an open body, not a peeking head).
+
+An `Action.look_at` with a `player_id` on a body whose chest is plated (the
+Union bot chassis, the Enforcer, the Paver) aims at the middle of its head
+band when that point is in sight and the aimer's gun cone there is at most
+0.3 m in radius (`combat::weak_point_fits`); otherwise it keeps the
+usual chest or hip line. Arcade fighters are never affected.
 #### SpectatorFacts
 
 The booth: facts the server broadcasts only to spectator connections, the
@@ -1910,10 +1991,10 @@ caster or a director needs to cut to the next fight before it starts.
   "tick": 2400,
   "spree_step": 5,
   "pads": [
-    {"id": "larak_health_toll", "kind": "health", "back_in": 40},
-    {"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300}
+    {"id": "larak_health_toll", "kind": "health", "back_in": 40, "clock": 500},
+    {"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300, "clock": 500}
   ],
-  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520,
+  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520, "clock": 700,
             "holder": "550e8400-e29b-41d4-a716-446655440000", "armor": 143},
   "sprees": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 6}],
   "chains": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 2, "open_for": 31}]
@@ -1927,11 +2008,14 @@ caster or a director needs to cut to the next fight before it starts.
 - `pads`: (omitted when empty) every pad that is down and will come back,
   soonest first, at most 64: `id` (the snapshot `pickups` id), `kind`,
   `weapon` on a weapon pad, `power` (omitted when false) for a gun better than
-  the Flechette or the sidearm, or armour, and `back_in` in ticks. A borrowed
+  the Flechette or the sidearm, or armour, `back_in` in ticks, and `clock`
+  (gameplay 66) the pad's whole return clock under this rule sheet in ticks,
+  so a reader can draw how far round it has come. A borrowed
   Article Blade's return clock is a `weapon` row. Campaign stock that never
   returns is never listed.
 - `plate`: (omitted on a map without one) the Custody Plate: its pad `id`,
-  `up`, `back_in` while it is down, and `holder` with that fighter's whole
+  `up`, `back_in` and `clock` (gameplay 66, its whole return clock) while it
+  is down, and `holder` with that fighter's whole
   `armor` for the living fighter carrying the most armour over the ordinary
   cap of 100, which only the Plate grants. Omitted when nobody is over it.
 - `sprees`: (omitted when empty) living fighters on two or more frags without
@@ -1984,6 +2068,8 @@ only Union machines (`sweeper`, `heavy_sweeper`, `turret`, `crawler`,
 never are, and only a `paver` or a `surveyor` (capability 56) is restoration and
 never `union`. An Inheritance
 body never carries `seated`. Both sides are equally hostile to participants;
+A `ranged_sweeper` on either side may carry `mast_broken: true` (capability 66)
+once a shot has taken its antenna mast; any other kind, or `false`, is refused.
 clients and agents must not infer control from a kind or appearance. Authored
 encounter placements carry the same optional `control` (absent means `union`),
 validated against the kind before the map loads.
@@ -3796,7 +3882,7 @@ readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4
 | Civic Pressure Valve | 1015 | 51 | `m15` | `tunnel_closed`, `gates_open` |
 | Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
 | Peace Without Interruption | 1017 | 65 | `m17` | `core_unsealed`, `voss_captured` |
-| All Systems Normal | 1018 | 64 | `m18` | `roadblock_active`, `concourse_evac_completed` |
+| All Systems Normal | 1018 | 66 | `m18` | `roadblock_active`, `concourse_evac_completed` |
 | Planned Works | 1019 | 55 | `m19` | `gate_open` |
 
 Each block registers six ordered `objectives`, a `departure` Use target and
@@ -4086,6 +4172,14 @@ fighter's client receives a pad timer, another fighter's spree or an open
 multikill chain. The server pings every session every second (5 s before gameplay 61), and the pong's
 echoed payload times the round trip. Arcade rooms require 58.
 
+### The objective board (capability 66)
+
+Gameplay 66 adds `players[].objective` (Sabotage plants and defuses, flag
+captures and returns, Conquest captures, under Snapshot) and the booth's whole
+return clock on each pad and on a down Plate (`clock`, under `spectator_facts`).
+A strict booth reader at 65 refuses the new pad field, so arcade rooms require
+66.
+
 ### Arena rules depth (capability 59)
 
 Gameplay 59 adds guns dropped on death (`pickups` rows with `dropped`, under
@@ -4272,3 +4366,57 @@ it from the same timeline (`RemotePresentation`) that draws remote fighters.
 Readers below 62 are refused by a shared room under Protocol version; a
 campaign mission keeps its content floor and simply sees no rewind from a
 client that sends no view.
+
+### Interest filtering (capability 66)
+
+Gameplay 66 sends each fighter in a shared arcade room only what that fighter
+could perceive. Owner: `server/src/interest.rs`; the Godot reader is
+`ActorState.sense` and the pawn loop in `game_manager.gd`.
+
+- **Who is filtered.** A connection holding a fighter (human or agent) in a
+  shared arcade room while the round is `Active`. Spectators, the booth
+  (`spectator_facts` is unchanged), campaign missions, warmup and the
+  podium receive the whole world.
+- **The roster keeps every fighter.** A row the fighter sees is unchanged. A
+  row it does not see carries `sense`:
+  - `heard`: out of sight but audible (running feet within 18 m, gunfire
+    within 36 m, the same ears as the rule bots in `sim/bot_senses/hunt.rs`).
+    `x`, `y`, `z` are where it sounds: off by up to 15 percent of the
+    distance on a bearing that turns once in 8 s, so the place drifts and
+    never jumps.
+  - `hidden`: neither seen nor heard. `x`, `y`, `z` are `0.0`.
+  Either way the row keeps `id`, `name`, `score`, `deaths`, `attacks`,
+  `connects`, `heads`, `damage`, `team`, `lives`, `golden`, `body`, `dress`
+  and `ping` (the board), and is inert for everything else: `hp` and
+  `armor` `0`, `collidable` false, `yaw` and `pitch` `0.0`, `just_fired`
+  false, `weapon` `Fists`, no `behavior`, `ducking` or `airborne`. A reader
+  draws no body for either; the Godot client plays a heard row's footsteps
+  where it sounds and frees a pawn whose sense changes, so a body that comes
+  into sight starts where it stands.
+- **Seen.** Every tick, a line of sight through the shot solids, with no
+  view cone. From the fighter's eye, and standing if it crouches; that eye after its lead (`5`
+  ticks plus its measured round trip in ticks, at most `10`) on its velocity
+  or measured motion and one step (`0.6` m) higher while it moves; and that
+  eye moved across the line by up to `2` m (a full-speed step over the
+  lead). To the target's chest, crown and shoulders, and its shoulders
+  widened `0.6` m past the body, where it stands; and its chest and widened
+  shoulders `3` ticks ahead. A sighting holds for `10` ticks after its last
+  clear line. Always seen: the fighter itself, team-mates in a team mode,
+  campaign actors and the arena boss, anybody seated in a vehicle, the
+  carrier of a flag or the Sabotage charge, and the fighter's killer while
+  it is down. A fighter that is down in a team mode sees what its living
+  team-mates see.
+- **Still in every world.** Shot results, projectiles, grenades, rockets,
+  mines, explosions, vehicles, pickups, flags, the charge and events. A shot
+  result names its shooter and origin, and a pickup event its pad: gunfire
+  and a pickup chime are audible.
+- **Deltas.** A fighter's view is diffed against the world its socket last
+  carried (the per-reader path of [Snapshot deltas](#snapshot-deltas-capability-63)),
+  never against the shared tick delta, so a reader that moves between a
+  view and the whole world (joins or leaves) always applies a delta to the
+  world it holds. Fighters whose views match share one encoded view.
+
+A reader below 66 is refused by a shared room under Protocol version, because
+it would draw a hidden row at the origin. MCP `observe` reads the same
+filtered socket as a human fighter (see `agent-adapter/README.md`).
+Measurements: [BENCHMARK.md](BENCHMARK.md#interest-filtering-wave-22).

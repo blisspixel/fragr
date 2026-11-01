@@ -74,11 +74,11 @@ func _check_takes() -> void:
 func _report(state: String) -> Dictionary:
 	var runs: Array = []
 	if state == "complete":
-		for quality: int in [0, 1, 2]:
+		for quality: int in [1, 2, 3]:
 			var frames: PackedFloat32Array = PackedFloat32Array()
 			var us: Array = []
 			for index: int in range(600):
-				var interval: float = 0.005 + 0.002 * float(quality)
+				var interval: float = 0.005 + 0.002 * float(quality - 1)
 				frames.append(interval)
 				us.append(roundi(interval * 1000000.0))
 			var row: Dictionary = FrameStats.report(frames)

@@ -101,6 +101,7 @@ func respawned() -> void:
 func reset() -> void:
 	phase = Phase.ALIVE
 	weapon = ""
+	killing_zone = ""
 	_taken.clear()
 	_taken_names.clear()
 	_body = Vector4(INF, INF, INF, INF)
@@ -186,6 +187,9 @@ const BEARINGS: Array[String] = ["HUD_RECAP_AHEAD", "HUD_RECAP_AHEAD_RIGHT", "HU
 
 ## The frag's weapon wire id, empty when the server named none.
 var weapon: String = ""
+## Where the shot that ended this life struck (`ShotZone`), empty when the
+## server named none: an explosive, the Arc, melee or the world.
+var killing_zone: String = ""
 ## Damage this life took, by shooter key (id, or name for an id-less fact).
 var _taken: Dictionary[String, int] = {}
 var _taken_names: Dictionary[String, String] = {}
@@ -261,6 +265,14 @@ func record_hit(shooter_id: Variant, shooter_name: Variant, damage: Variant, hp_
 		_taken_names[key] = name_text
 
 
+## The zone of the shot result that took this fighter to zero. It can land
+## before or after the frag fact, so only a new life clears it.
+func record_killing_zone(zone: Variant) -> void:
+	var parsed: String = ShotZone.parse(zone)
+	if not parsed.is_empty():
+		killing_zone = parsed
+
+
 ## The frag's weapon and the killer's snapshot row at the death tick. A row
 ## that is missing or malformed leaves range and health unsaid.
 func record_kill_facts(frag_weapon: Variant, killer_row: Variant) -> void:
@@ -317,8 +329,14 @@ func recap_lines() -> PackedStringArray:
 	if phase == Phase.ALIVE:
 		return lines
 	var how: PackedStringArray = PackedStringArray()
+	# "RAILGUN TO THE HEAD": the gun and where its last shot landed.
+	var killed_by: PackedStringArray = PackedStringArray()
 	if not weapon.is_empty():
-		how.append(EquipmentState.display_name(weapon).to_upper())
+		killed_by.append(EquipmentState.display_name(weapon).to_upper())
+	if not killing_zone.is_empty():
+		killed_by.append(TranslationServer.translate("HUD_RECAP_ZONE_" + killing_zone.to_upper()))
+	if not killed_by.is_empty():
+		how.append(" ".join(killed_by))
 	var metres: int = killer_distance()
 	var bearing: int = killer_bearing()
 	if cause == "killer" and metres >= 0 and bearing >= 0:

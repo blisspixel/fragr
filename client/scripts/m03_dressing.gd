@@ -584,7 +584,7 @@ func _build_platform() -> void:
 	var tread: StandardMaterial3D = _mat("cart_wheel", Color("1d1d1e"), 0.1, 0.9)
 	var hub: StandardMaterial3D = _mat("wheel_hub", Color("6a6458"), 0.5, 0.5)
 	var tag: StandardMaterial3D = _mat("bag_tag", Color("d8d0b8"), 0.0, 0.9)
-	var carts: Array = [[Vector3(-2, 0, -28), Vector3(1, 1.2, -26)], [Vector3(-2, 0, 4), Vector3(1, 1.2, 6)], [Vector3(-1, 0, 26), Vector3(2, 1.2, 28)]]
+	var carts: Array = [[Vector3(-2, 0, -28), Vector3(1, 1.1, -26)], [Vector3(-2, 0, 4), Vector3(1, 1.1, 6)], [Vector3(-1, 0, 26), Vector3(2, 1.1, 28)]]
 	for cart_index: int in range(carts.size()):
 		var low: Vector3 = carts[cart_index][0]
 		var high: Vector3 = carts[cart_index][1]

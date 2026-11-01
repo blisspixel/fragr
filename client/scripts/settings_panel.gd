@@ -26,6 +26,9 @@ var _capture_action: String = ""
 var _capture_slot: int = -1
 var _capture_frame: int = -1
 var _device_revision: int = -1
+## After Reset to auto, choices pin against the reset values, not the saved
+## ones, so Save keeps the cleared pins and still pins later hand changes.
+var _pin_base: FragrSettings = null
 
 var _palette: Dictionary = {}
 
@@ -113,20 +116,7 @@ func show_page(page: String) -> void:
 				[tr("SETTINGS_SHOW_FPS_OFF"), tr("SETTINGS_SHOW_FPS_ON"), tr("SETTINGS_SHOW_FPS_DETAIL")], [0, 1, 2])
 			_update_display_note()
 		"GRAPHICS":
-			_option(tr("SETTINGS_QUALITY"), "video", "quality",
-				[tr("SETTINGS_QUALITY_PERFORMANCE"), tr("SETTINGS_QUALITY_BALANCED"), tr("SETTINGS_QUALITY_HIGH")], [0, 1, 2])
-			_option(tr("SETTINGS_UPSCALING"), "video", "upscaling",
-				[tr("SETTINGS_UPSCALING_STANDARD"), "FSR 1", "FSR 2"], [0, 1, 2])
-			_option(tr("SETTINGS_PIXEL_SCALE"), "video", "pixel_scale",
-				[tr("SETTINGS_PIXEL_OFF"), tr("SETTINGS_PIXEL_FINE"), tr("SETTINGS_PIXEL_MEDIUM"), tr("SETTINGS_PIXEL_CHUNKY")], [0, 1, 2, 3])
-			_toggle(tr("SETTINGS_DITHER"), "video", "dither")
-			var renderer: String = RenderingServer.get_current_rendering_method()
-			if not RenderQuality.supports_fsr(renderer):
-				var upscaling: OptionButton = _rows.find_child("upscaling", true, false) as OptionButton
-				upscaling.disabled = true
-				_note.text = tr("SETTINGS_GRAPHICS_NOTE_NO_FSR")
-			else:
-				_note.text = tr("SETTINGS_GRAPHICS_NOTE")
+			_graphics_page()
 		"ACCESSIBILITY":
 			_option(tr("SETTINGS_SCREEN_FLASHES"), "accessibility", "screen_flashes",
 				[tr("SETTINGS_FLASHES_FULL"), tr("SETTINGS_FLASHES_REDUCED"), tr("SETTINGS_FLASHES_OFF")],
@@ -151,6 +141,85 @@ func show_page(page: String) -> void:
 			_toggle(tr("SETTINGS_STORY_CAPTIONS"), "gameplay", "story_captions")
 			_toggle(tr("SETTINGS_CAMPAIGN_SCORE"), "score", "enabled")
 			_note.text = tr("SETTINGS_AUDIO_NOTE")
+
+## Tiers, auto settings and their pins. A choice made here pins that option:
+## auto settings and the in-match valve work around it until Reset to auto.
+func _graphics_page() -> void:
+	var renderer: String = RenderingServer.get_current_rendering_method()
+	var tiers: Array[String] = []
+	var values: Array[int] = []
+	for tier: int in range(RenderQuality.TIER_NAMES.size()):
+		tiers.append(tr("SETTINGS_QUALITY_" + RenderQuality.TIER_NAMES[tier].to_upper()))
+		values.append(tier)
+	var quality: OptionButton = _option(tr("SETTINGS_QUALITY"), "video", "quality", tiers, values)
+	if not RenderQuality.tier_available(RenderQuality.ULTRA, renderer):
+		quality.set_item_disabled(RenderQuality.ULTRA, true)
+		quality.set_item_text(RenderQuality.ULTRA, tr("SETTINGS_QUALITY_ULTRA_FORWARD"))
+	quality.item_selected.connect(func(_index: int) -> void: _update_graphics_note())
+	_toggle(tr("SETTINGS_AUTO"), "video", "auto")
+	var targets: Array[String] = []
+	for fps: int in FragrSettings.TARGET_FPS:
+		targets.append(tr("SETTINGS_TARGET_DISPLAY") if fps == 0 else "%d FPS" % fps)
+	_option(tr("SETTINGS_TARGET"), "video", "target_fps", targets, FragrSettings.TARGET_FPS)
+	var scales: Array[String] = []
+	for percent: int in RenderQuality.RENDER_SCALES:
+		scales.append("%d%%" % percent)
+	var scale: OptionButton = _option(tr("SETTINGS_RENDER_SCALE"), "video", "render_scale", scales, RenderQuality.RENDER_SCALES)
+	_option(tr("SETTINGS_UPSCALING"), "video", "upscaling",
+		[tr("SETTINGS_UPSCALING_STANDARD"), "FSR 1", "FSR 2"], [0, 1, 2])
+	var pixels: OptionButton = _option(tr("SETTINGS_PIXEL_SCALE"), "video", "pixel_scale",
+		[tr("SETTINGS_PIXEL_OFF"), tr("SETTINGS_PIXEL_FINE"), tr("SETTINGS_PIXEL_MEDIUM"), tr("SETTINGS_PIXEL_CHUNKY")], [0, 1, 2, 3])
+	_toggle(tr("SETTINGS_DITHER"), "video", "dither")
+	_toggle(tr("SETTINGS_GOVERNOR"), "video", "governor")
+	var reset: Button = Button.new()
+	reset.name = "reset_auto"
+	reset.text = tr("SETTINGS_RESET_AUTO")
+	reset.custom_minimum_size.y = 40
+	reset.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	reset.pressed.connect(func() -> void:
+		_draft.reset_to_auto()
+		_pin_base = _draft.draft()
+		show_page("GRAPHICS"))
+	_rows.add_child(reset)
+	scale.disabled = _pixel_look_on()
+	pixels.item_selected.connect(func(_index: int) -> void:
+		scale.disabled = _pixel_look_on()
+		_update_graphics_note())
+	if not RenderQuality.supports_fsr(renderer):
+		(_rows.find_child("upscaling", true, false) as OptionButton).disabled = true
+	_update_graphics_note()
+
+func _pixel_look_on() -> bool:
+	var output: Vector2i = Vector2i(1920, 1080)
+	if DisplayServer.get_name() != "headless":
+		output = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	return RenderQuality.pixel_factor(int(_draft.get_value("video", "pixel_scale")), output) > 1
+
+## What auto settings are doing for this player, in one or two lines.
+func _update_graphics_note() -> void:
+	var lines: PackedStringArray = PackedStringArray()
+	if preferences.video_refused:
+		lines.append(tr("SETTINGS_VIDEO_REFUSED"))
+	var renderer: String = RenderingServer.get_current_rendering_method()
+	var record: Dictionary = _draft.get_value("video", "tune")
+	var pins: Array = _draft.get_value("video", "pinned")
+	if not bool(_draft.get_value("video", "auto")):
+		lines.append(tr("SETTINGS_AUTO_OFF"))
+	elif not pins.is_empty():
+		var names: PackedStringArray = PackedStringArray()
+		for key: Variant in pins:
+			names.append(tr("SETTINGS_PIN_" + str(key).to_upper()))
+		lines.append(tr("SETTINGS_CUSTOM").format({"pins": ", ".join(names)}))
+	elif not record.is_empty() and not (record.get("lines", []) as Array).is_empty():
+		lines.append(str((record["lines"] as Array)[0]))
+	if not record.is_empty() and DisplayServer.get_name() != "headless":
+		var stale: String = AutoTune.stale_reason(record, HardwareProfile.read())
+		if not stale.is_empty():
+			lines.append(stale + " " + tr("SETTINGS_TUNE_WHERE"))
+	if record.is_empty():
+		lines.append(tr("SETTINGS_TUNE_WHERE"))
+	lines.append(tr("SETTINGS_GRAPHICS_NOTE_NO_FSR") if not RenderQuality.supports_fsr(renderer) else tr("SETTINGS_GRAPHICS_NOTE"))
+	_note.text = "\n".join(lines)
 
 func focus_first() -> void:
 	(_tabs.get_child(0) as Button).grab_focus()
@@ -488,6 +557,7 @@ func _frame_cap() -> void:
 
 func save() -> void:
 	_cancel_capture()
+	_draft.pin_changes(_pin_base if _pin_base != null else preferences)
 	var result: Error = preferences.commit(_draft)
 	if result != OK:
 		_note.text = "SAVE FAILED (%d). Check disk space and write access." % result

@@ -28,6 +28,9 @@ const CHANNEL_LAMPS: Array[Vector3] = [Vector3(0.55, -0.02, 0.08), Vector3(0.55,
 ## dead red optics. Never neon: the art bible swatch at a low energy.
 const WORK_GLOW: Color = Color("4a8a92")
 const WORK_ENERGY: float = 1.1
+## The Ranged Sweeper sheet draws its antenna mast in the top 29 of each
+## 160 texel frame, above the head. A broken mast leaves only the stub.
+const MAST_CUT: float = 29.0 / 160.0
 ## Every absorbed bot breathes and steps on one shared beat, taken from the
 ## server tick, so a group moves with one timing no Union squad has.
 const SHARED_BEAT_SECONDS: float = 0.64
@@ -175,6 +178,10 @@ func _apply_absorbed(body: Sprite3D) -> void:
 	var material: ShaderMaterial = body.material_override as ShaderMaterial
 	if material == null or material.shader != UNION_SPRITE:
 		return
+	# A shot-off mast stays off: the server says so on the actor.
+	var mast_gone: bool = _kind == "ranged_sweeper" and actor.get("mast_broken") == true
+	material.set_shader_parameter("frame_rows", float(body.vframes))
+	material.set_shader_parameter("cut_top", MAST_CUT if mast_gone else 0.0)
 	material.set_shader_parameter("absorbed", 1.0 if absorbed else 0.0)
 	material.set_shader_parameter("work_glow", WORK_GLOW)
 	material.set_shader_parameter("work_rest", WORK_ENERGY)

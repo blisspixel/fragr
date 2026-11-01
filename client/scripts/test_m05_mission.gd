@@ -189,12 +189,12 @@ func _run() -> void:
 	var lamps: Array[Node] = town.find_children("WorkshopRepairPool", "OmniLight3D", true, false)
 	_check(lamps.size() == 1, "actual registered workshop wall creates one bounded practical pool")
 	var preferences: FragrSettings = FragrSettings.new(str(get_meta("fragr_settings_path")))
-	preferences.set_value("video", "quality", 1)
+	preferences.set_value("video", "quality", RenderQuality.MEDIUM)
 	RenderQuality.apply_practicals(town, preferences)
-	_check(lamps.size() == 1 and (lamps[0] as OmniLight3D).shadow_enabled, "newly created practical receives Balanced shadow policy")
-	preferences.set_value("video", "quality", 0)
+	_check(lamps.size() == 1 and (lamps[0] as OmniLight3D).shadow_enabled, "newly created practical receives Medium shadow policy")
+	preferences.set_value("video", "quality", RenderQuality.LOW)
 	RenderQuality.apply_practicals(town, preferences)
-	_check(lamps.size() == 1 and not (lamps[0] as OmniLight3D).shadow_enabled, "Performance preserves the light pool while dropping its shadow")
+	_check(lamps.size() == 1 and not (lamps[0] as OmniLight3D).shadow_enabled, "Low preserves the light pool while dropping its shadow")
 	town.queue_free()
 	await process_frame
 	if failures == 0:

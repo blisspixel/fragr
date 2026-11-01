@@ -97,7 +97,7 @@ One fragr unit is one metre. Playable extent is the full width of the square.
 | 2 | Compliance Yard | **110 m** | arena | Pretzel: a three by three room block wrapped in a perimeter service corridor | Rail on the inspection gantry over the north room, the only high ground | The twelve room doorways, 5 m wide | 0, 1.4, 2.8 |
 | 3 | Directive 17 Substation | **150 m** | arena | Fishbowl: four quadrant decks around a pit, ground corridors on the axes | Rail on the pit floor, in view of all four decks | The ramps up each deck's inner face | 0, 3.0 |
 | 4 | Sector 9 Transit Hall | **200 m** | district | Figure eight: two halls joined by a mid plaza with three doors each way | Rail on the East Hall inspection deck, seen down the whole hall | Mid Doors, 6 m wide, 29 m from either hall | 0, 2.0 |
-| 5 | Reclamation Gulch | **280 m** | field | Dumbbell: two walled compounds at the ends of an open gulch with two flank ridges | Rail on the knoll in the middle of the open ground, no cover within 20 m | The compound gates, and the ridge ends | 0, 1.2, 2.0, 3.0 |
+| 5 | Reclamation Gulch | **280 m** | field | Dumbbell: two walled compounds at the ends of an open gulch with two flank ridges | Rail on the knoll in the middle of the open ground, no cover within 20 m | The compound gates, and the ridge ends | 0, 1.1, 2.0, 3.0 |
 | 6 | Tripoint Works | **320 m** | field | Trefoil: three compounds, three capture yards, a plaza nobody can hold | Rail on the southern capture yard deck, one of three equal prizes | The three compound gates and the three yard ramps | 0, 2.0, 3.0 |
 
 Every one is bigger than the hundred-metre square it replaces. The roster spans

@@ -16,18 +16,18 @@ use std::f32::consts::TAU;
 /// Gunfire carries this far with a clear line, in metres.
 const GUNFIRE_OPEN: f32 = 60.0;
 /// And this far through walls.
-const GUNFIRE_WALLED: f32 = 36.0;
+pub(crate) const GUNFIRE_WALLED: f32 = 36.0;
 /// A blast carries further than a shot.
 const BLAST_REACH: f32 = 72.0;
 /// A pad being taken is heard this close: the pickup chime.
 const PICKUP_REACH: f32 = 24.0;
 /// Running feet are heard this close.
-const FOOTSTEP_REACH: f32 = 18.0;
+pub(crate) const FOOTSTEP_REACH: f32 = 18.0;
 /// The ground speed that makes footsteps, metres a second: a run, not a
 /// crouched walk.
-const FOOTSTEP_SPEED: f32 = 3.5;
+pub(crate) const FOOTSTEP_SPEED: f32 = 3.5;
 /// A sound's place is off by up to this share of its distance.
-const EAR_ERROR: f32 = 0.15;
+pub(crate) const EAR_ERROR: f32 = 0.15;
 /// A clue is worth following for this long.
 const CLUE_TICKS: u64 = 20 * 8;
 /// A lost sighting is followed this far along the way it was going, in

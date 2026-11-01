@@ -668,7 +668,9 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
         .await
         .expect("bounded preparation")
         .unwrap();
-    for version in [46, 47] {
+    // The foundry places Ranged Sweepers: its floor is locational damage.
+    let floor = fragr_server::protocol::ZONES_GAMEPLAY_VERSION;
+    for version in [floor - 1, floor] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
             socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Foundry reader","gameplay_version":version,"geometry_version":fragr_server::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
@@ -681,9 +683,12 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < 47 {
+                    if version < floor {
                         assert_eq!(value["type"], "error");
-                        assert!(value["message"].as_str().unwrap().contains("version 47"));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {floor}")));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

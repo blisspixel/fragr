@@ -8,6 +8,13 @@ const LIFETIME: float = BlastVfx.FIRE_SECONDS
 ## Rockets in flight that also carry a small exhaust light; the rest fly
 ## with their flame sprite alone, so a volley never floods the light budget.
 const ROCKET_LIGHTS: int = 2
+
+## Exhaust lights the drawn tier allows: none at Potato's quarter budget,
+## one at Low's half, the full two from Medium up.
+static func rocket_lights() -> int:
+	if RenderQuality.effects_budget <= 0.25:
+		return 0
+	return 1 if RenderQuality.effects_budget < 1.0 else ROCKET_LIGHTS
 ## Metres between trail puffs; a jump longer than the reset distance (a
 ## corrected position) starts the trail afresh instead of filling the gap.
 const TRAIL_SPACING: float = 0.35
@@ -198,7 +205,7 @@ func _apply_rockets(snapshot: Dictionary, previous_tick: int) -> void:
 			# Do not announce synchronized or old reappearing bodies as launches.
 			if previous_tick >= 0 and int(snapshot["tick"]) - int(fact["age_ticks"]) > previous_tick:
 				_rocket_launches.append({"owner_id": str(fact["owner_id"]), "tick": int(snapshot["tick"])})
-			var body: Node3D = _rocket_body(rockets.size() < ROCKET_LIGHTS)
+			var body: Node3D = _rocket_body(rockets.size() < rocket_lights())
 			body.name = "Rocket_%d" % id
 			rockets[id] = body
 			add_child(body)

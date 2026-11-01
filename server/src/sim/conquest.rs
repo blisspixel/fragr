@@ -17,6 +17,9 @@ pub(crate) const POINTS: [(&str, [f32; 3]); 5] = [
     ("lighthouse", [105.0, 3.0, 65.0]),
 ];
 
+/// A point's sides present this tick and the fighters standing on it.
+type Presence = ([bool; 2], Vec<(uuid::Uuid, Team)>);
+
 pub(super) fn initial() -> ConquestState {
     ConquestState {
         tickets: TeamScores {
@@ -126,7 +129,8 @@ impl GameState {
         if self.round_state != RoundState::Active {
             return;
         }
-        let presence: Vec<[bool; 2]> = self
+        // Each point's sides present, and who stood there for the credit.
+        let presence: Vec<Presence> = self
             .conquest
             .as_ref()
             .map(|state| {
@@ -135,6 +139,7 @@ impl GameState {
                     .iter()
                     .map(|point| {
                         let mut sides = [false; 2];
+                        let mut standing = Vec::new();
                         for player in &self.players {
                             if !self.contact_eligible(player)
                                 || !player.contestant()
@@ -149,10 +154,11 @@ impl GameState {
                                         <= point.radius
                                 {
                                     sides[team.index()] = true;
+                                    standing.push((player.id, team));
                                 }
                             }
                         }
-                        sides
+                        (sides, standing)
                     })
                     .collect()
             })
@@ -160,9 +166,22 @@ impl GameState {
         let Some(state) = &mut self.conquest else {
             return;
         };
-        for (point, presence) in state.points.iter_mut().zip(presence) {
-            advance(point, presence);
+        let mut credited = Vec::new();
+        for (point, (sides, standing)) in state.points.iter_mut().zip(presence) {
+            let before = point.owner;
+            advance(point, sides);
+            // A point falling to a side credits each of its fighters on it;
+            // neutralising an enemy point is half the work and no capture.
+            if let Some(owner) = point.owner.filter(|owner| before != Some(*owner)) {
+                credited.extend(standing.into_iter().filter(|(_, team)| *team == owner));
+            }
         }
+        for (id, _) in credited {
+            self.credit_objective(id, super::tally::Credit::Capture);
+        }
+        let Some(state) = &mut self.conquest else {
+            return;
+        };
         if self.round_ticks.is_multiple_of(20) {
             for team in Team::ALL {
                 let held = state
@@ -339,6 +358,53 @@ mod tests {
         state.players[0].role = crate::protocol::Role::Spectator;
         state.tick_conquest();
         assert_eq!(state.conquest.as_ref().unwrap().points[0].progress, 0);
+    }
+
+    #[test]
+    fn a_point_falling_to_a_side_credits_its_fighters_on_it() {
+        let mut state = game();
+        let union = uuid::Uuid::from_u128(1);
+        let away = uuid::Uuid::from_u128(2);
+        let enemy = uuid::Uuid::from_u128(3);
+        for (id, name) in [(union, "holder"), (away, "away"), (enemy, "enemy")] {
+            state.add_player(id, name.into(), crate::protocol::Role::Human);
+        }
+        let feet = POINTS[0].1;
+        for (index, team, x) in [
+            (0, Team::Union, feet[0]),
+            (1, Team::Union, feet[0] + 40.0),
+            (2, Team::Coalition, feet[0] + 40.0),
+        ] {
+            let player = &mut state.players[index];
+            player.team = Some(team);
+            player.x = x;
+            player.z = feet[2];
+            player.y = PLAYER_FLOOR_Y + feet[1];
+        }
+        for _ in 0..CAPTURE_TICKS - 1 {
+            state.tick_conquest();
+        }
+        assert_eq!(state.objective_tally(union), None, "not before it falls");
+        state.tick_conquest();
+        assert_eq!(
+            state.conquest.as_ref().unwrap().points[0].owner,
+            Some(Team::Union)
+        );
+        assert_eq!(state.objective_tally(union).map(|t| t.captures), Some(1));
+        assert_eq!(
+            state.objective_tally(away),
+            None,
+            "a teammate off the point earns nothing"
+        );
+        // Holding it earns nothing more; the enemy neutralising it is no capture.
+        state.players[2].x = feet[0];
+        state.players[0].x = feet[0] + 40.0;
+        for _ in 0..CAPTURE_TICKS + 5 {
+            state.tick_conquest();
+        }
+        assert_eq!(state.conquest.as_ref().unwrap().points[0].owner, None);
+        assert_eq!(state.objective_tally(union).map(|t| t.captures), Some(1));
+        assert_eq!(state.objective_tally(enemy), None);
     }
 
     #[test]

@@ -344,6 +344,9 @@ pub(super) struct EnemyController {
     yield_until: u64,
     strafe_left: bool,
     seated: bool,
+    /// A Ranged Sweeper whose antenna mast was shot off. Permanent for this
+    /// body: it loses the long sight and the peeking-head rule.
+    mast_broken: bool,
     /// A Crawler can connect once in each committed leap.
     contact_used: bool,
     hover: Option<crate::maps::Hover>,
@@ -602,6 +605,7 @@ impl EnemyController {
             yield_until: 0,
             strafe_left: false,
             seated,
+            mast_broken: false,
             contact_used: false,
             hover: None,
             patrol_point: 0,
@@ -653,6 +657,7 @@ impl EnemyController {
             phase_started: self.started,
             phase_ends: self.until,
             seated: self.seated,
+            mast_broken: self.mast_broken,
             control: self.control,
         }
     }
@@ -848,6 +853,16 @@ impl EnemyController {
         // total damage from the body and staggers on a heavy one.
     }
 
+    /// A shot took this marksman's antenna mast. True only the first time,
+    /// and only for a Ranged Sweeper that still had one.
+    pub fn break_mast(&mut self) -> bool {
+        if self.kind != EnemyKind::RangedSweeper || self.mast_broken {
+            return false;
+        }
+        self.mast_broken = true;
+        true
+    }
+
     /// Fixed equipment turns its head, never its feet.
     fn face(&mut self, action: &mut Action, toward: f32, rate: f32) -> f32 {
         let delta = turn(self.head, toward);
@@ -904,8 +919,11 @@ impl EnemyController {
         let (windup, recovery) = attack_timing(self.kind, state.campaign_rules().difficulty);
         let turret = self.kind == EnemyKind::Turret;
         let marksman = self.kind == EnemyKind::RangedSweeper;
+        // The mast carries the marksman's long sight. Shot off, it sees like
+        // any guard: ordinary range, and only an open body.
+        let long_sight = marksman && !self.mast_broken;
         let surveyor = self.kind == EnemyKind::Surveyor;
-        let sight_range = if marksman {
+        let sight_range = if long_sight {
             MARKSMAN_SIGHT_RANGE
         } else if surveyor {
             surveyor::SURVEYOR_SIGHT_RANGE
@@ -945,7 +963,7 @@ impl EnemyController {
                 && me.is_hostile_to(p)
                 && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
                 && (p.x - me.x).hypot(p.z - me.z) <= sight_range
-                && if marksman {
+                && if long_sight {
                     // A marksman sees a peeking head as well as an open body:
                     // the participant must drop fully behind cover.
                     line_of_sight(eye, chest(p), solids)
@@ -1999,6 +2017,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         state
@@ -2087,6 +2106,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: crate::protocol::ControlDomain::Union,
         });
         state.spawn_shields.clear();
@@ -2175,6 +2195,7 @@ mod tests {
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    mast_broken: false,
                     control: crate::protocol::ControlDomain::Union,
                 });
             }
@@ -2250,6 +2271,7 @@ mod tests {
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    mast_broken: false,
                     control: crate::protocol::ControlDomain::Union,
                 });
             }
@@ -2507,6 +2529,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         for (id, x, z, actor) in [
@@ -2588,6 +2611,7 @@ mod tests {
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    mast_broken: false,
                     control: Default::default(),
                 },
             ),

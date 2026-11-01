@@ -331,6 +331,7 @@ fn plate_applies_to_direct_damage_only() {
         phase_started: 0,
         phase_ends: 40,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     });
     launch_and_hold(&mut state, shooter);

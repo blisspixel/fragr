@@ -41,6 +41,10 @@ uniform float rim_glow = 0.55;
 uniform float shimmer = 0.0;
 uniform float shimmer_tick = 0.0;
 uniform float absorbed = 0.0;
+// A broken Ranged Sweeper mast: texels in the top share of each frame row
+// (`cut_top`, of `frame_rows` rows) are gone, leaving a snapped stub.
+uniform float frame_rows = 1.0;
+uniform float cut_top = 0.0;
 uniform vec3 work_glow : source_color = vec3(0.290, 0.541, 0.573); // #4A8A92
 uniform float work_energy = 1.1;
 // Resting working-light energy (EnemyView.WORK_ENERGY) and the deeper,
@@ -70,6 +74,9 @@ float red_mask(vec3 c) {
 }
 
 void fragment() {
+	if (cut_top > 0.0 && fract(UV.y * frame_rows) < cut_top) {
+		discard;
+	}
 	vec2 shimmer_uv = UV + vec2(floor(sin(floor(UV.y * float(textureSize(sprite_texture, 0).y) / 3.0) + shimmer_tick * 0.7) * 1.5) * shimmer / float(textureSize(sprite_texture, 0).x), 0.0);
 	vec4 texel = texture(sprite_texture, shimmer_uv);
 	vec2 step_uv = 1.0 / vec2(textureSize(sprite_texture, 0));

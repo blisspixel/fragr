@@ -1501,6 +1501,12 @@ mod tests {
         // Pad 0 is Larak Lot's Custody Plate, reported on its own.
         assert_eq!(round["booth"]["plate"]["id"], game.pickups[0].id);
         assert_eq!(round["booth"]["plate"]["back_in"], 30);
+        // Gameplay 66: the Plate's whole clock rides beside the time left, so a
+        // caster can tell how far round it is.
+        assert_eq!(
+            round["booth"]["plate"]["clock"],
+            fragr_server::rules::PLATE_RESPAWN_TICKS
+        );
 
         // A fighter's session drops booth facts even if one arrived.
         mcp::ingest_server_text(&mut joined, &facts).unwrap();
@@ -1698,10 +1704,12 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 44,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             })
         };
         let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -1730,6 +1738,7 @@ mod tests {
             damage: 0,
             weapon: "Tack".to_string(),
             ping: None,
+            sense: None,
         };
         let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
         let near = fighter(
@@ -1741,6 +1750,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 14,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             }),
         );
@@ -1775,6 +1785,7 @@ mod tests {
             conquest: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                objective: None,
                 collidable: true,
                 body: None,
                 dress: None,
@@ -1803,6 +1814,7 @@ mod tests {
                 damage: 0,
                 weapon: "Rail".to_string(),
                 ping: None,
+                sense: None,
             }],
             round_state: Some("Active".to_string()),
             round_time_left: Some(120),
@@ -1936,6 +1948,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -1964,8 +1977,10 @@ mod tests {
                     damage: 0,
                     weapon: "Flechette".to_string(),
                     ping: None,
+                    sense: None,
                 },
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -1994,6 +2009,7 @@ mod tests {
                     damage: 0,
                     weapon: "Scatter".to_string(),
                     ping: None,
+                    sense: None,
                 },
             ],
             round_state: Some("Active".to_string()),
@@ -2322,6 +2338,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -2350,8 +2367,10 @@ mod tests {
                     damage: 0,
                     weapon: "Flechette".into(),
                     ping: None,
+                    sense: None,
                 },
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -2380,6 +2399,7 @@ mod tests {
                     damage: 0,
                     weapon: "Flechette".into(),
                     ping: None,
+                    sense: None,
                 },
             ],
             round_state: Some("Active".into()),
@@ -2470,6 +2490,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 40,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         let clerk = protocol::CampaignActor::Hostile {
@@ -2478,6 +2499,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         for player in &mut snapshot.players {
@@ -2598,6 +2620,71 @@ mod tests {
         assert_eq!(structured["self"]["id"], me.to_string());
         let (connecting, _) = mcp::observe_brief(&mcp::ToolState::default());
         assert!(connecting.contains("connecting"));
+    }
+
+    #[test]
+    fn observe_gives_an_agent_no_more_than_a_human_fighter_receives() {
+        use fragr_server::interest::{redact, Sense};
+        use fragr_server::sim::GameState;
+        let mut sim = GameState::new();
+        let [me, seen, heard, hidden] = [1, 2, 3, 4].map(uuid::Uuid::from_u128);
+        for (id, name) in [
+            (me, "Self"),
+            (seen, "Seen"),
+            (heard, "Heard"),
+            (hidden, "Hidden"),
+        ] {
+            sim.add_player(id, name.into(), Role::Agent);
+        }
+        let mut snapshot = sim.snapshot();
+        for (index, player) in snapshot.players.iter_mut().enumerate() {
+            player.hp = 100;
+            player.x = index as f32 * 5.0;
+            player.z = 0.0;
+        }
+        snapshot.players[3].score = 9;
+        // What the server sends this fighter: the heard rival rough, the
+        // hidden one with no place at all.
+        snapshot.players[2] = redact(&snapshot.players[2], Sense::Heard([0.0, 1.5, 14.0]));
+        snapshot.players[3] = redact(&snapshot.players[3], Sense::Hidden);
+        let state = mcp::ToolState {
+            player_id: Some(me),
+            last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
+            ..Default::default()
+        };
+        let (text, structured) = mcp::observe_brief(&state);
+        assert!(text.contains(&format!("ENEMY id={seen}")), "{text}");
+        assert!(!text.contains(&format!("ENEMY id={heard}")), "{text}");
+        assert!(
+            text.contains(&format!("HEARD id={heard} name=Heard dist~14")),
+            "{text}"
+        );
+        assert!(
+            !text.contains(&hidden.to_string()),
+            "a hidden rival is never named: {text}"
+        );
+        assert!(
+            text.contains("top_rival=9"),
+            "the board still counts it: {text}"
+        );
+        assert_eq!(structured["threats"].as_array().unwrap().len(), 1);
+        assert_eq!(structured["heard"][0]["id"], heard.to_string());
+        // The full observation is the row as received: inert and placeless.
+        let full = mcp::build_observe_result(&state);
+        assert_eq!(full["players"][3]["sense"], "hidden");
+        assert_eq!(full["players"][3]["x"], 0.0);
+        assert_eq!(full["players"][3]["hp"], 0);
+        assert_eq!(full["players"][2]["sense"], "heard");
+        // The scripted controller never aims at what it cannot see.
+        let aimed = compute_bot_action(me, &snapshot)
+            .look_at
+            .and_then(|aim| aim.player_id);
+        assert_eq!(aimed, Some(seen));
+        snapshot.players[1] = redact(&snapshot.players[1], Sense::Hidden);
+        let aimed = compute_bot_action(me, &snapshot)
+            .look_at
+            .and_then(|aim| aim.player_id);
+        assert_eq!(aimed, None);
     }
 
     #[test]
@@ -3432,6 +3519,7 @@ fn main() -> ExitCode {
                 playlist: protocol::default_playlist(),
                 resume: None,
                 duck: false,
+                fun_metrics: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await
@@ -3630,6 +3718,7 @@ fn main() -> ExitCode {
                 playlist: protocol::default_playlist(),
                 resume: None,
                 duck: false,
+                fun_metrics: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await

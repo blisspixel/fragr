@@ -14,8 +14,16 @@
 # FRAGR_QA_SCRIPT names a review script that extends the tour (for example
 # res://qa/m06_combat_review.gd); the default is res://scripts/qa_tour.gd.
 #
-# FRAGR_QA_QUALITY=performance|balanced|high runs the whole tour on that
-# graphics preset; a state's own "graphics" options still win for that state.
+# FRAGR_QA_QUALITY=potato|low|medium|high|ultra runs the whole tour on that
+# graphics tier; a state's own "graphics" options still win for that state.
+#
+# The tour renders what players get (#537): Forward+ (client/project.godot),
+# on Vulkan under Linux and the platform's default driver elsewhere.
+# FRAGR_QA_RENDERER=compatibility runs the Compatibility (OpenGL) fallback
+# instead, as its own labelled check; FRAGR_RENDER_DRIVER still names a
+# driver outright. Every manifest records the renderer, driver and preset that
+# actually drew it, and the wrapper says so when Godot fell back. Xvfb has no
+# Vulkan, so a software display runs the Compatibility pass only.
 #
 # FRAGR_QA_LOCAL_MISSION=<mission id> with FRAGR_QA_RUN_FIXTURE=<directory
 # holding a saved run.json> photographs a carried campaign run instead: the
@@ -27,7 +35,8 @@
 #
 # Usage: tools/qa_tour.sh [--publish] [output directory]
 #   --publish also runs a short team deathmatch pass and a Recall Notice
-#   arrival pass on the Level 1 map file, copies the approved
+#   arrival pass on the Level 1 map file, a labelled Compatibility pass of
+#   the main tour (under compatibility/, never published), copies the approved
 #   stills into docs/screenshots/ (what the README shows) and removes any
 #   published tour_* still this run did not produce. Run it after any change a
 #   player would see.
@@ -45,6 +54,11 @@ OUT_DIR="${1:-$ROOT/.agents/qa/$STAMP}"
 SERVER_PORT="${FRAGR_PORT:-6767}"
 SERVER_URL="${FRAGR_SERVER:-127.0.0.1:$SERVER_PORT}"
 BOTS="${FRAGR_QA_BOTS:-5}"
+case "${FRAGR_QA_RENDERER:-forward_plus}" in
+  forward_plus|forward+) QA_RENDERER=forward_plus ;;
+  compatibility|gl_compatibility) QA_RENDERER=gl_compatibility ;;
+  *) echo "qa_tour: FRAGR_QA_RENDERER must be forward_plus or compatibility" >&2; exit 1 ;;
+esac
 
 # An unrelated listener can satisfy the readiness probe while this server
 # fails to bind. Refuse that port before building or launching the tour.
@@ -127,6 +141,11 @@ fi
 for mutator in ${FRAGR_QA_MUTATORS:-}; do
   SERVER_ARGS+=(--mutator "$mutator")
 done
+# Fun metrics on the tour server: FRAGR_QA_FUN_METRICS=1. The files land in
+# the tour's own run directory, never a host's.
+if [ "${FRAGR_QA_FUN_METRICS:-0}" = "1" ]; then
+  SERVER_ARGS+=(--fun-metrics)
+fi
 # Rotation and the podium's map vote: FRAGR_QA_MAP_ROTATE=1, and
 # FRAGR_QA_MAP_OFF="7 8" for maps the rotation skips.
 if [ "${FRAGR_QA_MAP_ROTATE:-0}" = "1" ]; then
@@ -175,11 +194,33 @@ stop_server() {
   done
 }
 
-# Run the tour client once into a directory, with an optional manifest.
+# The renderer arguments for one pass: forward_plus or gl_compatibility.
+render_args() {
+  local method="$1"
+  if [ "$method" = "gl_compatibility" ]; then
+    echo "--rendering-method gl_compatibility --rendering-driver ${FRAGR_RENDER_DRIVER:-opengl3}"
+  elif [ -n "${FRAGR_RENDER_DRIVER:-}" ]; then
+    echo "--rendering-method forward_plus --rendering-driver $FRAGR_RENDER_DRIVER"
+  elif [ "$(uname -s)" = "Linux" ]; then
+    echo "--rendering-method forward_plus --rendering-driver vulkan"
+  else
+    echo "--rendering-method forward_plus"
+  fi
+}
+
+# The renderer a manifest says drew its stills.
+drawn_renderer() {
+  grep -o '"renderer": *"[a-z_]*"' "$1" 2>/dev/null | head -1 | sed 's/.*"\([a-z_]*\)"$/\1/'
+}
+
+# Run the tour client once into a directory, with an optional manifest and
+# renderer (default: the run's renderer).
 run_client() {
-  local dir="$1" manifest="${2:-}"
-  local run=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
-       --windowed --resolution 1280x720 --script "${FRAGR_QA_SCRIPT:-res://scripts/qa_tour.gd}")
+  local dir="$1" manifest="${2:-}" method="${3:-$QA_RENDERER}"
+  local run=("$GODOT_BIN" --path "$ROOT/client")
+  # shellcheck disable=SC2207 # render_args prints flags without spaces in values
+  run+=($(render_args "$method"))
+  run+=(--windowed --resolution 1280x720 --script "${FRAGR_QA_SCRIPT:-res://scripts/qa_tour.gd}")
   if [ -n "${FRAGR_QA_POSITION:-}" ]; then
     run+=(--position "$FRAGR_QA_POSITION")
   fi
@@ -210,6 +251,16 @@ run_client() {
   if [ ! -s "$dir/contact.png" ] || [ ! -s "$dir/manifest.json" ]; then
     echo "qa_tour: missing capture artifacts in $dir" >&2
     exit 1
+  fi
+  local drawn
+  drawn="$(drawn_renderer "$dir/manifest.json")"
+  echo "qa_tour: $dir drawn with ${drawn:-an unrecorded renderer} (asked for $method)"
+  if [ "$drawn" != "$method" ]; then
+    echo "qa_tour: Godot fell back from $method to ${drawn:-unknown}; these stills are not what players see" >&2
+    # Published stills must be what a player's default renderer draws.
+    if [ "${PUBLISH:-0}" = "1" ]; then
+      exit 1
+    fi
   fi
 }
 
@@ -274,6 +325,15 @@ if [ "$(uname -s)" = "Linux" ] && [ -z "$QA_DISPLAY" ]; then
   fi
   echo "qa_tour: display $QA_DISPLAY ($([ "$QA_SOFTWARE" = "1" ] && echo "Xvfb, software" || echo "nested Xwayland, GPU"))"
 fi
+if [ "$QA_SOFTWARE" = "1" ] && [ "$QA_RENDERER" = "forward_plus" ]; then
+  if [ "$PUBLISH" = "1" ]; then
+    echo "qa_tour: --publish needs Forward+ on a GPU display; Xvfb renders Compatibility only" >&2
+    exit 1
+  fi
+  echo "qa_tour: Xvfb has no Vulkan; this run is the Compatibility pass, labelled as such" >&2
+  QA_RENDERER=gl_compatibility
+fi
+echo "qa_tour: renderer $QA_RENDERER"
 
 # A saved run resumes in the durable local child. It binds its own loopback
 # port and prints one readiness line; its stdin is the parent lease, held open
@@ -348,6 +408,14 @@ if [ "${PUBLISH:-0}" = "1" ]; then
   start_server "$M01_DIR/server.log" --bind "127.0.0.1:$SERVER_PORT" --bots 0 --seed 42 \
     --map-file "$ROOT/server/maps/m01-recall-notice.json"
   run_client "$M01_DIR" "res://qa/readme_m01.json"
+  stop_server
+
+  # The Compatibility fallback, checked as its own labelled pass of the main
+  # tour. Nothing from it is published: players see Forward+.
+  COMPAT_DIR="$OUT_DIR/compatibility"
+  mkdir -p "$COMPAT_DIR"
+  start_server "$COMPAT_DIR/server.log" "${SERVER_ARGS[@]}"
+  run_client "$COMPAT_DIR" "${FRAGR_QA_MANIFEST:-}" gl_compatibility
   stop_server
 
   published=0

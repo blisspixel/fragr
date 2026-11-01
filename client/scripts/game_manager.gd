@@ -219,6 +219,11 @@ var _leaving: bool = false
 var _benchmark: bool = false
 var _benchmark_started: bool = false
 var _benchmark_compare: bool = false
+## The benchmark is an auto settings run (AutoTune).
+var _benchmark_tune: bool = false
+## Auto settings' in-match safety valve; null while it is off.
+var frame_governor: FrameGovernor = null
+var _governor_usec: int = -1
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
@@ -407,6 +412,7 @@ func _ready():
 	var boot = _resolve_boot()
 	_benchmark = bool(boot.get("benchmark", false))
 	_benchmark_compare = bool(boot.get("benchmark_compare", false))
+	_benchmark_tune = bool(boot.get("benchmark_tune", false))
 	if _benchmark:
 		_prepare_benchmark_presentation()
 	if boot.get("mode") == "campaign":
@@ -626,6 +632,10 @@ func _on_map_info(info: Dictionary) -> void:
 		hud.reset_event_context()
 		_event_mission_receipt = ""
 		_joined_ui_team = ""
+	# A host that keeps fun metrics says so in its Welcome; the feed tells
+	# the player once, before the first fight, after the venue's reset.
+	if net_client != null and net_client.take_fun_metrics_notice():
+		hud.show_venue_notice(tr("HUD_FUN_METRICS"))
 	if walker_view != null:
 		walker_view.configure_map(info)
 	_reset_local_fire()
@@ -858,6 +868,49 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_practicals(self, active_settings)
 	RenderQuality.apply_dither(self, get_viewport(), active_settings)
 
+## Real play feeds auto settings' safety valve one drawn frame at a time.
+## Menus, loading and story scenes are not play; their frames start a new
+## window instead of counting against the target.
+func _feed_governor() -> void:
+	if _benchmark or settings == null or DisplayServer.get_name() == "headless":
+		return
+	if frame_governor == null:
+		frame_governor = FrameGovernor.for_settings(settings, RenderingServer.get_current_rendering_method())
+	frame_governor.enabled = FrameGovernor.allowed(settings)
+	frame_governor.target = settings.target_fps()
+	frame_governor.quality = int(settings.get_value("video", "quality"))
+	var now: int = Time.get_ticks_usec()
+	if not frame_governor.enabled or _event_full_cover() or not get_window().has_focus():
+		_governor_usec = -1
+		return
+	if _governor_usec >= 0:
+		frame_governor.push(float(now - _governor_usec) / 1000000.0)
+	_governor_usec = now
+
+## A death, respawn, checkpoint or round end: the only moments the safety
+## valve may take a step, with one level line in the feed saying what.
+func _governor_safe_point() -> void:
+	if frame_governor == null:
+		return
+	var step: String = frame_governor.safe_point()
+	if step.is_empty():
+		return
+	_apply_render_preferences()
+	if hud != null:
+		hud.show_venue_notice(FrameGovernor.notice(step, frame_governor.target))
+
+## After long play that mostly fell short, the saved tune asks to be redone.
+func _note_governor_advice() -> void:
+	if frame_governor == null or settings == null or not frame_governor.advise_retune():
+		return
+	var record: Dictionary = (settings.get_value("video", "tune") as Dictionary).duplicate(true)
+	if record.is_empty() or bool(record.get("retune_advised", false)):
+		return
+	record["retune_advised"] = true
+	var draft: FragrSettings = settings.draft()
+	draft.set_value("video", "tune", record)
+	settings.commit(draft)
+
 func controls_blocked() -> bool:
 	if _benchmark:
 		return true
@@ -1056,6 +1109,7 @@ func _start_benchmark_run() -> void:
 	run.manager = self
 	run.preferences = settings
 	run.compare_all = _benchmark_compare
+	run.tune_requested = _benchmark_tune
 	run.reserved_query = _top_band_reservations
 	run.finished.connect(_on_benchmark_finished)
 	run.dismissed.connect(_on_leave_requested)
@@ -1071,7 +1125,7 @@ func _on_benchmark_finished(report: Dictionary) -> void:
 ## Run again goes back through the menu, so the same owned loopback host,
 ## settings restore and world load run as on the first start.
 func _on_benchmark_again(compare_all: bool) -> void:
-	get_tree().set_meta(BenchmarkRun.AGAIN_META, compare_all)
+	get_tree().set_meta(BenchmarkRun.AGAIN_META, "tune" if _benchmark_tune else compare_all)
 	_on_leave_requested()
 
 func _stop_benchmark_host() -> void:
@@ -1119,6 +1173,7 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	_note_governor_advice()
 	# Leaving the match must not lose a recording the player started.
 	if stutter_trace.recording:
 		var report: Dictionary = end_stutter_trace()
@@ -1164,6 +1219,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
 		if run == null or run.final_report.is_empty():
 			get_tree().set_meta(BenchmarkRun.CANCELLED_META, true)
+			if _benchmark_tune:
+				get_tree().set_meta(BenchmarkRun.TUNE_CANCELLED_META, true)
 		_on_leave_requested()
 		get_viewport().set_input_as_handled()
 		return
@@ -1272,7 +1329,7 @@ func _resolve_boot() -> Dictionary:
 		if typeof(meta) == TYPE_DICTIONARY:
 			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
 			if not benchmark.is_empty():
-				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"]}
+				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"], "benchmark_tune": benchmark["benchmark_tune"]}
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
@@ -1904,7 +1961,7 @@ func _stutter_video_settings() -> Dictionary:
 	var values: Dictionary = {}
 	if settings == null:
 		return values
-	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "upscaling", "pixel_scale", "dither", "vertical_fov"]:
+	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "render_scale", "upscaling", "pixel_scale", "dither", "vertical_fov", "auto", "target_fps"]:
 		values[key] = settings.get_value("video", key)
 	return values
 
@@ -1988,6 +2045,7 @@ func end_ack_probe() -> Dictionary:
 
 
 func _process(_delta):
+	_feed_governor()
 	if still_here != null:
 		still_here.hearing = is_human_player and camera != null and bool(camera.get("fp_mode")) and not controls_blocked()
 	if radio != null:
@@ -3180,6 +3238,8 @@ func _on_snapshot_received(data):
 				var lives: Variant = player_data.get("lives")
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
+	if hud.has_method("observe_board_story"):
+		hud.observe_board_story(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
 	if hud.has_method("show_podium"):
 		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room(), podium_bests if is_human_player else ([] as Array[Dictionary]))
 	_maybe_rehydrate_ended_mvp(data, round_state)
@@ -3189,8 +3249,19 @@ func _on_snapshot_received(data):
 	
 	for player_data in player_list:
 		var id = player_data.id
+		# A fighter this reader cannot perceive has no body here (gameplay
+		# 66); one it only hears has feet and no body. Its row still feeds
+		# the board above.
+		var sense: String = ActorState.sense(player_data)
+		if sense == "hidden":
+			continue
 		current_ids[id] = true
-		
+		if players.has(id) and is_instance_valid(players[id]) and bool(players[id].get("heard")) != (sense == "heard"):
+			# A sound is not a body: the body that comes into sight starts
+			# fresh where it stands rather than sliding from where it sounded.
+			players[id].queue_free()
+			players.erase(id)
+
 		if not players.has(id):
 			if player_scene == null or not is_instance_valid(arena):
 				continue
@@ -3202,6 +3273,7 @@ func _on_snapshot_received(data):
 			pawn.position = Vector3(player_data.x, player_data.y, player_data.z)
 			pawn.rotation.y = ServerYaw.pawn_rotation_y(float(player_data.yaw))
 			pawn.set_player_data(id, player_data.name)
+			pawn.set("heard", sense == "heard")
 			# One render time for every fighter: the one Actions report.
 			var timeline: Variant = pawn.get("remote_presentation")
 			if timeline is RemotePresentation:
@@ -3232,7 +3304,7 @@ func _on_snapshot_received(data):
 	
 	var targets = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion and not bool(pawn.get("heard")):
 			targets.append(pawn)
 	if camera:
 		camera.set_available_targets(_watch_targets(targets, player_list, str(data.get("round_state", ""))))
@@ -3533,6 +3605,7 @@ func _on_event_received(data):
 			if hud and hud.has_method("show_spawn_flash"):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
+			_governor_safe_point()
 	elif event_type == "pickup":
 		# The venue reacts to its power item for everyone watching, whoever
 		# took it (Larak Lot's light bar flares once on the Plate).
@@ -3568,12 +3641,14 @@ func _on_event_received(data):
 	elif event_type == "checkpoint":
 		if hud:
 			hud.show_checkpoint()
+		_governor_safe_point()
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():
 			hud.show_venue_notice(notice)
 	elif event_type == "round_end":
 		ended_podium_shown = true
+		_governor_safe_point()
 		# A level Duel names nobody: mvp and its frags arrive null.
 		var raw_mvp: Variant = data.get("mvp", data.get("winner"))
 		var mvp_name: String = str(raw_mvp) if raw_mvp is String else ""
@@ -3586,6 +3661,7 @@ func _on_event_received(data):
 			hud.show_host_join(host_line, false)
 		elif hud and hud.has_method("show_round_end"):
 			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
+			hud.note_round_winner(data.get("winning_team"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
 
@@ -4002,6 +4078,7 @@ func _drop_life_presses() -> void:
 ## Hold the dead eye, or chase the killer, until the server returns the body.
 ## Sabotage keeps its own teammate watch for a fallen fighter.
 func _begin_death_view() -> void:
+	_governor_safe_point()
 	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
 		or _team_seat or local_life.alive():
 		return
@@ -4114,6 +4191,11 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
+	# The recap names the zone of the shot that ended this life.
+	if is_human_player and not my_id.is_empty():
+		for result: Variant in results:
+			if result is Dictionary and str(result.get("target_id", "")) == my_id and result.get("killed") == true:
+				local_life.record_killing_zone(result.get("zone"))
 	var feedback_viewport: Viewport = get_viewport()
 	var feedback_camera: Camera3D = feedback_viewport.get_camera_3d() if feedback_viewport != null else null
 	var active_cam: Node3D = feedback_camera if is_instance_valid(feedback_camera) else (camera if is_instance_valid(camera) else null)
@@ -4152,9 +4234,10 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		if bool(result.get("hit", false)):
 			folded["damage"] = int(folded.get("damage", 0)) * int(bool(folded.get("hit", false))) + int(result.get("damage", 0))
 			folded["hit"] = true
-			# A blast that took one head or one life confirms it once.
-			if result.get("head") == true:
-				folded["head"] = true
+			# A blast confirms its most telling zone once, and one life once.
+			var zone: String = ShotZone.most_telling(ShotZone.of(folded), ShotZone.of(result))
+			if not zone.is_empty():
+				folded["zone"] = zone
 			if result.get("killed") == true:
 				folded["killed"] = true
 	for shot: Dictionary in shots:
@@ -4185,11 +4268,11 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
-			hud.show_hit_marker(dmg, wpn)
+			hud.show_hit_marker(dmg, wpn, ShotZone.of(shot))
 			# One confirm per shot, tiered by the server's facts. A followed
 			# fighter's stopped shots stay quiet; only the shooter hears those.
 			if hud.has_method("confirm_hit") and (dmg > 0 or is_local):
-				hud.confirm_hit(dmg, shot.get("head") == true, killed)
+				hud.confirm_hit(dmg, ShotZone.of(shot), killed)
 		# The shot that put a fighter down says so, louder than a hit.
 		if killed and hud and hud.has_method("show_kill_marker"):
 			hud.show_kill_marker()

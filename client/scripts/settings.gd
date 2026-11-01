@@ -27,8 +27,27 @@ const DEFAULTS: Dictionary = {
 		"vsync": false,
 		"show_fps": 0,          # 0 off, 1 FPS, 2 FPS with frame time and 1% low.
 		"resolution_height": 0, # Native fullscreen; automatic size when windowed.
-		"quality": 1,           # Performance, Balanced, High.
+		# Potato, Low, Medium, High, Ultra (RenderQuality tiers). Low, Medium
+		# and High are the earlier Performance, Balanced and High presets.
+		"quality": RenderQuality.DEFAULT_TIER,
 		"upscaling": 0,         # Standard, FSR1, FSR2; renderer gates capability.
+		# 3D render scale in percent of the output, pixel look off only
+		# (RenderQuality.RENDER_SCALES); above 100 supersamples.
+		"render_scale": 100,
+		# Auto settings (AutoTune): on, the tuner and the in-match governor
+		# may move any option the player has not pinned.
+		"auto": true,
+		# Frame rate the tuner holds as a 1% low: 60, 90, 120, 144, or 0 for
+		# the display's refresh.
+		"target_fps": 60,
+		# Options the player set by hand (PINNABLE); auto works around them.
+		"pinned": [],
+		# In-match safety valve (FrameGovernor): may lower costly effects at a
+		# death, respawn, checkpoint or round end when frames fall short.
+		"governor": true,
+		# The last auto-tune: what it chose, why, and the machine it measured
+		# (AutoTune.clean_record). Empty until the first tune or Skip.
+		"tune": {},
 		# Off, fine, medium, chunky world pixels (nearest). Fine is 540 world
 		# lines: 2x at 1080p, 3x at 1440p, 4x at 2160p, native at 720p. It
 		# keeps fighters at range, the held gun and large signs, costs less GPU
@@ -145,6 +164,15 @@ const CONTROLS_LAYOUT: int = 20261024
 ## The last load found custom bindings from another layout and dropped them.
 var controls_refused: bool = false
 
+## Graphics options a player choice pins against auto settings.
+const PINNABLE: Array[String] = ["quality", "render_scale", "resolution_height", "upscaling", "fps_cap", "vsync"]
+const TARGET_FPS: Array[int] = [60, 90, 120, 144, 0]
+## The meaning of the saved graphics tier. Files from earlier builds stored a
+## three-preset index; they are refused (tier, pins and tune reset to auto),
+## never migrated, and the Graphics page says so until the player saves.
+const VIDEO_LAYOUT: int = 20261101
+var video_refused: bool = false
+
 const RANGES: Dictionary = {
 	"accessibility/hud_scale": Vector2(75.0, 150.0),
 	"video/vertical_fov": Vector2(60.0, 110.0),
@@ -220,7 +248,20 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "controls/scope_mode", "accessibility/screen_flashes", "audio/announcer"]:
+	elif path == "video/quality":
+		if not value is int or value < RenderQuality.POTATO or value > RenderQuality.ULTRA:
+			value = fallback
+	elif path == "video/render_scale":
+		if not RenderQuality.scale_valid(value):
+			value = fallback
+	elif path == "video/target_fps":
+		if not value is int or value not in TARGET_FPS:
+			value = fallback
+	elif path == "video/pinned":
+		value = clean_pinned(value)
+	elif path == "video/tune":
+		value = AutoTune.clean_record(value)
+	elif path in ["video/upscaling", "video/show_fps", "controls/aim_assist", "controls/scope_mode", "accessibility/screen_flashes", "audio/announcer"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
 	elif path == "accessibility/team_colours":
@@ -258,8 +299,9 @@ func commit(candidate: FragrSettings) -> Error:
 	if result != OK:
 		return result
 	_values = candidate._values.duplicate(true)
-	# The file now carries the current controls layout.
+	# The file now carries the current controls and graphics layouts.
 	controls_refused = false
+	video_refused = false
 	changed.emit()
 	return OK
 
@@ -286,6 +328,13 @@ func load_from_disk() -> void:
 	if _has_custom_bindings(cfg) and cfg.get_value("meta", "controls_layout", 0) != CONTROLS_LAYOUT:
 		reset_section("bindings")
 		controls_refused = true
+	# The same rule for the graphics tier: an index saved under the older
+	# three-preset meaning would now name a different tier.
+	video_refused = false
+	if cfg.has_section_key("video", "quality") and cfg.get_value("meta", "video_layout", 0) != VIDEO_LAYOUT:
+		for key: String in ["quality", "auto", "pinned", "tune", "render_scale"]:
+			set_value("video", key, DEFAULTS["video"][key])
+		video_refused = true
 
 static func _has_custom_bindings(cfg: ConfigFile) -> bool:
 	if not cfg.has_section("bindings"):
@@ -301,6 +350,7 @@ func save_to_disk() -> Error:
 		for key in (_values[section] as Dictionary):
 			cfg.set_value(section, key, (_values[section] as Dictionary)[key])
 	cfg.set_value("meta", "controls_layout", CONTROLS_LAYOUT)
+	cfg.set_value("meta", "video_layout", VIDEO_LAYOUT)
 	# Write beside the destination so failed writes cannot truncate the last save.
 	var temporary: String = storage_path + ".%d.tmp" % OS.get_process_id()
 	var result: Error = cfg.save(temporary)
@@ -309,6 +359,48 @@ func save_to_disk() -> Error:
 	if result != OK and FileAccess.file_exists(temporary):
 		DirAccess.remove_absolute(temporary)
 	return result
+
+## Known pinnable keys, each once, in PINNABLE order. Anything else is dropped.
+static func clean_pinned(value: Variant) -> Array:
+	var out: Array = []
+	if not value is Array:
+		return out
+	for key: String in PINNABLE:
+		if (value as Array).has(key):
+			out.append(key)
+	return out
+
+func pinned(key: String) -> bool:
+	return (get_value("video", "pinned") as Array).has(key)
+
+## Pin every pinnable option that differs from `previous`: the player chose it
+## by hand, so auto settings work around it from now on.
+func pin_changes(previous: FragrSettings) -> void:
+	var pins: Array = (get_value("video", "pinned") as Array).duplicate()
+	for key: String in PINNABLE:
+		if get_value("video", key) != previous.get_value("video", key) and not pins.has(key):
+			pins.append(key)
+	set_value("video", "pinned", pins)
+
+## Reset to auto: clear the pins, turn auto back on, and put the last tune's
+## choice back where one exists.
+func reset_to_auto() -> void:
+	set_value("video", "pinned", [])
+	set_value("video", "auto", true)
+	var record: Dictionary = get_value("video", "tune")
+	if not record.is_empty():
+		AutoTune.apply_record(self, record)
+
+## The frame rate auto settings hold: the chosen target, or the display's
+## refresh (60 when the display does not report one).
+func target_fps() -> int:
+	var target: int = int(get_value("video", "target_fps"))
+	if target > 0:
+		return target
+	if DisplayServer.get_name() == "headless":
+		return 60
+	var refresh: float = DisplayServer.screen_get_refresh_rate(DisplayServer.window_get_current_screen())
+	return roundi(refresh) if refresh >= 30.0 else 60
 
 ## Roster map ids (1 to 8), each once, in roster order, never all eight.
 ## Anything else falls back whole.

@@ -53,6 +53,15 @@ static func is_participant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign == null or (campaign is Dictionary and campaign.get("side") == "participant")
 
+## What this reader perceives of a fighter row (gameplay 66): "" when the row
+## is seen whole, "heard" or "hidden" when the server withheld it
+## (docs/protocol.md, Interest filtering). `_row_ok` refuses any other value.
+static func sense(actor: Dictionary) -> String:
+	var value: Variant = actor.get("sense")
+	return str(value) if value is String and str(value) in SENSES else ""
+
+const SENSES: Array[String] = ["heard", "hidden"]
+
 static func participants(actors: Array) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for actor: Variant in actors:
@@ -130,16 +139,23 @@ static func validation_error(snapshot: Dictionary) -> String:
 				if not (coordinate is int or coordinate is float) or not is_finite(float(coordinate)):
 					return INVALID
 			continue
-		if not campaign["side"] in HOSTILE_SIDES or campaign.size() not in [5, 6] \
+		# A shot-off mast is the one optional fact past the seat: only a
+		# Ranged Sweeper carries one, and it is present only when true.
+		var mast: int = 1 if campaign.has("mast_broken") else 0
+		if mast == 1 and (typeof(campaign["mast_broken"]) != TYPE_BOOL or campaign["mast_broken"] != true \
+				or campaign.get("kind") != "ranged_sweeper"):
+			return INVALID
+		var fields: int = campaign.size() - mast
+		if not campaign["side"] in HOSTILE_SIDES or fields not in [5, 6] \
 			or not campaign.get("kind") is String or campaign["kind"] not in KINDS \
 			or not campaign.get("phase") is String or campaign["phase"] not in PHASES:
 			return INVALID
-		if campaign["side"] == "union" and ((campaign.size() == 6 and not campaign.has("seated")) \
+		if campaign["side"] == "union" and ((fields == 6 and not campaign.has("seated")) \
 				or campaign["kind"] in RESTORATION_KINDS):
 			return INVALID
 		# The Inheritance names its control domain, which must fit the body:
 		# absorbed Union machines and restoration machines, never people.
-		if campaign["side"] == "inheritance" and (campaign.size() != 6 \
+		if campaign["side"] == "inheritance" and (fields != 6 \
 				or not (campaign.get("control") == "absorbed" and campaign["kind"] in MACHINE_KINDS) \
 				and not (campaign.get("control") == "restoration" and campaign["kind"] in RESTORATION_KINDS)):
 			return INVALID
@@ -161,7 +177,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 		# The Surveyor never fires: its "firing" phase is the projected disc.
 		if campaign["kind"] == "surveyor" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
 			return INVALID
-		if campaign.has("seated") and (campaign.size() != 6 \
+		if campaign.has("seated") and (fields != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \
 			or campaign["kind"] != "clerk" or campaign["phase"] != "idle"):
 			return INVALID
@@ -249,6 +265,9 @@ static func _row_ok(actor: Dictionary) -> bool:
 		if not team is String or not str(team) in ["union", "coalition"]:
 			return false
 	if actor.has("body") and not PlayerBody.valid(actor["body"]):
+		return false
+	# A withheld row names one of the two senses.
+	if actor.has("sense") and (not actor["sense"] is String or not str(actor["sense"]) in SENSES):
 		return false
 	return true
 

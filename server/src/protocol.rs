@@ -223,6 +223,10 @@ pub struct LiveStatus {
     /// Additive to schema 2. The geometry contract this process speaks.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub geometry_version: Option<u32>,
+    /// Additive to schema 2. This host keeps fun metrics (match-level
+    /// tallies, shredded after 67 days). A boolean and nothing else.
+    #[serde(default)]
+    pub fun_metrics: bool,
 }
 
 impl Default for LiveStatus {
@@ -244,6 +248,7 @@ impl Default for LiveStatus {
             ops: None,
             gameplay_version: None,
             geometry_version: None,
+            fun_metrics: false,
         }
     }
 }
@@ -532,8 +537,8 @@ impl WeaponType {
             WeaponType::Shiv => 35,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
-            // One aimed hit answers one 70 HP Ranged Sweeper. A Sweeper needs
-            // two, where one Rail hit drops it: the Rail owns the middle.
+            // One hit on its optic answers a 70 HP Ranged Sweeper; its plate turns
+            // half. The Rail owns the middle: one optic hit drops a Sweeper.
             WeaponType::Sniper => 70,
             WeaponType::Repeater => 14,
             WeaponType::Arc => 18,
@@ -863,11 +868,33 @@ pub const TURN_GAMEPLAY_VERSION: u32 = 64;
 /// coalition people who take her) and M17 `custody_started`. A strict reader
 /// at 64 refuses the new side, so Peace Without Interruption requires it.
 pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
-/// The highest contract: Level 17's custody beat, after the map vote and
-/// Level 18's turn.
-pub const GAMEPLAY_VERSION: u32 = VOSS_CUSTODY_GAMEPLAY_VERSION;
+/// Contract 66, one bump shared by four changes. Locational damage:
+/// `ShotResult.zone` (head, torso, legs, plate, weak) replaces the `head` flag,
+/// and a Ranged Sweeper's campaign identity may carry `mast_broken`; a strict
+/// actor reader at 65 refuses the mast, so every map that places a Ranged
+/// Sweeper requires this contract.
+pub const ZONES_GAMEPLAY_VERSION: u32 = 66;
+/// The hold-Tab board's objective credits (`PlayerState.objective`) and the
+/// booth's whole pad clocks (`PadClock.clock`, `PlateFact.clock`). A strict
+/// booth reader at 65 refuses the new pad field, so a shared room moves here.
+pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// The fun metrics notice: `Welcome.fun_metrics` is always sent and says
+/// whether this host keeps match-level tallies (`docs/PRIVACY.md`). A
+/// shared room moves here so every client in it can tell its player.
+pub const FUN_METRICS_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// Interest filtering: a shared-room fighter receives other fighters it
+/// cannot perceive as `heard` or `hidden` rows (`PlayerState.sense`, owner
+/// `crate::interest`). A reader at 65 would draw a hidden row at the origin,
+/// so a shared room moves to this contract.
+pub const INTEREST_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// The highest contract: locational damage, the objective board, the fun
+/// metrics notice and interest filtering, after Level 17's custody beat,
+/// the map vote and Level 18's turn.
+pub const GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 const _: () = assert!(
-    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
+    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
+        && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
+        && GAMEPLAY_VERSION >= VOSS_CUSTODY_GAMEPLAY_VERSION
 );
 pub fn legacy_gameplay_version() -> u32 {
     1
@@ -1112,6 +1139,11 @@ pub enum ServerMessage {
         /// Older servers omit it. Absence means the client must not send the key.
         #[serde(default, skip_serializing_if = "is_false")]
         duck: bool,
+        /// This host keeps fun metrics: match-level tallies on its own disk,
+        /// shredded after 67 days (`docs/PRIVACY.md`). Always sent, so a
+        /// client can say so before anyone fights.
+        #[serde(default)]
+        fun_metrics: bool,
     },
     /// The arena's shape: the bounds and the solids that block movement and
     /// shots. Sent once to every role on join and again to everyone when
@@ -1519,6 +1551,44 @@ pub struct ProjectileState {
     pub z: f32,
 }
 
+/// Where a damaging traced hit landed. Head, torso and legs are height
+/// bands on the body; `plate` is issued armour that turned part of the hit
+/// (a Union bot's chassis, an Enforcer's breastplate, an Auditor's shield,
+/// an Inheritance machine's off-white shell); `weak` is a weak spot (a Union
+/// bot's red optic or an absorbed bot's cyan light in the same place, a
+/// Heavy Sweeper's rear vent, a Ranged Sweeper's mast, an open lens).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HitZone {
+    Head,
+    Torso,
+    Legs,
+    Plate,
+    Weak,
+}
+
+impl HitZone {
+    /// Which zone a result reports when its pellets struck several: a weak
+    /// spot, then a head, then a plate (the lesson), then torso, then legs.
+    pub fn rank(self) -> u8 {
+        match self {
+            Self::Weak => 4,
+            Self::Head => 3,
+            Self::Plate => 2,
+            Self::Torso => 1,
+            Self::Legs => 0,
+        }
+    }
+
+    /// The more telling of two zones.
+    pub fn most_telling(a: Option<Self>, b: Self) -> Self {
+        match a {
+            Some(a) if a.rank() >= b.rank() => a,
+            _ => b,
+        }
+    }
+}
+
 /// Per-tick fire outcome for observe (hit-confirm without vision).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShotResult {
@@ -1538,11 +1608,13 @@ pub struct ShotResult {
     /// True only for the shot that first takes this target to zero HP.
     #[serde(default)]
     pub killed: bool,
-    /// A pellet of this result struck the head band and doubled damage that
-    /// landed. Presentation only (the shooter's headshot confirm); `damage`
-    /// already counts it. Omitted when false.
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub head: bool,
+    /// Where damage that landed struck the body: the most telling zone of
+    /// this result's pellets. Presentation only (the shooter's marker and
+    /// sound, the victim's recap); `damage` already counts the zone's
+    /// multiplier. Omitted on a miss, when nothing landed, and for weapons
+    /// without zones (Arc, explosives, melee) unless a plate turned them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub zone: Option<HitZone>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -1886,6 +1958,51 @@ pub struct PlayerState {
     /// held for a dropped connection.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ping: Option<u16>,
+    /// Objective credits on the hold-Tab board (gameplay 66): Sabotage
+    /// plants and defuses, flag captures and returns, Conquest point
+    /// captures. Omitted while every count is zero.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub objective: Option<ObjectiveTally>,
+    /// What the reading fighter perceives of this row (gameplay 66, see
+    /// `crate::interest`). Omitted when the row is seen: every field is true.
+    /// A `heard` or `hidden` row keeps the scoreboard and identity fields and
+    /// is inert for everything else: `hp` 0, `collidable` false, no look,
+    /// `weapon` `Fists`, and a position that is coarse (`heard`) or zero
+    /// (`hidden`). Spectators and campaign readers never receive one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sense: Option<PlayerSense>,
+}
+
+/// A fighter's objective credits this round; a Sabotage match keeps them
+/// across its rounds, as it keeps frags. Each count is omitted while zero.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObjectiveTally {
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub plants: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub defuses: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub captures: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub returns: u32,
+}
+
+impl ObjectiveTally {
+    pub fn is_empty(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+/// How a fighter perceives another fighter it cannot see.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlayerSense {
+    /// Out of sight but audible: running feet or gunfire nearby. The position
+    /// is where it sounds, off by up to 15 percent of the distance.
+    Heard,
+    /// Neither seen nor heard. The position is zero.
+    Hidden,
 }
 
 fn collidable_by_default() -> bool {
@@ -2221,7 +2338,7 @@ mod protocol_tests {
         let shot = ShotResult {
             trace: None,
             killed: false,
-            head: false,
+            zone: None,
             shooter_id,
             shooter: "A".into(),
             hit: true,

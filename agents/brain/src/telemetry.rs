@@ -366,6 +366,7 @@ pub(crate) mod fixtures {
 
     pub fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -394,6 +395,7 @@ pub(crate) mod fixtures {
             damage: 0,
             weapon: weapon.to_string(),
             ping: None,
+            sense: None,
         }
     }
 

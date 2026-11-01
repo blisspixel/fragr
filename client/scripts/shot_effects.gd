@@ -70,6 +70,9 @@ class Effect:
 	var kind: String
 	## Struck surface class (`ShotVfx` CONCRETE, METAL, FLESH, FABRIC or SYNTHETIC).
 	var surface: String = ""
+	## The server's zone for a fighter hit (`ShotZone`): a plate or a weak
+	## spot throws a bigger spray of sparks than a body.
+	var zone: String = ""
 	var age: float = 0.0
 	## Where the drawn beam starts, fixed on its first draw.
 	var start: Vector3 = Vector3.INF
@@ -220,6 +223,7 @@ static func _parse(value: Variant) -> Effect:
 	effect.end = end
 	effect.normal = normal
 	effect.kind = kind
+	effect.zone = ShotZone.of(value) if kind == "fighter" else ShotZone.NONE
 	return effect
 
 func clear() -> void:
@@ -353,6 +357,17 @@ func _draw_debris(effect: Effect) -> void:
 			tint = Color("b0a696")
 			size = 0.08
 			speed = 1.3
+	# Issued plate turning a shot sheds a wide fan of sparks; a struck weak
+	# spot bursts brighter. Both are hardware, whatever the body.
+	if effect.zone == ShotZone.PLATE:
+		tint = Color("ffe0a8")
+		count = 9
+		speed = 3.2
+	elif effect.zone == ShotZone.WEAK and row in ["metal", "synthetic"]:
+		tint = Color("fff0c8")
+		count = 8
+		speed = 3.0
+		size = 0.09
 	size *= 1.0 - effect.age / LIFETIME
 	var centre: Vector3 = effect.end + normal * 0.025
 	for i in range(count):

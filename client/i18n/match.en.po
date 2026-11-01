@@ -384,8 +384,53 @@ msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
 msgid "HUD_LEADERS"
 msgstr "LEADERS"
 
-msgid "HUD_BOARD_SCROLL"
-msgstr "SCROLL: {previous} / {next} (WEAPON CYCLE)"
+msgid "HUD_BOARD_HOLD"
+msgstr "HOLD {scores} SCORES"
+
+msgid "HUD_BOARD_PAGE"
+msgstr "{weapon_prev} {weapon_next} PAGE {at}/{pages}"
+
+msgid "HUD_BOARD_PLANTS"
+msgstr "PLANTS"
+
+msgid "HUD_BOARD_DEFUSES"
+msgstr "DEFUSES"
+
+msgid "HUD_BOARD_CAPTURES"
+msgstr "CAPS"
+
+msgid "HUD_BOARD_RETURNS"
+msgstr "RETURNS"
+
+msgid "HUD_BOARD_MVP"
+msgstr "MVP"
+
+msgid "HUD_BOARD_NEMESIS"
+msgstr "NEMESIS {won}-{lost}"
+
+msgid "HUD_BOARD_UP"
+msgstr "UP {won}-{lost}"
+
+msgid "HUD_BOARD_DOWN"
+msgstr "DOWN {won}-{lost}"
+
+msgid "HUD_BOARD_LEVEL"
+msgstr "LEVEL {won}-{lost}"
+
+msgid "HUD_BOARD_ROUNDS"
+msgstr "ROUNDS {rounds}"
+
+msgid "HUD_BOARD_UNIT_FRAGS"
+msgstr "FRAGS"
+
+msgid "HUD_BOARD_UNIT_TICKETS"
+msgstr "TICKETS"
+
+msgid "HUD_BOARD_UNIT_CAPTURES"
+msgstr "CAPTURES"
+
+msgid "HUD_BOARD_UNIT_ROUNDS"
+msgstr "ROUNDS WON"
 
 msgid "HUD_BOARD_RANK"
 msgstr "#"
@@ -431,6 +476,24 @@ msgstr "REPEATER"
 
 msgid "BOOTH_PAD_ARTICLE_BLADE"
 msgstr "BLADE"
+
+msgid "BOOTH_PAD_FLECHETTE"
+msgstr "RIFLE"
+
+msgid "BOOTH_PAD_TACK"
+msgstr "PISTOL"
+
+msgid "BOOTH_PAD_HEALTH"
+msgstr "HEALTH"
+
+msgid "BOOTH_HEADING"
+msgstr "PADS"
+
+msgid "BOOTH_HEADING_ALL"
+msgstr "ALL PADS"
+
+msgid "BOOTH_PLATE_WORN"
+msgstr "PLATE: {name}"
 
 msgid "BOOTH_RUNS"
 msgstr "ON A RUN"
@@ -948,6 +1011,21 @@ msgstr "LEFT"
 msgid "HUD_RECAP_AHEAD_LEFT"
 msgstr "AHEAD LEFT"
 
+msgid "HUD_RECAP_ZONE_HEAD"
+msgstr "TO THE HEAD"
+
+msgid "HUD_RECAP_ZONE_TORSO"
+msgstr "TO THE BODY"
+
+msgid "HUD_RECAP_ZONE_LEGS"
+msgstr "TO THE LEGS"
+
+msgid "HUD_RECAP_ZONE_PLATE"
+msgstr "THROUGH THE PLATE"
+
+msgid "HUD_RECAP_ZONE_WEAK"
+msgstr "TO A WEAK SPOT"
+
 msgid "HUD_RECAP_ABOVE"
 msgstr "ABOVE"
 
@@ -998,3 +1076,6 @@ msgstr "UNION FLAG {union}\nFREE FLAG {coalition}"
 
 msgid "HUD_CHECKPOINT"
 msgstr "CHECKPOINT"
+
+msgid "HUD_FUN_METRICS"
+msgstr "THIS HOST KEEPS A FUN TALLY: MATCHES, NEVER PEOPLE. SHREDDED AFTER 67 DAYS."

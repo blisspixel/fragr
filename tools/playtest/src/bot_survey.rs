@@ -4,26 +4,20 @@
 //! contest, focus fire on one body, hits landed outside the shooter's view,
 //! and which guns do the work. A survey is behaviour evidence for rule bots,
 //! never a human fun verdict.
+use fragr_server::fun_metrics::{MatchTally, Observer, WeaponTable};
 use fragr_server::net::GameCommand;
 use fragr_server::protocol::{
     AmmoPool, BodyKind, GameEvent, GameMode, Role, ServerMessage, WeaponType,
 };
 use fragr_server::rules::RuleSet;
 use fragr_server::session::{GameSession, Recipient};
-use fragr_server::sim::{MapKind, MatchConfig, PickupKind};
+use fragr_server::sim::{MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
 
-/// A death this soon after the fighter's spawn counts against the spawn.
-const SPAWN_DEATH_TICKS: u64 = 60;
 /// Shooters that hit one body inside this window count as firing together.
 const VOLLEY_TICKS: u64 = 20;
-/// A frag this close to a power pad, this soon after it returned, contests it.
-const CONTEST_RADIUS: f32 = 8.0;
-const CONTEST_TICKS: u64 = 100;
-/// A claim this soon after a pad returned kept an appointment with its clock.
-const APPOINTMENT_TICKS: u64 = 20;
 /// Half the 120 degree view cone, with a little slack for the shooter's
 /// turn on the tick the shot resolved.
 const VIEW_HALF_ANGLE: f32 = std::f32::consts::FRAC_PI_3 + 0.1;
@@ -172,6 +166,15 @@ pub struct ScenarioReport {
     pub owned_share: BTreeMap<String, f64>,
     /// Frags by the weapon that landed them.
     pub frag_weapons: BTreeMap<String, u64>,
+    /// Damaging traced hits by the zone they struck (`ShotResult.zone`).
+    #[serde(default)]
+    pub zone_hits: BTreeMap<String, u64>,
+    /// Killing shots by the zone they struck.
+    #[serde(default)]
+    pub kill_zones: BTreeMap<String, u64>,
+    /// Head kills as a share of kills that named a zone (hitscan kills).
+    #[serde(default)]
+    pub head_kill_share: f64,
     /// Captures in CTF; Conquest sites changing hands.
     pub objective_events: u64,
     /// Claims of the power armour (the Custody Plate), per three live minutes.
@@ -234,6 +237,12 @@ pub struct ScenarioReport {
     pub respawn_to_hit_s: crate::sight::Spread,
     /// Metres between killer and victim when the frag landed, by weapon.
     pub kill_distance_m: BTreeMap<String, crate::sight::Spread>,
+    /// Seconds from the first damage a victim took from somebody else in
+    /// that life to the frag: the kill time the 1.0 bar reads.
+    pub time_to_kill_s: crate::sight::Spread,
+    /// Sabotage rounds decided, and the attack's share of them.
+    pub sabotage_rounds: u32,
+    pub sabotage_attack_share: f64,
     /// Two second windows walked three metres or more with nobody in view,
     /// and the share that went back and forth (`sight::DitherTracker`).
     pub moving_windows: u64,
@@ -373,44 +382,31 @@ pub struct BotSurveyReport {
     pub scenarios: Vec<ScenarioReport>,
 }
 
+/// The survey's own counts beside the shared match tally. Everything a
+/// host's fun metrics also measure lives in `shared`, folded by the
+/// server's observer (`fragr_server::fun_metrics`); what is left here is
+/// bot behaviour only a bots-only survey can read: volleys, view, stalls,
+/// walls, what a body carries and the Rocket's lives.
 #[derive(Default)]
 struct Tally {
     matches: u32,
-    live_ticks: u64,
-    frags: u64,
-    spawns: u64,
-    spawn_deaths: u64,
-    hits: u64,
+    shared: MatchTally,
     volley_hits: u64,
     focus_frags: u64,
     hits_outside_view: u64,
     blindside_frags: u64,
-    pickups: u64,
-    power_returns: u64,
-    appointments: u64,
-    power_wait_ticks: u64,
-    power_claims: u64,
-    contested_frags: u64,
-    shots: BTreeMap<String, u64>,
-    frag_weapons: BTreeMap<String, u64>,
     living_ticks: u64,
     hand_ticks: BTreeMap<String, u64>,
     owned_ticks: BTreeMap<String, u64>,
-    objective_events: u64,
-    plate_claims: u64,
-    rocket_claims: u64,
-    self_deaths: u64,
     rocket_launches: u64,
     rocket_damaging: u64,
     guns_dropped: u64,
-    drop_claims: u64,
     rocket_drop_claims: u64,
     rocket_lives: u64,
     rocket_life_ticks: u64,
     rocket_lives_died: u64,
     rocket_in_hand_ticks: u64,
     side_calls: u64,
-    lead_changes: u64,
     stalls: u64,
     pushing_stalls: u64,
     longest_stall_ticks: u32,
@@ -422,54 +418,13 @@ struct Tally {
     /// Claims by pad id, with every authored pad entered at zero.
     pad_claims: BTreeMap<String, u64>,
     vehicle_ticks: u64,
-    contact_seconds: Vec<f64>,
-    hit_seconds: Vec<f64>,
-    kill_distances: BTreeMap<String, Vec<f64>>,
     moving_windows: u64,
     dither_windows: u64,
-}
-
-fn power(kind: PickupKind) -> bool {
-    match kind {
-        PickupKind::Weapon(weapon) => weapon != WeaponType::Flechette,
-        PickupKind::Armor | PickupKind::Plate => true,
-        _ => false,
-    }
 }
 
 fn angle_difference(to: f32, from: f32) -> f32 {
     use std::f32::consts::{PI, TAU};
     (to - from + PI).rem_euclid(TAU) - PI
-}
-
-/// The sole front of the round by the survey's own reading of the scores:
-/// a fighter id in free-for-all and Duel, a side in team modes. None when level.
-fn sole_leader(session: &GameSession, mode: GameMode) -> Option<String> {
-    let side = |scores: fragr_server::protocol::TeamScores| {
-        scores.leader().map(|team| team.id().to_string())
-    };
-    match mode {
-        GameMode::Tdm => side(session.state.team_scores),
-        GameMode::Ctf => side(session.state.capture_scores),
-        GameMode::Ffa | GameMode::Duel => {
-            let mut best: Option<(Uuid, u32)> = None;
-            let mut level = false;
-            for player in session.state.players.iter().filter(|p| !p.is_boss) {
-                let score = session.state.scores.get(&player.id).copied().unwrap_or(0);
-                match best {
-                    Some((_, top)) if score < top => {}
-                    Some((_, top)) if score == top => level = true,
-                    _ => {
-                        best = Some((player.id, score));
-                        level = false;
-                    }
-                }
-            }
-            best.filter(|(_, top)| !level && *top > 0)
-                .map(|(id, _)| id.to_string())
-        }
-        GameMode::Sabotage | GameMode::Conquest => None,
-    }
 }
 
 fn keep(spots: &mut Vec<Spot>, spot: Spot) {
@@ -595,56 +550,108 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
     report
 }
 
-fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
-    let minutes = tally.live_ticks as f64 / 20.0 / 60.0;
-    let per_minute = |count: u64| {
-        if minutes > 0.0 {
-            count as f64 / minutes
-        } else {
-            0.0
-        }
+/// The columns a host's fun metrics and the survey share, read from one
+/// folded match tally: frag pace, spawns, pads, gun shares, lead changes,
+/// kill distances, kill time and contact. Survey-only columns stay at zero;
+/// `fold` fills them for a survey row.
+pub fn shared_row(label: String, matches: u32, shared: &MatchTally) -> ScenarioReport {
+    use fragr_server::fun_metrics::{per_minute, share, spread};
+    let live = shared.live_ticks;
+    let shots = shared.total_shots();
+    let tick = 1.0 / fragr_server::fun_metrics::TICKS_PER_SECOND;
+    let named = |table: &WeaponTable<u64>| -> BTreeMap<String, u64> {
+        table
+            .iter()
+            .filter(|(_, count)| **count > 0)
+            .map(|(weapon, count)| (weapon.name().to_string(), *count))
+            .collect()
     };
-    let share = |part: u64, whole: u64| {
-        if whole == 0 {
-            0.0
-        } else {
-            part as f64 / whole as f64
-        }
+    let zones = |tally: &fragr_server::fun_metrics::ZoneTally| -> BTreeMap<String, u64> {
+        [
+            ("head", tally.head),
+            ("torso", tally.torso),
+            ("legs", tally.legs),
+            ("plate", tally.plate),
+            ("weak", tally.weak),
+        ]
+        .into_iter()
+        .filter(|(_, count)| *count > 0)
+        .map(|(zone, count)| (zone.to_string(), count))
+        .collect()
     };
-    let shots: u64 = tally.shots.values().sum();
+    let sabotage = &shared.sabotage;
     ScenarioReport {
-        scenario: scenario.label(),
-        matches: tally.matches,
-        live_seconds: tally.live_ticks as f64 / 20.0,
-        frags: tally.frags,
-        frags_per_minute: per_minute(tally.frags),
-        spawns: tally.spawns,
-        spawn_deaths: tally.spawn_deaths,
-        spawn_deaths_per_spawn: share(tally.spawn_deaths, tally.spawns),
-        hits: tally.hits,
+        scenario: label,
+        matches,
+        live_seconds: live as f64 * tick,
+        frags: shared.frags,
+        frags_per_minute: per_minute(shared.frags, live),
+        spawns: shared.spawns,
+        spawn_deaths: shared.spawn_deaths,
+        spawn_deaths_per_spawn: share(shared.spawn_deaths, shared.spawns),
+        hits: shared.hits,
+        pickups: shared.pickups,
+        pickups_per_minute: per_minute(shared.pickups, live),
+        power_returns: shared.power_returns,
+        appointments: shared.appointments,
+        appointment_share: share(shared.appointments, shared.power_returns),
+        mean_power_wait_s: if shared.power_claims == 0 {
+            0.0
+        } else {
+            shared.power_wait_ticks as f64 / shared.power_claims as f64 * tick
+        },
+        pad_contest_index: share(shared.contested_frags, shared.frags),
+        shot_share: named(&shared.shots)
+            .into_iter()
+            .map(|(weapon, count)| (weapon, share(count, shots)))
+            .collect(),
+        frag_weapons: named(&shared.frag_weapons),
+        zone_hits: zones(&shared.zone_hits),
+        kill_zones: zones(&shared.kill_zones),
+        head_kill_share: share(shared.kill_zones.head, shared.kill_zones.total()),
+        objective_events: shared.captures
+            + u64::from(
+                shared.conquest.union_sites_at_end + shared.conquest.coalition_sites_at_end,
+            ),
+        plate_claims: shared.plate_claims,
+        plate_claims_per_3min: per_minute(shared.plate_claims, live) * 3.0,
+        rocket_claims: shared.rocket_claims,
+        rocket_frag_share: share(*shared.frag_weapons.get(WeaponType::Rocket), shared.frags),
+        self_deaths: shared.self_deaths,
+        drop_claims: shared.drop_claims,
+        lead_changes: shared.lead_changes,
+        lead_changes_per_match: if matches == 0 {
+            0.0
+        } else {
+            shared.lead_changes as f64 / f64::from(matches)
+        },
+        respawn_to_contact_s: spread(&shared.respawn_to_contact_ticks.scaled(tick)),
+        respawn_to_hit_s: spread(&shared.respawn_to_hit_ticks.scaled(tick)),
+        time_to_kill_s: spread(&shared.time_to_kill_ticks.scaled(tick)),
+        kill_distance_m: shared
+            .kill_distance_cm
+            .iter()
+            .filter(|(_, samples)| !samples.is_empty())
+            .map(|(weapon, samples)| (weapon.name().to_string(), spread(&samples.scaled(0.01))))
+            .collect(),
+        sabotage_rounds: sabotage.rounds,
+        sabotage_attack_share: share(u64::from(sabotage.attack_wins), u64::from(sabotage.rounds)),
+        ..ScenarioReport::default()
+    }
+}
+
+fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
+    use fragr_server::fun_metrics::{per_minute, share};
+    let live = tally.shared.live_ticks;
+    let base = shared_row(scenario.label(), tally.matches, &tally.shared);
+    ScenarioReport {
         volley_hits: tally.volley_hits,
-        volley_hit_share: share(tally.volley_hits, tally.hits),
+        volley_hit_share: share(tally.volley_hits, base.hits),
         focus_frags: tally.focus_frags,
         hits_outside_view: tally.hits_outside_view,
-        hits_outside_view_share: share(tally.hits_outside_view, tally.hits),
+        hits_outside_view_share: share(tally.hits_outside_view, base.hits),
         blindside_frags: tally.blindside_frags,
-        blindside_share: share(tally.blindside_frags, tally.frags),
-        pickups: tally.pickups,
-        pickups_per_minute: per_minute(tally.pickups),
-        power_returns: tally.power_returns,
-        appointments: tally.appointments,
-        appointment_share: share(tally.appointments, tally.power_returns),
-        mean_power_wait_s: if tally.power_claims == 0 {
-            0.0
-        } else {
-            tally.power_wait_ticks as f64 / tally.power_claims as f64 / 20.0
-        },
-        pad_contest_index: share(tally.contested_frags, tally.frags),
-        shot_share: tally
-            .shots
-            .iter()
-            .map(|(weapon, count)| (weapon.clone(), share(*count, shots)))
-            .collect(),
+        blindside_share: share(tally.blindside_frags, base.frags),
         hand_share: tally
             .hand_ticks
             .iter()
@@ -655,20 +662,9 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
             .iter()
             .map(|(weapon, count)| (weapon.clone(), share(*count, tally.living_ticks)))
             .collect(),
-        frag_weapons: tally.frag_weapons.clone(),
-        objective_events: tally.objective_events,
-        plate_claims: tally.plate_claims,
-        plate_claims_per_3min: per_minute(tally.plate_claims) * 3.0,
-        rocket_claims: tally.rocket_claims,
-        rocket_frag_share: share(
-            tally.frag_weapons.get("Rocket").copied().unwrap_or(0),
-            tally.frags,
-        ),
-        self_deaths: tally.self_deaths,
         rocket_launches: tally.rocket_launches,
         rocket_damaging: tally.rocket_damaging,
         guns_dropped: tally.guns_dropped,
-        drop_claims: tally.drop_claims,
         rocket_drop_claims: tally.rocket_drop_claims,
         rocket_lives: tally.rocket_lives,
         rocket_life_seconds: if tally.rocket_lives == 0 {
@@ -678,13 +674,7 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         },
         rocket_lives_died: share(tally.rocket_lives_died, tally.rocket_lives),
         rocket_in_hand_share: share(tally.rocket_in_hand_ticks, tally.rocket_life_ticks),
-        side_calls_per_minute: per_minute(tally.side_calls),
-        lead_changes: tally.lead_changes,
-        lead_changes_per_match: if tally.matches == 0 {
-            0.0
-        } else {
-            tally.lead_changes as f64 / f64::from(tally.matches)
-        },
+        side_calls_per_minute: per_minute(tally.side_calls, live),
         stalls: tally.stalls,
         pushing_stalls: tally.pushing_stalls,
         longest_stall_seconds: f64::from(tally.longest_stall_ticks) / 20.0,
@@ -694,13 +684,6 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         out_of_bounds_ticks: tally.out_of_bounds_ticks,
         lowest_feet: tally.lowest_feet.unwrap_or(0.0),
         vehicle_seconds: tally.vehicle_ticks as f64 / 20.0,
-        respawn_to_contact_s: crate::sight::spread(&tally.contact_seconds),
-        respawn_to_hit_s: crate::sight::spread(&tally.hit_seconds),
-        kill_distance_m: tally
-            .kill_distances
-            .iter()
-            .map(|(weapon, metres)| (weapon.clone(), crate::sight::spread(metres)))
-            .collect(),
         moving_windows: tally.moving_windows,
         dither_share: share(tally.dither_windows, tally.moving_windows),
         unclaimed_pads: tally
@@ -709,6 +692,7 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
             .filter(|(_, claims)| **claims == 0)
             .map(|(id, _)| id.clone())
             .collect(),
+        ..base
     }
 }
 
@@ -844,28 +828,18 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         tally.pad_claims.entry(pad.id.clone()).or_default();
     }
 
-    // Per pad: the tick it last returned during live play, and whether that
-    // return still waits for its first claim.
-    let mut returned: Vec<Option<u64>> = vec![None; session.state.pickups.len()];
-    let mut waiting: Vec<bool> = vec![false; session.state.pickups.len()];
-    let mut was_available: Vec<bool> = session.state.pickups.iter().map(|p| p.available).collect();
-    let mut spawned_at: HashMap<Uuid, u64> = HashMap::new();
+    // The shared measurements: the same observer a host's fun metrics run.
+    let mut observer = Observer::new(&session);
     let mut last_hit: HashMap<Uuid, HashMap<Uuid, u64>> = HashMap::new();
     // Per (shooter, target): whether the shooter opened from outside the target's view.
     let mut openings: HashMap<(Uuid, Uuid), bool> = HashMap::new();
     let mut rocket_lives: HashSet<Uuid> = HashSet::new();
     // Per fighter: last feet position and the current still run.
     let mut still: HashMap<Uuid, ([f32; 3], u32)> = HashMap::new();
-    let mut leader: Option<String> = None;
-    // Fighters spawned and not yet in contact, with the tick they spawned.
-    let mut awaiting: HashMap<Uuid, u64> = HashMap::new();
-    // The same for the first landed shot.
-    let mut unhit: HashMap<Uuid, u64> = HashMap::new();
     let solids = map.solids();
     let mut dither = crate::sight::DitherTracker::default();
     let rounds = scenario.mode == GameMode::Sabotage;
     let half = map.half_extent();
-    let mut live = false;
     let mut ended = false;
     let limit = u64::from(round_ticks) + 20 * 30;
     while session.state.tick < limit && !ended {
@@ -878,61 +852,15 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 .map(|(_, message)| message),
         );
         let tick = session.state.tick;
+        let live = observer.live();
         if live {
             track_bodies(&session, seed, tick, half, &mut still, tally);
-            if let Some(now) = sole_leader(&session, scenario.mode) {
-                if leader.as_ref().is_some_and(|before| *before != now) {
-                    tally.lead_changes += 1;
-                }
-                leader = Some(now);
-            }
         } else {
             still.clear();
         }
+        observer.begin_tick(&session);
         if live {
             dither.observe(&session, &solids);
-            let mode = scenario.mode;
-            let met: Vec<Uuid> = awaiting
-                .keys()
-                .copied()
-                .filter(|id| {
-                    session
-                        .state
-                        .players
-                        .iter()
-                        .find(|p| p.id == *id)
-                        .is_some_and(|me| {
-                            me.hp > 0
-                                && me.respawn_timer.is_none()
-                                && session.state.players.iter().any(|other| {
-                                    other.hp > 0
-                                        && other.respawn_timer.is_none()
-                                        && crate::sight::hostile(mode, me, other)
-                                        && (crate::sight::sees(
-                                            &solids,
-                                            me,
-                                            other,
-                                            crate::sight::SIGHT,
-                                        ) || crate::sight::sees(
-                                            &solids,
-                                            other,
-                                            me,
-                                            crate::sight::SIGHT,
-                                        ))
-                                })
-                        })
-                })
-                .collect();
-            for id in met {
-                if let Some(at) = awaiting.remove(&id) {
-                    tally
-                        .contact_seconds
-                        .push(tick.saturating_sub(at) as f64 / 20.0);
-                }
-            }
-        }
-        if live {
-            tally.live_ticks += 1;
             for player in &session.state.players {
                 let alive = player.hp > 0 && player.respawn_timer.is_none();
                 if alive {
@@ -971,106 +899,19 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 }
             }
         }
-        for (index, pad) in session.state.pickups.iter().enumerate() {
-            if index >= was_available.len() {
-                break;
-            }
-            if live && pad.available && !was_available[index] && power(pad.kind) {
-                tally.power_returns += 1;
-                returned[index] = Some(tick);
-                waiting[index] = true;
-            }
-            was_available[index] = pad.available;
-        }
-        for message in messages {
-            let event = match message {
-                ServerMessage::Event(event) => event,
-                ServerMessage::Snapshot(snapshot) => {
-                    if live {
-                        for shot in &snapshot.shot_results {
-                            if let Some(trace) = &shot.trace {
-                                *tally
-                                    .shots
-                                    .entry(trace.weapon.name().to_string())
-                                    .or_default() += 1;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                _ => continue,
+        for message in &messages {
+            observer.message(&session, message);
+            let live = observer.live();
+            let ServerMessage::Event(event) = message else {
+                continue;
             };
             match event {
-                // Sabotage plays rounds: live from each round's go to its end,
-                // so the muster freeze is not counted as standing still.
-                GameEvent::Sabotage {
-                    kind: fragr_server::protocol::SabotageEventKind::Live,
-                    ..
-                } if rounds => {
-                    live = true;
-                }
-                GameEvent::RoundEnd { .. } if rounds => {
-                    live = false;
-                }
-                GameEvent::RoundStart { .. } if rounds => {
-                    for player in &session.state.players {
-                        spawned_at.insert(player.id, tick);
-                        awaiting.insert(player.id, tick);
-                        unhit.insert(player.id, tick);
-                        tally.spawns += 1;
-                    }
-                }
-                GameEvent::RoundStart { .. } => {
-                    live = true;
-                    for player in &session.state.players {
-                        spawned_at.insert(player.id, tick);
-                        awaiting.insert(player.id, tick);
-                        unhit.insert(player.id, tick);
-                        tally.spawns += 1;
-                    }
-                }
-                GameEvent::RoundEnd { .. } => {
-                    if live {
-                        ended = true;
-                    }
-                }
-                GameEvent::Respawn { ref player } if live => {
-                    if let Some(p) = session.state.players.iter().find(|p| &p.name == player) {
-                        spawned_at.insert(p.id, tick);
-                        awaiting.insert(p.id, tick);
-                        unhit.insert(p.id, tick);
-                        tally.spawns += 1;
-                    }
-                }
-                GameEvent::Hit {
-                    shooter_id,
-                    target_id,
-                    target_hp_after,
-                    ..
-                } if live && shooter_id == target_id => {
-                    // A fighter's own blast is not a hit on anybody else.
-                    if target_hp_after <= 0 {
-                        tally.self_deaths += 1;
-                    }
-                }
                 GameEvent::Hit {
                     shooter_id,
                     target_id,
                     ..
-                } if live => {
-                    tally.hits += 1;
-                    for id in [shooter_id, target_id] {
-                        if let Some(at) = awaiting.remove(&id) {
-                            tally
-                                .contact_seconds
-                                .push(tick.saturating_sub(at) as f64 / 20.0);
-                        }
-                        if let Some(at) = unhit.remove(&id) {
-                            tally
-                                .hit_seconds
-                                .push(tick.saturating_sub(at) as f64 / 20.0);
-                        }
-                    }
+                } if live && shooter_id != target_id => {
+                    let (shooter_id, target_id) = (*shooter_id, *target_id);
                     let shooters = last_hit.entry(target_id).or_default();
                     let fresh = shooters
                         .get(&shooter_id)
@@ -1102,54 +943,17 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     }
                 }
                 GameEvent::Frag {
-                    victim_id,
+                    victim_id: Some(victim_id),
                     killer_id,
-                    weapon,
                     ..
                 } if live => {
-                    tally.frags += 1;
-                    if let Some(weapon) = weapon {
-                        *tally
-                            .frag_weapons
-                            .entry(weapon.name().to_string())
-                            .or_default() += 1;
-                    }
-                    let Some(victim_id) = victim_id else {
-                        continue;
-                    };
-                    if let Some(at) = awaiting.remove(&victim_id) {
-                        tally
-                            .contact_seconds
-                            .push(tick.saturating_sub(at) as f64 / 20.0);
-                    }
-                    if let Some(at) = unhit.remove(&victim_id) {
-                        tally
-                            .hit_seconds
-                            .push(tick.saturating_sub(at) as f64 / 20.0);
-                    }
-                    let killer = killer_id
-                        .filter(|killer| *killer != victim_id)
-                        .and_then(|killer| session.state.players.iter().find(|p| p.id == killer));
-                    let victim = session.state.players.iter().find(|p| p.id == victim_id);
-                    if let (Some(killer), Some(victim), Some(weapon)) = (killer, victim, weapon) {
-                        tally
-                            .kill_distances
-                            .entry(weapon.name().to_string())
-                            .or_default()
-                            .push(f64::from((killer.x - victim.x).hypot(killer.z - victim.z)));
-                    }
+                    let victim_id = *victim_id;
                     if let Some(killer) = killer_id {
-                        if openings.remove(&(killer, victim_id)) == Some(true) {
+                        if openings.remove(&(*killer, victim_id)) == Some(true) {
                             tally.blindside_frags += 1;
                         }
                     }
                     openings.retain(|(_, target), _| *target != victim_id);
-                    if spawned_at
-                        .get(&victim_id)
-                        .is_some_and(|at| tick.saturating_sub(*at) <= SPAWN_DEATH_TICKS)
-                    {
-                        tally.spawn_deaths += 1;
-                    }
                     if let Some(shooters) = last_hit.remove(&victim_id) {
                         let recent = shooters
                             .values()
@@ -1159,77 +963,29 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                             tally.focus_frags += 1;
                         }
                     }
-                    let near = |id: Option<Uuid>| {
-                        id.and_then(|id| session.state.players.iter().find(|p| p.id == id))
-                            .map(|p| (p.x, p.z))
-                    };
-                    let places = [near(Some(victim_id)), near(killer_id)];
-                    let contested = session.state.pickups.iter().enumerate().any(|(i, pad)| {
-                        power(pad.kind)
-                            && returned
-                                .get(i)
-                                .copied()
-                                .flatten()
-                                .is_some_and(|at| tick.saturating_sub(at) <= CONTEST_TICKS)
-                            && places
-                                .iter()
-                                .flatten()
-                                .any(|(x, z)| (pad.x - x).hypot(pad.z - z) <= CONTEST_RADIUS)
-                    });
-                    if contested {
-                        tally.contested_frags += 1;
-                    }
                 }
                 GameEvent::Pickup {
-                    ref pickup_id,
-                    ref weapon,
-                    ..
+                    pickup_id, weapon, ..
                 } if live => {
-                    tally.pickups += 1;
                     if let Some(claims) = tally.pad_claims.get_mut(pickup_id.as_str()) {
                         *claims += 1;
                     }
-                    if pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX) {
-                        tally.drop_claims += 1;
-                        if weapon == WeaponType::Rocket.name() {
-                            tally.rocket_drop_claims += 1;
-                        }
-                    }
-                    if let Some(index) = session
-                        .state
-                        .pickups
-                        .iter()
-                        .position(|p| &p.id == pickup_id)
+                    if pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX)
+                        && weapon == WeaponType::Rocket.name()
                     {
-                        match session.state.pickups[index].kind {
-                            PickupKind::Plate => tally.plate_claims += 1,
-                            PickupKind::Weapon(WeaponType::Rocket) => tally.rocket_claims += 1,
-                            _ => {}
-                        }
-                        if let Some(at) = returned[index].filter(|_| waiting[index]) {
-                            // The return tick stays for the contest window; the
-                            // next claim needs the next return.
-                            waiting[index] = false;
-                            let wait = tick.saturating_sub(at);
-                            tally.power_claims += 1;
-                            tally.power_wait_ticks += wait;
-                            if wait <= APPOINTMENT_TICKS {
-                                tally.appointments += 1;
-                            }
-                        }
+                        tally.rocket_drop_claims += 1;
                     }
-                }
-                GameEvent::Flag {
-                    kind: fragr_server::protocol::FlagEventKind::Captured,
-                    ..
-                } if live => {
-                    tally.objective_events += 1;
                 }
                 GameEvent::Speak { team: Some(_), .. } if live => {
                     tally.side_calls += 1;
                 }
                 _ => {}
             }
+        }
+        // Sabotage plays on through its rounds to the clock; every other
+        // mode is one round, over when it ends.
+        if !rounds && observer.finished() {
+            ended = true;
         }
     }
     tally.moving_windows += dither.moving;
@@ -1240,24 +996,10 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         if let Some(record) = session.state.player_record(id) {
             let rocket = record.total.weapon(WeaponType::Rocket);
             tally.rocket_launches += rocket.attacks;
-            // A rocket is a shot too: it leaves no hitscan trace, so the
-            // launcher would otherwise be missing from the gun share.
-            if rocket.attacks > 0 {
-                *tally
-                    .shots
-                    .entry(WeaponType::Rocket.name().to_string())
-                    .or_default() += rocket.attacks;
-            }
             tally.rocket_damaging += rocket.damaging_attacks;
         }
     }
-    if let Some(conquest) = session.state.snapshot().conquest {
-        tally.objective_events += conquest
-            .points
-            .iter()
-            .filter(|point| point.owner.is_some())
-            .count() as u64;
-    }
+    tally.shared.add(&observer.into_record(None).tally);
 }
 
 /// Problems that fail an asserted survey: rule bots that never fight, never

@@ -236,6 +236,7 @@ fn a_union_body_stops_the_pulse_without_friendly_damage() {
         phase_started: session.state.tick,
         phase_ends: session.state.tick,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     });
     advance(&mut session, 75);

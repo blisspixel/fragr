@@ -1,6 +1,17 @@
 # Locational damage and Helldivers 2: lessons for fragr
 
 Research of 2026-10-31 and the design source for locational damage (#533). A proposal until Nick decides the open choices below; adopted parts are built and measured through issues.
+
+**Built (wave 22, #533):** section 5's zones, class multipliers, campaign
+tables, the Ranged Sweeper mast, the `ShotResult.zone` wire (gameplay 66),
+per-zone marker and sound, plate and weak-spot sparks and the killing zone in
+the death recap. Open for Nick: the Railgun's bare-head one-shot is kept as
+the signature (the alternative is 6/5, 96, never a one-shot; one constant in
+`combat::head_scale`). Not built: arm zones, player limb injuries, a
+zone-band overlay in `tools/qa_tour.sh` (the controlled lineup
+`client/qa/zone_review.gd` draws the bands beside real pawns instead), bot
+tiers that aim by zone (item 11).
+
 Sources are cited inline; anything marked UNSOURCED is the author's inference
 or could not be verified. Some numbers come from community wikis and press
 summaries, not from the studios; treat them as approximate.

@@ -37,11 +37,15 @@ impl Audience {
 /// exact JSON text each of their writers sends. Immutable once built.
 #[derive(Debug)]
 pub struct Broadcast {
-    message: ServerMessage,
+    message: Arc<ServerMessage>,
     text: String,
     audience: Audience,
     /// For a world, its tick and the delta from the tick's previous world.
     world: Option<EncodedWorld>,
+    /// One fighter's view of the tick's world (`crate::interest`): `text`
+    /// is the view and `message` the whole world it was cut from, which only
+    /// queue decisions read. Never sent as a precomputed delta.
+    view: bool,
 }
 
 impl Broadcast {
@@ -68,11 +72,44 @@ impl Broadcast {
             },
         };
         Ok(Arc::new(Self {
-            message,
+            message: Arc::new(message),
             text,
             audience,
             world,
+            view: false,
         }))
+    }
+
+    /// A reader's view of `world`, already cut to `text`. A writer sends it
+    /// whole or diffs it against the world its reader holds.
+    pub fn view(world: &Arc<Self>, text: String) -> Arc<Self> {
+        Arc::new(Self {
+            message: Arc::clone(&world.message),
+            text,
+            audience: world.audience,
+            world: world.world.as_ref().map(|encoded| EncodedWorld {
+                tick: encoded.tick,
+                delta: None,
+                tried: None,
+            }),
+            view: true,
+        })
+    }
+
+    /// Whether this is one reader's view rather than the tick's world.
+    pub fn is_view(&self) -> bool {
+        self.view
+    }
+
+    /// The typed message this broadcast puts on the wire. A view is parsed
+    /// back from its text, so it is exactly what its reader receives.
+    pub fn sent_message(&self) -> ServerMessage {
+        if self.view {
+            if let Ok(message) = serde_json::from_str(&self.text) {
+                return message;
+            }
+        }
+        self.message.as_ref().clone()
     }
 
     pub fn audience(&self) -> Audience {
@@ -152,7 +189,7 @@ impl Outbound {
     /// The typed message, copied out of a shared broadcast.
     pub fn into_message(self) -> ServerMessage {
         match self {
-            Self::Shared(broadcast) => broadcast.message().clone(),
+            Self::Shared(broadcast) => broadcast.sent_message(),
             Self::Targeted(message) => *message,
         }
     }
@@ -646,6 +683,7 @@ fn same_vehicle_facts(
 
 fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
     let PlayerState {
+        objective,
         collidable,
         campaign,
         id,
@@ -675,6 +713,9 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         dress,
         // A newer ping reading supersedes an older one, like motion.
         ping: _,
+        // What a reader perceives changes like motion; the fields it hides
+        // are compared as sent.
+        sense: _,
     } = old;
     !just_fired
         && collidable == &new.collidable
@@ -698,6 +739,7 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         && airborne == &new.airborne
         && body == &new.body
         && dress == &new.dress
+        && objective == &new.objective
 }
 
 fn same_sabotage_facts(

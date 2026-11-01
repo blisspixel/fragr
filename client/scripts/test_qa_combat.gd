@@ -276,11 +276,16 @@ func _run() -> void:
 	_check(TOUR.valid_radio_comparison("", [{"radio_off":true}])
 		and TOUR.valid_radio_comparison("on", [{"radio_off":true}]),
 		"radio comparison leaves the default route alone and accepts explicit opt-in")
-	_check(TOUR.capture_quality("") == -1 and TOUR.capture_quality("performance") == 0
-		and TOUR.capture_quality("Balanced") == 1 and TOUR.capture_quality("high") == 2,
-		"run-wide capture preset accepts the three named presets and leaves an unset run alone")
-	_check(TOUR.capture_quality("ultra") == -2 and TOUR.capture_quality("1") == -2,
+	_check(TOUR.capture_quality("") == -1 and TOUR.capture_quality("potato") == 0 and TOUR.capture_quality("low") == 1
+		and TOUR.capture_quality("Medium") == 2 and TOUR.capture_quality("high") == 3 and TOUR.capture_quality("ultra") == 4,
+		"run-wide capture tier accepts the five named tiers and leaves an unset run alone")
+	_check(TOUR.capture_quality("balanced") == -2 and TOUR.capture_quality("1") == -2,
 		"run-wide capture preset rejects unknown names and bare indices")
+	_check(TOUR.quality_name(0) == "potato" and TOUR.quality_name(1) == "low"
+		and TOUR.quality_name(2) == "medium" and TOUR.quality_name(3) == "high"
+		and TOUR.quality_name(4) == "ultra" and TOUR.quality_name(-1) == "unknown"
+		and TOUR.quality_name(5) == "unknown",
+		"each capture names its tier, and an index outside the tiers says unknown")
 	_check(not TOUR.valid_radio_comparison("on", [{"camera":"first_person"}])
 		and not TOUR.valid_radio_comparison("yes", [{"radio_off":true}]),
 		"radio comparison rejects unsupported and inapplicable overrides")

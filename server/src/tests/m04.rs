@@ -361,6 +361,7 @@ fn notary_shot_box_has_raised_underbody_and_wide_square_edges() {
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     });
     let feet = [8.0, 4.0, 0.0];
