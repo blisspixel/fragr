@@ -17,6 +17,8 @@ pub(super) use connected::M13Progress;
 mod tests;
 
 pub(crate) use hazard::Cycle;
+#[cfg(test)]
+pub(crate) use lift::Phase as LiftPhase;
 pub(crate) use lift::{deck_at, step_blocked, Body as LiftBody};
 
 pub(crate) fn hazard_overlap(a: &crate::protocol::Region3, b: &crate::protocol::Region3) -> bool {

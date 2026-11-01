@@ -66,6 +66,11 @@ static func sites() -> Dictionary:
 			{"host": [Vector3(-0.4, 5.7, 18.2), Vector3(0.4, 8.1, 18.8)], "hide": [],
 				"props": [["gantry_hoist", Vector3(-1.59, 5.7, 18.0), Vector3(0.57, 8.1, 19.0), 0]]},
 		],
+		"All Systems Normal": [
+			# The square's tram, stalled for repairs while Splice's motor comes.
+			{"host": [Vector3(-31, 0, -22.5), Vector3(-22, 3.2, -19.5)], "hide": [],
+				"props": [["civilian_tram", Vector3(-31, 0, -22.5), Vector3(-22, 3.2, -19.5), 0]]},
+		],
 		"Planned Works": _planned_works(),
 		"Local Exception": [
 			# The tram left at the end of the line, pantograph folded.

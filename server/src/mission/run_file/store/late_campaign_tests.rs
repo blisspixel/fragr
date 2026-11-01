@@ -387,3 +387,97 @@ fn exhausted_m18_and_m19_entries_stay_failed_and_refuse_still_here() {
         }
     }
 }
+
+/// The kit a player carries out of Level 16 after earning it through
+/// Episodes I to IV: every personal weapon those levels hand out, with the
+/// finite ammunition, health and armour of a fighter who has just crossed the
+/// avenue rather than a full refill: pools about half full, since Tack,
+/// Flechette and Repeater magazines all draw on the one bullet pool.
+/// Representative, not a measured M16 exit.
+fn episode_iv_exit() -> serde_json::Value {
+    serde_json::json!({
+        "hp": 72,
+        "armor": 15,
+        "equipment": {
+            "selected": "flechette",
+            "weapons": ["fists", "tack", "shiv", "flechette", "scatter", "rail", "sniper", "repeater", "arc", "rocket"],
+            "ammo": [
+                {"pool": "bullets", "rounds": 110},
+                {"pool": "shells", "rounds": 20},
+                {"pool": "cells", "rounds": 40},
+                {"pool": "rockets", "rounds": 3}
+            ],
+            "grenades": 0,
+            "proximity_mines": 0,
+            "remote_mines": 0,
+            "personal_claims": ["pocket_rifle", "transit_shotgun", "fountain_rocket"]
+        }
+    })
+}
+
+/// A real M16 departure for the bundled maps: the earned outcome chain
+/// through Level 15, Level 16 entered and completed with the Episode IV kit,
+/// awaiting Level 17. Set FRAGR_TEST_RUN_FIXTURE_DIR to an unused absolute
+/// directory to retain it for the Level 17 capture route
+/// (tools/qa_m17_carried.sh).
+#[test]
+fn m16_departure_fixture_carries_an_earned_kit_into_m17() {
+    let hashes: ContentHashes =
+        CAMPAIGN_MISSIONS.map(crate::maps::AuthoredSource::bundled_content_sha256);
+    let entered = m15_tests::completed_stadium()
+        .promote_next(
+            MissionId::FreedomOfMovement,
+            hashes[stage_index(MissionId::FreedomOfMovement)],
+        )
+        .unwrap();
+    let mut document = serde_json::to_value(&entered).unwrap();
+    let step = &mut document["step"];
+    assert_eq!(step["kind"], "mission_entry");
+    *step = serde_json::json!({
+        "kind": "awaiting_mission",
+        "completed_mission": "freedom_of_movement",
+        "next_mission": "peace_without_interruption",
+        "exit": episode_iv_exit(),
+    });
+    document["m16_outcome"] = serde_json::json!({
+        "ride_started": true,
+        "green_wave_triggered": true,
+        "bus_freed": true,
+        "forecourt_secured": true,
+        "doors_open": true,
+    });
+    document["rules"]["difficulty"] = "assisted".into();
+    let departure: RunDocument = serde_json::from_value(document).unwrap();
+    departure
+        .validate(hashes[stage_index(MissionId::FreedomOfMovement)])
+        .unwrap();
+    // Level 17 opens from it with the kit intact and the old claims cleared.
+    let next = departure
+        .promote_next(
+            MissionId::PeaceWithoutInterruption,
+            hashes[stage_index(MissionId::PeaceWithoutInterruption)],
+        )
+        .unwrap();
+    let SavedStep::MissionEntry { mission, entry } = &next.step else {
+        unreachable!()
+    };
+    assert_eq!(*mission, MissionId::PeaceWithoutInterruption);
+    assert_eq!((entry.hp, entry.armor), (72, 15));
+    assert!(entry.equipment.personal_claims.is_empty());
+    assert_eq!(
+        serde_json::to_value(&entry.equipment).unwrap()["weapons"],
+        episode_iv_exit()["equipment"]["weapons"]
+    );
+    let retained = std::env::var_os("FRAGR_TEST_RUN_FIXTURE_DIR");
+    let directory = retained.as_ref().map_or_else(
+        || std::env::temp_dir().join(format!("fragr-m17-fixture-{}", Uuid::new_v4())),
+        PathBuf::from,
+    );
+    let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
+    store.save(&departure).unwrap();
+    assert_eq!(store.load().unwrap().unwrap(), departure);
+    drop(store);
+    if retained.is_none() {
+        fs::remove_dir_all(directory).unwrap();
+    }
+}

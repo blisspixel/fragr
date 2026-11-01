@@ -13,9 +13,20 @@ extends "res://scripts/qa_tour.gd"
 const MANIFEST: String = "res://qa/m18-live-review.json"
 const CHASE_BACK: float = 5.2
 const CHASE_UP: float = 2.4
-## Over the square from its west side, the depot and the work in view.
-const SQUARE_EYE: Vector3 = Vector3(-40.0, 2.0, 10.0)
-const SQUARE_FOCUS: Vector3 = Vector3(-26.0, 1.0, -4.0)
+## Over the square from the clinic street's mouth, looking back toward the
+## entry: the stalled tram, the machines at work, the depot and the stalls.
+const SQUARE_EYE: Vector3 = Vector3(-19.0, 2.6, -3.0)
+const SQUARE_FOCUS: Vector3 = Vector3(-40.0, 1.0, -8.0)
+## Beside the stalled tram, its lamps and route board in view.
+const TRAM_EYE: Vector3 = Vector3(-33.0, 1.9, -15.0)
+const TRAM_FOCUS: Vector3 = Vector3(-24.0, 1.3, -21.0)
+## The turn as a frame strip from the square's west side looking east, between
+## the cargo stacks: the machines, the clinic's lamp, the overlook's tower
+## and the far district in one frame, one still every few ticks.
+const STRIP_EYE: Vector3 = Vector3(-50.0, 3.6, 2.0)
+const STRIP_FOCUS: Vector3 = Vector3(-20.0, 3.4, 4.0)
+const STRIP_TICKS: int = 4
+const STRIP_END: int = 84
 
 var _review_shots: Array[Dictionary] = []
 var _review_taken: Dictionary = {}
@@ -58,11 +69,19 @@ func _process(delta: float) -> bool:
 	var started: Variant = progress.get("turn_started")
 	if mission.get("phase") == "in_progress" and started == null:
 		_shot("square_morning", SQUARE_EYE, SQUARE_FOCUS)
+		_shot("tram_morning", TRAM_EYE, TRAM_FOCUS)
+		_shot("strip_morning", STRIP_EYE, STRIP_FOCUS)
 		if not latch.is_empty():
 			var l: Vector3 = Vector3(float(latch["x"]), float(latch["y"]) - 1.5, float(latch["z"]))
 			_shot("latch_with_crate", l + Vector3(-3.0, 1.9, -2.6), l + Vector3(0.0, 1.2, 0.0))
 	if started is float:
 		var age: int = tick - int(started)
+		if age >= 0 and age <= STRIP_END and age % STRIP_TICKS < 2:
+			_shot("strip_%03d" % (age - age % STRIP_TICKS), STRIP_EYE, STRIP_FOCUS)
+		# One still on a lit beat of the rhythm, when the infrastructure and
+		# the machines carry it together.
+		if age > M18Transit.HEADS_TURN_TICKS + 2 and age < M18Transit.TURN_TICKS and M08Archive.noise_lit(float(age - M18Transit.HEADS_TURN_TICKS) * 0.05) and age % 2 == 0:
+			_shot("turn_rhythm_lit", STRIP_EYE, STRIP_FOCUS)
 		if age >= 2 and age < M18Transit.HEADS_TURN_TICKS:
 			_shot("turn_stopped", SQUARE_EYE, SQUARE_FOCUS)
 		if age >= M18Transit.HEADS_TURN_TICKS + 4 and age < M18Transit.LATCH_LOOKS_TICKS:
@@ -77,6 +96,8 @@ func _process(delta: float) -> bool:
 			var to_agent: Vector3 = Vector3(feet.x - l.x, 0.0, feet.z - l.z)
 			to_agent = to_agent.normalized() if to_agent.length() > 0.1 else Vector3(-1.0, 0.0, 0.0)
 			_shot("turn_latch_looks", l + to_agent * 2.6 + Vector3(-to_agent.z, 0.0, to_agent.x) * 0.9 + Vector3(0.0, 1.6, 0.0), l + Vector3(0.0, 1.45, 0.0))
+		if age >= M18Transit.TURN_TICKS + 90 and age < M18Transit.TURN_TICKS + 200:
+			_shot("tram_after", TRAM_EYE, TRAM_FOCUS)
 		if age >= M18Transit.TURN_TICKS + 6 and age < M18Transit.TURN_TICKS + 40:
 			_shot("turn_moves", SQUARE_EYE, SQUARE_FOCUS)
 		if age >= M18Transit.TURN_TICKS + 20 and age < M18Transit.TURN_TICKS + 80:

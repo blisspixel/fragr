@@ -65,6 +65,17 @@ pub enum CompanionKind {
     Latch,
 }
 
+/// A person in a story beat the server stages (gameplay 65): present, moved
+/// by the server along an authored walk, and nobody's enemy or target.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FigureKind {
+    /// Chancellor Voss, at her rostrum and then in coalition custody.
+    Voss,
+    /// A free coalition person taking Voss into custody.
+    Coalition,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CompanionPhase {
@@ -149,6 +160,10 @@ pub enum CampaignActor {
         placard: u8,
         armed: bool,
     },
+    /// A story figure (Level 17's custody): never hostile, never damaged.
+    Figure {
+        kind: FigureKind,
+    },
 }
 
 /// The Inheritance's two control domains on the wire.
@@ -186,6 +201,9 @@ enum ActorWire {
     Entrant {
         placard: u8,
         armed: bool,
+    },
+    Figure {
+        kind: FigureKind,
     },
 }
 
@@ -234,6 +252,7 @@ impl From<CampaignActor> for ActorWire {
                 },
             },
             CampaignActor::Entrant { placard, armed } => Self::Entrant { placard, armed },
+            CampaignActor::Figure { kind } => Self::Figure { kind },
         }
     }
 }
@@ -256,6 +275,7 @@ impl TryFrom<ActorWire> for CampaignActor {
                 })
             }
             ActorWire::Entrant { placard, armed } => return Ok(Self::Entrant { placard, armed }),
+            ActorWire::Figure { kind } => return Ok(Self::Figure { kind }),
             ActorWire::Union {
                 kind,
                 phase,
@@ -383,6 +403,11 @@ impl CampaignActor {
     pub fn is_entrant(self) -> bool {
         matches!(self, Self::Entrant { .. })
     }
+
+    /// A staged story figure: nobody's enemy, nobody's target.
+    pub fn is_figure(self) -> bool {
+        matches!(self, Self::Figure { .. })
+    }
 }
 
 /// Identity, not callsign or control role, decides hostility. Missing identity
@@ -390,7 +415,13 @@ impl CampaignActor {
 pub fn hostile(a: Option<CampaignActor>, b: Option<CampaignActor>) -> bool {
     match (a, b) {
         (None, None) => true,
-        (Some(a), Some(b)) => !a.at_work() && !b.at_work() && a.is_enemy() != b.is_enemy(),
+        (Some(a), Some(b)) => {
+            !a.at_work()
+                && !b.at_work()
+                && !a.is_figure()
+                && !b.is_figure()
+                && a.is_enemy() != b.is_enemy()
+        }
         _ => false,
     }
 }
@@ -413,6 +444,46 @@ impl super::PlayerState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_story_figure_is_nobodys_enemy_and_round_trips() {
+        let union = Some(CampaignActor::Hostile {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+            control: ControlDomain::Union,
+        });
+        for kind in [FigureKind::Voss, FigureKind::Coalition] {
+            let figure = CampaignActor::Figure { kind };
+            assert!(figure.is_figure() && !figure.is_enemy() && !figure.is_participant());
+            for other in [union, Some(CampaignActor::Participant {}), Some(figure)] {
+                assert!(!hostile(Some(figure), other) && !hostile(other, Some(figure)));
+            }
+            let wire = serde_json::to_value(figure).unwrap();
+            assert_eq!(wire["side"], "figure");
+            assert_eq!(
+                serde_json::from_value::<CampaignActor>(wire).unwrap(),
+                figure
+            );
+        }
+        assert_eq!(
+            serde_json::to_value(CampaignActor::Figure {
+                kind: FigureKind::Voss
+            })
+            .unwrap(),
+            serde_json::json!({"side": "figure", "kind": "voss"})
+        );
+        assert!(serde_json::from_value::<CampaignActor>(
+            serde_json::json!({"side": "figure", "kind": "chancellor"})
+        )
+        .is_err());
+        assert!(serde_json::from_value::<CampaignActor>(
+            serde_json::json!({"side": "figure", "kind": "voss", "phase": "idle"})
+        )
+        .is_err());
+    }
 
     #[test]
     fn a_body_at_work_is_nobodys_enemy_until_its_phase_changes() {

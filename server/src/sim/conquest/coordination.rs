@@ -8,6 +8,8 @@ const SITES: usize = super::POINTS.len();
 #[derive(Default)]
 pub(in crate::sim) struct Orders {
     goals: HashMap<Uuid, usize>,
+    /// Seated drivers' routes (`driving.rs`).
+    pub(super) drives: HashMap<Uuid, super::driving::Drive>,
     #[cfg(test)]
     pub(super) evaluations: usize,
 }
@@ -39,8 +41,25 @@ struct Site {
 
 impl GameState {
     pub(crate) fn plan_conquest_orders(&mut self, controllers: &[BotController]) {
-        let previous = std::mem::take(&mut self.conquest_orders);
-        self.conquest_orders = plan(self, controllers, &previous);
+        let mut previous = std::mem::take(&mut self.conquest_orders);
+        let mut orders = plan(self, controllers, &previous);
+        // A driver keeps the site it set off for (`driving.rs`); the infantry
+        // pass leaves seated bots out.
+        for controller in controllers {
+            let id = controller.player_id;
+            if self.vehicle_seat(id).is_some() {
+                if let Some(site) = previous.goals.get(&id) {
+                    orders.goals.insert(id, *site);
+                }
+            }
+        }
+        if let Some(conquest) = &self.conquest {
+            orders.drives =
+                self.plan_drives(controllers, std::mem::take(&mut previous.drives), |id| {
+                    orders.point(id, conquest).map(|point| point.position)
+                });
+        }
+        self.conquest_orders = orders;
     }
 }
 

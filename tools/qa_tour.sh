@@ -17,6 +17,14 @@
 # FRAGR_QA_QUALITY=performance|balanced|high runs the whole tour on that
 # graphics preset; a state's own "graphics" options still win for that state.
 #
+# FRAGR_QA_LOCAL_MISSION=<mission id> with FRAGR_QA_RUN_FIXTURE=<directory
+# holding a saved run.json> photographs a carried campaign run instead: the
+# fixture is copied into the tour's own run directory and the tour resumes it
+# through the same durable local child the desktop menu launches
+# (--local-mission ... --run-mode resume), so the mission starts with the
+# saved kit, health, continues and difficulty. tools/qa_m17_carried.sh makes
+# such a fixture.
+#
 # Usage: tools/qa_tour.sh [--publish] [output directory]
 #   --publish also runs a short team deathmatch pass and a Recall Notice
 #   arrival pass on the Level 1 map file, copies the approved
@@ -267,9 +275,52 @@ if [ "$(uname -s)" = "Linux" ] && [ -z "$QA_DISPLAY" ]; then
   echo "qa_tour: display $QA_DISPLAY ($([ "$QA_SOFTWARE" = "1" ] && echo "Xvfb, software" || echo "nested Xwayland, GPU"))"
 fi
 
-start_server "$OUT_DIR/server.log" "${SERVER_ARGS[@]}"
-run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
-stop_server
+# A saved run resumes in the durable local child. It binds its own loopback
+# port and prints one readiness line; its stdin is the parent lease, held open
+# until the tour ends.
+start_local_run() {
+  local log="$1"
+  [ -f "${FRAGR_QA_RUN_FIXTURE:-}/run.json" ] || {
+    echo "qa_tour: FRAGR_QA_LOCAL_MISSION needs FRAGR_QA_RUN_FIXTURE with a run.json" >&2; exit 1; }
+  mkdir -p "$OUT_DIR/run"
+  cp "$FRAGR_QA_RUN_FIXTURE/run.json" "$OUT_DIR/run/run.json" || exit 1
+  LEASE="$OUT_DIR/run.lease"
+  rm -f "$LEASE"
+  mkfifo "$LEASE" || exit 1
+  exec 7<>"$LEASE"
+  FRAGR_RUN_DIR="$OUT_DIR/run" "${CARGO_TARGET_DIR:-$ROOT/target}/release/fragr-server" \
+    --local-mission "$FRAGR_QA_LOCAL_MISSION" --run-mode resume --seed "${FRAGR_QA_SEED:-42}" \
+    <"$LEASE" >"$OUT_DIR/ready.json" 2>"$log" &
+  SERVER_PID=$!
+  local url=""
+  for _ in $(seq 1 100); do
+    kill -0 "$SERVER_PID" 2>/dev/null || break
+    url=$(grep -o '"url":"ws://[^"]*"' "$OUT_DIR/ready.json" 2>/dev/null | head -1 | sed 's/"url":"ws:\/\///; s/"$//')
+    [ -n "$url" ] && break
+    sleep 0.1
+  done
+  if [ -z "$url" ]; then
+    echo "qa_tour: the local run never became ready" >&2
+    tail -5 "$log" >&2
+    exit 1
+  fi
+  export FRAGR_SERVER="$url"
+  echo "qa_tour: local run $FRAGR_QA_LOCAL_MISSION ready at $url"
+}
+
+if [ -n "${FRAGR_QA_LOCAL_MISSION:-}" ]; then
+  start_local_run "$OUT_DIR/server.log"
+  run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
+  kill "$SERVER_PID" >/dev/null 2>&1
+  wait "$SERVER_PID" 2>/dev/null
+  SERVER_PID=""
+  exec 7>&-
+  rm -f "$LEASE"
+else
+  start_server "$OUT_DIR/server.log" "${SERVER_ARGS[@]}"
+  run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
+  stop_server
+fi
 
 # A `latest` pointer so the critique step never has to know the stamp.
 # Remove only previous tour files, never recursively delete a computed path.

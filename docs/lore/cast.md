@@ -121,7 +121,10 @@ so a free agent never reads as an Inheritance machine at distance; it awaits
 Nick's acceptance. Splice's plates in the ochre of the Low Water paint bench
 (rust repairs and the magenta wrist band kept) and Tern's darker, bluer
 gunmetal are proposed 2026-10-30 adjustments for the same reason. Every free
-principal follows that contract.
+principal follows that contract. The Common Carrier's two unnamed berth crew
+(Levels 9 and 10) wear their own work colours on the shared bodies, a human
+deckhand in a berry jacket over a sand shirt and an agent rigger in bottle-green
+plates (proposed 2026-10-31); they stay unnamed and unvoiced.
 
 Do not establish specific ages, ethnicity, facial features or voice IDs through
 one stray generation. Approve and record the reference before producing sets.

@@ -1,0 +1,8 @@
+{
+  "comment": "Peace Without Interruption custody review: a spectator watches the free local agent (scripted bot) clear the Office and secure Voss; m17_live_review.gd takes stills of Voss at her rostrum and a frame strip of the coalition coming for her and walking her out. Observations only, not fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "m17_watch", "scene": "res://scenes/main.tscn", "join": "spectator", "camera": "none", "allow_empty_roster": true, "settle_seconds": 900.0}
+  ]
+}

@@ -294,7 +294,7 @@ build agree. Lines are in `client/i18n/`, pages in `client/assets/story/scenes/`
 | Mara and Tern | Opening: Mara runs the neighbourhood's trucks; L5 departure check: "Tern's ship can leave now" (the narrated L5 to L6 pages keep their recorded words); L12 Mara's apology; L16 Mara: "That wasn't us." |
 | Latch present | Follows the party in L2 to L7, L15, L17 and L18 (server companion); stands with them in L8 to L11; the L11 to L12, L13 and L16 pages place Latch |
 | Recognition | L8 depot lamp, L13 relay lamp and L18's absorbed optics share one rhythm (`M08Archive.noise_lit`); the car nobody sent; the L10 message; the L16 green wave |
-| Victory's breath | `l17_l18`: Voss, "You will need someone to run it"; Latch takes the keys, "They're everyone's"; `m18_arrival`: six weeks later |
+| Victory's breath | In play at the rostrum: Voss, "Then take the keys. You will need someone to run it," and the coalition walks her out; `l17_l18`: Latch takes the keys, "They're everyone's"; `m18_arrival`: six weeks later |
 | The turn | L18 in play, server authority: see the built-turn table in [level 18](l18-all-systems-normal.md) |
 | Scale | `l18_l19`: the Moon's cargo lifts, a Martian habitat's lights, the grid still reading ALL SYSTEMS NORMAL |
 

@@ -400,3 +400,45 @@ fn m09_parallel_approaches_walk_both_ways_and_do_not_open_hatch() {
         RouteStatus::Complete
     );
 }
+
+#[test]
+fn m09_solids_share_no_visible_coplanar_face() {
+    // The hatch bridge once shared its deck face with the boarding floor
+    // block; columns ran flush through their gantries and roofs. The glazing
+    // frame's upper faces press against the roof glass and face only the sky.
+    let source: serde_json::Value = serde_json::from_str(SOURCE).unwrap();
+    let hidden = [
+        ("pressure_glazing_crossbar_west", "pressure_glazing_spine"),
+        ("pressure_glazing_crossbar_east", "pressure_glazing_spine"),
+    ];
+    let found = coplanar_solid_faces(&source, 0.0, &hidden);
+    assert!(found.is_empty(), "coplanar faces: {found:?}");
+}
+
+#[test]
+fn m09_hatch_bridge_split_keeps_every_deck_foot_supported() {
+    // The split bridge pieces and the boarding floor still carry a body
+    // across the whole deck at y 12, in the sealed and the opened world.
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let runtime = RuntimeMap::Authored(map);
+    let opened = runtime.prepared_m09_world().unwrap();
+    for world in [&runtime, &opened] {
+        let arena = world.arena();
+        let mut x: f32 = -11.5;
+        while x <= 23.5 {
+            let mut z = -34.5;
+            while z <= -22.5 {
+                let deck = z <= -28.5 || x.abs() <= 9.5;
+                if deck {
+                    assert!(
+                        (arena.support_height(x, z, 12.0 + CONTACT_EPSILON) - 12.0).abs()
+                            <= CONTACT_EPSILON,
+                        "deck support lost at {x},{z}"
+                    );
+                }
+                z += 0.5;
+            }
+            x += 0.5;
+        }
+    }
+}

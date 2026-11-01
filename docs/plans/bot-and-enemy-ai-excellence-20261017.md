@@ -348,3 +348,53 @@ M14 seed 1015 is a route-controller loss, not the game. Out of rounds after the 
 Seed 44 (#497) is an evaluator problem in the shared navigator, not content or lifecycle: the run, its retry and every guard are in order. After its one death, deliberate/Assisted sidestepped a tell into the 2 m pocket behind the dispatch screen (between the screen at z 30 and the transfer wall at z 28). With walls on whole metres every navigation cell centre there touches a wall, so no route found a start and the shared steer returned no keys for 488 s; rendered, the view is the transfer wall at arm's length. A start with no waypoint within two cells now searches six (`navigation.rs`, starts only). Regressions: `a_body_in_a_corridor_without_waypoints_still_routes_out` and `recall_notice_dispatch_pocket_routes_to_the_transfer_record` (every standing spot along the pocket). On `main` with only that change, seed 44 deliberate/Assisted departs at 119.8 s with a 5.0 s longest stall, and no other trial of seeds 40 to 71 changes.
 
 The late-campaign carried routes (M16 to M18, seed 41) still depart; their recorded wire vectors in `client/golden/late_campaign_routes.json` were regenerated: only M17's objective ticks moved, by 18 to 125 ticks; M16 and M18 are unchanged. Two playtest fixtures moved with reasons in them: the formerly stranded reload fixture uses seed 40 deliberate/Assisted (seed 43 no longer dies), and the exhausted carry uses seed 42 deliberate/Standard (seeds 54 and 40 no longer spend all three continues once M01 retries run on their own streams, #489). The earned-departure and retry-seed pinning fixtures moved from seed 42 to 41 for #489, with reasons in the tests. Not done: human play of the dispatch office, Windows rendering.
+
+### Wave 20: bots hunt a quiet round and take the jeeps (#517)
+
+The wave 19 map survey found Duel off Larak Lot barely fought (Sector 9: no shot in twenty minutes) and rule bots never used Holdfast's vehicles. Traced on Sector 9 with a per-tick log of both bots' positions, choices and sight checks, the cause was three things together, not the length of the quiet: (1) a pad-timing oscillation in `pad_plan`, where the cost weighed the walk but not the wait, so a pad due later got cheaper with every step away from it and bots turned back and forth between two pads for minutes; (2) urgent pad errands (every gun not yet owned, every top-up) filling more than half of a quiet round; (3) two bots walking parallel lanes 30 m apart, each looking only down its own path, so neither entered the other's 120 degree cone. The wave 19 "go looking after 15 quiet seconds" experiment replaced none of these, and walked to a random spawn re-picked every four seconds.
+
+What changed (`server/src/sim/bot_senses.rs`, `bot_senses/hunt.rs`, `session.rs`):
+
+- **Pad choice keeps to its errand.** Cost is the time to the claim, walking or waiting (never cheaper walking away), and the pad a bot set off for (remembered from its own navigation goal, `note_bot_goal`) keeps six seconds of extra slack and a fifth off its cost.
+- **Hearing.** Hostile gunfire carries 60 m with a line and 36 m through walls, blasts 72 m, a pad being taken 24 m and running (not crouched) feet 18 m. A sound gives a place off by up to 15 percent of its distance; it is a walking goal, never aim, and the shared sight gate still decides every shot. A fighter lost from view leaves a clue a second along the way it was going, followed for eight seconds.
+- **Quiet rounds are hunted.** With no sighting or hit for four seconds, a supplied bot follows a clue first, takes top-ups only within 10 m, keeps only its timed power pad, a first real gun or mending as errands, and otherwise patrols: the stalest pad or spawn, weighted toward power pads, the middle of the floor and a power pad its own pad memory says is due about when it could arrive. It looks round for a moment on arrival.
+- **Glances.** In free-for-all, Duel and team deathmatch, a bot walking with nobody in view turns its head an eighth or a quarter turn either side for part of every 3.2 s, with the movement keys turned back so the navigator's route is walked exactly (`movement::wish_dir`).
+
+Holdfast vehicles (`server/src/sim/conquest/driving.rs`, `conquest.rs`, `conquest/coordination.rs`): a Conquest bot whose ordered site is 60 m or more away walks to an empty jeep within 30 m (nobody in either seat, no person on its side within 15 m of it, no further from the site) and presses to board from beside the door. It drives the map's walking route toward the site, replanned every two seconds, steering for the first point 7 m ahead, lifting off for sharp turns and braking inside 26 m, and gets out within 14 m of the site, below 100 plating, or after three seconds without two metres of ground (backing off a wall when no door is clear). The site it set off for is kept while seated. Boats and the aircraft are left alone, and a bot never takes a gunner seat. Weapon choice and pads are unchanged.
+
+`fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8 --time-limit-seconds 150` (release, eight seeded 150 s rounds per row; `--survey-only` is new and filters rows). Before is `57d1f2b5`, with the rebuilt Compliance Yard and Low Water.
+
+| Row | Frags/min before | after | Lead changes before | after |
+|---|---|---|---|---|
+| duel-larak-lot-2 | 2.6 | 2.7 | 0 | 1 |
+| duel-compliance-yard-2 | 2.5 | 3.2 | 0 | 0.1 |
+| duel-directive-17-substation-2 | 3 | 3.9 | 1 | 0.4 |
+| duel-sector-9-transit-hall-2 | 0 | 1.2 | 0 | 0.5 |
+| duel-reclamation-gulch-2 | 1.4 | 2.4 | 0.3 | 0.3 |
+| duel-tripoint-works-2 | 0.9 | 1.2 | 0.1 | 0.5 |
+| duel-holdfast-atoll-2 | 0.8 | 0.7 | 0 | 0 |
+| duel-low-water-2 | 2 | 2.7 | 0.4 | 0 |
+| ffa-larak-lot-6 | 20.8 | 21 | 3.1 | 3.5 |
+| ffa-compliance-yard-6 | 17.4 | 17.5 | 3.4 | 3.3 |
+| ffa-directive-17-substation-8 | 25.7 | 26 | 4 | 4 |
+| ffa-sector-9-transit-hall-8 | 11.4 | 12.9 | 2.9 | 1.6 |
+| ffa-reclamation-gulch-12 | 22 | 22.6 | 2.6 | 3.5 |
+| ffa-tripoint-works-12 | 20.3 | 22 | 3.6 | 2.9 |
+| ffa-holdfast-atoll-16 | 31.5 | 33.9 | 4.5 | 4.1 |
+| ffa-low-water-10 | 32.4 | 33.3 | 2.9 | 2.6 |
+| tdm rows (eight maps) | 13.2 to 28.5 | 13.1 to 30.7 | | |
+
+FFA lead changes on a second set of eight seeds (9 to 16), before and after (Compliance Yard and Low Water on their earlier layouts): Larak Lot 2.5 / 2.3, Compliance Yard 2.5 / 3.4, Directive 17 4.8 / 3.8, Sector 9 2.8 / 3.3, Gulch 2.1 / 2.5, Tripoint 3.3 / 2.9, Holdfast 3.8 / 3.8, Low Water 2.6 / 3.1. Lead changes move by about one per match between seed sets, so the per-map changes above are inside seed noise; frag pace rises on every FFA row in both sets.
+
+| Conquest, Holdfast, 16 bots | Before | After |
+|---|---|---|
+| Fighter seconds in a vehicle seat (8 rounds) | 0 | 833 |
+| Sites changing hands | 32 | 38 |
+| Frags/min | 8.4 | 9.1 |
+| Over-five-second stalls (holds / wedges) | 219 / 0 | 219 / 4 |
+
+CTF and Sabotage rows are unchanged (their controllers do not use the hunt). The four Conquest wedges are on foot (one kept spot: seed 2, tick 2181, at (61.3, 72.6), beside the moored east boat), not in a jeep; the in-jeep wedges a first version produced (a jeep nosed into a wall regains a little speed every tick, so a speed test never called it stuck) are gone with the ground test.
+
+Duel targets now print in `--survey-maps` (one frag a minute). Holdfast Atoll misses it: two fighters on the 16-seat island spend most of a life walking 200 m from a spawn on the ring, and the bots do meet once they cross. Duel is only offered on Larak Lot by the desktop host; a dedicated server can still pick any map, and whether Duel should refuse Holdfast is a map pairing decision left open.
+
+Tests: `sim::bot_senses::tests::{gunfire_through_a_wall_is_a_place_to_look_never_a_shot, hearing_has_a_reach_and_a_crouch_walks_quietly, a_quiet_bot_patrols_the_map_instead_of_standing_on_its_pads, a_pad_already_set_off_for_is_kept_when_its_clock_runs_long}`, `sim::conquest::driving::tests` (a ride, a jeep left for a person, steering, braking, getting out and backing off a wall) and the seeded session rounds in `server/src/tests/hunt.rs` (`duel_bots_on_sector_9_find_each_other`, `conquest_bots_drive_jeeps_toward_sites_and_get_out`). Two older assertions changed with the behaviour, with reasons in them: a fighter lost from view is forgotten but the place is searched, and a pad twelve seconds early is still not an appointment though a quiet bot may patrol past it.

@@ -219,7 +219,9 @@ static func venue_for(info: Dictionary) -> String:
 		return "moon_port"
 	if info.get("m07") is Dictionary:
 		return "moon_town"
-	if info.get("m04") is Dictionary or info.get("m05") is Dictionary:
+	# All Systems Normal's recovery square is Low Water's people rebuilding
+	# across town: the same plaster, paint and enamel, in morning light.
+	if info.get("m04") is Dictionary or info.get("m05") is Dictionary or info.get("m18") is Dictionary:
 		return "low_water"
 	return ""
 

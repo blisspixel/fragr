@@ -39,6 +39,10 @@ For the factions, machines, and history behind the scrap, see [The world and its
 
 The campaign is twenty levels across five episodes. All twenty are playable as connected development levels, from Recall Notice through Local Exception, and surviving Level 20 opens the Still Here epilogue, a walk through the refuge the morning after and years later. Level 1 is the golden slice the rest are being raised to. For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
 
+## Road to 1.0
+
+The aim is a shooter that is fun as hell. 1.0 is defined by the craft that gets there, measured rather than hoped for: shots and movement on screen within 60 ms, remote players drawn no more than 75 ms behind, movement and time-to-kill inside the bands that made Counter-Strike, Quake and Halo feel right, no weapon above 45% of shots, footsteps you can hear and place, fair and readable fights on every default map, bots with real difficulty tiers, campaign checkpoints no more than three minutes apart, 60 fps lows on an integrated GPU, a 24-hour soak with no crash, a client that cannot see through walls, and nothing placeholder anywhere a player can reach. Each gate has a target and a repeatable measurement; fragr stays at 0.x until every one is met. The gates, where each stands today and the order of work toward them are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar), backed by sourced research in [fun craft targets](docs/plans/fun-craft-targets.md).
+
 ## In game
 
 These are actual captures from the development build. They show provisional
@@ -149,6 +153,7 @@ a bring-your-own skill path. They are not a fifth mode.
 | Sound, voice and music review (developers) | [Audio generation](tools/audiogen/README.md), including a local page for marking radio tracks keep or reject |
 | Architecture and network contract | [Architecture](docs/ARCHITECTURE.md) and [protocol](docs/protocol.md) |
 | Current work and shipped changes | [Roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md) |
+| Privacy: no phoning home, opt-in fun metrics shredded after 67 days | [Privacy](docs/PRIVACY.md) |
 
 ## Contributing and license
 

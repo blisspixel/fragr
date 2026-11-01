@@ -54,7 +54,18 @@
     {"id": "concourse_pillar_a", "min": [50, 4.5, -12], "max": [52, 9.0, -10], "surface": "concrete"},
     {"id": "concourse_pillar_b", "min": [50, 4.5, 10], "max": [52, 9.0, 12], "surface": "concrete"},
     {"id": "concourse_turnstiles", "min": [56, 4.5, -8], "max": [58, 5.6, 8], "surface": "service_steel"},
-    {"id": "concourse_departure_gate", "min": [60, 4.5, -4], "max": [62, 9.0, 4], "surface": "service_steel"}
+    {"id": "concourse_departure_gate", "min": [60, 4.5, -4], "max": [62, 9.0, 4], "surface": "service_steel"},
+
+    {"id": "stalled_tram", "min": [-31, 0, -22.5], "max": [-22, 3.2, -19.5], "surface": "service_steel"},
+    {"id": "stall_0", "min": [-53, 0, 19.8], "max": [-49, 1, 21.3], "surface": "enamel"},
+    {"id": "awning_0", "min": [-54, 2.6, 19], "max": [-48, 2.8, 23], "surface": "enamel"},
+    {"id": "stall_1", "min": [-47, 0, 19.8], "max": [-43, 1, 21.3], "surface": "enamel"},
+    {"id": "awning_1", "min": [-48, 2.6, 19], "max": [-42, 2.8, 23], "surface": "enamel"},
+    {"id": "stall_2", "min": [-57, 0, -17.3], "max": [-53, 1, -15.8], "surface": "enamel"},
+    {"id": "awning_2", "min": [-58, 2.6, -19], "max": [-52, 2.8, -15], "surface": "enamel"},
+    {"id": "stall_3", "min": [-51, 0, -17.3], "max": [-47, 1, -15.8], "surface": "enamel"},
+    {"id": "awning_3", "min": [-52, 2.6, -19], "max": [-46, 2.8, -15], "surface": "enamel"},
+    {"id": "overlook_tower", "min": [22, 0, 26], "max": [26, 18, 28], "surface": "concrete"}
   ],
   "spawns": [
     {"id": "entry", "feet": [-52, 0, 0], "yaw": 0}

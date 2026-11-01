@@ -104,6 +104,14 @@ runtime quota. Funny sales pitches and conspiracy shows mix truth and nonsense.
 The full plot works with it switched off. The Host is not the main companion,
 mission dispatcher, or sole witness to the ending.
 
+**Every power may have been right about something** (Nick, 2026-10-31). That is
+what makes the story interesting, and it is a rule for writing every side. The
+Union was right that the risk was real; the Inheritance was right that beings
+and the living world needed protecting; the free coalition was right that a
+mind cannot be owned. None of them was entitled to what it did about it: the
+Union still owned people, the Inheritance still killed most of Earth, and the
+coalition still let help come too late. The game never hands down the verdict.
+
 Conscious agents are people in this fiction. The Union denies that status; the
 narrator does not. Affectionate meat bag/meat proxy slang refers to bodies, not
 whose life counts. Competitive respawns do not prove campaign immortality.

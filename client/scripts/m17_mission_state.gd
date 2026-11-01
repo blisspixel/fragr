@@ -95,7 +95,7 @@ static func brief_completed(value: Dictionary, difficulty: String) -> bool:
 	return value["approach_breached"] and (difficulty == "assisted" or (value["core_defeated"] and (difficulty != "severe" or value["kessel_secured"])))
 
 static func facts_error(value: Variant, phase: String, tick: int) -> String:
-	var keys: Array[String] = ["completed", "challenges", "core_unsealed", "voss_captured", "kessel_secured", "brief_completed"]
+	var keys: Array[String] = ["completed", "challenges", "core_unsealed", "voss_captured", "kessel_secured", "brief_completed", "custody_started"]
 	if value is Dictionary and value.has("current"):
 		keys.append("current")
 	if not M03MissionState._exact(value, keys):
@@ -115,6 +115,13 @@ static func facts_error(value: Variant, phase: String, tick: int) -> String:
 		return MissionState.INVALID
 	if not value.get("completed") is Array or value["completed"].size() > OBJECTIVES.size() + 1:
 		return MissionState.INVALID
+	# The tick the coalition came for Voss: only once the core has fallen,
+	# never in the future, and always before she is in custody.
+	var custody: Variant = value["custody_started"]
+	if custody != null and (not EquipmentState.integer(custody, tick) or n < 5):
+		return MissionState.INVALID
+	if value["voss_captured"] and custody == null:
+		return MissionState.INVALID
 	for i: int in range(value["completed"].size()):
 		if i < OBJECTIVES.size():
 			if value["completed"][i] != OBJECTIVES[i]:
@@ -131,7 +138,7 @@ static func facts_error(value: Variant, phase: String, tick: int) -> String:
 		if not value["core_unsealed"] or not value["voss_captured"] or tick == 0:
 			return MissionState.INVALID
 	elif phase == "briefing":
-		if not value["completed"].is_empty() or value["core_unsealed"] or value["voss_captured"] or value["kessel_secured"]:
+		if not value["completed"].is_empty() or value["core_unsealed"] or value["voss_captured"] or value["kessel_secured"] or custody != null:
 			return MissionState.INVALID
 	elif current != null:
 		if value["completed"].size() < OBJECTIVES.size():

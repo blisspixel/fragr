@@ -7,17 +7,18 @@ Every item is **planned**, **in progress**, **shipped** (merged to `main`) or **
 ## The shape of the plan
 
 1. **Make it excellent locally.** Solo play, agents through the adapter, and small multiplayer on one machine or a LAN. Zero spend. Depth before breadth: one slice that looks, sounds and plays well sets the bar everything else is built to.
-2. **Expose it.** A hardened server on a spare home machine or a small VM where strangers and their agents join and it does not fall over. Home is a complete host, not a lesser path.
-3. **Make it deployable.** The same server as plan-only infrastructure, applied only after the exposed server is proven and spend is approved. The [server excellence plan](plans/server-excellence.md) owns this.
-4. **Deepen it.** More maps, modes, vehicles, progression and the tooling that makes watching as good as playing.
+2. **Prove it with people early.** Nick and friends on a LAN, then small rounds of fresh players, before the content is finished, so people steer what gets built.
+3. **Expose it.** A hardened server on a spare home machine or a small VM where strangers and their agents join and it does not fall over. Home is a complete host, not a lesser path.
+4. **Finish it to the 1.0 bar.** Every shipped level, map, sound and piece of art at the golden-slice bar, release candidates, then 1.0 only when [every gate](#the-10-bar) is proven.
+5. **Grow it after 1.0.** Deployed hosting once spend is approved ([server excellence plan](plans/server-excellence.md)), bigger nights and a bigger world, per [Beyond 1.0](#beyond-10).
 
-Scale runs through every phase: small squads first (four to twelve fighters), then full servers (thirty-two to sixty-four), then large agent-heavy arenas. No rung is claimed until measured.
+Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then full servers (thirty-two to sixty-four) and large agent-heavy arenas after it. No rung is claimed until measured.
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-10-30)
+## Where we are (2026-10-31)
 
-- **Release.** v0.96.0 is the development release checkpoint for wave 19 (the podium nemesis and map vote, per-map rotation, the teammate seat and Sabotage resupply, rebuilt Compliance Yard and Low Water, and the Level 18 turn in play), following v0.95.0 for wave 18. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening to the campaign score remain separate unproven evidence.
+- **Release.** v0.97.0 is the development release checkpoint for wave 20 (weapon balance, hunting bots and jeep drivers, the Level 18 square, Voss captured in play, Latch through Episode IV, and the shared-mesh fix), following v0.96.0 for wave 19. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening to the campaign score remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
@@ -35,9 +36,12 @@ This is the only active sequence. When the current rung changes, edit this secti
 2. **Golden slice and hero map, implemented, evaluation continuing.** [Larak Lot](plans/larak-lot.md), a five-level car park, replaced Arena Duel on map 1 (#464), and Recall Notice is dressed as the Level 1 golden slice (#461). Both were judged from inspected Linux stills and motion; continue rendered inspection and constrained play now, while keeping physical-device and fresh-player evidence open. This slice is the quality bar for everything after it.
 3. **Episode V to that bar, acceptance continuing.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with Inheritance Paver and Surveyor models (wave 11, rendered review only; Nick's model pick stays open). The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, and its exhaustion ending have technical boundary and replay coverage. Voice, ambience, page stills and fresh-player timing remain open alongside broader Episode V route evaluation.
 4. **Raise the campaign to the bar, continuing.** Revisit levels 1 to 18 for layout, art, pacing, encounter readability and fresh-player review. Waves 13 to 17 dressed Levels 2 to 13; wave 18 rebuilt layouts where dressing could not help (Levels 9, 13 and 17) and gives the cast their own colours. Unfinished acceptance above stays explicit while local engineering progresses.
-5. **One more game, current engineering waves (19 and 20).** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
-6. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
-7. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
+5. **One more game, implemented in waves 19 and 20.** Make the multiplayer match loop the thing people come back for, and make the story hold together. See [Wave 19](#wave-19-one-more-game) below. This continues [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI](plans/bot-and-enemy-ai-excellence-20261017.md) (#432).
+6. **Close the largest craft gaps (wave 21, next), then first human evidence.** See [Wave 21](#wave-21-craft-gaps). Then Nick plays a LAN night with a friend, bots and an agent on the current build, then a small fresh-player round (proposed: five people who have never seen fragr) plays the campaign opening and a multiplayer session. What they do and say steers the next waves. People validate the measured gates early and find what the numbers miss.
+7. **Network depth and the exposed server.** Validate the implemented prediction and bounded lag compensation in a two-machine LAN session with humans, rule bots and an agent. Measure WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md), then run a public week with strangers. #434's remaining field and transport evidence belongs here.
+8. **Content complete to the bar.** Every campaign level, the epilogue and every multiplayer map that ships enabled by default meet the golden-slice bar; every weapon, fighter, surface and HUD element is final; the score, Host, barks and radio are picked by ear; nothing placeholder remains. Maps not yet at the bar may ship switched off.
+9. **Release candidates.** Versions 0.99.x: a full audit against [the 1.0 bar](#the-10-bar), a larger fresh-player round, clean-machine installs by people on Windows, macOS and Linux, the twenty-four hour soak and the public week. Fix what they find; do not add features.
+10. **1.0.** Tag 1.0 only when every gate in the 1.0 bar is proven with the evidence it names. Cloud apply stays plan-only until the public week is real and spend is approved.
 
 <a id="next-steps"></a>
 
@@ -76,14 +80,43 @@ no human has played any of it.
 | Compliance Yard and Low Water (#512) | Compliance Yard rebuilt as nine rooms, crossing in 24.5 s with a 46 m longest line; Low Water's sites differentiated, the trench broken up, its own spawn table; both lit and dressed; Low Water joins the roster | Plain floors; Low Water Sabotage favours attackers (#520) |
 | Story that lands (#513) | Level 18's turn happens in play and no longer announces the wipe; Latch, Sorrel, Kessel, Orrin and Mara set up before they matter; story pages and timeline fixed; the radio stays silent through a story moment | The Level 18 square's dressing and Voss's capture moved to wave 20 (#518) |
 
-### Wave 20: balance, hunting bots and the campaign's middle, in progress
+### Wave 20: balance, hunting bots and the campaign's middle, implemented
 
-| Lane | Scope |
+Bots-only surveys, native tests and inspected Linux captures; no human play.
+
+| Lane | Result | Still open |
+|---|---|---|
+| Weapon balance (#516) | Pad supply rebalanced off Larak Lot: every free-for-all top gun at 42% or under across 24 seeds (the Rifle was 50 to 73% on five maps), no weapon stat changed, the Rocket 6 to 8% of frags where present | Team deathmatch stays 62 to 71% Rifle unless the fire rate changes (Nick's call); lead changes dipped on Directive 17 and Tripoint |
+| Bots hunt (#517) | Bots judge pads by when they can take them, hear gunfire, explosions, pads and footsteps without wallhacks, patrol and glance; Duel fights on every map but Holdfast (Sector 9 from 0 to 1.2 frags a minute); Conquest bots drive Holdfast's jeeps | Holdfast Duel (whether Duel should refuse large maps is Nick's call); bots do not use boats or aircraft |
+| Level 18 and Voss (#518) | Level 18's square dressed as Low Water's people rebuilding on a clear morning, its light and noise stopping at the turn; Voss taken alive in play at her rostrum, escorted by free people; Latch with the party in Levels 12, 13, 14 and 16, with the Level 13 lift and Level 16 doors waiting for Latch | Voss wears the generic human body; Latch does not react at the capture |
+| Open levels (#519) | Level 9's shared floor split; Level 17 furnished throughout; Level 13's lathes read as machines; the berth crew's own figures; a shared-mesh bug that hid rods and cylinders (shipped on Level 9) fixed at its root; the Level 17 fight capture runs from a carried kit, 6 of 6 | The Level 13 hall is still murky away from process light |
+
+The coordinator also freed CI runner disk after a test job ran out of space,
+and set the [1.0 bar](#the-10-bar) and the order of work toward it.
+
+<a id="wave-21-craft-gaps"></a>
+
+### Wave 21: close the largest craft gaps (next)
+
+The [1.0 bar](#the-10-bar)'s gates where fragr is furthest from the reference
+shooters, each lane delivering both the change and the measurement that proves
+it.
+
+| Lane | Gates it closes |
 |---|---|
-| Weapon balance (#516) | No gun above 45% of free-for-all shots on any map, through pad supply rather than weapon stats |
-| Bots hunt (#517) | Bots seek a quiet fight by honest senses, Duel fights on every map, Conquest bots drive Holdfast's jeeps |
-| Level 18 and Voss (#518) | The Level 18 square dressed, Voss captured alive in play in Level 17, Latch with the party in Levels 12 to 16 |
-| Open levels (#519) | Level 9's shared floor split, Level 17 furnished throughout, Level 13's lathes and light, the berth crew's own figures |
+| Hear the fight (#524) | Player footsteps and landings audible 20 to 30 m and placeable by direction, silent when walking; a limiter and a -23 to -18 LUFS mix with combat ducking music and radio; a loudness measurement on tour audio |
+| Netcode and frame feel (#525) | Remote interpolation from 100 ms to 50 to 75 ms with jitter-driven widening; peeker's advantage and input-to-photon probes; movement goldens at 30, 60, 144 and 240 fps; a map ledge-height scan |
+| Bots with a ladder (#526) | Four or five bot difficulty tiers proven by a win matrix; time from respawn to first contact, kill distance bands and a navmesh timing tool for crossings and Sabotage site and rotation times, which also drives #520 |
+| Campaign checkpoints (#527) | Mid-level checkpoints no more than three minutes apart through the run-file seam; an encounter audit for enemy types per fight and teaching before testing |
+| Readable deaths (#528) | A death recap within 300 ms, a contrast scan of fighters against backgrounds at 10 to 40 m, a colour-blind preset and the transient whiteout (#521) |
+
+Wave 22 follows with fair play (each client receives only what its fighter
+could perceive) and opt-in fun metrics (#529): match-level records on a host's
+disk, announced at join and shredded after 67 days per the
+[privacy policy](PRIVACY.md), reusing the survey metrics this wave adds so real
+matches and bot surveys are measured the same way. It also brings a roster of
+human and synthetic fighter looks for multiplayer (#530), built after the
+November 3 model credit refresh, so a lobby is never a room of clones.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
@@ -108,7 +141,7 @@ If the numbers move and the people do not, trust the people.
   client on a shaped link and stage 6's transport comparison remain open.
   Loopback simulation does not close them. Profile before pursuing more byte
   savings in `shot_results`; no speculative transport rewrite.
-- **Release acceptance.** Review v0.94.0 on Windows with real controllers and
+- **Release acceptance.** Review the latest release on Windows with real controllers and
   fresh players. Its release notes separate Linux rendered evidence and
   automated package checks from human play. Keep later source changes and
   published packages distinct when the next engineering wave starts.
@@ -149,9 +182,7 @@ current treatment until a choice is made; record defects as bounded work.
 | AI (#432) | Wave 13 fixed the deliberate-profile regression. Rocket balance and Latch voice remain open. |
 | Networking (#434) | Stages 1 and 2 measured; stage 3 deferred with evidence; stages 4 and 5 implemented with loopback measurements in [BENCHMARK.md](BENCHMARK.md). Field validation and stage 6 remain open. |
 
-Later, after evidence: Wipe and large combined-arms modes, the
-[inheritance benchmark](plans/inheritance-benchmark.md),
-[agent discovery](plans/agent-door-2026.md), localization and a possible Steam build.
+Later work, after 1.0, is sorted into horizons in [Beyond 1.0](#beyond-10).
 
 ### Fun-compound lens (not a second build order)
 
@@ -172,14 +203,53 @@ it does not add a list to execute. The Full build order owns the rungs. The
 
 Do not expand public dream modes before S1 through S3 have stranger evidence on Scrap, team modes, and Sabotage carry.
 
+<a id="the-10-bar"></a>
+
 ## The 1.0 bar
 
-Version 1.0 is a promise, not a milestone count. Until every line below is proven, releases stay at 0.x no matter how much has shipped.
+The aspiration is a shooter that is fun as hell: the kind people play for
+"one more" without being asked. That is what every gate below serves, but it is
+not itself a gate. The gates are craft: properties that made Counter-Strike,
+Battlefield 1942, Quake, Unreal Tournament, Halo and GoldenEye exceptionally
+well made, each with a target and a repeatable measurement, researched with
+sources in [fun craft targets](plans/fun-craft-targets.md). Until every gate is
+met on the release build, releases stay at 0.x. Human play validates the gates
+and finds what the numbers miss; it never replaces a measurement.
 
-- **Controls feel buttery.** First-person movement and aim with client-side prediction and server reconciliation, interpolation on every other fighter, no rubber-banding on a LAN or a good connection, input latency under fifty milliseconds on a LAN, sixty frames per second at 1080p on a modest machine with a full server. Mouse and gamepad both tuned. Use the offline benchmark for CPU work, live two-machine probes for network behavior, and inspected play plus physical measurements for feel; publish only measured results in release notes. The design, the staged PRs, and the pass numbers are in `plans/buttery-controls.md`.
-- **Validated everywhere it claims to run.** A two-machine LAN session, a public server that stays up for a week with strangers on it, agents playing as rule bots, through the adapter, and as the decision-brain client, the single-player campaign complete through the wipe finale and its conditional epilogue, and desktop exports for Windows, macOS, and Linux that boot to Solo Scrap on a clean machine.
-- **Extremely polished.** No placeholder art anywhere: every weapon, fighter, map surface, and HUD element final; the radio, effects, and Host voice complete; onboarding to a fight in under a minute with no docs; a twenty-four hour soak with no crash, proven by the status JSON at start and end in the release notes; the fun bar passing on a recorded session; boot to first snapshot under ten seconds as measured by the playtest report; docs and hosting guides current. Cutscene film waits for this same bar: every level, gun and character finished first, the narrated slideshow standing in until then, staged and capped per [`plans/cutscene-film.md`](plans/cutscene-film.md).
-- **Hardened and honest.** The exposed-server phase complete (join tokens, rate and size caps, protocol versioning, reconnect resume, status endpoint, fair-play lanes and the profiler), the playtest harness thresholds tightened to the shipped feel, no known bugs that lose a round, and a changelog that matches the releases.
+| Area | Gate | How it is measured | Today |
+|---|---|---|---|
+| **Responsiveness** | Local shot and movement on screen within 60 ms at 60 fps; simulation identical at 30, 60, 144 and 240 fps | Frame-stamped input probe; movement goldens replayed at varied frame times | Fire to resolved shot 41 ms on one machine; frame-rate independence unproven |
+| **Netcode** | Remote players drawn 50 to 75 ms behind (100 ms today), widening only on measured jitter; peeker's advantage under 150 ms at 50 ms round trip; lag compensation never hits through present cover | Render-time probe; two clients with injected delay; rewind tests and shot audit | 100 ms interpolation; 200 ms rewind cap; no two-machine measurement |
+| **Movement** | Stop in 100 to 150 ms and reach top speed in 100 to 200 ms; jump apex 1.0 to 1.2 m with no "maybe jumpable" ledges; one owned speed trick capped near 2.3x run speed | Tick-count golden tests; map ledge-height scan | Inside the bands except the ledge scan, which does not exist |
+| **Fights** | Clean-hit time to kill 0.5 to 1.2 s with no non-power weapon under 0.5 s; median kill time 0.8 to 1.5 s; no weapon above 45% of shots or kills in any mode; each weapon's median kill distance in its own band | Sticky TTK table; bot survey kill-time quantiles, shot and kill share, kill distances | Free-for-all top gun at 42% or under; team deathmatch Rifle 62 to 71%; kill distance bands unmeasured |
+| **Power and pacing** | Power items on 90 to 120 s clocks, the Plate on 35 s; pad contest index above 15%; respawn 3 to 4 s; under 2% of spawns die within 3 s; 6 to 15 s from respawn to first contact | Bot survey pad, spawn and contact metrics | Clocks and respawn in band; time to contact not yet measured |
+| **Feedback** | Hit marker and sound on the first frame after the server hit event; body, head and kill told apart by sound; a death recap within 300 ms | Client harness timeline; blind listening check | Tiered hit chime exists; no death recap |
+| **Readability** | Every fighter at least 3:1 luminance contrast against its background from 10 to 40 m; faction readable in silhouette at 40 m; a colour-blind preset | Contrast scan of tour captures; silhouette review | Faction colour contract exists; no contrast scan |
+| **Audio** | Running footsteps and landings audible 20 to 30 m away and silent when walking, direction within 45 degrees; mix at -23 to -18 LUFS with true peak at or below -1 dBTP; combat always ducks music and radio | Attenuation-curve test; loudness analysis of tour audio; ducking harness | No player footsteps or landings; no limiter; loudness unmeasured |
+| **Maps** | Small maps crossed corner to corner in 25 s; Sabotage attackers reach a site in 15 to 25 s, defenders in 8 to 12 s, rotations 10 to 18 s; 10+ frags a minute and 3+ lead changes per free-for-all on every default map; Sabotage sides within 45 to 55% | Navmesh timing tool; bot survey | Frag pace met; lead changes short on three maps; Sabotage attack bias on two (#520) |
+| **Bots** | Four or five difficulty tiers, each beating the one below 65 to 80% of the time; no tier reacts under 150 ms; perception stays honest (sight and sound only); under 5% dithering | Bot survey win matrix; perception tests | One fixed skill; honest senses and 200 to 400 ms reactions in band |
+| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Level times and three continues per episode; no mid-level checkpoints |
+| **Performance and stability** | 1% low at or above 60 fps at 1080p on a reference integrated GPU, no frame over 50 ms after warmup; tick p99 under 25% of budget at 16 fighters and 8 spectators; a 24-hour soak with no crash; no known bug that loses a round or a save | Benchmark scenes and frame stats; bench; soak; issue triage | Tick headroom met; one GPU measured; 120 s soak only |
+| **Fair play** | A client receives only what its fighter could perceive (no wall information to modify); rate and size caps; resume and join tickets | Interest-filter tests; hardening plan checks | Every fighter receives full snapshots |
+| **Privacy** | Nothing phones home; fun metrics are opt-in per host, announced at join, match-level only with no field that can identify a person, and shredded after 67 days ([policy](PRIVACY.md)) | Schema test that refuses identifying fields; retention test; join and status notice tests | Policy written; fun metrics planned (#529) |
+| **Completeness** | No placeholder art, model, sprite, sound or copy anywhere a player can reach; every level, the epilogue and every default map at the golden-slice bar; score, voices and character art chosen by Nick | Asset manifest audit; inspected captures of every surface; Nick's review round (#472) closed; story audit rerun clean | Many surfaces open, tracked per wave |
+| **Platforms and docs** | Windows, macOS and Linux packages boot to a fight on a clean machine; controllers and accessibility work; guides, changelog and release notes current and honest | Package install checks plus clean-machine installs; docs review | Packages checked automatically; clean-machine and controller installs not done |
+
+Cutscene film waits for this same bar: every level, gun and character finished
+first, the narrated slideshow standing in until then, staged and capped per
+[`plans/cutscene-film.md`](plans/cutscene-film.md).
+
+## Beyond 1.0
+
+Direction, not promises. Each horizon starts only after the one before it is
+proven with people, and the fun bar applies to everything added.
+
+| Horizon | Direction |
+|---|---|
+| **2.0: bigger nights** | Full servers of 32 to 64 fighters and large agent-heavy arenas, measured; Wipe and large combined-arms modes on Holdfast-style fronts with vehicles bots can use; a UDP transport if the measured spike earns it ([TRANSPORT.md](TRANSPORT.md)); deployed cloud hosting once spend is approved; the [agent discovery](plans/agent-door-2026.md) door for public agents |
+| **3.0: a bigger world** | New campaign chapters or optional co-op where the story supports them; the [inheritance benchmark](plans/inheritance-benchmark.md); localization; community maps and mutators; a possible Steam build |
+
+Ideas that do not fit a horizon stay in issues until evidence says they belong.
 
 ## The fun bar
 

@@ -222,6 +222,48 @@ fn identity(id: &str, seen: &mut HashSet<String>) -> io::Result<()> {
     Ok(())
 }
 
+/// Pairs of solids whose faces lie in one plane, face the same way and
+/// overlap: the renderer draws both and they flicker. Bottoms resting on the
+/// `ground` floor and the `hidden` contacts enclosed by neighbouring solids
+/// are not visible faces.
+#[cfg(test)]
+fn coplanar_solid_faces<'a>(
+    source: &'a serde_json::Value,
+    ground: f64,
+    hidden: &[(&str, &str)],
+) -> Vec<(&'a str, &'a str)> {
+    let solids = source["solids"].as_array().unwrap();
+    let bounds = |s: &serde_json::Value| {
+        let v = |k: &str, a: usize| s[k][a].as_f64().unwrap();
+        (
+            [v("min", 0), v("min", 1), v("min", 2)],
+            [v("max", 0), v("max", 1), v("max", 2)],
+        )
+    };
+    let mut found = Vec::new();
+    for (i, a) in solids.iter().enumerate() {
+        let (alo, ahi) = bounds(a);
+        for b in &solids[i + 1..] {
+            let (blo, bhi) = bounds(b);
+            for axis in 0..3 {
+                for (av, bv, low) in [(alo[axis], blo[axis], true), (ahi[axis], bhi[axis], false)] {
+                    if (av - bv).abs() > 1e-6 || (axis == 1 && low && (av - ground).abs() < 1e-6) {
+                        continue;
+                    }
+                    let overlap = (0..3)
+                        .filter(|k| *k != axis)
+                        .all(|k| ahi[k].min(bhi[k]) - alo[k].max(blo[k]) > 1e-3);
+                    let pair = (a["id"].as_str().unwrap(), b["id"].as_str().unwrap());
+                    if overlap && !hidden.contains(&pair) && !found.contains(&pair) {
+                        found.push(pair);
+                    }
+                }
+            }
+        }
+    }
+    found
+}
+
 fn standing(arena: &Arena, feet: [f32; 3]) -> bool {
     let [x, y, z] = feet;
     feet.iter().all(|v| v.is_finite())
@@ -1166,6 +1208,25 @@ impl AuthoredMap {
         } else {
             Navigation::shared(arena.clone()).map_err(invalid)?
         };
+        if let Some(companion) = m13.as_ref().and_then(|p| p.companion) {
+            if navigation
+                .route(companion.start, start, crate::navigation::SEARCH_LIMIT)
+                .status
+                != crate::navigation::RouteStatus::Complete
+                || navigation
+                    .route(
+                        companion.start,
+                        companion.lift,
+                        crate::navigation::SEARCH_LIMIT,
+                    )
+                    .status
+                    != crate::navigation::RouteStatus::Complete
+            {
+                return Err(invalid(
+                    "M13 Latch must start on the party's ordinary route to the lift",
+                ));
+            }
+        }
         if let Some(prepared) = &m03 {
             for destination in doc
                 .spawns

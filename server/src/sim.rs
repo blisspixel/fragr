@@ -3414,13 +3414,19 @@ impl GameState {
                     .spawn_shields
                     .get(&self.players[victim_idx].id)
                     .is_some_and(|ticks| *ticks > 0));
-        let hostile = self_hit
-            || (!immune
-                && if assessor_wreck {
-                    self.players[victim_idx].is_campaign_enemy()
-                } else {
-                    self.damage_lands(shooter_idx, victim_idx)
-                });
+        // A staged story figure (Level 17's custody) is never hurt, not even
+        // by the world.
+        let figure = self.players[victim_idx]
+            .campaign
+            .is_some_and(crate::protocol::CampaignActor::is_figure);
+        let hostile = !figure
+            && (self_hit
+                || (!immune
+                    && if assessor_wreck {
+                        self.players[victim_idx].is_campaign_enemy()
+                    } else {
+                        self.damage_lands(shooter_idx, victim_idx)
+                    }));
         let shooter_team = self.players[shooter_idx].team;
         let victim_team = self.players[victim_idx].team;
         let teammates = shooter_team.is_some() && shooter_team == victim_team;

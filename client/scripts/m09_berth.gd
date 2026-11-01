@@ -2,7 +2,8 @@ class_name M09Berth
 extends Node3D
 
 ## The ship's details add no collision. Current people and feet come only
-## from accepted mission facts; named Tern and Edda share their M10 live skins.
+## from accepted mission facts; Tern, Edda and Splice wear their own live
+## bodies and the berth crew theirs in CastPaint work colours.
 ## The hull's name, the impound notice on the hatch and every state-driven
 ## fitting live here; the static berth is M09Dressing, which survives the
 ## MapInfo re-sent when the hatch opens.

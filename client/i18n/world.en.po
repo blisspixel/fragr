@@ -1575,6 +1575,9 @@ msgstr "Committed to citizen wellbeing."
 msgid "WORLD_M01_CAPTION_GUIDANCE"
 msgstr "Guidance issued."
 
+msgid "WORLD_M17_SCREEN_CONTINUITY"
+msgstr "CONTINUITY ASSURED"
+
 msgid "WORLD_M01_CAPTION_CONTINUITY"
 msgstr "Continuity assured."
 

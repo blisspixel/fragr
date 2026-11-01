@@ -30,6 +30,7 @@ use std::sync::OnceLock;
 mod authored;
 pub(crate) mod compliance_yard;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
+pub(crate) use authored::m17::{Custody, CUSTODY_IN_PACE, CUSTODY_OUT_PACE};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
 pub(crate) mod low_water;
@@ -797,8 +798,8 @@ fn directive_17() -> MapDef {
             armor_pad("pad_armor", 0.0, 7.0, 0.0),
         ],
         scrap_pads: vec![
-            weapon_pad("scrap_flechette_s", WeaponType::Flechette, -1.0, 34.0, 0.0),
-            weapon_pad("scrap_flechette_n", WeaponType::Flechette, 1.0, -34.0, 0.0),
+            weapon_pad("scrap_scatter_s", WeaponType::Scatter, -1.0, 34.0, 0.0),
+            weapon_pad("scrap_rocket_n", WeaponType::Rocket, 1.0, -34.0, 0.0),
         ],
     }
 }
@@ -933,20 +934,8 @@ fn sector_9() -> MapDef {
             armor_pad("pad_armor", 0.0, 14.0, 0.0),
         ],
         scrap_pads: vec![
-            weapon_pad(
-                "scrap_flechette_sw",
-                WeaponType::Flechette,
-                -15.05,
-                36.81,
-                0.0,
-            ),
-            weapon_pad(
-                "scrap_flechette_ne",
-                WeaponType::Flechette,
-                15.05,
-                -36.81,
-                0.0,
-            ),
+            weapon_pad("scrap_scatter_sw", WeaponType::Scatter, -15.05, 36.81, 0.0),
+            weapon_pad("scrap_scatter_ne", WeaponType::Scatter, 15.05, -36.81, 0.0),
             weapon_pad(
                 "scrap_scatter_west_hall",
                 WeaponType::Scatter,
@@ -1110,18 +1099,12 @@ fn reclamation_gulch() -> MapDef {
             armor_pad("pad_armor", 0.0, 20.0, 0.0),
         ],
         scrap_pads: vec![
-            weapon_pad("scrap_flechette_e", WeaponType::Flechette, 77.0, 5.0, 0.0),
-            weapon_pad("scrap_flechette_w", WeaponType::Flechette, -77.0, -5.0, 0.0),
+            weapon_pad("scrap_rail_e", WeaponType::Rail, 77.0, 5.0, 0.0),
+            weapon_pad("scrap_rail_w", WeaponType::Rail, -77.0, -5.0, 0.0),
             weapon_pad("scrap_scatter_sw", WeaponType::Scatter, -95.0, 35.0, 0.0),
             weapon_pad("scrap_scatter_ne", WeaponType::Scatter, 95.0, -35.0, 0.0),
-            weapon_pad("scrap_flechette_se", WeaponType::Flechette, 35.0, 35.0, 0.0),
-            weapon_pad(
-                "scrap_flechette_nw",
-                WeaponType::Flechette,
-                -35.0,
-                -35.0,
-                0.0,
-            ),
+            weapon_pad("scrap_scatter_se", WeaponType::Scatter, 35.0, 35.0, 0.0),
+            weapon_pad("scrap_scatter_nw", WeaponType::Scatter, -35.0, -35.0, 0.0),
         ],
     }
 }
@@ -1274,15 +1257,9 @@ fn tripoint_works() -> MapDef {
             armor_pad("pad_armor", -14.0, 0.0, 0.0),
         ],
         scrap_pads: vec![
-            weapon_pad("scrap_flechette_0", WeaponType::Flechette, 0.0, 83.0, 0.0),
-            weapon_pad(
-                "scrap_flechette_1",
-                WeaponType::Flechette,
-                -71.9,
-                -41.5,
-                0.0,
-            ),
-            weapon_pad("scrap_flechette_2", WeaponType::Flechette, 71.9, -41.5, 0.0),
+            weapon_pad("scrap_rail_0", WeaponType::Rail, 0.0, 83.0, 0.0),
+            weapon_pad("scrap_rail_1", WeaponType::Rail, -71.9, -41.5, 0.0),
+            weapon_pad("scrap_rail_2", WeaponType::Rail, 71.9, -41.5, 0.0),
             weapon_pad("scrap_scatter_0", WeaponType::Scatter, 10.2, -91.0, 0.0),
             weapon_pad("scrap_scatter_1", WeaponType::Scatter, 73.7, 54.3, 0.0),
             weapon_pad("scrap_scatter_2", WeaponType::Scatter, -83.9, 36.7, 0.0),

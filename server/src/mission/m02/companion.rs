@@ -38,6 +38,14 @@ const ENGAGED_TICKS: u64 = 60;
 /// Severe.
 /// Level 15's floor-lift group, met with the Article Blade.
 const M15_BLADE_FLOOR: usize = 1;
+/// Level 12's greenhouse group: the Arc lesson is the armored Assessor's.
+const M12_ARC_LESSON: usize = 2;
+/// Level 13's Sweeper squad across the freight loop: the first rocket.
+const M13_ROCKET_LESSON: usize = 3;
+/// Level 14's Notary pair over the depot road: the jeep's mounted gun.
+const M14_MOUNT_LESSON: usize = 1;
+/// Latch is this close to a standing place before they stop and hold it.
+const STATION_TOLERANCE: f32 = 0.3;
 
 fn support_cadence(difficulty: crate::protocol::CampaignDifficulty) -> u64 {
     match difficulty {
@@ -178,10 +186,30 @@ impl GameState {
                 self.encounters
                     .enemy_in_group(enemy.id, prepared.lesson_encounter)
             })
-            // The Article Blade floor is the participant's own lesson.
-            && !(run.m15.is_some() && self.encounters.enemy_in_group(enemy.id, M15_BLADE_FLOOR))
+            && !self.participants_lesson(run, enemy)
             && self.encounters.is_active_enemy(enemy.id)
             && distance(leader, [enemy.x, enemy.y - PLAYER_FLOOR_Y, enemy.z]) <= PARTY_RANGE
+    }
+
+    /// A weapon lesson the participant meets alone: Latch holds fire on it.
+    fn participants_lesson(&self, run: &MissionRun, enemy: &Player) -> bool {
+        let in_group = |group| self.encounters.enemy_in_group(enemy.id, group);
+        // The Article Blade floor.
+        (run.m15.is_some() && in_group(M15_BLADE_FLOOR))
+            // The Arc against the armored Assessor; the greenhouse Clerks are fair.
+            || (run.m12.is_some()
+                && in_group(M12_ARC_LESSON)
+                && matches!(
+                    enemy.campaign,
+                    Some(CampaignActor::Hostile {
+                        kind: crate::protocol::EnemyKind::Assessor,
+                        ..
+                    })
+                ))
+            // The first rocket across the freight loop.
+            || (run.m13.is_some() && in_group(M13_ROCKET_LESSON))
+            // The jeep's mounted gun on the Notary pair.
+            || (run.m14.is_some() && in_group(M14_MOUNT_LESSON))
     }
 
     pub(crate) fn m02_companion_intent(&mut self) -> Option<(Uuid, BotIntent)> {
@@ -191,7 +219,11 @@ impl GameState {
             && run.m04.is_none()
             && run.m06.is_none()
             && run.m07.is_none()
+            && run.m12.is_none()
+            && run.m13.is_none()
+            && run.m14.is_none()
             && run.m15.is_none()
+            && run.m16.is_none()
             && run.m17.is_none()
             && run.m18.is_none()
         {
@@ -394,7 +426,18 @@ impl GameState {
                     run.companion.reload(tick);
                 }
             }
-            if let Some(leader) = leader_state {
+            let station = self.companion_station();
+            if let Some(point) = station {
+                // A place the level keeps for Latch: walk there and hold it.
+                let at = companion_body(self, id)?;
+                let gap = (at.x - point[0]).hypot(at.z - point[2]);
+                if gap > STATION_TOLERANCE {
+                    intent.goal = Some(crate::navigation::NavigationGoal {
+                        feet: point,
+                        combat: false,
+                    });
+                }
+            } else if let Some(leader) = leader_state {
                 let arena = self.current_arena();
                 let bodies = self.contact_bodies();
                 let solids = &self.map.arena().solids;
@@ -444,6 +487,26 @@ impl GameState {
             }
         }
         Some((id, intent))
+    }
+}
+
+impl GameState {
+    /// A place a level keeps for Latch instead of the party formation.
+    /// Level 13: once the galleries are taken, Latch steps onto the freight
+    /// deck beside the lift control and rides up with the party, standing
+    /// still on the deck while it climbs.
+    fn companion_station(&self) -> Option<[f32; 3]> {
+        let run = self.mission.as_ref()?;
+        let progress = run.m13.as_ref()?;
+        if progress.index < 6 {
+            return None;
+        }
+        let lift = self.map.m13_companion()?.lift;
+        let top = self
+            .foundry
+            .as_ref()
+            .map_or(lift[1], |gates| gates.lift_top);
+        Some([lift[0], top, lift[2]])
     }
 }
 

@@ -616,6 +616,7 @@
     }
   ],
   "m12": {
+    "companion_start": [1.6, 0.3, -33.0],
     "aid_vehicles": [
       {
         "feet": [

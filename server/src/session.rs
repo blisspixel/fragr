@@ -830,6 +830,7 @@ impl GameSession {
         let contact_bodies = self.state.contact_bodies();
         for (index, bot) in controllers.iter().enumerate() {
             let intent = bot.intent(&self.state);
+            self.state.note_bot_goal(bot.player_id, intent.goal);
             let action = if let Some(snapshot) = discovery.as_ref() {
                 let loadout = self
                     .state
@@ -892,6 +893,7 @@ impl GameSession {
                     action,
                     self.state.tick,
                 );
+            let action = bot.glance_while_walking(&self.state, action);
             let action = bot.guard_sensed_action(&self.state, action);
             self.state.set_action(bot.player_id, action);
         }

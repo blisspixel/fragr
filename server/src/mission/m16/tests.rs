@@ -108,7 +108,11 @@ fn interact(s: &mut GameSession, id: Uuid, target: &UseTarget) {
 fn clear_enemies(s: &mut GameSession) {
     for i in 0..s.state.players.len() {
         let p = &s.state.players[i];
-        if !p.is_participant() && p.hp > 0 {
+        // Enemies only: Latch walks in once the checkpoint lifts.
+        if p.campaign
+            .is_some_and(crate::protocol::CampaignActor::is_enemy)
+            && p.hp > 0
+        {
             let damage = p.hp + p.armor;
             s.state.environmental_self_damage(i, damage);
         }
@@ -199,6 +203,24 @@ fn avenue_lifecycle_progresses_from_ride_to_departure() {
     assert_eq!(m16.completed.len(), 6);
     assert_eq!(m16.current.as_ref().unwrap().id, "party_departed");
     assert!(m16.doors_open);
+
+    // The doors wait for Latch, who rode in behind an ally.
+    interact(&mut s, id, &g.departure);
+    assert_eq!(
+        s.state.mission_state().unwrap().phase,
+        MissionPhase::InProgress,
+        "nobody goes in without Latch"
+    );
+    let latch = s
+        .state
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .expect("Latch is on the way once the checkpoint lifts")
+        .id;
+    place(&mut s, latch, [36.0, 0.0, 2.0]);
+    s.state.set_action(id, Action::default());
+    tick(&mut s);
 
     // 6 -> Departed
     interact(&mut s, id, &g.departure);

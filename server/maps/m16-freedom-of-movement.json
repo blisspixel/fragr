@@ -133,6 +133,7 @@
     }
   ],
   "m16": {
+    "companion_arrival": [16.0, 0.0, 16.0],
     "objectives": [
       {
         "id": "ride_started",

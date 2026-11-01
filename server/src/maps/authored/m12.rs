@@ -68,6 +68,8 @@ pub(super) struct Definition {
     shelter_people: Vec<[f32; 3]>,
     workers: Vec<[f32; 3]>,
     aid_vehicles: Vec<Placement>,
+    /// Where Latch stands with the party in the pressure arrival hall.
+    companion_start: [f32; 3],
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -91,6 +93,7 @@ pub(crate) struct Prepared {
     pub(crate) navigation: Arc<Navigation>,
     pub(crate) opened: Arena,
     pub(crate) opened_navigation: Arc<Navigation>,
+    pub(crate) companion_start: [f32; 3],
 }
 impl Definition {
     pub(super) fn prepare(
@@ -161,6 +164,11 @@ impl Definition {
             standing(world, feet)
                 && nav.route(start, feet, SEARCH_LIMIT).status == RouteStatus::Complete
         };
+        if !reachable(arena, &navigation, self.companion_start) {
+            return Err(invalid(
+                "M12 Latch must start on the party's ordinary route",
+            ));
+        }
         let panel = |definition: PanelTarget,
                      presentation: &mut MapPresentation|
          -> io::Result<UseTarget> {
@@ -297,6 +305,7 @@ impl Definition {
             navigation,
             opened,
             opened_navigation,
+            companion_start: self.companion_start,
         })
     }
 }

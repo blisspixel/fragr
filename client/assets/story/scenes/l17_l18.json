@@ -4,7 +4,6 @@
   "title_key": "MISSION_M17_TITLE",
   "skip_key": "STORY_SKIP_SCENE",
   "shots": [
-    {"id": "ROSTRUM", "caption_key": "STORY_L17_L18_ROSTRUM", "timing": "reader", "hold": 1},
     {"id": "KEYS", "caption_key": "STORY_L17_L18_KEYS", "timing": "reader", "hold": 1}
   ]
 }

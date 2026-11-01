@@ -1046,7 +1046,7 @@ func _m17_use_label(progress: Dictionary) -> String:
 		targets["kessel_desk"] = "M17_USE_KESSEL"
 	if n >= 3 and not progress["core_unsealed"]:
 		targets["core_override"] = "M17_USE_CORE"
-	if n == 5 and not progress["voss_captured"]:
+	if n == 5 and not progress["voss_captured"] and progress.get("custody_started") == null:
 		targets["voss_rostrum"] = "M17_USE_VOSS"
 	if n == 6:
 		targets["departure"] = "M17_USE_DEPARTURE"

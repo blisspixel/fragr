@@ -36,6 +36,14 @@ fn place(s: &mut GameState, id: Uuid, feet: [f32; 3]) {
 fn ready_lift(s: &mut GameState, id: Uuid) {
     let g = s.map.m13_geometry().unwrap();
     place(s, id, g.departure.approach);
+    // Latch is aboard with the party, in the deck's rider area.
+    let latch = s
+        .players
+        .iter()
+        .find(|p| p.is_campaign_companion())
+        .unwrap()
+        .id;
+    place(s, latch, s.map.m13_companion().unwrap().lift);
     let p = s.mission.as_mut().unwrap().m13.as_mut().unwrap();
     p.index = 6;
     p.surrendered = true;

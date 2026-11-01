@@ -1,8 +1,9 @@
 class_name M10Ship
 extends Node3D
 
-## Current ship occupants come from accepted mission facts. Tern and Edda share
-## their named berth skins; other retained strips remain provisional casting.
+## Current ship occupants come from accepted mission facts. Every occupant
+## wears a live body: Tern, Edda and Splice their own, the berth crew theirs
+## in CastPaint work colours. The tints only reach a strip fallback.
 const TINTS: Dictionary[String, Color] = {"tern": Color("cfc4a5"), "berth_crew_a": Color("a7bbad"), "berth_crew_b": Color("c6a880"), "edda": Color("b8c5c7"), "splice": Color("b6abbe")}
 var _geometry: Dictionary = {}
 var _figures: Dictionary[String, CivilianFigure] = {}

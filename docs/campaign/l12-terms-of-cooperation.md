@@ -163,6 +163,14 @@ for once: "They're coming. I'm sorry it took this." A route panel shows
 optimization demands from several sides, commercial and civic; nobody has to
 read it.
 
+**Latch in play (built, wave 20).** Latch arrives with the party in the
+pressure hall (`m12.companion_start`) and follows through the habitat. Latch
+holds fire on the armored Assessor, the Arc lesson is the participant's, and
+Latch's own fire never costs the habitat a pump. When the utility workers come
+out of their frames, Latch: "I know those frames. Sat in one, back at the
+ward." Seeded tests: `server/src/mission/m02/companion/tests.rs`; lines:
+`client/scripts/latch_lines.gd`.
+
 **Humor.** Six declarations of independence on one crate, each disputing the
 others' authority to declare. A resident: "We agreed on the trucks. We're
 still arguing about the crate."

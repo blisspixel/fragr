@@ -800,3 +800,32 @@ fn the_pit_rocket_is_found_in_free_for_all_and_never_eaten_by_an_arsenal() {
     assert!(!arsenal.weapon_pad_useful(WeaponType::Sniper));
     assert!(arsenal.weapon_pad_useful(WeaponType::Rail));
 }
+
+/// The free-for-all floor is Larak Lot's mix on every map: the Rifle is the
+/// common gun, never more than one weapon pad in three, so a Pistol start
+/// finds the Shotgun, the Railgun and the Rocket as often as it finds the
+/// workhorse (#516: the Rifle took 50 to 73 percent of shots where it was
+/// most of the floor). Every map lays more than one kind of gun.
+#[test]
+fn no_free_for_all_floor_is_mostly_the_rifle() {
+    for map in MapKind::ALL {
+        let guns: Vec<WeaponType> = map
+            .pickups()
+            .iter()
+            .chain(&map.scrap_pads())
+            .filter_map(|pad| pad.kind.weapon())
+            .filter(|weapon| *weapon != WeaponType::Tack)
+            .collect();
+        let rifles = guns.iter().filter(|w| **w == WeaponType::Flechette).count();
+        assert!(
+            rifles * 3 <= guns.len(),
+            "{}: {rifles} Rifle pads of {} guns",
+            map.name(),
+            guns.len()
+        );
+        let mut kinds = guns.clone();
+        kinds.sort_by_key(|w| w.index());
+        kinds.dedup();
+        assert!(kinds.len() >= 3, "{}: {kinds:?}", map.name());
+    }
+}

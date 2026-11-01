@@ -124,6 +124,20 @@ The coordinator kept one survey implementation where two lanes built the same
 lead-change counter, reconciled both lanes' wire bump to one gameplay 64, and
 fixed the radio playing through the Level 18 turn. Follow-up: #520.
 
+## Wave 20 (implemented)
+
+| Lane | Result |
+|---|---|
+| `weapons` (#516) | Pad supply rebalanced; every free-for-all top gun at 42% or under |
+| `hunt` (#517) | Honest hearing and patrol, Duel fights off Larak Lot, Conquest jeep drivers |
+| `story-l18` (#518) | The Level 18 square, Voss captured in play, Latch in Levels 12 to 16 |
+| `levels` (#519) | Level 9 floor split, Level 17 furnished, Level 13 lathes, crew figures, the shared-mesh fix |
+
+The coordinator kept one survey filter where two lanes added one each, merged
+two new lighting moods in the shared town dressing, combined the Level 18 lane's
+three parts after it stalled, and freed CI runner disk. Wave 20 is released
+from its own PR, without a separate checkpoint PR.
+
 ## Verification
 
 Each wave PR carries the AGENTS.md verification list run on the final tree, inspected captures for anything a player sees, and exact-head and exact-main CI. Headless checks, inspected visuals, measurements, fresh-player acceptance and installed releases stay distinct.

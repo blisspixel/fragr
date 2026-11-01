@@ -186,6 +186,20 @@ func group(parent: Node3D, label: String, at: Vector3 = Vector3.ZERO) -> Node3D:
 	parent.add_child(node)
 	return node
 
+## One surface of `mesh`, indexed. SurfaceTool.append_from keeps a merged
+## surface's index array from indexed sources only, so the triangles of an
+## unindexed source (every lathe, rod, cylinder, pipe and prism built here)
+## would be dropped from a finish they share with a box or imported mesh.
+static func _indexed(mesh: Mesh, surface: int) -> Mesh:
+	var arrays: Array = mesh.surface_get_arrays(surface)
+	if arrays[Mesh.ARRAY_INDEX] != null and not (arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).is_empty():
+		if mesh.get_surface_count() == 1:
+			return mesh
+	var tool: SurfaceTool = SurfaceTool.new()
+	tool.create_from(mesh, surface)
+	tool.index()
+	return tool.commit()
+
 ## Collapse static fixture pieces into one mesh with one surface per finish.
 func merge(parent: Node3D) -> void:
 	var surfaces: Dictionary[int, SurfaceTool] = {}
@@ -202,7 +216,7 @@ func merge(parent: Node3D) -> void:
 			tool.set_material(finish)
 			surfaces[key] = tool
 		for index: int in range(piece.mesh.get_surface_count()):
-			surfaces[key].append_from(piece.mesh, index, piece.transform)
+			surfaces[key].append_from(_indexed(piece.mesh, index), 0, piece.transform)
 		pieces.append(piece)
 	var mesh: ArrayMesh = ArrayMesh.new()
 	for key: int in surfaces:

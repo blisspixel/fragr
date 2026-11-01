@@ -364,6 +364,12 @@ stills. Bots and agents, not a human fun verdict.
   passes (Larak Lot's Stands health in 20 minutes of FFA). The Flechette fires
   most shots on every map but Larak Lot, Compliance Yard and Low Water, where
   the Pistol does: a weapon and kit question, not a map defect.
+- **Wave 20 (#517).** Rule bots now hunt a quiet round by sound, lost
+  sightings and a patrol of the middle and the power pads, glance either
+  side as they walk, and keep to a pad errand instead of turning back and
+  forth between two clocks; Conquest bots drive Holdfast's jeeps. Duel rises
+  on every map but Holdfast (Sector 9 0 to 1.2 frags a minute); the table is
+  in `docs/plans/bot-and-enemy-ai-excellence-20261017.md`.
 
 `fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
 --time-limit-seconds 150`, release, eight seeded 150 s matches per row:
@@ -406,6 +412,93 @@ Low Water and fall short on Compliance Yard (2.1), Sector 9 (2.9) and the
 Gulch (2.6); only Larak Lot FFA (41 percent) and the Larak Lot and Compliance
 Yard Duels keep the top gun under 45 percent, and Compliance Yard FFA sits at
 45.5.
+
+## Weapon balance (#516, wave 20)
+
+The wave 19 survey had the Rifle (wire `flechette`) firing 50 to 73 percent
+of free-for-all shots on five maps and the Pistol 51 percent on Low Water. The
+survey now also reports, per row, the share of living fighter ticks each gun
+was in hand and owned with rounds (`hand_share`, `owned_share`), counts
+launched rockets as Rocket shots (they leave no hitscan trace and were
+missing from the share), runs its rows in parallel and keeps only some rows with `--survey-only`
+(label pieces such as `ffa-,tdm-`). Bots, not a human verdict.
+
+- **Why Larak Lot works.** Six bots, six guns, and the Rifle only two of them
+  (two Shotguns, the Railgun and the Rocket in the Pit beside it). The Rifle
+  was owned 17 percent of living time there, against 23 to 48 percent
+  elsewhere.
+- **Why the others did not.** Supply, not bot choice. The extra free-for-all
+  pads were mostly Rifles (Directive 17 three of five guns, the Gulch five of
+  nine, Tripoint four of nine, Holdfast five of eleven), the Rifle never drops
+  on death, so it was the gun bodies carried, and it fires five times a second
+  against the Shotgun's 1.7 and the Railgun's one, so whoever carried it
+  fired most of the shots. Bots that owned other guns used them in their own
+  bands. Low Water and Compliance Yard were the opposite: too few guns for the
+  room (four for ten, five for six), so the Pistol was most of the fire. The
+  wave 19 rebuilds of both maps (two free-for-all Shotguns on Low Water, the
+  yard's new rooms) already bring them under 45 percent, so this lane
+  leaves their pads alone: a Weighbridge Rifle on the new yard lowered its
+  top gun from 42 to 36 percent but cost frag pace (17.1 to 15.4 a minute)
+  and lead changes (3.4 to 3.0) at 24 seeds, and was dropped.
+- **Bot choice did drive team deathmatch.** Every team life holds the Rifle,
+  Shotgun and Railgun, and rushers and flankers kept the Rifle even past its
+  own 28 m band. They now take the Railgun there, as every other personality
+  already did (`personalities_take_found_guns_to_their_distances`). The Rifle
+  still fires 62 to 71 percent of team deathmatch shots: with all three guns
+  always in hand the cadence decides the shot share, and moving it under 45
+  would mean a weapon table change this lane did not make.
+- **The fix is the floor.** Free-for-all pads (`scrap_pads`, laid only on a
+  Pistol start) on each map follow Larak Lot's mix, held by
+  `no_free_for_all_floor_is_mostly_the_rifle` (the Rifle at most one gun pad
+  in three, at least three kinds of gun): Directive 17's corridor Rifles became
+  a Shotgun and a Rocket, Sector 9's two became Shotguns, the Gulch's four
+  became two flank Railguns and two Shotguns, Tripoint's three became
+  Railguns, Holdfast's north bays a Rocket and a Railgun. No weapon number changed. Every pad has a walked
+  route (`every_pad_has_a_walked_route_from_the_origin`).
+- **Choices measured and dropped** (24 seeds): Rockets in place of most
+  Rifles met the gun share but cost lead changes (Tripoint 3.3 to 2.5, Sector
+  9 2.7 to 2.0) and put the Rocket at a quarter of frags; a Shotgun-only
+  Tripoint gave the Shotgun 51 percent; keeping one corridor Rifle on
+  Directive 17 left the Rifle at 52.
+- **Open.** The Gulch's free-for-all lead changes stay under 3 (2.6 before,
+  2.2 to 2.5 after across runs) and Directive 17's fell from about 4.3 to
+  3.1 to 3.4, Tripoint's 3.3 to 2.8 and Holdfast's 4.0 to 3.6 at 24 seeds:
+  likely because the Railgun and Rocket that replaced Rifles drop on death
+  and go to the fight's winner, where a Rifle stayed behind (unmeasured).
+  Team deathmatch lead changes moved both ways inside their noise. The
+  off-Larak Duels still barely fight; their gun shares are a handful of shots.
+
+`fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
+--time-limit-seconds 150`, release, on the tree with the rebuilt Compliance
+Yard and Low Water, before and after this lane (Rocket: its share of frags):
+
+| Row | Frags/min | Lead changes | Top gun before | Top gun after | Rocket frags |
+|---|---|---|---|---|---|
+| ffa-larak-lot-6 | 20.8 to 20.7 | 3.1 to 3.5 | Pistol 39% | Pistol 40% | 9.8% |
+| tdm-larak-lot-6 | 15.7 to 15.2 | 3.1 to 2.8 | Rifle 73% | Rifle 66% | none |
+| ffa-compliance-yard-6 | 17.4 to 17.4 | 3.4 to 3.4 | Pistol 44% | Pistol 44% | none |
+| tdm-compliance-yard-6 | 18.5 to 18.5 | 2.1 to 2.1 | Rifle 64% | Rifle 63% | none |
+| ffa-directive-17-substation-8 | 25.7 to 24.5 | 4.0 to 3.4 | Rifle 64% | Pistol 39% | 9.2% |
+| tdm-directive-17-substation-8 | 25.6 to 25.1 | 1.4 to 1.0 | Rifle 79% | Rifle 65% | none |
+| ffa-sector-9-transit-hall-8 | 11.4 to 10.7 | 2.9 to 3.4 | Rifle 64% | Rifle 40% | none |
+| tdm-sector-9-transit-hall-8 | 13.6 to 14.9 | 1.8 to 0.9 | Rifle 80% | Rifle 71% | none |
+| ffa-reclamation-gulch-12 | 22.0 to 20.7 | 2.6 to 2.3 | Rifle 73% | Shotgun 31% | none |
+| tdm-reclamation-gulch-12 | 20.5 to 21.4 | 1.5 to 1.6 | Rifle 79% | Rifle 64% | none |
+| ffa-tripoint-works-12 | 20.3 to 19.8 | 3.6 to 3.1 | Rifle 68% | Railgun 29% | none |
+| tdm-tripoint-works-12 | 17.9 to 18.6 | 1.4 to 1.3 | Rifle 79% | Rifle 66% | none |
+| ffa-holdfast-atoll-16 | 31.5 to 32.7 | 4.5 to 3.3 | Rifle 50% | Pistol 30% | 5.4% |
+| tdm-holdfast-atoll-16 | 13.2 to 12.2 | 0.9 to 0.4 | Rifle 86% | Rifle 66% | none |
+| ffa-low-water-10 | 32.4 to 32.4 | 2.9 to 2.9 | Rifle 36% | Rifle 37% | none |
+| tdm-low-water-10 | 28.5 to 28.5 | 3.5 to 3.0 | Rifle 75% | Rifle 63% | none |
+
+Eight-seed lead changes swing by about 0.5 to 1 between seed blocks. The same
+matrix at 24 seeds (seeds 1 to 24), free-for-all, before to after: Larak Lot
+3.0 to 3.1, Compliance Yard 3.4 to 3.4, Directive 17 4.3 to 3.1, Sector 9 2.7
+to 2.9, the Gulch 2.3 to 2.3, Tripoint 3.3 to 2.8, Holdfast 4.0 to 3.6, Low
+Water 3.5 to 3.6; every top gun 42 percent or under (Compliance Yard's Pistol
+the highest); frags a minute 10.7 or more. The Rocket's share of frags at 24
+seeds: Larak Lot 8.2 to 7.8 percent, Directive 17 8.1 and Holdfast 6.3 where
+it is new, none elsewhere. Team deathmatch has no Rocket.
 
 ## 4. Verification and Delivery Sequence
 

@@ -28,6 +28,26 @@ part (`aid_checkin`) starts the turn at that tick (`m18.turn_started`):
 | 24 | Latch, who does not turn, looks at the nearest of the party | |
 | 60 | The square wakes, aware, as one; the supervisor runs to an exit and leaves; every machine placed later is absorbed from the start | The score cue `cue-l18` plays, then the bed returns; Latch: "They're all gone at once." "I'm here. I'm still here." |
 
+**Built square (wave 20).** The square is dressed as Low Water's people
+rebuilding across town on a clear morning (`client/scripts/m18_square.gd`, the
+`morning` mood of the Low Water dressing, the `all systems normal` sky): glazed
+and plastered fronts open for business, four stalls under striped awnings
+with goods and a string of bulbs, the tram stalled on its rails (the prepared
+tram model on its own solid) with its overhead wire, the clinic's lit cross on
+the route, the overlook's tower with its lamp and mast above the service
+stairs, a far district past it, the stallholders, a shopper and Tern at the
+tram, and the rubble work's machinery noise. Every new body is a server solid
+(`stalled_tram`, `stall_0` to `stall_3`, `awning_0` to `awning_3`,
+`overlook_tower`); the dressing adds no collision. On the turn's clock: at
+tick 0 the work noise stops dead with one spin-down, and the stall bulbs and
+the clinic's cross go out together while the people stand still; at tick 10 the tram's lamps, the tower's lamp and the far
+district's windows come on in the Inheritance's working light and carry the
+depot rhythm with the machines; after tick 60 the tram and tower hold it, the
+far district keeps repeating it, and the square's people leave by the corners.
+A late join sees only that after. Tests: `test_m18_mission_state.gd`
+(`_check_square`), `test_campaign_props.gd`; frame strip from
+`client/qa/m18_live_review.gd`.
+
 A retry starts the morning over under the Union. A late join or a resume past
 the turn restages none of it. Every hostile after the turn is a machine; the
 level's rosters carry no Union people past the square. The scale montage is the
