@@ -4,6 +4,28 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.1 - 2026-11-01
+
+- Light every venue for Forward+, the renderer players get: Larak Lot's Pit
+  is no longer near black, ceiling strips no longer burn hot spots, and each
+  venue lifts fighters against its own backdrop. README stills now show
+  Forward+.
+- Bots aim at the body and go for the head by tier, from what they see, so
+  headshots land at a believable rate and each tier still beats the one
+  below.
+- Save campaign checkpoints with the run: quitting returns you to the last
+  checkpoint. A guard that is only patrolling no longer blocks a save,
+  Level 20's pier hold breaks into waves, and the Assessor teaches alone
+  before its Clerks join. No stretch of any level runs past 86 seconds
+  without a checkpoint on the measured routes.
+- Shots, throws and pickups reach a fighter only as it could perceive them,
+  and a gap in Holdfast Atoll's coastal walls is closed.
+- Lore-built humour across loading tips, graphics tiers, settings, menus,
+  the scoreboard and the desk console.
+- The CTF board and rival marks fixed and proven in live matches. Hosts can
+  summarise fun metrics with `fragr-server --fun-summary`, and a stopped
+  server files its open match.
+
 ## v0.99.0 - 2026-11-01
 
 - Send each fighter in a shared room only the fighters it could see; rivals
