@@ -235,7 +235,7 @@ impl Definition {
                     ],
                     &[
                         ("machine_heavy", HeavySweeper),
-                        ("machine_clerk", Clerk),
+                        ("machine_sweeper_south", Sweeper),
                         ("machine_sweeper", Sweeper),
                         ("machine_notary_west", Notary),
                         ("machine_notary_east", Notary),

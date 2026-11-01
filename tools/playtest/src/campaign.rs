@@ -170,6 +170,13 @@ pub struct Trial {
     pub hits_omitted: u32,
     pub reloads: u32,
     pub longest_no_progress_seconds: f64,
+    /// Match seconds at which the server saved a checkpoint.
+    #[serde(default)]
+    pub checkpoint_seconds: Vec<f64>,
+    /// The longest stretch of live play since the last save: the level
+    /// start, a checkpoint or the restore a continue returned to.
+    #[serde(default)]
+    pub longest_checkpoint_gap_seconds: f64,
     pub last_phase: MissionPhase,
     pub last_feet: [f32; 3],
     pub hp: i32,
@@ -607,6 +614,8 @@ fn drive(
         hits_omitted: 0,
         reloads: 0,
         longest_no_progress_seconds: 0.0,
+        checkpoint_seconds: Vec::new(),
+        longest_checkpoint_gap_seconds: 0.0,
         last_phase: MissionPhase::FindTransfer,
         last_feet: [0.0; 3],
         hp: 100,
@@ -619,6 +628,8 @@ fn drive(
     };
     let mut progress = 0;
     let mut last_supply = 0;
+    // The tick of the latest save point and the attempt it belongs to.
+    let mut saved_at: Option<(u64, u32)> = None;
     let mut visited = BTreeSet::new();
     let mut reload_down = false;
     let mut heard: Option<(u64, [f32; 3])> = None;
@@ -681,6 +692,19 @@ fn drive(
         ) {
             report.outcome = "segment_complete".into();
             break;
+        }
+        if !matches!(state.phase, MissionPhase::Briefing | MissionPhase::Departed)
+            && saved_at.is_none_or(|(_, seen)| seen != state.attempt)
+        {
+            saved_at = Some((snapshot.tick, state.attempt));
+        }
+        if let Some((at, _)) = saved_at.filter(|_| {
+            !matches!(state.phase, MissionPhase::Briefing | MissionPhase::Departed)
+                && snapshot.players.iter().any(|p| p.id == id && p.hp > 0)
+        }) {
+            report.longest_checkpoint_gap_seconds = report
+                .longest_checkpoint_gap_seconds
+                .max(snapshot.tick.saturating_sub(at) as f64 / 20.0);
         }
         let attempt = state.attempt;
         client
@@ -1076,6 +1100,13 @@ fn drive(
         report.seconds = session.state.tick as f64 / 20.0;
         for message in &messages {
             configure_map(&mut client, message)?;
+            if let ServerMessage::Event(fragr_server::protocol::GameEvent::Checkpoint {}) = message
+            {
+                report
+                    .checkpoint_seconds
+                    .push(session.state.tick as f64 / 20.0);
+                saved_at = saved_at.map(|(_, attempt)| (session.state.tick, attempt));
+            }
             if matches!(message, ServerMessage::MapInfo { .. }) {
                 map_record = message.clone();
             }

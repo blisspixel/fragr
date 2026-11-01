@@ -210,8 +210,8 @@
             0.3,
             -6.0
           ],
-          "id": "machine_clerk",
-          "kind": "clerk",
+          "id": "machine_sweeper_south",
+          "kind": "sweeper",
           "yaw": 4.71238898038469
         },
         {
@@ -521,6 +521,7 @@
         }
       ],
       "id": "freight_counterattack",
+      "brawl": true,
       "regions": [
         {
           "max": [

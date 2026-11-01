@@ -1901,6 +1901,9 @@ pub struct PlayerScore {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
+    /// The solo run saved a checkpoint at a quiet moment. A death with a
+    /// continue left returns the run here instead of to the level entry.
+    Checkpoint {},
     /// A nearby Crawler encounter wakes before its first visible attack.
     CrawlerScrabble {
         position: [f32; 3],

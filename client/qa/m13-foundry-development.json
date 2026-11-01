@@ -149,7 +149,7 @@
       "weapon": "Rail",
       "combat_travel_targets": [
         "machine_heavy",
-        "machine_clerk",
+        "machine_sweeper_south",
         "machine_sweeper",
         "machine_notary_west",
         "machine_notary_east"
@@ -190,7 +190,7 @@
         "kind": "union",
         "required": [
           "machine_heavy",
-          "machine_clerk",
+          "machine_sweeper_south",
           "machine_sweeper",
           "machine_notary_west",
           "machine_notary_east"

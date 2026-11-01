@@ -222,7 +222,7 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
         .collect();
     assert_eq!(
         practice,
-        "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943"
+        "328a77f25133c0add5e969a1bdfbd14dbe65b4d3c3529bb5ad5e464e03dc10ab"
     );
     let value = successor();
     assert_eq!(value["map_id"], 1013);

@@ -1600,6 +1600,10 @@ func show_speak(player: String, line: String, addressee: String = "", viewers: A
 func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
 
+## The solo run saved a checkpoint: one quiet feed line, never a centre stamp.
+func show_checkpoint() -> void:
+	combat_feed.push(tr("HUD_CHECKPOINT"))
+
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()

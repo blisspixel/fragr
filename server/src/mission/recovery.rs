@@ -65,6 +65,8 @@ pub(super) struct SoloRun {
     exit: Option<SavedEntry>,
     body: Option<BodyKind>,
     dress: Option<Dress>,
+    /// This level's mid-level checkpoints (`checkpoint.rs`).
+    pub(super) checkpoints: super::checkpoint::Schedule,
 }
 
 struct Entry {
@@ -239,6 +241,7 @@ impl GameState {
             exit: None,
             body: None,
             dress: None,
+            checkpoints: Default::default(),
         });
         Ok(())
     }
@@ -479,6 +482,9 @@ impl GameState {
         {
             return false;
         }
+        if solo.checkpoints.has_checkpoint() {
+            return self.continue_from_checkpoint(player_id, request);
+        }
         let Some(entry) = &solo.entry else {
             return false;
         };
@@ -505,6 +511,7 @@ impl GameState {
         self.scores.insert(player_id, entry.score);
         self.spawn_shields.clear();
         solo.state.continues -= 1;
+        solo.checkpoints.restart(self.tick);
         solo.state.status = CampaignRunStatus::Playing;
         // The retry, and everything its reset draws, runs on its own stream,
         // whether it opens in this process or from a saved pending Continue.

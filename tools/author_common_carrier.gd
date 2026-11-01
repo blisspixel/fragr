@@ -231,7 +231,7 @@ func _encounters() -> Array[Dictionary]:
 			_enemy("service_sweeper", "sweeper", [0.0, 2.0, 10.0])]},
 		{"id": "aft_boarders", "after": "service_crawlers", "regions": [_region([0.0, 7.6, 14.0], 2.0)], "enemies": [
 			_enemy("aft_heavy", "heavy_sweeper", [3.0, 2.0, 14.0]), _enemy("aft_sweeper", "sweeper", [0.0, 4.8, 14.0]),
-			_enemy("aft_clerk", "clerk", [-3.0, 7.6, 14.0]), notary]},
+			_enemy("aft_sweeper_port", "sweeper", [-3.0, 7.6, 14.0]), notary]},
 		{"id": "passenger_defense", "after": "aft_boarders", "regions": [_region([0.0, 4.8, -12.0], 2.0)], "enemies": [
 			_enemy("passenger_clerk_a", "clerk", [-2.0, 4.8, -9.0]), _enemy("passenger_clerk_b", "clerk", [2.0, 4.8, -9.0]),
 			_enemy("passenger_sweeper", "sweeper", [-2.0, 4.8, -12.0]), _enemy("passenger_enforcer", "enforcer", [2.0, 4.8, -12.0])]},

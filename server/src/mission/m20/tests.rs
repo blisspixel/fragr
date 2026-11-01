@@ -592,11 +592,22 @@ fn crates_hold_their_supplies_until_the_people_bring_them_up() {
 }
 
 #[test]
-fn death_before_the_reprieve_spends_a_continue_and_restarts_the_level() {
+fn death_before_the_reprieve_spends_a_continue_and_returns_to_the_checkpoint() {
     let (mut s, id) = session_run(CampaignDifficulty::Standard, Role::Human, true);
     let reached = reach_quay(&mut s, id);
     let g = s.state.map.m20_geometry().unwrap();
     let (start, _, _) = g.clock(reached);
+    // The quay arrival asks for a checkpoint; it lands before the pressure.
+    while s.state.campaign_checkpoint_ticks().is_empty() {
+        tick(&mut s);
+        assert!(
+            s.state.tick < start,
+            "the quay checkpoint precedes the pressure"
+        );
+    }
+    let saved_at = *s.state.campaign_checkpoint_ticks().last().unwrap();
+    let at_save = facts(&s);
+    let held = saved_at - at_save.pier_reached_at.unwrap();
     while s.state.tick < start + 40 {
         tick(&mut s);
     }
@@ -618,14 +629,24 @@ fn death_before_the_reprieve_spends_a_continue_and_restarts_the_level() {
             attempt: state.attempt,
         }
     ));
-    tick(&mut s);
+    let restored_at = s.state.tick;
     let f = facts(&s);
-    assert!(f.completed.is_empty(), "a continue restarts the level");
-    assert!(f.pier_reached_at.is_none());
-    assert_eq!(f.refuge_integrity, M20_REFUGE_INTEGRITY);
+    assert_eq!(f.completed, at_save.completed, "the quay stays reached");
+    assert_eq!(
+        restored_at - f.pier_reached_at.unwrap(),
+        held,
+        "the pier clock resumes where the checkpoint left it"
+    );
+    assert_eq!(f.refuge_integrity, at_save.refuge_integrity);
+    tick(&mut s);
     assert!(!s.state.players.iter().any(|p| p.is_campaign_enemy()
         && p.hp > 0
         && s.state.encounters.is_awake(FIRST_PRESSURE_GROUP)));
+    s.state
+        .mission_state()
+        .unwrap()
+        .validate(s.state.tick)
+        .unwrap();
 }
 
 #[test]

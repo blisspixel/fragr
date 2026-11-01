@@ -315,8 +315,8 @@
             7.6,
             14.0
           ],
-          "id": "aft_clerk",
-          "kind": "clerk",
+          "id": "aft_sweeper_port",
+          "kind": "sweeper",
           "yaw": 0.0
         },
         {

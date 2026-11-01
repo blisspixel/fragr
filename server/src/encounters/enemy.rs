@@ -1750,6 +1750,39 @@ impl EnemyController {
     }
 }
 
+impl EnemyController {
+    /// In the fight: mid-move or attack, or holding a participant as target.
+    pub(in crate::encounters) fn pressing(&self) -> bool {
+        self.phase != EnemyPhase::Idle || self.target.is_some()
+    }
+
+    /// A woken guard a checkpoint kept, standing where it was saved: awake,
+    /// idle, and searching from that spot until it sees someone.
+    pub(in crate::encounters) fn resumed(
+        id: Uuid,
+        kind: EnemyKind,
+        feet: [f32; 3],
+        yaw: f32,
+        tick: u64,
+        control: crate::protocol::ControlDomain,
+        hover: Option<crate::maps::Hover>,
+    ) -> Self {
+        let mut controller = Self::new(id, kind, feet, yaw, tick, false)
+            .with_hover(hover)
+            .with_control(control);
+        controller.alarmed = true;
+        controller
+    }
+}
+
+#[cfg(test)]
+impl EnemyController {
+    /// A woken guard that has lost the party: idle, holding no target.
+    pub(in crate::encounters) fn lose_track(&mut self, tick: u64) {
+        self.target = None;
+        self.enter(EnemyPhase::Idle, tick, 0);
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -4,6 +4,7 @@ use crate::protocol::{
     M04MapGeometry, M04ObjectiveState, M04PatientState, MissionObjective, MissionObjectiveAction,
 };
 
+#[derive(Clone)]
 pub(super) struct M04Progress {
     pub(super) index: usize,
     pub(super) clinic_open: bool,

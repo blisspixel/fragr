@@ -555,15 +555,27 @@ fn drive_party_with_ids(
                         client.observe(tick, state.clone()).unwrap();
                     }
                     if let Some(request) = clients[0].continuation(Some(ids[0])) {
+                        // A retry returns to the latest checkpoint, or to the
+                        // level entry before the first.
+                        let saved = session.state.campaign_checkpoint_view();
                         assert!(session.state.continue_mission(ids[0], request));
-                        assert_eq!(
-                            session.state.players[0].weapon,
-                            crate::protocol::WeaponType::Fists
-                        );
-                        assert_eq!(
-                            session.state.mission_state().unwrap().phase,
-                            MissionPhase::FindTransfer
-                        );
+                        let phase = session.state.mission_state().unwrap().phase;
+                        match saved {
+                            Some((_, _, weapon, _)) => {
+                                assert_eq!(session.state.players[0].weapon, weapon);
+                                assert!(matches!(
+                                    phase,
+                                    MissionPhase::FindTransfer | MissionPhase::ReachLift
+                                ));
+                            }
+                            None => {
+                                assert_eq!(
+                                    session.state.players[0].weapon,
+                                    crate::protocol::WeaponType::Fists
+                                );
+                                assert_eq!(phase, MissionPhase::FindTransfer);
+                            }
+                        }
                     }
                 }
                 ServerMessage::Snapshot(snapshot) => {

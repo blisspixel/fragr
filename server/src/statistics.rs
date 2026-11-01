@@ -12,7 +12,7 @@ pub(crate) use head_to_head::HeadToHead;
 #[cfg(test)]
 mod tests;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct CombatLedger {
     entered_at: u64,
     total: CombatCounts,
@@ -38,6 +38,13 @@ impl CombatLedger {
     pub fn reset_attempt(&mut self) {
         self.attempt = CombatCounts::default();
         self.secrets_attempt.clear();
+    }
+
+    /// A checkpoint retry resumes the attempt's counts where the checkpoint
+    /// left them; the run totals keep everything, the failed stretch included.
+    pub fn restore_attempt(&mut self, saved: &Self) {
+        self.attempt = saved.attempt.clone();
+        self.secrets_attempt.clone_from(&saved.secrets_attempt);
     }
 
     pub fn secret(&mut self, id: &str) {

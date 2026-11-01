@@ -18,6 +18,7 @@ pub const FLIGHT_TICKS: u64 = 100;
 const PLACE_SPEED: f32 = 8.0;
 const PLACE_LIFT: f32 = 2.0;
 
+#[derive(Clone)]
 pub(super) struct Mine {
     pub id: u32,
     pub owner_id: Uuid,
@@ -286,3 +287,11 @@ pub(super) fn fly_device(
 
 #[cfg(test)]
 mod tests;
+
+impl Mine {
+    /// A checkpoint restored later keeps this mine's arming and trip clocks.
+    pub(super) fn shift_ticks(&mut self, by: u64) {
+        self.phase_started = self.phase_started.saturating_add(by);
+        self.phase_ends = self.phase_ends.saturating_add(by);
+    }
+}

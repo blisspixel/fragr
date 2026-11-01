@@ -4172,6 +4172,20 @@ mod mcp_tests {
     }
 
     #[test]
+    fn campaign_checkpoint_reaches_agents_as_a_bare_event() {
+        let mut state = ToolState::default();
+        let wire = protocol::ServerMessage::Event(protocol::GameEvent::Checkpoint {});
+        let text = serde_json::to_string(&wire).unwrap();
+        assert_eq!(text, r#"{"type":"event","event":"checkpoint"}"#);
+        ingest_server_text(&mut state, &text).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(
+            observed["recent_events"][0],
+            serde_json::json!({"event": "checkpoint"})
+        );
+    }
+
+    #[test]
     fn campaign_barks_reach_agents_as_keyed_facts() {
         use protocol::{BarkRegister, CompanionBarkKind, EnemyBarkKind, EnemyKind, GameEvent};
         let mut state = ToolState::default();

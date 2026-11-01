@@ -56,7 +56,7 @@ fn support_cadence(difficulty: crate::protocol::CampaignDifficulty) -> u64 {
 }
 
 /// Latch's own weapon state for one attempt.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(in crate::mission) struct Support {
     /// Rounds fired from the current magazine.
     spent: u8,
@@ -71,6 +71,17 @@ pub(in crate::mission) struct Support {
 }
 
 impl Support {
+    /// A checkpoint restored `by` ticks later keeps Latch's reload and fire pacing.
+    pub(in crate::mission) fn shift_ticks(&mut self, by: u64) {
+        for tick in [
+            &mut self.reload_until,
+            &mut self.last_shot,
+            &mut self.leader_fired,
+        ] {
+            *tick = tick.map(|t| t.saturating_add(by));
+        }
+    }
+
     #[cfg(test)]
     pub(in crate::mission) fn rounds(&self) -> u8 {
         MAGAZINE - self.spent

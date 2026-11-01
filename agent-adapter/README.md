@@ -705,7 +705,7 @@ refuge is a target, so it never fires. The walk keeps no run and no record.
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
-status can request a mission-start retry using the observed mission ID, run ID
+status can request a retry using the observed mission ID, run ID
 and attempt. This applies to all built saved campaign missions through M19:
 
 ```json
@@ -715,8 +715,10 @@ and attempt. This applies to all built saved campaign missions through M19:
 Stale, malformed, spectator and exhausted requests return `isError: true`.
 A successful tool call only queues the request. Confirm `playing`, the increased
 attempt and decreased allowance through `observe` before continuing. Retry keeps
-opening readiness and restores entry equipment; it does not preserve supplies
-collected later. The supplied scripted bot and decision controller automatically
+opening readiness and returns to the level's latest checkpoint, or to its entry
+when none was saved, with that moment's position, equipment and mission facts;
+supplies collected after it are not kept. Each checkpoint arrives in
+`recent_events` and `get_events` as a bare `{"event":"checkpoint"}`. The supplied scripted bot and decision controller automatically
 use remaining continues. MCP observation never spends one for you.
 
 ### `round_state`

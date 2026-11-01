@@ -587,7 +587,7 @@
       "combat": {
         "kind": "union",
         "required": [
-          "aft_clerk"
+          "aft_sweeper_port"
         ],
         "target_required_only": true,
         "evade_tells": true,

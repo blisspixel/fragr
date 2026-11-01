@@ -7,7 +7,7 @@ use crate::protocol::{M02ObjectiveState, MissionObjective, MissionObjectiveActio
 pub(crate) const LATCH_SECOND_FEET: [f32; 3] = [7.55, 0.0, -14.8];
 pub(crate) const LATCH_RELEASE_TICKS: u64 = 240;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M02Progress {
     pub(super) index: usize,
     pub(super) gate_mask: u8,

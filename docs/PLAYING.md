@@ -349,8 +349,11 @@ start without grenades; authored supply claims provide them where registered.
 
 ## Solo runs and local records
 
-Recall Notice offers three mission-start continues per episode. Death presents
-an explicit retry; exhausting the allowance ends the run. **Continue Run**
+The campaign offers three continues per episode. Quiet moments save a checkpoint
+(a CHECKPOINT line in the feed) at least every few minutes of play; death
+presents an explicit retry that spends a continue and returns to the latest
+checkpoint, or to the level start before the first. Exhausting the allowance
+ends the run. **Continue Run**
 reopens the saved mission entry, including body, difficulty, health, armor,
 weapons, ammunition, grenades, mines and remaining continues. It does not resume
 a mid-mission position. Leaving for the menu retains that entry; **Start New

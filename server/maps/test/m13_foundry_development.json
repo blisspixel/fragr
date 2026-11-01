@@ -184,8 +184,8 @@
             0.3,
             -6
           ],
-          "id": "machine_clerk",
-          "kind": "clerk",
+          "id": "machine_sweeper_south",
+          "kind": "sweeper",
           "yaw": 4.71238898038469
         },
         {

@@ -5,6 +5,7 @@ use crate::protocol::{
     M03_MAST_MAX_HP,
 };
 
+#[derive(Clone)]
 pub(super) struct M03Progress {
     pub(super) mast_hp: i32,
     pub(super) cars: Vec<M03CarState>,

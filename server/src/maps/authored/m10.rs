@@ -96,7 +96,7 @@ impl Definition {
             &[
                 EnemyKind::HeavySweeper,
                 EnemyKind::Sweeper,
-                EnemyKind::Clerk,
+                EnemyKind::Sweeper,
                 EnemyKind::Notary,
             ],
             &[

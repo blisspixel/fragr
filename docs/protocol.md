@@ -787,8 +787,8 @@ The current `departed` state freezes that mission's simulation and shows a
 result; it does not load the next map in the same process. A durable solo M01
 child saves M02 as pending, and the menu can start a new local M02 child from
 that exit. Development party mode retains entry respawn and allows a new party
-after everyone leaves. It has no disk save. Neither path has a mid-mission
-checkpoint. A dropped socket can rebind the same pawn for ten seconds. Text is
+after everyone leaves. It has no disk save and no checkpoints. A solo run saves mid-level
+checkpoints in memory (see Solo run recovery). A dropped socket can rebind the same pawn for ten seconds. Text is
 localized; voice/radio is optional.
 
 #### Solo run recovery
@@ -806,10 +806,18 @@ and waiting state before consuming one continue. A duplicate, stale or invalid
 command changes nothing and returns `continue_rejected`. Confirm acceptance in
 the next mission state, never from the send result alone.
 
-Retry restores that level's entry position, facing, health, armor, selected
-weapon, carried weapons, ammunition counts and personal claims; later pickups
-are discarded. Original geometry, supplies, enemies and objectives return
-together. M02's entry carries M01's exit health, armor, weapons, ammunition
+Retry restores the level's latest checkpoint when it has one, otherwise its
+entry: position, facing, health, armor, selected weapon, carried weapons,
+ammunition counts and personal claims; later pickups are discarded. Geometry,
+supplies, allies, cleared groups, mission facts and running clocks return
+together as they stood; groups not yet woken stand at their posts again, and
+each clock moves forward by the time between the save and the retry so it
+resumes where it was. A checkpoint is saved on the first safe tick after a
+cleared group, a changed mission fact or a minute of play without one: the
+owner alive, grounded, out of every vehicle and unhurt for three seconds, no
+woken guard alive, nothing hostile in flight and the Walker not fighting. Each
+save emits `{"type":"event","event":"checkpoint"}`. Checkpoints are not written
+to the run file; a reopened run starts the level from its entry. M02's entry carries M01's exit health, armor, weapons, ammunition
 and selection but starts with M02's own pickup claims and attempt count.
 Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
@@ -2132,7 +2140,8 @@ without revealing an unseen attacker's position. A later entry alarm dispatches
 that group once to the entered threshold. In development party mode, last departure
 or total party death clears encounters and entry respawn permits retry. Individual
 death while an ally survives does not reset groups. Solo mode retains the defeated
-state until an accepted continue resets the entire attempt. Local solo runs now
+state until an accepted continue returns the attempt to its latest checkpoint or
+entry. Local solo runs now
 persist mission-entry state as described under Desktop process bootstrap; the
 mission contract above owns shared lift departure.
 

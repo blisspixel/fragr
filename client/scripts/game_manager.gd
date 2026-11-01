@@ -3563,6 +3563,9 @@ func _on_event_received(data):
 			viewers.append(str(net_client.player_id))
 		var side: String = MatchRules.valid_team(data.get("team"))
 		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers, side, _viewer_side())
+	elif event_type == "checkpoint":
+		if hud:
+			hud.show_checkpoint()
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():

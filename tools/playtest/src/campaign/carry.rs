@@ -448,6 +448,8 @@ pub(super) fn trial(
         hits_omitted: 0,
         reloads: 0,
         longest_no_progress_seconds: 0.0,
+        checkpoint_seconds: Vec::new(),
+        longest_checkpoint_gap_seconds: 0.0,
         carry: None,
         ..m01.clone()
     };

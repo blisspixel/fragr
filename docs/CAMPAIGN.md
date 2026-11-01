@@ -13,7 +13,7 @@ work, not a proposal awaiting a decision. [Detailed level plans](campaign/README
 own room and encounter staging for every level. No complete level is finished.
 Level 1 (M01, Recall Notice) has a playable development slice with discovery,
 introductory enemies, a transfer/lift sequence and a reader-paced text opening.
-Solo level 1 now has three explicit mission-start continues and exhaustion;
+Solo level 1 now has three explicit continues and exhaustion;
 M01 entry persistence and M01-to-M02 carry are integrated. The local M03
 Scheduled Service prototype adds a daylight yard, Jammer encounters, shootable
 mast, optional recall-car releases and deliberate train departure. M02-to-M03
@@ -358,6 +358,13 @@ moral penalty for using the shooter's core mechanics.
   the design and playtest rules.
 - Teach enemy problems before combining them. Human troops, Union bots,
   elites, and Inheritance machines need distinct tells and responses.
+  An encounter mixes at most three enemy kinds unless it is a marked brawl
+  (`"brawl": true` in the map; the loader refuses an unmarked group of four).
+  The wave 21 audit (#527) marked the five climaxes in levels 12, 13, 16, 17
+  and 20 and reduced the level 10 aft boarders and level 13 machine hall to
+  three kinds. Every new enemy except two meets the party alone first: the
+  Auditor (level 8) arrives with three Sweepers and the Assessor (level 12)
+  with three Clerks, both still open.
   [ENEMIES.md](ENEMIES.md) owns the roster.
 - Secrets reward observation with supplies, tactical access, or early weapons.
   Essential motive, objectives, and rescue warnings are never secret-only.
@@ -420,9 +427,35 @@ presentation, never whether a mission result or rescue occurred.
 ## Runs and continues
 
 The campaign is intended to reward learning across repeated attempts. Player death
-can spend a limited continue to restart the current level from its beginning,
-with its starting equipment and world state restored. No mid-level checkpoint
-retry or teammate revival. With no continues left, the next death ends the run.
+can spend a limited continue to return to the latest checkpoint of the current
+level, or to its beginning when the level has not saved one yet, with that
+moment's equipment and world state restored. No teammate revival. With no
+continues left, the next death ends the run.
+
+Decided 2026-10-31 (wave 21, #527; open for Nick to confirm, see below):
+mid-level checkpoints, at most three minutes of play apart. The server asks for
+a checkpoint when a fight is cleared, when a mission fact changes, or after a
+minute of play without one, and saves on the first safe tick after that: the
+owner alive, on the ground, out of every vehicle and unhurt for three seconds,
+no woken guard alive, nothing hostile in flight and the Walker, if present, not
+fighting. Halo's campaign is the model: a save waits for safety instead of
+landing in a fight. A checkpoint keeps the owner's position, facing, health,
+armor, weapons, rounds and mission gear, every mission fact and running clock,
+Latch and the other allies, cleared and spent groups, supplies, vehicles, mines
+and the map's opened routes. Groups not yet woken stand at their posts again.
+A small `checkpoint` event tells clients a save happened. What a continue
+costs is unchanged: one continue per death, three per episode, refilled at each
+episode start, the current level only, and exhaustion ends the run with its
+ending. Checkpoints belong to the running level; the run file on disk keeps the
+mission entry, so reopening a saved run starts that level again, as before.
+
+Open decision for Nick: the earlier contract said a continue restarts the level
+from its beginning. Returning to the checkpoint is the smallest change that
+makes the three-minute checkpoint gap mean what the 1.0 bar measures (play lost
+to a death); the continue economy itself is untouched. If continues should keep
+restarting the level, the checkpoint can stay a quiet save for a later
+suspend-and-resume and `continue_mission` returns to the entry, a one-branch
+change in `server/src/mission/recovery.rs`.
 
 Decided 2026-09-25: three continues, refilled to three at the start of each
 episode. M01 enforces the three-continue allowance. Saved promotion refills once
@@ -434,8 +467,8 @@ on retries and mandatory travel must stay purposeful.
 
 The wipe follows the same limited-continue rule, but each of its three levels
 (18, 19, 20) carries its own clock. Death with allowance offers a retry from the
-current wipe level's entry, restoring equipment and resetting only that level's
-clock; earlier wipe levels already survived stay survived. Death without
+current wipe level's latest checkpoint (its entry before the first), restoring
+that moment's equipment and that level's clock as it stood; earlier wipe levels already survived stay survived. Death without
 allowance ends the run with a specific wipe-failure ending and credits. Only
 surviving all three levels and receiving the reprieve unlocks the playable
 epilogue. Earlier completion, stored kill counts or viewing credits cannot
@@ -453,7 +486,7 @@ Inheritance. The reprieve does not undo the wider wipe, prove survivors morally
 superior or turn the catastrophe into a universal rescue.
 
 A retry preserves outcomes from completed levels and resets only the failed
-level's attempt. It restores entry inventory, health/armor, enemies, supplies,
+level's attempt to its latest checkpoint or entry. It restores that inventory, health/armor, enemies, supplies,
 doors, objectives and local ally state coherently. A gameplay retry does not
 establish in-world resurrection. Earned cosmetics are separate from expendable
 run progress. The local M01 run file preserves the remaining allowance without
@@ -594,8 +627,9 @@ recurring objects while preserving combat flow and the agreed main plot.
 ## Open decisions
 
 The central arc, twenty levels in five episodes plus conditional epilogue, a
-four-hour target and three mission-start continues refilled each episode are
-settled. Persistence across later levels, per-level viewpoint assignments,
+four-hour target and three continues refilled each episode are
+settled; whether a continue returns to the latest checkpoint or the level start
+is open above (Runs and continues). Persistence across later levels, per-level viewpoint assignments,
 ally fates and optional co-op scope still need design. Detailed route, working
 cast/place names, exact companion relationship wording, individual wipe
 operations, final rescue tradeoffs, the reprieve's precise terms, final

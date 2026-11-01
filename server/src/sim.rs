@@ -6,6 +6,8 @@ mod booth;
 mod bot_senses;
 mod callouts;
 pub(crate) use bot_senses::guard::{guard_reaction, guard_sees};
+mod checkpoint;
+pub(crate) use checkpoint::WorldSave;
 mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
@@ -784,6 +786,7 @@ pub struct GameState {
     pub(crate) map_vote: Option<vote::MapVoteState>,
 }
 
+#[derive(Clone)]
 pub struct Player {
     pub(crate) statistics: crate::statistics::CombatLedger,
     pub campaign: Option<crate::protocol::CampaignActor>,
@@ -2352,6 +2355,7 @@ impl GameState {
         } else {
             self.tick_active(dt, map.arena());
         }
+        self.update_campaign_checkpoint();
     }
 
     /// Publish the crouch before contact and movement read the body.

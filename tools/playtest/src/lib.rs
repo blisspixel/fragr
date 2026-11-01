@@ -1333,6 +1333,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 fragr_server::protocol::FlagEventKind::Captured => captures += 1,
             },
             GameEvent::Hit { .. }
+            | GameEvent::Checkpoint {}
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::EnemyBark { .. }
             | GameEvent::CompanionBark { .. }

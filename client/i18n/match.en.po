@@ -950,3 +950,6 @@ msgstr "RELOAD NOT ACCEPTED"
 
 msgid "FLAG_STATUS_ROWS"
 msgstr "UNION FLAG {union}\nFREE FLAG {coalition}"
+
+msgid "HUD_CHECKPOINT"
+msgstr "CHECKPOINT"
