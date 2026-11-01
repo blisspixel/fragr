@@ -23,6 +23,9 @@ func _check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
+	# Jingle players leave the tree playing; their MP3 decoders release only after
+	# a mixer turn, so retire them before the harness exits.
+	var retirement: ClientRetirement = ClientRetirement.for_tree(self)
 	_path = "user://test-benchmark-jingle-%d.cfg" % OS.get_process_id()
 	set_meta("fragr_settings_path", _path)
 	set_meta("fragr_benchmark_dir", ProjectSettings.globalize_path("user://test-benchmark-jingle-results-%d" % OS.get_process_id()))
@@ -34,6 +37,7 @@ func _run() -> void:
 	await _check_picker()
 	_check_only_results_sing()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
+	_check(await retirement.drain(), "every jingle decoder retires before the harness exits")
 	if _failures == 0:
 		print("test_benchmark_jingle: PASS")
 	quit(0 if _failures == 0 else 1)
