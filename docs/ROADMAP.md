@@ -110,8 +110,11 @@ it.
 | Campaign checkpoints (#527) | Mid-level checkpoints no more than three minutes apart through the run-file seam; an encounter audit for enemy types per fight and teaching before testing |
 | Readable deaths (#528) | A death recap within 300 ms, a contrast scan of fighters against backgrounds at 10 to 40 m, a colour-blind preset and the transient whiteout (#521) |
 
-Fair play (each client receives only what its fighter could perceive) is the
-next large gate after this wave.
+Wave 22 follows with fair play (each client receives only what its fighter
+could perceive) and opt-in fun metrics (#529): match-level records on a host's
+disk, announced at join and shredded after 67 days per the
+[privacy policy](PRIVACY.md), reusing the survey metrics this wave adds so real
+matches and bot surveys are measured the same way.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
