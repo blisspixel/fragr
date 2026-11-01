@@ -14,6 +14,18 @@ extends SceneTree
 ## to the resolved shot. A second pass grabs consecutive frames into motion
 ## strips (strafe_stop, reversal, jump, fire) for a person to inspect.
 ##
+## Input to photon (#525): with the frame rate capped at FRAGR_FEEL_FPS
+## (default 60) and vsync off, real input events (a move key, a fire press and
+## a mouse motion) go in at a seeded moment, the keys through
+## Input.parse_input_event and the motion through the camera's handler, and
+## every frame is stamped at pre-draw and post-draw. The measure is the event
+## to the post-draw of the first frame whose camera or kick shows the response.
+## An event injected during a frame's process waits for the next frame's
+## input flush, the worst phase for an OS event; scanout after the draw
+## (up to one refresh, plus the display's own latency) is not included.
+## Every frame also records the remote presentation clock: its buffer and how
+## far the drawn time trails the newest snapshot tick.
+##
 ## FRAGR_SERVER names a separately started server, for example
 ## `fragr-server --bind 127.0.0.1:6791 --bots 0 --map 1 --no-round-events`.
 ## FRAGR_FEEL_STRIPS=0 skips the strip pass. The probe is evidence, not a
@@ -27,6 +39,9 @@ const STRIP_FRAMES: int = 24
 const STRIP_TILE: Vector2i = Vector2i(320, 180)
 ## A frame that moves less than this is at rest for the stop measurement.
 const REST_EPSILON: float = 0.0005
+const PHOTON_TRIALS: int = 12
+## The 1.0 bar's input-to-photon target at 60 fps.
+const PHOTON_TARGET_MS: float = 60.0
 
 var _directory: String = ""
 var _manager: Node = null
@@ -43,6 +58,7 @@ var _last_shot_tick: int = -1
 ## The flick pass needs a captured mouse on builds that only turn a captured
 ## view; everything else keeps the cursor free.
 var _hold_capture: bool = false
+var _frame_id: int = 0
 
 
 func _initialize() -> void:
@@ -116,6 +132,7 @@ func _run() -> void:
 	_yaw = _clear_yaw()
 	_face()
 	RenderingServer.frame_pre_draw.connect(_sample)
+	RenderingServer.frame_post_draw.connect(_drawn)
 	await _settle()
 	_manager.local_prediction.clear_measurements()
 	_recording = true
@@ -128,6 +145,7 @@ func _run() -> void:
 	await _dodge()
 	await _flicks()
 	await _fire()
+	await _photon()
 	_recording = false
 	QaCombat.release_inputs()
 	var report: Dictionary = _analyze()
@@ -287,7 +305,17 @@ func _sample() -> void:
 	var position: Vector3 = camera.global_position
 	var now: int = Time.get_ticks_usec()
 	var presented: Variant = _manager.get("presented_usec")
+	_frame_id += 1
+	var view_clock: RemotePresentation = _manager.get("view_clock") as RemotePresentation
+	var view: float = view_clock.view_tick(now) if view_clock != null else -1.0
+	var newest: int = int(view_clock.samples.back()["tick"]) if view_clock != null and not view_clock.samples.is_empty() else -1
 	_frames.append({
+		"id": _frame_id,
+		"post_usec": -1,
+		"view_tick": view,
+		"view_behind_ms": (float(newest) - view) * 50.0 if newest >= 0 and view >= 0.0 else -1.0,
+		"buffer_ms": view_clock.buffer_ticks * 50.0 if view_clock != null else -1.0,
+		"view_starved": view_clock.starved if view_clock != null else false,
 		"usec": now,
 		# The clock the body was drawn for, where the build exposes it. Drawn
 		# speed against it is the motion itself, without the engine's varying
@@ -316,6 +344,144 @@ func _sample() -> void:
 				break
 
 
+## Post-draw: the frame just submitted for display gets its stamp.
+func _drawn() -> void:
+	if not _recording or _frames.is_empty():
+		return
+	var last: Dictionary = _frames.back()
+	if int(last["post_usec"]) < 0:
+		last["post_usec"] = Time.get_ticks_usec()
+
+
+func _inject_action(action: String, pressed: bool) -> void:
+	var event: InputEventAction = InputEventAction.new()
+	event.action = action
+	event.pressed = pressed
+	event.strength = 1.0 if pressed else 0.0
+	Input.parse_input_event(event)
+
+
+## Real input events through the engine's queue, with the frame rate capped
+## and vsync off for the pass, then both restored.
+func _photon() -> void:
+	_mark("photon")
+	var fps: int = maxi(1, int(OS.get_environment("FRAGR_FEEL_FPS"))) if not OS.get_environment("FRAGR_FEEL_FPS").is_empty() else 60
+	var previous_fps: int = Engine.max_fps
+	var previous_vsync: DisplayServer.VSyncMode = DisplayServer.window_get_vsync_mode()
+	Engine.max_fps = fps
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	# The earlier passes moved the fighter; find room again.
+	await _settle()
+	_yaw = _clear_yaw()
+	_face()
+	await create_timer(0.6).timeout
+	var draw: int = 0x51AB
+	for trial: int in range(PHOTON_TRIALS):
+		for kind: String in ["move", "fire", "look"]:
+			draw = (draw * 1103515245 + 12345) % 2147483648
+			# A seeded wait so the press lands at varied phases of the tick.
+			await create_timer(0.25 + float(draw % 50000) / 1000000.0).timeout
+			_event("photon", {"input": kind, "focused": DisplayServer.window_is_focused()})
+			match kind:
+				"move":
+					# Alternate sides so the fighter stays in the room it found.
+					var key: String = "move_right" if trial % 2 == 0 else "move_left"
+					_inject_action(key, true)
+					await create_timer(0.3).timeout
+					_inject_action(key, false)
+					await create_timer(REST_SECONDS).timeout
+					_face()
+				"fire":
+					_inject_action("fire", true)
+					await create_timer(0.05).timeout
+					_inject_action("fire", false)
+					await create_timer(0.5).timeout
+					# Keep the magazine from running dry inside the pass.
+					if trial % 4 == 3:
+						_inject_action("reload", true)
+						await create_timer(0.05).timeout
+						_inject_action("reload", false)
+						await create_timer(1.4).timeout
+				_:
+					# A compositor may refuse pointer capture to a test
+					# window, so the motion goes to the camera's own input
+					# handler as a captured one, the way _flicks does. It
+					# skips the engine queue: up to a frame less than a real
+					# mouse event.
+					var motion: InputEventMouseMotion = InputEventMouseMotion.new()
+					var turn: float = 1.0 if trial % 2 == 0 else -1.0
+					motion.relative = Vector2(120.0 * turn, 0.0)
+					motion.screen_relative = motion.relative
+					_manager.camera.accept_mouse_motion(motion, true)
+					await create_timer(0.3).timeout
+					_face()
+	Engine.max_fps = previous_fps
+	DisplayServer.window_set_vsync_mode(previous_vsync)
+	_face()
+	await create_timer(0.3).timeout
+
+
+## Event to the post-draw of the first frame showing the response: the drawn
+## eye moved, the kick began, or the drawn view turned.
+func _photon_metrics() -> Dictionary:
+	var frames: Array[Dictionary] = _phase_frames("photon")
+	var result: Dictionary = {"target_ms": PHOTON_TARGET_MS}
+	var frame_ms: Array[float] = []
+	for index: int in range(1, frames.size()):
+		frame_ms.append(_ms(int(frames[index]["usec"]) - int(frames[index - 1]["usec"])))
+	result["frame_ms"] = _percentiles(frame_ms)
+	for kind: String in ["move", "fire", "look"]:
+		var delays: Array[float] = []
+		var counts: Array[float] = []
+		for entry: Dictionary in _events:
+			if entry["kind"] != "photon" or entry.get("input", "") != kind:
+				continue
+			var at: int = int(entry["usec"])
+			var before: Dictionary = {}
+			var shown: int = -1
+			var after: int = 0
+			for frame: Dictionary in frames:
+				if int(frame["usec"]) < at:
+					before = frame
+					continue
+				if before.is_empty():
+					break
+				after += 1
+				var changed: bool = false
+				match kind:
+					"move":
+						changed = Vector2(float(frame["x"]) - float(before["x"]), float(frame["z"]) - float(before["z"])).length() > REST_EPSILON
+					"fire":
+						changed = float(frame["kick"]) > float(before["kick"]) + 0.0001
+					_:
+						changed = absf(angle_difference(float(frame["rot_y"]), float(before["rot_y"]))) > 0.0005
+				if changed:
+					var post: int = int(frame["post_usec"])
+					shown = post if post > 0 else int(frame["usec"])
+					break
+				if after > 30:
+					break
+			if shown >= 0:
+				delays.append(_ms(shown - at))
+				counts.append(float(after))
+		result[kind] = {"input_to_photon_ms": _percentiles(delays), "frames_after_event": _percentiles(counts)}
+	return result
+
+
+## The remote presentation clock over the whole recorded session.
+func _remote_view_metrics() -> Dictionary:
+	var buffer: Array[float] = []
+	var behind: Array[float] = []
+	var starved: int = 0
+	for frame: Dictionary in _frames:
+		if float(frame.get("buffer_ms", -1.0)) >= 0.0 and float(frame.get("view_behind_ms", -1.0)) >= 0.0:
+			buffer.append(snappedf(float(frame["buffer_ms"]), 0.01))
+			behind.append(snappedf(float(frame["view_behind_ms"]), 0.01))
+			starved += int(bool(frame.get("view_starved", false)))
+	return {"buffer_ms": _percentiles(buffer), "drawn_behind_newest_snapshot_ms": _percentiles(behind),
+		"starved_frames": starved, "frames": buffer.size()}
+
+
 func _top_speed() -> float:
 	return MoveStep.TOP_SPEED
 
@@ -330,6 +496,8 @@ func _analyze() -> Dictionary:
 	for index: int in range(1, _frames.size()):
 		deltas.append(float(int(_frames[index]["usec"]) - int(_frames[index - 1]["usec"])) / 1000.0)
 	report["frame_ms"] = _percentiles(deltas)
+	report["photon"] = _photon_metrics()
+	report["remote_view"] = _remote_view_metrics()
 	for label: String in ["strafe_left", "strafe_right"]:
 		report[label] = _strafe_metrics(label, right * (-1.0 if label == "strafe_left" else 1.0))
 		backward += int(report[label].get("backward_frames", 0))
@@ -730,7 +898,7 @@ func _write(report: Dictionary) -> void:
 		out.store_string(JSON.stringify(report, "  "))
 		out.close()
 	var lines: PackedStringArray = ["| Measure | Value |", "|---|---|"]
-	for key: String in ["frame_ms", "strafe_left", "strafe_right", "reversal", "backward_frames_total", "jump", "dodge", "flick", "fire", "corrections"]:
+	for key: String in ["frame_ms", "strafe_left", "strafe_right", "reversal", "backward_frames_total", "jump", "dodge", "flick", "fire", "photon", "remote_view", "corrections"]:
 		lines.append("| %s | %s |" % [key, JSON.stringify(report.get(key, {}))])
 	var table: FileAccess = FileAccess.open(_directory.path_join("feel.md"), FileAccess.WRITE)
 	if _require(table != null, "feel.md opens"):
