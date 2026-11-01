@@ -237,6 +237,9 @@ func _run() -> void:
 					dressing.set_value("profile", key, int(state["profile_" + key]))
 					if _game_manager() != null:
 						_game_manager().settings.set_value("profile", key, int(state["profile_" + key]))
+					var menu: Node = get_root().get_node_or_null("BootMenu")
+					if menu != null and menu.get("_settings") is FragrSettings:
+						(menu.get("_settings") as FragrSettings).set_value("profile", key, int(state["profile_" + key]))
 			dressing.save_to_disk()
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
