@@ -1076,7 +1076,9 @@ fn reclamation_gulch() -> MapDef {
     }
 
     // The knoll in the middle of the gulch: the rail, and nowhere to hide.
-    let knoll = 1.2;
+    // 1.1 m: a plain jump onto its open sides, never the 1.2 m that only a
+    // clean running jump cleared (#538).
+    let knoll = 1.1;
     s.extend(deck_with_stairs(
         0.0,
         -14.0,

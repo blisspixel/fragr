@@ -38,7 +38,7 @@ const KEY_SOLIDS: Array = [
 	[Vector3(25, 0, -15), Vector3(32, 2.5, -9)],
 	[Vector3(-13, 0, 10), Vector3(-5, 0.8, 11.5)],
 	[Vector3(-3, 0.7, 27), Vector3(3, 0.9, 30)],
-	[Vector3(7, 0, 29), Vector3(9, 1.2, 31)],
+	[Vector3(7, 0, 29), Vector3(9, 1.1, 31)],
 	[Vector3(22, 0, -32), Vector3(34, 4, -31.5)],
 ]
 
@@ -671,10 +671,10 @@ func _seal_material() -> StandardMaterial3D:
 ## [bench low, bench high, awning far edge z, trade]. Benches sit on the
 ## awning's south edge; the open side faces the loop.
 const STALLS: Array = [
-	[Vector3(-15, 0, -7), Vector3(-9, 0.7, -6), -2.0, "noodles"],
-	[Vector3(-15, 0, 2), Vector3(-9, 0.7, 3), 7.0, "radios"],
-	[Vector3(7, 0, -7), Vector3(13, 0.7, -6), -2.0, "cloth"],
-	[Vector3(7, 0, 2), Vector3(13, 0.7, 3), 7.0, "greens"],
+	[Vector3(-15, 0, -7), Vector3(-9, 0.6, -6), -2.0, "noodles"],
+	[Vector3(-15, 0, 2), Vector3(-9, 0.6, 3), 7.0, "radios"],
+	[Vector3(7, 0, -7), Vector3(13, 0.6, -6), -2.0, "cloth"],
+	[Vector3(7, 0, 2), Vector3(13, 0.6, 3), 7.0, "greens"],
 ]
 
 func _build_market() -> void:

@@ -32,7 +32,7 @@ func _run() -> void:
 		_solid(-38.0, 4.0, -38.0, -28.0, 9.0),           # annex shell
 		_solid(-36.0, -10.0, -28.0, -4.0, 3.0),          # Toll deck
 		_solid(-24.0, -14.0, 2.0, 10.0, 3.4, 3.0),       # Low Ramp lid
-		_solid(2.0, 6.4, -4.0, -2.0, 1.4),               # nose-down sedan
+		_solid(2.0, 6.4, -4.0, -2.0, 1.5),               # nose-down sedan
 		_solid(-10.0, 10.0, -8.0, -5.0, 3.0, 2.6),       # Bridge
 		_solid(-1.0, 1.0, -0.9, 0.9, 14.5, 10.0),        # the Repossession
 		_solid(-25.0, -23.0, -17.0, -13.0, 5.8),         # the middle toll booth

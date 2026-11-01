@@ -48,7 +48,11 @@ pub(crate) const ROOF: f32 = 6.0;
 
 /// Tops that must stay out of reach of a jump from the Roof (6.0 + 1.3).
 const ROOF_WALL: f32 = 7.6;
-const VALET_BARRIER: f32 = 7.4;
+const VALET_BARRIER: f32 = ROOF + WRECK;
+/// A wreck, drum or crash barrier standing on a deck. The jump reaches about
+/// 1.26 m, so 1.5 m reads as a wall; at 1.4 m it looked climbable and was not
+/// (#538).
+const WRECK: f32 = 1.5;
 /// The Low Ramp's north wall: a sight screen over the lid, 1.5 m over the
 /// Toll steps so no jump reaches it.
 const RAMP_SCREEN: f32 = 4.0;
@@ -265,7 +269,7 @@ fn build_lot() -> Lot {
         b.block((x - 1.0, x + 1.0), (-17.0, -13.0), 5.8, Enamel);
     }
     let canopy = b.slab((-34.0, -12.0), (-20.0, -10.0), (6.6, 7.0), ServiceSteel);
-    b.block((-15.0, -11.0), (-26.0, -24.0), 4.4, Enamel);
+    b.block((-15.0, -11.0), (-26.0, -24.0), LEVEL_2 + WRECK, Enamel);
     b.flight((-36.0, -28.0), (-4.0, 0.0), (LEVEL_1, LEVEL_2), false, -1.0);
 
     // LANE (SW, level 1) and the LOW RAMP tunnel down to the Rail.
@@ -331,7 +335,7 @@ fn build_lot() -> Lot {
     // PIT cover: THE STACK of crushed cars on a burnt tow truck, and a sedan
     // that went in nose first when the bays fell.
     b.block((4.0, 8.4), (3.0, 8.0), 3.2, RecordsTile);
-    b.block((2.0, 6.4), (-4.0, -2.0), 1.4, RecordsTile);
+    b.block((2.0, 6.4), (-4.0, -2.0), PIT + WRECK, RecordsTile);
     b.block((-10.0, -8.0), (-4.0, 1.5), 1.0, ServiceSteel); // PIT STEPS
     b.block((-8.0, -6.0), (-4.0, 1.5), 0.5, ServiceSteel);
     b.block((-16.0, -12.0), (-2.0, 0.0), 2.0, ServiceSteel); // TOLL STEPS
@@ -369,7 +373,7 @@ fn build_lot() -> Lot {
     b.flight((18.0, 30.0), (-10.0, -8.0), (LEVEL_2, ROOF), true, 1.0);
     b.block((28.0, 30.0), (-10.0, -8.0), ROOF, ServiceSteel);
     b.flight((22.0, 28.0), (0.0, 6.0), (LEVEL_1, LEVEL_2), false, -1.0);
-    b.block((24.0, 26.0), (-6.0, -3.0), 4.4, RecordsTile);
+    b.block((24.0, 26.0), (-6.0, -3.0), LEVEL_2 + WRECK, RecordsTile);
 
     // BRIDGE over the Pit, with 2.6 m of standing room beneath it. Its north
     // edge sits 2.6 m off the Gallery lip: at the arena's 6 m/s a run off the
@@ -386,9 +390,9 @@ fn build_lot() -> Lot {
     // two sodium masts.
     b.block((4.0, 36.0), (-28.0, -20.0), ROOF, Concrete);
     b.block((10.0, 36.0), (-20.0, -10.0), ROOF, Concrete);
-    b.block((14.0, 18.4), (-25.0, -23.0), 7.4, RecordsTile);
+    b.block((14.0, 18.4), (-25.0, -23.0), ROOF + WRECK, RecordsTile);
     b.block((19.0, 21.2), (-17.0, -12.0), 8.2, Enamel);
-    b.block((30.0, 34.4), (-26.0, -24.0), 7.4, RecordsTile);
+    b.block((30.0, 34.4), (-26.0, -24.0), ROOF + WRECK, RecordsTile);
     for (x, z) in [(12.0, -26.5), (35.0, -19.0)] {
         b.block((x - 0.2, x + 0.2), (z - 0.2, z + 0.2), 12.0, ServiceSteel);
     }

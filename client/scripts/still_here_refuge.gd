@@ -61,7 +61,7 @@ const SOLIDS: Dictionary[String, Array] = {
 	"cot_a": [Vector3(-18, 0, 9.2), Vector3(-16, 0.5, 10.0)],
 	"cot_b": [Vector3(-18, 0, 11.2), Vector3(-16, 0.5, 12.0)],
 	"crate_a": [Vector3(-14.4, 0, 8.4), Vector3(-13.4, 0.8, 9.4)],
-	"crate_b": [Vector3(8.6, 0, -10.6), Vector3(9.6, 0.7, -9.6)],
+	"crate_b": [Vector3(8.6, 0, -10.6), Vector3(9.6, 0.6, -9.6)],
 	"crate_c": [Vector3(13.0, 0, -9.0), Vector3(14.0, 0.8, -8.0)],
 	"tram_stalled": [Vector3(15.6, 0, -13), Vector3(18.4, 3.2, -1.5)],
 	"tram_running": [Vector3(15.6, 0, 1.5), Vector3(18.4, 3.2, 14)],

@@ -272,9 +272,11 @@ struct Cli {
     /// With --peek-probe: extra one-way jitter on the link, milliseconds.
     #[arg(long, requires = "peek_probe", default_value_t = 0, value_parser = clap::value_parser!(u32).range(0..=200))]
     peek_jitter_ms: u32,
-    /// Scan every arena map and campaign level for ledges in the ambiguous
-    /// jump band, above a step and up to just past a standing jump's reach.
-    /// Writes `--report` and prints the table.
+    /// Scan every arena map and campaign level for ledges a fighter can reach
+    /// in the ambiguous bands: just above a step, just under a standing
+    /// jump's reach, or between the reach and a 1.5 m wall. Writes
+    /// `--report`, prints the table and fails on any ledge in those bands the
+    /// allow-list does not name.
     #[arg(long, conflicts_with_all = [
         "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
         "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
@@ -338,9 +340,23 @@ async fn peek_report(cli: &Cli) -> Result<(), String> {
 }
 
 fn ledge_report(cli: &Cli) -> Result<(), String> {
-    let report = fragr_server::maps::ledges::scan_all().map_err(|e| e.to_string())?;
-    print!("{}", fragr_server::maps::ledges::table(&report));
-    write_json(&cli.report, &report)
+    use fragr_server::maps::ledges;
+    let report = ledges::scan_all().map_err(|e| e.to_string())?;
+    print!("{}", ledges::table(&report));
+    write_json(&cli.report, &report)?;
+    // The scan is the regression gate (#538): any ledge in an ambiguous band
+    // that the allow-list does not name fails the run.
+    let mut problems = ledges::unexplained(&report);
+    problems.extend(
+        ledges::stale_allowances(&report)
+            .into_iter()
+            .map(|reason| format!("stale allowance: {reason}")),
+    );
+    if problems.is_empty() {
+        Ok(())
+    } else {
+        Err(problems.join("\n"))
+    }
 }
 
 fn write_json(path: &Path, value: &impl serde::Serialize) -> Result<(), String> {

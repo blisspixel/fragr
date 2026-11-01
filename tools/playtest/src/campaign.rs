@@ -2017,8 +2017,10 @@ mod tests {
         // participant's view ordered the attack tokens (#493), seed 43
         // departed without dying too. Seed 40 dies once, retries and departs
         // with 4 reloads, so it keeps the retry in the trial. Of seeds 40 to
-        // 103, 10 die and still depart.
-        let row = trial(40, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
+        // 103, 10 die and still depart. Seed 44 since wave 22: plated machines
+        // (#533) and lowered cover (#538) together cleared seed 40 without a
+        // death; of seeds 30 to 109, 26 now die and still depart.
+        let row = trial(44, PROFILES[1], CampaignDifficulty::Assisted, 12_000).unwrap();
         assert_eq!(row.outcome, "departed");
         assert!(row.reloads > 0 && row.deaths > 0);
         assert!(row.longest_no_progress_seconds < 30.0);

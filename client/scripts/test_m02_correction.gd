@@ -23,7 +23,7 @@ static func _info(map_id: int = 1002, frame_x: float = 8.0) -> Dictionary:
 		_solid(Vector3(-4, 0, -15), Vector3(0, 3.2, -13)),
 		_solid(Vector3(frame_x, 0, -13), Vector3(9, 2.6, -9)),
 		_solid(Vector3(-4, 0, 3), Vector3(-1, 2.2, 6)),
-		_solid(Vector3(-5, 0, 19), Vector3(-3, 1.4, 21)),
+		_solid(Vector3(-5, 0, 19), Vector3(-3, 1.5, 21)),
 		_solid(Vector3(-7, 0, 24), Vector3(7, 7, 25)),
 	]}
 

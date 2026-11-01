@@ -20,7 +20,7 @@ static func _info(map_id: int = 1001, bench_x: float = -10.0) -> Dictionary:
 	return {"map_id": map_id, "map_name": "Recall Notice", "solids": [
 		_solid(Vector3(bench_x, 0, -26), Vector3(-6, 1, -23)),
 		_solid(Vector3(-4, 0, 6), Vector3(4, 2.4, 7)),
-		_solid(Vector3(-9, 3, 23), Vector3(-6, 4.2, 25)),
+		_solid(Vector3(-9, 3, 23), Vector3(-6, 4.1, 25)),
 		_solid(Vector3(-11.9, 0, -26.8), Vector3(-10.4, 0.95, -23.2)),
 	]}
 

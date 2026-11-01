@@ -184,7 +184,7 @@
     {"id":"side_ward_east","min":[26,0,0],"max":[27,7,11],"surface":"concrete"},
     {"id":"side_ward_north","min":[15,0,10],"max":[27,7,11],"surface":"concrete"},
     {"id":"side_ward_entry_baffle","min":[15,0,5],"max":[18,3,6],"surface":"service_steel"},
-    {"id":"side_ward_cover","min":[17,0,7],"max":[18,1.2,8],"surface":"service_steel"},
+    {"id":"side_ward_cover","min":[17,0,7],"max":[18,1.1,8],"surface":"service_steel"},
     {"id":"mezzanine_step_1","min":[-14,0,-3],"max":[-6,0.5,-2],"surface":"service_steel"},
     {"id":"mezzanine_step_2","min":[-14,0,-2],"max":[-6,1,-1],"surface":"service_steel"},
     {"id":"mezzanine_step_3","min":[-14,0,-1],"max":[-6,1.5,0],"surface":"service_steel"},
@@ -196,7 +196,7 @@
     {"id":"service_rack","min":[3,0,12],"max":[5,1.8,14],"surface":"service_steel"},
     {"id":"loading_west","min":[-15,0,14],"max":[-3,7,15],"surface":"service_steel"},
     {"id":"loading_east","min":[3,0,14],"max":[15,7,15],"surface":"service_steel"},
-    {"id":"dock_crates","min":[-5,0,19],"max":[-3,1.4,21],"surface":"service_steel"},
+    {"id":"dock_crates","min":[-5,0,19],"max":[-3,1.5,21],"surface":"service_steel"},
     {"id":"dock_west","min":[-7,0,15],"max":[-6,7,25],"surface":"concrete"},
     {"id":"dock_east","min":[6,0,15],"max":[7,7,25],"surface":"concrete"},
     {"id":"dock_north","min":[-7,0,24],"max":[7,7,25],"surface":"concrete"}

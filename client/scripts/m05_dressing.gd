@@ -856,7 +856,7 @@ func _build_service_bay() -> void:
 	_relief(props, "KickPlate", Vector3(4.0, 0.3, 0.015), _mat("locker_seam", Color("3d4a4e"), 0.4, 0.5), Vector3(-8.0, 0.15, -13.5), Vector3.BACK)
 	# The service cover: Splice's rolling tool chest in their own colours.
 	var chest: StandardMaterial3D = _mat("tool_chest", Color("4f6f8a"), 0.4, 0.5)
-	_wrap(props, "ToolChest", Vector3(-9, 0, -10), Vector3(-6, 1.2, -8), chest, _mat("chest_top", Color("3a3d3c"), 0.3, 0.7))
+	_wrap(props, "ToolChest", Vector3(-9, 0, -10), Vector3(-6, 1.1, -8), chest, _mat("chest_top", Color("3a3d3c"), 0.3, 0.7))
 	for out: Vector3 in [Vector3.FORWARD, Vector3.BACK]:
 		var z: float = -10.0 if out == Vector3.FORWARD else -8.0
 		for row: int in range(4):
@@ -922,7 +922,7 @@ func _build_trench() -> void:
 	var room: Node3D = _room("Trench")
 	var props: Node3D = _props(room)
 	# The four trench covers are stacks of old sleepers waiting to be laid.
-	for cover: Array in [[Vector3(-10, 0, 9), Vector3(-7, 1.2, 12)], [Vector3(7, 0, 12), Vector3(10, 1.2, 15)], [Vector3(-10, 0, 21), Vector3(-7, 1.2, 24)], [Vector3(7, 0, 24), Vector3(10, 1.2, 27)]]:
+	for cover: Array in [[Vector3(-10, 0, 9), Vector3(-7, 1.1, 12)], [Vector3(7, 0, 12), Vector3(10, 1.1, 15)], [Vector3(-10, 0, 21), Vector3(-7, 1.1, 24)], [Vector3(7, 0, 24), Vector3(10, 1.1, 27)]]:
 		_sleeper_stack(props, cover[0], cover[1])
 	# The tram dock: a checker-plate boarding step with an ochre edge.
 	var tread: StandardMaterial3D = _tiled("tread", EnvironmentTextures.EARTH + "earth_service_dark_tread.png", Color("9a9a90"), 1.0)

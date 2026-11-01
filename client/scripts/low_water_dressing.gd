@@ -105,8 +105,8 @@ const AWNINGS: Array[Dictionary] = [
 const CANVAS: Array[Color] = [Color("bead80"), Color("965b42"), Color("6e8980"), Color("ae985e")]
 ## Street planters nobody watered this week, and the market well.
 const PLANTERS: Array[Dictionary] = [
-	{"low": Vector3(8, 0, 13), "high": Vector3(11, 1.2, 14.2)},
-	{"low": Vector3(-7, 0, 13), "high": Vector3(-4, 1.2, 14.2)},
+	{"low": Vector3(8, 0, 13), "high": Vector3(11, 1.1, 14.2)},
+	{"low": Vector3(-7, 0, 13), "high": Vector3(-4, 1.1, 14.2)},
 ]
 const WELL: Dictionary = {"low": Vector3(21, 0, 24), "high": Vector3(24, 1, 27)}
 ## Walkable roofs: tar patches and flashing break the membrane up.
@@ -117,8 +117,8 @@ const ROOFS: Array[Dictionary] = [
 ]
 ## Aerials on the tank roof's chimneys and stairhouse.
 const AERIALS: Array[Dictionary] = [
-	{"low": Vector3(-36, 6, 18), "high": Vector3(-34, 7.4, 20)},
-	{"low": Vector3(-54, 6, 32), "high": Vector3(-52, 7.4, 34)},
+	{"low": Vector3(-36, 6, 18), "high": Vector3(-34, 7.5, 20)},
+	{"low": Vector3(-54, 6, 32), "high": Vector3(-52, 7.5, 34)},
 	{"low": Vector3(-58, 6, 42), "high": Vector3(-53, 7.8, 48)},
 ]
 const TANKS: Array[Dictionary] = [

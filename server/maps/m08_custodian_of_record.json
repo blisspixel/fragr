@@ -2469,7 +2469,7 @@
       "id": "custody_platform_east",
       "max": [
         12.0,
-        7.2,
+        7.1,
         -10.0
       ],
       "min": [
@@ -2497,7 +2497,7 @@
       "id": "custody_platform_south",
       "max": [
         1.0,
-        7.2,
+        7.1,
         -13.0
       ],
       "min": [

@@ -5,7 +5,7 @@ extends RefCounted
 const Geometry = preload("res://scripts/model_geometry.gd")
 const HOMES: Array[Dictionary] = [
 	{"low": Vector3(-27, 0, 17), "high": Vector3(-20, 5.5, 24), "window": 21.0, "paint": Color("bda98b")},
-	{"low": Vector3(-28, 0, 24), "high": Vector3(-20, 6.2, 31.5), "window": 27.0, "paint": Color("8dada0")},
+	{"low": Vector3(-28, 0, 24), "high": Vector3(-20, 6.1, 31.5), "window": 27.0, "paint": Color("8dada0")},
 	{"low": Vector3(-26.5, 0, 31.5), "high": Vector3(-20, 5.15, 39), "window": 35.0, "paint": Color("c3b3a1")},
 ]
 var _mesh: ArrayMesh = ArrayMesh.new()

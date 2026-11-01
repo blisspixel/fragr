@@ -11,7 +11,7 @@ const MISSION_SOURCE: &[u8] = include_bytes!("../../../maps/m11_right_of_search.
 fn m11_authored_tender_prepares_exact_actors_targets_stocks_and_window_cover() {
     let map = AuthoredMap::read(MISSION_SOURCE).unwrap();
     assert_eq!(map.id, 1011);
-    assert_eq!(map.arena.solids.len(), 107);
+    assert_eq!(map.arena.solids.len(), 109);
     assert_eq!(
         map.encounters
             .iter()

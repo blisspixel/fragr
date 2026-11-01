@@ -1083,53 +1083,100 @@ script and asserts identical bodies at every tick.
 measures the standing running jump's reach on the live step (1.26 m, below
 the 1.3 m apex because the body must rise over the lip while moving) and
 walks every edge of every solid top at least a body wide, at 0.25 m spacing,
-with a fighter standing just outside on the highest floor there. Runs of
-edge with a rise in the band:
+with a fighter standing just outside on the highest floor there. It counts
+only floors a fighter can reach (a flood fill from the spawns and pads that
+walks, steps, drops and climbs anything up to the reach), and skips a tread
+of a flight: a top with a solid a step or less below it beside it, whose open
+sides read as the side of a stair. It is the regression gate (#538): the
+scan exits nonzero, and `ledges::tests::the_ledge_gate_holds` fails, on any
+ledge in the step-plus, marginal or false-hope bands that the allow-list in
+`ledges.rs` does not name with a reason. Runs of edge with a rise in each band
+before the #538 fixes (no reach or tread rule, false hope to 1.41 m):
 
-| Map | Name | Solids | Step-plus 0.60 to 0.75 | Jump 0.75 to 1.11 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.41 | Ambiguous edge m |
+| Map | Name | Step-plus 0.60 to 0.75 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.41 | Ambiguous edge m |
+|---|---|---|---|---|---|
+| Map 1 | Larak Lot | 0 | 0 | 31 | 100.5 |
+| Map 2 | Compliance Yard | 0 | 0 | 4 | 5.0 |
+| Map 5 | Reclamation Gulch | 0 | 16 | 0 | 40.0 |
+| Map 7 | Holdfast Atoll | 4 | 4 | 0 | 2.0 |
+| L01 | Recall Notice | 0 | 22 | 0 | 68.5 |
+| L02 | Persons Unknown | 0 | 3 | 3 | 9.0 |
+| L03 | Scheduled Service | 0 | 12 | 3 | 36.0 |
+| L04 | Notice to Vacate | 24 | 3 | 0 | 78.0 |
+| L05 | No Forwarding Address | 0 | 20 | 0 | 58.0 |
+| L06 | Port of Entry | 4 | 0 | 2 | 48.0 |
+| L07 | Declared Goods | 0 | 14 | 26 | 70.0 |
+| L08 | Custodian of Record | 0 | 8 | 0 | 20.0 |
+| L11 | Right of Search | 0 | 8 | 0 | 20.2 |
+| L12 | Terms of Cooperation | 0 | 3 | 0 | 6.2 |
+| L13 | The Weight of Permission | 9 | 4 | 8 | 67.5 |
+| L14 | Launch Authority | 7 | 6 | 0 | 6.5 |
+| L15 | Civic Pressure Valve | 0 | 4 | 0 | 2.0 |
+| L16 | Freedom of Movement | 0 | 0 | 5 | 18.2 |
+| L17 | Peace Without Interruption | 0 | 10 | 0 | 34.0 |
+| L19 | Planned Works | 0 | 26 | 18 | 163.0 |
+| L20 | Local Exception | 0 | 6 | 12 | 55.0 |
+| Epilogue | Still Here | 4 | 3 | 5 | 46.0 |
+
+After them, with the reach and tread rules and false hope up to the 1.5 m
+wall (the Holdfast and Level 14 rows are the allow-list):
+
+| Map | Name | Solids | Step-plus 0.60 to 0.75 | Jump 0.75 to 1.11 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.50 | Ambiguous edge m |
 |---|---|---|---|---|---|---|---|
-| Map 1 | Larak Lot | 98 | 0 | 15 | 0 | 31 | 100.5 |
-| Map 2 | Compliance Yard | 125 | 0 | 38 | 0 | 4 | 5.0 |
-| Map 3 | Directive 17 Substation | 208 | 0 | 40 | 0 | 0 | 0.0 |
-| Map 4 | Sector 9 Transit Hall | 110 | 0 | 6 | 0 | 0 | 0.0 |
-| Map 5 | Reclamation Gulch | 151 | 0 | 36 | 16 | 0 | 40.0 |
-| Map 6 | Tripoint Works | 187 | 0 | 42 | 0 | 0 | 0.0 |
-| Map 7 | Holdfast Atoll | 123 | 4 | 37 | 4 | 0 | 2.0 |
-| Map 8 | Low Water | 82 | 0 | 18 | 0 | 0 | 0.0 |
-| L01 | Recall Notice | 119 | 0 | 6 | 22 | 0 | 68.5 |
-| L02 | Persons Unknown | 80 | 0 | 11 | 3 | 3 | 9.0 |
-| L03 | Scheduled Service | 74 | 0 | 16 | 12 | 3 | 36.0 |
-| L04 | Notice to Vacate | 95 | 24 | 40 | 3 | 0 | 78.0 |
-| L05 | No Forwarding Address | 47 | 0 | 21 | 20 | 0 | 58.0 |
-| L06 | Port of Entry | 106 | 4 | 30 | 0 | 2 | 48.0 |
-| L07 | Declared Goods | 146 | 0 | 61 | 14 | 26 | 70.0 |
-| L08 | Custodian of Record | 153 | 0 | 6 | 8 | 0 | 20.0 |
-| L09 | Passenger Manifest | 135 | 0 | 7 | 0 | 0 | 0.0 |
+| Map 1 | Larak Lot | 98 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 2 | Compliance Yard | 125 | 0 | 24 | 0 | 0 | 0.0 |
+| Map 3 | Directive 17 Substation | 208 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 4 | Sector 9 Transit Hall | 110 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 5 | Reclamation Gulch | 151 | 0 | 8 | 0 | 0 | 0.0 |
+| Map 6 | Tripoint Works | 187 | 0 | 0 | 0 | 0 | 0.0 |
+| Map 7 | Holdfast Atoll | 123 | 4 | 33 | 4 | 0 | 2.0 |
+| Map 8 | Low Water | 82 | 0 | 5 | 0 | 0 | 0.0 |
+| L01 | Recall Notice | 119 | 0 | 25 | 0 | 0 | 0.0 |
+| L02 | Persons Unknown | 80 | 0 | 11 | 0 | 0 | 0.0 |
+| L03 | Scheduled Service | 74 | 0 | 22 | 0 | 0 | 0.0 |
+| L04 | Notice to Vacate | 95 | 0 | 36 | 0 | 0 | 0.0 |
+| L05 | No Forwarding Address | 47 | 0 | 36 | 0 | 0 | 0.0 |
+| L06 | Port of Entry | 106 | 0 | 18 | 0 | 0 | 0.0 |
+| L07 | Declared Goods | 146 | 0 | 60 | 0 | 0 | 0.0 |
+| L08 | Custodian of Record | 153 | 0 | 12 | 0 | 0 | 0.0 |
+| L09 | Passenger Manifest | 135 | 0 | 5 | 0 | 0 | 0.0 |
 | L10 | Common Carrier | 129 | 0 | 0 | 0 | 0 | 0.0 |
-| L11 | Right of Search | 107 | 0 | 16 | 8 | 0 | 20.2 |
-| L12 | Terms of Cooperation | 132 | 0 | 34 | 3 | 0 | 6.2 |
-| L13 | The Weight of Permission | 241 | 9 | 63 | 4 | 8 | 67.5 |
-| L14 | Launch Authority | 134 | 7 | 18 | 6 | 0 | 6.5 |
-| L15 | Civic Pressure Valve | 59 | 0 | 10 | 4 | 0 | 2.0 |
-| L16 | Freedom of Movement | 31 | 0 | 8 | 0 | 5 | 18.2 |
-| L17 | Peace Without Interruption | 126 | 0 | 16 | 10 | 0 | 34.0 |
-| L18 | All Systems Normal | 52 | 0 | 19 | 0 | 0 | 0.0 |
-| L19 | Planned Works | 150 | 0 | 61 | 26 | 18 | 163.0 |
-| L20 | Local Exception | 146 | 0 | 40 | 6 | 12 | 55.0 |
-| Epilogue | Still Here | 56 | 4 | 21 | 3 | 5 | 46.0 |
+| L11 | Right of Search | 109 | 0 | 15 | 0 | 0 | 0.0 |
+| L12 | Terms of Cooperation | 132 | 0 | 34 | 0 | 0 | 0.0 |
+| L13 | The Weight of Permission | 241 | 0 | 63 | 0 | 0 | 0.0 |
+| L14 | Launch Authority | 134 | 1 | 12 | 1 | 0 | 1.0 |
+| L15 | Civic Pressure Valve | 59 | 0 | 4 | 0 | 0 | 0.0 |
+| L16 | Freedom of Movement | 31 | 0 | 0 | 0 | 0 | 0.0 |
+| L17 | Peace Without Interruption | 126 | 0 | 26 | 0 | 0 | 0.0 |
+| L18 | All Systems Normal | 52 | 0 | 14 | 0 | 0 | 0.0 |
+| L19 | Planned Works | 150 | 0 | 74 | 0 | 0 | 0.0 |
+| L20 | Local Exception | 148 | 0 | 23 | 0 | 0 | 0.0 |
+| Epilogue | Still Here | 56 | 0 | 24 | 0 | 0 | 0.0 |
 
-Three heights account for most of it. Tops at 1.3 and 1.4 m look jumpable
-and are not (Larak Lot 100 m of edge, Level 7 49 m, Level 19 113 m at 1.4 m;
-Levels 13, 16, 20 and the epilogue at 1.3 m). Tops at 1.15 to 1.2 m clear
-only from a clean running jump (Level 1 68 m, Levels 5, 17 and 19, Reclamation
-Gulch). Tops at 0.65 to 0.7 m read as a step and stop the player (Levels 4, 6
-and 13). Changing them is map work for the owning lanes; the scan is the
-repeatable check.
+The fixes, in server geometry with each level's dressing kept on its solid:
+wrecks, crates, drums, crash barriers, chimneys, a fountain and the quay
+walls 1.3 to 1.4 m over their floor rose to a 1.5 m wall (Larak Lot's three
+sedans, Union car, cable drum and valet barriers each by 0.1 m, routes, pads
+and spawns unchanged); cover, counters, desks, consoles, Level 19's market
+crates (whose supply-crate dressing cannot stretch to 1.5 m) and Reclamation
+Gulch's knoll at 1.15 to 1.4 m came down to a 1.1 m jump; beds, benches and
+conveyor beds at 0.65 to 0.7 m came down to a 0.6 m step; two deck edges that
+only a clean jump cleared (Level 11's bridge, Level 20's east deck) gained a
+0.3 m kerb so they read as walls beside their stairs. Three ledges stay on
+the allow-list: a quarter metre at the end of each Holdfast boarding dock and
+the Level 14 depot roof edge beside its stair. Lowering cover moves seeded
+fights, so the playtest fixtures that pinned one seed's outcome moved to
+seeds that still show it (M19 market and tanks seed 43; the M01 to M02 carry
+fixtures seed 43), each noted in its test. Over 72 Recall Notice survey
+trials (seeds 40 to 47, three profiles, three tiers; diagnostic), the rule
+controller departed 53 times before the fixes and 48 after, with 107 and
+110 continues spent: the lower intake counters and desks are a little less
+cover.
 
 What stays open: quiet-machine runs of the commands above as gate evidence
 (hardware matrix), two machines and a human session, a photodiode or
 high-speed camera for true photon time, input to photon on Windows and
-macOS, the peek p95 and jittered mean above 150 ms, and the ledge fixes.
+macOS, and the peek p95 and jittered mean above 150 ms.
 
 ## Trace version 1
 

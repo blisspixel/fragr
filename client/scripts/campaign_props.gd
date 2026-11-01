@@ -85,8 +85,8 @@ static func _planned_works() -> Array:
 	rows.append({"host": [Vector3(-24, 0, -21), Vector3(-15, 3.2, -18)], "hide": [],
 		"props": [["civilian_tram", Vector3(-24, 0, -21), Vector3(-15, 3.2, -18), 0]]})
 	# Crate stacks: a two-by-two grid of supply crates fills each solid.
-	for stack: Array in [[Vector3(4, 0, 15), Vector3(6, 1.4, 17)], [Vector3(32, 0, 20), Vector3(34, 1.2, 22)],
-			[Vector3(48.5, 0, 45), Vector3(50.5, 1.2, 47)], [Vector3(55, 0, 24), Vector3(57, 1.2, 26)]]:
+	for stack: Array in [[Vector3(4, 0, 15), Vector3(6, 1.1, 17)], [Vector3(32, 0, 20), Vector3(34, 1.1, 22)],
+			[Vector3(48.5, 0, 45), Vector3(50.5, 1.1, 47)], [Vector3(55, 0, 24), Vector3(57, 1.1, 26)]]:
 		var low: Vector3 = stack[0]
 		var high: Vector3 = stack[1]
 		var props: Array = []

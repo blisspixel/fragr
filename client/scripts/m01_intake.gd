@@ -106,7 +106,7 @@ static func authored(info: Dictionary) -> bool:
 	var wanted: Array = [
 		[Vector3(-10, 0, -26), Vector3(-6, 1, -23)],
 		[Vector3(-4, 0, 6), Vector3(4, 2.4, 7)],
-		[Vector3(-9, 3, 23), Vector3(-6, 4.2, 25)],
+		[Vector3(-9, 3, 23), Vector3(-6, 4.1, 25)],
 		[Vector3(-11.9, 0, -26.8), Vector3(-10.4, 0.95, -23.2)],
 	]
 	var found: int = 0
@@ -851,7 +851,7 @@ func _build_hall() -> void:
 	_sign(room, "WORLD_M01_WINDOW_2", Vector2(1.8, 0.5), Vector3(2.5, 0.02, -10.4), "up", Color("cfc7ac"))
 	# Counter work: forms, stamps, numbered windows and a warm desk lamp.
 	var plate: StandardMaterial3D = _mat("sign_plate_black", Color("1e1e22"), 0.2, 0.7)
-	for counter: Array in [[Vector3(-3.0, 1.15, -4.0), -5.0, "WORLD_M01_WINDOW_1"], [Vector3(2.5, 1.15, 0.0), -1.0, "WORLD_M01_WINDOW_2"]]:
+	for counter: Array in [[Vector3(-3.0, 1.1, -4.0), -5.0, "WORLD_M01_WINDOW_1"], [Vector3(2.5, 1.1, 0.0), -1.0, "WORLD_M01_WINDOW_2"]]:
 		var at: Vector3 = counter[0]
 		var front: float = counter[1]
 		_papers(props, at + Vector3(-1.2, 0, -0.55), 3, int(at.x))
@@ -988,7 +988,7 @@ func _build_records() -> void:
 	var bag: StandardMaterial3D = _mat("evidence_bag", Color("c8c3b0"), 0.0, 0.6)
 	var tray: StandardMaterial3D = _mat("sorting_tray", Color("4e5844"), 0.3, 0.6)
 	for index: int in range(3):
-		var at: Vector3 = Vector3(-30.0 + float(index) * 2.0, 4.15, 36.0)
+		var at: Vector3 = Vector3(-30.0 + float(index) * 2.0, 4.1, 36.0)
 		_shape.block(props, "SortingTray", Vector3(1.4, 0.05, 0.8), tray, at + Vector3(0, 0.025, 0))
 		for bag_index: int in range(4):
 			var piece: MeshInstance3D = _shape.block(props, "EffectsBag", Vector3(0.26, 0.07, 0.34), bag, at + Vector3(-0.45 + float(bag_index) * 0.3, 0.09, float(bag_index % 2) * 0.15 - 0.07))
@@ -1006,10 +1006,10 @@ func _build_records() -> void:
 	var board: StandardMaterial3D = _mat("number_board", Color("141416"), 0.2, 0.6)
 	_shape.block(props, "DispatchBoard", Vector3(3.4, 1.7, 0.05), board, Vector3(-8.0, 4.7, 31.03))
 	_sign(room, "WORLD_M01_DISPATCH_BOARD", Vector2(3.1, 1.45), Vector3(-8.0, 4.7, 31.06), "south", Color("f0b860"))
-	_papers(props, Vector3(-7.4, 4.15, 36.0), 2, 9)
+	_papers(props, Vector3(-7.4, 4.1, 36.0), 2, 9)
 	var log_cover: StandardMaterial3D = _mat("ledger_cover_black", Color("1e1e22"), 0.0, 0.8)
-	_shape.block(props, "DispatchLog", Vector3(0.5, 0.03, 0.36), log_cover, Vector3(-7.0, 4.165, 37.4))
-	_desk_lamp(room, Vector3(-6.4, 4.15, 38.6), Vector3(-7.0, 4.15, 37.4))
+	_shape.block(props, "DispatchLog", Vector3(0.5, 0.03, 0.36), log_cover, Vector3(-7.0, 4.115, 37.4))
+	_desk_lamp(room, Vector3(-6.4, 4.1, 38.6), Vector3(-7.0, 4.1, 37.4))
 	_finish(room)
 	_build_transfer()
 
@@ -1017,9 +1017,9 @@ func _build_reception() -> void:
 	var room: Node3D = _room("Reception")
 	var props: Node3D = _props(room)
 	# Counter work under a desk lamp.
-	_papers(props, Vector3(-17.6, 4.2, 19.2), 3, 5)
-	_stamp(props, Vector3(-15.6, 4.2, 19.3))
-	_desk_lamp(room, Vector3(-14.5, 4.2, 19.6), Vector3(-15.6, 4.2, 19.3))
+	_papers(props, Vector3(-17.6, 4.1, 19.2), 3, 5)
+	_stamp(props, Vector3(-15.6, 4.1, 19.3))
+	_desk_lamp(room, Vector3(-14.5, 4.1, 19.6), Vector3(-15.6, 4.1, 19.3))
 	_poster(room, Vector3(-19.5, 4.75, 15.48), "north", "WORLD_M01_POSTER_ARTICLE")
 	_picture(room, "ReceptionSeal", M01IntakeArt.texture("emblem"), Vector2(1.0, 1.0), Vector3(-13.02, 5.6, 25.0), "west", 0.0)
 	# The back screen: pigeonholes of waiting forms behind the counter.
@@ -1041,10 +1041,10 @@ func _build_transfer() -> void:
 	# Latch's file photo and record on the console monitor.
 	var housing: StandardMaterial3D = _mat("terminal_housing", Color("bdb6a0"), 0.1, 0.7)
 	var screen_back: StandardMaterial3D = _mat("terminal_screen_back", Color("141210"), 0.0, 0.6)
-	_shape.block(props, "FileMonitor", Vector3(1.55, 0.86, 0.5), housing, Vector3(-7.5, 4.65, 23.55))
-	_shape.block(props, "FileMonitorScreen", Vector3(1.38, 0.7, 0.02), screen_back, Vector3(-7.5, 4.66, 23.29))
-	_picture(room, "LatchFilePhoto", M01IntakeArt.texture("latch_file"), Vector2(0.5, 0.6), Vector3(-7.92, 4.66, 23.275), "north", 1.1)
-	_sign(room, "WORLD_M01_LATCH_FILE", Vector2(0.74, 0.56), Vector3(-7.2, 4.66, 23.275), "north", M01IntakeArt.PHOSPHOR)
+	_shape.block(props, "FileMonitor", Vector3(1.55, 0.86, 0.5), housing, Vector3(-7.5, 4.55, 23.55))
+	_shape.block(props, "FileMonitorScreen", Vector3(1.38, 0.7, 0.02), screen_back, Vector3(-7.5, 4.56, 23.29))
+	_picture(room, "LatchFilePhoto", M01IntakeArt.texture("latch_file"), Vector2(0.5, 0.6), Vector3(-7.92, 4.56, 23.275), "north", 1.1)
+	_sign(room, "WORLD_M01_LATCH_FILE", Vector2(0.74, 0.56), Vector3(-7.2, 4.56, 23.275), "north", M01IntakeArt.PHOSPHOR)
 	var console_glow: OmniLight3D = OmniLight3D.new()
 	console_glow.name = "FileGlow"
 	console_glow.position = Vector3(-7.5, 4.7, 22.6)

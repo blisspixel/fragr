@@ -25,7 +25,7 @@ static func _info(map_id: int = 1004, cab_x: float = 25.0, half: float = 40.0) -
 		_solid(Vector3(cab_x, 0, -15), Vector3(32, 2.5, -9)),
 		_solid(Vector3(-13, 0, 10), Vector3(-5, 0.8, 11.5)),
 		_solid(Vector3(-3, 0.7, 27), Vector3(3, 0.9, 30)),
-		_solid(Vector3(7, 0, 29), Vector3(9, 1.2, 31)),
+		_solid(Vector3(7, 0, 29), Vector3(9, 1.1, 31)),
 		_solid(Vector3(22, 0, -32), Vector3(34, 4, -31.5)),
 	]}
 

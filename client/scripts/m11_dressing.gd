@@ -30,7 +30,7 @@ static func tender_layout(info: Dictionary) -> bool:
 		[Vector3(8.65, 0.3, 16), Vector3(9.5, 1.4, 18)],
 		[Vector3(-5.5, 0.3, -8.3), Vector3(-4.6, 2.65, -5.8)],
 		[Vector3(-5.5, 0.3, -2.1), Vector3(-4.6, 2.65, 0.5)],
-		[Vector3(-1.5, 1.5, 28.9), Vector3(1.5, 2.65, 30.3)],
+		[Vector3(-1.5, 1.5, 28.9), Vector3(1.5, 2.6, 30.3)],
 		[Vector3(-8.6, 1.5, 28.9), Vector3(-6.3, 2.5, 30.3)],
 		[Vector3(6.3, 1.5, 29.6), Vector3(8.6, 2.5, 30.8)],
 	]
