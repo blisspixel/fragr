@@ -242,7 +242,9 @@ static func _style(kind: String) -> int:
 static func _practical(preset: ArenaSky.Preset) -> OmniLight3D:
 	var light: OmniLight3D = OmniLight3D.new()
 	light.name = "Practical"
-	light.position.z = 0.22
+	# Hung clear of its face. At 0.22 m the ceiling round each tube took a
+	# near-singular hot spot on Forward+ (#540); the pool below barely moves.
+	light.position.z = 0.6
 	light.light_color = preset.practical_color
 	light.light_energy = preset.practical_energy
 	light.light_specular = 0.2

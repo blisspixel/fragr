@@ -28,6 +28,7 @@ func _run() -> void:
 			or world_bounds.position.z >= 40.5 or far.z <= -40.5,
 			"scenery remains completely outside playable bounds")
 		_check(node.layers == 2, "town uses authored world lighting")
+		_check(node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "scenery never shades the playable square (#540)")
 		if node.name == "RiverWater":
 			var water: ShaderMaterial = node.material_override as ShaderMaterial
 			_check(water != null and water.shader == ArenaWater.SHADER and water.get_shader_parameter("river_mode") == true, "river has the lit nearest-sampled water material")
@@ -48,6 +49,8 @@ func _run() -> void:
 	var legacy: ArenaBackdrop = ArenaBackdrop.new()
 	root.add_child(legacy)
 	legacy.build(1, 40.0)
+	for item: Node in legacy.find_children("*", "MeshInstance3D", true, false):
+		_check((item as MeshInstance3D).cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "league skyline casts no shadow into the arena (#540)")
 	var signs: Array[Node] = legacy.find_children("*", "Label3D", true, false)
 	_check(signs.size() == 5, "arcade retains its signs and its Article Seven slogan")
 	for sign: Node in signs:
