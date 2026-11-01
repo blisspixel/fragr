@@ -4,6 +4,37 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.0 - 2026-11-01
+
+- Send each fighter in a shared room only the fighters it could see; rivals
+  it can only hear arrive as rough positions and the rest not at all, so a
+  modified client cannot see through walls. Peeks keep a margin, so fighters
+  do not pop in at corners. Agents observe the same filtered view. A byte
+  budget closes connections that flood the server.
+- Hit fighters by zone: head, torso and legs, with multipliers by gun class
+  so no ordinary gun kills by headshots in under 0.4 s. Union machines carry
+  plating and red-optic weak points, the Heavy Sweeper a rear vent and the
+  Ranged Sweeper a mast that cancels its shot when broken. Each zone has its
+  own hit sound and marker, and the death recap names the zone that killed.
+- Add five graphics tiers, Potato to Ultra, and auto settings that replay a
+  fight on first launch, pick the best look that holds your frame-rate target
+  in its slowest frames, explain the choice and keep anything you set by
+  hand. A safety valve steps one effect down at a death or round end if
+  frames sag, and the Steam Deck gets its own profiles. See
+  [GRAPHICS.md](docs/GRAPHICS.md).
+- Let hosts keep opt-in fun metrics: off by default, announced at join,
+  match-level counts only, shredded after 67 days. See
+  [PRIVACY.md](docs/PRIVACY.md).
+- Split the hold-Tab scoreboard by side with totals, round wins, objective
+  columns, an MVP and rival marks, on keyboard and pad. Spectators get the
+  pad clocks as a labelled strip under the score.
+- Make every ledge an ordinary jump, a clear wall or a step, gated by a scan.
+  Capture tours render on Forward+, the renderer players get.
+- Fix a navigator gridlock that could hold a party wedged in a corridor.
+
+v0.94.0 to v0.98.0 are described on the
+[releases page](https://github.com/blisspixel/fragr/releases).
+
 ## v0.93.0 - 2026-10-28
 
 - Drop a dead fighter's found gun with its remaining rounds in free-for-all

@@ -145,6 +145,7 @@ a bring-your-own skill path. They are not a fifth mode.
 | Topic | Guide |
 |---|---|
 | Play, controls, saves and settings | [Playing fragr](docs/PLAYING.md) |
+| Graphics settings, the benchmark and auto settings | [Graphics](docs/GRAPHICS.md) and [benchmark](docs/BENCHMARK.md) |
 | Install and build packages | [Desktop packages](docs/DESKTOP.md) |
 | Host a server and moderate a match | [Hosting](docs/HOSTING.md) and [LAN setup](infra/docs/HOME-LAN.md) |
 | Bring an agent | [Agent adapter](agent-adapter/README.md), [skill card](docs/skills/fragr/SKILL.md), [reference fighter](agents/brain/README.md) |
