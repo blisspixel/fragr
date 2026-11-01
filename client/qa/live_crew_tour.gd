@@ -125,7 +125,7 @@ func _write_carry_fixture(directory: String) -> bool:
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m09_passenger_manifest.json").hex_decode():
 		content.append(byte)
 	var fixture: Dictionary = {"version": RunFixture.VERSION, "id": "0dc7302e-c024-4ccc-aac7-19e2aa908ce8", "starting_continues": 3,
-		"remaining_continues": 1, "level_start_continues": 1, "body": "synthetic",
+		"remaining_continues": 1, "level_start_continues": 1, "body": "synthetic", "dress": null,
 		"rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": content,
 		"m03_outcome": {"liberated_cars": ["roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},

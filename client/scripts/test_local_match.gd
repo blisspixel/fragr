@@ -49,7 +49,7 @@ func _run() -> void:
 	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "") == "ws://127.0.0.1:12345", "lunar child readiness requires current rules4 capability43")
 	lunar_ready["gameplay_version"] = 42
 	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "").is_empty(), "old-capability executable cannot launch the lunar client")
-	_expect(LocalMatch.parse_run_preview(JSON.stringify({"status": "awaiting_mission", "mission": MissionState.M06_ID, "difficulty": "severe", "continues": 0, "body": "synthetic"}).to_utf8_buffer()).get("continues") == 0, "pending episode preview reports its spent old allowance")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify({"status": "awaiting_mission", "mission": MissionState.M06_ID, "difficulty": "severe", "continues": 0, "body": "synthetic", "dress": null}).to_utf8_buffer()).get("continues") == 0, "pending episode preview reports its spent old allowance")
 	var fixture: Fixture = Fixture.new()
 	var child: FakeProcess = FakeProcess.new()
 	fixture.process = child
@@ -120,19 +120,24 @@ func _run() -> void:
 	_development(fixture, child)
 	_m03(fixture, child)
 	_m04(fixture, child)
-	var ready_preview: Dictionary = {"status": "ready", "mission": "recall_notice", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true, "body": "synthetic"}
+	var ready_preview: Dictionary = {"status": "ready", "mission": "recall_notice", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true, "body": "synthetic", "dress": {"look": 4, "accent": 1}}
 	var parsed_preview: Dictionary = LocalMatch.parse_run_preview(JSON.stringify(ready_preview).to_ascii_buffer())
-	_expect(parsed_preview.size() == 7 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
-	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}, {"body": "robot"}, {"mission": "other"}]:
+	_expect(parsed_preview.size() == 8 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
+	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}, {"body": "robot"}, {"mission": "other"},
+			{"dress": {"look": 5}}, {"dress": {"look": 1, "colour": "red"}}, {"dress": "look_human_1"}]:
 		var bad_preview: Dictionary = ready_preview.duplicate()
 		bad_preview.merge(patch, true)
 		_expect(LocalMatch.parse_run_preview(JSON.stringify(bad_preview).to_ascii_buffer()).is_empty(), "preview rejects inconsistent state: " + str(patch))
+	var undressed: Dictionary = ready_preview.duplicate()
+	undressed.erase("dress")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(undressed).to_ascii_buffer()).is_empty(), "preview refuses a run without its dress field")
 	var m02_preview: Dictionary = ready_preview.duplicate()
 	m02_preview["mission"] = MissionState.M02_ID
 	m02_preview["attempt"] = 1
 	m02_preview["body"] = null
+	m02_preview["dress"] = null
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M02_ID, "M02 attempt resets while remaining continues carry")
-	var awaiting: Dictionary = {"status": "awaiting_mission", "mission": MissionState.M02_ID, "difficulty": "severe", "continues": 1, "body": null}
+	var awaiting: Dictionary = {"status": "awaiting_mission", "mission": MissionState.M02_ID, "difficulty": "severe", "continues": 1, "body": null, "dress": null}
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M02_ID, "M01 completion previews the pending M02 destination and unbound legacy body")
 	awaiting["mission"] = MissionState.M03_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M03_ID, "M02 completion previews the pending M03 destination")

@@ -162,7 +162,7 @@ func _write_fixture(directory: String) -> bool:
 	var map_path: String = "res://../server/maps/m08_custodian_of_record.json" if _mission == "m09" else "res://../server/maps/m09_passenger_manifest.json"
 	for byte: int in FileAccess.get_sha256(map_path).hex_decode():
 		hash.append(byte)
-	var fixture: Dictionary = {"version":RunFixture.VERSION, "id":"40000000-0000-4000-8000-00000000edda", "starting_continues":3, "remaining_continues":1, "level_start_continues":1, "body":"synthetic", "rules":{"difficulty":"standard", "revision":MissionState.RULES_REVISION}, "content_sha256":hash,
+	var fixture: Dictionary = {"version":RunFixture.VERSION, "id":"40000000-0000-4000-8000-00000000edda", "starting_continues":3, "remaining_continues":1, "level_start_continues":1, "body":"synthetic", "dress":null, "rules":{"difficulty":"standard", "revision":MissionState.RULES_REVISION}, "content_sha256":hash,
 		"m03_outcome":{"liberated_cars":["roof_car"]}, "m04_outcome":{"rescued_patients":["edda_team_a"] if _eligible else [], "photos_completed":2},
 		"m05_outcome":{"released_workers":["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers":["splice"]}, "m06_outcome":{"prisoner_route_marked":true},
 		"step":{"kind":"awaiting_mission", "completed_mission":"custodian_of_record" if _mission == "m09" else "passenger_manifest", "next_mission":"passenger_manifest" if _mission == "m09" else "common_carrier",

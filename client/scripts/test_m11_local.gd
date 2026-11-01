@@ -11,7 +11,7 @@ static func completed_ship() -> Dictionary:
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m10_common_carrier.json").hex_decode():
 		hash.append(byte)
 	return {"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 3,
-		"body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
+		"body": "synthetic", "dress": null, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]}, "m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers": ["splice"]},
 		"m06_outcome": {"prisoner_route_marked": true},

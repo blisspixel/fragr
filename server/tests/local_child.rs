@@ -100,7 +100,7 @@ fn preview(directory: &Path) -> serde_json::Value {
 }
 
 /// The only run-file version this build reads or writes.
-const RUN_FILE_VERSION: u64 = 24;
+const RUN_FILE_VERSION: u64 = 25;
 
 /// Every write is an atomic replace: no archives, copies or temporaries remain.
 fn assert_only_live_run(directory: &Path) {
@@ -169,6 +169,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         "remaining_continues": 2,
         "level_start_continues": 3,
         "body": "synthetic",
+        "dress": null,
         "rules": {"difficulty":"severe", "revision":4},
         "content_sha256": hash,
         "step": {
@@ -344,7 +345,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic","dress":null,
         "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "step":{"kind":"awaiting_mission","completed_mission":"persons_unknown","next_mission":"scheduled_service",
             "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
@@ -476,7 +477,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic","dress":null,
         "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["platform_car","roof_car"]},
         "step":{"kind":"awaiting_mission","completed_mission":"scheduled_service","next_mission":"notice_to_vacate",
@@ -613,7 +614,7 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":0,"level_start_continues":1,"body":"synthetic",
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":0,"level_start_continues":1,"body":"synthetic","dress":null,
         "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["roof_car","platform_car"]},
         "m04_outcome":{"rescued_patients":["edda_team_a"],"photos_completed":3},
@@ -780,7 +781,7 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic","dress":null,
         "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["platform_car","roof_car"]},
         "m04_outcome":{"rescued_patients":["patient_a","patient_b"],"photos_completed":3},
