@@ -481,3 +481,70 @@ On current `main` Low Water was already back in the band (the wave 20 hearing an
 Tests: `sim::bot_skill::tests`, `sim::bot_senses::tests::{every_rung_reacts_inside_its_window_and_never_under_150_ms, a_rung_sees_as_far_as_its_eyes_and_aims_inside_its_own_error, a_higher_rung_turns_faster_and_fires_sooner, a_tourist_keeps_no_pad_clock_and_takes_the_gun_in_hand, a_refused_pad_never_wins_the_choice_it_would_lose_after, a_pad_errand_is_kept_until_it_runs_out_or_somebody_shows}`, `sim::sabotage::bots::tests::{a_called_site_gets_the_same_defence_whichever_site_it_is, a_holding_anchor_watches_the_attack_lane_not_the_wall}`, `tests::bot_ladder` (the host's rung reaches every bot; No Crumbs out-frags a Tourist from either seat), `maps::timing::tests`, the server CLI parse tests, `ladder::tests`, `sight::tests` and the client `test_local_host`, `test_host_menu` and `test_settings` harnesses.
 
 Open: Sector 9 Sabotage at five a side (43.8 %); Sector 9 B's geometry; the CTF rows dither 35 to 38 % in the bot survey (a guard or escort pattern, not yet traced); the Sabotage maps miss the CS timing bands by design size.
+
+### Wave 23: zone aim, team deathmatch Rifle share and Sector 9 at five a side (#520)
+
+#### Zone aim
+
+Bots aimed every shot at the chest (1.22 m), 0.23 m under the head gate, with pitch error as wide as yaw error. A Rifle's 0.045 rad cone at 10 m is 0.45 m wide, so a chest aim landed in the head about one shot in five and headshots read 42 to 48 % of kills at every rung, Tourist included. Now (`sim/bot_senses.rs`, `sim/bot_skill.rs`, `combat.rs`):
+
+- **Centre mass is the middle of the torso band** (`combat::torso_centre`, 1.15 m standing, dropped with a crouch), and the head point is the middle of the head band (`combat::head_centre`, the point the campaign weak spots already used).
+- **Each rung goes for the head on its own share of sightings** (`SkillProfile::head_aim`: Tourist 0, Walk-in 3 %, Regular 10 %, Headliner 20 %, No Crumbs 50 %), drawn once per sighting from the bot and the target, and only where the gun's cone fits the head band from the bot's eye (`combat::weak_point_fits`): the Rifle inside about 7 m, the Railgun to 25 m, the Scatter almost never. It reads only what the bot sees (the observed feet and stance).
+- **Vertical error is half the rung's bound** (`PITCH_SHARE`): a sight rides at a body's height more steadily than it tracks a strafe. The Rocket's shin aim keeps its full error.
+
+The survey now plays every bot at one rung (`--survey-skill`) and reports kills by gun and zone. A Scatter blast reports its most telling pellet, so one pellet in the head makes the blast a head kill (49 to 61 % of Scatter kills at every rung); the single-ray share (every zoned gun but the Scatter) is the one that reads aim. `fragr-playtest --bot-survey --survey-maps --survey-seeds 8 --seed 1 --time-limit-seconds 150 --survey-skill <rung>`, release, before (`3b33e5f6`) and after:
+
+| Rung | Head kills, all guns | Single-ray guns | Median kill time (median of rows) |
+|---|---|---|---|
+| Tourist | 39.0 % to 27.7 % | 36.5 % to 24.5 % | 2.50 to 2.33 s |
+| Walk-in | 43.7 % to 34.5 % | 37.9 % to 28.3 % | 2.40 to 1.95 s |
+| Regular | 41.9 % to 34.7 % | 36.2 % to 28.8 % | 1.80 to 1.60 s |
+| Headliner | 39.4 % to 32.3 % | 35.0 % to 28.4 % | 1.38 to 1.33 s |
+| No Crumbs | 27.4 % to 30.8 % | 21.9 % to 26.4 % | 1.08 to 1.00 s |
+
+Larak Lot (`--survey-lot`, 24 seeds, 180 s), six bots: 48.1 % to 34.7 % head kills (single-ray 42.8 % to 27.7 %), median kill 2.30 to 2.15 s. The Rocket frag share stays under its 15 to 25 % lot target before and after (8.3 % and 7.4 %). A Tourist still lands about one Rifle kill in five in the head without choosing it: that is the cone and the 2x head multiplier, and a human aiming at the chest with the same Rifle lands the same share.
+
+The ladder, `--bot-ladder --survey-seeds 24 --time-limit-seconds 120`, seeds 1 and 101 (144 Duels per pair per set):
+
+| Step | Before (1 / 101) | After (1 / 101) |
+|---|---|---|
+| Walk-in over Tourist | 58 / 56 % | 75 / 71 % |
+| Regular over Walk-in | 81 / 85 % | 78 / 78 % |
+| Headliner over Regular | 76 / 79 % | 67 / 69 % |
+| No Crumbs over Headliner | 58 / 64 % | 65 / 63 % |
+
+`main` had drifted out of the band on three steps since wave 21; two are back in it and the top step is at its edge (63 to 65 %). A faster, tighter No Crumbs (reaction spread 0, error 0.007) moved it by one point and was not kept.
+
+#### Team deathmatch Rifle share
+
+Team deathmatch starts every life with the Rifle, Shotgun and Railgun (`rules::StartKit::Arsenal`) and no gun pads, so the share is the bots' choice and the Rifle's fire rate: it fires five rounds a second against the Railgun's one, so even an equal hand time gives it two shots in three. Regular bots, eight team deathmatch rows of the map survey:
+
+| Change | Rifle shots | Rifle kills | Kept |
+|---|---|---|---|
+| Before | 61 to 74 % (mean 67.4) | 53 to 64 % (58.5) | |
+| Zone aim | 57 to 68 % (63.0) | 42 to 57 % (52.2) | yes |
+| Plus the regulars take the Railgun from its own band, 18 m, not 24 m | 57 to 65 % (60.6) | 48 to 58 % (50.7) | yes (bot fix) |
+| Plus every personality takes the Shotgun inside its 8 m band | 61 % top | Shotgun 52 % of kills | no: moves the dominance and broke Headliner over Regular (82 %) |
+| Zone aim plus a Rifle cadence of 5 ticks, not 4 (branch-local experiment) | 55 to 67 % (60.5) | 48 to 56 % (51.4) | no: Nick's call; kill time rises 0.3 to 0.7 s |
+
+No bot choice brings the Rifle under 45 % of shots while it is the Arsenal's middle gun at five rounds a second. The levers left are rules, not bots: the Rifle's cadence or damage, or a team kit that starts lighter and puts the Railgun and Shotgun on pads.
+
+#### Sector 9 at five a side
+
+The Sabotage survey played ten bots without the desktop five versus five profile (`five_vs_five`), so its "5v5" rows started on Fists, not the Pistol every desktop 5v5 life holds. `--survey-five-v-five` now plays the real profile, and the report counts the first death of each round by attack site and cell. Seeds 40 to 63 and 100 to 123 pooled, short format:
+
+| Map, bots | Before | After |
+|---|---|---|
+| Sector 9, 8 | 53.6 % of 472 | 54.8 % of 458 |
+| Sector 9, 10, desktop 5v5 profile | 45.2 % of 473 | 46.9 % of 454 |
+| Sector 9, 10, Fists start | 44.6 % of 471 | 40.6 % of 473 |
+| Low Water, 8 | 50.0 % of 494 | 49.9 % of 487 |
+| Low Water, 10, desktop 5v5 profile | 58.4 % of 469 | 52.5 % of 484 |
+
+Match format (the comeback ladder's format), same seeds: Sector 9 at 8 53 / 54 % to 53 / 51 %, at five a side 46 / 47 % to 44 / 44 %; Low Water at 8 55 / 54 % to 49 / 50 %. A 0 to 3 deficit happened in 0 or 1 of 24 matches per set, still too few to read the comeback rate.
+
+Diagnosis: Sector 9's B is the defence's site. The attack wins 56 to 64 % of A rounds and 25 to 30 % of B rounds at five a side. Three B rounds in five open with an attacker's death, most of them at the West Hall's centre door: the walk from the south approach to B's stage passes within 25 m of B with the hall wall between, which counts as "near" and starts the push through the centre door into the defenders' hall. Requiring sight of the site before the push counts as near sent the attack on through the south door instead and lost more (B 21 to 25 %, Sector 9 at 8 down to 44.0 %), so it was not kept. What is left is B's geometry (the freight row behind it and the holds around it), a map change.
+
+Tests: `tests::bot_aim` (centre and head points sit in their bands standing and crouched, each rung's head share, a sighting keeps its choice, a wide cone keeps centre mass), `sim::bot_senses::tests::a_rung_that_goes_for_the_head_pitches_at_the_head_band_and_a_tourist_at_the_torso`, the Railgun band in `personalities_take_found_guns_to_their_distances`, `sim::bot_skill::tests`.
+
+Open: Sector 9 at five a side sits at 44 to 47 % (B's geometry); No Crumbs over Headliner at 63 to 65 %; team deathmatch Rifle 57 to 65 % of shots and 48 to 58 % of kills (a rule call); the Scatter's head kill reads its best pellet.
