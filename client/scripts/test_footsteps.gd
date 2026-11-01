@@ -288,12 +288,15 @@ func _check_curve() -> void:
 	_world.add_child(source)
 	var levels: Dictionary = {}
 	var rows: Array[String] = []
+	# One steady tone that moves: restarting it per distance let a driver with a
+	# larger buffer (macOS CoreAudio) catch part of the start and pan ramp, so a
+	# sample read up to 2 dB low. Settle after each move, then measure longer.
+	source.play()
 	for distance: float in DISTANCES:
 		source.global_position = Vector3(0.0, 0.0, -distance)
-		source.play()
-		levels[distance] = _sum_db(await _record(0.3))
-		source.stop()
-		await create_timer(0.05).timeout
+		await create_timer(0.2).timeout
+		levels[distance] = _sum_db(await _record(0.5))
+	source.stop()
 	var near: float = float(levels[2.0])
 	for distance: float in DISTANCES:
 		var level: float = float(levels[distance])
