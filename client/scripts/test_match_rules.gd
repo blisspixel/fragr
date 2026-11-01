@@ -98,7 +98,7 @@ func _check_labels() -> void:
 	_check(MatchRules.team_name("coalition") == "The Free Coalition", "side name")
 	_check(MatchRules.valid_team("union") == "union" and MatchRules.valid_team("office") == "" and MatchRules.valid_team(3) == "", "only two sides")
 	_check(MatchRules.team_label_color("union") == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition") == MatchRules.COALITION_LABEL, "side colours")
-	_check(MatchRules.team_label_color("union", true) == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition", true) == Color("e8e2d6"), "high contrast side colours")
+	_check(MatchRules.team_label_color("union", FragrSettings.TEAM_HIGH_CONTRAST) == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition", FragrSettings.TEAM_HIGH_CONTRAST) == Color("e8e2d6"), "high contrast side colours")
 	_check(MatchRules.team_shape_mark("union") == "■" and MatchRules.team_shape_mark("coalition") == "□" and MatchRules.team_shape_mark("") == "", "shape marks for sides")
 	var free_pole: Color = MatchRules.team_body_color("coalition")
 	_check(not FactionPalette.is_off_white(free_pole) and free_pole.get_luminance() < 0.6 and free_pole.r > free_pole.b,

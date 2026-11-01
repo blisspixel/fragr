@@ -421,8 +421,11 @@ msgstr "STANDARD"
 msgid "SETTINGS_TEAM_HIGH_CONTRAST"
 msgstr "HIGH CONTRAST"
 
+msgid "SETTINGS_TEAM_COLOUR_BLIND"
+msgstr "RED-GREEN SAFE"
+
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
-msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast. Blood Off turns body hits into a dust puff and the damage edge to bone."
+msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours: High contrast lifts side contrast; Red-green safe keeps Union red and turns the free side blue for deuteranopia and protanopia. Blood Off turns body hits into a dust puff and the damage edge to bone."
 
 msgid "SETTINGS_BLOOD"
 msgstr "BLOOD"

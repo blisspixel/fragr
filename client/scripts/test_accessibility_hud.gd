@@ -62,12 +62,12 @@ func _run() -> void:
 	# 2. Team colours and shape marks
 	_check(MatchRules.team_shape_mark("union") == "■", "Union shape mark is solid bar ■")
 	_check(MatchRules.team_shape_mark("coalition") == "□", "Free coalition shape mark is open bar □")
-	var union_col: Color = MatchRules.team_label_color("union", true)
-	var free_col: Color = MatchRules.team_label_color("coalition", true)
+	var union_col: Color = MatchRules.team_label_color("union", FragrSettings.TEAM_HIGH_CONTRAST)
+	var free_col: Color = MatchRules.team_label_color("coalition", FragrSettings.TEAM_HIGH_CONTRAST)
 	_check(free_col == Color("e8e2d6"), "Free text moves to bone under high contrast")
 
-	var mark_union = HudRelation.mark("union", "foe", false, true)
-	var mark_free = HudRelation.mark("coalition", "mate", false, true)
+	var mark_union = HudRelation.mark("union", "foe", false, FragrSettings.TEAM_HIGH_CONTRAST)
+	var mark_free = HudRelation.mark("coalition", "mate", false, FragrSettings.TEAM_HIGH_CONTRAST)
 	_check(not mark_union.open, "Union mark is filled")
 	_check(mark_free.open, "Free coalition mark is open")
 	_check(mark_union.bar_color == MenuTheme.DANGER, "Union high contrast mark is danger red")

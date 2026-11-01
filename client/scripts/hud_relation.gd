@@ -24,12 +24,13 @@ class MarkControl extends Control:
 		else:
 			draw_rect(inner, bar_color, true)
 
-static func mark_color(team: String, relation: String, on_bone: bool = false, high_contrast: bool = false) -> Color:
-	if high_contrast:
+static func mark_color(team: String, relation: String, on_bone: bool = false, choice: int = -1) -> Color:
+	var palette: int = FactionPalette.chosen(choice)
+	if palette != FragrSettings.TEAM_STANDARD:
 		if team == "union":
 			return MenuTheme.DANGER
 		if team == "coalition":
-			return MenuTheme.BONE
+			return FactionPalette.FREE_BLUE_LABEL if palette == FragrSettings.TEAM_COLOUR_BLIND else MenuTheme.BONE
 	if on_bone:
 		return MenuTheme.INK
 	if relation == "mate":
@@ -42,10 +43,10 @@ static func mark_color(team: String, relation: String, on_bone: bool = false, hi
 		return MenuTheme.EMBER
 	return MenuTheme.MUTED
 
-static func mark(team: String, relation: String, on_bone: bool = false, high_contrast: bool = false) -> Control:
+static func mark(team: String, relation: String, on_bone: bool = false, choice: int = -1) -> Control:
 	var mark_ctrl := MarkControl.new()
 	mark_ctrl.open = (team == "coalition")
-	mark_ctrl.bar_color = mark_color(team, relation, on_bone, high_contrast)
+	mark_ctrl.bar_color = mark_color(team, relation, on_bone, choice)
 	mark_ctrl.tooltip_text = MatchRules.team_name(team)
 	var relative: String = MatchRules.relation_mark(relation)
 	if not relative.is_empty():

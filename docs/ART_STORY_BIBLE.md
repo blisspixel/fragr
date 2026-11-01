@@ -420,7 +420,18 @@ livery instead of personal colour; uniformity is the point. The free side keeps
 personal colour plus the warm amber team accent of the existing Free plate.
 Free-versus-free modes use two non-reserved accents (default ember and
 magenta, with the high-contrast pair from accessibility settings); a team
-accent is never Union red on black, matte off-white or cyan light.
+accent is never Union red on black, matte off-white or cyan light. The
+**red-green safe** team colour choice (deuteranopia and protanopia) keeps
+Union red and moves the free side's tape, label, flag and marks to blue
+(`#5D6CFF`, label `#8A95FF`, past the Inheritance cyan band), with the yellow
+and blue pair for free-versus-free; `client/scripts/test_colour_vision.gd`
+simulates both conditions and holds every side pair at least 20 CIELAB apart.
+
+**Fighter contrast.** A fighter reads against its local background at 3:1 or
+better in relative luminance from 10 to 40 m, measured by
+`client/qa/contrast_scan.gd` on live tour captures. Fix a failure through
+material value, light or a rim of light within this contract, never an outline
+round every body.
 
 **Colour picker rule.** Any player colour picker, saved record or received
 cosmetic is validated on the composed body, not per swatch. Reject or snap to

@@ -91,7 +91,7 @@ const DEFAULTS: Dictionary = {
 		"reduced_motion": false,
 		"hud_scale": 100,       # 75 to 150 percent
 		"text_size": 0,         # 0 Standard, 1 Large
-		"team_colours": 0,      # 0 Standard, 1 High contrast
+		"team_colours": 0,      # 0 Standard, 1 High contrast, 2 Colour blind (red-green)
 		# Human bodies bleed when hit. Off shows a neutral dust puff and a
 		# bone damage edge instead; machines still spark and leak oil.
 		"blood": true,
@@ -132,6 +132,7 @@ const ANNOUNCER_MODES: Array[int] = [ANNOUNCER_ON, ANNOUNCER_BIG_MOMENTS, ANNOUN
 
 const TEAM_STANDARD: int = 0
 const TEAM_HIGH_CONTRAST: int = 1
+const TEAM_COLOUR_BLIND: int = 2
 
 var _values: Dictionary = {}
 var storage_path: String
@@ -219,7 +220,10 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "controls/scope_mode", "accessibility/screen_flashes", "audio/announcer"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
-	elif path in ["accessibility/text_size", "accessibility/team_colours"]:
+	elif path == "accessibility/team_colours":
+		if not value is int or value not in [TEAM_STANDARD, TEAM_HIGH_CONTRAST, TEAM_COLOUR_BLIND]:
+			value = fallback
+	elif path == "accessibility/text_size":
 		if not value is int or value not in [0, 1]:
 			value = fallback
 	elif section == "bindings":
@@ -358,6 +362,11 @@ func apply() -> void:
 	apply_video()
 	apply_audio()
 	apply_controls()
+	apply_accessibility()
+
+## The team colour choice reaches every side colour through one owner.
+func apply_accessibility() -> void:
+	FactionPalette.palette = team_colours()
 
 ## Rebuild the InputMap from the saved bindings.
 func apply_controls() -> void:

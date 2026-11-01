@@ -209,12 +209,17 @@ static func team_shape_mark(team: String) -> String:
 	return ""
 
 
-static func team_label_color(team: String, high_contrast: bool = false) -> Color:
+static func team_label_color(team: String, choice: int = -1) -> Color:
 	match team:
 		"union":
 			return UNION_LABEL
 		"coalition":
-			return Color("e8e2d6") if high_contrast else COALITION_LABEL
+			match FactionPalette.chosen(choice):
+				FragrSettings.TEAM_HIGH_CONTRAST:
+					return Color("e8e2d6")
+				FragrSettings.TEAM_COLOUR_BLIND:
+					return FactionPalette.FREE_BLUE_LABEL
+			return COALITION_LABEL
 	return Color.WHITE
 
 

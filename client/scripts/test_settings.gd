@@ -225,9 +225,9 @@ func _initialize() -> void:
 		if int(a11y.get_value("accessibility", "text_size")) != 0:
 			push_error("test_settings: invalid text_size must fall back to 0: " + str(bad))
 			ok = false
-		a11y.set_value("accessibility", "team_colours", bad)
+		a11y.set_value("accessibility", "team_colours", 3 if bad is int and bad == 2 else bad)
 		if int(a11y.get_value("accessibility", "team_colours")) != 0:
-			push_error("test_settings: invalid team_colours must fall back to 0: " + str(bad))
+			push_error("test_settings: invalid team_colours must fall back to 0: " + str(3 if bad is int and bad == 2 else bad))
 			ok = false
 	a11y.set_value("accessibility", "screen_flashes", 0)
 	a11y.set_value("accessibility", "hud_scale", 150)
