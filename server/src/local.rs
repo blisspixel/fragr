@@ -1108,18 +1108,21 @@ mod tests {
             crate::protocol::VOSS_CUSTODY_GAMEPLAY_VERSION
         );
         assert!(m17.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
-        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
         assert_eq!(
-            crate::protocol::GAMEPLAY_VERSION,
-            crate::protocol::OBJECTIVE_BOARD_GAMEPLAY_VERSION
+            m18.gameplay_version,
+            crate::protocol::ZONES_GAMEPLAY_VERSION
         );
+        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
+        for contract in [
+            crate::protocol::OBJECTIVE_BOARD_GAMEPLAY_VERSION,
+            crate::protocol::FUN_METRICS_GAMEPLAY_VERSION,
+            crate::protocol::INTEREST_GAMEPLAY_VERSION,
+        ] {
+            assert_eq!(contract, crate::protocol::ZONES_GAMEPLAY_VERSION);
+        }
         assert_eq!(
             crate::protocol::GAMEPLAY_VERSION,
-            crate::protocol::FUN_METRICS_GAMEPLAY_VERSION
-        );
-        assert_eq!(
-            crate::protocol::GAMEPLAY_VERSION,
-            crate::protocol::INTEREST_GAMEPLAY_VERSION
+            crate::protocol::SHOT_SENSE_GAMEPLAY_VERSION
         );
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).

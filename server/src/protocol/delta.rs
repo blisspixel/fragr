@@ -641,23 +641,37 @@ pub struct RosterSpans {
 
 /// The roster spans of a snapshot's text, or `None` when it has no roster.
 pub fn roster_spans(text: &str) -> Option<RosterSpans> {
+    list_spans(text, &["players"])?.pop().flatten()
+}
+
+/// The spans of each named top-level list of a snapshot's text, parsed once,
+/// in the order asked: `None` for a list the text omits (an empty list is
+/// left off the wire). `None` when the text is not an object.
+pub fn list_spans(text: &str, keys: &[&str]) -> Option<Vec<Option<RosterSpans>>> {
     let base = text.as_ptr() as usize;
     let offset = |part: &str| part.as_ptr() as usize - base;
     let fields: RawObject<'_> = serde_json::from_str(text).ok()?;
-    let players = fields.get("players")?.get();
-    let entries: Vec<&RawValue> = serde_json::from_str(players).ok()?;
-    let start = offset(players);
-    Some(RosterSpans {
-        start,
-        end: start + players.len(),
-        entries: entries
-            .iter()
-            .map(|entry| {
-                let from = offset(entry.get());
-                (from, from + entry.get().len())
-            })
-            .collect(),
-    })
+    keys.iter()
+        .map(|key| {
+            let Some(list) = fields.get(key) else {
+                return Some(None);
+            };
+            let list = list.get();
+            let entries: Vec<&RawValue> = serde_json::from_str(list).ok()?;
+            let start = offset(list);
+            Some(Some(RosterSpans {
+                start,
+                end: start + list.len(),
+                entries: entries
+                    .iter()
+                    .map(|entry| {
+                        let from = offset(entry.get());
+                        (from, from + entry.get().len())
+                    })
+                    .collect(),
+            }))
+        })
+        .collect()
 }
 
 #[cfg(test)]

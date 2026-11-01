@@ -543,7 +543,7 @@ fn interest_phase(
     let cut = crate::interest::encode_views(&world, &views).map_err(io::Error::other)?;
     let elapsed = started.elapsed();
     let others = readers.len().saturating_sub(1).max(1) * readers.len().max(1);
-    let withheld = views.values().map(Vec::len).sum::<usize>();
+    let withheld = views.values().map(|view| view.rows.len()).sum::<usize>();
     let bytes: usize = readers
         .iter()
         .map(|reader| {

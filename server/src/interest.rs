@@ -1,5 +1,5 @@
 //! Per-recipient interest: a fighter's socket carries only what that fighter
-//! could perceive (fair play, gameplay 66).
+//! could perceive (fair play, gameplay 66 for the roster, 67 for shots, throws and pickups).
 //!
 //! The tick still builds and encodes one world. Before fan-out, each fighter
 //! connected to a shared arcade room gets its own view of that world: every
@@ -46,12 +46,23 @@
 //! bearing, so footsteps play near the right place and the place drifts
 //! smoothly instead of jumping.
 //!
-//! What a world still carries for everyone: shot results (gunfire is
-//! audible and a tracer is visible), projectiles, explosions, vehicles,
-//! pickups and events. Those are known, coarse leaks.
+//! **The rest of the world follows the same senses** (gameplay 67). A shot
+//! result from a fighter the reader sees stays whole; from one it only
+//! hears it keeps its hit facts and gun but says it was heard, its trace
+//! cut to the place the shooter sounds (no line, no pellets); from one it
+//! neither sees nor hears it is not sent. A rocket, grenade or mine in
+//! flight from a fighter the reader does not see is sent only while a line
+//! from the reader's eye reaches it (kept [`SEEN_GRACE`] after). A pickup
+//! event for a fighter the reader does not see is not sent, except the
+//! Custody Plate, which the whole venue answers. The reader's own shots,
+//! the shots that strike it, everything about team-mates, the kill feed,
+//! the board, explosions, stuck mines, vehicles, pads, flags and the
+//! charge stay in every world.
 
 use crate::net::Broadcast;
-use crate::protocol::{GameEvent, PlayerSense, PlayerState, ServerMessage, Snapshot};
+use crate::protocol::{
+    GameEvent, PlayerSense, PlayerState, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot,
+};
 use crate::sim::bot_senses::hunt::{EAR_ERROR, FOOTSTEP_REACH, FOOTSTEP_SPEED, GUNFIRE_WALLED};
 use crate::sim::{GameState, Player, RoundState};
 use std::collections::HashMap;
@@ -97,9 +108,65 @@ pub enum Sense {
     Hidden,
 }
 
-/// The rows a reader does not see whole, by roster index. Empty when the
+/// A thing in flight a reader may be denied: which list holds it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Thing {
+    Rocket,
+    Grenade,
+    Mine,
+    RemoteMine,
+}
+
+impl Thing {
+    /// The snapshot key of its list.
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::Rocket => "rockets",
+            Self::Grenade => "grenades",
+            Self::Mine => "mines",
+            Self::RemoteMine => "remote_mines",
+        }
+    }
+}
+
+/// What a reader's world leaves out of the tick's world. Empty when the
 /// reader sees everybody, so it shares the tick's broadcast.
-pub type View = Vec<(usize, Sense)>;
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct View {
+    /// Roster rows not seen whole, by index, in roster order.
+    pub rows: Vec<(usize, Sense)>,
+    /// Shot results from a fighter the reader does not see, by index in
+    /// order: `Heard` is sent cut to where it sounds, `Hidden` not at all.
+    pub shots: Vec<(usize, Sense)>,
+    /// Things in flight the reader cannot see from a fighter it does not
+    /// see, by list and index in order: not sent.
+    pub things: Vec<(Thing, usize)>,
+}
+
+impl View {
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty() && self.shots.is_empty() && self.things.is_empty()
+    }
+
+    /// Whether this view withholds the fighter `id` of `snapshot`.
+    pub fn withholds(&self, snapshot: &Snapshot, id: Uuid) -> bool {
+        self.rows
+            .iter()
+            .any(|(index, _)| snapshot.players.get(*index).is_some_and(|row| row.id == id))
+    }
+
+    /// Whether `message`, one of the tick's events, stays out of this
+    /// reader's socket: a pickup by a fighter it does not see, except the
+    /// Custody Plate the venue answers for everyone.
+    pub fn mutes(&self, snapshot: &Snapshot, message: &ServerMessage) -> bool {
+        match message {
+            ServerMessage::Event(GameEvent::Pickup {
+                player_id, kind, ..
+            }) => kind != "plate" && self.withholds(snapshot, *player_id),
+            _ => false,
+        }
+    }
+}
 
 /// Counters for the measurements (`bench`, `fragr-playtest --interest`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -126,6 +193,99 @@ pub struct Interest {
     /// Each fighter's feet last tick, and how far they moved since.
     feet: HashMap<Uuid, (u64, [f32; 3])>,
     moved: HashMap<Uuid, [f32; 3]>,
+    /// Things in flight each reader last had a line to, by list and id.
+    things_seen: HashMap<(Uuid, Thing, u32), u64>,
+}
+
+/// A thing in flight from the world being sent: list, index, id, owner,
+/// where it is and where it is headed per tick.
+struct Flying {
+    thing: Thing,
+    index: usize,
+    id: u32,
+    owner: Uuid,
+    at: [f32; 3],
+    step: [f32; 3],
+}
+
+/// The world's things in flight, in list order. A stuck mine is not in
+/// flight: it no longer says where its owner stands.
+fn flying(snapshot: &Snapshot) -> Vec<Flying> {
+    let mut out = Vec::new();
+    for (index, rocket) in snapshot.rockets.iter().enumerate() {
+        out.push(Flying {
+            thing: Thing::Rocket,
+            index,
+            id: rocket.id,
+            owner: rocket.owner_id,
+            at: rocket.position,
+            step: rocket.velocity.map(|v| v * TICK_SECONDS),
+        });
+    }
+    for (index, grenade) in snapshot.grenades.iter().enumerate() {
+        out.push(Flying {
+            thing: Thing::Grenade,
+            index,
+            id: grenade.id,
+            owner: grenade.owner_id,
+            at: grenade.position,
+            step: [0.0; 3],
+        });
+    }
+    for (index, mine) in snapshot.mines.iter().enumerate() {
+        if mine.phase == crate::protocol::MinePhase::Flying {
+            out.push(Flying {
+                thing: Thing::Mine,
+                index,
+                id: mine.id,
+                owner: mine.owner_id,
+                at: mine.position,
+                step: [0.0; 3],
+            });
+        }
+    }
+    for (index, mine) in snapshot.remote_mines.iter().enumerate() {
+        if mine.phase == crate::protocol::RemoteMinePhase::Flying {
+            out.push(Flying {
+                thing: Thing::RemoteMine,
+                index,
+                id: mine.id,
+                owner: mine.owner_id,
+                at: mine.position,
+                step: [0.0; 3],
+            });
+        }
+    }
+    out
+}
+
+/// Whether a line from `perceiver`'s eye, now or after its lead, reaches a
+/// thing in flight where it is or [`TARGET_LEAD_TICKS`] ahead.
+fn sees_thing(
+    perceiver: &Player,
+    thing: &Flying,
+    moved: [f32; 3],
+    grid: &crate::combat::SightGrid,
+    rays: &mut u64,
+) -> bool {
+    let mut eye_now = eye(perceiver);
+    eye_now[1] =
+        eye_now[1].max(feet(perceiver)[1] + crate::combat::stance_eye(perceiver.campaign, false));
+    let eye_lead = ahead(eye_now, perceiver, lead_ticks(perceiver.ping_ms), moved);
+    let later = [
+        thing.at[0] + thing.step[0] * TARGET_LEAD_TICKS,
+        thing.at[1] + thing.step[1] * TARGET_LEAD_TICKS,
+        thing.at[2] + thing.step[2] * TARGET_LEAD_TICKS,
+    ];
+    for eye in [eye_now, eye_lead] {
+        for point in [thing.at, later] {
+            *rays += 1;
+            if grid.line_of_sight(eye, point) {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// The ids every view leaves whole whatever the walls say: objective
@@ -389,6 +549,62 @@ impl Interest {
         self.feet.retain(|_, (tick, _)| *tick == state.tick);
     }
 
+    /// The shots and things in flight `reader` is denied, given the rows its
+    /// view already withholds: a shot or a throw says where its fighter is.
+    #[allow(clippy::too_many_arguments)]
+    fn cut_the_rest(
+        &mut self,
+        state: &GameState,
+        snapshot: &Snapshot,
+        reader: &Player,
+        eyes: &[&Player],
+        things: &[Flying],
+        grid: &crate::combat::SightGrid,
+        view: &mut View,
+    ) {
+        let sense_of = |id: Uuid| {
+            view.rows.iter().find_map(|(index, sense)| {
+                (snapshot.players.get(*index).map(|row| row.id) == Some(id)).then_some(*sense)
+            })
+        };
+        let mut shots = Vec::new();
+        for (index, shot) in snapshot.shot_results.iter().enumerate() {
+            // The reader's own shots and the ones that strike it stay whole.
+            if shot.target_id == Some(reader.id) {
+                continue;
+            }
+            if let Some(sense) = sense_of(shot.shooter_id) {
+                shots.push((index, sense));
+            }
+        }
+        let mut denied = Vec::new();
+        let mut rays = 0;
+        for thing in things {
+            if sense_of(thing.owner).is_none() {
+                continue;
+            }
+            let key = (reader.id, thing.thing, thing.id);
+            let seen = eyes.iter().any(|perceiver| {
+                sees_thing(
+                    perceiver,
+                    thing,
+                    self.moved_of(perceiver.id),
+                    grid,
+                    &mut rays,
+                )
+            });
+            if seen {
+                self.things_seen.insert(key, state.tick);
+            } else if !self.things_seen.contains_key(&key) {
+                denied.push((thing.thing, thing.index));
+            }
+        }
+        denied.sort_unstable();
+        self.counts.rays += rays;
+        view.shots = shots;
+        view.things = denied;
+    }
+
     pub fn counts(&self) -> InterestCounts {
         self.counts
     }
@@ -398,6 +614,7 @@ impl Interest {
         self.sighted.clear();
         self.heard.clear();
         self.killers.clear();
+        self.things_seen.clear();
     }
 
     /// Note the tick's frags, so a reader that is down keeps its killer.
@@ -486,6 +703,8 @@ impl Interest {
             .retain(|_, seen| tick.saturating_sub(*seen) <= SEEN_GRACE);
         self.heard
             .retain(|_, heard| tick.saturating_sub(*heard) <= HEARD_GRACE);
+        self.things_seen
+            .retain(|_, seen| tick.saturating_sub(*seen) <= SEEN_GRACE);
         self.measure_motion(state);
         let key = crate::combat::SightGrid::key_of(solids);
         let grid = match self.grid.take() {
@@ -543,13 +762,14 @@ impl Interest {
             .map(|(trace, _)| (trace.reader.id, trace.target.id))
             .collect();
         let mut cache: HashMap<Uuid, Vec<Sense>> = HashMap::new();
+        let things = flying(snapshot);
         for reader_id in readers {
             let Some(reader) = by_id.get(reader_id).copied() else {
                 continue;
             };
             let eyes = eyes_of(state, reader, teams);
             let killer = self.killers.get(&reader.id).copied();
-            let mut view = View::new();
+            let mut view = View::default();
             let mut senses: Vec<Vec<Sense>> = Vec::with_capacity(eyes.len());
             for perceiver in &eyes {
                 if let std::collections::hash_map::Entry::Vacant(slot) = cache.entry(perceiver.id) {
@@ -590,10 +810,13 @@ impl Interest {
                     }
                 }
                 if best != Sense::Seen {
-                    view.push((index, best));
+                    view.rows.push((index, best));
                 }
             }
-            self.counts.withheld += view.len() as u64;
+            if !view.rows.is_empty() {
+                self.cut_the_rest(state, snapshot, reader, &eyes, &things, &grid, &mut view);
+            }
+            self.counts.withheld += view.rows.len() as u64;
             views.insert(reader.id, view);
         }
         self.grid = Some(grid);
@@ -644,8 +867,83 @@ pub fn redact(row: &PlayerState, sense: Sense) -> PlayerState {
     }
 }
 
-/// A view as a key: each withheld row, its sense and where it sounds.
-type ViewKey = Vec<(usize, u8, [u32; 3])>;
+/// The shot result a reader receives from a fighter it only hears: the hit
+/// facts and the gun, its trace cut to the place the shooter sounds, with no
+/// line, no impact and no pellets to trace back to the muzzle.
+pub fn coarsen(shot: &ShotResult, at: [f32; 3]) -> ShotResult {
+    let mut cut = shot.clone();
+    cut.sense = Some(PlayerSense::Heard);
+    cut.trace = shot.trace.as_ref().map(|trace| ShotTrace {
+        vehicle_id: trace.vehicle_id,
+        weapon: trace.weapon,
+        origin: at,
+        end: at,
+        impact: ShotImpact::Range,
+        pellets: Vec::new(),
+    });
+    cut
+}
+
+/// A sense as a key: heard with where it sounds, or hidden.
+fn sense_key(index: usize, sense: &Sense) -> (usize, u8, [u32; 3]) {
+    match sense {
+        Sense::Heard(at) => (index, 1, at.map(f32::to_bits)),
+        _ => (index, 0, [0; 3]),
+    }
+}
+
+/// A view as a key: each withheld row and shot, its sense and where it
+/// sounds, and each thing left out.
+type ViewKey = (
+    Vec<(usize, u8, [u32; 3])>,
+    Vec<(usize, u8, [u32; 3])>,
+    Vec<(Thing, usize)>,
+);
+
+/// The lists a view cuts, in the order [`encode_views`] reads their spans.
+const LISTS: [&str; 6] = [
+    "players",
+    "shot_results",
+    "rockets",
+    "grenades",
+    "mines",
+    "remote_mines",
+];
+const THINGS: [Thing; 4] = [
+    Thing::Rocket,
+    Thing::Grenade,
+    Thing::Mine,
+    Thing::RemoteMine,
+];
+
+/// A list's text with some entries replaced or left out: `entry` answers
+/// `None` to keep an entry's own text, `Some(None)` to leave it out and
+/// `Some(Some(text))` to send that instead.
+fn relist(
+    text: &str,
+    spans: &crate::protocol::delta::RosterSpans,
+    mut entry: impl FnMut(usize) -> serde_json::Result<Option<Option<String>>>,
+) -> serde_json::Result<String> {
+    let mut out = String::with_capacity(spans.end - spans.start);
+    out.push('[');
+    let mut first = true;
+    for (index, (from, to)) in spans.entries.iter().enumerate() {
+        let swapped = entry(index)?;
+        if matches!(swapped, Some(None)) {
+            continue;
+        }
+        if !first {
+            out.push(',');
+        }
+        first = false;
+        match swapped {
+            Some(Some(text)) => out.push_str(&text),
+            _ => out.push_str(&text[*from..*to]),
+        }
+    }
+    out.push(']');
+    Ok(out)
+}
 
 /// The tick's world as each reader's view, keyed by reader. Readers with
 /// the same view share one broadcast; a reader that sees everybody is left
@@ -658,62 +956,104 @@ pub fn encode_views(
     let ServerMessage::Snapshot(snapshot) = world.message() else {
         return Ok(out);
     };
-    if views.values().all(Vec::is_empty) {
+    if views.values().all(View::is_empty) {
         return Ok(out);
     }
     let text = world.text();
-    let Some(spans) = crate::protocol::delta::roster_spans(text) else {
+    let Some(spans) = crate::protocol::delta::list_spans(text, &LISTS) else {
         return Ok(out);
     };
-    if spans.entries.len() != snapshot.players.len() {
+    let lengths = [
+        snapshot.players.len(),
+        snapshot.shot_results.len(),
+        snapshot.rockets.len(),
+        snapshot.grenades.len(),
+        snapshot.mines.len(),
+        snapshot.remote_mines.len(),
+    ];
+    // Every list's text must line up with the world it was encoded from; the
+    // roster is never empty in a world worth cutting.
+    let lined_up = spans.iter().zip(lengths).all(|(span, length)| {
+        span.as_ref()
+            .map_or(length == 0, |span| span.entries.len() == length)
+    });
+    let Some(roster) = spans[0].as_ref().filter(|_| lined_up) else {
         return Ok(out);
-    }
+    };
     let mut hidden: Vec<Option<String>> = vec![None; snapshot.players.len()];
     let mut shared: HashMap<ViewKey, Arc<Broadcast>> = HashMap::new();
     for (reader, view) in views {
         if view.is_empty() {
             continue;
         }
-        let key: ViewKey = view
-            .iter()
-            .map(|(index, sense)| match sense {
-                Sense::Heard(at) => (*index, 1, at.map(f32::to_bits)),
-                _ => (*index, 0, [0; 3]),
-            })
-            .collect();
+        let key: ViewKey = (
+            view.rows
+                .iter()
+                .map(|(i, sense)| sense_key(*i, sense))
+                .collect(),
+            view.shots
+                .iter()
+                .map(|(i, sense)| sense_key(*i, sense))
+                .collect(),
+            view.things.clone(),
+        );
         if let Some(broadcast) = shared.get(&key) {
             out.insert(*reader, Arc::clone(broadcast));
             continue;
         }
-        let mut cut = String::with_capacity(text.len());
-        cut.push_str(&text[..spans.start]);
-        cut.push('[');
-        let mut withheld = view.iter().peekable();
-        for (index, (from, to)) in spans.entries.iter().enumerate() {
-            if index > 0 {
-                cut.push(',');
-            }
-            match withheld.next_if(|(at, _)| *at == index) {
-                None => cut.push_str(&text[*from..*to]),
-                Some((_, Sense::Hidden)) => {
-                    if hidden[index].is_none() {
-                        hidden[index] = Some(serde_json::to_string(&redact(
-                            &snapshot.players[index],
-                            Sense::Hidden,
-                        ))?);
+        // Each cut list as (start, end, new text), in text order.
+        let mut edits: Vec<(usize, usize, String)> = Vec::new();
+        if !view.rows.is_empty() {
+            let list = relist(text, roster, |index| {
+                let Some((_, sense)) = view.rows.iter().find(|(at, _)| *at == index) else {
+                    return Ok(None);
+                };
+                let row = &snapshot.players[index];
+                Ok(Some(Some(match sense {
+                    Sense::Hidden => {
+                        if hidden[index].is_none() {
+                            hidden[index] =
+                                Some(serde_json::to_string(&redact(row, Sense::Hidden))?);
+                        }
+                        hidden[index].clone().unwrap_or_default()
                     }
-                    cut.push_str(hidden[index].as_deref().unwrap_or_default());
-                }
-                Some((_, sense)) => {
-                    cut.push_str(&serde_json::to_string(&redact(
-                        &snapshot.players[index],
-                        *sense,
-                    ))?);
-                }
-            }
+                    _ => serde_json::to_string(&redact(row, *sense))?,
+                })))
+            })?;
+            edits.push((roster.start, roster.end, list));
         }
-        cut.push(']');
-        cut.push_str(&text[spans.end..]);
+        if let (false, Some(span)) = (view.shots.is_empty(), spans[1].as_ref()) {
+            let list = relist(text, span, |index| {
+                Ok(match view.shots.iter().find(|(at, _)| *at == index) {
+                    None => None,
+                    Some((_, Sense::Heard(at))) => Some(Some(serde_json::to_string(&coarsen(
+                        &snapshot.shot_results[index],
+                        *at,
+                    ))?)),
+                    Some(_) => Some(None),
+                })
+            })?;
+            edits.push((span.start, span.end, list));
+        }
+        for (thing, span) in THINGS.iter().zip(&spans[2..]) {
+            let Some(span) = span else { continue };
+            if !view.things.iter().any(|(kind, _)| kind == thing) {
+                continue;
+            }
+            let list = relist(text, span, |index| {
+                Ok(view.things.contains(&(*thing, index)).then_some(None))
+            })?;
+            edits.push((span.start, span.end, list));
+        }
+        edits.sort_unstable_by_key(|(start, _, _)| *start);
+        let mut cut = String::with_capacity(text.len());
+        let mut at = 0;
+        for (start, end, list) in &edits {
+            cut.push_str(&text[at..*start]);
+            cut.push_str(list);
+            at = *end;
+        }
+        cut.push_str(&text[at..]);
         let broadcast = Broadcast::view(world, cut);
         shared.insert(key, Arc::clone(&broadcast));
         out.insert(*reader, broadcast);

@@ -79,6 +79,14 @@ func _check_zone_evidence() -> void:
 	wall["zone"] = "plate"
 	var solid: Array = ShotEffects._parse_all(wall)
 	_check(solid.size() == 1 and solid[0].zone == "", "a solid hit never carries a zone")
+	# A shot the reader only hears (gameplay 67) arrives cut to where it
+	# sounds, with no line to draw back to a muzzle.
+	var heard: Dictionary = _shot("fighter", "flechette")
+	heard["sense"] = "heard"
+	heard["trace"]["origin"] = [4.0, 1.0, 2.0]
+	heard["trace"]["end"] = [4.0, 1.0, 2.0]
+	heard["trace"]["impact"] = {"kind": "range"}
+	_check(ShotEffects._parse_all(heard).is_empty(), "a heard shot draws no tracer or impact")
 
 func _check_sniper_tracer() -> void:
 	var far: Dictionary = _shot("fighter", "sniper")

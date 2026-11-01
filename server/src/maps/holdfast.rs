@@ -96,9 +96,12 @@ pub(super) fn build() -> MapDef {
             let z = -119.0 + slot as f32 * 32.0;
             solids.push(Solid::from_center_top(side * 140.0, z, 0.7, 7.0, 2.5));
         }
+        // Each divider reaches back to the revetments' face (x 140.7), so no
+        // hairline slit runs the length of the coast between revetment and
+        // divider: a 0.3 m gap there opened 64 m sightlines from bay to bay.
         for divider in 0..=8 {
             let z = -135.0 + divider as f32 * 32.0;
-            solids.push(Solid::from_center_top(side * 150.0, z, 9.0, 0.7, 2.5));
+            solids.push(Solid::from_center_top(side * 149.85, z, 9.15, 0.7, 2.5));
         }
     }
     solids.push(Solid::from_center_top(127.0, 112.0, 4.0, 4.0, 18.0));
@@ -256,6 +259,26 @@ mod tests {
             assert_eq!(map.spawn(angle + 2.0 * PI), point);
             assert_eq!(map.spawn(angle - 2.0 * PI), point);
             points.push(point);
+        }
+    }
+
+    #[test]
+    fn no_hairline_sightline_runs_down_the_coast_between_bays() {
+        // The wave 22 interest survey's only late reveals on this map were
+        // bots in neighbouring bays seeing each other through a 0.3 m slit
+        // between the revetments (to x 140.7) and the dividers (from x 141).
+        let solids = MapKind::HoldfastAtoll.solids();
+        let eye = LAND_HEIGHT + 1.6;
+        for side in [-1.0_f32, 1.0] {
+            for tenth in 0..=10 {
+                let x = side * (140.6 + tenth as f32 * 0.05);
+                for (from, to) in [(-14.4, 49.6), (-111.0, -48.0), (18.0, 81.0)] {
+                    assert!(
+                        !crate::combat::line_of_sight([x, eye, from], [x, eye, to], &solids),
+                        "a coastal line at x {x} from z {from} to {to} is open"
+                    );
+                }
+            }
         }
     }
 }

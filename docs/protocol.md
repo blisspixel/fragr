@@ -27,9 +27,12 @@ locational damage (`ShotResult.zone` in place of `head`, and a Ranged
 Sweeper's `mast_broken`), the hold-Tab board's objective credits
 (`players[].objective`), the booth's whole pad clocks (`clock`), the fun
 metrics notice (`Welcome.fun_metrics`) and interest filtering (the
-per-fighter `sense` rows, below); it is the highest this build speaks.
-Declared Goods, Weight of Permission, Launch Authority and All Systems Normal,
-which place Ranged Sweepers, require 66.
+per-fighter `sense` rows, below). Contract 67 applies the same senses to
+the rest of a fighter's world: a heard shot carries `ShotResult.sense`, and
+shots, things in flight and pickup events the fighter could not perceive
+are left out (below); it is the highest this build speaks, and a shared
+room requires it. Declared Goods, Weight of Permission, Launch Authority and
+All Systems Normal, which place Ranged Sweepers, require 66.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -171,7 +174,7 @@ Initial handshake message. Must be sent immediately after connection.
   its owner wears and keeps it (see the run file). Additive: no gameplay
   version gates it.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `66`; omission means `1`. Discovery-only maps first
+  and the Godot client send `67`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -399,17 +402,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`66`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`67`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-66 or geometry 2. An older hello is also sent to
+67 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 66 can
-still enter that mission, and a hello above 66 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 67 can
+still enter that mission, and a hello above 67 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -1922,7 +1925,13 @@ records default it to false. `zone` (gameplay 66) names where damage that landed
 `legs`, `plate` or `weak`; see "Locational damage" below. It is omitted on a
 miss, when nothing landed (a shield or a teammate that took nothing), and for
 weapons without zones (the Arc, explosives, melee) unless a plate or shutter
-turned part of the hit. `damage` already counts the zone's multiplier. It
+turned part of the hit. `damage` already counts the zone's multiplier.
+`sense` (gameplay 67) is `heard` on a result a fighter's socket carries from
+a shooter it only hears ([Interest filtering](#interest-filtering-capability-66)):
+`trace` then keeps only `weapon` and `vehicle_id`, with `origin` and `end`
+both the place the shooter sounds (its `heard` row's `x`, `y`, `z`), impact
+`range` and no `pellets`; a reader draws no line or impact for it and plays
+the gun where it sounds. Omitted on every whole result. It
 drives only presentation: the shooter's marker and sound, sparks, and the
 victim's death recap. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
@@ -4406,17 +4415,35 @@ could perceive. Owner: `server/src/interest.rs`; the Godot reader is
   carrier of a flag or the Sabotage charge, and the fighter's killer while
   it is down. A fighter that is down in a team mode sees what its living
   team-mates see.
-- **Still in every world.** Shot results, projectiles, grenades, rockets,
-  mines, explosions, vehicles, pickups, flags, the charge and events. A shot
-  result names its shooter and origin, and a pickup event its pad: gunfire
-  and a pickup chime are audible.
+- **Shots, throws and pickups (gameplay 67).** The same senses decide the
+  rest of a fighter's world, from the rows its view already withholds:
+  - A `shot_results` entry from a shooter the fighter sees stays whole. From
+    a shooter it only hears, it is cut (`sense` `heard`, trace at the place
+    the shooter sounds, no line or pellets; see Snapshot). From one it
+    neither sees nor hears, it is left out. A shot that strikes the fighter,
+    and its own, always stay whole.
+  - A `rockets`, `grenades`, `mines` or `remote_mines` entry still in flight
+    (a mine or remote charge whose `phase` is `flying`) from a fighter the
+    fighter does not see is sent only while a line through the shot solids
+    from its eye, now or after its lead, reaches the thing where it is or
+    `3` ticks ahead on its velocity, and for `10` ticks after. A stuck mine
+    stays: it no longer says where its owner stands. A reader may therefore
+    first meet a thing mid-flight; the Godot client cues a grenade throw only
+    on a fresh fuse and a rocket launch only on a young one.
+  - A `pickup` event for a fighter it does not see is not sent to its
+    socket, except the Custody Plate (`kind` `plate`), which the whole venue
+    answers (Larak Lot's light bar).
+- **Still in every world.** Explosions, stuck mines, vehicles, pads (their
+  `available` state), flags, the charge, the kill feed (`frag`, `hit`) and
+  every other event.
+- **Spectators** and the booth keep every shot, throw and event whole.
 - **Deltas.** A fighter's view is diffed against the world its socket last
   carried (the per-reader path of [Snapshot deltas](#snapshot-deltas-capability-63)),
   never against the shared tick delta, so a reader that moves between a
   view and the whole world (joins or leaves) always applies a delta to the
   world it holds. Fighters whose views match share one encoded view.
 
-A reader below 66 is refused by a shared room under Protocol version, because
-it would draw a hidden row at the origin. MCP `observe` reads the same
+A reader below 67 is refused by a shared room under Protocol version: at 65
+it would draw a hidden row at the origin, and at 66 a heard shot's cut trace. MCP `observe` reads the same
 filtered socket as a human fighter (see `agent-adapter/README.md`).
 Measurements: [BENCHMARK.md](BENCHMARK.md#interest-filtering-wave-22).

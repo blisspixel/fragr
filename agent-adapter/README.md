@@ -74,7 +74,14 @@ in the brief at all. `detail: full` keeps every row as received: a
 withheld row has `sense` `heard` or `hidden`, `hp` 0, `collidable` false
 and, when hidden, `x`, `y`, `z` of 0. `top_rival` still counts every
 rival's score, from the board fields every row keeps. Team-mates are
-always seen. An adapter that never joined watches, and keeps the full
+always seen. The same senses apply to the rest of the world (gameplay
+67): `shot_results` from a rival it only hears carry `sense` `heard` with
+the trace cut to where the rival sounds (gun kept, no line or pellets),
+shots from a rival it cannot perceive are left out, rockets, grenades and
+mines in flight from a rival it does not see appear only once a line from
+its eye reaches them, and a `pickup` event for a rival it does not see is
+not received (the Custody Plate excepted). Its own shots and the ones that
+hit it stay whole. An adapter that never joined watches, and keeps the full
 world. Shapes: `docs/protocol.md`, "Interest filtering (capability 66)".
 
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.

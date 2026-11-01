@@ -3050,6 +3050,7 @@ impl GameState {
                     None => {
                         let shooter = &self.players[shooter_idx];
                         self.shot_results.push(ShotResult {
+                            sense: None,
                             shooter_id: shooter.id,
                             shooter: shooter.name.clone(),
                             hit: false,
@@ -3659,6 +3660,7 @@ impl GameState {
 
         if let Some(trace) = trace {
             self.shot_results.push(ShotResult {
+                sense: None,
                 shooter_id,
                 shooter: shooter_name.clone(),
                 hit: true,

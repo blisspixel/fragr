@@ -3926,6 +3926,7 @@ mod combat_tests {
 
     fn shot(shooter: Uuid, hit: bool, target: Option<Uuid>, damage: i32) -> ShotResult {
         ShotResult {
+            sense: None,
             trace: None,
             killed: false,
             zone: None,

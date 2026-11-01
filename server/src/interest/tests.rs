@@ -52,6 +52,7 @@ fn sense_once(
         .position(|row| row.id == id(target))
         .expect("target row");
     views[&id(reader)]
+        .rows
         .iter()
         .find(|(at, _)| *at == index)
         .map_or(Sense::Seen, |(_, sense)| *sense)
@@ -434,7 +435,7 @@ fn hide_from(state: &mut GameState, reader: Uuid) -> bool {
             let snapshot = state.snapshot();
             let mut probe = Interest::default();
             let views = probe.views(state, &snapshot, &[reader]);
-            if views.get(&reader).is_some_and(|view| !view.is_empty()) {
+            if views.get(&reader).is_some_and(|view| !view.rows.is_empty()) {
                 return true;
             }
         }
@@ -510,6 +511,7 @@ async fn a_fighter_socket_gets_its_view_while_a_spectator_gets_the_world() {
     assert!(watched.hp > 0);
     assert!(views.contains_key(&fighter));
     let felt = row_of(fighter_rx.try_recv().unwrap(), hidden_id);
+    assert!(views[&fighter].muted.is_empty(), "a world mutes nothing");
     assert!(felt.sense.is_some(), "the reader does not see its rival");
     assert_eq!(felt.hp, 0);
 }
@@ -562,4 +564,273 @@ fn a_seated_reader_leads_on_the_motion_of_its_seat() {
         sent.unwrap() + 3 <= truth.unwrap(),
         "sent {sent:?}, visible {truth:?}"
     );
+}
+
+/// Views of `snapshot` after two ticks of tracing, the tick before and this.
+fn views_twice(
+    interest: &mut Interest,
+    state: &mut GameState,
+    snapshot: &Snapshot,
+    readers: &[Uuid],
+    solids: &[Solid],
+) -> HashMap<Uuid, View> {
+    let tick = state.tick;
+    state.tick = tick - 1;
+    interest.views_in(state, snapshot, readers, solids);
+    state.tick = tick;
+    interest.views_in(state, snapshot, readers, solids)
+}
+
+fn shot(shooter: u128, target: Option<u128>, at: [f32; 3]) -> ShotResult {
+    ShotResult {
+        sense: None,
+        shooter_id: id(shooter),
+        shooter: format!("Probe {shooter}"),
+        hit: target.is_some(),
+        target_id: target.map(id),
+        target: target.map(|n| format!("Probe {n}")),
+        damage: if target.is_some() { 12 } else { 0 },
+        target_hp_after: target.map(|_| 88),
+        trace: Some(ShotTrace {
+            vehicle_id: None,
+            weapon: crate::protocol::WeaponType::Scatter,
+            origin: at,
+            end: [at[0] - 6.0, at[1], at[2]],
+            impact: ShotImpact::Solid {
+                normal: [1.0, 0.0, 0.0],
+            },
+            pellets: vec![crate::protocol::PelletTrace {
+                end: [at[0] - 6.0, at[1], at[2] + 0.4],
+                impact: ShotImpact::Range,
+            }],
+        }),
+        killed: false,
+        zone: None,
+    }
+}
+
+fn parsed_world(broadcast: &Broadcast) -> Snapshot {
+    match broadcast.sent_message() {
+        ServerMessage::Snapshot(snapshot) => snapshot,
+        other => panic!("a world, got {other:?}"),
+    }
+}
+
+#[test]
+fn shots_follow_the_senses_of_their_shooter() {
+    // The reader (1) west of the wall; 2 behind it and near enough to be
+    // heard firing; 3 behind it and too far to hear; 4 in the open.
+    let solids = wall();
+    let mut state = state_with(&[(-5.0, 0.0), (5.0, 0.0), (45.0, 0.0), (-5.0, 12.0)]);
+    player(&mut state, 2).just_fired = true;
+    player(&mut state, 3).just_fired = true;
+    let mut snapshot = state.snapshot();
+    snapshot.shot_results = vec![
+        shot(1, None, [-5.0, 1.6, 0.0]),
+        shot(2, None, [5.0, 1.6, 0.0]),
+        shot(3, None, [45.0, 1.6, 0.0]),
+        shot(4, Some(2), [-5.0, 1.6, 12.0]),
+        shot(3, Some(1), [45.0, 1.6, 0.0]),
+    ];
+    let mut interest = Interest::default();
+    let views = views_twice(&mut interest, &mut state, &snapshot, &[id(1)], &solids);
+    let view = &views[&id(1)];
+    assert!(
+        matches!(
+            view.shots.as_slice(),
+            [(1, Sense::Heard(_)), (2, Sense::Hidden)]
+        ),
+        "{view:?}"
+    );
+    let world = Broadcast::encode(ServerMessage::Snapshot(snapshot.clone())).unwrap();
+    let cut = encode_views(&world, &views).unwrap();
+    let sent = parsed_world(&cut[&id(1)]);
+    // Its own shot, the open fighter's and the one that struck it are whole;
+    // the far one's other shot is gone; the heard one is cut.
+    assert_eq!(sent.shot_results.len(), 4);
+    assert_eq!(sent.shot_results[0], snapshot.shot_results[0]);
+    assert_eq!(sent.shot_results[2], snapshot.shot_results[3]);
+    assert_eq!(
+        sent.shot_results[3], snapshot.shot_results[4],
+        "a shot that strikes the reader stays whole"
+    );
+    let heard = &sent.shot_results[1];
+    let Sense::Heard(at) = view.shots[0].1 else {
+        unreachable!()
+    };
+    assert_eq!(heard.sense, Some(PlayerSense::Heard));
+    assert_eq!(
+        (heard.shooter_id, heard.hit, heard.damage),
+        (id(2), false, 0)
+    );
+    let trace = heard.trace.as_ref().expect("the gun stays");
+    assert_eq!(trace.weapon, crate::protocol::WeaponType::Scatter);
+    assert_eq!(trace.impact, ShotImpact::Range);
+    assert!(trace.pellets.is_empty(), "no pellets to trace back");
+    let rounded = |v: [f32; 3]| v.map(|c| (c * 1000.0).round() / 1000.0);
+    assert_eq!(rounded(trace.origin), rounded(at));
+    assert_eq!(trace.origin, trace.end);
+    // The place is the heard row's own: the shot says no more than the row.
+    let row = sent.players.iter().find(|row| row.id == id(2)).unwrap();
+    assert_eq!(row.sense, Some(PlayerSense::Heard));
+    assert!((row.x - trace.origin[0]).abs() < 0.01 && (row.z - trace.origin[2]).abs() < 0.01);
+    // Everything else is the world's own text.
+    let mut whole: serde_json::Value = serde_json::from_str(world.text()).unwrap();
+    let mut mine: serde_json::Value = serde_json::from_str(cut[&id(1)].text()).unwrap();
+    for value in [&mut whole, &mut mine] {
+        let object = value.as_object_mut().unwrap();
+        object.remove("players");
+        object.remove("shot_results");
+    }
+    assert_eq!(whole, mine);
+    // A fighter that is not a reader (a spectator's socket) gets no view.
+    assert!(!views.contains_key(&id(4)));
+}
+
+#[test]
+fn a_throw_from_an_unseen_fighter_is_sent_only_once_a_line_reaches_it() {
+    use crate::protocol::{MinePhase, MineState, RocketState};
+    let solids = wall();
+    // 2 throws from behind the wall, far enough to stay unheard.
+    let mut state = state_with(&[(-5.0, 0.0), (40.0, 0.0)]);
+    let rocket = |n: u32, at: [f32; 3]| RocketState {
+        id: n,
+        owner_id: id(2),
+        position: at,
+        velocity: [0.0, 0.0, 0.0],
+        age_ticks: 3,
+    };
+    let mine = |n: u32, phase: MinePhase| MineState {
+        id: n,
+        owner_id: id(2),
+        position: [30.0, 1.0, 0.0],
+        normal: [0.0, 1.0, 0.0],
+        phase,
+        phase_started: 1,
+        phase_ends: 1,
+    };
+    let mut snapshot = state.snapshot();
+    snapshot.rockets = vec![rocket(1, [30.0, 1.5, 0.0]), rocket(2, [-3.0, 1.5, 14.0])];
+    snapshot.mines = vec![mine(3, MinePhase::Flying), mine(4, MinePhase::Armed)];
+    let mut interest = Interest::default();
+    let views = views_twice(&mut interest, &mut state, &snapshot, &[id(1)], &solids);
+    let view = &views[&id(1)];
+    assert_eq!(view.rows.len(), 1, "{view:?}");
+    // The rocket behind the wall and the mine in flight there are left out;
+    // the rocket round the corner and the stuck mine are sent.
+    assert_eq!(view.things, vec![(Thing::Rocket, 0), (Thing::Mine, 0)]);
+    let world = Broadcast::encode(ServerMessage::Snapshot(snapshot.clone())).unwrap();
+    let sent = parsed_world(&encode_views(&world, &views).unwrap()[&id(1)]);
+    assert_eq!(sent.rockets, vec![snapshot.rockets[1].clone()]);
+    assert_eq!(sent.mines, vec![snapshot.mines[1].clone()]);
+    // Once it flies into the open it is sent, and stays a grace after.
+    snapshot.rockets[0].position = [-3.0, 1.5, 14.0];
+    state.tick += 1;
+    let views = interest.views_in(&state, &snapshot, &[id(1)], &solids);
+    assert!(!views[&id(1)].things.contains(&(Thing::Rocket, 0)));
+    snapshot.rockets[0].position = [30.0, 1.5, 0.0];
+    state.tick += 1;
+    let views = interest.views_in(&state, &snapshot, &[id(1)], &solids);
+    assert!(
+        !views[&id(1)].things.contains(&(Thing::Rocket, 0)),
+        "kept the grace"
+    );
+    state.tick += SEEN_GRACE + 1;
+    let views = interest.views_in(&state, &snapshot, &[id(1)], &solids);
+    assert!(views[&id(1)].things.contains(&(Thing::Rocket, 0)));
+    // In the open, the thrower is seen and so is everything it throws.
+    let mut open = Interest::default();
+    let views = views_twice(&mut open, &mut state, &snapshot, &[id(1)], &[]);
+    assert!(views[&id(1)].is_empty());
+}
+
+#[test]
+fn a_pickup_by_an_unseen_fighter_is_muted_except_the_plate() {
+    let solids = wall();
+    let mut state = state_with(&[(-5.0, 0.0), (40.0, 0.0)]);
+    let snapshot = state.snapshot();
+    let mut interest = Interest::default();
+    let views = views_twice(&mut interest, &mut state, &snapshot, &[id(1)], &solids);
+    let view = &views[&id(1)];
+    let pickup = |n: u128, kind: &str| {
+        ServerMessage::Event(GameEvent::Pickup {
+            player: format!("Probe {n}"),
+            player_id: id(n),
+            kind: kind.into(),
+            weapon: String::new(),
+            amount: Some(25),
+            pickup_id: format!("{kind}_pad"),
+            secret: false,
+        })
+    };
+    assert!(view.mutes(&snapshot, &pickup(2, "armor")));
+    assert!(
+        !view.mutes(&snapshot, &pickup(2, "plate")),
+        "the venue answers the Plate"
+    );
+    assert!(
+        !view.mutes(&snapshot, &pickup(1, "armor")),
+        "the reader's own pickup"
+    );
+    let frag = ServerMessage::Event(GameEvent::Frag {
+        killer: "Probe 2".into(),
+        victim: "Probe 3".into(),
+        killer_score: 1,
+        killer_id: Some(id(2)),
+        victim_id: Some(id(3)),
+        weapon: None,
+        killer_team: None,
+        victim_team: None,
+    });
+    assert!(
+        !view.mutes(&snapshot, &frag),
+        "the kill feed is for everyone"
+    );
+}
+
+#[test]
+fn the_session_mutes_an_unseen_pickup_on_a_fighter_socket_only() {
+    use crate::net::GameCommand;
+    let (fighter, rival) = (Uuid::new_v4(), Uuid::new_v4());
+    let mut session = crate::session::GameSession::new();
+    session.state.config.rules = crate::rules::RuleSet::arsenal();
+    for (client, name) in [(fighter, "Reader"), (rival, "Rival")] {
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: client,
+            role: Role::Human,
+            name: name.into(),
+            player_id: Some(Uuid::new_v4()),
+        });
+    }
+    session.state.start_round();
+    session.state.round_state = RoundState::Active;
+    session.state.spawn_shields.clear();
+    for player in session.state.players.iter_mut() {
+        player.respawn_timer = None;
+        player.hp = 100;
+    }
+    let reader = session.client_to_player[&fighter];
+    assert!(
+        hide_from(&mut session.state, reader),
+        "the map hides some pair"
+    );
+    let hidden = session.client_to_player[&rival];
+    let messages = vec![
+        ServerMessage::Event(GameEvent::Pickup {
+            player: "Rival".into(),
+            player_id: hidden,
+            kind: "health".into(),
+            weapon: String::new(),
+            amount: Some(40),
+            pickup_id: "health_pad".into(),
+            secret: false,
+        }),
+        ServerMessage::Snapshot(session.state.snapshot()),
+    ];
+    let broadcasts = Broadcast::encode_all(messages).unwrap();
+    let views = session.interest_views(&broadcasts).unwrap();
+    assert_eq!(views[&fighter].muted, vec![0]);
+    // The rival may see the reader or not; either way it hears its own pickup.
+    assert!(views.get(&rival).is_none_or(|cut| cut.muted.is_empty()));
 }

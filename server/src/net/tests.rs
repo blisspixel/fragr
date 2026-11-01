@@ -3233,7 +3233,10 @@ async fn a_reader_moving_between_its_view_and_the_world_rebuilds_every_world() {
         };
         let views = std::collections::HashMap::from([(
             Uuid::nil(),
-            vec![(1, crate::interest::Sense::Hidden)],
+            crate::interest::View {
+                rows: vec![(1, crate::interest::Sense::Hidden)],
+                ..Default::default()
+            },
         )]);
         let mut cut = crate::interest::encode_views(&worlds[index], &views).unwrap();
         assert!(snapshot.players.len() > 1);

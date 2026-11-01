@@ -201,7 +201,7 @@ fn run_one(map: MapKind, rtt_ms: u32, jitter: u64, seconds: u32, seed: u64) -> O
         for reader in &readers {
             let mut set: HashSet<Uuid> = snapshot.players.iter().map(|row| row.id).collect();
             if let Some(view) = views.get(reader) {
-                for (index, sense) in view {
+                for (index, sense) in &view.rows {
                     set.remove(&snapshot.players[*index].id);
                     tally.withheld += 1;
                     tally.heard += u64::from(matches!(sense, Sense::Heard(_)));
