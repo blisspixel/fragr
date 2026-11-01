@@ -25,6 +25,14 @@ static func supports_ao(renderer: String) -> bool:
 static func supports_dual_paraboloid(renderer: String) -> bool:
 	return renderer in ["forward_plus", "mobile"]
 
+## Light fixtures cast shadow maps only where the renderer keeps them stable
+## beside the transient lights of a fight (#521). Under Compatibility a shot's
+## muzzle or blast light joining shadowed omni fixtures can leave the frame
+## lit as if every fixture reached every surface: whole decks wash to white.
+## The pools of light stay; only their shadow maps go.
+static func supports_fixture_shadows(renderer: String) -> bool:
+	return renderer != "gl_compatibility"
+
 ## The renderer's name as the engine's project settings print it.
 static func renderer_name(renderer: String) -> String:
 	match renderer:
@@ -49,7 +57,7 @@ static func preset_features(quality: int, renderer: String, video: Dictionary, o
 	else:
 		parts.append("MSAA %dx" % (2 if quality == 1 else 4))
 	parts.append("shadow atlas %d" % (1024 if quality <= 0 else (4096 if quality == 2 else 2048)))
-	parts.append("light fixture shadows %s" % ("on" if quality >= 1 else "off"))
+	parts.append("light fixture shadows %s" % ("on" if quality >= 1 and supports_fixture_shadows(renderer) else "off"))
 	if quality >= 1 and supports_ao(renderer):
 		parts.append("ambient occlusion %s" % ("low" if quality == 1 else "medium"))
 	else:
@@ -141,7 +149,7 @@ static func apply_practicals(scope: Node, preferences: FragrSettings) -> void:
 		if not node.is_in_group(ArenaSky.PRACTICAL_GROUP):
 			continue
 		if node is Light3D:
-			(node as Light3D).shadow_enabled = quality >= 1
+			(node as Light3D).shadow_enabled = quality >= 1 and supports_fixture_shadows(RenderingServer.get_current_rendering_method())
 		# Two paraboloid passes instead of six cube faces on Balanced, where the
 		# renderer has them. Compatibility renders omni shadows as cubes only.
 		if node is OmniLight3D:

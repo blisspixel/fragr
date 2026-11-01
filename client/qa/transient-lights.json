@@ -1,0 +1,10 @@
+{
+  "comment": "#521 transient light review: the spectator follows a fighter's eyes on Larak Lot while client/qa/transient_light_review.gd freezes and measures every frame a muzzle or blast light is up. Run FRAGR_QA_SCRIPT=res://qa/transient_light_review.gd FRAGR_QA_MANIFEST=res://qa/transient-lights.json FRAGR_QA_SEED=1 tools/qa_tour.sh <out>, on each renderer (FRAGR_RENDER_DRIVER=opengl3 is the tour default; vulkan for Forward+).",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "lights_eyes_early", "scene": "res://scenes/main.tscn", "at_seconds": 4, "camera": "first_person", "note": "The publish tour's spectator eyes moment."},
+    {"name": "lights_eyes_late", "at_seconds": 70, "camera": "first_person", "note": "A minute of followed fighting later."},
+    {"name": "lights_overview", "at_seconds": 100, "camera": "overview", "note": "The whole lot from above, where pad and Pit fights light it."}
+  ]
+}

@@ -13,7 +13,7 @@ extends Node3D
 
 const MAX_LIGHTS: int = 3
 const LIGHT_SECONDS: float = 0.42
-const LIGHT_PEAK: float = 7.5
+const LIGHT_PEAK: float = ShotVfx.TRANSIENT_MAX_ENERGY
 const FIRE_SECONDS: float = 0.66
 const SMOKE_CAPACITY: int = 240
 const FIRE_CAPACITY: int = 48
@@ -113,7 +113,7 @@ func blast(at: Vector3, radius: float, serial: int) -> void:
 		piece.drag = 0.4
 		piece.emit = 1.0 if cell == 2 else 0.0
 		piece.fade_share = 0.25
-	_light(at + Vector3.UP * 0.6, 8.0 * size_scale)
+	_light(at + Vector3.UP * 0.6, minf(8.0 * size_scale, ShotVfx.TRANSIENT_MAX_RANGE))
 	if decals != null:
 		decals.add_scorch(at)
 	set_process(true)
