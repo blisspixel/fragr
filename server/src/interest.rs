@@ -637,6 +637,9 @@ pub fn redact(row: &PlayerState, sense: Sense) -> PlayerState {
         body: row.body,
         dress: row.dress,
         ping: row.ping,
+        // Objective credits are scoreboard facts, like frags: they say nothing
+        // about where the fighter is.
+        objective: row.objective,
         sense: Some(sense),
     }
 }
