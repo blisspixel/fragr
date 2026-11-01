@@ -33,6 +33,7 @@ pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) use authored::m17::{Custody, CUSTODY_IN_PACE, CUSTODY_OUT_PACE};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
+pub mod ledges;
 pub(crate) mod low_water;
 #[cfg(test)]
 pub(crate) use authored::epilogue as epilogue_authored;
