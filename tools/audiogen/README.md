@@ -199,6 +199,16 @@ cargo run -p fragr-audiogen -- loudness --check --json .agents/mix.json capture.
 `--check` exits non-zero unless every file is inside the gameplay target from the 1.0 bar: -23 to -18 LUFS integrated and true peak at or below -1 dBTP. QA tour captures (`client/qa/mix-loudness.json`, `client/qa/mix-watch.json`) are the usual input; they are recorded after the Master limiter and before the Master volume, which defaults to 0.9 (about -0.9 dB).
 
 `--level-to LUFS` rewrites each file in place as mono 16-bit PCM whose loudest 400 ms block reads that loudness, held under `--peak-ceiling` dBTP (default -1). It is for short placed clips such as footsteps; `--dry-run` only prints the gains.
+## Benchmark jingle takes
+
+Crackpot's certificate, the few seconds of hard-tuned pop that play when a benchmark run completes (`client/scripts/benchmark_jingle.gd`), ships six takes from `specs/benchmark-jingle-20261031.json`: three lyrics, two takes each, at `client/assets/audio/jingle/benchmark/<take>.mp3`. Nick picks one by ear with the Jingle buttons on the benchmark results screen; the game saves it as `[audio] benchmark_jingle` in the same settings file the score picks use, and an unpicked game plays 1A. Then delete the other five, with their `.import` files and manifest entries:
+
+```bash
+cargo run -p fragr-audiogen -- jingle-prune
+cargo run -p fragr-audiogen -- jingle-prune --apply
+```
+
+Without `--apply` it only prints the plan, and with no pick saved it keeps every take. Once one take remains the results screen drops the picker by itself. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.
 
 ## What it writes
 

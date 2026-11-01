@@ -42,6 +42,9 @@ const DEFAULTS: Dictionary = {
 		# The Host's match calls: 0 On, 1 Big moments only, 2 Off.
 		"announcer": 0,
 		"announcer_volume": 0.9, # The Announcer bus, for the Host's voiced calls.
+		# Which take of Crackpot's benchmark certificate plays (BenchmarkJingle),
+		# picked on the benchmark results screen while all six ship.
+		"benchmark_jingle": "1a",
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
@@ -216,6 +219,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 	if path == "host/maps_off":
 		value = clean_maps_off(value, fallback)
+	if path == "audio/benchmark_jingle":
+		value = BenchmarkJingle.clean_take(value)
 	if path == "score/takes":
 		value = CampaignScore.clean_takes(value)
 	if path == "footsteps/take":

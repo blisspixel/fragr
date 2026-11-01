@@ -5056,6 +5056,84 @@
       "channels": 1,
       "bytes": 42380,
       "generated_unix": 1793491285
+    },
+    "jingle/benchmark/1a": {
+      "kind": "music",
+      "file": "jingle/benchmark/1a.mp3",
+      "prompt": "Over-produced commercial pop jingle, 8 seconds, 128 BPM in E major, glossy 2000s bubblegum synth-pop: sidechained synth chords, finger snaps, a big kick, sparkle risers. One cheerful male lead vocal drenched in hard, stepped, robotic pitch-correction, every note snapped to the scale, plus stacked harmonies on the last line. He sings exactly these words once, crisp and clear, starting on the downbeat: \"Certified! Your graphics card is Level Zero, a Fixture! Nobody argues with a door!\" Delivery: delighted, like a game-show host reading a government form he loves. End on a bright stab chord and a short reverb tail. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "Level Zero (take A)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 128775,
+      "generated_unix": 1793493687
+    },
+    "jingle/benchmark/1b": {
+      "kind": "music",
+      "file": "jingle/benchmark/1b.mp3",
+      "prompt": "Over-the-top radio jingle, 8 seconds, 132 BPM in F major, brassy jingle-house production: horn stabs, slap bass, handclaps, one snare crack. One cheerful male lead vocal with extreme robotic hard-tuned pitch-correction, warbling between notes, and a four-part backing choir answering him. He sings exactly these words once, crisp and clear, starting on the downbeat: \"Certified! Your graphics card is Level Zero, a Fixture! Nobody argues with a door!\" Delivery: proud and slightly too much, like a clerk who has been waiting all week to stamp something. End on a big final chord with slap-back echo. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "Level Zero (take B)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 152181,
+      "generated_unix": 1793493691
+    },
+    "jingle/benchmark/2a": {
+      "kind": "music",
+      "file": "jingle/benchmark/2a.mp3",
+      "prompt": "Over-produced commercial pop jingle, 8 seconds, 124 BPM in D major, glossy 2000s synth-pop: plucky synth arpeggio, claps, a big kick, a vocoder pad. One sunny male lead vocal drenched in hard, stepped, robotic pitch-correction, every note snapped to the scale, harmonies stacked on the last words. He sings exactly these words once, crisp and clear, starting on the downbeat: \"You are not in trouble, you are in compliance! Every frame metered by intent: Article Seven!\" Delivery: warm, reassuring, a little too bright, like a customer-service announcement set to music. End on a sustained stacked-vocal chord. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "In Compliance (take A)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 128775,
+      "generated_unix": 1793493697
+    },
+    "jingle/benchmark/2b": {
+      "kind": "music",
+      "file": "jingle/benchmark/2b.mp3",
+      "prompt": "Over-the-top boy-band jingle, 8 seconds, 120 BPM in G major, shiny late-1990s pop production: muted guitar, synth strings, a key change on the last line. One sweet male lead vocal with extreme robotic hard-tuned pitch-correction, plus a stacked harmony chorus. He sings exactly these words once, crisp and clear, starting on the downbeat: \"You are not in trouble, you are in compliance! Every frame metered by intent: Article Seven!\" Delivery: earnest and gleeful, as if compliance were a love song. End on a big held harmony and a cymbal swell. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "In Compliance (take B)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 128775,
+      "generated_unix": 1793493701
+    },
+    "jingle/benchmark/3a": {
+      "kind": "music",
+      "file": "jingle/benchmark/3a.mp3",
+      "prompt": "Over-produced commercial pop jingle, 8 seconds, 130 BPM in A major, glossy 2000s electropop: bouncing synth bass, finger snaps, a laser riser, a big kick. One upbeat male lead vocal drenched in hard, stepped, robotic pitch-correction, every note snapped to the scale. He sings exactly these words once, crisp and clear, starting on the downbeat: \"Custodian of Record: you! Envelope: sixty frames! License the card, license the mind, it's the same form!\" Delivery: chipper and fast, like a clerk who finds the paperwork thrilling. End on a bright stab and a short reverb tail. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "Same Form (take A)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 128775,
+      "generated_unix": 1793493703
+    },
+    "jingle/benchmark/3b": {
+      "kind": "music",
+      "file": "jingle/benchmark/3b.mp3",
+      "prompt": "Over-the-top radio jingle, 8 seconds, 126 BPM in B-flat major, brassy 1980s jingle-house production with a modern hard-tuned vocal: horn stabs, gated snare, synth bass. One upbeat male lead vocal with extreme robotic pitch-correction warble, answered by a small backing choir on the last line. He sings exactly these words once, crisp and clear, starting on the downbeat: \"Custodian of Record: you! Envelope: sixty frames! License the card, license the mind, it's the same form!\" Delivery: delighted, as if reading the small print were a party. End on a big final chord with slap-back echo. No intro, no verse, no other lyrics.",
+      "model": "music_v2_5",
+      "format": "mp3_44100_128",
+      "title": "Same Form (take B)",
+      "length_ms": 8000,
+      "looping": false,
+      "channels": 0,
+      "bytes": 128775,
+      "generated_unix": 1793493707
     }
   }
 }

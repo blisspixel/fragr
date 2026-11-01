@@ -1003,7 +1003,13 @@ the same `RenderQuality` rules that applied them), definitions and the last
 compatible run. Run again, Copy summary, Open results folder and Back to menu
 stay on screen without scrolling. Focus stays on those actions for mouse,
 keyboard and pad alike; up and down (arrows, D-pad, stick) and page up and down
-scroll the figures and Details. A stopped run (settings changed, window
+scroll the figures and Details. Arriving at a completed result also plays
+Crackpot's certificate once: a few seconds of hard-tuned league pop on the
+Announcer bus, so the Announcer volume sets its level and Announcer Off
+silences it, with its lyric as a caption beside the outcome and, while more than
+one take ships, a Jingle picker saved as `[audio] benchmark_jingle`
+([audiogen](../tools/audiogen/README.md#benchmark-jingle-takes)). It plays after
+the measurement, never during it or in a match. A stopped run (settings changed, window
 resized, frames stopped for two seconds, a preset or the match did not load)
 says **Benchmark stopped** with one card: the reason, the step it stopped
 during, any presets that finished (their figures are not kept), that nothing was

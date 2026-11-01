@@ -16,6 +16,10 @@ The beds are 160 seconds and the cues 45 to 80 seconds, encoded by the service a
 
 After playtesting, `fragr-audiogen score-picks` prints the picks from the game's settings file and `fragr-audiogen score-prune --apply` deletes every unpicked take with its `.import` file and manifest entry (see `tools/audiogen/README.md`).
 
+## Benchmark jingle
+
+Crackpot's certificate, played once when a benchmark run completes, generated from `tools/audiogen/specs/benchmark-jingle-20261031.json` (ElevenLabs `music_v2_5`, with vocals, `mp3_44100_128`). Three lyrics, two takes each: `jingle/benchmark/1a.mp3` to `3b.mp3`, manifest entries `jingle/benchmark/<take>`. `benchmark_jingle.gd` plays the picked take on the Announcer bus, levelled per take to -18 LUFS from its measured loudness, and never while the Announcer setting is Off. Setting: `[audio] benchmark_jingle` (default `1a`). `fragr-audiogen jingle-prune --apply` keeps only the pick.
+
 ## Earlier procedural set (retired)
 
 The first effect set was synthesised procedurally and dedicated to the public domain under CC0 1.0 Universal. It has been replaced by generated effects with manifest entries; the old files remain in git history.

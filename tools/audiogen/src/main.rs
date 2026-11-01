@@ -296,6 +296,20 @@ enum Cmd {
         #[arg(long)]
         apply: bool,
     },
+    /// Delete every benchmark jingle take except the one picked on the benchmark
+    /// results screen, with its .import file and manifest entry. Keeps all six
+    /// without a pick. Dry run unless --apply.
+    JinglePrune {
+        /// The game's settings file. Defaults to Godot's user data folder for fragr.
+        #[arg(long)]
+        settings: Option<PathBuf>,
+        /// Shipped takes (<dir>/benchmark/<take>.mp3); its parent holds audiogen-manifest.json.
+        #[arg(long, default_value = score::DEFAULT_JINGLE_DIR)]
+        jingle_dir: PathBuf,
+        /// Delete the files. Without this the plan is only printed.
+        #[arg(long)]
+        apply: bool,
+    },
 }
 
 /// Where the score take commands read.
@@ -529,8 +543,9 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
         | Cmd::Promote { .. }
         | Cmd::ScorePicks { .. }
         | Cmd::ScorePrune { .. }
-        | Cmd::Loudness { .. } => return Err(Error::InvalidArgument(
-            "review, promote, loudness and the score take commands run locally, not through the generator"
+        | Cmd::Loudness { .. }
+        | Cmd::JinglePrune { .. } => return Err(Error::InvalidArgument(
+            "review, promote, loudness, jingle-prune and the score take commands run locally, not through the generator"
                 .into(),
         )),
     })
@@ -694,8 +709,9 @@ fn run_promote(
     Ok(())
 }
 
-fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Error> {
-    let settings = match &paths.settings {
+/// The game's settings file and its text; `hint` says what writes it.
+fn read_settings(path: &Option<PathBuf>, hint: &str) -> Result<(PathBuf, String), Error> {
+    let settings = match path {
         Some(path) => path.clone(),
         None => score::default_settings_path().ok_or_else(|| {
             Error::InvalidArgument(
@@ -705,10 +721,15 @@ fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Erro
     };
     let text = std::fs::read_to_string(&settings).map_err(|err| {
         Error::InvalidArgument(format!(
-            "cannot read {} ({err}); play a campaign level once or pass --settings",
+            "cannot read {} ({err}); {hint} or pass --settings",
             settings.display()
         ))
     })?;
+    Ok((settings, text))
+}
+
+fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Error> {
+    let (settings, text) = read_settings(&paths.settings, "play a campaign level once")?;
     let takes = score::parse_takes(&text)?;
     let slots = score::load_slots(&paths.slots)?;
     Ok((
@@ -826,10 +847,39 @@ fn run_score_prune(
     if plan.removals.is_empty() {
         return Ok(());
     }
-    score::apply_prune(&plan, &paths.score_dir)?;
+    score::apply_prune(&plan, &paths.score_dir, &score::TAKES)?;
     writeln!(
         out,
         "pruned {} take(s). Next: run tools/godot_check.sh, check `git status client/assets/audio` and stage with `git add -A client/assets/audio`",
+        plan.removals.len()
+    )?;
+    Ok(())
+}
+
+fn run_jingle_prune(
+    settings: Option<PathBuf>,
+    jingle_dir: PathBuf,
+    apply: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let (settings, text) = read_settings(&settings, "finish a benchmark run once")?;
+    writeln!(out, "jingle pick from {}", settings.display())?;
+    let pick = score::parse_jingle_pick(&text);
+    let row = score::jingle_row(pick, &jingle_dir);
+    write!(out, "{}", score::describe_picks(std::slice::from_ref(&row)))?;
+    let plan = score::plan_prune(std::slice::from_ref(&row), &jingle_dir);
+    write!(out, "{}", score::describe_prune(&plan))?;
+    if !apply {
+        writeln!(out, "dry run: nothing deleted; pass --apply to prune")?;
+        return Ok(());
+    }
+    if plan.removals.is_empty() {
+        return Ok(());
+    }
+    score::apply_prune(&plan, &jingle_dir, &score::JINGLE_TAKES)?;
+    writeln!(
+        out,
+        "pruned {} take(s); the results screen drops its picker. Next: run tools/godot_check.sh, check `git status client/assets/audio` and stage with `git add -A client/assets/audio`",
         plan.removals.len()
     )?;
     Ok(())
@@ -864,6 +914,11 @@ fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
         Cmd::ScorePrune { score, apply } => {
             return run_score_prune(score, apply && !cli.dry_run, out)
         }
+        Cmd::JinglePrune {
+            settings,
+            jingle_dir,
+            apply,
+        } => return run_jingle_prune(settings, jingle_dir, apply && !cli.dry_run, out),
         _ => {}
     }
     // Dry runs never need a key. Quota always does.
@@ -1619,5 +1674,66 @@ mod tests {
         })
         .is_err());
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn jingle_prune_reads_the_pick_and_keeps_only_it() {
+        let dir =
+            std::env::temp_dir().join(format!("fragr-audiogen-main-jingle-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let jingle = dir.join("audio/jingle");
+        std::fs::create_dir_all(jingle.join(score::JINGLE_SLOT)).unwrap();
+        for take in score::JINGLE_TAKES {
+            std::fs::write(
+                jingle.join(format!("{}/{take}.mp3", score::JINGLE_SLOT)),
+                b"x",
+            )
+            .unwrap();
+        }
+        let settings = dir.join("settings.cfg");
+        let args = |extra: &[&str]| {
+            let mut args: Vec<String> = vec![
+                "fragr-audiogen".into(),
+                "jingle-prune".into(),
+                "--settings".into(),
+                settings.display().to_string(),
+                "--jingle-dir".into(),
+                jingle.display().to_string(),
+            ];
+            args.extend(extra.iter().map(|s| s.to_string()));
+            args
+        };
+        // No settings file yet: refused with a hint, nothing deleted.
+        let mut out = Vec::new();
+        let missing = run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out);
+        assert!(missing.unwrap_err().to_string().contains("benchmark run"));
+        // No pick saved: every take stays even with --apply.
+        std::fs::write(&settings, "[audio]\n\nmaster=0.9\n").unwrap();
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("nothing to prune"));
+        std::fs::write(&settings, "[audio]\n\nbenchmark_jingle=\"3a\"\n").unwrap();
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&[])).unwrap(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("pick 3A") && text.contains("dry run"),
+            "{text}"
+        );
+        assert!(jingle.join("benchmark/1a.mp3").exists());
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("pruned 5 take"));
+        assert!(jingle.join("benchmark/3a.mp3").exists());
+        assert!(
+            !jingle.join("benchmark/1a.mp3").exists() && !jingle.join("benchmark/3b.mp3").exists()
+        );
+        let command = Cmd::JinglePrune {
+            settings: None,
+            jingle_dir: PathBuf::from("d"),
+            apply: false,
+        };
+        assert!(to_command(command).is_err());
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }
