@@ -14,8 +14,8 @@
 # FRAGR_QA_SCRIPT names a review script that extends the tour (for example
 # res://qa/m06_combat_review.gd); the default is res://scripts/qa_tour.gd.
 #
-# FRAGR_QA_QUALITY=performance|balanced|high runs the whole tour on that
-# graphics preset; a state's own "graphics" options still win for that state.
+# FRAGR_QA_QUALITY=potato|low|medium|high|ultra runs the whole tour on that
+# graphics tier; a state's own "graphics" options still win for that state.
 #
 # FRAGR_QA_LOCAL_MISSION=<mission id> with FRAGR_QA_RUN_FIXTURE=<directory
 # holding a saved run.json> photographs a carried campaign run instead: the

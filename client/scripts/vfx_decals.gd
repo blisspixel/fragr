@@ -125,12 +125,20 @@ func add_mark(point: Vector3, normal: Vector3, cell: String) -> bool:
 	if mark == null:
 		return false
 	mark.uv = ShotVfx.mark_uv(cell)
-	mark.lifetime = MARK_SECONDS
-	if _marks.size() >= MAX_MARKS:
+	mark.lifetime = MARK_SECONDS * RenderQuality.decal_life
+	while _marks.size() >= mark_limit():
 		_marks.pop_front()
 	_marks.append(mark)
 	_rebuild()
 	return true
+
+## The marks and scorches the drawn tier keeps at once (its effects budget,
+## RenderQuality); at full budget the constants above.
+static func mark_limit() -> int:
+	return clampi(roundi(float(MAX_MARKS) * RenderQuality.effects_budget), 8, MAX_MARKS)
+
+static func scorch_limit() -> int:
+	return clampi(roundi(float(MAX_SCORCHES) * RenderQuality.effects_budget), 2, MAX_SCORCHES)
 
 ## Scorches the nearest face within reach of a resolved blast: the floor
 ## under it, the wall it struck or the ceiling above it.
@@ -151,11 +159,11 @@ func add_scorch(position: Vector3) -> bool:
 		return false
 	mark.uv = ShotVfx.strip_uv(_scorch_serial % ShotVfx.SCORCH_VARIANTS, ShotVfx.SCORCH_VARIANTS)
 	_scorch_serial += 1
-	mark.lifetime = SCORCH_SECONDS
+	mark.lifetime = SCORCH_SECONDS * RenderQuality.decal_life
 	mark.hot = true
 	# The fire covers the wall first; the burn shows as it clears.
 	mark.age = -SCORCH_DELAY_SECONDS
-	if _scorches.size() >= MAX_SCORCHES:
+	while _scorches.size() >= scorch_limit():
 		_scorches.pop_front()
 	_scorches.append(mark)
 	_rebuild()

@@ -45,7 +45,7 @@ func _run() -> void:
 	OS.set_environment("FRAGR_RUN_DIR", directory.path_join("runs"))
 	var preferences: FragrSettings = FragrSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
-	preferences.set_value("video", "quality", 1)
+	preferences.set_value("video", "quality", RenderQuality.MEDIUM)
 	preferences.set_value("video", "fps_cap", 45)
 	preferences.set_value("video", "vsync", false)
 	preferences.set_value("audio", "master", 0.0)
@@ -62,7 +62,7 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(directory.path_join("01-menu.png"))
 	var compare: Button = menu.find_child("CompareBenchmark", true, false) as Button
-	if not _check(compare != null, "menu exposes Compare all three"):
+	if not _check(compare != null, "menu exposes the Low, Medium and High comparison"):
 		await _finish()
 		return
 	compare.pressed.emit()
@@ -98,12 +98,12 @@ func _run() -> void:
 		_check(report.runs.size() == 3, "three preset rows are saved")
 		for index: int in range(report.runs.size()):
 			var row: Dictionary = report.runs[index]
-			_check(row.quality == index and row.count > 0 and row.fps > 0 and row.low_1_count_fps > 0, "preset has real positive frame samples")
+			_check(row.quality == index + RenderQuality.LOW and row.count > 0 and row.fps > 0 and row.low_1_count_fps > 0, "preset has real positive frame samples")
 			_check(row.replayed_snapshots == report.capture.snapshots and row.replay_sha256 == report.capture.sha256, "every preset consumes identical recorded snapshots")
 			_check(row.settings.fps_cap == 0 and not row.settings.vsync, "export records actual uncapped measurement settings")
 		_check(str(report.save_error).is_empty(), "JSON and CSV persisted successfully")
 		_check(FileAccess.get_file_as_bytes(settings_path) == before_settings, "settings file is byte-for-byte unchanged")
-		_check(game.settings.get_value("video", "quality") == 1 and Engine.max_fps == 45 and run.render_settings == null, "quality and frame cap restored after completion")
+		_check(game.settings.get_value("video", "quality") == RenderQuality.MEDIUM and Engine.max_fps == 45 and run.render_settings == null, "quality and frame cap restored after completion")
 		var host: LocalHost = root.get_node("LocalHost") as LocalHost
 		_check(host.state == LocalHost.State.IDLE, "owned native host stopped before scoring")
 		_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "automation never captured the pointer")
@@ -185,7 +185,7 @@ func _preview_results() -> void:
 	port.size_2d_override_stretch = true
 	port.transparent_bg = false
 	root.add_child(port)
-	var stopped: Dictionary = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "interrupted": "scoring", "interrupted_preset": "Balanced", "finished_presets": ["Performance"], "runs": [],
+	var stopped: Dictionary = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "failed", "interrupted": "scoring", "interrupted_preset": "Medium", "finished_presets": ["Low"], "runs": [],
 		"error": "The window size changed. Run again to compare the same resolution."}
 	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(2560, 1080)]:
 		port.size = size
@@ -211,8 +211,8 @@ func _preview_results() -> void:
 			hud.apply_style(style[1])
 			for _frame: int in range(240):
 				hud.push_interval(1.0 / 144.0)
-			hud.show_progress({"state": "priming", "headline": "WARMING UP PERFORMANCE", "detail": "Not scored. Shaders and caches settle first. 6 s left.",
-				"overall": 0.31, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Performance", "Balanced", "High"]),
+			hud.show_progress({"state": "priming", "headline": "WARMING UP LOW", "detail": "Not scored. Shaders and caches settle first. 6 s left.",
+				"overall": 0.31, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Low", "Medium", "High"]),
 				"step": 1, "elapsed_s": 37.0, "remaining_s": 77.0, "scored_frames": 0, "scored_s": 0.0})
 			await _shoot(port, "layout-%s-hud-%s.png" % [tag, style[0]])
 			if tag == "1920x1080" and style[0] == "s100":
@@ -258,8 +258,8 @@ func _preview_results() -> void:
 ## the plates out). Drawing the plates is part of the measured frame and is not
 ## separated here.
 func _measure_overhead(hud: BenchmarkHud) -> void:
-	var progress: Dictionary = {"state": "scoring", "headline": "MEASURING BALANCED", "detail": "Scored. 9 s left for this preset.",
-		"overall": 0.7, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Performance", "Balanced", "High"]),
+	var progress: Dictionary = {"state": "scoring", "headline": "MEASURING MEDIUM", "detail": "Scored. 9 s left for this preset.",
+		"overall": 0.7, "marks": PackedFloat32Array([0.25, 0.5, 0.75]), "steps": PackedStringArray(["Record", "Low", "Medium", "High"]),
 		"step": 2, "elapsed_s": 80.0, "remaining_s": 37.0, "scored_frames": 1500, "scored_s": 11.0}
 	var started: int = Time.get_ticks_usec()
 	for frame: int in range(20000):

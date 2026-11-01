@@ -219,6 +219,11 @@ var _leaving: bool = false
 var _benchmark: bool = false
 var _benchmark_started: bool = false
 var _benchmark_compare: bool = false
+## The benchmark is an auto settings run (AutoTune).
+var _benchmark_tune: bool = false
+## Auto settings' in-match safety valve; null while it is off.
+var frame_governor: FrameGovernor = null
+var _governor_usec: int = -1
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
@@ -407,6 +412,7 @@ func _ready():
 	var boot = _resolve_boot()
 	_benchmark = bool(boot.get("benchmark", false))
 	_benchmark_compare = bool(boot.get("benchmark_compare", false))
+	_benchmark_tune = bool(boot.get("benchmark_tune", false))
 	if _benchmark:
 		_prepare_benchmark_presentation()
 	if boot.get("mode") == "campaign":
@@ -858,6 +864,49 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_practicals(self, active_settings)
 	RenderQuality.apply_dither(self, get_viewport(), active_settings)
 
+## Real play feeds auto settings' safety valve one drawn frame at a time.
+## Menus, loading and story scenes are not play; their frames start a new
+## window instead of counting against the target.
+func _feed_governor() -> void:
+	if _benchmark or settings == null or DisplayServer.get_name() == "headless":
+		return
+	if frame_governor == null:
+		frame_governor = FrameGovernor.for_settings(settings, RenderingServer.get_current_rendering_method())
+	frame_governor.enabled = FrameGovernor.allowed(settings)
+	frame_governor.target = settings.target_fps()
+	frame_governor.quality = int(settings.get_value("video", "quality"))
+	var now: int = Time.get_ticks_usec()
+	if not frame_governor.enabled or _event_full_cover() or not get_window().has_focus():
+		_governor_usec = -1
+		return
+	if _governor_usec >= 0:
+		frame_governor.push(float(now - _governor_usec) / 1000000.0)
+	_governor_usec = now
+
+## A death, respawn, checkpoint or round end: the only moments the safety
+## valve may take a step, with one level line in the feed saying what.
+func _governor_safe_point() -> void:
+	if frame_governor == null:
+		return
+	var step: String = frame_governor.safe_point()
+	if step.is_empty():
+		return
+	_apply_render_preferences()
+	if hud != null:
+		hud.show_venue_notice(FrameGovernor.notice(step, frame_governor.target))
+
+## After long play that mostly fell short, the saved tune asks to be redone.
+func _note_governor_advice() -> void:
+	if frame_governor == null or settings == null or not frame_governor.advise_retune():
+		return
+	var record: Dictionary = (settings.get_value("video", "tune") as Dictionary).duplicate(true)
+	if record.is_empty() or bool(record.get("retune_advised", false)):
+		return
+	record["retune_advised"] = true
+	var draft: FragrSettings = settings.draft()
+	draft.set_value("video", "tune", record)
+	settings.commit(draft)
+
 func controls_blocked() -> bool:
 	if _benchmark:
 		return true
@@ -1056,6 +1105,7 @@ func _start_benchmark_run() -> void:
 	run.manager = self
 	run.preferences = settings
 	run.compare_all = _benchmark_compare
+	run.tune_requested = _benchmark_tune
 	run.reserved_query = _top_band_reservations
 	run.finished.connect(_on_benchmark_finished)
 	run.dismissed.connect(_on_leave_requested)
@@ -1071,7 +1121,7 @@ func _on_benchmark_finished(report: Dictionary) -> void:
 ## Run again goes back through the menu, so the same owned loopback host,
 ## settings restore and world load run as on the first start.
 func _on_benchmark_again(compare_all: bool) -> void:
-	get_tree().set_meta(BenchmarkRun.AGAIN_META, compare_all)
+	get_tree().set_meta(BenchmarkRun.AGAIN_META, "tune" if _benchmark_tune else compare_all)
 	_on_leave_requested()
 
 func _stop_benchmark_host() -> void:
@@ -1119,6 +1169,7 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	_note_governor_advice()
 	# Leaving the match must not lose a recording the player started.
 	if stutter_trace.recording:
 		var report: Dictionary = end_stutter_trace()
@@ -1164,6 +1215,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
 		if run == null or run.final_report.is_empty():
 			get_tree().set_meta(BenchmarkRun.CANCELLED_META, true)
+			if _benchmark_tune:
+				get_tree().set_meta(BenchmarkRun.TUNE_CANCELLED_META, true)
 		_on_leave_requested()
 		get_viewport().set_input_as_handled()
 		return
@@ -1272,7 +1325,7 @@ func _resolve_boot() -> Dictionary:
 		if typeof(meta) == TYPE_DICTIONARY:
 			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
 			if not benchmark.is_empty():
-				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"]}
+				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"], "benchmark_tune": benchmark["benchmark_tune"]}
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
@@ -1904,7 +1957,7 @@ func _stutter_video_settings() -> Dictionary:
 	var values: Dictionary = {}
 	if settings == null:
 		return values
-	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "upscaling", "pixel_scale", "dither", "vertical_fov"]:
+	for key: String in ["display_mode", "fps_cap", "vsync", "show_fps", "resolution_height", "quality", "render_scale", "upscaling", "pixel_scale", "dither", "vertical_fov", "auto", "target_fps"]:
 		values[key] = settings.get_value("video", key)
 	return values
 
@@ -1988,6 +2041,7 @@ func end_ack_probe() -> Dictionary:
 
 
 func _process(_delta):
+	_feed_governor()
 	if still_here != null:
 		still_here.hearing = is_human_player and camera != null and bool(camera.get("fp_mode")) and not controls_blocked()
 	if radio != null:
@@ -3535,6 +3589,7 @@ func _on_event_received(data):
 			if hud and hud.has_method("show_spawn_flash"):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
+			_governor_safe_point()
 	elif event_type == "pickup":
 		# The venue reacts to its power item for everyone watching, whoever
 		# took it (Larak Lot's light bar flares once on the Plate).
@@ -3570,12 +3625,14 @@ func _on_event_received(data):
 	elif event_type == "checkpoint":
 		if hud:
 			hud.show_checkpoint()
+		_governor_safe_point()
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():
 			hud.show_venue_notice(notice)
 	elif event_type == "round_end":
 		ended_podium_shown = true
+		_governor_safe_point()
 		# A level Duel names nobody: mvp and its frags arrive null.
 		var raw_mvp: Variant = data.get("mvp", data.get("winner"))
 		var mvp_name: String = str(raw_mvp) if raw_mvp is String else ""
@@ -4005,6 +4062,7 @@ func _drop_life_presses() -> void:
 ## Hold the dead eye, or chase the killer, until the server returns the body.
 ## Sabotage keeps its own teammate watch for a fallen fighter.
 func _begin_death_view() -> void:
+	_governor_safe_point()
 	if camera == null or not camera.has_method("begin_death_view") or hud.sabotage() or _sabotage_watching_mates \
 		or _team_seat or local_life.alive():
 		return

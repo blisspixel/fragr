@@ -1164,8 +1164,10 @@ comparison below captures its own bounded in-memory snapshot sequence.
 
 ## Player benchmark
 
-Choose **Benchmark** from the main menu to measure the current preset or compare
-Performance, Balanced and High. It first records 28 seconds of an owned local
+Choose **Benchmark** from the main menu to measure the current quality tier or
+compare Low, Medium and High (the tiers that were the Performance, Balanced and
+High presets before tiers; their earlier results still describe them), or to
+run **Auto settings** (below). It first records 28 seconds of an owned local
 ten-bot Larak Lot match, then stops that host. Every preset replays the same
 authoritative snapshots and time-based camera path. Eight warm-up seconds are
 discarded, followed by twenty scored seconds. V-sync and the frame cap are
@@ -1245,6 +1247,268 @@ frame rates. A frame rate is not a CI gate. The server `--bench` results above
 remain separate CPU measurements. The
 [comparison plan](plans/benchmark-preset-comparison-20261006.md) records the
 actual renderer acceptance and remaining broader showcase work.
+
+## Tiers and auto settings
+
+The player page is [GRAPHICS.md](GRAPHICS.md); the plan of record is
+[graphics-autotune.md](plans/graphics-autotune.md). This section is the
+contract the code keeps.
+
+### Tiers as data
+
+`RenderQuality.TIERS` (`client/scripts/render_quality.gd`) is one table, one
+row per tier, `video/quality` 0 to 4: Potato, Low, Medium, High, Ultra. `apply`,
+`apply_environment`, `apply_practicals`, `preset_features` (the words the
+benchmark Details print), `FrameGovernor` and the effects budget all read
+`tier_spec`, which is the row for the drawn tier with renderer gates and any
+in-match governor steps applied. Nothing else decides a tier's cost.
+
+| Field | Potato | Low | Medium | High | Ultra |
+|---|---|---|---|---|---|
+| MSAA | off | off | 2x | 4x | 4x |
+| Directional / positional shadow atlas | 1024 / 512 | 1024 / 1024 | 2048 / 2048 | 4096 / 4096 | 4096 / 4096 |
+| Soft shadow filter | hard | project default | project default | project default | soft high |
+| Light fixture shadows | off | off | on, dual paraboloid | on, cube | on, cube, shadow fade x1.5 |
+| Practical lamp fade | 24 m | authored | authored | authored | authored |
+| SSAO | off | off | low sampler | medium sampler, radius 1.2, intensity 1.4 | high sampler |
+| SSIL (bounce) | off | off | off | off | medium, intensity 0.7 |
+| Glow (authored only) | off | off | on | on | on |
+| Volumetric fog, SSR | off | off | off | off | per venue opt-in (none yet) |
+| Island water quality | 0 | 0 | 1 | 2 | 2 |
+| Effects budget (marks, scorches, exhaust lights) | 25% | 50% | 100% | 100% | 100%, decal life x1.5 |
+| Mesh LOD threshold | 2.0 | 1.0 | 1.0 | 1.0 | 1.0 |
+
+Low, Medium and High are field for field the earlier Performance, Balanced and
+High presets (`test_render_quality.gd` asserts it), so earlier measurements in
+this file describe them. Ultra is Forward+ only: `effective_tier` draws it as
+High elsewhere, and the Graphics page disables it with a note. Compatibility
+keeps SSAO and drops light fixture shadow maps (#521) and everything Ultra
+adds. Volumetric fog and SSR are gated twice, by the tier and by a venue meta
+(`RenderQuality.VOLUMETRIC_META`, `SSR_META`) set by the venue's sky; no venue
+sets one until its look pass and measured cost, and SDFGI is not wired at all.
+
+**Art consistency rule.** A tier never changes the ambient floor, palette, fog
+colour or density, faction colours, sign budget or silhouettes. Before a tier
+change merges, capture `client/qa/tiers.json` (five tiers, same pose, overview,
+first person and world pixels off) on both renderers and inspect the contact
+sheet: same ambient floor, same fog, same faction colours, every fighter
+readable at 30 m, no new text, no tilted text.
+
+```bash
+# Forward+ (the shipped renderer; Ultra draws only here), then Compatibility.
+FRAGR_RENDER_DRIVER=vulkan FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-vulkan
+FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-opengl
+```
+
+**Revisions.** Bump `RenderQuality.RENDER_COST_REVISION` in any change to a
+tier's contents, a shader's cost, the benchmark scene or a venue's lighting
+cost; a saved tune from another revision is stale and the boot menu offers a
+re-tune. Bump `BenchmarkRun.WORKLOAD_ID` or `TUNE_WORKLOAD_ID` when the
+measured scene changes, `METRIC_VERSION` when a figure's definition changes.
+
+### Tuner contract
+
+`AutoTune` (`client/scripts/auto_tune.gd`) is pure decisions; `BenchmarkRun`
+measures what it asks for. Test: `client/scripts/test_auto_tune.gd` with fake
+measurements (deterministic, in CI). Real run: `client/scripts/qa_auto_tune.gd`.
+
+- **Triggers.** First launch with a window (the card, eight-second countdown,
+  Start now, Skip, Esc skips); Benchmark > Auto settings; Run again on the
+  result. Never unasked: a stale record only shows the boot menu notice and a
+  **Tune graphics again** button. `AutoTune.stale_reason` checks, in order,
+  the hardware key, `RENDER_COST_REVISION`, the governor's advice, then the
+  display key.
+- **Fingerprint** (`HardwareProfile.read`). Hardware key: adapter, vendor,
+  `OS.get_video_adapter_driver_info()` (Windows and Linux), API version,
+  renderer, driver, OS, display server, CPU name and count, memory in GB.
+  Display key: current screen size and refresh. Both are SHA-256 prefixes of
+  canonical JSON; the record keeps the keys, not the values.
+- **Seed.** `HardwareProfile.SEEDS`, lowercase substrings of the adapter name,
+  first match wins, unknown is Medium, a CPU adapter is Potato, the renderer
+  caps it (`effective_tier`), a Deck caps it at Low.
+- **Workload.** `TUNE_WORKLOAD_ID`: Larak Lot, ten bots, 20 s recorded
+  (`AutoTune.CAPTURE_TICKS` 400) with the local host kept running while every
+  candidate is scored. The player benchmark stops the host; the tuner must
+  not, or a 4-core machine passes a scene it cannot play.
+- **Warm-up.** Until `StutterTrace.pipeline_compilations()` has not moved for
+  `WARMUP_QUIET` 1 s, at most `WARMUP_MAX` 6 s. V-Sync and the cap are off.
+- **Score.** 8 s per candidate (`SCORE_SECONDS`), 12 s to confirm. Pass:
+  `low_1_count_fps >= target x HEADROOM (1.10)` and no frame at or over 50 ms.
+  Per frame it also reads `viewport_get_measured_render_time_gpu`;
+  `AutoTune.gpu_figures` gives the mean GPU time and the share of the slowest
+  1% of intervals spent on the GPU (`gpu_slow_share`). Unreported GPU time is 0
+  and reads as unknown, never as CPU bound.
+- **Tier search.** From the seed: a pass steps up one, or two when the mean
+  GPU time is under 40% of the frame budget; a fail steps down. A fail above a
+  pass fills the gap once. A pinned tier is measured and never moved.
+- **CPU-bound rule.** A fail whose `gpu_slow_share` is under 0.60 stops the
+  search: keep the passing tier below if any, else this tier; the card says
+  the processor limits it; no Compatibility offer.
+- **Resolution.** Only after the tier search and only when the pixel look is
+  off, nothing is pinned, the chosen tier is the top tier and nothing above
+  failed on the GPU: 125 then 150 percent (Bilinear supersampling).
+- **Floor path.** The lowest allowed tier fails on the GPU: pixel look off,
+  83, 67, 50 percent, then a 720-line render height if that is fewer lines;
+  pixel look on, one measured suggestion of the next coarser target, never
+  applied. Still failing on Forward+ and not CPU bound: offer Compatibility.
+- **Near the line.** A result within 5% of the threshold earns one more
+  window (`MAX_EXTRA` 2 per run); the mean of the two decides.
+- **Confirm.** Windows more than 10% apart are `variable` and the lower
+  counts. The choice drops one tier (once) when the lower figure fails the
+  threshold and either the machine is fragile (battery or integrated) or the
+  figure is under the target itself; a CPU-bound choice is never dropped.
+- **Apply.** `AutoTune.apply_record` moves `quality`, `render_scale`,
+  `resolution_height` and, on a Deck, `fps_cap` and `vsync`, each only when
+  not pinned. `video/tune` keeps the record (`AutoTune.clean_record`: version,
+  source measured or lookup, choice, target, revision, keys, date, limiter,
+  power, renderer, final 1% low, variable, the card's lines, the Deck profile,
+  a Compatibility trial). Governor steps are cleared.
+- **Time budget.** Load about 10 s, record 20 s, three to five candidates of
+  8 s plus a 1 to 6 s warm-up, confirm 12 s: about 90 s
+  (`BenchmarkRun.tune_seconds`).
+
+### Report fields
+
+An auto-tune report is schema 3 with an `auto_tune` block: `result` (tier,
+render scale, render height, target, threshold, final 1% low, passed, limiter
+`gpu`, `cpu` or `none`, variable, suggestion, offer_compatibility, pins, every
+candidate with its 1% low, GPU mean, GPU slow share and outcome), `lines` (the
+card), `record`, `fingerprint`, `power`, `save_error`. Rows carry `candidate`,
+`gpu_ms_mean` and `gpu_slow_share` besides the usual figures; the workload
+names `local_host: running`. Files are `autotune-*.json` and `.csv`, so
+`previous_compatible` never compares them with player benchmarks.
+
+### Governor contract
+
+`FrameGovernor` (`client/scripts/frame_governor.gd`), fed by the match manager
+one drawn frame at a time during play only (no pause menu, loading card or
+story scene, window focused). Windows of 30 s; an interval of 0.5 s or more is
+a gap and restarts the window. Three windows in a row with a 1% low under the
+target arm one step; it is taken at the next death, own respawn, checkpoint or
+round end, in `RenderQuality.GOVERNOR_ORDER` (volumetric fog, SSIL, SSR, SSAO
+one level, practical shadow distance halved, effects budget halved, MSAA one
+level), skipping steps that would not change the drawn spec. It never touches
+the pixel grid, output resolution, renderer or a pinned option, never steps up,
+and is off when auto is off, `video/governor` is off or the tier is pinned.
+Steps live in `RenderQuality.reductions` for the session only. After 900 s of
+play with more than half the windows failing, the record gets
+`retune_advised` and the boot menu offers a re-tune.
+
+### Renderer support and fallback
+
+| | Forward+ (Vulkan, D3D12, Metal) | Compatibility (OpenGL 3.3, ANGLE) |
+|---|---|---|
+| Tiers | Potato to Ultra | Potato to High (Ultra draws as High) |
+| FSR 1, FSR 2 | yes | no |
+| SSAO | yes | yes (4.6+) |
+| SSIL, volumetric fog, SSR | yes | no |
+| Light fixture shadows | yes | off in fragr (#521) |
+| Omni shadows | cube or dual paraboloid | cube |
+| V-Sync modes | all | enabled only |
+| Adapter type | reported | OTHER (seed keys on the name) |
+
+Startup fallbacks are Godot's own (`rendering_device/fallback_to_*`, defaults
+on). The tuner's Compatibility offer writes `user://renderer_override.cfg`,
+which `application/config/project_settings_override` in `client/project.godot`
+names (`RendererOverride`). Verified on the pinned 4.7.2-stable binary on this
+host: a missing file is ignored; a present file with
+`renderer/rendering_method="gl_compatibility"` starts Compatibility. After the
+restart the boot menu runs the tune at once (the record's `compat_trial` holds
+the Forward+ 1% low) and keeps Compatibility only when it measured higher,
+otherwise it removes the override. Recovery is documented on the player page.
+
+### Measuring a feature's cost
+
+One process, alternating: capture `client/qa/tiers.json` (or a manifest with
+two states that differ in one option) with `frame_sample` on, repeat the pair
+at least three times on a quiet machine, and compare medians of GPU time. A
+single run, a busy machine, or a clock-capped 780M is not evidence of a
+feature's cost on other hardware.
+
+### Tier costs
+
+Diagnostic only: this host is a shared development machine with other
+sessions running (see the busy-machine note in the lane rules), so these
+figures rank the tiers on one GPU and are not gate evidence.
+
+Radeon 780M (RADV PHOENIX and radeonsi), Linux, Wayland via the tour's
+rootful Xwayland, 1920x1080 window, Larak Lot with five bots, 600 frames per
+state, `client/qa/tiers.json`, one run each, 2026-11-01, load average about 36.
+Mean GPU milliseconds from `viewport_get_measured_render_time_gpu`:
+
+| Tier | Forward+ Fine overview | Forward+ ground view | Forward+ native overview | Compatibility Fine overview | Compatibility native overview |
+|---|---|---|---|---|---|
+| Potato | 2.38 | 2.40 | 5.18 | 4.96 | 10.51 |
+| Low | 2.58 | 2.65 | 5.69 | 10.39 | 6.67 |
+| Medium | 5.05 | 4.83 | 8.74 | 9.42 | 15.59 |
+| High | 6.81 | 6.38 | 10.53 | 10.15 | 17.54 |
+| Ultra | 8.65 | 7.85 | 13.37 | 7.68 (draws as High) | 18.85 (draws as High) |
+
+Forward+ ranks the tiers in order on every view; Potato saves little GPU time
+over Low here (the 780M is not shadow-bound at Fine), so its value is on weaker
+chips and is unproven until the floor row is measured. The Compatibility
+column is not monotonic (Low above Medium on one view, Ultra and High
+differing while drawing the same tier): on a loaded machine its GPU timer is
+noise at this size. Repeat on a quiet machine before trusting any single
+difference.
+
+### Hardware matrix
+
+Gate evidence comes only from quiet machines in this matrix. A tester runs
+Benchmark, then Auto settings, then Copy summary, and pastes both into an
+issue.
+
+| Machine | OS and driver | Who runs it | Status |
+|---|---|---|---|
+| Radeon 780M (dev host) | Linux, Vulkan RADV and OpenGL radeonsi; Wayland and X11 | here | tuner diagnostic runs only (busy machine) |
+| Radeon 780M | Windows 11, Vulkan and OpenGL | Nick's Windows host | Compatibility 720p measured before tiers |
+| Intel UHD 620 or Iris Xe | Windows and Linux | needs a machine | none |
+| Old NVIDIA GTX (750 Ti to 1050) | Windows, Linux | needs a machine | none |
+| Modern NVIDIA (RTX 30 or 40) | Windows, Linux | needs a machine | none |
+| Modern AMD discrete (RDNA 3 or 4) | Windows, Linux | needs a machine | none |
+| Apple M1 and M2 | macOS, Metal | needs a machine | none |
+| Steam Deck LCD (OLED optional) | SteamOS, RADV, native | needs a Deck | none |
+
+Gates before 1.0 (from the plan): Floor, 1% low at or above 60 at 1280x720 on
+Potato on the weak machine; Reference iGPU, 1% low at or above 60 at 1080p on
+auto on the 780M with no frame over 50 ms after warm-up; Steam Deck, an
+uncapped 1% low of 44 on the tuner replay and a capped 40 fps session with a 1%
+low at or above 36; Ceiling, Ultra or High chosen and held in a 15-minute
+session on modern discrete cards at 60 and 144; Tuner correctness, chosen
+settings hold for 15 minutes on three venues, pins survive a re-tune, a
+re-tune is offered after a driver change. None of these is met yet; each
+needs its row above.
+
+### Quiet-machine run commands
+
+```bash
+# Release build of the server; close other applications; plugged in.
+cargo build -p fragr-server --release --locked
+# A real auto-tune through the menu, isolated settings and results (repeat
+# five times for variance; compare the candidates' 1% lows and the choice).
+FRAGR_QA_DIR=.agents/autotune/run1 godot --path client --rendering-driver vulkan --script res://scripts/qa_auto_tune.gd
+# The same under Compatibility.
+FRAGR_QA_DIR=.agents/autotune/gl1 godot --path client --rendering-driver opengl3 --script res://scripts/qa_auto_tune.gd
+# The first-launch card alone.
+FRAGR_QA_DIR=.agents/autotune/card godot --path client --script res://scripts/qa_auto_tune.gd -- --card-only
+# Forced fallback: no Vulkan driver. Verified on the dev host with 4.7.2: Godot
+# warns, switches to OpenGL 3 and runs Compatibility; the tuner then caps at High.
+VK_ICD_FILENAMES=/nonexistent FRAGR_QA_DIR=.agents/autotune/fallback godot --path client --script res://scripts/qa_auto_tune.gd
+```
+
+On a Steam Deck: Desktop Mode, the native Linux build, Quick Access frame
+limiter and TDP off, Refresh Rate 40 Hz; run Auto settings and Copy summary;
+then play 15 minutes capped at 40 with the frame counter on detail and record
+the 1% low. Note the adapter name the summary prints and whether the refresh
+read 40: those confirm or correct `HardwareProfile.DECK_ADAPTERS` and the
+40 Hz assumption, which are unverified until then.
+
+### What is not evidence
+
+Headless checks prove the search, pins, records and governor logic, not frame
+rates. Runs on this busy development machine, clock-capped 780M runs and
+single runs are diagnostic. A spoofed Deck adapter proves the detector's
+logic, not that a Deck reports that name. Frame rates are never a CI gate.
 
 ## Stutter diagnosis traces
 

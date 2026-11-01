@@ -70,7 +70,7 @@ var _combat_travel: bool = false
 var _combat_travel_targets: Array[String] = []
 var _radio_compare_on: bool = false
 ## video/quality indices, in settings order.
-const CAPTURE_QUALITIES: Array[String] = ["performance", "balanced", "high"]
+const CAPTURE_QUALITIES: Array[String] = ["potato", "low", "medium", "high", "ultra"]
 var _capture_quality: int = -1
 var _radio_comparison: Dictionary = {}
 var _retiring_audio: Array[WeakRef] = []
@@ -1457,7 +1457,7 @@ func _apply_graphics_capture(options: Variant) -> void:
 				return
 			draft.set_value("video", key, options[key])
 			continue
-		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale", "show_fps"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
+		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale", "show_fps", "render_scale"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
 			push_error("qa_tour: invalid graphics capture option")
 			_failed = true
 			return

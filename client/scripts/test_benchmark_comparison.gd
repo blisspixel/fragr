@@ -69,7 +69,7 @@ func _run() -> void:
 
 	var path: String = "user://benchmark-comparison-test-%d.cfg" % OS.get_process_id()
 	var prefs: FragrSettings = FragrSettings.new(path)
-	prefs.set_value("video", "quality", 1)
+	prefs.set_value("video", "quality", RenderQuality.MEDIUM)
 	prefs.set_value("video", "fps_cap", 45)
 	var run: BenchmarkRun = BenchmarkRun.new()
 	var owner: RestoreProbe = RestoreProbe.new()
@@ -78,9 +78,9 @@ func _run() -> void:
 	run.manager = owner
 	run.preferences = prefs
 	run.render_settings = prefs.draft()
-	run.render_settings.set_value("video", "quality", 2)
+	run.render_settings.set_value("video", "quality", RenderQuality.HIGH)
 	BenchmarkRun.present_uncapped()
-	_check(prefs.get_value("video", "quality") == 1, "comparison draft cannot overwrite chosen preset")
+	_check(prefs.get_value("video", "quality") == RenderQuality.MEDIUM, "comparison draft cannot overwrite chosen preset")
 	run._restore()
 	run._restore()
 	_check(owner.restored == 1 and run.render_settings == null and Engine.max_fps == 45, "completion/cancellation restores quality and cap exactly once")
@@ -89,7 +89,7 @@ func _run() -> void:
 	_check(not BenchmarkRun.read_boot({"benchmark": true, "host": "local", "benchmark_compare": "true"}).benchmark_compare, "only a boolean enables comparison")
 
 	report["preset"] = "High"
-	report["quality"] = 2
+	report["quality"] = RenderQuality.HIGH
 	report["replay_sha256"] = capture.digest
 	report["output_size"] = [1280, 720]
 	report["world_size"] = [1280, 720]

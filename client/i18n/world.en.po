@@ -371,14 +371,71 @@ msgstr "OUT. {pause} TO LEAVE."
 msgid "SETTINGS_QUALITY"
 msgstr "QUALITY"
 
-msgid "SETTINGS_QUALITY_PERFORMANCE"
-msgstr "PERFORMANCE"
+msgid "SETTINGS_QUALITY_POTATO"
+msgstr "POTATO"
 
-msgid "SETTINGS_QUALITY_BALANCED"
-msgstr "BALANCED"
+msgid "SETTINGS_QUALITY_LOW"
+msgstr "LOW"
+
+msgid "SETTINGS_QUALITY_MEDIUM"
+msgstr "MEDIUM"
 
 msgid "SETTINGS_QUALITY_HIGH"
 msgstr "HIGH"
+
+msgid "SETTINGS_QUALITY_ULTRA"
+msgstr "ULTRA"
+
+msgid "SETTINGS_QUALITY_ULTRA_FORWARD"
+msgstr "ULTRA (NEEDS FORWARD+)"
+
+msgid "SETTINGS_AUTO"
+msgstr "AUTO SETTINGS"
+
+msgid "SETTINGS_TARGET"
+msgstr "TARGET FRAME RATE"
+
+msgid "SETTINGS_TARGET_DISPLAY"
+msgstr "DISPLAY REFRESH"
+
+msgid "SETTINGS_RENDER_SCALE"
+msgstr "3D RESOLUTION"
+
+msgid "SETTINGS_GOVERNOR"
+msgstr "IN-MATCH ADJUSTMENTS"
+
+msgid "SETTINGS_RESET_AUTO"
+msgstr "RESET TO AUTO"
+
+msgid "SETTINGS_AUTO_OFF"
+msgstr "Auto settings are off. Nothing changes your graphics but you."
+
+msgid "SETTINGS_CUSTOM"
+msgstr "Custom: auto settings work around your choices ({pins})."
+
+msgid "SETTINGS_PIN_QUALITY"
+msgstr "quality"
+
+msgid "SETTINGS_PIN_RENDER_SCALE"
+msgstr "3D resolution"
+
+msgid "SETTINGS_PIN_RESOLUTION_HEIGHT"
+msgstr "resolution"
+
+msgid "SETTINGS_PIN_UPSCALING"
+msgstr "upscaling"
+
+msgid "SETTINGS_PIN_FPS_CAP"
+msgstr "frame cap"
+
+msgid "SETTINGS_PIN_VSYNC"
+msgstr "vertical sync"
+
+msgid "SETTINGS_TUNE_WHERE"
+msgstr "Benchmark > Auto settings measures this computer."
+
+msgid "SETTINGS_VIDEO_REFUSED"
+msgstr "Graphics quality was saved by an older build with three presets. It is back on auto settings."
 
 msgid "SETTINGS_UPSCALING"
 msgstr "UPSCALING"
@@ -417,7 +474,7 @@ msgid "SETTINGS_SHOW_FPS_DETAIL"
 msgstr "FPS + FRAME TIME"
 
 msgid "SETTINGS_GRAPHICS_NOTE"
-msgstr "Balanced and High add shadows, contact shading and lamp glow.\nWorld pixels replace FSR. Menus and the HUD stay sharp."
+msgstr "Medium and up add shadows, contact shading and lamp glow; Ultra adds bounce light.\nWorld pixels replace FSR and 3D resolution. Menus and the HUD stay sharp."
 
 msgid "SETTINGS_GRAPHICS_NOTE_NO_FSR"
 msgstr "Standard scaling active. FSR needs the Forward+ renderer.\nWorld pixels use exact nearest scaling. Menus and the HUD stay sharp."

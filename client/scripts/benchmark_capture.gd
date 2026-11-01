@@ -6,6 +6,9 @@ extends RefCounted
 const MAX_FRAMES: int = 640
 const MAX_BYTES: int = 16 * 1024 * 1024
 const DURATION_TICKS: int = 560
+## Ticks this capture records: the benchmark's full fight, or the shorter one
+## auto settings replay (AutoTune.CAPTURE_TICKS).
+var duration_ticks: int = DURATION_TICKS
 var map_info: Dictionary = {}
 var frames: Array[Dictionary] = []
 var bytes: int = 0
@@ -43,7 +46,7 @@ func accept(snapshot: Dictionary) -> bool:
 	return true
 
 func complete() -> bool:
-	return first_tick >= 0 and last_tick - first_tick >= DURATION_TICKS
+	return first_tick >= 0 and last_tick - first_tick >= duration_ticks
 
 func elapsed() -> float:
 	return float(maxi(0, last_tick - first_tick)) / 20.0

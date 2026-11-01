@@ -1,6 +1,13 @@
 # Graphics tiers and auto settings
 
-**Status:** planned, 2026-10-31. Research and design; nothing here is built.
+**Status:** built in wave 22 (2026-11-01): five tiers, the tuner, the in-match
+governor, the Deck profile, the Compatibility trial and both docs pages
+([GRAPHICS.md](../GRAPHICS.md), [BENCHMARK.md](../BENCHMARK.md#tiers-and-auto-settings)).
+Proven by logic harnesses and inspected captures only. Not done: every
+hardware-matrix row and gate measurement, the venue factor table, per-venue
+volumetric fog and SSR (no venue opts in yet), SDFGI, the export shader baker,
+a finer pixel target for large displays, and every Deck fact marked unverified.
+The audit below describes the build before tiers.
 **Spend:** $0. Local only, no telemetry, no service.
 **Owner:** one lane carries tiers, the tuner, the governor and both docs pages end to end, and plays the build on every machine it claims.
 

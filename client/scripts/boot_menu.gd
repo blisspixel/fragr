@@ -89,6 +89,17 @@ var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
 var _benchmark_pending: bool = false
 var _benchmark_compare: bool = false
+## The pending benchmark is an auto settings run (AutoTune).
+var _benchmark_tune: bool = false
+## The first-launch auto settings card, while it is up.
+var _tune_offer: Control = null
+var _tune_countdown: float = 0.0
+## Tree meta: the card was shown (or a tune ran) this session; never twice.
+const TUNE_OFFERED_META: StringName = &"fragr_tune_offered"
+## Tree meta that shows the card even under automation (captures, checks).
+const TUNE_OFFER_FORCE_META: StringName = &"fragr_tune_offer_force"
+const TUNE_OFFER_SECONDS: float = 8.0
+const TUNE_CANCELLED: String = "Auto settings cancelled. Nothing changed. Run Auto settings here any time."
 ## How the last benchmark ended when it ended early; shown on the page until
 ## the next one starts.
 var _benchmark_notice: String = ""
@@ -157,16 +168,21 @@ func _ready() -> void:
 		_onward_pending = true
 		_show("single")
 	elif get_tree().has_meta(BenchmarkRun.AGAIN_META):
-		var compare: bool = get_tree().get_meta(BenchmarkRun.AGAIN_META) == true
+		var again: Variant = get_tree().get_meta(BenchmarkRun.AGAIN_META)
 		get_tree().remove_meta(BenchmarkRun.AGAIN_META)
 		_show("benchmark")
-		_start_benchmark(compare)
+		_start_benchmark(again == true, again is String and again == "tune")
 	elif get_tree().has_meta(BenchmarkRun.CANCELLED_META):
 		get_tree().remove_meta(BenchmarkRun.CANCELLED_META)
-		_benchmark_notice = BENCHMARK_CANCELLED
+		var was_tune: bool = get_tree().has_meta(BenchmarkRun.TUNE_CANCELLED_META)
+		if was_tune:
+			get_tree().remove_meta(BenchmarkRun.TUNE_CANCELLED_META)
+		_benchmark_notice = TUNE_CANCELLED if was_tune else BENCHMARK_CANCELLED
 		_show("benchmark")
 	else:
 		_show("main")
+		if _should_offer_tune():
+			_open_tune_offer()
 	_console = FragrConsole.new()
 	_console.name = "FragrConsole"
 	_console.preferences = _settings
@@ -428,7 +444,9 @@ func _nav_hint() -> String:
 	var line: String = InputGlyphs.plain(tr("MENU_NAV_PAD" if InputDevice.is_gamepad() else "MENU_NAV_KEYS"))
 	return line + "\nFreedom is not a licensed feature."
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if is_instance_valid(_tune_offer):
+		_tick_tune_offer(delta)
 	if _device_revision != InputDevice.revision and _status != null:
 		_device_revision = InputDevice.revision
 		if _local_match == null or _local_match.error_key.is_empty():
@@ -444,6 +462,7 @@ func _page_main() -> void:
 	_button(tr("RECORD_TITLE"), func() -> void: _show("records")).name = "ServiceRecordButton"
 	_button("Settings", func() -> void: _show("settings")).name = "Settings"
 	_button("Benchmark", func() -> void: _show("benchmark")).name = "Benchmark"
+	_retune_notice()
 	_button("Quit", func() -> void: ClientRetirement.for_tree(get_tree()).request_quit()).name = "Quit"
 
 func _page_single() -> void:
@@ -1053,10 +1072,166 @@ func _on_host_state_changed() -> void:
 	if _page in ["host", "benchmark", "main", "multi", "join"]:
 		_show(_page)
 
+## --- Auto settings: first launch, Skip and re-tune offers -----------------
+
+## The first launch with a window, and no tune or Skip saved yet. A changed
+## machine never runs a tune unasked; it gets the notice on the main page.
+func _should_offer_tune() -> bool:
+	var tree: SceneTree = get_tree()
+	if tree.has_meta(TUNE_OFFERED_META):
+		return false
+	if tree.has_meta(TUNE_OFFER_FORCE_META):
+		return true
+	if DisplayServer.get_name() == "headless" or tree.has_meta("fragr_automated"):
+		return false
+	var record: Dictionary = _settings.get_value("video", "tune")
+	if record.has("compat_trial"):
+		# Restarted into Compatibility to compare: measure straight away.
+		return RenderingServer.get_current_rendering_method() == "gl_compatibility"
+	return record.is_empty() and _local_host.state in [LocalHost.State.IDLE, LocalHost.State.FAILED]
+
+## A visible card, not a silent job: the tune starts a local match and loads
+## the graphics chip, and a fan spinning up unexplained is worse than a card.
+func _open_tune_offer() -> void:
+	get_tree().set_meta(TUNE_OFFERED_META, true)
+	var cover: Control = Control.new()
+	cover.name = "TuneOffer"
+	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(cover)
+	_tune_offer = cover
+	var dim: ColorRect = ColorRect.new()
+	dim.color = Color(MenuTheme.INK, 0.86)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.add_child(dim)
+	var centre: CenterContainer = CenterContainer.new()
+	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.add_child(centre)
+	var card: PanelContainer = PanelContainer.new()
+	card.name = "TuneOfferCard"
+	card.custom_minimum_size = Vector2(minf(1040.0, get_viewport().get_visible_rect().size.x - 96.0), 0.0)
+	var plate: StyleBoxFlat = MenuTheme.panel(MenuTheme.SURFACE, MenuTheme.EDGE)
+	plate.content_margin_left = 40
+	plate.content_margin_right = 40
+	plate.content_margin_top = 28
+	plate.content_margin_bottom = 32
+	card.add_theme_stylebox_override("panel", plate)
+	centre.add_child(card)
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 16)
+	card.add_child(column)
+	var stripe: ColorRect = ColorRect.new()
+	stripe.color = _palette.accent
+	stripe.custom_minimum_size = Vector2(0.0, 6.0)
+	column.add_child(stripe)
+	var title: Label = Label.new()
+	title.text = "TUNING GRAPHICS FOR THIS COMPUTER"
+	title.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
+	title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM)
+	title.add_theme_color_override("font_color", _palette.text)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(title)
+	var record: Dictionary = _settings.get_value("video", "tune")
+	var body: Label = Label.new()
+	body.name = "TuneOfferBody"
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	body.add_theme_color_override("font_color", _palette.text)
+	body.text = ("Measuring again under the Compatibility renderer, to keep whichever is faster. " if record.has("compat_trial") else "") + \
+		"About %d seconds. Ten bots fight on Larak Lot while the game tries settings and keeps the best look that holds %d frames a second. Your fan may spin up. Esc stops it; nothing changes until it finishes." % [
+		roundi(BenchmarkRun.tune_seconds() / 10.0) * 10, _settings.target_fps()]
+	column.add_child(body)
+	var count: Label = Label.new()
+	count.name = "TuneOfferCount"
+	count.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	count.add_theme_color_override("font_color", _palette.muted)
+	column.add_child(count)
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 16)
+	column.add_child(actions)
+	var start: Button = _styled_button("Start now", _accept_tune_offer)
+	start.name = "TuneOfferStart"
+	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(start)
+	var skip: Button = _styled_button("Skip", _skip_tune_offer)
+	skip.name = "TuneOfferSkip"
+	skip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(skip)
+	var seeded: Dictionary = HardwareProfile.seed(HardwareProfile.read())
+	var note: Label = Label.new()
+	note.name = "TuneOfferSkipNote"
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	note.add_theme_color_override("font_color", _palette.muted)
+	note.text = "Skip uses %s from the hardware list for now. Benchmark > Auto settings measures later." % RenderQuality.tier_name(int(seeded["tier"]))
+	column.add_child(note)
+	_tune_countdown = TUNE_OFFER_SECONDS
+	_tick_tune_offer(0.0)
+	start.grab_focus.call_deferred()
+
+func _tick_tune_offer(delta: float) -> void:
+	# The countdown waits while a capture or check holds the card open.
+	if not get_tree().has_meta(TUNE_OFFER_FORCE_META):
+		_tune_countdown -= delta
+	var count: Label = _tune_offer_node("TuneOfferCount") as Label
+	if count != null:
+		count.text = "Starting in %d s." % maxi(0, ceili(_tune_countdown))
+	if _tune_countdown <= 0.0:
+		_accept_tune_offer()
+
+func _tune_offer_node(node_name: String) -> Node:
+	if not is_instance_valid(_tune_offer):
+		_tune_offer = get_node_or_null("TuneOffer") as Control
+	return _tune_offer.find_child(node_name, true, false) if is_instance_valid(_tune_offer) else null
+
+func _close_tune_offer() -> void:
+	var cover: Node = get_node_or_null("TuneOffer")
+	if cover != null:
+		remove_child(cover)
+		cover.queue_free()
+	_tune_offer = null
+
+func _accept_tune_offer() -> void:
+	_close_tune_offer()
+	_show("benchmark")
+	_start_benchmark(false, true)
+
+## Skip applies the hardware list's guess, marked as not measured, and leaves
+## the measured tune one button away on the Benchmark page.
+func _skip_tune_offer() -> void:
+	_close_tune_offer()
+	var record: Dictionary = _settings.get_value("video", "tune")
+	if record.has("compat_trial"):
+		# Skipping the comparison keeps Forward+.
+		RendererOverride.clear()
+		record.erase("compat_trial")
+	else:
+		record = AutoTune.lookup_record(HardwareProfile.read(), _settings.target_fps())
+	var draft: FragrSettings = _settings.draft()
+	AutoTune.apply_record(draft, record)
+	draft.set_value("video", "tune", record)
+	_settings.commit(draft)
+	_show("main")
+
+## A saved tune that no longer describes this machine: say why, and offer
+## the tune. It never runs unasked.
+func _retune_notice() -> void:
+	var record: Dictionary = _settings.get_value("video", "tune")
+	var reason: String = AutoTune.stale_reason(record, HardwareProfile.read()) if DisplayServer.get_name() != "headless" else ""
+	if reason.is_empty():
+		return
+	var line: Label = _label(reason)
+	line.name = "RetuneReason"
+	line.add_theme_color_override("font_color", _palette.muted)
+	_button("Tune graphics again", func() -> void:
+		_show("benchmark")
+		_start_benchmark(false, true)).name = "TuneAgain"
+
 ## The setup card: what the benchmark measures, what runs, how long it takes,
 ## what changes while it runs and where the results go, before anything starts.
 func _page_benchmark() -> void:
 	var current: String = BenchmarkRun.preset_label(int(_settings.get_value("video", "quality")))
+	var record: Dictionary = _settings.get_value("video", "tune")
 	_heading("Rendered graphics benchmark on this computer", "BenchmarkPurpose")
 	if not _benchmark_notice.is_empty():
 		_label(_benchmark_notice).name = "BenchmarkNotice"
@@ -1079,7 +1254,9 @@ func _page_benchmark() -> void:
 	for row: Array in [
 			["Scene", "Larak Lot, ten bots. One recorded fight, replayed for each preset under an automated camera."],
 			["Scored", "%d s per preset, after %d s of warm-up that is not scored." % [int(BenchmarkRun.SCORE_SECONDS), int(BenchmarkRun.PRIME_SECONDS)]],
-			["Takes", "%s only: about %s. All three: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
+			["Takes", "%s only: about %s. Low, Medium and High: about %s." % [current, _minutes(BenchmarkRun.nominal_seconds(1)), _minutes(BenchmarkRun.nominal_seconds(3))]],
+			["Auto settings", "About %d s. Tries settings with the local server running, keeps the best look that holds %d fps, and says why." % [roundi(BenchmarkRun.tune_seconds() / 10.0) * 10, _settings.target_fps()]],
+			["Last tune", _tune_summary(record)],
 			["While it runs", "V-sync and the frame cap are off. Esc cancels. Your settings come back."],
 			["Results", "Average FPS, 1% low and frame-time spikes, saved as JSON and CSV."],
 			["This computer", "%s, %s, %d x %d." % [adapter if not adapter.is_empty() else "Graphics adapter not reported", RenderQuality.renderer_name(RenderingServer.get_current_rendering_method()), size.x, size.y]]]:
@@ -1107,20 +1284,33 @@ func _page_benchmark() -> void:
 		_label("Stop the server you started in this app before a benchmark.")
 		_button("Back", func() -> void: _show("main"))
 		return
-	_button("Run current preset (%s)" % current, func() -> void: _start_benchmark(false)).name = "RunBenchmark"
-	_button("Compare all three", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
+	_button("Auto settings", func() -> void: _start_benchmark(false, true)).name = "AutoSettings"
+	_button("Run current quality (%s)" % current, func() -> void: _start_benchmark(false)).name = "RunBenchmark"
+	_button("Compare Low, Medium and High", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
 	_button("Back", func() -> void: _show("main"))
 	var scope: Label = _label("Frames drawn on this computer only. Not a server, network or player-capacity test.")
 	scope.name = "BenchmarkScope"
 	scope.add_theme_color_override("font_color", _palette.muted)
 
+## The saved tune in one line for the setup card.
+func _tune_summary(record: Dictionary) -> String:
+	if record.is_empty():
+		return "None yet."
+	var lines: Array = record.get("lines", [])
+	var first: String = str(lines[0]) if not lines.is_empty() else RenderQuality.tier_name(int(record.get("tier", 0)))
+	var stale: String = AutoTune.stale_reason(record, HardwareProfile.read()) if DisplayServer.get_name() != "headless" else ""
+	return first + ((" " + stale) if not stale.is_empty() else (" %s." % str(record.get("date", ""))))
+
 static func _minutes(seconds: float) -> String:
 	var whole: int = maxi(1, roundi(seconds / 60.0))
 	return "1 minute" if whole == 1 else "%d minutes" % whole
 
-func _start_benchmark(all_presets: bool = false) -> void:
+func _start_benchmark(all_presets: bool = false, tune: bool = false) -> void:
 	_benchmark_notice = ""
 	_benchmark_compare = all_presets
+	_benchmark_tune = tune
+	if tune:
+		get_tree().set_meta(TUNE_OFFERED_META, true)
 	_benchmark_pending = true
 	if not _local_host.start_host(BenchmarkRun.workload()):
 		_benchmark_pending = false
@@ -1146,7 +1336,7 @@ func _on_benchmark_ready(address: String) -> void:
 		return
 	_benchmark_pending = false
 	BenchmarkRun.present_uncapped()
-	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"]), _benchmark_compare))
+	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"]), _benchmark_compare, _benchmark_tune))
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:
 		get_tree().remove_meta("fragr_boot")
@@ -2299,6 +2489,10 @@ func _finish_list(address: String, summary: String, beacon_live: bool = false) -
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _console != null and _console.is_open():
+		return
+	if is_instance_valid(_tune_offer) and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		_skip_tune_offer()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_cancel") and not event.is_echo() and _page != "main":
 		if _page != "rewards":
