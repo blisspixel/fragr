@@ -102,7 +102,8 @@ fn chest(feet: [f32; 3]) -> [f32; 3] {
 
 #[test]
 fn a_shot_at_100_ms_rtt_misses_in_the_present_and_lands_rewound() {
-    // 100 ms round trip, the two-tick buffer and half a tick of render phase:
+    // 100 ms round trip, a jitter-widened two-tick buffer and half a tick of
+    // render phase:
     // the client drew the target 4.5 ticks before the firing tick.
     for (view, expect_hit) in [(None, false), (Some(()), true)] {
         let mut state = lane(Role::Agent);
@@ -135,6 +136,34 @@ fn a_shot_at_100_ms_rtt_misses_in_the_present_and_lands_rewound() {
         } else {
             assert_eq!(state.rewind_stats, RewindStats::default());
         }
+    }
+}
+
+#[test]
+fn a_settled_view_at_50_ms_rtt_lands_rewound_inside_the_bound() {
+    // 50 ms round trip, the settled 1.2-tick buffer (#525) and half a tick of
+    // render phase: drawn 2.7 ticks before the firing tick, well inside the
+    // 4-tick bound, so the rewind is exact and never clamped.
+    for (view, expect_hit) in [(None, false), (Some(()), true)] {
+        let mut state = lane(Role::Agent);
+        let seen = strafe(&mut state, 12);
+        let drawn = state.tick as f64 + 1.0 - 2.7;
+        let results = fire_at(
+            &mut state,
+            chest(feet_at(&seen, drawn)),
+            view.map(|_| drawn),
+        );
+        assert_eq!(hit(&results), expect_hit, "view {view:?}: {results:?}");
+        let expected = if expect_hit {
+            RewindStats {
+                accepted: 1,
+                rewinds: 1,
+                ..RewindStats::default()
+            }
+        } else {
+            RewindStats::default()
+        };
+        assert_eq!(state.rewind_stats, expected);
     }
 }
 

@@ -4,8 +4,8 @@
 //! wall clock, so a run is the same on every host. A human shooter stands still
 //! and a fighter strafes across the lane on a seeded schedule. For each trial
 //! the shooter's client sees the strafer where `RemotePresentation` would draw
-//! it: the newest snapshot arrival less half the round trip, less the two-tick
-//! interpolation buffer. It aims exactly at the chest it drew, with a first
+//! it: the client's own adaptive timeline (`crate::presentation`), run frame
+//! by frame over the snapshots it holds. It aims exactly at the chest it drew, with a first
 //! shot that has no bloom. The Action reaches the server half a round trip
 //! later and fires on the next tick. The server then resolves the ray, with or
 //! without the client's reported view time.
@@ -15,21 +15,20 @@
 //! Snapshot and Action delivery are fixed one-way delays of half the round
 //! trip, unless the row names a `JitterLink`: then every snapshot and the
 //! Action each draw an extra delay, a lost segment holds the stream for a
-//! retransmission, and the stream stays ordered. The client's clock then
-//! runs `RemotePresentation::sample` itself over the snapshots it holds at
-//! each 60 Hz frame: the earliest arrival offset of its last 32 snapshots,
-//! less the buffer, never backwards, and held at the newest tick when it
-//! starves. That is still a model of a link, not a measured network.
+//! retransmission, and the stream stays ordered. The client reads a snapshot
+//! on the first 60 Hz frame after it arrives, as Godot polls its socket once
+//! a frame, and runs `RemotePresentation::sample` at each frame: the earliest
+//! arrival offset of its last 32 snapshots, less the adaptive buffer, never
+//! backwards, and held at the newest tick when it starves. That is still a
+//! model of a link, not a measured network.
 
 use fragr_server::protocol::{Action, EquipmentPolicy, Role, WeaponType};
 use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde::Serialize;
 use uuid::Uuid;
 
-/// Server ticks per second and the client's interpolation buffer, as in
-/// `client/scripts/remote_presentation.gd`.
+/// Server tick length, as in `client/scripts/remote_presentation.gd`.
 const TICK_MS: f64 = 50.0;
-const BUFFER_TICKS: f64 = 2.0;
 /// The simulated lane: the shooter at the south end, the strafer north.
 const SHOOTER: [f32; 3] = [0.0, 0.0, -8.0];
 const STRAFER: [f32; 3] = [0.0, 0.0, 8.0];
@@ -55,12 +54,6 @@ pub struct JitterLink {
     pub loss_per_mille: u32,
     /// What a loss holds the stream for.
     pub loss_stall_ms: u32,
-}
-
-impl JitterLink {
-    fn is_fixed(&self) -> bool {
-        self.jitter_ms == 0 && self.loss_per_mille == 0
-    }
 }
 
 /// The links the jitter matrix covers, beside the fixed delays.
@@ -103,6 +96,11 @@ pub struct RewindRow {
     pub starved_share: f64,
     /// Trials whose view lag exceeded the 200 ms rewind bound.
     pub beyond_bound_share: f64,
+    /// Trials whose view lag exceeded 100 ms. On a LAN this share above 10
+    /// percent says the interpolation buffer is too big.
+    pub over_100ms_share: f64,
+    /// The client's buffer when it fired, in milliseconds.
+    pub mean_buffer_ms: f64,
     /// Trials whose client-side line was open: shots the client saw land.
     pub client_on_target: u32,
     /// Of those, the shots the server also scored on the strafer.
@@ -153,6 +151,7 @@ struct Trial {
     view_lag_ticks: f64,
     offset_m: f64,
     starved: bool,
+    buffer_ticks: f64,
 }
 
 fn strafe_action(direction: i8) -> Action {
@@ -202,27 +201,30 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode, link: JitterL
 
     // The fire tick. The Action arrives at a seeded phase inside the interval
     // before it, so its view time spans a whole tick of render phase.
-    let lag_ticks = f64::from(rtt_ms) / TICK_MS;
     let nominal_fire = state.tick + WARMUP_TICKS + 8 + stream.below(16);
     let phase = stream.unit();
     let arrival = (nominal_fire - 1) as f64 + phase;
-    let (fire_tick, view, starved) = if link.is_fixed() {
-        // Snapshot travel plus Action travel is the whole round trip.
-        (nominal_fire, arrival - lag_ticks - BUFFER_TICKS, false)
-    } else {
-        let mut draws = Stream(
-            (seed ^ 0x51AB_1E0F_11CE_0001)
-                .wrapping_add(u64::from(trial).wrapping_mul(0x9E37_79B9))
-                .max(1),
-        );
-        // The client samples its input one base one-way delay before the
-        // nominal arrival, then the link adds its own delay to the Action.
-        let sampled_ms = arrival * TICK_MS - f64::from(rtt_ms) / 2.0;
-        let (view, starved) = client_view(&mut draws, state.tick, sampled_ms, rtt_ms, link);
-        let action_ms = sampled_ms + f64::from(rtt_ms) / 2.0 + extra_delay(&mut draws, link);
-        // The server applies an Action on the first tick after it arrives.
-        ((action_ms / TICK_MS).floor() as u64 + 1, view, starved)
-    };
+    let mut draws = Stream(
+        (seed ^ 0x51AB_1E0F_11CE_0001)
+            .wrapping_add(u64::from(trial).wrapping_mul(0x9E37_79B9))
+            .max(1),
+    );
+    // The client samples its input one base one-way delay before the
+    // nominal arrival, then the link adds its own delay to the Action.
+    let sampled_ms = arrival * TICK_MS - f64::from(rtt_ms) / 2.0;
+    let frame_phase = stream.unit() * FRAME_MS;
+    let view = client_view(
+        &mut draws,
+        state.tick,
+        sampled_ms,
+        frame_phase,
+        rtt_ms,
+        link,
+    );
+    let action_ms = sampled_ms + f64::from(rtt_ms) / 2.0 + extra_delay(&mut draws, link);
+    // The server applies an Action on the first tick after it arrives.
+    let fire_tick = (action_ms / TICK_MS).floor() as u64 + 1;
+    let (view, starved, buffer_ticks) = (view.tick, view.starved, view.buffer_ticks);
 
     let mut feet: std::collections::BTreeMap<u64, ([f32; 3], bool)> = Default::default();
     let mut direction: i8 = if stream.below(2) == 0 { -1 } else { 1 };
@@ -233,6 +235,7 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode, link: JitterL
         view_lag_ticks: fire_tick as f64 - view,
         starved,
         offset_m: 0.0,
+        buffer_ticks,
     };
     while state.tick < fire_tick {
         if hold == 0 {
@@ -302,50 +305,70 @@ fn extra_delay(draws: &mut Stream, link: JitterLink) -> f64 {
     extra
 }
 
-/// `RemotePresentation` keeps this many arrival offsets.
-const PRESENTATION_SAMPLES: usize = 32;
-/// Client frames per second, and how long the timeline runs before the shot.
+/// Client frames per second, and how long the timeline runs before the shot:
+/// long enough for the buffer to settle from its starting two ticks.
 const FRAME_MS: f64 = 1000.0 / 60.0;
-const SETTLE_MS: f64 = 2000.0;
+const SETTLE_MS: f64 = 3000.0;
 
-/// The tick the client draws at `sampled_ms`, and whether its timeline was
-/// starved there, from snapshots of every tick after `first` delivered over
-/// `link` in order. This is `RemotePresentation::sample` run at every frame.
+/// What the client drew when it sampled its input.
+#[derive(Debug, Clone, Copy)]
+struct View {
+    tick: f64,
+    starved: bool,
+    buffer_ticks: f64,
+}
+
+fn usec(ms: f64) -> i64 {
+    (ms * 1000.0).round() as i64
+}
+
+/// The tick the client draws at `sampled_ms`, from snapshots of every tick
+/// delivered over `link` in order and read at the first frame after they
+/// arrive. Frames run every `FRAME_MS` from `frame_phase`, with one more at
+/// `sampled_ms`, where the Action is sampled. This is
+/// `RemotePresentation::sample` run at every frame. The client has been in
+/// the match for `SETTLE_MS` already: its clock also saw the snapshots
+/// before `first`, the trial's own first tick, numbered from a shifted base
+/// so they stay whole ticks.
 fn client_view(
     draws: &mut Stream,
     first: u64,
     sampled_ms: f64,
+    frame_phase: f64,
     rtt_ms: u32,
     link: JitterLink,
-) -> (f64, bool) {
+) -> View {
+    const SHIFT: u64 = 1_000;
     let one_way = f64::from(rtt_ms) / 2.0;
     let last_tick = (sampled_ms / TICK_MS).ceil() as u64 + 1;
+    let settle_ticks = (SETTLE_MS / TICK_MS) as u64 + 1;
     let mut arrivals: Vec<(u64, f64)> = Vec::new();
-    let mut previous = 0.0f64;
-    for tick in first + 1..=last_tick {
-        let at = (tick as f64 * TICK_MS + one_way + extra_delay(draws, link)).max(previous);
+    let mut previous = f64::NEG_INFINITY;
+    for shifted in SHIFT + first + 1 - settle_ticks..=SHIFT + last_tick {
+        let tick_ms = (shifted as f64 - SHIFT as f64) * TICK_MS;
+        let at = (tick_ms + one_way + extra_delay(draws, link)).max(previous);
         previous = at;
-        arrivals.push((tick, at));
+        arrivals.push((shifted, at));
     }
-    let mut render = -1.0f64;
-    let mut starved = false;
-    let mut frame = (sampled_ms - SETTLE_MS).max(first as f64 * TICK_MS);
+    // Times shifted with the ticks, so every microsecond stays positive.
+    let shift_ms = SHIFT as f64 * TICK_MS;
+    let mut timeline = crate::presentation::Timeline::default();
+    let mut next = 0usize;
+    let start = sampled_ms - SETTLE_MS;
+    let mut frame = start - (start - frame_phase).rem_euclid(FRAME_MS);
     loop {
         let now = frame.min(sampled_ms);
-        let held: Vec<&(u64, f64)> = arrivals.iter().filter(|(_, at)| *at <= now).collect();
-        let held = &held[held.len().saturating_sub(PRESENTATION_SAMPLES)..];
-        if let (Some(oldest), Some(newest)) = (held.first(), held.last()) {
-            let offset = held
-                .iter()
-                .map(|(tick, at)| at - *tick as f64 * TICK_MS)
-                .fold(f64::INFINITY, f64::min);
-            let desired = (now - offset) / TICK_MS - BUFFER_TICKS;
-            let (oldest, newest) = (oldest.0 as f64, newest.0 as f64);
-            starved = desired > newest;
-            render = render.max(desired).clamp(oldest, newest);
+        while next < arrivals.len() && arrivals[next].1 <= now {
+            timeline.observe(arrivals[next].0, usec(now + shift_ms));
+            next += 1;
         }
+        let drawn = timeline.sample(usec(now + shift_ms));
         if now >= sampled_ms {
-            return (render, starved);
+            return View {
+                tick: drawn.map_or(-1.0, |d| d.tick - SHIFT as f64),
+                starved: timeline.starved,
+                buffer_ticks: timeline.buffer_ticks,
+            };
         }
         frame += FRAME_MS;
     }
@@ -396,6 +419,8 @@ pub fn run_row_on(
                 .filter(|t| t.view_lag_ticks > bound_ticks)
                 .count(),
         ),
+        over_100ms_share: share(seen.iter().filter(|t| t.view_lag_ticks > 2.0).count()),
+        mean_buffer_ms: mean(&mut seen.iter().map(|t| t.buffer_ticks * TICK_MS)),
         client_on_target,
         server_hits,
         miss_rate: if client_on_target == 0 {
@@ -431,8 +456,9 @@ pub fn run_matrix(seed: u64, trials: u32, modes: &[RewindMode]) -> RewindReport 
     }
 }
 
-/// Report schema. 2 added each row's link, starved and beyond-bound shares.
-pub const REWIND_SCHEMA: u32 = 2;
+/// Report schema. 2 added each row's link, starved and beyond-bound shares;
+/// 3 the adaptive buffer, its mean and the share of views over 100 ms.
+pub const REWIND_SCHEMA: u32 = 3;
 
 /// Every jitter link at every round trip, with and without the view time.
 pub fn run_jitter_matrix(seed: u64, trials: u32, modes: &[RewindMode]) -> RewindReport {
@@ -479,9 +505,15 @@ mod tests {
             assert_eq!(off.mean_view_lag_ms, on.mean_view_lag_ms);
             assert!(off.miss_rate > 0.3, "{off:?}");
             assert!(on.miss_rate < off.miss_rate, "{on:?} {off:?}");
-            // The lag is the round trip, the buffer and up to a tick of phase.
-            let floor = f64::from(rtt) + 100.0;
-            assert!(off.mean_view_lag_ms > floor && off.max_view_lag_ms <= floor + 50.0);
+            // The lag is the round trip, the settled 60 ms buffer, up to a
+            // tick of phase and up to a frame of reading the socket.
+            let floor = f64::from(rtt) + 60.0;
+            assert!(
+                off.mean_view_lag_ms > floor && off.max_view_lag_ms <= floor + 50.0 + FRAME_MS,
+                "{off:?}"
+            );
+            // Reading at 60 Hz frames adds under a millisecond of spread.
+            assert!((on.mean_buffer_ms - 60.0).abs() < 1.0, "{on:?}");
         }
         // Inside the 200 ms bound every drawn hit lands.
         for rtt in [0, 50] {
@@ -491,15 +523,25 @@ mod tests {
     }
 
     #[test]
-    fn the_client_timeline_model_matches_the_fixed_delay_view() {
+    fn the_client_timeline_settles_one_tick_and_a_margin_behind_a_fixed_link() {
         // On a link with no jitter the frame-by-frame presentation clock
-        // lands on the closed form the fixed rows use.
+        // settles at 1.2 ticks behind the arrival schedule, read up to a
+        // frame late, and never starves.
         let mut draws = Stream(5);
-        for (rtt, sampled) in [(0u32, 2010.0), (50, 2345.6), (150, 3333.3)] {
-            let (view, starved) = client_view(&mut draws, 10, sampled, rtt, JitterLink::default());
-            let fixed = sampled / TICK_MS - f64::from(rtt) / (2.0 * TICK_MS) - BUFFER_TICKS;
-            assert!((view - fixed).abs() < 1e-9, "{rtt}: {view} against {fixed}");
-            assert!(!starved);
+        for (rtt, sampled, phase) in [(0u32, 4010.0, 3.0), (50, 4345.6, 11.0), (150, 5333.3, 0.0)] {
+            let view = client_view(&mut draws, 10, sampled, phase, rtt, JitterLink::default());
+            let fixed = sampled / TICK_MS
+                - f64::from(rtt) / (2.0 * TICK_MS)
+                - crate::presentation::MIN_BUFFER_TICKS;
+            assert!(
+                (view.buffer_ticks - crate::presentation::MIN_BUFFER_TICKS).abs() < 0.01,
+                "{view:?}"
+            );
+            assert!(
+                view.tick <= fixed + 1e-9 && view.tick >= fixed - FRAME_MS / TICK_MS,
+                "{rtt}: {view:?} against {fixed}"
+            );
+            assert!(!view.starved);
         }
     }
 

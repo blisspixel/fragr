@@ -1,8 +1,11 @@
 //! Bounded hitscan lag compensation (#434 stage 5).
 //!
 //! A human client draws other fighters on a timeline that trails the server:
-//! the snapshot's trip, the two-tick interpolation buffer, the Action's trip
-//! and the wait for the next tick. It reports the fractional server tick it
+//! the snapshot's trip, the adaptive interpolation buffer (1.2 ticks on a
+//! steady link, up to two under jitter, `client/scripts/remote_presentation.gd`),
+//! the Action's trip and the wait for the next tick. Every fighter is drawn
+//! at that one render time, and it is the time the Action reports, so the
+//! rewound volumes are the ones the shooter saw. It reports the fractional server tick it
 //! was drawing (`Action::view_tick`). The server checks that claim against
 //! what it has actually produced, turns it into a view lag measured from the
 //! tick the Action arrived before, and clamps that lag to
@@ -20,9 +23,11 @@
 use std::collections::VecDeque;
 use uuid::Uuid;
 
-/// The longest rewind: 4 ticks, 200 ms at 20 Hz. It covers the two-tick
-/// interpolation buffer, the tick wait and about 50 ms of round trip in
-/// full; beyond that a shooter leads the target by the excess.
+/// The longest rewind: 4 ticks, 200 ms at 20 Hz. It covers the settled
+/// 60 ms interpolation buffer, the tick wait and about 90 ms of round trip in
+/// full (50 ms when jitter has widened the buffer to two ticks); beyond that
+/// a shooter leads the target by the excess. The bound, not the client,
+/// decides how far a victim can be struck behind cover.
 pub const MAX_REWIND_TICKS: u64 = 4;
 /// Ticks of hit volumes kept: 250 ms. One more than the longest rewind, so
 /// an interpolated view at the bound always has both neighbours.

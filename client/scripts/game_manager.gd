@@ -324,6 +324,7 @@ func _ready():
 		return (flash as Control).global_position + (flash as Control).size * 0.5 if flash is Control else Vector2.INF
 	arena_vehicles = ArenaVehicles.new()
 	arena_vehicles.name = "Vehicles"
+	arena_vehicles.clock = view_clock
 	add_child(arena_vehicles)
 	vehicle_hud = VehicleHud.new()
 	vehicle_hud.name = "VehicleHud"
@@ -3198,6 +3199,10 @@ func _on_snapshot_received(data):
 			pawn.position = Vector3(player_data.x, player_data.y, player_data.z)
 			pawn.rotation.y = ServerYaw.pawn_rotation_y(float(player_data.yaw))
 			pawn.set_player_data(id, player_data.name)
+			# One render time for every fighter: the one Actions report.
+			var timeline: Variant = pawn.get("remote_presentation")
+			if timeline is RemotePresentation:
+				(timeline as RemotePresentation).clock = view_clock
 			players[id] = pawn
 		
 		if players.has(id):
