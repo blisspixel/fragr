@@ -46,10 +46,12 @@ class HudProbe extends Node:
 		fired.append(weapon)
 	var confirms: Array[Dictionary] = []
 	var kill_markers: int = 0
-	func show_hit_marker(damage: int, _weapon: String) -> void:
+	var marker_zones: Array[String] = []
+	func show_hit_marker(damage: int, _weapon: String, zone: String = "") -> void:
 		hits.append(damage)
-	func confirm_hit(damage: int, head: bool, killed: bool) -> int:
-		confirms.append({"damage": damage, "head": head, "killed": killed})
+		marker_zones.append(zone)
+	func confirm_hit(damage: int, zone: String, killed: bool) -> int:
+		confirms.append({"damage": damage, "zone": zone, "killed": killed})
 		return 0
 	func show_kill_marker() -> void:
 		kill_markers += 1
@@ -337,20 +339,21 @@ func _live_seams() -> void:
 	_check(pawn.fired.size() == previous_cues + 1 and hud.fired.size() == previous_juice + 1
 		and hud.hits.size() == previous_hits + 1 and hud.hits.back() == 18,
 		"resolved Arc gives one marker without a duplicate gun cue")
-	_check(hud.confirms.size() == hud.hits.size() and hud.confirms.back() == {"damage": 18, "head": false, "killed": false},
+	_check(hud.confirms.size() == hud.hits.size() and hud.confirms.back() == {"damage": 18, "zone": "", "killed": false},
 		"every marker has one hit confirm from the server's facts: " + str(hud.confirms))
 	# A Scatter blast is one result per struck body plus its misses: one shot,
-	# one confirm, and the head or the frag any of its results carried.
+	# one confirm, and the most telling zone and the frag its results carried.
 	var blast_trace: Dictionary = {"weapon": "scatter", "origin": [0.0, 1.6, 0.0], "end": [3.0, 1.6, 0.0], "impact": {"kind": "range"}}
 	var blast: Array = [
-		{"shooter_id": "self", "hit": true, "damage": 30, "head": true, "trace": blast_trace},
-		{"shooter_id": "self", "hit": true, "damage": 45, "killed": true, "trace": blast_trace},
+		{"shooter_id": "self", "hit": true, "damage": 30, "zone": "head", "trace": blast_trace},
+		{"shooter_id": "self", "hit": true, "damage": 45, "zone": "legs", "killed": true, "trace": blast_trace},
 		{"shooter_id": "self", "hit": false, "damage": 0, "trace": blast_trace},
 	]
 	var confirms_before: int = hud.confirms.size()
 	game._process_shot_results(blast, 202)
-	_check(hud.confirms.size() == confirms_before + 1 and hud.confirms.back() == {"damage": 75, "head": true, "killed": true},
-		"a blast folds into one confirm with its head and its frag: " + str(hud.confirms))
+	_check(hud.confirms.size() == confirms_before + 1 and hud.confirms.back() == {"damage": 75, "zone": "head", "killed": true},
+		"a blast folds into one confirm with its most telling zone and its frag: " + str(hud.confirms))
+	_check(hud.marker_zones.back() == "head", "the folded marker shows the most telling zone: " + str(hud.marker_zones))
 	_check(hud.kill_markers == 1, "the frag in a later blast result still shows the kill marker")
 	Input.action_release("fire")
 	game.free()

@@ -98,6 +98,7 @@ fn add_strip(frame: &mut Snapshot, started: u64, working: bool) {
         phase_started: started,
         phase_ends: started + if working { 12 } else { 34 },
         seated: false,
+        mast_broken: false,
         control: ControlDomain::Restoration,
     });
     frame.players.push(actor);

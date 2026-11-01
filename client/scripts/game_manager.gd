@@ -4175,6 +4175,11 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
+	# The recap names the zone of the shot that ended this life.
+	if is_human_player and not my_id.is_empty():
+		for result: Variant in results:
+			if result is Dictionary and str(result.get("target_id", "")) == my_id and result.get("killed") == true:
+				local_life.record_killing_zone(result.get("zone"))
 	var feedback_viewport: Viewport = get_viewport()
 	var feedback_camera: Camera3D = feedback_viewport.get_camera_3d() if feedback_viewport != null else null
 	var active_cam: Node3D = feedback_camera if is_instance_valid(feedback_camera) else (camera if is_instance_valid(camera) else null)
@@ -4213,9 +4218,10 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		if bool(result.get("hit", false)):
 			folded["damage"] = int(folded.get("damage", 0)) * int(bool(folded.get("hit", false))) + int(result.get("damage", 0))
 			folded["hit"] = true
-			# A blast that took one head or one life confirms it once.
-			if result.get("head") == true:
-				folded["head"] = true
+			# A blast confirms its most telling zone once, and one life once.
+			var zone: String = ShotZone.most_telling(ShotZone.of(folded), ShotZone.of(result))
+			if not zone.is_empty():
+				folded["zone"] = zone
 			if result.get("killed") == true:
 				folded["killed"] = true
 	for shot: Dictionary in shots:
@@ -4246,11 +4252,11 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
-			hud.show_hit_marker(dmg, wpn)
+			hud.show_hit_marker(dmg, wpn, ShotZone.of(shot))
 			# One confirm per shot, tiered by the server's facts. A followed
 			# fighter's stopped shots stay quiet; only the shooter hears those.
 			if hud.has_method("confirm_hit") and (dmg > 0 or is_local):
-				hud.confirm_hit(dmg, shot.get("head") == true, killed)
+				hud.confirm_hit(dmg, ShotZone.of(shot), killed)
 		# The shot that put a fighter down says so, louder than a hit.
 		if killed and hud and hud.has_method("show_kill_marker"):
 			hud.show_kill_marker()

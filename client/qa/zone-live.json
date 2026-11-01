@@ -1,0 +1,15 @@
+{
+  "comment": "Locational damage in a live campaign range (#533), first person, through ordinary input: a Flechette round on the dormant Turret's red optic (the larger ember weak-spot marker), then one on its plated column (the grey broken marker and a fan of sparks), from about nine metres. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/heavy-turret-range.json, FRAGR_QA_MANIFEST=res://qa/zone-live.json. full_frames keeps every strip frame at full size. Inspection only; not a tour publish.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"zone_supplies","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","walk_to":[[2,0,-14],[-2,0,-14],[0,0,-12]],"note":"Collect the Flechette and bullets before the lane."},
+    {"name":"zone_armed","camera":"first_person","weapon":"Flechette","walk_to":[[0,0,-8]],"look_at":[0,1.68,1],"note":"Nine metres from the dormant turret, aimed at its red optic."},
+    {"name":"zone_optic","camera":"first_person","weapon":"Flechette","look_at":[0,1.68,1],
+     "trigger":"fire","single_shot":true,"strip_frames":5,"strip_interval_seconds":0.04,"full_frames":true,
+     "note":"A round on the red optic: the larger ember weak-spot marker."},
+    {"name":"zone_plate","camera":"first_person","weapon":"Flechette","look_at":[0,1.15,1],
+     "trigger":"fire","single_shot":true,"strip_frames":5,"strip_interval_seconds":0.04,"full_frames":true,
+     "note":"A round on the plated column: the grey broken marker, a fan of sparks."}
+  ]
+}

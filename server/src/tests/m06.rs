@@ -532,8 +532,15 @@ fn m06_real_long_rail_shot_uses_discovered_cells_and_preserves_misses_and_range(
         .find(|r| r.shooter_id == id)
         .unwrap();
     assert_eq!(shot.target_id, Some(target));
-    assert!(shot.killed);
-    assert_eq!(shot.damage, 80);
+    // This far even the Rail's cone is wider than the optic, so the lock
+    // keeps centre mass and the Sweeper's plate turns half.
+    assert!(!shot.killed);
+    assert_eq!(shot.damage, 40);
+    assert_eq!(shot.zone, Some(crate::protocol::HitZone::Plate));
+    assert_eq!(
+        s.state.players.iter().find(|p| p.id == target).unwrap().hp,
+        40
+    );
     assert_eq!(
         equipment(&s).shots(crate::protocol::WeaponType::Rail),
         Some(7)
@@ -755,13 +762,24 @@ fn m06_authored_turret_charges_fires_cancels_on_cover_and_takes_a_real_rear_flan
     place(&mut s, id, [4.0, 0.0, 16.0]);
     until(&mut s, turret, EnemyPhase::Windup);
     let committed_end = phase(&s, turret).2;
+    // A Rail on the plated body: half lands, still a heavy hit.
+    let chest = {
+        let t = s.state.players.iter().find(|p| p.id == turret).unwrap();
+        [
+            t.x,
+            t.y - crate::sim::PLAYER_FLOOR_Y + crate::combat::TORSO_HEIGHT,
+            t.z,
+        ]
+    };
     s.state.set_action(
         id,
         Action {
             weapon_swap: Some(WeaponType::Rail),
             fire: true,
             look_at: Some(LookAt {
-                player_id: Some(turret),
+                x: Some(chest[0]),
+                y: Some(chest[1]),
+                z: Some(chest[2]),
                 ..Default::default()
             }),
             ..Action::default()
@@ -770,7 +788,7 @@ fn m06_authored_turret_charges_fires_cancels_on_cover_and_takes_a_real_rear_flan
     advance(&mut s, 1);
     assert_eq!(
         s.state.players.iter().find(|p| p.id == turret).unwrap().hp,
-        20
+        60
     );
     s.state.set_action(id, Action::default());
     advance(&mut s, 1);

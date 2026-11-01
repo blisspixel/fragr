@@ -114,7 +114,9 @@ fn actual_arc_cadence_head_band_and_range_stay_distinct() {
         }
     }
     assert_eq!(ticks, [1, 4]);
-    assert_eq!(state.players[1].hp, 28);
+    // The beam has no zones: a head-band hit lands its flat 18, and the
+    // record still counts the head band.
+    assert_eq!(state.players[1].hp, 100 - 2 * 18);
     assert_eq!(
         state
             .player_record(shooter)
@@ -279,6 +281,7 @@ fn shared_controller_uses_owned_arc_for_armored_nearby_targets_without_overridin
             phase_started: 0,
             phase_ends: 100,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         let intent = crate::inventory::control_action(

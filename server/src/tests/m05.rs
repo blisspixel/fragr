@@ -803,6 +803,7 @@ fn m05_external_controller_reconstructs_live_tram_cover() {
             phase_started: snapshot.tick,
             phase_ends: snapshot.tick,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         target.x = 2.1;

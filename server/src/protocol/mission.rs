@@ -163,12 +163,14 @@ impl MissionId {
             Self::PlannedWorks => super::M19_GAMEPLAY_VERSION,
             Self::LocalException => super::M20_GAMEPLAY_VERSION,
             Self::StillHere => super::STILL_HERE_GAMEPLAY_VERSION,
-            Self::AllSystemsNormal => super::M18_GAMEPLAY_VERSION,
+            // Missions that place a Ranged Sweeper can send a broken mast.
+            Self::DeclaredGoods
+            | Self::WeightOfPermission
+            | Self::LaunchAuthority
+            | Self::AllSystemsNormal => super::ZONES_GAMEPLAY_VERSION,
             Self::PeaceWithoutInterruption => super::M17_GAMEPLAY_VERSION,
             Self::FreedomOfMovement => super::M16_GAMEPLAY_VERSION,
             Self::CivicPressureValve => super::M15_GAMEPLAY_VERSION,
-            Self::LaunchAuthority => super::M14_GAMEPLAY_VERSION,
-            Self::WeightOfPermission => super::M13_GAMEPLAY_VERSION,
             Self::TermsOfCooperation => super::M12_GAMEPLAY_VERSION,
             _ => super::ASSESSOR_GAMEPLAY_VERSION,
         }

@@ -50,7 +50,7 @@ use crate::protocol::{
     ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
     EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
 };
-use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
+use crate::protocol::{HitZone, HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
 use std::f32::consts::PI;
 use uuid::Uuid;
@@ -1792,6 +1792,7 @@ impl GameState {
             phase_started: self.tick,
             phase_ends: self.tick,
             seated: placement.seated,
+            mast_broken: false,
             control: placement.control,
         });
         self.players.push(player);
@@ -2711,11 +2712,9 @@ impl GameState {
         };
         for (aimer_id, look) in look_intents {
             let target_point: Option<[f32; 3]> = if let Some(pid) = look.player_id {
-                let eye = self
-                    .players
-                    .iter()
-                    .find(|p| p.id == aimer_id)
-                    .map(fighter_eye);
+                let aimer = self.players.iter().find(|p| p.id == aimer_id);
+                let eye = aimer.map(fighter_eye);
+                let spread = aimer.map_or(0.0, |p| p.weapon.spread_radians());
                 self.players
                     .iter()
                     .find(|p| {
@@ -2725,6 +2724,21 @@ impl GameState {
                     })
                     .map(|p| {
                         let feet = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+                        // A lock on a plated campaign machine takes its weak spot
+                        // when the aimer can see it and the gun's cone fits it:
+                        // the learned counter. A wide cone far off keeps centre
+                        // mass, where most pellets still land.
+                        let weak = crate::combat::weak_point(feet, p.campaign, p.ducking).filter(
+                            |point| {
+                                eye.is_some_and(|eye| {
+                                    crate::combat::weak_point_fits(eye, *point, spread)
+                                        && crate::combat::line_of_sight(eye, *point, &look_solids)
+                                })
+                            },
+                        );
+                        if let Some(point) = weak {
+                            return point;
+                        }
                         eye.map_or_else(
                             || crate::combat::aim_point_for(feet, p.campaign, p.ducking),
                             |eye| {
@@ -2953,26 +2967,40 @@ impl GameState {
             let mut headed = false;
             for (target, members) in groups {
                 // Falloff follows each pellet's own 3D distance to the surface.
-                // A pellet in the head band doubles before the sum, so armour
-                // and an Auditor plate still see one total. Fists and the Shiv
-                // stay flat. A miss group has no victim, and no bonus.
+                // Each pellet takes its zone's multiplier before the sum, so
+                // armour and an Auditor plate still see one total. Weapons
+                // without zones stay flat. A miss group has no victim and no zone.
+                let mut zone: Option<HitZone> = None;
+                let mut struck_head = false;
+                let mut struck_mast = false;
                 let damage = members
                     .iter()
                     .map(|pellet| {
-                        let head = target.is_some_and(|victim_idx| {
-                            let victim = &self.players[victim_idx];
-                            crate::combat::head_hit_for(
-                                pellet.struck_feet_y,
-                                pellet.end[1],
-                                victim.campaign,
-                                pellet.struck_ducking,
-                            )
-                        });
-                        crate::combat::traced_damage(
-                            weapon,
-                            weapon.damage_at(pellet.distance),
-                            head,
-                        )
+                        let base = weapon.damage_at(pellet.distance);
+                        let Some(victim_idx) = target else {
+                            return base;
+                        };
+                        let victim = &self.players[victim_idx];
+                        let band = crate::combat::band_for(
+                            pellet.struck_feet_y,
+                            pellet.end[1],
+                            victim.campaign,
+                            pellet.struck_ducking,
+                        );
+                        struck_head |= band == Some(crate::combat::Band::Head);
+                        struck_mast |= band == Some(crate::combat::Band::Mast);
+                        let rear = match pellet.impact {
+                            ShotImpact::Fighter { normal } => {
+                                crate::combat::rear_face(normal, victim.yaw)
+                            }
+                            _ => false,
+                        };
+                        let (damage, struck) =
+                            crate::combat::zoned_damage(weapon, base, victim.campaign, band, rear);
+                        if let Some(struck) = struck {
+                            zone = Some(HitZone::most_telling(zone, struck));
+                        }
+                        damage
                     })
                     .sum::<i32>();
                 let trace = ShotTrace {
@@ -2996,27 +3024,23 @@ impl GameState {
                 match target {
                     Some(victim_idx) => {
                         connected = true;
-                        let struck_head = {
-                            let victim = &self.players[victim_idx];
-                            let campaign = victim.campaign;
-                            members.iter().any(|pellet| {
-                                crate::combat::head_hit_for(
-                                    pellet.struck_feet_y,
-                                    pellet.end[1],
-                                    campaign,
-                                    pellet.struck_ducking,
-                                )
-                            })
-                        };
                         headed |= struck_head;
+                        // A plate or shutter that turns part of the hit names
+                        // the zone the shooter hears.
+                        let shield = self.shielded_zoned(victim_idx, damage, Some(&trace)).1;
                         let reported = self.shot_results.len();
                         let (hp, armor, died) =
                             self.resolve_fighter_hit(shooter_idx, victim_idx, damage, Some(trace));
-                        // The result just reported says the head band doubled
-                        // damage that landed, so the shooter hears a headshot.
-                        if struck_head && crate::combat::head_bonus(weapon) {
-                            if let Some(result) = self.shot_results.get_mut(reported) {
-                                result.head = result.damage > 0;
+                        let mut landed = false;
+                        if let Some(result) = self.shot_results.get_mut(reported) {
+                            landed = result.damage > 0;
+                            result.zone = shield.or(zone).filter(|_| landed);
+                        }
+                        // A marksman's mast does not survive a landed hit.
+                        if struck_mast && landed {
+                            let id = self.players[victim_idx].id;
+                            if let Some(identity) = self.encounters.break_mast(id) {
+                                self.players[victim_idx].campaign = Some(identity);
                             }
                         }
                         hp_total += hp;
@@ -3035,7 +3059,7 @@ impl GameState {
                             target_hp_after: None,
                             trace: Some(trace),
                             killed: false,
-                            head: false,
+                            zone: None,
                         });
                     }
                 }
@@ -3314,13 +3338,25 @@ impl GameState {
 
     /// An Auditor's shield plate halves traced damage arriving within
     /// `AUDITOR_SHIELD_HALF_ARC` of its facing. Blasts wrap the plate.
-    fn shielded(&self, victim: usize, damage: i32, trace: Option<&ShotTrace>) -> i32 {
+    pub(crate) fn shielded(&self, victim: usize, damage: i32, trace: Option<&ShotTrace>) -> i32 {
+        self.shielded_zoned(victim, damage, trace).0
+    }
+
+    /// [`Self::shielded`] with the zone a plate or shutter names: `plate`
+    /// when it turned part of the hit, `weak` for a Surveyor's open lens.
+    /// `None` leaves the zone the pellets found.
+    pub(crate) fn shielded_zoned(
+        &self,
+        victim: usize,
+        damage: i32,
+        trace: Option<&ShotTrace>,
+    ) -> (i32, Option<HitZone>) {
         let player = &self.players[victim];
         let Some(trace) = trace else {
-            return damage;
+            return (damage, None);
         };
         if damage <= 1 || trace.weapon.ignores_armor() {
-            return damage;
+            return (damage, None);
         }
         // A Surveyor's closed shutter turns two thirds of a traced hit. Its
         // open lens, while observing or projecting, takes the whole hit.
@@ -3331,9 +3367,9 @@ impl GameState {
         }) = player.campaign
         {
             return if matches!(phase, EnemyPhase::Windup | EnemyPhase::Firing) {
-                damage
+                (damage, Some(HitZone::Weak))
             } else {
-                (damage + 2) / 3
+                ((damage + 2) / 3, Some(HitZone::Plate))
             };
         }
         if crate::combat::is_assessor(player.campaign) {
@@ -3352,33 +3388,39 @@ impl GameState {
                 normal[1] < -0.5 || facing > 0.25 || (facing < -0.25 && !recovery)
             };
             if trace.pellets.is_empty() {
-                return self.plated_direct_damage(victim, damage, trace.origin, &trace.impact);
+                return self.plated_direct_zoned(victim, damage, trace.origin, &trace.impact);
             }
-            return trace
+            let feet_y = player.y - PLAYER_FLOOR_Y;
+            let mut plated = false;
+            let total = trace
                 .pellets
                 .iter()
                 .map(|pellet| {
                     let distance = grenade::distance(trace.origin, pellet.end);
-                    let head = crate::combat::head_hit_for(
-                        player.y - PLAYER_FLOOR_Y,
+                    let band = crate::combat::band_for(
+                        feet_y,
                         pellet.end[1],
                         player.campaign,
                         player.ducking,
                     );
-                    let damage = crate::combat::traced_damage(
+                    let (damage, _) = crate::combat::zoned_damage(
                         trace.weapon,
                         trace.weapon.damage_at(distance),
-                        head,
+                        player.campaign,
+                        band,
+                        false,
                     );
                     if protected(&pellet.impact) {
+                        plated = true;
                         (damage + 1) / 2
                     } else {
                         damage
                     }
                 })
                 .sum();
+            return (total, plated.then_some(HitZone::Plate));
         }
-        self.plated_direct_damage(victim, damage, trace.origin, &trace.impact)
+        self.plated_direct_zoned(victim, damage, trace.origin, &trace.impact)
     }
 
     /// Plate on one direct impact. Assessor plates use the struck face.
@@ -3390,13 +3432,24 @@ impl GameState {
         origin: [f32; 3],
         impact: &ShotImpact,
     ) -> i32 {
+        self.plated_direct_zoned(victim, damage, origin, impact).0
+    }
+
+    fn plated_direct_zoned(
+        &self,
+        victim: usize,
+        damage: i32,
+        origin: [f32; 3],
+        impact: &ShotImpact,
+    ) -> (i32, Option<HitZone>) {
         if damage <= 1 {
-            return damage;
+            return (damage, None);
         }
+        let halved = ((damage + 1) / 2, Some(HitZone::Plate));
         let player = &self.players[victim];
         if crate::combat::is_assessor(player.campaign) {
             let ShotImpact::Fighter { normal } = impact else {
-                return damage;
+                return (damage, None);
             };
             let normal = *normal;
             let recovery = matches!(
@@ -3408,7 +3461,7 @@ impl GameState {
             );
             let facing = normal[0] * player.yaw.cos() + normal[2] * player.yaw.sin();
             let protected = normal[1] < -0.5 || facing > 0.25 || (facing < -0.25 && !recovery);
-            return if protected { (damage + 1) / 2 } else { damage };
+            return if protected { halved } else { (damage, None) };
         }
         if !matches!(
             player.campaign,
@@ -3417,19 +3470,19 @@ impl GameState {
                 ..
             })
         ) {
-            return damage;
+            return (damage, None);
         }
         let (dx, dz) = (origin[0] - player.x, origin[2] - player.z);
         if dx.hypot(dz) <= f32::EPSILON {
-            return damage;
+            return (damage, None);
         }
         let arrival = dz.atan2(dx);
         let delta = (arrival - player.yaw).rem_euclid(std::f32::consts::TAU);
         let off_axis = delta.min(std::f32::consts::TAU - delta);
         if off_axis <= AUDITOR_SHIELD_HALF_ARC {
-            (damage + 1) / 2
+            halved
         } else {
-            damage
+            (damage, None)
         }
     }
 
@@ -3615,7 +3668,7 @@ impl GameState {
                 target_hp_after: Some(target_hp_after),
                 trace: Some(trace),
                 killed: died,
-                head: false,
+                zone: None,
             });
         }
         if damage > 0 {

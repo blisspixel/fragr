@@ -532,8 +532,8 @@ impl WeaponType {
             WeaponType::Shiv => 35,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
-            // One aimed hit answers one 70 HP Ranged Sweeper. A Sweeper needs
-            // two, where one Rail hit drops it: the Rail owns the middle.
+            // One hit on its optic answers a 70 HP Ranged Sweeper; its plate turns
+            // half. The Rail owns the middle: one optic hit drops a Sweeper.
             WeaponType::Sniper => 70,
             WeaponType::Repeater => 14,
             WeaponType::Arc => 18,
@@ -863,13 +863,19 @@ pub const TURN_GAMEPLAY_VERSION: u32 = 64;
 /// coalition people who take her) and M17 `custody_started`. A strict reader
 /// at 64 refuses the new side, so Peace Without Interruption requires it.
 pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
+/// Contract 66, one bump shared by two changes. Locational damage:
+/// `ShotResult.zone` (head, torso, legs, plate, weak) replaces the `head` flag,
+/// and a Ranged Sweeper's campaign identity may carry `mast_broken`; a strict
+/// actor reader at 65 refuses the mast, so every map that places a Ranged
+/// Sweeper requires this contract.
+pub const ZONES_GAMEPLAY_VERSION: u32 = 66;
 /// The hold-Tab board's objective credits (`PlayerState.objective`) and the
 /// booth's whole pad clocks (`PadClock.clock`, `PlateFact.clock`). A strict
 /// booth reader at 65 refuses the new pad field, so a shared room moves here.
-pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = 66;
-/// The highest contract: the objective board, after Level 17's custody beat,
-/// the map vote and Level 18's turn.
-pub const GAMEPLAY_VERSION: u32 = OBJECTIVE_BOARD_GAMEPLAY_VERSION;
+pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// The highest contract: locational damage and the objective board, after
+/// Level 17's custody beat, the map vote and Level 18's turn.
+pub const GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 const _: () = assert!(
     GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
         && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
@@ -1525,6 +1531,44 @@ pub struct ProjectileState {
     pub z: f32,
 }
 
+/// Where a damaging traced hit landed. Head, torso and legs are height
+/// bands on the body; `plate` is issued armour that turned part of the hit
+/// (a Union bot's chassis, an Enforcer's breastplate, an Auditor's shield,
+/// an Inheritance machine's off-white shell); `weak` is a weak spot (a Union
+/// bot's red optic or an absorbed bot's cyan light in the same place, a
+/// Heavy Sweeper's rear vent, a Ranged Sweeper's mast, an open lens).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HitZone {
+    Head,
+    Torso,
+    Legs,
+    Plate,
+    Weak,
+}
+
+impl HitZone {
+    /// Which zone a result reports when its pellets struck several: a weak
+    /// spot, then a head, then a plate (the lesson), then torso, then legs.
+    pub fn rank(self) -> u8 {
+        match self {
+            Self::Weak => 4,
+            Self::Head => 3,
+            Self::Plate => 2,
+            Self::Torso => 1,
+            Self::Legs => 0,
+        }
+    }
+
+    /// The more telling of two zones.
+    pub fn most_telling(a: Option<Self>, b: Self) -> Self {
+        match a {
+            Some(a) if a.rank() >= b.rank() => a,
+            _ => b,
+        }
+    }
+}
+
 /// Per-tick fire outcome for observe (hit-confirm without vision).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShotResult {
@@ -1544,11 +1588,13 @@ pub struct ShotResult {
     /// True only for the shot that first takes this target to zero HP.
     #[serde(default)]
     pub killed: bool,
-    /// A pellet of this result struck the head band and doubled damage that
-    /// landed. Presentation only (the shooter's headshot confirm); `damage`
-    /// already counts it. Omitted when false.
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub head: bool,
+    /// Where damage that landed struck the body: the most telling zone of
+    /// this result's pellets. Presentation only (the shooter's marker and
+    /// sound, the victim's recap); `damage` already counts the zone's
+    /// multiplier. Omitted on a miss, when nothing landed, and for weapons
+    /// without zones (Arc, explosives, melee) unless a plate turned them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub zone: Option<HitZone>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -2253,7 +2299,7 @@ mod protocol_tests {
         let shot = ShotResult {
             trace: None,
             killed: false,
-            head: false,
+            zone: None,
             shooter_id,
             shooter: "A".into(),
             hit: true,

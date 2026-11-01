@@ -28,7 +28,9 @@ fn ordinary_route(run: &mut Walkthrough, bypass: bool) {
             run.walk(point);
         }
     }
-    for _ in 0..600 {
+    // Plated Sweepers take longer than the Clerks this budget was first
+    // sized for: hold up to a minute for the last intake guard.
+    for _ in 0..1200 {
         if run.intake.len() == 3 && run.intake.is_subset(&run.defeated) {
             break;
         }

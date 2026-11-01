@@ -3897,7 +3897,7 @@ mod combat_tests {
         ShotResult {
             trace: None,
             killed: false,
-            head: false,
+            zone: None,
             shooter_id: shooter,
             shooter: "S".to_string(),
             hit,
@@ -4719,6 +4719,7 @@ mod planner_tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         let mut snapshot = scene(1, vec![mine, partner, guard], vec![]);

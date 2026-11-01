@@ -1011,6 +1011,21 @@ msgstr "LEFT"
 msgid "HUD_RECAP_AHEAD_LEFT"
 msgstr "AHEAD LEFT"
 
+msgid "HUD_RECAP_ZONE_HEAD"
+msgstr "TO THE HEAD"
+
+msgid "HUD_RECAP_ZONE_TORSO"
+msgstr "TO THE BODY"
+
+msgid "HUD_RECAP_ZONE_LEGS"
+msgstr "TO THE LEGS"
+
+msgid "HUD_RECAP_ZONE_PLATE"
+msgstr "THROUGH THE PLATE"
+
+msgid "HUD_RECAP_ZONE_WEAK"
+msgstr "TO A WEAK SPOT"
+
 msgid "HUD_RECAP_ABOVE"
 msgstr "ABOVE"
 

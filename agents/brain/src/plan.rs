@@ -828,6 +828,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         let mut snap = snapshot(1, vec![mine, partner, guard], vec![]);
@@ -861,6 +862,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         let world = Navigation::new(Arena {
@@ -960,6 +962,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             });
             guard
@@ -1028,6 +1031,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             });
             guard
@@ -1101,6 +1105,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         let world = Navigation::new(Arena {
@@ -1115,6 +1120,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         });
         assert!(!campaign_enemy_engageable(&world, &mine, &guard));

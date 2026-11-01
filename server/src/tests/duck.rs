@@ -1,5 +1,5 @@
 //! Held crouch: a shorter shot volume, a slower step, and a ceiling that keeps it.
-use crate::combat::{aim_at, HEAD_DAMAGE_SCALE, TORSO_HEIGHT};
+use crate::combat::{aim_at, TORSO_HEIGHT};
 use crate::movement::{
     ducked_stance, live_step_with_height, Arena, MoveInput, MoveState, Solid, BODY_HEIGHT, DT_LIVE,
     DUCK_HEIGHT, DUCK_SPEED_SCALE, EYE_HEIGHT, TOP_SPEED,
@@ -76,7 +76,7 @@ fn duck_shortens_the_body_and_a_level_ray_misses() {
     );
     assert_eq!(
         shoot(false, Some(0.0)),
-        body * HEAD_DAMAGE_SCALE,
+        body * 2,
         "the same level ray still hits a standing face"
     );
 }

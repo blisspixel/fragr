@@ -132,6 +132,36 @@ fn shoot(session: &mut GameSession, shooter: Uuid, target: Uuid, weapon: WeaponT
     session.state.set_action(shooter, Action::default());
 }
 
+/// Fire at a body's plated chest, not the lock's weak spot.
+fn shoot_plate(session: &mut GameSession, shooter: Uuid, target: Uuid, weapon: WeaponType) {
+    let t = body(session, target);
+    let point = [t.x, t.y - PLAYER_FLOOR_Y + crate::combat::TORSO_HEIGHT, t.z];
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == shooter)
+        .unwrap();
+    player.inventory.grant_weapon(weapon);
+    player.weapon = weapon;
+    player.fire_cooldown = 0;
+    session.state.set_action(
+        shooter,
+        Action {
+            fire: true,
+            look_at: Some(LookAt {
+                x: Some(point[0]),
+                y: Some(point[1]),
+                z: Some(point[2]),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+    );
+    session.state.tick(0.05);
+    session.state.set_action(shooter, Action::default());
+}
+
 #[test]
 fn turret_tracks_in_place_and_broken_sight_cancels_the_charged_shot() {
     let (mut session, id, turret) = fixture("turret", true);
@@ -177,10 +207,11 @@ fn turret_ignores_a_flank_behind_its_sweep_and_can_be_destroyed_there() {
         assert_eq!(phase(&session, turret), EnemyPhase::Idle);
         assert_eq!(enemy_shots(&session, turret), 0);
     }
-    // A pistol hit is below the stagger threshold: armor does not flinch.
-    shoot(&mut session, id, turret, WeaponType::Tack);
+    // A pistol hit on the plate is far below the stagger threshold: armor
+    // does not flinch, and the plate turns half.
+    shoot_plate(&mut session, id, turret, WeaponType::Tack);
     advance(&mut session, 1);
-    assert_eq!(body(&session, turret).hp, 80);
+    assert_eq!(body(&session, turret).hp, 90);
     assert_ne!(phase(&session, turret), EnemyPhase::Hit);
     shoot(&mut session, id, turret, WeaponType::Rail);
     assert_eq!(phase(&session, turret), EnemyPhase::Dead);
@@ -201,11 +232,12 @@ fn heavy_sweeper_shrugs_light_hits_and_staggers_once_on_a_heavy_one() {
     assert_eq!(body(&session, heavy).hp, 160);
     until(&mut session, heavy, EnemyPhase::Windup, 5);
     let (_, _, _, end) = identity(&session, heavy);
-    shoot(&mut session, id, heavy, WeaponType::Tack);
+    shoot_plate(&mut session, id, heavy, WeaponType::Tack);
     advance(&mut session, 1);
     assert_eq!(phase(&session, heavy), EnemyPhase::Windup, "light hit");
-    assert!(WeaponType::Rail.damage() >= STAGGER_DAMAGE);
-    shoot(&mut session, id, heavy, WeaponType::Rail);
+    assert_eq!(body(&session, heavy).hp, 150, "the plate turns half");
+    assert!(WeaponType::Rail.damage() / 2 >= STAGGER_DAMAGE);
+    shoot_plate(&mut session, id, heavy, WeaponType::Rail);
     advance(&mut session, 1);
     let (_, current, start, stagger_end) = identity(&session, heavy);
     assert_eq!(current, EnemyPhase::Hit);
@@ -259,14 +291,14 @@ fn heavy_sweeper_bursts_four_then_shuffles_sideways_at_a_heavy_gait() {
         }
     }
     assert_eq!(shots, 4);
-    // The burst is four flechettes. Spread can put one in the head band.
+    // The burst is four flechettes. Spread can put one in the head band
+    // (3/2) or the legs (3/4); every shot is one of the three zone values.
     let body_damage = WeaponType::Flechette.damage();
-    let head_damage = body_damage * crate::combat::HEAD_DAMAGE_SCALE;
-    assert!(
-        dealt >= 4 * body_damage
-            && dealt <= 4 * head_damage
-            && (dealt - 4 * body_damage) % body_damage == 0
-    );
+    let (legs, head) = (body_damage * 3 / 4, body_damage * 3 / 2);
+    assert!((4 * legs..=4 * head).contains(&dealt), "{dealt}");
+    assert!((0..=4)
+        .flat_map(|h| (0..=4 - h).map(move |l| (h, l)))
+        .any(|(h, l)| h * head + l * legs + (4 - h - l) * body_damage == dealt));
     assert_eq!(session.state.players[0].hp, 1000 - dealt);
     until(&mut session, heavy, EnemyPhase::Moving, 40);
     let start = (body(&session, heavy).x, body(&session, heavy).z);
@@ -349,6 +381,7 @@ fn new_kinds_are_strict_on_the_actor_wire() {
             phase_started: 10,
             phase_ends: 36,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         let json = serde_json::to_value(actor).unwrap();

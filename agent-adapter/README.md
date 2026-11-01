@@ -430,7 +430,7 @@ Get the current game state. The default detail is `brief`: compact text in `cont
   erase it. Explicit `join` returns an MCP tool error on rejection. A fresh
   attempt or successful Welcome clears the previous error; `act` stays refused
   until a usable snapshot arrives. Missing map identity is null, not Arena Duel.
-- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
+- Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`, and `zone`: `head`, `torso`, `legs`, `plate` or `weak` where damage landed, omitted on a miss or for the Arc, explosives and melee; see "Locational damage" in `docs/protocol.md`). Every fighter shares one hitbox and one zone table; campaign machines punish the chest (`plate`) and reward the red optic (`weak`), and an `act` `look_at` on such a machine aims at its weak spot when the gun's cone fits it and the spot is in sight. A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
 - Fighter `x`/`y`/`z` and shot trace points are rounded to the millimetre, and fighter `yaw`/`pitch` to 1e-4 rad, on the wire only; the server simulates the exact values (see "Quantized motion" in `docs/protocol.md`)
 - `self_player_id`: UUID of your agent's player (null for spectators)
 - `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order. Each stored event is truncated near 2 KiB, and the ring also stops at 32 KiB. An inbound server frame above 64 KiB is ignored.
@@ -984,7 +984,9 @@ Turrets, low Crawlers, stationary Jammers and stationary marksman Ranged
 Sweepers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`,
 `jammer`, `ranged_sweeper`). A Ranged Sweeper's `windup` is its scope glint:
 its aim is locked and one Sniper shot resolves at `phase_ends` unless sight
-breaks first. It sees a peeking head as well as an open body. Jammers introduced capability 23;
+breaks first. It sees a peeking head as well as an open body, out to 90 m, until a
+shot takes its antenna mast (`mast_broken: true` on its campaign identity,
+gameplay 66): then it sees only an open body inside 32 m. Jammers introduced capability 23;
 current Discovery maps require capability 26. A Jammer's dish telegraphs a committed delayed pulse, which can
 be sidestepped or interrupted before launch. Its `Fists` wire weapon does not
 mean it performs melee. Read live `projectiles` rather than treating its firing

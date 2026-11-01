@@ -1,16 +1,21 @@
 extends Node
 class_name HitChime
 
-## The shooter's hit confirm: a sharp metallic tick whose pitch climbs with the
-## damage the server reported, a brighter ping for a headshot and a heavier
+## The shooter's hit confirm, one sound per zone the server reported, so a
+## player can tell where a shot landed by ear alone: a sharp metallic tick
+## for the body whose pitch climbs with damage, a lower shorter tick for the
+## legs, a light clank with a ringing tail when a plate turned the shot, a
+## bright ping for a head, a higher ping still for a weak spot, and a heavier
 ## clang for the shot that put a fighter down. Presentation only: the tier
-## comes from `shot_results` facts (`damage`, `head`, `killed`), never from a
-## client judgement. Plays on the Effects bus, so the Effects volume and mute
-## apply. Automatic fire does not machine-gun it: a confirm inside the gap
-## after the last one is dropped unless it outranks it, and a kill always
+## comes from `shot_results` facts (`damage`, `zone`, `killed`), never from a
+## client judgement. Every tier reuses the three picked chime clips at its
+## own pitch and level. Plays on the Effects bus, so the Effects volume and
+## mute apply. Automatic fire does not machine-gun it: a confirm inside the
+## gap after the last one is dropped unless it outranks it, and a kill always
 ## sounds on its own player so it never cuts a hit off.
 
-enum Tier { BLOCKED, BODY, HEAD, KILL }
+## Ordered by rank: a later tier outranks an earlier one inside the gap.
+enum Tier { BLOCKED, LEGS, PLATE, BODY, HEAD, WEAK, KILL }
 
 const BODY_PATH: String = "res://assets/audio/hit_chime/body.wav"
 const HEAD_PATH: String = "res://assets/audio/hit_chime/head.wav"
@@ -28,13 +33,29 @@ const BODY_DAMAGE_TOP: float = 100.0
 const HEAD_PITCH_LOW: float = 1.0
 const HEAD_PITCH_HIGH: float = 1.12
 const HEAD_DAMAGE_TOP: float = 200.0
+## A weak spot: the head ping lifted clear above any headshot.
+const WEAK_PITCH: float = 1.3
+## Legs: the body tick dropped under the lowest body hit.
+const LEGS_PITCH: float = 0.74
+## A plate: the kill clang lifted to a light clank, quiet, its ring the tail.
+const PLATE_PITCH: float = 1.62
 ## A shield or a teammate stopped the shot: low and quiet.
 const BLOCKED_PITCH: float = 0.8
 const VOLUME_DB: Dictionary = {
 	Tier.BLOCKED: -12.0,
+	Tier.LEGS: -8.0,
+	Tier.PLATE: -9.0,
 	Tier.BODY: -6.0,
 	Tier.HEAD: -4.0,
+	Tier.WEAK: -3.5,
 	Tier.KILL: -3.0,
+}
+const ZONE_TIERS: Dictionary[String, int] = {
+	ShotZone.LEGS: Tier.LEGS,
+	ShotZone.PLATE: Tier.PLATE,
+	ShotZone.TORSO: Tier.BODY,
+	ShotZone.HEAD: Tier.HEAD,
+	ShotZone.WEAK: Tier.WEAK,
 }
 
 ## Tests inject a source: Callable(path: String) -> AudioStream or null.
@@ -64,42 +85,49 @@ func _ready() -> void:
 
 
 ## The tier a reported hit earns. Zero damage is a stopped shot whatever else
-## the result says; a kill outranks a headshot.
-static func tier_for(damage: int, head: bool, killed: bool) -> int:
+## the result says; a kill outranks every zone. A hit without a zone (Arc,
+## explosives, melee) is a body hit.
+static func tier_for(damage: int, zone: String, killed: bool) -> int:
 	if killed:
 		return Tier.KILL
 	if damage <= 0:
 		return Tier.BLOCKED
-	return Tier.HEAD if head else Tier.BODY
+	return ZONE_TIERS.get(ShotZone.parse(zone), Tier.BODY)
 
 
 ## Pitch for a tier and the damage that earned it. Body hits climb with damage;
-## the head and kill tiers have their own clip and a narrow range of their own.
+## the head tier climbs a little; the rest sit at their own pitch.
 static func pitch_for(tier: int, damage: int) -> float:
 	match tier:
 		Tier.BLOCKED:
 			return BLOCKED_PITCH
+		Tier.LEGS:
+			return LEGS_PITCH
+		Tier.PLATE:
+			return PLATE_PITCH
 		Tier.BODY:
 			return lerpf(BODY_PITCH_LOW, BODY_PITCH_HIGH, clampf(float(damage) / BODY_DAMAGE_TOP, 0.0, 1.0))
 		Tier.HEAD:
 			return lerpf(HEAD_PITCH_LOW, HEAD_PITCH_HIGH, clampf(float(damage) / HEAD_DAMAGE_TOP, 0.0, 1.0))
+		Tier.WEAK:
+			return WEAK_PITCH
 	return 1.0
 
 
 static func path_for(tier: int) -> String:
 	match tier:
-		Tier.HEAD:
+		Tier.HEAD, Tier.WEAK:
 			return HEAD_PATH
-		Tier.KILL:
+		Tier.KILL, Tier.PLATE:
 			return KILL_PATH
 	return BODY_PATH
 
 
 ## Play the confirm for one reported hit. Returns the tier that sounded, or -1
 ## when the gap dropped it or no clip exists.
-func confirm(damage: int, head: bool = false, killed: bool = false, now_ms: int = -1) -> int:
+func confirm(damage: int, zone: String = "", killed: bool = false, now_ms: int = -1) -> int:
 	var now: int = Time.get_ticks_msec() if now_ms < 0 else now_ms
-	var tier: int = tier_for(damage, head, killed)
+	var tier: int = tier_for(damage, zone, killed)
 	if tier != Tier.KILL and now - _last_ms < MIN_GAP_MS and tier <= _last_tier:
 		dropped += 1
 		return -1

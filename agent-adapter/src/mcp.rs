@@ -2718,6 +2718,58 @@ mod mcp_tests {
     }
 
     #[test]
+    fn observe_full_names_the_zone_a_shot_struck_and_omits_it_on_a_miss() {
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        sim.pickups.clear();
+        let (shooter, target) = (Uuid::from_u128(94), Uuid::from_u128(95));
+        sim.add_player(shooter, "Shooter".into(), protocol::Role::Agent);
+        sim.add_player(target, "Target".into(), protocol::Role::Agent);
+        let floor = fragr_server::sim::PLAYER_FLOOR_Y;
+        for (index, x) in [(0, 0.0), (1, 8.0)] {
+            let p = &mut sim.players[index];
+            [p.x, p.y, p.z] = [x, floor, 0.0];
+            p.vy = 0.0;
+            p.weapon = protocol::WeaponType::Tack;
+        }
+        sim.spawn_shields.clear();
+        let mut state = ToolState {
+            player_id: Some(shooter),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        for (height, zone) in [(0.45, Some("legs")), (4.0, None)] {
+            sim.players[0].fire_cooldown = 0;
+            sim.set_action(
+                shooter,
+                protocol::Action {
+                    seq: Some(1),
+                    fire: true,
+                    look_at: Some(protocol::LookAt {
+                        x: Some(8.0),
+                        y: Some(height),
+                        z: Some(0.0),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            );
+            sim.tick(0.05);
+            let snapshot = protocol::ServerMessage::Snapshot(sim.snapshot());
+            ingest_server_text(&mut state, &serde_json::to_string(&snapshot).unwrap()).unwrap();
+            let observed = build_observe_result(&state);
+            let shot = &observed["shot_results"][0];
+            assert_eq!(shot.get("zone").and_then(|z| z.as_str()), zone, "{shot}");
+            assert!(shot.get("head").is_none(), "the old flag is gone: {shot}");
+            sim.set_action(shooter, protocol::Action::default());
+            for _ in 0..6 {
+                sim.tick(0.05);
+            }
+        }
+    }
+
+    #[test]
     fn remote_controls_preserve_world_aim_and_strict_observation() {
         let placement = validate_act_arguments(&serde_json::json!({
             "place_remote_mine":true,"look_at":{"x":3,"y":0,"z":0}
@@ -5353,6 +5405,7 @@ mod mcp_tests {
                 phase_started: 1,
                 phase_ends: 9,
                 seated: false,
+                mast_broken: false,
                 control,
             })
         };

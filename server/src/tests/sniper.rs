@@ -256,7 +256,7 @@ fn sniper_table_owns_far_precision_without_reusing_rail_numbers() {
 }
 
 #[test]
-fn a_tight_far_sniper_hit_lands_seventy_with_its_own_trace_and_one_cell() {
+fn a_tight_far_sniper_hit_on_the_plate_lands_half_with_its_own_trace_and_one_cell() {
     let (mut session, id, target) = lane("sweeper", 75.0);
     assert_eq!(body(&session, target).hp, 80);
     session
@@ -281,9 +281,11 @@ fn a_tight_far_sniper_hit_lands_seventy_with_its_own_trace_and_one_cell() {
     assert_eq!(trace(shot).weapon, WeaponType::Sniper);
     assert_ne!(trace(shot).weapon, WeaponType::Rail, "no rail beam source");
     assert_eq!(shot.target_id, Some(target));
-    assert_eq!(shot.damage, 70);
+    // A chest aim meets the Sweeper's plate: half of 70 lands.
+    assert_eq!(shot.damage, 35);
+    assert_eq!(shot.zone, Some(crate::protocol::HitZone::Plate));
     assert!(matches!(trace(shot).impact, ShotImpact::Fighter { .. }));
-    assert_eq!(body(&session, target).hp, 10, "a Sweeper needs two");
+    assert_eq!(body(&session, target).hp, 45, "the plate turns half");
     // One Cell spent; the helper's second grant added another eight.
     assert_eq!(cells(&session, id), 8 + 8 - 1);
 }
@@ -358,7 +360,7 @@ fn a_rail_shot_reaches_nothing_beyond_sixty_metres_where_the_sniper_hits() {
         std::f32::consts::FRAC_PI_2,
         level_pitch(75.0),
     );
-    assert_eq!(body(&session, target).hp, 10);
+    assert_eq!(body(&session, target).hp, 45);
 }
 
 #[test]
@@ -570,11 +572,13 @@ fn a_peeking_head_is_seen_and_rising_first_wins_the_duel() {
         &solids
     ));
     until(&mut session, guard, EnemyPhase::Windup, 20);
-    // The participant rises and fires first: one aimed Sniper hit answers it.
+    // The participant rises and fires first: one Sniper hit on the optic
+    // answers it.
     fire_at(&mut session, id, guard, WeaponType::Sniper);
     let shot = shots_from(&session, id).pop().unwrap();
     assert_eq!(shot.target_id, Some(guard));
-    assert_eq!(shot.damage, 70);
+    assert_eq!(shot.damage, 140);
+    assert_eq!(shot.zone, Some(crate::protocol::HitZone::Weak));
     assert_eq!(phase(&session, guard), EnemyPhase::Dead);
     advance(&mut session, 40);
     assert!(shots_from(&session, guard).is_empty());
@@ -701,6 +705,7 @@ fn the_ranged_sweeper_kind_is_strict_on_the_actor_wire() {
         phase_started: 10,
         phase_ends: 40,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     };
     let value = serde_json::to_value(actor).unwrap();

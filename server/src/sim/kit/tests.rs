@@ -497,6 +497,7 @@ fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
                 phase_started: 0,
                 phase_ends: 0,
                 seated: false,
+                mast_broken: false,
                 control: crate::protocol::ControlDomain::Union,
             }
         });

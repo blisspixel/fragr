@@ -63,10 +63,13 @@ func _recap_lines() -> void:
 	life.record_hit(OTHER, "Bot Two", 25)
 	life.record_hit(RIVAL, "Rival", 60)
 	life.record_frag(SELF, RIVAL, "Rival", 50)
+	life.record_killing_zone("elbow")
+	_check(life.killing_zone.is_empty(), "an unknown zone is refused")
+	life.record_killing_zone("head")
 	life.record_kill_facts("rail", {"id": RIVAL, "x": -23.0, "y": 1.5, "z": 0.0, "hp": 64, "armor": 25})
 	var lines: PackedStringArray = life.recap_lines()
 	_check(lines.size() == 2, "two recap lines: %s" % [lines])
-	_check(lines.size() > 0 and lines[0] == "RAILGUN // 23 M BEHIND YOU // THEY KEPT 64 HP 25 ARMOR", "how, where and what the killer kept: %s" % [lines])
+	_check(lines.size() > 0 and lines[0] == "RAILGUN TO THE HEAD // 23 M BEHIND YOU // THEY KEPT 64 HP 25 ARMOR", "how, where and what the killer kept: %s" % [lines])
 	_check(lines.size() > 1 and lines[1] == "TOOK 125: Rival 100, Bot Two 25", "damage taken by shooter, most first: %s" % [lines])
 	# A body that moved after the death does not move the recap.
 	life.observe_body(_body(50.0, 1.5, 50.0, 1.0))
@@ -75,7 +78,7 @@ func _recap_lines() -> void:
 	life.record_hit(THIRD, "Third", 5)
 	_check(life.recap_lines()[1] == "TOOK 130: Rival 100, Bot Two 25 +1 MORE", "three shooters name two and count the rest: %s" % [life.recap_lines()])
 	life.respawned()
-	_check(life.recap_lines().is_empty() and life.damage_taken() == 0 and life.weapon.is_empty(), "a new life starts with no recap")
+	_check(life.recap_lines().is_empty() and life.damage_taken() == 0 and life.weapon.is_empty() and life.killing_zone.is_empty(), "a new life starts with no recap")
 	# Self-inflicted: the weapon and the damage, no range or killer health.
 	life.observe_body(_body(0.0, 1.5, 0.0, 0.0))
 	life.record_hit(SELF, "Meat", 70)
@@ -88,6 +91,11 @@ func _recap_lines() -> void:
 	life.record_frag(SELF, RIVAL, "Rival", 70)
 	life.record_kill_facts("scatter", null)
 	_check(life.recap_lines() == PackedStringArray(["SHOTGUN"]), "an absent killer leaves range and health unsaid: %s" % [life.recap_lines()])
+	# A plate or a leg shot names itself; a killing zone alone still speaks.
+	life.record_killing_zone("legs")
+	_check(life.recap_lines() == PackedStringArray(["SHOTGUN TO THE LEGS"]), "the killing zone follows the gun: %s" % [life.recap_lines()])
+	life.weapon = ""
+	_check(life.recap_lines() == PackedStringArray(["TO THE LEGS"]), "a zone without a named gun still reads: %s" % [life.recap_lines()])
 
 
 ## Damage taken is what landed: health plus armour lost, never overkill.

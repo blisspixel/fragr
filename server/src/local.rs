@@ -1048,7 +1048,11 @@ mod tests {
             true,
         )
         .unwrap();
-        assert_eq!(m13.gameplay_version, crate::protocol::M13_GAMEPLAY_VERSION);
+        // Missions that place a Ranged Sweeper require locational damage.
+        assert_eq!(
+            m13.gameplay_version,
+            crate::protocol::ZONES_GAMEPLAY_VERSION
+        );
         assert!(m13.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
         let m14 = Ready::new(
             MissionId::LaunchAuthority,
@@ -1057,7 +1061,10 @@ mod tests {
             true,
         )
         .unwrap();
-        assert_eq!(m14.gameplay_version, crate::protocol::M14_GAMEPLAY_VERSION);
+        assert_eq!(
+            m14.gameplay_version,
+            crate::protocol::ZONES_GAMEPLAY_VERSION
+        );
         assert!(m14.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
         let m15 = Ready::new(
             MissionId::CivicPressureValve,
@@ -1090,19 +1097,22 @@ mod tests {
             true,
         )
         .unwrap();
-        assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        // Level 17's custody is the newest campaign contract; the objective
-        // board above it is arcade only, so no level asks for it.
+        // Level 18 places Ranged Sweepers, so it needs the zones contract; Level
+        // 17's custody stays below the newest contract this binary speaks.
+        assert_eq!(
+            m18.gameplay_version,
+            crate::protocol::ZONES_GAMEPLAY_VERSION
+        );
         assert_eq!(
             m17.gameplay_version,
             crate::protocol::VOSS_CUSTODY_GAMEPLAY_VERSION
         );
+        assert!(m17.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
+        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
         assert_eq!(
             crate::protocol::GAMEPLAY_VERSION,
             crate::protocol::OBJECTIVE_BOARD_GAMEPLAY_VERSION
         );
-        assert!(m17.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
-        assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {

@@ -676,13 +676,15 @@ fn sensed_ordinary_attacks_clear_a_defender_then_finish_both_capture_stages() {
 }
 
 #[test]
-fn retained_identity_one_shot_head_kill_still_finishes_both_capture_stages() {
+fn retained_identity_head_blasts_still_finish_both_capture_stages() {
     // Chosen again for the fighter model: identity steers sensed aim, and
-    // this one still opens with a single Scatter blast to the head.
+    // this one opens with Scatter blasts to the head. Locational damage gives
+    // a Scatter pellet 5/4 on the head, so a head blast is no longer a
+    // one-shot kill (it was 2x before): two blasts finish the defender.
     let id = Uuid::from_u128(0xb56644a2_130f_41d8_b221_8f37b87f0000);
     let record = clear_sensed_defender(session_with_first_id(1, id));
     assert_eq!(record.player_id, id);
-    assert_eq!(record.total.attacks(), 1);
+    assert_eq!(record.total.attacks(), 2);
     let shot = record.total.weapon(crate::protocol::WeaponType::Scatter);
     assert_eq!(
         (
@@ -691,7 +693,7 @@ fn retained_identity_one_shot_head_kill_still_finishes_both_capture_stages() {
             shot.hp_damage,
             shot.heads
         ),
-        (1, 1, 100, 1)
+        (2, 1, 100, 2)
     );
 }
 

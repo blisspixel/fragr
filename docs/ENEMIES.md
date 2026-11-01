@@ -52,14 +52,28 @@ the institution's cruelty; do not punish players morally for ordinary self-defen
 Human troops can communicate short tactical orders. Bots use procedural
 fragments. Neither needs constant banter.
 
+## Locational damage (#533)
+
+Every participant shares one hitbox and one table (head, torso, legs; see
+`docs/protocol.md` "Locational damage"). Campaign machines punish the chest and
+reward the red light: the Sweeper, Heavy Sweeper, Ranged Sweeper, Turret and
+Crawler take half on their plated chassis (a grey broken marker and a light
+clank) and double on the red optic for every gun; absorbed bots keep the table,
+their weak spot the cyan working light where the optic was. A Heavy Sweeper
+struck on the back takes half again through its vent. A Ranged Sweeper's mast
+breaks to one landed hit and takes its long sight with it. An Enforcer's
+breastplate halves and its face takes half again. A Paver's off-white shell
+halves; its cyan lens (front) and lit recovery grille (back) take full. No
+limb is ever severed: only issued hardware breaks.
+
 ## Proposed Union roster
 
 | Role | Body/status direction | Attack and tell | Counterplay |
 |---|---|---|---|
 | Clerk | Human security, light issued kit | Visible weapon raise, then one shot. Between bursts it sidesteps, and steps in past 8 m. The raise and the shot stay planted. A seated clerk does not shuffle until it stands | Move, use cover, learn the aim tell, shoot during the sidestep |
 | Sweeper | Bot, standard chassis | Visible raise, then a three-round burst. Between bursts it sidesteps and closes past 8 m. The raise and the burst stay planted | Interrupt or flank between bursts |
-| Ranged Sweeper | Bot with a tall rear antenna mast and a long scoped rifle; holds its platform | A scope glint at windup start, then a held aim (30 ticks Standard, 24 Severe, 40 Assisted) before one 70 damage Sniper shot. Sees a peeking head as well as an open body; notices new targets only within 1.0 rad of its facing | Drop fully behind a sill to cancel the shot, rise and fire first, suppress it (any hit cancels the windup), or flank outside its notice cone. Implemented on its range |
-| Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst. It sidesteps during recovery and shuffles sideways again before the next burst. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
+| Ranged Sweeper | Bot with a tall rear antenna mast and a long scoped rifle; holds its platform | A scope glint at windup start, then a held aim (30 ticks Standard, 24 Severe, 40 Assisted) before one 70 damage Sniper shot. Sees a peeking head as well as an open body; notices new targets only within 1.0 rad of its facing | Drop fully behind a sill to cancel the shot, rise and fire first, suppress it (any hit cancels the windup), shoot its optic (one Sniper hit there drops it), shoot the mast off to end the long sight, or flank outside its notice cone. Implemented on its range |
+| Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst. It sidesteps during recovery and shuffles sideways again before the next burst. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. The rear vent and the red lamp are the soft spots. Implemented |
 | Crawler | Low constrained Union chassis, M02 draft | Locked leap after a visible crouch; mechanical scrabble and caption on encounter reveal | Shotgun, lateral dodge and punishable recovery; live review pending |
 | Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |

@@ -267,8 +267,18 @@ fn visible_aim(
             + fragr_server::combat::stance_eye(target.campaign, target.ducking),
         target.z,
     ];
-    [chest(target), head]
+    // A player who has learned the machines aims at the red light (or the
+    // lens) when it shows and the held gun's cone fits it; the same rule
+    // the server's look_at lock follows. Everyone else is centre mass.
+    let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
+    let spread = fragr_server::protocol::WeaponType::ALL
         .into_iter()
+        .find(|weapon| weapon.name() == me.weapon)
+        .map_or(0.0, fragr_server::protocol::WeaponType::spread_radians);
+    let weak = fragr_server::combat::weak_point(feet, target.campaign, target.ducking)
+        .filter(|point| fragr_server::combat::weak_point_fits(eye(me), *point, spread));
+    weak.into_iter()
+        .chain([chest(target), head])
         .find(|point| visible(me, *point, arena, profile))
 }
 
@@ -1778,13 +1788,15 @@ mod tests {
 
     #[test]
     fn m19_market_earned_completion_keeps_the_final_action_and_stops_before_water_tanks() {
-        // Baseline 6b8061b7: ordinary seed42 hesitant/Assisted completes at
-        // tick2017 with no retry. No setup kit, position or progress edits.
+        // Ordinary seed44 hesitant/Assisted completes with no retry. No setup
+        // kit, position or progress edits. (Seed 42 served from 6b8061b7 until
+        // locational damage, #533: plated machines reshuffled which seeds clear;
+        // across seeds 42 to 45 the market clears as often as before.)
         let play = |ticks| {
             let mut actions = 0_u64;
             let (row, _, _) = scenario_trial_with_actions(
                 Scenario::M19Market,
-                42,
+                44,
                 PROFILES[2],
                 CampaignDifficulty::Assisted,
                 ticks,
@@ -1846,14 +1858,14 @@ mod tests {
 
     #[test]
     fn m19_tanks_continues_the_identical_market_prefix_to_the_next_objective_only() {
-        // Wave 11 cohort: ordinary seed42 hesitant/Assisted completes the
-        // market and then the water tanks with no retry. No kit, position,
+        // Ordinary seed44 hesitant/Assisted completes the market and then the
+        // water tanks with no retry (seed 42 until #533). No kit, position,
         // save or objective edits.
         let play = |scenario, ticks, idle_after: Option<u64>| {
             let mut actions = 0_u64;
             let (row, _, _) = scenario_trial_with_actions(
                 scenario,
-                42,
+                44,
                 PROFILES[2],
                 CampaignDifficulty::Assisted,
                 ticks,

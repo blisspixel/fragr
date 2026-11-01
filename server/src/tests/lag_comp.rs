@@ -332,7 +332,11 @@ fn the_head_band_follows_the_rewound_body() {
     ];
     let results = fire_at(&mut state, head, Some(drawn));
     assert!(hit(&results), "{results:?}");
-    assert!(results[0].head, "{results:?}");
+    assert_eq!(
+        results[0].zone,
+        Some(crate::protocol::HitZone::Head),
+        "{results:?}"
+    );
     // In the present the same ray passes over the landed head.
     let mut state = lane(Role::Human);
     for lift in [1.0, 1.0, 1.0, 0.6, 0.2, 0.0] {
@@ -474,4 +478,42 @@ fn status_publishes_the_rewind_counters_and_names_nobody() {
     let mut bare = session.state.live_status(0);
     session.stamp_ops(&mut bare);
     assert!(bare.ops.is_none());
+}
+
+#[test]
+fn a_rewound_body_and_a_present_body_at_the_same_feet_give_the_same_zone() {
+    // The rewound volume is the jump the client drew; the present one is a
+    // body standing at those same feet. Every band answers alike.
+    let feet = [-3.0, 1.0, 8.0];
+    for (height, zone) in [
+        (1.65, crate::protocol::HitZone::Head),
+        (1.15, crate::protocol::HitZone::Torso),
+        (0.45, crate::protocol::HitZone::Legs),
+    ] {
+        let point = [feet[0], feet[1] + height, feet[2]];
+        let mut rewound = lane(Role::Human);
+        for lift in [1.0, 1.0, 1.0, 0.6, 0.2, 0.0] {
+            let p = rewound.players.iter_mut().find(|p| p.id == TARGET).unwrap();
+            p.y = PLAYER_FLOOR_Y + lift;
+            rewound.tick(0.0);
+        }
+        let drawn = rewound.tick as f64 - 3.0;
+        let then = fire_at(&mut rewound, point, Some(drawn));
+        let mut present = lane(Role::Human);
+        for _ in 0..6 {
+            let p = present.players.iter_mut().find(|p| p.id == TARGET).unwrap();
+            // `fire_at` steps the target once more before the shot.
+            p.x = feet[0] - STEP;
+            p.y = PLAYER_FLOOR_Y + feet[1];
+            present.tick(0.0);
+        }
+        let now = fire_at(&mut present, point, None);
+        assert!(hit(&then) && hit(&now), "{height}: {then:?} {now:?}");
+        assert_eq!(then[0].zone, Some(zone), "{height}");
+        assert_eq!(
+            (then[0].zone, then[0].damage),
+            (now[0].zone, now[0].damage),
+            "{height}"
+        );
+    }
 }

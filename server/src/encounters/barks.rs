@@ -241,6 +241,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: ControlDomain::Union,
         })
     }

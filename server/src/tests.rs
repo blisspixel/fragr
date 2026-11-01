@@ -2179,9 +2179,9 @@ fn a_shot_result_reports_a_headshot_only_when_the_head_doubled_damage() {
             });
         let wire = serde_json::to_value(&result).unwrap();
         assert_eq!(
-            wire.get("head").is_some(),
-            result.head,
-            "head is omitted when false"
+            wire.get("zone").is_some(),
+            result.zone.is_some(),
+            "zone is omitted when nothing landed"
         );
         result
     };
@@ -2189,17 +2189,17 @@ fn a_shot_result_reports_a_headshot_only_when_the_head_doubled_damage() {
     let chest = crate::combat::TORSO_HEIGHT;
     let head = fire(WeaponType::Rail, face, false);
     assert!(
-        head.head && head.damage == 160,
+        head.zone == Some(crate::protocol::HitZone::Head) && head.damage == 160,
         "a Rail to the face: {head:?}"
     );
     let body = fire(WeaponType::Rail, chest, false);
     assert!(
-        !body.head && body.damage == 80,
+        body.zone == Some(crate::protocol::HitZone::Torso) && body.damage == 80,
         "a Rail to the chest: {body:?}"
     );
     let shielded = fire(WeaponType::Rail, face, true);
     assert!(
-        shielded.hit && shielded.damage == 0 && !shielded.head,
+        shielded.hit && shielded.damage == 0 && shielded.zone.is_none(),
         "a shield that took nothing is no headshot: {shielded:?}"
     );
 }
@@ -2261,11 +2261,14 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
                 .sum::<f32>()
                 .sqrt();
             assert!(travelled > 4.4, "pellets stop on the near body surface");
-            crate::combat::traced_damage(
+            crate::combat::zoned_damage(
                 WeaponType::Scatter,
                 WeaponType::Scatter.damage_at(travelled),
-                crate::combat::head_hit_for(0.0, pellet.end[1], None, false),
+                None,
+                crate::combat::band_for(0.0, pellet.end[1], None, false),
+                false,
             )
+            .0
         })
         .sum();
     assert_eq!(
@@ -3354,7 +3357,7 @@ fn test_shot_results_hit_and_hit_event() {
 
 #[test]
 fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
-    use crate::combat::{aim_at, HEAD_DAMAGE_SCALE, TORSO_HEIGHT};
+    use crate::combat::{aim_at, TORSO_HEIGHT};
     use crate::movement::EYE_HEIGHT;
     use crate::sim::PLAYER_FLOOR_Y;
 
@@ -3410,8 +3413,8 @@ fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
     );
     assert_eq!(
         shoot(Some(0.0), WeaponType::Rail, 8.0),
-        body * HEAD_DAMAGE_SCALE,
-        "a level shot at the face doubles"
+        body * 2,
+        "a level Rail shot at the face doubles"
     );
 }
 
@@ -7566,10 +7569,7 @@ mod vertical_aim {
                     assert!((9.5..10.0).contains(&distance));
                     // A level ray from the eye is in the head band.
                     assert!(result.hit && result.killed);
-                    assert_eq!(
-                        result.damage,
-                        WeaponType::Rail.damage() * crate::combat::HEAD_DAMAGE_SCALE
-                    );
+                    assert_eq!(result.damage, WeaponType::Rail.damage() * 2);
                 }
                 p if p < 0.0 => {
                     assert_eq!(
@@ -7916,6 +7916,7 @@ mod sniper;
 mod surveyor;
 mod tick_trace;
 mod traveling_shot;
+mod zones;
 
 #[test]
 fn snapshots_say_when_a_fighter_is_off_the_ground_for_jump_and_landing_sounds() {

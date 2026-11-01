@@ -511,7 +511,7 @@ async fn run_server_impl(
     {
         crate::protocol::M07_GAMEPLAY_VERSION
     } else if session.state.map.requires_sniper_contract() {
-        crate::protocol::SNIPER_GAMEPLAY_VERSION
+        crate::protocol::ZONES_GAMEPLAY_VERSION
     } else if session.state.map.has_custody_devices() {
         crate::protocol::CUSTODY_GAMEPLAY_VERSION
     } else if session.state.map.campaign_mission_id()

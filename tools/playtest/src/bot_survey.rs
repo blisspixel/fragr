@@ -172,6 +172,15 @@ pub struct ScenarioReport {
     pub owned_share: BTreeMap<String, f64>,
     /// Frags by the weapon that landed them.
     pub frag_weapons: BTreeMap<String, u64>,
+    /// Damaging traced hits by the zone they struck (`ShotResult.zone`).
+    #[serde(default)]
+    pub zone_hits: BTreeMap<String, u64>,
+    /// Killing shots by the zone they struck.
+    #[serde(default)]
+    pub kill_zones: BTreeMap<String, u64>,
+    /// Head kills as a share of kills that named a zone (hitscan kills).
+    #[serde(default)]
+    pub head_kill_share: f64,
     /// Captures in CTF; Conquest sites changing hands.
     pub objective_events: u64,
     /// Claims of the power armour (the Custody Plate), per three live minutes.
@@ -393,6 +402,8 @@ struct Tally {
     contested_frags: u64,
     shots: BTreeMap<String, u64>,
     frag_weapons: BTreeMap<String, u64>,
+    zone_hits: BTreeMap<String, u64>,
+    kill_zones: BTreeMap<String, u64>,
     living_ticks: u64,
     hand_ticks: BTreeMap<String, u64>,
     owned_ticks: BTreeMap<String, u64>,
@@ -656,6 +667,12 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
             .map(|(weapon, count)| (weapon.clone(), share(*count, tally.living_ticks)))
             .collect(),
         frag_weapons: tally.frag_weapons.clone(),
+        zone_hits: tally.zone_hits.clone(),
+        kill_zones: tally.kill_zones.clone(),
+        head_kill_share: share(
+            tally.kill_zones.get("head").copied().unwrap_or(0),
+            tally.kill_zones.values().sum(),
+        ),
         objective_events: tally.objective_events,
         plate_claims: tally.plate_claims,
         plate_claims_per_3min: per_minute(tally.plate_claims) * 3.0,
@@ -993,6 +1010,16 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                                     .shots
                                     .entry(trace.weapon.name().to_string())
                                     .or_default() += 1;
+                            }
+                            if let Some(zone) = shot.zone.and_then(|zone| {
+                                serde_json::to_value(zone)
+                                    .ok()
+                                    .and_then(|v| v.as_str().map(str::to_string))
+                            }) {
+                                if shot.killed {
+                                    *tally.kill_zones.entry(zone.clone()).or_default() += 1;
+                                }
+                                *tally.zone_hits.entry(zone).or_default() += 1;
                             }
                         }
                     }

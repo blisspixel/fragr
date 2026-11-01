@@ -1730,6 +1730,10 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			if i == 0 and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_shot.png")) != OK:
 				push_error("qa_tour: could not save full-size acknowledged shot")
 				_failed = true
+			# Every frame at full size, for a mark too small to read in the strip.
+			if state.get("full_frames", false) and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_frame_%d.png" % i)) != OK:
+				push_error("qa_tour: could not save a full-size strip frame")
+				_failed = true
 			if state.get("bottom_crop", false):
 				img = img.get_region(Rect2i((img.get_width() - 384) / 2, img.get_height() - 256, 384, 256))
 			shots.append(img)

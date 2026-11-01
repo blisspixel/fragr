@@ -154,6 +154,9 @@ pub enum CampaignActor {
         phase_ends: u64,
         /// Authored opening pose only while a dormant Clerk sits at a station.
         seated: bool,
+        /// A Ranged Sweeper's antenna mast has been shot off. It never grows
+        /// back; without it the marksman loses its long sight.
+        mast_broken: bool,
         control: ControlDomain,
     },
     Entrant {
@@ -190,6 +193,8 @@ enum ActorWire {
         phase_ends: u64,
         #[serde(default, skip_serializing_if = "not_seated")]
         seated: bool,
+        #[serde(default, skip_serializing_if = "not_seated")]
+        mast_broken: bool,
     },
     Inheritance {
         control: InheritanceControl,
@@ -197,6 +202,8 @@ enum ActorWire {
         phase: EnemyPhase,
         phase_started: u64,
         phase_ends: u64,
+        #[serde(default, skip_serializing_if = "not_seated")]
+        mast_broken: bool,
     },
     Entrant {
         placard: u8,
@@ -230,6 +237,7 @@ impl From<CampaignActor> for ActorWire {
                 phase_started,
                 phase_ends,
                 seated,
+                mast_broken,
                 control,
             } => match control {
                 ControlDomain::Union => Self::Union {
@@ -238,6 +246,7 @@ impl From<CampaignActor> for ActorWire {
                     phase_started,
                     phase_ends,
                     seated,
+                    mast_broken,
                 },
                 ControlDomain::Absorbed | ControlDomain::Restoration => Self::Inheritance {
                     control: if control == ControlDomain::Absorbed {
@@ -249,6 +258,7 @@ impl From<CampaignActor> for ActorWire {
                     phase,
                     phase_started,
                     phase_ends,
+                    mast_broken,
                 },
             },
             CampaignActor::Entrant { placard, armed } => Self::Entrant { placard, armed },
@@ -261,7 +271,7 @@ impl TryFrom<ActorWire> for CampaignActor {
     type Error = &'static str;
 
     fn try_from(wire: ActorWire) -> Result<Self, Self::Error> {
-        let (kind, phase, phase_started, phase_ends, seated, control) = match wire {
+        let (kind, phase, phase_started, phase_ends, seated, mast_broken, control) = match wire {
             ActorWire::Participant {} => return Ok(Self::Participant {}),
             ActorWire::Companion {
                 kind,
@@ -282,12 +292,14 @@ impl TryFrom<ActorWire> for CampaignActor {
                 phase_started,
                 phase_ends,
                 seated,
+                mast_broken,
             } => (
                 kind,
                 phase,
                 phase_started,
                 phase_ends,
                 seated,
+                mast_broken,
                 ControlDomain::Union,
             ),
             ActorWire::Inheritance {
@@ -296,12 +308,14 @@ impl TryFrom<ActorWire> for CampaignActor {
                 phase,
                 phase_started,
                 phase_ends,
+                mast_broken,
             } => (
                 kind,
                 phase,
                 phase_started,
                 phase_ends,
                 false,
+                mast_broken,
                 match control {
                     InheritanceControl::Absorbed => ControlDomain::Absorbed,
                     InheritanceControl::Restoration => ControlDomain::Restoration,
@@ -311,12 +325,17 @@ impl TryFrom<ActorWire> for CampaignActor {
         if !control.admits(kind) {
             return Err("campaign actor kind does not match its control");
         }
+        // Only a marksman carries a mast to lose.
+        if mast_broken && kind != EnemyKind::RangedSweeper {
+            return Err("only a Ranged Sweeper has a mast to break");
+        }
         Ok(Self::Hostile {
             kind,
             phase,
             phase_started,
             phase_ends,
             seated,
+            mast_broken,
             control,
         })
     }
@@ -453,6 +472,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: ControlDomain::Union,
         });
         for kind in [FigureKind::Voss, FigureKind::Coalition] {
@@ -493,6 +513,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: ControlDomain::Union,
         };
         let participant = Some(CampaignActor::Participant {});
@@ -511,6 +532,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: ControlDomain::Union,
         };
         assert!(!turned.at_work() && hostile(Some(turned), participant));
@@ -524,6 +546,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         let companion = CampaignActor::Companion {
@@ -582,6 +605,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: true,
+            mast_broken: false,
             control: Default::default(),
         };
         let seated_json = serde_json::to_string(&seated).unwrap();
@@ -609,6 +633,7 @@ mod tests {
             phase_started: 4,
             phase_ends: 20,
             seated: false,
+            mast_broken: false,
             control,
         };
         let paver = body(EnemyKind::Paver, ControlDomain::Restoration);

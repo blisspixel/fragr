@@ -22,9 +22,12 @@ with `rules.start_kit` is the same contract 55. Local Exception requires 56,
 the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
 fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
 `turn_started`, the `working` campaign phase) is 64. Level 17's custody (the
-`figure` campaign side and M17 `custody_started`) is 65. The hold-Tab board's
-objective credits (`players[].objective`) and the booth's whole pad clocks
-(`clock`) are 66, the highest this build speaks.
+`figure` campaign side and M17 `custody_started`) is 65. Contract 66 adds
+locational damage (`ShotResult.zone` in place of `head`, and a Ranged
+Sweeper's `mast_broken`), the hold-Tab board's objective credits
+(`players[].objective`) and the booth's whole pad clocks (`clock`); it is the
+highest this build speaks. Declared Goods, Weight of Permission, Launch
+Authority and All Systems Normal, which place Ranged Sweepers, require 66.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -166,7 +169,7 @@ Initial handshake message. Must be sent immediately after connection.
   its owner wears and keeps it (see the run file). Additive: no gameplay
   version gates it.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `65`; omission means `1`. Discovery-only maps first
+  and the Godot client send `66`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -397,14 +400,14 @@ arcade room, including free-for-all, team play, capture the flag, Sabotage,
 and the night list, requires the current gameplay contract (`66`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-65 or geometry 2. An older hello is also sent to
+66 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 65 can
-still enter that mission, and a hello above 65 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 66 can
+still enter that mission, and a hello above 66 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -1818,7 +1821,7 @@ instead (see "Snapshot deltas (capability 63)").
 - `shot_results`: (optional, omitted when empty) Every committed fire outcome on
   this tick, including shots from fighters killed during the same tick. Entries
   carry `shooter_id`, `shooter`, `hit`, optional `target_id`/`target`/`target_hp_after`,
-  `damage`, `killed`, optional `head`, and `trace`. Do not join only against surviving `players` to
+  `damage`, `killed`, optional `zone`, and `trace`. Do not join only against surviving `players` to
   count shots or infer their weapon.
 - `projectiles`: (optional, omitted when empty) Points still in flight. Each entry
   is `id`, `x`, `y`, `z` in world metres. The server steps them. A reader that
@@ -1897,13 +1900,62 @@ at most once a tick, so all of one shooter's results in a tick are one shot.
 before armour absorption, including overkill; it is zero on a miss or when that
 committed ray reaches a fighter already killed earlier in the same tick.
 `killed` is true only for the shot that first takes the victim to zero HP. Older
-records default it to false. `head` is present and true when a pellet of that
-result struck the head band of a gun with a head bonus and doubled damage that
-landed (a shield that took nothing is no headshot); `damage` already counts it.
-It drives only the shooter's headshot confirm sound. Committed shots can trade kills; later hits cannot
+records default it to false. `zone` (gameplay 66) names where damage that landed struck: `head`, `torso`,
+`legs`, `plate` or `weak`; see "Locational damage" below. It is omitted on a
+miss, when nothing landed (a shield or a teammate that took nothing), and for
+weapons without zones (the Arc, explosives, melee) unless a plate or shutter
+turned part of the hit. `damage` already counts the zone's multiplier. It
+drives only presentation: the shooter's marker and sound, sparks, and the
+victim's death recap. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
 killer/victim pair. Clients render this evidence without resolving another hit.
 
+#### Locational damage
+
+Gameplay 66. Every traced pellet that strikes a body is scaled by the zone it
+lands in before pellets are summed, so armour, an Auditor's plate and the
+Arc's bypass still see one total. Zones are height bands on the body's
+cylinder, read on the volume the ray met (the rewound one for a
+lag-compensated shot), all dropped 0.45 m when the body is crouched:
+
+| Band | Standing | Notes |
+|---|---|---|
+| Head | 1.45 m to the crown | Short and flying bodies use the top quarter |
+| Torso | 0.85 to 1.45 m | Arms count as torso. Short and flying bodies below the head band |
+| Legs | feet to 0.85 m | None on short or flying bodies |
+
+Multipliers are integer ratios applied rounded down, never below 1:
+
+| Weapon | Head | Torso | Legs |
+|---|---|---|---|
+| Railgun, Sniper, Tack | 2 | 1 | 3/4 |
+| Flechette, Repeater | 3/2 | 1 | 3/4 |
+| Scatter (per pellet) | 5/4 | 1 | 3/4 |
+| Arc, Rocket, Fists, Shiv, Article Blade | no zones | | |
+
+Every participant, human or agent, synthetic or not, has the same volume and
+the same table. Campaign bodies extend it by kind; absorbed bots keep their
+chassis table (the cyan working light sits where the red optic was):
+
+| Body | Head band | Torso band | Legs |
+|---|---|---|---|
+| Sweeper, Heavy Sweeper, Ranged Sweeper, Turret, Crawler | `weak` 2 (the optic), any zoned gun | `plate` 1/2; a Heavy Sweeper struck on the back is `weak` 3/2 (the vent) | `legs` 3/4 |
+| Ranged Sweeper mast (a 0.2 m radius column 0.4 m tall on the crown) | | | `weak` 1, and the mast breaks |
+| Enforcer | `head` 3/2 | `plate` 1/2 | `legs` 1 |
+| Paver | front `weak` 1 (the lens); back `plate` 1/2 | `plate` 1/2; back while in `recovery` `weak` 1 (the grille) | `plate` 1/2 |
+| Surveyor | its shutter rule: `plate` (a third) while closed, `weak` (whole) while the lens is open | | |
+| Everyone else | weapon table | | |
+
+An Assessor's or an Auditor's plate that turns part of a hit reports `plate`.
+A broken mast is permanent for that body: its identity carries
+`mast_broken: true`, it no longer has a mast volume, and it loses the long
+sight (it sees to 32 m, not 90 m, and only an open body, not a peeking head).
+
+An `Action.look_at` with a `player_id` on a body whose chest is plated (the
+Union bot chassis, the Enforcer, the Paver) aims at the middle of its head
+band when that point is in sight and the aimer's gun cone there is at most
+0.3 m in radius (`combat::weak_point_fits`); otherwise it keeps the
+usual chest or hip line. Arcade fighters are never affected.
 #### SpectatorFacts
 
 The booth: facts the server broadcasts only to spectator connections, the
@@ -1998,6 +2050,8 @@ only Union machines (`sweeper`, `heavy_sweeper`, `turret`, `crawler`,
 never are, and only a `paver` or a `surveyor` (capability 56) is restoration and
 never `union`. An Inheritance
 body never carries `seated`. Both sides are equally hostile to participants;
+A `ranged_sweeper` on either side may carry `mast_broken: true` (capability 66)
+once a shot has taken its antenna mast; any other kind, or `false`, is refused.
 clients and agents must not infer control from a kind or appearance. Authored
 encounter placements carry the same optional `control` (absent means `union`),
 validated against the kind before the map loads.
@@ -3810,7 +3864,7 @@ readiness. Shared arcade rooms require the aggregate capability 55. Rules stay 4
 | Civic Pressure Valve | 1015 | 51 | `m15` | `tunnel_closed`, `gates_open` |
 | Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
 | Peace Without Interruption | 1017 | 65 | `m17` | `core_unsealed`, `voss_captured` |
-| All Systems Normal | 1018 | 64 | `m18` | `roadblock_active`, `concourse_evac_completed` |
+| All Systems Normal | 1018 | 66 | `m18` | `roadblock_active`, `concourse_evac_completed` |
 | Planned Works | 1019 | 55 | `m19` | `gate_open` |
 
 Each block registers six ordered `objectives`, a `departure` Use target and

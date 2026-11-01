@@ -2449,7 +2449,62 @@ func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 	# crosshair over a tan floor is a crosshair nobody can see.
 	_sync_crosshair_edges()
 
-func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
+## The four ticks' resting rectangles (left, top, right, bottom offsets), read
+## once from the scene so every zone shape returns to the same marker.
+var _hit_mark_rects: Array[Rect2] = []
+
+## Marker scale per zone: a bigger mark for a head or a weak spot, a smaller
+## one for the legs. Level always: zones change size and colour, never angle.
+const ZONE_MARK_SCALE: Dictionary[String, float] = {
+	ShotZone.HEAD: 1.4, ShotZone.WEAK: 1.4, ShotZone.LEGS: 0.72, ShotZone.PLATE: 1.0,
+}
+## A plate's ticks keep only their outer part: a broken mark, in grey.
+const PLATE_TICK_SHARE: float = 0.45
+
+## Shape the hit marker for one zone. A plate is the grey broken mark; a
+## head or weak spot is larger and held a little longer.
+func _shape_hit_marker(zone: String) -> void:
+	if hit_marker == null:
+		return
+	if _hit_mark_rects.is_empty():
+		for mark: Node in hit_marker.get_children():
+			if mark is ColorRect:
+				var rect: ColorRect = mark as ColorRect
+				_hit_mark_rects.append(Rect2(rect.offset_left, rect.offset_top, rect.offset_right, rect.offset_bottom))
+	var broken: bool = zone == ShotZone.PLATE
+	var index: int = 0
+	for mark: Node in hit_marker.get_children():
+		if not mark is ColorRect or index >= _hit_mark_rects.size():
+			continue
+		var rect: ColorRect = mark as ColorRect
+		var rest: Rect2 = _hit_mark_rects[index]
+		index += 1
+		var left: float = rest.position.x
+		var top: float = rest.position.y
+		var right: float = rest.size.x
+		var bottom: float = rest.size.y
+		if broken:
+			# Keep the end of each tick farthest from the centre.
+			var horizontal: bool = absf(right - left) > absf(bottom - top)
+			if horizontal:
+				var cut: float = (right - left) * (1.0 - PLATE_TICK_SHARE)
+				if absf(left) > absf(right):
+					right -= cut
+				else:
+					left += cut
+			else:
+				var cut_v: float = (bottom - top) * (1.0 - PLATE_TICK_SHARE)
+				if absf(top) > absf(bottom):
+					bottom -= cut_v
+				else:
+					top += cut_v
+		rect.offset_left = left
+		rect.offset_top = top
+		rect.offset_right = right
+		rect.offset_bottom = bottom
+	hit_marker.scale = Vector2.ONE * float(ZONE_MARK_SCALE.get(zone, 1.0))
+
+func show_hit_marker(damage: int = 0, weapon_name: String = "", zone: String = "") -> void:
 	# Light grit confirm when local / followed player scores a hit.
 	if not fp_juice_enabled and client_mode == "SPECTATING":
 		# Spectator follow path still gets a brief marker.
@@ -2477,6 +2532,17 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 					hit_marker_timer = 0.14
 				_:
 					col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
+		var shown_zone: String = ShotZone.parse(zone) if damage > 0 else ShotZone.NONE
+		match shown_zone:
+			ShotZone.PLATE:
+				# Grey, lifted enough to read over a dark chassis and a pale wall.
+				col = MenuTheme.alpha(MenuTheme.MUTED.lightened(0.3), 0.95)
+			ShotZone.WEAK:
+				col = MenuTheme.alpha(MenuTheme.EMBER, 0.95)
+				hit_marker_timer += 0.08
+			ShotZone.HEAD:
+				hit_marker_timer += 0.08
+		_shape_hit_marker(shown_zone)
 		hit_marker.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, col.a)
 		for mark: Node in hit_marker.get_children():
 			if mark is ColorRect:
@@ -2494,6 +2560,7 @@ func show_kill_marker() -> void:
 	hit_marker_timer = 0.45
 	hit_marker_fade = 0.3
 	hit_marker.visible = true
+	_shape_hit_marker(ShotZone.NONE)
 	hit_marker.scale = Vector2.ONE * 1.6
 	hit_marker.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 1.0)
 	for mark: Node in hit_marker.get_children():
@@ -2501,11 +2568,11 @@ func show_kill_marker() -> void:
 			(mark as ColorRect).color = MenuTheme.DANGER
 
 ## The hit confirm for one reported shot, from the server's facts: the damage
-## sets a body hit's pitch, `head` and `killed` pick their own tier.
-func confirm_hit(damage: int, head: bool = false, killed: bool = false) -> int:
+## sets a body hit's pitch, `zone` and `killed` pick their own tier.
+func confirm_hit(damage: int, zone: String = "", killed: bool = false) -> int:
 	if hit_chime == null:
 		return -1
-	return hit_chime.confirm(damage, head, killed)
+	return hit_chime.confirm(damage, zone, killed)
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read

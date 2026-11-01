@@ -321,6 +321,7 @@ fn use_requires_live_participant_range_aim_and_clear_sight() {
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    mast_broken: false,
                     control: Default::default(),
                 })
             }
@@ -928,6 +929,7 @@ fn target_filter_preserves_mission_route_through_inventory_and_steering() {
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        mast_broken: false,
         control: Default::default(),
     });
     guard.x = 4.0;

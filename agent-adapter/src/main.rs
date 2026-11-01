@@ -1704,6 +1704,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 44,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             })
         };
@@ -1748,6 +1749,7 @@ mod tests {
                 phase_started: 0,
                 phase_ends: 14,
                 seated: false,
+                mast_broken: false,
                 control: Default::default(),
             }),
         );
@@ -2482,6 +2484,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 40,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         let clerk = protocol::CampaignActor::Hostile {
@@ -2490,6 +2493,7 @@ mod tests {
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            mast_broken: false,
             control: Default::default(),
         };
         for player in &mut snapshot.players {

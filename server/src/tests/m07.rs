@@ -706,8 +706,8 @@ fn m07_seeded_rack_sniper_takes_the_lesson_from_the_step_and_the_arrival_counts(
         .expect("the participant fired");
     assert_eq!(
         (shot.target_id, shot.damage),
-        (Some(marksman), 70),
-        "one scoped-range Sniper hit answers the glint"
+        (Some(marksman), 140),
+        "one scoped-range Sniper hit on the optic answers the glint"
     );
     advance(&mut s, 3);
     let state = s.state.mission_state().unwrap();
@@ -845,6 +845,8 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
         crate::protocol::M08_GAMEPLAY_VERSION,
         crate::protocol::M07_GAMEPLAY_VERSION,
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+        // Declared Goods places Ranged Sweepers, so it needs locational damage.
+        crate::protocol::ZONES_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -868,12 +870,12 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
-                        assert_eq!(value["type"], "error", "pre-town reader admitted");
+                    if version < crate::protocol::ZONES_GAMEPLAY_VERSION {
+                        assert_eq!(value["type"], "error", "pre-zone reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");
                         assert!(value["message"].as_str().unwrap().contains(&format!(
                             "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                            crate::protocol::ZONES_GAMEPLAY_VERSION
                         )));
                         break;
                     }

@@ -1129,6 +1129,12 @@ impl Encounters {
         Some(enemy.identity())
     }
 
+    /// Break a Ranged Sweeper's mast. Returns its new identity when it broke.
+    pub(crate) fn break_mast(&mut self, id: Uuid) -> Option<CampaignActor> {
+        let (_, enemy) = self.enemies.iter_mut().find(|(_, enemy)| enemy.id == id)?;
+        enemy.break_mast().then(|| enemy.identity())
+    }
+
     pub(crate) fn claim_crawler_contact(&mut self, id: Uuid) -> bool {
         self.enemies
             .iter_mut()
