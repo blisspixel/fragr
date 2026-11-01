@@ -270,6 +270,7 @@ mod tests {
             remaining_continues: 2,
             level_start_continues: CAMPAIGN_CONTINUES,
             body: None,
+            dress: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             content_sha256: [7; 32],
             m03_outcome: None,

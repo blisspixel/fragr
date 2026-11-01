@@ -324,6 +324,7 @@ func _ready():
 		return (flash as Control).global_position + (flash as Control).size * 0.5 if flash is Control else Vector2.INF
 	arena_vehicles = ArenaVehicles.new()
 	arena_vehicles.name = "Vehicles"
+	arena_vehicles.clock = view_clock
 	add_child(arena_vehicles)
 	vehicle_hud = VehicleHud.new()
 	vehicle_hud.name = "VehicleHud"
@@ -424,6 +425,7 @@ func _ready():
 	
 	_awaiting_map = true
 	net_client.requested_body = settings.player_body()
+	net_client.requested_dress = settings.player_dress()
 	net_client.connect_to_server(role, player_name)
 	hud.set_mode(str(boot.get("hud_mode", "SPECTATING")))
 	_setup_radio()
@@ -598,6 +600,7 @@ func _apply_arena_sky(map_name: String = "") -> void:
 	RenderQuality.apply_environment(world.environment, settings)
 	ArenaSky.apply_scene_lights(get_node_or_null("Arena/Layout"), map_name)
 	ArenaSky.apply_view_fill(get_node_or_null("SpectatorCamera/Camera3D") as Camera3D, map_name)
+	FighterRim.set_venue(ArenaSky.preset_for(map_name).fighter_rim)
 	RenderQuality.apply_practicals(self, settings)
 
 
@@ -660,6 +663,7 @@ func _on_map_info(info: Dictionary) -> void:
 	if marksman_audio != null:
 		marksman_audio.reset()
 	local_prediction.configure_map(info)
+	FootstepSurface.configure(info)
 	if mission_hud != null:
 		mission_hud.geometry = net_client.mission_geometry
 	_clear_predicted_pawn()
@@ -1794,6 +1798,7 @@ func change_role(play: bool) -> void:
 	# visible. A new role needs a fresh world gate, including clearing that error.
 	_begin_world_load()
 	net_client.requested_body = settings.player_body()
+	net_client.requested_dress = settings.player_dress()
 	net_client.connect_to_server("human" if play else "spectator", settings.player_name())
 	hud.set_mode(("CAMPAIGN" if local_match != null else "PLAYING") if play else "SPECTATING")
 	hud.set_ghost_rival("")
@@ -2101,6 +2106,8 @@ func _apply_local_prediction(now_usec: int = -1) -> void:
 		pawn.set_predicted_position(shown, velocity.length())
 		if pawn.has_method("set_ducking"):
 			pawn.set_ducking(local_prediction.presented_ducking(now_usec))
+		if pawn.has_method("set_predicted_airborne"):
+			pawn.set_predicted_airborne(local_prediction.presented_airborne(now_usec))
 	elif pawn.has_method("clear_predicted_position"):
 		pawn.clear_predicted_position()
 
@@ -3195,6 +3202,10 @@ func _on_snapshot_received(data):
 			pawn.position = Vector3(player_data.x, player_data.y, player_data.z)
 			pawn.rotation.y = ServerYaw.pawn_rotation_y(float(player_data.yaw))
 			pawn.set_player_data(id, player_data.name)
+			# One render time for every fighter: the one Actions report.
+			var timeline: Variant = pawn.get("remote_presentation")
+			if timeline is RemotePresentation:
+				(timeline as RemotePresentation).clock = view_clock
 			players[id] = pawn
 		
 		if players.has(id):
@@ -3265,6 +3276,7 @@ func _on_snapshot_received(data):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_present_rocket_launches()
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)), pre_fp, pre_cam_xform, pre_alive)
+	_duck_music_for_combat(data)
 	if entered_vehicle:
 		# The entry snapshot can still carry a resolved handheld shot. Consume
 		# that receipt first, then drop reservations without cutting mount audio.
@@ -3431,7 +3443,7 @@ func _on_event_received(data):
 			frag_sound.play()
 		
 		if is_human_player and _is_local_victim(victim_id):
-			_on_local_frag(victim_id, killer_id, killer_name)
+			_on_local_frag(victim_id, killer_id, killer_name, data.get("weapon"))
 		elif not is_human_player and killer_id != "" and camera:
 			camera.director_observe_frag(data, killer_id)
 			camera.lock_on_frag(killer_id, 2.0)
@@ -3504,6 +3516,7 @@ func _on_event_received(data):
 		var valid_dmg: bool = (dmg is int or dmg is float) and int(dmg) > 0
 		var hit_tick: int = int(data.get("tick", -1))
 		if is_human_player and my_id != "" and target_id == my_id and valid_dmg:
+			local_life.record_hit(data.get("shooter_id"), data.get("shooter"), dmg, data.get("target_hp_after"))
 			if hit_tick < 0 or hit_tick != _last_damage_flash_tick:
 				_last_damage_flash_tick = hit_tick
 				if hud and hud.has_method("show_damage_flash"):
@@ -3552,6 +3565,9 @@ func _on_event_received(data):
 			viewers.append(str(net_client.player_id))
 		var side: String = MatchRules.valid_team(data.get("team"))
 		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers, side, _viewer_side())
+	elif event_type == "checkpoint":
+		if hud:
+			hud.show_checkpoint()
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))
 		if hud and not notice.is_empty():
@@ -3858,6 +3874,7 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	for pdata in player_list:
 		if str(pdata.get("id", "")) != pid:
 			continue
+		local_life.observe_body(pdata)
 		if _adopt_local_spawn_snapshot and (_retry_snapshot_tick < 0 or int(latest_snapshot.get("tick", -1)) >= _retry_snapshot_tick):
 			var pawn: Node = players.get(pid)
 			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
@@ -3932,13 +3949,27 @@ func _is_local_victim(victim_id: String) -> bool:
 
 ## The frag fact for this player's own death. It may land before or after the
 ## snapshot that removes the body; either order ends this life's input now.
-func _on_local_frag(victim_id: String, killer_id: String, killer_name: String) -> void:
+func _on_local_frag(victim_id: String, killer_id: String, killer_name: String, weapon: Variant = null) -> void:
 	if _mission_map():
 		return
 	local_life.record_frag(victim_id, killer_id, killer_name, int(latest_snapshot.get("tick", -1)))
+	# The recap reads the killer where this tick's snapshot put them.
+	local_life.record_kill_facts(weapon, _snapshot_row(killer_id))
 	_end_life_input()
 	if local_fp_pawn_id.is_empty():
 		_begin_death_view()
+
+## The latest snapshot's row for one fighter, or null when it is not in it.
+func _snapshot_row(id: String) -> Variant:
+	if id.is_empty():
+		return null
+	var rows: Variant = latest_snapshot.get("players")
+	if not rows is Array:
+		return null
+	for row: Variant in rows:
+		if row is Dictionary and str((row as Dictionary).get("id", "")) == id:
+			return row
+	return null
 
 ## Stop the dead life's prediction, local fire and every queued press.
 func _end_life_input() -> void:
@@ -4026,7 +4057,7 @@ func _update_death_presentation(now_usec: int) -> void:
 	if not net_client.equipment.is_empty():
 		carried = _carried_weapons()
 	var lines: PackedStringArray = local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried), _team_seat)
-	hud.show_death_card(lines, _team_seat)
+	hud.show_death_card(lines, _team_seat, local_life.recap_lines())
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.
@@ -4045,6 +4076,32 @@ func _present_rocket_launches() -> void:
 		if not predicted and (is_local or followed_first_person) and hud != null and hud.has_method("show_fire_juice"):
 			_show_fire_juice("Rocket")
 
+## Combat near the listener ducks the radio and the campaign score through
+## one CombatDuck rule, once per snapshot tick.
+var _combat_duck_tick: int = -1
+
+func _duck_music_for_combat(data: Dictionary) -> void:
+	var tick: int = int(data.get("tick", -1))
+	if tick <= _combat_duck_tick or (radio == null and campaign_score == null):
+		return
+	_combat_duck_tick = tick
+	var listener_camera: Camera3D = get_viewport().get_camera_3d()
+	var listener: Vector3 = listener_camera.global_position if listener_camera != null and listener_camera.is_inside_tree() else Vector3.INF
+	var listener_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
+	var positions: Dictionary = {}
+	for id: Variant in players:
+		var pawn: Node = players[id]
+		if is_instance_valid(pawn) and pawn is Node3D and pawn.is_inside_tree():
+			positions[str(id)] = (pawn as Node3D).global_position
+	var shots: int = CombatDuck.shots_near(data.get("shot_results", []), listener_id, listener, positions)
+	var blasts: int = CombatDuck.blasts_near(data.get("explosions", []), listener)
+	if shots == 0 and blasts == 0:
+		return
+	if radio != null and radio.has_method("combat"):
+		radio.combat(shots, blasts)
+	if campaign_score != null:
+		campaign_score.combat(shots, blasts)
+
 func _process_shot_results(results, tick: int, captured_fp: bool = false, captured_xform: Transform3D = Transform3D.IDENTITY, captured_alive: bool = false) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
 		return
@@ -4053,8 +4110,6 @@ func _process_shot_results(results, tick: int, captured_fp: bool = false, captur
 	last_shot_tick = tick
 	if shot_effects != null:
 		shot_effects.ingest(tick, results)
-	if campaign_score != null:
-		campaign_score.combat(results.size())
 	if m01_intake != null:
 		m01_intake.observe_shots(results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""

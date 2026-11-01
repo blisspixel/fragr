@@ -81,7 +81,7 @@ func _run() -> void:
 	text_size_opt.select(1)
 	text_size_opt.item_selected.emit(1)
 	var team_colours_opt: OptionButton = panel.find_child("team_colours", true, false) as OptionButton
-	_check(team_colours_opt != null and team_colours_opt.item_count == 2 and team_colours_opt.selected == 0, "team colours defaults to Standard")
+	_check(team_colours_opt != null and team_colours_opt.item_count == 3 and team_colours_opt.selected == 0, "team colours defaults to Standard, with the red-green safe choice offered")
 	team_colours_opt.select(1)
 	team_colours_opt.item_selected.emit(1)
 	_check(preferences.fov() == 75, "draft must not change active preferences")

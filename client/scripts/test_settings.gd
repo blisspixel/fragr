@@ -225,9 +225,9 @@ func _initialize() -> void:
 		if int(a11y.get_value("accessibility", "text_size")) != 0:
 			push_error("test_settings: invalid text_size must fall back to 0: " + str(bad))
 			ok = false
-		a11y.set_value("accessibility", "team_colours", bad)
+		a11y.set_value("accessibility", "team_colours", 3 if bad is int and bad == 2 else bad)
 		if int(a11y.get_value("accessibility", "team_colours")) != 0:
-			push_error("test_settings: invalid team_colours must fall back to 0: " + str(bad))
+			push_error("test_settings: invalid team_colours must fall back to 0: " + str(3 if bad is int and bad == 2 else bad))
 			ok = false
 	a11y.set_value("accessibility", "screen_flashes", 0)
 	a11y.set_value("accessibility", "hud_scale", 150)
@@ -255,13 +255,25 @@ func _initialize() -> void:
 		if host.get_value("host", "maps_off") != []:
 			push_error("test_settings: a bad rotation list falls back whole: " + str(bad_off))
 			ok = false
+	# The bots' rung: one of the five, Regular by default and on refusal.
+	if host.get_value("host", "bot_skill") != "regular":
+		push_error("test_settings: bots default to the Regular rung")
+		ok = false
+	for bad_skill: Variant in ["elite", "", 2, null, ["regular"]]:
+		host.set_value("host", "bot_skill", "headliner")
+		host.set_value("host", "bot_skill", bad_skill)
+		if host.get_value("host", "bot_skill") != "regular":
+			push_error("test_settings: an unknown rung falls back to Regular: " + str(bad_skill))
+			ok = false
+	host.set_value("host", "bot_skill", "no-crumbs")
 	host.set_value("host", "maps_off", [7])
 	host.set_value("host", "rotate", false)
 	host.save_to_disk()
 	var host_loaded: RefCounted = script.new(test_path)
 	host_loaded.load_from_disk()
-	if host_loaded.get_value("host", "maps_off") != [7] or host_loaded.get_value("host", "rotate") != false:
-		push_error("test_settings: the host rotation did not survive the disk")
+	if host_loaded.get_value("host", "maps_off") != [7] or host_loaded.get_value("host", "rotate") != false \
+			or host_loaded.get_value("host", "bot_skill") != "no-crumbs":
+		push_error("test_settings: the host choices did not survive the disk")
 		ok = false
 
 	DirAccess.remove_absolute(test_path)

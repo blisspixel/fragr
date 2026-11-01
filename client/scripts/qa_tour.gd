@@ -228,6 +228,19 @@ func _run() -> void:
 				quit(1)
 				return
 
+		if state.has("profile_look") or state.has("profile_accent"):
+			# The saved look and accent the profile page and the next join use.
+			var dressing: FragrSettings = FragrSettings.for_tree(self)
+			dressing.load_from_disk()
+			for key: String in ["look", "accent"]:
+				if state.has("profile_" + key):
+					dressing.set_value("profile", key, int(state["profile_" + key]))
+					if _game_manager() != null:
+						_game_manager().settings.set_value("profile", key, int(state["profile_" + key]))
+					var menu: Node = get_root().get_node_or_null("BootMenu")
+					if menu != null and menu.get("_settings") is FragrSettings:
+						(menu.get("_settings") as FragrSettings).set_value("profile", key, int(state["profile_" + key]))
+			dressing.save_to_disk()
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
 		if not menu_page.is_empty():
@@ -248,6 +261,16 @@ func _run() -> void:
 				var index: int = (boot.get("HOST_MODES") as Array).find(str(state["host_mode"]))
 				(boot.get("_host_mode") as OptionButton).select(index)
 				boot.call("_change_host_mode", index)
+				await process_frame
+			if menu_page == "host" and state.has("host_bot_skill"):
+				# A bot rung, picked the way the row does.
+				var skill_boot: Node = get_root().get_node("BootMenu")
+				var skill_index: int = LocalHost.BOT_SKILLS.find(str(state["host_bot_skill"]))
+				if skill_index < 0:
+					push_error("qa_tour: unknown host_bot_skill " + str(state["host_bot_skill"]))
+					_failed = true
+				else:
+					(skill_boot.get("_host_bot_skill") as OptionButton).select(skill_index)
 				await process_frame
 			if menu_page == "host" and state.has("host_preset"):
 				# A preset, any stacked twists and the fold, as a host picks them.
@@ -812,6 +835,7 @@ func _run() -> void:
 				observed["local_feet"] = [feet.x, feet.y, feet.z]
 		if is_instance_valid(_body_pawn):
 			observed["body"] = _body_pawn.get("body_kind")
+			observed["body_look"] = _body_pawn.get("look")
 			observed["body_team"] = _body_pawn.get("team")
 			observed["body_name"] = _body_pawn.get("player_name")
 			observed["body_frame_clear"] = _body_frame_clear
@@ -1058,8 +1082,10 @@ func _record_audio(seconds: float, state_index: int) -> Dictionary:
 	return _finish_audio("%02d_audio.wav" % state_index, seconds * 0.8)
 
 func _begin_audio(state_name: String) -> bool:
-	# Master receives Effects, Radio and Voice. The effect observes that bus
-	# before its final fader, so its level is useful for relative QA only.
+	# Master receives Effects, Radio and Voice. The effect is appended after the
+	# Master limiter and before the final fader (the Master volume setting,
+	# 0.9 by default, about -0.9 dB), so a loudness reading of the capture is
+	# that much above what leaves the game at default settings.
 	if _audio_recorder != null:
 		push_error("qa_tour: audio recording is already active")
 		return false

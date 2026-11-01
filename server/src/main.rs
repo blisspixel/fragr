@@ -24,6 +24,11 @@ struct Args {
     #[arg(long, value_enum, default_value = "fixed", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     bot_policy: fragr_server::bot_fill::BotPolicy,
 
+    /// How good the rule bots are, lowest first: tourist, walk-in, regular,
+    /// headliner or no-crumbs. Every rung keeps the same honest eyes.
+    #[arg(long, value_enum, default_value = "regular", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    bot_skill: fragr_server::sim::BotSkill,
+
     /// Desired total fighter count for automatic fill, 1 through 10.
     #[arg(long, default_value = "0", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     fill_target: usize,
@@ -450,6 +455,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         bots: args.bots,
         bot_policy: args.bot_policy,
         fill_target: args.fill_target,
+        bot_skill: args.bot_skill,
         map,
         authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
         difficulty: args.difficulty,
@@ -761,6 +767,27 @@ mod tests {
         assert_eq!(args.map, "1");
         assert!(!args.map_rotate);
         assert!(!args.solo_broadcast);
+        assert_eq!(args.bot_skill, fragr_server::sim::BotSkill::Regular);
+    }
+
+    #[test]
+    fn bot_skill_takes_every_rung_and_refuses_others() {
+        for skill in fragr_server::sim::BotSkill::ALL {
+            let args = Args::try_parse_from(["fragr-server", "--bot-skill", skill.id()])
+                .expect("every rung parses");
+            assert_eq!(args.bot_skill, skill);
+        }
+        assert!(Args::try_parse_from(["fragr-server", "--bot-skill", "elite"]).is_err());
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--desktop-host",
+            "--bind",
+            "127.0.0.1:0",
+            "--bot-skill",
+            "no-crumbs",
+        ])
+        .expect("a desktop host picks its rung");
+        assert_eq!(args.bot_skill, fragr_server::sim::BotSkill::NoCrumbs);
     }
 
     #[test]
@@ -1371,6 +1398,7 @@ mod tests {
                     difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
+                    bot_skill: fragr_server::sim::BotSkill::default(),
                     bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
                     fill_target: 0,
                     map: fragr_server::sim::MapKind::ArenaDuel,

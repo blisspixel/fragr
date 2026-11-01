@@ -7,6 +7,7 @@ use crate::protocol::{
 use std::borrow::Cow;
 pub(crate) mod platform;
 
+#[derive(Clone)]
 pub(super) struct M05Progress {
     pub(super) index: usize,
     pub(super) freight_open: bool,
@@ -20,6 +21,12 @@ pub(super) struct M05Progress {
     boarding_until: u64,
 }
 impl M05Progress {
+    /// A checkpoint restored `by` ticks later keeps the boarding hold and tram clock.
+    pub(super) fn shift_ticks(&mut self, by: u64) {
+        self.boarding_until = self.boarding_until.saturating_add(by);
+        self.tram.tick = self.tram.tick.saturating_add(by);
+    }
+
     pub(super) fn new(g: M05MapGeometry) -> Self {
         let settling_routes = worker_settling_routes(&g);
         Self {

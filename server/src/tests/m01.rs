@@ -645,7 +645,7 @@ fn m01_optional_caches_are_walking_detours_in_both_lift_states() {
 }
 
 #[test]
-fn m01_optional_caches_are_consumed_once_and_restore_on_continue() {
+fn m01_optional_caches_are_consumed_once_and_restore_to_the_retry_save() {
     let mut run = Walkthrough::configured(Role::Human, true);
     run.walk([0.0, 0.0, -26.0]);
     run.walk([0.0, 0.0, -21.0]);
@@ -713,6 +713,9 @@ fn m01_optional_caches_are_consumed_once_and_restore_on_continue() {
         assert!(pad.respawn_timer.is_none());
     }
     let before = run.session.state.mission_state().unwrap();
+    // A retry returns to the latest checkpoint: its caches, health, armor
+    // and weapon, or the level entry before the first checkpoint.
+    let saved = run.session.state.campaign_checkpoint_view();
     run.session.state.players[0].hp = 0;
     run.session.tick_messages(0.05);
     assert!(run.session.state.continue_mission(
@@ -723,10 +726,30 @@ fn m01_optional_caches_are_consumed_once_and_restore_on_continue() {
             attempt: before.attempt,
         },
     ));
-    run.assert_optional_caches_unclaimed();
-    assert_eq!(run.session.state.players[0].hp, 100);
-    assert_eq!(run.session.state.players[0].armor, 0);
-    assert_eq!(run.session.state.players[0].weapon, WeaponType::Fists);
+    let player = &run.session.state.players[0];
+    match saved {
+        Some((hp, armor, weapon, pads)) => {
+            assert_eq!(
+                (player.hp, player.armor, player.weapon),
+                (hp, armor, weapon)
+            );
+            for (id, available) in pads {
+                let pad = run
+                    .session
+                    .state
+                    .pickups
+                    .iter()
+                    .find(|p| p.id == id)
+                    .unwrap();
+                assert_eq!(pad.available, available, "{id} as the checkpoint left it");
+            }
+        }
+        None => {
+            run.assert_optional_caches_unclaimed();
+            assert_eq!((player.hp, player.armor), (100, 0));
+            assert_eq!(player.weapon, WeaponType::Fists);
+        }
+    }
     assert_eq!(
         run.session
             .state

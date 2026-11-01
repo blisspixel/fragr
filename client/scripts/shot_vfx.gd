@@ -38,6 +38,13 @@ const MUZZLE_LOOK: Dictionary[String, Dictionary] = {
 	"Rocket": {"scale": 2.4, "seconds": 0.09, "light": Color("ffa848"), "energy": 3.6, "range": 5.0},
 }
 
+## Caps on every transient light a fight switches on (#521): a gun's flash,
+## the eye's muzzle light, a blast. A shot lights a pool round its source,
+## never the whole deck. `client/scripts/test_transient_lights.gd` holds
+## every table to them.
+const TRANSIENT_MAX_ENERGY: float = 6.0
+const TRANSIENT_MAX_RANGE: float = 10.0
+
 ## Fallback presentation for a gun without its own row.
 const MUZZLE_DEFAULT: String = "Flechette"
 

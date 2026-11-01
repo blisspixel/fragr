@@ -23,8 +23,11 @@ It is not this transport and it does not carry snapshots or inputs.
 **Current playable path.** Spectators and agents share this transport with humans. The local pawn predicts and reconciles movement on the 20 Hz WebSocket path. The [continuous moving-combat probe](plans/websocket-moving-combat-probe.md) measured correction, fallback, cadence and payload on loopback. The [delayed-egress probe](plans/websocket-delayed-egress.md) passed nine 20-second Windows-to-WSL sessions with 0, 40 and 80 ms server-egress delay. Those sessions shared one physical machine and injected no loss or jitter. Competitive feel still needs a two-machine, unsteered human session. The earlier [Action-to-Ack baseline](plans/human-action-ack-baseline.md) samples server-selected Actions; its send-to-Ack interval is not general input latency or RTT.
 
 **Local presentation increment, 2026-09-30.** Remote participant bodies now have
-a bounded tick timeline with a 100 ms render buffer, coherent yaw/pitch and
-hold-only stale fallback. Spectator eyes use the same transform time and chase
+a bounded tick timeline with a render buffer, coherent yaw/pitch and
+hold-only stale fallback. Since wave 21 (#525) the buffer is adaptive: 60 ms
+(1.2 ticks) on a steady link, widening toward 100 ms only on measured arrival
+jitter, and every fighter is drawn at the one render time the Action reports
+([measurements](BENCHMARK.md#netcode-and-frame-feel-525-wave-21)). Spectator eyes use the same transform time and chase
 weights are frame independent. Local prediction takes precedence. Campaign
 enemies and companions retain their existing phase/shot clock. This implements
 participant transform interpolation. Bounded hitscan lag compensation (gameplay

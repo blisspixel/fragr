@@ -123,7 +123,7 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	_check(digest.size() == 32, "fixture binds actual current M05 content")
 	var fixture: Dictionary = {
 		"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 0,
-		"level_start_continues": 2, "body": "synthetic", "rules": {"difficulty": "severe", "revision": MissionState.RULES_REVISION},
+		"level_start_continues": 2, "body": "synthetic", "dress": null, "rules": {"difficulty": "severe", "revision": MissionState.RULES_REVISION},
 		"content_sha256": digest, "m03_outcome": {"liberated_cars": ["platform_car", "roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["workshop_agent_b", "splice", "workshop_agent_a"], "evacuated_workers": ["workshop_agent_a", "splice"]},

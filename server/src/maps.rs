@@ -33,6 +33,7 @@ pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) use authored::m17::{Custody, CUSTODY_IN_PACE, CUSTODY_OUT_PACE};
 pub(crate) mod holdfast;
 pub(crate) mod larak_lot;
+pub mod ledges;
 pub(crate) mod low_water;
 #[cfg(test)]
 pub(crate) use authored::epilogue as epilogue_authored;
@@ -40,6 +41,7 @@ pub(crate) use authored::m11::SpinePatrol;
 pub(crate) use authored::m20 as m20_authored;
 pub(crate) use authored::walker::overlaps as walker_solids_overlap;
 mod runtime;
+pub mod timing;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
 
@@ -278,6 +280,53 @@ pub(crate) fn sabotage_layout(kind: MapKind) -> Option<&'static SabotageLayout> 
         | MapKind::TripointWorks
         | MapKind::HoldfastAtoll => None,
     }
+}
+
+/// Per site, A first: the two points a holding defender watches. One is
+/// where the shortest walk from the attackers' spawn comes into view of the
+/// site, the other where the walk from the attack's stage does. Both are read
+/// off the navigation graph once per map: lanes, never sightings.
+pub(crate) type SiteWatch = [[[f32; 3]; 2]; 2];
+
+/// A watched lane is followed out from the site this far at most, metres.
+const WATCH_REACH: f32 = 30.0;
+
+pub(crate) fn sabotage_watch(kind: MapKind) -> Option<&'static SiteWatch> {
+    static WATCH: [OnceLock<Option<SiteWatch>>; MapKind::ALL.len()] =
+        [const { OnceLock::new() }; MapKind::ALL.len()];
+    WATCH[kind.index()]
+        .get_or_init(|| {
+            let layout = sabotage_layout(kind)?;
+            let world = navigation(kind);
+            let eye = |p: [f32; 3]| [p[0], p[1] + 1.6, p[2]];
+            let attack = &layout.spawns[1];
+            let spawn = attack.iter().fold([0.0; 3], |sum, p| {
+                [sum[0] + p[0], sum[1] + p[1], sum[2] + p[2]]
+            });
+            let count = attack.len().max(1) as f32;
+            let spawn = [spawn[0] / count, spawn[1] / count, spawn[2] / count];
+            let lane = |site: [f32; 3], from: [f32; 3]| {
+                let route = world.route(site, from, crate::navigation::SEARCH_LIMIT);
+                let mut seen = from;
+                for point in route.points.iter().skip(1) {
+                    let far = (point[0] - site[0]).hypot(point[2] - site[2]);
+                    if far > WATCH_REACH || !world.line_of_sight(eye(site), eye(*point)) {
+                        break;
+                    }
+                    seen = *point;
+                }
+                seen
+            };
+            let mut watch = [[[0.0; 3]; 2]; 2];
+            for (index, site) in layout.wire.sites.iter().enumerate() {
+                watch[index] = [
+                    lane(site.center, spawn),
+                    lane(site.center, layout.stages[index][0]),
+                ];
+            }
+            Some(watch)
+        })
+        .as_ref()
 }
 
 fn personal_tack_pad(id: &str, x: f32, z: f32) -> ArenaPickup {

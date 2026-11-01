@@ -7,6 +7,7 @@
 //! produce sound effects and music beds that are committed as ordinary assets.
 
 pub mod casting;
+pub mod loudness;
 pub mod review;
 pub mod score;
 

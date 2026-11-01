@@ -3,7 +3,8 @@ use super::*;
 use crate::inventory::Inventory;
 use crate::mission::run_file::{RunDocument, SavedEntry, SavedStep};
 use crate::protocol::{
-    BodyKind, CampaignRunState, CampaignRunStatus, MissionContinue, WeaponType, CAMPAIGN_CONTINUES,
+    BodyKind, CampaignRunState, CampaignRunStatus, Dress, MissionContinue, WeaponType,
+    CAMPAIGN_CONTINUES,
 };
 
 #[cfg(test)]
@@ -63,6 +64,9 @@ pub(super) struct SoloRun {
     saved_entry: Option<SavedEntry>,
     exit: Option<SavedEntry>,
     body: Option<BodyKind>,
+    dress: Option<Dress>,
+    /// This level's mid-level checkpoints (`checkpoint.rs`).
+    pub(super) checkpoints: super::checkpoint::Schedule,
 }
 
 struct Entry {
@@ -101,6 +105,10 @@ impl SoloRun {
 
     pub fn body(&self) -> Option<BodyKind> {
         self.body
+    }
+
+    pub fn dress(&self) -> Option<Dress> {
+        self.dress
     }
 
     pub fn capture_exit(&mut self, exit: SavedEntry) {
@@ -163,6 +171,29 @@ impl GameState {
             .and_then(SoloRun::body)
     }
 
+    /// The dress a campaign run bound for its owner `id`, if any.
+    pub(crate) fn campaign_run_dress_for(&self, id: Uuid) -> Option<Dress> {
+        let solo = self.mission.as_ref()?.solo.as_ref()?;
+        if solo.owner != Some(id) {
+            return None;
+        }
+        solo.dress
+    }
+
+    /// Bind the owner's first dress to the run, which keeps it from then on.
+    pub(crate) fn bind_campaign_run_dress(&mut self, id: Uuid, dress: Dress) {
+        let Some(solo) = self
+            .mission
+            .as_mut()
+            .and_then(|mission| mission.solo.as_mut())
+        else {
+            return;
+        };
+        if solo.owner == Some(id) && solo.dress.is_none() {
+            solo.dress = Some(dress);
+        }
+    }
+
     pub fn enable_campaign_run(&mut self) -> Result<(), &'static str> {
         if self.tick != 0 || !self.players.is_empty() {
             return Err("campaign run must be configured before admission");
@@ -209,6 +240,8 @@ impl GameState {
             saved_entry: None,
             exit: None,
             body: None,
+            dress: None,
+            checkpoints: Default::default(),
         });
         Ok(())
     }
@@ -247,6 +280,7 @@ impl GameState {
         };
         solo.saved_entry = Some(entry.clone());
         solo.body = document.body;
+        solo.dress = document.dress;
         solo.carried_recall_cars = document
             .m03_outcome
             .as_ref()
@@ -335,6 +369,9 @@ impl GameState {
             player.body = body;
         } else {
             solo.body = Some(player.body);
+        }
+        if let Some(dress) = solo.dress {
+            player.dress = dress;
         }
         let Some(saved) = solo.saved_entry.as_ref() else {
             return Ok(());
@@ -445,6 +482,9 @@ impl GameState {
         {
             return false;
         }
+        if solo.checkpoints.has_checkpoint() {
+            return self.continue_from_checkpoint(player_id, request);
+        }
         let Some(entry) = &solo.entry else {
             return false;
         };
@@ -471,6 +511,7 @@ impl GameState {
         self.scores.insert(player_id, entry.score);
         self.spawn_shields.clear();
         solo.state.continues -= 1;
+        solo.checkpoints.restart(self.tick);
         solo.state.status = CampaignRunStatus::Playing;
         // The retry, and everything its reset draws, runs on its own stream,
         // whether it opens in this process or from a saved pending Continue.

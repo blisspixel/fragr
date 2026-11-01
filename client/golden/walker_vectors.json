@@ -116,6 +116,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 81,
             "id": "00000000-0000-0000-0000-000000000418",
             "just_fired": false,
@@ -280,12 +283,16 @@
         ],
         "players": [
           {
+            "airborne": true,
             "armor": 0,
             "body": "human",
             "campaign": {
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 41,
             "id": "00000000-0000-0000-0000-000000000418",
             "just_fired": false,
@@ -1447,12 +1454,16 @@
     ],
     "players": [
       {
+        "airborne": true,
         "armor": 0,
         "body": "human",
         "campaign": {
           "side": "participant"
         },
         "collidable": true,
+        "dress": {
+          "look": 0
+        },
         "hp": 40,
         "id": "00000000-0000-0000-0000-000000000418",
         "just_fired": false,

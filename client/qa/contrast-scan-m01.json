@@ -1,0 +1,134 @@
+{
+ "comment": "Contrast scan of M01's guards from the golden route's posed eye-height views (built from m01-golden-guards.json, each view held about five seconds while client/qa/contrast_scan.gd reads every actor it sees 10 to 40 m away). FRAGR_QA_SCRIPT=res://qa/contrast_scan.gd FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=<level map>.",
+ "width": 1280,
+ "height": 720,
+ "states": [
+  {
+   "name": "arrival",
+   "scene": "res://scenes/main.tscn",
+   "join": "human",
+   "camera": "first_person",
+   "at_seconds": 4
+  },
+  {
+   "name": "intake_clerk",
+   "camera": "overview",
+   "camera_position": [
+    1,
+    1.65,
+    -19
+   ],
+   "camera_look_at": [
+    -8,
+    1.0,
+    -17
+   ],
+   "at_seconds": 9
+  },
+  {
+   "name": "intake_clerk_close",
+   "camera": "overview",
+   "camera_position": [
+    -4.5,
+    1.65,
+    -15.5
+   ],
+   "camera_look_at": [
+    -8,
+    1.1,
+    -17
+   ],
+   "at_seconds": 14
+  },
+  {
+   "name": "transfer_guards",
+   "camera": "overview",
+   "camera_position": [
+    -4,
+    4.65,
+    25
+   ],
+   "camera_look_at": [
+    -3,
+    4.0,
+    17
+   ],
+   "at_seconds": 19
+  },
+  {
+   "name": "transfer_sweeper_close",
+   "camera": "overview",
+   "camera_position": [
+    -3.5,
+    4.65,
+    20.5
+   ],
+   "camera_look_at": [
+    -1,
+    4.1,
+    18
+   ],
+   "at_seconds": 24
+  },
+  {
+   "name": "stacks_clerk",
+   "camera": "overview",
+   "camera_position": [
+    -32,
+    4.65,
+    22.5
+   ],
+   "camera_look_at": [
+    -32,
+    4.0,
+    16
+   ],
+   "at_seconds": 29
+  },
+  {
+   "name": "stacks_sweeper",
+   "camera": "overview",
+   "camera_position": [
+    -32,
+    4.65,
+    22.5
+   ],
+   "camera_look_at": [
+    -31.5,
+    4.0,
+    27
+   ],
+   "at_seconds": 34
+  },
+  {
+   "name": "sorting_guards",
+   "camera": "overview",
+   "camera_position": [
+    -24,
+    4.65,
+    38
+   ],
+   "camera_look_at": [
+    -18,
+    4.0,
+    37.5
+   ],
+   "at_seconds": 39
+  },
+  {
+   "name": "dispatch_guards",
+   "camera": "overview",
+   "camera_position": [
+    -9.5,
+    4.65,
+    32
+   ],
+   "camera_look_at": [
+    -3,
+    4.0,
+    37
+   ],
+   "at_seconds": 44
+  }
+ ]
+}

@@ -66,6 +66,9 @@ pub struct ToolState {
     /// Body the next Hello requests: `--body` at start, or the last `join`
     /// that named one. A resumed or already admitted pawn keeps its own.
     pub body: protocol::BodyKind,
+    /// Look and accent the next Hello asks for: the last `join` that named
+    /// one. `None` lets the server assign the least-worn look.
+    pub dress: Option<protocol::Dress>,
     /// What the joined fighter has seen of the pads, for `observe`.
     pub pads: crate::pads::PadView,
     /// Hello as a spectator that never fights (`mcp --watch`): a caster's
@@ -94,6 +97,7 @@ impl Default for ToolState {
             session_name: None,
             map: None,
             body: protocol::BodyKind::Human,
+            dress: None,
             pads: crate::pads::PadView::default(),
             watch: false,
             booth: None,
@@ -173,7 +177,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
 
 const LOOK_AT_ALLOWED_KEYS: &[&str] = &["x", "y", "z", "player_id"];
 
-const JOIN_ALLOWED_KEYS: &[&str] = &["name", "body"];
+const JOIN_ALLOWED_KEYS: &[&str] = &["name", "body", "look", "accent"];
 
 fn validate_mission_ready(
     arguments: Value,
@@ -465,6 +469,32 @@ pub fn validate_join_body(arguments: &Value) -> Result<Option<protocol::BodyKind
             .map(Some)
             .map_err(|_| "schema error: join.body must be \"human\" or \"synthetic\"".to_string()),
     }
+}
+
+/// Optional `join.look` and `join.accent`: roster indices the server
+/// checks again. `None` when neither is named.
+pub fn validate_join_dress(arguments: &Value) -> Result<Option<protocol::Dress>, String> {
+    let mut request = serde_json::Map::new();
+    for key in ["look", "accent"] {
+        match arguments.get(key) {
+            None | Some(Value::Null) => {}
+            Some(value) => {
+                request.insert(key.into(), value.clone());
+            }
+        }
+    }
+    if request.is_empty() {
+        return Ok(None);
+    }
+    serde_json::from_value(Value::Object(request))
+        .map(Some)
+        .map_err(|_| {
+            format!(
+                "schema error: join.look must be 0 to {} and join.accent 0 to {}",
+                protocol::HUMAN_LOOKS.max(protocol::SYNTHETIC_LOOKS) - 1,
+                protocol::ACCENTS - 1
+            )
+        })
 }
 
 pub fn validate_join_arguments(arguments: &Value, default_name: &str) -> Result<String, String> {
@@ -902,7 +932,9 @@ fn tools_list_body() -> Value {
                     "type": "object",
                     "properties": {
                         "name": {"type": "string", "description": "Display name for Hello (optional; defaults to adapter --name)"},
-                        "body": {"type": "string", "enum": ["human", "synthetic"], "description": "Body for the new pawn: a human, or a free agent in a synthetic body. Presentation only; it changes no combat rule. Defaults to adapter --body, then human"}
+                        "body": {"type": "string", "enum": ["human", "synthetic"], "description": "Body for the new pawn: a human, or a free agent in a synthetic body. Presentation only; it changes no combat rule. Defaults to adapter --body, then human"},
+                        "look": {"type": "integer", "minimum": 0, "maximum": 7, "description": "Roster look on that body: 0 to 7 for a human, 0 to 4 for a synthetic body (a look the body lacks is assigned instead). Omitted lets the server give you the least-worn look. Presentation only"},
+                        "accent": {"type": "integer", "minimum": 0, "maximum": 7, "description": "Personal accent colour, worn as a wrist band (and tape when sideless): 0 ember, 1 marigold, 2 moss, 3 magenta, 4 violet, 5 cobalt, 6 lilac, 7 sand. The Union side of a team match wears issued red instead"}
                     },
                     "required": [],
                     "additionalProperties": false
@@ -1577,14 +1609,19 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
 
                     match validate_join_arguments(&arguments, &state.default_name)
                         .and_then(|name| validate_join_body(&arguments).map(|body| (name, body)))
-                    {
-                        Ok((join_name, body)) => {
+                        .and_then(|(name, body)| {
+                            validate_join_dress(&arguments).map(|dress| (name, body, dress))
+                        }) {
+                        Ok((join_name, body, dress)) => {
                             if state.connected && state.watch && state.player_id.is_none() {
                                 // A booth seat steps down from the booth and
                                 // hellos again as a fighter.
                                 state.watch = false;
                                 if let Some(body) = body {
                                     state.body = body;
+                                }
+                                if dress.is_some() {
+                                    state.dress = dress;
                                 }
                                 pending_join = Some(join_name.clone());
                                 tool_ok_text(&format!(
@@ -1600,6 +1637,9 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                             } else {
                                 if let Some(body) = body {
                                     state.body = body;
+                                }
+                                if dress.is_some() {
+                                    state.dress = dress;
                                 }
                                 pending_join = Some(join_name.clone());
                                 tool_ok_text(&format!("Joining as '{}'; Hello pending", join_name))
@@ -2640,6 +2680,41 @@ mod mcp_tests {
         forged["mines"][0]["phase_ends"] = serde_json::json!(40);
         ingest_server_text(&mut state, &forged.to_string()).unwrap();
         assert_eq!(build_observe_result(&state)["mines"][0]["phase"], "arming");
+    }
+
+    #[test]
+    fn observe_full_carries_a_jumping_fighter_as_airborne_and_omits_it_grounded() {
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        let id = Uuid::from_u128(93);
+        sim.add_player(id, "Hopper".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        sim.tick(0.05);
+        let grounded = protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&grounded).unwrap()).unwrap();
+        assert!(build_observe_result(&state)["players"][0]
+            .get("airborne")
+            .is_none());
+        sim.set_action(
+            id,
+            protocol::Action {
+                seq: Some(1),
+                jump: true,
+                ..Default::default()
+            },
+        );
+        sim.tick(0.05);
+        let rising = protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&rising).unwrap()).unwrap();
+        assert_eq!(
+            build_observe_result(&state)["players"][0]["airborne"],
+            serde_json::json!(true)
+        );
     }
 
     #[test]
@@ -4097,6 +4172,20 @@ mod mcp_tests {
     }
 
     #[test]
+    fn campaign_checkpoint_reaches_agents_as_a_bare_event() {
+        let mut state = ToolState::default();
+        let wire = protocol::ServerMessage::Event(protocol::GameEvent::Checkpoint {});
+        let text = serde_json::to_string(&wire).unwrap();
+        assert_eq!(text, r#"{"type":"event","event":"checkpoint"}"#);
+        ingest_server_text(&mut state, &text).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(
+            observed["recent_events"][0],
+            serde_json::json!({"event": "checkpoint"})
+        );
+    }
+
+    #[test]
     fn campaign_barks_reach_agents_as_keyed_facts() {
         use protocol::{BarkRegister, CompanionBarkKind, EnemyBarkKind, EnemyKind, GameEvent};
         let mut state = ToolState::default();
@@ -4207,6 +4296,7 @@ mod mcp_tests {
         let name = "ArenaFox";
         let hello = protocol::ClientMessage::Hello {
             body: None,
+            dress: None,
             seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -4538,6 +4628,50 @@ mod mcp_tests {
             &mut state,
         );
         assert_eq!(out.pending_join.as_deref(), Some("FromFlag"));
+    }
+
+    #[test]
+    fn join_look_and_accent_select_the_next_hello_dress() {
+        let mut state = ToolState::default();
+        assert_eq!(state.dress, None);
+        for (arguments, accepted) in [
+            (serde_json::json!({"look": 8}), false),
+            (serde_json::json!({"accent": -1}), false),
+            (serde_json::json!({"look": "res://look.png"}), false),
+            (serde_json::json!({"look": 1.5}), false),
+            (serde_json::json!({"colour": "red"}), false),
+            (serde_json::json!({"look": 6, "accent": 3}), true),
+        ] {
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"join","arguments":arguments})),
+                ),
+                &mut state,
+            );
+            assert_eq!(out.pending_join.is_some(), accepted, "{arguments}");
+        }
+        let chosen = protocol::Dress {
+            look: Some(6),
+            accent: Some(3),
+        };
+        assert_eq!(state.dress, Some(chosen));
+        // A join without a look keeps the last choice.
+        handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"join","arguments":{"body":"human"}})),
+            ),
+            &mut state,
+        );
+        assert_eq!(state.dress, Some(chosen));
+        // The look rides the snapshot beside the body, untouched.
+        state.last_snapshot = Some(serde_json::json!({"tick":1, "players":[
+            {"id":Uuid::nil().to_string(), "body":"human", "dress":{"look":6,"accent":3}}]}));
+        assert_eq!(
+            build_observe_result(&state)["players"][0]["dress"],
+            serde_json::json!({"look":6,"accent":3})
+        );
     }
 
     #[test]

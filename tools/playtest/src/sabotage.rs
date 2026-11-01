@@ -49,6 +49,8 @@ pub struct RoundRecord {
     pub seconds: f64,
     pub planted: bool,
     pub frags: u32,
+    /// The site the attack went for, "a" or "b".
+    pub site: String,
 }
 
 /// One match per seed.
@@ -99,6 +101,8 @@ pub struct SurveyReport {
     pub detonations_by_site: BTreeMap<String, u32>,
     pub defuses_by_site: BTreeMap<String, u32>,
     pub attacker_round_share: f64,
+    /// The attack's round share by the site it went for, "a" or "b".
+    pub attacker_share_by_site: BTreeMap<String, f64>,
     /// Matches where one group of fighters stood 0 to 3, and how many of
     /// those that group still won.
     pub comeback_chances: u32,
@@ -137,6 +141,18 @@ pub fn run_survey(config: &SurveyConfig) -> SurveyReport {
         .count();
     let total = report.rounds.len().max(1);
     report.attacker_round_share = attacker as f64 / total as f64;
+    for site in ["a", "b"] {
+        let played: Vec<&RoundRecord> = report.rounds.iter().filter(|r| r.site == site).collect();
+        if !played.is_empty() {
+            let won = played
+                .iter()
+                .filter(|r| r.winner == Some(Team::Coalition))
+                .count();
+            report
+                .attacker_share_by_site
+                .insert(site.to_string(), won as f64 / played.len() as f64);
+        }
+    }
     report.comeback_chances = report.matches.iter().filter(|m| m.fell_behind_0_3).count() as u32;
     report.comebacks = report.matches.iter().filter(|m| m.came_back).count() as u32;
     report.comeback_rate = f64::from(report.comebacks) / f64::from(report.comeback_chances.max(1));
@@ -151,6 +167,9 @@ pub fn run_survey(config: &SurveyConfig) -> SurveyReport {
 
 fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
     let mut session = GameSession::with_map(config.map, false);
+    // Numbered fighters: aim error and reaction mix the fighter id, so random
+    // ids would make two runs of one seed differ.
+    session.state.use_replay_ids();
     session.state.seed(seed);
     session.state.apply_config(MatchConfig {
         frag_limit: None,
@@ -281,6 +300,7 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
                         seconds,
                         planted,
                         frags,
+                        site: site_id(session.state.sabotage_attack_site()),
                     });
                     people.round(winning_team, result.match_winner, result.match_over);
                     if result.sides_swap {
@@ -403,6 +423,7 @@ mod tests {
             seconds,
             planted: reason != SabotageReason::Time,
             frags: 2,
+            site: "a".to_string(),
         }
     }
 

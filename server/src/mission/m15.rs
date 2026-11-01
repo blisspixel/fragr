@@ -14,7 +14,7 @@ use uuid::Uuid;
 /// A participant this close to an armed entrant's shot line blocks the shot.
 const ENTRANT_FIRE_CLEARANCE: f32 = 0.7;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct M15Progress {
     pub(super) index: usize,
     pub(super) challenges: M15ChallengeState,

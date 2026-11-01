@@ -111,6 +111,7 @@
     },
     {
       "id": "forecourt_assault",
+      "brawl": true,
       "regions": [{"min": [20, 0, -14], "max": [42, 4, 14]}],
       "enemies": [
         {"id": "forecourt_enforcer_a", "kind": "enforcer", "feet": [35.2, 0, 3.6], "yaw": 3.141592653589793},

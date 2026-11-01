@@ -3,6 +3,8 @@ extends Control
 ## The joined player's death indication (#441): who or what, the camera's
 ## actual perspective, and the server's respawn countdown. One plate below
 ## the aim point, where the hidden crosshair was, never over the result card.
+## Under the headline, the recap (#528) says how and from where, what the
+## killer has left, and the damage this life took and from whom.
 
 ## Fraction of the view height from the top where the plate's top sits.
 const TOP_FRACTION: float = 0.56
@@ -16,6 +18,9 @@ const SEAT_PLATE_WIDTH: float = 720.0
 
 var _plate: PanelContainer
 var _headline: Label
+## The recap (#528): how and from where, then the damage this life took.
+var _recap: Label
+var _taken: Label
 var _detail: Label
 var _timing: Label
 ## The found weapons this life took with it. Hidden when nothing was lost.
@@ -38,6 +43,14 @@ func _ready() -> void:
 	_headline = _line(MenuTheme.LARGE, MenuTheme.DANGER)
 	_headline.name = "Headline"
 	rows.add_child(_headline)
+	_recap = _line(MenuTheme.BODY, MenuTheme.BONE)
+	_recap.name = "Recap"
+	_recap.visible = false
+	rows.add_child(_recap)
+	_taken = _line(MenuTheme.BODY, MenuTheme.BONE)
+	_taken.name = "Taken"
+	_taken.visible = false
+	rows.add_child(_taken)
 	_detail = _line(MenuTheme.BODY, MenuTheme.BONE)
 	_detail.name = "Detail"
 	rows.add_child(_detail)
@@ -65,7 +78,7 @@ func _line(size: int, colour: Color) -> Label:
 
 ## Show cause, view and timing, then what was lost when a fourth line names
 ## it; anything shorter hides the card.
-func present(lines: PackedStringArray, seat: bool = false) -> void:
+func present(lines: PackedStringArray, seat: bool = false, recap: PackedStringArray = PackedStringArray()) -> void:
 	if lines.size() < 3:
 		clear()
 		return
@@ -76,6 +89,10 @@ func present(lines: PackedStringArray, seat: bool = false) -> void:
 	_loss.text = lines[3] if lines.size() > 3 else ""
 	_loss.visible = not _loss.text.is_empty()
 	visible = true
+	_recap.text = recap[0] if recap.size() > 0 else ""
+	_taken.text = recap[1] if recap.size() > 1 else ""
+	_recap.visible = not _recap.text.is_empty()
+	_taken.visible = not _taken.text.is_empty()
 	_place()
 
 
@@ -92,10 +109,21 @@ func clear() -> void:
 		_timing.text = ""
 		_loss.text = ""
 		_loss.visible = false
-
+		_recap.text = ""
+		_taken.text = ""
+		_recap.visible = false
+		_taken.visible = false
 
 func headline() -> String:
 	return _headline.text if _headline != null else ""
+
+
+func recap() -> String:
+	return _recap.text if _recap != null else ""
+
+
+func taken() -> String:
+	return _taken.text if _taken != null else ""
 
 
 func detail() -> String:
@@ -125,5 +153,7 @@ func _place() -> void:
 	_detail.custom_minimum_size.x = text_width
 	_timing.custom_minimum_size.x = text_width
 	_loss.custom_minimum_size.x = text_width
+	_recap.custom_minimum_size.x = text_width
+	_taken.custom_minimum_size.x = text_width
 	_plate.size = Vector2(width, _plate.get_combined_minimum_size().y)
 	_plate.position = Vector2(roundf((view.x - _plate.size.x) * 0.5), roundf(view.y * (SEAT_TOP_FRACTION if _seat else TOP_FRACTION)))

@@ -498,6 +498,7 @@
         }
       ],
       "id": "court_defense",
+      "brawl": true,
       "regions": [
         {
           "max": [

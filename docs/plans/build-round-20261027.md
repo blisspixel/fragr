@@ -138,6 +138,17 @@ two new lighting moods in the shared town dressing, combined the Level 18 lane's
 three parts after it stalled, and freed CI runner disk. Wave 20 is released
 from its own PR, without a separate checkpoint PR.
 
+## Wave 21 (implemented)
+
+The first wave against the measurable 1.0 bar. Each lane shipped its change and
+the measurement behind it: footsteps and a measured mix (#524), 60 ms remote
+interpolation and latency probes (#525), five bot tiers with map timing tools
+(#526), campaign checkpoints (#527), the death recap and colour-blind preset
+(#528), the first fighter roster (#530) and the benchmark jingle (#534). The
+coordinator merged eight lanes, kept one survey filter and both audio tool
+commands, regenerated shared fixtures and fixed a cross-lane compile break and
+a decoder leak in the jingle harness.
+
 ## Verification
 
 Each wave PR carries the AGENTS.md verification list run on the final tree, inspected captures for anything a player sees, and exact-head and exact-main CI. Headless checks, inspected visuals, measurements, fresh-player acceptance and installed releases stay distinct.

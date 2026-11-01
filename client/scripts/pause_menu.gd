@@ -48,6 +48,8 @@ var score: CampaignScore = null
 var _score_row: HBoxContainer
 var _score_toggle: Button
 var _score_take: Button
+## Footstep take A or B while both generated sets ship (Footsteps.take).
+var _footsteps_take: Button
 var _cue_take: Button
 
 func _ready() -> void:
@@ -184,6 +186,7 @@ func _build_music() -> void:
 	_music_volume_note = _music_line("VolumeNote")
 	_music_volume_note.add_theme_color_override("font_color", MenuTheme.MUTED)
 	_build_score()
+	_build_footsteps()
 	_build_announcer()
 
 ## One row: who speaks (On, Big moments only, Off) and how loud.
@@ -264,6 +267,33 @@ func _score_button(node_name: String, handler: Callable) -> Button:
 		refresh_score())
 	_score_row.add_child(button)
 	return button
+
+## Footsteps ship two generated takes until one is picked by ear; this
+## switches every fighter's feet at once and saves the pick.
+func _build_footsteps() -> void:
+	_footsteps_take = Button.new()
+	_footsteps_take.name = "FootstepsTake"
+	_footsteps_take.custom_minimum_size = Vector2(200.0, 42.0)
+	_footsteps_take.pressed.connect(toggle_footsteps_take)
+	_music_box.add_child(_footsteps_take)
+	refresh_footsteps()
+
+func toggle_footsteps_take() -> void:
+	var next: String = "b" if Footsteps.take == "a" else "a"
+	if preferences != null:
+		var candidate: FragrSettings = preferences.draft()
+		candidate.set_value("footsteps", "take", next)
+		if preferences.commit(candidate) != OK:
+			push_warning("pause_menu: the footstep take could not be saved")
+			return
+		preferences.apply_audio()
+	else:
+		Footsteps.take = next
+	refresh_footsteps()
+
+func refresh_footsteps() -> void:
+	if _footsteps_take != null:
+		_footsteps_take.text = tr("MENU_FOOTSTEPS_TAKE") % Footsteps.take.to_upper()
 
 ## Attach the campaign score, or null outside a campaign.
 func bind_score(node: CampaignScore) -> void:

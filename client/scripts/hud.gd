@@ -1600,6 +1600,10 @@ func show_speak(player: String, line: String, addressee: String = "", viewers: A
 func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
 
+## The solo run saved a checkpoint: one quiet feed line, never a centre stamp.
+func show_checkpoint() -> void:
+	combat_feed.push(tr("HUD_CHECKPOINT"))
+
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
@@ -2635,9 +2639,9 @@ func show_bark_caption(speaker_key: String, caption_key: String, union: bool = t
 
 ## The joined player's death card: three lines, or empty to clear it.
 ## `seat` lowers it out of a watched teammate's line of fire.
-func show_death_card(lines: PackedStringArray, seat: bool = false) -> void:
+func show_death_card(lines: PackedStringArray, seat: bool = false, recap: PackedStringArray = PackedStringArray()) -> void:
 	if death_card != null:
-		death_card.present(lines, seat)
+		death_card.present(lines, seat, recap)
 
 func hide_death_card() -> void:
 	if death_card != null:

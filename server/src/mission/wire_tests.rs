@@ -159,6 +159,7 @@ async fn connect(
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 role,
                 name: format!("{role:?}"),

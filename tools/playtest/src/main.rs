@@ -222,6 +222,29 @@ struct Cli {
         "sabotage_contested", "campaign_survey"
     ])]
     rewind_matrix: bool,
+    /// Walking times over each map's navigation graph at top speed: the
+    /// corner to corner diagonals and, on the Sabotage maps, attackers and
+    /// defenders to each site and the defenders' rotation. Writes `--report`.
+    /// With --survey-map, one map. --assert fails a Sabotage time outside
+    /// its band (attackers 15 to 25 s, defenders 8 to 12 s, rotation 10 to 18 s).
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix"
+    ])]
+    map_timing: bool,
+    /// The rule bots' difficulty ladder: seeded Duels between every pair of
+    /// rungs on Larak Lot, Compliance Yard and Low Water, both seat orders
+    /// per seed (--survey-seeds from --seed). Writes `--report` and prints
+    /// the win matrix; --assert fails an adjacent step outside 65 to 80
+    /// percent, a skipped rung losing its book, or a rung dithering in 5
+    /// percent or more of its moving windows.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "map_timing"
+    ])]
+    bot_ladder: bool,
     /// With --rewind-matrix: trials per row.
     #[arg(long, requires = "rewind_matrix", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..=100_000))]
     rewind_trials: u32,
@@ -229,6 +252,88 @@ struct Cli {
     /// and retransmission stalls (`fragr_playtest::rewind::JITTER_LINKS`).
     #[arg(long, requires = "rewind_matrix")]
     rewind_jitter: bool,
+    /// Peeker's advantage over real sockets: two human clients join an
+    /// in-process server through the loopback link shaper at 0, 50, 100 and
+    /// 150 ms round trips; the peeker strafes out at a seeded tick phase and
+    /// the holder's client is replayed over its stamped arrivals. Writes
+    /// `--report` and prints the table; `--assert` gates the 50 ms row.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan"
+    ])]
+    peek_probe: bool,
+    /// With --peek-probe: peeks per round trip.
+    #[arg(long, requires = "peek_probe", default_value_t = 40, value_parser = clap::value_parser!(u32).range(1..=500))]
+    peek_trials: u32,
+    /// With --peek-probe: the round trips to measure, milliseconds.
+    #[arg(long, requires = "peek_probe", value_delimiter = ',', default_values_t = fragr_playtest::peek::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
+    peek_rtt: Vec<u32>,
+    /// With --peek-probe: extra one-way jitter on the link, milliseconds.
+    #[arg(long, requires = "peek_probe", default_value_t = 0, value_parser = clap::value_parser!(u32).range(0..=200))]
+    peek_jitter_ms: u32,
+    /// Scan every arena map and campaign level for ledges in the ambiguous
+    /// jump band, above a step and up to just past a standing jump's reach.
+    /// Writes `--report` and prints the table.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix"
+    ])]
+    ledge_scan: bool,
+}
+
+async fn peek_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::peek;
+    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+        .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
+    let report = peek::run(
+        map,
+        &cli.peek_rtt,
+        cli.peek_jitter_ms,
+        cli.peek_trials,
+        cli.seed,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    println!("rtt_ms | jitter_ms | peeks seen | press to holder frame p50/mean/p95/max ms | holder buffer ms | two-tick client mean/p95 ms | starved frames");
+    for row in &report.rows {
+        println!(
+            "{} | {} | {}/{} | {:.0}/{:.0}/{:.0}/{:.0} | {:.0} | {:.0}/{:.0} | {}",
+            row.rtt_ms,
+            row.jitter_ms,
+            row.measured,
+            row.trials,
+            row.p50_ms,
+            row.mean_ms,
+            row.p95_ms,
+            row.max_ms,
+            row.mean_buffer_ms,
+            row.before_mean_ms,
+            row.before_p95_ms,
+            row.starved_frames
+        );
+    }
+    write_json(&cli.report, &report)?;
+    let problems = peek::check(&report);
+    if cli.assert && !problems.is_empty() {
+        return Err(problems.join("; "));
+    }
+    Ok(())
+}
+
+fn ledge_report(cli: &Cli) -> Result<(), String> {
+    let report = fragr_server::maps::ledges::scan_all().map_err(|e| e.to_string())?;
+    print!("{}", fragr_server::maps::ledges::table(&report));
+    write_json(&cli.report, &report)
+}
+
+fn write_json(path: &Path, value: &impl serde::Serialize) -> Result<(), String> {
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let text = serde_json::to_string_pretty(value).map_err(|e| e.to_string())?;
+    std::fs::write(path, format!("{text}\n")).map_err(|e| e.to_string())
 }
 
 fn rewind_report(cli: &Cli) -> Result<(), String> {
@@ -239,10 +344,10 @@ fn rewind_report(cli: &Cli) -> Result<(), String> {
     } else {
         run_matrix(cli.seed, cli.rewind_trials, &modes)
     };
-    println!("jitter_ms | loss_per_mille | rtt_ms | mode | on target (client) | server hits | miss | view lag mean/max ms | drawn offset mean/p95 m | starved | beyond bound");
+    println!("jitter_ms | loss_per_mille | rtt_ms | mode | on target (client) | server hits | miss | view lag mean/max ms | drawn offset mean/p95 m | buffer ms | starved | over 100 ms | beyond bound");
     for row in &report.rows {
         println!(
-            "{} | {} | {} | {:?} | {} | {} | {:.1}% | {:.0}/{:.0} | {:.2}/{:.2} | {:.1}% | {:.1}%",
+            "{} | {} | {} | {:?} | {} | {} | {:.1}% | {:.0}/{:.0} | {:.2}/{:.2} | {:.0} | {:.1}% | {:.1}% | {:.1}%",
             row.link.jitter_ms,
             row.link.loss_per_mille,
             row.rtt_ms,
@@ -254,7 +359,9 @@ fn rewind_report(cli: &Cli) -> Result<(), String> {
             row.max_view_lag_ms,
             row.mean_offset_m,
             row.p95_offset_m,
+            row.mean_buffer_ms,
             row.starved_share * 100.0,
+            row.over_100ms_share * 100.0,
             row.beyond_bound_share * 100.0
         );
     }
@@ -415,6 +522,115 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
     println!("log: {}", log.display());
 }
 
+fn map_timing_report(cli: &Cli) -> Result<(), String> {
+    use fragr_server::maps::timing;
+    let maps: Vec<fragr_server::sim::MapKind> = match &cli.survey_map {
+        Some(raw) => vec![fragr_server::sim::MapKind::from_cli(raw)
+            .ok_or_else(|| format!("invalid --survey-map {raw:?}"))?],
+        None => fragr_server::sim::MapKind::ALL.to_vec(),
+    };
+    let rows: Vec<timing::MapTiming> = maps.into_iter().map(timing::map_timing).collect();
+    write_report(&cli.report, &rows)?;
+    let show = |value: Option<f32>| value.map_or("none".to_string(), |s| format!("{s:.1}"));
+    println!("map timing at top speed, seconds");
+    let mut misses = Vec::new();
+    for row in &rows {
+        let corners: Vec<String> = row
+            .crossings
+            .iter()
+            .map(|leg| format!("{} to {} {}", leg.from, leg.to, show(leg.seconds)))
+            .collect();
+        println!("{}: corners {}", row.map, corners.join(", "));
+        if let Some(sab) = &row.sabotage {
+            println!(
+                "{}: sabotage attackers A {} B {} (bot route A {} B {}), defenders A {} B {}, rotation {}",
+                row.map,
+                show(sab.attackers[0]),
+                show(sab.attackers[1]),
+                show(sab.attack_route[0]),
+                show(sab.attack_route[1]),
+                show(sab.defenders[0]),
+                show(sab.defenders[1]),
+                show(sab.rotation),
+            );
+        }
+        misses.extend(timing::sabotage_misses(row));
+    }
+    for miss in &misses {
+        println!("threshold: {miss}");
+    }
+    println!("report: {}", cli.report.display());
+    if cli.assert && !misses.is_empty() {
+        return Err(format!("{} map timing misses", misses.len()));
+    }
+    Ok(())
+}
+
+fn ladder_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::ladder;
+    let config = ladder::LadderConfig {
+        seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
+        round_ticks: cli.time_limit_seconds.saturating_mul(20),
+        ..ladder::LadderConfig::default()
+    };
+    let report = ladder::run_ladder(&config);
+    write_report(&cli.report, &report)?;
+    println!(
+        "bot ladder: {} seeds on {}, {:.0} s Duels, both seats",
+        report.seeds.len(),
+        report.maps.join(", "),
+        report.round_seconds
+    );
+    for pair in &report.pairs {
+        println!(
+            "{} over {}: {:.0} percent of {} Duels ({} won, {} lost, {} level; frags {} to {})",
+            pair.higher,
+            pair.lower,
+            pair.higher_share * 100.0,
+            pair.duels,
+            pair.higher_wins,
+            pair.lower_wins,
+            pair.level,
+            pair.higher_frags,
+            pair.lower_frags
+        );
+    }
+    for rung in &report.rungs {
+        println!(
+            "{}: {:.1} frags/min, dither {:.1} percent of {} moving windows, sight to hit median {:.2} s (p25 {:.2}, p75 {:.2}, n {})",
+            rung.rung,
+            rung.frags_per_minute,
+            rung.dither_share * 100.0,
+            rung.moving_windows,
+            rung.sight_to_hit_s.median,
+            rung.sight_to_hit_s.p25,
+            rung.sight_to_hit_s.p75,
+            rung.sight_to_hit_s.count
+        );
+    }
+    let misses = ladder::check_ladder(&report);
+    for miss in &misses {
+        println!("threshold: {miss}");
+    }
+    println!("report: {}", cli.report.display());
+    if cli.assert && !misses.is_empty() {
+        return Err(format!("{} ladder misses", misses.len()));
+    }
+    Ok(())
+}
+
+fn write_report<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| format!("cannot create {}: {error}", parent.display()))?;
+        }
+    }
+    let json = serde_json::to_string_pretty(value).map_err(|error| error.to_string())?;
+    std::fs::write(path, format!("{json}\n"))
+        .map_err(|error| format!("cannot write {}: {error}", path.display()))
+}
+
 fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
     let finished = report.matches.iter().filter(|m| m.finished).count();
     println!(
@@ -480,6 +696,12 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
         tally(&report.detonations_by_site),
         tally(&report.defuses_by_site)
     );
+    let shares: Vec<String> = report
+        .attacker_share_by_site
+        .iter()
+        .map(|(site, share)| format!("{site} {:.0} percent", share * 100.0))
+        .collect();
+    println!("attackers won by site: {}", shares.join(", "));
 }
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
@@ -520,6 +742,32 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.rocket_damaging,
             row.plate_claims_per_3min,
             row.self_deaths
+        );
+        let contact = &row.respawn_to_contact_s;
+        let distances: Vec<String> = row
+            .kill_distance_m
+            .iter()
+            .map(|(weapon, metres)| {
+                format!(
+                    "{weapon} {:.1} m ({:.1} to {:.1}, n {})",
+                    metres.median, metres.p25, metres.p75, metres.count
+                )
+            })
+            .collect();
+        let hit = &row.respawn_to_hit_s;
+        println!(
+            "{}: respawn to contact median {:.1} s (p25 {:.1}, p75 {:.1}, n {}), to first hit {:.1} s (p25 {:.1}, p75 {:.1}), dither {:.1}% of {} moving windows; kill distance {}",
+            row.scenario,
+            contact.median,
+            contact.p25,
+            contact.p75,
+            contact.count,
+            hit.median,
+            hit.p25,
+            hit.p75,
+            row.dither_share * 100.0,
+            row.moving_windows,
+            distances.join(", ")
         );
         println!(
             "{}: {} guns dropped on death, {} taken ({} Rockets)",
@@ -672,6 +920,34 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.peek_probe {
+        if let Err(error) = peek_report(&cli).await {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.bot_ladder {
+        if let Err(error) = ladder_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.ledge_scan {
+        if let Err(error) = ledge_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.map_timing {
+        if let Err(error) = map_timing_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.rewind_matrix {
         if let Err(error) = rewind_report(&cli) {
             eprintln!("error: {error}");
@@ -1150,6 +1426,51 @@ mod tests {
         cli.seed = u64::MAX;
         assert_eq!(campaign_report(&cli).unwrap_err(), "seed range overflow");
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn peek_probe_writes_its_report() {
+        // Timing on a loaded test host is not the gate; `peek::check` is
+        // tested on fixed rows and `--assert` runs it on a real probe.
+        assert!(Cli::try_parse_from(["fragr-playtest", "--peek-trials", "2"]).is_err());
+        assert!(Cli::try_parse_from(["fragr-playtest", "--peek-probe", "--soak"]).is_err());
+        let defaults = Cli::try_parse_from(["fragr-playtest", "--peek-probe"]).unwrap();
+        assert_eq!(defaults.peek_rtt, fragr_playtest::peek::RTTS_MS.to_vec());
+        let dir = std::env::temp_dir().join(format!("fragr-peek-{}", uuid::Uuid::new_v4()));
+        let mut cli = Cli::try_parse_from([
+            "fragr-playtest",
+            "--peek-probe",
+            "--peek-trials",
+            "2",
+            "--peek-rtt",
+            "50",
+        ])
+        .unwrap();
+        cli.report = dir.join("peek.json");
+        peek_report(&cli).await.unwrap();
+        let written: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&cli.report).unwrap()).unwrap();
+        assert_eq!(written["rows"].as_array().unwrap().len(), 1);
+        assert_eq!(written["rows"][0]["rtt_ms"], 50);
+        cli.map = "nowhere".into();
+        assert!(peek_report(&cli).await.is_err());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn ledge_scan_writes_its_report() {
+        let dir = std::env::temp_dir().join(format!("fragr-ledges-{}", uuid::Uuid::new_v4()));
+        let mut cli = Cli::try_parse_from(["fragr-playtest", "--ledge-scan"]).unwrap();
+        assert!(
+            Cli::try_parse_from(["fragr-playtest", "--ledge-scan", "--rewind-matrix"]).is_err()
+        );
+        cli.report = dir.join("nested").join("ledges.json");
+        ledge_report(&cli).unwrap();
+        let written: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&cli.report).unwrap()).unwrap();
+        assert!(written["jump_reach"].as_f64().unwrap() > 1.0);
+        assert!(written["maps"].as_array().unwrap().len() > 20);
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

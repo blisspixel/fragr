@@ -15,6 +15,7 @@ const STREET: usize = 1;
 const MARKET: usize = 2;
 const ROOFS: usize = 3;
 
+#[derive(Clone)]
 pub(crate) struct M19Progress {
     pub(super) index: usize,
     pub(super) challenges: M19ChallengeState,
@@ -23,6 +24,11 @@ pub(crate) struct M19Progress {
 }
 
 impl M19Progress {
+    /// Strip hits taken after a checkpoint belong to the attempt it ended.
+    pub(super) fn forgive_strip_hits(&mut self, hits: u64) {
+        self.strip_hits_at_entry = self.strip_hits_at_entry.saturating_add(hits);
+    }
+
     pub(super) fn new(strip_hits: u64) -> Self {
         Self {
             index: 0,

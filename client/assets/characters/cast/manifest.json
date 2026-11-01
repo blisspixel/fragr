@@ -167,6 +167,1013 @@
 			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
 		},
 		{
+			"file": "look_human_1.png",
+			"person": "look_human_1",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#6b4430",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#1c1a1a",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#b08a2a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#b08a2a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#4f5a3a",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#3a3f4a",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "2224b5b11a3357e7bc8c6b25e2bfd04d6938f4c193f5dbe8a81744542f351a5c",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_2.png",
+			"person": "look_human_2",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#c08a64",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#a9a8a4",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#6a3a6e",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#6a3a6e",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#b4904a",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#3e3530",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "aadfcbe58f7e2c42c1fada4db2efd239dcedd4fcbfa648ee06018220395345b2",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_3.png",
+			"person": "look_human_3",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#e8b598",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#a4532a",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#3e6a3a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#3e6a3a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#a87a50",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#6e6248",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "a3a6ae71e8216065a30259e47811a31571414866f3ea1b00307276186a3a2bd1",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_4.png",
+			"person": "look_human_4",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#4f3224",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#8c8a86",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#3e508c",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#3e508c",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#b4602e",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#3a3a2a",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "3e6057ecf5afc52b22f3b03591c20502543476872d7bea2136823962b6f4dd6a",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_5.png",
+			"person": "look_human_5",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#a77452",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#6a2a5a",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#c86a24",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#c86a24",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#2e2e30",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#48505a",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "9fbce69df90ae5f246eea5a03df110ea8303593d7281f59ec65ab1995401d7a0",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_6.png",
+			"person": "look_human_6",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#d8a07c",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#c8a45a",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#9a7e4e",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#9a7e4e",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#8c4a34",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#4a3a2c",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "795b09b6762478c7631a8a6d2ad165a09bf45891e3f8f99b5c41a00a02b35533",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_human_7.png",
+			"person": "look_human_7",
+			"rules": [
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.84,
+					"sat": [
+						0.2,
+						0.52
+					],
+					"to": "#5c3a2a",
+					"val": [
+						0.56,
+						1.01
+					],
+					"zone": [
+						"head",
+						"hands",
+						"torso"
+					]
+				},
+				{
+					"ref": 0.2,
+					"sat": [
+						0.0,
+						0.62
+					],
+					"to": "#181616",
+					"val": [
+						0.0,
+						0.4
+					],
+					"zone": [
+						"head"
+					]
+				},
+				{
+					"hue": [
+						0.0,
+						45.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#5a3e8a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						345.0,
+						360.0
+					],
+					"ref": 0.55,
+					"sat": [
+						0.42,
+						1.01
+					],
+					"to": "#5a3e8a",
+					"val": [
+						0.0,
+						0.9
+					],
+					"zone": [
+						"head",
+						"torso",
+						"arms",
+						"legs"
+					]
+				},
+				{
+					"hue": [
+						160.0,
+						260.0
+					],
+					"ref": 0.3,
+					"sat": [
+						0.1,
+						1.01
+					],
+					"to": "#b49a4a",
+					"val": [
+						0.0,
+						1.01
+					],
+					"zone": [
+						"torso",
+						"arms"
+					]
+				},
+				{
+					"ref": 0.22,
+					"sat": [
+						0.0,
+						0.32
+					],
+					"to": "#6a5a44",
+					"val": [
+						0.0,
+						0.45
+					],
+					"zone": [
+						"legs",
+						"torso"
+					]
+				}
+			],
+			"sha256": "522b3a7048a90792208d7d6628bf27452acdcea3d7a02bc8e9b2b3b2915d8879",
+			"source": "res://assets/models/free_human_live.glb",
+			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+		},
+		{
+			"file": "look_synthetic_1.png",
+			"person": "look_synthetic_1",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#5d7a34",
+					"val": [
+						0.28,
+						0.66
+					]
+				},
+				{
+					"ref": 0.82,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#b0883a",
+					"val": [
+						0.66,
+						1.01
+					]
+				}
+			],
+			"sha256": "23b8e68ba67cef1d7d0b1e37992faad6836a471991ffdbbe5ac3a50288729d82",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "look_synthetic_2.png",
+			"person": "look_synthetic_2",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#a8892c",
+					"val": [
+						0.28,
+						0.66
+					]
+				},
+				{
+					"ref": 0.82,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#5a4030",
+					"val": [
+						0.66,
+						1.01
+					]
+				}
+			],
+			"sha256": "c3bfac0e5a3a195e284892f140ec02e800d3cab05e21fe95b5fc9317a78b8844",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "look_synthetic_3.png",
+			"person": "look_synthetic_3",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#3e4e96",
+					"val": [
+						0.28,
+						0.66
+					]
+				},
+				{
+					"ref": 0.82,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#c0703a",
+					"val": [
+						0.66,
+						1.01
+					]
+				}
+			],
+			"sha256": "3bc1a0e3460a491fbc746f0b8f858ae4c65a555cbbaf4402c27eb53680fb8f90",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
+			"file": "look_synthetic_4.png",
+			"person": "look_synthetic_4",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#6e3a64",
+					"val": [
+						0.28,
+						0.66
+					]
+				},
+				{
+					"ref": 0.82,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#b08a3c",
+					"val": [
+						0.66,
+						1.01
+					]
+				}
+			],
+			"sha256": "b18a6d248d623d98f59310338f2b0496109214cab6d906471fe29149da731f22",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
 			"file": "renn.png",
 			"person": "renn",
 			"rules": [
@@ -268,6 +1275,6 @@
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"method": "Offline recolour of each person's own source atlas by CastPaint rules; no generated or external art.",
-	"painter_sha256": "102a8a2a64c2f03e9d288e03b4bf61abf17493ea9d1b5b38292372823911fda6",
+	"painter_sha256": "5c433204491c59e2475c2b20ac16b3fff2df60a64448db2a4db465641e283988",
 	"schema": 1
 }

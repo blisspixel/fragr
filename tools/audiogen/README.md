@@ -187,6 +187,29 @@ cargo run -p fragr-audiogen -- score-prune --apply
 
 Without `--apply` it only prints the plan. Slots without a pick keep both takes, and a slot whose pick no longer ships is reported and left alone. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.
 
+## Measure loudness
+
+A local, free BS.1770-4 / EBU R128 meter for WAV files (integer PCM or float, any channel count). It reports integrated loudness with the -70 LUFS absolute and -10 LU relative gates, loudness range (EBU Tech 3342), momentary and short-term maxima, sample peak and 4x oversampled true peak. Its tests pin it to the EBU Tech 3341 and 3342 reference signals, and it agrees with `ffmpeg -af ebur128=peak=true` to 0.1 LU on integrated loudness and 0.2 LU on range for the shipped score and radio files.
+
+```bash
+cargo run -p fragr-audiogen -- loudness capture.wav
+cargo run -p fragr-audiogen -- loudness --check --json .agents/mix.json capture.wav
+```
+
+`--check` exits non-zero unless every file is inside the gameplay target from the 1.0 bar: -23 to -18 LUFS integrated and true peak at or below -1 dBTP. QA tour captures (`client/qa/mix-loudness.json`, `client/qa/mix-watch.json`) are the usual input; they are recorded after the Master limiter and before the Master volume, which defaults to 0.9 (about -0.9 dB).
+
+`--level-to LUFS` rewrites each file in place as mono 16-bit PCM whose loudest 400 ms block reads that loudness, held under `--peak-ceiling` dBTP (default -1). It is for short placed clips such as footsteps; `--dry-run` only prints the gains.
+## Benchmark jingle takes
+
+Crackpot's certificate, the few seconds of hard-tuned pop that play when a benchmark run completes (`client/scripts/benchmark_jingle.gd`), ships six takes from `specs/benchmark-jingle-20261031.json`: three lyrics, two takes each, at `client/assets/audio/jingle/benchmark/<take>.mp3`. Nick picks one by ear with the Jingle buttons on the benchmark results screen; the game saves it as `[audio] benchmark_jingle` in the same settings file the score picks use, and an unpicked game plays 1A. Then delete the other five, with their `.import` files and manifest entries:
+
+```bash
+cargo run -p fragr-audiogen -- jingle-prune
+cargo run -p fragr-audiogen -- jingle-prune --apply
+```
+
+Without `--apply` it only prints the plan, and with no pick saved it keeps every take. Once one take remains the results screen drops the picker by itself. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.
+
 ## What it writes
 
 - The audio file at `<out-dir>/<name>.<ext>`. `pcm_*` formats become `.wav`, `mp3_*` become `.mp3`.

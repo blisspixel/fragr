@@ -60,6 +60,7 @@ pub(crate) struct CrewProgress {
     pub(crate) stalled: u32,
 }
 
+#[derive(Clone)]
 pub(crate) struct M20Progress {
     pub(super) index: usize,
     pub(super) challenges: M20ChallengeState,

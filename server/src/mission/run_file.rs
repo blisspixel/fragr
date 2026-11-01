@@ -2,8 +2,8 @@
 //! write. Disk transport is local-only and lives in `store`.
 use crate::inventory::{Inventory, SavedEquipment};
 use crate::protocol::{
-    AmmoPool, BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType,
-    CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
+    AmmoPool, BodyKind, CampaignRules, CampaignRunStatus, Dress, EquipmentPolicy, MissionId,
+    WeaponType, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
 };
 use crate::sim::{GameState, Player, PLAYER_MAX_ARMOR, PLAYER_MAX_HP};
 use serde::{Deserialize, Serialize};
@@ -35,7 +35,7 @@ pub(crate) use m19_outcome::M19Outcome;
 /// a document with any other version is refused as incompatible and the player
 /// starts a new run. Bump this on any change to the serialized shape and never
 /// reuse an earlier number, so a stale file can never be mistaken for current.
-pub(super) const RUN_FILE_VERSION: u32 = 24;
+pub(super) const RUN_FILE_VERSION: u32 = 25;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -232,6 +232,8 @@ pub(crate) struct RunDocument {
     pub remaining_continues: u8,
     pub level_start_continues: u8,
     pub body: Option<BodyKind>,
+    /// The look and accent the run bound with its body. Version 25.
+    pub dress: Option<Dress>,
     pub rules: CampaignRules,
     pub content_sha256: [u8; 32],
     pub step: SavedStep,
@@ -469,6 +471,7 @@ impl RunDocument {
             remaining_continues: CAMPAIGN_CONTINUES,
             level_start_continues: CAMPAIGN_CONTINUES,
             body: None,
+            dress: None,
             rules,
             content_sha256,
             step: SavedStep::MissionEntry {
@@ -1227,6 +1230,7 @@ impl GameState {
             remaining_continues: solo.state.continues,
             level_start_continues: solo.state.level_start_continues,
             body: solo.body(),
+            dress: solo.dress(),
             rules: run.rules,
             content_sha256,
             step,
@@ -1658,6 +1662,7 @@ mod tests {
             remaining_continues: CAMPAIGN_CONTINUES,
             level_start_continues: CAMPAIGN_CONTINUES,
             body: None,
+            dress: None,
             rules: CampaignRules::new(CampaignDifficulty::Standard),
             content_sha256: [5; 32],
             m03_outcome: None,

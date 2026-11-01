@@ -39,6 +39,8 @@ pub struct GameSession {
     last_mission_sent: Option<protocol::MissionState>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
     pub min_bots: usize,
+    /// The rung every rule bot spawned from here on plays at.
+    bot_skill: crate::sim::BotSkill,
     navigation_map: crate::maps::RuntimeMap,
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
     sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
@@ -135,6 +137,7 @@ impl GameSession {
             last_rules_sent: None,
             last_mission_sent: None,
             min_bots: 0,
+            bot_skill: crate::sim::BotSkill::default(),
             navigators: HashMap::new(),
             sent_loadouts: HashMap::new(),
             sent_records: HashMap::new(),
@@ -212,7 +215,7 @@ impl GameSession {
             if let Some(seat) = seat {
                 self.bot_seats.insert(bot_id, seat);
             }
-            let bot_controller = BotController::new(bot_id, behavior);
+            let bot_controller = BotController::new(bot_id, behavior).with_skill(self.bot_skill);
             self.bots.push(bot_controller.clone());
             self.state.bots.push(bot_controller);
             tracing::info!(target: crate::logging::FEED_TARGET, "Spawned bot: {} ({:?}, {})", display_name, behavior, bot_id);
@@ -254,6 +257,37 @@ impl GameSession {
             })
             .collect();
         self.state.set_roster_host_line_from_names(&names);
+    }
+
+    /// The rung rule bots play at on this server.
+    pub fn bot_skill(&self) -> crate::sim::BotSkill {
+        self.bot_skill
+    }
+
+    /// Put every rule bot, present and future, on `skill`. A Continuance
+    /// boss keeps its own controller.
+    pub fn set_bot_skill(&mut self, skill: crate::sim::BotSkill) {
+        self.bot_skill = skill;
+        let ids: Vec<Uuid> = self.bots.iter().map(|bot| bot.player_id).collect();
+        for id in ids {
+            self.set_bot_skill_for(id, skill);
+        }
+    }
+
+    /// Put one rule bot on `skill`: a survey's mixed ladder. False when no
+    /// rule bot has that id.
+    pub fn set_bot_skill_for(&mut self, id: Uuid, skill: crate::sim::BotSkill) -> bool {
+        let mut found = false;
+        for bot in self
+            .bots
+            .iter_mut()
+            .chain(self.state.bots.iter_mut())
+            .filter(|bot| bot.player_id == id)
+        {
+            bot.skill = skill;
+            found = true;
+        }
+        found
     }
 
     /// Set the floor for rule-bot count and refill immediately if below it.
@@ -457,6 +491,9 @@ impl GameSession {
                     self.resume.forget(player_id);
                     self.remove_pawn(player_id);
                 }
+            }
+            GameCommand::Dress { player_id, dress } => {
+                self.state.dress_player(player_id, dress);
             }
             GameCommand::NoteSeat { client_id, peer } => {
                 self.remember_peer(client_id, peer);

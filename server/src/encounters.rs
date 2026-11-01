@@ -1211,3 +1211,164 @@ impl GameState {
         intents
     }
 }
+
+/// A woken guard that is no longer in the fight at checkpoint time closer
+/// than this to the owner still counts as pressing.
+const CHECKPOINT_NEAR: f32 = 20.0;
+
+/// What a checkpoint keeps of one encounter group. A group the party has not
+/// woken is placed again from its definition. A woken group is kept with the
+/// guards still alive in it, each where it stood.
+#[derive(Clone)]
+pub(crate) enum GroupMark {
+    Fresh,
+    Spent {
+        ids: Vec<Uuid>,
+        dispatched: bool,
+        survivors: Vec<Survivor>,
+    },
+    Complete,
+}
+
+#[derive(Clone)]
+pub(crate) struct Survivor {
+    body: Player,
+    kind: EnemyKind,
+    control: crate::protocol::ControlDomain,
+    hover: Option<crate::maps::Hover>,
+}
+
+impl Encounters {
+    /// Groups whose fight is over.
+    pub(crate) fn complete_count(&self) -> usize {
+        self.groups
+            .iter()
+            .filter(|group| matches!(group, Group::Complete))
+            .count()
+    }
+
+    /// Some woken guard is alive and in the fight: moving, attacking or
+    /// holding a target, or standing within twenty metres of `feet`.
+    pub(crate) fn engaged(&self, players: &[Player], feet: Option<[f32; 3]>) -> bool {
+        self.enemies.iter().any(|(group, enemy)| {
+            matches!(self.groups.get(*group), Some(Group::Active { .. }))
+                && players.iter().any(|p| {
+                    p.id == enemy.id
+                        && p.hp > 0
+                        && (enemy.pressing()
+                            || feet.is_some_and(|f| {
+                                (p.x - f[0]).hypot(p.z - f[2]) < CHECKPOINT_NEAR
+                                    && (p.y - PLAYER_FLOOR_Y - f[1]).abs() < CHECKPOINT_NEAR
+                            }))
+                })
+        })
+    }
+
+    /// The marks of a quiet roster. None while a woken guard is engaged.
+    pub(crate) fn marks(
+        &self,
+        state: &GameState,
+        feet: Option<[f32; 3]>,
+    ) -> Option<Vec<GroupMark>> {
+        if self.engaged(&state.players, feet) {
+            return None;
+        }
+        let definitions = state.map.encounters();
+        Some(
+            self.groups
+                .iter()
+                .enumerate()
+                .map(|(index, group)| match group {
+                    Group::Unplaced | Group::Dormant(_) => GroupMark::Fresh,
+                    Group::Active { ids, dispatched } => GroupMark::Spent {
+                        ids: ids.clone(),
+                        dispatched: *dispatched,
+                        survivors: self
+                            .enemies
+                            .iter()
+                            .filter(|(group, _)| *group == index)
+                            .filter_map(|(_, enemy)| {
+                                let body = state
+                                    .players
+                                    .iter()
+                                    .find(|p| p.id == enemy.id && p.hp > 0)?;
+                                let member = ids.iter().position(|id| *id == enemy.id)?;
+                                let hover = definitions
+                                    .get(index)
+                                    .and_then(|d| d.enemies.get(member))
+                                    .and_then(|placement| placement.hover.clone());
+                                Some(Survivor {
+                                    body: body.clone(),
+                                    kind: enemy.kind(),
+                                    control: enemy.control(),
+                                    hover,
+                                })
+                            })
+                            .collect(),
+                    },
+                    Group::Complete => GroupMark::Complete,
+                })
+                .collect(),
+        )
+    }
+
+    /// Return the roster to saved marks. Every placed guard is gone; groups
+    /// not yet woken are placed again from their definitions on the next
+    /// update, so they stand where the level put them, and a woken group's
+    /// survivors stand where they were saved.
+    pub(crate) fn restore_marks(&mut self, marks: &[GroupMark], state: &mut GameState) {
+        self.barks.reset();
+        self.officers_down.clear();
+        self.enemies.clear();
+        self.waiting_for_party = false;
+        state
+            .players
+            .retain(|p| !p.campaign.is_some_and(CampaignActor::is_enemy));
+        let tick = state.tick;
+        self.groups = marks
+            .iter()
+            .enumerate()
+            .map(|(index, mark)| match mark {
+                GroupMark::Fresh => Group::Unplaced,
+                GroupMark::Spent {
+                    ids,
+                    dispatched,
+                    survivors,
+                } => {
+                    for survivor in survivors {
+                        let mut body = survivor.body.clone();
+                        let controller = EnemyController::resumed(
+                            body.id,
+                            survivor.kind,
+                            [body.x, body.y - PLAYER_FLOOR_Y, body.z],
+                            body.yaw,
+                            tick,
+                            survivor.control,
+                            survivor.hover.clone(),
+                        );
+                        body.campaign = Some(controller.identity());
+                        body.clear_input();
+                        body.reset_movement_baseline();
+                        state.players.push(body);
+                        self.enemies.push((index, controller));
+                    }
+                    Group::Active {
+                        ids: ids.clone(),
+                        dispatched: *dispatched,
+                    }
+                }
+                GroupMark::Complete => Group::Complete,
+            })
+            .collect();
+    }
+}
+
+#[cfg(test)]
+impl Encounters {
+    /// Every placed guard loses the party, for checkpoint fixtures.
+    pub(crate) fn lose_track(&mut self, tick: u64) {
+        for (_, enemy) in &mut self.enemies {
+            enemy.lose_track(tick);
+        }
+    }
+}

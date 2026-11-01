@@ -8,6 +8,8 @@ var rows: Dictionary[int, Dictionary] = {}
 var local_vehicle: int = 0
 var last_tick: int = -1
 var predicted_pose: Dictionary = {}
+## The client's shared render clock, so vehicles and fighters draw at one time.
+var clock: RemotePresentation = null
 
 func reset() -> void:
 	for view: JeepView in views.values():
@@ -47,6 +49,7 @@ func apply(snapshot: Dictionary, player_id: String, now_usec: int) -> void:
 			view.rotation.y = ServerYaw.pawn_rotation_y(float(row["yaw"]))
 			views[id] = view
 			histories[id] = RemotePresentation.new()
+			histories[id].clock = clock
 		current[id] = row.duplicate(true)
 		histories[id].accept(tick, position_value, float(row["yaw"]), 0.0, int(row["hp"]) > 0, now_usec)
 		if histories[id].discontinuity:

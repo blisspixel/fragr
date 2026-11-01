@@ -789,8 +789,11 @@ other fighters at, and rewinds that human's hitscan shots by up to 200 ms
 (contract: [protocol](protocol.md#lag-compensation-capability-62); owner:
 `server/src/sim/rewind.rs`).
 
-**How far behind a client sees.** The client draws remote fighters two ticks
-(100 ms) behind the newest snapshot arrival (`RemotePresentation`). Its
+**How far behind a client sees.** Until wave 21 the client drew remote
+fighters two ticks (100 ms) behind the newest snapshot arrival
+(`RemotePresentation`); the tables in this section were measured with that
+buffer. Since #525 the buffer is adaptive (see
+[Netcode and frame feel](#netcode-and-frame-feel-525-wave-21)). Its
 Action then travels to the server and waits for the next tick. Snapshot and
 Action each cross half the round trip, so the view trails the tick that
 fires by the interpolation buffer plus the **whole** round trip plus up to a
@@ -881,9 +884,10 @@ client's clock is no longer a closed form: the model runs
 have arrived, so its render tick follows the earliest arrival offset of the
 last 32 snapshots, never runs backwards, and holds at the newest snapshot
 when the next is late (starved). The view tick sent is that render tick.
-With no jitter the model lands on the fixed rows' closed form
-(`the_client_timeline_model_matches_the_fixed_delay_view`), and the fixed
-rows above reproduce exactly. Still a model in process, no sockets.
+With no jitter the model landed on the fixed rows' closed form, and the
+fixed rows above reproduced exactly. Still a model in process, no sockets.
+(Since wave 21 every row runs the frame-by-frame clock, reading snapshots at
+60 Hz frames; the table below is the two-tick client of wave 16.)
 
 ```bash
 cargo run -p fragr-playtest --release --locked -- --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
@@ -931,6 +935,200 @@ What stays open for #434 stage 5:
 3. **Spectator and agent views** are out of scope: neither shoots through a
    delayed timeline.
 
+
+### Netcode and frame feel (#525, wave 21)
+
+The 1.0 bar's responsiveness gate ([targets](plans/fun-craft-targets.md#1-responsiveness)):
+remote interpolation 50 to 75 ms widening only on measured jitter, peeker's
+advantage under 150 ms at a 50 ms round trip, input to photon under 60 ms at
+60 fps, and fixed-step movement at any frame rate. Measured 2026-10-31 on a **busy
+shared machine** (AMD Ryzen 7 7840U, Radeon 780M, 16 threads; load average 35
+to 50 with 10 to 30 concurrent build and capture jobs from other lanes; frame
+p99 33 to 64 ms in the rendered runs). Every wall-clock number below
+(buffer, peek, photon) is diagnostic, not gate evidence: the robust results
+are the deterministic ones (golden replays, the rewind matrix, the ledge
+scan) and the relative ones measured over the same arrivals (the peek
+probe's before column). Gate evidence for latency and frame time comes from
+quiet machines in the hardware matrix, with the commands below.
+
+```bash
+# Quiet machine, release build; one terminal, nothing else running.
+cargo build -p fragr-server -p fragr-playtest --release --locked
+target/release/fragr-playtest --peek-probe --peek-trials 100 --seed 42 --assert --report .agents/peek/quiet.json
+target/release/fragr-playtest --peek-probe --peek-trials 100 --peek-jitter-ms 20 --seed 42 --report .agents/peek/quiet-jitter20.json
+target/release/fragr-playtest --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
+target/release/fragr-playtest --ledge-scan --report .agents/ledges.json
+# Rendered: input to photon at 60 fps (FRAGR_FEEL_FPS changes the cap) and the
+# remote clock; three runs, compare medians. Writes feel.json and feel.md.
+FRAGR_FEEL_FPS=60 tools/qa_feel.sh .agents/feel/quiet-1
+```
+
+**What changed.** `client/scripts/remote_presentation.gd` draws other fighters
+behind the earliest-arrival schedule by an adaptive buffer: one tick, a 0.2
+tick margin, and the 90th percentile lateness of the last 32 arrivals, clamped
+to 1.2 to 2 ticks (60 to 100 ms). It starts at two ticks before it has
+measured anything and slews at 2 ticks a second wider and 0.5 narrower, so
+drawn time runs at most 10 percent slow or 2.5 percent fast and never steps
+back; a starved timeline still holds the newest pose and nothing is
+extrapolated. Every fighter and vehicle now draws at the one shared clock
+whose tick the Action reports as `view_tick`, so the rewind always matches
+what the shooter saw (before, a pawn whose history had just restarted could
+draw a little behind the reported tick). The server's 200 ms rewind bound,
+its history and the rule that cover is tested in the present are unchanged.
+The Rust mirror `tools/playtest/src/presentation.rs` drives the probes;
+`client/golden/presentation_vectors.json` holds four cases (steady 60 and
+144 fps, 20 ms jitter, a 250 ms stall) that both languages replay to 1e-6.
+
+**Remote buffer and render time against server time.** Rendered feel probe
+(`tools/qa_feel.sh`, Larak Lot, loopback, no bots), every frame of the
+session, two runs on the busy shared machine (diagnostic):
+
+| Run | Buffer p50 / p99 / max ms | Drawn time behind newest snapshot p50 / p99 ms | Starved frames |
+|---|---|---|---|
+| A | 69.7 / 100 / 100 | 43.7 / 79.5 | 4 of 3,524 |
+| B | 77.4 / 100 / 100 | 49.4 / 84.9 | 2 of 2,986 |
+
+The buffer sits inside or just past the 75 ms band here because the loaded
+host's uneven frames are measured as arrival jitter (a snapshot is read on
+the first frame after it arrives), which is the adaptation working as
+designed; the modelled steady link settles at exactly 60 ms. A quiet machine
+should show it near 60 ms. Drawn time is the buffer less the snapshot's own age.
+Render time against server time adds the one-way trip.
+
+**Rewind matrix** (`--rewind-matrix --rewind-jitter --seed 42`, 1000 trials
+a row, deterministic; schema 3 adds the buffer and the share of views over
+100 ms). After, fixed links, against the two-tick rows above:
+
+| RTT | View lag mean / max ms, before | After | Over 100 ms | Beyond 200 ms | Miss after (with `view_tick`) |
+|---|---|---|---|---|---|
+| 0 ms | 125 / 150 | 93 / 112 | 38 % | 0 % | 0.0 % |
+| 50 ms | 175 / 200 | 143 / 162 | 100 % | 0 % | 0.0 % |
+| 100 ms | 225 / 250 | 193 / 212 | 100 % | 38 % | 0.0 % |
+| 150 ms | 275 / 300 | 243 / 262 | 100 % | 100 % | 0.0 % (was 15.8) |
+
+Under modelled jitter the buffer widens as designed: 78 ms at 0 to 20 ms of
+jitter, 97 ms at 0 to 50, 100 ms (capped, 12 to 14 percent starved) at 0 to
+100, 89 ms with 2 percent loss. Misses with `view_tick` at 50 ms RTT: 0.0,
+0.0, 5.8 and 4.2 percent on those links. The target's "under 10 percent of
+views rewound past 100 ms on a LAN" cannot be met at a 20 Hz tick: the
+Action's wait for the next tick (0 to 50 ms) plus a one-tick buffer already
+puts 38 percent of zero-latency views past 100 ms; only a faster tick moves it.
+
+**Peeker's advantage** (`--peek-probe --peek-trials 40 --seed 42 --assert`,
+busy shared machine, diagnostic; the before column is the same run's
+arrivals through the old buffer, so the difference is the robust part):
+two human clients join an in-process server through the loopback link shaper;
+the peeker strafes out at a seeded tick phase and the holder's stamped
+arrivals are replayed through its client's timeline at 60 Hz frames. The
+measure is the peeker's press to the first holder frame drawing it moved,
+an upper bound on the advantage (the peeker's own predicted move shows on
+its next frame, 8 to 33 ms in the photon rows below). "Two-tick client"
+replays the same arrivals through the old fixed buffer.
+
+| RTT | Jitter | Peeks seen | Press to holder frame p50 / mean / p95 / max ms | Holder buffer ms | Two-tick client mean / p95 ms |
+|---|---|---|---|---|---|
+| 0 ms | 0 | 40/40 | 86 / 79 / 107 / 121 | 69 | 120 / 149 |
+| 50 ms | 0 | 40/40 | 116 / **120** / 159 / 174 | 65 | 165 / 202 |
+| 100 ms | 0 | 40/40 | 184 / 185 / 217 / 222 | 77 | 217 / 250 |
+| 150 ms | 0 | 40/40 | 223 / 222 / 261 / 265 | 60 | 272 / 311 |
+| 0 ms | 0 to 20 ms | 40/40 | 94 / 98 / 132 / 141 | 78 | 129 / 157 |
+| 50 ms | 0 to 20 ms | 40/40 | 154 / 154 / 180 / 190 | 78 | 186 / 210 |
+| 100 ms | 0 to 20 ms | 40/40 | 187 / 191 / 224 / 228 | 78 | 222 / 249 |
+| 150 ms | 0 to 20 ms | 40/40 | 250 / 247 / 273 / 278 | 83 | 274 / 296 |
+
+Over the same arrivals the adaptive client sees the peek sooner
+than the two-tick client in every row (27 to 50 ms). At 50 ms round trip the mean
+here is 120 ms against the 150 ms target (Valorant's published untuned
+baseline is about 141 ms); its p95 (159 ms) and the 20 ms jitter row's mean
+(154 ms) are over it. One run of the unit test under a full parallel test
+suite also read 154 ms for two peeks, which is why only the CLI's `--assert`
+gates the number and the gate needs a quiet machine.
+
+**Input to photon** (`tools/qa_feel.sh`, photon pass, busy shared machine,
+diagnostic): frame cap 60 and vsync off, 12 trials of each input at seeded
+phases. A key goes through
+`Input.parse_input_event` during a frame's process, so it waits for the next
+frame's input flush (the worst phase for an OS event); the mouse motion goes
+to the camera's input handler as a captured one (Wayland refused pointer
+capture to the test window), skipping up to a frame of queue. Photon is the
+post-draw of the first frame showing the response: the drawn eye moved, the
+kick began, the view turned. Display scanout and panel latency are not
+included.
+
+| Run | Frame p50 / p99 ms | Move key p50 / max ms | Fire p50 / max ms | Mouse look p50 / max ms | Frames after the event (p50) |
+|---|---|---|---|---|---|
+| A | 16.4 / 43.0 | 27.2 / 56.5 | 23.1 / 44.2 | 23.7 / 28.3 | 2 |
+| B | 16.5 / 64.0 | 33.3 / 70.1 | 22.9 / 80.2 | 18.7 / 47.3 | 2 |
+
+Every median here is under the 60 ms target with room for a 16.7 ms scanout;
+the maxima past it in run B coincide with the loaded host's 60 to 140 ms
+frames. Two frames after the event is the expected path at any load: the
+event waits for the next input flush, that frame's process acts on it, and
+its draw shows it.
+
+**Frame-rate independence.** `client/scripts/test_frame_rate_golden.gd`
+replays the live 20 Hz movement goldens (from `server/src/movement.rs`)
+through the client's real prediction loop at 30, 60, 144 and 240 fps, at
+0.5 and 30 ms one way, against a model server that steps the mirror with
+the newest Action and its press latches: 104 replays, 1,568 golden states,
+the server body and the client's own speculative step both equal to the
+Rust state (1e-4) at every one and no Ack correction. (Blast cases and a
+case that starts already moving are skipped: a held-key client cannot make
+them.) The server half, `tests::frame_rate`, sends one Action per frame at
+the four rates through `GameState` for a 48-tick run, jump, dodge and crouch
+script and asserts identical bodies at every tick.
+
+**Ledge heights.** `fragr-playtest --ledge-scan` (`server/src/maps/ledges.rs`)
+measures the standing running jump's reach on the live step (1.26 m, below
+the 1.3 m apex because the body must rise over the lip while moving) and
+walks every edge of every solid top at least a body wide, at 0.25 m spacing,
+with a fighter standing just outside on the highest floor there. Runs of
+edge with a rise in the band:
+
+| Map | Name | Solids | Step-plus 0.60 to 0.75 | Jump 0.75 to 1.11 | Marginal 1.11 to 1.26 | False hope 1.26 to 1.41 | Ambiguous edge m |
+|---|---|---|---|---|---|---|---|
+| Map 1 | Larak Lot | 98 | 0 | 15 | 0 | 31 | 100.5 |
+| Map 2 | Compliance Yard | 125 | 0 | 38 | 0 | 4 | 5.0 |
+| Map 3 | Directive 17 Substation | 208 | 0 | 40 | 0 | 0 | 0.0 |
+| Map 4 | Sector 9 Transit Hall | 110 | 0 | 6 | 0 | 0 | 0.0 |
+| Map 5 | Reclamation Gulch | 151 | 0 | 36 | 16 | 0 | 40.0 |
+| Map 6 | Tripoint Works | 187 | 0 | 42 | 0 | 0 | 0.0 |
+| Map 7 | Holdfast Atoll | 123 | 4 | 37 | 4 | 0 | 2.0 |
+| Map 8 | Low Water | 82 | 0 | 18 | 0 | 0 | 0.0 |
+| L01 | Recall Notice | 119 | 0 | 6 | 22 | 0 | 68.5 |
+| L02 | Persons Unknown | 80 | 0 | 11 | 3 | 3 | 9.0 |
+| L03 | Scheduled Service | 74 | 0 | 16 | 12 | 3 | 36.0 |
+| L04 | Notice to Vacate | 95 | 24 | 40 | 3 | 0 | 78.0 |
+| L05 | No Forwarding Address | 47 | 0 | 21 | 20 | 0 | 58.0 |
+| L06 | Port of Entry | 106 | 4 | 30 | 0 | 2 | 48.0 |
+| L07 | Declared Goods | 146 | 0 | 61 | 14 | 26 | 70.0 |
+| L08 | Custodian of Record | 153 | 0 | 6 | 8 | 0 | 20.0 |
+| L09 | Passenger Manifest | 135 | 0 | 7 | 0 | 0 | 0.0 |
+| L10 | Common Carrier | 129 | 0 | 0 | 0 | 0 | 0.0 |
+| L11 | Right of Search | 107 | 0 | 16 | 8 | 0 | 20.2 |
+| L12 | Terms of Cooperation | 132 | 0 | 34 | 3 | 0 | 6.2 |
+| L13 | The Weight of Permission | 241 | 9 | 63 | 4 | 8 | 67.5 |
+| L14 | Launch Authority | 134 | 7 | 18 | 6 | 0 | 6.5 |
+| L15 | Civic Pressure Valve | 59 | 0 | 10 | 4 | 0 | 2.0 |
+| L16 | Freedom of Movement | 31 | 0 | 8 | 0 | 5 | 18.2 |
+| L17 | Peace Without Interruption | 126 | 0 | 16 | 10 | 0 | 34.0 |
+| L18 | All Systems Normal | 52 | 0 | 19 | 0 | 0 | 0.0 |
+| L19 | Planned Works | 150 | 0 | 61 | 26 | 18 | 163.0 |
+| L20 | Local Exception | 146 | 0 | 40 | 6 | 12 | 55.0 |
+| Epilogue | Still Here | 56 | 4 | 21 | 3 | 5 | 46.0 |
+
+Three heights account for most of it. Tops at 1.3 and 1.4 m look jumpable
+and are not (Larak Lot 100 m of edge, Level 7 49 m, Level 19 113 m at 1.4 m;
+Levels 13, 16, 20 and the epilogue at 1.3 m). Tops at 1.15 to 1.2 m clear
+only from a clean running jump (Level 1 68 m, Levels 5, 17 and 19, Reclamation
+Gulch). Tops at 0.65 to 0.7 m read as a step and stop the player (Levels 4, 6
+and 13). Changing them is map work for the owning lanes; the scan is the
+repeatable check.
+
+What stays open: quiet-machine runs of the commands above as gate evidence
+(hardware matrix), two machines and a human session, a photodiode or
+high-speed camera for true photon time, input to photon on Windows and
+macOS, the peek p95 and jittered mean above 150 ms, and the ledge fixes.
 
 ## Trace version 1
 
@@ -1003,7 +1201,13 @@ the same `RenderQuality` rules that applied them), definitions and the last
 compatible run. Run again, Copy summary, Open results folder and Back to menu
 stay on screen without scrolling. Focus stays on those actions for mouse,
 keyboard and pad alike; up and down (arrows, D-pad, stick) and page up and down
-scroll the figures and Details. A stopped run (settings changed, window
+scroll the figures and Details. Arriving at a completed result also plays
+Crackpot's certificate once: a few seconds of hard-tuned league pop on the
+Announcer bus, so the Announcer volume sets its level and Announcer Off
+silences it, with its lyric as a caption beside the outcome and, while more than
+one take ships, a Jingle picker saved as `[audio] benchmark_jingle`
+([audiogen](../tools/audiogen/README.md#benchmark-jingle-takes)). It plays after
+the measurement, never during it or in a match. A stopped run (settings changed, window
 resized, frames stopped for two seconds, a preset or the match did not load)
 says **Benchmark stopped** with one card: the reason, the step it stopped
 during, any presets that finished (their figures are not kept), that nothing was

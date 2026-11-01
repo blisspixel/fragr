@@ -3532,6 +3532,9 @@
               "side": "participant"
             },
             "collidable": false,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -3967,6 +3970,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -4116,6 +4122,7 @@
             "z": -20.0
           },
           {
+            "airborne": true,
             "armor": 0,
             "campaign": {
               "kind": "notary",
@@ -4139,6 +4146,7 @@
             "z": -4.0
           },
           {
+            "airborne": true,
             "armor": 0,
             "campaign": {
               "kind": "notary",
@@ -4681,6 +4689,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -5142,6 +5153,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -5646,6 +5660,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -6124,6 +6141,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -6765,6 +6785,9 @@
               "side": "participant"
             },
             "collidable": true,
+            "dress": {
+              "look": 0
+            },
             "hp": 100,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,
@@ -7388,6 +7411,9 @@
               "side": "participant"
             },
             "collidable": false,
+            "dress": {
+              "look": 0
+            },
             "hp": 0,
             "id": "00000000-0000-0000-0000-0000000003f6",
             "just_fired": false,

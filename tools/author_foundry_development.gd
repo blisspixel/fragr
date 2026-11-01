@@ -198,7 +198,7 @@ func _encounters() -> Array[Dictionary]:
 		]),
 		_group("machine_hall", "foundry_edge", [-39, 0, -21], [39, 9, 2], [
 			_enemy("machine_heavy", "heavy_sweeper", [0, 0.3, -8]),
-			_enemy("machine_clerk", "clerk", [-15, 0.3, -6]),
+			_enemy("machine_sweeper_south", "sweeper", [-15, 0.3, -6]),
 			_enemy("machine_sweeper", "sweeper", [15, 0.3, -3]),
 			_notary("machine_notary_west", -20), _notary("machine_notary_east", 20),
 		]),

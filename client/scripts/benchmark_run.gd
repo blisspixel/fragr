@@ -243,6 +243,7 @@ func show_results(report: Dictionary) -> void:
 	_results_view.report = report
 	_results_view.directory = output_directory
 	_results_view.saved_basename = saved_basename
+	_results_view.preferences = preferences
 	_results_view.dismissed.connect(func() -> void: dismissed.emit())
 	_results_view.again_requested.connect(func() -> void: again_requested.emit(compare_all))
 	add_child(_results_view)

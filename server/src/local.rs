@@ -29,6 +29,7 @@ pub enum RunPreview {
         continues: u8,
         pending_continue: bool,
         body: Option<BodyKind>,
+        dress: Option<crate::protocol::Dress>,
     },
     Failed,
     Abandoned,
@@ -37,6 +38,7 @@ pub enum RunPreview {
         difficulty: CampaignDifficulty,
         continues: u8,
         body: Option<BodyKind>,
+        dress: Option<crate::protocol::Dress>,
     },
     Incompatible,
     Corrupt,
@@ -87,6 +89,7 @@ pub fn preview_run_in(directory: &std::path::Path) -> io::Result<RunPreview> {
                     continues: document.remaining_continues,
                     pending_continue: matches!(&document.step, SavedStep::PendingContinue { .. }),
                     body: document.body,
+                    dress: document.dress,
                 })
             }
             SavedStep::Failed { .. } => Ok(RunPreview::Failed),
@@ -96,6 +99,7 @@ pub fn preview_run_in(directory: &std::path::Path) -> io::Result<RunPreview> {
                 difficulty: document.rules.difficulty,
                 continues: document.remaining_continues,
                 body: document.body,
+                dress: document.dress,
             }),
         },
     }
@@ -265,6 +269,7 @@ impl ArenaReady {
 
 fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     options.validate_bot_policy().map_err(io::Error::other)?;
+    crate::run::checked_rotation(options).map_err(io::Error::other)?;
     let address: SocketAddr = options.bind.parse().map_err(|_| {
         io::Error::other("desktop host requires an IPv4 loopback or wildcard address")
     })?;
@@ -369,6 +374,7 @@ pub async fn serve_ready_line(
 
 fn validate_ready_address(options: &ServerOptions) -> io::Result<SocketAddr> {
     options.validate_bot_policy().map_err(io::Error::other)?;
+    crate::run::checked_rotation(options).map_err(io::Error::other)?;
     let address: SocketAddr = options.bind.parse().map_err(|_| {
         io::Error::other("ready line requires an IPv4 loopback or wildcard address")
     })?;

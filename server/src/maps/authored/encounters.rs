@@ -15,6 +15,10 @@ pub(crate) struct EncounterDefinition {
     pub after: Option<String>,
     pub regions: Vec<EntryRegion>,
     pub enemies: Vec<EnemyPlacement>,
+    /// A deliberate climax that may mix more than three enemy types. Every
+    /// other group keeps to three, so each fight stays readable.
+    #[serde(default)]
+    pub brawl: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -137,6 +141,20 @@ impl Hover {
     }
 }
 
+/// Enemy types an ordinary encounter may mix (Level Design Book: one for a
+/// lesson, two regular, three complex, four or more a brawl).
+pub(crate) const MAX_ENEMY_TYPES: usize = 3;
+
+/// Distinct enemy kinds in one group.
+pub(crate) fn enemy_types(encounter: &EncounterDefinition) -> usize {
+    encounter
+        .enemies
+        .iter()
+        .map(|enemy| enemy.kind)
+        .collect::<HashSet<_>>()
+        .len()
+}
+
 pub(super) fn validate(
     encounters: &[EncounterDefinition],
     policy: EquipmentPolicy,
@@ -224,6 +242,12 @@ pub(super) fn validate(
             > 1
         {
             return Err(invalid("an authored group permits at most one Assessor"));
+        }
+        if !encounter.brawl && enemy_types(encounter) > MAX_ENEMY_TYPES {
+            return Err(invalid(&format!(
+                "encounter {} mixes more than {MAX_ENEMY_TYPES} enemy types; mark a deliberate brawl",
+                encounter.id,
+            )));
         }
         earlier.insert(encounter.id.clone());
     }

@@ -11,7 +11,7 @@ use std::collections::HashSet;
 /// client's arrival line reaches further, so it is said before they go in.
 const LATCH_DOOR_REACH: f32 = 6.0;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct M16Progress {
     pub(super) index: usize,
     pub(super) challenges: M16ChallengeState,

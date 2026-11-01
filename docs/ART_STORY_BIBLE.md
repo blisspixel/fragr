@@ -420,7 +420,20 @@ livery instead of personal colour; uniformity is the point. The free side keeps
 personal colour plus the warm amber team accent of the existing Free plate.
 Free-versus-free modes use two non-reserved accents (default ember and
 magenta, with the high-contrast pair from accessibility settings); a team
-accent is never Union red on black, matte off-white or cyan light.
+accent is never Union red on black, matte off-white or cyan light. The
+**red-green safe** team colour choice (deuteranopia and protanopia) keeps
+Union red and moves the free side's tape, label, flag and marks to blue
+(`#5D6CFF`, label `#8A95FF`, past the Inheritance cyan band), with the yellow
+and blue pair for free-versus-free; `client/scripts/test_colour_vision.gd`
+simulates both conditions and holds every side pair at least 20 CIELAB apart.
+
+**Fighter contrast.** A fighter reads against its local background at 3:1 or
+better in relative luminance from 10 to 40 m, measured by
+`client/qa/contrast_scan.gd` on live tour captures. Fix a failure through
+material value, light or a rim of light within this contract, never an outline
+round every body. Every live fighter carries a stepped rim of light
+(`client/scripts/fighter_rim.gd`): warm amber white on a free body, a cool
+plate value on the Union's issued black, never red, cyan or off-white.
 
 **Colour picker rule.** Any player colour picker, saved record or received
 cosmetic is validated on the composed body, not per swatch. Reject or snap to
@@ -449,11 +462,14 @@ colour, never a red wash. A sided nameplate carries a team edge over it, a
 solid red bar for the Union and an open amber frame for the free side, the
 same shapes as the HUD side marks, so the side reads in grayscale. Hit and
 golden-Railgun cues are light, not paint.
-Not yet built: a player colour picker, cosmetics or saved colour records
-(each must call `check` or `check_record`), a free-versus-free mode (its
+A player picks a roster look and a personal accent from a curated palette
+(`FighterLooks`; the palette passes `free_accent_allowed`, and the roster test
+checks every look against `check`), shown as a wrist band; the Union side
+wears issued rank marks instead. Not yet built: free cosmetics or saved colour
+records (each must call `check` or `check_record`), a free-versus-free mode (its
 ember and magenta pair and high-contrast pair exist as `free_pair`),
-Inheritance machines and absorbed bots. The server carries no cosmetics, so it
-validates none. Review captures: `client/qa/faction_readability_review.gd` and
+Inheritance machines and absorbed bots. The server carries looks and accents
+only as roster indices and refuses any outside the roster. Review captures: `client/qa/faction_readability_review.gd` and
 the `faction-readability-*.json` tours.
 Campaign people on existing bodies wear `CastPaint` schemes
 (`client/scripts/cast_paint.gd`), recolours of their own art baked offline by

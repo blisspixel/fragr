@@ -993,6 +993,14 @@ impl RuntimeMap {
         }
     }
 
+    /// Where a site's defenders watch for the attack (`sabotage_watch`).
+    pub(crate) fn sabotage_watch(&self) -> Option<&'static super::SiteWatch> {
+        match self {
+            Self::BuiltIn(kind) => super::sabotage_watch(*kind),
+            Self::Authored(_) => None,
+        }
+    }
+
     /// The extra weapon pads a free-for-all lays on this map. None on an
     /// authored map, which places its own supplies.
     pub(crate) fn scrap_pads(&self) -> Vec<ArenaPickup> {

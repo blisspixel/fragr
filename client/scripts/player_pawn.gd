@@ -30,6 +30,10 @@ var _own_color: Color = Color.WHITE
 ## The one-line reason the colour picker rule last snapped this body's
 ## composed colours, or empty when they passed as chosen.
 var body_scheme_note: String = ""
+## The accepted roster look and personal accent (FighterLooks), from the
+## snapshot's `dress`. AUTO until a server names them.
+var look: int = FighterLooks.AUTO
+var personal_accent: int = FighterLooks.AUTO
 ## Light, not paint: a hot flash on a hit and the golden Railgun's glow. The
 ## alpha is the emission energy.
 const HIT_GLOW: Color = Color(1.0, 0.72, 0.5, 0.9)
@@ -86,6 +90,10 @@ var target_pitch: float = 0.0
 var presentation_yaw: float = 0.0
 var presentation_pitch: float = 0.0
 var remote_presentation: RemotePresentation = RemotePresentation.new()
+## Running steps, jumps and landings at this body's feet (footsteps.gd).
+var footsteps: Footsteps = null
+## The local prediction's own airborne fact while it owns the body.
+var predicted_airborne: bool = false
 const INTERP_SPEED: float = 10.0
 
 # Far-cam billboard scale: follow sits ~12m; tip overview ~36m.
@@ -190,6 +198,11 @@ func _ready():
 		highlight.visible = false
 	
 	_load_audio_streams()
+	footsteps = Footsteps.new()
+	footsteps.name = "Footsteps"
+	# The pawn origin is the server body point, PLAYER_FLOOR_Y over the feet.
+	footsteps.position = Vector3(0.0, -LocalPrediction.FLOOR_OFFSET, 0.0)
+	add_child(footsteps)
 	
 	muzzle_flash_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	
@@ -311,6 +324,7 @@ func _process(delta: float) -> void:
 		presentation_yaw = lerp_angle(-rotation.y, target_yaw, t)
 		presentation_pitch = lerpf(presentation_pitch, target_pitch, t)
 	var travel: float = Vector2(position.x - previous.x, position.z - previous.z).length()
+	_present_feet(delta, travel, position.y - previous.y, rendered)
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
 	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
@@ -466,6 +480,16 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	
 	if not is_campaign_enemy and not is_campaign_companion and PlayerBody.valid(state.get("body")) and state["body"] != body_kind:
 		_wear_body(state["body"])
+	if footsteps != null:
+		var kind: String = str(campaign_actor.get("kind", "")) if is_campaign_enemy else body_kind
+		footsteps.walks = Footsteps.walks_for(state["campaign"] if state.get("campaign") is Dictionary else {}, kind)
+		footsteps.base_pitch = Footsteps.pitch_for(kind)
+		footsteps.observe(snapshot_tick if snapshot_tick > 0 else -1, state.get("airborne") == true)
+	if not is_campaign_enemy and not is_campaign_companion and not body_kind.is_empty():
+		var dress: Dictionary = FighterLooks.parse(state.get("dress"), body_kind)
+		if not dress.is_empty() and (int(dress["look"]) != look or int(dress["accent"]) != personal_accent):
+			look = int(dress["look"])
+			personal_accent = int(dress["accent"])
 	var next_team: String = MatchRules.valid_team(state.get("team"))
 	if next_team != team:
 		team = next_team
@@ -510,6 +534,11 @@ func set_ducking(value: bool) -> void:
 
 ## Only the local human body uses this path. Snapshot metadata still flows
 ## through update_state; the positional target is kept for safe fallback.
+## Local prediction says whether the body it owns is off the ground.
+func set_predicted_airborne(value: bool) -> void:
+	predicted_airborne = value
+
+
 func set_predicted_position(value: Vector3, speed: float) -> void:
 	prediction_active = true
 	predicted_position = value
@@ -580,6 +609,7 @@ func _wear_body(kind: String) -> void:
 	var candidate: SkinnedCharacter = SkinnedCharacter.new()
 	if candidate.configure(kind):
 		character_view = candidate
+		FighterLooks.wear(character_view, FighterLooks.texture(kind, look))
 		character_view.name = "LiveBody"
 		character_view.position.y = -EnemyView.CAMERA.FP_SERVER_REFERENCE_Y
 		character_view.rotation.y = PI / 2.0
@@ -716,14 +746,20 @@ func _update_body_color(hit: bool):
 ## The composed free body passes the colour picker rule first.
 func _dress_live_body() -> void:
 	var livery: String = FactionPalette.livery(team)
-	var accent: Color = FactionPalette.team_accent(team) if team != "" else player_color
+	var personal: Color = FighterLooks.accent_color(personal_accent)
+	# A sideless fighter wears its own accent on the tape when it chose one.
+	var accent: Color = FactionPalette.team_accent(team) if team != "" else (personal if personal.a > 0.0 else player_color)
 	if livery == "free":
 		var checked: Dictionary = FactionPalette.check({"base": character_view.base_color(), "accent": accent})
 		accent = checked["scheme"].get("accent", accent)
 		body_scheme_note = checked["reason"]
 	else:
 		body_scheme_note = ""
+	# The Union side wears issued livery from the body's own art.
+	FighterLooks.wear(character_view, null if livery == "union" else FighterLooks.texture(body_kind, look))
 	character_view.dress(livery, accent)
+	FighterLooks.mark(character_view, personal, livery == "union", FighterLooks.union_rank(look))
+	FighterRim.apply(character_view, livery == "union")
 
 func _update_notary_shadow() -> void:
 	if _notary_shadow == null:
@@ -1118,3 +1154,13 @@ func set_nameplate_enabled(enabled: bool) -> void:
 	nameplate_enabled = enabled
 	if label:
 		label.visible = enabled and not is_local_fp
+
+## Feet follow the drawn body: its travel this frame, and the server's
+## airborne flag as of the tick being drawn (or prediction's, for the body
+## it owns), so a landing is heard when it is seen.
+func _present_feet(delta: float, travel: float, rise: float, rendered: Dictionary) -> void:
+	if footsteps == null:
+		return
+	footsteps.own = is_local_fp
+	var airborne: bool = predicted_airborne if prediction_active else footsteps.airborne_at(float(rendered.get("tick", -1.0)))
+	footsteps.present(delta, travel, rise, airborne, ducking, hp > 0, vehicle_seated)

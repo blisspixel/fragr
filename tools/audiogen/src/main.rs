@@ -8,9 +8,9 @@ use fragr_audiogen::casting::{
     DesignParams, LibraryQuery, SaveVoiceParams, DEFAULT_DESIGN_FORMAT, DEFAULT_DESIGN_MODEL,
 };
 use fragr_audiogen::{
-    parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command, score, Command,
-    Error, Job, Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport,
-    TtsParams, API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL,
+    loudness, parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command,
+    score, Command, Error, Job, Method, MusicParams, Request, Response, RunOptions, SfxParams,
+    Transport, TtsParams, API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL,
     DEFAULT_SFX_FORMAT, DEFAULT_TTS_FORMAT, DEFAULT_TTS_MODEL,
 };
 use std::io::Read;
@@ -264,11 +264,48 @@ enum Cmd {
         #[arg(long)]
         save: Option<PathBuf>,
     },
+    /// Measure WAV files the ITU-R BS.1770 / EBU R128 way: integrated loudness,
+    /// loudness range, momentary and short-term maxima, sample and true peak.
+    /// Local and free. With --check, exit non-zero unless every file is inside
+    /// the gameplay target (-23 to -18 LUFS integrated, true peak at or below -1 dBTP).
+    Loudness {
+        /// WAV files to measure.
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+        /// Fail unless each file meets the gameplay target.
+        #[arg(long)]
+        check: bool,
+        /// Also write the measurements as JSON to this file.
+        #[arg(long)]
+        json: Option<PathBuf>,
+        /// Rewrite each file in place as mono 16-bit PCM whose loudest 400 ms
+        /// block reads this many LUFS, held under --peak-ceiling dBTP.
+        /// Measures after levelling. For short asset clips such as footsteps.
+        #[arg(long, allow_negative_numbers = true)]
+        level_to: Option<f64>,
+        /// True peak ceiling for --level-to.
+        #[arg(long, default_value_t = -1.0, allow_negative_numbers = true)]
+        peak_ceiling: f64,
+    },
     /// Delete every shipped score take that was not picked, with its .import file
     /// and manifest entry. Slots without a pick keep both. Dry run unless --apply.
     ScorePrune {
         #[command(flatten)]
         score: ScorePaths,
+        /// Delete the files. Without this the plan is only printed.
+        #[arg(long)]
+        apply: bool,
+    },
+    /// Delete every benchmark jingle take except the one picked on the benchmark
+    /// results screen, with its .import file and manifest entry. Keeps all six
+    /// without a pick. Dry run unless --apply.
+    JinglePrune {
+        /// The game's settings file. Defaults to Godot's user data folder for fragr.
+        #[arg(long)]
+        settings: Option<PathBuf>,
+        /// Shipped takes (<dir>/benchmark/<take>.mp3); its parent holds audiogen-manifest.json.
+        #[arg(long, default_value = score::DEFAULT_JINGLE_DIR)]
+        jingle_dir: PathBuf,
         /// Delete the files. Without this the plan is only printed.
         #[arg(long)]
         apply: bool,
@@ -505,8 +542,10 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
         Cmd::Review { .. }
         | Cmd::Promote { .. }
         | Cmd::ScorePicks { .. }
-        | Cmd::ScorePrune { .. } => return Err(Error::InvalidArgument(
-            "review, promote and the score take commands run locally, not through the generator"
+        | Cmd::ScorePrune { .. }
+        | Cmd::Loudness { .. }
+        | Cmd::JinglePrune { .. } => return Err(Error::InvalidArgument(
+            "review, promote, loudness, jingle-prune and the score take commands run locally, not through the generator"
                 .into(),
         )),
     })
@@ -670,8 +709,9 @@ fn run_promote(
     Ok(())
 }
 
-fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Error> {
-    let settings = match &paths.settings {
+/// The game's settings file and its text; `hint` says what writes it.
+fn read_settings(path: &Option<PathBuf>, hint: &str) -> Result<(PathBuf, String), Error> {
+    let settings = match path {
         Some(path) => path.clone(),
         None => score::default_settings_path().ok_or_else(|| {
             Error::InvalidArgument(
@@ -681,16 +721,93 @@ fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Erro
     };
     let text = std::fs::read_to_string(&settings).map_err(|err| {
         Error::InvalidArgument(format!(
-            "cannot read {} ({err}); play a campaign level once or pass --settings",
+            "cannot read {} ({err}); {hint} or pass --settings",
             settings.display()
         ))
     })?;
+    Ok((settings, text))
+}
+
+fn score_rows(paths: &ScorePaths) -> Result<(PathBuf, Vec<score::PickRow>), Error> {
+    let (settings, text) = read_settings(&paths.settings, "play a campaign level once")?;
     let takes = score::parse_takes(&text)?;
     let slots = score::load_slots(&paths.slots)?;
     Ok((
         settings,
         score::collect_picks(&slots, &takes, &paths.score_dir),
     ))
+}
+
+fn level_files(
+    files: &[PathBuf],
+    target: f64,
+    ceiling: f64,
+    dry_run: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    if !target.is_finite()
+        || !ceiling.is_finite()
+        || !(-60.0..=0.0).contains(&target)
+        || ceiling > 0.0
+    {
+        return Err(Error::InvalidArgument(
+            "--level-to must be -60 to 0 LUFS and --peak-ceiling at most 0 dBTP".into(),
+        ));
+    }
+    for file in files {
+        let pcm = loudness::read_wav(&std::fs::read(file)?)?;
+        let Some((levelled, gain)) = loudness::level(&pcm, target, ceiling) else {
+            return Err(Error::InvalidArgument(format!(
+                "{} is silent; nothing to level",
+                file.display()
+            )));
+        };
+        writeln!(out, "level {}: {gain:+.1} dB, mono", file.display())?;
+        if !dry_run {
+            std::fs::write(file, loudness::to_wav16(&levelled))?;
+        }
+    }
+    Ok(())
+}
+
+fn run_loudness(
+    files: &[PathBuf],
+    check: bool,
+    json: Option<PathBuf>,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let mut results = Vec::new();
+    let mut misses = Vec::new();
+    for file in files {
+        let result = loudness::measure_file(file)?;
+        writeln!(out, "{}", loudness::describe(&result))?;
+        for miss in loudness::Target::GAMEPLAY.misses(&result) {
+            misses.push(format!("{}: {miss}", result.file));
+        }
+        results.push(result);
+    }
+    if let Some(path) = json {
+        let text =
+            serde_json::to_string_pretty(&results).map_err(|err| Error::Spec(err.to_string()))?;
+        if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&path, format!("{text}\n"))?;
+        writeln!(out, "saved {}", path.display())?;
+    }
+    if check && !misses.is_empty() {
+        return Err(Error::InvalidArgument(format!(
+            "outside the gameplay loudness target: {}",
+            misses.join("; ")
+        )));
+    }
+    if check {
+        writeln!(
+            out,
+            "loudness: every file meets -23 to -18 LUFS and -1 dBTP"
+        )?;
+    }
+    Ok(())
 }
 
 fn run_score_picks(
@@ -730,10 +847,39 @@ fn run_score_prune(
     if plan.removals.is_empty() {
         return Ok(());
     }
-    score::apply_prune(&plan, &paths.score_dir)?;
+    score::apply_prune(&plan, &paths.score_dir, &score::TAKES)?;
     writeln!(
         out,
         "pruned {} take(s). Next: run tools/godot_check.sh, check `git status client/assets/audio` and stage with `git add -A client/assets/audio`",
+        plan.removals.len()
+    )?;
+    Ok(())
+}
+
+fn run_jingle_prune(
+    settings: Option<PathBuf>,
+    jingle_dir: PathBuf,
+    apply: bool,
+    out: &mut dyn std::io::Write,
+) -> Result<(), Error> {
+    let (settings, text) = read_settings(&settings, "finish a benchmark run once")?;
+    writeln!(out, "jingle pick from {}", settings.display())?;
+    let pick = score::parse_jingle_pick(&text);
+    let row = score::jingle_row(pick, &jingle_dir);
+    write!(out, "{}", score::describe_picks(std::slice::from_ref(&row)))?;
+    let plan = score::plan_prune(std::slice::from_ref(&row), &jingle_dir);
+    write!(out, "{}", score::describe_prune(&plan))?;
+    if !apply {
+        writeln!(out, "dry run: nothing deleted; pass --apply to prune")?;
+        return Ok(());
+    }
+    if plan.removals.is_empty() {
+        return Ok(());
+    }
+    score::apply_prune(&plan, &jingle_dir, &score::JINGLE_TAKES)?;
+    writeln!(
+        out,
+        "pruned {} take(s); the results screen drops its picker. Next: run tools/godot_check.sh, check `git status client/assets/audio` and stage with `git add -A client/assets/audio`",
         plan.removals.len()
     )?;
     Ok(())
@@ -753,9 +899,26 @@ fn run(cli: Cli, out: &mut dyn std::io::Write) -> Result<(), Error> {
             apply,
         } => return run_promote(paths, min_tracks, force, apply && !cli.dry_run, out),
         Cmd::ScorePicks { score, save } => return run_score_picks(score, save, out),
+        Cmd::Loudness {
+            files,
+            check,
+            json,
+            level_to,
+            peak_ceiling,
+        } => {
+            if let Some(target) = level_to {
+                level_files(&files, target, peak_ceiling, cli.dry_run, out)?;
+            }
+            return run_loudness(&files, check, json, out);
+        }
         Cmd::ScorePrune { score, apply } => {
             return run_score_prune(score, apply && !cli.dry_run, out)
         }
+        Cmd::JinglePrune {
+            settings,
+            jingle_dir,
+            apply,
+        } => return run_jingle_prune(settings, jingle_dir, apply && !cli.dry_run, out),
         _ => {}
     }
     // Dry runs never need a key. Quota always does.
@@ -1384,6 +1547,191 @@ mod tests {
                 score_dir: PathBuf::from("d"),
             },
             save: None,
+        };
+        assert!(to_command(command).is_err());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn loudness_measures_levels_and_checks_the_gameplay_target() {
+        let dir = std::env::temp_dir().join(format!(
+            "fragr-audiogen-main-loudness-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let rate = 48_000u32;
+        let tone = |dbfs: f64, seconds: f64| -> Vec<u8> {
+            let amplitude = 10f64.powf(dbfs / 20.0);
+            let frames = (seconds * f64::from(rate)) as usize;
+            let mut samples = Vec::with_capacity(frames * 2);
+            for frame in 0..frames {
+                let value = amplitude
+                    * (2.0 * std::f64::consts::PI * 1_000.0 * frame as f64 / f64::from(rate)).sin();
+                samples.push(value);
+                samples.push(value);
+            }
+            loudness::to_wav16(&loudness::Pcm {
+                sample_rate: rate,
+                channels: 2,
+                samples,
+            })
+        };
+        let mix = dir.join("mix.wav");
+        std::fs::write(&mix, tone(-20.0, 5.0)).unwrap();
+        let report = dir.join("out/report.json");
+        let mut out = Vec::new();
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "loudness",
+            "--check",
+            "--json",
+            report.to_str().unwrap(),
+            mix.to_str().unwrap(),
+        ])
+        .unwrap();
+        run(cli, &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("integrated -20.0 LUFS"), "{text}");
+        assert!(text.contains("every file meets"), "{text}");
+        let saved: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
+        assert_eq!(saved[0]["channels"], 2);
+        // A quiet mix fails the check by name.
+        let quiet = dir.join("quiet.wav");
+        std::fs::write(&quiet, tone(-40.0, 5.0)).unwrap();
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "loudness",
+            "--check",
+            quiet.to_str().unwrap(),
+        ])
+        .unwrap();
+        let err = run(cli, &mut Vec::new()).unwrap_err().to_string();
+        assert!(
+            err.contains("outside the gameplay loudness target"),
+            "{err}"
+        );
+        // Levelling rewrites in place, mono; a dry run only reports.
+        let clip = dir.join("clip.wav");
+        std::fs::write(&clip, tone(-40.0, 0.5)).unwrap();
+        let before = std::fs::read(&clip).unwrap();
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "--dry-run",
+            "loudness",
+            "--level-to",
+            "-18",
+            clip.to_str().unwrap(),
+        ])
+        .unwrap();
+        run(cli, &mut Vec::new()).unwrap();
+        assert_eq!(std::fs::read(&clip).unwrap(), before);
+        let cli = Cli::try_parse_from([
+            "fragr-audiogen",
+            "loudness",
+            "--level-to",
+            "-18",
+            clip.to_str().unwrap(),
+        ])
+        .unwrap();
+        let mut out = Vec::new();
+        run(cli, &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("mono"), "{text}");
+        assert!(text.contains("momentary max -18.0 LUFS"), "{text}");
+        let silent = dir.join("silent.wav");
+        std::fs::write(
+            &silent,
+            loudness::to_wav16(&loudness::Pcm {
+                sample_rate: rate,
+                channels: 1,
+                samples: vec![0.0; 4_800],
+            }),
+        )
+        .unwrap();
+        for args in [
+            vec!["--level-to", "-18", silent.to_str().unwrap()],
+            vec!["--level-to", "-90", clip.to_str().unwrap()],
+            vec![
+                "--level-to",
+                "-18",
+                "--peak-ceiling",
+                "3",
+                clip.to_str().unwrap(),
+            ],
+        ] {
+            let mut full = vec!["fragr-audiogen", "loudness"];
+            full.extend(args);
+            let cli = Cli::try_parse_from(full).unwrap();
+            assert!(run(cli, &mut Vec::new()).is_err());
+        }
+        assert!(to_command(Cmd::Loudness {
+            files: vec![clip.clone()],
+            check: false,
+            json: None,
+            level_to: None,
+            peak_ceiling: -1.0,
+        })
+        .is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn jingle_prune_reads_the_pick_and_keeps_only_it() {
+        let dir =
+            std::env::temp_dir().join(format!("fragr-audiogen-main-jingle-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let jingle = dir.join("audio/jingle");
+        std::fs::create_dir_all(jingle.join(score::JINGLE_SLOT)).unwrap();
+        for take in score::JINGLE_TAKES {
+            std::fs::write(
+                jingle.join(format!("{}/{take}.mp3", score::JINGLE_SLOT)),
+                b"x",
+            )
+            .unwrap();
+        }
+        let settings = dir.join("settings.cfg");
+        let args = |extra: &[&str]| {
+            let mut args: Vec<String> = vec![
+                "fragr-audiogen".into(),
+                "jingle-prune".into(),
+                "--settings".into(),
+                settings.display().to_string(),
+                "--jingle-dir".into(),
+                jingle.display().to_string(),
+            ];
+            args.extend(extra.iter().map(|s| s.to_string()));
+            args
+        };
+        // No settings file yet: refused with a hint, nothing deleted.
+        let mut out = Vec::new();
+        let missing = run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out);
+        assert!(missing.unwrap_err().to_string().contains("benchmark run"));
+        // No pick saved: every take stays even with --apply.
+        std::fs::write(&settings, "[audio]\n\nmaster=0.9\n").unwrap();
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("nothing to prune"));
+        std::fs::write(&settings, "[audio]\n\nbenchmark_jingle=\"3a\"\n").unwrap();
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&[])).unwrap(), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("pick 3A") && text.contains("dry run"),
+            "{text}"
+        );
+        assert!(jingle.join("benchmark/1a.mp3").exists());
+        let mut out = Vec::new();
+        run(Cli::try_parse_from(args(&["--apply"])).unwrap(), &mut out).unwrap();
+        assert!(String::from_utf8(out).unwrap().contains("pruned 5 take"));
+        assert!(jingle.join("benchmark/3a.mp3").exists());
+        assert!(
+            !jingle.join("benchmark/1a.mp3").exists() && !jingle.join("benchmark/3b.mp3").exists()
+        );
+        let command = Cmd::JinglePrune {
+            settings: None,
+            jingle_dir: PathBuf::from("d"),
+            apply: false,
         };
         assert!(to_command(command).is_err());
         std::fs::remove_dir_all(&dir).unwrap();

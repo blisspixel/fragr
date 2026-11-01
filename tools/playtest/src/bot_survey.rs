@@ -225,6 +225,19 @@ pub struct ScenarioReport {
     /// Fighter seconds spent in a vehicle seat (Holdfast's jeeps, boats and
     /// aircraft).
     pub vehicle_seconds: f64,
+    /// Seconds from a spawn to first contact: the fighter sees an opponent
+    /// or is seen by one (120 degree cone, 64 m, clear sight), or a shot
+    /// lands either way.
+    pub respawn_to_contact_s: crate::sight::Spread,
+    /// Seconds from a spawn to the first shot that lands either way: the
+    /// fight joined, not only seen.
+    pub respawn_to_hit_s: crate::sight::Spread,
+    /// Metres between killer and victim when the frag landed, by weapon.
+    pub kill_distance_m: BTreeMap<String, crate::sight::Spread>,
+    /// Two second windows walked three metres or more with nobody in view,
+    /// and the share that went back and forth (`sight::DitherTracker`).
+    pub moving_windows: u64,
+    pub dither_share: f64,
 }
 
 /// The wave 19 fun targets for every map in rotation.
@@ -233,6 +246,11 @@ pub const MAP_LEAD_CHANGES: f64 = 3.0;
 pub const MAP_TOP_GUN_SHARE: f64 = 0.45;
 /// A Duel finds its fight on every map (#517): one frag a minute between two.
 pub const MAP_DUEL_FRAGS_PER_MINUTE: f64 = 1.0;
+/// Median seconds from a spawn to the first landed shot either way in the
+/// deathmatch modes (`docs/plans/fun-craft-targets.md`, contact).
+pub const MAP_CONTACT_SECONDS: (f64, f64) = (6.0, 15.0);
+/// Moving windows that dither, at most (`sight::DitherTracker`).
+pub const MAP_DITHER_SHARE: f64 = 0.05;
 
 impl ScenarioReport {
     /// The gun that fired the most shots and its share.
@@ -404,6 +422,11 @@ struct Tally {
     /// Claims by pad id, with every authored pad entered at zero.
     pad_claims: BTreeMap<String, u64>,
     vehicle_ticks: u64,
+    contact_seconds: Vec<f64>,
+    hit_seconds: Vec<f64>,
+    kill_distances: BTreeMap<String, Vec<f64>>,
+    moving_windows: u64,
+    dither_windows: u64,
 }
 
 fn power(kind: PickupKind) -> bool {
@@ -671,6 +694,15 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
         out_of_bounds_ticks: tally.out_of_bounds_ticks,
         lowest_feet: tally.lowest_feet.unwrap_or(0.0),
         vehicle_seconds: tally.vehicle_ticks as f64 / 20.0,
+        respawn_to_contact_s: crate::sight::spread(&tally.contact_seconds),
+        respawn_to_hit_s: crate::sight::spread(&tally.hit_seconds),
+        kill_distance_m: tally
+            .kill_distances
+            .iter()
+            .map(|(weapon, metres)| (weapon.clone(), crate::sight::spread(metres)))
+            .collect(),
+        moving_windows: tally.moving_windows,
+        dither_share: share(tally.dither_windows, tally.moving_windows),
         unclaimed_pads: tally
             .pad_claims
             .iter()
@@ -739,6 +771,26 @@ pub fn check_map_targets(row: &ScenarioReport, mode: GameMode) -> Vec<String> {
             row.scenario, row.lead_changes_per_match
         ));
     }
+    // Contact as the targets mean it: the fight joined, the first shot that
+    // lands either way. Sight alone comes within a second on a small floor.
+    let contact = row.respawn_to_hit_s.median;
+    if matches!(mode, GameMode::Ffa | GameMode::Tdm)
+        && row.respawn_to_hit_s.count > 0
+        && !(MAP_CONTACT_SECONDS.0..=MAP_CONTACT_SECONDS.1).contains(&contact)
+    {
+        misses.push(format!(
+            "{}: {contact:.1} s median from spawn to the first landed shot, want {:.0} to {:.0}",
+            row.scenario, MAP_CONTACT_SECONDS.0, MAP_CONTACT_SECONDS.1
+        ));
+    }
+    if row.dither_share >= MAP_DITHER_SHARE {
+        misses.push(format!(
+            "{}: dithers in {:.1} percent of moving windows, want under {:.0}",
+            row.scenario,
+            row.dither_share * 100.0,
+            MAP_DITHER_SHARE * 100.0
+        ));
+    }
     let (gun, share) = row.top_gun();
     if share >= MAP_TOP_GUN_SHARE {
         misses.push(format!(
@@ -805,6 +857,12 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
     // Per fighter: last feet position and the current still run.
     let mut still: HashMap<Uuid, ([f32; 3], u32)> = HashMap::new();
     let mut leader: Option<String> = None;
+    // Fighters spawned and not yet in contact, with the tick they spawned.
+    let mut awaiting: HashMap<Uuid, u64> = HashMap::new();
+    // The same for the first landed shot.
+    let mut unhit: HashMap<Uuid, u64> = HashMap::new();
+    let solids = map.solids();
+    let mut dither = crate::sight::DitherTracker::default();
     let rounds = scenario.mode == GameMode::Sabotage;
     let half = map.half_extent();
     let mut live = false;
@@ -830,6 +888,48 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
             }
         } else {
             still.clear();
+        }
+        if live {
+            dither.observe(&session, &solids);
+            let mode = scenario.mode;
+            let met: Vec<Uuid> = awaiting
+                .keys()
+                .copied()
+                .filter(|id| {
+                    session
+                        .state
+                        .players
+                        .iter()
+                        .find(|p| p.id == *id)
+                        .is_some_and(|me| {
+                            me.hp > 0
+                                && me.respawn_timer.is_none()
+                                && session.state.players.iter().any(|other| {
+                                    other.hp > 0
+                                        && other.respawn_timer.is_none()
+                                        && crate::sight::hostile(mode, me, other)
+                                        && (crate::sight::sees(
+                                            &solids,
+                                            me,
+                                            other,
+                                            crate::sight::SIGHT,
+                                        ) || crate::sight::sees(
+                                            &solids,
+                                            other,
+                                            me,
+                                            crate::sight::SIGHT,
+                                        ))
+                                })
+                        })
+                })
+                .collect();
+            for id in met {
+                if let Some(at) = awaiting.remove(&id) {
+                    tally
+                        .contact_seconds
+                        .push(tick.saturating_sub(at) as f64 / 20.0);
+                }
+            }
         }
         if live {
             tally.live_ticks += 1;
@@ -915,6 +1015,8 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 GameEvent::RoundStart { .. } if rounds => {
                     for player in &session.state.players {
                         spawned_at.insert(player.id, tick);
+                        awaiting.insert(player.id, tick);
+                        unhit.insert(player.id, tick);
                         tally.spawns += 1;
                     }
                 }
@@ -922,6 +1024,8 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     live = true;
                     for player in &session.state.players {
                         spawned_at.insert(player.id, tick);
+                        awaiting.insert(player.id, tick);
+                        unhit.insert(player.id, tick);
                         tally.spawns += 1;
                     }
                 }
@@ -933,6 +1037,8 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                 GameEvent::Respawn { ref player } if live => {
                     if let Some(p) = session.state.players.iter().find(|p| &p.name == player) {
                         spawned_at.insert(p.id, tick);
+                        awaiting.insert(p.id, tick);
+                        unhit.insert(p.id, tick);
                         tally.spawns += 1;
                     }
                 }
@@ -953,6 +1059,18 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     ..
                 } if live => {
                     tally.hits += 1;
+                    for id in [shooter_id, target_id] {
+                        if let Some(at) = awaiting.remove(&id) {
+                            tally
+                                .contact_seconds
+                                .push(tick.saturating_sub(at) as f64 / 20.0);
+                        }
+                        if let Some(at) = unhit.remove(&id) {
+                            tally
+                                .hit_seconds
+                                .push(tick.saturating_sub(at) as f64 / 20.0);
+                        }
+                    }
                     let shooters = last_hit.entry(target_id).or_default();
                     let fresh = shooters
                         .get(&shooter_id)
@@ -999,6 +1117,27 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
                     let Some(victim_id) = victim_id else {
                         continue;
                     };
+                    if let Some(at) = awaiting.remove(&victim_id) {
+                        tally
+                            .contact_seconds
+                            .push(tick.saturating_sub(at) as f64 / 20.0);
+                    }
+                    if let Some(at) = unhit.remove(&victim_id) {
+                        tally
+                            .hit_seconds
+                            .push(tick.saturating_sub(at) as f64 / 20.0);
+                    }
+                    let killer = killer_id
+                        .filter(|killer| *killer != victim_id)
+                        .and_then(|killer| session.state.players.iter().find(|p| p.id == killer));
+                    let victim = session.state.players.iter().find(|p| p.id == victim_id);
+                    if let (Some(killer), Some(victim), Some(weapon)) = (killer, victim, weapon) {
+                        tally
+                            .kill_distances
+                            .entry(weapon.name().to_string())
+                            .or_default()
+                            .push(f64::from((killer.x - victim.x).hypot(killer.z - victim.z)));
+                    }
                     if let Some(killer) = killer_id {
                         if openings.remove(&(killer, victim_id)) == Some(true) {
                             tally.blindside_frags += 1;
@@ -1093,6 +1232,8 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
             }
         }
     }
+    tally.moving_windows += dither.moving;
+    tally.dither_windows += dither.dithers;
     tally.guns_dropped += u64::from(session.state.guns_dropped());
     let ids: Vec<Uuid> = session.state.players.iter().map(|p| p.id).collect();
     for id in ids {
@@ -1437,5 +1578,29 @@ mod tests {
             ..row
         };
         assert!(check_map_targets(&good, GameMode::Ffa).is_empty());
+        let slow = ScenarioReport {
+            respawn_to_hit_s: crate::sight::Spread {
+                count: 40,
+                median: 22.0,
+                p25: 15.0,
+                p75: 30.0,
+            },
+            dither_share: 0.08,
+            ..good.clone()
+        };
+        let misses = check_map_targets(&slow, GameMode::Ffa);
+        assert_eq!(misses.len(), 2, "{misses:?}");
+        assert!(misses[0].contains("first landed shot") && misses[1].contains("dithers"));
+        // Contact pace is a deathmatch target; dithering is read everywhere.
+        assert_eq!(check_map_targets(&slow, GameMode::Ctf).len(), 1);
+        let quick = ScenarioReport {
+            respawn_to_hit_s: crate::sight::Spread {
+                count: 40,
+                median: 3.0,
+                ..crate::sight::Spread::default()
+            },
+            ..good
+        };
+        assert_eq!(check_map_targets(&quick, GameMode::Tdm).len(), 1);
     }
 }

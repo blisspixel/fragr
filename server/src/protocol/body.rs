@@ -40,9 +40,145 @@ impl BodyKind {
     }
 }
 
+/// How many looks each body has in the client's fighter roster
+/// (`client/scripts/fighter_looks.gd`): recolours of one shared model, so a
+/// look never changes the rig, hit volume or animation.
+pub const HUMAN_LOOKS: u8 = 8;
+pub const SYNTHETIC_LOOKS: u8 = 5;
+/// Curated personal accent colours (`FighterLooks.ACCENTS`), worn as a
+/// wrist band. An index, never a raw colour, so no wire value can name a
+/// reserved faction colour.
+pub const ACCENTS: u8 = 8;
+
+impl BodyKind {
+    /// Looks this body offers. Look 0 is the shared model's own art.
+    pub const fn looks(self) -> u8 {
+        match self {
+            Self::Human => HUMAN_LOOKS,
+            Self::Synthetic => SYNTHETIC_LOOKS,
+        }
+    }
+}
+
+/// A participant's personal appearance on its body: which roster look it
+/// wears and its accent colour. Presentation only, like the body: it never
+/// changes a hit volume, side, speed or any combat rule. On a Hello both
+/// parts are optional; an omitted look is assigned by the server so a room
+/// is never a row of clones. In a snapshot `look` is always present.
+///
+/// `{"look": 3, "accent": 2}`. Values outside the roster fail parsing, so a
+/// bad Hello is refused like an unknown body.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, try_from = "RawDress")]
+pub struct Dress {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub look: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accent: Option<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawDress {
+    #[serde(default)]
+    look: Option<u8>,
+    #[serde(default)]
+    accent: Option<u8>,
+}
+
+impl TryFrom<RawDress> for Dress {
+    type Error = &'static str;
+
+    fn try_from(raw: RawDress) -> Result<Self, Self::Error> {
+        let most = HUMAN_LOOKS.max(SYNTHETIC_LOOKS);
+        if raw.look.is_some_and(|look| look >= most) {
+            return Err("look outside the fighter roster");
+        }
+        if raw.accent.is_some_and(|accent| accent >= ACCENTS) {
+            return Err("accent outside the curated palette");
+        }
+        Ok(Self {
+            look: raw.look,
+            accent: raw.accent,
+        })
+    }
+}
+
+impl Dress {
+    /// This request's look when the body has it, else `None` (assign one).
+    pub fn look_for(self, body: BodyKind) -> Option<u8> {
+        self.look.filter(|look| *look < body.looks())
+    }
+
+    /// The least-worn look for `body` among `worn`, lowest index on a tie:
+    /// deterministic for a join order, and no look repeats until every look
+    /// of that body is in the room.
+    pub fn least_worn(body: BodyKind, worn: impl Iterator<Item = u8>) -> u8 {
+        let mut counts = [0_usize; 256];
+        for look in worn {
+            counts[usize::from(look)] += 1;
+        }
+        (0..body.looks())
+            .min_by_key(|look| (counts[usize::from(*look)], *look))
+            .unwrap_or(0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dress_parses_inside_the_roster_and_refuses_outside() {
+        let dress: Dress = serde_json::from_str(r#"{"look":7,"accent":7}"#).unwrap();
+        assert_eq!(
+            dress,
+            Dress {
+                look: Some(7),
+                accent: Some(7)
+            }
+        );
+        assert_eq!(
+            serde_json::to_string(&dress).unwrap(),
+            r#"{"look":7,"accent":7}"#
+        );
+        assert_eq!(
+            serde_json::from_str::<Dress>("{}").unwrap(),
+            Dress::default()
+        );
+        assert_eq!(serde_json::to_string(&Dress::default()).unwrap(), "{}");
+        for invalid in [
+            r#"{"look":8}"#,
+            r#"{"accent":8}"#,
+            r#"{"look":-1}"#,
+            r##"{"accent":"#ff0000"}"##,
+            r#"{"look":1,"colour":"red"}"#,
+            r#"{"look":"res://look.png"}"#,
+        ] {
+            assert!(serde_json::from_str::<Dress>(invalid).is_err(), "{invalid}");
+        }
+    }
+
+    #[test]
+    fn looks_fit_their_body_and_assignment_spreads() {
+        let request = Dress {
+            look: Some(6),
+            accent: None,
+        };
+        assert_eq!(request.look_for(BodyKind::Human), Some(6));
+        assert_eq!(request.look_for(BodyKind::Synthetic), None);
+        assert_eq!(Dress::least_worn(BodyKind::Human, [].into_iter()), 0);
+        assert_eq!(Dress::least_worn(BodyKind::Human, [0, 1, 3].into_iter()), 2);
+        // A full room of one body wraps to the least-repeated look.
+        let full: Vec<u8> = (0..SYNTHETIC_LOOKS).chain([0, 1]).collect();
+        assert_eq!(Dress::least_worn(BodyKind::Synthetic, full.into_iter()), 2);
+        let mut worn = Vec::new();
+        for _ in 0..HUMAN_LOOKS {
+            worn.push(Dress::least_worn(BodyKind::Human, worn.iter().copied()));
+        }
+        worn.sort_unstable();
+        assert_eq!(worn, (0..HUMAN_LOOKS).collect::<Vec<_>>());
+    }
 
     #[test]
     fn ids_round_trip_and_unknown_values_fail() {

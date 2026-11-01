@@ -6,7 +6,9 @@ extends CanvasLayer
 ## frames at or above 33 ms) and one frame-time timeline. Everything else
 ## (percentiles, hitches, hardware, settings, definitions, the saved files and
 ## the last compatible run) sits under Details. A stopped run says so and has
-## no figures. The actions stay on screen without scrolling.
+## no figures. The actions stay on screen without scrolling. A finished run
+## also gets Crackpot's certificate (BenchmarkJingle): sung once on arrival,
+## its lyric captioned beside the outcome, its take stepped from the actions.
 
 signal dismissed
 signal again_requested
@@ -22,6 +24,14 @@ var _details: VBoxContainer
 var _details_button: Button
 var _scroll: ScrollContainer
 var _notice: Label
+## The player's settings; the results load them when the run did not pass them.
+var preferences: FragrSettings = null
+## Crackpot's certificate, sung once when a completed run reaches this screen.
+var jingle: BenchmarkJingle = null
+## How many times the completion itself started the jingle (0 or 1).
+var completion_sung: int = 0
+var _caption: Label
+var _jingle_pick: Button = null
 
 func _ready() -> void:
 	name = "BenchmarkScoreLayer"
@@ -55,6 +65,9 @@ func _ready() -> void:
 	title.name = "Outcome"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if complete:
+		title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_build_jingle(header)
 	var mark: ColorRect = ColorRect.new()
 	mark.color = MenuTheme.SUCCESS if complete else MenuTheme.DANGER
 	mark.custom_minimum_size = Vector2(0.0, 6.0)
@@ -96,9 +109,75 @@ func _ready() -> void:
 			_button(actions, "Open results folder", func() -> void: OS.shell_open(directory)).name = "BenchmarkFolder"
 		_details_button = _button(actions, "Details", _toggle_details)
 		_details_button.name = "BenchmarkDetails"
+		_add_jingle_pick(actions)
 	var back: Button = _button(actions, "Back to menu", func() -> void: dismissed.emit())
 	back.name = "BenchmarkBack"
 	back.grab_focus.call_deferred()
+	if complete:
+		_sing_on_completion()
+
+## Beside the outcome: Crackpot's lyric as a level caption, wrapping within
+## the title's height so the cards, timeline and actions keep their one screen.
+## The take picker is one button in the actions row (see _add_jingle_pick), so
+## focus never leaves that row and up and down keep scrolling the figures.
+func _build_jingle(header: HBoxContainer) -> void:
+	if preferences == null:
+		preferences = FragrSettings.for_tree(get_tree())
+		preferences.load_from_disk()
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "Jingle"
+	row.add_theme_constant_override("separation", 12)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(row)
+	var speaker: Label = _label(row, BenchmarkJingle.SPEAKER, MenuTheme.BODY, MenuTheme.EMBER)
+	speaker.name = "JingleSpeaker"
+	speaker.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_caption = _label(row, "", MenuTheme.BODY, MenuTheme.BONE)
+	_caption.name = "JingleCaption"
+	_caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	jingle = BenchmarkJingle.new()
+	jingle.name = "BenchmarkJingle"
+	add_child(jingle)
+
+## While more than one take ships: JINGLE 1A steps to the next take, saves it
+## and sings it, so six presses compare every take by ear and come back round.
+func _add_jingle_pick(actions: HBoxContainer) -> void:
+	_jingle_pick = _button(actions, "Jingle", _next_jingle)
+	_jingle_pick.name = "JinglePick"
+	_jingle_pick.visible = BenchmarkJingle.shipped_takes().size() > 1
+	_show_jingle(BenchmarkJingle.chosen_take(preferences))
+
+func _show_jingle(take: String) -> void:
+	if _jingle_pick != null:
+		_jingle_pick.text = "JINGLE " + BenchmarkJingle.label(take)
+	var text: String = "\"%s\"" % BenchmarkJingle.lyric(take)
+	if preferences.announcer() == FragrSettings.ANNOUNCER_OFF:
+		text += " Silent while the Announcer is Off in Settings."
+	_caption.text = text
+
+func _sing_on_completion() -> void:
+	if jingle == null or completion_sung > 0 or not BenchmarkJingle.allowed(report, preferences.announcer()):
+		return
+	if jingle.sing(BenchmarkJingle.chosen_take(preferences), preferences.announcer()):
+		completion_sung += 1
+
+func _next_jingle() -> void:
+	var shipped: Array[String] = BenchmarkJingle.shipped_takes()
+	if shipped.is_empty():
+		return
+	var current: int = shipped.find(BenchmarkJingle.chosen_take(preferences))
+	pick_jingle(shipped[(current + 1) % shipped.size()])
+
+## Save a take and sing it (silent while the Announcer is Off).
+func pick_jingle(take: String) -> void:
+	var candidate: FragrSettings = preferences.draft()
+	candidate.set_value(BenchmarkJingle.SETTINGS_SECTION, BenchmarkJingle.SETTINGS_KEY, take)
+	if preferences.commit(candidate) != OK:
+		_notice.text = "The jingle pick could not be saved."
+	_show_jingle(BenchmarkJingle.chosen_take(preferences))
+	jingle.sing(BenchmarkJingle.chosen_take(preferences), preferences.announcer())
 
 func _summary(body: VBoxContainer) -> void:
 	var runs: Array = report["runs"]

@@ -153,6 +153,8 @@ pub struct ServerOptions {
     pub bots: usize,
     pub bot_policy: crate::bot_fill::BotPolicy,
     pub fill_target: usize,
+    /// The rung every rule bot plays at (`--bot-skill`).
+    pub bot_skill: crate::sim::BotSkill,
     pub map: MapKind,
     /// Authored file or bundled mission, mutually exclusive with arcade rules.
     pub authored: Option<crate::maps::AuthoredSource>,
@@ -205,6 +207,7 @@ impl Default for ServerOptions {
             bots: 4,
             bot_policy: crate::bot_fill::BotPolicy::Fixed,
             fill_target: 0,
+            bot_skill: crate::sim::BotSkill::default(),
             map: MapKind::default(),
             authored: None,
             difficulty: None,
@@ -287,18 +290,7 @@ async fn run_server_impl(
     if playlist {
         crate::sim::GameState::validate_night_playlist().map_err(std::io::Error::other)?;
     }
-    let rotation =
-        crate::sim::vote::Rotation::without(&options.map_off).map_err(std::io::Error::other)?;
-    if !options.map_off.is_empty() && (!rotate || options.authored.is_some()) {
-        return Err("--map-off needs --map-rotate on a roster map".into());
-    }
-    if !rotation.is_on(map) {
-        return Err(format!(
-            "--map {} is switched off by --map-off; start on a map in the rotation",
-            map.name()
-        )
-        .into());
-    }
+    let rotation = checked_rotation(&options)?;
     if let Some(config) = options
         .match_config
         .as_ref()
@@ -745,6 +737,7 @@ async fn run_server_impl(
         session.state.head_to_head = book;
     }
     let mut head_to_head_warned = false;
+    session.set_bot_skill(options.bot_skill);
     session.spawn_bots(options.bots);
     if options.authored.is_none() && !options.campaign_run {
         tracing::info!(
@@ -1421,4 +1414,24 @@ mod rotation_tests {
         .await;
         assert!(fixed.contains("--map-rotate"), "{fixed}");
     }
+}
+
+/// The map rotation a process may start with: `--map-off` only with
+/// `--map-rotate` on a roster map, and never switching off the start map.
+/// Called before any readiness lease, so a refused rotation never races a
+/// parent closing stdin into a clean exit.
+pub(crate) fn checked_rotation(
+    options: &ServerOptions,
+) -> Result<crate::sim::vote::Rotation, String> {
+    let rotation = crate::sim::vote::Rotation::without(&options.map_off)?;
+    if !options.map_off.is_empty() && (!options.map_rotate || options.authored.is_some()) {
+        return Err("--map-off needs --map-rotate on a roster map".into());
+    }
+    if !rotation.is_on(options.map) {
+        return Err(format!(
+            "--map {} is switched off by --map-off; start on a map in the rotation",
+            options.map.name()
+        ));
+    }
+    Ok(rotation)
 }

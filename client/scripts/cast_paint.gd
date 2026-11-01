@@ -94,11 +94,168 @@ const HEIGHTS: Dictionary[String, float] = {
 const BAKED: String = "res://assets/characters/cast/"
 
 
+## Multiplayer and campaign fighter looks (FighterLooks): the free coalition
+## in their own clothes on the shared human body. Each row repaints skin,
+## hair, jacket, shirt and trousers, in that order, keeping the shading;
+## boots stay their worn leather. Nobody in a uniform, nobody in Union black
+## and red, nobody in off-white or cyan.
+const HUMAN_LOOK_PAINT: Dictionary[String, Array] = {
+	# A mechanic in a mustard work jacket over an olive shirt.
+	"look_human_1": [Color("6b4430"), Color("1c1a1a"), Color("b08a2a"), Color("4f5a3a"), Color("3a3f4a")],
+	# A grandmother with silver hair in a plum jacket: Gen Alpha, aged.
+	"look_human_2": [Color("c08a64"), Color("a9a8a4"), Color("6a3a6e"), Color("b4904a"), Color("3e3530")],
+	# Copper hair, a forest-green field jacket and khaki trousers.
+	"look_human_3": [Color("e8b598"), Color("a4532a"), Color("3e6a3a"), Color("a87a50"), Color("6e6248")],
+	# Grey at the temples, a faded indigo jacket and an ember shirt.
+	"look_human_4": [Color("4f3224"), Color("8c8a86"), Color("3e508c"), Color("b4602e"), Color("3a3a2a")],
+	# Dyed berry hair and a safety-orange salvage jacket.
+	"look_human_5": [Color("a77452"), Color("6a2a5a"), Color("c86a24"), Color("2e2e30"), Color("48505a")],
+	# Blond, a waxed canvas coat and a brick shirt.
+	"look_human_6": [Color("d8a07c"), Color("c8a45a"), Color("9a7e4e"), Color("8c4a34"), Color("4a3a2c")],
+	# A violet bomber over a mustard shirt.
+	"look_human_7": [Color("5c3a2a"), Color("181616"), Color("5a3e8a"), Color("b49a4a"), Color("6a5a44")],
+}
+## Free agents on the shared synthetic body: the mid plates in the owner's
+## own paint, the pale plates in a second colour so no free agent stands on
+## a bone base. The dark frame and the screen face stay.
+const SYNTHETIC_LOOK_PAINT: Dictionary[String, Array] = {
+	"look_synthetic_1": [Color("5d7a34"), Color("b0883a")],
+	"look_synthetic_2": [Color("a8892c"), Color("5a4030")],
+	"look_synthetic_3": [Color("3e4e96"), Color("c0703a")],
+	"look_synthetic_4": [Color("6e3a64"), Color("b08a3c")],
+}
+
+
+## Every person this painter knows: campaign people and fighter looks.
+static func people() -> Array[String]:
+	var all: Array[String] = []
+	for person: String in SCHEMES:
+		all.append(person)
+	for person: String in HUMAN_LOOK_PAINT:
+		all.append(person)
+	for person: String in SYNTHETIC_LOOK_PAINT:
+		all.append(person)
+	all.sort()
+	return all
+
+
+## The rules that paint `person`, or empty for an unknown person.
+static func scheme(person: String) -> Array:
+	if SCHEMES.has(person):
+		return SCHEMES[person]
+	if HUMAN_LOOK_PAINT.has(person):
+		var paint: Array = HUMAN_LOOK_PAINT[person]
+		return [
+			# Skin on the face, neck and hands: lighter and less saturated
+			# than the leather jacket around it.
+			{"zone": ["head", "hands", "torso"], "hue": [0.0, 45.0], "sat": [0.2, 0.52], "val": [0.56, 1.01], "to": paint[0], "ref": 0.84},
+			# Hair and brows: the dark of the head.
+			{"zone": ["head"], "sat": [0.0, 0.62], "val": [0.0, 0.4], "to": paint[1], "ref": 0.2},
+			# The jacket, collar to hem.
+			{"zone": ["head", "torso", "arms", "legs"], "hue": [0.0, 45.0], "sat": [0.42, 1.01], "val": [0.0, 0.9], "to": paint[2], "ref": 0.55},
+			{"zone": ["head", "torso", "arms", "legs"], "hue": [345.0, 360.0], "sat": [0.42, 1.01], "val": [0.0, 0.9], "to": paint[2], "ref": 0.55},
+			# The shirt under it.
+			{"zone": ["torso", "arms"], "hue": [160.0, 260.0], "sat": [0.1, 1.01], "val": [0.0, 1.01], "to": paint[3], "ref": 0.3},
+			# Trousers.
+			{"zone": ["legs", "torso"], "sat": [0.0, 0.32], "val": [0.0, 0.45], "to": paint[4], "ref": 0.22},
+		]
+	if SYNTHETIC_LOOK_PAINT.has(person):
+		var plates: Array = SYNTHETIC_LOOK_PAINT[person]
+		return [
+			{"sat": [0.0, 0.3], "val": [0.28, 0.66], "to": plates[0], "ref": 0.45},
+			{"sat": [0.0, 0.3], "val": [0.66, 1.01], "to": plates[1], "ref": 0.82},
+		]
+	return []
+
+
+## Body zones, by the bone that carries most of each triangle: a rule may
+## name zones so hair on the head is told from boots of the same brown.
+const ZONES: Dictionary[String, int] = {"head": 1, "torso": 2, "arms": 3, "hands": 4, "legs": 5, "feet": 6}
+const _ZONE_BONES: Dictionary[String, String] = {
+	"neck": "head", "Head": "head", "head_end": "head", "headfront": "head",
+	"Hips": "torso", "Spine": "torso", "Spine01": "torso", "Spine02": "torso",
+	"LeftShoulder": "torso", "RightShoulder": "torso",
+	"LeftArm": "arms", "RightArm": "arms", "LeftForeArm": "arms", "RightForeArm": "arms",
+	"LeftHand": "hands", "RightHand": "hands",
+	"LeftUpLeg": "legs", "RightUpLeg": "legs", "LeftLeg": "legs", "RightLeg": "legs",
+	"LeftFoot": "feet", "RightFoot": "feet", "LeftToeBase": "feet", "RightToeBase": "feet",
+}
+
+
+## The zone of every texel of a body's atlas, as an L8 image (0 where no
+## triangle lands), rasterised from the UVs of each skinned triangle. Offline
+## only: the bake and its checks call it, the live client never does.
+static func zones(root: Node, size: Vector2i) -> Image:
+	var map: Image = Image.create_empty(size.x, size.y, false, Image.FORMAT_L8)
+	if root == null:
+		return map
+	var skeleton: Skeleton3D = root.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
+		var part: MeshInstance3D = node as MeshInstance3D
+		if part.skin == null or part.mesh == null or skeleton == null:
+			continue
+		var owner: Dictionary[int, int] = {}
+		for bind: int in range(part.skin.get_bind_count()):
+			var bone: int = part.skin.get_bind_bone(bind)
+			var bone_name: String = skeleton.get_bone_name(bone) if bone >= 0 else str(part.skin.get_bind_name(bind))
+			if _ZONE_BONES.has(bone_name):
+				owner[bind] = ZONES[_ZONE_BONES[bone_name]]
+		for surface: int in range(part.mesh.get_surface_count()):
+			var arrays: Array = part.mesh.surface_get_arrays(surface)
+			if not arrays[Mesh.ARRAY_TEX_UV] is PackedVector2Array or not arrays[Mesh.ARRAY_BONES] is PackedInt32Array \
+					or not arrays[Mesh.ARRAY_WEIGHTS] is PackedFloat32Array or not arrays[Mesh.ARRAY_INDEX] is PackedInt32Array:
+				continue
+			var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+			var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+			var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			var per: int = bones.size() / maxi(uvs.size(), 1)
+			for first: int in range(0, indices.size() - 2, 3):
+				# The bone with the most weight across the triangle's corners.
+				var totals: Dictionary[int, float] = {}
+				for corner: int in range(3):
+					var vertex: int = indices[first + corner]
+					for slot: int in range(per):
+						var bind: int = bones[vertex * per + slot]
+						totals[bind] = totals.get(bind, 0.0) + weights[vertex * per + slot]
+				var best: int = -1
+				var heaviest: float = 0.0
+				for bind: int in totals:
+					if totals[bind] > heaviest:
+						heaviest = totals[bind]
+						best = bind
+				if not owner.has(best):
+					continue
+				_fill(map, owner[best], uvs[indices[first]] * Vector2(size), uvs[indices[first + 1]] * Vector2(size),
+					uvs[indices[first + 2]] * Vector2(size))
+	return map
+
+
+static func _fill(map: Image, zone: int, a: Vector2, b: Vector2, c: Vector2) -> void:
+	var low: Vector2 = a.min(b).min(c)
+	var high: Vector2 = a.max(b).max(c)
+	var zone_color: Color = Color8(zone, zone, zone)
+	for y: int in range(maxi(int(floor(low.y)), 0), mini(int(ceil(high.y)) + 1, map.get_height())):
+		for x: int in range(maxi(int(floor(low.x)), 0), mini(int(ceil(high.x)) + 1, map.get_width())):
+			if Geometry2D.point_is_inside_triangle(Vector2(x + 0.5, y + 0.5), a, b, c):
+				map.set_pixel(x, y, zone_color)
+
+
+static func zone_at(map: Image, x: int, y: int) -> int:
+	if map == null or x < 0 or y < 0 or x >= map.get_width() or y >= map.get_height():
+		return 0
+	return map.get_pixel(x, y).r8
+
+
 static func source_for(person: String) -> String:
 	if person == "splice":
 		return SpliceCharacter.SOURCE
 	if person == "tern":
 		return SkinnedCharacter.SOURCES["tern"]
+	if HUMAN_LOOK_PAINT.has(person):
+		return SkinnedCharacter.SOURCES[PlayerBody.HUMAN]
+	if SYNTHETIC_LOOK_PAINT.has(person):
+		return SkinnedCharacter.SOURCES[PlayerBody.SYNTHETIC]
 	return SkinnedCharacter.SOURCES.get(BODIES.get(person, ""), "")
 
 
@@ -109,15 +266,16 @@ static func baked_path(person: String) -> String:
 ## The baked texture for `person`, or null when it is missing.
 static func texture(person: String) -> Texture2D:
 	var path: String = baked_path(person)
-	if not SCHEMES.has(person) or not ResourceLoader.exists(path, "Texture2D"):
+	if scheme(person).is_empty() or not ResourceLoader.exists(path, "Texture2D"):
 		return null
 	return load(path) as Texture2D
 
 
 ## The source art in `person`'s paint, for the offline bake and checks.
-## Unknown schemes and unreadable art return null.
-static func painted(source: Texture2D, person: String) -> Image:
-	if source == null or not SCHEMES.has(person):
+## Unknown schemes and unreadable art return null. `zone_map` (from
+## `zones`) lets zoned rules match; without it they match nothing.
+static func painted(source: Texture2D, person: String, zone_map: Image = null) -> Image:
+	if source == null or scheme(person).is_empty():
 		return null
 	var image: Image = source.get_image()
 	if image == null:
@@ -128,18 +286,20 @@ static func painted(source: Texture2D, person: String) -> Image:
 	image.clear_mipmaps()
 	if image.get_format() != Image.FORMAT_RGBA8:
 		image.convert(Image.FORMAT_RGBA8)
-	var rules: Array = SCHEMES[person]
+	var rules: Array = scheme(person)
 	for y: int in range(image.get_height()):
 		for x: int in range(image.get_width()):
 			var texel: Color = image.get_pixel(x, y)
-			var rule: Dictionary = _rule(rules, texel)
+			var rule: Dictionary = _rule(rules, texel, zone_at(zone_map, x, y))
 			if not rule.is_empty():
 				image.set_pixel(x, y, paint(texel, rule))
 	return image
 
 
-static func _rule(rules: Array, texel: Color) -> Dictionary:
+static func _rule(rules: Array, texel: Color, zone: int = 0) -> Dictionary:
 	for rule: Dictionary in rules:
+		if rule.has("zone") and not _in_zone(rule["zone"], zone):
+			continue
 		if texel.s < rule["sat"][0] or texel.s >= rule["sat"][1] \
 				or texel.v < rule["val"][0] or texel.v >= rule["val"][1]:
 			continue
@@ -149,6 +309,13 @@ static func _rule(rules: Array, texel: Color) -> Dictionary:
 				continue
 		return rule
 	return {}
+
+
+static func _in_zone(names: Array, zone: int) -> bool:
+	for zone_name: Variant in names:
+		if ZONES.get(zone_name, -1) == zone:
+			return true
+	return false
 
 
 ## One texel in a rule's paint, keeping its value relative to the rule's

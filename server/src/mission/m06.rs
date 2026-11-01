@@ -2,7 +2,7 @@
 use super::*;
 use crate::protocol::{M06ObjectiveState, MissionObjective, MissionObjectiveAction};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M06Progress {
     pub(super) index: usize,
     pub(super) prisoner_route_marked: bool,

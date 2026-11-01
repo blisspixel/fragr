@@ -7,7 +7,7 @@ use crate::protocol::{
 use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::HashSet;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct M18Progress {
     pub(super) index: usize,
     pub(super) challenges: M18ChallengeState,

@@ -52,7 +52,8 @@ func _run() -> void:
 	game._last_action_usec = -1000000000
 	game._process(0.0)
 	var view: Variant = network.sent.get("view_tick")
-	# Drawn two ticks behind the newest arrival, and never newer than it.
+	# Drawn behind the newest arrival (two ticks before the clock has
+	# measured the link), and never newer than it.
 	view_ok = view_ok and view is float and float(view) >= 41.5 and float(view) <= 44.0
 	ok = ok and view_ok
 	camera.fp_yaw = 1.2

@@ -81,6 +81,20 @@ func _run() -> void:
 		"hosting defaults to this computer rather than opening LAN")
 	_check(menu._host_bot_policy.selected == 0 and menu._host_bots.value == 4,
 		"fixed four remains the initial bot profile")
+	# The bot ladder: five rungs in order, Regular by default, beside the
+	# bot policy and gone with it when there are no bots.
+	_check(menu._host_bot_skill.item_count == 5 and LocalHost.BOT_SKILLS[menu._host_bot_skill.selected] == "regular"
+		and menu._host_bot_skill.get_item_text(0) == tr("HOST_SKILL_TOURIST")
+		and menu._host_bot_skill.get_item_text(4) == tr("HOST_SKILL_NO_CRUMBS")
+		and menu._host_bot_skill.is_visible_in_tree(), "five named bot rungs, Regular first chosen")
+	for skill: String in LocalHost.BOT_SKILLS:
+		_check(tr(menu.host_bot_skill_key(skill)) != menu.host_bot_skill_key(skill), "every rung has a name: " + skill)
+	menu._host_bot_policy.select(1)
+	menu._host_bot_policy.item_selected.emit(1)
+	_check(not menu._host_bot_skill.is_visible_in_tree(), "no bots, no bot skill")
+	menu._host_bot_policy.select(0)
+	menu._host_bot_policy.item_selected.emit(0)
+	_check(menu._host_bot_skill.is_visible_in_tree(), "fixed bots show their skill again")
 	_check(menu._host_bot_policy.is_visible_in_tree() and not menu._host_more.button_pressed and not menu._host_advanced.visible
 		and menu._root.get_node("HostMoreOptions").get_index() < menu._root.get_node("StartServer").get_index(),
 		"default hosting shows mode, map and an explicit bot policy; rules and network fold before Start")
@@ -200,9 +214,10 @@ func _run() -> void:
 	start.pressed.emit()
 	_check(owner.state == LocalHost.State.STARTING and child.args == PackedStringArray([
 		"--desktop-host", "--bind", "0.0.0.0:16867", "--mode", "sabotage", "--map", "4", "--bots", "0",
-		"--bot-policy", "none", "--fill-target", "0", "--sabotage-five-v-five"]),
+		"--bot-policy", "none", "--fill-target", "0", "--sabotage-five-v-five", "--bot-skill", "regular"]),
 		"ordinary menu activation starts exact first preset through canonical native flags")
 	_check(menu._root.get_node_or_null("JoinHosted") == null, "starting child is not presented as joinable")
+	_check(menu._settings.get_value("host", "bot_skill") == "regular", "the chosen rung is kept in the one settings file")
 	var ready: Dictionary = {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:16867", "listen": "0.0.0.0:16867",
 		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": LocalHost.GAMEPLAY_VERSION}
 	child.output = (JSON.stringify(ready) + "\n").to_ascii_buffer()

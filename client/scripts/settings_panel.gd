@@ -137,8 +137,8 @@ func show_page(page: String) -> void:
 				[tr("SETTINGS_TEXT_STANDARD"), tr("SETTINGS_TEXT_LARGE")],
 				[FragrSettings.TEXT_STANDARD, FragrSettings.TEXT_LARGE])
 			_option(tr("SETTINGS_TEAM_COLOURS"), "accessibility", "team_colours",
-				[tr("SETTINGS_TEAM_STANDARD"), tr("SETTINGS_TEAM_HIGH_CONTRAST")],
-				[FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST])
+				[tr("SETTINGS_TEAM_STANDARD"), tr("SETTINGS_TEAM_HIGH_CONTRAST"), tr("SETTINGS_TEAM_COLOUR_BLIND")],
+				[FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST, FragrSettings.TEAM_COLOUR_BLIND])
 			_toggle(tr("SETTINGS_BLOOD"), "accessibility", "blood")
 			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":

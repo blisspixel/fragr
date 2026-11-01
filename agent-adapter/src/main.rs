@@ -178,11 +178,11 @@ async fn mcp_connect_and_hello(
         connect_async_with_config(server_url, Some(socket_config()), false).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
-    let (body, watch) = {
+    let (body, dress, watch) = {
         let state = tool_state.lock().await;
-        (state.body, state.watch)
+        (state.body, state.dress, state.watch)
     };
-    let hello = booth_or_fighter_hello(name, body, watch);
+    let hello = booth_or_fighter_hello(name, body, dress, watch);
     ws_sink
         .send(Message::Text(serde_json::to_string(&hello)?))
         .await?;
@@ -260,10 +260,16 @@ async fn mcp_connect_and_hello(
 
 /// The MCP session's Hello: a fighter with its body, or a booth seat that
 /// watches and never fights.
-fn booth_or_fighter_hello(name: &str, body: protocol::BodyKind, watch: bool) -> ClientMessage {
+fn booth_or_fighter_hello(
+    name: &str,
+    body: protocol::BodyKind,
+    dress: Option<protocol::Dress>,
+    watch: bool,
+) -> ClientMessage {
     let role = if watch { Role::Spectator } else { Role::Agent };
     ClientMessage::Hello {
         body: (!watch).then_some(body),
+        dress: dress.filter(|_| !watch),
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -733,6 +739,7 @@ async fn run_scripted_bot(
 
     let hello = ClientMessage::Hello {
         body: Some(body),
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -1697,8 +1704,10 @@ mod tests {
         let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign,
@@ -1768,8 +1777,10 @@ mod tests {
             players: vec![protocol::PlayerState {
                 collidable: true,
                 body: None,
+                dress: None,
                 golden: false,
                 ducking: false,
+                airborne: false,
                 lives: None,
                 team: None,
                 campaign: None,
@@ -1927,8 +1938,10 @@ mod tests {
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
+                    dress: None,
                     golden: false,
                     ducking: false,
+                    airborne: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1955,8 +1968,10 @@ mod tests {
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
+                    dress: None,
                     golden: false,
                     ducking: false,
+                    airborne: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -2056,6 +2071,7 @@ mod tests {
     fn test_client_action_message_structure() {
         let hello = ClientMessage::Hello {
             body: None,
+            dress: None,
             seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2232,6 +2248,7 @@ mod tests {
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
             body: None,
+            dress: None,
             seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2307,8 +2324,10 @@ mod tests {
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
+                    dress: None,
                     golden: false,
                     ducking: false,
+                    airborne: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -2335,8 +2354,10 @@ mod tests {
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
+                    dress: None,
                     golden: false,
                     ducking: false,
+                    airborne: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -2611,8 +2632,20 @@ mod tests {
 
     #[test]
     fn the_booth_hellos_as_a_spectator_and_a_fighter_as_an_agent() {
-        let booth = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, true);
-        let fighter = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, false);
+        let dress = Some(protocol::Dress {
+            look: Some(2),
+            accent: None,
+        });
+        assert!(matches!(
+            booth_or_fighter_hello("Caster", protocol::BodyKind::Human, dress, false),
+            ClientMessage::Hello { dress: Some(_), .. }
+        ));
+        assert!(matches!(
+            booth_or_fighter_hello("Caster", protocol::BodyKind::Human, dress, true),
+            ClientMessage::Hello { dress: None, .. }
+        ));
+        let booth = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, None, true);
+        let fighter = booth_or_fighter_hello("Caster", protocol::BodyKind::Synthetic, None, false);
         match (booth, fighter) {
             (
                 ClientMessage::Hello {

@@ -503,3 +503,35 @@ fn shared_worlds_coalesce_per_queue_without_moving_targeted_facts() {
     assert!(watcher_rx.try_take().is_err());
     assert_eq!(Arc::strong_count(&second), 1);
 }
+
+#[test]
+fn leaving_and_touching_the_ground_are_never_coalesced_away() {
+    // Clients play the jump and the landing from these edges, so a queue
+    // under pressure may drop motion between them but never an edge itself.
+    let initial = world(1);
+    let mut rising = world(2);
+    rising.players[0].airborne = true;
+    let mut falling = world(3);
+    falling.players[0].airborne = true;
+    let landed = world(4);
+    let (tx, mut rx) = channel(16);
+    tx.try_send(ServerMessage::Snapshot(initial)).unwrap();
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(rising)).unwrap(),
+        Queued::Added,
+        "the jump edge stays"
+    );
+    assert_ne!(
+        tx.try_send(ServerMessage::Snapshot(falling)).unwrap(),
+        Queued::Added,
+        "motion inside the air replaces"
+    );
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(landed)).unwrap(),
+        Queued::Added,
+        "the landing edge stays"
+    );
+    assert_eq!(tick(rx.try_recv().unwrap()), 1);
+    assert_eq!(tick(rx.try_recv().unwrap()), 3);
+    assert_eq!(tick(rx.try_recv().unwrap()), 4);
+}

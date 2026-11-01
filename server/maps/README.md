@@ -29,6 +29,12 @@ out-of-range or other-kind armor is rejected. Earlier maps do not silently gain
 armor. Weapon grants may be personal; armor and health stocks use `contested`
 claims through the existing ordinary pickup path.
 
+An encounter mixes at most three enemy kinds. A deliberate climax that mixes
+more sets `"brawl": true`; the loader refuses an unmarked group with four or
+more kinds. Marked brawls today: M12 `court_defense`, M13
+`freight_counterattack`, M16 `forecourt_assault`, M17 `core_defense` and M20
+`freight_last`.
+
 `m01-recall-notice.json` contains the opening mission's connected blockout and
 weapon discovery and a draft twenty-guard population. Intake and maintenance
 stairs converge at records reception; file stacks and a service bypass lead to
@@ -40,7 +46,8 @@ the annex door, so the service street opens to the sky; its two queue barriers
 and the bay's confiscation bins are registered solids rather than cosmetic
 props. The physical transfer record
 opens the custody lift; the party can then depart together. This ends the current
-prototype, not a finished M01 or the rescue. Checkpoints are not built.
+prototype, not a finished M01 or the rescue. Mid-level checkpoints are a solo-run
+rule (`server/src/mission/checkpoint.rs`), not map data.
 
 `m02-persons-unknown.json` is Persons Unknown, map 1002. The
 party enters on an observation gallery whose slot window faces the correction

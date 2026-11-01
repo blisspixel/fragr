@@ -244,6 +244,7 @@
     },
     {
       "id": "core_defense",
+      "brawl": true,
       "after": "hall_occupation",
       "regions": [{"min": [-12, 0, 20], "max": [12, 3, 34]}],
       "enemies": [

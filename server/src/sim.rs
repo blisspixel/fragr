@@ -4,8 +4,12 @@ pub(crate) mod assessor;
 pub(crate) mod blade;
 mod booth;
 mod bot_senses;
+pub mod bot_skill;
+pub use bot_skill::BotSkill;
 mod callouts;
 pub(crate) use bot_senses::guard::{guard_reaction, guard_sees};
+mod checkpoint;
+pub(crate) use checkpoint::WorldSave;
 mod conquest;
 pub(crate) mod contact;
 pub mod ctf;
@@ -784,6 +788,7 @@ pub struct GameState {
     pub(crate) map_vote: Option<vote::MapVoteState>,
 }
 
+#[derive(Clone)]
 pub struct Player {
     pub(crate) statistics: crate::statistics::CombatLedger,
     pub campaign: Option<crate::protocol::CampaignActor>,
@@ -887,6 +892,10 @@ pub struct Player {
     /// Chosen at admission and fixed for the pawn's life: respawn, resume
     /// and continue keep it. Nothing in combat reads it.
     pub body: crate::protocol::BodyKind,
+    /// Look and accent on that body: assigned at admission (the least-worn
+    /// look unless a Hello asked for one) and kept like the body. Nothing in
+    /// combat reads it.
+    pub dress: crate::protocol::Dress,
 }
 
 impl Player {
@@ -1027,6 +1036,7 @@ impl Player {
             golden: false,
             ducking: false,
             body: crate::protocol::BodyKind::Human,
+            dress: crate::protocol::Dress::default(),
         }
     }
 
@@ -1623,6 +1633,41 @@ impl GameState {
         self.add_player_with_body(id, name, role, crate::protocol::BodyKind::Human);
     }
 
+    /// The least-worn look for `body` among the participants already in the
+    /// world, so a lobby of bots and agents is never a row of clones.
+    pub(crate) fn least_worn_look(&self, body: crate::protocol::BodyKind) -> u8 {
+        crate::protocol::Dress::least_worn(
+            body,
+            self.players
+                .iter()
+                .filter(|player| player.is_participant() && player.body == body)
+                .filter_map(|player| player.dress.look),
+        )
+    }
+
+    /// A participant's requested look and accent. A look its body lacks keeps
+    /// the assigned one. A campaign run's owner wears the dress the run first
+    /// bound, and binds this one when the run has none yet.
+    pub fn dress_player(&mut self, id: Uuid, request: crate::protocol::Dress) {
+        let Some(index) = self.players.iter().position(|player| player.id == id) else {
+            return;
+        };
+        if !self.players[index].is_participant() {
+            return;
+        }
+        if let Some(bound) = self.campaign_run_dress_for(id) {
+            self.players[index].dress = bound;
+            return;
+        }
+        let player = &mut self.players[index];
+        if let Some(look) = request.look_for(player.body) {
+            player.dress.look = Some(look);
+        }
+        player.dress.accent = request.accent;
+        let dress = player.dress;
+        self.bind_campaign_run_dress(id, dress);
+    }
+
     /// Arm magazines for a human who joined at the reload contract, then keep
     /// a just-captured campaign entry on that same equipment.
     pub fn arm_joined_magazines(&mut self, id: Uuid) {
@@ -1683,6 +1728,10 @@ impl GameState {
             player.respawn_timer = Some(1);
         }
         player.body = body;
+        player.dress = crate::protocol::Dress {
+            look: Some(self.least_worn_look(body)),
+            accent: None,
+        };
         if self.map.is_campaign() {
             player.campaign = Some(crate::protocol::CampaignActor::Participant {});
         } else {
@@ -1704,6 +1753,10 @@ impl GameState {
         }
         self.restore_campaign_owner(&mut player)
             .expect("validated campaign owner equipment must restore");
+        // A run that bound another body keeps its look inside that body.
+        if player.dress.look_for(player.body).is_none() {
+            player.dress.look = Some(self.least_worn_look(player.body));
+        }
         player.statistics.begin(self.tick);
         self.players.push(player);
 
@@ -2304,6 +2357,7 @@ impl GameState {
         } else {
             self.tick_active(dt, map.arena());
         }
+        self.update_campaign_checkpoint();
     }
 
     /// Publish the crouch before contact and movement read the body.
@@ -3969,7 +4023,9 @@ impl GameState {
                         lives: p.lives,
                         golden: p.golden,
                         ducking: p.ducking,
+                        airborne: p.vy != 0.0,
                         body: p.is_participant().then_some(p.body),
+                        dress: p.is_participant().then_some(p.dress),
                         ping: p.ping_ms,
                     }
                 })
@@ -4503,6 +4559,7 @@ impl GameState {
             golden: false,
             ducking: false,
             body: crate::protocol::BodyKind::Human,
+            dress: crate::protocol::Dress::default(),
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));
@@ -4999,6 +5056,7 @@ impl GameState {
             golden: false,
             ducking: false,
             body: crate::protocol::BodyKind::Human,
+            dress: crate::protocol::Dress::default(),
         });
         self.bots
             .push(BotController::new(id, BotBehavior::Compliance));
@@ -5418,6 +5476,8 @@ fn trail_behind(carrier: [f32; 3], home: [f32; 3], enemy_stand: [f32; 3]) -> [f3
 pub struct BotController {
     pub player_id: Uuid,
     pub behavior: BotBehavior,
+    /// The rung this bot plays at (`bot_skill.rs`).
+    pub skill: BotSkill,
 }
 
 #[derive(Default)]
@@ -5441,7 +5501,13 @@ impl BotController {
         Self {
             player_id,
             behavior,
+            skill: BotSkill::default(),
         }
+    }
+
+    /// The same controller at another rung.
+    pub fn with_skill(self, skill: BotSkill) -> Self {
+        Self { skill, ..self }
     }
 
     /// Capture-the-flag goals for a side with at least three rule bots, with

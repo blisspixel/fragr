@@ -760,6 +760,7 @@ pub async fn run_bot(
     let mut frames = fragr_server::protocol::WorldReader::new();
     let hello = ClientMessage::Hello {
         body: Some(config.body),
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -1842,6 +1843,7 @@ mod tests {
             bots,
             bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
             fill_target: 0,
+            bot_skill: fragr_server::sim::BotSkill::default(),
             // Larak Lot (map 1) has no flag stands; capture the flag plays
             // on Sector 9.
             map: if mode == fragr_server::protocol::GameMode::Ctf {
@@ -3327,6 +3329,7 @@ mod tests {
         sink.send(Message::Text(
             serde_json::to_string(&ClientMessage::Hello {
                 body: None,
+                dress: None,
                 seat: None,
                 gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
                 geometry_version: fragr_server::protocol::GEOMETRY_VERSION,

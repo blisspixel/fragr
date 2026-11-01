@@ -15,6 +15,10 @@ const DEFAULTS: Dictionary = {
 		"reticle_colour": "bone",
 		# Human or free agent; see PlayerBody. The next join uses it.
 		"body": "human",
+		# A roster look on that body and a personal accent (FighterLooks);
+		# -1 lets the server choose a look and leaves the accent off.
+		"look": -1,
+		"accent": -1,
 	},
 	"video": {
 		"display_mode": 2,      # 0 windowed, 2 fullscreen
@@ -42,6 +46,9 @@ const DEFAULTS: Dictionary = {
 		# The Host's match calls: 0 On, 1 Big moments only, 2 Off.
 		"announcer": 0,
 		"announcer_volume": 0.9, # The Announcer bus, for the Host's voiced calls.
+		# Which take of Crackpot's benchmark certificate plays (BenchmarkJingle),
+		# picked on the benchmark results screen while all six ship.
+		"benchmark_jingle": "1a",
 	},
 	"controls": {
 		"mouse_sensitivity": 1.5, # 0.022 degrees per unscaled mouse count.
@@ -84,7 +91,7 @@ const DEFAULTS: Dictionary = {
 		"reduced_motion": false,
 		"hud_scale": 100,       # 75 to 150 percent
 		"text_size": 0,         # 0 Standard, 1 Large
-		"team_colours": 0,      # 0 Standard, 1 High contrast
+		"team_colours": 0,      # 0 Standard, 1 High contrast, 2 Colour blind (red-green)
 		# Human bodies bleed when hit. Off shows a neutral dust puff and a
 		# bone damage edge instead; machines still spark and leak oil.
 		"blood": true,
@@ -97,12 +104,20 @@ const DEFAULTS: Dictionary = {
 	"host": {
 		"rotate": true,
 		"maps_off": [],
+		# The rule bots' rung (LocalHost.BOT_SKILLS); Regular is the league's
+		# ordinary night.
+		"bot_skill": "regular",
 	},
 	# The optional campaign score (CampaignScore): on or off, and the take
 	# chosen per slot while both takes ship. A missing slot plays take A.
 	"score": {
 		"enabled": true,
 		"takes": {},
+	},
+	# Which generated footstep set plays (Footsteps): "a" or "b", until Nick
+	# picks one by ear and the other is pruned.
+	"footsteps": {
+		"take": "a",
 	},
 }
 
@@ -120,6 +135,7 @@ const ANNOUNCER_MODES: Array[int] = [ANNOUNCER_ON, ANNOUNCER_BIG_MOMENTS, ANNOUN
 
 const TEAM_STANDARD: int = 0
 const TEAM_HIGH_CONTRAST: int = 1
+const TEAM_COLOUR_BLIND: int = 2
 
 var _values: Dictionary = {}
 var storage_path: String
@@ -181,6 +197,13 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 	elif path == "profile/body":
 		value = PlayerBody.preference(value)
+	elif path == "profile/look":
+		var most: int = maxi(FighterLooks.count(PlayerBody.HUMAN), FighterLooks.count(PlayerBody.SYNTHETIC))
+		if not value is int or value < FighterLooks.AUTO or value >= most:
+			value = fallback
+	elif path == "profile/accent":
+		if not value is int or (value != FighterLooks.AUTO and not FighterLooks.valid_accent(value)):
+			value = fallback
 	elif typeof(fallback) == TYPE_BOOL:
 		if not value is bool:
 			value = fallback
@@ -200,7 +223,10 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "controls/scope_mode", "accessibility/screen_flashes", "audio/announcer"]:
 		if not value is int or value not in [0, 1, 2]:
 			value = fallback
-	elif path in ["accessibility/text_size", "accessibility/team_colours"]:
+	elif path == "accessibility/team_colours":
+		if not value is int or value not in [TEAM_STANDARD, TEAM_HIGH_CONTRAST, TEAM_COLOUR_BLIND]:
+			value = fallback
+	elif path == "accessibility/text_size":
 		if not value is int or value not in [0, 1]:
 			value = fallback
 	elif section == "bindings":
@@ -211,8 +237,14 @@ func set_value(section: String, key: String, value: Variant) -> void:
 			value = fallback
 	if path == "host/maps_off":
 		value = clean_maps_off(value, fallback)
+	if path == "audio/benchmark_jingle":
+		value = BenchmarkJingle.clean_take(value)
+	if path == "host/bot_skill" and (not value is String or value not in LocalHost.BOT_SKILLS):
+		value = fallback
 	if path == "score/takes":
 		value = CampaignScore.clean_takes(value)
+	if path == "footsteps/take":
+		value = Footsteps.valid_take(value)
 	(_values[section] as Dictionary)[key] = value
 
 func draft() -> FragrSettings:
@@ -311,6 +343,19 @@ func player_name() -> String:
 func player_body() -> String:
 	return PlayerBody.preference(get_value("profile", "body"))
 
+## The saved look when the saved body has it, else AUTO.
+func player_look() -> int:
+	var value: Variant = get_value("profile", "look")
+	return int(value) if FighterLooks.valid_look(player_body(), value) else FighterLooks.AUTO
+
+func player_accent() -> int:
+	var value: Variant = get_value("profile", "accent")
+	return int(value) if FighterLooks.valid_accent(value) else FighterLooks.AUTO
+
+## The Hello `dress` for the saved choice: only the parts that are set.
+func player_dress() -> Dictionary:
+	return FighterLooks.request(player_look(), player_accent(), player_body())
+
 func reticle_colour() -> Color:
 	match get_value("profile", "reticle_colour"):
 		"amber": return Color("ffc568")
@@ -322,6 +367,11 @@ func apply() -> void:
 	apply_video()
 	apply_audio()
 	apply_controls()
+	apply_accessibility()
+
+## The team colour choice reaches every side colour through one owner.
+func apply_accessibility() -> void:
+	FactionPalette.palette = team_colours()
 
 ## Rebuild the InputMap from the saved bindings.
 func apply_controls() -> void:
@@ -356,6 +406,7 @@ func apply_audio() -> void:
 	_set_bus("Effects", float(get_value("audio", "effects")))
 	_set_bus("Voice", float(get_value("audio", "voice")))
 	_set_bus("Announcer", float(get_value("audio", "announcer_volume")))
+	Footsteps.take = Footsteps.valid_take(get_value("footsteps", "take"))
 
 static func _set_bus(name: String, linear: float) -> void:
 	var index: int = AudioServer.get_bus_index(name)

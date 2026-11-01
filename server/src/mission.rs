@@ -9,6 +9,7 @@ use crate::sim::{GameState, Player, PLAYER_FLOOR_Y};
 use std::collections::HashSet;
 use uuid::Uuid;
 
+mod checkpoint;
 mod contact;
 mod controller;
 pub(crate) mod epilogue;

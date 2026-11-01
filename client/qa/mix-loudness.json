@@ -1,0 +1,24 @@
+{
+  "comment": "Gameplay mix capture for the loudness gate (docs/plans/fun-craft-targets.md row 19). A joined human runs and fires at a live rule bot on Larak Lot for 15 seconds with the radio on its default station; the Master bus is recorded after its limiter (pre master fader) and measured with `cargo run -p fragr-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with FRAGR_QA_BOTS=1, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/mix-loudness.json on a real audio driver (not Dummy).",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "mix_fight",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 1,
+      "join": "human",
+      "camera": "first_person",
+      "record_audio_start": true,
+      "moving_combat_seconds": 15,
+      "note": "Running, strafing fire against a live bot: own and enemy weapons, hits, footsteps, landings, Host and the radio under combat ducking."
+    },
+    {
+      "name": "mix_end",
+      "camera": "first_person",
+      "record_audio_stop": true,
+      "settle_seconds": 0.1,
+      "note": "Closes the live Master capture."
+    }
+  ]
+}

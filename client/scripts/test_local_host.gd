@@ -147,6 +147,19 @@ func _run() -> void:
 	var old: Dictionary = _config(false, false)
 	old["mutator"] = "rail-only"
 	_check(not LocalHost.valid_settings(old), "the old single mutator key is refused, not migrated")
+	# The bot ladder rides the server's --bot-skill; an unknown rung is refused.
+	for skill: String in LocalHost.BOT_SKILLS:
+		var skilled: Dictionary = plain.duplicate()
+		skilled["bot_skill"] = skill
+		var skill_args: PackedStringArray = LocalHost.arguments_for(skilled)
+		_check(LocalHost.valid_settings(skilled) and skill_args[skill_args.find("--bot-skill") + 1] == skill,
+			"the %s rung reaches the server" % skill)
+	for bad_skill: Variant in ["elite", 3, ""]:
+		var unskilled: Dictionary = plain.duplicate()
+		unskilled["bot_skill"] = bad_skill
+		_check(not LocalHost.valid_settings(unskilled) and LocalHost.arguments_for(unskilled).is_empty(),
+			"an unknown rung is refused: %s" % str(bad_skill))
+	_check(not LocalHost.arguments_for(plain).has("--bot-skill"), "no rung named, the server keeps its default")
 	var duel: Dictionary = _config(false, false)
 	duel["mode"] = "duel"
 	duel["map_id"] = 1

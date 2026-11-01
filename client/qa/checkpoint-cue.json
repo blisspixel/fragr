@@ -1,0 +1,17 @@
+{
+  "comment": "Recall Notice resumed as a solo run: stand quiet at the intake for a minute and photograph the feed's CHECKPOINT line on a level baseline. The line lives three seconds, so a run of one-second stills brackets the save.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"arrival","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[0,4.7,-28]},
+    {"name":"quiet_wait","camera":"first_person","settle_seconds":54,"look_at":[0,4.7,-28]},
+    {"name":"quiet_1","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_2","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_3","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_4","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_5","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_6","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_7","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]},
+    {"name":"quiet_8","camera":"first_person","settle_seconds":1.5,"look_at":[0,4.7,-28]}
+  ]
+}

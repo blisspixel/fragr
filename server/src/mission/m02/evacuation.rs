@@ -78,6 +78,7 @@ pub(crate) fn validate_route(world: &Navigation) -> Result<(), &'static str> {
     Ok(())
 }
 
+#[derive(Clone)]
 pub(super) struct Controller {
     contacts: Vec<crate::movement::contact::ContactBody>,
     pub(super) published: State,

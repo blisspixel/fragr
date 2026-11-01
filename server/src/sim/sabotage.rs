@@ -1008,6 +1008,14 @@ impl GameState {
     }
 }
 
+impl GameState {
+    /// The site the rule bots attack this round, for surveys. Bot
+    /// coordination only; never on the wire.
+    pub fn sabotage_attack_site(&self) -> Option<crate::protocol::SiteId> {
+        self.sabotage.as_ref().map(|sab| sab.attack_site)
+    }
+}
+
 #[cfg(test)]
 impl GameState {
     /// Land `damage` from `shooter` on `victim` through the ordinary hit

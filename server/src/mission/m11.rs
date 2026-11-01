@@ -4,7 +4,7 @@ use crate::protocol::{
     M11ChallengeState, M11ObjectiveState, MissionObjective, MissionObjectiveAction,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M11Progress {
     pub(super) index: usize,
     pub(super) challenges: M11ChallengeState,

@@ -62,7 +62,7 @@ func _run() -> void:
 	_check(hash.size() == 32, "completed town binds actual M07 authored bytes")
 	var fixture: Dictionary = {
 		"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
-		"level_start_continues": 1, "body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
+		"level_start_continues": 1, "body": "synthetic", "dress": null, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["workshop_agent_b", "splice", "workshop_agent_a"], "evacuated_workers": ["splice"]},

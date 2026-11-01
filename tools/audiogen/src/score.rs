@@ -279,7 +279,7 @@ pub fn describe_prune(plan: &PrunePlan) -> String {
     if !plan.unpicked.is_empty() {
         let _ = writeln!(
             out,
-            "kept both takes, no pick yet: {}",
+            "kept every take, no pick yet: {}",
             plan.unpicked.join(", ")
         );
     }
@@ -293,14 +293,15 @@ pub fn describe_prune(plan: &PrunePlan) -> String {
 }
 
 /// Delete the planned takes, their `.import` sidecars and manifest entries.
-/// Every path is checked before anything changes.
-pub fn apply_prune(plan: &PrunePlan, score_dir: &Path) -> Result<(), Error> {
+/// Every path is checked before anything changes; `takes` names the take ids
+/// that folder may hold (`TAKES` for the score, `JINGLE_TAKES` for the jingle).
+pub fn apply_prune(plan: &PrunePlan, score_dir: &Path, takes: &[&str]) -> Result<(), Error> {
     let audio_root = score_dir
         .parent()
         .map(Path::to_path_buf)
         .unwrap_or_default();
     for removal in &plan.removals {
-        if !valid_slot(&removal.slot) || !TAKES.contains(&removal.take.as_str()) {
+        if !valid_slot(&removal.slot) || !takes.contains(&removal.take.as_str()) {
             return Err(Error::InvalidArgument(format!(
                 "unsafe removal {}",
                 removal.file.display()
@@ -321,6 +322,52 @@ pub fn apply_prune(plan: &PrunePlan, score_dir: &Path) -> Result<(), Error> {
         manifest.entries.remove(&removal.manifest_key);
     }
     save_manifest(&audio_root, &manifest)
+}
+
+/// The benchmark jingle (`client/scripts/benchmark_jingle.gd`) ships six takes,
+/// `<dir>/benchmark/<take>.mp3`, until Nick picks one on the benchmark results
+/// screen; the game saves it as `[audio] benchmark_jingle`. `jingle-prune`
+/// reuses the score's plan and apply steps on that one slot.
+pub const DEFAULT_JINGLE_DIR: &str = "client/assets/audio/jingle";
+pub const JINGLE_SLOT: &str = "benchmark";
+/// `BenchmarkJingle.TAKES`.
+pub const JINGLE_TAKES: [&str; 6] = ["1a", "1b", "2a", "2b", "3a", "3b"];
+
+/// The `[audio] benchmark_jingle` pick from a Godot ConfigFile, or `None` when
+/// the file has none or holds a take the game would refuse. A missing pick is
+/// a take the game has never saved, which plays 1A.
+pub fn parse_jingle_pick(cfg: &str) -> Option<String> {
+    let mut in_audio = false;
+    for line in cfg.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            in_audio = trimmed == "[audio]";
+            continue;
+        }
+        if !in_audio {
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("benchmark_jingle=") {
+            let take = rest.trim().trim_matches('"');
+            return JINGLE_TAKES.contains(&take).then(|| take.to_string());
+        }
+    }
+    None
+}
+
+/// The jingle as one pick row: its pick and the takes that still ship.
+pub fn jingle_row(pick: Option<String>, jingle_dir: &Path) -> PickRow {
+    PickRow {
+        slot: JINGLE_SLOT.to_string(),
+        kind: "jingle".to_string(),
+        name: "Benchmark jingle".to_string(),
+        pick,
+        available: JINGLE_TAKES
+            .iter()
+            .filter(|take| take_file(jingle_dir, JINGLE_SLOT, take).is_file())
+            .map(|take| take.to_string())
+            .collect(),
+    }
 }
 
 #[cfg(test)]
@@ -491,8 +538,8 @@ mod tests {
         assert_eq!(plan.unpicked, vec!["l02".to_string()]);
         assert_eq!(plan.problems.len(), 1, "l03 picked B, which does not ship");
         let text = describe_prune(&plan);
-        assert!(text.contains("kept both takes, no pick yet: l02") && text.contains("BLOCKED l03"));
-        apply_prune(&plan, &score).unwrap();
+        assert!(text.contains("kept every take, no pick yet: l02") && text.contains("BLOCKED l03"));
+        apply_prune(&plan, &score, &TAKES).unwrap();
         assert!(!score.join("l01/a.mp3").exists() && !score.join("l01/a.mp3.import").exists());
         assert!(score.join("l01/b.mp3").exists() && score.join("l02/a.mp3").exists());
         assert!(score.join("l02/b.mp3").exists() && score.join("l03/a.mp3").exists());
@@ -528,7 +575,7 @@ mod tests {
             }],
             ..PrunePlan::default()
         };
-        assert!(apply_prune(&plan, &score).is_err());
+        assert!(apply_prune(&plan, &score, &TAKES).is_err());
         assert!(dir.join("outside.mp3").exists());
         let bad = PrunePlan {
             removals: vec![PruneRemoval {
@@ -539,7 +586,67 @@ mod tests {
             }],
             ..PrunePlan::default()
         };
-        assert!(apply_prune(&bad, &score).is_err());
+        assert!(apply_prune(&bad, &score, &TAKES).is_err());
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn jingle_pick_reads_the_audio_section_only() {
+        let cfg =
+            "[score]\nbenchmark_jingle=\"3b\"\n\n[audio]\nmaster=0.9\nbenchmark_jingle=\"2a\"\n";
+        assert_eq!(parse_jingle_pick(cfg), Some("2a".to_string()));
+        assert_eq!(
+            parse_jingle_pick("[score]\nbenchmark_jingle=\"3b\"\n"),
+            None
+        );
+        assert_eq!(
+            parse_jingle_pick("[audio]\nbenchmark_jingle=\"9z\"\n"),
+            None
+        );
+        assert_eq!(parse_jingle_pick("[audio]\nmaster=0.9\n"), None);
+    }
+
+    #[test]
+    fn jingle_prune_keeps_only_the_pick() {
+        let dir = temp("jingle");
+        let jingle = dir.join("audio/jingle");
+        fs::create_dir_all(jingle.join(JINGLE_SLOT)).unwrap();
+        let mut manifest = Manifest::default();
+        for take in JINGLE_TAKES {
+            let file = jingle.join(JINGLE_SLOT).join(format!("{take}.mp3"));
+            fs::write(&file, b"x").unwrap();
+            fs::write(file.with_extension("mp3.import"), b"i").unwrap();
+            let key = format!("jingle/{JINGLE_SLOT}/{take}");
+            manifest
+                .entries
+                .insert(key.clone(), entry(&format!("{key}.mp3")));
+        }
+        manifest
+            .entries
+            .insert("score/l01/a".into(), entry("score/l01/a.mp3"));
+        save_manifest(&dir.join("audio"), &manifest).unwrap();
+        // No pick yet: every take stays.
+        let unpicked = plan_prune(&[jingle_row(None, &jingle)], &jingle);
+        assert!(unpicked.removals.is_empty() && unpicked.unpicked == vec![JINGLE_SLOT]);
+        let row = jingle_row(Some("2b".into()), &jingle);
+        assert_eq!(row.available.len(), 6);
+        let plan = plan_prune(&[row], &jingle);
+        assert_eq!(plan.removals.len(), 5);
+        assert!(plan
+            .removals
+            .iter()
+            .all(|removal| removal.take != "2b" && removal.manifest_key.starts_with("jingle/")));
+        // The score's take list refuses jingle takes, so nothing changes.
+        assert!(apply_prune(&plan, &jingle, &TAKES).is_err());
+        assert!(jingle.join(JINGLE_SLOT).join("1a.mp3").exists());
+        apply_prune(&plan, &jingle, &JINGLE_TAKES).unwrap();
+        let left: Vec<String> = jingle_row(Some("2b".into()), &jingle).available;
+        assert_eq!(left, vec!["2b".to_string()]);
+        assert!(!jingle.join(JINGLE_SLOT).join("1a.mp3.import").exists());
+        let after = load_manifest(&dir.join("audio")).unwrap();
+        assert!(after.entries.contains_key("jingle/benchmark/2b"));
+        assert!(!after.entries.contains_key("jingle/benchmark/1a"));
+        assert!(after.entries.contains_key("score/l01/a"));
         fs::remove_dir_all(&dir).unwrap();
     }
 }

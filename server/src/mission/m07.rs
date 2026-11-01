@@ -2,7 +2,7 @@
 use super::*;
 use crate::protocol::{M07ObjectiveState, MissionObjective, MissionObjectiveAction};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M07Progress {
     pub(super) index: usize,
 }

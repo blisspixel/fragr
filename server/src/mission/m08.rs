@@ -6,6 +6,7 @@ use crate::protocol::{
     M08_OBJECTIVE_IDS,
 };
 
+#[derive(Clone)]
 pub(super) struct M08Progress {
     pub(super) index: usize,
     pub(super) node_hp: [u8; M08_NODES],

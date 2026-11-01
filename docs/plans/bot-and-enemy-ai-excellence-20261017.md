@@ -398,3 +398,86 @@ CTF and Sabotage rows are unchanged (their controllers do not use the hunt). The
 Duel targets now print in `--survey-maps` (one frag a minute). Holdfast Atoll misses it: two fighters on the 16-seat island spend most of a life walking 200 m from a spawn on the ring, and the bots do meet once they cross. Duel is only offered on Larak Lot by the desktop host; a dedicated server can still pick any map, and whether Duel should refuse Holdfast is a map pairing decision left open.
 
 Tests: `sim::bot_senses::tests::{gunfire_through_a_wall_is_a_place_to_look_never_a_shot, hearing_has_a_reach_and_a_crouch_walks_quietly, a_quiet_bot_patrols_the_map_instead_of_standing_on_its_pads, a_pad_already_set_off_for_is_kept_when_its_clock_runs_long}`, `sim::conquest::driving::tests` (a ride, a jeep left for a person, steering, braking, getting out and backing off a wall) and the seeded session rounds in `server/src/tests/hunt.rs` (`duel_bots_on_sector_9_find_each_other`, `conquest_bots_drive_jeeps_toward_sites_and_get_out`). Two older assertions changed with the behaviour, with reasons in them: a fighter lost from view is forgotten but the place is searched, and a pad twelve seconds early is still not an appointment though a quiet bot may patrol past it.
+
+### Wave 21: a difficulty ladder, map timing and Sabotage balance (#526, #520)
+
+Multiplayer rule bots had one fixed skill. They now play on one of five rungs of the league's own ladder (`server/src/sim/bot_skill.rs`), chosen by the host: `--bot-skill` on the server and a Bot skill row beside the bot policy on the desktop host's Run a match page, kept in the one settings file (`host/bot_skill`). Regular is the default and keeps every number the earlier surveys were measured on (with the rungs alone, a Regular survey reproduced the earlier report exactly; the two dithering fixes below then changed Regular's pad choices).
+
+| Rung | Reaction after a new sighting | Aim error per axis | Turn | Sight | Flinch | Keeps pad time | Leads the Rocket | Picks the gun |
+|---|---|---|---|---|---|---|---|---|
+| Tourist | 400 to 650 ms | 0.095 rad | 69 deg/s | 44 m | x4 | no | no | no |
+| Walk-in | 300 to 500 ms | 0.080 rad | 86 deg/s | 54 m | x3.5 | no | yes | yes |
+| Regular (default) | 200 to 400 ms | 0.055 rad | 115 deg/s | 64 m | x3 | yes | yes | yes |
+| Headliner | 150 to 300 ms | 0.034 rad | 160 deg/s | 72 m | x2 | yes | yes | yes |
+| No Crumbs | 150 to 200 ms | 0.010 rad | 275 deg/s | 80 m | x1 | yes | yes | yes |
+
+Every rung sees through the same 120 degree cone and line of sight, and no rung reacts in under 150 ms (three ticks; `REACTION_FLOOR`, asserted for every rung over 400 draws).
+
+The ladder is measured by `fragr-playtest --bot-ladder` (`tools/playtest/src/ladder.rs`): every pair of rungs plays seeded 2-bot Duels on Larak Lot, Compliance Yard and Low Water, 120 s each, each seed twice with the seats swapped. Two seed sets of 24 (seeds 1 to 24 and 101 to 124), 144 Duels per pair per set, release build:
+
+| Pair | Seeds 1 to 24 | Seeds 101 to 124 | Target |
+|---|---|---|---|
+| Walk-in over Tourist | 68 % | 72 % | 65 to 80 % |
+| Regular over Walk-in | 80 % | 79 % | 65 to 80 % |
+| Headliner over Regular | 77 % | 75 % | 65 to 80 % |
+| No Crumbs over Headliner | 74 % | 71 % | 65 to 80 % |
+| Against Regular: Tourist, Walk-in, Headliner, No Crumbs | 7, 20, 77, 88 % | 8, 21, 75, 91 % | monotonic |
+| Dithering, worst rung | 4.4 % (Walk-in) | 4.3 % (Tourist) | under 5 % |
+| Sight to first hit, median: Tourist to No Crumbs | 0.70, 0.60, 0.60, 0.40, 0.30 s | the same | |
+
+Dithering is a four second window with nobody in view that walks four metres or more and turns back on itself twice (`tools/playtest/src/sight.rs`); one U-turn to a sound or a pad is a decision. The tool found two real faults in Regular play, traced with a per-tick log of goals and pad choices: a pad choice refused after it was chosen (a quiet hunt kept only timed, arming or mending errands, but filtered the winner after the comparison, so a bot whose best pad was a plain gun walked toward its patrol instead, then back toward a mending pad that won the next tick: 15 s pacing on Compliance Yard), and a pad errand dropped the tick after it was set (Low Water's trench, pad then patrol then pad every second). The choice is now made among the admitted pads only (`pad_plan_admitting`), and a pad errand once set off on is kept six seconds unless somebody comes into view, a clue is heard, or the pad stops being of use or expected (`kept_errand`). Regular Duels on the three ladder maps: 20 dithering windows of 339 (5.9 %) before, 3.7 % of about 6,700 after. The choice that refuses pads is only the quiet hunt's; a timed pad or a first gun outranking a visible fight is read as before.
+
+`--bot-survey` rows add respawn to contact (sight either way, or a landed shot), respawn to the first landed shot, kill distance by weapon (median and quartiles) and dithering; `--survey-maps` prints a `target:` line where the median spawn to first landed shot leaves 6 to 15 s or a row dithers 5 % or more. Sight contact comes within a second of a spawn on the small floors (0.3 s Larak Lot, 0.6 s Low Water free-for-all), so the 6 to 15 s target is read on the first landed shot. `--survey-maps --survey-seeds 8 --seed 1 --time-limit-seconds 150`, Regular, after; frags a minute against the same command before:
+
+| Row | Frags/min before | after | Spawn to first landed shot, median (p25 to p75) | Kill distance, median m (Rifle, Rail, Shotgun) | Dithering |
+|---|---|---|---|---|---|
+| ffa-larak-lot-6 | 21.1 | 21.0 | 5.5 s (3.5 to 8.2) | 10.5, 16.7, 4.8 | 0.0 % |
+| ffa-compliance-yard-6 | 17.5 | 17.9 | 6.4 s (4.8 to 9.9) | | 1.0 % |
+| ffa-directive-17-substation-8 | 25.6 | 25.6 | 9.2 s (5.8 to 11.9) | | 0.0 % |
+| ffa-sector-9-transit-hall-8 | 11.8 | 12.2 | 15.5 s (8.8 to 25.1) | 11.5, 15.3, 4.4 | 3.9 % |
+| ffa-reclamation-gulch-12 | 21.2 | 21.4 | 14.9 s (8.2 to 22.4) | | 0.6 % |
+| ffa-tripoint-works-12 | 21.7 | 21.0 | 12.2 s (8.0 to 19.4) | | 0.8 % |
+| ffa-holdfast-atoll-16 | 34.5 | 35.8 | 9.1 s (5.7 to 14.2) | | 0.7 % |
+| ffa-low-water-10 | 33.0 | 33.6 | 5.8 s (3.5 to 8.6) | 9.6, 14.3, 4.5 | 10.7 % of 84 |
+| tdm-reclamation-gulch-12 | 24.5 | 22.9 | 16.8 s (10.8 to 21.7) | 14.6, 29.3, 5.1 | 0.2 % |
+
+Dithering over 5 % remains in a few survey rows: both CTF rows (35 to 38 %, a guard or escort pattern not yet traced), Low Water free-for-all (84 windows) and team rows, and the Larak Lot, Directive 17 and Low Water Duels (5 to 7 %).
+
+#### Map timing
+
+`fragr-playtest --map-timing` (`server/src/maps/timing.rs`) walks each map's navigation graph, pulled tight by straight walks, at the frozen 6 m/s:
+
+| Map | Corner to corner | Attackers to A / B | Bot attack route A / B | Defenders to A / B | Rotation |
+|---|---|---|---|---|---|
+| Larak Lot | 17.0 / 18.4 s | | | | |
+| Compliance Yard | 18.9 / 20.5 s | | | | |
+| Directive 17 | 47.0 / 47.1 s | | | | |
+| Sector 9 | 62.8 / 63.0 s | 14.9 / 16.3 s | 23.1 / 24.8 s | 5.9 / 6.2 s | 9.0 s |
+| Reclamation Gulch | 89.1 / 89.3 s | | | | |
+| Tripoint Works | 94.3 / 94.5 s | | | | |
+| Holdfast Atoll | 107.0 / 108.7 s | | | | |
+| Low Water | 21.3 / 21.6 s | 11.0 / 10.9 s | 11.1 / 10.9 s | 4.6 / 4.6 s | 7.5 s |
+
+Against the CS lineage bands (attackers 15 to 25 s, defenders 8 to 12 s, rotation 10 to 18 s) both Sabotage maps are fast for the defence: Sector 9's defenders reach a site in 6 s and rotate in 9, Low Water is a small map throughout. Moving Sector 9's defender spawns 14 m back would buy only 1.4 to 2 s (the sites are reached through the mid lanes), so the layouts are unchanged and the misses stay printed (`--assert` fails them).
+
+#### Sabotage (#520)
+
+Diagnosis on Sector 9 (8 bots, seeds 40 to 51, per-frag log): the defence died first in 58 of 69 A rounds, and 42 % of defender deaths at A (47 % at B) were opened from outside the victim's 120 degree view, against 13 % and 18 % for attackers. A holding defender stood facing whatever way its walk ended. Two changes (`server/src/sim/sabotage/bots.rs`, `maps.rs`):
+
+- **The first holder at a site watches the attack's lane.** Per map and site, read once off the navigation graph, the point where the shortest walk from the attackers' spawns comes into the site's view (`sabotage_watch`). Only one holder per site watches; the rest hold as they arrived. Watching the stage lane changed nothing (8 bots 69 to 73 %); watching both lanes overshot (45 to 48 %, and 36 to 40 % at ten).
+- **A called site gets the same defence whichever site it is** (`defence_post`). The keeper was the side's last slot, so in four a side it always kept B: an attack on A met three defenders, an attack on B four. Now the far site's last anchor keeps it and rotators take free hold spots.
+
+`fragr-playtest --sabotage-survey` (numbered fighters now, so a seed always replays; seeds 40 to 63 and 100 to 123 pooled, release):
+
+| Map, bots | Attacker rounds before | after | Plants A / B before | after |
+|---|---|---|---|---|
+| Sector 9, 8 | 61.1 % of 471 | 50.4 % of 456 | 190 / 10 | 164 / 77 |
+| Sector 9, 10 (desktop 5v5) | 53.0 % of 451 | 43.8 % of 470 | 71 / 130 | 172 / 49 |
+| Low Water, 8 | 49.4 % of 466 | 49.0 % of 469 | 192 / 127 | 184 / 147 |
+| Low Water, 10 | 47.2 % of 498 | 52.1 % of 480 | 112 / 185 | 187 / 171 |
+
+On current `main` Low Water was already back in the band (the wave 20 hearing and patrol changed it since #520 was filed) and stays there. Sector 9 at eight comes into the band and B is planted again (10 of 200 plants before). Sector 9 at ten falls just under the band: attacks on B succeed 15 to 27 % of the time there. A push at three gathered rather than four of five moved it only to 44.6 % and was not kept. The resupply ladder is untouched; a 0 to 3 deficit happened in 0 to 3 of 48 matches per row, too few to read a comeback rate from.
+
+Tests: `sim::bot_skill::tests`, `sim::bot_senses::tests::{every_rung_reacts_inside_its_window_and_never_under_150_ms, a_rung_sees_as_far_as_its_eyes_and_aims_inside_its_own_error, a_higher_rung_turns_faster_and_fires_sooner, a_tourist_keeps_no_pad_clock_and_takes_the_gun_in_hand, a_refused_pad_never_wins_the_choice_it_would_lose_after, a_pad_errand_is_kept_until_it_runs_out_or_somebody_shows}`, `sim::sabotage::bots::tests::{a_called_site_gets_the_same_defence_whichever_site_it_is, a_holding_anchor_watches_the_attack_lane_not_the_wall}`, `tests::bot_ladder` (the host's rung reaches every bot; No Crumbs out-frags a Tourist from either seat), `maps::timing::tests`, the server CLI parse tests, `ladder::tests`, `sight::tests` and the client `test_local_host`, `test_host_menu` and `test_settings` harnesses.
+
+Open: Sector 9 Sabotage at five a side (43.8 %); Sector 9 B's geometry; the CTF rows dither 35 to 38 % in the bot survey (a guard or escort pattern, not yet traced); the Sabotage maps miss the CS timing bands by design size.

@@ -881,6 +881,14 @@ func presented_ducking(now_usec: int = -1) -> bool:
 	return bool(state.get("ducking", false))
 
 
+## Off the ground in the drawn pose: rising, falling or on thrust. The
+## mirror zeroes vertical speed on a floor, as the server does.
+func presented_airborne(now_usec: int = -1) -> bool:
+	if now_usec >= 0 and active() and not held.is_empty() and not state.is_empty():
+		return float(presented_pose(now_usec + PRESENT_LAG_USEC).get("vy", 0.0)) != 0.0
+	return float(state.get("vy", 0.0)) != 0.0
+
+
 ## A correction moves the undisturbed body without time passing; it is not
 ## motion the guard should follow.
 func _rebase_guard(now_usec: int) -> void:

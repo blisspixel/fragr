@@ -4,7 +4,7 @@ use crate::protocol::{
     M14ChallengeState, M14ObjectiveState, MissionObjectiveAction, WalkerPhase, M14_OBJECTIVE_IDS,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M14Progress {
     pub(super) index: usize,
     pub(super) challenges: M14ChallengeState,
@@ -308,5 +308,12 @@ impl GameState {
             }
             solo.state.status = crate::protocol::CampaignRunStatus::Complete;
         }
+    }
+}
+
+impl M14Progress {
+    /// A checkpoint restored `by` ticks later keeps the first recovery window.
+    pub(super) fn shift_ticks(&mut self, by: u64) {
+        self.first_recovery_until = self.first_recovery_until.map(|t| t.saturating_add(by));
     }
 }

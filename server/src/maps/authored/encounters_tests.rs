@@ -93,3 +93,65 @@ fn encounter_counts_and_unreachable_enemies_are_rejected() {
         .to_string()
         .contains("unreachable"));
 }
+
+#[test]
+fn four_enemy_kinds_need_a_marked_brawl() {
+    let mut doc = document();
+    let enemies = json!([
+        {"id":"mix_clerk","kind":"clerk","feet":[0,0,3],"yaw":0},
+        {"id":"mix_sweeper","kind":"sweeper","feet":[1,0,3],"yaw":0},
+        {"id":"mix_crawler","kind":"crawler","feet":[-1,0,3],"yaw":0},
+        {"id":"mix_heavy","kind":"heavy_sweeper","feet":[2,0,3.5],"yaw":0}
+    ]);
+    doc["encounters"][1]["enemies"] = enemies;
+    let refused = decode(&doc).unwrap_err().to_string();
+    assert!(refused.contains("mark a deliberate brawl"), "{refused}");
+    doc["encounters"][1]["brawl"] = json!(true);
+    let map = decode(&doc).unwrap();
+    assert!(map.encounters[1].brawl && !map.encounters[0].brawl);
+    // Three kinds stay an ordinary group.
+    doc["encounters"][1]["brawl"] = json!(false);
+    doc["encounters"][1]["enemies"]
+        .as_array_mut()
+        .unwrap()
+        .pop();
+    assert!(decode(&doc).is_ok());
+}
+
+/// Every shipped campaign group keeps to three kinds unless it is a marked
+/// brawl, and every brawl really mixes more than three.
+#[test]
+fn shipped_brawls_are_exactly_the_groups_that_need_the_mark() {
+    use crate::maps::AuthoredSource;
+    use crate::protocol::MissionId;
+    let mut brawls = Vec::new();
+    for mission in MissionId::ALL {
+        let map = AuthoredSource::Mission(mission).load().unwrap();
+        for encounter in &map.encounters {
+            let kinds = super::encounters::enemy_types(encounter);
+            assert!(
+                kinds <= super::encounters::MAX_ENEMY_TYPES || encounter.brawl,
+                "{mission:?} {}",
+                encounter.id
+            );
+            if encounter.brawl {
+                assert!(
+                    kinds > super::encounters::MAX_ENEMY_TYPES,
+                    "{}",
+                    encounter.id
+                );
+                brawls.push(encounter.id.clone());
+            }
+        }
+    }
+    assert_eq!(
+        brawls,
+        [
+            "court_defense",
+            "freight_counterattack",
+            "forecourt_assault",
+            "core_defense",
+            "freight_last"
+        ]
+    );
+}

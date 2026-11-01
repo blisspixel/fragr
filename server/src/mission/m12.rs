@@ -6,7 +6,7 @@ use crate::protocol::{
     M12_OBJECTIVE_IDS,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(super) struct M12Progress {
     pub(super) index: usize,
     pub(super) challenges: M12ChallengeState,

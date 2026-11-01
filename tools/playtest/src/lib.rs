@@ -22,10 +22,14 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
+pub mod ladder;
 pub mod link;
+pub mod peek;
+pub mod presentation;
 mod provenance;
 pub mod rewind;
 pub mod sabotage;
+pub mod sight;
 pub mod soak;
 pub mod traffic;
 
@@ -1331,6 +1335,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 fragr_server::protocol::FlagEventKind::Captured => captures += 1,
             },
             GameEvent::Hit { .. }
+            | GameEvent::Checkpoint {}
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::EnemyBark { .. }
             | GameEvent::CompanionBark { .. }
@@ -2313,6 +2318,7 @@ async fn agent_task(
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2623,6 +2629,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         bots: 0,
         bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
         fill_target: 0,
+        bot_skill: fragr_server::sim::BotSkill::default(),
         map: config.map,
         map_rotate: false,
         map_off: Vec::new(),
@@ -2684,6 +2691,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (mut sink, mut stream) = ws.split();
     let hello = ClientMessage::Hello {
         body: None,
+        dress: None,
         seat: None,
         gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
         geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
@@ -2854,8 +2862,10 @@ mod tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,
@@ -3803,8 +3813,10 @@ mod combat_tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,
@@ -4726,8 +4738,10 @@ mod planner_tests {
         PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,
@@ -5639,8 +5653,10 @@ mod line_of_sight_tests {
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,
@@ -5718,8 +5734,10 @@ mod patrol_tests {
         fragr_server::protocol::PlayerState {
             collidable: true,
             body: None,
+            dress: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,

@@ -6,7 +6,8 @@
 # Usage: tools/qa_feel.sh [output directory]
 # Default output: .agents/feel/<stamp>/ (gitignored). GODOT_BIN names Godot
 # 4.7.2. FRAGR_PORT (default 6791) and FRAGR_QA_BOTS (default 0) change the
-# server. FRAGR_FEEL_STRIPS=0 skips the strip pass. The window opens on the
+# server. FRAGR_FEEL_STRIPS=0 skips the strip pass. FRAGR_FEEL_FPS (default
+# 60) caps the frame rate for the input-to-photon pass. The window opens on the
 # current display; audio uses the Dummy driver.
 set -uo pipefail
 

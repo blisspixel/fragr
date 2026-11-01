@@ -233,11 +233,11 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 	if status in ["missing", "failed", "abandoned", "incompatible", "corrupt"]:
 		return data if data.size() == 1 else {}
 	if status == "awaiting_mission":
-		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, CAMPAIGN_COMPLETE] \
+		return data if data.size() == 6 and data.has("body") and _valid_run_dress(data) and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID, CAMPAIGN_COMPLETE] \
 			and data.get("difficulty") in MissionState.DIFFICULTIES \
 			and EquipmentState.integer(data.get("continues"), 3) \
 			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
-	if status != "ready" or data.size() != 7 or not data.has("body") \
+	if status != "ready" or data.size() != 8 or not data.has("body") or not _valid_run_dress(data) \
 		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \
@@ -248,6 +248,16 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 		or (data.get("body") != null and not PlayerBody.valid(data["body"])):
 		return {}
 	return data
+
+## A run binds a dress with its body: null before the first join, else a
+## look and accent from the roster of that body.
+static func _valid_run_dress(data: Dictionary) -> bool:
+	if not data.has("dress"):
+		return false
+	if data["dress"] == null:
+		return true
+	return data.get("body") != null and PlayerBody.valid(data["body"]) \
+		and not FighterLooks.parse(data["dress"], str(data["body"])).is_empty()
 
 static func readiness_url(bytes: PackedByteArray, difficulty: String = "standard", mission_id: String = MissionState.ID, run_mode: String = "new") -> String:
 	# This bootstrap contract contains only fixed ASCII identifiers and IPv4.

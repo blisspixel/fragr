@@ -32,6 +32,16 @@ const FREE_AMBER_HIGH_CONTRAST: Color = Color("ffc93c")
 const FREE_EMBER: Color = Color("e8782a")
 const FREE_MAGENTA: Color = Color("c8409e")
 const FREE_PAIR_HIGH_CONTRAST: Array[Color] = [Color("ffd23f"), Color("3d50ff")]
+## Red-green colour vision (deuteranopia and protanopia): Union red keeps its
+## canon colour and the free side turns blue, the one axis those viewers keep.
+## Blue sits past the Inheritance cyan band (hue about 234 degrees). The label
+## tone is a step lighter so it reads as text on the HUD's ink.
+const FREE_BLUE: Color = Color("5d6cff")
+const FREE_BLUE_LABEL: Color = Color("8a95ff")
+## The player's team colour choice, FragrSettings TEAM_STANDARD,
+## TEAM_HIGH_CONTRAST or TEAM_COLOUR_BLIND. FragrSettings.apply sets it; a
+## call that passes its own choice wins. Presentation only.
+static var palette: int = 0
 ## Inheritance restoration machines: never on a free body.
 const INHERITANCE_BONE: Color = Color("d9d4c7")
 const INHERITANCE_CYAN: Color = Color("4a8a92")
@@ -229,18 +239,29 @@ static func livery(team: String) -> String:
 
 ## The team accent on shoulder and arm tape. Union red only on the Union side;
 ## the free coalition carries the warm amber of its plate. Clear when sideless.
-static func team_accent(team: String, high_contrast: bool = false) -> Color:
+static func team_accent(team: String, choice: int = -1) -> Color:
 	match team:
 		"union":
 			return UNION_RED
 		"coalition":
-			return FREE_AMBER_HIGH_CONTRAST if high_contrast else FREE_AMBER
+			match chosen(choice):
+				FragrSettings.TEAM_HIGH_CONTRAST:
+					return FREE_AMBER_HIGH_CONTRAST
+				FragrSettings.TEAM_COLOUR_BLIND:
+					return FREE_BLUE
+			return FREE_AMBER
 	return Color(0, 0, 0, 0)
 
 
+## The team colour choice in force: `choice` when given, else the setting.
+static func chosen(choice: int = -1) -> int:
+	var value: int = palette if choice < 0 else choice
+	return value if value in [FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST, FragrSettings.TEAM_COLOUR_BLIND] else FragrSettings.TEAM_STANDARD
+
+
 ## The two accents of a free-versus-free match, in side order.
-static func free_pair(high_contrast: bool = false) -> Array[Color]:
-	if high_contrast:
+static func free_pair(choice: int = -1) -> Array[Color]:
+	if chosen(choice) != FragrSettings.TEAM_STANDARD:
 		return FREE_PAIR_HIGH_CONTRAST.duplicate()
 	return [FREE_EMBER, FREE_MAGENTA]
 

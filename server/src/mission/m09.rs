@@ -5,6 +5,7 @@ use crate::protocol::{
     M09CrewState, M09MapGeometry, M09ObjectiveState, MissionObjectiveAction, M09_OBJECTIVE_IDS,
 };
 
+#[derive(Clone)]
 pub(super) struct M09Progress {
     pub(super) index: usize,
     pub(super) crew: Vec<M09CrewState>,

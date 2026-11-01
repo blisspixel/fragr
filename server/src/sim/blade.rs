@@ -180,3 +180,10 @@ impl ArticleBladePlinth {
 
 #[cfg(test)]
 mod tests;
+
+impl ArticleBladePlinth {
+    /// A checkpoint restored later keeps the plinth's return clock.
+    pub(crate) fn shift_ticks(&mut self, by: u64) {
+        self.changed_at = self.changed_at.saturating_add(by);
+    }
+}
