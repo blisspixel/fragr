@@ -101,7 +101,7 @@ func _check_static_rules() -> void:
 	_check(outside.has("SECOND SIGHTING") and outside["SECOND SIGHTING"].nemesis and outside["SECOND SIGHTING"].won == 0
 		and outside["SECOND SIGHTING"].lost == 1, "a nemesis outside the three rivals keeps its count: " + str(outside))
 	var marked: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", outside, false)
-	_check(marked.size() == 1 and marked[0].key == "nemesis" and marked[0].text == "NEMESIS 0-1", "the outside nemesis is marked: " + str(marked))
+	_check(marked.size() == 1 and marked[0].key == "nemesis" and marked[0].text == "AURA DEBT 0-1", "the outside nemesis is marked: " + str(marked))
 	crowded.pop_back()
 	var bare: Dictionary = ScoreboardPlate.rivals_from_story(crowded, ME)
 	var plain: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", bare, false)
