@@ -7893,6 +7893,7 @@ mod duck;
 mod encounters;
 mod enforcer;
 mod feel;
+mod frame_rate;
 mod heavy_turret;
 mod hunt;
 mod jammer;
