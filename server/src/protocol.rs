@@ -863,11 +863,17 @@ pub const TURN_GAMEPLAY_VERSION: u32 = 64;
 /// coalition people who take her) and M17 `custody_started`. A strict reader
 /// at 64 refuses the new side, so Peace Without Interruption requires it.
 pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
-/// The highest contract: Level 17's custody beat, after the map vote and
-/// Level 18's turn.
-pub const GAMEPLAY_VERSION: u32 = VOSS_CUSTODY_GAMEPLAY_VERSION;
+/// The hold-Tab board's objective credits (`PlayerState.objective`) and the
+/// booth's whole pad clocks (`PadClock.clock`, `PlateFact.clock`). A strict
+/// booth reader at 65 refuses the new pad field, so a shared room moves here.
+pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = 66;
+/// The highest contract: the objective board, after Level 17's custody beat,
+/// the map vote and Level 18's turn.
+pub const GAMEPLAY_VERSION: u32 = OBJECTIVE_BOARD_GAMEPLAY_VERSION;
 const _: () = assert!(
-    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
+    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
+        && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
+        && GAMEPLAY_VERSION >= VOSS_CUSTODY_GAMEPLAY_VERSION
 );
 pub fn legacy_gameplay_version() -> u32 {
     1
@@ -1886,6 +1892,32 @@ pub struct PlayerState {
     /// held for a dropped connection.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ping: Option<u16>,
+    /// Objective credits on the hold-Tab board (gameplay 66): Sabotage
+    /// plants and defuses, flag captures and returns, Conquest point
+    /// captures. Omitted while every count is zero.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub objective: Option<ObjectiveTally>,
+}
+
+/// A fighter's objective credits this round; a Sabotage match keeps them
+/// across its rounds, as it keeps frags. Each count is omitted while zero.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObjectiveTally {
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub plants: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub defuses: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub captures: u32,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub returns: u32,
+}
+
+impl ObjectiveTally {
+    pub fn is_empty(&self) -> bool {
+        *self == Self::default()
+    }
 }
 
 fn collidable_by_default() -> bool {

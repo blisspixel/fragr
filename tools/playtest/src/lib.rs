@@ -2860,6 +2860,7 @@ mod tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, fired: bool) -> PlayerState {
         PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -3811,6 +3812,7 @@ mod combat_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -4736,6 +4738,7 @@ mod planner_tests {
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
         PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -5651,6 +5654,7 @@ mod line_of_sight_tests {
             duel_queue: Vec::new(),
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -5732,6 +5736,7 @@ mod patrol_tests {
 
     fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
         fragr_server::protocol::PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,

@@ -344,13 +344,13 @@ msgstr "Mouse: raw counts, never smoothed or assisted. {cm} cm per turn at 800 C
 # Prompts. Braced names become the key or pad glyph for the device in use.
 
 msgid "HUD_CONTROLS_PLAY"
-msgstr "{fire} fire   {reload} reload   {interact} use   {jump} jump   hold {duck} crouch   {weapon_next} weapon   {pause} menu"
+msgstr "{fire} fire   {reload} reload   {interact} use   {jump} jump   hold {duck} crouch   {weapon_next} weapon   hold {scores} scores   {pause} menu"
 
 msgid "HUD_CONTROLS_WALK"
 msgstr "{interact} use   {jump} jump   {pause} menu"
 
 msgid "HUD_CONTROLS_WATCH"
-msgstr "{join} join   {cycle} fighter   {view} view   {pause} menu"
+msgstr "{join} join   {cycle} fighter   {view} view   hold {scores} scores   {pause} menu"
 
 msgid "MENU_PAUSE_HINT"
 msgstr "{pause} resumes. Tilde opens the console."

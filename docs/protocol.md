@@ -22,8 +22,9 @@ with `rules.start_kit` is the same contract 55. Local Exception requires 56,
 the Still Here epilogue requires 57, and the booth (`spectator_facts`, each
 fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
 `turn_started`, the `working` campaign phase) is 64. Level 17's custody (the
-`figure` campaign side and M17 `custody_started`) is 65, the highest this
-build speaks.
+`figure` campaign side and M17 `custody_started`) is 65. The hold-Tab board's
+objective credits (`players[].objective`) and the booth's whole pad clocks
+(`clock`) are 66, the highest this build speaks.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -393,7 +394,7 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`65`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`66`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
 65 or geometry 2. An older hello is also sent to
@@ -1784,6 +1785,16 @@ instead (see "Snapshot deltas (capability 63)").
     by a quarter. Omitted for rule bots, campaign actors, a pawn held for a
     dropped connection and a fighter whose connection has not answered yet.
     The hold-Tab board reads it.
+  - `objective`: (optional, gameplay 66) this fighter's objective credits for
+    the hold-Tab board: `{"plants", "defuses", "captures", "returns"}`, each
+    omitted while zero, the object omitted while all are. Sabotage credits the
+    planter on `planted` and the defuser on `defused`; capture the flag
+    credits the carrier on a capture and the toucher on a touch return (a
+    timed return credits nobody); Conquest credits every fighter of a side
+    standing on a point the tick it falls to that side (neutralising a point
+    is no capture). Counts reset when a round starts; a Sabotage match keeps
+    them across its rounds, as it keeps frags. Presentation only: nothing
+    scores from them. Readers refuse unknown fields inside it.
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -1910,10 +1921,10 @@ caster or a director needs to cut to the next fight before it starts.
   "tick": 2400,
   "spree_step": 5,
   "pads": [
-    {"id": "larak_health_toll", "kind": "health", "back_in": 40},
-    {"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300}
+    {"id": "larak_health_toll", "kind": "health", "back_in": 40, "clock": 500},
+    {"id": "larak_rail", "kind": "weapon", "weapon": "Rail", "power": true, "back_in": 300, "clock": 500}
   ],
-  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520,
+  "plate": {"id": "larak_custody_plate", "up": false, "back_in": 520, "clock": 700,
             "holder": "550e8400-e29b-41d4-a716-446655440000", "armor": 143},
   "sprees": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 6}],
   "chains": [{"id": "550e8400-e29b-41d4-a716-446655440000", "frags": 2, "open_for": 31}]
@@ -1927,11 +1938,14 @@ caster or a director needs to cut to the next fight before it starts.
 - `pads`: (omitted when empty) every pad that is down and will come back,
   soonest first, at most 64: `id` (the snapshot `pickups` id), `kind`,
   `weapon` on a weapon pad, `power` (omitted when false) for a gun better than
-  the Flechette or the sidearm, or armour, and `back_in` in ticks. A borrowed
+  the Flechette or the sidearm, or armour, `back_in` in ticks, and `clock`
+  (gameplay 66) the pad's whole return clock under this rule sheet in ticks,
+  so a reader can draw how far round it has come. A borrowed
   Article Blade's return clock is a `weapon` row. Campaign stock that never
   returns is never listed.
 - `plate`: (omitted on a map without one) the Custody Plate: its pad `id`,
-  `up`, `back_in` while it is down, and `holder` with that fighter's whole
+  `up`, `back_in` and `clock` (gameplay 66, its whole return clock) while it
+  is down, and `holder` with that fighter's whole
   `armor` for the living fighter carrying the most armour over the ordinary
   cap of 100, which only the Plate grants. Omitted when nobody is over it.
 - `sprees`: (omitted when empty) living fighters on two or more frags without
@@ -4085,6 +4099,14 @@ removes the pad's live `respawn_in` clock from the shared snapshot, so no
 fighter's client receives a pad timer, another fighter's spree or an open
 multikill chain. The server pings every session every second (5 s before gameplay 61), and the pong's
 echoed payload times the round trip. Arcade rooms require 58.
+
+### The objective board (capability 66)
+
+Gameplay 66 adds `players[].objective` (Sabotage plants and defuses, flag
+captures and returns, Conquest captures, under Snapshot) and the booth's whole
+return clock on each pad and on a down Plate (`clock`, under `spectator_facts`).
+A strict booth reader at 65 refuses the new pad field, so arcade rooms require
+66.
 
 ### Arena rules depth (capability 59)
 

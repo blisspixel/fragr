@@ -887,8 +887,31 @@ fn ctf_pickup_capture_and_reset_are_independent_of_frags() {
             ..
         }
     )));
+    // The board credits the capturer, on the snapshot the client reads.
+    let row = |state: &GameState, id: Uuid| {
+        state
+            .snapshot()
+            .players
+            .into_iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .objective
+    };
+    assert_eq!(
+        row(&state, coalition),
+        Some(crate::protocol::ObjectiveTally {
+            captures: 1,
+            ..Default::default()
+        })
+    );
+    assert_eq!(row(&state, union), None, "no credit, no field");
     state.start_round();
     assert_eq!(state.capture_scores.coalition, 0);
+    assert_eq!(
+        row(&state, coalition),
+        None,
+        "a new round starts the board clean"
+    );
     assert_eq!(
         state.snapshot().flags.unwrap()[0].status,
         crate::protocol::FlagStatus::Home
@@ -1244,6 +1267,12 @@ fn ctf_same_tick_owner_return_precedes_enemy_retake() {
             ..
         }] if *id == owner_toucher
     ));
+    assert_eq!(
+        state.objective_tally(owner_toucher).map(|t| t.returns),
+        Some(1),
+        "a touch return is credited to the toucher"
+    );
+    assert_eq!(state.objective_tally(enemy_toucher), None);
 }
 
 #[test]

@@ -57,6 +57,9 @@ pub struct PadClock {
     pub power: bool,
     /// Ticks until the pad is back.
     pub back_in: u32,
+    /// The pad's whole return clock under this rule sheet (gameplay 66), so
+    /// a reader can draw how far round the clock has come.
+    pub clock: u32,
 }
 
 /// The Custody Plate: whether it waits on its pad, when it returns, and who
@@ -71,6 +74,9 @@ pub struct PlateFact {
     /// Ticks until the Plate is back. Omitted while it is up.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub back_in: Option<u32>,
+    /// The Plate's whole return clock (gameplay 66). Present with `back_in`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clock: Option<u32>,
     /// The living fighter with the most plated armour. Omitted when nobody
     /// is over the ordinary cap.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -118,11 +124,13 @@ mod tests {
                 weapon: "Rail".into(),
                 power: true,
                 back_in: 120,
+                clock: 300,
             }],
             plate: Some(PlateFact {
                 id: "larak_custody_plate".into(),
                 up: false,
                 back_in: Some(300),
+                clock: Some(700),
                 holder: Some(id),
                 armor: Some(143),
             }),

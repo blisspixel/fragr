@@ -27,6 +27,7 @@ mod paver;
 mod playlist;
 mod podium;
 mod spawn;
+mod tally;
 pub mod vote;
 pub(crate) mod walker;
 pub(crate) use playlist::slot_playable as validate_show;
@@ -693,6 +694,8 @@ pub struct GameState {
     pub events: Vec<GameEvent>,
     pub bots: Vec<BotController>,
     pub scores: HashMap<Uuid, u32>,
+    /// Objective credits for the hold-Tab board (`sim::tally`).
+    pub(crate) objective_tally: HashMap<Uuid, crate::protocol::ObjectiveTally>,
     pub round_state: RoundState,
     pub round_ticks: u32,
     pub round_number: u32,
@@ -1315,6 +1318,9 @@ impl GameState {
         self.round_state = RoundState::Active;
         self.round_ticks = 0;
         self.scores.clear();
+        if carried_frags.is_none() {
+            self.objective_tally.clear();
+        }
         self.clear_traveling_shots();
         self.compliance_fired = false;
         self.compliance_ticks_left = 0;
@@ -4027,6 +4033,7 @@ impl GameState {
                         body: p.is_participant().then_some(p.body),
                         dress: p.is_participant().then_some(p.dress),
                         ping: p.ping_ms,
+                        objective: self.objective_tally(p.id),
                     }
                 })
                 .collect(),
@@ -5323,6 +5330,7 @@ impl Default for GameState {
             events: Vec::new(),
             bots: Vec::new(),
             scores: HashMap::new(),
+            objective_tally: HashMap::new(),
             round_state: RoundState::Warmup,
             round_ticks: 0,
             round_number: 0,

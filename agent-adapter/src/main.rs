@@ -1501,6 +1501,12 @@ mod tests {
         // Pad 0 is Larak Lot's Custody Plate, reported on its own.
         assert_eq!(round["booth"]["plate"]["id"], game.pickups[0].id);
         assert_eq!(round["booth"]["plate"]["back_in"], 30);
+        // Gameplay 66: the Plate's whole clock rides beside the time left, so a
+        // caster can tell how far round it is.
+        assert_eq!(
+            round["booth"]["plate"]["clock"],
+            fragr_server::rules::PLATE_RESPAWN_TICKS
+        );
 
         // A fighter's session drops booth facts even if one arrived.
         mcp::ingest_server_text(&mut joined, &facts).unwrap();
@@ -1702,6 +1708,7 @@ mod tests {
             })
         };
         let fighter = |id: u128, x: f32, campaign| protocol::PlayerState {
+            objective: None,
             collidable: true,
             body: None,
             dress: None,
@@ -1775,6 +1782,7 @@ mod tests {
             conquest: None,
             tick: 100,
             players: vec![protocol::PlayerState {
+                objective: None,
                 collidable: true,
                 body: None,
                 dress: None,
@@ -1936,6 +1944,7 @@ mod tests {
             tick: 50,
             players: vec![
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -1966,6 +1975,7 @@ mod tests {
                     ping: None,
                 },
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -2322,6 +2332,7 @@ mod tests {
             tick: 1,
             players: vec![
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,
@@ -2352,6 +2363,7 @@ mod tests {
                     ping: None,
                 },
                 protocol::PlayerState {
+                    objective: None,
                     collidable: true,
                     body: None,
                     dress: None,

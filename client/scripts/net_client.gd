@@ -20,6 +20,8 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 66 reads the board's objective credits and the booth's whole pad clocks;
+# 65 reads Voss's custody beat;
 # 64 reads the podium story and map vote and may send `vote`;
 # 63 applies snapshot deltas that carry fighters by base roster position;
 # 62 may send the view tick it draws others at, for bounded lag compensation;
@@ -41,7 +43,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 65
+const GAMEPLAY_VERSION: int = 66
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"

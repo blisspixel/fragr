@@ -285,6 +285,13 @@ fn exact_scores_deaths_statistics_and_round_changes_are_never_replaced() {
         state.tick += 1;
         changes.push(state.clone());
     }
+    // An objective credit on the board is exact too.
+    state.tick += 1;
+    state.players[0].objective = Some(crate::protocol::ObjectiveTally {
+        plants: 1,
+        ..Default::default()
+    });
+    changes.push(state.clone());
     state.tick += 1;
     state.round_state = Some("ended".into());
     changes.push(state);

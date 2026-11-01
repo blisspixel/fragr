@@ -3180,6 +3180,8 @@ func _on_snapshot_received(data):
 				var lives: Variant = player_data.get("lives")
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
 	hud.set_campaign(_mission_map())
+	if hud.has_method("observe_board_story"):
+		hud.observe_board_story(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
 	if hud.has_method("show_podium"):
 		hud.show_podium(data.get("podium"), str(net_client.player_id) if is_human_player and net_client.player_id != null else "", data.get("duel_queue", []), net_client.queue_place, _duel_room(), podium_bests if is_human_player else ([] as Array[Dictionary]))
 	_maybe_rehydrate_ended_mvp(data, round_state)
@@ -3586,6 +3588,7 @@ func _on_event_received(data):
 			hud.show_host_join(host_line, false)
 		elif hud and hud.has_method("show_round_end"):
 			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
+			hud.note_round_winner(data.get("winning_team"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
 

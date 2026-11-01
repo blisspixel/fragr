@@ -1091,8 +1091,17 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        // Level 17's custody is the newest contract this binary speaks.
-        assert_eq!(m17.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        // Level 17's custody is the newest campaign contract; the objective
+        // board above it is arcade only, so no level asks for it.
+        assert_eq!(
+            m17.gameplay_version,
+            crate::protocol::VOSS_CUSTODY_GAMEPLAY_VERSION
+        );
+        assert_eq!(
+            crate::protocol::GAMEPLAY_VERSION,
+            crate::protocol::OBJECTIVE_BOARD_GAMEPLAY_VERSION
+        );
+        assert!(m17.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
         assert!(m18.gameplay_version < crate::protocol::GAMEPLAY_VERSION);
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).

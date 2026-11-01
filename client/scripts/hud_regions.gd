@@ -30,8 +30,6 @@ var _layout_key: Array = []
 ## Vertical shift currently applied to the round card, so placement can be
 ## recomputed without accumulating.
 var card_shift: float = 0.0
-## The booth panel's width in logical units before HUD scale.
-const BOOTH_W: float = 400.0
 ## Now-playing toast in logical units before HUD scale: two text rows.
 const RADIO_CARD_W: float = 440.0
 const RADIO_CARD_H: float = 76.0
@@ -109,20 +107,39 @@ func fit_backings() -> void:
 			plate.size = grown.size.round()
 	place_booth()
 
-## The booth panel hangs in the left column between the corner facts' drawn
-## backing and the bottom-left context, never over either. Runs every frame
-## with the backings, because the corner settles after layout.
+## The booth strip sits in the centre column under the scoreline (and under
+## the Conquest board when it is up), apart from the corner's mode label.
+## Runs every frame with the backings, because the centre settles after
+## layout. While the watcher holds the scoreboard the strip expands and the
+## board opens below it.
 func place_booth() -> void:
 	var booth: Variant = hud.get("spectator_panel")
 	if not booth is SpectatorPanel:
 		return
-	var panel: Control = hud.get_node("Panel")
-	var hud_scale: float = hud.hud_style.scale if "hud_style" in hud and hud.hud_style != null else 1.0
-	var booth_top: float = panel.position.y + corner_bottom(hud_scale) + GAP
-	var booth_w: float = minf(panel.size.x, BOOTH_W * hud_scale)
-	var bottom: float = context.position.y - GAP if context.visible else hud.get_viewport().get_visible_rect().size.y - 164.0 * hud_scale
-	(booth as SpectatorPanel).set_region(Rect2(20, booth_top, booth_w, maxf(0.0, bottom - booth_top)))
-	(booth as SpectatorPanel).set_covered(hud.round_message.visible or hud.warmup_tv_active)
+	var strip: SpectatorPanel = booth
+	var view: Vector2 = hud.get_viewport().get_visible_rect().size
+	var top: float = booth_top()
+	# The centre column, between the corner facts and the frag feed.
+	var width: float = center_span.y
+	var left: float = (view.x - width) * 0.5
+	strip.set_region(Rect2(left, top, width, maxf(0.0, view.y * 0.5 - top)))
+	strip.set_covered(hud.round_message.visible or hud.warmup_tv_active)
+
+## The first free line under the centred match facts: the scoreline's drawn
+## backing, the Conquest board, or the column's own top.
+func booth_top() -> float:
+	var top: float = center_span.z
+	var plate: Panel = backings.get("center")
+	if plate != null and plate.visible:
+		top = maxf(top, plate.position.y + plate.size.y)
+	if conquest != null and conquest.is_visible_in_tree():
+		for child: Node in conquest.get_children():
+			if child is Control and (child as Control).visible:
+				top = maxf(top, (child as Control).get_global_rect().end.y)
+	return top + GAP * 0.5
+
+## The centre column: x, width and top, kept by `layout` for the booth strip.
+var center_span: Vector3 = Vector3(0.0, CENTER_FLOOR, 16.0)
 
 func layout() -> void:
 	var view: Vector2 = hud.get_viewport().get_visible_rect().size
@@ -157,6 +174,7 @@ func layout() -> void:
 	var width: float = band.center_width
 	var center_x: float = (view.x - width) * 0.5
 	var center_origin: float = column_top(origin, center_x, width, reserved)
+	center_span = Vector3(center_x, width, center_origin)
 	var top: float = center_origin + (60.0 if hud.sabotage() else 0.0)
 	var chip_font: Font = hud.mode_chip_label.get_theme_font("font")
 	var chip_size: int = hud.mode_chip_label.get_theme_font_size("font_size")
@@ -411,11 +429,10 @@ func world_label_blockers() -> Array[Rect2]:
 	plates.append_array(backings.values())
 	plates.append_array([hud.get("weapon_icon_bg"), hud.get("round_backdrop"), hud.get("_leaderboard"),
 		hud.get("_use_plate"), hud.get("radio_card"), hud.get("warmup_tv")])
-	# Holders whose plates are their children: feed rows, the centre call,
-	# the death card and the booth panel's rows.
-	var booth: Variant = hud.get("spectator_panel")
-	if booth is SpectatorPanel and (booth as Control).is_visible_in_tree():
-		plates.append_array((booth as Control).get_node("Rows").get_children())
+	# The booth strip is one backed plate.
+	plates.append(hud.get("spectator_panel"))
+	# Holders whose plates are their children: feed rows, the centre call
+	# and the death card.
 	for holder_name: String in ["frag_feed", "objective_call", "death_card"]:
 		var holder: Variant = hud.get(holder_name)
 		if holder is Control and (holder as Control).is_visible_in_tree():

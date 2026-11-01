@@ -64,6 +64,14 @@ var flag_status_text: String = ""
 var sabotage_line: String = ""
 ## Round wins by current uniform, for the scoreboard overlay.
 var sabotage_score: Dictionary = {}
+## Each side's header on the hold-Tab board: `{total, unit, rounds}`.
+var board_sides: Dictionary = {}
+## Rounds each side won on this server this session, from round results.
+var board_round_wins: Dictionary = {}
+## The server's MVP once a round has ended; empty while one is live.
+var board_mvp: String = ""
+## The viewer's head-to-head book from the latest podium story.
+var board_rivals: Dictionary = {}
 var sabotage_hud: SabotageHud
 var _use_plate: PanelContainer
 var _use_label: RichTextLabel
@@ -108,7 +116,7 @@ var _leaderboard_key: Array = []
 var _leaderboard_layout_generation: int = 0
 var _leaderboard_layout_view: Vector2 = Vector2.ZERO
 var _leaderboard_scroll: ScrollContainer = null
-var _leaderboard_hint: Label = null
+var _leaderboard_hint: RichTextLabel = null
 var ghost_rival = ""
 var leader_name = ""
 var league_mode_name = "Scrap League"
@@ -522,6 +530,9 @@ func set_match_rules(rules: Dictionary, new_map: bool = true) -> void:
 	sabotage_line = ""
 	sabotage_score = {}
 	own_lives = -1
+	board_sides = {}
+	board_round_wins = {}
+	board_mvp = ""
 	_show_use_plate("")
 	if sabotage_hud != null:
 		sabotage_hud.hide_all()
@@ -561,6 +572,7 @@ func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: in
 	var score: Variant = state.get("score")
 	if score is Dictionary and score != sabotage_score:
 		sabotage_score = (score as Dictionary).duplicate()
+		_set_board_sides(sabotage_score, "HUD_BOARD_UNIT_ROUNDS")
 		update_scoreboard()
 	if line == sabotage_line:
 		return
@@ -744,6 +756,8 @@ func show_sabotage_notice(text: String, seconds: float) -> void:
 func set_team_scores(scores: Variant) -> void:
 	if match_rules.get("mode", "") == "ctf" or sabotage():
 		return
+	if MatchRules.teams(match_rules):
+		_set_board_sides(scores, "HUD_BOARD_UNIT_TICKETS" if match_rules.get("mode", "") == "conquest" else "HUD_BOARD_UNIT_FRAGS")
 	var line: String = MatchRules.team_score_line(scores) if MatchRules.teams(match_rules) else ""
 	if line == team_score_text:
 		return
@@ -774,6 +788,7 @@ func set_ctf_state(flags: Variant, scores: Variant, limit: Variant, players: Arr
 			if flag is Dictionary and str(flag.get("status", "")) == "carried" and str(flag.get("carrier", "")) == viewer_id:
 				carrying = true
 				break
+	_set_board_sides(scores, "HUD_BOARD_UNIT_CAPTURES")
 	var line: String = tr("FLAG_CAPTURE_SCORE_LINE").format({
 		"union": int(scores["union"]), "coalition": int(scores["coalition"]), "limit": int(limit),
 	})
@@ -1000,6 +1015,8 @@ func set_round_info(state: String, time_left: Variant, frag_limit: int, level_cl
 		objective_call.clear()
 		_conquest_owners.clear()
 	round_chrome_state = state
+	if state != "Ended":
+		board_mvp = ""
 	round_clock_known = (time_left is int or time_left is float) and is_finite(float(time_left)) and float(time_left) >= 0.0
 	round_seconds = int(time_left) if round_clock_known else 0
 	round_target = frag_limit
@@ -1049,7 +1066,44 @@ func _board_line() -> String:
 ## Every fighter, for the board held on Tab, as text. The corner list stays
 ## four rows.
 func leaderboard_text() -> String:
-	return ScoreboardPlate.board_text(_score_rows(), _board_line(), _board_own)
+	return ScoreboardPlate.board_text(_score_rows(), _board_line(), _board_own, board_context())
+
+## What the board needs beyond the rows: the mode, the sides' header facts,
+## the round's MVP and the viewer's head-to-head book.
+func board_context() -> Dictionary:
+	var sides: Dictionary = {}
+	for side: String in MatchRules.TEAMS:
+		var facts: Dictionary = (board_sides.get(side, {}) as Dictionary).duplicate()
+		if not sabotage() and int(board_round_wins.get(side, 0)) > 0:
+			facts["rounds"] = int(board_round_wins[side])
+		sides[side] = facts
+	# A watcher's followed side colours rows as mates and foes, but only a
+	# seated fighter owns a side: it leads the board and is marked theirs.
+	return {"line": _board_line(), "mode": str(match_rules.get("mode", "")), "teams": MatchRules.teams(match_rules),
+		"viewer_team": viewer_team, "own_team": viewer_team if not board_id.is_empty() else "", "sides": sides, "mvp": board_mvp, "rivals": board_rivals}
+
+## A side's header total from validated side counts: frags, tickets,
+## captures or (Sabotage) rounds won.
+func _set_board_sides(scores: Variant, unit: String) -> void:
+	var next: Dictionary = {}
+	if scores is Dictionary:
+		for side: String in MatchRules.TEAMS:
+			var count: int = MatchRules._count((scores as Dictionary).get(side))
+			if count >= 0:
+				next[side] = {"total": count, "unit": unit}
+	board_sides = next
+
+## A round result named a winning side: one more round won this session.
+func note_round_winner(team: Variant) -> void:
+	var side: String = MatchRules.valid_team(team)
+	if not side.is_empty():
+		board_round_wins[side] = int(board_round_wins.get(side, 0)) + 1
+
+## The podium's story names the viewer's book this session; it is kept for
+## the board until the next podium replaces it.
+func observe_board_story(podium: Variant, my_id: String) -> void:
+	if podium is Dictionary and (podium as Dictionary).get("story") is Array:
+		board_rivals = ScoreboardPlate.rivals_from_story(podium["story"], my_id)
 
 func _ensure_leaderboard() -> void:
 	if _leaderboard != null:
@@ -1090,14 +1144,21 @@ func _settle_leaderboard(generation: int, turns: int = 2) -> void:
 		get_tree().process_frame.connect(_settle_leaderboard.bind(generation, turns - 1), CONNECT_ONE_SHOT)
 
 func _refresh_leaderboard_rows() -> void:
-	if _leaderboard.refresh(_standings, _standings_revision, _board_line(), _board_own, viewer_team, [board_id, board_name]):
+	if _leaderboard.refresh(_standings, _standings_revision, _board_own, board_context(), [board_id, board_name]):
 		_leaderboard_key = _leaderboard._key
 
 func _place_leaderboard() -> void:
-	_leaderboard.place(get_viewport().get_visible_rect().size, tr("HUD_BOARD_SCROLL").format({
-		"previous": InputGlyphs.action_name("weapon_prev"),
-		"next": InputGlyphs.action_name("weapon_next"),
-	}))
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	# A watcher's booth strip expands over the board's top; the board opens below it.
+	var top: float = 16.0
+	if spectator_panel != null and spectator_panel.visible:
+		top = spectator_panel.position.y + spectator_panel.size.y + 12.0
+	var page: Vector2i = _leaderboard.page()
+	var template: String = tr("HUD_BOARD_HOLD")
+	if page.y > 1:
+		template += "     " + tr("HUD_BOARD_PAGE").format({"at": page.x, "pages": page.y})
+	_leaderboard.set_hint(template)
+	_leaderboard.place(view, top, not ScoreboardPlate.objective_columns(str(match_rules.get("mode", ""))).is_empty())
 
 ## The existing weapon-cycle bindings browse a held board on keys, wheel or pad.
 ## Route this before equipment/seat input so browsing cannot change either.
@@ -1117,7 +1178,12 @@ func handle_leaderboard_input(event: InputEvent) -> bool:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			direction = 1
 	set_leaderboard_open(true)
-	_leaderboard_scroll.scroll_vertical += direction * int(maxf(48.0, _leaderboard_scroll.size.y * 0.75))
+	# Keys and bumpers turn a page of whole rows; a wheel notch moves three rows.
+	var step: int = _leaderboard.page_step()
+	if event is InputEventMouseButton:
+		step = int(MenuTheme.FONT.get_height(MenuTheme.BODY) + 8.0 + ScoreboardPlate.ROW_GAP) * 3
+	_leaderboard_scroll.scroll_vertical += direction * step
+	_place_leaderboard()
 	return true
 
 func update_scoreboard():
@@ -1156,7 +1222,7 @@ func sync_scores_from_players(player_list: Array):
 			"heads": int(player_data.get("heads", 0)),
 			"damage": int(player_data.get("damage", 0)),
 			"ping": _board_ping(player_data.get("ping")),
-		})
+		}.merged(_board_objective(player_data.get("objective"))))
 	# The snapshot omits a body between death and respawn; the board does not.
 	var now: int = Time.get_ticks_msec()
 	var listed: Dictionary = {}
@@ -1183,6 +1249,17 @@ func sync_scores_from_players(player_list: Array):
 		leader_name = str(next[0].name) + " (" + str(next[0].kills) + ")"
 	update_scoreboard()
 	_refresh_mode_chip()
+
+## The server's objective credits for a standings row: plants, defuses,
+## captures and returns, each zero when absent or malformed.
+static func _board_objective(value: Variant) -> Dictionary:
+	var out: Dictionary = {"plants": 0, "defuses": 0, "captures": 0, "returns": 0}
+	if not value is Dictionary:
+		return out
+	for key: String in out.keys():
+		if EquipmentState.integer((value as Dictionary).get(key), 1000000):
+			out[key] = int(value[key])
+	return out
 
 ## The measured round trip for the board, or -1 when the server has none.
 static func _board_ping(value: Variant) -> int:
@@ -1605,6 +1682,7 @@ func show_checkpoint() -> void:
 	combat_feed.push(tr("HUD_CHECKPOINT"))
 
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
+	board_mvp = mvp_name
 	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
 	host_duck(4.0, true)
@@ -1843,6 +1921,8 @@ func _process(delta):
 		# Standings have one visible home, the held scoreboard overlay.
 		var showing_leaders: bool = InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard")
 		scoreboard.visible = false
+		if spectator_panel != null:
+			spectator_panel.set_expanded(showing_leaders)
 		set_leaderboard_open(showing_leaders)
 	var hint_age: int = Time.get_ticks_msec() - mode_entered_ms
 	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and hint_age >= CONTROLS_HINT_MS):

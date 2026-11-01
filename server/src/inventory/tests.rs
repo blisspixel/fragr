@@ -867,6 +867,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         walker: None,
         tick: 0,
         players: vec![crate::protocol::PlayerState {
+            objective: None,
             id,
             name: "Seeker".into(),
             x: 0.0,

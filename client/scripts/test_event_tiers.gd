@@ -192,8 +192,11 @@ func _check_board_identity() -> void:
 	for frame: int in range(3):
 		await process_frame
 	var text: String = hud.leaderboard_text()
-	_check(text.count("Same") == 2 and text.count("YOU") == 1 and text.contains("1. [UNION] Same  3  1  --  YOU") and text.contains("2. [FREE] Same  2  4  --"), "duplicate callsigns retain separate identities and counts: " + text)
-	_check(hud._leaderboard_rows.get_child(1).get_meta("relation") == "mate" and hud._leaderboard_rows.get_child(2).get_meta("relation") == "foe", "board uses the same relation helper as the feed")
+	_check(text.count("Same") == 2 and text.count("YOU") == 1 and text.contains("1. [UNION] Same  3  1  --  YOU") and text.contains("1. [FREE] Same  2  4  --"), "duplicate callsigns retain separate identities and counts on their own sides: " + text)
+	# The split board: the viewer's side bar, its row, the other side bar, its row.
+	var board_rows: Array[Node] = hud._leaderboard_rows.get_children()
+	_check(board_rows[1].get_meta("side", "") == "union" and board_rows[3].get_meta("side", "") == "coalition", "the viewer's side heads the split board")
+	_check(board_rows[2].get_meta("relation") == "mate" and board_rows[4].get_meta("relation") == "foe", "board uses the same relation helper as the feed")
 	hud.set_viewer_context("absent", "union")
 	_check(not hud.leaderboard_text().contains("YOU"), "unmatched modern identity cannot fall back to a callsign")
 	hud.set_board_name("Same")

@@ -646,6 +646,7 @@ fn same_vehicle_facts(
 
 fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
     let PlayerState {
+        objective,
         collidable,
         campaign,
         id,
@@ -698,6 +699,7 @@ fn same_player_facts(old: &PlayerState, new: &PlayerState) -> bool {
         && airborne == &new.airborne
         && body == &new.body
         && dress == &new.dress
+        && objective == &new.objective
 }
 
 fn same_sabotage_facts(

@@ -82,8 +82,9 @@ Connect via an MCP client on stdio. The boot path still sends Hello with `--name
 
 `--watch` hellos as a spectator instead: a booth seat for an agent caster. It
 never holds a fighter, `act` and `speak` refuse, and `round_state.booth` carries
-the booth facts the server sends only to spectators (live pad clocks, the
-Custody Plate and its wearer, sprees and open multikill chains). Calling `join`
+the booth facts the server sends only to spectators (live pad clocks with
+each pad's whole return `clock`, the Custody Plate and its wearer, sprees and
+open multikill chains). Calling `join`
 from the booth steps down from it and hellos again as a fighter; from then on
 the session never hears the booth.
 
