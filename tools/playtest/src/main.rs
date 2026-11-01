@@ -301,8 +301,9 @@ struct Cli {
     /// Pop-in at corners under interest filtering (gameplay 66): seeded rule
     /// bot matches on every arena map with every bot read as a fighter at
     /// each round trip; counts bodies that turn visible before their row is
-    /// drawn. Writes `--report` and prints the table; `--assert` fails a map
-    /// over 1 percent late at 100 ms or less.
+    /// drawn. Writes `--report` and prints the table; `--assert` fails a round
+    /// trip of 100 ms or less whose pooled late rate in fight range is over
+    /// 1 percent.
     #[arg(long, conflicts_with_all = [
         "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
         "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",

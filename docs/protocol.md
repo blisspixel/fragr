@@ -4394,7 +4394,7 @@ could perceive. Owner: `server/src/interest.rs`; the Godot reader is
   where it sounds and frees a pawn whose sense changes, so a body that comes
   into sight starts where it stands.
 - **Seen.** Every tick, a line of sight through the shot solids, with no
-  view cone. From the fighter's standing eye; that eye after its lead (`4`
+  view cone. From the fighter's standing eye; that eye after its lead (`5`
   ticks plus its measured round trip in ticks, at most `10`) on its velocity
   or measured motion and one step (`0.6` m) higher while it moves; and that
   eye moved across the line by up to `2` m (a full-speed step over the

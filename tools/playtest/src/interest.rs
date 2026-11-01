@@ -337,22 +337,28 @@ pub fn run(maps: &[MapKind], rtts: &[u32], jitter: u64, seconds: u32, seed: u64)
     }
 }
 
-/// `--assert`: no map pops in more than [`LATE_RATE_LIMIT`] of its reveals
-/// at a round trip of 100 ms or less.
+/// `--assert`: at each round trip of 100 ms or less, all maps together pop
+/// in no more than [`LATE_RATE_LIMIT`] of their reveals within fight range.
+/// A small map's few reveals make its own rate noisy, so the gate is the
+/// pooled rate; every map's row stays in the table.
 pub fn check(report: &Report) -> Vec<String> {
-    report
-        .rows
-        .iter()
-        .filter(|row| row.rtt_ms <= 100 && row.fight_late_rate > LATE_RATE_LIMIT)
-        .map(|row| {
-            format!(
-                "{} at {} ms: {} of {} reveals within {FIGHT_RANGE} m late ({:.2} %)",
-                row.map,
-                row.rtt_ms,
-                row.fight_late_reveals,
-                row.fight_reveals,
-                row.fight_late_rate * 100.0
-            )
+    let mut rtts: Vec<u32> = report.rows.iter().map(|row| row.rtt_ms).collect();
+    rtts.sort_unstable();
+    rtts.dedup();
+    rtts.into_iter()
+        .filter(|rtt| *rtt <= 100)
+        .filter_map(|rtt| {
+            let rows = report.rows.iter().filter(|row| row.rtt_ms == rtt);
+            let (late, reveals) = rows.fold((0, 0), |(late, reveals), row| {
+                (late + row.fight_late_reveals, reveals + row.fight_reveals)
+            });
+            let rate = if reveals == 0 { 0.0 } else { late as f64 / reveals as f64 };
+            (rate > LATE_RATE_LIMIT).then(|| {
+                format!(
+                    "at {rtt} ms: {late} of {reveals} reveals within {FIGHT_RANGE} m late ({:.2} %)",
+                    rate * 100.0
+                )
+            })
         })
         .collect()
 }

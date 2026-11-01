@@ -15,7 +15,7 @@
 //! `d`, so every pair is traced each tick:
 //!
 //! - From the reader's eye standing (rising from a crouch is a peek), from
-//!   that eye after its lead ([`lead_ticks`]: four ticks plus the measured
+//!   that eye after its lead ([`lead_ticks`]: five ticks plus the measured
 //!   round trip) on its velocity or its measured motion (a vehicle seat,
 //!   stairs) and one step higher, and from a step either way across the line
 //!   (a reader that turns or starts from rest).
@@ -67,8 +67,8 @@ pub const HEARD_GRACE: u64 = 10;
 /// the chest.
 pub const PEEK_MARGIN: f32 = 0.6;
 /// Every reader's own lead, ticks: the 60 to 100 ms interpolation buffer
-/// and two ticks of slack for the world in flight.
-pub const LEAD_BASE_TICKS: f32 = 4.0;
+/// and three ticks of slack for a world held up on a jittery link.
+pub const LEAD_BASE_TICKS: f32 = 5.0;
 /// The longest lead a slow link earns, ticks (500 ms).
 pub const LEAD_MAX_TICKS: f32 = 10.0;
 /// The furthest the reader's eye is tested across the line, metres: a full
@@ -76,6 +76,10 @@ pub const LEAD_MAX_TICKS: f32 = 10.0;
 pub const EYE_REACH: f32 = 2.0;
 /// How far ahead a target is tested, ticks.
 pub const TARGET_LEAD_TICKS: f32 = 3.0;
+/// Threads that trace lines of sight, at most.
+const TRACE_THREADS: usize = 8;
+/// Below this many questions a thread is not worth starting.
+const TRACES_PER_THREAD: usize = 128;
 /// The heard bearing turns once in this many ticks (8 s).
 const HEARD_TURN_TICKS: f32 = 160.0;
 const TICK_SECONDS: f32 = 0.05;
@@ -147,6 +151,24 @@ fn down(state: &GameState, player: &Player) -> bool {
     !state.contact_eligible(player)
 }
 
+/// Who perceives for a reader: itself while up; while it is down in a team
+/// mode, its living team-mates, whose eyes the team seat rides.
+fn eyes_of<'a>(state: &'a GameState, reader: &'a Player, teams: bool) -> Vec<&'a Player> {
+    if teams && down(state, reader) && reader.team.is_some() {
+        state
+            .players
+            .iter()
+            .filter(|mate| {
+                mate.id != reader.id
+                    && mate.team == reader.team
+                    && mate.is_participant()
+                    && !down(state, mate)
+            })
+            .collect()
+    } else {
+        vec![reader]
+    }
+}
 fn feet(player: &Player) -> [f32; 3] {
     [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z]
 }
@@ -225,54 +247,98 @@ fn clear_line(
     } else {
         (1.0, 0.0)
     };
-    // Where the reader's client may have put its eye by the time this world
-    // is drawn: along its velocity, or a step either way across the line if
-    // it turns or starts from rest.
-    let step = (crate::movement::TOP_SPEED * lead * TICK_SECONDS).min(EYE_REACH);
     let across_by =
         |point: [f32; 3], by: f32| [point[0] + side_x * by, point[1], point[2] + side_z * by];
-    // A moving reader may take a step up before this world is drawn: its
-    // lead eye stands one step higher.
+    // Where the reader's client may have put its eye by the time this world
+    // is drawn: along its motion and one step higher (a stair taken), or a
+    // step either way across the line (a turn, or a start from rest).
     let mut eye_lead = ahead(eye_now, reader, lead, moved[0]);
     if reader.vx.hypot(reader.vz) > 1.0 {
         eye_lead[1] += crate::movement::STEP_UP;
     }
-    let eyes = [
-        eye_now,
-        eye_lead,
-        across_by(eye_now, step),
-        across_by(eye_now, -step),
-    ];
+    let step = (crate::movement::TOP_SPEED * lead * TICK_SECONDS).min(EYE_REACH);
     let stand = crate::combat::stance_eye(target.campaign, target.ducking);
     let reach = crate::movement::RADIUS + PEEK_MARGIN;
-    let points = |body: [f32; 3], whole: bool| {
-        let chest = crate::combat::aim_point_for(body, target.campaign, target.ducking);
-        let shoulder = [body[0], body[1] + SHOULDER.min(stand), body[2]];
-        let mut points = vec![
-            chest,
-            across_by(shoulder, reach),
-            across_by(shoulder, -reach),
-        ];
-        if whole {
-            // The body's own crown and shoulders: a thin post can hide the
-            // widened line and not these.
-            points.push([body[0], body[1] + stand + CROWN, body[2]]);
-            points.push(across_by(shoulder, crate::movement::RADIUS));
-            points.push(across_by(shoulder, -crate::movement::RADIUS));
-        }
-        points
-    };
-    let mut targets = points(feet_now, true);
-    targets.extend(points(feet_lead, false));
-    for eye in eyes {
-        for point in &targets {
-            *rays += 1;
-            if grid.line_of_sight(eye, *point) {
-                return true;
-            }
+    let chest =
+        |body: [f32; 3]| crate::combat::aim_point_for(body, target.campaign, target.ducking);
+    let shoulder = |body: [f32; 3]| [body[0], body[1] + SHOULDER.min(stand), body[2]];
+    let crown = [feet_now[0], feet_now[1] + stand + CROWN, feet_now[2]];
+    let (now, ahead_of) = (shoulder(feet_now), shoulder(feet_lead));
+    // The body as it stands, its own shoulders as well as widened ones: a
+    // thin post can hide one line and not the other.
+    let whole = [
+        chest(feet_now),
+        crown,
+        across_by(now, crate::movement::RADIUS),
+        across_by(now, -crate::movement::RADIUS),
+        across_by(now, reach),
+        across_by(now, -reach),
+        chest(feet_lead),
+        across_by(ahead_of, reach),
+        across_by(ahead_of, -reach),
+    ];
+    // The eyes across the line look for the body itself, not its margins.
+    let core = [chest(feet_now), crown, chest(feet_lead)];
+    let lines = [eye_now, eye_lead]
+        .into_iter()
+        .flat_map(|eye| whole.iter().map(move |point| (eye, *point)))
+        .chain([step, -step].into_iter().flat_map(|by| {
+            let eye = across_by(eye_now, by);
+            core.iter().map(move |point| (eye, *point))
+        }));
+    for (eye, point) in lines {
+        *rays += 1;
+        if grid.line_of_sight(eye, point) {
+            return true;
         }
     }
     false
+}
+
+/// One line-of-sight question: may `reader` see `target` this tick.
+struct Trace<'a> {
+    reader: &'a Player,
+    target: &'a Player,
+    lead: f32,
+    moved: [[f32; 3]; 2],
+}
+
+/// Every question answered, across the machine's cores when there are many:
+/// the answers are pure functions of the world, so the order is free and
+/// the result is the same as one thread's.
+fn trace_all(traces: &[Trace<'_>], grid: &crate::combat::SightGrid) -> (Vec<bool>, u64) {
+    let run = |chunk: &[Trace<'_>]| {
+        let mut rays = 0;
+        let answers = chunk
+            .iter()
+            .map(|t| clear_line(t.reader, t.target, t.lead, t.moved, grid, &mut rays))
+            .collect::<Vec<bool>>();
+        (answers, rays)
+    };
+    let threads = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(TRACE_THREADS);
+    if threads <= 1 || traces.len() < TRACES_PER_THREAD * 2 {
+        return run(traces);
+    }
+    let size = traces.len().div_ceil(threads).max(TRACES_PER_THREAD);
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = traces
+            .chunks(size)
+            .map(|chunk| scope.spawn(move || run(chunk)))
+            .collect();
+        let mut answers = Vec::with_capacity(traces.len());
+        let mut rays = 0;
+        for handle in handles {
+            // A tracing thread only reads; if one ever panicked, its pairs
+            // count as clear, which shows more rather than less.
+            let (part, counted) = handle.join().unwrap_or_else(|_| (vec![true; size], 0));
+            answers.extend(part);
+            rays += counted;
+        }
+        answers.truncate(traces.len());
+        (answers, rays)
+    })
 }
 
 fn audible(reader: &Player, target: &Player) -> bool {
@@ -352,24 +418,12 @@ impl Interest {
         state: &GameState,
         reader: &Player,
         target: &Player,
-        lead: f32,
-        grid: &crate::combat::SightGrid,
+        clear: bool,
     ) -> Sense {
         let tick = state.tick;
         let key = (reader.id, target.id);
         self.counts.pairs += 1;
-        // A body that is down is only ever shown to a reader that just saw
-        // it, so the reader watches it fall.
-        if !down(state, target)
-            && clear_line(
-                reader,
-                target,
-                lead,
-                [self.moved_of(reader.id), self.moved_of(target.id)],
-                grid,
-                &mut self.counts.rays,
-            )
-        {
+        if clear {
             self.sighted.insert(key, tick);
         }
         if self
@@ -449,37 +503,61 @@ impl Interest {
         };
         // Who perceives for each reader: itself while up; while down in a
         // team mode, its living team-mates.
+        // Every line this tick needs, traced at once. A body that is down is
+        // never traced: only a reader that just saw it keeps it, and watches
+        // it fall.
+        let mut perceivers: Vec<&Player> = Vec::new();
+        for reader in readers.iter().filter_map(|id| by_id.get(id).copied()) {
+            for eye in eyes_of(state, reader, teams) {
+                if !perceivers.iter().any(|known| known.id == eye.id) {
+                    perceivers.push(eye);
+                }
+            }
+        }
+        let mut traces = Vec::new();
+        for perceiver in &perceivers {
+            let lead = lead_ticks(perceiver.ping_ms);
+            for row in &snapshot.players {
+                if let Some(target) = by_id.get(&row.id).copied() {
+                    if !always(perceiver, target) && !down(state, target) {
+                        traces.push(Trace {
+                            reader: perceiver,
+                            target,
+                            lead,
+                            moved: [self.moved_of(perceiver.id), self.moved_of(target.id)],
+                        });
+                    }
+                }
+            }
+        }
+        let (answers, rays) = trace_all(&traces, &grid);
+        self.counts.rays += rays;
+        let clear: std::collections::HashSet<(Uuid, Uuid)> = traces
+            .iter()
+            .zip(answers)
+            .filter(|(_, clear)| *clear)
+            .map(|(trace, _)| (trace.reader.id, trace.target.id))
+            .collect();
         let mut cache: HashMap<Uuid, Vec<Sense>> = HashMap::new();
         for reader_id in readers {
             let Some(reader) = by_id.get(reader_id).copied() else {
                 continue;
             };
-            let eyes: Vec<&Player> = if teams && down(state, reader) && reader.team.is_some() {
-                state
-                    .players
-                    .iter()
-                    .filter(|mate| {
-                        mate.id != reader.id
-                            && mate.team == reader.team
-                            && mate.is_participant()
-                            && !down(state, mate)
-                    })
-                    .collect()
-            } else {
-                vec![reader]
-            };
+            let eyes = eyes_of(state, reader, teams);
             let killer = self.killers.get(&reader.id).copied();
             let mut view = View::new();
             let mut senses: Vec<Vec<Sense>> = Vec::with_capacity(eyes.len());
             for perceiver in &eyes {
                 if let std::collections::hash_map::Entry::Vacant(slot) = cache.entry(perceiver.id) {
-                    let lead = lead_ticks(perceiver.ping_ms);
                     let mut row_senses = Vec::with_capacity(snapshot.players.len());
                     for row in &snapshot.players {
                         let sense = match by_id.get(&row.id) {
-                            Some(target) if !always(perceiver, target) => {
-                                self.perceive(state, perceiver, target, lead, &grid)
-                            }
+                            Some(target) if !always(perceiver, target) => self.perceive(
+                                state,
+                                perceiver,
+                                target,
+                                clear.contains(&(perceiver.id, target.id)),
+                            ),
                             _ => Sense::Seen,
                         };
                         row_senses.push(sense);
