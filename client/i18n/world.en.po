@@ -105,6 +105,9 @@ msgstr "Continue Run"
 msgid "RUN_SAVED_DETAIL"
 msgstr "{difficulty} / attempt {attempt} / {continues} continues left"
 
+msgid "RUN_SAVED_CHECKPOINT"
+msgstr "Picks up at your last checkpoint."
+
 msgid "RUN_SAVED_MISSION"
 msgstr "NEXT: {mission}"
 

@@ -8,8 +8,10 @@
 use super::{blade, drops, mine, walker, ArenaPickup, GameState, Player};
 use crate::protocol::{CampaignActor, WalkerPhase};
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct WorldSave {
+    #[serde(skip, default = "crate::maps::RuntimeMap::placeholder")]
     map: crate::maps::RuntimeMap,
     pickups: Vec<ArenaPickup>,
     vehicles: Vec<crate::vehicles::Jeep>,
@@ -115,6 +117,36 @@ impl GameState {
             ally.reset_movement_baseline();
             self.players.push(ally);
         }
+    }
+}
+
+impl WorldSave {
+    /// The world a checkpoint read from a run file stands in, rebuilt from
+    /// the mission content by its recorded steps.
+    pub(crate) fn rebuild_map(&mut self, map: crate::maps::RuntimeMap) {
+        self.map = map;
+    }
+
+    /// Bounds a decoded world must keep before it touches the simulation.
+    pub(crate) fn validate(&self) -> Result<(), &'static str> {
+        const MAX_BODIES: usize = 64;
+        if self.allies.len() > MAX_BODIES
+            || self.pickups.len() > 1_024
+            || self.mines.len() > 256
+            || self.dropped_guns.len() > 256
+            || self.vehicles.len() > 32
+        {
+            return Err("saved checkpoint world holds too many things");
+        }
+        if !self.allies.iter().all(|ally| {
+            is_ally(ally)
+                && [ally.x, ally.y, ally.z, ally.yaw, ally.pitch]
+                    .iter()
+                    .all(|v| v.is_finite())
+        }) {
+            return Err("saved checkpoint ally is out of bounds");
+        }
+        Ok(())
     }
 }
 

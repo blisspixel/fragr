@@ -2034,7 +2034,12 @@ pub struct PlayerScore {
 pub enum GameEvent {
     /// The solo run saved a checkpoint at a quiet moment. A death with a
     /// continue left returns the run here instead of to the level entry.
-    Checkpoint {},
+    /// `resumed`: a reopened run has just returned here. Sent only when true
+    /// and additive: an event reader that ignores it still reads a save.
+    Checkpoint {
+        #[serde(default, skip_serializing_if = "is_false")]
+        resumed: bool,
+    },
     /// A nearby Crawler encounter wakes before its first visible attack.
     CrawlerScrabble {
         position: [f32; 3],

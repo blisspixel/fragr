@@ -256,8 +256,11 @@ func _run() -> void:
 				while str(preview.get("status", "loading")) == "loading" and Time.get_ticks_msec() < preview_deadline:
 					await create_timer(0.05).timeout
 					preview = LocalMatch.for_tree(self).run_preview
-				if str(preview.get("status", "")) != "missing":
-					push_error("qa_tour: isolated Single Player preview did not reach missing-run state")
+				# A tour handed a saved run (FRAGR_QA_RUN_FIXTURE) names the
+				# preview it expects; an isolated tour has no run at all.
+				var expected_preview: String = str(state.get("expect_preview", "missing"))
+				if str(preview.get("status", "")) != expected_preview:
+					push_error("qa_tour: Single Player preview is %s, not %s" % [str(preview.get("status", "")), expected_preview])
 					_failed = true
 			if menu_page == "host" and state.has("host_mode"):
 				# Pick a mode on the Run a match page the way the picker does.

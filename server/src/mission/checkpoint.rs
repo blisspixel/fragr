@@ -11,15 +11,21 @@
 //! A death with a continue left spends one continue and returns the run to the
 //! latest checkpoint of the current level, or to the level entry when there is
 //! none. The allowance, the episode refill and exhaustion are unchanged
-//! (`docs/CAMPAIGN.md`). Checkpoints live with the run in this process; the
-//! run file on disk keeps the level entry, so a reopened save starts the level
-//! again, as it always has.
+//! (`docs/CAMPAIGN.md`). The latest checkpoint is also written with the run
+//! file (`run_file::SavedCheckpoint`), so a reopened run returns to it: a
+//! pending continue spends its continue there, and a run left while playing
+//! resumes there without spending one. Only the build that wrote a checkpoint
+//! reads it; the world is rebuilt from the mission content by replaying its
+//! recorded steps (`maps/steps.rs`).
 use super::*;
 use crate::encounters::GroupMark;
 use crate::inventory::Inventory;
+use crate::mission::run_file::{checkpoint_build, SavedCheckpoint, MAX_CHECKPOINT_BYTES};
 use crate::protocol::{CampaignRunStatus, GameEvent, MissionContinue, WeaponType};
 use crate::sim::WorldSave;
 
+#[cfg(test)]
+mod disk_tests;
 #[cfg(test)]
 mod gaps;
 #[cfg(test)]
@@ -47,11 +53,20 @@ pub(super) struct Schedule {
     hurt_at: Option<u64>,
     /// Ticks at which checkpoints were taken this level, in order.
     taken: Vec<u64>,
+    /// The latest checkpoint as the run file carries it.
+    disk: Option<SavedCheckpoint>,
+    /// A reopened run left while playing returns to `saved` once the level
+    /// has started, without spending a continue.
+    resume: bool,
 }
 
 impl Schedule {
     pub(super) fn has_checkpoint(&self) -> bool {
         self.saved.is_some()
+    }
+
+    pub(super) fn saved_to_disk(&self) -> Option<&SavedCheckpoint> {
+        self.disk.as_ref()
     }
 
     /// A retry starts the clock again from the save it returned to; the
@@ -70,6 +85,8 @@ impl Schedule {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Checkpoint {
     tick: u64,
     strip_hits: u64,
@@ -80,6 +97,8 @@ struct Checkpoint {
     world: WorldSave,
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct OwnerSave {
     position: [f32; 3],
     yaw: f32,
@@ -96,7 +115,8 @@ struct OwnerSave {
 
 /// Every mission fact an attempt changes. The run's identity, rules, attempt,
 /// readiness and continue allowance are not facts of the attempt.
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct MissionFacts {
     m02: Option<m02::M02Progress>,
     m03: Option<m03::M03Progress>,
@@ -120,6 +140,7 @@ struct MissionFacts {
     companion: m02::companion::Support,
     phase: MissionPhase,
     started_at: Option<u64>,
+    map_steps: Vec<crate::maps::MapStep>,
 }
 
 impl MissionFacts {
@@ -147,6 +168,7 @@ impl MissionFacts {
             companion: run.companion.clone(),
             phase: run.phase,
             started_at: run.started_at,
+            map_steps: run.map_steps.clone(),
         }
     }
 
@@ -175,11 +197,7 @@ impl MissionFacts {
             shift(&mut p.turn_started);
         }
         if let Some(p) = self.m20.as_mut() {
-            shift(&mut p.pier_reached_at);
-            shift(&mut p.reprieve_at);
-            for crew in &mut p.crew {
-                crew.depart_at = crew.depart_at.saturating_add(by);
-            }
+            p.shift_ticks(by);
         }
         self.companion.shift_ticks(by);
         shift(&mut self.started_at);
@@ -205,6 +223,39 @@ impl MissionFacts {
         run.companion = self.companion;
         run.phase = self.phase;
         run.started_at = self.started_at;
+        run.map_steps = self.map_steps;
+    }
+
+    /// The same missions as the run this checkpoint is restored into.
+    fn matches(&self, run: &MissionRun) -> bool {
+        [
+            (self.m02.is_some(), run.m02.is_some()),
+            (self.m03.is_some(), run.m03.is_some()),
+            (self.m04.is_some(), run.m04.is_some()),
+            (self.m05.is_some(), run.m05.is_some()),
+            (self.m06.is_some(), run.m06.is_some()),
+            (self.m07.is_some(), run.m07.is_some()),
+            (self.m08.is_some(), run.m08.is_some()),
+            (self.m09.is_some(), run.m09.is_some()),
+            (self.m10.is_some(), run.m10.is_some()),
+            (self.m11.is_some(), run.m11.is_some()),
+            (self.m12.is_some(), run.m12.is_some()),
+            (self.m13.is_some(), run.m13.is_some()),
+            (self.m14.is_some(), run.m14.is_some()),
+            (self.m15.is_some(), run.m15.is_some()),
+            (self.m16.is_some(), run.m16.is_some()),
+            (self.m17.is_some(), run.m17.is_some()),
+            (self.m18.is_some(), run.m18.is_some()),
+            (self.m19.is_some(), run.m19.is_some()),
+            (self.m20.is_some(), run.m20.is_some()),
+        ]
+        .iter()
+        .all(|(saved, live)| saved == live)
+            && matches!(
+                self.phase,
+                MissionPhase::FindTransfer | MissionPhase::ReachLift | MissionPhase::InProgress
+            )
+            && self.started_at.is_some()
     }
 }
 
@@ -303,6 +354,7 @@ impl GameState {
     /// One tick of the checkpoint schedule. Runs after the tick's movement and
     /// combat, so a save sees the state the next snapshot publishes.
     pub(crate) fn update_campaign_checkpoint(&mut self) {
+        self.resume_saved_checkpoint();
         let Some(moment) = self.checkpoint_moment() else {
             return;
         };
@@ -366,6 +418,7 @@ impl GameState {
         let score = self.scores.get(&moment.owner).copied().unwrap_or(0);
         let world = self.save_checkpoint_world();
         let strip_hits = self.paver_strip_hits;
+        let mission = self.map.campaign_mission_id();
         let Some(run) = self.mission.as_mut() else {
             return;
         };
@@ -373,8 +426,7 @@ impl GameState {
         let Some(solo) = run.solo.as_mut() else {
             return;
         };
-        let schedule = &mut solo.checkpoints;
-        schedule.saved = Some(Box::new(Checkpoint {
+        let checkpoint = Checkpoint {
             tick,
             strip_hits,
             owner,
@@ -382,11 +434,14 @@ impl GameState {
             facts,
             groups,
             world,
-        }));
+        };
+        let schedule = &mut solo.checkpoints;
+        schedule.disk = mission.and_then(|mission| encode(&checkpoint, mission));
+        schedule.saved = Some(Box::new(checkpoint));
         schedule.last_at = Some(tick);
         schedule.due = false;
         schedule.taken.push(tick);
-        self.events.push(GameEvent::Checkpoint {});
+        self.events.push(GameEvent::Checkpoint { resumed: false });
         tracing::info!(tick, "Campaign checkpoint saved");
     }
 
@@ -397,53 +452,112 @@ impl GameState {
         player_id: Uuid,
         request: MissionContinue,
     ) -> bool {
-        let tick = self.tick;
+        if !self.players.iter().any(|p| p.id == player_id && p.hp <= 0) {
+            return false;
+        }
         let Some(solo) = self.mission.as_mut().and_then(|run| run.solo.as_mut()) else {
             return false;
         };
         let Some(checkpoint) = solo.checkpoints.saved.take() else {
             return false;
         };
-        let by = tick.saturating_sub(checkpoint.tick);
-        let Some(player) = self
-            .players
-            .iter_mut()
-            .find(|p| p.id == player_id && p.hp <= 0)
-        else {
-            solo.checkpoints.saved = Some(checkpoint);
-            return false;
-        };
         solo.state.continues -= 1;
         solo.state.status = CampaignRunStatus::Playing;
-        let saved = &checkpoint.owner;
-        [player.x, player.y, player.z] = saved.position;
-        player.yaw = saved.yaw;
-        player.pitch = saved.pitch;
-        player.vx = 0.0;
-        player.vy = 0.0;
-        player.vz = 0.0;
-        player.hp = saved.hp;
-        player.armor = saved.armor;
-        player.weapon = saved.weapon;
-        player.last_non_blade_weapon = saved.last_non_blade_weapon;
-        player.inventory.restore_entry(&saved.inventory);
-        player.jetpack = saved.jetpack;
-        player.jet_thrusting = false;
-        player.ducking = saved.ducking;
-        player.statistics.restore_attempt(&saved.statistics);
-        player.interaction_requested = false;
-        player.clear_input();
-        player.just_fired = false;
-        player.fire_cooldown = 0;
-        player.respawn_timer = None;
-        player.killstreak = 0;
-        self.scores.insert(player_id, checkpoint.score);
         // The retry draws its own stream, as a retry from the entry does.
-        self.restart_stream(retry_seed(
-            self.seed_base(),
-            request.run_id,
-            request.attempt.saturating_add(1),
-        ));
+        self.restore_checkpoint(
+            player_id,
+            checkpoint,
+            retry_seed(
+                self.seed_base(),
+                request.run_id,
+                request.attempt.saturating_add(1),
+            ),
+            true,
+        );
+        tracing::info!(
+            attempt = request.attempt + 1,
+            "Campaign continue spent; checkpoint restored"
+        );
+        true
+    }
+
+    /// A reopened run that was left while playing returns its living owner to
+    /// the saved checkpoint once the level has started. No continue is spent
+    /// and the attempt is the same one.
+    fn resume_saved_checkpoint(&mut self) {
+        let Some(run) = self.mission.as_mut() else {
+            return;
+        };
+        let Some(solo) = run.solo.as_mut() else {
+            return;
+        };
+        if !solo.checkpoints.resume || !run.started || !solo.playing() {
+            return;
+        }
+        let Some(owner) = solo.owner() else {
+            return;
+        };
+        if !self.players.iter().any(|p| p.id == owner && p.hp > 0) {
+            return;
+        }
+        let run_id = solo.state.id;
+        let attempt = run.attempt;
+        solo.checkpoints.resume = false;
+        let Some(checkpoint) = solo.checkpoints.saved.take() else {
+            return;
+        };
+        self.restore_checkpoint(
+            owner,
+            checkpoint,
+            retry_seed(self.seed_base(), run_id, attempt),
+            false,
+        );
+        self.events.push(GameEvent::Checkpoint { resumed: true });
+        tracing::info!(attempt, "Saved campaign run resumed at its checkpoint");
+    }
+
+    /// Put the owner, the mission facts, the encounter groups and the world
+    /// back as `checkpoint` holds them, on the next stream. `retry` counts a
+    /// new attempt.
+    fn restore_checkpoint(
+        &mut self,
+        player_id: Uuid,
+        checkpoint: Box<Checkpoint>,
+        stream: u64,
+        retry: bool,
+    ) {
+        let tick = self.tick;
+        let by = tick.saturating_sub(checkpoint.tick);
+        if let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) {
+            let saved = &checkpoint.owner;
+            [player.x, player.y, player.z] = saved.position;
+            player.yaw = saved.yaw;
+            player.pitch = saved.pitch;
+            player.vx = 0.0;
+            player.vy = 0.0;
+            player.vz = 0.0;
+            player.hp = saved.hp;
+            player.armor = saved.armor;
+            player.weapon = saved.weapon;
+            player.last_non_blade_weapon = saved.last_non_blade_weapon;
+            player.inventory.restore_entry(&saved.inventory);
+            player.jetpack = saved.jetpack;
+            player.jet_thrusting = false;
+            player.ducking = saved.ducking;
+            // A retry resumes the attempt's counts where the save left them.
+            // A reopened run is a new session whose record starts at its join.
+            if retry {
+                player.statistics.restore_attempt(&saved.statistics);
+            }
+            player.interaction_requested = false;
+            player.clear_input();
+            player.just_fired = false;
+            player.fire_cooldown = 0;
+            player.respawn_timer = None;
+            player.killstreak = 0;
+        }
+        self.scores.insert(player_id, checkpoint.score);
+        self.restart_stream(stream);
         self.restore_checkpoint_world(&checkpoint.world, by);
         let mut encounters = std::mem::take(&mut self.encounters);
         encounters.restore_marks(&checkpoint.groups, self);
@@ -451,13 +565,15 @@ impl GameState {
         let strip_hits = self.paver_strip_hits.saturating_sub(checkpoint.strip_hits);
         let complete = self.encounters.complete_count();
         let Some(run) = self.mission.as_mut() else {
-            return false;
+            return;
         };
         checkpoint.facts.clone().restore(run, by);
         if let Some(m19) = run.m19.as_mut() {
             m19.forgive_strip_hits(strip_hits);
         }
-        run.attempt = run.attempt.saturating_add(1);
+        if retry {
+            run.attempt = run.attempt.saturating_add(1);
+        }
         run.changed_at = tick;
         run.started = true;
         if let Some(solo) = run.solo.as_mut() {
@@ -473,10 +589,112 @@ impl GameState {
         self.ensure_m07_companion();
         self.ensure_m09_companion();
         self.ensure_m10_companion();
-        tracing::info!(
-            attempt = request.attempt + 1,
-            "Campaign continue spent; checkpoint restored"
-        );
-        true
+    }
+
+    /// Read a saved checkpoint into a freshly loaded run, before anyone is
+    /// admitted. The simulation clock moves forward to the save's tick, so
+    /// every clock it holds resumes where it stood and no tick rewinds.
+    pub(super) fn load_campaign_checkpoint(
+        &mut self,
+        saved: &SavedCheckpoint,
+    ) -> Result<(), &'static str> {
+        if saved.build != checkpoint_build() {
+            return Err("saved checkpoint is from a different build");
+        }
+        if self.map.campaign_mission_id() != Some(saved.mission) {
+            return Err("saved checkpoint names another mission");
+        }
+        let mut checkpoint: Checkpoint = serde_json::from_str(saved.state.get())
+            .map_err(|_| "saved checkpoint does not decode as this build's state")?;
+        if checkpoint.tick != saved.tick {
+            return Err("saved checkpoint disagrees with its own tick");
+        }
+        let run = self.mission.as_ref().ok_or("campaign mission is missing")?;
+        if !checkpoint.facts.matches(run) {
+            return Err("saved checkpoint holds another mission's facts");
+        }
+        checkpoint.validate(self.map.encounters().len())?;
+        let world = crate::maps::MapStep::replay(&checkpoint.facts.map_steps, &run.initial_map)
+            .ok_or("saved checkpoint steps do not apply to this mission")?;
+        checkpoint.world.rebuild_map(world);
+        // Combat counts belong to the session that kept them; this session's
+        // record starts at its own join, so a later retry restores none.
+        checkpoint.owner.statistics = Default::default();
+        let status = run
+            .solo
+            .as_ref()
+            .ok_or("campaign run is missing")?
+            .state
+            .status;
+        self.tick = self.tick.max(checkpoint.tick);
+        let tick = self.tick;
+        let solo = self
+            .mission
+            .as_mut()
+            .and_then(|run| run.solo.as_mut())
+            .ok_or("campaign run is missing")?;
+        let schedule = &mut solo.checkpoints;
+        schedule.saved = Some(Box::new(checkpoint));
+        schedule.disk = Some(saved.clone());
+        schedule.resume = status == CampaignRunStatus::Playing;
+        schedule.last_at = Some(tick);
+        Ok(())
+    }
+}
+
+/// The run file's form of a checkpoint, checked by decoding it again. A
+/// state that cannot be read back (a value JSON cannot hold) stays in this
+/// process only.
+fn encode(checkpoint: &Checkpoint, mission: MissionId) -> Option<SavedCheckpoint> {
+    let checked = serde_json::value::to_raw_value(checkpoint)
+        .map_err(|error| error.to_string())
+        .and_then(|state| {
+            if state.get().len() > MAX_CHECKPOINT_BYTES {
+                return Err("larger than the run file allows".into());
+            }
+            serde_json::from_str::<Checkpoint>(state.get())
+                .map(|_| state)
+                .map_err(|error| error.to_string())
+        });
+    let state = match checked {
+        Ok(state) => state,
+        Err(reason) => {
+            tracing::warn!(%reason, "Campaign checkpoint kept in this process only: it cannot be saved");
+            return None;
+        }
+    };
+    Some(SavedCheckpoint {
+        build: checkpoint_build(),
+        mission,
+        tick: checkpoint.tick,
+        state: std::sync::Arc::from(state),
+    })
+}
+
+impl Checkpoint {
+    /// Bounds a decoded checkpoint must keep before it touches the
+    /// simulation. The build stamp already refuses another build's state.
+    fn validate(&self, groups: usize) -> Result<(), &'static str> {
+        let owner = &self.owner;
+        if !owner
+            .position
+            .iter()
+            .chain([owner.yaw, owner.pitch].iter())
+            .all(|v| v.is_finite())
+            || !(1..=crate::sim::PLAYER_MAX_HP).contains(&owner.hp)
+            || !(0..=crate::sim::PLAYER_MAX_ARMOR).contains(&owner.armor)
+        {
+            return Err("saved checkpoint owner is out of bounds");
+        }
+        if self.groups.len() != groups {
+            return Err("saved checkpoint does not match the mission's encounters");
+        }
+        if self.facts.map_steps.len() > crate::maps::MAX_MAP_STEPS {
+            return Err("saved checkpoint has too many world steps");
+        }
+        if self.facts.started_at.is_some_and(|at| at > self.tick) {
+            return Err("saved checkpoint level clock is in its future");
+        }
+        self.world.validate()
     }
 }

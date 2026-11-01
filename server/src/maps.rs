@@ -38,12 +38,15 @@ pub(crate) mod low_water;
 #[cfg(test)]
 pub(crate) use authored::epilogue as epilogue_authored;
 pub(crate) use authored::m11::SpinePatrol;
+pub(crate) use authored::m12 as m12_authored;
 pub(crate) use authored::m20 as m20_authored;
 pub(crate) use authored::walker::overlaps as walker_solids_overlap;
 mod runtime;
+mod steps;
 pub mod timing;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
+pub(crate) use steps::{MapStep, MAX_MAP_STEPS};
 
 /// One authored-map loader for editable files and registered bundled missions.
 #[derive(Debug, Clone)]

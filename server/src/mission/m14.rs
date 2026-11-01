@@ -4,7 +4,8 @@ use crate::protocol::{
     M14ChallengeState, M14ObjectiveState, MissionObjectiveAction, WalkerPhase, M14_OBJECTIVE_IDS,
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M14Progress {
     pub(super) index: usize,
     pub(super) challenges: M14ChallengeState,
@@ -156,7 +157,8 @@ impl GameState {
         else {
             return;
         };
-        let Some(world) = self.map.prepared_m14_world(w.state.feet) else {
+        let fallen_feet = w.state.feet;
+        let Some(world) = self.map.prepared_m14_world(fallen_feet) else {
             return;
         };
         let Some(g) = world.m14_geometry() else {
@@ -182,7 +184,7 @@ impl GameState {
                 return;
             }
         }
-        self.map = world;
+        self.enter_world(crate::maps::MapStep::M14Fallen { feet: fallen_feet }, world);
         self.walker = None;
         let run = self.mission.as_mut().unwrap();
         run.m14.as_mut().unwrap().machine_fallen = true;

@@ -4,7 +4,8 @@ use crate::protocol::{
     M04MapGeometry, M04ObjectiveState, M04PatientState, MissionObjective, MissionObjectiveAction,
 };
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M04Progress {
     pub(super) index: usize,
     pub(super) clinic_open: bool,
@@ -295,7 +296,7 @@ impl GameState {
             .any(|p| p.kind == InteractionKind::ClinicShutter && requests.contains(&p.player_id))
         {
             if let Some(opened) = self.map.prepared_m04_world() {
-                self.map = opened;
+                self.enter_world(crate::maps::MapStep::M04Opened, opened);
             }
             if let Some(run) = self.mission.as_mut() {
                 if let Some(p) = run.m04.as_mut() {

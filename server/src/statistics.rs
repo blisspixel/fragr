@@ -12,10 +12,78 @@ pub(crate) use head_to_head::HeadToHead;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone, Default)]
+/// A checkpoint keeps every counter column as it stands. The public record
+/// shape (`CombatCounts`) withholds newer weapon columns from unversioned
+/// readers; a checkpoint is read only by the build that wrote it, so it keeps
+/// them all.
+mod saved_counts {
+    use crate::protocol::{CombatCounts, WeaponCounts, WeaponType};
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Saved {
+        alive_ticks: u64,
+        deaths: u64,
+        hp_lost: u64,
+        armor_lost: u64,
+        dry_triggers: u64,
+        secrets: u64,
+        weapons: Vec<WeaponCounts>,
+        grenades: WeaponCounts,
+        mines: WeaponCounts,
+        remote_mines: WeaponCounts,
+    }
+
+    pub fn serialize<S: serde::Serializer>(
+        counts: &CombatCounts,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        Saved {
+            alive_ticks: counts.alive_ticks,
+            deaths: counts.deaths,
+            hp_lost: counts.hp_lost,
+            armor_lost: counts.armor_lost,
+            dry_triggers: counts.dry_triggers,
+            secrets: counts.secrets,
+            weapons: counts.weapons.to_vec(),
+            grenades: counts.grenades,
+            mines: counts.mines,
+            remote_mines: counts.remote_mines,
+        }
+        .serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<CombatCounts, D::Error> {
+        let saved = Saved::deserialize(deserializer)?;
+        let weapons: [WeaponCounts; WeaponType::ALL.len()] = saved
+            .weapons
+            .try_into()
+            .map_err(|_| serde::de::Error::custom("one counter column per weapon"))?;
+        Ok(CombatCounts {
+            alive_ticks: saved.alive_ticks,
+            deaths: saved.deaths,
+            hp_lost: saved.hp_lost,
+            armor_lost: saved.armor_lost,
+            dry_triggers: saved.dry_triggers,
+            secrets: saved.secrets,
+            weapons,
+            grenades: saved.grenades,
+            mines: saved.mines,
+            remote_mines: saved.remote_mines,
+        })
+    }
+}
+
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct CombatLedger {
     entered_at: u64,
+    #[serde(with = "saved_counts")]
     total: CombatCounts,
+    #[serde(with = "saved_counts")]
     attempt: CombatCounts,
     /// Secret ids found this round and this attempt. A continue restores the
     /// secret's pickup, and finding it again is not a second secret.

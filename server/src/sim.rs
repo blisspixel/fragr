@@ -529,7 +529,8 @@ enum Standing {
 }
 
 /// What a mid-map pad grants on claim.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum PickupKind {
     Grenade {
         count: u16,
@@ -586,7 +587,8 @@ impl PickupKind {
 }
 
 /// Authoritative mid-map pad (weapon / health / armor; Quake chase energy).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ArenaPickup {
     pub claim: crate::protocol::SupplyClaim,
     pub id: String,
@@ -791,7 +793,8 @@ pub struct GameState {
     pub(crate) map_vote: Option<vote::MapVoteState>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Player {
     pub(crate) statistics: crate::statistics::CombatLedger,
     pub campaign: Option<crate::protocol::CampaignActor>,

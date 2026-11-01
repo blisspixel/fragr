@@ -23,6 +23,9 @@ use uuid::Uuid;
 
 /// The longest a level is played before the row is reported as a timeout.
 const MAX_TICKS: u64 = 18_000;
+/// How far the route shoots back at a woken hostile it can see: a spotter on
+/// its tower or a drone over the water is answered, as a player would.
+const AWAKE_RANGE: f32 = 60.0;
 
 #[derive(Debug, serde::Serialize)]
 pub(super) struct Row {
@@ -103,6 +106,17 @@ fn configure(client: &mut MissionClient, message: &ServerMessage) -> Result<(), 
 }
 
 pub(super) fn play(mission: MissionId, seed: u64) -> Row {
+    play_until(mission, seed, true, |_| false).0
+}
+
+/// Play `mission` until `stop` holds or the level ends, returning the row so
+/// far and the session as it stands.
+fn play_until(
+    mission: MissionId,
+    seed: u64,
+    arsenal: bool,
+    stop: impl Fn(&GameSession) -> bool,
+) -> (Row, GameSession) {
     let mut session =
         GameSession::with_authored_map(AuthoredSource::Mission(mission).load().unwrap());
     let id = Uuid::from_u128(5270);
@@ -112,7 +126,7 @@ pub(super) fn play(mission: MissionId, seed: u64) -> Row {
     session
         .state
         .add_player(id, "Gap route".into(), Role::Agent);
-    {
+    if arsenal {
         let player = session
             .state
             .players
@@ -158,6 +172,9 @@ pub(super) fn play(mission: MissionId, seed: u64) -> Row {
     let mut saved_at: Option<(u64, u32)> = None;
     let mut seen_checkpoints = 0;
     while session.state.tick < MAX_TICKS {
+        if stop(&session) {
+            break;
+        }
         if map_seen.as_ref() != Some(&session.state.map) {
             if configure(&mut client, &session.state.map_info()).is_err() {
                 row.outcome = "controller_refused_map".into();
@@ -230,7 +247,8 @@ pub(super) fn play(mission: MissionId, seed: u64) -> Row {
             |me, other| {
                 let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
                 !futile.skips(other.id, session.state.tick)
-                    && (other.x - me.x).hypot(other.z - me.z) <= if awake { 32.0 } else { 20.0 }
+                    && (other.x - me.x).hypot(other.z - me.z)
+                        <= if awake { AWAKE_RANGE } else { 20.0 }
                     && crate::combat::line_of_sight(
                         [
                             me.x,
@@ -300,7 +318,7 @@ pub(super) fn play(mission: MissionId, seed: u64) -> Row {
     if let Some(started) = session.state.campaign_attempt_started_at() {
         row.level_seconds = session.state.tick.saturating_sub(started) as f64 / 20.0;
     }
-    row
+    (row, session)
 }
 
 #[test]
@@ -339,4 +357,138 @@ fn recall_notice_route_keeps_checkpoints_within_three_minutes() {
     let row = play(MissionId::RecallNotice, 41);
     assert_eq!(row.outcome, "departed", "{row:?}");
     assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+/// Level 20 on the route controller, the pier hold and its wave breaks
+/// included, keeps every stretch under three minutes (367 s before #527's
+/// wave 23 work).
+#[test]
+fn local_exception_route_keeps_checkpoints_within_three_minutes() {
+    let row = play(MissionId::LocalException, 41);
+    assert_eq!(row.outcome, "departed", "{row:?}");
+    assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+/// Every level's first checkpoint, encoded as the run file carries it and read
+/// back into a fresh session of the same mission, resumes the same world: the
+/// same map facts, the owner where and as they were, the same hostiles, and
+/// a mission state that stays valid as play goes on. Each level starts its
+/// own run here, so later levels lack the carried outcomes a whole run file
+/// needs; the file itself is covered by `disk_tests`.
+#[test]
+fn every_level_reopens_at_its_first_checkpoint() {
+    let id = Uuid::from_u128(5270);
+    for mission in MissionId::ALL {
+        if mission == MissionId::StillHere {
+            continue;
+        }
+        let (row, mut original) = play_until(mission, 41, true, |s| {
+            !s.state.campaign_checkpoint_ticks().is_empty()
+        });
+        let saved = original
+            .state
+            .mission
+            .as_ref()
+            .and_then(|run| run.solo.as_ref())
+            .and_then(|solo| solo.checkpoints.saved_to_disk())
+            .cloned()
+            .unwrap_or_else(|| panic!("{mission:?} took no checkpoint: {row:?}"));
+        let world = serde_json::to_value(original.state.map_info()).unwrap();
+        let owner = |s: &GameSession| {
+            let p = s.state.players.iter().find(|p| p.id == id).unwrap();
+            ([p.x, p.y, p.z], p.hp, p.armor, p.weapon)
+        };
+        let hostiles = |s: &GameSession| {
+            let mut bodies: Vec<(String, [f32; 2])> = s
+                .state
+                .players
+                .iter()
+                .filter(|p| p.is_campaign_enemy() && p.hp > 0)
+                .map(|p| (p.name.clone(), [p.x, p.z]))
+                .collect();
+            bodies.sort_by(|a, b| a.0.cmp(&b.0));
+            bodies
+        };
+        let owner_then = owner(&original);
+        // One quiet tick on: groups the save left unwoken stand at their posts.
+        original.state.set_action(id, Action::default());
+        original.state.tick(0.05);
+        let then = (owner_then, hostiles(&original));
+        let text = serde_json::to_string(&saved).unwrap();
+        eprintln!("{mission:?}: checkpoint of {} bytes", text.len());
+        let read: crate::mission::run_file::SavedCheckpoint = serde_json::from_str(&text).unwrap();
+        let mut reopened =
+            GameSession::with_authored_map(AuthoredSource::Mission(mission).load().unwrap());
+        reopened.state.use_replay_ids();
+        reopened.state.seed(41);
+        reopened.state.enable_campaign_run().unwrap();
+        reopened
+            .state
+            .load_campaign_checkpoint(&read)
+            .unwrap_or_else(|e| panic!("{mission:?}: {e}"));
+        assert!(reopened.state.tick >= saved.tick, "{mission:?}");
+        reopened
+            .state
+            .add_player(id, "Gap route".into(), Role::Agent);
+        reopened.state.acknowledge_mission(
+            id,
+            MissionReady {
+                id: mission,
+                attempt: 1,
+            },
+        );
+        let mut resumed = false;
+        for _ in 0..40 {
+            reopened.state.tick(0.05);
+            if reopened.state.take_events().iter().any(|event| {
+                matches!(
+                    event,
+                    crate::protocol::GameEvent::Checkpoint { resumed: true }
+                )
+            }) {
+                resumed = true;
+                break;
+            }
+        }
+        assert!(resumed, "{mission:?} never resumed its checkpoint");
+        assert_eq!(
+            serde_json::to_value(reopened.state.map_info()).unwrap(),
+            world,
+            "{mission:?} rebuilt another world"
+        );
+        assert_eq!(owner(&reopened), then.0, "{mission:?}");
+        // Groups not yet woken stand at their posts again on the next tick.
+        reopened.state.tick(0.05);
+        let now = hostiles(&reopened);
+        assert_eq!(
+            now.iter().map(|(name, _)| name).collect::<Vec<_>>(),
+            then.1.iter().map(|(name, _)| name).collect::<Vec<_>>(),
+            "{mission:?} hostiles"
+        );
+        // A woken guard resumes where it stood; one the save left unwoken
+        // (a drone may drift along its patrol before waking) is at its post.
+        let definitions = reopened.state.map.encounters();
+        for ((name, at), (_, was)) in now.iter().zip(&then.1) {
+            let post = definitions
+                .iter()
+                .flat_map(|group| &group.enemies)
+                .find(|enemy| enemy.id == *name)
+                .map(|enemy| enemy.feet)
+                .unwrap();
+            assert!(
+                (at[0] - was[0]).hypot(at[1] - was[1]) < 0.5
+                    || (at[0] - post[0]).hypot(at[1] - post[2]) < 0.5,
+                "{mission:?} {name} stood at {was:?}, resumed at {at:?}"
+            );
+        }
+        for _ in 0..60 {
+            reopened.tick_messages(0.05);
+            reopened
+                .state
+                .mission_state()
+                .unwrap()
+                .validate(reopened.state.tick)
+                .unwrap_or_else(|e| panic!("{mission:?}: {e}"));
+        }
+    }
 }

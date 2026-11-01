@@ -7,7 +7,8 @@ use crate::protocol::{
 use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::HashSet;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M18Progress {
     pub(super) index: usize,
     pub(super) challenges: M18ChallengeState,
@@ -269,7 +270,7 @@ impl GameState {
                 if occupied {
                     return;
                 }
-                self.map = world;
+                self.enter_world(crate::maps::MapStep::M18 { stage: 1 }, world);
                 let p = self.mission.as_mut().unwrap().m18.as_mut().unwrap();
                 p.collector_neutralized = true;
                 p.challenges.collector_neutralized = true;
@@ -318,7 +319,7 @@ impl GameState {
             };
             if concourse_clear && arrived {
                 if let Some(world) = self.map.prepared_m18_world(2) {
-                    self.map = world;
+                    self.enter_world(crate::maps::MapStep::M18 { stage: 2 }, world);
                 }
                 let p = self.mission.as_mut().unwrap().m18.as_mut().unwrap();
                 p.concourse_secured = true;

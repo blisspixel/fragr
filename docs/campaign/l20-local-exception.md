@@ -88,6 +88,10 @@ its lens opens wide.
    Surveyors marking positions, Collectors working the pier's barricades,
    Pavers striping the freight yard, absorbed Heavy Sweepers and an Assessor
    over the water. Resupply is on the pier itself, in the crates people carried.
+   The pressure comes in five waves. Between them the machines on foot are
+   down and the next wave waits a short breath (never more than twenty
+   seconds past its time): a reload, a crate, a checkpoint, then the noise of
+   the next approach. Spotters and drones hold their posts across the breaks.
 6. **Turn.** At the pier's screen, the harbour display, a single message: the
    exact number of people at this pier, that Latch has said each of their
    names, and that the work here closes in six minutes. It knows exactly whom

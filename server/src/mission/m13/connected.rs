@@ -2,7 +2,8 @@
 use super::*;
 use crate::mission::*;
 use crate::protocol::*;
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(in crate::mission) struct M13Progress {
     pub(in crate::mission) index: usize,
     pub(in crate::mission) worker_feet: [[f32; 3]; 3],

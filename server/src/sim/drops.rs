@@ -20,7 +20,8 @@ pub const MAX_DROPPED_GUNS: usize = 16;
 pub const DROPPED_GUN_PREFIX: &str = "drop_";
 
 /// One gun on the floor.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DroppedGun {
     pub serial: u32,
     pub weapon: WeaponType,

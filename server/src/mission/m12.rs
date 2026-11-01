@@ -6,7 +6,8 @@ use crate::protocol::{
     M12_OBJECTIVE_IDS,
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M12Progress {
     pub(super) index: usize,
     pub(super) challenges: M12ChallengeState,
@@ -462,7 +463,7 @@ impl GameState {
             }
             drop(arena);
             if let Some(map) = opened {
-                self.map = map;
+                self.enter_world(crate::maps::MapStep::M12Shelter, map);
             }
             let run = self.mission.as_mut().unwrap();
             let p = run.m12.as_mut().unwrap();

@@ -46,7 +46,7 @@ fn authored_armor<'de, D: serde::Deserializer<'de>>(decoder: D) -> Result<Option
     u8::deserialize(decoder).map(Some)
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Hover {
     pub volume: EntryRegion,

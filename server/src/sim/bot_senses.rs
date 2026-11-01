@@ -101,7 +101,8 @@ const GUNS: [WeaponType; 8] = [
     WeaponType::Tack,
 ];
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Observation {
     id: Uuid,
     feet: [f32; 3],
@@ -119,7 +120,8 @@ struct Observation {
 }
 
 /// Where a damaging shot came from, at the moment it landed.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Hurt {
     from: Uuid,
     feet: [f32; 3],
@@ -165,7 +167,8 @@ const OBJECTIVE_HEALTH_NEED: i32 = 70;
 /// And armour below this.
 const OBJECTIVE_ARMOR_NEED: i32 = 50;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct BotSenses {
     target: Option<Observation>,
     observed_at: Option<u64>,

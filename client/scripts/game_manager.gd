@@ -3639,8 +3639,10 @@ func _on_event_received(data):
 		var side: String = MatchRules.valid_team(data.get("team"))
 		hud.show_speak(speaker, line, to_id if to_id is String else "", viewers, side, _viewer_side())
 	elif event_type == "checkpoint":
+		if mission_hud != null:
+			mission_hud.has_checkpoint = true
 		if hud:
-			hud.show_checkpoint()
+			hud.show_checkpoint(data.get("resumed") == true)
 		_governor_safe_point()
 	elif event_type == "venue_notice":
 		var notice := str(data.get("text", ""))

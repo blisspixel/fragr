@@ -437,7 +437,8 @@ mid-level checkpoints, at most three minutes of play apart. The server asks for
 a checkpoint when a fight is cleared, when a mission fact changes, or after a
 minute of play without one, and saves on the first safe tick after that: the
 owner alive, on the ground, out of every vehicle and unhurt for three seconds,
-no woken guard alive, nothing hostile in flight and the Walker, if present, not
+no woken guard in the fight (holding a target, mid-attack or reeling) and none
+within twenty metres, nothing hostile in flight and the Walker, if present, not
 fighting. Halo's campaign is the model: a save waits for safety instead of
 landing in a fight. A checkpoint keeps the owner's position, facing, health,
 armor, weapons, rounds and mission gear, every mission fact and running clock,
@@ -446,8 +447,21 @@ and the map's opened routes. Groups not yet woken stand at their posts again.
 A small `checkpoint` event tells clients a save happened. What a continue
 costs is unchanged: one continue per death, three per episode, refilled at each
 episode start, the current level only, and exhaustion ends the run with its
-ending. Checkpoints belong to the running level; the run file on disk keeps the
-mission entry, so reopening a saved run starts that level again, as before.
+ending. Checkpoints belong to the running level and the latest one is saved
+with the run file (wave 23, #527): reopening a run left while playing returns
+to that checkpoint without spending a continue, and a death saved at the
+continue prompt spends its continue there. Only the build that wrote a
+checkpoint reads it; another build's checkpoint is refused and the level starts
+from its entry. Level 20's pier hold pauses its pressure at four wave breaks:
+the next wave walks in once the last wave's walking machines are down and an
+eight-second breath has passed, or twenty seconds after the break regardless,
+so the hold keeps its clock and its climax while every stretch has a safe
+moment to save. The per-level gap survey
+(`cargo test -p fragr-server --release --lib checkpoint_gap_survey -- --ignored
+--nocapture`) measures the longest stretch between saves on the route
+controller; on 2026-11-01 every level stayed at or under 86 s, Level 20's
+whole hold included (367 s before), with Levels 2, 7, 8, 9, 13, 14, 15 and 19
+measured only up to where the controller stalls.
 
 Open decision for Nick: the earlier contract said a continue restarts the level
 from its beginning. Returning to the checkpoint is the smallest change that

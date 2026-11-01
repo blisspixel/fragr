@@ -48,7 +48,8 @@ impl SavedEquipment {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Inventory {
     policy: EquipmentPolicy,
     /// A weapon-only mutator: this is the one weapon, with unlimited ammunition.

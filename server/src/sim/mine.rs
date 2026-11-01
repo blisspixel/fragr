@@ -18,7 +18,8 @@ pub const FLIGHT_TICKS: u64 = 100;
 const PLACE_SPEED: f32 = 8.0;
 const PLACE_LIFT: f32 = 2.0;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct Mine {
     pub id: u32,
     pub owner_id: Uuid,

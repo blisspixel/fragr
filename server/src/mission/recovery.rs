@@ -331,6 +331,16 @@ impl GameState {
                     .any(|id| id == "splice"),
             );
         }
+        if let Some(saved) = &document.checkpoint {
+            // Another build's or a damaged checkpoint is refused, never
+            // converted: the level starts from its saved entry instead.
+            if let Err(reason) = self.load_campaign_checkpoint(saved) {
+                tracing::warn!(
+                    reason,
+                    "Saved checkpoint refused; the level starts from its entry"
+                );
+            }
+        }
         Ok(())
     }
 

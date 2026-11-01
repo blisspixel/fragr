@@ -18,7 +18,8 @@ const UNDERFOOT: f32 = 2.5;
 /// Pads are glanced at on this cadence, staggered with the bot's observations.
 pub(super) const LOOK_EVERY: u64 = 4;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Belief {
     /// Believed up for the taking.
     up: bool,
@@ -29,7 +30,8 @@ struct Belief {
 }
 
 /// A dropped gun the bot has seen and believes is still lying there.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(in crate::sim) struct DropBelief {
     pub(in crate::sim) serial: u32,
     pub(in crate::sim) weapon: WeaponType,
@@ -40,7 +42,8 @@ pub(in crate::sim) struct DropBelief {
     gone_at: u64,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(in crate::sim) struct PadMemory {
     round: Option<u32>,
     beliefs: Vec<Belief>,

@@ -493,6 +493,8 @@ func _page_single() -> void:
 			mission.disabled = not can_start
 			_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(saved_mission)}))
 			_label(tr("RUN_SAVED_DETAIL").format({"attempt": int(_local_match.run_preview["attempt"]), "continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
+			if _local_match.run_preview["checkpoint"] == true:
+				_label(tr("RUN_SAVED_CHECKPOINT"))
 			_saved_body_choice(_local_match.run_preview)
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"missing":

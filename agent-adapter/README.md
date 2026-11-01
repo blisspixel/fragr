@@ -741,7 +741,9 @@ attempt and decreased allowance through `observe` before continuing. Retry keeps
 opening readiness and returns to the level's latest checkpoint, or to its entry
 when none was saved, with that moment's position, equipment and mission facts;
 supplies collected after it are not kept. Each checkpoint arrives in
-`recent_events` and `get_events` as a bare `{"event":"checkpoint"}`. The supplied scripted bot and decision controller automatically
+`recent_events` and `get_events` as a bare `{"event":"checkpoint"}`; a
+reopened run that returns to its saved checkpoint sends
+`{"event":"checkpoint","resumed":true}`. The supplied scripted bot and decision controller automatically
 use remaining continues. MCP observation never spends one for you.
 
 ### `round_state`

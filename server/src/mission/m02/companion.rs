@@ -56,7 +56,8 @@ fn support_cadence(difficulty: crate::protocol::CampaignDifficulty) -> u64 {
 }
 
 /// Latch's own weapon state for one attempt.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(in crate::mission) struct Support {
     /// Rounds fired from the current magazine.
     spent: u8,

@@ -388,6 +388,12 @@ pub(super) struct EnemyController {
     /// Surveyor only: discs cast so far. The first one that ends closes the
     /// lone lesson window.
     marks_cast: u32,
+    /// Assessor only: volleys it has finished, launch and recovery both.
+    volleys: u32,
+    /// The tick this guard began holding its post while an Assessor of its
+    /// group teaches alone; None before, and once it has let go.
+    lesson_hold: Option<u64>,
+    lesson_released: bool,
     /// Pressing toward a live Surveyor disc until this tick.
     converging: Option<([f32; 3], u64)>,
     /// After the reprieve: the exit this body walks to without attacking.
@@ -639,6 +645,9 @@ impl EnemyController {
             mark: None,
             marks_broken: 0,
             marks_cast: 0,
+            volleys: 0,
+            lesson_hold: None,
+            lesson_released: false,
             converging: None,
             stood_down: None,
             stood_down_at: 0,
@@ -1769,9 +1778,22 @@ impl EnemyController {
 }
 
 impl EnemyController {
-    /// In the fight: mid-move or attack, or holding a participant as target.
+    /// In the fight: holding a participant as target, telling or making an
+    /// attack, or reeling from a hit. A guard walking a patrol, a search or
+    /// its way back to post with nobody in its sights, or standing out a
+    /// recovery after it lost them, is not; the checkpoint rule's twenty
+    /// metres still counts any woken guard that close.
     pub(in crate::encounters) fn pressing(&self) -> bool {
-        self.phase != EnemyPhase::Idle || self.target.is_some()
+        self.target.is_some()
+            || matches!(
+                self.phase,
+                EnemyPhase::Windup
+                    | EnemyPhase::Leaping
+                    | EnemyPhase::Firing
+                    | EnemyPhase::Charging
+                    | EnemyPhase::Channeling
+                    | EnemyPhase::Hit
+            )
     }
 
     /// A woken guard a checkpoint kept, standing where it was saved: awake,

@@ -86,6 +86,8 @@ pub(crate) struct MissionRun {
     ready: HashSet<Uuid>,
     /// Latch's own weapon state, for the missions Latch fights in.
     companion: m02::companion::Support,
+    /// The world steps this attempt has taken since the level entry.
+    map_steps: Vec<crate::maps::MapStep>,
 }
 
 impl MissionRun {
@@ -126,6 +128,7 @@ impl MissionRun {
             started_at: None,
             ready: HashSet::new(),
             companion: Default::default(),
+            map_steps: Vec::new(),
         })
     }
 }
@@ -337,6 +340,15 @@ impl GameState {
         self.ensure_m15_entrants();
     }
 
+    /// Take one world step of the running level, remembered so a saved
+    /// checkpoint can rebuild the same world (`maps/steps.rs`).
+    pub(crate) fn enter_world(&mut self, step: crate::maps::MapStep, world: RuntimeMap) {
+        self.map = world;
+        if let Some(run) = self.mission.as_mut() {
+            run.map_steps.push(step);
+        }
+    }
+
     pub(crate) fn note_mission_started(&mut self) {
         if let Some(run) = self.mission.as_mut() {
             run.started = true;
@@ -350,6 +362,7 @@ impl GameState {
             return;
         };
         self.map = run.initial_map.clone();
+        run.map_steps.clear();
         self.players.retain(Player::is_participant);
         run.m20 = run.initial_map.m20_objectives().map(m20::M20Progress::new);
         run.companion = Default::default();
@@ -757,7 +770,7 @@ impl GameState {
                 let Some(opened) = self.map.opened_route() else {
                     return;
                 };
-                self.map = opened;
+                self.enter_world(crate::maps::MapStep::OpenedRoute, opened);
                 MissionPhase::ReachLift
             }
             MissionPhase::ReachLift => MissionPhase::Departed,

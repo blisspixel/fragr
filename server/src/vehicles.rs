@@ -114,7 +114,8 @@ pub struct VehicleInput {
     pub descend: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Jeep {
     pub state: VehicleState,
     pub spawn: VehicleMotion,

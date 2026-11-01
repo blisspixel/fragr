@@ -18,6 +18,8 @@ use std::collections::HashSet;
 mod route_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod wave_tests;
 
 /// Crew and Latch walk deliberately; neither is a race.
 const CREW_SPEED: f32 = 1.5;
@@ -32,6 +34,22 @@ const INGRESS_CLEARANCE: f32 = 20.0;
 const INGRESS_SIGHT_DEFERRAL: u64 = 300;
 /// Re-issue a stalled march this often.
 const MARCH_REFRESH: u64 = 40;
+/// At a wave break the next wave waits at most this long past the break for
+/// the last wave's stragglers to fall, so hiding from one cannot stop the hold.
+pub(crate) const BREAK_LIMIT: u64 = 400;
+/// Once the last wave is down the next one walks in after this breath: room
+/// for the three unhurt seconds a checkpoint needs, and for a reload.
+pub(crate) const BREAK_BREATH: u64 = 160;
+
+/// One authored pause between pressure waves.
+#[derive(Debug, Clone, Copy, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct WaveBreak {
+    /// The tick every walking machine of the waves before it was down.
+    pub(crate) cleared_at: Option<u64>,
+    /// The next wave may walk in.
+    pub(crate) released: bool,
+}
 
 /// Simultaneous walking machines the pressure may field. A deferred group waits.
 pub(crate) fn population_cap(difficulty: CampaignDifficulty) -> usize {
@@ -51,7 +69,8 @@ pub(crate) fn wear_interval(difficulty: CampaignDifficulty) -> u64 {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct CrewProgress {
     pub(crate) phase: M20CrewPhase,
     pub(crate) feet: [f32; 3],
@@ -60,7 +79,8 @@ pub(crate) struct CrewProgress {
     pub(crate) stalled: u32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M20Progress {
     pub(super) index: usize,
     pub(super) challenges: M20ChallengeState,
@@ -76,6 +96,8 @@ pub(crate) struct M20Progress {
     pub(super) lesson_over: bool,
     marched: Vec<bool>,
     released: Vec<bool>,
+    /// The hold's wave breaks, in authored order.
+    pub(super) wave_breaks: Vec<WaveBreak>,
 }
 
 impl M20Progress {
@@ -107,7 +129,30 @@ impl M20Progress {
             lesson_over: false,
             marched: vec![false; prepared.pressure.len()],
             released: vec![false; prepared.crates.len()],
+            wave_breaks: vec![WaveBreak::default(); prepared.breaks.len()],
         }
+    }
+
+    /// A checkpoint restored `by` ticks later keeps each break's clear time.
+    pub(super) fn shift_ticks(&mut self, by: u64) {
+        let shift = |tick: &mut Option<u64>| *tick = tick.map(|t| t.saturating_add(by));
+        shift(&mut self.pier_reached_at);
+        shift(&mut self.reprieve_at);
+        for crew in &mut self.crew {
+            crew.depart_at = crew.depart_at.saturating_add(by);
+        }
+        for wave in &mut self.wave_breaks {
+            shift(&mut wave.cleared_at);
+        }
+    }
+
+    /// Whether the wave break before pressure slot `at`, if any, has let it in.
+    fn wave_open(&self, prepared: &Prepared, at: u64) -> bool {
+        prepared
+            .breaks
+            .iter()
+            .rposition(|b| *b <= at)
+            .is_none_or(|k| self.wave_breaks.get(k).is_some_and(|w| w.released))
     }
 
     /// The hold clock: (start, turn, reprieve) ticks, once the quay is reached.
@@ -304,7 +349,11 @@ impl GameState {
             return false;
         };
         let due = start.saturating_add(slot.at);
-        if p.reprieve_at.is_some() || self.tick < due || self.tick >= reprieve {
+        if p.reprieve_at.is_some()
+            || self.tick < due
+            || self.tick >= reprieve
+            || !p.wave_open(prepared, slot.at)
+        {
             return false;
         }
         let Some(definition) = self.map.encounters().get(index) else {
@@ -677,6 +726,48 @@ impl GameState {
         }
     }
 
+    /// The next closed wave break opens once every group scheduled before it
+    /// is down and a breath has passed, or once its bounded wait runs out.
+    fn release_m20_waves(&mut self, prepared: &Prepared, start: u64) {
+        let tick = self.tick;
+        let Some(p) = self.mission.as_ref().and_then(|run| run.m20.as_ref()) else {
+            return;
+        };
+        let Some(k) = p.wave_breaks.iter().position(|w| !w.released) else {
+            return;
+        };
+        let Some(&at) = prepared.breaks.get(k) else {
+            return;
+        };
+        // The walking machines are the wave; spotters on their towers and
+        // hovering units hold their posts across breaks, as the population
+        // cap already counts them.
+        let clear = prepared
+            .pressure
+            .iter()
+            .filter(|slot| slot.at < at)
+            .all(|slot| self.encounters.walkers_down(slot.group, &self.players));
+        let due = start.saturating_add(at);
+        let Some(p) = self.mission.as_mut().and_then(|run| run.m20.as_mut()) else {
+            return;
+        };
+        let wave = &mut p.wave_breaks[k];
+        if clear && wave.cleared_at.is_none() {
+            wave.cleared_at = Some(tick);
+        }
+        let breathed = wave
+            .cleared_at
+            .is_some_and(|at| tick >= at.saturating_add(BREAK_BREATH));
+        if tick >= due && (breathed || tick >= due.saturating_add(BREAK_LIMIT)) {
+            wave.released = true;
+            tracing::info!(
+                wave = k + 1,
+                cleared = clear,
+                "The next pressure wave walks in"
+            );
+        }
+    }
+
     pub(super) fn advance_m20(&mut self) {
         let requests: HashSet<_> = self
             .players
@@ -775,7 +866,7 @@ impl GameState {
                     .is_some_and(|at| tick >= at.saturating_add(GATE_TIMEOUT));
                 if !p.gate_open && (p.latch_arrived || timed_out) {
                     if let Some(world) = self.map.prepared_m20_world(1) {
-                        self.map = world;
+                        self.enter_world(crate::maps::MapStep::M20 { stage: 1 }, world);
                         self.mission
                             .as_mut()
                             .unwrap()
@@ -800,6 +891,9 @@ impl GameState {
             self.encounters = encounters;
         }
         if index >= 3 && !reprieve && clock.is_some_and(|(start, _, _)| tick >= start) {
+            if let Some((start, _, _)) = clock {
+                self.release_m20_waves(&prepared, start);
+            }
             self.march_m20_pressure(&prepared);
             self.wear_m20_barricade(&prepared);
         }

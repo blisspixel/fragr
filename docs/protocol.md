@@ -801,7 +801,7 @@ result; it does not load the next map in the same process. A durable solo M01
 child saves M02 as pending, and the menu can start a new local M02 child from
 that exit. Development party mode retains entry respawn and allows a new party
 after everyone leaves. It has no disk save and no checkpoints. A solo run saves mid-level
-checkpoints in memory (see Solo run recovery). A dropped socket can rebind the same pawn for ten seconds. Text is
+checkpoints, written with its run file (see Solo run recovery). A dropped socket can rebind the same pawn for ten seconds. Text is
 localized; voice/radio is optional.
 
 #### Solo run recovery
@@ -828,9 +828,17 @@ each clock moves forward by the time between the save and the retry so it
 resumes where it was. A checkpoint is saved on the first safe tick after a
 cleared group, a changed mission fact or a minute of play without one: the
 owner alive, grounded, out of every vehicle and unhurt for three seconds, no
-woken guard alive, nothing hostile in flight and the Walker not fighting. Each
-save emits `{"type":"event","event":"checkpoint"}`. Checkpoints are not written
-to the run file; a reopened run starts the level from its entry. M02's entry carries M01's exit health, armor, weapons, ammunition
+woken guard in the fight (holding a target, telling or making an attack, or
+reeling from a hit) and none within twenty metres, nothing hostile in flight
+and the Walker not fighting. Each save emits
+`{"type":"event","event":"checkpoint"}`. The latest checkpoint is written with
+the run file (see Campaign run file). A reopened run that was left while
+playing returns its owner to that checkpoint once the level starts, spending
+no continue, and emits `{"type":"event","event":"checkpoint","resumed":true}`
+(`resumed` is additive and sent only when true: a reader that ignores it
+still reads a checkpoint, so no gameplay version gates it);
+a reopened pending continue spends its continue there. Without a checkpoint a
+reopened run starts the level from its entry. M02's entry carries M01's exit health, armor, weapons, ammunition
 and selection but starts with M02's own pickup claims and attempt count.
 Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
@@ -3090,7 +3098,8 @@ Omitting `--run-mode` retains independent development behavior. The read-only
 `--local-run-preview` identifies the saved mission, instead of using the
 launcher's guessed map. It prints one bounded JSON status line for the menu:
 `missing`, `ready` (mission, difficulty, attempt, continues, pending_continue,
-nullable body, nullable dress), `failed`, `abandoned`, `awaiting_mission` (next
+checkpoint, nullable body, nullable dress; `checkpoint` says the run picks up
+at a saved checkpoint), `failed`, `abandoned`, `awaiting_mission` (next
 mission, difficulty, continues, nullable body, nullable dress), `incompatible`, or `corrupt`. The menu
 treats preview as advisory; launch validates again under the lock.
 
@@ -3195,7 +3204,7 @@ directory named by `FRAGR_RUN_DIR` or the platform data folder
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
-**One schema, no migration.** The document carries `"version": 25`, the only
+**One schema, no migration.** The document carries `"version": 26`, the only
 version this build reads or writes. Any other version, older or newer, is
 refused as `incompatible` before its shape is read. Nothing is upgraded,
 archived or carried forward from earlier formats. A change to the serialized
@@ -3203,7 +3212,7 @@ shape bumps the number; a number is never reused, so a stale file can never be
 mistaken for a current one. Player-facing text says the save is from a
 different build and that starting a new run replaces it.
 
-**Reading.** At most 64 KiB is read. Bytes that are not JSON, lack an integer
+**Reading.** At most 1 MiB is read. Bytes that are not JSON, lack an integer
 `version`, or do not decode strictly as the current shape are `corrupt`.
 Unknown fields are refused everywhere, and a carried outcome that is present
 must hold a value: `null` is refused, never read as absent. A document that
@@ -3231,7 +3240,7 @@ replaces whatever was there, including an incompatible or corrupt file.
 **Shape.**
 
 ```json
-{"version":25,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+{"version":26,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
  "level_start_continues":3,"body":"synthetic","dress":{"look":3,"accent":6},
  "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
  "step":{"kind":"mission_entry","mission":"recall_notice",
@@ -3250,6 +3259,21 @@ the retry anchor: HP, armor and exact equipment as the mission began. Every
 equipment count is written explicitly. `failed` requires zero remaining
 continues and `pending_continue` at least one. `attempt` is derived as
 `level_start_continues - remaining_continues + 1`.
+
+**Checkpoint (version 26).** While a level is being played (`mission_entry`
+or `pending_continue`) the document may carry `checkpoint`:
+`{"build":"<version>+<commit>","mission":"<stage>","tick":<n>,"state":{...}}`.
+`state` is the level's latest mid-level checkpoint as the simulation keeps it
+(owner, mission facts, encounter groups, allies, supplies, vehicles, devices)
+and is at most 768 KiB (first checkpoints measured 8 to 28 KB per level). No geometry is stored: `state` names the world steps the
+level took since its entry (a door opened, a stage reached, the Walker's fallen
+hull), and a reopened run rebuilds the world by taking them again from the
+bundled mission content. Only the build that wrote a checkpoint reads it. A
+checkpoint from another build, for another mission, out of bounds or not
+decoding strictly as this build's state is refused with a logged reason and
+dropped, never converted, and the level starts from its entry. On reopen the
+simulation clock moves forward to the checkpoint's tick, so no tick rewinds.
+Promotion into the next mission and every terminal step drop it.
 
 **Carried outcomes.** Each mission's optional choices are recorded once at its
 completed edge and carried unchanged through every later stage:

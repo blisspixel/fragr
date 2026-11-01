@@ -7,7 +7,8 @@ use crate::protocol::{
 use std::borrow::Cow;
 pub(crate) mod platform;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M05Progress {
     pub(super) index: usize,
     pub(super) freight_open: bool,
@@ -525,7 +526,7 @@ impl GameState {
             && self.encounters.is_complete(prepared.departure_encounter)
         {
             if let Some(opened) = self.map.prepared_m05_world() {
-                self.map = opened;
+                self.enter_world(crate::maps::MapStep::M05Opened, opened);
             }
             if let Some(run) = &mut self.mission {
                 if let Some(p) = &mut run.m05 {

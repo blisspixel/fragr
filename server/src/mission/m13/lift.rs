@@ -6,7 +6,8 @@ pub const MAX_STEP: f32 = 0.075;
 pub const SPEED: f32 = crate::protocol::M13_LIFT_SPEED;
 const SUPPORT_EPSILON: f32 = 0.05;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Phase {
     Parked,
     Moving,

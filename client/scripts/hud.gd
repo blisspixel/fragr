@@ -1727,9 +1727,10 @@ func show_speak(player: String, line: String, addressee: String = "", viewers: A
 func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
 
-## The solo run saved a checkpoint: one quiet feed line, never a centre stamp.
-func show_checkpoint() -> void:
-	combat_feed.push(tr("HUD_CHECKPOINT"))
+## The solo run saved a checkpoint, or a reopened run has just returned to
+## one: one quiet feed line, never a centre stamp.
+func show_checkpoint(resumed: bool = false) -> void:
+	combat_feed.push(tr("HUD_CHECKPOINT_RESUMED" if resumed else "HUD_CHECKPOINT"))
 
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	board_mvp = mvp_name

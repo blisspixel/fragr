@@ -14,7 +14,8 @@ use uuid::Uuid;
 /// A participant this close to an armed entrant's shot line blocks the shot.
 const ENTRANT_FIRE_CLEARANCE: f32 = 0.7;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M15Progress {
     pub(super) index: usize,
     pub(super) challenges: M15ChallengeState,
@@ -398,7 +399,7 @@ impl GameState {
             return;
         }
         if let Some(world) = self.map.prepared_m15_world(1) {
-            self.map = world;
+            self.enter_world(crate::maps::MapStep::M15 { stage: 1 }, world);
             let run = self.mission.as_mut().unwrap();
             run.m15.as_mut().unwrap().tunnel_closed = true;
             run.changed_at = self.tick;
@@ -411,7 +412,7 @@ impl GameState {
             return;
         }
         if let Some(world) = self.map.prepared_m15_world(2) {
-            self.map = world;
+            self.enter_world(crate::maps::MapStep::M15 { stage: 2 }, world);
             let run = self.mission.as_mut().unwrap();
             run.m15.as_mut().unwrap().gates_open = true;
             run.changed_at = self.tick;

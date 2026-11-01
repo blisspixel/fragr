@@ -28,6 +28,8 @@ pub enum RunPreview {
         attempt: u32,
         continues: u8,
         pending_continue: bool,
+        /// The level has a saved checkpoint the run returns to.
+        checkpoint: bool,
         body: Option<BodyKind>,
         dress: Option<crate::protocol::Dress>,
     },
@@ -88,6 +90,7 @@ pub fn preview_run_in(directory: &std::path::Path) -> io::Result<RunPreview> {
                     attempt: document.attempt(),
                     continues: document.remaining_continues,
                     pending_continue: matches!(&document.step, SavedStep::PendingContinue { .. }),
+                    checkpoint: document.checkpoint.is_some(),
                     body: document.body,
                     dress: document.dress,
                 })

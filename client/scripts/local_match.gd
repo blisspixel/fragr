@@ -237,7 +237,7 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 			and data.get("difficulty") in MissionState.DIFFICULTIES \
 			and EquipmentState.integer(data.get("continues"), 3) \
 			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
-	if status != "ready" or data.size() != 8 or not data.has("body") or not _valid_run_dress(data) \
+	if status != "ready" or data.size() != 9 or not data.get("checkpoint") is bool or not data.has("body") or not _valid_run_dress(data) \
 		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, MissionState.M19_ID, MissionState.M20_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \

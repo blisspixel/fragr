@@ -1,7 +1,9 @@
 //! Authority fixtures use explicit initial placements; the played route is a separate test.
 use super::*;
 use crate::maps::{AuthoredMap, AuthoredSource};
-use crate::protocol::{Action, CampaignDifficulty, LookAt, MissionReady, Role, WeaponType};
+use crate::protocol::{
+    Action, CampaignDifficulty, EnemyPhase, LookAt, MissionReady, Role, WeaponType,
+};
 use crate::session::GameSession;
 use std::sync::{Arc, OnceLock};
 fn map() -> Arc<AuthoredMap> {
@@ -990,4 +992,98 @@ fn m12_natural_health_squad_wreck_brief_uses_only_finite_resolved_input_after_co
     assert_eq!(record.total.deaths, 0);
     assert!(record.total.weapons[WeaponType::Arc.index()].attacks >= 17);
     println!("M12 natural-squad finite challenge: {} ticks, one actual supported wreck victim, {} Flechette shots, {} Arc shots, {} Cells remaining, {} HP/{} armor lost; prerequisite encounter entry is controlled",s.state.tick-start,record.total.weapons[WeaponType::Flechette.index()].attacks,record.total.weapons[WeaponType::Arc.index()].attacks,loadout.ammo(crate::protocol::AmmoPool::Cells),record.total.hp_lost,record.total.armor_lost);
+}
+
+/// The Assessor teaches alone: over the greenhouse its Clerk squad holds its
+/// posts through the first volley and its recovery, then pushes. A squad
+/// that is approached or shot lets go at once (the failure path below).
+#[test]
+fn m12_assessor_teaches_alone_before_its_squad_pushes() {
+    let lesson = |near: bool| {
+        let (mut s, id) = fixture();
+        arrival(&mut s, id, 0);
+        clear_group(&mut s, 0);
+        arrival(&mut s, id, 0);
+        arrival(&mut s, id, 1);
+        clear_group(&mut s, 1);
+        arrival(&mut s, id, 2);
+        let watch = if near {
+            [16.0, 0.3, 4.5]
+        } else {
+            [6.0, 0.3, 8.0]
+        };
+        let clerks: Vec<Uuid> = s
+            .state
+            .players
+            .iter()
+            .filter(|p| p.name.starts_with("greenhouse_clerk"))
+            .map(|p| p.id)
+            .collect();
+        assert_eq!(clerks.len(), 3);
+        let posts: Vec<[f32; 2]> = clerks
+            .iter()
+            .map(|c| {
+                let p = s.state.players.iter().find(|p| p.id == *c).unwrap();
+                [p.x, p.z]
+            })
+            .collect();
+        let phase = |s: &GameSession, id: Uuid| match s
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .and_then(|p| p.campaign)
+        {
+            Some(crate::protocol::CampaignActor::Hostile { phase, .. }) => Some(phase),
+            _ => None,
+        };
+        let drone = s
+            .state
+            .players
+            .iter()
+            .find(|p| p.name == "greenhouse_assessor")
+            .unwrap()
+            .id;
+        let mut volleyed = false;
+        let mut lesson_over = None;
+        let mut first_move = None;
+        for _ in 0..900 {
+            place(&mut s, id, watch);
+            s.state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 100;
+            tick(&mut s);
+            let assessor = phase(&s, drone);
+            volleyed |= assessor == Some(EnemyPhase::Firing);
+            if volleyed
+                && lesson_over.is_none()
+                && assessor != Some(EnemyPhase::Recovery)
+                && assessor != Some(EnemyPhase::Firing)
+            {
+                lesson_over = Some(s.state.tick);
+            }
+            let moved = clerks.iter().zip(&posts).any(|(c, post)| {
+                let p = s.state.players.iter().find(|p| p.id == *c).unwrap();
+                (p.x - post[0]).hypot(p.z - post[1]) > 0.05
+                    || matches!(phase(&s, *c), Some(EnemyPhase::Windup | EnemyPhase::Firing))
+            });
+            if moved && first_move.is_none() {
+                first_move = Some(s.state.tick);
+            }
+            if first_move.is_some() && (near || lesson_over.is_some()) {
+                break;
+            }
+        }
+        (volleyed, lesson_over, first_move)
+    };
+    let (volleyed, over, moved) = lesson(false);
+    assert!(volleyed, "the Assessor shows its volley");
+    let over = over.expect("the lesson ends");
+    let moved = moved.expect("the squad pushes after the lesson");
+    assert!(
+        moved >= over,
+        "the squad holds until the lesson is over: {moved} < {over}"
+    );
+    // A participant walking up to the squad ends the hold at once.
+    let (_, over, moved) = lesson(true);
+    let moved = moved.expect("an approached squad fights");
+    assert!(over.is_none_or(|over| moved < over));
 }

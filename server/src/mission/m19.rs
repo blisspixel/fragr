@@ -15,7 +15,8 @@ const STREET: usize = 1;
 const MARKET: usize = 2;
 const ROOFS: usize = 3;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M19Progress {
     pub(super) index: usize,
     pub(super) challenges: M19ChallengeState,
@@ -245,7 +246,7 @@ impl GameState {
                 let Some(world) = self.map.prepared_m19_world(1) else {
                     return;
                 };
-                self.map = world;
+                self.enter_world(crate::maps::MapStep::M19 { stage: 1 }, world);
             }
             let p = self.mission.as_mut().unwrap().m19.as_mut().unwrap();
             p.index = index + 1;

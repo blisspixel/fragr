@@ -20,7 +20,8 @@ pub const MAX_RISE: f32 = 4.5;
 pub const DEFAULT_CEILING: f32 = 9.0;
 
 /// The pack's state carried between steps.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Pack {
     pub fuel: u16,
 }
@@ -144,6 +145,7 @@ pub fn simulate_hop(
 pub const GOLDEN_PATH: &str = "client/golden/jetpack_vectors.json";
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GoldenStep {
     pub state: MoveState,
     pub fuel: u16,
@@ -151,6 +153,7 @@ pub struct GoldenStep {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GoldenCase {
     pub name: String,
     pub arena: Arena,
@@ -163,6 +166,7 @@ pub struct GoldenCase {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GoldenFile {
     pub version: u32,
     pub dt: f32,

@@ -204,6 +204,12 @@ func _continues() -> void:
 	display.apply(message["state"], PLAYER)
 	await process_frame
 	_expect(display._recovery.visible and display.recovery_text.contains(InputGlyphs.plain("{accept}: ")) and display.recovery_text.contains("ENTER"), "player sees the localized retry choice with the live accept key")
+	_expect(display.recovery_text.contains(tr("RUN_RESTORE_ENTRY")), "without a checkpoint the retry restarts the mission")
+	display.has_checkpoint = true
+	display.apply(message["state"], PLAYER)
+	_expect(display.recovery_text.contains(tr("RUN_RESTORE_CHECKPOINT")) and not display.recovery_text.contains(tr("RUN_RESTORE_ENTRY")), "after a checkpoint the retry says it goes back there")
+	display.reset_notices()
+	_expect(not display.has_checkpoint, "a new session forgets the last level's checkpoint")
 	display.apply(message["state"], "")
 	_expect(not display.recovery_text.contains("ENTER:"), "spectator cannot choose another player's continue")
 	network.player_id = null
