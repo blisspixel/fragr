@@ -132,7 +132,21 @@ static func rivals_from_story(story: Variant, my_id: String) -> Dictionary:
 			var name: String = str(rival["name"]).to_upper()
 			out[name] = {"won": PodiumBoard._count(rival.get("won")), "lost": PodiumBoard._count(rival.get("lost")),
 				"nemesis": name == nemesis}
+		# The story lists only the three rivals met most; a nemesis met less
+		# often is still marked, with the count from its own entry when that
+		# names the viewer, and without one otherwise.
+		if not nemesis.is_empty() and not out.has(nemesis):
+			out[nemesis] = _nemesis_from_their_side(story, nemesis, str(entry.get("name", "")).to_upper())
 	return out
+
+static func _nemesis_from_their_side(story: Array, nemesis: String, me: String) -> Dictionary:
+	for entry: Variant in story:
+		if not entry is Dictionary or str(entry.get("name", "")).to_upper() != nemesis or not entry.get("rivals") is Array:
+			continue
+		for rival: Variant in entry["rivals"]:
+			if rival is Dictionary and str(rival.get("name", "")).to_upper() == me:
+				return {"won": PodiumBoard._count(rival.get("lost")), "lost": PodiumBoard._count(rival.get("won")), "nemesis": true}
+	return {"won": -1, "lost": -1, "nemesis": true}
 
 ## The marks after a callsign: `{text, colour}` for the MVP and the viewer's
 ## book against this fighter. Never on the viewer's own row's book.
@@ -145,7 +159,7 @@ static func marks(row: Dictionary, mvp: String, rivals: Dictionary, own: bool) -
 	if book is Dictionary:
 		var won: int = int(book["won"])
 		var lost: int = int(book["lost"])
-		var key: String = "HUD_BOARD_NEMESIS" if bool(book["nemesis"]) else ("HUD_BOARD_UP" if won > lost else ("HUD_BOARD_DOWN" if lost > won else "HUD_BOARD_LEVEL"))
+		var key: String = ("HUD_BOARD_NEMESIS" if won >= 0 else "HUD_BOARD_NEMESIS_PLAIN") if bool(book["nemesis"]) else ("HUD_BOARD_UP" if won > lost else ("HUD_BOARD_DOWN" if lost > won else "HUD_BOARD_LEVEL"))
 		var colour: Color = MenuTheme.EMBER if bool(book["nemesis"]) else (MenuTheme.SUCCESS if won > lost else MenuTheme.MUTED)
 		out.append({"text": tr_text(key).format({"won": won, "lost": lost}), "colour": colour,
 			"key": "nemesis" if bool(book["nemesis"]) else ("up" if won > lost else ("down" if lost > won else "level"))})

@@ -412,6 +412,9 @@ msgstr "MVP"
 msgid "HUD_BOARD_NEMESIS"
 msgstr "AURA DEBT {won}-{lost}"
 
+msgid "HUD_BOARD_NEMESIS_PLAIN"
+msgstr "NEMESIS"
+
 msgid "HUD_BOARD_UP"
 msgstr "UP {won}-{lost}"
 

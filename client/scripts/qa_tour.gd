@@ -762,7 +762,7 @@ func _run() -> void:
 		# the tree, and a capture result only lasts the round's end delay.
 		var framed: Variant = measured.get("observed")
 		if framed is Dictionary:
-			for key: String in ["flags", "capture_scores", "objective_credits", "round_state", "sabotage", "self_alive",
+			for key: String in ["flags", "capture_scores", "objective_credits", "podium_story", "board_rivals", "round_state", "sabotage", "self_alive",
 					"human", "local_weapon", "camera_pitch", "server_pitch", "camera_yaw", "server_yaw", "event_tiers", "conquest"]:
 				if (framed as Dictionary).has(key):
 					observed[key] = (framed as Dictionary)[key]
@@ -2361,6 +2361,8 @@ func _observed_state() -> Dictionary:
 		"flags": snapshot.get("flags"),
 		"capture_scores": snapshot.get("capture_scores"),
 		"objective_credits": _objective_credits(snapshot),
+		"podium_story": (snapshot.get("podium") as Dictionary).get("story", []) if snapshot.get("podium") is Dictionary else [],
+		"board_rivals": gm.hud.get("board_rivals") if gm.get("hud") != null else {},
 		"sabotage": snapshot.get("sabotage"),
 		"conquest": snapshot.get("conquest"),
 		"self_alive": _self_alive(gm, snapshot),

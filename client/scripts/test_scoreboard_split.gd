@@ -92,6 +92,20 @@ func _check_static_rules() -> void:
 	_check(keys.call({"name": "Static Kid"}, true).is_empty(), "the viewer's own row carries no book")
 	_check(keys.call({"name": "Nobody"}, false).is_empty(), "a stranger is unmarked")
 	_check(ScoreboardPlate.marks({"name": "Meat Proxy"}, "Meat Proxy", {}, false)[0].key == "mvp", "the server's MVP is marked")
+	# A nemesis met less often than the three rivals listed is still marked:
+	# with the count from its own entry when that names the viewer.
+	var crowded: Array = [{"id": ME, "name": "Nightfall", "nemesis": "Second Sighting", "rivals": [
+		{"name": "A", "won": 3, "lost": 0}, {"name": "B", "won": 2, "lost": 1}, {"name": "C", "won": 1, "lost": 1}]},
+		{"id": FOE_A, "name": "Second Sighting", "rivals": [{"name": "Nightfall", "won": 1, "lost": 0}]}]
+	var outside: Dictionary = ScoreboardPlate.rivals_from_story(crowded, ME)
+	_check(outside.has("SECOND SIGHTING") and outside["SECOND SIGHTING"].nemesis and outside["SECOND SIGHTING"].won == 0
+		and outside["SECOND SIGHTING"].lost == 1, "a nemesis outside the three rivals keeps its count: " + str(outside))
+	var marked: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", outside, false)
+	_check(marked.size() == 1 and marked[0].key == "nemesis" and marked[0].text == "NEMESIS 0-1", "the outside nemesis is marked: " + str(marked))
+	crowded.pop_back()
+	var bare: Dictionary = ScoreboardPlate.rivals_from_story(crowded, ME)
+	var plain: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", bare, false)
+	_check(plain.size() == 1 and plain[0].key == "nemesis" and plain[0].text == "NEMESIS", "a nemesis without a count reads plainly: " + str(plain))
 	_check(ScoreboardPlate.mvp_name(rows, "") == "", "a live round names no MVP")
 
 ## A body leaves the snapshot on the tick it dies. The board keeps its row
