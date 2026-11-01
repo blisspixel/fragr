@@ -958,7 +958,7 @@ msgid "HUD_RECAP_KILLER_HP"
 msgstr "THEY KEPT {hp} HP"
 
 msgid "HUD_RECAP_KILLER_HP_ARMOR"
-msgstr "THEY KEPT {hp} HP + {armor} ARMOUR"
+msgstr "THEY KEPT {hp} HP {armor} ARMOR"
 
 msgid "HUD_RECAP_TAKEN"
 msgstr "TOOK {total}: {from}"

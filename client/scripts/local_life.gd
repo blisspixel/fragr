@@ -56,6 +56,9 @@ func body_gone(tick: int) -> void:
 func _go_down(tick: int) -> void:
 	phase = Phase.DOWN
 	_death_pose = _body
+	if not _death_tick:
+		_death_pool = _pool
+	_death_tick = true
 	weapon = ""
 	_killer_at = Vector3.INF
 	_killer_hp = -1
@@ -102,6 +105,9 @@ func reset() -> void:
 	_taken_names.clear()
 	_body = Vector4(INF, INF, INF, INF)
 	_death_pose = _body
+	_pool = -1
+	_death_pool = -1
+	_death_tick = false
 	_killer_at = Vector3.INF
 	_killer_hp = -1
 	_killer_armor = 0
@@ -186,6 +192,12 @@ var _taken_names: Dictionary[String, String] = {}
 ## This body's last authoritative pose while alive: x, y, z and yaw.
 var _body: Vector4 = Vector4(INF, INF, INF, INF)
 var _death_pose: Vector4 = Vector4(INF, INF, INF, INF)
+## Health plus armour in the last living snapshot, and what the death tick's
+## hits still had to take; -1 when the snapshot did not say.
+var _pool: int = -1
+var _death_pool: int = -1
+## The death tick's hits have begun: from here they share `_death_pool`.
+var _death_tick: bool = false
 ## The killer's row at the death tick; INF and -1 when it was not in it.
 var _killer_at: Vector3 = Vector3.INF
 var _killer_hp: int = -1
@@ -209,10 +221,13 @@ static func _recap_name(value: Variant) -> String:
 	return clean.left(MAX_RECAP_NAME)
 
 
-## This body's snapshot row while it lives: where it stood and faced.
+## This body's snapshot row while it lives: where it stood and faced, and
+## the health plus armour it had.
 func observe_body(row: Dictionary) -> void:
 	if phase != Phase.ALIVE:
 		return
+	var hp: int = _points(row.get("hp"))
+	_pool = hp + maxi(_points(row.get("armor", 0)), 0) if hp >= 0 else -1
 	for key: String in ["x", "y", "z", "yaw"]:
 		if not _finite_number(row.get(key)):
 			return
@@ -221,8 +236,20 @@ func observe_body(row: Dictionary) -> void:
 
 ## A hit event that named this fighter as the target. Damage arriving after
 ## the frag in the same batch still belongs to the life that ended.
-func record_hit(shooter_id: Variant, shooter_name: Variant, damage: Variant) -> void:
+func record_hit(shooter_id: Variant, shooter_name: Variant, damage: Variant, hp_after: Variant = null) -> void:
 	var amount: int = _points(damage)
+	# The finishing hit can arrive before this client has seen the body go.
+	if phase == Phase.ALIVE and _points(hp_after) == 0 and not _death_tick:
+		_death_tick = true
+		_death_pool = _pool
+	# A tick's events follow its snapshot. While alive, that snapshot already
+	# shows the hit and the hit was survived, so all of it landed. Once down,
+	# the hits are the death tick's, and together they took at most the
+	# health and armour the last living snapshot showed: overkill is not
+	# damage taken.
+	if (phase != Phase.ALIVE or _death_tick) and _death_pool >= 0:
+		amount = mini(amount, _death_pool)
+		_death_pool -= maxi(amount, 0)
 	if amount <= 0:
 		return
 	var name_text: String = _recap_name(shooter_name)

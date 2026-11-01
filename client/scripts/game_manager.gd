@@ -3516,7 +3516,7 @@ func _on_event_received(data):
 		var valid_dmg: bool = (dmg is int or dmg is float) and int(dmg) > 0
 		var hit_tick: int = int(data.get("tick", -1))
 		if is_human_player and my_id != "" and target_id == my_id and valid_dmg:
-			local_life.record_hit(data.get("shooter_id"), data.get("shooter"), dmg)
+			local_life.record_hit(data.get("shooter_id"), data.get("shooter"), dmg, data.get("target_hp_after"))
 			if hit_tick < 0 or hit_tick != _last_damage_flash_tick:
 				_last_damage_flash_tick = hit_tick
 				if hud and hud.has_method("show_damage_flash"):
