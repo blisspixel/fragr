@@ -14,7 +14,7 @@
 //! stands where the server will have it a round trip plus the buffer after
 //! `d`, so every pair is traced each tick:
 //!
-//! - From the reader's eye standing (rising from a crouch is a peek), from
+//! - From the reader's eye, and standing if it crouches (rising is a peek), from
 //!   that eye after its lead ([`lead_ticks`]: five ticks plus the measured
 //!   round trip) on its velocity or its measured motion (a vehicle seat,
 //!   stairs) and one step higher, and from a step either way across the line
@@ -232,8 +232,10 @@ fn clear_line(
     grid: &crate::combat::SightGrid,
     rays: &mut u64,
 ) -> bool {
-    // The reader's eye stands up: rising from a crouch is a peek too.
-    let mut eye_now = eye(reader);
+    // The reader's eye where it is, and standing: rising from a crouch is a
+    // peek too, and a crouch under a low roof sees what standing cannot.
+    let crouched = eye(reader);
+    let mut eye_now = crouched;
     eye_now[1] =
         eye_now[1].max(feet(reader)[1] + crate::combat::stance_eye(reader.campaign, false));
     let feet_now = feet(target);
@@ -279,8 +281,10 @@ fn clear_line(
     ];
     // The eyes across the line look for the body itself, not its margins.
     let core = [chest(feet_now), crown, chest(feet_lead)];
-    let lines = [eye_now, eye_lead]
+    let low = (crouched != eye_now).then_some(crouched);
+    let lines = [Some(eye_now), Some(eye_lead), low]
         .into_iter()
+        .flatten()
         .flat_map(|eye| whole.iter().map(move |point| (eye, *point)))
         .chain([step, -step].into_iter().flat_map(|by| {
             let eye = across_by(eye_now, by);

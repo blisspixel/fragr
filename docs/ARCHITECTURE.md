@@ -105,7 +105,7 @@ All game truth lives in **fragr-server**. Godot never simulates combat/HP; it in
  2. `action` (move dirs, look delta or absolute yaw, fire, use)
  3. `snapshot` (periodic full or delta state @ 10-20 Hz)
  4. `event` (kill, respawn, match_end) - optional in Slice 1 (can fold into snapshot)
-- **Interest management:** none in Slice 1 (single small arena; broadcast all).
+- **Interest management:** since gameplay 66 (wave 22) each fighter in a shared arcade room receives only the fighters it could see (with margins against pop-in) or hear (at a rough place); spectators, the booth and campaigns receive the whole world. Owner `server/src/interest.rs`; shapes in `docs/protocol.md`.
 - **Spectators:** same snapshot stream; server ignores input from `spectator` role.
 
 ### How agents issue actions (agent-play path)

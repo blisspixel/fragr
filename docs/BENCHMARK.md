@@ -39,7 +39,7 @@ failure-message checks remain deterministic under coverage instrumentation.
 Actual speed remains enforced by CI's separate release benchmark and its
 unchanged budget gate. A synthetic sample is never performance evidence.
 
-## Report version 2
+## Report version 3
 
 `config` carries bots, ticks, map identity, seed, and crate version. `environment`
 carries OS, architecture, build profile, and available parallelism. The crate
@@ -51,6 +51,8 @@ version is not a source revision; retain the commit with published measurements.
 | `stats.tick_ms` | Total duration for that declared scope |
 | `session_ms` | Bot decisions, simulation, snapshot/event construction, and unicast collection |
 | `encode_ms` | Encode each broadcast and targeted payload once using the shared wire types |
+| `interest_ms` | Cutting every fighter's view as if each were a connected reader (`crate::interest`, wave 22): the lines of sight and the view text. Inside `stats.tick_ms` |
+| `withheld_share`, `interest_rays`, `reader_world_bytes` | Rows withheld per reader of the others, lines traced per tick, and the mean world a reader receives |
 | `stats.broadcast_bytes` | All broadcast payload bytes per tick before fan-out and framing |
 | `unicast_bytes` | All targeted payload bytes per tick, even if no socket receives them |
 | `fun_metrics_ms` | The fun metrics observer reading the finished tick (`--fun-metrics`), timed beside the tick and outside `stats`; `--bench-assert` fails when its p99 passes 5% of the tick budget |
@@ -63,7 +65,8 @@ Percentiles use upper edges of 16 log-linear buckets per power of two, conservat
 overestimating by less than 6.25 percent. Budget violation counts use exact samples.
 The old `snapshot_bytes` field actually counted all broadcasts; version 2 renames
 it to `broadcast_bytes`. Old simulation-only tick results cannot be compared to
-version 2 total CPU step times without selecting the same phase.
+version 2 total CPU step times without selecting the same phase. Version 3 (wave 22) adds the interest phase to `stats.tick_ms`, so its
+times are not comparable to version 2 without subtracting `interest_ms`.
 
 Timers exclude hashing, trace construction/writing, sleeps, network fan-out,
 per-session encoding of targeted messages, transport framing, scheduler delay,
@@ -1177,6 +1180,103 @@ What stays open: quiet-machine runs of the commands above as gate evidence
 (hardware matrix), two machines and a human session, a photodiode or
 high-speed camera for true photon time, input to photon on Windows and
 macOS, and the peek p95 and jittered mean above 150 ms.
+
+### Interest filtering (wave 22)
+
+Gameplay 66 sends each fighter only what it could perceive
+([protocol](protocol.md#interest-filtering-capability-66); owner
+`server/src/interest.rs`). Three measurements, all on an AMD Ryzen 7 7840U
+shared with other sessions (load 4 to 12) on 2026-11-01: **diagnostic on a
+busy shared machine**. Before is `5e0ee3da` (main, gameplay 65), after is the
+wave 22 fair play branch.
+
+**Pop-in at corners.** `fragr-playtest --interest-survey` runs a seeded
+eight-bot free-for-all on every arena map for 120 s at each round trip and
+treats every bot as a connected reader. A reveal is a reader and target pair
+turning visible (any line from the reader's predicted eye to the target's
+chest, crown or shoulders as drawn, no margin); it is late when the drawn
+world still withheld the row: the body pops in. Fight range is 64 m, a rule
+bot's sight. `--assert` fails a round trip of 100 ms or less whose pooled
+fight-range late rate is over 1 percent. A modelled link in process, rule
+bots rather than people, and not the TCP link shaper; `--peek-probe` covers
+the shaped socket path, where the holder now watches.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
+cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --interest-jitter 2 --interest-rtt 0,50,100 --assert --report .agents/interest/jitter.json
+```
+
+| Round trip | Fight-range reveals, all maps | Late (pop-in) | Late, all ranges | Longest late, ticks | Rows withheld | Withheld rows heard | Rows sent while no line reached the body |
+|---|---|---|---|---|---|---|---|
+| 0 ms | 3,713 | 6 (0.16 %) | 17 of 5,733 (0.30 %) | 2 | 46.4 % | 1.9 % | 20.9 % |
+| 50 ms | 3,716 | 12 (0.32 %) | 24 of 5,741 (0.42 %) | 5 | 45.7 % | 1.8 % | 21.5 % |
+| 100 ms | 3,716 | 11 (0.30 %) | 23 of 5,741 (0.40 %) | 5 | 45.2 % | 1.7 % | 22.1 % |
+| 150 ms | 3,696 | 19 (0.51 %) | 33 of 5,724 (0.58 %) | 5 | 44.9 % | 1.7 % | 22.2 % |
+| 0 ms, worlds up to 2 ticks late | 4,189 | 8 (0.19 %) | 21 of 6,445 (0.33 %) | 3 | 46.4 % | 1.9 % | 20.8 % |
+| 50 ms, worlds up to 2 ticks late | 4,188 | 16 (0.38 %) | 29 of 6,412 (0.45 %) | 5 | 45.7 % | 1.8 % | 21.4 % |
+| 100 ms, worlds up to 2 ticks late | 4,188 | 19 (0.45 %) | 32 of 6,412 (0.50 %) | 5 | 45.2 % | 1.7 % | 22.0 % |
+
+Withheld rows vary by map: 21 to 23 percent on Larak Lot and Directive 17,
+which are open, to 77 percent on Sector 9. Holdfast Atoll's few fight-range
+reveals (53 to 55) carry 2 late ones at every round trip, a long sightline
+over the water that opens for a tick; Low Water is 0.55 to 1.1 percent, the
+worst map with many reveals. A late reveal is drawn one to five ticks late.
+The margins that buy this are the last column: about a fifth of the bodies
+a fighter receives are a wall away, close to a corner it could clear within
+its lead.
+
+The first cut traced from the eye now and after a one-way lead, every
+second tick: 4 to 26 percent of reveals were late. Measured causes, fixed
+in turn: the stagger (every pair now traces every tick); the lead (a world
+is drawn while the reader stands a whole round trip plus the buffer ahead,
+not half); stairs and ramps (a 0.5 m step up between ticks, now one step
+higher on the lead eye and the measured climb); a seat that moves the body
+with no walking velocity (measured motion); a reader turning or starting
+from rest (eyes a step across the line).
+
+**Tick cost.** The offline bench treats every bot as a connected reader:
+the worst case, since a live server cuts views only for fighters with a
+socket. Three interleaved runs each, all identical within a bucket.
+
+```bash
+cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
+```
+
+| Fighters (all readers) | Tick p50 before / after ms | Tick p99 before / after ms | `interest_ms` mean | Lines traced per tick, mean |
+|---|---|---|---|---|
+| 16 | 0.12 / 0.56 | 0.41 / 0.95 | 0.38 | 1,830 |
+| 64 | 0.56 / 2.23 | 3.01 / 4.98 | 1.29 | 20,280 |
+
+Those runs were at load 4. A repeat at load 10 to 14 measured 64 readers at
+2.4 to 5.5 ms p50 and 5.8 to 16.3 ms p99 after, against 0.59 to 0.75 and
+3.0 to 3.4 before: the added cost is CPU the host shares.
+
+Lines run through a floor-plan grid of the shot solids (`combat::SightGrid`,
+exactly `combat::line_of_sight`, checked against it on 32,000 random lines
+across every map) on up to eight threads. Before both, 64 readers cost
+8.5 ms a tick on average with p99 46 ms on this host; a first live 48
+fighter run reached a 105 ms tick p99.
+
+**Bandwidth and the live tick.** The traffic generator against each
+binary, as in the wave 15 and 16 tables: Larak Lot, human fighters at 60 Hz
+plus spectators, no bots, 15 s held, seed 42, three interleaved runs, means.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 0 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-0.json
+```
+
+| Connections (fighters + spectators) | KiB/s per client, all frames, before / after | Server egress MiB/s | Server CPU cores | Tick handler p99 ms (three runs) |
+|---|---|---|---|---|
+| 16 (12 + 4) | 17.7 / 16.7 (-6 %) | 0.274 / 0.259 | 0.026 / 0.047 | 0.36-0.48 / 1.11-1.21 |
+| 64 (48 + 16) | 50.2 / 43.6 (-13 %) | 3.09 / 2.70 | 0.073 / 0.212 | 1.44-1.64 / 3.80-4.06 |
+| 48 (48 + 0) | 51.9 / 43.3 (-17 %) | 2.40 / 2.01 | 0.066 / 0.210 | 1.25-1.90 / 3.54-4.46 |
+
+Every world still arrived (snapshot counts match), every run passed, and no
+tick ran over budget. Bytes fall less than the withheld share suggests: a
+withheld row still carries the board, and a view goes as a per-reader
+delta from the world that socket last carried rather than the tick's
+shared delta. That per-reader encode runs on each socket's writer task, off
+the tick; with the line tracing on helper threads, it is the added CPU. Spectators keep the shared world.
 
 ## Trace version 1
 

@@ -244,6 +244,9 @@ fn run_one(map: MapKind, rtt_ms: u32, jitter: u64, seconds: u32, seed: u64) -> O
         let then = &bodies[index];
         let shown = &drawn[index];
         tally.ticks += 1;
+        // Pairs read this tick. One that drops out (a death, a respawn) ends
+        // its sighting and any late reveal with it.
+        let mut evaluated: HashSet<(Uuid, Uuid)> = HashSet::new();
         for reader in &readers {
             let Some(me) = now.get(reader).filter(|b| b.alive) else {
                 continue;
@@ -262,6 +265,7 @@ fn run_one(map: MapKind, rtt_ms: u32, jitter: u64, seconds: u32, seed: u64) -> O
                 *id != reader && b.alive && steady(&bodies, id, index - SETTLE, index)
             }) {
                 let key = (*reader, *target);
+                evaluated.insert(key);
                 let visible = any_part(eye, *at, &solids);
                 let sent = shown.get(reader).is_some_and(|set| set.contains(target));
                 let near = (eye[0] - at.feet[0]).hypot(eye[2] - at.feet[2]) <= FIGHT_RANGE;
@@ -291,6 +295,8 @@ fn run_one(map: MapKind, rtt_ms: u32, jitter: u64, seconds: u32, seed: u64) -> O
                 }
             }
         }
+        popping.retain(|key, _| evaluated.contains(key));
+        was_visible.retain(|key| evaluated.contains(key));
     }
     let share = |part: u64, whole: u64| {
         if whole == 0 {
