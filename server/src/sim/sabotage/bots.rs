@@ -40,6 +40,9 @@ const PUSHED: f32 = 25.0;
 const CONTACT_RADIUS: f32 = 30.0;
 /// A muster zone's own pad is always within this of its spawn points.
 const MUSTER_REACH: f32 = 12.0;
+/// Holders at a site that watch the attack's lane rather than where they
+/// arrived (`sabotage_watch`).
+const WATCHERS: usize = 1;
 /// Bots do not start fights beyond this, even with a long weapon.
 const ENGAGE_MAX: f32 = 45.0;
 
@@ -338,25 +341,24 @@ impl BotController {
                 return Some(walk(bot, pad));
             }
         }
-        let anchor = if slot.is_multiple_of(2) {
-            SiteId::A
-        } else {
-            SiteId::B
-        };
-        // The last defender of a side of three or more keeps the far site.
         let side = state
             .players
             .iter()
             .filter(|p| p.contestant() && p.team == Some(Team::Union))
             .count();
-        let keeps = side >= 3 && slot + 1 == side;
-        let site = if keeps {
-            anchor
-        } else {
-            hot_site(sab).unwrap_or(anchor)
-        };
-        let spot = if site == anchor { slot / 2 } else { slot };
-        Some(walk(bot, hold_spot(layout, site, spot)))
+        let (site, spot) = defence_post(slot, side, hot_site(sab));
+        let at = hold_spot(layout, site, spot);
+        if horizontal(feet(bot), at) <= ARRIVED {
+            // Holding: the first holder at a site watches the lane the
+            // attack's shortest walk comes in by; the rest hold where the
+            // walk left them facing, so a site is watched, never covered
+            // from every side. On Sector 9 at four a side, no watcher left
+            // the attack 72 percent of rounds, one 50, two 46.
+            if let Some(watch) = state.map.sabotage_watch().filter(|_| spot < WATCHERS) {
+                return Some(face(bot, watch[site.index()][spot]));
+            }
+        }
+        Some(walk(bot, at))
     }
 
     /// Fight the enemy this bot is looking at with its personality, through
@@ -389,6 +391,34 @@ impl BotController {
         }
         intent
     }
+}
+
+/// Where defender `slot` of a side of `side` holds, and its hold spot there.
+/// Even slots anchor A and odd slots B. Once the attack is called at a site,
+/// the far site's anchors rotate to it, except the far site's last anchor in
+/// a side of three or more, who keeps it. The call never changes how many
+/// reach a site by which site it is: A and B get the same defence.
+fn defence_post(slot: usize, side: usize, hot: Option<SiteId>) -> (SiteId, usize) {
+    let site_of = |slot: usize| {
+        if slot.is_multiple_of(2) {
+            SiteId::A
+        } else {
+            SiteId::B
+        }
+    };
+    let anchor = site_of(slot);
+    let Some(hot) = hot.filter(|hot| *hot != anchor) else {
+        return (anchor, slot / 2);
+    };
+    // The far site's anchors, by slot; the keeper is the last of them.
+    let far: Vec<usize> = (0..side).filter(|s| site_of(*s) == anchor).collect();
+    let keeper = (side >= 3).then(|| far.last().copied()).flatten();
+    if keeper == Some(slot) {
+        return (anchor, slot / 2);
+    }
+    let anchors_at_hot = (0..side).filter(|s| site_of(*s) == hot).count();
+    let rank = far.iter().position(|s| *s == slot).unwrap_or(0);
+    (hot, anchors_at_hot + rank)
 }
 
 /// The attacker carrying the charge, if any.

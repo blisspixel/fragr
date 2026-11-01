@@ -355,3 +355,112 @@ fn an_ineligible_or_departed_defuser_does_not_block_the_next_bot() {
         );
     }
 }
+
+#[test]
+fn a_called_site_gets_the_same_defence_whichever_site_it_is() {
+    for side in 2..=6 {
+        for hot in [SiteId::A, SiteId::B] {
+            let posts: Vec<(SiteId, usize)> = (0..side)
+                .map(|slot| defence_post(slot, side, Some(hot)))
+                .collect();
+            let at_hot = posts.iter().filter(|(site, _)| *site == hot).count();
+            let keepers = side - at_hot;
+            // Everyone but one keeper in a side of three or more.
+            assert_eq!(keepers, usize::from(side >= 3), "side {side} hot {hot:?}");
+            // Nobody shares a hold spot at the called site.
+            let mut spots: Vec<usize> = posts
+                .iter()
+                .filter(|(site, _)| *site == hot)
+                .map(|(_, spot)| *spot)
+                .collect();
+            spots.sort_unstable();
+            spots.dedup();
+            assert_eq!(spots.len(), at_hot, "side {side} hot {hot:?}: {posts:?}");
+        }
+        // Before a call, even slots anchor A and odd slots B.
+        for slot in 0..side {
+            let (site, spot) = defence_post(slot, side, None);
+            assert_eq!(site == SiteId::A, slot % 2 == 0);
+            assert_eq!(spot, slot / 2);
+        }
+    }
+}
+
+#[test]
+fn a_holding_anchor_watches_the_attack_lane_not_the_wall() {
+    for map in [MapKind::Sector9, MapKind::LowWater] {
+        let watch = crate::maps::sabotage_watch(map).expect("both Sabotage maps have lanes");
+        let layout = crate::maps::sabotage_layout(map).unwrap();
+        for (index, site) in layout.wire.sites.iter().enumerate() {
+            for lane in watch[index] {
+                let from = site.center;
+                // A watched point is out along a lane, in sight of the site.
+                let far = horizontal(from, lane);
+                assert!(far > 4.0 && far <= 30.5, "{map:?} {lane:?} {far}");
+                assert!(crate::maps::navigation(map).line_of_sight(
+                    [from[0], from[1] + 1.6, from[2]],
+                    [lane[0], lane[1] + 1.6, lane[2]],
+                ));
+            }
+        }
+        // The first anchor at A, on its spot, turns toward the main lane.
+        let mut state = GameState::with_map(map, false);
+        state.seed(3);
+        state.apply_config(MatchConfig {
+            rules: RuleSet::new(GameMode::Sabotage, &[], false).unwrap(),
+            sabotage: SabotageConfig {
+                muster_ticks: 1,
+                ..Default::default()
+            },
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            ..Default::default()
+        });
+        for (id, team) in [(WORKER, Team::Union), (ATTACKER, Team::Coalition)] {
+            state.add_player(id, format!("participant-{id}"), Role::Agent);
+            player_mut(&mut state, id).team = Some(team);
+        }
+        state.bots = vec![
+            BotController::new(WORKER, BotBehavior::Balanced),
+            BotController::new(ATTACKER, BotBehavior::Balanced),
+        ];
+        state.start_round();
+        for _ in 0..4 {
+            state.tick(0.05);
+        }
+        for p in &mut state.players {
+            p.team = Some(if p.id == ATTACKER {
+                Team::Coalition
+            } else {
+                Team::Union
+            });
+        }
+        if state
+            .sabotage
+            .as_ref()
+            .is_none_or(|sab| sab.phase != SabotagePhase::Live)
+        {
+            continue;
+        }
+        let spot = hold_spot(layout, SiteId::A, 0);
+        put(&mut state, WORKER, spot, 0.0);
+        put(&mut state, ATTACKER, [70.0, 0.0, 70.0], 0.0);
+        let holder = player_mut(&mut state, WORKER);
+        holder.inventory.arm_magazines();
+        assert!(holder.inventory.grant_weapon(WeaponType::Flechette));
+        holder.weapon = WeaponType::Flechette;
+        let lane = watch[0][0];
+        let bearing = (lane[2] - spot[2]).atan2(lane[0] - spot[0]);
+        // Facing straight away from the lane, the holder turns toward it.
+        player_mut(&mut state, WORKER).yaw = bearing + PI;
+        let held = intent(&state, WORKER);
+        assert!(held.goal.is_none(), "{map:?}: a holder stays on its spot");
+        assert!(held.action.turn_left || held.action.turn_right, "{map:?}");
+        player_mut(&mut state, WORKER).yaw = bearing;
+        let settled = intent(&state, WORKER);
+        assert!(
+            !settled.action.turn_left && !settled.action.turn_right,
+            "{map:?}"
+        );
+    }
+}

@@ -262,6 +262,16 @@ func _run() -> void:
 				(boot.get("_host_mode") as OptionButton).select(index)
 				boot.call("_change_host_mode", index)
 				await process_frame
+			if menu_page == "host" and state.has("host_bot_skill"):
+				# A bot rung, picked the way the row does.
+				var skill_boot: Node = get_root().get_node("BootMenu")
+				var skill_index: int = LocalHost.BOT_SKILLS.find(str(state["host_bot_skill"]))
+				if skill_index < 0:
+					push_error("qa_tour: unknown host_bot_skill " + str(state["host_bot_skill"]))
+					_failed = true
+				else:
+					(skill_boot.get("_host_bot_skill") as OptionButton).select(skill_index)
+				await process_frame
 			if menu_page == "host" and state.has("host_preset"):
 				# A preset, any stacked twists and the fold, as a host picks them.
 				var host_boot: Node = get_root().get_node("BootMenu")

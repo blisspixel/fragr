@@ -153,6 +153,8 @@ pub struct ServerOptions {
     pub bots: usize,
     pub bot_policy: crate::bot_fill::BotPolicy,
     pub fill_target: usize,
+    /// The rung every rule bot plays at (`--bot-skill`).
+    pub bot_skill: crate::sim::BotSkill,
     pub map: MapKind,
     /// Authored file or bundled mission, mutually exclusive with arcade rules.
     pub authored: Option<crate::maps::AuthoredSource>,
@@ -205,6 +207,7 @@ impl Default for ServerOptions {
             bots: 4,
             bot_policy: crate::bot_fill::BotPolicy::Fixed,
             fill_target: 0,
+            bot_skill: crate::sim::BotSkill::default(),
             map: MapKind::default(),
             authored: None,
             difficulty: None,
@@ -745,6 +748,7 @@ async fn run_server_impl(
         session.state.head_to_head = book;
     }
     let mut head_to_head_warned = false;
+    session.set_bot_skill(options.bot_skill);
     session.spawn_bots(options.bots);
     if options.authored.is_none() && !options.campaign_run {
         tracing::info!(

@@ -7,6 +7,7 @@
 //! kicks the victim's aim for a few ticks. Pads are seen the same way and
 //! remembered with their published clocks (`pads.rs`).
 
+use super::bot_skill::{BotSkill, SkillProfile};
 use super::{fighter_chest, fighter_eye, BotBehavior, BotController, BotIntent, GameState, Player};
 use crate::navigation::NavigationGoal;
 use crate::protocol::{Action, EquipmentPolicy, GameMode, WeaponType};
@@ -20,20 +21,28 @@ mod pads;
 
 const OBSERVE_EVERY: u64 = 2;
 const MEMORY_TICKS: u64 = 40;
+/// The default rung's numbers (`bot_skill.rs`), which every test without
+/// a rung reads.
+#[cfg(test)]
 const SIGHT_RANGE: f32 = 64.0;
+#[cfg(test)]
 const AIM_ERROR: f32 = 0.055;
+#[cfg(test)]
 const TURN_PER_TICK: f32 = 0.1;
 /// A hit is a clue to where the shooter stood for this long.
 const HURT_MEMORY: u64 = 40;
 /// Taking damage spoils the victim's aim for this long.
 const FLINCH_TICKS: u64 = 6;
-/// Aim error multiplier while flinching.
-const FLINCH_AIM: f32 = 3.0;
 /// A bot leaves for a pad that is not back yet only when it would otherwise
 /// arrive no more than this early.
 const APPOINTMENT_SLACK: u64 = 40;
 /// Extra ticks of slack for the pad a bot is already walking to.
 const HEADING_SLACK: u64 = 20 * 6;
+/// A pad errand is kept this long once set off on, unless the bot sees
+/// somebody, hears a clue, or no longer needs or expects the pad. Choosing
+/// afresh every tick between a pad and a patrol whose costs crossed sent
+/// bots back and forth along one corridor for minutes.
+const ERRAND_TICKS: u64 = 20 * 6;
 /// The pad a bot is already walking to counts at this share of its cost.
 const HEADING_KEEP: f32 = 0.8;
 /// Below this a bot breaks off a search for health it knows about.
@@ -163,6 +172,10 @@ pub(super) struct BotSenses {
     /// The pad this bot set off for last tick: kept to, so a walk toward a
     /// returning pad does not turn back halfway (see `pad_plan`).
     heading_for: Option<usize>,
+    /// The pad errand this bot set off on and the tick it keeps it until:
+    /// a bot that turns for a pad gets there unless something real changes
+    /// (`kept_errand`).
+    errand: Option<(usize, u64)>,
 }
 
 fn angle_difference(to: f32, from: f32) -> f32 {
@@ -183,16 +196,33 @@ fn salt(id: Uuid) -> u64 {
     value as u64 ^ (value >> 64) as u64
 }
 
-fn aim_error(id: Uuid, tick: u64) -> [f32; 2] {
+/// Aim error per axis for `bound` radians, resampled every 0.3 s.
+fn aim_error_within(id: Uuid, tick: u64, bound: f32) -> [f32; 2] {
     let sample = mix(salt(id) ^ (tick / 6).wrapping_mul(0x9e37_79b9_7f4a_7c15));
-    let unit = |value: u64| ((value & 0xffff) as f32 / 32767.5 - 1.0) * AIM_ERROR;
+    let unit = |value: u64| ((value & 0xffff) as f32 / 32767.5 - 1.0) * bound;
     [unit(sample), unit(sample >> 32)]
 }
 
-/// Between 200 and 400 ms after the observation, plus the staggered
-/// observation wait. No personality reacts faster.
+#[cfg(test)]
+fn aim_error(id: Uuid, tick: u64) -> [f32; 2] {
+    aim_error_within(id, tick, AIM_ERROR)
+}
+
+/// The rung's reaction after the observation, plus the staggered
+/// observation wait: 200 to 400 ms for a regular, never under 150 ms.
+fn reaction_for(profile: &SkillProfile, bot: Uuid, target: Uuid, tick: u64) -> u64 {
+    let draw = mix(salt(bot) ^ salt(target) ^ tick) % (profile.reaction_spread + 1);
+    tick.saturating_add(
+        profile
+            .reaction_min
+            .max(super::bot_skill::REACTION_FLOOR)
+            .saturating_add(draw),
+    )
+}
+
+/// The default rung's reaction: 200 to 400 ms after the observation.
 fn reaction(bot: Uuid, target: Uuid, tick: u64) -> u64 {
-    tick.saturating_add(4 + mix(salt(bot) ^ salt(target) ^ tick) % 5)
+    reaction_for(&BotSkill::Regular.profile(), bot, target, tick)
 }
 
 fn hostile(state: &GameState, bot: &Player, target: &Player) -> bool {
@@ -202,10 +232,10 @@ fn hostile(state: &GameState, bot: &Player, target: &Player) -> bool {
         && !(bot.team.is_some() && bot.team == target.team)
 }
 
-fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
+fn visible(state: &GameState, bot: &Player, target: &Player, range: f32) -> bool {
     let dx = target.x - bot.x;
     let dz = target.z - bot.z;
-    dx.hypot(dz) <= SIGHT_RANGE
+    dx.hypot(dz) <= range
         && angle_difference(dz.atan2(dx), bot.yaw).abs() <= FRAC_PI_3
         && crate::combat::line_of_sight(
             fighter_eye(bot),
@@ -443,7 +473,7 @@ impl BotSenses {
         self.flinch_until = tick.saturating_add(FLINCH_TICKS);
     }
 
-    fn observe(&self, state: &GameState, bot: &Player) -> Self {
+    fn observe(&self, state: &GameState, bot: &Player, profile: &SkillProfile) -> Self {
         if state.tick % OBSERVE_EVERY != salt(bot.id) % OBSERVE_EVERY
             || self.observed_at == Some(state.tick)
         {
@@ -468,12 +498,15 @@ impl BotSenses {
         // owes (`grudge.rs`), who counts as much closer than they stand.
         let target = previous
             .and_then(|old| state.players.iter().find(|player| player.id == old.id))
-            .filter(|target| visible(state, bot, target))
+            .filter(|target| visible(state, bot, target, profile.sight_range))
             .or_else(|| {
                 let seen: Vec<&Player> = state
                     .players
                     .iter()
-                    .filter(|target| hostile(state, bot, target) && visible(state, bot, target))
+                    .filter(|target| {
+                        hostile(state, bot, target)
+                            && visible(state, bot, target, profile.sight_range)
+                    })
                     .collect();
                 // The book is read only when there is a choice to make.
                 let owed = (seen.len() > 1)
@@ -501,7 +534,7 @@ impl BotSenses {
             let watched = previous.filter(|old| old.id == target.id && old.visible);
             let ready_at = watched
                 .map(|old| old.ready_at)
-                .unwrap_or_else(|| reaction(bot.id, target.id, state.tick));
+                .unwrap_or_else(|| reaction_for(profile, bot.id, target.id, state.tick));
             let feet = feet_of(target);
             let velocity =
                 watched
@@ -535,7 +568,7 @@ impl BotSenses {
                 chest: [hurt.feet[0], hurt.feet[1] + 1.2, hurt.feet[2]],
                 velocity: [0.0, 0.0],
                 seen_at: hurt.at,
-                ready_at: reaction(bot.id, hurt.from, state.tick),
+                ready_at: reaction_for(profile, bot.id, hurt.from, state.tick),
                 visible: false,
             })
         } else {
@@ -552,6 +585,7 @@ impl BotSenses {
             pads,
             hunt: self.hunt.clone(),
             heading_for: self.heading_for,
+            errand: self.errand,
         }
     }
 }
@@ -577,7 +611,14 @@ impl GameState {
                     .is_some_and(|pad| (pad.x - bot.x).hypot(pad.z - bot.z) < 1.5)
             }),
         };
-        self.players[index].bot_senses.heading_for = heading_for;
+        let tick = self.tick;
+        let senses = &mut self.players[index].bot_senses;
+        if let Some(pad) = heading_for {
+            if senses.errand.is_none_or(|(kept, _)| kept != pad) {
+                senses.errand = Some((pad, tick.saturating_add(ERRAND_TICKS)));
+            }
+        }
+        senses.heading_for = heading_for;
     }
 
     pub(crate) fn update_bot_senses(&mut self, controllers: &[BotController]) {
@@ -601,7 +642,9 @@ impl GameState {
                 self.players[index].bot_senses.forget_fighters();
                 continue;
             }
-            let mut senses = bot.bot_senses.observe(self, bot);
+            let mut senses = bot
+                .bot_senses
+                .observe(self, bot, &controller.skill.profile());
             let tick = self.tick;
             let seen = senses.target.is_some_and(|target| {
                 target.visible && tick.saturating_sub(target.seen_at) < OBSERVE_EVERY
@@ -708,12 +751,28 @@ impl BotController {
     /// already standing at it waiting for the clock, and whether it is the
     /// power pad this callsign times.
     /// With `urgent`, only what is worth leaving a search for (see `gain`).
+    #[cfg(test)]
     fn pad_plan(
         &self,
         state: &GameState,
         bot: &Player,
         supplied: bool,
         urgent: bool,
+    ) -> Option<PadPlan> {
+        self.pad_plan_admitting(state, bot, supplied, urgent, &|_, _| true)
+    }
+
+    /// `pad_plan` among only the pads `admit` takes, given each plan and its
+    /// distance. The choice is made among what the bot will actually walk to:
+    /// choosing first and refusing after sent a bot that two pads tied for
+    /// back and forth between its patrol and the pad it would refuse.
+    fn pad_plan_admitting(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        supplied: bool,
+        urgent: bool,
+        admit: &dyn Fn(&PadPlan, f32) -> bool,
     ) -> Option<PadPlan> {
         if bot.is_boss {
             return None;
@@ -748,7 +807,7 @@ impl BotController {
             let near = (pad.x - bot.x).hypot(pad.z - bot.z) <= HABIT_REACH;
             // The power pad a callsign times is an appointment from anywhere
             // on the map; its other habits only when they are close.
-            let timed = timed(habits, bot, pad.kind);
+            let timed = self.skill.profile().keeps_time && timed(habits, bot, pad.kind);
             let habitual = habit(habits, pad.kind);
             let wanted = !urgent || gain || timed || (habitual && near);
             if !useful || !wanted {
@@ -790,17 +849,15 @@ impl BotController {
             // pad due later look cheaper with every step away from it.
             let reach = distance.max(eta as f32 * WAIT_COST);
             let cost = reach * weight * if heading { HEADING_KEEP } else { 1.0 };
-            if best.as_ref().is_none_or(|(old, _)| cost < *old) {
-                best = Some((
-                    cost,
-                    PadPlan {
-                        feet: [pad.x, pad.floor, pad.z],
-                        waiting: eta > 0 && distance < 1.5,
-                        timed,
-                        arms: pad.kind.weapon().is_some() && pistol_only,
-                        mend: pad.kind.weapon().is_none() && gain,
-                    },
-                ));
+            let plan = PadPlan {
+                feet: [pad.x, pad.floor, pad.z],
+                waiting: eta > 0 && distance < 1.5,
+                timed,
+                arms: pad.kind.weapon().is_some() && pistol_only,
+                mend: pad.kind.weapon().is_none() && gain,
+            };
+            if admit(&plan, distance) && best.as_ref().is_none_or(|(old, _)| cost < *old) {
+                best = Some((cost, plan));
             }
         }
         // A gun somebody dropped, where this bot saw it lying: there now
@@ -828,22 +885,55 @@ impl BotController {
                 1.0
             };
             let cost = distance * weight;
-            if best.as_ref().is_none_or(|(old, _)| cost < *old) {
-                best = Some((
-                    cost,
-                    PadPlan {
-                        feet: gun.feet,
-                        waiting: false,
-                        timed: weapon == WeaponType::Rocket
-                            && gain
-                            && distance <= ROCKET_DROP_REACH,
-                        arms: pistol_only,
-                        mend: false,
-                    },
-                ));
+            let plan = PadPlan {
+                feet: gun.feet,
+                waiting: false,
+                timed: weapon == WeaponType::Rocket && gain && distance <= ROCKET_DROP_REACH,
+                arms: pistol_only,
+                mend: false,
+            };
+            if admit(&plan, distance) && best.as_ref().is_none_or(|(old, _)| cost < *old) {
+                best = Some((cost, plan));
             }
         }
         best.map(|(_, plan)| plan)
+    }
+
+    /// The pad errand this bot already set off on, while it is still kept
+    /// (`ERRAND_TICKS`), nobody is in view, the pad would still be of use and
+    /// the bot's own pad memory still expects it up by about the time it
+    /// arrives.
+    fn kept_errand(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        supplied: bool,
+        visible: bool,
+    ) -> Option<PadPlan> {
+        let (index, until) = bot.bot_senses.errand?;
+        if visible || state.tick >= until || bot.is_boss {
+            return None;
+        }
+        let pad = state.pickups.get(index)?;
+        let useful = match pad.kind {
+            super::PickupKind::Weapon(weapon) => bot.inventory.weapon_pad_useful(weapon),
+            super::PickupKind::Health => supplied && bot.hp < super::PLAYER_MAX_HP,
+            super::PickupKind::Armor => supplied && bot.armor < super::PLAYER_MAX_ARMOR,
+            super::PickupKind::Plate => supplied && bot.armor < super::PLATE_MAX_ARMOR,
+            _ => false,
+        };
+        let eta = bot.bot_senses.pad_eta(state, bot, index)?;
+        let distance = (pad.x - bot.x).hypot(pad.z - bot.z);
+        let travel = (distance / WAIT_COST) as u64;
+        (useful && eta <= travel.saturating_add(APPOINTMENT_SLACK + HEADING_SLACK)).then_some(
+            PadPlan {
+                feet: [pad.x, pad.floor, pad.z],
+                waiting: eta > 0 && distance < 1.5,
+                timed: false,
+                arms: false,
+                mend: false,
+            },
+        )
     }
 
     /// A pad worth a short detour off an objective route to `goal`, within
@@ -956,19 +1046,19 @@ impl BotController {
         // Pistol; a Rocket somebody dropped close by is worth the same. It
         // still shoots what it sees on the way.
         let walk_off = !visible || (observed_distance > APPOINTMENT_FIGHT && bot.hp >= HURT_HP);
+        let hunting = supplied && bot.bot_senses.hunt.quiet(state.tick);
         let appointment = walk_off
-            .then(|| self.pad_plan(state, bot, supplied, true))
+            .then(|| {
+                // A quiet round is hunted, not spent collecting every gun on
+                // the floor: only the pad the callsign times, a first real
+                // gun, or mending a worn body still comes first. The choice
+                // is made among those, never made and then refused.
+                self.pad_plan_admitting(state, bot, supplied, true, &|plan, _| {
+                    !hunting || plan.timed || plan.arms || plan.mend
+                })
+            })
             .flatten()
-            .filter(|plan| !visible || plan.timed || plan.arms)
-            // A quiet round is hunted, not spent collecting every gun on the
-            // floor: only the pad the callsign times, a first real gun, or
-            // mending a worn body still comes first.
-            .filter(|plan| {
-                !(supplied && bot.bot_senses.hunt.quiet(state.tick))
-                    || plan.timed
-                    || plan.arms
-                    || plan.mend
-            });
+            .filter(|plan| !visible || plan.timed || plan.arms);
         if let Some(observed) = observation.filter(|_| supplied && appointment.is_none()) {
             if !observed.visible {
                 let mut action = super::face_flag_goal(bot, observed.feet);
@@ -1000,16 +1090,20 @@ impl BotController {
         let clue = quarry.filter(|quarry| matches!(quarry, hunt::Quarry::Clue(_)));
         let quiet = supplied && hunt.quiet(state.tick);
         let top_up = || {
-            self.pad_plan(state, bot, supplied, false).filter(|plan| {
+            self.pad_plan_admitting(state, bot, supplied, false, &|plan, distance| {
                 !quiet
                     || plan.timed
                     || plan.arms
-                    || (!plan.waiting
-                        && (plan.feet[0] - bot.x).hypot(plan.feet[2] - bot.z)
-                            <= hunt::QUIET_PAD_REACH)
+                    || (!plan.waiting && distance <= hunt::QUIET_PAD_REACH)
             })
         };
-        let plan = appointment.or_else(|| if clue.is_some() { None } else { top_up() });
+        let plan = appointment.or_else(|| {
+            if clue.is_some() {
+                None
+            } else {
+                top_up().or_else(|| self.kept_errand(state, bot, supplied, visible))
+            }
+        });
         if let Some(PadPlan { feet, waiting, .. }) = plan {
             // Walking to an appointment past a fight still shoots what it
             // sees, the way an objective route does.
@@ -1126,19 +1220,31 @@ impl BotController {
         prefer: bool,
     ) -> BotIntent {
         let distance = (observed.feet[0] - bot.x).hypot(observed.feet[2] - bot.z);
+        let prefer = prefer && self.skill.profile().picks_gun;
         if prefer && !bot.inventory.reloading() && swap.is_none() {
             let preferred = preferred_weapon(self.behavior, self.habits(bot), bot, distance);
             if preferred != bot.weapon && bot.inventory.usable(preferred) {
                 swap = Some(preferred);
             }
         }
-        let rocket = (bot.weapon == WeaponType::Rocket && swap.is_none())
-            .then(|| rocket_aim(state, bot, &observed, distance));
+        let profile = self.skill.profile();
+        let rocket = (bot.weapon == WeaponType::Rocket && swap.is_none()).then(|| {
+            // A rung that does not lead aims where the body stands.
+            let observed = if profile.leads {
+                observed
+            } else {
+                Observation {
+                    velocity: [0.0, 0.0],
+                    ..observed
+                }
+            };
+            rocket_aim(state, bot, &observed, distance)
+        });
         let point = rocket.map_or(observed.chest, |aim| aim.point);
         let Some((yaw, pitch)) = crate::combat::aim_at(fighter_eye(bot), point) else {
             return BotIntent::default();
         };
-        let [yaw_error, pitch_error] = aim_error(bot.id, state.tick);
+        let [yaw_error, pitch_error] = aim_error_within(bot.id, state.tick, profile.aim_error);
         // The arcade enforcer keeps its precise long-lane role. Its eyes,
         // reaction and turn speed are still subject to the same gates.
         let precision = if self.behavior == BotBehavior::Compliance {
@@ -1148,7 +1254,7 @@ impl BotController {
         };
         // A fresh hit spoils the aim for a few ticks: shots go wide.
         let precision = if state.tick < bot.bot_senses.flinch_until {
-            precision * FLINCH_AIM
+            precision * profile.flinch
         } else {
             precision
         };
@@ -1161,7 +1267,9 @@ impl BotController {
             distance,
             difference,
             Action {
-                yaw: Some(bot.yaw + difference.clamp(-TURN_PER_TICK, TURN_PER_TICK)),
+                yaw: Some(
+                    bot.yaw + difference.clamp(-profile.turn_per_tick, profile.turn_per_tick),
+                ),
                 pitch: crate::combat::clamp_pitch(pitch + pitch_error * precision),
                 weapon_swap: swap,
                 ..Action::default()
@@ -1170,7 +1278,7 @@ impl BotController {
         intent.action.turn_left = false;
         intent.action.turn_right = false;
         intent.action.fire &= state.tick >= observed.ready_at
-            && difference.abs() <= TURN_PER_TICK + 0.03
+            && difference.abs() <= profile.turn_per_tick + 0.03
             && bot.inventory.usable(bot.weapon)
             && swap.is_none()
             // The Rocket's own splash: never fire it where the blast reaches
@@ -1230,7 +1338,7 @@ impl BotController {
                 && state.players.iter().any(|target| {
                     target.id == observed.id
                         && hostile(state, bot, target)
-                        && visible(state, bot, target)
+                        && visible(state, bot, target, self.skill.profile().sight_range)
                 })
         });
         action

@@ -104,6 +104,9 @@ const DEFAULTS: Dictionary = {
 	"host": {
 		"rotate": true,
 		"maps_off": [],
+		# The rule bots' rung (LocalHost.BOT_SKILLS); Regular is the league's
+		# ordinary night.
+		"bot_skill": "regular",
 	},
 	# The optional campaign score (CampaignScore): on or off, and the take
 	# chosen per slot while both takes ship. A missing slot plays take A.
@@ -236,6 +239,8 @@ func set_value(section: String, key: String, value: Variant) -> void:
 		value = clean_maps_off(value, fallback)
 	if path == "audio/benchmark_jingle":
 		value = BenchmarkJingle.clean_take(value)
+	if path == "host/bot_skill" and (not value is String or value not in LocalHost.BOT_SKILLS):
+		value = fallback
 	if path == "score/takes":
 		value = CampaignScore.clean_takes(value)
 	if path == "footsteps/take":

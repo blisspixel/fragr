@@ -1,0 +1,13 @@
+{
+  "comment": "The Run a match page with the bots' rung beside the bot policy: the default Regular, and No Crumbs picked. Menu only; any tour server will do.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "host_bot_skill", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "tdm",
+     "note": "Team deathmatch with fixed bots: Bot skill reads Regular under the bot policy."},
+    {"name": "host_bot_skill_top", "scene": "res://scenes/boot_menu.tscn", "at_seconds": 1.5, "camera": "none",
+     "menu_page": "host", "host_mode": "sabotage", "host_bot_skill": "no-crumbs",
+     "note": "Sabotage with the top rung picked."}
+  ]
+}

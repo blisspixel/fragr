@@ -222,6 +222,29 @@ struct Cli {
         "sabotage_contested", "campaign_survey"
     ])]
     rewind_matrix: bool,
+    /// Walking times over each map's navigation graph at top speed: the
+    /// corner to corner diagonals and, on the Sabotage maps, attackers and
+    /// defenders to each site and the defenders' rotation. Writes `--report`.
+    /// With --survey-map, one map. --assert fails a Sabotage time outside
+    /// its band (attackers 15 to 25 s, defenders 8 to 12 s, rotation 10 to 18 s).
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix"
+    ])]
+    map_timing: bool,
+    /// The rule bots' difficulty ladder: seeded Duels between every pair of
+    /// rungs on Larak Lot, Compliance Yard and Low Water, both seat orders
+    /// per seed (--survey-seeds from --seed). Writes `--report` and prints
+    /// the win matrix; --assert fails an adjacent step outside 65 to 80
+    /// percent, a skipped rung losing its book, or a rung dithering in 5
+    /// percent or more of its moving windows.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "map_timing"
+    ])]
+    bot_ladder: bool,
     /// With --rewind-matrix: trials per row.
     #[arg(long, requires = "rewind_matrix", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..=100_000))]
     rewind_trials: u32,
@@ -499,6 +522,115 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
     println!("log: {}", log.display());
 }
 
+fn map_timing_report(cli: &Cli) -> Result<(), String> {
+    use fragr_server::maps::timing;
+    let maps: Vec<fragr_server::sim::MapKind> = match &cli.survey_map {
+        Some(raw) => vec![fragr_server::sim::MapKind::from_cli(raw)
+            .ok_or_else(|| format!("invalid --survey-map {raw:?}"))?],
+        None => fragr_server::sim::MapKind::ALL.to_vec(),
+    };
+    let rows: Vec<timing::MapTiming> = maps.into_iter().map(timing::map_timing).collect();
+    write_report(&cli.report, &rows)?;
+    let show = |value: Option<f32>| value.map_or("none".to_string(), |s| format!("{s:.1}"));
+    println!("map timing at top speed, seconds");
+    let mut misses = Vec::new();
+    for row in &rows {
+        let corners: Vec<String> = row
+            .crossings
+            .iter()
+            .map(|leg| format!("{} to {} {}", leg.from, leg.to, show(leg.seconds)))
+            .collect();
+        println!("{}: corners {}", row.map, corners.join(", "));
+        if let Some(sab) = &row.sabotage {
+            println!(
+                "{}: sabotage attackers A {} B {} (bot route A {} B {}), defenders A {} B {}, rotation {}",
+                row.map,
+                show(sab.attackers[0]),
+                show(sab.attackers[1]),
+                show(sab.attack_route[0]),
+                show(sab.attack_route[1]),
+                show(sab.defenders[0]),
+                show(sab.defenders[1]),
+                show(sab.rotation),
+            );
+        }
+        misses.extend(timing::sabotage_misses(row));
+    }
+    for miss in &misses {
+        println!("threshold: {miss}");
+    }
+    println!("report: {}", cli.report.display());
+    if cli.assert && !misses.is_empty() {
+        return Err(format!("{} map timing misses", misses.len()));
+    }
+    Ok(())
+}
+
+fn ladder_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::ladder;
+    let config = ladder::LadderConfig {
+        seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
+        round_ticks: cli.time_limit_seconds.saturating_mul(20),
+        ..ladder::LadderConfig::default()
+    };
+    let report = ladder::run_ladder(&config);
+    write_report(&cli.report, &report)?;
+    println!(
+        "bot ladder: {} seeds on {}, {:.0} s Duels, both seats",
+        report.seeds.len(),
+        report.maps.join(", "),
+        report.round_seconds
+    );
+    for pair in &report.pairs {
+        println!(
+            "{} over {}: {:.0} percent of {} Duels ({} won, {} lost, {} level; frags {} to {})",
+            pair.higher,
+            pair.lower,
+            pair.higher_share * 100.0,
+            pair.duels,
+            pair.higher_wins,
+            pair.lower_wins,
+            pair.level,
+            pair.higher_frags,
+            pair.lower_frags
+        );
+    }
+    for rung in &report.rungs {
+        println!(
+            "{}: {:.1} frags/min, dither {:.1} percent of {} moving windows, sight to hit median {:.2} s (p25 {:.2}, p75 {:.2}, n {})",
+            rung.rung,
+            rung.frags_per_minute,
+            rung.dither_share * 100.0,
+            rung.moving_windows,
+            rung.sight_to_hit_s.median,
+            rung.sight_to_hit_s.p25,
+            rung.sight_to_hit_s.p75,
+            rung.sight_to_hit_s.count
+        );
+    }
+    let misses = ladder::check_ladder(&report);
+    for miss in &misses {
+        println!("threshold: {miss}");
+    }
+    println!("report: {}", cli.report.display());
+    if cli.assert && !misses.is_empty() {
+        return Err(format!("{} ladder misses", misses.len()));
+    }
+    Ok(())
+}
+
+fn write_report<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| format!("cannot create {}: {error}", parent.display()))?;
+        }
+    }
+    let json = serde_json::to_string_pretty(value).map_err(|error| error.to_string())?;
+    std::fs::write(path, format!("{json}\n"))
+        .map_err(|error| format!("cannot write {}: {error}", path.display()))
+}
+
 fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
     let finished = report.matches.iter().filter(|m| m.finished).count();
     println!(
@@ -564,6 +696,12 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
         tally(&report.detonations_by_site),
         tally(&report.defuses_by_site)
     );
+    let shares: Vec<String> = report
+        .attacker_share_by_site
+        .iter()
+        .map(|(site, share)| format!("{site} {:.0} percent", share * 100.0))
+        .collect();
+    println!("attackers won by site: {}", shares.join(", "));
 }
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
@@ -604,6 +742,32 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.rocket_damaging,
             row.plate_claims_per_3min,
             row.self_deaths
+        );
+        let contact = &row.respawn_to_contact_s;
+        let distances: Vec<String> = row
+            .kill_distance_m
+            .iter()
+            .map(|(weapon, metres)| {
+                format!(
+                    "{weapon} {:.1} m ({:.1} to {:.1}, n {})",
+                    metres.median, metres.p25, metres.p75, metres.count
+                )
+            })
+            .collect();
+        let hit = &row.respawn_to_hit_s;
+        println!(
+            "{}: respawn to contact median {:.1} s (p25 {:.1}, p75 {:.1}, n {}), to first hit {:.1} s (p25 {:.1}, p75 {:.1}), dither {:.1}% of {} moving windows; kill distance {}",
+            row.scenario,
+            contact.median,
+            contact.p25,
+            contact.p75,
+            contact.count,
+            hit.median,
+            hit.p25,
+            hit.p75,
+            row.dither_share * 100.0,
+            row.moving_windows,
+            distances.join(", ")
         );
         println!(
             "{}: {} guns dropped on death, {} taken ({} Rockets)",
@@ -763,8 +927,22 @@ async fn main() {
         }
         return;
     }
+    if cli.bot_ladder {
+        if let Err(error) = ladder_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.ledge_scan {
         if let Err(error) = ledge_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.map_timing {
+        if let Err(error) = map_timing_report(&cli) {
             eprintln!("error: {error}");
             std::process::exit(1);
         }

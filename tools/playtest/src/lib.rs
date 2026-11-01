@@ -22,12 +22,14 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
+pub mod ladder;
 pub mod link;
 pub mod peek;
 pub mod presentation;
 mod provenance;
 pub mod rewind;
 pub mod sabotage;
+pub mod sight;
 pub mod soak;
 pub mod traffic;
 
@@ -2627,6 +2629,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         bots: 0,
         bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
         fill_target: 0,
+        bot_skill: fragr_server::sim::BotSkill::default(),
         map: config.map,
         map_rotate: false,
         map_off: Vec::new(),

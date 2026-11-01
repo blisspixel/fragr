@@ -1706,3 +1706,21 @@ msgstr "4"
 
 msgid "M10_REPEATER_CASE"
 msgstr "REPEATER\nHOLD FIRE"
+
+msgid "HOST_BOT_SKILL"
+msgstr "Bot skill"
+
+msgid "HOST_SKILL_TOURIST"
+msgstr "Tourist"
+
+msgid "HOST_SKILL_WALK_IN"
+msgstr "Walk-in"
+
+msgid "HOST_SKILL_REGULAR"
+msgstr "Regular"
+
+msgid "HOST_SKILL_HEADLINER"
+msgstr "Headliner"
+
+msgid "HOST_SKILL_NO_CRUMBS"
+msgstr "No Crumbs"

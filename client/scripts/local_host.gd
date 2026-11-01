@@ -14,6 +14,9 @@ const PENDING_META: StringName = &"fragr_local_host_pending"
 const GAMEPLAY_VERSION: int = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
 ## Modes a desktop host can rotate, voting on the next map at the podium.
 const ROTATING_MODES: Array[String] = ["ffa", "tdm", "ctf"]
+## The rule bots' rungs, lowest first, as the server's --bot-skill takes them.
+const BOT_SKILLS: Array[String] = ["tourist", "walk-in", "regular", "headliner", "no-crumbs"]
+const DEFAULT_BOT_SKILL: String = "regular"
 
 var state: State = State.IDLE
 var url: String = ""
@@ -74,6 +77,8 @@ static func valid_settings(value: Variant) -> bool:
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false
+	if data.has("bot_skill") and (not data["bot_skill"] is String or data["bot_skill"] not in BOT_SKILLS):
+		return false
 	# Rotation with the podium's map vote, for a free-for-all, team or flag
 	# match. The start map stays in the rotation.
 	if data.has("rotate") and (not data["rotate"] is bool or (data["rotate"] and data["mode"] not in ROTATING_MODES)):
@@ -82,7 +87,7 @@ static func valid_settings(value: Variant) -> bool:
 		if not data["maps_off"] is Array or not data.get("rotate", false) or FragrSettings.clean_maps_off(data["maps_off"], []) != data["maps_off"] \
 			or (data["maps_off"] as Array).is_empty() or (data["maps_off"] as Array).has(data["map_id"]):
 			return false
-	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire", "rotate", "maps_off"]
+	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire", "rotate", "maps_off", "bot_skill"]
 	for k: Variant in data.keys():
 		if not k is String or k not in known_keys:
 			return false
@@ -97,6 +102,9 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		"--bot-policy", value["bot_policy"], "--fill-target", str(int(value["fill_target"]))])
 	if value["mode"] == "sabotage":
 		args.append("--sabotage-five-v-five")
+	if value.has("bot_skill"):
+		args.append("--bot-skill")
+		args.append(str(value["bot_skill"]))
 	if value.get("friendly_fire", false) and value["mode"] not in ["ffa", "duel"]:
 		args.append("--friendly-fire")
 	for mutator: Variant in value.get("mutators", []):

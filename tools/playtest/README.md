@@ -373,3 +373,40 @@ cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4
 The ordinary CTF `--assert` still requires pickups and captures. The split
 gates are described in
 [`ctf-socket-smoke.md`](../../docs/plans/ctf-socket-smoke.md).
+
+## Bot ladder and map timing
+
+`--bot-ladder` measures the rule bots' five rungs (`server/src/sim/bot_skill.rs`:
+tourist, walk-in, regular, headliner, no-crumbs). Every pair of rungs plays
+seeded 2-bot Duels on Larak Lot, Compliance Yard and Low Water, each seed twice
+with the seats swapped so a callsign's personality never decides the book; the
+winner is the one with more frags when the round clock ends. The report gives
+the win matrix, each rung's frags a minute, its sight-to-first-hit seconds and
+its dithering: four second windows with nobody in view that walk four metres or
+more and turn back on themselves twice (`src/sight.rs`). `--assert` fails an
+adjacent step outside 65 to 80 percent, a skipped rung that loses its book, or
+a rung dithering in 5 percent or more of its moving windows.
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --bot-ladder --survey-seeds 24 --seed 1 --time-limit-seconds 120 --assert --report .agents/playtest/ladder.json
+```
+
+`--map-timing` walks each map's navigation graph at the frozen top speed and
+prints the two corner to corner diagonals and, on Sector 9 and Low Water, the
+attackers' and defenders' mean walk from their spawns to each site, the rule
+bots' staged attack route and the defenders' site to site rotation
+(`server/src/maps/timing.rs`). `--survey-map` limits it to one map; `--assert`
+fails a Sabotage time outside the CS lineage bands (attackers 15 to 25 s,
+defenders 8 to 12 s, rotation 10 to 18 s).
+
+```bash
+cargo run -p fragr-playtest --release --locked -- --map-timing --report .agents/playtest/map-timing.json
+```
+
+`--bot-survey` rows also report respawn to contact (sight either way, or a
+landed shot), respawn to the first landed shot, kill distance by weapon
+(median and quartiles) and dithering. With `--survey-maps` the deathmatch
+rows print a `target:` line when the median spawn to first landed shot leaves
+6 to 15 s, and any row that dithers in 5 percent or more of its windows. The
+Sabotage survey runs numbered fighters, so a seed always plays the same match,
+and splits the attack's round share by the site it went for.

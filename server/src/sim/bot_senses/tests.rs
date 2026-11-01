@@ -17,7 +17,12 @@ fn pair(id: u128) -> (GameState, BotController) {
         player.weapon = WeaponType::Flechette;
     }
     state.spawn_shields.clear();
-    assert!(visible(&state, &state.players[0], &state.players[1]));
+    assert!(visible(
+        &state,
+        &state.players[0],
+        &state.players[1],
+        SIGHT_RANGE
+    ));
     (state, bot)
 }
 
@@ -409,10 +414,20 @@ fn bot_senses_sees_vehicle_occupant_and_seated_bot_sees_target() {
     let (mut state, bot) = pair(2);
     state.add_jeep([5.0, 0.0, 0.0], 0.0).unwrap();
     state.vehicles[0].state.driver = Some(state.players[1].id);
-    assert!(visible(&state, &state.players[0], &state.players[1]));
+    assert!(visible(
+        &state,
+        &state.players[0],
+        &state.players[1],
+        SIGHT_RANGE
+    ));
 
     state.vehicles[0].state.driver = Some(bot.player_id);
-    assert!(visible(&state, &state.players[0], &state.players[1]));
+    assert!(visible(
+        &state,
+        &state.players[0],
+        &state.players[1],
+        SIGHT_RANGE
+    ));
 }
 
 fn sides(state: &mut GameState, mode: GameMode) {
@@ -1235,4 +1250,240 @@ fn a_pad_already_set_off_for_is_kept_when_its_clock_runs_long() {
     // A combat goal ends it.
     state.note_bot_goal(bot.player_id, Some(NavigationGoal { feet, combat: true }));
     assert_ne!(plan(&state).map(|plan| plan.feet), Some(feet));
+}
+
+#[test]
+fn every_rung_reacts_inside_its_window_and_never_under_150_ms() {
+    for skill in BotSkill::ALL {
+        let profile = skill.profile();
+        let mut seen = std::collections::BTreeSet::new();
+        for tick in 0..400 {
+            let ready = reaction_for(&profile, Uuid::from_u128(7), Uuid::from_u128(11), tick);
+            let delay = ready - tick;
+            assert!(
+                delay >= crate::sim::bot_skill::REACTION_FLOOR,
+                "{skill:?} reacted in {delay} ticks"
+            );
+            assert!(delay * 50 >= 150);
+            assert!(
+                delay <= profile.reaction_min + profile.reaction_spread,
+                "{skill:?}"
+            );
+            seen.insert(delay);
+        }
+        // The draw covers the window rather than sitting on one value.
+        assert_eq!(seen.len() as u64, profile.reaction_spread + 1, "{skill:?}");
+    }
+    // The default rung keeps the surveyed 200 to 400 ms.
+    for tick in 0..100 {
+        let delay = reaction(Uuid::from_u128(3), Uuid::from_u128(4), tick) - tick;
+        assert!((4..=8).contains(&delay));
+    }
+}
+
+#[test]
+fn a_rung_sees_as_far_as_its_eyes_and_aims_inside_its_own_error() {
+    // A long clear line on Low Water's banks: the walk from one eye to the
+    // other chest passes no solid, so only the rung's reach decides.
+    let mut state = GameState::with_map(crate::sim::MapKind::LowWater, false);
+    state.seed(42);
+    state.start_round();
+    let bot = BotController::new(Uuid::from_u128(2), BotBehavior::Balanced);
+    state.add_player(bot.player_id, "Observer".into(), Role::Agent);
+    state.add_player(Uuid::from_u128(102), "Target".into(), Role::Human);
+    state.spawn_shields.clear();
+    let solids = state.current_arena().solids.clone();
+    let floor = |x: f32, z: f32| state.current_arena().support_height(x, z, 40.0);
+    let mut line = None;
+    'scan: for z in (-40..=40).step_by(2) {
+        for x in (-40..=-20).step_by(2) {
+            let (x, z) = (x as f32, z as f32);
+            let from = [x, floor(x, z), z];
+            let to = [x + 70.0, floor(x + 70.0, z), z];
+            if (from[1] - to[1]).abs() < 0.1
+                && crate::combat::line_of_sight(
+                    [from[0], from[1] + 1.6, from[2]],
+                    [to[0], to[1] + 1.2, to[2]],
+                    &solids,
+                )
+                && crate::combat::line_of_sight(
+                    [from[0] + 50.0, from[1] + 1.2, from[2]],
+                    [from[0], from[1] + 1.6, from[2]],
+                    &solids,
+                )
+            {
+                line = Some(from);
+                break 'scan;
+            }
+        }
+    }
+    let from = line.expect("Low Water has a 70 m clear line");
+    for (skill, distance, sees) in [
+        (BotSkill::Tourist, 50.0, false),
+        (BotSkill::Regular, 50.0, true),
+        (BotSkill::Regular, 70.0, false),
+        (BotSkill::NoCrumbs, 70.0, true),
+    ] {
+        let bot = bot.clone().with_skill(skill);
+        state.players[0].bot_senses = BotSenses::default();
+        for (player, x) in state.players.iter_mut().zip([from[0], from[0] + distance]) {
+            player.x = x;
+            player.z = from[2];
+            player.y = from[1] + PLAYER_FLOOR_Y;
+            player.yaw = 0.0;
+            player.hp = 100;
+            player.respawn_timer = None;
+        }
+        observe(&mut state, &bot, 2 * (distance as u64));
+        assert_eq!(
+            state.players[0]
+                .bot_senses
+                .target
+                .is_some_and(|t| t.visible),
+            sees,
+            "{skill:?} at {distance} m"
+        );
+    }
+    for skill in BotSkill::ALL {
+        let bound = skill.profile().aim_error;
+        for tick in 0..240 {
+            let error = aim_error_within(Uuid::from_u128(9), tick, bound);
+            assert!(
+                error.iter().all(|value| value.abs() <= bound + 1e-6),
+                "{skill:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_higher_rung_turns_faster_and_fires_sooner() {
+    let mut first_shot = Vec::new();
+    for skill in [BotSkill::Tourist, BotSkill::Regular, BotSkill::NoCrumbs] {
+        let (mut state, bot) = pair(2);
+        let bot = bot.with_skill(skill);
+        // The target stands well off the bot's nose, inside its cone.
+        state.players[1].z = 3.0;
+        assert!(visible(
+            &state,
+            &state.players[0],
+            &state.players[1],
+            SIGHT_RANGE
+        ));
+        observe(&mut state, &bot, 0);
+        let action = bot.update(&state);
+        let turned = angle_difference(action.yaw.unwrap(), state.players[0].yaw).abs();
+        assert!(turned <= skill.profile().turn_per_tick + 1e-5, "{skill:?}");
+        let mut fired = None;
+        for tick in 1..40 {
+            if let Some(yaw) = bot.update(&state).yaw {
+                state.players[0].yaw = yaw;
+            }
+            observe(&mut state, &bot, tick);
+            if bot.guard_sensed_action(&state, bot.update(&state)).fire {
+                fired = Some(tick);
+                break;
+            }
+        }
+        first_shot.push(fired.expect("every rung fires at a body in plain view"));
+    }
+    assert!(
+        first_shot[0] > first_shot[1] && first_shot[1] > first_shot[2],
+        "{first_shot:?}"
+    );
+}
+
+#[test]
+fn a_tourist_keeps_no_pad_clock_and_takes_the_gun_in_hand() {
+    let (state, bot) = pair(2);
+    assert!(bot.skill.profile().keeps_time && bot.skill.profile().picks_gun);
+    let tourist = bot.with_skill(BotSkill::Tourist);
+    let profile = tourist.skill.profile();
+    assert!(!profile.keeps_time && !profile.picks_gun && !profile.leads);
+    // Nothing in this arena is a timed appointment for a tourist.
+    let plan = tourist.pad_plan(&state, &state.players[0], true, true);
+    assert!(plan.is_none_or(|plan| !plan.timed));
+}
+
+#[test]
+fn a_refused_pad_never_wins_the_choice_it_would_lose_after() {
+    let (mut state, bot) = pair(2);
+    state.players[0].hp = 40;
+    let plain = bot.pad_plan(&state, &state.players[0], true, false);
+    let Some(plain) = plain else {
+        return;
+    };
+    // Refuse the pad the plain choice takes: the next best is chosen in its
+    // place rather than nothing, so the bot never walks toward a pad it
+    // will then refuse and turn back.
+    let refused = plain.feet;
+    let admitted = bot.pad_plan_admitting(&state, &state.players[0], true, false, &|plan, _| {
+        plan.feet != refused
+    });
+    if let Some(admitted) = admitted {
+        assert_ne!(admitted.feet, refused);
+    }
+    assert!(bot
+        .pad_plan_admitting(&state, &state.players[0], true, false, &|_, _| false)
+        .is_none());
+}
+
+#[test]
+fn a_pad_errand_is_kept_until_it_runs_out_or_somebody_shows() {
+    let (mut state, bot) = pair(2);
+    let id = state.players[0].id;
+    state.players[0].hp = 40;
+    let index = state
+        .pickups
+        .iter()
+        .position(|pad| pad.kind == crate::sim::PickupKind::Health)
+        .expect("the lot has health");
+    let pad = &state.pickups[index];
+    let feet = [pad.x, pad.floor, pad.z];
+    state.tick = 100;
+    state.note_bot_goal(
+        id,
+        Some(NavigationGoal {
+            feet,
+            combat: false,
+        }),
+    );
+    assert_eq!(
+        state.players[0].bot_senses.errand,
+        Some((index, 100 + ERRAND_TICKS))
+    );
+    let kept = bot.kept_errand(&state, &state.players[0], true, false);
+    assert_eq!(kept.map(|plan| plan.feet), Some(feet));
+    // Somebody in view breaks it, and so does a full body.
+    assert!(bot
+        .kept_errand(&state, &state.players[0], true, true)
+        .is_none());
+    state.players[0].hp = crate::sim::PLAYER_MAX_HP;
+    assert!(bot
+        .kept_errand(&state, &state.players[0], true, false)
+        .is_none());
+    state.players[0].hp = 40;
+    // A patrol goal chosen the next tick does not wipe the errand.
+    state.tick = 101;
+    state.note_bot_goal(
+        id,
+        Some(NavigationGoal {
+            feet: [0.0, 0.0, 0.0],
+            combat: false,
+        }),
+    );
+    assert_eq!(
+        state.players[0].bot_senses.errand,
+        Some((index, 100 + ERRAND_TICKS))
+    );
+    assert!(bot
+        .kept_errand(&state, &state.players[0], true, false)
+        .is_some());
+    state.tick = 100 + ERRAND_TICKS;
+    assert!(bot
+        .kept_errand(&state, &state.players[0], true, false)
+        .is_none());
+    // A new body starts with no errand.
+    state.players[0].bot_senses.forget_fighters();
+    assert!(state.players[0].bot_senses.errand.is_none());
 }

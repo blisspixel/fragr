@@ -4,6 +4,8 @@ pub(crate) mod assessor;
 pub(crate) mod blade;
 mod booth;
 mod bot_senses;
+pub mod bot_skill;
+pub use bot_skill::BotSkill;
 mod callouts;
 pub(crate) use bot_senses::guard::{guard_reaction, guard_sees};
 mod checkpoint;
@@ -5474,6 +5476,8 @@ fn trail_behind(carrier: [f32; 3], home: [f32; 3], enemy_stand: [f32; 3]) -> [f3
 pub struct BotController {
     pub player_id: Uuid,
     pub behavior: BotBehavior,
+    /// The rung this bot plays at (`bot_skill.rs`).
+    pub skill: BotSkill,
 }
 
 #[derive(Default)]
@@ -5497,7 +5501,13 @@ impl BotController {
         Self {
             player_id,
             behavior,
+            skill: BotSkill::default(),
         }
+    }
+
+    /// The same controller at another rung.
+    pub fn with_skill(self, skill: BotSkill) -> Self {
+        Self { skill, ..self }
     }
 
     /// Capture-the-flag goals for a side with at least three rule bots, with

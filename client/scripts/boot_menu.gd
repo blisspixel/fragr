@@ -67,6 +67,7 @@ var _host_rotation_maps: Dictionary[int, CheckButton] = {}
 const ROSTER_NAMES: Array[String] = ["Larak Lot", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works", "Holdfast Atoll", "Low Water"]
 var _host_bots: SpinBox
 var _host_bot_policy: OptionButton
+var _host_bot_skill: OptionButton
 var _host_bots_row: HBoxContainer
 var _host_bots_label: Label
 var _host_bot_hint: Label
@@ -1243,6 +1244,12 @@ func _page_host() -> void:
 	if _host_bot_selection != "none":
 		_host_bot_counts[_host_bot_selection] = _host_settings["fill_target"] if _host_bot_selection == "auto" else _host_settings["bots"]
 	_host_bot_policy.item_selected.connect(func(_index: int) -> void: _rebuild_host_bots(true))
+	# How good the bots are: the league's own ladder, Regular by default.
+	_host_bot_skill = _host_option(tr("HOST_BOT_SKILL"), "HostBotSkill")
+	for skill: String in LocalHost.BOT_SKILLS:
+		_host_bot_skill.add_item(tr(host_bot_skill_key(skill)))
+	var skill_saved: String = str(_host_settings.get("bot_skill", _settings.get_value("host", "bot_skill")))
+	_host_bot_skill.select(maxi(0, LocalHost.BOT_SKILLS.find(skill_saved)))
 	_host_bot_hint = _label(tr("HOST_FINITE_SEATS"))
 	_host_more = CheckButton.new()
 	_host_more.name = "HostMoreOptions"
@@ -1309,6 +1316,8 @@ func _rebuild_host_bots(remember: bool) -> void:
 			_host_auto_counts[_host_selected_mode] = int(_host_bots.value)
 	_host_bot_selection = ["fixed", "none", "auto"][_host_bot_policy.selected]
 	_host_bots_row.visible = _host_bot_selection != "none"
+	if _host_bot_skill != null:
+		_host_bot_skill.get_parent().visible = _host_bot_selection != "none"
 	_host_bots_label.text = tr("HOST_TOTAL_FIGHTERS" if _host_bot_selection == "auto" else "HOST_BOT_COUNT")
 	_host_bots.min_value = 1 if _host_bot_selection == "auto" else 0
 	# A duel has two seats: one fixed bot leaves the other for you, and
@@ -1316,6 +1325,10 @@ func _rebuild_host_bots(remember: bool) -> void:
 	_host_bots.max_value = (2 if _host_bot_selection == "auto" else 1) if _host_selected_mode == "duel" else 10
 	_host_bots.value = _host_bot_counts[_host_bot_selection] if _host_bot_selection != "none" else 0
 	_host_bot_hint.text = tr(host_bot_hint_key(_host_selected_mode, _host_bot_selection))
+
+## The translation key for a bot rung's name.
+static func host_bot_skill_key(skill: String) -> String:
+	return "HOST_SKILL_" + skill.to_upper().replace("-", "_")
 
 ## The line under the bot count for a mode and bot policy. Only Sabotage's
 ## five versus five shares ten fixed seats; Duel has its own two.
@@ -1447,17 +1460,18 @@ func _host_rotation_choice() -> Dictionary:
 	return choice
 
 func _save_host_rotation() -> void:
-	if _host_rotate == null or not _host_rotate.visible:
-		return
-	var off: Array = []
-	for map_id: int in _host_rotation_maps:
-		if not _host_rotation_maps[map_id].button_pressed:
-			off.append(map_id)
 	var draft: FragrSettings = _settings.draft()
-	draft.set_value("host", "rotate", _host_rotate.button_pressed)
-	draft.set_value("host", "maps_off", off)
+	if _host_bot_skill != null:
+		draft.set_value("host", "bot_skill", LocalHost.BOT_SKILLS[_host_bot_skill.selected])
+	if _host_rotate != null and _host_rotate.visible:
+		var off: Array = []
+		for map_id: int in _host_rotation_maps:
+			if not _host_rotation_maps[map_id].button_pressed:
+				off.append(map_id)
+		draft.set_value("host", "rotate", _host_rotate.button_pressed)
+		draft.set_value("host", "maps_off", off)
 	if _settings.commit(draft) != OK:
-		push_warning("The host rotation could not be saved.")
+		push_warning("The host choices could not be saved.")
 
 ## The preset row: five named rule packages, one pressed at a time. It sits
 ## under the map because picking the rules is part of picking the match.
@@ -1569,6 +1583,7 @@ func _start_host() -> void:
 		_host_settings["mutators"] = mutators
 	if _host_friendly_fire != null and _host_friendly_fire.visible and _host_friendly_fire.button_pressed:
 		_host_settings["friendly_fire"] = true
+	_host_settings["bot_skill"] = LocalHost.BOT_SKILLS[_host_bot_skill.selected]
 	_host_settings.merge(_host_rotation_choice())
 	_save_host_rotation()
 	_local_host.start_host(_host_settings)
