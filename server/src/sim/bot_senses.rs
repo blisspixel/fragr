@@ -106,6 +106,10 @@ struct Observation {
     id: Uuid,
     feet: [f32; 3],
     chest: [f32; 3],
+    /// The middle of the torso band for the stance the bot saw.
+    centre: [f32; 3],
+    /// The middle of the head band for the stance the bot saw.
+    head: [f32; 3],
     /// Ground velocity in metres a second, from two sightings in a row. Zero
     /// on a first sighting: a lead is only what the bot actually watched.
     velocity: [f32; 2],
@@ -208,6 +212,46 @@ fn aim_error(id: Uuid, tick: u64) -> [f32; 2] {
     aim_error_within(id, tick, AIM_ERROR)
 }
 
+/// Vertical aim error as a share of the rung's bound. A fighter's sight
+/// rides at a body's height far more steadily than it tracks a strafe, so a
+/// centre-mass aim strays into the head or the legs less often than it
+/// strays wide.
+pub(crate) const PITCH_SHARE: f32 = 0.5;
+
+/// The part of a body a rung puts its sight on for one engagement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AimZone {
+    /// The middle of the torso band (`combat::torso_centre`), the body's
+    /// widest: a gun's cone strays from it into the head or the legs alike.
+    CentreMass,
+    /// The middle of the head band (`combat::head_centre`).
+    Head,
+}
+
+/// Where a rung aims for this sighting. Drawn once per sighting (its
+/// `sighting` stamp is the reaction tick), from the bot and the target
+/// alone, at the rung's `head_aim` share; and only where the gun's cone keeps
+/// most of its shot on the head band from this eye (`combat::weak_point_fits`).
+/// A wide cone far off keeps centre mass, where most pellets still land.
+pub(crate) fn aim_zone(
+    profile: &SkillProfile,
+    bot: Uuid,
+    target: Uuid,
+    sighting: u64,
+    eye: [f32; 3],
+    head: [f32; 3],
+    weapon: WeaponType,
+) -> AimZone {
+    let draw =
+        mix(salt(bot) ^ salt(target).rotate_left(29) ^ sighting.wrapping_mul(0x9e37_79b9)) % 1000;
+    let chooses = (draw as f32) < profile.head_aim * 1000.0;
+    if chooses && crate::combat::weak_point_fits(eye, head, weapon.spread_radians()) {
+        AimZone::Head
+    } else {
+        AimZone::CentreMass
+    }
+}
+
 /// The rung's reaction after the observation, plus the staggered
 /// observation wait: 200 to 400 ms for a regular, never under 150 ms.
 fn reaction_for(profile: &SkillProfile, bot: Uuid, target: Uuid, tick: u64) -> u64 {
@@ -303,7 +347,9 @@ fn preferred_weapon(
         BotBehavior::Flanker if distance < 7.0 => &[Scatter, Flechette, Repeater],
         BotBehavior::Flanker => &[Rocket, Flechette, Repeater, rail],
         BotBehavior::Balanced if distance > 32.0 => &[Sniper, rail, Flechette],
-        BotBehavior::Balanced if distance > 24.0 => &[rail, Sniper, Rocket, Flechette],
+        BotBehavior::Balanced if distance > rail.preferred_range().0 => {
+            &[rail, Sniper, Rocket, Flechette]
+        }
         BotBehavior::Balanced if distance < 6.0 => &[Scatter, Flechette],
         BotBehavior::Balanced => &[Rocket, Flechette, Repeater],
     };
@@ -552,6 +598,8 @@ impl BotSenses {
                 id: target.id,
                 feet,
                 chest: fighter_chest(target),
+                centre: crate::combat::torso_centre(feet, target.campaign, target.ducking),
+                head: crate::combat::head_centre(feet, target.campaign, target.ducking),
                 velocity,
                 seen_at: state.tick,
                 ready_at,
@@ -566,6 +614,8 @@ impl BotSenses {
                 id: hurt.from,
                 feet: hurt.feet,
                 chest: [hurt.feet[0], hurt.feet[1] + 1.2, hurt.feet[2]],
+                centre: crate::combat::torso_centre(hurt.feet, None, false),
+                head: crate::combat::head_centre(hurt.feet, None, false),
                 velocity: [0.0, 0.0],
                 seen_at: hurt.at,
                 ready_at: reaction_for(profile, bot.id, hurt.from, state.tick),
@@ -1240,11 +1290,35 @@ impl BotController {
             };
             rocket_aim(state, bot, &observed, distance)
         });
-        let point = rocket.map_or(observed.chest, |aim| aim.point);
-        let Some((yaw, pitch)) = crate::combat::aim_at(fighter_eye(bot), point) else {
+        let eye = fighter_eye(bot);
+        let point = rocket.map_or_else(
+            || {
+                let zone = aim_zone(
+                    &profile,
+                    bot.id,
+                    observed.id,
+                    observed.ready_at,
+                    eye,
+                    observed.head,
+                    bot.weapon,
+                );
+                match zone {
+                    AimZone::Head => observed.head,
+                    AimZone::CentreMass => observed.centre,
+                }
+            },
+            |aim| aim.point,
+        );
+        let Some((yaw, pitch)) = crate::combat::aim_at(eye, point) else {
             return BotIntent::default();
         };
         let [yaw_error, pitch_error] = aim_error_within(bot.id, state.tick, profile.aim_error);
+        // The Rocket's shin aim was tuned on the full error (`ROCKET_AIM_HEIGHT`).
+        let pitch_error = if rocket.is_some() {
+            pitch_error
+        } else {
+            pitch_error * PITCH_SHARE
+        };
         // The arcade enforcer keeps its precise long-lane role. Its eyes,
         // reaction and turn speed are still subject to the same gates.
         let precision = if self.behavior == BotBehavior::Compliance {

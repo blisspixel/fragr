@@ -11,7 +11,7 @@ use fragr_server::protocol::{
 };
 use fragr_server::rules::RuleSet;
 use fragr_server::session::{GameSession, Recipient};
-use fragr_server::sim::{MapKind, MatchConfig};
+use fragr_server::sim::{BotSkill, MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
@@ -107,6 +107,8 @@ pub struct BotSurveyConfig {
     pub seeds: Vec<u64>,
     /// Live round length per match, ticks.
     pub round_ticks: u32,
+    /// The rung every surveyed bot plays at.
+    pub skill: BotSkill,
 }
 
 impl Default for BotSurveyConfig {
@@ -115,7 +117,20 @@ impl Default for BotSurveyConfig {
             scenarios: default_scenarios(),
             seeds: (1..5).collect(),
             round_ticks: 20 * 150,
+            skill: BotSkill::Regular,
         }
+    }
+}
+
+/// The survey's name for a struck zone, as the shared tables spell it.
+fn zone_name(zone: fragr_server::protocol::HitZone) -> &'static str {
+    use fragr_server::protocol::HitZone;
+    match zone {
+        HitZone::Head => "head",
+        HitZone::Torso => "torso",
+        HitZone::Legs => "legs",
+        HitZone::Plate => "plate",
+        HitZone::Weak => "weak",
     }
 }
 
@@ -175,6 +190,15 @@ pub struct ScenarioReport {
     /// Head kills as a share of kills that named a zone (hitscan kills).
     #[serde(default)]
     pub head_kill_share: f64,
+    /// Killing shots by the gun and the zone they struck. A Scatter blast
+    /// reports its most telling pellet, so one pellet in the head makes the
+    /// whole blast a head kill; the single-ray guns read aim.
+    #[serde(default)]
+    pub weapon_kill_zones: BTreeMap<String, BTreeMap<String, u64>>,
+    /// Head kills as a share of zoned kills by single-ray guns (every zoned
+    /// gun but the Scatter): the share the 1.0 bar's 15 to 35 percent reads.
+    #[serde(default)]
+    pub single_ray_head_kill_share: f64,
     /// Captures in CTF; Conquest sites changing hands.
     pub objective_events: u64,
     /// Claims of the power armour (the Custody Plate), per three live minutes.
@@ -378,6 +402,9 @@ pub fn check_lot_targets(row: &ScenarioReport) -> Vec<String> {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct BotSurveyReport {
     pub seeds: Vec<u64>,
+    /// The rung every bot played at.
+    #[serde(default)]
+    pub skill: String,
     pub round_seconds: f64,
     pub scenarios: Vec<ScenarioReport>,
 }
@@ -390,6 +417,8 @@ pub struct BotSurveyReport {
 #[derive(Default)]
 struct Tally {
     matches: u32,
+    /// Killing traced shots by weapon and zone.
+    weapon_kill_zones: BTreeMap<String, BTreeMap<String, u64>>,
     shared: MatchTally,
     volley_hits: u64,
     focus_frags: u64,
@@ -523,6 +552,7 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
     let mut report = BotSurveyReport {
         seeds: config.seeds.clone(),
         round_seconds: f64::from(config.round_ticks) / 20.0,
+        skill: config.skill.id().to_string(),
         scenarios: Vec::new(),
     };
     // Scenarios share nothing, so each folds on its own thread; the report
@@ -539,7 +569,13 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
                 scope.spawn(move || {
                     let mut tally = Tally::default();
                     for &seed in &config.seeds {
-                        survey_match(*scenario, seed, config.round_ticks, &mut tally);
+                        survey_match(
+                            *scenario,
+                            seed,
+                            config.round_ticks,
+                            config.skill,
+                            &mut tally,
+                        );
                     }
                     *slot = Some(fold(scenario, &tally));
                 });
@@ -644,7 +680,19 @@ fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
     use fragr_server::fun_metrics::{per_minute, share};
     let live = tally.shared.live_ticks;
     let base = shared_row(scenario.label(), tally.matches, &tally.shared);
+    let (single_head, single_all) = tally
+        .weapon_kill_zones
+        .iter()
+        .filter(|(weapon, _)| weapon.as_str() != WeaponType::Scatter.name())
+        .fold((0, 0), |(head, all), (_, zones)| {
+            (
+                head + zones.get("head").copied().unwrap_or(0),
+                all + zones.values().sum::<u64>(),
+            )
+        });
     ScenarioReport {
+        weapon_kill_zones: tally.weapon_kill_zones.clone(),
+        single_ray_head_kill_share: share(single_head, single_all),
         volley_hits: tally.volley_hits,
         volley_hit_share: share(tally.volley_hits, base.hits),
         focus_frags: tally.focus_frags,
@@ -787,7 +835,13 @@ pub fn check_map_targets(row: &ScenarioReport, mode: GameMode) -> Vec<String> {
     misses
 }
 
-fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tally) {
+fn survey_match(
+    scenario: Scenario,
+    seed: u64,
+    round_ticks: u32,
+    skill: BotSkill,
+    tally: &mut Tally,
+) {
     let Some(map) = MapKind::ALL
         .iter()
         .copied()
@@ -812,6 +866,7 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         rules,
         ..MatchConfig::default()
     });
+    session.set_bot_skill(skill);
     session.spawn_bots(scenario.bots);
     // Side calls go only to their side and the booth, so the survey listens
     // from one booth seat that holds no fighter.
@@ -902,6 +957,22 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         for message in &messages {
             observer.message(&session, message);
             let live = observer.live();
+            if let ServerMessage::Snapshot(snapshot) = message {
+                for shot in snapshot
+                    .shot_results
+                    .iter()
+                    .filter(|shot| live && shot.killed)
+                {
+                    if let (Some(trace), Some(zone)) = (&shot.trace, shot.zone) {
+                        *tally
+                            .weapon_kill_zones
+                            .entry(trace.weapon.name().to_string())
+                            .or_default()
+                            .entry(zone_name(zone).to_string())
+                            .or_default() += 1;
+                    }
+                }
+            }
             let ServerMessage::Event(event) = message else {
                 continue;
             };
@@ -1044,6 +1115,7 @@ mod tests {
             }],
             seeds: vec![3],
             round_ticks: 20 * 60,
+            ..BotSurveyConfig::default()
         });
         let row = &report.scenarios[0];
         assert_eq!(row.matches, 1);
@@ -1071,6 +1143,7 @@ mod tests {
             }],
             seeds: vec![1, 2],
             round_ticks: 20 * 150,
+            ..BotSurveyConfig::default()
         });
         let row = &report.scenarios[0];
         assert!(row.side_calls_per_minute > 0.0, "{row:?}");
@@ -1139,6 +1212,7 @@ mod tests {
             scenarios: vec![lot_scenario()],
             seeds: vec![5],
             round_ticks: 20 * 30,
+            ..BotSurveyConfig::default()
         };
         assert_eq!(run_bot_survey(&config), run_bot_survey(&config));
     }
@@ -1276,6 +1350,7 @@ mod tests {
             ],
             seeds: vec![1],
             round_ticks: 20 * 120,
+            ..BotSurveyConfig::default()
         });
         let ffa = &report.scenarios[0];
         assert!(ffa.lead_changes > 0, "{ffa:?}");

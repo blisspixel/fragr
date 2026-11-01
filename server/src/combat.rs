@@ -443,6 +443,33 @@ pub fn weak_point(
     ) {
         return None;
     }
+    Some(head_centre(feet, identity, ducking))
+}
+
+/// The middle of a body's torso band for its stance: halfway between the leg
+/// gate and the head gate [`band_for`] reads, dropped with a crouch. Where an
+/// aimer that goes for centre mass puts its sight, so a gun's cone strays
+/// into the head or the legs about as often. A short body has one point.
+pub fn torso_centre(feet: [f32; 3], identity: Option<CampaignActor>, ducking: bool) -> [f32; 3] {
+    if short_body(identity) {
+        return aim_point(feet, identity);
+    }
+    let drop = if ducking {
+        crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT
+    } else {
+        0.0
+    };
+    [
+        feet[0],
+        feet[1] + (LEG_GATE + HEAD_GATE) * 0.5 - drop,
+        feet[2],
+    ]
+}
+
+/// The middle of a body's head band for its stance: halfway between the gate
+/// [`head_hit_for`] reads and the crown. Where an aimer that goes for the
+/// head puts its sight, on a fighter or a campaign body alike.
+pub fn head_centre(feet: [f32; 3], identity: Option<CampaignActor>, ducking: bool) -> [f32; 3] {
     let crown = body_height(identity, ducking);
     let gate = if short_body(identity) {
         target_height(identity) * 0.75
@@ -451,7 +478,7 @@ pub fn weak_point(
     } else {
         HEAD_GATE
     };
-    Some([feet[0], feet[1] + (gate + crown) * 0.5, feet[2]])
+    [feet[0], feet[1] + (gate + crown) * 0.5, feet[2]]
 }
 
 /// `feet` is the world position of the feet.
