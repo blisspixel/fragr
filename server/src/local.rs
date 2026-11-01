@@ -269,6 +269,7 @@ impl ArenaReady {
 
 fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     options.validate_bot_policy().map_err(io::Error::other)?;
+    crate::run::checked_rotation(options).map_err(io::Error::other)?;
     let address: SocketAddr = options.bind.parse().map_err(|_| {
         io::Error::other("desktop host requires an IPv4 loopback or wildcard address")
     })?;
@@ -373,6 +374,7 @@ pub async fn serve_ready_line(
 
 fn validate_ready_address(options: &ServerOptions) -> io::Result<SocketAddr> {
     options.validate_bot_policy().map_err(io::Error::other)?;
+    crate::run::checked_rotation(options).map_err(io::Error::other)?;
     let address: SocketAddr = options.bind.parse().map_err(|_| {
         io::Error::other("ready line requires an IPv4 loopback or wildcard address")
     })?;
