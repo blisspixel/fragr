@@ -861,7 +861,7 @@ fn tools_list_body() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, and the round. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, rivals it only hears (HEARD, a rough place, never a target), and the round. A fighter receives only what it could perceive, the same as a human fighter: a rival it cannot see or hear is a hidden row with no place. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -1213,6 +1213,28 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         });
         threats.truncate(8);
     }
+    // What the fighter hears but cannot see (gameplay 66): a rough place,
+    // never a target. The server already withheld everything else.
+    let mut heard: Vec<(Uuid, String, f32, i32)> = Vec::new();
+    if let Some(me) = me {
+        for other in &snapshot.players {
+            let Some(at) = other.heard_at().filter(|_| me.is_rival_of(other)) else {
+                continue;
+            };
+            let (dx, dz) = (at[0] - me.x, at[2] - me.z);
+            let dist = dx.hypot(dz);
+            if dist.is_finite() {
+                heard.push((
+                    other.id,
+                    other.name.clone(),
+                    dist,
+                    dz.atan2(dx).to_degrees().round() as i32,
+                ));
+            }
+        }
+        heard.sort_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)));
+        heard.truncate(8);
+    }
     let recent_damage = me
         .map(|player| recent_damage_on(state, player.id))
         .unwrap_or(0);
@@ -1220,7 +1242,8 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         let mut best = 0u32;
         if let Some(me) = me {
             for other in &snapshot.players {
-                if me.is_hostile_to(other) {
+                // The board counts every rival, seen or not.
+                if me.is_rival_of(other) {
                     best = best.max(other.score);
                 }
             }
@@ -1339,6 +1362,11 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             ));
         }
     }
+    for (id, name, dist, bearing) in &heard {
+        text.push_str(&format!(
+            "HEARD id={id} name={name} dist~{dist:.0} bearing~{bearing}\n"
+        ));
+    }
     text.push_str(&format!(
         "PADS health={} armor={}",
         dist_text(nearest("health")),
@@ -1394,6 +1422,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         "detail": "brief",
         "self": self_json,
         "threats": threat_json,
+        "heard": heard.iter().map(|(id, name, dist, bearing)| serde_json::json!({"id": id.to_string(), "name": name, "dist": dist, "bearing": bearing})).collect::<Vec<_>>(),
         "pads": {
             "health": nearest("health"),
             "armor": nearest("armor"),

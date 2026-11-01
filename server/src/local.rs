@@ -1117,6 +1117,10 @@ mod tests {
             crate::protocol::GAMEPLAY_VERSION,
             crate::protocol::FUN_METRICS_GAMEPLAY_VERSION
         );
+        assert_eq!(
+            crate::protocol::GAMEPLAY_VERSION,
+            crate::protocol::INTEREST_GAMEPLAY_VERSION
+        );
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).
         for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {

@@ -592,6 +592,199 @@ pub fn line_of_sight(origin: [f32; 3], target: [f32; 3], solids: &[Solid]) -> bo
         })
 }
 
+/// [`line_of_sight`] through a uniform floor-plan grid of the same solids,
+/// for callers that trace many lines a tick (`crate::interest`). It tests
+/// only the solids whose footprint touches a cell the line crosses, and
+/// answers exactly as `line_of_sight` does over the whole list.
+#[derive(Debug, Clone)]
+pub struct SightGrid {
+    solids: Vec<Solid>,
+    min: [f32; 2],
+    max: [f32; 2],
+    dims: [usize; 2],
+    cells: Vec<Vec<u32>>,
+    key: u64,
+}
+
+impl SightGrid {
+    /// Cell side, metres.
+    const CELL: f32 = 4.0;
+    /// A footprint is filed into every cell it reaches past this margin, so
+    /// rounding at a cell edge never skips a solid.
+    const SLACK: f32 = 0.1;
+
+    /// An identity for a solid list: equal lists give equal keys.
+    pub fn key_of(solids: &[Solid]) -> u64 {
+        let mut key = 0xcbf2_9ce4_8422_2325_u64 ^ solids.len() as u64;
+        for solid in solids {
+            for value in [
+                solid.min_x,
+                solid.max_x,
+                solid.min_z,
+                solid.max_z,
+                solid.bottom,
+                solid.top,
+            ] {
+                key = (key ^ u64::from(value.to_bits())).wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        key
+    }
+
+    pub fn new(solids: &[Solid]) -> Self {
+        let mut min = [f32::INFINITY; 2];
+        let mut max = [f32::NEG_INFINITY; 2];
+        let finite: Vec<Solid> = solids
+            .iter()
+            .filter(|s| {
+                [s.min_x, s.max_x, s.min_z, s.max_z]
+                    .iter()
+                    .all(|v| v.is_finite())
+            })
+            .cloned()
+            .collect();
+        for solid in &finite {
+            min = [min[0].min(solid.min_x), min[1].min(solid.min_z)];
+            max = [max[0].max(solid.max_x), max[1].max(solid.max_z)];
+        }
+        if finite.is_empty() {
+            min = [0.0; 2];
+            max = [0.0; 2];
+        }
+        min = min.map(|v| v - Self::SLACK);
+        max = max.map(|v| v + Self::SLACK);
+        let dims = [0, 1]
+            .map(|axis| (((max[axis] - min[axis]) / Self::CELL).ceil() as usize).clamp(1, 4096));
+        let mut cells = vec![Vec::new(); dims[0] * dims[1]];
+        let grid = |value: f32, axis: usize, dims: [usize; 2], min: [f32; 2]| {
+            (((value - min[axis]) / Self::CELL).floor().max(0.0) as usize).min(dims[axis] - 1)
+        };
+        for (index, solid) in finite.iter().enumerate() {
+            let x0 = grid(solid.min_x - Self::SLACK, 0, dims, min);
+            let x1 = grid(solid.max_x + Self::SLACK, 0, dims, min);
+            let z0 = grid(solid.min_z - Self::SLACK, 1, dims, min);
+            let z1 = grid(solid.max_z + Self::SLACK, 1, dims, min);
+            for x in x0..=x1 {
+                for z in z0..=z1 {
+                    cells[z * dims[0] + x].push(index as u32);
+                }
+            }
+        }
+        Self {
+            key: Self::key_of(solids),
+            solids: finite,
+            min,
+            max,
+            dims,
+            cells,
+        }
+    }
+
+    pub fn key(&self) -> u64 {
+        self.key
+    }
+
+    fn cell(&self, value: f32, axis: usize) -> usize {
+        (((value - self.min[axis]) / Self::CELL).floor().max(0.0) as usize).min(self.dims[axis] - 1)
+    }
+
+    /// Exactly [`line_of_sight`] over the solids this grid was built from.
+    pub fn line_of_sight(&self, origin: [f32; 3], target: [f32; 3]) -> bool {
+        if origin.iter().chain(target.iter()).any(|v| !v.is_finite()) {
+            return false;
+        }
+        let delta: [f64; 3] = std::array::from_fn(|i| f64::from(target[i]) - f64::from(origin[i]));
+        let length = delta.iter().map(|v| v * v).sum::<f64>().sqrt();
+        if length == 0.0 {
+            return true;
+        }
+        let distance = length as f32;
+        if !distance.is_finite() {
+            return false;
+        }
+        let ray = Ray {
+            origin,
+            direction: delta.map(|v| (v / length) as f32),
+        };
+        if ray.floor(distance).is_some_and(|t| t < distance) {
+            return false;
+        }
+        // The share of the line inside the grid's rectangle.
+        let (o, d) = (
+            [origin[0], origin[2]],
+            [target[0] - origin[0], target[2] - origin[2]],
+        );
+        let (mut t0, mut t1) = (0.0_f32, 1.0_f32);
+        for axis in 0..2 {
+            if d[axis] == 0.0 {
+                if o[axis] < self.min[axis] || o[axis] > self.max[axis] {
+                    return true;
+                }
+            } else {
+                let a = (self.min[axis] - o[axis]) / d[axis];
+                let b = (self.max[axis] - o[axis]) / d[axis];
+                t0 = t0.max(a.min(b));
+                t1 = t1.min(a.max(b));
+            }
+        }
+        if t0 > t1 {
+            return true;
+        }
+        let at = |t: f32| [o[0] + d[0] * t, o[1] + d[1] * t];
+        let (start, end) = (at(t0), at(t1));
+        let mut cell = [self.cell(start[0], 0), self.cell(start[1], 1)];
+        let last = [self.cell(end[0], 0), self.cell(end[1], 1)];
+        let mut step = [0_isize; 2];
+        let mut next = [f32::INFINITY; 2];
+        let mut span = [f32::INFINITY; 2];
+        for axis in 0..2 {
+            if d[axis] > 0.0 {
+                step[axis] = 1;
+                next[axis] =
+                    (self.min[axis] + (cell[axis] + 1) as f32 * Self::CELL - o[axis]) / d[axis];
+                span[axis] = Self::CELL / d[axis];
+            } else if d[axis] < 0.0 {
+                step[axis] = -1;
+                next[axis] = (self.min[axis] + cell[axis] as f32 * Self::CELL - o[axis]) / d[axis];
+                span[axis] = -Self::CELL / d[axis];
+            }
+        }
+        // Solids already tested on this line: a wall files into many cells.
+        // Past the buffer a solid may be tested twice, which only costs time.
+        let mut tested = [0_u32; 32];
+        let mut count = 0_usize;
+        let mut blocked = |index: u32| {
+            if tested[..count].contains(&index) {
+                return false;
+            }
+            if count < tested.len() {
+                tested[count] = index;
+                count += 1;
+            }
+            ray.solid(&self.solids[index as usize], distance)
+                .is_some_and(|hit| hit.distance < distance)
+        };
+        for _ in 0..self.dims[0] + self.dims[1] + 2 {
+            for index in &self.cells[cell[1] * self.dims[0] + cell[0]] {
+                if blocked(*index) {
+                    return false;
+                }
+            }
+            if cell == last {
+                break;
+            }
+            let axis = usize::from(next[1] < next[0]);
+            let moved = cell[axis] as isize + step[axis];
+            if moved < 0 || moved as usize >= self.dims[axis] {
+                break;
+            }
+            cell[axis] = moved as usize;
+            next[axis] += span[axis];
+        }
+        true
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Ray {
     pub(crate) origin: [f32; 3],
@@ -807,6 +1000,54 @@ fn clip_slab(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_sight_grid_answers_exactly_as_the_whole_solid_list() {
+        let mut seed = 0x9e37_79b9_7f4a_7c15_u64;
+        let mut unit = move || {
+            seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+            (seed >> 40) as f32 / (1u64 << 24) as f32
+        };
+        let mut blocked = 0;
+        for map in crate::sim::MapKind::ALL {
+            let arena = crate::maps::arena(map);
+            let grid = SightGrid::new(&arena.solids);
+            assert_eq!(grid.key(), SightGrid::key_of(&arena.solids));
+            let reach = arena.half * 1.1;
+            for _ in 0..4000 {
+                let mut point = || {
+                    [
+                        (unit() * 2.0 - 1.0) * reach,
+                        unit() * 8.0,
+                        (unit() * 2.0 - 1.0) * reach,
+                    ]
+                };
+                let (origin, target) = (point(), point());
+                let whole = line_of_sight(origin, target, &arena.solids);
+                blocked += usize::from(!whole);
+                assert_eq!(
+                    grid.line_of_sight(origin, target),
+                    whole,
+                    "{map:?} {origin:?} {target:?}"
+                );
+            }
+            // Lines along an axis and through a cell corner.
+            for (origin, target) in [
+                ([-reach, 1.6, 0.0], [reach, 1.6, 0.0]),
+                ([0.0, 1.6, -reach], [0.0, 1.6, reach]),
+                ([-reach, 1.6, -reach], [reach, 1.6, reach]),
+                ([4.0, 1.6, 4.0], [4.0, 1.6, 4.0]),
+            ] {
+                assert_eq!(
+                    grid.line_of_sight(origin, target),
+                    line_of_sight(origin, target, &arena.solids)
+                );
+            }
+        }
+        assert!(blocked > 1000, "the sample crosses cover: {blocked}");
+        assert!(SightGrid::new(&[]).line_of_sight([0.0, 1.0, 0.0], [5.0, 1.0, 5.0]));
+        assert!(!SightGrid::new(&[]).line_of_sight([0.0, f32::NAN, 0.0], [5.0, 1.0, 5.0]));
+    }
 
     fn ray(origin: [f32; 3], direction: [f32; 3]) -> Ray {
         Ray { origin, direction }

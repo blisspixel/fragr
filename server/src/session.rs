@@ -59,6 +59,8 @@ pub struct GameSession {
     /// Live socket for a fighter. Empty while the pawn is only parked.
     live_client: HashMap<Uuid, Uuid>,
     spectators: HashMap<Uuid, SpectatorSeat>,
+    /// What each connected fighter could perceive (`crate::interest`).
+    pub interest: crate::interest::Interest,
     venue_said_tick: Option<u64>,
     pub(crate) sheet: crate::sheet::NightSheet,
     board: crate::board::Board,
@@ -151,6 +153,7 @@ impl GameSession {
             fighter_peers: HashMap::new(),
             live_client: HashMap::new(),
             spectators: HashMap::new(),
+            interest: crate::interest::Interest::default(),
             venue_said_tick: None,
             sheet: crate::sheet::NightSheet::default(),
             board: crate::board::Board::default(),
@@ -1161,6 +1164,35 @@ impl GameSession {
     }
 
     /// Connections that watch and hold no fighter: the booth's audience.
+    /// Each connected fighter's own view of this tick's world, keyed by its
+    /// connection (`crate::interest`). A connection left out receives the
+    /// tick's broadcast: spectators, campaign readers and fighters who see
+    /// everybody.
+    pub fn interest_views(
+        &mut self,
+        broadcasts: &[Arc<crate::net::Broadcast>],
+    ) -> serde_json::Result<HashMap<Uuid, Arc<crate::net::Broadcast>>> {
+        self.interest
+            .observe(broadcasts.iter().map(|broadcast| broadcast.message()));
+        let Some(world) = broadcasts
+            .iter()
+            .find(|broadcast| matches!(broadcast.message(), ServerMessage::Snapshot(_)))
+        else {
+            return Ok(HashMap::new());
+        };
+        let ServerMessage::Snapshot(snapshot) = world.message() else {
+            return Ok(HashMap::new());
+        };
+        let readers: Vec<Uuid> = self.client_to_player.values().copied().collect();
+        let views = self.interest.views(&self.state, snapshot, &readers);
+        let by_reader = crate::interest::encode_views(world, &views)?;
+        Ok(self
+            .client_to_player
+            .iter()
+            .filter_map(|(client, player)| Some((*client, Arc::clone(by_reader.get(player)?))))
+            .collect())
+    }
+
     pub fn spectator_ids(&self) -> std::collections::HashSet<Uuid> {
         self.spectators
             .keys()
@@ -1292,10 +1324,22 @@ pub async fn broadcast_to_clients(
     broadcasts: &[Arc<crate::net::Broadcast>],
     spectators: &std::collections::HashSet<Uuid>,
 ) -> DeliveryStats {
+    broadcast_views_to_clients(clients, broadcasts, spectators, &HashMap::new()).await
+}
+
+/// [`broadcast_to_clients`], with each fighter connection in `views`
+/// receiving its own view in place of the tick's world (`crate::interest`).
+pub async fn broadcast_views_to_clients(
+    clients: &Arc<Mutex<Vec<ClientSession>>>,
+    broadcasts: &[Arc<crate::net::Broadcast>],
+    spectators: &std::collections::HashSet<Uuid>,
+    views: &HashMap<Uuid, Arc<crate::net::Broadcast>>,
+) -> DeliveryStats {
     let mut stats = DeliveryStats::default();
     let mut clients_lock = clients.lock().await;
     for broadcast in broadcasts {
         let booth = broadcast.audience() == crate::net::Audience::Spectators;
+        let world = matches!(broadcast.message(), ServerMessage::Snapshot(_));
         for client in clients_lock
             .iter_mut()
             .filter(|client| client.initialized && (!booth || spectators.contains(&client.id)))
@@ -1308,7 +1352,11 @@ pub async fn broadcast_to_clients(
                     }
                 }
             }
-            queue_for_client(client, Arc::clone(broadcast).into(), &mut stats);
+            let sent = world
+                .then(|| views.get(&client.id))
+                .flatten()
+                .unwrap_or(broadcast);
+            queue_for_client(client, Arc::clone(sent).into(), &mut stats);
         }
     }
     stats

@@ -896,6 +896,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
             collidable: true,
             campaign: None,
             ping: None,
+            sense: None,
         }],
         round_state: Some("Active".into()),
         round_time_left: None,

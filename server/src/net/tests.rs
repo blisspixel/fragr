@@ -3162,3 +3162,61 @@ async fn a_passed_seat_closes_with_its_code_and_forgets_the_resume_token() {
     );
     accept.abort();
 }
+
+#[tokio::test]
+async fn a_byte_flood_of_large_frames_is_rate_limited_under_the_message_rate() {
+    let (tx, mut commands) = game_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    // Sixty frames of 60 KiB: well under 256 messages a second, far over the
+    // byte budget. Each is a readable action, so none of it is junk.
+    let padding = "x".repeat(60 * 1024);
+    let heavy = format!(r#"{{"type":"action","forward":true,"note":"{padding}"}}"#);
+    for _ in 0..60 {
+        if fighter.send(Message::Text(heavy.clone())).await.is_err() {
+            break;
+        }
+    }
+    let mut actions = 0;
+    loop {
+        match next_command(&mut commands).await {
+            GameCommand::Action { .. } => actions += 1,
+            GameCommand::Disconnected { id: gone } => {
+                assert_eq!(gone, id, "a byte flood removes the pawn");
+                break;
+            }
+            _ => panic!("unexpected command"),
+        }
+    }
+    assert!(
+        actions <= 8,
+        "the byte budget passed {actions} heavy frames"
+    );
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(
+        (code.as_str(), reason.as_str()),
+        ("rate_limited", "rate_limited")
+    );
+    accept.abort();
+}
+
+#[test]
+fn the_inbound_budget_counts_messages_and_bytes_apart() {
+    let mut budget = InboundBudget::new();
+    // Four whole frames fit the burst; the fifth waits for the rate.
+    for _ in 0..4 {
+        assert_eq!(budget.allow(MAX_FRAME_BYTES), Budgeted::Allowed);
+    }
+    assert_eq!(budget.allow(MAX_FRAME_BYTES), Budgeted::TooLarge);
+    // Small actions still pass while the byte bucket refills.
+    let mut small = InboundBudget::new();
+    for _ in 0..INBOUND_BURST as usize {
+        assert_eq!(small.allow(300), Budgeted::Allowed);
+    }
+    assert_eq!(small.allow(300), Budgeted::TooMany);
+}

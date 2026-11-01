@@ -491,6 +491,7 @@ fn test_protocol_snapshot_serialization() {
             damage: 0,
             weapon: "Flechette".to_string(),
             ping: None,
+            sense: None,
         }],
         round_state: Some("Active".to_string()),
         round_time_left: Some(60),

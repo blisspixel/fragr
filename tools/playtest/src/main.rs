@@ -295,9 +295,47 @@ struct Cli {
         "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
         "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
         "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan",
-        "fun_metrics"
+        "fun_metrics", "interest_survey"
     ])]
     fun_summary: Option<PathBuf>,
+    /// Pop-in at corners under interest filtering (gameplay 66): seeded rule
+    /// bot matches on every arena map with every bot read as a fighter at
+    /// each round trip; counts bodies that turn visible before their row is
+    /// drawn. Writes `--report` and prints the table; `--assert` fails a map
+    /// over 1 percent late at 100 ms or less.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan", "peek_probe"
+    ])]
+    interest_survey: bool,
+    /// With --interest-survey: the round trips, milliseconds.
+    #[arg(long, requires = "interest_survey", value_delimiter = ',', default_values_t = fragr_playtest::interest::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
+    interest_rtt: Vec<u32>,
+    /// With --interest-survey: a world may arrive up to this many ticks late.
+    #[arg(long, requires = "interest_survey", default_value_t = 0, value_parser = clap::value_parser!(u64).range(0..=10))]
+    interest_jitter: u64,
+    /// With --interest-survey: seconds per match.
+    #[arg(long, requires = "interest_survey", default_value_t = 120, value_parser = clap::value_parser!(u32).range(5..=3600))]
+    interest_seconds: u32,
+}
+
+fn interest_report(cli: &Cli) -> Result<(), String> {
+    use fragr_playtest::interest;
+    let report = interest::run(
+        &fragr_server::sim::MapKind::ALL,
+        &cli.interest_rtt,
+        cli.interest_jitter,
+        cli.interest_seconds,
+        cli.seed,
+    );
+    print!("{}", interest::table(&report));
+    write_json(&cli.report, &report)?;
+    let problems = interest::check(&report);
+    if cli.assert && !problems.is_empty() {
+        return Err(problems.join("; "));
+    }
+    Ok(())
 }
 
 async fn peek_report(cli: &Cli) -> Result<(), String> {
@@ -965,6 +1003,13 @@ async fn main() {
     }
     if cli.bot_ladder {
         if let Err(error) = ladder_report(&cli) {
+            eprintln!("error: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.interest_survey {
+        if let Err(error) = interest_report(&cli) {
             eprintln!("error: {error}");
             std::process::exit(1);
         }

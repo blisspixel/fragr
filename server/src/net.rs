@@ -144,10 +144,13 @@ impl SentWorld {
             return whole;
         }
         self.held = Some(Arc::clone(broadcast));
+        // The tick's delta is from the tick's previous world. A reader that
+        // holds a fighter's view of that tick holds a different world.
+        let held_whole = held.as_ref().is_some_and(|held| !held.is_view());
         if let Some(delta) = world
             .delta
             .as_ref()
-            .filter(|delta| held_tick == Some(delta.base))
+            .filter(|delta| held_whole && held_tick == Some(delta.base))
         {
             return (Cow::Borrowed(&delta.text), WorldFrame::Delta);
         }
@@ -395,6 +398,17 @@ const SEND_BUFFER_BYTES: usize = 64 * 1024;
 /// monitor. A tighter flood is dropped before it reaches the tick queue.
 const INBOUND_PER_SEC: f32 = 256.0;
 const INBOUND_BURST: f32 = 64.0;
+/// Inbound bytes a session may send, beside the message count: a frame may be
+/// 64 KiB, so 256 of them a second would be 16 MiB the server reads and
+/// parses. A human sends about 120 actions of under 1 KiB a second and an
+/// agent far fewer, so 128 KiB a second with four whole frames of burst is
+/// several times what any honest client needs.
+const INBOUND_BYTES_PER_SEC: f32 = 128.0 * 1024.0;
+const INBOUND_BYTES_BURST: f32 = 4.0 * MAX_FRAME_BYTES as f32;
+/// Frames dropped for bytes fill their own strike level: one a second is
+/// forgiven, and past this many more the session closes `rate_limited`.
+const BYTE_FLOOD_DRAIN_PER_SEC: f32 = 1.0;
+const BYTE_FLOOD_LIMIT: f32 = 16.0;
 
 /// The server pings every open session on this cadence. Every WebSocket
 /// client answers a ping while it reads, so a quiet spectator stays live,
@@ -439,6 +453,8 @@ pub(crate) struct SessionLimits {
     pub flood_limit: f32,
     pub junk_drain_per_sec: f32,
     pub junk_limit: f32,
+    pub byte_flood_drain_per_sec: f32,
+    pub byte_flood_limit: f32,
 }
 
 impl Default for SessionLimits {
@@ -451,6 +467,8 @@ impl Default for SessionLimits {
             flood_limit: FLOOD_LIMIT,
             junk_drain_per_sec: JUNK_DRAIN_PER_SEC,
             junk_limit: JUNK_LIMIT,
+            byte_flood_drain_per_sec: BYTE_FLOOD_DRAIN_PER_SEC,
+            byte_flood_limit: BYTE_FLOOD_LIMIT,
         }
     }
 }
@@ -596,29 +614,47 @@ fn audit_reject(peer: std::net::SocketAddr, code: &str) {
     tracing::info!(target: AUDIT_TARGET, event = "reject", peer = %peer, code);
 }
 
+/// Two token buckets per session: messages and bytes.
 struct InboundBudget {
     tokens: f32,
+    bytes: f32,
     updated: std::time::Instant,
+}
+
+/// What the budget made of one inbound frame.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Budgeted {
+    Allowed,
+    /// Over the message rate.
+    TooMany,
+    /// Over the byte rate.
+    TooLarge,
 }
 
 impl InboundBudget {
     fn new() -> Self {
         Self {
             tokens: INBOUND_BURST,
+            bytes: INBOUND_BYTES_BURST,
             updated: std::time::Instant::now(),
         }
     }
 
-    fn allow(&mut self) -> bool {
+    fn allow(&mut self, size: usize) -> Budgeted {
         let now = std::time::Instant::now();
         let elapsed = now.saturating_duration_since(self.updated).as_secs_f32();
         self.updated = now;
         self.tokens = (self.tokens + elapsed * INBOUND_PER_SEC).min(INBOUND_BURST);
-        if self.tokens >= 1.0 {
-            self.tokens -= 1.0;
-            true
+        self.bytes = (self.bytes + elapsed * INBOUND_BYTES_PER_SEC).min(INBOUND_BYTES_BURST);
+        let size = size as f32;
+        if self.tokens < 1.0 {
+            Budgeted::TooMany
+        } else if self.bytes < size {
+            Budgeted::TooLarge
         } else {
-            false
+            self.tokens -= 1.0;
+            self.bytes -= size;
+            Budgeted::Allowed
         }
     }
 }
@@ -1806,10 +1842,20 @@ struct SessionEnd {
 /// One admitted frame after the idle timer has been refreshed.
 enum InboundFrame {
     Text(String),
-    /// Binary, or any payload that is not a JSON client message.
-    Junk,
-    /// Ping, pong, or a raw frame. Counted in the inbound budget, not as junk.
-    Control,
+    /// Binary, or any payload that is not a JSON client message, and its size.
+    Junk(usize),
+    /// Ping, pong, or a raw frame, and its size. Counted in the inbound
+    /// budget, not as junk.
+    Control(usize),
+}
+
+impl InboundFrame {
+    fn size(&self) -> usize {
+        match self {
+            Self::Text(text) => text.len(),
+            Self::Junk(size) | Self::Control(size) => *size,
+        }
+    }
 }
 
 struct SessionIdentity {
@@ -1838,6 +1884,7 @@ async fn read_session(
     let started = std::time::Instant::now();
     let mut flood = Strikes::new(started);
     let mut junk = Strikes::new(started);
+    let mut heavy = Strikes::new(started);
     let mut access = policy.access.clone();
     if let Some(watcher) = access.as_mut() {
         watcher.mark_unchanged();
@@ -1891,40 +1938,53 @@ async fn read_session(
                     }
                     Message::Binary(bytes) => {
                         traffic.received(bytes.len());
-                        InboundFrame::Junk
+                        InboundFrame::Junk(bytes.len())
                     }
                     // Control frames used to skip the budget, so a ping flood
                     // never became rate_limited. Pongs that answer the server
                     // ping are rare enough to share the same bucket.
                     Message::Ping(payload) => {
                         traffic.received(payload.len());
-                        InboundFrame::Control
+                        InboundFrame::Control(payload.len())
                     }
                     // The answer to the writer's ping times the round trip
                     // the scoreboard shows.
                     Message::Pong(payload) => {
                         traffic.received(payload.len());
                         traffic.pong(&payload);
-                        InboundFrame::Control
+                        InboundFrame::Control(payload.len())
                     }
                     Message::Frame(frame) => {
                         traffic.received(frame.len());
-                        InboundFrame::Control
+                        InboundFrame::Control(frame.len())
                     }
                     Message::Close(_) => break None,
                 }
             }
         };
         let now = std::time::Instant::now();
-        if !inbound.allow() {
-            if flood.add(now, limits.flood_drain_per_sec, limits.flood_limit) {
-                break Some(Kick::RateLimited);
+        match inbound.allow(inbound_frame.size()) {
+            Budgeted::Allowed => {}
+            Budgeted::TooMany => {
+                if flood.add(now, limits.flood_drain_per_sec, limits.flood_limit) {
+                    break Some(Kick::RateLimited);
+                }
+                continue;
             }
-            continue;
+            Budgeted::TooLarge => {
+                if heavy.add(
+                    now,
+                    limits.byte_flood_drain_per_sec,
+                    limits.byte_flood_limit,
+                ) {
+                    break Some(Kick::RateLimited);
+                }
+                continue;
+            }
         }
         let text = match inbound_frame {
-            InboundFrame::Control => continue,
-            InboundFrame::Junk => {
+            InboundFrame::Control(_) => continue,
+            InboundFrame::Junk(_) => {
                 if junk.add(now, limits.junk_drain_per_sec, limits.junk_limit) {
                     break Some(Kick::Malformed);
                 }

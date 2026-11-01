@@ -92,6 +92,10 @@ var presentation_pitch: float = 0.0
 var remote_presentation: RemotePresentation = RemotePresentation.new()
 ## Running steps, jumps and landings at this body's feet (footsteps.gd).
 var footsteps: Footsteps = null
+## A fighter this reader only hears (`sense` "heard", gameplay 66): no body is
+## drawn, its feet sound where the server says it sounds. Its row is inert,
+## so hp is 0; the feet still walk.
+var heard: bool = false
 ## The local prediction's own airborne fact while it owns the body.
 var predicted_airborne: bool = false
 const INTERP_SPEED: float = 10.0
@@ -464,7 +468,7 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		latch_view.observe_health(hp)
 	if not is_campaign_enemy and not is_campaign_companion and snapshot_tick > 0:
 		if remote_presentation.accept(snapshot_tick, target_position, target_yaw,
-				target_pitch, hp > 0, Time.get_ticks_usec()) and remote_presentation.discontinuity \
+				target_pitch, hp > 0 or heard, Time.get_ticks_usec()) and remote_presentation.discontinuity \
 				and not prediction_active:
 			position = target_position
 			presentation_yaw = target_yaw
@@ -495,6 +499,8 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		team = next_team
 		player_color = MatchRules.team_label_color(team) if team != "" else _own_color
 	golden = state.get("golden") == true
+	if heard:
+		visible = false
 	if not prediction_active:
 		var next_duck: bool = state.get("ducking") == true
 		if next_duck != ducking:
@@ -1163,4 +1169,4 @@ func _present_feet(delta: float, travel: float, rise: float, rendered: Dictionar
 		return
 	footsteps.own = is_local_fp
 	var airborne: bool = predicted_airborne if prediction_active else footsteps.airborne_at(float(rendered.get("tick", -1.0)))
-	footsteps.present(delta, travel, rise, airborne, ducking, hp > 0, vehicle_seated)
+	footsteps.present(delta, travel, rise, airborne, ducking, hp > 0 or heard, vehicle_seated)

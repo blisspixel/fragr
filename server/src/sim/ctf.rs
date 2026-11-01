@@ -407,6 +407,7 @@ mod tests {
             body: None,
             dress: None,
             ping: None,
+            sense: None,
         }
     }
 

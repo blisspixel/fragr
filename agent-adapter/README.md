@@ -62,6 +62,21 @@ took it out of view; `in_view` says whether it is seen now. The `pickup`
 event for a drop the fighter cannot see is not passed on. An adapter
 that never joined keeps the full live view. `docs/protocol.md` has the clocks.
 
+Other fighters reach a joined agent the way they reach a human fighter
+(gameplay 66, interest filtering): the server withholds every fighter its
+fighter could not perceive, so `observe` never knows more than a human
+would. A rival it can see is an `ENEMY` line and a `threats` entry, as
+before. A rival it only hears (running feet or gunfire nearby) is a
+`HEARD id=... name=... dist~... bearing~...` line and a `heard` entry: a
+rough place, off by up to 15 percent of the distance, never a target for
+`act.look_at.player_id`. A rival it can neither see nor hear is not named
+in the brief at all. `detail: full` keeps every row as received: a
+withheld row has `sense` `heard` or `hidden`, `hp` 0, `collidable` false
+and, when hidden, `x`, `y`, `z` of 0. `top_rival` still counts every
+rival's score, from the board fields every row keeps. Team-mates are
+always seen. An adapter that never joined watches, and keeps the full
+world. Shapes: `docs/protocol.md`, "Interest filtering (capability 66)".
+
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
 ## Quick Start

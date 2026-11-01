@@ -448,11 +448,24 @@ pub fn hostile(a: Option<CampaignActor>, b: Option<CampaignActor>) -> bool {
 impl super::PlayerState {
     /// Worth aiming at: alive, on the other side of the campaign, and not a
     /// teammate. Friendly fire never makes a teammate a target.
+    /// A living body this row can fight now: seen whole (a heard or hidden
+    /// row, gameplay 66, is no target) and on another side.
     pub fn is_hostile_to(&self, other: &Self) -> bool {
+        other.hp > 0 && other.sense.is_none() && self.is_rival_of(other)
+    }
+
+    /// On another side, alive or not, seen or not: whose score this row is
+    /// racing.
+    pub fn is_rival_of(&self, other: &Self) -> bool {
         self.id != other.id
-            && other.hp > 0
             && hostile(self.campaign, other.campaign)
             && (self.team.is_none() || self.team != other.team)
+    }
+
+    /// Where a heard row sounds (gameplay 66): its rough place, never a body
+    /// to aim at. `None` for a row seen whole or hidden.
+    pub fn heard_at(&self) -> Option<[f32; 3]> {
+        (self.sense == Some(super::PlayerSense::Heard)).then_some([self.x, self.y, self.z])
     }
 
     pub fn is_participant(&self) -> bool {

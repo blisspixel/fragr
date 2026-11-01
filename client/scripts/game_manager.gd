@@ -3249,8 +3249,19 @@ func _on_snapshot_received(data):
 	
 	for player_data in player_list:
 		var id = player_data.id
+		# A fighter this reader cannot perceive has no body here (gameplay
+		# 66); one it only hears has feet and no body. Its row still feeds
+		# the board above.
+		var sense: String = ActorState.sense(player_data)
+		if sense == "hidden":
+			continue
 		current_ids[id] = true
-		
+		if players.has(id) and is_instance_valid(players[id]) and bool(players[id].get("heard")) != (sense == "heard"):
+			# A sound is not a body: the body that comes into sight starts
+			# fresh where it stands rather than sliding from where it sounded.
+			players[id].queue_free()
+			players.erase(id)
+
 		if not players.has(id):
 			if player_scene == null or not is_instance_valid(arena):
 				continue
@@ -3262,6 +3273,7 @@ func _on_snapshot_received(data):
 			pawn.position = Vector3(player_data.x, player_data.y, player_data.z)
 			pawn.rotation.y = ServerYaw.pawn_rotation_y(float(player_data.yaw))
 			pawn.set_player_data(id, player_data.name)
+			pawn.set("heard", sense == "heard")
 			# One render time for every fighter: the one Actions report.
 			var timeline: Variant = pawn.get("remote_presentation")
 			if timeline is RemotePresentation:
@@ -3292,7 +3304,7 @@ func _on_snapshot_received(data):
 	
 	var targets = []
 	for pawn in players.values():
-		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
+		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion and not bool(pawn.get("heard")):
 			targets.append(pawn)
 	if camera:
 		camera.set_available_targets(_watch_targets(targets, player_list, str(data.get("round_state", ""))))

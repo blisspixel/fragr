@@ -25,8 +25,9 @@ fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
 `figure` campaign side and M17 `custody_started`) is 65. Contract 66 adds
 locational damage (`ShotResult.zone` in place of `head`, and a Ranged
 Sweeper's `mast_broken`), the hold-Tab board's objective credits
-(`players[].objective`), the booth's whole pad clocks (`clock`) and the fun
-metrics notice (`Welcome.fun_metrics`); it is the highest this build speaks.
+(`players[].objective`), the booth's whole pad clocks (`clock`), the fun
+metrics notice (`Welcome.fun_metrics`) and interest filtering (the
+per-fighter `sense` rows, below); it is the highest this build speaks.
 Declared Goods, Weight of Permission, Launch Authority and All Systems Normal,
 which place Ranged Sweepers, require 66.
 Numbered
@@ -1812,6 +1813,9 @@ instead (see "Snapshot deltas (capability 63)").
     is no capture). Counts reset when a round starts; a Sabotage match keeps
     them across its rounds, as it keeps frags. Presentation only: nothing
     scores from them. Readers refuse unknown fields inside it.
+  - `sense`: (optional, gameplay 66) what the reading fighter perceives of
+    this row: omitted when it is seen whole, `heard` or `hidden` when the
+    server withheld it. See [Interest filtering](#interest-filtering-capability-66).
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),
@@ -4362,3 +4366,54 @@ it from the same timeline (`RemotePresentation`) that draws remote fighters.
 Readers below 62 are refused by a shared room under Protocol version; a
 campaign mission keeps its content floor and simply sees no rewind from a
 client that sends no view.
+
+### Interest filtering (capability 66)
+
+Gameplay 66 sends each fighter in a shared arcade room only what that fighter
+could perceive. Owner: `server/src/interest.rs`; the Godot reader is
+`ActorState.sense` and the pawn loop in `game_manager.gd`.
+
+- **Who is filtered.** A connection holding a fighter (human or agent) in a
+  shared arcade room while the round is `Active`. Spectators, the booth
+  (`spectator_facts` is unchanged), campaign missions, warmup and the
+  podium receive the whole world.
+- **The roster keeps every fighter.** A row the fighter sees is unchanged. A
+  row it does not see carries `sense`:
+  - `heard`: out of sight but audible (running feet within 18 m, gunfire
+    within 36 m, the same ears as the rule bots in `sim/bot_senses/hunt.rs`).
+    `x`, `y`, `z` are where it sounds: off by up to 15 percent of the
+    distance on a bearing that turns once in 8 s, so the place drifts and
+    never jumps.
+  - `hidden`: neither seen nor heard. `x`, `y`, `z` are `0.0`.
+  Either way the row keeps `id`, `name`, `score`, `deaths`, `attacks`,
+  `connects`, `heads`, `damage`, `team`, `lives`, `golden`, `body`, `dress`
+  and `ping` (the board), and is inert for everything else: `hp` and
+  `armor` `0`, `collidable` false, `yaw` and `pitch` `0.0`, `just_fired`
+  false, `weapon` `Fists`, no `behavior`, `ducking` or `airborne`. A reader
+  draws no body for either; the Godot client plays a heard row's footsteps
+  where it sounds and frees a pawn whose sense changes, so a body that comes
+  into sight starts where it stands.
+- **Seen.** A line of sight through the shot solids, with no view cone, from
+  the fighter's eye now and its eye after its lead (`4` ticks plus half its
+  round trip, at most `8`), to the target's chest, crown and both shoulders
+  widened `0.6` m past the body, now and `3` ticks ahead. Each pair traces
+  every second tick (staggered); a sighting holds for `10` ticks after its
+  last clear line. Always seen: the fighter itself, team-mates in a team
+  mode, campaign actors and the arena boss, anybody seated in a vehicle,
+  the carrier of a flag or the Sabotage charge, and the fighter's killer
+  while it is down. A fighter that is down in a team mode sees what its
+  living team-mates see.
+- **Still in every world.** Shot results, projectiles, grenades, rockets,
+  mines, explosions, vehicles, pickups, flags, the charge and events. A shot
+  result names its shooter and origin, and a pickup event its pad: gunfire
+  and a pickup chime are audible.
+- **Deltas.** A fighter's view is diffed against the world its socket last
+  carried (the per-reader path of [Snapshot deltas](#snapshot-deltas-capability-63)),
+  never against the shared tick delta, so a reader that moves between a
+  view and the whole world (joins or leaves) always applies a delta to the
+  world it holds. Fighters whose views match share one encoded view.
+
+A reader below 66 is refused by a shared room under Protocol version, because
+it would draw a hidden row at the origin. MCP `observe` reads the same
+filtered socket as a human fighter (see `agent-adapter/README.md`).
+Measurements: [BENCHMARK.md](BENCHMARK.md#interest-filtering-wave-22).

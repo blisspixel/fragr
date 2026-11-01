@@ -23,6 +23,7 @@ pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
 pub mod fun_summary;
+pub mod interest;
 pub mod ladder;
 pub mod link;
 pub mod peek;
@@ -1751,6 +1752,29 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
         }
     }
     let Some((dist, target)) = nearest else {
+        // Nobody in sight. A rival it hears (gameplay 66) is worth walking
+        // toward, as a player follows footsteps; otherwise patrol.
+        let heard = snapshot
+            .players
+            .iter()
+            .filter(|other| me.is_rival_of(other))
+            .filter_map(|other| other.heard_at())
+            .min_by(|a, b| {
+                let away = |at: &[f32; 3]| (at[0] - me.x).hypot(at[2] - me.z);
+                away(a).total_cmp(&away(b))
+            });
+        if let Some(at) = heard {
+            return Action {
+                look_at: Some(LookAt {
+                    y: None,
+                    player_id: None,
+                    x: Some(at[0]),
+                    z: Some(at[2]),
+                }),
+                forward: true,
+                ..Action::default()
+            };
+        }
         return patrol_action(me, snapshot.tick, arena);
     };
     // Swap only when the right weapon is not already in hand, so the report
@@ -2894,6 +2918,7 @@ mod tests {
             damage: 0,
             weapon: "Flechette".to_string(),
             ping: None,
+            sense: None,
         }
     }
 
@@ -3846,6 +3871,7 @@ mod combat_tests {
             damage: 0,
             weapon: weapon.to_string(),
             ping: None,
+            sense: None,
         }
     }
 
@@ -4773,6 +4799,7 @@ mod planner_tests {
             damage: 0,
             weapon: weapon.to_string(),
             ping: None,
+            sense: None,
         }
     }
 
@@ -5689,6 +5716,7 @@ mod line_of_sight_tests {
             damage: 0,
             weapon: "flechette".to_string(),
             ping: None,
+            sense: None,
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
 
@@ -5771,6 +5799,7 @@ mod patrol_tests {
             damage: 0,
             weapon: "Flechette".to_string(),
             ping: None,
+            sense: None,
         }
     }
 

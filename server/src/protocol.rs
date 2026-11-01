@@ -868,7 +868,7 @@ pub const TURN_GAMEPLAY_VERSION: u32 = 64;
 /// coalition people who take her) and M17 `custody_started`. A strict reader
 /// at 64 refuses the new side, so Peace Without Interruption requires it.
 pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
-/// Contract 66, one bump shared by three changes. Locational damage:
+/// Contract 66, one bump shared by four changes. Locational damage:
 /// `ShotResult.zone` (head, torso, legs, plate, weak) replaces the `head` flag,
 /// and a Ranged Sweeper's campaign identity may carry `mast_broken`; a strict
 /// actor reader at 65 refuses the mast, so every map that places a Ranged
@@ -882,9 +882,14 @@ pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 /// whether this host keeps match-level tallies (`docs/PRIVACY.md`). A
 /// shared room moves here so every client in it can tell its player.
 pub const FUN_METRICS_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
-/// The highest contract: locational damage, the objective board and the fun
-/// metrics notice, after Level 17's custody beat, the map vote and Level
-/// 18's turn.
+/// Interest filtering: a shared-room fighter receives other fighters it
+/// cannot perceive as `heard` or `hidden` rows (`PlayerState.sense`, owner
+/// `crate::interest`). A reader at 65 would draw a hidden row at the origin,
+/// so a shared room moves to this contract.
+pub const INTEREST_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// The highest contract: locational damage, the objective board, the fun
+/// metrics notice and interest filtering, after Level 17's custody beat,
+/// the map vote and Level 18's turn.
 pub const GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 const _: () = assert!(
     GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
@@ -1958,6 +1963,14 @@ pub struct PlayerState {
     /// captures. Omitted while every count is zero.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub objective: Option<ObjectiveTally>,
+    /// What the reading fighter perceives of this row (gameplay 66, see
+    /// `crate::interest`). Omitted when the row is seen: every field is true.
+    /// A `heard` or `hidden` row keeps the scoreboard and identity fields and
+    /// is inert for everything else: `hp` 0, `collidable` false, no look,
+    /// `weapon` `Fists`, and a position that is coarse (`heard`) or zero
+    /// (`hidden`). Spectators and campaign readers never receive one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sense: Option<PlayerSense>,
 }
 
 /// A fighter's objective credits this round; a Sabotage match keeps them
@@ -1979,6 +1992,17 @@ impl ObjectiveTally {
     pub fn is_empty(&self) -> bool {
         *self == Self::default()
     }
+}
+
+/// How a fighter perceives another fighter it cannot see.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlayerSense {
+    /// Out of sight but audible: running feet or gunfire nearby. The position
+    /// is where it sounds, off by up to 15 percent of the distance.
+    Heard,
+    /// Neither seen nor heard. The position is zero.
+    Hidden,
 }
 
 fn collidable_by_default() -> bool {

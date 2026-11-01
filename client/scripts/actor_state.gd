@@ -53,6 +53,15 @@ static func is_participant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign == null or (campaign is Dictionary and campaign.get("side") == "participant")
 
+## What this reader perceives of a fighter row (gameplay 66): "" when the row
+## is seen whole, "heard" or "hidden" when the server withheld it
+## (docs/protocol.md, Interest filtering). `_row_ok` refuses any other value.
+static func sense(actor: Dictionary) -> String:
+	var value: Variant = actor.get("sense")
+	return str(value) if value is String and str(value) in SENSES else ""
+
+const SENSES: Array[String] = ["heard", "hidden"]
+
 static func participants(actors: Array) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for actor: Variant in actors:
@@ -256,6 +265,9 @@ static func _row_ok(actor: Dictionary) -> bool:
 		if not team is String or not str(team) in ["union", "coalition"]:
 			return false
 	if actor.has("body") and not PlayerBody.valid(actor["body"]):
+		return false
+	# A withheld row names one of the two senses.
+	if actor.has("sense") and (not actor["sense"] is String or not str(actor["sense"]) in SENSES):
 		return false
 	return true
 

@@ -6,7 +6,7 @@ use crate::mission::run_file::store::RunStore;
 use crate::mission::run_file::RunDocument;
 use crate::net::NetServer;
 use crate::protocol::CampaignDifficulty;
-use crate::session::{broadcast_to_clients, send_unicasts, DeliveryStats, GameSession};
+use crate::session::{send_unicasts, DeliveryStats, GameSession};
 use crate::sim::{MapKind, MatchConfig};
 use std::future::Future;
 use std::net::SocketAddr;
@@ -850,6 +850,8 @@ async fn run_server_impl(
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
                 let broadcasts = crate::net::Broadcast::encode_tick(messages, &mut worlds)?;
+                // Each fighter's own view of the world (`crate::interest`).
+                let views = session.interest_views(&broadcasts)?;
                 let bytes: usize = broadcasts.iter().map(|broadcast| broadcast.text().len()).sum();
                 let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);
@@ -863,7 +865,7 @@ async fn run_server_impl(
                 } else {
                     std::collections::HashSet::new()
                 };
-                let delivery = broadcast_to_clients(&clients, &broadcasts, &watchers).await;
+                let delivery = crate::session::broadcast_views_to_clients(&clients, &broadcasts, &watchers, &views).await;
                 let broadcast_elapsed = fanout_started.elapsed();
                 let connections;
                 {

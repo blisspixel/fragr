@@ -395,6 +395,7 @@ pub(crate) mod fixtures {
             damage: 0,
             weapon: weapon.to_string(),
             ping: None,
+            sense: None,
         }
     }
 

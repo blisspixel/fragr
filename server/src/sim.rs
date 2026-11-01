@@ -3,7 +3,7 @@ mod arc;
 pub(crate) mod assessor;
 pub(crate) mod blade;
 mod booth;
-mod bot_senses;
+pub(crate) mod bot_senses;
 pub mod bot_skill;
 pub use bot_skill::BotSkill;
 mod callouts;
@@ -4087,6 +4087,7 @@ impl GameState {
                         dress: p.is_participant().then_some(p.dress),
                         ping: p.ping_ms,
                         objective: self.objective_tally(p.id),
+                        sense: None,
                     }
                 })
                 .collect(),
