@@ -10,7 +10,19 @@
 
 /// A rule bot's rung, lowest first. Hosts pick one for every bot on the
 /// server; `Regular` is the default and the rung every survey was tuned on.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, clap::ValueEnum)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    clap::ValueEnum,
+    serde::Serialize,
+    serde::Deserialize,
+)]
+#[serde(rename_all = "kebab-case")]
 pub enum BotSkill {
     /// First night at the venue: slow to react, loose aim, slow head.
     Tourist,

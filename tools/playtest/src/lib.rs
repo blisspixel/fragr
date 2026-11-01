@@ -22,6 +22,7 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
+pub mod fun_summary;
 pub mod ladder;
 pub mod link;
 pub mod peek;
@@ -230,6 +231,8 @@ pub struct Config {
     /// Sabotage format and clocks, read only in Sabotage. The live clock comes
     /// from `time_limit_ticks`.
     pub sabotage: fragr_server::rules::SabotageConfig,
+    /// Keep fun metrics in this folder, as `--fun-metrics` does for a host.
+    pub fun_metrics: Option<std::path::PathBuf>,
 }
 
 impl Default for Config {
@@ -246,6 +249,7 @@ impl Default for Config {
             tiers: vec![Policy::Reflex],
             rules: fragr_server::rules::RuleSet::default(),
             sabotage: fragr_server::rules::SabotageConfig::default(),
+            fun_metrics: None,
         }
     }
 }
@@ -2649,6 +2653,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         overview: None,
         tick_trace: None,
         head_to_head: None,
+        fun_metrics: config.fun_metrics.clone(),
     };
     let server = tokio::spawn(async move {
         run_server(

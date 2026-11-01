@@ -20,7 +20,8 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
-# 66 reads the board's objective credits and the booth's whole pad clocks;
+# 66 reads locational zones, the board's objective credits, the booth's whole
+# pad clocks and the Welcome's fun metrics notice, and tells the player;
 # 65 reads Voss's custody beat;
 # 64 reads the podium story and map vote and may send `vote`;
 # 63 applies snapshot deltas that carry fighters by base roster position;
@@ -99,6 +100,10 @@ var player_id = null
 ## welcome omits it, and the action must not carry the key or that server
 ## drops the whole input.
 var duck_supported: bool = false
+## The Welcome said this host keeps fun metrics: match-level tallies on its
+## own disk, shredded after 67 days. Absent reads false.
+var fun_metrics: bool = false
+var _fun_metrics_notice: bool = false
 var remote_supported: bool = false
 ## Body the next participant Hello asks for, from the saved profile.
 var requested_body: String = PlayerBody.HUMAN
@@ -634,6 +639,13 @@ func _handle_message(text: String):
 			walker_geometry.clear()
 			_mission_previous.clear()
 			player_id = data.get("player_id")
+			var tally: Variant = data.get("fun_metrics", false)
+			if not tally is bool:
+				disconnect_from_server()
+				server_error.emit("The server sent an invalid welcome. Connection closed.")
+				return
+			fun_metrics = tally
+			_fun_metrics_notice = tally
 			duck_supported = data.get("duck") == true
 			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Scrap League"), "/", data.get("playlist", "Larak Lot"))
 		
@@ -879,3 +891,10 @@ func _handle_message(text: String):
 				print("FRAG: ", data.get("killer"), " → ", data.get("victim"))
 			elif event_type == "respawn":
 				print("Respawn: ", data.get("player"))
+
+## True once per Welcome from a host that keeps fun metrics, so the match
+## feed says so before the first fight.
+func take_fun_metrics_notice() -> bool:
+	var due: bool = _fun_metrics_notice
+	_fun_metrics_notice = false
+	return due

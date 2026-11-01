@@ -111,7 +111,7 @@ pub fn head_to_head_path() -> io::Result<PathBuf> {
     Ok(run_directory()?.join("head-to-head.json"))
 }
 
-fn run_directory() -> io::Result<PathBuf> {
+pub(crate) fn run_directory() -> io::Result<PathBuf> {
     if let Some(override_path) = std::env::var_os("FRAGR_RUN_DIR") {
         let path = PathBuf::from(override_path);
         if path.is_absolute() {
@@ -1112,6 +1112,10 @@ mod tests {
         assert_eq!(
             crate::protocol::GAMEPLAY_VERSION,
             crate::protocol::OBJECTIVE_BOARD_GAMEPLAY_VERSION
+        );
+        assert_eq!(
+            crate::protocol::GAMEPLAY_VERSION,
+            crate::protocol::FUN_METRICS_GAMEPLAY_VERSION
         );
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).

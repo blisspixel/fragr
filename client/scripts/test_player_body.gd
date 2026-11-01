@@ -76,6 +76,20 @@ func _check_hello_and_welcome() -> void:
 	legacy.requested_body = PlayerBody.SYNTHETIC
 	legacy._handle_message('{"type":"welcome","role":"human","player_id":"self"}')
 	_check(legacy.accepted_body == PlayerBody.HUMAN, "an older server's pawn is human, never inferred from the request")
+	_check(not legacy.fun_metrics and not legacy.take_fun_metrics_notice(), "a Welcome without the notice keeps no tally")
+	var tallied: CaptureNetwork = CaptureNetwork.new()
+	tallied.role = "human"
+	tallied._handle_message('{"type":"welcome","role":"human","player_id":"self","fun_metrics":true}')
+	_check(tallied.fun_metrics and tallied.take_fun_metrics_notice() and not tallied.take_fun_metrics_notice(),
+		"a fun tally is told once per Welcome")
+	tallied.free()
+	var garbled: CaptureNetwork = CaptureNetwork.new()
+	garbled.role = "human"
+	var garbled_errors: Array[String] = []
+	garbled.server_error.connect(func(message: String) -> void: garbled_errors.append(message))
+	garbled._handle_message('{"type":"welcome","role":"human","player_id":"self","fun_metrics":"yes"}')
+	_check(garbled_errors.size() == 1 and not garbled.fun_metrics, "a notice that is not a boolean closes the connection")
+	garbled.free()
 	legacy.free()
 	for case: Array in [["spectator", "human"], ["human", "robot"], ["agent", 4], ["human", "res://x.png"]]:
 		var data: Dictionary = {"type":"welcome", "role":case[0], "player_id":"self", "body":case[1]}

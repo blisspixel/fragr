@@ -196,6 +196,7 @@ fn test_protocol_server_message_welcome() {
         playlist: default_playlist(),
         resume: None,
         duck: false,
+        fun_metrics: false,
     };
     let json = serde_json::to_string(&welcome).unwrap();
     assert!(json.contains(r#""type":"welcome""#));
@@ -209,6 +210,7 @@ fn test_protocol_server_message_welcome() {
         playlist: default_playlist(),
         resume: None,
         duck: false,
+        fun_metrics: false,
     };
     let json = serde_json::to_string(&welcome_spectator).unwrap();
     assert!(json.contains(r#""player_id":null"#));
@@ -2745,6 +2747,7 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
             playlist,
             resume: _,
             duck,
+            fun_metrics: false,
         } => {
             assert!(duck);
             assert_eq!(mode_name, default_mode_name());
@@ -2850,6 +2853,7 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             playlist,
             resume: _,
             duck,
+            fun_metrics: false,
         } => {
             assert!(duck);
             assert_eq!(mode_name, default_mode_name());
@@ -3635,6 +3639,7 @@ fn test_welcome_includes_mode_identity() {
         playlist: default_playlist(),
         resume: None,
         duck: false,
+        fun_metrics: false,
     };
     let json = serde_json::to_value(&welcome).unwrap();
     assert_eq!(json["mode_name"], "Scrap League");

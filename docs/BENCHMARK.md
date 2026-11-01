@@ -53,6 +53,7 @@ version is not a source revision; retain the commit with published measurements.
 | `encode_ms` | Encode each broadcast and targeted payload once using the shared wire types |
 | `stats.broadcast_bytes` | All broadcast payload bytes per tick before fan-out and framing |
 | `unicast_bytes` | All targeted payload bytes per tick, even if no socket receives them |
+| `fun_metrics_ms` | The fun metrics observer reading the finished tick (`--fun-metrics`), timed beside the tick and outside `stats`; `--bench-assert` fails when its p99 passes 5% of the tick budget |
 | `trace_sha256` | Complete recording content identity |
 | `deterministic` | `null` without a repeat, otherwise the complete-trace comparison result |
 | `frags` | Final round scores, sorted by callsign; not lifetime kills |

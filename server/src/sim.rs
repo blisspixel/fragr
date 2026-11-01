@@ -4391,6 +4391,7 @@ impl GameState {
             ops: None,
             gameplay_version: Some(crate::protocol::GAMEPLAY_VERSION),
             geometry_version: Some(crate::protocol::GEOMETRY_VERSION),
+            fun_metrics: false,
         }
     }
 

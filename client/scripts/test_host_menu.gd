@@ -115,6 +115,10 @@ func _run() -> void:
 	menu._host_more.button_pressed = true
 	_check(menu._host_advanced.visible and menu._host_lan.is_visible_in_tree() and menu._host_twists["two-lives"].is_visible_in_tree(),
 		"one switch discloses stacked rules, friendly fire, LAN and port")
+	var tally: CheckButton = menu._root.find_child("HostFunMetrics", true, false) as CheckButton
+	_check(tally != null and tally.is_visible_in_tree() and not tally.button_pressed
+		and tally.text == tr("HOST_FUN_METRICS") and tally.text.contains("67 days"),
+		"the fun tally sits under more options, off by default, and says what it keeps")
 	# Presets and stacking follow the server's own compatibility (TDM here).
 	_check(not menu._host_twists["licence-to-kill"].disabled and not menu._host_twists["two-lives"].disabled
 		and menu._host_twists["full-arsenal"].disabled, "TDM stacks Licence to Kill and Two Lives, never Full Arsenal")

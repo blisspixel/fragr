@@ -449,6 +449,7 @@ pub async fn run(config: TrafficConfig) -> Result<TrafficReport, Error> {
             seed: config.seed,
             launch: config.launch.clone(),
             tick_trace: Some(tick_trace.clone()),
+            fun_metrics: None,
         },
         &server_log,
     )

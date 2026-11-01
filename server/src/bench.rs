@@ -308,6 +308,9 @@ pub struct BenchReport {
     pub session_ms: Summary,
     pub encode_ms: Summary,
     pub unicast_bytes: Summary,
+    /// The fun metrics observer's time per tick, milliseconds, measured
+    /// beside the tick and never inside `stats`: what `--fun-metrics` costs.
+    pub fun_metrics_ms: Summary,
     /// SHA-256 of header/tick/score records, including LF separators.
     pub trace_sha256: String,
     /// Final round scores. Trace equality also covers intermediate movement,
@@ -415,6 +418,10 @@ pub fn run_bench_with_trace(
     let mut session_ns = Histogram::new();
     let mut encode_ns = Histogram::new();
     let mut unicast_bytes = Histogram::new();
+    // The fun metrics observer reads the same session and messages a host's
+    // run loop gives it. It never changes the match, so the trace is the same.
+    let mut fun_metrics = crate::fun_metrics::Observer::new(&session);
+    let mut fun_metrics_ns = Histogram::new();
     let dt = TICK.as_secs_f32();
     for _ in 0..ticks {
         let started = Instant::now();
@@ -429,6 +436,12 @@ pub fn run_bench_with_trace(
         session_ns.record(simulated.as_nanos().min(u64::MAX as u128) as u64);
         encode_ns.record(encoded.as_nanos().min(u64::MAX as u128) as u64);
         unicast_bytes.record(targeted as u64);
+        let observed = Instant::now();
+        fun_metrics.observe(&session, &messages);
+        if fun_metrics.finished() {
+            fun_metrics = crate::fun_metrics::Observer::new(&session);
+        }
+        fun_metrics_ns.record(observed.elapsed().as_nanos().min(u64::MAX as u128) as u64);
         recorder.record(&TraceRecord::Tick {
             tick: session.state.tick,
             broadcast: messages,
@@ -455,6 +468,7 @@ pub fn run_bench_with_trace(
         session_ms: session_ns.summary(1e-6),
         encode_ms: encode_ns.summary(1e-6),
         unicast_bytes: unicast_bytes.summary(1.0),
+        fun_metrics_ms: fun_metrics_ns.summary(1e-6),
         trace_sha256,
         frags,
         deterministic: None,
@@ -515,11 +529,25 @@ pub fn check_thresholds(report: &BenchReport, max_budget_p99: f64) -> Vec<String
             max_budget_p99 * 100.0
         ));
     }
+    // Fun metrics ride along on a host's tick; they must stay a rounding
+    // error beside it, whatever machine runs the bench.
+    let fun_budget_ms = TICK.as_secs_f64() * 1000.0 * FUN_METRICS_MAX_BUDGET;
+    if report.fun_metrics_ms.p99 > fun_budget_ms {
+        out.push(format!(
+            "fun metrics p99 {:.3} ms is over {:.1} ms ({:.0}% of the tick budget)",
+            report.fun_metrics_ms.p99,
+            fun_budget_ms,
+            FUN_METRICS_MAX_BUDGET * 100.0
+        ));
+    }
     if stats.ticks == 0 {
         out.push("no ticks were measured".to_string());
     }
     out
 }
+
+/// The share of the tick budget the fun metrics observer may take at p99.
+pub const FUN_METRICS_MAX_BUDGET: f64 = 0.05;
 
 #[cfg(test)]
 mod tests {
@@ -668,6 +696,7 @@ mod tests {
         }
         report.config.ticks = stats.ticks();
         report.stats = stats.report(4, 0);
+        report.fun_metrics_ms.p99 = 0.01;
         assert!(
             check_thresholds(&report, 0.5).is_empty(),
             "a healthy run has no complaints: {:?}",
@@ -699,6 +728,15 @@ mod tests {
         assert!(check_thresholds(&report, 0.5).is_empty());
         report.stats.budget_use_p99 = 0.500_001;
         assert!(check_thresholds(&report, 0.5)[0].contains("p99 tick"));
+        report.stats.budget_use_p99 = 0.5;
+        report.fun_metrics_ms.p99 = 2.6;
+        let complaints = check_thresholds(&report, 0.5);
+        assert!(
+            complaints.len() == 1
+                && complaints[0].contains("fun metrics p99 2.600 ms is over 2.5 ms"),
+            "{complaints:?}"
+        );
+        report.fun_metrics_ms.p99 = 0.01;
         report.stats.ticks = 0;
         assert!(check_thresholds(&report, 0.8)[0].contains("no ticks"));
     }

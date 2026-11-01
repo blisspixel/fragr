@@ -3448,6 +3448,7 @@ fn main() -> ExitCode {
                 playlist: protocol::default_playlist(),
                 resume: None,
                 duck: false,
+                fun_metrics: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await
@@ -3646,6 +3647,7 @@ fn main() -> ExitCode {
                 playlist: protocol::default_playlist(),
                 resume: None,
                 duck: false,
+                fun_metrics: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await

@@ -127,6 +127,11 @@ fi
 for mutator in ${FRAGR_QA_MUTATORS:-}; do
   SERVER_ARGS+=(--mutator "$mutator")
 done
+# Fun metrics on the tour server: FRAGR_QA_FUN_METRICS=1. The files land in
+# the tour's own run directory, never a host's.
+if [ "${FRAGR_QA_FUN_METRICS:-0}" = "1" ]; then
+  SERVER_ARGS+=(--fun-metrics)
+fi
 # Rotation and the podium's map vote: FRAGR_QA_MAP_ROTATE=1, and
 # FRAGR_QA_MAP_OFF="7 8" for maps the rotation skips.
 if [ "${FRAGR_QA_MAP_ROTATE:-0}" = "1" ]; then

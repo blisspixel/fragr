@@ -51,6 +51,8 @@ pub struct SoakConfig {
     pub seed: u64,
     pub launch: Launch,
     pub log: PathBuf,
+    /// Run the server with fun metrics kept under this run directory.
+    pub fun_metrics: Option<PathBuf>,
 }
 
 impl SoakConfig {
@@ -513,6 +515,8 @@ pub(crate) struct ServerSpec {
     pub launch: Launch,
     /// The server's own per-tick trace (`--tick-trace`), when wanted.
     pub tick_trace: Option<PathBuf>,
+    /// A run directory: the server keeps fun metrics under it.
+    pub fun_metrics: Option<PathBuf>,
 }
 
 pub(crate) async fn start_server(
@@ -545,6 +549,12 @@ pub(crate) async fn start_server(
             }
             if let Some(trace) = &spec.tick_trace {
                 command.arg("--tick-trace").arg(trace);
+            }
+            if let Some(run_dir) = &spec.fun_metrics {
+                // The server takes only an absolute run directory.
+                command
+                    .arg("--fun-metrics")
+                    .env("FRAGR_RUN_DIR", std::path::absolute(run_dir)?);
             }
             let child = command.spawn().map_err(|error| {
                 Error::Server(format!("cannot start {}: {error}", binary.display()))
@@ -579,6 +589,10 @@ pub(crate) async fn start_server(
                 seed: spec.seed,
                 status_every_s: 0,
                 tick_trace: spec.tick_trace.clone(),
+                fun_metrics: spec
+                    .fun_metrics
+                    .as_ref()
+                    .map(|run_dir| run_dir.join(fragr_server::fun_metrics::store::DIRECTORY)),
                 ..fragr_server::run::ServerOptions::default()
             };
             let handle = tokio::spawn(async move {
@@ -662,6 +676,7 @@ pub async fn run_soak(config: SoakConfig) -> Result<Verdict, Error> {
             seed: config.seed,
             launch: config.launch.clone(),
             tick_trace: None,
+            fun_metrics: config.fun_metrics.clone(),
         },
         &server_log,
     )

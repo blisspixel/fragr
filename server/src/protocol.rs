@@ -223,6 +223,10 @@ pub struct LiveStatus {
     /// Additive to schema 2. The geometry contract this process speaks.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub geometry_version: Option<u32>,
+    /// Additive to schema 2. This host keeps fun metrics (match-level
+    /// tallies, shredded after 67 days). A boolean and nothing else.
+    #[serde(default)]
+    pub fun_metrics: bool,
 }
 
 impl Default for LiveStatus {
@@ -244,6 +248,7 @@ impl Default for LiveStatus {
             ops: None,
             gameplay_version: None,
             geometry_version: None,
+            fun_metrics: false,
         }
     }
 }
@@ -863,7 +868,7 @@ pub const TURN_GAMEPLAY_VERSION: u32 = 64;
 /// coalition people who take her) and M17 `custody_started`. A strict reader
 /// at 64 refuses the new side, so Peace Without Interruption requires it.
 pub const VOSS_CUSTODY_GAMEPLAY_VERSION: u32 = 65;
-/// Contract 66, one bump shared by two changes. Locational damage:
+/// Contract 66, one bump shared by three changes. Locational damage:
 /// `ShotResult.zone` (head, torso, legs, plate, weak) replaces the `head` flag,
 /// and a Ranged Sweeper's campaign identity may carry `mast_broken`; a strict
 /// actor reader at 65 refuses the mast, so every map that places a Ranged
@@ -873,8 +878,13 @@ pub const ZONES_GAMEPLAY_VERSION: u32 = 66;
 /// booth's whole pad clocks (`PadClock.clock`, `PlateFact.clock`). A strict
 /// booth reader at 65 refuses the new pad field, so a shared room moves here.
 pub const OBJECTIVE_BOARD_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
-/// The highest contract: locational damage and the objective board, after
-/// Level 17's custody beat, the map vote and Level 18's turn.
+/// The fun metrics notice: `Welcome.fun_metrics` is always sent and says
+/// whether this host keeps match-level tallies (`docs/PRIVACY.md`). A
+/// shared room moves here so every client in it can tell its player.
+pub const FUN_METRICS_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// The highest contract: locational damage, the objective board and the fun
+/// metrics notice, after Level 17's custody beat, the map vote and Level
+/// 18's turn.
 pub const GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 const _: () = assert!(
     GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
@@ -1124,6 +1134,11 @@ pub enum ServerMessage {
         /// Older servers omit it. Absence means the client must not send the key.
         #[serde(default, skip_serializing_if = "is_false")]
         duck: bool,
+        /// This host keeps fun metrics: match-level tallies on its own disk,
+        /// shredded after 67 days (`docs/PRIVACY.md`). Always sent, so a
+        /// client can say so before anyone fights.
+        #[serde(default)]
+        fun_metrics: bool,
     },
     /// The arena's shape: the bounds and the solids that block movement and
     /// shots. Sent once to every role on join and again to everyone when

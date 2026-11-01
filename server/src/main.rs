@@ -224,6 +224,14 @@ struct Args {
     #[arg(long, value_name = "PATH", help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "bench", "bench_verify_trace", "local_run_preview"])]
     head_to_head: Option<PathBuf>,
 
+    /// Keep fun metrics: match-level tallies (frag pace, lead changes, gun
+    /// shares, kill distances, time to contact, tick health), one file per
+    /// match under the run directory (`FRAGR_RUN_DIR`), shredded after 67
+    /// days. No callsign, id or address is recorded, every Welcome and
+    /// `/status` says it is on, and nothing is sent anywhere. Off by default.
+    #[arg(long, default_value_t = false, help_heading = "Hosting and access", conflicts_with_all = ["campaign_source", "local_mission", "local_run_preview", "bench", "bench_verify_trace", "solo_broadcast"])]
+    fun_metrics: bool,
+
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
@@ -286,6 +294,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let matches = Args::command().get_matches();
     let args = Args::from_arg_matches(&matches)?;
     let head_to_head = head_to_head_path(&args);
+    let fun_metrics = fun_metrics_dir(args.fun_metrics)?;
     if args.desktop_host
         && matches.value_source("bind") != Some(clap::parser::ValueSource::CommandLine)
     {
@@ -482,6 +491,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             None => fragr_server::tick_trace::path_from_env()?,
         },
         head_to_head,
+        fun_metrics,
     };
     let started = if args.ready_line {
         fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
@@ -519,6 +529,20 @@ impl std::error::Error for PlainError {}
 /// Where the head-to-head book lives: the path asked for, beside the runs
 /// for a desktop host, otherwise nowhere (a dedicated server keeps it in
 /// memory).
+/// The fun metrics folder under the run directory, when the host asked for
+/// it. A run directory that cannot be named fails the start.
+fn fun_metrics_dir(
+    enabled: bool,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error + Send + Sync>> {
+    if !enabled {
+        return Ok(None);
+    }
+    let store = fragr_server::fun_metrics::FunStore::for_host().map_err(|error| {
+        format!("--fun-metrics needs a run directory (set FRAGR_RUN_DIR): {error}")
+    })?;
+    Ok(Some(store.dir().to_path_buf()))
+}
+
 fn head_to_head_path(args: &Args) -> Option<PathBuf> {
     match &args.head_to_head {
         Some(path) => Some(path.clone()),
@@ -682,6 +706,43 @@ mod tests {
                 "--tick-trace with {other:?} would be silently ignored"
             );
         }
+    }
+
+    #[test]
+    fn fun_metrics_are_off_unless_asked_and_never_ride_a_campaign_or_bench() {
+        let plain = Args::try_parse_from(["fragr-server"]).unwrap();
+        assert!(!plain.fun_metrics, "off by default");
+        let on = Args::try_parse_from(["fragr-server", "--fun-metrics", "--mode", "tdm"]).unwrap();
+        assert!(on.fun_metrics);
+        assert!(Args::try_parse_from(["fragr-server", "--fun-metrics", "--playlist"]).is_ok());
+        assert!(Args::try_parse_from(["fragr-server", "--fun-metrics", "--console"]).is_ok());
+        assert!(Args::try_parse_from([
+            "fragr-server",
+            "--desktop-host",
+            "--bind",
+            "127.0.0.1:0",
+            "--fun-metrics"
+        ])
+        .is_ok());
+        for other in [
+            vec!["--map-file", "mission.json"],
+            vec!["--local-mission", "recall_notice"],
+            vec!["--bench", "4"],
+            vec!["--solo-broadcast"],
+        ] {
+            let mut argv = vec!["fragr-server", "--fun-metrics"];
+            argv.extend(other.iter().copied());
+            assert!(
+                Args::try_parse_from(argv).is_err(),
+                "--fun-metrics with {other:?}"
+            );
+        }
+        assert_eq!(fun_metrics_dir(false).unwrap(), None);
+        let mut help = Vec::new();
+        Args::command().write_help(&mut help).unwrap();
+        let help = String::from_utf8(help).unwrap();
+        assert!(help.contains("--fun-metrics"), "a host can find it");
+        assert!(help.contains("shredded after 67"));
     }
 
     #[test]
@@ -1419,6 +1480,7 @@ mod tests {
                     overview: None,
                     tick_trace: None,
                     head_to_head: None,
+                    fun_metrics: None,
                 },
                 async move {
                     let _ = shutdown_rx.await;

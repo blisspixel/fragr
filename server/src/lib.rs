@@ -6,6 +6,7 @@ pub mod board;
 pub mod combat;
 pub mod desk;
 mod encounters;
+pub mod fun_metrics;
 pub mod inventory;
 pub mod join_ticket;
 pub mod local;

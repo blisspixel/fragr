@@ -632,6 +632,10 @@ func _on_map_info(info: Dictionary) -> void:
 		hud.reset_event_context()
 		_event_mission_receipt = ""
 		_joined_ui_team = ""
+	# A host that keeps fun metrics says so in its Welcome; the feed tells
+	# the player once, before the first fight, after the venue's reset.
+	if net_client != null and net_client.take_fun_metrics_notice():
+		hud.show_venue_notice(tr("HUD_FUN_METRICS"))
 	if walker_view != null:
 		walker_view.configure_map(info)
 	_reset_local_fire()

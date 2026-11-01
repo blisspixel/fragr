@@ -79,6 +79,9 @@ pub struct ToolState {
     pub booth: Option<Value>,
     /// The last world the server sent, so a snapshot delta can be applied.
     pub world: protocol::WorldReader,
+    /// The Welcome said this host keeps fun metrics: match-level tallies,
+    /// never a callsign or id, shredded after 67 days.
+    pub fun_metrics: bool,
 }
 
 impl Default for ToolState {
@@ -102,6 +105,7 @@ impl Default for ToolState {
             watch: false,
             booth: None,
             world: protocol::WorldReader::new(),
+            fun_metrics: false,
         }
     }
 }
@@ -789,6 +793,9 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "self_team": self_team,
         "self_lives": self_lives,
         "self_body": self_body,
+        // The host keeps fun metrics (match-level tallies, shredded after 67
+        // days), as its Welcome said. False when it keeps nothing.
+        "fun_metrics": state.fun_metrics,
         // The booth: live pad clocks, the Custody Plate, sprees and open
         // multikill chains. Present only for a session that watches and
         // never fights (`mcp --watch`); null for a fighter.
@@ -979,7 +986,7 @@ fn tools_list_body() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm, ctf or sabotage; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, sabotage (phase, round, score by round, alive, clock, charge, plant or defuse progress), sabotage_map (sites and callouts), sabotage_objective (idle, walk with a point, plant or defuse for you), self_callout, self_team, self_lives and self_body, from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. In sabotage the free coalition (coalition) carries and plants the charge and the union defends or defuses; one life per round, sides swap at half. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm, ctf or sabotage; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, sabotage (phase, round, score by round, alive, clock, charge, plant or defuse progress), sabotage_map (sites and callouts), sabotage_objective (idle, walk with a point, plant or defuse for you), self_callout, self_team, self_lives, self_body and fun_metrics (true when this host keeps match-level tallies: never a callsign or id, shredded after 67 days), from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. In sabotage the free coalition (coalition) carries and plants the charge and the union defends or defuses; one life per round, sides swap at half. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -2170,7 +2177,12 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 push_recent_event(state, event_value);
             }
         }
-        Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
+        Ok(protocol::ServerMessage::Welcome {
+            player_id,
+            fun_metrics,
+            ..
+        }) => {
+            state.fun_metrics = fun_metrics;
             state.connection_error = None;
             state.map = None;
             state.last_snapshot = None;
@@ -4955,6 +4967,35 @@ mod mcp_tests {
         assert!(result["team_scores"].is_null());
         assert!(result["self_team"].is_null());
         assert!(build_round_state_result(&ToolState::default())["rules"].is_null());
+    }
+
+    #[test]
+    fn the_welcome_s_fun_metrics_notice_reaches_round_state() {
+        let mut state = ToolState::default();
+        let round_state = |state: &mut ToolState| {
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"round_state","arguments":{}})),
+                ),
+                state,
+            );
+            tool_structured(out.response.result.unwrap())
+        };
+        assert_eq!(round_state(&mut state)["fun_metrics"], false);
+        let welcome = |on: bool| {
+            serde_json::json!({
+                "type": "welcome", "player_id": Uuid::nil(), "role": "agent",
+                "duck": true, "fun_metrics": on,
+            })
+            .to_string()
+        };
+        ingest_server_text(&mut state, &welcome(true)).unwrap();
+        assert!(state.connected && state.fun_metrics);
+        assert_eq!(round_state(&mut state)["fun_metrics"], true);
+        // A later Welcome from a host that keeps nothing says so.
+        ingest_server_text(&mut state, &welcome(false)).unwrap();
+        assert_eq!(round_state(&mut state)["fun_metrics"], false);
     }
 
     #[test]

@@ -1144,7 +1144,7 @@ msgid "HOST_RUNNING_CHOICE"
 msgstr "Nobody joins for you. Watch and Join are separate choices; Stop server ends the match for everyone."
 
 msgid "HOST_MORE_OPTIONS"
-msgstr "Stacked rules, LAN and port"
+msgstr "Stacked rules, LAN, port and fun tally"
 
 msgid "MULTI_FIND_NOTE"
 msgstr "Watch or play on someone's server: nearby, saved, or by address."
@@ -1334,6 +1334,12 @@ msgstr "Fixed bots: %d."
 
 msgid "HOST_ALLOW_LAN"
 msgstr "Allow players on this LAN"
+
+msgid "HOST_FUN_METRICS"
+msgstr "Fun tally: match numbers only, never names, shredded after 67 days"
+
+msgid "HOST_STATUS_FUN_METRICS"
+msgstr "This host keeps a fun tally (matches, not people; 67 days)."
 
 msgid "HOST_PORT"
 msgstr "TCP port"

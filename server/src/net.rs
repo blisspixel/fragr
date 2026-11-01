@@ -934,6 +934,8 @@ pub struct NetServer {
     /// Shared arcade rooms drop `look_at` on a human socket. Campaign doors
     /// leave it, because the mission probe aims that way. Agents always keep it.
     client_aim: bool,
+    /// This host keeps fun metrics; every Welcome says so before anyone fights.
+    fun_metrics: bool,
     party_slots: Option<Arc<Semaphore>>,
     /// The mode whose fixed fighter seats `party_slots` holds: five versus
     /// five Sabotage or Duel. A full pool refuses with `match_full`.
@@ -1249,6 +1251,7 @@ impl NetServer {
             geometry_version,
             gameplay_version,
             client_aim: false,
+            fun_metrics: false,
             solo_run: false,
             seat_mode: None,
             seat_holds: None,
@@ -1390,6 +1393,12 @@ impl NetServer {
         self.client_aim = true;
     }
 
+    /// Tell every joining connection, in its Welcome, that this host keeps
+    /// fun metrics (`fun_metrics.rs`).
+    pub fn announce_fun_metrics(&mut self) {
+        self.fun_metrics = true;
+    }
+
     /// A shared arcade room, and an arena rule set, speak a contract above
     /// capability 4. That must not install the four-seat mission party.
     pub(crate) fn open_arena_seats(&mut self) {
@@ -1446,6 +1455,7 @@ impl NetServer {
                     let geometry_version = self.geometry_version;
                     let gameplay_version = self.gameplay_version;
                     let client_aim = self.client_aim;
+                    let fun_metrics = self.fun_metrics;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
                     let seat_mode = self.seat_mode;
@@ -1537,6 +1547,7 @@ impl NetServer {
                                 required_geometry: geometry_version,
                                 required_gameplay: gameplay_version,
                                 client_aim,
+                                fun_metrics,
                                 party_slots,
                                 solo_run,
                                 seat_mode,
@@ -1762,6 +1773,7 @@ struct HelloPolicy {
     required_geometry: u32,
     required_gameplay: u32,
     client_aim: bool,
+    fun_metrics: bool,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
     seat_mode: Option<crate::protocol::GameMode>,
@@ -2217,6 +2229,7 @@ async fn handle_connection(
                         resume: Some(accepted.token.clone()),
                         body: Some(accepted.body),
                         duck: true,
+                        fun_metrics: policy.fun_metrics,
                     };
                     if send_welcome(&mut ws_sink, &welcome, &traffic)
                         .await
@@ -2402,6 +2415,7 @@ async fn handle_connection(
                         resume: issued,
                         body: player_id.map(|_| accepted_body),
                         duck: true,
+                        fun_metrics: policy.fun_metrics,
                     };
 
                     if let Some(guard) = auto_join.as_ref() {

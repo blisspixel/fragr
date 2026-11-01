@@ -757,6 +757,7 @@ No fields. Unknown fields -> schema error (`isError: true`).
   "self_team": "coalition",
   "self_lives": null,
   "self_body": "synthetic",
+  "fun_metrics": false,
   "booth": null,
   "last_round_start": {"event": "round_start", "round_number": 3},
   "last_round_end": null
@@ -791,6 +792,11 @@ waited on), in a Duel `duel` (both fighters' round wins in this series),
 `story` (each seated fighter's nemesis and rivals this session) and, on a
 rotating server, `vote` (`options`, `ballots`, `leader`, `closes_in`,
 `bots_vote`; see `docs/protocol.md`).
+`fun_metrics` is the Welcome's notice (gameplay 66): `true` when this host
+keeps fun metrics, match-level counts and timings on its own disk with no
+callsign, id or address, shredded after 67 days
+([`docs/PRIVACY.md`](../docs/PRIVACY.md)); `false` when it keeps nothing.
+An agent is counted like any other fighter.
 `self_body` is your pawn's accepted body, null before a snapshot shows
 you. Every participant in `observe` carries its own `body` and `dress` (`look`, and `accent` when one was chosen); Union and
 companion actors carry none.

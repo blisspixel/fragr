@@ -281,6 +281,21 @@ struct Cli {
         "sabotage_contested", "campaign_survey", "rewind_matrix"
     ])]
     ledge_scan: bool,
+    /// Run the harness or soak server with fun metrics on, keeping them under
+    /// this run directory (`<dir>/fun-metrics`), as `--fun-metrics` and
+    /// `FRAGR_RUN_DIR` do for a host.
+    #[arg(long, value_name = "RUN_DIR")]
+    fun_metrics: Option<PathBuf>,
+    /// Read a host's fun metrics folder and print the tables the bot survey
+    /// and the 1.0 bar use, with the rows that miss the map targets. Writes
+    /// `--report`. Reads only; nothing is sent anywhere.
+    #[arg(long, value_name = "FOLDER", conflicts_with_all = [
+        "soak", "fanout_matrix", "traffic", "bot_survey", "sabotage_survey",
+        "ctf_route_smoke", "ctf_contested", "sabotage_route_smoke",
+        "sabotage_contested", "campaign_survey", "rewind_matrix", "ledge_scan",
+        "fun_metrics"
+    ])]
+    fun_summary: Option<PathBuf>,
 }
 
 async fn peek_report(cli: &Cli) -> Result<(), String> {
@@ -391,6 +406,7 @@ fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
         seed: cli.seed,
         launch: fragr_playtest::soak::Launch::Binary(binary),
         log: cli.soak_log.clone(),
+        fun_metrics: cli.fun_metrics.clone(),
     })
 }
 
@@ -908,6 +924,10 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
             muster_ticks: 20 * 3,
             ..fragr_server::rules::SabotageConfig::default()
         },
+        fun_metrics: cli
+            .fun_metrics
+            .clone()
+            .map(|run_dir| run_dir.join(fragr_server::fun_metrics::store::DIRECTORY)),
     })
 }
 
@@ -960,6 +980,29 @@ async fn main() {
             eprintln!("error: {error}");
             std::process::exit(1);
         }
+        return;
+    }
+    if let Some(folder) = &cli.fun_summary {
+        let summary = match fragr_playtest::fun_summary::summarise_folder(folder) {
+            Ok(summary) => summary,
+            Err(error) => {
+                eprintln!("error: cannot read {}: {error}", folder.display());
+                std::process::exit(2);
+            }
+        };
+        if let Some(parent) = cli.report.parent().filter(|p| !p.as_os_str().is_empty()) {
+            if let Err(error) = std::fs::create_dir_all(parent) {
+                eprintln!("error: cannot create {}: {error}", parent.display());
+                std::process::exit(2);
+            }
+        }
+        let json = serde_json::to_string_pretty(&summary).expect("fun summary serializes");
+        if let Err(error) = std::fs::write(&cli.report, format!("{json}\n")) {
+            eprintln!("error: cannot write {}: {error}", cli.report.display());
+            std::process::exit(2);
+        }
+        print!("{}", fragr_playtest::fun_summary::table(&summary));
+        println!("report: {}", cli.report.display());
         return;
     }
     if cli.bot_survey {

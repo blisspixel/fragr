@@ -25,9 +25,10 @@ fighter's `ping`, pads without a live clock) is 58. Level 18's turn (M18
 `figure` campaign side and M17 `custody_started`) is 65. Contract 66 adds
 locational damage (`ShotResult.zone` in place of `head`, and a Ranged
 Sweeper's `mast_broken`), the hold-Tab board's objective credits
-(`players[].objective`) and the booth's whole pad clocks (`clock`); it is the
-highest this build speaks. Declared Goods, Weight of Permission, Launch
-Authority and All Systems Normal, which place Ranged Sweepers, require 66.
+(`players[].objective`), the booth's whole pad clocks (`clock`) and the fun
+metrics notice (`Welcome.fun_metrics`); it is the highest this build speaks.
+Declared Goods, Weight of Permission, Launch Authority and All Systems Normal,
+which place Ranged Sweepers, require 66.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -421,7 +422,11 @@ is not an arena. Additive to schema 2, `mode` names the rule set's mode (`ffa`
 or `tdm`; a missing `mode` means `ffa`) and `mutators` lists its mutator ids,
 omitted when none, so a server list can show what a server plays. Additive
 `gameplay_version` and `geometry_version` name the contracts this process
-speaks, and are omitted by an older host. It does not list callsigns or addresses, and it does not take
+speaks, and are omitted by an older host. Additive `fun_metrics` is `true` when
+this host keeps fun metrics (match-level tallies on its own disk, shredded
+after 67 days, [`PRIVACY.md`](PRIVACY.md)) and `false` when it keeps nothing;
+it is a boolean and says nothing else about the host. The join page reads it
+out before a player chooses Watch or Join. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
 app, which reads only those fields and accepts exactly schema 2.
 
@@ -1593,7 +1598,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "mode_name": "Scrap League",
   "playlist": "Larak Lot",
   "body": "human" | "synthetic",
-  "duck": true
+  "duck": true,
+  "fun_metrics": false
 }
 ```
 
@@ -1608,6 +1614,14 @@ Server response to `Hello`. Confirms connection and provides player ID.
 - `duck`: present and true only when this server accepts a held `Action.duck`
   and publishes the resolved stance. Omitted by older servers. Absence means
   the client must not send the key.
+- `fun_metrics` (gameplay 66): always sent. `true` when this host keeps fun
+  metrics: match-level counts and timings (frag pace, lead changes, gun shares,
+  kill distances, time to contact, tick health) in one file per match on its
+  own disk, never a callsign, id, address, chat or hardware fact, shredded
+  after 67 days ([`PRIVACY.md`](PRIVACY.md)). Every role receives it before
+  any fight; the Godot client says so in the match feed once per Welcome and
+  the MCP adapter returns it from `round_state`. A reader refuses a value that
+  is not a boolean; absence reads `false`. Campaign missions never record.
 - `mode_name`: Named scrap-league identity (default Scrap League)
 - `playlist`: The current map's display name (default Larak Lot).
 

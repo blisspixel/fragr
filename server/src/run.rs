@@ -198,6 +198,9 @@ pub struct ServerOptions {
     /// start and saved when a round ends and at shutdown. A desktop host
     /// keeps it beside its runs; a dedicated server only when asked.
     pub head_to_head: Option<PathBuf>,
+    /// Fun metrics folder (`fun_metrics.rs`, `docs/PRIVACY.md`). `None`, the
+    /// default, records nothing. Arcade only: a campaign keeps its run file.
+    pub fun_metrics: Option<PathBuf>,
 }
 
 impl Default for ServerOptions {
@@ -229,6 +232,7 @@ impl Default for ServerOptions {
             overview: None,
             tick_trace: None,
             head_to_head: None,
+            fun_metrics: None,
         }
     }
 }
@@ -580,7 +584,15 @@ async fn run_server_impl(
         }
         None => None,
     };
-    let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
+    // Opened before the listener for the same reason: a folder that cannot
+    // be written fails the start. A campaign keeps its own run file instead.
+    let mut fun_metrics = open_fun_metrics(
+        options.fun_metrics.as_deref(),
+        shared_room && options.authored.is_none(),
+    )?;
+    let mut first_live = session.state.live_status(0);
+    first_live.fun_metrics = fun_metrics.is_some();
+    let live = std::sync::Arc::new(tokio::sync::RwLock::new(first_live));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
         game_tx.clone(),
@@ -590,6 +602,9 @@ async fn run_server_impl(
     .await?;
     if shared_room {
         net_server.require_client_aim();
+    }
+    if fun_metrics.is_some() {
+        net_server.announce_fun_metrics();
     }
     // Capability 4 and above installs a four-seat mission party. A shared
     // room's contract is the current gameplay version, which is above that.
@@ -702,6 +717,7 @@ async fn run_server_impl(
             },
             status_every_s: options.status_every_s,
             lan_beacon: crate::announce::should_announce(bound),
+            fun_metrics: fun_metrics.is_some(),
         };
         print!("{}", crate::operator::ready_card(&facts, style));
     }
@@ -824,6 +840,9 @@ async fn run_server_impl(
                     session.drop_expired_pawn(player_id);
                 }
                 let messages = session.tick_messages(TICK.as_secs_f32());
+                if let Some(recorder) = fun_metrics.as_mut() {
+                    recorder.observe(&session, &messages);
+                }
                 persist_local_run(&session.state, durable_run.as_mut())?;
                 if session.state.round_state == crate::sim::RoundState::Ended {
                     save_head_to_head(&mut session.state, head_to_head.as_deref(), &mut head_to_head_warned);
@@ -870,6 +889,7 @@ async fn run_server_impl(
                     }
                     drop(clients_lock);
                     let mut next = session.state.live_status(connections);
+                    next.fun_metrics = fun_metrics.is_some();
                     tracker.apply(&mut next, now);
                     // The tracker does not know the match. The session does.
                     session.stamp_ops(&mut next);
@@ -897,6 +917,10 @@ async fn run_server_impl(
                 let finished = std::time::Instant::now();
                 tracker.record_overflows(finished, delivery.queue_overflows + unicast_delivery.queue_overflows);
                 tracker.record_tick(finished, finished.saturating_duration_since(started));
+                if let Some(recorder) = fun_metrics.as_mut() {
+                    recorder.tick_took(finished.saturating_duration_since(started));
+                    recorder.after_tick(std::time::SystemTime::now());
+                }
                 if let (Some(trace), Some(started_unix)) = (tick_trace.as_mut(), started_unix) {
                     let deadline = deadline.into_std();
                     let skipped = trace.deadline(deadline);
@@ -943,6 +967,7 @@ async fn run_server_impl(
             }
 
             Some(call) = async { desk_rx.as_mut().expect("guarded").recv().await }, if desk_rx.is_some() => {
+                let status = matches!(call.verb, crate::desk::DeskVerb::Status);
                 let outcome = match call.verb {
                     crate::desk::DeskVerb::Status => {
                         let who = session.desk(crate::desk::DeskVerb::Who);
@@ -956,6 +981,7 @@ async fn run_server_impl(
                     }
                     verb => session.desk(verb),
                 };
+                let outcome = if status { crate::operator::with_tally(outcome, fun_metrics.is_some()) } else { outcome };
                 if let crate::desk::DeskOutcome::Close { client_id, banned, .. } = &outcome {
                     let clients_lock = clients.lock().await;
                     if let Some(client) = clients_lock.iter().find(|client| client.id == *client_id) {
@@ -994,6 +1020,9 @@ async fn run_server_impl(
         head_to_head.as_deref(),
         &mut head_to_head_warned,
     );
+    if let Some(recorder) = fun_metrics.as_mut() {
+        recorder.finish(std::time::SystemTime::now());
+    }
     if let Some(trace) = tick_trace.take() {
         match trace.finish() {
             Ok(summary) => tracing::info!(
@@ -1014,6 +1043,30 @@ async fn run_server_impl(
     let _ = (&mut accept_task.0).await;
 
     Ok(())
+}
+
+/// The fun metrics recorder when the host asked for one: arcade only, its
+/// folder opened (and shredded) before the listener binds.
+fn open_fun_metrics(
+    dir: Option<&Path>,
+    arcade: bool,
+) -> Result<Option<crate::fun_metrics::HostRecorder>, Box<dyn std::error::Error + Send + Sync>> {
+    let Some(dir) = dir else {
+        return Ok(None);
+    };
+    if !arcade {
+        return Err("fun metrics are for arcade matches; a campaign keeps its own run file".into());
+    }
+    let store = crate::fun_metrics::FunStore::open(dir).map_err(|error| {
+        format!(
+            "Fun metrics folder {} could not be opened: {error}",
+            dir.display()
+        )
+    })?;
+    Ok(Some(crate::fun_metrics::HostRecorder::start(
+        store,
+        std::time::SystemTime::now(),
+    )))
 }
 
 fn spawn_venue_desk(

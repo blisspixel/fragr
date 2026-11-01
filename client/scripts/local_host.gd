@@ -77,6 +77,9 @@ static func valid_settings(value: Variant) -> bool:
 			return false
 	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
 		return false
+	# Fun metrics: match-level tallies on this machine, off unless asked.
+	if data.has("fun_metrics") and not data["fun_metrics"] is bool:
+		return false
 	if data.has("bot_skill") and (not data["bot_skill"] is String or data["bot_skill"] not in BOT_SKILLS):
 		return false
 	# Rotation with the podium's map vote, for a free-for-all, team or flag
@@ -87,7 +90,7 @@ static func valid_settings(value: Variant) -> bool:
 		if not data["maps_off"] is Array or not data.get("rotate", false) or FragrSettings.clean_maps_off(data["maps_off"], []) != data["maps_off"] \
 			or (data["maps_off"] as Array).is_empty() or (data["maps_off"] as Array).has(data["map_id"]):
 			return false
-	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire", "rotate", "maps_off", "bot_skill"]
+	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutators", "friendly_fire", "rotate", "maps_off", "bot_skill", "fun_metrics"]
 	for k: Variant in data.keys():
 		if not k is String or k not in known_keys:
 			return false
@@ -115,6 +118,8 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		for map_id: Variant in value.get("maps_off", []):
 			args.append("--map-off")
 			args.append(str(int(map_id)))
+	if value.get("fun_metrics", false):
+		args.append("--fun-metrics")
 	return args
 
 func start_host(value: Dictionary) -> bool:

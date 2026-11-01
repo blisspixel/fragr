@@ -85,6 +85,8 @@ var _host_twists: Dictionary[String, CheckButton] = {}
 ## One line naming what a fresh life holds under the chosen mode and mutator.
 var _host_kit_hint: Label
 var _host_friendly_fire: CheckButton
+## Fun metrics on this machine (`--fun-metrics`): off unless the host asks.
+var _host_fun_metrics: CheckButton
 var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
 var _benchmark_pending: bool = false
@@ -1472,12 +1474,17 @@ func _page_host() -> void:
 	_host_port.editable = _host_lan.button_pressed
 	_host_advanced.add_child(_host_port)
 	_host_lan.toggled.connect(func(enabled: bool) -> void: _host_port.editable = enabled)
+	_host_fun_metrics = CheckButton.new()
+	_host_fun_metrics.name = "HostFunMetrics"
+	_host_fun_metrics.text = tr("HOST_FUN_METRICS")
+	_host_fun_metrics.button_pressed = _host_settings.get("fun_metrics", false) == true
+	_host_advanced.add_child(_host_fun_metrics)
 	_rebuild_host_maps()
 	_host_map.item_selected.connect(func(_index: int) -> void: _refresh_host_rotation())
 	_host_mode.item_selected.connect(_change_host_mode)
 	_rebuild_host_bots(false)
 	# A profile already using an option shows it. Folding never hides state.
-	if stacked or bool(_host_settings.get("friendly_fire", false)) or bool(_host_settings["lan"]):
+	if stacked or bool(_host_settings.get("friendly_fire", false)) or bool(_host_settings["lan"]) or _host_settings.get("fun_metrics", false) == true:
 		_host_more_open = true
 	_host_more.button_pressed = _host_more_open
 	_host_advanced.visible = _host_more_open
@@ -1774,6 +1781,8 @@ func _start_host() -> void:
 	if _host_friendly_fire != null and _host_friendly_fire.visible and _host_friendly_fire.button_pressed:
 		_host_settings["friendly_fire"] = true
 	_host_settings["bot_skill"] = LocalHost.BOT_SKILLS[_host_bot_skill.selected]
+	if _host_fun_metrics != null and _host_fun_metrics.button_pressed:
+		_host_settings["fun_metrics"] = true
 	_host_settings.merge(_host_rotation_choice())
 	_save_host_rotation()
 	_local_host.start_host(_host_settings)
@@ -1924,6 +1933,11 @@ func _apply_status(parsed: Variant) -> void:
 			_match_line.text = tr("HOST_INVALID_RULES")
 			return
 		_match_line.text += " " + MatchRules.chip_text(rules)
+	if data.get("fun_metrics") == true:
+		# Its own sentence after the rules chip, which carries no stop.
+		if not _match_line.text.ends_with("."):
+			_match_line.text += "."
+		_match_line.text += " " + tr("HOST_STATUS_FUN_METRICS")
 	var note: String = ServerBook.version_note(data)
 	if not note.is_empty():
 		_match_line.text += " " + note
