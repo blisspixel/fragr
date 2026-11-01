@@ -116,7 +116,8 @@ disk, announced at join and shredded after 67 days per the
 [privacy policy](PRIVACY.md), reusing the survey metrics this wave adds so real
 matches and bot surveys are measured the same way. It also brings a roster of
 human and synthetic fighter looks for multiplayer (#530), a redesigned
-spectator pad timer board (#532), and locational damage: head, torso and
+spectator pad timer board (#532), a Counter-Strike-style split scoreboard with
+objective stats and rivals for keyboard and controller (#536), and locational damage: head, torso and
 legs, machine plating and faction weak points per the
 [locational damage plan](plans/locational-damage.md) (#533). Benchmark and auto settings get
 their own lane before 1.0: tiers from a 720p floor to great looks, an auto-tune
