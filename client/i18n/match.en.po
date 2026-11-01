@@ -921,6 +921,51 @@ msgstr "OUT UNTIL THE NEXT ROUND"
 msgid "HUD_DEATH_LOST"
 msgstr "LOST {weapons}"
 
+msgid "HUD_RECAP_RANGE"
+msgstr "{metres} M {bearing}"
+
+msgid "HUD_RECAP_AHEAD"
+msgstr "AHEAD"
+
+msgid "HUD_RECAP_AHEAD_RIGHT"
+msgstr "AHEAD RIGHT"
+
+msgid "HUD_RECAP_RIGHT"
+msgstr "RIGHT"
+
+msgid "HUD_RECAP_BEHIND_RIGHT"
+msgstr "BEHIND RIGHT"
+
+msgid "HUD_RECAP_BEHIND"
+msgstr "BEHIND YOU"
+
+msgid "HUD_RECAP_BEHIND_LEFT"
+msgstr "BEHIND LEFT"
+
+msgid "HUD_RECAP_LEFT"
+msgstr "LEFT"
+
+msgid "HUD_RECAP_AHEAD_LEFT"
+msgstr "AHEAD LEFT"
+
+msgid "HUD_RECAP_ABOVE"
+msgstr "ABOVE"
+
+msgid "HUD_RECAP_BELOW"
+msgstr "BELOW"
+
+msgid "HUD_RECAP_KILLER_HP"
+msgstr "THEY KEPT {hp} HP"
+
+msgid "HUD_RECAP_KILLER_HP_ARMOR"
+msgstr "THEY KEPT {hp} HP + {armor} ARMOUR"
+
+msgid "HUD_RECAP_TAKEN"
+msgstr "TOOK {total}: {from}"
+
+msgid "HUD_RECAP_MORE"
+msgstr "+{count} MORE"
+
 msgid "HUD_RELOAD_PENDING"
 msgstr "RELOAD REQUESTED"
 

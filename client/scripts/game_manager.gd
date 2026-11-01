@@ -3442,7 +3442,7 @@ func _on_event_received(data):
 			frag_sound.play()
 		
 		if is_human_player and _is_local_victim(victim_id):
-			_on_local_frag(victim_id, killer_id, killer_name)
+			_on_local_frag(victim_id, killer_id, killer_name, data.get("weapon"))
 		elif not is_human_player and killer_id != "" and camera:
 			camera.director_observe_frag(data, killer_id)
 			camera.lock_on_frag(killer_id, 2.0)
@@ -3515,6 +3515,7 @@ func _on_event_received(data):
 		var valid_dmg: bool = (dmg is int or dmg is float) and int(dmg) > 0
 		var hit_tick: int = int(data.get("tick", -1))
 		if is_human_player and my_id != "" and target_id == my_id and valid_dmg:
+			local_life.record_hit(data.get("shooter_id"), data.get("shooter"), dmg)
 			if hit_tick < 0 or hit_tick != _last_damage_flash_tick:
 				_last_damage_flash_tick = hit_tick
 				if hud and hud.has_method("show_damage_flash"):
@@ -3872,6 +3873,7 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	for pdata in player_list:
 		if str(pdata.get("id", "")) != pid:
 			continue
+		local_life.observe_body(pdata)
 		if _adopt_local_spawn_snapshot and (_retry_snapshot_tick < 0 or int(latest_snapshot.get("tick", -1)) >= _retry_snapshot_tick):
 			var pawn: Node = players.get(pid)
 			if is_instance_valid(pawn) and pawn.has_method("snap_authoritative_position"):
@@ -3946,13 +3948,27 @@ func _is_local_victim(victim_id: String) -> bool:
 
 ## The frag fact for this player's own death. It may land before or after the
 ## snapshot that removes the body; either order ends this life's input now.
-func _on_local_frag(victim_id: String, killer_id: String, killer_name: String) -> void:
+func _on_local_frag(victim_id: String, killer_id: String, killer_name: String, weapon: Variant = null) -> void:
 	if _mission_map():
 		return
 	local_life.record_frag(victim_id, killer_id, killer_name, int(latest_snapshot.get("tick", -1)))
+	# The recap reads the killer where this tick's snapshot put them.
+	local_life.record_kill_facts(weapon, _snapshot_row(killer_id))
 	_end_life_input()
 	if local_fp_pawn_id.is_empty():
 		_begin_death_view()
+
+## The latest snapshot's row for one fighter, or null when it is not in it.
+func _snapshot_row(id: String) -> Variant:
+	if id.is_empty():
+		return null
+	var rows: Variant = latest_snapshot.get("players")
+	if not rows is Array:
+		return null
+	for row: Variant in rows:
+		if row is Dictionary and str((row as Dictionary).get("id", "")) == id:
+			return row
+	return null
 
 ## Stop the dead life's prediction, local fire and every queued press.
 func _end_life_input() -> void:
@@ -4040,7 +4056,7 @@ func _update_death_presentation(now_usec: int) -> void:
 	if not net_client.equipment.is_empty():
 		carried = _carried_weapons()
 	var lines: PackedStringArray = local_life.card_lines(now_usec, watching, MatchRules.lost_at_death(hud.match_rules, carried), _team_seat)
-	hud.show_death_card(lines, _team_seat)
+	hud.show_death_card(lines, _team_seat, local_life.recap_lines())
 
 ## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
 ## same local prediction receipt so a confirmed launch never doubles its cue.

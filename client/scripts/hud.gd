@@ -2639,9 +2639,9 @@ func show_bark_caption(speaker_key: String, caption_key: String, union: bool = t
 
 ## The joined player's death card: three lines, or empty to clear it.
 ## `seat` lowers it out of a watched teammate's line of fire.
-func show_death_card(lines: PackedStringArray, seat: bool = false) -> void:
+func show_death_card(lines: PackedStringArray, seat: bool = false, recap: PackedStringArray = PackedStringArray()) -> void:
 	if death_card != null:
-		death_card.present(lines, seat)
+		death_card.present(lines, seat, recap)
 
 func hide_death_card() -> void:
 	if death_card != null:
