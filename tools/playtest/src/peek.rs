@@ -171,6 +171,7 @@ fn hello(name: &str) -> Result<Message, Error> {
     Ok(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
             body: None,
+            dress: None,
             seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
