@@ -1081,7 +1081,7 @@ async fn main() {
         return;
     }
     if let Some(folder) = &cli.fun_summary {
-        let summary = match fragr_playtest::fun_summary::summarise_folder(folder) {
+        let summary = match fragr_server::fun_metrics::summary::summarise_folder(folder) {
             Ok(summary) => summary,
             Err(error) => {
                 eprintln!("error: cannot read {}: {error}", folder.display());
@@ -1099,7 +1099,7 @@ async fn main() {
             eprintln!("error: cannot write {}: {error}", cli.report.display());
             std::process::exit(2);
         }
-        print!("{}", fragr_playtest::fun_summary::table(&summary));
+        print!("{}", fragr_server::fun_metrics::summary::table(&summary));
         println!("report: {}", cli.report.display());
         return;
     }

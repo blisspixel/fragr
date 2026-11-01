@@ -22,7 +22,6 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
-pub mod fun_summary;
 pub mod interest;
 pub mod ladder;
 pub mod link;

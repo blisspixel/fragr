@@ -126,3 +126,82 @@ async fn a_campaign_refuses_fun_metrics_before_it_binds() {
         .to_string()
         .contains("fun metrics are for arcade matches"));
 }
+
+/// Wait until the bot match has played some live ticks: warmup is two
+/// seconds, so a tick past five seconds is live play.
+async fn played(address: std::net::SocketAddr) {
+    for _ in 0..200 {
+        let status = status(address).await;
+        if status["tick"].as_u64().unwrap_or(0) > 100 {
+            return;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+    panic!("the bot match never got going");
+}
+
+fn bot_match(fun_metrics: std::path::PathBuf) -> crate::run::ServerOptions {
+    crate::run::ServerOptions {
+        bind: "127.0.0.1:0".into(),
+        bots: 2,
+        fun_metrics: Some(fun_metrics),
+        ..Default::default()
+    }
+}
+
+fn half_played(dir: &std::path::Path) {
+    let (records, refused) = crate::fun_metrics::FunStore::read_all(dir).unwrap();
+    assert!(refused.is_empty(), "{refused:?}");
+    assert_eq!(records.len(), 1, "the stopped match is filed once");
+    assert!(!records[0].finished, "and marked as not played out");
+    assert!(records[0].tally.live_ticks > 0);
+    assert!(records[0].tick_health.is_some());
+}
+
+#[tokio::test]
+async fn a_stopped_server_files_the_half_played_match() {
+    let dir = scratch();
+    let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+    let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
+    let server = tokio::spawn(crate::run::run_server(
+        bot_match(dir.clone()),
+        async {
+            let _ = stop_rx.await;
+        },
+        Some(ready_tx),
+    ));
+    played(ready_rx.await.unwrap()).await;
+    stop_tx.send(()).unwrap();
+    server.await.unwrap().unwrap();
+    half_played(&dir);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// The binary's own stop: SIGTERM, as a service manager or `docker stop`
+/// sends it, ends the loop through the same path. The handler is installed
+/// before the signal is sent, so the test process is never at risk.
+#[cfg(unix)]
+#[tokio::test]
+async fn sigterm_stops_the_server_and_files_the_half_played_match() {
+    let dir = scratch();
+    let stop = crate::run::stop_signal().unwrap();
+    let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+    let server = tokio::spawn(crate::run::run_server(
+        bot_match(dir.clone()),
+        stop,
+        Some(ready_tx),
+    ));
+    played(ready_rx.await.unwrap()).await;
+    let sent = std::process::Command::new("kill")
+        .args(["-TERM", &std::process::id().to_string()])
+        .status()
+        .unwrap();
+    assert!(sent.success());
+    tokio::time::timeout(std::time::Duration::from_secs(10), server)
+        .await
+        .expect("SIGTERM stops the loop")
+        .unwrap()
+        .unwrap();
+    half_played(&dir);
+    let _ = std::fs::remove_dir_all(dir);
+}

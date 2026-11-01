@@ -237,6 +237,36 @@ impl Default for ServerOptions {
     }
 }
 
+/// A dedicated server's stop: Ctrl+C (SIGINT) or SIGTERM, the signals a
+/// terminal, a service manager and `docker stop` send. The handlers are
+/// installed before this returns, so a signal that arrives before the loop
+/// first polls the future still stops it cleanly: the loop then saves the
+/// head-to-head book and files a half-played fun metrics match.
+pub fn stop_signal() -> std::io::Result<impl Future<Output = ()>> {
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{signal, SignalKind};
+        let mut terminate = signal(SignalKind::terminate())?;
+        let mut interrupt = signal(SignalKind::interrupt())?;
+        Ok(async move {
+            tokio::select! {
+                _ = terminate.recv() => tracing::info!("SIGTERM received"),
+                _ = interrupt.recv() => tracing::info!("Ctrl+C received"),
+            }
+        })
+    }
+    #[cfg(not(unix))]
+    {
+        Ok(async {
+            if tokio::signal::ctrl_c().await.is_ok() {
+                tracing::info!("Ctrl+C received");
+            } else {
+                std::future::pending::<()>().await;
+            }
+        })
+    }
+}
+
 /// Bind, accept clients, and tick the session until `shutdown` resolves.
 /// When `ready` is Some, send the bound address only after loopback
 /// `GET /status` has returned a schema 2 match line.

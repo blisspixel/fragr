@@ -232,6 +232,12 @@ struct Args {
     #[arg(long, default_value_t = false, help_heading = "Hosting and access", conflicts_with_all = ["campaign_source", "local_mission", "local_run_preview", "bench", "bench_verify_trace", "solo_broadcast"])]
     fun_metrics: bool,
 
+    /// Print a summary of the fun metrics in FOLDER (default: this host's own
+    /// folder under the run directory) as the 1.0 bar's tables, and exit.
+    /// Reads only; it never writes into the folder or sends anything.
+    #[arg(long, value_name = "FOLDER", num_args = 0..=1, help_heading = "Hosting and access", conflicts_with_all = ["fun_metrics", "bench", "bench_verify_trace", "local_mission", "local_run_preview", "desktop_host", "ready_line", "console"])]
+    fun_summary: Option<Option<PathBuf>>,
+
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
@@ -331,6 +337,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             std::io::stdout(),
         )
         .await;
+    }
+    if let Some(folder) = &args.fun_summary {
+        print!(
+            "{}",
+            fragr_server::fun_metrics::summary::host_report(folder.as_deref())?
+        );
+        return Ok(());
     }
     if let Some(path) = args.bench_verify_trace {
         let reader = std::io::BufReader::new(std::fs::File::open(path)?);
@@ -498,7 +511,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     } else if args.desktop_host {
         fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
     } else {
-        run_server(options, std::future::pending::<()>(), None).await
+        run_server(options, fragr_server::run::stop_signal()?, None).await
     };
     started.map_err(|error| -> Box<dyn std::error::Error + Send + Sync> {
         if let Some(line) = fragr_server::net::address_in_use_line(error.as_ref()) {
@@ -743,6 +756,32 @@ mod tests {
         let help = String::from_utf8(help).unwrap();
         assert!(help.contains("--fun-metrics"), "a host can find it");
         assert!(help.contains("shredded after 67"));
+    }
+
+    #[test]
+    fn a_host_reads_its_tally_from_the_release_binary() {
+        let plain = Args::try_parse_from(["fragr-server"]).unwrap();
+        assert_eq!(plain.fun_summary, None, "serving is the default");
+        let own = Args::try_parse_from(["fragr-server", "--fun-summary"]).unwrap();
+        assert_eq!(own.fun_summary, Some(None), "the host's own folder");
+        let named = Args::try_parse_from(["fragr-server", "--fun-summary", "nights"]).unwrap();
+        assert_eq!(named.fun_summary, Some(Some(PathBuf::from("nights"))));
+        for other in [
+            vec!["--fun-metrics"],
+            vec!["--bench", "4"],
+            vec!["--desktop-host"],
+            vec!["--console"],
+        ] {
+            let mut argv = vec!["fragr-server", "--fun-summary"];
+            argv.extend(other.iter().copied());
+            assert!(
+                Args::try_parse_from(argv).is_err(),
+                "--fun-summary reads; it does not serve with {other:?}"
+            );
+        }
+        let mut help = Vec::new();
+        Args::command().write_help(&mut help).unwrap();
+        assert!(String::from_utf8(help).unwrap().contains("--fun-summary"));
     }
 
     #[test]
