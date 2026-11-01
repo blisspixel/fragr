@@ -889,6 +889,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
             lives: None,
             golden: false,
             ducking: false,
+            airborne: false,
             body: None,
             collidable: true,
             campaign: None,

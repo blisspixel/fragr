@@ -280,6 +280,7 @@
         ],
         "players": [
           {
+            "airborne": true,
             "armor": 0,
             "body": "human",
             "campaign": {
@@ -1447,6 +1448,7 @@
     ],
     "players": [
       {
+        "airborne": true,
         "armor": 0,
         "body": "human",
         "campaign": {

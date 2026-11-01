@@ -208,6 +208,11 @@ civilians block intersecting horizontal movement, preserving sliding and world
 support. They do not become standing surfaces. Positions and accepted velocities
 remain server facts; MCP sends the same ordinary action channel.
 
+`observe.players[].airborne` (optional, omitted while grounded) is true while
+that fighter is off the ground: a jump, a fall or jetpack thrust. It is the
+same fact the game client plays jumps and landings from; an agent can read a
+nearby fighter leaving or touching the ground the way a player hears it.
+
 `observe.mission` carries the shared phase, attempt, party readiness/boarding and currently
 legal prompts. `observe.map.mission` describes panel indices, approach positions
 and the boarding area. `act.interact: true` presses Use; release with `false`

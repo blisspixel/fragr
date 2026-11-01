@@ -393,6 +393,7 @@ mod tests {
             lives: None,
             golden: false,
             ducking: false,
+            airborne: false,
             body: None,
             ping: None,
         }

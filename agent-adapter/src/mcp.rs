@@ -2643,6 +2643,41 @@ mod mcp_tests {
     }
 
     #[test]
+    fn observe_full_carries_a_jumping_fighter_as_airborne_and_omits_it_grounded() {
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        let id = Uuid::from_u128(93);
+        sim.add_player(id, "Hopper".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        sim.tick(0.05);
+        let grounded = protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&grounded).unwrap()).unwrap();
+        assert!(build_observe_result(&state)["players"][0]
+            .get("airborne")
+            .is_none());
+        sim.set_action(
+            id,
+            protocol::Action {
+                seq: Some(1),
+                jump: true,
+                ..Default::default()
+            },
+        );
+        sim.tick(0.05);
+        let rising = protocol::ServerMessage::Snapshot(sim.snapshot());
+        ingest_server_text(&mut state, &serde_json::to_string(&rising).unwrap()).unwrap();
+        assert_eq!(
+            build_observe_result(&state)["players"][0]["airborne"],
+            serde_json::json!(true)
+        );
+    }
+
+    #[test]
     fn remote_controls_preserve_world_aim_and_strict_observation() {
         let placement = validate_act_arguments(&serde_json::json!({
             "place_remote_mine":true,"look_at":{"x":3,"y":0,"z":0}

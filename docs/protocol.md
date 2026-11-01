@@ -1745,6 +1745,11 @@ instead (see "Snapshot deltas (capability 63)").
   - `ducking`: (optional) resolved crouch, omitted while standing. True while
     the duck key is held or the ceiling will not allow the 1.8 m body. The
     shot volume, eye, and contact height follow it. Older readers ignore it.
+  - `airborne`: (optional) true while the fighter is off the ground: rising
+    from a jump, falling, or thrusting on a jetpack. Omitted while standing on
+    a floor. It is presentation only: the client plays a jump when it rises and
+    a landing on the snapshot it clears, and nothing in combat reads it. Its
+    edges are exact facts, never coalesced away under a full send queue.
   - `collidable`: Boolean server-owned living-body eligibility. New servers
     always include it on a published row. A parked pawn with no live socket is
     omitted for the resume window. Eliminated and respawning bodies are omitted.

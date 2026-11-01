@@ -6784,6 +6784,7 @@
           "z": -10.199999809265137
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -6807,6 +6808,7 @@
           "z": -7.039999961853027
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -8106,6 +8108,7 @@
           "z": -10.199999809265137
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -8129,6 +8132,7 @@
           "z": -7.039999961853027
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -8244,6 +8248,7 @@
           "z": 4.400000095367432
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "assessor",
@@ -9507,6 +9512,7 @@
           "z": -10.199999809265137
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -9530,6 +9536,7 @@
           "z": -7.039999961853027
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "notary",
@@ -9645,6 +9652,7 @@
           "z": 4.400000095367432
         },
         {
+          "airborne": true,
           "armor": 0,
           "campaign": {
             "kind": "assessor",

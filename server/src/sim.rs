@@ -3969,6 +3969,7 @@ impl GameState {
                         lives: p.lives,
                         golden: p.golden,
                         ducking: p.ducking,
+                        airborne: p.vy != 0.0,
                         body: p.is_participant().then_some(p.body),
                         ping: p.ping_ms,
                     }

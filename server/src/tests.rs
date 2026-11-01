@@ -461,6 +461,7 @@ fn test_protocol_snapshot_serialization() {
             body: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,
@@ -7907,3 +7908,70 @@ mod sniper;
 mod surveyor;
 mod tick_trace;
 mod traveling_shot;
+
+#[test]
+fn snapshots_say_when_a_fighter_is_off_the_ground_for_jump_and_landing_sounds() {
+    // Clients play jumps and landings from this fact, so it must rise on the
+    // jump, hold through the fall and clear on the tick the feet touch down.
+    let mut state = GameState::new();
+    state.start_round();
+    let human = Uuid::new_v4();
+    state.add_player(human, "Hopper".into(), Role::Human);
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].y = crate::sim::PLAYER_FLOOR_Y;
+    let airborne = |state: &GameState| -> bool {
+        state
+            .snapshot()
+            .players
+            .iter()
+            .find(|p| p.id == human)
+            .expect("the fighter is published")
+            .airborne
+    };
+    state.tick(0.05);
+    assert!(!airborne(&state), "standing is grounded");
+    let standing = serde_json::to_value(state.snapshot()).unwrap();
+    assert!(
+        standing["players"][0].get("airborne").is_none(),
+        "grounded is omitted on the wire: {}",
+        standing["players"][0]
+    );
+    state.set_action(
+        human,
+        Action {
+            seq: Some(1),
+            jump: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert!(airborne(&state), "the jump leaves the ground");
+    let rising = serde_json::to_value(state.snapshot()).unwrap();
+    assert_eq!(rising["players"][0]["airborne"], serde_json::json!(true));
+    state.set_action(
+        human,
+        Action {
+            seq: Some(2),
+            ..Default::default()
+        },
+    );
+    let mut air_ticks = 1;
+    while airborne(&state) {
+        state.tick(0.05);
+        air_ticks += 1;
+        assert!(air_ticks < 40, "the fighter lands");
+    }
+    // A 7 m/s jump under 22 m/s^2 gravity is about 0.64 s in the air.
+    assert!((11..=15).contains(&air_ticks), "air time {air_ticks} ticks");
+    assert_eq!(
+        state.players[0].y,
+        crate::sim::PLAYER_FLOOR_Y,
+        "on the floor"
+    );
+    // A body read back without the field is grounded.
+    let mut wire = serde_json::to_value(&state.snapshot().players[0]).unwrap();
+    wire.as_object_mut().unwrap().remove("airborne");
+    let read: crate::protocol::PlayerState = serde_json::from_value(wire).unwrap();
+    assert!(!read.airborne);
+}

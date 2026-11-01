@@ -370,6 +370,7 @@ pub(crate) mod fixtures {
             body: None,
             golden: false,
             ducking: false,
+            airborne: false,
             lives: None,
             team: None,
             campaign: None,

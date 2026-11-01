@@ -1861,6 +1861,11 @@ pub struct PlayerState {
     /// contact height follow it.
     #[serde(default, skip_serializing_if = "is_false")]
     pub ducking: bool,
+    /// Off the ground: rising from a jump, falling, or thrusting on a jetpack.
+    /// Omitted while standing on a floor. Presentation reads it for jump and
+    /// landing sounds; nothing in combat does.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub airborne: bool,
     /// The participant's accepted body. Omitted for Union and companion
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]

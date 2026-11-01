@@ -4116,6 +4116,7 @@
             "z": -20.0
           },
           {
+            "airborne": true,
             "armor": 0,
             "campaign": {
               "kind": "notary",
@@ -4139,6 +4140,7 @@
             "z": -4.0
           },
           {
+            "airborne": true,
             "armor": 0,
             "campaign": {
               "kind": "notary",
