@@ -426,6 +426,7 @@ them on, kept only on the host's disk and shredded after 67 days. The
 | `--bots <N>` | Rule bots to stock, default 4. |
 | `--bot-policy <POLICY>` | `fixed` (default), `none` or `auto`. None and auto require `--bots 0`. |
 | `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to plain TDM and Sabotage, without mutators. |
+| `--bot-skill <RUNG>` | How good the rule bots are: `tourist`, `walk-in`, `regular` (default), `headliner` or `no-crumbs`. Every rung keeps the same 120 degree view, line of sight and a reaction of at least 150 ms; the rungs differ in reaction, aim error, turn speed, how far they see and how well they choose. The desktop host's Bot skill row sets it. |
 | `--map <ID>` | Arena ID or name; map 1 is Larak Lot (`larak`, `lot`; `arena` and `duel` still work). |
 | `--map-rotate` | Move map between rounds with a podium vote on the next three. The mode stays the one chosen at launch; only maps that can host it are visited, and Sabotage keeps its map for the whole match. |
 | `--map-off <MAP>` | Repeatable, with `--map-rotate`: keep this map out of the rotation and the vote. Refuses switching every map off or starting on a map that is off. |

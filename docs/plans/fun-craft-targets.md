@@ -401,6 +401,12 @@ contact. Harness reports `time_to_first_frag_s`, `spawn_deaths`,
 - **Conquest.** 3 to 5 sites for 8 to 16 players (BF V's 5 to 7 is for 64);
   no more than 2 contested at once for small counts.
 
+Measured (wave 21, `fragr-playtest --map-timing`, `server/src/maps/timing.rs`):
+Sector 9 attackers 14.9 / 16.3 s to A / B, defenders 5.9 / 6.2 s, rotation
+9.0 s; Low Water attackers 11.0 / 10.9 s, defenders 4.6 s, rotation 7.5 s;
+corner to corner from 17.0 s (Larak Lot) to 108.7 s (Holdfast Atoll). Both
+Sabotage maps are fast for the defence against these bands.
+
 ### How to measure
 
 - Auto: a navmesh timing tool (`navigation.rs` already exists) that prints
@@ -483,6 +489,13 @@ vehicle hulls block, 200 to 400 ms reaction to a new sighting, aim error 0.055,
 turn limit 0.1 rad per tick (about 115 deg/s), flinch on hit, hits reveal where
 the shot came from, not where the shooter went; pads remembered with published
 clocks. This is already in the honest band of every reference.
+
+Wave 21 (#526): five rungs on these numbers (`server/src/sim/bot_skill.rs`,
+Tourist to No Crumbs, Regular the default above), host-selectable, reaction
+never under 150 ms. `fragr-playtest --bot-ladder`, two sets of 144 seeded Duels
+per pair: each rung beats the one below 68 to 80 percent, win share against
+Regular is monotonic, dithering 3.7 to 4.4 percent of moving windows. Tables
+in `bot-and-enemy-ai-excellence-20261017.md`, wave 21.
 
 ### Proposed targets
 
