@@ -14,7 +14,9 @@ same at different frame rates.
 
 Keep a bounded history of validated participant positions and facing at the
 existing 20 Hz server cadence. Estimate the tick clock from the earliest arrival
-offset in a bounded observation window and render 100 ms behind that clock.
+offset in a bounded observation window and render behind that clock by an
+adaptive buffer (wave 21, #525: 60 ms on a steady link, up to 100 ms under
+measured jitter; `client/scripts/remote_presentation.gd`).
 Never move the presentation cursor backwards. Interpolate position and pitch
 linearly and yaw along its shortest arc. Hold at the newest known position when
 the buffer runs dry. Do not extrapolate beyond authoritative positions.

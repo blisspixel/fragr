@@ -3159,7 +3159,7 @@ Recording metadata is not sent on the live socket.
 - **Delta compression**: Send only changed fields
 - **Interest management**: Filter snapshots by visibility/distance
 - **UDP option**: Low-latency channels for actions (alongside WS for reliability)
-- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. The local presentation increment interpolates remote fighters on a bounded 100 ms timeline, clears discontinuities and keeps shots tied to resolved traces. Gameplay 62 adds bounded hitscan lag compensation from the client's reported view tick (200 ms bound). Campaign-enemy timeline interpolation remains later work.
+- **Prediction**: Local human movement prediction and Ack reconciliation shipped on the WebSocket client. The local presentation increment interpolates remote fighters on a bounded timeline (an adaptive 60 to 100 ms buffer since wave 21; every fighter at the one render time the Action reports as `view_tick`), clears discontinuities and keeps shots tied to resolved traces. Gameplay 62 adds bounded hitscan lag compensation from the client's reported view tick (200 ms bound). Campaign-enemy timeline interpolation remains later work.
 
 ## Participant records
 

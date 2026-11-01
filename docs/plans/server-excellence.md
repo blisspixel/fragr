@@ -130,7 +130,8 @@ Gambetta, and the Paper and Source operator docs. Four facts in this tree
 are why a second match still fails.
 
 - Other people are drawn 100 ms late, and the shot is resolved now.
-  `RemotePresentation.BUFFER_TICKS` is 2, two snapshots at 20 Hz. At 5 m/s
+  `RemotePresentation.BUFFER_TICKS` was 2, two snapshots at 20 Hz (adaptive
+  from 1.2 since wave 21, #525). At 5 m/s
   that is half a metre of strafe between the picture and the body the server
   tests, before ping. The hit rule is server-now. The buffer is not lag
   compensation. A hitscan has to land on the body the shooter was shown, or
