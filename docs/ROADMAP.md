@@ -114,7 +114,9 @@ Wave 22 follows with fair play (each client receives only what its fighter
 could perceive) and opt-in fun metrics (#529): match-level records on a host's
 disk, announced at join and shredded after 67 days per the
 [privacy policy](PRIVACY.md), reusing the survey metrics this wave adds so real
-matches and bot surveys are measured the same way.
+matches and bot surveys are measured the same way. It also brings a roster of
+human and synthetic fighter looks for multiplayer (#530), built after the
+November 3 model credit refresh, so a lobby is never a room of clones.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
