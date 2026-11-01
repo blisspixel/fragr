@@ -674,17 +674,20 @@ mod tests {
 
     #[test]
     fn an_exhausted_carry_saves_failure_without_a_retry() {
-        // Seed 12 deliberate/Severe spends all three continues in M01 and
+        // Seed 27 deliberate/Severe spends all three continues in M01 and
         // still departs; its first M02 death exhausts the run on disk. Earlier
         // seeds stopped fitting as the game changed: 43 once Union guards
         // needed a sighting (wave 12), 54 and 40 once the participant's view
         // ordered the attack tokens (#493) and M01 retries ran on their own
         // streams (#489), 42 once plated Sweepers changed the M01 fights
         // (locational damage, #533), 4 once #538 lowered the Recall Notice
-        // desks on top of the plating.
+        // desks on top of the plating, 12 once a checkpoint stopped counting a
+        // guard that only patrols or stands out its recovery as in the fight
+        // (#527, wave 23): a recorded search of seeds 0 to 399 against these
+        // exact conditions found 27 first (then 38, 39, 45 and 49).
         let mut reviews = Reviews::default();
         let row = trial(
-            12,
+            27,
             PROFILES[1],
             CampaignDifficulty::Severe,
             12_000,

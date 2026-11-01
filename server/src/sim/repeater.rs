@@ -3,7 +3,8 @@ use crate::protocol::WeaponType;
 
 pub const WARMUP_TICKS: u64 = 6;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct RepeaterCycle {
     pub(crate) held_since: Option<u64>,
 }

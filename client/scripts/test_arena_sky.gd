@@ -55,6 +55,14 @@ func _run() -> void:
 	_check(recall.practical_energy > scrap.practical_energy * 2.0 and recall.practical_range > scrap.practical_range, "interior fixtures do not dominate the ambient floor")
 	_check(recall.accent_energy > 0.0 and scrap.accent_energy == 0.0, "Union seals lost their red lamp, or it leaked to the arena")
 	_check(recall.view_fill_energy > 0.0 and recall.view_fill_range >= 30.0, "interior enemies lost their readability fill at aisle range")
+	# League venues keep the actor fill flat across the 10 to 40 m band; Union
+	# interiors let it fall off so a guard stays a dark mass; the bright atoll,
+	# where fighters read as dark shapes, has none (contrast scan, #528).
+	var lot_fill: ArenaSky.Preset = ArenaSky.preset_for("Larak Lot")
+	_check(lot_fill.view_fill_attenuation == 0.0 and lot_fill.view_fill_range >= 40.0 and scrap.view_fill_attenuation == 0.0 and scrap.view_fill_energy > 0.0,
+		"league fighters lost their flat fill across the fighting band")
+	_check(recall.view_fill_attenuation > 0.0 and ward.view_fill_attenuation > 0.0, "a Union interior fill must fall off with distance")
+	_check(ArenaSky.preset_for("Holdfast Atoll").view_fill_energy == 0.0, "the atoll would lift fighters toward the sand")
 
 	var environment: Environment = ArenaSky.build_environment("Recall Notice")
 	_check(environment.ambient_light_source == Environment.AMBIENT_SOURCE_COLOR and is_equal_approx(environment.ambient_light_energy, recall.ambient_energy), "interior ambient is not the authored flat floor")
@@ -103,6 +111,7 @@ func _run() -> void:
 	ArenaSky.apply_view_fill(camera, "Recall Notice")
 	var fill: OmniLight3D = camera.get_node_or_null(ArenaSky.VIEW_FILL) as OmniLight3D
 	_check(fill != null and fill.light_cull_mask == ArenaSky.ACTOR_LAYERS and not fill.shadow_enabled, "view fill must light actors only, without a shadow map")
+	_check(fill != null and is_equal_approx(fill.omni_attenuation, recall.view_fill_attenuation), "view fill ignores the venue falloff")
 	ArenaSky.apply_view_fill(camera, "Recall Notice")
 	_check(camera.get_child_count() == 1, "reapplying the venue stacked a second view fill")
 

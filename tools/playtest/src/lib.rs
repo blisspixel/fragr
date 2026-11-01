@@ -22,7 +22,6 @@ use uuid::Uuid;
 pub mod bot_survey;
 pub mod campaign;
 pub mod fanout;
-pub mod fun_summary;
 pub mod interest;
 pub mod ladder;
 pub mod link;
@@ -1340,7 +1339,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 fragr_server::protocol::FlagEventKind::Captured => captures += 1,
             },
             GameEvent::Hit { .. }
-            | GameEvent::Checkpoint {}
+            | GameEvent::Checkpoint { .. }
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::EnemyBark { .. }
             | GameEvent::CompanionBark { .. }
@@ -3926,6 +3925,7 @@ mod combat_tests {
 
     fn shot(shooter: Uuid, hit: bool, target: Option<Uuid>, damage: i32) -> ShotResult {
         ShotResult {
+            sense: None,
             trace: None,
             killed: false,
             zone: None,

@@ -29,6 +29,11 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    /// Stands in for a world a saved checkpoint rebuilds from its steps.
+    pub(crate) fn placeholder() -> Self {
+        Self::BuiltIn(MapKind::default())
+    }
+
     pub(crate) fn m19_objectives(&self) -> Option<&super::authored::m19::Prepared> {
         match self {
             Self::BuiltIn(_) => None,

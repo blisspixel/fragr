@@ -22,6 +22,9 @@ pub struct SurveyConfig {
     /// Rule bots in the match; they split evenly between the sides.
     pub bots: usize,
     pub format: SabotageFormat,
+    /// The desktop five versus five profile (`--sabotage-five-v-five` on the
+    /// server): ten seats and every life starts on the Pistol.
+    pub five_vs_five: bool,
     /// Hard stop per match, in ticks, so a stuck match fails rather than hangs.
     pub max_ticks: u64,
 }
@@ -33,6 +36,7 @@ impl Default for SurveyConfig {
             map: MapKind::Sector9,
             bots: 8,
             format: SabotageFormat::Short,
+            five_vs_five: false,
             max_ticks: 20 * 60 * 40,
         }
     }
@@ -93,6 +97,11 @@ pub struct SurveyReport {
     pub drop_callouts: BTreeMap<String, u32>,
     /// Deaths by side on a 10 metre grid, as "side:x,z" of the cell's centre.
     pub death_grid: BTreeMap<String, u32>,
+    /// The first death of each round by the site the attack went for, the
+    /// victim's side and the 10 metre cell, as "site:side:x,z": who opens a
+    /// round where, at each site.
+    #[serde(default)]
+    pub first_deaths_by_site: BTreeMap<String, u32>,
     /// Fighters without a usable gun when weapons went live, by side.
     pub unarmed_at_live: BTreeMap<String, u32>,
     /// Plants, detonations and defuses by site, as "a" or "b", so the two
@@ -179,6 +188,7 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
         rules: RuleSet::new(GameMode::Sabotage, &[], false).expect("plain sabotage rules"),
         sabotage: SabotageConfig {
             format: config.format,
+            five_vs_five: config.five_vs_five,
             ..SabotageConfig::default()
         },
         ..MatchConfig::default()
@@ -213,6 +223,14 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
                     frags += 1;
                     if let Some(p) = session.state.players.iter().find(|p| &p.name == victim) {
                         let side = victim_team.map_or("none", |t| t.id());
+                        if frags == 1 {
+                            let site = site_id(session.state.sabotage_attack_site());
+                            let cell = |v: f32| (v / 10.0).floor() as i32 * 10 + 5;
+                            *report
+                                .first_deaths_by_site
+                                .entry(format!("{}:{side}:{},{}", site, cell(p.x), cell(p.z)))
+                                .or_default() += 1;
+                        }
                         *report
                             .deaths
                             .entry(format!("{side}:{}", callout(p.x, p.z)))

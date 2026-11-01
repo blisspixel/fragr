@@ -292,6 +292,7 @@
       {"group": "waterworks_last", "at": 8400},
       {"group": "trench_last", "at": 9200},
       {"group": "freight_last", "at": 9800}
-    ]
+    ],
+    "wave_breaks": [2400, 4600, 6800, 9200]
   }
 }

@@ -887,12 +887,19 @@ pub const FUN_METRICS_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 /// `crate::interest`). A reader at 65 would draw a hidden row at the origin,
 /// so a shared room moves to this contract.
 pub const INTEREST_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
-/// The highest contract: locational damage, the objective board, the fun
-/// metrics notice and interest filtering, after Level 17's custody beat,
-/// the map vote and Level 18's turn.
-pub const GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
+/// Interest filtering of the rest of the world: a shot heard but not seen
+/// carries `ShotResult.sense` with its trace cut to where it sounds, and a
+/// fighter's world leaves out shots, things in flight and pickup events it
+/// could not perceive (`crate::interest`). A reader at 66 would draw a heard
+/// shot's cut trace, so a shared room moves to this contract.
+pub const SHOT_SENSE_GAMEPLAY_VERSION: u32 = 67;
+/// The highest contract: the senses applied to shots, throws and pickups,
+/// after locational damage, the objective board, the fun metrics notice and
+/// interest filtering of the roster.
+pub const GAMEPLAY_VERSION: u32 = SHOT_SENSE_GAMEPLAY_VERSION;
 const _: () = assert!(
-    GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
+    GAMEPLAY_VERSION >= ZONES_GAMEPLAY_VERSION
+        && GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
         && GAMEPLAY_VERSION >= TURN_GAMEPLAY_VERSION
         && GAMEPLAY_VERSION >= VOSS_CUSTODY_GAMEPLAY_VERSION
 );
@@ -1615,6 +1622,13 @@ pub struct ShotResult {
     /// without zones (Arc, explosives, melee) unless a plate turned them.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub zone: Option<HitZone>,
+    /// What the reading fighter perceives of the shooter (gameplay 67, see
+    /// `crate::interest`): `heard` when it only hears the shot. Its `trace`
+    /// then keeps only the gun and mount, with `origin` and `end` both the
+    /// place the shooter sounds, a `range` impact and no pellets. Omitted on
+    /// every whole result.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sense: Option<PlayerSense>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -2020,7 +2034,12 @@ pub struct PlayerScore {
 pub enum GameEvent {
     /// The solo run saved a checkpoint at a quiet moment. A death with a
     /// continue left returns the run here instead of to the level entry.
-    Checkpoint {},
+    /// `resumed`: a reopened run has just returned here. Sent only when true
+    /// and additive: an event reader that ignores it still reads a save.
+    Checkpoint {
+        #[serde(default, skip_serializing_if = "is_false")]
+        resumed: bool,
+    },
     /// A nearby Crawler encounter wakes before its first visible attack.
     CrawlerScrabble {
         position: [f32; 3],
@@ -2336,6 +2355,7 @@ mod protocol_tests {
         let shooter_id = Uuid::new_v4();
         let target_id = Uuid::new_v4();
         let shot = ShotResult {
+            sense: None,
             trace: None,
             killed: false,
             zone: None,

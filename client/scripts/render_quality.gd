@@ -29,7 +29,9 @@ const TIER_NAMES: Array[String] = ["Potato", "Low", "Medium", "High", "Ultra"]
 ## Bump in any change to a tier's contents, a shader's cost, the benchmark
 ## scene or a venue's lighting cost (the same discipline as WORKLOAD_ID). A
 ## saved auto-tune from another revision is stale and a re-tune is offered.
-const RENDER_COST_REVISION: int = 1
+## 2: the Forward+ look pass (#540) took the skyline out of the key light's
+## shadow map and retuned venue lights.
+const RENDER_COST_REVISION: int = 2
 ## 3D render scale steps, percent of the output (pixel look off only). Above
 ## 100 is Bilinear supersampling, which is the only mode that goes past 1.0.
 const RENDER_SCALES: Array[int] = [50, 67, 83, 100, 125, 150]

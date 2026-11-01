@@ -227,7 +227,15 @@ a new rule.
 glass, photographing captives, out of reach and out of combat. Level 4 brings
 the first fight over Low Water's market and clinic with Sweepers below. The
 Turret first fights in level 6 at lunar customs. The Assessor is level 12's
-armored threat in the Martian habitat, answered by the Arc lesson. Later fights
+armored threat in the Martian habitat, answered by the Arc lesson. Over the
+greenhouse trench it teaches alone, without text: its Clerk squad holds its
+posts until the first volley and the vented recovery after it are over, and
+only then pushes down the floor. The squad lets go early if the Assessor
+falls, if one of them is hit or approached within 8 m, or after 20 s, so the
+lesson never becomes a free room. The Auditor's first fight is the level 8
+upper gallery, an Auditor and three Sweepers behind the gallery seal: its
+repair channel is first seen on a Sweeper the player has just dropped, a
+two-role room, before the machinery bridge tests it beside Clerks. Later fights
 can mix these established roles. During the level 18 wipe, the Inheritance can
 seize surviving Notaries as infrastructure; their issued shape remains, while
 their targets and timing change. These placements follow the accepted

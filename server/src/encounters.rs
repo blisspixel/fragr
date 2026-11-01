@@ -61,6 +61,21 @@ impl Encounters {
         matches!(self.groups.get(index), Some(Group::Complete))
     }
 
+    /// Every walking machine of a woken group is down. Spotters on their
+    /// towers and hovering units may still hold their posts. A group not yet
+    /// woken has not arrived.
+    pub(crate) fn walkers_down(&self, index: usize, players: &[Player]) -> bool {
+        match self.groups.get(index) {
+            Some(Group::Complete) => true,
+            Some(Group::Active { .. }) => !self.enemies.iter().any(|(group, enemy)| {
+                *group == index
+                    && enemy::gait(enemy.kind()) > 0.0
+                    && players.iter().any(|p| p.id == enemy.id && p.hp > 0)
+            }),
+            _ => false,
+        }
+    }
+
     /// A group the party has woken: its fight has begun or is finished.
     pub(crate) fn is_awake(&self, index: usize) -> bool {
         matches!(
@@ -960,6 +975,26 @@ impl Encounters {
                 }
             }
         }
+        // Level 12 teaches the Assessor alone: its squad holds its posts
+        // until the first volley is over (`ENEMIES.md`, introductions).
+        let teaching: Vec<usize> = state
+            .map
+            .m12_objectives()
+            .is_some()
+            .then_some(crate::maps::m12_authored::ASSESSOR_LESSON_GROUP)
+            .filter(|group| {
+                self.enemies.iter().any(|(g, enemy)| {
+                    *g == *group
+                        && enemy.kind() == EnemyKind::Assessor
+                        && !enemy.assessor_lesson_given(next)
+                        && snapshot
+                            .players
+                            .iter()
+                            .any(|p| p.id == enemy.id && p.hp > 0)
+                })
+            })
+            .into_iter()
+            .collect();
         let mut order: Vec<usize> = (0..self.enemies.len()).collect();
         order.sort_by_key(|&index| !seen[index]);
         let mut decided = Vec::with_capacity(self.enemies.len());
@@ -978,6 +1013,24 @@ impl Encounters {
                 })
                 .count()
                 == 1;
+            if state.map.m12_objectives().is_some()
+                && *group == crate::maps::m12_authored::ASSESSOR_LESSON_GROUP
+                && enemy.kind() != EnemyKind::Assessor
+            {
+                let body = snapshot.players.iter().find(|p| p.id == enemy.id);
+                let nearest = body.map_or(f32::INFINITY, |me| {
+                    snapshot
+                        .players
+                        .iter()
+                        .filter(|p| p.campaign == Some(CampaignActor::Participant {}) && p.hp > 0)
+                        .map(|p| (p.x - me.x).hypot(p.z - me.z))
+                        .fold(f32::INFINITY, f32::min)
+                });
+                if enemy.holds_for_lesson(teaching.contains(group), nearest, next) {
+                    decided.push((index, (enemy.id, BotIntent::default()), None, None));
+                    continue;
+                }
+            }
             let held = enemy.holds_token();
             let was = (enemy.phase(), enemy.phase_started());
             let intent = enemy.paced_intent(state, &snapshot, tokens);
@@ -1225,7 +1278,8 @@ const CHECKPOINT_NEAR: f32 = 20.0;
 /// What a checkpoint keeps of one encounter group. A group the party has not
 /// woken is placed again from its definition. A woken group is kept with the
 /// guards still alive in it, each where it stood.
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) enum GroupMark {
     Fresh,
     Spent {
@@ -1236,7 +1290,8 @@ pub(crate) enum GroupMark {
     Complete,
 }
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Survivor {
     body: Player,
     kind: EnemyKind,

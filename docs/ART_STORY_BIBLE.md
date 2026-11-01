@@ -434,6 +434,11 @@ material value, light or a rim of light within this contract, never an outline
 round every body. Every live fighter carries a stepped rim of light
 (`client/scripts/fighter_rim.gd`): warm amber white on a free body, a cool
 plate value on the Union's issued black, never red, cyan or off-white.
+Each venue also carries an actor-only fill at the eye (`ArenaSky` preset
+`view_fill_*`): league venues keep it flat across the 10 to 40 m band, Union
+interiors let it fall off so a guard stays a dark mass, and Holdfast Atoll,
+where fighters read dark against the sand, has none. Tune lighting on
+Forward+, the renderer players get; Compatibility is the fallback check.
 
 **Colour picker rule.** Any player colour picker, saved record or received
 cosmetic is validated on the composed body, not per swatch. Reject or snap to

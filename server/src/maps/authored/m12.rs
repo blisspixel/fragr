@@ -22,6 +22,9 @@ pub(crate) const GROUPS: [&str; 4] = [
     "greenhouse_defense",
     "court_defense",
 ];
+/// The greenhouse trench: the Assessor teaches alone over it before its
+/// Clerk squad pushes down the floor.
+pub(crate) const ASSESSOR_LESSON_GROUP: usize = 2;
 pub(crate) const OBJECTIVE_GROUPS: [usize; 6] = [0, 1, 2, 3, 3, 3];
 pub(crate) const AID_SUPPLY_IDS: [&str; 3] = ["aid_medical", "aid_cells", "aid_armor"];
 pub(super) fn validate_supplies(supplies: &[crate::sim::ArenaPickup]) -> io::Result<()> {

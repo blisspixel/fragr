@@ -1032,7 +1032,7 @@ pub static ROSTER: &[Fighter] = &[
         ],
         [
             "side quest. forgot which.",
-            "note says: play fragr",
+            "purpose of visit: visiting",
             "why am i here? anyway.",
         ],
     ),

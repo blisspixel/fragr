@@ -354,6 +354,14 @@ func _run() -> void:
 		var idle: Dictionary = combat.duplicate(true)
 		idle[missing] = 0
 		_check(not TOUR.valid_moving_combat_capture(idle, 60.0), "no movement or shot evidence cannot pass")
+	# The board's live CTF wait reads the server's objective credits on the rows.
+	var credited: Dictionary = TOUR._objective_credits({"players": [{"objective": {"captures": 1}},
+		{"objective": {"returns": 2, "plants": 1}}, {"name": "no credits"}, "malformed"]})
+	_check(credited == {"plants": 1, "defuses": 0, "captures": 1, "returns": 2}, "objective credits sum every row: " + str(credited))
+	_check(TOUR._ctf_matches({"captures_credited": 1, "returns_credited": 2, "round_state": "Active"},
+		{"objective_credits": credited, "round_state": "Active"}), "a contested board wait passes on real credits")
+	_check(not TOUR._ctf_matches({"returns_credited": 3}, {"objective_credits": credited}), "a board wait holds until the returns are credited")
+	_check(not TOUR._ctf_matches({"captures_credited": 1}, {}), "a board wait without credits never passes")
 	for filename: String in DirAccess.get_files_at("res://qa"):
 		if filename.get_extension() != "json":
 			continue

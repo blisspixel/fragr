@@ -189,6 +189,11 @@ func _graphics_page() -> void:
 		(_rows.find_child("upscaling", true, false) as OptionButton).disabled = true
 	_update_graphics_note()
 
+## The chosen tier in one line: what it draws, then a word about it.
+static func tier_note(quality: int) -> String:
+	var tier: int = clampi(quality, RenderQuality.POTATO, RenderQuality.ULTRA)
+	return TranslationServer.translate("SETTINGS_QUALITY_NOTE_" + RenderQuality.TIER_NAMES[tier].to_upper())
+
 func _pixel_look_on() -> bool:
 	var output: Vector2i = Vector2i(1920, 1080)
 	if DisplayServer.get_name() != "headless":
@@ -201,6 +206,7 @@ func _update_graphics_note() -> void:
 	if preferences.video_refused:
 		lines.append(tr("SETTINGS_VIDEO_REFUSED"))
 	var renderer: String = RenderingServer.get_current_rendering_method()
+	lines.append(tier_note(int(_draft.get_value("video", "quality"))))
 	var record: Dictionary = _draft.get_value("video", "tune")
 	var pins: Array = _draft.get_value("video", "pinned")
 	if not bool(_draft.get_value("video", "auto")):

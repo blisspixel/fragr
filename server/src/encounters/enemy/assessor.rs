@@ -1,5 +1,10 @@
 use super::*;
 
+/// A participant this close releases a guard holding for the lesson.
+pub(in crate::encounters) const LESSON_NEAR: f32 = 8.0;
+/// The longest a guard holds its post for the lesson.
+pub(in crate::encounters) const LESSON_HOLD: u64 = 400;
+
 impl EnemyController {
     pub(super) fn assessor(
         &mut self,
@@ -32,6 +37,7 @@ impl EnemyController {
                 self.next_shot = tick.saturating_add(6);
             } else if self.phase == EnemyPhase::Firing && self.shots_left == 0 {
                 self.enter(EnemyPhase::Recovery, tick, recovery);
+                self.volleys = self.volleys.saturating_add(1);
             }
             return BotIntent { action, goal: None };
         }
@@ -59,6 +65,38 @@ impl EnemyController {
             self.enter(EnemyPhase::Moving, tick, 0);
         }
         BotIntent::default()
+    }
+
+    /// Its first volley is over: three canisters launched and the vents shown
+    /// through the recovery that follows.
+    pub(in crate::encounters) fn assessor_lesson_given(&self, tick: u64) -> bool {
+        self.volleys > 0 && !(self.phase == EnemyPhase::Recovery && tick < self.until)
+    }
+
+    /// While an Assessor of its group teaches alone, a guard holds its post:
+    /// until that first volley is over, the Assessor is down, the guard is
+    /// hit, a participant comes within [`LESSON_NEAR`] of it, or
+    /// [`LESSON_HOLD`] has passed. Once it lets go it fights as usual.
+    pub(in crate::encounters) fn holds_for_lesson(
+        &mut self,
+        teaching: bool,
+        nearest: f32,
+        tick: u64,
+    ) -> bool {
+        if self.lesson_released {
+            return false;
+        }
+        let since = *self.lesson_hold.get_or_insert(tick);
+        if !teaching
+            || matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Dead)
+            || nearest < LESSON_NEAR
+            || tick >= since.saturating_add(LESSON_HOLD)
+        {
+            self.lesson_released = true;
+            self.lesson_hold = None;
+            return false;
+        }
+        true
     }
 
     pub(in crate::encounters) fn canister_target(&self) -> Option<[f32; 3]> {

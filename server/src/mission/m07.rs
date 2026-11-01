@@ -2,7 +2,8 @@
 use super::*;
 use crate::protocol::{M07ObjectiveState, MissionObjective, MissionObjectiveAction};
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M07Progress {
     pub(super) index: usize,
 }

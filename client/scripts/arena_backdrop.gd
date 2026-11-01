@@ -3,6 +3,10 @@ class_name ArenaBackdrop
 
 ## Scenery is strictly outside the server's playable square. Wall signs are flat
 ## markings; none of this supplies cover, a platform, or an interaction target.
+## Nor does it cast a shadow: a venue key light is aimed to rake the playable
+## square, and on Forward+ a low key behind a 30 m city block or the viaduct
+## put most of Larak Lot in shade (#540); the Compatibility captures never
+## showed it.
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
 ## Stencil paint on venue walls, and spray paint for free-side slogans.
 const SIGN_PAINT: Color = Color("c8c1aa")
@@ -61,6 +65,7 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 		for window: int in range(5):
 			_box(Vector3(x - 5.5 + float(window) * 2.7, height - 2.8, z + 6.08), Vector3(1.2, 0.35, 0.14), lamp)
 		var stack: MeshInstance3D = MeshInstance3D.new()
+		stack.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var pipe: CylinderMesh = CylinderMesh.new()
 		pipe.top_radius = 1.15
 		pipe.bottom_radius = 1.35
@@ -289,6 +294,7 @@ func _process(delta: float) -> void:
 
 func _town_piece(parent: Node3D, at: Vector3, size: Vector3, material: Material) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mesh: BoxMesh = BoxMesh.new()
 	mesh.size = size
 	node.mesh = mesh
@@ -298,6 +304,7 @@ func _town_piece(parent: Node3D, at: Vector3, size: Vector3, material: Material)
 
 func _box(at: Vector3, size: Vector3, material: Material) -> void:
 	var node: MeshInstance3D = MeshInstance3D.new()
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mesh: BoxMesh = BoxMesh.new()
 	mesh.size = size
 	node.mesh = mesh

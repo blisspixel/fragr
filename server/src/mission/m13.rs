@@ -45,7 +45,8 @@ pub(crate) struct Gates {
     pub(crate) lift_top: f32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Progress {
     pub(crate) relay_disabled: bool,
     pub(crate) workers: Option<[workers::Response; 3]>,

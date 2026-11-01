@@ -10,14 +10,16 @@ pub const DEFAULT_BLADE_RETURN_TICKS: u32 = 300;
 #[allow(dead_code)]
 pub const EXPERIMENTAL_LONG_RETURN_TICKS: u32 = 1200;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum ArticleBladePlinthPhase {
     Available,
     Held { holder: Uuid },
     Cooling { return_in: u32 },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ArticleBladePlinth {
     pickup_id: String,
     feet: [f32; 3],

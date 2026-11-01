@@ -4,8 +4,9 @@
 //! the 120 degree cone, line of sight, a reaction to every new sighting and
 //! a turn limit. A rung moves only how long that reaction takes, how wide the
 //! aim error is, how fast the head turns, how far the eyes reach and how well
-//! the bot chooses: whether it keeps time on power pads, leads a moving body
-//! with the Rocket and picks the gun for the distance. No rung reacts in
+//! the bot chooses: how often it goes for the head, whether it keeps time on
+//! power pads, leads a moving body with the Rocket and picks the gun for the
+//! distance. No rung reacts in
 //! under 150 ms, and none sees or aims at a body it could not see.
 
 /// A rule bot's rung, lowest first. Hosts pick one for every bot on the
@@ -55,6 +56,10 @@ pub(crate) struct SkillProfile {
     pub sight_range: f32,
     /// Aim error multiplier for a few ticks after being hit.
     pub flinch: f32,
+    /// Share of sightings this rung goes for the head rather than centre
+    /// mass (`bot_senses::aim_zone`). Low rungs aim at the chest and land a
+    /// head only when their error carries the shot up; high rungs choose it.
+    pub head_aim: f32,
     /// Keeps time on the power pad its callsign favours.
     pub keeps_time: bool,
     /// Leads a body it watched move with the Rocket.
@@ -112,6 +117,7 @@ impl BotSkill {
                 turn_per_tick: 0.06,
                 sight_range: 44.0,
                 flinch: 4.0,
+                head_aim: 0.0,
                 keeps_time: false,
                 leads: false,
                 picks_gun: false,
@@ -123,6 +129,7 @@ impl BotSkill {
                 turn_per_tick: 0.075,
                 sight_range: 54.0,
                 flinch: 3.5,
+                head_aim: 0.03,
                 keeps_time: false,
                 leads: true,
                 picks_gun: true,
@@ -135,6 +142,7 @@ impl BotSkill {
                 turn_per_tick: 0.1,
                 sight_range: 64.0,
                 flinch: 3.0,
+                head_aim: 0.1,
                 keeps_time: true,
                 leads: true,
                 picks_gun: true,
@@ -146,6 +154,7 @@ impl BotSkill {
                 turn_per_tick: 0.14,
                 sight_range: 72.0,
                 flinch: 2.0,
+                head_aim: 0.2,
                 keeps_time: true,
                 leads: true,
                 picks_gun: true,
@@ -157,6 +166,7 @@ impl BotSkill {
                 turn_per_tick: 0.24,
                 sight_range: 80.0,
                 flinch: 1.0,
+                head_aim: 0.5,
                 keeps_time: true,
                 leads: true,
                 picks_gun: true,
@@ -181,11 +191,13 @@ mod tests {
             assert!(high.turn_per_tick > low.turn_per_tick);
             assert!(high.sight_range > low.sight_range);
             assert!(high.flinch < low.flinch);
+            assert!(high.head_aim > low.head_aim);
         }
         for skill in BotSkill::ALL {
             let profile = skill.profile();
             assert!(profile.reaction_min >= REACTION_FLOOR, "{skill:?}");
             assert!(profile.reaction_min * 50 >= 150);
+            assert!((0.0..=0.5).contains(&profile.head_aim), "{skill:?}");
             assert_eq!(BotSkill::from_id(skill.id()), Some(skill));
             assert_eq!(BotSkill::ALL[skill.rank()], skill);
         }

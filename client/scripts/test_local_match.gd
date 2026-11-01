@@ -120,10 +120,10 @@ func _run() -> void:
 	_development(fixture, child)
 	_m03(fixture, child)
 	_m04(fixture, child)
-	var ready_preview: Dictionary = {"status": "ready", "mission": "recall_notice", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true, "body": "synthetic", "dress": {"look": 4, "accent": 1}}
+	var ready_preview: Dictionary = {"status": "ready", "mission": "recall_notice", "difficulty": "severe", "attempt": 3, "continues": 1, "pending_continue": true, "checkpoint": true, "body": "synthetic", "dress": {"look": 4, "accent": 1}}
 	var parsed_preview: Dictionary = LocalMatch.parse_run_preview(JSON.stringify(ready_preview).to_ascii_buffer())
-	_expect(parsed_preview.size() == 8 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
-	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}, {"body": "robot"}, {"mission": "other"},
+	_expect(parsed_preview.size() == 9 and parsed_preview.get("status") == "ready" and int(parsed_preview.get("attempt", 0)) == 3 and parsed_preview.get("pending_continue") == true, "bounded preview accepts a valid pending run")
+	for patch: Dictionary in [{"attempt": 2}, {"continues": 0}, {"difficulty": "other"}, {"extra": 1}, {"pending_continue": 1}, {"checkpoint": 1}, {"body": "robot"}, {"mission": "other"},
 			{"dress": {"look": 5}}, {"dress": {"look": 1, "colour": "red"}}, {"dress": "look_human_1"}]:
 		var bad_preview: Dictionary = ready_preview.duplicate()
 		bad_preview.merge(patch, true)

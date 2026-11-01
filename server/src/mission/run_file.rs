@@ -35,7 +35,7 @@ pub(crate) use m19_outcome::M19Outcome;
 /// a document with any other version is refused as incompatible and the player
 /// starts a new run. Bump this on any change to the serialized shape and never
 /// reuse an earlier number, so a stale file can never be mistaken for current.
-pub(super) const RUN_FILE_VERSION: u32 = 25;
+pub(super) const RUN_FILE_VERSION: u32 = 26;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -223,6 +223,79 @@ where
     T::deserialize(deserializer).map(Some)
 }
 
+/// The largest encoded checkpoint state a run file may carry.
+pub(crate) const MAX_CHECKPOINT_BYTES: usize = 768 * 1024;
+
+/// The build a checkpoint state was written by. A checkpoint holds the
+/// simulation's own state, so only the build that wrote it reads it; another
+/// build's checkpoint is refused and the level starts from its entry.
+pub(crate) fn checkpoint_build() -> String {
+    format!(
+        "{}+{}",
+        env!("FRAGR_BUILD_VERSION"),
+        option_env!("FRAGR_BUILD_COMMIT").unwrap_or("uncommitted")
+    )
+}
+
+/// The level's latest mid-level checkpoint, saved with the run (version 26).
+/// `state` is the checkpoint as the simulation keeps it; the world itself is
+/// rebuilt from the mission content by replaying its recorded steps, so no
+/// geometry is ever read from the file.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SavedCheckpoint {
+    pub build: String,
+    pub mission: MissionId,
+    pub tick: u64,
+    #[serde(serialize_with = "raw_out", deserialize_with = "raw_in")]
+    pub state: std::sync::Arc<serde_json::value::RawValue>,
+}
+
+impl PartialEq for SavedCheckpoint {
+    fn eq(&self, other: &Self) -> bool {
+        self.build == other.build
+            && self.mission == other.mission
+            && self.tick == other.tick
+            && (std::sync::Arc::ptr_eq(&self.state, &other.state)
+                || self.state.get() == other.state.get())
+    }
+}
+
+impl Eq for SavedCheckpoint {}
+
+impl SavedCheckpoint {
+    fn validate(&self, step: &SavedStep) -> Result<(), &'static str> {
+        let mission = match step {
+            SavedStep::MissionEntry { mission, .. }
+            | SavedStep::PendingContinue { mission, .. } => *mission,
+            _ => return Err("a checkpoint belongs to a level still being played"),
+        };
+        if self.mission != mission {
+            return Err("saved checkpoint names another mission");
+        }
+        if self.build.is_empty() || self.build.len() > 128 {
+            return Err("saved checkpoint has no valid build");
+        }
+        if self.state.get().len() > MAX_CHECKPOINT_BYTES {
+            return Err("saved checkpoint exceeds the size limit");
+        }
+        Ok(())
+    }
+}
+
+fn raw_out<S: serde::Serializer>(
+    value: &std::sync::Arc<serde_json::value::RawValue>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    value.as_ref().serialize(serializer)
+}
+
+fn raw_in<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<std::sync::Arc<serde_json::value::RawValue>, D::Error> {
+    Box::<serde_json::value::RawValue>::deserialize(deserializer).map(std::sync::Arc::from)
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct RunDocument {
@@ -335,6 +408,13 @@ pub(crate) struct RunDocument {
         skip_serializing_if = "Option::is_none"
     )]
     pub m19_outcome: Option<M19Outcome>,
+    /// The level's latest checkpoint while it is being played (version 26).
+    #[serde(
+        default,
+        deserialize_with = "present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub checkpoint: Option<SavedCheckpoint>,
 }
 
 impl RunDocument {
@@ -436,6 +516,7 @@ impl RunDocument {
         // ammunition they granted remain in the carried equipment.
         entry.equipment.personal_claims.clear();
         let mut promoted = self.clone();
+        promoted.checkpoint = None;
         promoted.content_sha256 = content_hash;
         promoted.level_start_continues = self.remaining_continues;
         // Only the completed M05 edge enters Episode II, M09 enters Episode III, M14 enters Episode IV, and M17 enters Episode V. Reopening a promoted
@@ -494,10 +575,14 @@ impl RunDocument {
             m17_outcome: None,
             m18_outcome: None,
             m19_outcome: None,
+            checkpoint: None,
         }
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
+        if let Some(checkpoint) = &self.checkpoint {
+            checkpoint.validate(&self.step)?;
+        }
         let completed_m03 = matches!(
             self.stage_mission(),
             MissionId::NoticeToVacate
@@ -1627,6 +1712,14 @@ impl GameState {
             } else {
                 None
             },
+            checkpoint: if matches!(
+                solo.state.status,
+                CampaignRunStatus::Playing | CampaignRunStatus::Continue
+            ) {
+                solo.checkpoints.saved_to_disk().cloned()
+            } else {
+                None
+            },
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
@@ -1681,6 +1774,7 @@ mod tests {
             m17_outcome: None,
             m18_outcome: None,
             m19_outcome: None,
+            checkpoint: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

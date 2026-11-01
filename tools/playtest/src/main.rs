@@ -105,10 +105,20 @@ struct Cli {
     /// absent. A map ID or server map name.
     #[arg(long, conflicts_with_all = ["survey_lot", "survey_maps"])]
     survey_map: Option<String>,
+    /// With --bot-survey: the rung every surveyed bot plays at (tourist,
+    /// walk-in, regular, headliner, no-crumbs), so one rung's headshot share,
+    /// kill time and gun share can be read on its own.
+    #[arg(long, value_enum, requires = "bot_survey", default_value_t = fragr_server::sim::BotSkill::Regular)]
+    survey_skill: fragr_server::sim::BotSkill,
     /// With --bot-survey: keep only rows whose label contains one of these
     /// comma-separated pieces (for example `duel-,conquest-`).
     #[arg(long, requires = "bot_survey", value_delimiter = ',')]
     survey_only: Vec<String>,
+    /// With --sabotage-survey: play the desktop five versus five profile
+    /// (the server's --sabotage-five-v-five): ten seats, every life on the
+    /// Pistol. Use with --survey-bots 10.
+    #[arg(long, requires = "sabotage_survey")]
+    survey_five_v_five: bool,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
     sabotage_format: fragr_server::protocol::SabotageFormat,
@@ -777,9 +787,10 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
 
 fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
     println!(
-        "bot survey: {} seeds, {:.0} s rounds",
+        "bot survey: {} seeds, {:.0} s rounds, {} bots",
         report.seeds.len(),
-        report.round_seconds
+        report.round_seconds,
+        report.skill
     );
     for row in &report.scenarios {
         let shots: Vec<String> = row
@@ -839,6 +850,31 @@ fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
             row.dither_share * 100.0,
             row.moving_windows,
             distances.join(", ")
+        );
+        let zone_kills: u64 = row.kill_zones.values().sum();
+        let frags: u64 = row.frag_weapons.values().sum();
+        let kill_guns: Vec<String> = row
+            .frag_weapons
+            .iter()
+            .map(|(weapon, count)| {
+                format!(
+                    "{weapon} {:.0}%",
+                    *count as f64 * 100.0 / frags.max(1) as f64
+                )
+            })
+            .collect();
+        let ttk = &row.time_to_kill_s;
+        println!(
+            "{}: head kills {:.1}% of {} zoned kills ({:.1}% by single-ray guns), kill time median {:.2} s (p25 {:.2}, p75 {:.2}, n {}), kills {}",
+            row.scenario,
+            row.head_kill_share * 100.0,
+            zone_kills,
+            row.single_ray_head_kill_share * 100.0,
+            ttk.median,
+            ttk.p25,
+            ttk.p75,
+            ttk.count,
+            kill_guns.join(", ")
         );
         println!(
             "{}: {} guns dropped on death, {} taken ({} Rockets)",
@@ -1045,7 +1081,7 @@ async fn main() {
         return;
     }
     if let Some(folder) = &cli.fun_summary {
-        let summary = match fragr_playtest::fun_summary::summarise_folder(folder) {
+        let summary = match fragr_server::fun_metrics::summary::summarise_folder(folder) {
             Ok(summary) => summary,
             Err(error) => {
                 eprintln!("error: cannot read {}: {error}", folder.display());
@@ -1063,7 +1099,7 @@ async fn main() {
             eprintln!("error: cannot write {}: {error}", cli.report.display());
             std::process::exit(2);
         }
-        print!("{}", fragr_playtest::fun_summary::table(&summary));
+        print!("{}", fragr_server::fun_metrics::summary::table(&summary));
         println!("report: {}", cli.report.display());
         return;
     }
@@ -1071,6 +1107,7 @@ async fn main() {
         let mut config = fragr_playtest::bot_survey::BotSurveyConfig {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             round_ticks: cli.time_limit_seconds.saturating_mul(20),
+            skill: cli.survey_skill,
             ..fragr_playtest::bot_survey::BotSurveyConfig::default()
         };
         if cli.survey_lot {
@@ -1150,6 +1187,7 @@ async fn main() {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             bots: cli.survey_bots as usize,
             format: cli.sabotage_format,
+            five_vs_five: cli.survey_five_v_five,
             ..fragr_playtest::sabotage::SurveyConfig::default()
         };
         let report = fragr_playtest::sabotage::run_survey(&config);

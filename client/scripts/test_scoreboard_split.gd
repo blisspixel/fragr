@@ -52,13 +52,14 @@ func _run() -> void:
 	await _check_team_board(hud)
 	await _check_objective_columns(hud)
 	await _check_hint(hud)
+	await _check_fallen_rows(hud)
 	InputDevice.reset()
 	Input.action_release("scoreboard")
 	hud.queue_free()
 	for frame: int in range(3):
 		await process_frame
 	if _failures == 0:
-		print("test_scoreboard_split: PASS grouping, side bars, objective columns, MVP and rival marks, glyph prompt, level text")
+		print("test_scoreboard_split: PASS grouping, side bars, objective columns, MVP and rival marks, glyph prompt, level text, fallen rows")
 		quit(0)
 	else:
 		quit(1)
@@ -91,7 +92,60 @@ func _check_static_rules() -> void:
 	_check(keys.call({"name": "Static Kid"}, true).is_empty(), "the viewer's own row carries no book")
 	_check(keys.call({"name": "Nobody"}, false).is_empty(), "a stranger is unmarked")
 	_check(ScoreboardPlate.marks({"name": "Meat Proxy"}, "Meat Proxy", {}, false)[0].key == "mvp", "the server's MVP is marked")
+	# A nemesis met less often than the three rivals listed is still marked:
+	# with the count from its own entry when that names the viewer.
+	var crowded: Array = [{"id": ME, "name": "Nightfall", "nemesis": "Second Sighting", "rivals": [
+		{"name": "A", "won": 3, "lost": 0}, {"name": "B", "won": 2, "lost": 1}, {"name": "C", "won": 1, "lost": 1}]},
+		{"id": FOE_A, "name": "Second Sighting", "rivals": [{"name": "Nightfall", "won": 1, "lost": 0}]}]
+	var outside: Dictionary = ScoreboardPlate.rivals_from_story(crowded, ME)
+	_check(outside.has("SECOND SIGHTING") and outside["SECOND SIGHTING"].nemesis and outside["SECOND SIGHTING"].won == 0
+		and outside["SECOND SIGHTING"].lost == 1, "a nemesis outside the three rivals keeps its count: " + str(outside))
+	var marked: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", outside, false)
+	_check(marked.size() == 1 and marked[0].key == "nemesis" and marked[0].text == "AURA DEBT 0-1", "the outside nemesis is marked: " + str(marked))
+	crowded.pop_back()
+	var bare: Dictionary = ScoreboardPlate.rivals_from_story(crowded, ME)
+	var plain: Array[Dictionary] = ScoreboardPlate.marks({"name": "Second Sighting"}, "", bare, false)
+	_check(plain.size() == 1 and plain[0].key == "nemesis" and plain[0].text == "NEMESIS", "a nemesis without a count reads plainly: " + str(plain))
 	_check(ScoreboardPlate.mvp_name(rows, "") == "", "a live round names no MVP")
+
+## A body leaves the snapshot on the tick it dies. The board keeps its row
+## with the death counted, holds every row through the podium (nobody
+## respawns there) and starts the next round from the server's rows alone.
+func _check_fallen_rows(hud: CanvasLayer) -> void:
+	hud.set_match_rules(MatchRules.parse({"mode": "ffa"}))
+	hud.set_round_info("Active", 120, 20)
+	var roster: Array = _roster()
+	for row: Dictionary in roster:
+		row.erase("team")
+	hud.sync_scores_from_players(roster)
+	hud.set_viewer_context(ME, "")
+	var alive: Array = roster.filter(func(row: Dictionary) -> bool: return row.id != FOE_B)
+	# The snapshot comes first, then the tick's frag event.
+	hud.sync_scores_from_players(alive)
+	hud.show_frag_event({"killer": "Meat Proxy", "victim": "Static Kid", "killer_id": FOE_A, "victim_id": FOE_B}, FOE_A, FOE_B)
+	hud.sync_scores_from_players(alive)
+	var fallen: Array = (hud.get("_standings") as Array).filter(func(row: Dictionary) -> bool: return row.id == FOE_B)
+	_check(fallen.size() == 1 and int(fallen[0].deaths) == 4, "a fallen fighter stays on the board with the death counted: " + str(fallen))
+	# A listed body already carries the server's count: no second death.
+	hud.show_frag_event({"killer": "Meat Proxy", "victim": "Probe", "killer_id": FOE_A, "victim_id": FOE_C}, FOE_A, FOE_C)
+	hud.sync_scores_from_players(alive)
+	var probe: Array = (hud.get("_standings") as Array).filter(func(row: Dictionary) -> bool: return row.id == FOE_C)
+	_check(probe.size() == 1 and int(probe[0].deaths) == 5, "a listed row keeps the server's deaths: " + str(probe))
+	# The podium: the round's last rows stay however long it lasts.
+	hud.set_round_info("Ended", 0, 20)
+	hud.show_round_end("Meat Proxy", "Frag limit reached", 7)
+	hud.sync_scores_from_players(alive)
+	(hud.get("_board_absent") as Dictionary)[FOE_B]["since"] = Time.get_ticks_msec() - 60000
+	hud.sync_scores_from_players(alive)
+	await _open(hud)
+	var names: Array = _board(hud).slice(1).map(func(row: Node) -> String: return str((row.get_meta("facts") as Dictionary).get("name", "")))
+	_check(names.has("Static Kid") and names.size() == 5, "the podium board lists every fighter of the round: " + str(names))
+	# The next round reads only what the server lists.
+	hud.set_round_info("Warmup", 10, 20)
+	hud.sync_scores_from_players(alive)
+	await _open(hud)
+	_check(_board(hud).size() == 5, "a new round drops the last round's fallen rows")
+	hud.set_leaderboard_open(false)
 
 func _board(hud: CanvasLayer) -> Array[Node]:
 	return (hud.get("_leaderboard_rows") as VBoxContainer).get_children()
@@ -143,7 +197,7 @@ func _check_team_board(hud: CanvasLayer) -> void:
 	_check(rows[5].get_meta("marks") == ["nemesis"] and rows[6].get_meta("marks") == ["up"] and rows[7].get_meta("marks") == ["level"], "nemesis and head-to-head marks from the session book")
 	_check(rows[2].get_meta("marks") == [] and rows[3].get_meta("marks") == [], "own side rows the viewer never met are unmarked")
 	var nemesis: Label = rows[5].get_node("Content/Mark0")
-	_check(nemesis.text == "NEMESIS 1-5" and nemesis.get_theme_color("font_color") == MenuTheme.EMBER, "the nemesis mark reads the book: " + nemesis.text)
+	_check(nemesis.text == "AURA DEBT 1-5" and nemesis.get_theme_color("font_color") == MenuTheme.EMBER, "the nemesis mark reads the book: " + nemesis.text)
 	# The round ends: the server's MVP is marked, and a new round clears it.
 	hud.show_round_end("Meat Proxy", "Frag limit reached", 7)
 	hud.sync_scores_from_players(_roster())

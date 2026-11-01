@@ -27,6 +27,7 @@ mod privacy_tests;
 pub mod record;
 pub mod sight;
 pub mod store;
+pub mod summary;
 mod table;
 #[cfg(test)]
 mod wire_tests;

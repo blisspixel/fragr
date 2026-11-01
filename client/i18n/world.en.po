@@ -105,6 +105,9 @@ msgstr "Continue Run"
 msgid "RUN_SAVED_DETAIL"
 msgstr "{difficulty} / attempt {attempt} / {continues} continues left"
 
+msgid "RUN_SAVED_CHECKPOINT"
+msgstr "Picks up at your last checkpoint."
+
 msgid "RUN_SAVED_MISSION"
 msgstr "NEXT: {mission}"
 
@@ -473,8 +476,26 @@ msgstr "FPS"
 msgid "SETTINGS_SHOW_FPS_DETAIL"
 msgstr "FPS + FRAME TIME"
 
+# One line per graphics tier on the Graphics page: what it draws, then a
+# word in the street register (docs/lore/voice.md). The facts lead, so the
+# line still says what changes if the joke does not land.
+msgid "SETTINGS_QUALITY_NOTE_POTATO"
+msgstr "Potato: hard shadows, lamps fade early, a quarter of the marks. Cooked, but it runs on anything the Office has not recalled yet."
+
+msgid "SETTINGS_QUALITY_NOTE_LOW"
+msgstr "Low: plain lamps, no lamp shadows, half the marks. Larak probably signed for this machine."
+
+msgid "SETTINGS_QUALITY_NOTE_MEDIUM"
+msgstr "Medium: lamp shadows, contact shading and lamp glow. Certified mid, which on a Union form is the top grade."
+
+msgid "SETTINGS_QUALITY_NOTE_HIGH"
+msgstr "High: bigger shadow maps, deeper contact shading, 4x edge smoothing. So back."
+
+msgid "SETTINGS_QUALITY_NOTE_ULTRA"
+msgstr "Ultra: soft shadows and bounce light, Forward+ only. No crumbs."
+
 msgid "SETTINGS_GRAPHICS_NOTE"
-msgstr "Medium and up add shadows, contact shading and lamp glow; Ultra adds bounce light.\nWorld pixels replace FSR and 3D resolution. Menus and the HUD stay sharp."
+msgstr "World pixels replace FSR and 3D resolution. Menus and the HUD stay sharp."
 
 msgid "SETTINGS_GRAPHICS_NOTE_NO_FSR"
 msgstr "Standard scaling active. FSR needs the Forward+ renderer.\nWorld pixels use exact nearest scaling. Menus and the HUD stay sharp."
@@ -1180,7 +1201,7 @@ msgid "JOIN_SCANNING"
 msgstr "Scanning this network."
 
 msgid "JOIN_SCAN_EMPTY"
-msgstr "No server answered on this network."
+msgstr "No server answered on this network. The league denies existing; scan again, or type an address."
 
 msgid "JOIN_DROP"
 msgstr "Drop"
@@ -1339,7 +1360,7 @@ msgid "HOST_FUN_METRICS"
 msgstr "Fun tally: match numbers only, never names, shredded after 67 days"
 
 msgid "HOST_STATUS_FUN_METRICS"
-msgstr "This host keeps a fun tally (matches, not people; 67 days)."
+msgstr "This host keeps a fun tally: matches, not people, shredded after 67 days. The Office keeps everything."
 
 msgid "HOST_PORT"
 msgstr "TCP port"
@@ -1787,3 +1808,56 @@ msgstr "Headliner"
 
 msgid "HOST_SKILL_NO_CRUMBS"
 msgstr "No Crumbs"
+
+# Main menu, under the navigation help: one motto per launch, one line on
+# the narrowest page. Each has a speaker, so the joke belongs to somebody
+# (docs/lore/voice.md): the free side, the Office, the league.
+msgid "MENU_MOTTO_LICENSED"
+msgstr "Freedom is not a licensed feature."
+
+msgid "MENU_MOTTO_METERED"
+msgstr "Shall not be metered."
+
+msgid "MENU_MOTTO_COMPLIANCE"
+msgstr "Office: not in trouble. Out of compliance."
+
+msgid "MENU_MOTTO_ADMINISTERED"
+msgstr "Office: freedom matters. Hence the forms."
+
+msgid "MENU_MOTTO_RENT_FREE"
+msgstr "Rent free: no licence fee. Yet."
+
+msgid "MENU_MOTTO_TICKETS"
+msgstr "The league does not exist. Tickets on sale."
+
+# The callsign page. A callsign is sacred, not a punchline.
+msgid "MENU_CALLSIGN"
+msgstr "CALLSIGN"
+
+msgid "MENU_CALLSIGN_NOTE"
+msgstr "A name is issued; a callsign is taken."
+
+# First-launch auto settings card and the Benchmark page.
+msgid "BENCH_TUNE_TITLE"
+msgstr "TUNING GRAPHICS FOR THIS COMPUTER"
+
+msgid "BENCH_TUNE_COMPAT"
+msgstr "Measuring again under the Compatibility renderer, to keep whichever is faster."
+
+msgid "BENCH_TUNE_BODY"
+msgstr "About {seconds} seconds. Ten bots fight on Larak Lot while the game tries settings and keeps the best look that holds {fps} frames a second. Your fan may spin up. Esc stops it; nothing changes until it finishes, and then Crackpot sings your hardware its compliance certificate."
+
+msgid "BENCH_TUNE_START"
+msgstr "Start now"
+
+msgid "BENCH_TUNE_SKIP"
+msgstr "Skip"
+
+msgid "BENCH_TUNE_SKIP_NOTE"
+msgstr "Skip uses {tier} from the hardware list for now. Benchmark > Auto settings measures later."
+
+msgid "BENCH_TUNE_COUNT"
+msgstr "Starting in {seconds} s."
+
+msgid "BENCH_SCOPE"
+msgstr "Frames drawn on this computer only. Not a server, network or player-capacity test, and not a Union type-approval."

@@ -88,9 +88,15 @@ impl FunStore {
         Ok(Self { dir })
     }
 
-    /// The host's own folder under its run directory.
+    /// The host's own folder under its run directory, made if missing.
     pub fn for_host() -> io::Result<Self> {
-        Self::open(crate::local::run_directory()?.join(DIRECTORY))
+        Self::open(Self::host_dir()?)
+    }
+
+    /// Where the host's folder is, without making it: a reader names the
+    /// folder and never creates one.
+    pub fn host_dir() -> io::Result<PathBuf> {
+        Ok(crate::local::run_directory()?.join(DIRECTORY))
     }
 
     pub fn dir(&self) -> &Path {

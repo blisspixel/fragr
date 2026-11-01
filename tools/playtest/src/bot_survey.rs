@@ -4,17 +4,24 @@
 //! contest, focus fire on one body, hits landed outside the shooter's view,
 //! and which guns do the work. A survey is behaviour evidence for rule bots,
 //! never a human fun verdict.
-use fragr_server::fun_metrics::{MatchTally, Observer, WeaponTable};
+use fragr_server::fun_metrics::{MatchTally, Observer};
 use fragr_server::net::GameCommand;
 use fragr_server::protocol::{
     AmmoPool, BodyKind, GameEvent, GameMode, Role, ServerMessage, WeaponType,
 };
 use fragr_server::rules::RuleSet;
 use fragr_server::session::{GameSession, Recipient};
-use fragr_server::sim::{MapKind, MatchConfig};
+use fragr_server::sim::{BotSkill, MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
+
+// The columns a host's fun metrics and the survey share live with the
+// recorder, so both readers fold one way (`fun_metrics::summary`).
+pub use fragr_server::fun_metrics::summary::{
+    check_map_targets, shared_row, ScenarioReport, Spot, MAP_CONTACT_SECONDS, MAP_DITHER_SHARE,
+    MAP_DUEL_FRAGS_PER_MINUTE, MAP_FRAGS_PER_MINUTE, MAP_LEAD_CHANGES, MAP_TOP_GUN_SHARE,
+};
 
 /// Shooters that hit one body inside this window count as firing together.
 const VOLLEY_TICKS: u64 = 20;
@@ -27,20 +34,6 @@ const STALL_EPSILON: f32 = 0.01;
 const STALL_TICKS: u32 = 100;
 /// Stall and wall spots kept per scenario, so a report names places to look.
 const SPOTS_KEPT: usize = 24;
-
-/// Where a fighter stood still or stood inside geometry, for a hunt.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-pub struct Spot {
-    pub seed: u64,
-    pub tick: u64,
-    pub fighter: String,
-    /// Feet position.
-    pub at: [f32; 3],
-    pub seconds: f64,
-    pub in_vehicle: bool,
-    /// The fighter was asking to move: a wedge, not a hold.
-    pub pushing: bool,
-}
 
 /// One mode and map with its roster size.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -107,6 +100,8 @@ pub struct BotSurveyConfig {
     pub seeds: Vec<u64>,
     /// Live round length per match, ticks.
     pub round_ticks: u32,
+    /// The rung every surveyed bot plays at.
+    pub skill: BotSkill,
 }
 
 impl Default for BotSurveyConfig {
@@ -115,164 +110,20 @@ impl Default for BotSurveyConfig {
             scenarios: default_scenarios(),
             seeds: (1..5).collect(),
             round_ticks: 20 * 150,
+            skill: BotSkill::Regular,
         }
     }
 }
 
-/// Folded facts for one scenario across its seeds.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-pub struct ScenarioReport {
-    pub scenario: String,
-    pub matches: u32,
-    pub live_seconds: f64,
-    pub frags: u64,
-    pub frags_per_minute: f64,
-    pub spawns: u64,
-    pub spawn_deaths: u64,
-    /// Deaths inside three seconds of the victim's own spawn, per spawn.
-    pub spawn_deaths_per_spawn: f64,
-    pub hits: u64,
-    /// Hits on a body while two or more other shooters also hit it inside one
-    /// second: three guns on one target at once.
-    pub volley_hits: u64,
-    pub volley_hit_share: f64,
-    /// Frags whose victim took hits from three or more shooters in its last second.
-    pub focus_frags: u64,
-    /// Hits landed on a target outside the shooter's 120 degree view.
-    pub hits_outside_view: u64,
-    pub hits_outside_view_share: f64,
-    /// Frags whose killer opened the fight from outside the victim's view:
-    /// flanks and ambushes that worked.
-    pub blindside_frags: u64,
-    pub blindside_share: f64,
-    pub pickups: u64,
-    pub pickups_per_minute: f64,
-    /// Returns of a weapon or armour pad during live play.
-    pub power_returns: u64,
-    /// Power claims inside one second of the pad's return.
-    pub appointments: u64,
-    pub appointment_share: f64,
-    /// Mean seconds a returned power pad sat untouched before a claim.
-    pub mean_power_wait_s: f64,
-    /// Frags within 8 m of a power pad inside 5 s of its return, per frag.
-    pub pad_contest_index: f64,
-    /// Resolved shots by weapon, as a share of all shots; rockets launched
-    /// count as Rocket shots.
-    pub shot_share: BTreeMap<String, f64>,
-    /// Share of living fighter ticks each gun was in hand, and share of them
-    /// it was owned with rounds: what a body carries against what it fires,
-    /// so a gun share reads as supply or as choice.
-    pub hand_share: BTreeMap<String, f64>,
-    pub owned_share: BTreeMap<String, f64>,
-    /// Frags by the weapon that landed them.
-    pub frag_weapons: BTreeMap<String, u64>,
-    /// Damaging traced hits by the zone they struck (`ShotResult.zone`).
-    #[serde(default)]
-    pub zone_hits: BTreeMap<String, u64>,
-    /// Killing shots by the zone they struck.
-    #[serde(default)]
-    pub kill_zones: BTreeMap<String, u64>,
-    /// Head kills as a share of kills that named a zone (hitscan kills).
-    #[serde(default)]
-    pub head_kill_share: f64,
-    /// Captures in CTF; Conquest sites changing hands.
-    pub objective_events: u64,
-    /// Claims of the power armour (the Custody Plate), per three live minutes.
-    pub plate_claims: u64,
-    pub plate_claims_per_3min: f64,
-    /// Claims of a Rocket pad.
-    pub rocket_claims: u64,
-    /// Frags landed by the Rocket, as a share of all frags.
-    pub rocket_frag_share: f64,
-    /// Fighters killed by their own blast.
-    pub self_deaths: u64,
-    /// Rockets fired, and those that hurt somebody.
-    pub rocket_launches: u64,
-    pub rocket_damaging: u64,
-    /// Guns dropped on death, and how many were taken before they went.
-    pub guns_dropped: u64,
-    pub drop_claims: u64,
-    /// Dropped Rockets taken.
-    pub rocket_drop_claims: u64,
-    /// Rocket lives: from the moment a fighter holds a launcher with rounds
-    /// until it dies or fires the last one.
-    pub rocket_lives: u64,
-    /// Mean seconds a Rocket life lasts.
-    pub rocket_life_seconds: f64,
-    /// Share of Rocket lives that ended in the holder's death, not a dry rack.
-    pub rocket_lives_died: f64,
-    /// Share of a Rocket life the launcher was the gun in hand.
-    pub rocket_in_hand_share: f64,
-    /// Rule bots' objective callouts said to a side, per live minute.
-    pub side_calls_per_minute: f64,
-    /// Times the sole leader changed hands (fighter in free-for-all and Duel,
-    /// side in team deathmatch and CTF), per match. The first lead is not a change.
-    pub lead_changes: u64,
-    pub lead_changes_per_match: f64,
-    /// Over-five-second stalls by the roster's rule, and the longest one.
-    pub stalls: u64,
-    /// Stalls where the fighter kept asking to move: wedged on geometry.
-    pub pushing_stalls: u64,
-    pub longest_stall_seconds: f64,
-    pub stall_spots: Vec<Spot>,
-    /// Living fighter ticks with the body inside a map solid, or outside the
-    /// playable square; either is a collision bug, never play.
-    pub in_solid_ticks: u64,
-    pub in_solid_spots: Vec<Spot>,
-    pub out_of_bounds_ticks: u64,
-    /// The lowest feet height a living fighter reached.
-    pub lowest_feet: f32,
-    /// Authored pads nobody claimed in any surveyed match: a route failure or
-    /// a pad nobody wants.
-    pub unclaimed_pads: Vec<String>,
-    /// Fighter seconds spent in a vehicle seat (Holdfast's jeeps, boats and
-    /// aircraft).
-    pub vehicle_seconds: f64,
-    /// Seconds from a spawn to first contact: the fighter sees an opponent
-    /// or is seen by one (120 degree cone, 64 m, clear sight), or a shot
-    /// lands either way.
-    pub respawn_to_contact_s: crate::sight::Spread,
-    /// Seconds from a spawn to the first shot that lands either way: the
-    /// fight joined, not only seen.
-    pub respawn_to_hit_s: crate::sight::Spread,
-    /// Metres between killer and victim when the frag landed, by weapon.
-    pub kill_distance_m: BTreeMap<String, crate::sight::Spread>,
-    /// Seconds from the first damage a victim took from somebody else in
-    /// that life to the frag: the kill time the 1.0 bar reads.
-    pub time_to_kill_s: crate::sight::Spread,
-    /// Sabotage rounds decided, and the attack's share of them.
-    pub sabotage_rounds: u32,
-    pub sabotage_attack_share: f64,
-    /// Two second windows walked three metres or more with nobody in view,
-    /// and the share that went back and forth (`sight::DitherTracker`).
-    pub moving_windows: u64,
-    pub dither_share: f64,
-}
-
-/// The wave 19 fun targets for every map in rotation.
-pub const MAP_FRAGS_PER_MINUTE: f64 = 10.0;
-pub const MAP_LEAD_CHANGES: f64 = 3.0;
-pub const MAP_TOP_GUN_SHARE: f64 = 0.45;
-/// A Duel finds its fight on every map (#517): one frag a minute between two.
-pub const MAP_DUEL_FRAGS_PER_MINUTE: f64 = 1.0;
-/// Median seconds from a spawn to the first landed shot either way in the
-/// deathmatch modes (`docs/plans/fun-craft-targets.md`, contact).
-pub const MAP_CONTACT_SECONDS: (f64, f64) = (6.0, 15.0);
-/// Moving windows that dither, at most (`sight::DitherTracker`).
-pub const MAP_DITHER_SHARE: f64 = 0.05;
-
-impl ScenarioReport {
-    /// The gun that fired the most shots and its share.
-    pub fn top_gun(&self) -> (String, f64) {
-        self.shot_share
-            .iter()
-            .fold((String::new(), 0.0), |best, (gun, share)| {
-                if *share > best.1 {
-                    (gun.clone(), *share)
-                } else {
-                    best
-                }
-            })
+/// The survey's name for a struck zone, as the shared tables spell it.
+fn zone_name(zone: fragr_server::protocol::HitZone) -> &'static str {
+    use fragr_server::protocol::HitZone;
+    match zone {
+        HitZone::Head => "head",
+        HitZone::Torso => "torso",
+        HitZone::Legs => "legs",
+        HitZone::Plate => "plate",
+        HitZone::Weak => "weak",
     }
 }
 
@@ -378,6 +229,9 @@ pub fn check_lot_targets(row: &ScenarioReport) -> Vec<String> {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct BotSurveyReport {
     pub seeds: Vec<u64>,
+    /// The rung every bot played at.
+    #[serde(default)]
+    pub skill: String,
     pub round_seconds: f64,
     pub scenarios: Vec<ScenarioReport>,
 }
@@ -390,6 +244,8 @@ pub struct BotSurveyReport {
 #[derive(Default)]
 struct Tally {
     matches: u32,
+    /// Killing traced shots by weapon and zone.
+    weapon_kill_zones: BTreeMap<String, BTreeMap<String, u64>>,
     shared: MatchTally,
     volley_hits: u64,
     focus_frags: u64,
@@ -523,6 +379,7 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
     let mut report = BotSurveyReport {
         seeds: config.seeds.clone(),
         round_seconds: f64::from(config.round_ticks) / 20.0,
+        skill: config.skill.id().to_string(),
         scenarios: Vec::new(),
     };
     // Scenarios share nothing, so each folds on its own thread; the report
@@ -539,7 +396,13 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
                 scope.spawn(move || {
                     let mut tally = Tally::default();
                     for &seed in &config.seeds {
-                        survey_match(*scenario, seed, config.round_ticks, &mut tally);
+                        survey_match(
+                            *scenario,
+                            seed,
+                            config.round_ticks,
+                            config.skill,
+                            &mut tally,
+                        );
                     }
                     *slot = Some(fold(scenario, &tally));
                 });
@@ -550,101 +413,23 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
     report
 }
 
-/// The columns a host's fun metrics and the survey share, read from one
-/// folded match tally: frag pace, spawns, pads, gun shares, lead changes,
-/// kill distances, kill time and contact. Survey-only columns stay at zero;
-/// `fold` fills them for a survey row.
-pub fn shared_row(label: String, matches: u32, shared: &MatchTally) -> ScenarioReport {
-    use fragr_server::fun_metrics::{per_minute, share, spread};
-    let live = shared.live_ticks;
-    let shots = shared.total_shots();
-    let tick = 1.0 / fragr_server::fun_metrics::TICKS_PER_SECOND;
-    let named = |table: &WeaponTable<u64>| -> BTreeMap<String, u64> {
-        table
-            .iter()
-            .filter(|(_, count)| **count > 0)
-            .map(|(weapon, count)| (weapon.name().to_string(), *count))
-            .collect()
-    };
-    let zones = |tally: &fragr_server::fun_metrics::ZoneTally| -> BTreeMap<String, u64> {
-        [
-            ("head", tally.head),
-            ("torso", tally.torso),
-            ("legs", tally.legs),
-            ("plate", tally.plate),
-            ("weak", tally.weak),
-        ]
-        .into_iter()
-        .filter(|(_, count)| *count > 0)
-        .map(|(zone, count)| (zone.to_string(), count))
-        .collect()
-    };
-    let sabotage = &shared.sabotage;
-    ScenarioReport {
-        scenario: label,
-        matches,
-        live_seconds: live as f64 * tick,
-        frags: shared.frags,
-        frags_per_minute: per_minute(shared.frags, live),
-        spawns: shared.spawns,
-        spawn_deaths: shared.spawn_deaths,
-        spawn_deaths_per_spawn: share(shared.spawn_deaths, shared.spawns),
-        hits: shared.hits,
-        pickups: shared.pickups,
-        pickups_per_minute: per_minute(shared.pickups, live),
-        power_returns: shared.power_returns,
-        appointments: shared.appointments,
-        appointment_share: share(shared.appointments, shared.power_returns),
-        mean_power_wait_s: if shared.power_claims == 0 {
-            0.0
-        } else {
-            shared.power_wait_ticks as f64 / shared.power_claims as f64 * tick
-        },
-        pad_contest_index: share(shared.contested_frags, shared.frags),
-        shot_share: named(&shared.shots)
-            .into_iter()
-            .map(|(weapon, count)| (weapon, share(count, shots)))
-            .collect(),
-        frag_weapons: named(&shared.frag_weapons),
-        zone_hits: zones(&shared.zone_hits),
-        kill_zones: zones(&shared.kill_zones),
-        head_kill_share: share(shared.kill_zones.head, shared.kill_zones.total()),
-        objective_events: shared.captures
-            + u64::from(
-                shared.conquest.union_sites_at_end + shared.conquest.coalition_sites_at_end,
-            ),
-        plate_claims: shared.plate_claims,
-        plate_claims_per_3min: per_minute(shared.plate_claims, live) * 3.0,
-        rocket_claims: shared.rocket_claims,
-        rocket_frag_share: share(*shared.frag_weapons.get(WeaponType::Rocket), shared.frags),
-        self_deaths: shared.self_deaths,
-        drop_claims: shared.drop_claims,
-        lead_changes: shared.lead_changes,
-        lead_changes_per_match: if matches == 0 {
-            0.0
-        } else {
-            shared.lead_changes as f64 / f64::from(matches)
-        },
-        respawn_to_contact_s: spread(&shared.respawn_to_contact_ticks.scaled(tick)),
-        respawn_to_hit_s: spread(&shared.respawn_to_hit_ticks.scaled(tick)),
-        time_to_kill_s: spread(&shared.time_to_kill_ticks.scaled(tick)),
-        kill_distance_m: shared
-            .kill_distance_cm
-            .iter()
-            .filter(|(_, samples)| !samples.is_empty())
-            .map(|(weapon, samples)| (weapon.name().to_string(), spread(&samples.scaled(0.01))))
-            .collect(),
-        sabotage_rounds: sabotage.rounds,
-        sabotage_attack_share: share(u64::from(sabotage.attack_wins), u64::from(sabotage.rounds)),
-        ..ScenarioReport::default()
-    }
-}
-
 fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
     use fragr_server::fun_metrics::{per_minute, share};
     let live = tally.shared.live_ticks;
     let base = shared_row(scenario.label(), tally.matches, &tally.shared);
+    let (single_head, single_all) = tally
+        .weapon_kill_zones
+        .iter()
+        .filter(|(weapon, _)| weapon.as_str() != WeaponType::Scatter.name())
+        .fold((0, 0), |(head, all), (_, zones)| {
+            (
+                head + zones.get("head").copied().unwrap_or(0),
+                all + zones.values().sum::<u64>(),
+            )
+        });
     ScenarioReport {
+        weapon_kill_zones: tally.weapon_kill_zones.clone(),
+        single_ray_head_kill_share: share(single_head, single_all),
         volley_hits: tally.volley_hits,
         volley_hit_share: share(tally.volley_hits, base.hits),
         focus_frags: tally.focus_frags,
@@ -730,64 +515,13 @@ pub fn every_map_scenarios() -> Vec<Scenario> {
     scenarios
 }
 
-/// Rows that miss the wave 19 fun targets. Frag pace is read on the
-/// deathmatch modes in rotation, and on Duel against its own lower floor (two
-/// seats trade far fewer frags by nature), lead changes on free-for-all, gun
-/// share everywhere.
-pub fn check_map_targets(row: &ScenarioReport, mode: GameMode) -> Vec<String> {
-    let mut misses = Vec::new();
-    if matches!(mode, GameMode::Ffa | GameMode::Tdm) && row.frags_per_minute < MAP_FRAGS_PER_MINUTE
-    {
-        misses.push(format!(
-            "{}: {:.1} frags/min, want {MAP_FRAGS_PER_MINUTE} or more",
-            row.scenario, row.frags_per_minute
-        ));
-    }
-    if mode == GameMode::Duel && row.frags_per_minute < MAP_DUEL_FRAGS_PER_MINUTE {
-        misses.push(format!(
-            "{}: {:.1} Duel frags/min, want {MAP_DUEL_FRAGS_PER_MINUTE} or more",
-            row.scenario, row.frags_per_minute
-        ));
-    }
-    if mode == GameMode::Ffa && row.lead_changes_per_match < MAP_LEAD_CHANGES {
-        misses.push(format!(
-            "{}: {:.1} lead changes per match, want {MAP_LEAD_CHANGES} or more",
-            row.scenario, row.lead_changes_per_match
-        ));
-    }
-    // Contact as the targets mean it: the fight joined, the first shot that
-    // lands either way. Sight alone comes within a second on a small floor.
-    let contact = row.respawn_to_hit_s.median;
-    if matches!(mode, GameMode::Ffa | GameMode::Tdm)
-        && row.respawn_to_hit_s.count > 0
-        && !(MAP_CONTACT_SECONDS.0..=MAP_CONTACT_SECONDS.1).contains(&contact)
-    {
-        misses.push(format!(
-            "{}: {contact:.1} s median from spawn to the first landed shot, want {:.0} to {:.0}",
-            row.scenario, MAP_CONTACT_SECONDS.0, MAP_CONTACT_SECONDS.1
-        ));
-    }
-    if row.dither_share >= MAP_DITHER_SHARE {
-        misses.push(format!(
-            "{}: dithers in {:.1} percent of moving windows, want under {:.0}",
-            row.scenario,
-            row.dither_share * 100.0,
-            MAP_DITHER_SHARE * 100.0
-        ));
-    }
-    let (gun, share) = row.top_gun();
-    if share >= MAP_TOP_GUN_SHARE {
-        misses.push(format!(
-            "{}: {gun} fires {:.0} percent of shots, want under {:.0}",
-            row.scenario,
-            share * 100.0,
-            MAP_TOP_GUN_SHARE * 100.0
-        ));
-    }
-    misses
-}
-
-fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tally) {
+fn survey_match(
+    scenario: Scenario,
+    seed: u64,
+    round_ticks: u32,
+    skill: BotSkill,
+    tally: &mut Tally,
+) {
     let Some(map) = MapKind::ALL
         .iter()
         .copied()
@@ -812,6 +546,7 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         rules,
         ..MatchConfig::default()
     });
+    session.set_bot_skill(skill);
     session.spawn_bots(scenario.bots);
     // Side calls go only to their side and the booth, so the survey listens
     // from one booth seat that holds no fighter.
@@ -902,6 +637,22 @@ fn survey_match(scenario: Scenario, seed: u64, round_ticks: u32, tally: &mut Tal
         for message in &messages {
             observer.message(&session, message);
             let live = observer.live();
+            if let ServerMessage::Snapshot(snapshot) = message {
+                for shot in snapshot
+                    .shot_results
+                    .iter()
+                    .filter(|shot| live && shot.killed)
+                {
+                    if let (Some(trace), Some(zone)) = (&shot.trace, shot.zone) {
+                        *tally
+                            .weapon_kill_zones
+                            .entry(trace.weapon.name().to_string())
+                            .or_default()
+                            .entry(zone_name(zone).to_string())
+                            .or_default() += 1;
+                    }
+                }
+            }
             let ServerMessage::Event(event) = message else {
                 continue;
             };
@@ -1044,6 +795,7 @@ mod tests {
             }],
             seeds: vec![3],
             round_ticks: 20 * 60,
+            ..BotSurveyConfig::default()
         });
         let row = &report.scenarios[0];
         assert_eq!(row.matches, 1);
@@ -1071,6 +823,7 @@ mod tests {
             }],
             seeds: vec![1, 2],
             round_ticks: 20 * 150,
+            ..BotSurveyConfig::default()
         });
         let row = &report.scenarios[0];
         assert!(row.side_calls_per_minute > 0.0, "{row:?}");
@@ -1139,6 +892,7 @@ mod tests {
             scenarios: vec![lot_scenario()],
             seeds: vec![5],
             round_ticks: 20 * 30,
+            ..BotSurveyConfig::default()
         };
         assert_eq!(run_bot_survey(&config), run_bot_survey(&config));
     }
@@ -1276,6 +1030,7 @@ mod tests {
             ],
             seeds: vec![1],
             round_ticks: 20 * 120,
+            ..BotSurveyConfig::default()
         });
         let ffa = &report.scenarios[0];
         assert!(ffa.lead_changes > 0, "{ffa:?}");

@@ -64,13 +64,15 @@ const EDGE_COST: f32 = 40.0;
 /// Spawns sampled around the ring as patrol spots.
 const SPAWN_SPOTS: usize = 8;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Clue {
     feet: [f32; 3],
     at: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Leg {
     spot: usize,
     feet: [f32; 3],
@@ -88,7 +90,8 @@ pub(super) enum Quarry {
     Sweep,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct Hunt {
     /// When the bot last saw an opponent or took a hit.
     contact: Option<u64>,

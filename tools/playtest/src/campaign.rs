@@ -1110,7 +1110,8 @@ fn drive(
         report.seconds = session.state.tick as f64 / 20.0;
         for message in &messages {
             configure_map(&mut client, message)?;
-            if let ServerMessage::Event(fragr_server::protocol::GameEvent::Checkpoint {}) = message
+            if let ServerMessage::Event(fragr_server::protocol::GameEvent::Checkpoint { .. }) =
+                message
             {
                 report
                     .checkpoint_seconds

@@ -441,7 +441,10 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
   `%LOCALAPPDATA%\fragr\runs` on Windows). The server refuses to start with
   `--fun-metrics` if it cannot name or create that folder. In a container,
   set `FRAGR_RUN_DIR` to a mounted volume. A match the server stops mid-way
-  is filed with `finished: false`; one nobody played is not filed.
+  is filed with `finished: false`: a dedicated server stops cleanly on
+  Ctrl+C or SIGTERM (a service manager, `docker stop`), and a desktop host
+  when the game asks it to stop. One nobody played is not filed, and a server
+  killed outright (SIGKILL, a crash, power loss) loses its open match.
 - **What a file holds.** Exactly the fields listed in
   [PRIVACY.md](PRIVACY.md#exactly-what-a-file-holds), and the build fails if
   that list and the code disagree.
@@ -449,16 +452,21 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
   days are deleted by their file time, with a log line such as `Fun metrics:
   shredded 3 match tallies older than 67 days. The Union would have kept them
   forever.` Nothing else in the folder is touched.
-- **Reading them.** From a checkout, the summary folds the files with the same
+- **Reading them.** The server binary folds the files with the same
   definitions the bot survey uses and prints the table the
   [1.0 bar](ROADMAP.md#the-10-bar) reads, plus any row that misses a map
-  target:
+  target. With no folder named it reads this host's own folder under the
+  run directory; then it exits:
 
   ```bash
-  cargo run -p fragr-playtest --release --locked -- --fun-summary /srv/fragr/fun-metrics --report .agents/fun-summary.json
+  FRAGR_RUN_DIR=/srv/fragr fragr-server --fun-summary
+  fragr-server --fun-summary /srv/fragr/fun-metrics
   ```
 
-  It reads only. Sharing a file with the project is your call, made by hand.
+  From a checkout, `cargo run -p fragr-playtest --release --locked --
+  --fun-summary /srv/fragr/fun-metrics --report .agents/fun-summary.json`
+  prints the same table from the same code and also writes it as JSON.
+  Either reads only. Sharing a file with the project is your call, made by hand.
 - **Cost.** The recorder reads the tick the server already computed. The
   benchmark measures it on every run (`fun_metrics_ms` in the report) and
   `--bench-assert` fails if its p99 passes 5% of the tick budget.
@@ -498,6 +506,7 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
 | `--console` | Local venue desk on a dedicated arcade match, including `status`. End of input does not stop the process. |
 | `--head-to-head <PATH>` | Keep the head-to-head book (frags between callsigns, which rule bots hold grudges from and the Host reads before a Duel) in this file across restarts, saved at each round end. A desktop host keeps it as `head-to-head.json` beside its campaign runs; a dedicated server keeps it in memory unless this is set. One file version: any other is refused with a warning, the book starts fresh and the next save replaces the file. |
 | `--fun-metrics` | Keep fun metrics: match-level tallies, one file per match in `fun-metrics/` under the run directory (`FRAGR_RUN_DIR`), shredded after 67 days. Announced in every Welcome and `/status`. Arcade only; off by default. See [fun metrics](#fun-metrics). |
+| `--fun-summary [FOLDER]` | Print the fun metrics summary of FOLDER, default this host's own `fun-metrics/` folder, and exit. Reads only. |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |

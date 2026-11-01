@@ -185,6 +185,9 @@ msgstr "RUN OVER"
 msgid "RUN_RESTORE_ENTRY"
 msgstr "Restart this mission with the equipment you entered with."
 
+msgid "RUN_RESTORE_CHECKPOINT"
+msgstr "Go back to your last checkpoint with what you carried there."
+
 msgid "RUN_CONTINUE_INPUT"
 msgstr "{accept}: SPEND ONE CONTINUE"
 

@@ -11,7 +11,8 @@ use std::collections::HashSet;
 /// client's arrival line reaches further, so it is said before they go in.
 const LATCH_DOOR_REACH: f32 = 6.0;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M16Progress {
     pub(super) index: usize,
     pub(super) challenges: M16ChallengeState,
@@ -304,7 +305,7 @@ impl GameState {
             };
             if barricade_post_clear && arrived_at_checkpoint {
                 if let Some(world) = self.map.prepared_m16_world(1) {
-                    self.map = world;
+                    self.enter_world(crate::maps::MapStep::M16 { stage: 1 }, world);
                     let p = self.mission.as_mut().unwrap().m16.as_mut().unwrap();
                     p.challenges.green_wave_triggered = true;
                     p.checkpoint_lifted = true;
@@ -355,7 +356,7 @@ impl GameState {
             };
             if arrived_at_doors {
                 if let Some(world) = self.map.prepared_m16_world(2) {
-                    self.map = world;
+                    self.enter_world(crate::maps::MapStep::M16 { stage: 2 }, world);
                     let p = self.mission.as_mut().unwrap().m16.as_mut().unwrap();
                     p.doors_open = true;
                     p.index = 6;

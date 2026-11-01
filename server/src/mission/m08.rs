@@ -6,7 +6,8 @@ use crate::protocol::{
     M08_OBJECTIVE_IDS,
 };
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M08Progress {
     pub(super) index: usize,
     pub(super) node_hp: [u8; M08_NODES],
@@ -217,7 +218,7 @@ impl GameState {
         if progress.node_hp.iter().all(|hp| *hp == 0) {
             progress.index += 1;
             if let Some(fallen) = run.initial_map.prepared_m08_world(2) {
-                self.map = fallen;
+                self.enter_world(crate::maps::MapStep::M08 { stage: 2 }, fallen);
             }
             tracing::info!("Custody machine dropped through the galleries");
         }
@@ -248,7 +249,7 @@ impl GameState {
         // The Auditor's fall lifts the seal and frees the upper bays.
         if self.map.m08_stage() == 0 && self.encounters.is_complete(prepared.seal_encounter) {
             if let Some(opened) = run.initial_map.prepared_m08_world(1) {
-                self.map = opened;
+                self.enter_world(crate::maps::MapStep::M08 { stage: 1 }, opened);
                 if let Some(run) = &mut self.mission {
                     run.changed_at = self.tick;
                 }

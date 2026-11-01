@@ -1,0 +1,14 @@
+{
+  "comment": "The run checkpoint-cue.json left behind, reopened: the Single Player page says the run picks up at its last checkpoint; resuming puts the fighter back where it saved (off the spawn, facing the intake) with one upright BACK AT YOUR LAST CHECKPOINT feed line; a death in the intake fight then offers the continue back to that checkpoint. FRAGR_QA_LOCAL_MISSION=recall_notice FRAGR_QA_RUN_FIXTURE=<checkpoint-cue output>/run.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"menu_saved_run","scene":"res://scenes/boot_menu.tscn","camera":"none","menu_page":"single","expect_preview":"ready"},
+    {"name":"resumed_0","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","settle_seconds":0.5},
+    {"name":"resumed_1","camera":"first_person","settle_seconds":0.8},
+    {"name":"resumed_2","camera":"first_person","settle_seconds":0.8},
+    {"name":"resumed_3","camera":"first_person","settle_seconds":0.8},
+    {"name":"intake_fight","camera":"first_person","walk_into":[[-8.0,0.0,-17.0]]},
+    {"name":"fallen_offer","camera":"first_person","await_death":90,"settle_seconds":1.5}
+  ]
+}

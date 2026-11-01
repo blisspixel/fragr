@@ -8,6 +8,8 @@ const LIFETIME: float = BlastVfx.FIRE_SECONDS
 ## Rockets in flight that also carry a small exhaust light; the rest fly
 ## with their flame sprite alone, so a volley never floods the light budget.
 const ROCKET_LIGHTS: int = 2
+## A grenade's whole fuse, ticks (`server/src/sim/grenade.rs` `FUSE_TICKS`).
+const GRENADE_FUSE_TICKS: int = 40
 
 ## Exhaust lights the drawn tier allows: none at Potato's quarter budget,
 ## one at Low's half, the full two from Medium up.
@@ -129,9 +131,12 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 			bodies[id] = _round(0.08, 0.2, ShotVfx.GRENADE_SKIN)
 			bodies[id].name = "Grenade_%d" % id
 			add_child(bodies[id])
-			if not initial:
+			# A body first seen with its fuse fresh has just left a hand. One
+			# that comes into sight later in its flight (a fighter's world
+			# leaves out a throw it cannot see, gameplay 67) was not thrown now.
+			var fresh: bool = int(fact["fuse_ticks"]) + int(snapshot["tick"]) - previous_tick >= GRENADE_FUSE_TICKS
+			if not initial and fresh:
 				thrown.emit(str(fact["owner_id"]))
-				# A body first seen after synchronization has just left a hand.
 				if listener.is_finite():
 					_sound(THROW, GrenadeFacts.vector(fact["position"]), listener)
 					throw_cues += 1

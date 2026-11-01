@@ -27,9 +27,12 @@ locational damage (`ShotResult.zone` in place of `head`, and a Ranged
 Sweeper's `mast_broken`), the hold-Tab board's objective credits
 (`players[].objective`), the booth's whole pad clocks (`clock`), the fun
 metrics notice (`Welcome.fun_metrics`) and interest filtering (the
-per-fighter `sense` rows, below); it is the highest this build speaks.
-Declared Goods, Weight of Permission, Launch Authority and All Systems Normal,
-which place Ranged Sweepers, require 66.
+per-fighter `sense` rows, below). Contract 67 applies the same senses to
+the rest of a fighter's world: a heard shot carries `ShotResult.sense`, and
+shots, things in flight and pickup events the fighter could not perceive
+are left out (below); it is the highest this build speaks, and a shared
+room requires it. Declared Goods, Weight of Permission, Launch Authority and
+All Systems Normal, which place Ranged Sweepers, require 66.
 Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
@@ -171,7 +174,7 @@ Initial handshake message. Must be sent immediately after connection.
   its owner wears and keeps it (see the run file). Additive: no gameplay
   version gates it.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `66`; omission means `1`. Discovery-only maps first
+  and the Godot client send `67`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -399,17 +402,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`66`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`67`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-66 or geometry 2. An older hello is also sent to
+67 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 66 can
-still enter that mission, and a hello above 66 or geometry above 2 is refused
+mission keeps its content floor, so a reader between that floor and 67 can
+still enter that mission, and a hello above 67 or geometry above 2 is refused
 there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
@@ -798,7 +801,7 @@ result; it does not load the next map in the same process. A durable solo M01
 child saves M02 as pending, and the menu can start a new local M02 child from
 that exit. Development party mode retains entry respawn and allows a new party
 after everyone leaves. It has no disk save and no checkpoints. A solo run saves mid-level
-checkpoints in memory (see Solo run recovery). A dropped socket can rebind the same pawn for ten seconds. Text is
+checkpoints, written with its run file (see Solo run recovery). A dropped socket can rebind the same pawn for ten seconds. Text is
 localized; voice/radio is optional.
 
 #### Solo run recovery
@@ -825,9 +828,17 @@ each clock moves forward by the time between the save and the retry so it
 resumes where it was. A checkpoint is saved on the first safe tick after a
 cleared group, a changed mission fact or a minute of play without one: the
 owner alive, grounded, out of every vehicle and unhurt for three seconds, no
-woken guard alive, nothing hostile in flight and the Walker not fighting. Each
-save emits `{"type":"event","event":"checkpoint"}`. Checkpoints are not written
-to the run file; a reopened run starts the level from its entry. M02's entry carries M01's exit health, armor, weapons, ammunition
+woken guard in the fight (holding a target, telling or making an attack, or
+reeling from a hit) and none within twenty metres, nothing hostile in flight
+and the Walker not fighting. Each save emits
+`{"type":"event","event":"checkpoint"}`. The latest checkpoint is written with
+the run file (see Campaign run file). A reopened run that was left while
+playing returns its owner to that checkpoint once the level starts, spending
+no continue, and emits `{"type":"event","event":"checkpoint","resumed":true}`
+(`resumed` is additive and sent only when true: a reader that ignores it
+still reads a checkpoint, so no gameplay version gates it);
+a reopened pending continue spends its continue there. Without a checkpoint a
+reopened run starts the level from its entry. M02's entry carries M01's exit health, armor, weapons, ammunition
 and selection but starts with M02's own pickup claims and attempt count.
 Motion, a latched dry trigger and queued actions are cleared; input sequence, inventory revision and simulation
 tick never rewind. The owner remains ready, so the opening does not replay.
@@ -1922,7 +1933,13 @@ records default it to false. `zone` (gameplay 66) names where damage that landed
 `legs`, `plate` or `weak`; see "Locational damage" below. It is omitted on a
 miss, when nothing landed (a shield or a teammate that took nothing), and for
 weapons without zones (the Arc, explosives, melee) unless a plate or shutter
-turned part of the hit. `damage` already counts the zone's multiplier. It
+turned part of the hit. `damage` already counts the zone's multiplier.
+`sense` (gameplay 67) is `heard` on a result a fighter's socket carries from
+a shooter it only hears ([Interest filtering](#interest-filtering-capability-66)):
+`trace` then keeps only `weapon` and `vehicle_id`, with `origin` and `end`
+both the place the shooter sounds (its `heard` row's `x`, `y`, `z`), impact
+`range` and no `pellets`; a reader draws no line or impact for it and plays
+the gun where it sounds. Omitted on every whole result. It
 drives only presentation: the shooter's marker and sound, sparks, and the
 victim's death recap. Committed shots can trade kills; later hits cannot
 award another frag for the same death. The following frag event reports the same
@@ -3081,7 +3098,8 @@ Omitting `--run-mode` retains independent development behavior. The read-only
 `--local-run-preview` identifies the saved mission, instead of using the
 launcher's guessed map. It prints one bounded JSON status line for the menu:
 `missing`, `ready` (mission, difficulty, attempt, continues, pending_continue,
-nullable body, nullable dress), `failed`, `abandoned`, `awaiting_mission` (next
+checkpoint, nullable body, nullable dress; `checkpoint` says the run picks up
+at a saved checkpoint), `failed`, `abandoned`, `awaiting_mission` (next
 mission, difficulty, continues, nullable body, nullable dress), `incompatible`, or `corrupt`. The menu
 treats preview as advisory; launch validates again under the lock.
 
@@ -3186,7 +3204,7 @@ directory named by `FRAGR_RUN_DIR` or the platform data folder
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
-**One schema, no migration.** The document carries `"version": 25`, the only
+**One schema, no migration.** The document carries `"version": 26`, the only
 version this build reads or writes. Any other version, older or newer, is
 refused as `incompatible` before its shape is read. Nothing is upgraded,
 archived or carried forward from earlier formats. A change to the serialized
@@ -3194,7 +3212,7 @@ shape bumps the number; a number is never reused, so a stale file can never be
 mistaken for a current one. Player-facing text says the save is from a
 different build and that starting a new run replaces it.
 
-**Reading.** At most 64 KiB is read. Bytes that are not JSON, lack an integer
+**Reading.** At most 1 MiB is read. Bytes that are not JSON, lack an integer
 `version`, or do not decode strictly as the current shape are `corrupt`.
 Unknown fields are refused everywhere, and a carried outcome that is present
 must hold a value: `null` is refused, never read as absent. A document that
@@ -3222,7 +3240,7 @@ replaces whatever was there, including an incompatible or corrupt file.
 **Shape.**
 
 ```json
-{"version":25,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+{"version":26,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
  "level_start_continues":3,"body":"synthetic","dress":{"look":3,"accent":6},
  "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
  "step":{"kind":"mission_entry","mission":"recall_notice",
@@ -3241,6 +3259,21 @@ the retry anchor: HP, armor and exact equipment as the mission began. Every
 equipment count is written explicitly. `failed` requires zero remaining
 continues and `pending_continue` at least one. `attempt` is derived as
 `level_start_continues - remaining_continues + 1`.
+
+**Checkpoint (version 26).** While a level is being played (`mission_entry`
+or `pending_continue`) the document may carry `checkpoint`:
+`{"build":"<version>+<commit>","mission":"<stage>","tick":<n>,"state":{...}}`.
+`state` is the level's latest mid-level checkpoint as the simulation keeps it
+(owner, mission facts, encounter groups, allies, supplies, vehicles, devices)
+and is at most 768 KiB (first checkpoints measured 8 to 28 KB per level). No geometry is stored: `state` names the world steps the
+level took since its entry (a door opened, a stage reached, the Walker's fallen
+hull), and a reopened run rebuilds the world by taking them again from the
+bundled mission content. Only the build that wrote a checkpoint reads it. A
+checkpoint from another build, for another mission, out of bounds or not
+decoding strictly as this build's state is refused with a logged reason and
+dropped, never converted, and the level starts from its entry. On reopen the
+simulation clock moves forward to the checkpoint's tick, so no tick rewinds.
+Promotion into the next mission and every terminal step drop it.
 
 **Carried outcomes.** Each mission's optional choices are recorded once at its
 completed edge and carried unchanged through every later stage:
@@ -4406,17 +4439,35 @@ could perceive. Owner: `server/src/interest.rs`; the Godot reader is
   carrier of a flag or the Sabotage charge, and the fighter's killer while
   it is down. A fighter that is down in a team mode sees what its living
   team-mates see.
-- **Still in every world.** Shot results, projectiles, grenades, rockets,
-  mines, explosions, vehicles, pickups, flags, the charge and events. A shot
-  result names its shooter and origin, and a pickup event its pad: gunfire
-  and a pickup chime are audible.
+- **Shots, throws and pickups (gameplay 67).** The same senses decide the
+  rest of a fighter's world, from the rows its view already withholds:
+  - A `shot_results` entry from a shooter the fighter sees stays whole. From
+    a shooter it only hears, it is cut (`sense` `heard`, trace at the place
+    the shooter sounds, no line or pellets; see Snapshot). From one it
+    neither sees nor hears, it is left out. A shot that strikes the fighter,
+    and its own, always stay whole.
+  - A `rockets`, `grenades`, `mines` or `remote_mines` entry still in flight
+    (a mine or remote charge whose `phase` is `flying`) from a fighter the
+    fighter does not see is sent only while a line through the shot solids
+    from its eye, now or after its lead, reaches the thing where it is or
+    `3` ticks ahead on its velocity, and for `10` ticks after. A stuck mine
+    stays: it no longer says where its owner stands. A reader may therefore
+    first meet a thing mid-flight; the Godot client cues a grenade throw only
+    on a fresh fuse and a rocket launch only on a young one.
+  - A `pickup` event for a fighter it does not see is not sent to its
+    socket, except the Custody Plate (`kind` `plate`), which the whole venue
+    answers (Larak Lot's light bar).
+- **Still in every world.** Explosions, stuck mines, vehicles, pads (their
+  `available` state), flags, the charge, the kill feed (`frag`, `hit`) and
+  every other event.
+- **Spectators** and the booth keep every shot, throw and event whole.
 - **Deltas.** A fighter's view is diffed against the world its socket last
   carried (the per-reader path of [Snapshot deltas](#snapshot-deltas-capability-63)),
   never against the shared tick delta, so a reader that moves between a
   view and the whole world (joins or leaves) always applies a delta to the
   world it holds. Fighters whose views match share one encoded view.
 
-A reader below 66 is refused by a shared room under Protocol version, because
-it would draw a hidden row at the origin. MCP `observe` reads the same
+A reader below 67 is refused by a shared room under Protocol version: at 65
+it would draw a hidden row at the origin, and at 66 a heard shot's cut trace. MCP `observe` reads the same
 filtered socket as a human fighter (see `agent-adapter/README.md`).
 Measurements: [BENCHMARK.md](BENCHMARK.md#interest-filtering-wave-22).

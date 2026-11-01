@@ -777,6 +777,17 @@ fn personalities_take_found_guns_to_their_distances() {
             "{behavior:?}"
         );
     }
+    // The regulars take the Railgun from where its own band starts (wave 23:
+    // team deathmatch Rifle share), and keep the Rifle short of it.
+    let rail_from = WeaponType::Rail.preferred_range().0;
+    assert_eq!(
+        pick(own(BotBehavior::Balanced), rail_from + 1.0),
+        WeaponType::Rail
+    );
+    assert_eq!(
+        pick(own(BotBehavior::Balanced), rail_from - 1.0),
+        WeaponType::Flechette
+    );
     // A Rocket is never fired into a body at arm's length.
     let (mut state, bot) = pair(2);
     state.players[0].inventory = full_bag(&[WeaponType::Rocket]);
@@ -1486,4 +1497,61 @@ fn a_pad_errand_is_kept_until_it_runs_out_or_somebody_shows() {
     // A new body starts with no errand.
     state.players[0].bot_senses.forget_fighters();
     assert!(state.players[0].bot_senses.errand.is_none());
+}
+
+#[test]
+fn a_rung_that_goes_for_the_head_pitches_at_the_head_band_and_a_tourist_at_the_torso() {
+    // Twelve metres, the Railgun: a cone that fits the head. Find a target
+    // id whose sighting draws the head for the top rung.
+    let mut checked = [false; 2];
+    for id in 2..60u128 {
+        let (mut state, bot) = pair(id);
+        state.players[1].x = 7.0;
+        for player in &mut state.players {
+            player.weapon = WeaponType::Rail;
+        }
+        for skill in [BotSkill::NoCrumbs, BotSkill::Tourist] {
+            let bot = bot.clone().with_skill(skill);
+            state.players[0].bot_senses = BotSenses::default();
+            // Observers are staggered by id: look until this one has looked.
+            for tick in 0..OBSERVE_EVERY * 2 {
+                if state.players[0].bot_senses.target.is_none() {
+                    observe(&mut state, &bot, tick);
+                }
+            }
+            let observed = state.players[0].bot_senses.target.unwrap();
+            let eye = fighter_eye(&state.players[0]);
+            let profile = skill.profile();
+            let zone = aim_zone(
+                &profile,
+                bot.player_id,
+                observed.id,
+                observed.ready_at,
+                eye,
+                observed.head,
+                WeaponType::Rail,
+            );
+            let pitch = bot.update(&state).pitch.unwrap();
+            let bound = profile.aim_error * PITCH_SHARE + 1e-5;
+            let (_, at_head) = crate::combat::aim_at(eye, observed.head).unwrap();
+            let (_, at_centre) = crate::combat::aim_at(eye, observed.centre).unwrap();
+            match zone {
+                AimZone::Head => {
+                    assert!((pitch - at_head).abs() <= bound, "{skill:?}");
+                    checked[0] = true;
+                }
+                AimZone::CentreMass => {
+                    assert!((pitch - at_centre).abs() <= bound, "{skill:?}");
+                    if skill == BotSkill::Tourist {
+                        checked[1] = true;
+                    }
+                }
+            }
+            assert!(skill != BotSkill::Tourist || zone == AimZone::CentreMass);
+        }
+        if checked == [true; 2] {
+            return;
+        }
+    }
+    panic!("no sighting drew the head for the top rung: {checked:?}");
 }

@@ -189,6 +189,10 @@ static func _parse_all(value: Variant) -> Array[Effect]:
 static func _parse(value: Variant) -> Effect:
 	if not value is Dictionary or not value.get("trace") is Dictionary:
 		return null
+	# A shot this reader only hears (gameplay 67) has no line to draw: its
+	# trace is cut to where the shooter sounds, and the heard pawn plays it.
+	if value.has("sense"):
+		return null
 	var trace: Dictionary = value["trace"]
 	if not trace.get("weapon") is String or not trace.get("impact") is Dictionary:
 		return null

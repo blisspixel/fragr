@@ -91,7 +91,7 @@ fn a_quiet_minute_saves_one_checkpoint_and_announces_it() {
     assert!(state
         .take_events()
         .iter()
-        .any(|event| matches!(event, GameEvent::Checkpoint {})));
+        .any(|event| matches!(event, GameEvent::Checkpoint { resumed: false })));
     idle(&mut state, CHECKPOINT_INTERVAL_TICKS - 1);
     assert_eq!(
         checkpoints(&state).len(),

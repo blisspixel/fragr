@@ -104,7 +104,7 @@ func _run() -> void:
 	menu._save_profile()
 	await process_frame
 	_check(menu._page == "single", "saving run body choice returns to Single Player")
-	owned.run_preview = {"status": "ready", "mission": MissionState.M02_ID, "difficulty": "severe", "attempt": 1.0, "continues": 2.0, "pending_continue": false, "body": PlayerBody.HUMAN}
+	owned.run_preview = {"status": "ready", "mission": MissionState.M02_ID, "difficulty": "severe", "attempt": 1.0, "continues": 2.0, "pending_continue": false, "checkpoint": false, "body": PlayerBody.HUMAN}
 	menu._show("single")
 	_check(column.get_node_or_null("PersonsUnknownSaved") != null and _menu_text(column).contains("Run body: HUMAN"), "a bound run body wins over the current profile")
 	_check(_menu_text(column).contains("attempt 1") and _menu_text(column).contains("2 continues left") and not _menu_text(column).contains(".0"), "ready run shows whole-number attempt and allowance")

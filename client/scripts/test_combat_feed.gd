@@ -131,6 +131,10 @@ func _run() -> void:
 	game._on_event_received({"event": "checkpoint"})
 	var checkpoint_line: Label = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
 	_check(checkpoint_line.text == tr("HUD_CHECKPOINT") and not checkpoint_line.text.is_empty(), "a checkpoint is one feed line: " + checkpoint_line.text)
+	game._on_event_received({"event": "checkpoint", "resumed": true})
+	var resumed_line: Label = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
+	_check(resumed_line.text == tr("HUD_CHECKPOINT_RESUMED") and resumed_line.text != tr("HUD_CHECKPOINT") and not resumed_line.text.is_empty(), "a reopened run says it is back at its checkpoint: " + resumed_line.text)
+	_check(is_zero_approx(resumed_line.rotation), "the resume line stays level")
 	_check(not hud.round_message.visible, "routine combat events never occupy the centre")
 	_check(not hud.streak_flash.visible and camera.punches == 0, "other people's events do not flash or shake the view")
 	_check(hud.combat_feed.get_child_count() == 3, "all event routes share the same bound")

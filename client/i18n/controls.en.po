@@ -371,7 +371,7 @@ msgid "LOADING_BEGIN"
 msgstr "Any key or button to begin"
 
 msgid "LOADING_WAIT"
-msgstr "Preparing the world..."
+msgstr "Preparing the world. Larak is signing for the lamps."
 
 msgid "LOADING_RETURN"
 msgstr "Return to menu"
@@ -425,7 +425,7 @@ msgid "SETTINGS_TEAM_COLOUR_BLIND"
 msgstr "RED-GREEN SAFE"
 
 msgid "SETTINGS_ACCESSIBILITY_NOTE"
-msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours: High contrast lifts side contrast; Red-green safe keeps Union red and turns the free side blue for deuteranopia and protanopia. Blood Off turns body hits into a dust puff and the damage edge to bone."
+msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours: High contrast lifts side contrast; Red-green safe keeps Union red and turns the free side blue for deuteranopia and protanopia. Blood Off turns body hits into a dust puff and the damage edge to bone. The paperwork still says unscheduled retirement."
 
 msgid "SETTINGS_BLOOD"
 msgstr "BLOOD"
@@ -452,4 +452,4 @@ msgid "SETTINGS_ANNOUNCER_OFF"
 msgstr "OFF"
 
 msgid "SETTINGS_AUDIO_NOTE"
-msgstr "Announcer: On shows every Host call and voices the big ones. Big moments only keeps first blood, triple frags and up, sprees, ended sprees, comebacks, last one standing, captures, plants, match point and sudden death. Off silences the Host. Frags, objectives and results always show.\nChanges apply when saved. Zero volume mutes the bus."
+msgstr "Announcer: On shows every Host call and voices the big ones. Big moments only keeps first blood, triple frags and up, sprees, ended sprees, comebacks, last one standing, captures, plants, match point and sudden death. Off silences the Host and Crackpot's benchmark certificate. Frags, objectives and results always show.\nChanges apply when saved. Zero volume mutes the bus."

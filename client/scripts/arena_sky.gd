@@ -51,7 +51,7 @@ const ACTOR_LAYERS: int = 1
 const GLOW_LEVELS: Array[float] = [1.0, 0.9, 0.35, 0.0, 0.0, 0.0, 0.0]
 const GLOW_THRESHOLD: float = 0.85
 const GLOW_HDR_SCALE: float = 1.0
-const GLOW_LUMINANCE_CAP: float = 6.0
+const GLOW_LUMINANCE_CAP: float = 2.0
 
 ## One venue's sky and light plan.
 class Preset extends RefCounted:
@@ -95,6 +95,12 @@ class Preset extends RefCounted:
 	## without flattening the room the way a raised ambient floor would.
 	var view_fill_energy: float = 0.0
 	var view_fill_range: float = 24.0
+	## How the fill falls off with distance (OmniLight3D attenuation). A league
+	## venue keeps it flat, so a fighter at forty metres takes the same lift as
+	## one at ten and reads against the floor behind it (contrast scan, #528).
+	## Union interiors keep a falloff: a black-and-red guard reads as a dark
+	## mass against lit enamel, and a flat fill would grey it at range.
+	var view_fill_attenuation: float = 0.5
 	## How strongly fighters' rim of light reads here (FighterRim), 0 to 1. A
 	## night or covered venue wants it; a bright open one, where a fighter
 	## reads as the darker shape against the sky and sand, turns it off.
@@ -145,7 +151,11 @@ static func scrapyard() -> Preset:
 	preset.key_color = Color(1.0, 0.84, 0.64)  # low sodium sun
 	preset.key_energy = 1.45
 	preset.scene_fill_energy = 0.2
-	preset.view_fill_energy = 0.0
+	# The actor fill carries a fighter's front across the 10 to 40 m band
+	# against the yard's dark steel (contrast scan, #528).
+	preset.view_fill_energy = 0.8
+	preset.view_fill_range = 45.0
+	preset.view_fill_attenuation = 0.0
 	preset.contrast = 1.06
 	preset.glow_intensity = 0.35
 	return preset
@@ -173,7 +183,9 @@ static func compliance() -> Preset:
 	# Practicals carry the rooms: work lamps and strip lights over a cold key.
 	preset.practical_energy = 1.8
 	preset.practical_range = 10.0
-	preset.view_fill_energy = 0.25
+	preset.view_fill_energy = 0.7
+	preset.view_fill_range = 45.0
+	preset.view_fill_attenuation = 0.0
 	return preset
 
 
@@ -229,7 +241,9 @@ static func intake() -> Preset:
 	preset.ambient_color = Color(0.5, 0.53, 0.5)
 	preset.ambient_energy = 0.75
 	preset.practical_color = Color(0.86, 0.95, 0.88)  # institutional fluorescent
-	preset.practical_energy = 4.2
+	# 3.6, not 4.2: on Forward+ the street facade under the canopy strip
+	# washed to white (#540).
+	preset.practical_energy = 3.6
 	preset.practical_range = 13.0
 	preset.practical_attenuation = 1.3
 	preset.contrast = 1.1
@@ -416,7 +430,9 @@ static func holdfast() -> Preset:
 	preset.key_color = Color("ffe4ad")
 	preset.key_energy = 1.25
 	preset.scene_fill_energy = 0.12
-	preset.view_fill_energy = 0.25
+	# No actor fill either: it lifted fighters toward the sand they read
+	# against as dark shapes (contrast scan, #528).
+	preset.view_fill_energy = 0.0
 	preset.contrast = 1.04
 	preset.saturation = 0.93
 	return preset
@@ -570,7 +586,7 @@ static func launch_berth() -> Preset:
 ## sun from the west rakes down the trench and across the banks, the east
 ## sides of the streets go to cool blue shade, and the street lamps and the
 ## clock are already on. Warm free-town light, no Union red and no cyan; a
-## faint actor fill keeps a black-and-red body readable in the shade.
+## flat actor fill keeps every fighter readable in that shade.
 static func low_water() -> Preset:
 	var preset: Preset = Preset.new(Color("4f6f9c"), Color("f0a868"),
 		Color("8a6656"), Color("c99a76"), 0.0034, Color("9aa0b8"), 0.56)
@@ -581,8 +597,9 @@ static func low_water() -> Preset:
 	preset.practical_color = Color("ffcf8e")
 	preset.practical_energy = 1.6
 	preset.practical_range = 10.0
-	preset.view_fill_energy = 0.3
-	preset.view_fill_range = 30.0
+	preset.view_fill_energy = 0.8
+	preset.view_fill_range = 45.0
+	preset.view_fill_attenuation = 0.0
 	preset.contrast = 1.1
 	preset.saturation = 1.0
 	preset.glow_intensity = 0.4
@@ -647,8 +664,9 @@ static func no_forwarding_address() -> Preset:
 	return preset
 
 ## Larak Lot: an old range's car park at night. Deep indigo over a sodium
-## haze, a low cool city glow raking in from the south-west across the Roof and
-## the Pit, and warm sodium practicals in the covered bays: warm outside the
+## haze, a cool city glow from the south-west across the Roof and into the Pit
+## (40 degrees up: at 24 the deck walls put the whole lot in shade once
+## Forward+ drew the shadows, #540), and warm sodium practicals in the covered bays: warm outside the
 ## lightwells, cold inside the concrete. The floors stay mid-value so a body
 ## never disappears into a corner, and the actor fill keeps a NODS bot's dark
 ## plate and a free fighter's own colours readable at thirty metres. The
@@ -662,24 +680,25 @@ static func larak_lot() -> Preset:
 		Color("4a3b37"),
 		0.0045,
 		Color("a3a2ba"),             # cool fill against warm practicals
-		0.6
+		0.7
 	)
 	preset.outdoor_embers = false
 	# Exhaust and sodium haze settled in the Pit, under the first deck.
 	preset.fog_height = 0.9
 	preset.fog_height_density = 0.18
 	preset.key_color = Color("b9c6e6")  # cool city glow
-	preset.key_energy = 0.95
+	preset.key_energy = 1.25
 	preset.key_in_sky = false
-	preset.key_rotation_degrees = Vector3(-24.0, -45.0, 0.0)
+	preset.key_rotation_degrees = Vector3(-40.0, -45.0, 0.0)
 	preset.scene_fill_energy = 0.0
 	preset.practical_color = Color("ffb35c")  # sodium
 	preset.practical_energy = 4.0
 	preset.practical_range = 15.0
 	preset.practical_attenuation = 1.2
 	preset.accent_energy = 0.0
-	preset.view_fill_energy = 0.55
-	preset.view_fill_range = 32.0
+	preset.view_fill_energy = 1.0
+	preset.view_fill_range = 45.0
+	preset.view_fill_attenuation = 0.0
 	preset.contrast = 1.1
 	preset.saturation = 1.0
 	preset.glow_intensity = 0.8
@@ -689,9 +708,11 @@ static func larak_lot() -> Preset:
 ## silhouettes separate; the warm practicals that still burn are the
 ## interrupted light, and glow lets the white work marks read as light on the
 ## ground rather than paint. The actor fill keeps every machine readable.
+## The ambient floor sits a step above the first cut: on Forward+ the concourse
+## tiles and the stores counter went to black between the lamps (#540).
 static func planned_works() -> Preset:
 	var preset: Preset = Preset.new(Color("0b1220"), Color("2b3446"),
-		Color("1b1f26"), Color("1d2533"), 0.0065, Color("7d8aa6"), 0.36)
+		Color("1b1f26"), Color("1d2533"), 0.0065, Color("7d8aa6"), 0.46)
 	preset.outdoor_embers = false
 	preset.key_color = Color("9fb4d6")
 	preset.key_energy = 0.48
@@ -919,9 +940,7 @@ static func apply_view_fill(camera: Camera3D, map_name: String) -> void:
 	fill.light_energy = preset.view_fill_energy
 	fill.light_specular = 0.0
 	fill.omni_range = preset.view_fill_range
-	# A shallow falloff: about half the near strength still arrives at ten
-	# metres and about a sixth at thirty, the far end of an M01 aisle.
-	fill.omni_attenuation = 0.5
+	fill.omni_attenuation = preset.view_fill_attenuation
 	fill.light_cull_mask = ACTOR_LAYERS
 	fill.shadow_enabled = false
 

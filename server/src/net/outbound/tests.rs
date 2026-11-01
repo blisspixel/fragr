@@ -225,6 +225,7 @@ fn combat_facts_remain_exact_and_ordered_before_their_acknowledgement() {
     let (tx, mut rx) = channel(8);
     let mut fired = world(10);
     fired.shot_results.push(ShotResult {
+        sense: None,
         shooter_id: Uuid::from_u128(1),
         shooter: "Moving fighter".into(),
         hit: true,

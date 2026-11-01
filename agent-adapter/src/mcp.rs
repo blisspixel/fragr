@@ -2759,6 +2759,56 @@ mod mcp_tests {
     }
 
     #[test]
+    fn observe_full_keeps_a_heard_shot_cut_as_the_server_sent_it() {
+        // Gameplay 67: a shot from a rival the fighter only hears arrives cut
+        // to where the rival sounds; observe passes it on as received.
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        let (me, rival) = (Uuid::from_u128(96), Uuid::from_u128(97));
+        sim.add_player(me, "Me".into(), protocol::Role::Agent);
+        sim.add_player(rival, "Rival".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(me),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        let mut snapshot = sim.snapshot();
+        let heard = fragr_server::interest::coarsen(
+            &protocol::ShotResult {
+                sense: None,
+                shooter_id: rival,
+                shooter: "Rival".into(),
+                hit: false,
+                target_id: None,
+                target: None,
+                damage: 0,
+                target_hp_after: None,
+                trace: Some(protocol::ShotTrace {
+                    vehicle_id: None,
+                    weapon: protocol::WeaponType::Scatter,
+                    origin: [10.0, 1.6, 4.0],
+                    end: [2.0, 1.6, 4.0],
+                    impact: protocol::ShotImpact::Range,
+                    pellets: Vec::new(),
+                }),
+                killed: false,
+                zone: None,
+            },
+            [12.0, 1.6, 5.0],
+        );
+        snapshot.shot_results = vec![heard];
+        let text = serde_json::to_string(&protocol::ServerMessage::Snapshot(snapshot)).unwrap();
+        ingest_server_text(&mut state, &text).unwrap();
+        let observed = build_observe_result(&state);
+        let shot = &observed["shot_results"][0];
+        assert_eq!(shot["sense"], "heard", "{shot}");
+        assert_eq!(shot["trace"]["origin"], shot["trace"]["end"], "{shot}");
+        assert_eq!(shot["trace"]["weapon"], "scatter", "{shot}");
+        assert!(shot["trace"].get("pellets").is_none(), "{shot}");
+    }
+
+    #[test]
     fn observe_full_names_the_zone_a_shot_struck_and_omits_it_on_a_miss() {
         let mut sim = fragr_server::sim::GameState::new();
         sim.start_round();
@@ -4267,7 +4317,8 @@ mod mcp_tests {
     #[test]
     fn campaign_checkpoint_reaches_agents_as_a_bare_event() {
         let mut state = ToolState::default();
-        let wire = protocol::ServerMessage::Event(protocol::GameEvent::Checkpoint {});
+        let wire =
+            protocol::ServerMessage::Event(protocol::GameEvent::Checkpoint { resumed: false });
         let text = serde_json::to_string(&wire).unwrap();
         assert_eq!(text, r#"{"type":"event","event":"checkpoint"}"#);
         ingest_server_text(&mut state, &text).unwrap();
@@ -4276,6 +4327,30 @@ mod mcp_tests {
             observed["recent_events"][0],
             serde_json::json!({"event": "checkpoint"})
         );
+    }
+
+    #[test]
+    fn a_resumed_checkpoint_reaches_agents_with_its_flag() {
+        let mut state = ToolState::default();
+        let wire =
+            protocol::ServerMessage::Event(protocol::GameEvent::Checkpoint { resumed: true });
+        let text = serde_json::to_string(&wire).unwrap();
+        assert_eq!(
+            text,
+            r#"{"type":"event","event":"checkpoint","resumed":true}"#
+        );
+        ingest_server_text(&mut state, &text).unwrap();
+        let observed = build_observe_result(&state);
+        assert_eq!(
+            observed["recent_events"][0],
+            serde_json::json!({"event": "checkpoint", "resumed": true})
+        );
+        // A reader without the flag still reads the event as a checkpoint.
+        let bare: protocol::GameEvent = serde_json::from_str(r#"{"event":"checkpoint"}"#).unwrap();
+        assert!(matches!(
+            bare,
+            protocol::GameEvent::Checkpoint { resumed: false }
+        ));
     }
 
     #[test]

@@ -100,7 +100,7 @@ fn preview(directory: &Path) -> serde_json::Value {
 }
 
 /// The only run-file version this build reads or writes.
-const RUN_FILE_VERSION: u64 = 25;
+const RUN_FILE_VERSION: u64 = 26;
 
 /// Every write is an atomic replace: no archives, copies or temporaries remain.
 fn assert_only_live_run(directory: &Path) {

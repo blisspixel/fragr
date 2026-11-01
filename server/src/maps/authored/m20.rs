@@ -28,6 +28,7 @@ pub(crate) const MAX_PRESSURE_GROUP: usize = 4;
 /// reprieve. It never fights and is never pressure.
 const PASSING_ID: &str = "passing_work";
 const MAX_PASSING: usize = 8;
+const MAX_WAVE_BREAKS: usize = 8;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
@@ -79,6 +80,7 @@ pub(super) struct Definition {
     passing_exit: [f32; 3],
     crates: Vec<CrateDefinition>,
     pressure: Vec<PressureDefinition>,
+    wave_breaks: Vec<u64>,
 }
 
 /// One crew member's authored crossing, walked on fixed straight segments.
@@ -111,6 +113,11 @@ pub(crate) struct Prepared {
     pub(crate) reprieve_exits: Vec<[f32; 3]>,
     pub(crate) crates: Vec<ResupplyCrate>,
     pub(crate) pressure: Vec<PressureSlot>,
+    /// Hold ticks at which the pressure pauses between waves: no later group
+    /// walks in until the earlier ones are down (or a bounded wait passes),
+    /// so the hold has safe moments for a checkpoint. Each break opens a
+    /// wave: it is the `at` of the first group after it.
+    pub(crate) breaks: Vec<u64>,
     /// The work front after the reprieve: its group and the far exit it
     /// walks to, past the refuge line and on to the next district.
     pub(crate) passing: (usize, [f32; 3]),
@@ -282,6 +289,17 @@ impl Definition {
             });
         }
 
+        if self.wave_breaks.len() > MAX_WAVE_BREAKS
+            || self.wave_breaks.windows(2).any(|pair| pair[0] >= pair[1])
+            || self.wave_breaks.iter().any(|at| {
+                *at == 0 || *at >= self.hold_ticks || !pressure.iter().any(|slot| slot.at == *at)
+            })
+        {
+            return Err(invalid(
+                "M20 wave breaks must rise inside the hold, each opening a pressure wave",
+            ));
+        }
+
         if self.crew.len() != M20_CREW {
             return Err(invalid("M20 requires three waterworks crew"));
         }
@@ -407,6 +425,7 @@ impl Definition {
             reprieve_exits: self.reprieve_exits,
             crates,
             pressure,
+            breaks: self.wave_breaks,
             passing: (passing, self.passing_exit),
             presentation: presentation.clone(),
             initial: arena.clone(),

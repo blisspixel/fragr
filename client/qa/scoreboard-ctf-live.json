@@ -1,0 +1,15 @@
+{
+  "comment": "The hold-Tab board on a contested live CTF match (#536): a real Sector 9 server, eight rule bots, capture limit 3, so the round goes on past the first capture and returns. The tour waits for the server's own objective credits (a capture and a return on the rows) and holds the board as a watcher (both sides whole) and then as a joined fighter. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_CAPTURE_LIMIT=3 FRAGR_QA_SEED=42 FRAGR_QA_MANIFEST=res://qa/scoreboard-ctf-live.json; the size comes from the manifest copy's width and height.",
+  "width": 1280,
+  "height": 800,
+  "states": [
+    {"name": "ctf_board_contested", "scene": "res://scenes/main.tscn", "at_seconds": 3, "camera": "follow",
+     "await_ctf": {"captures_credited": 1, "returns_credited": 1, "round_state": "Active"}, "await_timeout_seconds": 360,
+     "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 0.8,
+     "note": "A watcher's board mid-round after a real capture and a real return: both sides in their blocks, side capture totals, CAPS and RETURNS columns filled by the server."},
+    {"name": "ctf_board_contested_pad", "camera": "follow", "overlay": "scoreboard", "input_device": "gamepad", "pad_layout": "letters", "settle_seconds": 0.8,
+     "note": "The same live board on pad glyphs."},
+    {"name": "ctf_board_joined", "join": "human", "camera": "first_person", "overlay": "scoreboard", "input_device": "keyboard", "settle_seconds": 8.0,
+     "note": "Joined mid-match: the viewer's side first, their row marked, the credits still on the rivals' rows."}
+  ]
+}

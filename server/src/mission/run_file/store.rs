@@ -11,7 +11,8 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
-const MAX_RUN_BYTES: u64 = 65_536;
+/// A run with a saved checkpoint carries the level's live state.
+const MAX_RUN_BYTES: u64 = 1024 * 1024;
 const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
@@ -133,7 +134,7 @@ impl RunStore {
         Ok(Self::inspect_bytes(&bytes, hashes))
     }
 
-    fn inspect_bytes(bytes: &[u8], hashes: ContentHashes) -> RunProbe {
+    pub(crate) fn inspect_bytes(bytes: &[u8], hashes: ContentHashes) -> RunProbe {
         if bytes.len() as u64 > MAX_RUN_BYTES {
             return RunProbe::Corrupt;
         }
@@ -289,6 +290,7 @@ mod tests {
             m17_outcome: None,
             m18_outcome: None,
             m19_outcome: None,
+            checkpoint: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

@@ -180,7 +180,7 @@ pub async fn serve<W: Write>(
                 }
             }
             Err(ParseFault::Unknown) => {
-                write_line(out, "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation.");
+                write_line(out, "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation. Anything else needs a form, and the desk does not do forms.");
             }
             Err(ParseFault::NeedsName) => {
                 write_line(out, "Say who. Use the name from who.");
@@ -194,22 +194,20 @@ pub async fn serve<W: Write>(
 }
 
 const HELP: &str = "\
-status
-who
-kick <name>
-ban <name> [reason]
-say <sentence>
-stats
-shows
-next
-map <map> <mode>
-rotation
-rotation on|off <map>
+The venue desk. The league denies this desk exists; so does the desk.
+status                 uptime, tick health, join addresses, then who
+who                    everyone in the room, by the name the desk uses
+kick <name>            ask one person to step outside
+ban <name> [reason]    keep their address out: the address, not the name
+say <sentence>         one ordinary sentence on the air
+stats                  the night sheet: rounds, the busiest room, latest shows
+shows                  the live show, any queued choice and the night list
+next                   drop a queued choice and resume the night order
+map <map> <mode>       queue a map and mode for after the live show
+rotation               the maps a --map-rotate server visits and votes on
+rotation on|off <map>  put a map back in, or keep it out without removing it
 Map and next wait for the whole live show. A manual map then repeats. \
-Rotation lists the maps a --map-rotate server visits and its podium votes on; \
-off keeps a map out without removing it. \
-Status adds uptime, tick health and join addresses to the who table. \
-Names are what who prints. A ban keeps the address, not the name. \
+Names are what who prints. \
 Closing this input leaves the match running. Ctrl-C stops the match.";
 
 fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
@@ -475,11 +473,18 @@ mod tests {
         assert!(text.contains("Patch is off the floor."), "{text}");
         assert!(
             text.contains(
-                "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation."
+                "The desk knows help, status, who, kick, ban, say, stats, shows, next, map, and rotation. Anything else needs a form, and the desk does not do forms."
             ),
             "{text}"
         );
-        assert!(text.contains("Status adds uptime"), "{text}");
+        assert!(
+            text.contains("kick <name>            ask one person to step outside"),
+            "{text}"
+        );
+        assert!(
+            text.contains("The league denies this desk exists"),
+            "{text}"
+        );
         assert!(!text.contains("unexpected"), "{text}");
         assert_eq!(seen.lock().unwrap().len(), 3);
     }

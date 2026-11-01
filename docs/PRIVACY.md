@@ -55,7 +55,10 @@ When they are on:
   join.
 - **It stays on the host's disk.** One file per match, named only by the day,
   in `fun-metrics/` under the host's run directory (`FRAGR_RUN_DIR`, or the
-  platform's user data folder). Nothing is sent anywhere. A host may choose to
+  platform's user data folder). A match still running when the host stops
+  the server (Ctrl+C or SIGTERM on a dedicated server, the game ending a
+  desktop host) is filed too, marked `finished: false`; a server killed
+  outright loses it. Nothing is sent anywhere. A host may choose to
   share their own files with the project, for example by attaching them to an
   issue; that is the host's decision, made by hand.
 - **It self-destructs.** Files older than 67 days are shredded automatically
@@ -104,9 +107,11 @@ health in microseconds. `fighters_peak` and `bots_peak` are head counts, the
 most fighters and the most rule bots at once.
 
 To read a host's files as the same tables the bot survey and the
-[1.0 bar](ROADMAP.md#the-10-bar) use, run
-`cargo run -p fragr-playtest --release -- --fun-summary <folder>` from a
-checkout ([hosting guide](HOSTING.md#fun-metrics)).
+[1.0 bar](ROADMAP.md#the-10-bar) use, run `fragr-server --fun-summary` from a
+release package (it reads the host's own folder; name another folder after
+the flag), or `cargo run -p fragr-playtest --release -- --fun-summary <folder>`
+from a checkout. Both print from the same code, read only and send nothing
+([hosting guide](HOSTING.md#fun-metrics)).
 
 ## If the project hosts a server
 

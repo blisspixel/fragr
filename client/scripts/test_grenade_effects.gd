@@ -46,6 +46,13 @@ func _run() -> void:
 	presenter.apply(thrown, Vector3.ZERO)
 	_check(presenter.throw_cues == 1 and presenter.bounce_cues == 1,
 		"a body first seen after synchronization cues one throw, and only once")
+	# A fighter's world leaves out a throw it cannot see (gameplay 67): a body
+	# that comes into sight late in its fuse is not a throw.
+	var revealed: Dictionary = _live(5, 3)
+	revealed["grenades"].append({"id": 4, "owner_id": OWNER, "position": [2, 1.2, 0], "fuse_ticks": 30, "bounce_count": 1})
+	presenter.apply(revealed, Vector3.ZERO)
+	_check(presenter.throw_cues == 1 and presenter.bodies.size() == 2 and presenter.bodies.has(4),
+		"a grenade first seen mid-flight is drawn without a throw cue")
 	_check(GrenadeEffects.THROW.get_length() > 0.1 and GrenadeEffects.THROW.get_length() < 0.6,
 		"the throw cue is a short one-shot")
 	presenter.apply(_blast(20), Vector3.ZERO)

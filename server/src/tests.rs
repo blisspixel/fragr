@@ -7900,6 +7900,7 @@ mod vertical_aim {
     }
 }
 mod auditor;
+mod bot_aim;
 mod bot_ladder;
 pub(crate) mod campaign_ai;
 mod duck;

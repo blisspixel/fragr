@@ -5,7 +5,8 @@ use crate::protocol::{
     M03_MAST_MAX_HP,
 };
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M03Progress {
     pub(super) mast_hp: i32,
     pub(super) cars: Vec<M03CarState>,
@@ -207,7 +208,7 @@ impl GameState {
         run.changed_at = self.tick;
         if progress.mast_hp == 0 {
             if let Some(fallen) = run.initial_map.prepared_m03_world() {
-                self.map = fallen;
+                self.enter_world(crate::maps::MapStep::M03Fallen, fallen);
             }
             tracing::info!("Scheduled Service recall mast disabled");
         }

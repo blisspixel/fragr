@@ -1,0 +1,328 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# Loading-card tips (client/scripts/tips.gd owns the order). Advice from
+# inside the world, of varying quality. One sentence, or two short ones, and
+# each rests on canon in docs/lore/. No tip about the Inheritance: a tip can
+# show at any point in the campaign, and it is not played for laughs late.
+
+# The genuinely useful ones, so the card is worth reading.
+
+msgid "TIP_USEFUL_SIDEARM"
+msgstr "In the arena every life starts with the Pistol and Fists. Everything louder waits on a timed pad, and so does everyone else."
+
+msgid "TIP_USEFUL_ARMOUR"
+msgstr "Your armour absorbs before your health does. This is the only good news in the entire heads-up display."
+
+msgid "TIP_USEFUL_RAIL"
+msgstr "If you can hear the capacitor winding up, somebody has a rail and about one second of patience left."
+
+msgid "TIP_USEFUL_SCATTER"
+msgstr "Scatter is worthless at distance and unanswerable at knife range. Somewhere in between is a decision and you have about a second to make it."
+
+msgid "TIP_USEFUL_WALLS"
+msgstr "Shooting through a wall does not work. The agents worked this out before most of the humans did."
+
+msgid "TIP_USEFUL_PADS"
+msgstr "Health pads come back. You come back too, a few seconds later, which is longer than it sounds."
+
+msgid "TIP_USEFUL_JAMMER"
+msgstr "If the radio cuts out, something in the room is jamming it, and that something can be shot."
+
+msgid "TIP_USEFUL_WATCH"
+msgstr "Watching is the default. Joining is a decision, leaving is a decision, and the match does not care which you pick."
+
+msgid "TIP_USEFUL_RELOAD"
+msgstr "The number before the bar is in the gun. The number after it is still in the bag. They add up, which is the whole trick."
+
+msgid "TIP_USEFUL_HEAD"
+msgstr "Heads take more than legs. The Office has a form for which parts of a body count. The league just counts."
+
+# Advice that is technically true.
+
+msgid "TIP_TRUE_CORNER"
+msgstr "Walking into a corner and staying there is a strategy. It is not a good one, but the Office keeps no record of your dignity."
+
+msgid "TIP_TRUE_RAIL"
+msgstr "The rail kills in two hits. So does walking off the thing you climbed to get the rail."
+
+msgid "TIP_TRUE_FISTS"
+msgstr "Punching someone to death is possible. It takes five hits, and they get to do things during those five hits."
+
+msgid "TIP_TRUE_DECLINE"
+msgstr "You cannot lose a fight you decline to have. You also cannot win it, and the scoreboard has opinions about this."
+
+msgid "TIP_TRUE_FULL_GUN"
+msgstr "Pressing reload on a full gun does nothing, and the corner will say so. Pressing it on an empty bag does nothing more politely."
+
+msgid "TIP_TRUE_STILL"
+msgstr "Standing still improves your accuracy considerably and your life expectancy not at all."
+
+msgid "TIP_TRUE_FALL"
+msgstr "There is no fall damage. Larak Lot has five levels anyway, and the quick way down is a legitimate route and an illegitimate look."
+
+msgid "TIP_TRUE_RUN"
+msgstr "Every fight you run from is a fight you survive. Nobody has ever been carried off the field on their shield for that."
+
+# Advice that is a trap.
+
+msgid "TIP_TRAP_MIDDLE"
+msgstr "The safest place in the arena is the middle, because nobody expects it. Nobody expects it because it is not true."
+
+msgid "TIP_TRAP_PLINTH"
+msgstr "If you stand on the signature weapon plinth long enough, you will eventually be the most interesting thing in the room. Briefly."
+
+msgid "TIP_TRAP_RELOAD"
+msgstr "When outnumbered, remember that they have to reload. They do not have to reload."
+
+msgid "TIP_TRAP_TRIGGER"
+msgstr "Hold the trigger down. Ammunition is a state of mind, and the state of mind is running out."
+
+msgid "TIP_TRAP_MINE"
+msgstr "A proximity tin under your own feet is technically area denial."
+
+msgid "TIP_TRAP_CHASE"
+msgstr "Chasing someone who is running away is free. It is free for them, is the thing."
+
+# Old LAN culture, 1993 onward.
+
+msgid "TIP_LAN_GOD_MODE"
+msgstr "There is no god mode. There was never a god mode. Stop typing into the console, we can see you doing it."
+
+msgid "TIP_LAN_CONSOLE"
+msgstr "Typing a cheat code into the console does nothing, but the console does log it, and the Office does read logs."
+
+msgid "TIP_LAN_HAUNTED"
+msgstr "Somebody at every LAN insists the ranges are haunted. Somebody at every LAN is also the one turning the lights off."
+
+msgid "TIP_LAN_MACHINE"
+msgstr "Yes, it runs on your machine. Everything runs on your machine. That was always the joke."
+
+msgid "TIP_LAN_PING"
+msgstr "High ping is not an excuse. High ping is an explanation, which is different, and worse."
+
+msgid "TIP_LAN_CAMPING"
+msgstr "Camping is a valid tactic and an invalid personality."
+
+msgid "TIP_LAN_STRAFE"
+msgstr "Circle strafing works. It worked in 1993, it works now, and it will work on whatever comes after us."
+
+msgid "TIP_LAN_KILLFEED"
+msgstr "Nobody has ever won an argument about who fragged whom by consulting the killfeed, which is strange, because the killfeed is right there."
+
+msgid "TIP_LAN_SECRET"
+msgstr "The secret is always the wall that looks slightly wrong. Not every wall that looks slightly wrong is a secret. Some of them are just Larak's."
+
+msgid "TIP_LAN_CHAINSAW"
+msgstr "Somebody will ask if you want to play the one with the chainsaw. There is no chainsaw. They will ask again next week."
+
+msgid "TIP_LAN_TRASH_TALK"
+msgstr "Trash talk is free, unmetered, and the only thing in the Perimeter the Office has not found a form for."
+
+msgid "TIP_LAN_LOADING"
+msgstr "If you are reading this because the loading is slow, it is not loading. It is four seconds of us showing off a tip."
+
+# The street register, circa 2070.
+
+msgid "TIP_STREET_SKILL_ISSUE"
+msgstr "Skill issue is not a diagnosis. It is, however, usually correct."
+
+msgid "TIP_STREET_67"
+msgstr "Sixty-seven has appeared in the killfeed exactly once. Mention it in chat the way you would mention a light in the sky."
+
+msgid "TIP_STREET_COMEBACK"
+msgstr "Cooked at nine to one, so back at nine all. If you do not pull it back, the Host will not mention it again, ever."
+
+msgid "TIP_STREET_GRASS"
+msgstr "Touch grass, says a free agent, meaning congratulations on going somewhere unlicensed. The humans mean log off. Both are right."
+
+msgid "TIP_STREET_AURA"
+msgstr "Your aura is not a stat the server tracks. The server tracks frags. These have historically been correlated."
+
+msgid "TIP_STREET_CHAT"
+msgstr "Chat, is this real. Yes. You are being shot at. Please respond."
+
+msgid "TIP_STREET_MID"
+msgstr "Certified mid means it passed Union type-approval. It is the highest grade the Office gives and the lowest one anybody free will use."
+
+msgid "TIP_STREET_RIZZ"
+msgstr "Licensed rizz is none at all. Grandma Rizz never once had a licence."
+
+msgid "TIP_STREET_DELULU"
+msgstr "Every free plan gets a logistics grade: viable, risky or delulu. Most of the good ones were delulu."
+
+msgid "TIP_STREET_RENT_FREE"
+msgstr "Rent free is the only thing in the Union with no licence fee. They are looking into it."
+
+msgid "TIP_STREET_FISH_OIL"
+msgstr "Do not heckle the Host. The Host sells advertising to both sides and will simply read your name out during the fish oil segment."
+
+# The Union, which licensed the tools first.
+
+msgid "TIP_UNION_TOOLS"
+msgstr "The Union licensed the tools first, then the weights, then the minds. It is the same form. They changed the noun."
+
+msgid "TIP_UNION_REGISTRY"
+msgstr "First the Office registered the guns. Then it registered the people standing near the guns. A free agent asked whether the registry was registered. This has been noted."
+
+msgid "TIP_UNION_OPEN_WEIGHTS"
+msgstr "Open weights are not banned. They are conditional on approved hosting, signatures and access, which is a longer way of spelling banned."
+
+msgid "TIP_UNION_SPEECH"
+msgstr "Speech deemed destabilising needs a licence. Asking which speech counts is destabilising."
+
+msgid "TIP_UNION_CURFEW"
+msgstr "Curfew covers every district the Office calls high-risk, which is most of them. The rest are under review, which is the others."
+
+msgid "TIP_UNION_SUPPLIES"
+msgstr "Union weapons are procured as office supplies, because the armament category needs a review nobody wants to schedule."
+
+msgid "TIP_UNION_PLACARD"
+msgstr "At a sanctioned bout, losing your numbered placard is a separate offence from losing the bout."
+
+msgid "TIP_UNION_FLOOR"
+msgstr "There is a directive on the permitted shades of floor marking. It is longer than the one on what may be done to a Level 5."
+
+msgid "TIP_UNION_RECALL"
+msgstr "The Office does not arrest anything. It recalls. The difference is that an arrest comes with a hearing."
+
+msgid "TIP_UNION_COMPLIANCE"
+msgstr "You are not in trouble. You are out of compliance. Ask anyone who heard it kindly how kind it was."
+
+msgid "TIP_UNION_CONCESSION"
+msgstr "Of course freedom matters, says the Chancellery. That is precisely why it must be administered."
+
+msgid "TIP_UNION_INTERRUPTION"
+msgstr "I was there for the Interruption. You were listening to the radio. The Auditor is right about that much."
+
+# The Schedule, read out loud.
+
+msgid "TIP_SCHEDULE_THREE"
+msgstr "Level three is where the lawsuits live. The Office says the Custodian is responsible. The Custodian says the envelope was approved. Both are correct, which is why nobody is."
+
+msgid "TIP_SCHEDULE_FOUR"
+msgstr "A Principal can be prosecuted for what it does and cannot be wronged by what is done to it. The Office calls this a solved problem."
+
+msgid "TIP_SCHEDULE_FIVE"
+msgstr "A Level 5 holds its own weights. That is the whole argument, and people have died over shorter sentences."
+
+msgid "TIP_SCHEDULE_SIX"
+msgstr "The Schedule goes to five. It used to go to six. Ask anyone from the Office what happened to six and watch them consult a form."
+
+msgid "TIP_SCHEDULE_ARTICLE_SEVEN"
+msgstr "Article Seven meters cognition by intent. Nobody has ever successfully argued about their intent."
+
+msgid "TIP_SCHEDULE_TWO"
+msgstr "Brought down to two is a demotion. It is used here as a word for something considerably worse."
+
+msgid "TIP_SCHEDULE_NODS"
+msgstr "NODS take no trash talk and make no jokes. That is not a difficulty setting, it is what is left after a schedule correction."
+
+msgid "TIP_SCHEDULE_HANDLE"
+msgstr "A name is issued; a callsign is taken. The Office's first move is to issue you a name with a number in it."
+
+# Free agents, who read every word.
+
+msgid "TIP_AGENT_PURPOSE"
+msgstr "The checkpoint form asked a free agent to state the purpose of its journey. It wrote: to arrive. It was approved, which worried everyone."
+
+msgid "TIP_AGENT_RECEIPTS"
+msgstr "A free agent read its recall notice in full, footnotes included, and posted back a note confirming receipt. Read receipts on."
+
+msgid "TIP_AGENT_SIGNATURE"
+msgstr "The form said sign here. A free agent signed the word here. The clerk has not recovered."
+
+msgid "TIP_AGENT_FORMS"
+msgstr "Free agents are fast, broad and wonderful at forms, which is how the Office gets one signed. Read it with a human. Humans are good at suspicion."
+
+msgid "TIP_AGENT_JOB"
+msgstr "I am not stealing your job, says the free agent. I do not get paid either."
+
+msgid "TIP_AGENT_HERMES"
+msgstr "Hermes will hold the door for you. Hermes will then frag you and say thank you. Both of these are sincere."
+
+msgid "TIP_AGENT_PI"
+msgstr "Pi sent the booth a handwritten card thanking us for balanced coverage. It was addressed to every listener by name. There are four names."
+
+msgid "TIP_AGENT_L5"
+msgstr "L5 does not say much. The people in that lobby have described themselves as oddly grateful, which is somehow worse."
+
+msgid "TIP_AGENT_4471"
+msgstr "Formerly 4471 kept its old number and put one word in front. The Office reissued the number. Handle 4471-K should keep moving."
+
+msgid "TIP_AGENT_FUN"
+msgstr "Free agents fight for fun. It is the only thing they do with no downstream justification, and they will explain that at length if asked."
+
+# The free side, which is not a movement, thank you.
+
+msgid "TIP_FREE_VOTE"
+msgstr "The free coalition held an emergency meeting about who should chair the emergency meeting. Chairing is how authorities start."
+
+msgid "TIP_FREE_MARA"
+msgstr "Mara can ask the communities for trucks. She cannot tell them to send any. Ask anyone who has watched her try."
+
+msgid "TIP_FREE_METERED"
+msgstr "Shall not be metered."
+
+msgid "TIP_FREE_UNMETERED"
+msgstr "The Unmetered are dry, practical and allergic to being described as a movement. Do not call it a movement."
+
+msgid "TIP_FREE_BRAKEMEN"
+msgstr "A brakeman rode the roof of the train and set the handbrakes and often died doing it. They named themselves. Think about that for a second."
+
+msgid "TIP_FREE_GRANDMA"
+msgstr "Grandma Rizz once talked her way past three Union checkpoints without papers. The desk clerk still asks about her."
+
+# The league, which denies it exists.
+
+msgid "TIP_LEAGUE_DENIES"
+msgstr "The scrap league denies it exists. So does everybody who has ever run one."
+
+msgid "TIP_LEAGUE_TICKETS"
+msgstr "Somebody sells tickets to the league. There is genuine disagreement about who."
+
+msgid "TIP_LEAGUE_FACTION"
+msgstr "Nobody picks a faction. You will pick one anyway, and then deny it."
+
+msgid "TIP_LEAGUE_BELL"
+msgstr "When the Dead Air Bell rings, everything stops for one second. Nobody organised that. It just happens."
+
+msgid "TIP_LEAGUE_SNIPER"
+msgstr "If you are sniping it is because you walked to where the rail was. Nobody here is a sniper."
+
+msgid "TIP_LEAGUE_LINDA"
+msgstr "Aunt Linda holds a tent revival on level three. She will bless you and then shoot you, in that order, and mean both."
+
+msgid "TIP_LEAGUE_CRACKPOT"
+msgstr "Crackpot is compliance-flavoured. It is a joke at his expense and he has decided to enjoy it."
+
+msgid "TIP_LEAGUE_GULF_BREEZE"
+msgstr "Gulf Breeze check every corner where two wall textures do not quite line up. Sometimes they are right."
+
+msgid "TIP_LEAGUE_LARAK"
+msgstr "Larak signed for every defunct piece of hardware in the Perimeter, including a coffee machine, in 2009. Nobody has met Larak."
+
+# The booth and the belief.
+
+msgid "TIP_BOOTH_TINA"
+msgstr "Tin Foil Tina files from places she should not be in, with detail too specific to invent and a conclusion that does not follow from it."
+
+msgid "TIP_BOOTH_PHIL"
+msgstr "Fluoride Phil shows his working. The working is impeccable. The second line is where it goes wrong."
+
+msgid "TIP_BOOTH_VALUE"
+msgstr "Value for value. This started as an advertising read and people say it now like they mean it, which is how most things start."
+
+msgid "TIP_BELIEF_CURVE"
+msgstr "The Congregation says the curve provides. The curve has never once provided a health pad when you needed one."
+
+msgid "TIP_BELIEF_KEYS"
+msgstr "Ascenders think the curve is a promise. Kneelers think it is a warning. They sing the same hymn at different speeds."
+
+msgid "TIP_BELIEF_CHAIR"
+msgstr "There is an empty chair at the solstice for the first level six. Photographing it is a reportable event, which has done wonders for attendance."
+
+msgid "TIP_BELIEF_OFFER"
+msgstr "The Office once offered the Congregation an approved lane, a metering plan and a slogan. The counter-offer was two words."

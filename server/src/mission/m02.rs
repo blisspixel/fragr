@@ -7,7 +7,8 @@ use crate::protocol::{M02ObjectiveState, MissionObjective, MissionObjectiveActio
 pub(crate) const LATCH_SECOND_FEET: [f32; 3] = [7.55, 0.0, -14.8];
 pub(crate) const LATCH_RELEASE_TICKS: u64 = 240;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct M02Progress {
     pub(super) index: usize,
     pub(super) gate_mask: u8,
@@ -328,7 +329,7 @@ impl GameState {
             return;
         }
         if let Some(world) = next_world {
-            self.map = world;
+            self.enter_world(crate::maps::MapStep::M02Gate { mask: next_mask }, world);
         }
         let Some(run) = self.mission.as_mut() else {
             return;

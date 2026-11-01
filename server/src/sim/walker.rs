@@ -13,7 +13,8 @@ use uuid::Uuid;
 const GRAVITY: f32 = 12.0;
 const FLIGHT_SECONDS: f32 = 1.5;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Walker {
     pub(crate) state: WalkerState,
     next_station: usize,

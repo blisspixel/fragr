@@ -7,7 +7,8 @@ use crate::protocol::{
 use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::HashSet;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct M17Progress {
     pub(super) index: usize,
     pub(super) challenges: M17ChallengeState,
@@ -266,7 +267,7 @@ impl GameState {
             });
             if used_override {
                 if let Some(world) = self.map.prepared_m17_world(1) {
-                    self.map = world;
+                    self.enter_world(crate::maps::MapStep::M17 { stage: 1 }, world);
                     let p = self.mission.as_mut().unwrap().m17.as_mut().unwrap();
                     p.core_unsealed = true;
                     if p.index == 3 {
@@ -351,7 +352,7 @@ impl GameState {
                 let Some(world) = self.map.prepared_m17_world(2) else {
                     return;
                 };
-                self.map = world;
+                self.enter_world(crate::maps::MapStep::M17 { stage: 2 }, world);
                 let p = self.mission.as_mut().unwrap().m17.as_mut().unwrap();
                 p.voss_captured = true;
                 p.challenges.voss_captured = true;

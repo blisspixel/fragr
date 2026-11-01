@@ -464,7 +464,12 @@ measure it against 0.8 to 1.5 s.
   cyan point.
 - Playtest survey: report zone share, kill time quantiles and gun share before
   and after; gates are median 0.8 to 1.5 s, no gun over 45%, headshot share of
-  hitscan kills 15 to 35% once bot tiers aim at heads.
+  hitscan kills 15 to 35% once bot tiers aim at heads. Wave 23 measured it:
+  bots aim at the torso's middle and each rung goes for the head on its own
+  share of sightings; Regular 34.7% of zoned kills (28.8% by single-ray
+  guns), Headliner 32.3% (28.4%), tables in
+  `bot-and-enemy-ai-excellence-20261017.md`, wave 23. A Scatter blast reports
+  its most telling pellet, so its kills read 49 to 61% head at every rung.
 - Client harness: each zone maps to its marker and sound within one render
   frame; blind listening check that head, body, legs and kill are told apart.
 

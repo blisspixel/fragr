@@ -180,6 +180,7 @@ mod tests {
 
     fn shot(shooter: Uuid, target: Uuid, killed: bool) -> ShotResult {
         ShotResult {
+            sense: None,
             shooter_id: shooter,
             shooter: "Fixture".into(),
             hit: true,

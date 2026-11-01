@@ -143,7 +143,7 @@ pub fn with_tally(outcome: crate::desk::DeskOutcome, on: bool) -> crate::desk::D
 /// The fun metrics row, in the policy's own words.
 pub fn tally_line(on: bool) -> &'static str {
     if on {
-        "Fun metrics on: match tallies only, never callsigns, ids or addresses. Joiners are told; files stay in the run directory and are shredded after 67 days."
+        "Fun metrics on: match tallies only, never callsigns, ids or addresses. Joiners are told; files stay in the run directory and are shredded after 67 days. The Office keeps everything; this desk keeps a shredder."
     } else {
         "Off. --fun-metrics keeps match-level tallies on this machine for tuning (docs/PRIVACY.md)."
     }
@@ -581,7 +581,8 @@ mod tests {
         );
         assert!(
             tallied.contains("Tally   Fun metrics on: match tallies only")
-                && tallied.contains("shredded after 67 days"),
+                && tallied.contains("shredded after 67 days")
+                && tallied.contains("this desk keeps a shredder"),
             "{tallied}"
         );
         // LAN comes before the overlay, whatever order adapters arrive in.

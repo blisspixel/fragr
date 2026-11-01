@@ -256,8 +256,11 @@ func _run() -> void:
 				while str(preview.get("status", "loading")) == "loading" and Time.get_ticks_msec() < preview_deadline:
 					await create_timer(0.05).timeout
 					preview = LocalMatch.for_tree(self).run_preview
-				if str(preview.get("status", "")) != "missing":
-					push_error("qa_tour: isolated Single Player preview did not reach missing-run state")
+				# A tour handed a saved run (FRAGR_QA_RUN_FIXTURE) names the
+				# preview it expects; an isolated tour has no run at all.
+				var expected_preview: String = str(state.get("expect_preview", "missing"))
+				if str(preview.get("status", "")) != expected_preview:
+					push_error("qa_tour: Single Player preview is %s, not %s" % [str(preview.get("status", "")), expected_preview])
 					_failed = true
 			if menu_page == "host" and state.has("host_mode"):
 				# Pick a mode on the Run a match page the way the picker does.
@@ -477,6 +480,8 @@ func _run() -> void:
 				return
 		if state.has("look_at"):
 			await _aim_at(state["look_at"])
+		if state.has("hunt_seconds"):
+			await _hunt(float(state["hunt_seconds"]), str(state.get("hunt_until_round_state", "")))
 		if state.has("await_round_state"):
 			# Wait for the server's round to reach a phase (the podium, or the
 			# rematch after it) rather than guessing a time.
@@ -760,7 +765,7 @@ func _run() -> void:
 		# the tree, and a capture result only lasts the round's end delay.
 		var framed: Variant = measured.get("observed")
 		if framed is Dictionary:
-			for key: String in ["flags", "capture_scores", "round_state", "sabotage", "self_alive",
+			for key: String in ["flags", "capture_scores", "objective_credits", "podium_story", "board_rivals", "round_state", "sabotage", "self_alive",
 					"human", "local_weapon", "camera_pitch", "server_pitch", "camera_yaw", "server_yaw", "event_tiers", "conquest"]:
 				if (framed as Dictionary).has(key):
 					observed[key] = (framed as Dictionary)[key]
@@ -2358,6 +2363,9 @@ func _observed_state() -> Dictionary:
 		},
 		"flags": snapshot.get("flags"),
 		"capture_scores": snapshot.get("capture_scores"),
+		"objective_credits": _objective_credits(snapshot),
+		"podium_story": (snapshot.get("podium") as Dictionary).get("story", []) if snapshot.get("podium") is Dictionary else [],
+		"board_rivals": gm.hud.get("board_rivals") if gm.get("hud") != null else {},
 		"sabotage": snapshot.get("sabotage"),
 		"conquest": snapshot.get("conquest"),
 		"self_alive": _self_alive(gm, snapshot),
@@ -3209,6 +3217,66 @@ static func _correction_distribution(samples: Array[float]) -> Dictionary:
 		"max": snappedf(ordered.back(), 0.0001)}
 
 ## Turns the view toward a world point, [x, y, z].
+## Play the joined fighter with ordinary input for a while: face the nearest
+## rival with a clear line from the eye and pull the trigger, so the server's
+## head-to-head book records frags won as well as lost. Stops early when the
+## round reaches `until`. No movement, no aim help beyond what a player has.
+func _hunt(seconds: float, until: String) -> void:
+	var gm: Node = _game_manager()
+	if gm == null or not bool(gm.get("is_human_player")):
+		push_error("qa_tour: hunt requires a joined human")
+		_failed = true
+		return
+	var camera: Node3D = _spectator_camera()
+	var my_id: String = str(gm.net_client.player_id)
+	var deadline: int = Time.get_ticks_msec() + roundi(seconds * 1000.0)
+	var frame: int = 0
+	while Time.get_ticks_msec() < deadline:
+		if not until.is_empty() and _snapshot_round_state() == until:
+			break
+		frame += 1
+		var snapshot: Dictionary = gm.get("latest_snapshot")
+		var info: Dictionary = gm.get("current_map_info")
+		var solids: Array = info.get("solids", []) if info is Dictionary else []
+		var me: Dictionary = QaCombat.actor_by_id(snapshot, my_id)
+		var aimed: bool = false
+		if not me.is_empty() and int(me.get("hp", 0)) > 0:
+			var eye: Vector3 = Vector3(float(me.x), float(me.y) - CameraScript.FP_SERVER_REFERENCE_Y \
+				+ (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT), float(me.z))
+			var best: Vector3 = Vector3.INF
+			for actor: Variant in snapshot.get("players", []):
+				if not actor is Dictionary or str(actor.get("id", "")) == my_id or int(actor.get("hp", 0)) <= 0 \
+						or actor.has("sense"):
+					continue
+				var point: Vector3 = QaCombat.exposed_point(actor, eye, solids)
+				if point.is_finite() and (not best.is_finite() or eye.distance_squared_to(point) < eye.distance_squared_to(best)):
+					best = point
+			if best.is_finite():
+				var aim: Vector3 = best - eye
+				camera.set("fp_yaw", atan2(aim.z, aim.x))
+				camera.set("fp_pitch", clampf(atan2(aim.y, Vector2(aim.x, aim.z).length()), -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT))
+				aimed = true
+		# An empty magazine reloads, as a player would.
+		var held: Variant = gm.net_client.get("equipment")
+		var loadout: Dictionary = held if held is Dictionary else {}
+		if QaCombat.reload_needed(loadout) and frame % 8 == 0:
+			Input.action_release("fire")
+			var reload := InputEventAction.new()
+			reload.action = &"reload"
+			reload.pressed = true
+			Input.parse_input_event(reload)
+			var lift := InputEventAction.new()
+			lift.action = &"reload"
+			lift.pressed = false
+			Input.parse_input_event(lift)
+		# A semi-automatic gun fires once per press: press and lift in turn.
+		elif aimed and frame % 4 < 2:
+			Input.action_press("fire")
+		else:
+			Input.action_release("fire")
+		await process_frame
+	Input.action_release("fire")
+
 func _aim_at(target: Array) -> void:
 	var camera: Node3D = _spectator_camera()
 	# Camera reconciliation can still trail the last combat sidestep.
@@ -3243,7 +3311,7 @@ func _set_aim_pitch(pitch: float) -> void:
 	push_error("qa_tour: living pitch did not reach the authoritative snapshot (expected %.6f, server %.6f)" % [pitch, _local_server_pitch(gm)])
 	_failed = true
 
-func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
+static func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
 	if expected.has("status"):
 		var flags: Variant = observed.get("flags")
 		if not flags is Array:
@@ -3261,7 +3329,22 @@ func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
 			return false
 	if expected.has("round_state") and observed.get("round_state") != expected["round_state"]:
 		return false
+	# The board's flag columns: the server's objective credits on the rows.
+	for key: String in ["captures", "returns"]:
+		if expected.has(key + "_credited"):
+			var credits: Variant = observed.get("objective_credits")
+			if not credits is Dictionary or int(credits.get(key, 0)) < int(expected[key + "_credited"]):
+				return false
 	return true
+
+## Every row's objective credits summed: the board's objective columns.
+static func _objective_credits(snapshot: Dictionary) -> Dictionary:
+	var out: Dictionary = {"plants": 0, "defuses": 0, "captures": 0, "returns": 0}
+	for player: Variant in snapshot.get("players", []):
+		if player is Dictionary and player.get("objective") is Dictionary:
+			for key: String in out.keys():
+				out[key] = int(out[key]) + int(player["objective"].get(key, 0))
+	return out
 
 ## The joined fighter appears in the live snapshot.
 func _self_alive(gm: Node, snapshot: Dictionary) -> bool:

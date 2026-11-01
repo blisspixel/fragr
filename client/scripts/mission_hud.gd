@@ -59,6 +59,9 @@ var _evac_wanted: bool = false
 var _evac_seen: String = ""
 var _status_left: float = 0.0
 var _run_onward: bool = false
+## The level has saved a checkpoint this session (a `checkpoint` event), so
+## a continue returns there rather than to the level entry.
+var has_checkpoint: bool = false
 ## Set by the game once the wipe's other ending will play for this run.
 var wipe_ending: bool = false
 
@@ -302,6 +305,7 @@ func apply(value: Dictionary, owner_id: String) -> void:
 ## MapInfo temporarily clears the card before ordered mission facts arrive.
 ## Keep notice history through that handoff; session teardown resets it.
 func reset_notices() -> void:
+	has_checkpoint = false
 	_notice_attempt = ""
 	_notice_mast_hp = -1
 	_notice_mast_fired = false
@@ -707,7 +711,7 @@ func _refresh_run_recovery(run: Dictionary) -> void:
 		return
 	var copy: Array[String] = [tr("RUN_FALLEN" if run["status"] == "continue" else "RUN_ENDED"), "", tr("RUN_CONTINUES").format({"count": int(run["continues"])}), ""]
 	if run["status"] == "continue":
-		copy.append(tr("RUN_RESTORE_ENTRY"))
+		copy.append(tr("RUN_RESTORE_CHECKPOINT" if has_checkpoint else "RUN_RESTORE_ENTRY"))
 		copy.append(tr("RUN_CONTINUE_INPUT" if not player_id.is_empty() else "RUN_WAITING_OWNER"))
 	else:
 		copy.append(tr("RUN_FAILED" if run["status"] == "failed" else "RUN_ABANDONED"))
