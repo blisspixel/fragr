@@ -1,6 +1,7 @@
 # Fair play and host moderation
 
-Status: **planned** follow-up, current controls recorded 2026-10-04.
+Status: interest filtering implemented in wave 22 (gameplay 66); the rest of the
+plan below is a follow-up. Controls recorded 2026-10-04, updated 2026-11-01.
 Spend: $0. Scope belongs to multiplayer depth in ROADMAP.md.
 
 Humans and agents are welcome in the same match. Excellent aim, fast reactions
@@ -49,10 +50,17 @@ bots, never rewinds projectiles or vehicles and keeps seated riders with
 their vehicle; see `docs/protocol.md`, "Lag compensation (capability 62)". A
 clamped or refused view is a diagnostic, never proof of cheating.
 
-Full fighter snapshots currently expose information a modified client can use
-through cover; spectators can relay information too. Visibility-based interest
-management, spectator delay and replay review are
-follow-ups, not proven protections today. There is no automatic-ban switch or
+Since gameplay 66 (wave 22) a fighter in a shared arcade room receives only
+what its fighter could perceive (`server/src/interest.rs`; shapes in
+`docs/protocol.md`, "Interest filtering (capability 66)"): another fighter
+it cannot see arrives `heard` at a rough place or `hidden` with no place,
+and an agent's MCP `observe` reads the same filtered socket. The margins
+that keep peeks from popping in still send some bodies a wall away
+(measured by `fragr-playtest --interest-survey`, docs/BENCHMARK.md), and
+shot results, projectiles, pickups and events still reach every fighter,
+so gunfire and pickup chimes place a shooter. Spectators keep the whole
+world and can relay it; spectator delay and replay review are follow-ups,
+not protections today. There is no automatic-ban switch or
 reliable human-versus-agent classifier in the current server.
 
 ## Planned defense in depth

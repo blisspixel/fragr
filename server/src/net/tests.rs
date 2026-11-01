@@ -3220,3 +3220,51 @@ fn the_inbound_budget_counts_messages_and_bytes_apart() {
     }
     assert_eq!(small.allow(300), Budgeted::TooMany);
 }
+
+#[tokio::test]
+async fn a_reader_moving_between_its_view_and_the_world_rebuilds_every_world() {
+    // A fighter reads its own view of worlds 1 and 2 (one rival withheld),
+    // then leaves to watch: world 3's shared delta is from the whole world 2,
+    // which this reader never held, so the writer must diff from its view.
+    let worlds = fought_worlds(5);
+    let view_of = |index: usize| {
+        let ServerMessage::Snapshot(snapshot) = worlds[index].message() else {
+            panic!("a world");
+        };
+        let views = std::collections::HashMap::from([(
+            Uuid::nil(),
+            vec![(1, crate::interest::Sense::Hidden)],
+        )]);
+        let mut cut = crate::interest::encode_views(&worlds[index], &views).unwrap();
+        assert!(snapshot.players.len() > 1);
+        cut.remove(&Uuid::nil()).expect("a cut view")
+    };
+    let (view1, view2) = (view_of(1), view_of(2));
+    let shared = |index: usize| Outbound::from(Arc::clone(&worlds[index]));
+    let sent = written(
+        vec![
+            shared(0),
+            Outbound::from(Arc::clone(&view1)),
+            Outbound::from(Arc::clone(&view2)),
+            shared(3),
+            Outbound::from(view_of(4)),
+        ],
+        true,
+    )
+    .await;
+    let tick_delta = &worlds[3].world().unwrap().delta.as_ref().unwrap().text;
+    assert_ne!(
+        &sent[3], tick_delta,
+        "the shared delta names a world this reader lacks"
+    );
+    let mut reader = crate::protocol::WorldReader::new();
+    let read: Vec<String> = sent
+        .iter()
+        .map(|text| serde_json::to_string(&reader.read(text).unwrap()).unwrap())
+        .collect();
+    assert_eq!(read[1], view1.text());
+    assert_eq!(read[2], view2.text());
+    assert_eq!(read[3], worlds[3].text());
+    assert!(read[2].contains(r#""sense":"hidden""#));
+    assert!(!read[3].contains(r#""sense""#));
+}

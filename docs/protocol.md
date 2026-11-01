@@ -4393,16 +4393,19 @@ could perceive. Owner: `server/src/interest.rs`; the Godot reader is
   draws no body for either; the Godot client plays a heard row's footsteps
   where it sounds and frees a pawn whose sense changes, so a body that comes
   into sight starts where it stands.
-- **Seen.** A line of sight through the shot solids, with no view cone, from
-  the fighter's eye now and its eye after its lead (`4` ticks plus half its
-  round trip, at most `8`), to the target's chest, crown and both shoulders
-  widened `0.6` m past the body, now and `3` ticks ahead. Each pair traces
-  every second tick (staggered); a sighting holds for `10` ticks after its
-  last clear line. Always seen: the fighter itself, team-mates in a team
-  mode, campaign actors and the arena boss, anybody seated in a vehicle,
-  the carrier of a flag or the Sabotage charge, and the fighter's killer
-  while it is down. A fighter that is down in a team mode sees what its
-  living team-mates see.
+- **Seen.** Every tick, a line of sight through the shot solids, with no
+  view cone. From the fighter's standing eye; that eye after its lead (`4`
+  ticks plus its measured round trip in ticks, at most `10`) on its velocity
+  or measured motion and one step (`0.6` m) higher while it moves; and that
+  eye moved across the line by up to `2` m (a full-speed step over the
+  lead). To the target's chest, crown and shoulders, and its shoulders
+  widened `0.6` m past the body, where it stands; and its chest and widened
+  shoulders `3` ticks ahead. A sighting holds for `10` ticks after its last
+  clear line. Always seen: the fighter itself, team-mates in a team mode,
+  campaign actors and the arena boss, anybody seated in a vehicle, the
+  carrier of a flag or the Sabotage charge, and the fighter's killer while
+  it is down. A fighter that is down in a team mode sees what its living
+  team-mates see.
 - **Still in every world.** Shot results, projectiles, grenades, rockets,
   mines, explosions, vehicles, pickups, flags, the charge and events. A shot
   result names its shooter and origin, and a pickup event its pad: gunfire

@@ -30,6 +30,17 @@ func _run() -> void:
 	_check(not ActorState.validation_error({"tick": 12, "players": [
 		{"id": "human", "campaign": {"side": "participant"}}]}).is_empty(),
 		"a participant row needs a name")
+	# Interest filtering (gameplay 66): a withheld row names one of two senses.
+	var heard_row: Dictionary = {"id": "rival", "name": "Rival", "hp": 0, "collidable": false, "x": 3.0, "y": 1.5, "z": -2.0, "weapon": "Fists", "sense": "heard"}
+	var hidden_row: Dictionary = {"id": "ghost", "name": "Ghost", "hp": 0, "collidable": false, "x": 0.0, "y": 0.0, "z": 0.0, "weapon": "Fists", "sense": "hidden"}
+	_check(ActorState.validation_error(JSON.parse_string(JSON.stringify({"tick": 12, "players": [heard_row, hidden_row]}))).is_empty(), "heard and hidden rows are accepted")
+	_check(ActorState.sense(heard_row) == "heard" and ActorState.sense(hidden_row) == "hidden", "senses read back")
+	_check(ActorState.sense({"id": "seen", "name": "Seen"}) == "", "a seen row has no sense")
+	for bad: Variant in ["glimpsed", 1, null, true]:
+		var odd: Dictionary = heard_row.duplicate()
+		odd["sense"] = bad
+		_check(not ActorState.validation_error({"tick": 12, "players": [odd]}).is_empty(), "an unknown sense is refused: %s" % [bad])
+		_check(ActorState.sense(odd) == "", "an unknown sense reads as none")
 	var crowd: Array = []
 	for index: int in 65:
 		crowd.append({"id": "p%d" % index, "name": "Row"})

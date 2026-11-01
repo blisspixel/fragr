@@ -18,7 +18,10 @@
 //! 150 ms at a 50 ms round trip.
 //!
 //! What it is not: one machine, a modelled link on loopback, and a modelled
-//! holder frame clock rather than a rendered frame.
+//! holder frame clock rather than a rendered frame. The holder joins as a watcher:
+//! since gameplay 66 a fighter's socket withholds a body it cannot see yet
+//! (`fragr_playtest::interest` measures that), and the stream's timing is
+//! the same either way.
 
 use crate::link::LinkProfile;
 use crate::presentation::{Timeline, TICK_USEC};
@@ -167,7 +170,7 @@ fn holder_delays_on(
     (delays, starved)
 }
 
-fn hello(name: &str) -> Result<Message, Error> {
+fn hello(name: &str, role: Role) -> Result<Message, Error> {
     Ok(Message::Text(
         serde_json::to_string(&ClientMessage::Hello {
             body: None,
@@ -175,9 +178,9 @@ fn hello(name: &str) -> Result<Message, Error> {
             seat: None,
             gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
             geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
-            role: Role::Human,
+            role,
             name: name.into(),
-            ticket: fragr_server::join_ticket::ticket_for(Role::Human),
+            ticket: fragr_server::join_ticket::ticket_for(role),
             resume: None,
         })
         .map_err(transport)?,
@@ -186,12 +189,12 @@ fn hello(name: &str) -> Result<Message, Error> {
 
 type Socket = tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>;
 
-async fn connect(relay: SocketAddr, url: &str, name: &str) -> Result<Socket, Error> {
+async fn connect(relay: SocketAddr, url: &str, name: &str, role: Role) -> Result<Socket, Error> {
     let stream = tokio::net::TcpStream::connect(relay)
         .await
         .map_err(transport)?;
     let (mut socket, _) = client_async(url, stream).await.map_err(transport)?;
-    socket.send(hello(name)?).await.map_err(transport)?;
+    socket.send(hello(name, role)?).await.map_err(transport)?;
     Ok(socket)
 }
 
@@ -392,13 +395,16 @@ pub async fn run_row(
     let (stop_tx, stop_rx) = watch::channel(false);
     let (id_tx, id_rx) = watch::channel(None);
     let (ready_tx, ready_rx) = oneshot::channel();
-    let holder_socket = connect(relay.addr, &url, "Holder").await?;
+    // The holder watches: a fighter's socket withholds a peeker it cannot see
+    // yet (gameplay 66, measured by `--interest-survey`), and these spawns
+    // need not see each other. A watcher's stream has the same timing.
+    let holder_socket = connect(relay.addr, &url, "Holder", Role::Spectator).await?;
     let holder = tokio::spawn(holder_task(holder_socket, epoch, id_rx, stop_rx, ready_tx));
     tokio::time::timeout(Duration::from_secs(20), ready_rx)
         .await
         .map_err(|_| Error::Timeout("holder first snapshot"))?
         .map_err(|_| Error::Server("holder closed before a snapshot".into()))?;
-    let peeker_socket = connect(relay.addr, &url, "Peeker").await?;
+    let peeker_socket = connect(relay.addr, &url, "Peeker", Role::Human).await?;
     let presses = peeker_task(peeker_socket, epoch, trials, seed, id_tx).await;
     let _ = stop_tx.send(true);
     let arrivals = holder.await.map_err(|e| Error::Server(e.to_string()))??;
