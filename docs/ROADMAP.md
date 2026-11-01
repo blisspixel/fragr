@@ -115,7 +115,8 @@ could perceive) and opt-in fun metrics (#529): match-level records on a host's
 disk, announced at join and shredded after 67 days per the
 [privacy policy](PRIVACY.md), reusing the survey metrics this wave adds so real
 matches and bot surveys are measured the same way. It also brings a roster of
-human and synthetic fighter looks for multiplayer (#530), built after the
+human and synthetic fighter looks for multiplayer (#530), a redesigned
+spectator pad timer board (#532), built after the
 November 3 model credit refresh, so a lobby is never a room of clones.
 
 Close the multiplayer work with a measured fun night of bots and agents across
