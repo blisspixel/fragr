@@ -247,7 +247,7 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
             socket.send(Message::Text(json!({
                 "type":"hello", "role":role, "name":"ChargeProbe",
                 "gameplay_version":version, "geometry_version":crate::protocol::GEOMETRY_VERSION
-            }).to_string())).await.unwrap();
+            }).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
                 let mut frames = crate::protocol::WorldReader::new();

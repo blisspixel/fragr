@@ -231,7 +231,8 @@ async fn authored_fleet_requires_vehicle_capability_for_every_role_and_sends_geo
                 .send(Message::Text(
                     json!({"type":"hello","role":role,"name":"Vehicle probe",
                 "gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION})
-                    .to_string(),
+                    .to_string()
+                    .into(),
                 ))
                 .await
                 .unwrap();

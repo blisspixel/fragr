@@ -673,7 +673,7 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
     for version in [floor - 1, floor] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Foundry reader","gameplay_version":version,"geometry_version":localexception_server::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Foundry reader","gameplay_version":version,"geometry_version":localexception_server::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(8), async {
                 let mut welcomed = false;
                 let mut mapped = false;

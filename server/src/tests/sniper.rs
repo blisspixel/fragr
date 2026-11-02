@@ -770,7 +770,8 @@ async fn the_range_refuses_pre_sniper_readers_and_sends_geometry_before_snapshot
                         "gameplay_version":version,
                         "geometry_version":crate::protocol::GEOMETRY_VERSION
                     })
-                    .to_string(),
+                    .to_string()
+                    .into(),
                 ))
                 .await
                 .unwrap();

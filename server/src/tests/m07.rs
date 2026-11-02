@@ -858,7 +858,8 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
                         "gameplay_version":version,
                         "geometry_version":crate::protocol::GEOMETRY_VERSION
                     })
-                    .to_string(),
+                    .to_string()
+                    .into(),
                 ))
                 .await
                 .unwrap();

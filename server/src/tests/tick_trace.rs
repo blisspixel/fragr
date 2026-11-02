@@ -44,7 +44,8 @@ async fn live_trace_ticks_join_the_snapshots_a_spectator_receives() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "geometry_version": crate::protocol::GEOMETRY_VERSION
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();

@@ -183,7 +183,8 @@ fn hello(name: &str, role: Role) -> Result<Message, Error> {
             ticket: localexception_server::join_ticket::ticket_for(role),
             resume: None,
         })
-        .map_err(transport)?,
+        .map_err(transport)?
+        .into(),
     ))
 }
 
@@ -256,7 +257,8 @@ fn strafe(seq: u32, direction: i8) -> Result<Message, Error> {
             seq: Some(seq),
             ..Action::default()
         }))
-        .map_err(transport)?,
+        .map_err(transport)?
+        .into(),
     ))
 }
 

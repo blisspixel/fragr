@@ -405,7 +405,7 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Ship reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Ship reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut welcomed = false;
                 let mut frames = crate::protocol::WorldReader::new();
@@ -496,7 +496,7 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-                socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string())).await.unwrap();
+                socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string().into())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let mut welcomed = false;
                     let mut frames = crate::protocol::WorldReader::new();

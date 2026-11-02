@@ -41,7 +41,8 @@ async fn late_campaign_admission_requires_current_contract_before_any_world() {
                         serde_json::json!({"type":"hello", "role":role,
                     "name":"Late mission reader", "gameplay_version":version,
                     "geometry_version":localexception_server::protocol::GEOMETRY_VERSION})
-                        .to_string(),
+                        .to_string()
+                        .into(),
                     ))
                     .await
                     .unwrap();

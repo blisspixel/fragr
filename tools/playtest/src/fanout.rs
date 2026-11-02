@@ -350,7 +350,8 @@ async fn watcher_task(
             ticket: None,
             resume: None,
         })
-        .map_err(transport)?,
+        .map_err(transport)?
+        .into(),
     ))
     .await
     .map_err(transport)?;
@@ -487,7 +488,8 @@ async fn probe_task(
             ticket: localexception_server::join_ticket::ticket_for(Role::Human),
             resume: None,
         })
-        .map_err(transport)?,
+        .map_err(transport)?
+        .into(),
     ))
     .await
     .map_err(transport)?;
@@ -512,7 +514,7 @@ async fn probe_task(
                     step = step.saturating_add(1);
                     let text = serde_json::to_string(&super::traffic::action(index, step))
                         .map_err(transport)?;
-                    if sink.feed(Message::Text(text)).await.is_err() {
+                    if sink.feed(Message::Text(text.into())).await.is_err() {
                         result.disconnected = !*stop.borrow();
                         break;
                     }

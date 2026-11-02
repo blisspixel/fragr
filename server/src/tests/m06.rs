@@ -859,7 +859,8 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
                         "type":"hello", "role":role, "name":"PortProbe", "gameplay_version":version,
                         "geometry_version":crate::protocol::GEOMETRY_VERSION
                     })
-                    .to_string(),
+                    .to_string()
+                    .into(),
                 ))
                 .await
                 .unwrap();

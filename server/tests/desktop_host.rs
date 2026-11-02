@@ -30,7 +30,8 @@ async fn enter(
                 ticket: None,
                 resume,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -203,7 +204,8 @@ async fn prove_wire(ready: &ArenaReady) {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -417,13 +419,13 @@ async fn automatic_owned_rooms_yield_real_seats_preserve_resume_and_refill_after
         population(&ready, 1, 1, count - 2, Duration::from_secs(5)).await;
         resumed
             .send(Message::Text(
-                serde_json::to_string(&ClientMessage::Leave).unwrap(),
+                serde_json::to_string(&ClientMessage::Leave).unwrap().into(),
             ))
             .await
             .unwrap();
         agent
             .send(Message::Text(
-                serde_json::to_string(&ClientMessage::Leave).unwrap(),
+                serde_json::to_string(&ClientMessage::Leave).unwrap().into(),
             ))
             .await
             .unwrap();

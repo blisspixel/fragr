@@ -5,6 +5,16 @@ use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
 
 #[test]
+fn websocket_buffers_and_frame_limits_remain_bounded() {
+    let config = websocket_limits();
+    assert_eq!(config.read_buffer_size, 8 * 1024);
+    assert_eq!(config.max_message_size, Some(64 * 1024));
+    assert_eq!(config.max_frame_size, Some(64 * 1024));
+    assert_eq!(config.max_write_buffer_size, 512 * 1024);
+    assert!(config.write_buffer_size < config.max_write_buffer_size);
+}
+
+#[test]
 fn an_older_client_is_sent_to_the_release_and_its_checksum() {
     let older = version_refusal("gameplay", 36, 37, 37).expect("older than the floor");
     match older {
@@ -120,7 +130,7 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
         ),
     ] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"agent", "name":"Dead Air Dan", "geometry_version":2, "gameplay_version":version,"ticket":ticket}).to_string())).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"agent", "name":"Dead Air Dan", "geometry_version":2, "gameplay_version":version,"ticket":ticket}).to_string().into())).await.unwrap();
         let message = timeout(Duration::from_secs(2), socket.next())
             .await
             .unwrap()
@@ -133,7 +143,7 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
         );
     }
     let (mut watcher, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    watcher.send(Message::Text(serde_json::json!({"type":"hello", "role":"spectator", "name":"Watcher", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string())).await.unwrap();
+    watcher.send(Message::Text(serde_json::json!({"type":"hello", "role":"spectator", "name":"Watcher", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string().into())).await.unwrap();
     let message = timeout(Duration::from_secs(2), watcher.next())
         .await
         .unwrap()
@@ -216,7 +226,7 @@ async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels
     let held_registry = clients.lock().await;
     let accept = tokio::spawn(server.accept_loop());
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"human", "name":"Held registration", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string())).await.unwrap();
+    socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"human", "name":"Held registration", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string().into())).await.unwrap();
     let request = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
         .await
         .unwrap()
@@ -359,7 +369,7 @@ async fn written_with_report(
     let sent = sent
         .into_iter()
         .map(|frame| match frame {
-            Message::Text(text) => text,
+            Message::Text(text) => text.to_string(),
             other => panic!("unexpected frame {other:?}"),
         })
         .collect();
@@ -493,8 +503,8 @@ async fn writer_sends_a_shared_broadcast_unchanged_and_encodes_only_targeted_mes
     assert_eq!(
         sent,
         vec![
-            Message::Text(serde_json::to_string(&snapshot).unwrap()),
-            Message::Text(serde_json::to_string(&private).unwrap()),
+            Message::Text(serde_json::to_string(&snapshot).unwrap().into()),
+            Message::Text(serde_json::to_string(&private).unwrap().into()),
         ]
     );
     let report = probe.report();
@@ -1150,7 +1160,10 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
             if let Some(version) = version {
                 hello["geometry_version"] = version.into();
             }
-            socket.send(Message::Text(hello.to_string())).await.unwrap();
+            socket
+                .send(Message::Text(hello.to_string().into()))
+                .await
+                .unwrap();
             let reply = timeout(Duration::from_secs(2), socket.next())
                 .await
                 .unwrap()
@@ -1181,7 +1194,8 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
                 serde_json::json!({
                     "type":"hello", "role":"human", "name":"Current", "geometry_version":version,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1248,7 +1262,8 @@ async fn a_hello_newer_than_this_binary_is_refused_on_a_floor_listener() {
                     "type":"hello", "role":"human", "name":"Future",
                     "gameplay_version": gameplay, "geometry_version": geometry,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1271,7 +1286,8 @@ async fn a_hello_newer_than_this_binary_is_refused_on_a_floor_listener() {
                 "type":"hello", "role":"spectator", "name":"Legacy",
                 "gameplay_version": 1, "geometry_version": 1,
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -1320,9 +1336,9 @@ async fn human_socket_drops_server_aim_and_an_agent_keeps_it() {
             Some(GameCommand::Connected { .. })
         ));
         socket
-            .send(Message::Text(format!(
-                r#"{{"type":"action","fire":true,"yaw":1.25,"look_at":{look}}}"#
-            )))
+            .send(Message::Text(
+                format!(r#"{{"type":"action","fire":true,"yaw":1.25,"look_at":{look}}}"#).into(),
+            ))
             .await
             .unwrap();
         let command = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
@@ -1353,7 +1369,7 @@ async fn welcome_spectator(
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
     socket
         .send(Message::Text(
-            r#"{"type":"hello","role":"spectator","name":"Cap"}"#.to_string(),
+            r#"{"type":"hello","role":"spectator","name":"Cap"}"#.to_string().into(),
         ))
         .await
         .unwrap();
@@ -1641,7 +1657,9 @@ async fn connection_caps_reject_without_admitting_the_game() {
     let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
     extra
         .send(Message::Text(
-            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#
+                .to_string()
+                .into(),
         ))
         .await
         .unwrap();
@@ -1687,7 +1705,9 @@ async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
     let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
     extra
         .send(Message::Text(
-            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#
+                .to_string()
+                .into(),
         ))
         .await
         .unwrap();
@@ -1721,7 +1741,9 @@ async fn one_address_cannot_hold_every_connection_slot() {
     let (mut extra, _) = connect_async(format!("ws://{address}")).await.unwrap();
     extra
         .send(Message::Text(
-            r#"{"type":"hello","role":"spectator","name":"Extra"}"#.to_string(),
+            r#"{"type":"hello","role":"spectator","name":"Extra"}"#
+                .to_string()
+                .into(),
         ))
         .await
         .unwrap();
@@ -1747,7 +1769,7 @@ async fn oversized_text_closes_without_blocking_the_next_client() {
         r#"{{"type":"hello","role":"spectator","name":"{}"}}"#,
         "n".repeat(70_000)
     );
-    socket.send(Message::Text(huge)).await.unwrap();
+    socket.send(Message::Text(huge.into())).await.unwrap();
     let reply = timeout(Duration::from_secs(2), socket.next())
         .await
         .unwrap();
@@ -1769,7 +1791,7 @@ async fn action_flood_is_dropped_before_the_tick_queue() {
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
     socket
         .send(Message::Text(
-            r#"{"type":"hello","role":"human","name":"Flood"}"#.to_string(),
+            r#"{"type":"hello","role":"human","name":"Flood"}"#.to_string().into(),
         ))
         .await
         .unwrap();
@@ -1794,7 +1816,7 @@ async fn action_flood_is_dropped_before_the_tick_queue() {
     for _ in 0..200 {
         socket
             .send(Message::Text(
-                r#"{"type":"action","forward":true}"#.to_string(),
+                r#"{"type":"action","forward":true}"#.to_string().into(),
             ))
             .await
             .unwrap();
@@ -1877,7 +1899,7 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
         ("spectator", 7, "welcome"),
     ] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":role, "name":"Run reader", "geometry_version":2, "gameplay_version":version}).to_string())).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":role, "name":"Run reader", "geometry_version":2, "gameplay_version":version}).to_string().into())).await.unwrap();
         let reply = timeout(Duration::from_secs(2), socket.next())
             .await
             .unwrap()
@@ -1912,7 +1934,9 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
         };
         socket
             .send(Message::Text(
-                serde_json::to_string(&ClientMessage::MissionContinue(request)).unwrap(),
+                serde_json::to_string(&ClientMessage::MissionContinue(request))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -1954,7 +1978,8 @@ async fn rules_three_missions_refuse_retired_readers_before_any_role_is_admitted
                     "type":"hello", "role":role, "name":"Reader", "geometry_version":2,
                     "gameplay_version":24
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1976,7 +2001,8 @@ async fn rules_three_missions_refuse_retired_readers_before_any_role_is_admitted
                 "type":"hello", "role":"agent", "name":"Reader", "geometry_version":2,
                 "gameplay_version":crate::protocol::GAMEPLAY_VERSION
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -2024,7 +2050,8 @@ async fn m01_refuses_shiv_blind_capability_ten_and_admits_eleven() {
                     "type":"hello", "role":"human", "name":"Reader", "geometry_version":2,
                     "gameplay_version":version
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -2087,7 +2114,7 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
         socket.send(Message::Text(serde_json::json!({
             "type":"hello","role":role,"name":"Visitor","geometry_version":2,"gameplay_version":version
-        }).to_string())).await.unwrap();
+        }).to_string().into())).await.unwrap();
         let reply = timeout(Duration::from_secs(2), socket.next())
             .await
             .unwrap()
@@ -2118,7 +2145,7 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
         Some(GameCommand::Disconnected { .. })
     ));
     let (mut replacement, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    replacement.send(Message::Text(serde_json::json!({"type":"hello","role":"agent","name":"Replacement","geometry_version":2,"gameplay_version":5}).to_string())).await.unwrap();
+    replacement.send(Message::Text(serde_json::json!({"type":"hello","role":"agent","name":"Replacement","geometry_version":2,"gameplay_version":5}).to_string().into())).await.unwrap();
     let reply = timeout(Duration::from_secs(2), replacement.next())
         .await
         .unwrap()
@@ -2175,7 +2202,10 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
         if let Some(ticket) = ticket {
             hello["ticket"] = serde_json::Value::String(ticket);
         }
-        socket.send(Message::Text(hello.to_string())).await.unwrap();
+        socket
+            .send(Message::Text(hello.to_string().into()))
+            .await
+            .unwrap();
         let reply = timeout(Duration::from_secs(2), socket.next())
             .await
             .unwrap()
@@ -2202,7 +2232,8 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "ticket": "not-a-ticket",
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -2239,7 +2270,8 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "ticket": human,
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -2278,7 +2310,8 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "ticket": again,
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -2312,7 +2345,8 @@ async fn an_open_server_ignores_a_presented_ticket() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "ticket": "garbage",
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -2350,7 +2384,9 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     let (mut fighter, _) = connect_async(format!("ws://{address}")).await.unwrap();
     fighter
         .send(Message::Text(
-            r#"{"type":"hello","role":"human","name":"Fighter","resume":""}"#.to_string(),
+            r#"{"type":"hello","role":"human","name":"Fighter","resume":""}"#
+                .to_string()
+                .into(),
         ))
         .await
         .unwrap();
@@ -2465,7 +2501,10 @@ type ClientSocket =
 
 async fn hello(address: std::net::SocketAddr, body: &str) -> ClientSocket {
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    socket.send(Message::Text(body.to_string())).await.unwrap();
+    socket
+        .send(Message::Text(body.to_string().into()))
+        .await
+        .unwrap();
     socket
 }
 
@@ -2796,7 +2835,7 @@ async fn ping_flood_is_rate_limited_like_a_text_flood() {
         panic!("expected a connection");
     };
     for _ in 0..200 {
-        if fighter.send(Message::Ping(vec![1])).await.is_err() {
+        if fighter.send(Message::Ping(vec![1].into())).await.is_err() {
             break;
         }
     }
@@ -2836,7 +2875,10 @@ async fn repeated_junk_is_kicked_but_unknown_types_are_ignored() {
             .await
             .unwrap();
     }
-    watcher.send(Message::Binary(vec![1, 2, 3])).await.unwrap();
+    watcher
+        .send(Message::Binary(vec![1, 2, 3].into()))
+        .await
+        .unwrap();
     for _ in 0..2 {
         watcher
             .send(Message::Text("{not json".into()))
@@ -3040,7 +3082,10 @@ async fn duel_hello(address: std::net::SocketAddr, seat: Option<&str>) -> Server
         hello["seat"] = serde_json::json!(seat);
     }
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-    socket.send(Message::Text(hello.to_string())).await.unwrap();
+    socket
+        .send(Message::Text(hello.to_string().into()))
+        .await
+        .unwrap();
     loop {
         let frame = timeout(Duration::from_secs(5), socket.next())
             .await
@@ -3178,7 +3223,11 @@ async fn a_byte_flood_of_large_frames_is_rate_limited_under_the_message_rate() {
     let padding = "x".repeat(60 * 1024);
     let heavy = format!(r#"{{"type":"action","forward":true,"note":"{padding}"}}"#);
     for _ in 0..60 {
-        if fighter.send(Message::Text(heavy.clone())).await.is_err() {
+        if fighter
+            .send(Message::Text(heavy.clone().into()))
+            .await
+            .is_err()
+        {
             break;
         }
     }

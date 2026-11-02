@@ -68,7 +68,8 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
                     "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                     "geometry_version": crate::protocol::GEOMETRY_VERSION,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -2725,7 +2726,7 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
         "role": "agent",
         "name": "WireAgent"
     });
-    sink.send(Message::Text(hello.to_string()))
+    sink.send(Message::Text(hello.to_string().into()))
         .await
         .expect("send hello");
 

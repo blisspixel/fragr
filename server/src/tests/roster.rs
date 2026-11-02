@@ -58,7 +58,8 @@ async fn join(url: &str, role: Role, name: &str) -> (Socket, Option<Uuid>) {
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -122,7 +123,8 @@ async fn mixed_roles_share_movement_and_leave_cleanly_on_every_map() {
                             seq: Some(67),
                             ..Default::default()
                         }))
-                        .unwrap(),
+                        .unwrap()
+                        .into(),
                     ))
                     .await
                     .unwrap();

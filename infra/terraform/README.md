@@ -23,7 +23,7 @@ Any apply needs Nick's written approval and a current priced plan.
 
 ## Local review commands
 
-Use Terraform 1.7.0 or newer for the mocked provider tests. Terraform 1.16.4
+Use Terraform 1.7.0 or newer for the mocked provider tests. Terraform 1.17.1
 was used for this draft's local checks.
 
 ```sh

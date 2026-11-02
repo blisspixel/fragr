@@ -423,7 +423,8 @@ async fn spectator_task(
             ticket: None,
             resume: None,
         })
-        .map_err(transport)?,
+        .map_err(transport)?
+        .into(),
     ))
     .await
     .map_err(transport)?;

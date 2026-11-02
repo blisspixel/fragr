@@ -45,7 +45,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
             format!(
                 r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":""}}"#,
                 localexception_server::protocol::GAMEPLAY_VERSION
-            ),
+            ).into(),
         ))
         .await
         .unwrap();
@@ -59,7 +59,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
             format!(
                 r#"{{"type":"hello","role":"spectator","name":"Eyes","geometry_version":2,"gameplay_version":{}}}"#,
                 localexception_server::protocol::GAMEPLAY_VERSION
-            ),
+            ).into(),
         ))
         .await
         .unwrap();
@@ -83,7 +83,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
             format!(
                 r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":"{token}"}}"#,
                 localexception_server::protocol::GAMEPLAY_VERSION
-            ),
+            ).into(),
         ))
         .await
         .unwrap();

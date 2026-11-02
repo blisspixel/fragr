@@ -99,7 +99,7 @@ where
     S: futures_util::Sink<Message> + Unpin,
 {
     matches!(
-        tokio::time::timeout(SEND_TIMEOUT, sink.send(Message::Text(text))).await,
+        tokio::time::timeout(SEND_TIMEOUT, sink.send(Message::Text(text.into()))).await,
         Ok(Ok(()))
     )
 }
@@ -1609,10 +1609,10 @@ mod tests {
             let final_wire = final_wire.clone();
             async move {
                 match step {
-                    0 => Some((Ok(Message::Text(stale_wire)), 1)),
+                    0 => Some((Ok(Message::Text(stale_wire.into())), 1)),
                     1 => {
                         tokio::time::sleep(Duration::from_millis(650)).await;
-                        Some((Ok(Message::Text(final_wire)), 2))
+                        Some((Ok(Message::Text(final_wire.into())), 2))
                     }
                     _ => None,
                 }
@@ -2322,7 +2322,7 @@ mod tests {
                 map.to_string(),
                 serde_json::to_string(&ServerMessage::Snapshot(scene.clone())).unwrap(),
             ] {
-                ws.send(Message::Text(message)).await.unwrap();
+                ws.send(Message::Text(message.into())).await.unwrap();
             }
             assert!(
                 wait_for(|| held.started.load(Ordering::SeqCst), READINESS_BOUND).await,
@@ -2331,7 +2331,9 @@ mod tests {
             scene.tick = 2;
             scene.players[0].hp = 25;
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(scene.clone())).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(scene.clone()))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -2365,7 +2367,9 @@ mod tests {
             scene.players[0].hp = 0;
             scene.round_state = Some("Ended".into());
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(scene)).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(scene))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -2487,8 +2491,8 @@ mod tests {
                 }
             ));
             ws.next().await.unwrap().unwrap(); // Initial stance.
-            ws.send(Message::Text(valid)).await.unwrap();
-            ws.send(Message::Text(bad)).await.unwrap();
+            ws.send(Message::Text(valid.into())).await.unwrap();
+            ws.send(Message::Text(bad.into())).await.unwrap();
             while let Some(Ok(message)) = ws.next().await {
                 if let Message::Text(text) = message {
                     assert!(!matches!(
@@ -2705,7 +2709,7 @@ mod tests {
             "geometry_version":localexception_server::protocol::GEOMETRY_VERSION,
             "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION});
         observer
-            .send(Message::Text(hello.to_string()))
+            .send(Message::Text(hello.to_string().into()))
             .await
             .unwrap();
         let mut handles = Vec::new();
@@ -2874,7 +2878,7 @@ mod tests {
                 map.to_string(),
                 serde_json::to_string(&ServerMessage::Snapshot(scene)).unwrap(),
             ] {
-                socket.send(Message::Text(wire)).await.unwrap();
+                socket.send(Message::Text(wire.into())).await.unwrap();
             }
             // Readiness is the bot's first action or stance after the scene:
             // it has built navigation for the map (a blocking job that a
@@ -3348,7 +3352,8 @@ mod tests {
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();

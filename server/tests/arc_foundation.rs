@@ -176,7 +176,7 @@ async fn arc_lesson_admits_all_roles_only_at_the_current_live_campaign_rules_flo
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(json!({"type":"hello", "role":role, "name":"Arc reader", "gameplay_version":version, "geometry_version":GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(json!({"type":"hello", "role":role, "name":"Arc reader", "gameplay_version":version, "geometry_version":GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut welcomed = false;
                 let mut mapped = false;

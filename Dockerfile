@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM rust:1.98.1-bookworm AS build
+FROM rust:1.99.1-trixie AS build
 
 WORKDIR /src
 COPY . .
@@ -8,7 +8,7 @@ RUN target="$(rustc -vV | sed -n 's/^host: //p')" \
     && cargo run -p localexception-licenses --locked -- \
        --target "$target" --deny deny.toml --out /tmp/THIRD_PARTY_LICENSES.txt
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \

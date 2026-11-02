@@ -13,12 +13,10 @@ use tokio_tungstenite::{
 };
 
 fn socket_config() -> WebSocketConfig {
-    #[allow(deprecated)]
-    WebSocketConfig {
-        max_message_size: Some(64 * 1024),
-        max_frame_size: Some(64 * 1024),
-        ..WebSocketConfig::default()
-    }
+    WebSocketConfig::default()
+        .read_buffer_size(8 * 1024)
+        .max_message_size(Some(64 * 1024))
+        .max_frame_size(Some(64 * 1024))
 }
 #[derive(Parser, Debug, PartialEq, Eq)]
 #[command(name = "localexception-agent-adapter")]
@@ -187,7 +185,7 @@ async fn mcp_connect_and_hello(
     };
     let hello = booth_or_fighter_hello(name, body, dress, watch);
     ws_sink
-        .send(Message::Text(serde_json::to_string(&hello)?))
+        .send(Message::Text(serde_json::to_string(&hello)?.into()))
         .await?;
 
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
@@ -292,7 +290,7 @@ async fn mcp_leave_session(
             .sink
             .lock()
             .await
-            .send(Message::Text(r#"{"type":"leave"}"#.to_string()))
+            .send(Message::Text(r#"{"type":"leave"}"#.to_string().into()))
             .await;
         let _ = s.sink.lock().await.send(Message::Close(None)).await;
         s.recv_task.abort();
@@ -396,7 +394,7 @@ async fn apply_mcp_line(
             s.sink
                 .lock()
                 .await
-                .send(Message::Text(serde_json::to_string(&action_msg)?))
+                .send(Message::Text(serde_json::to_string(&action_msg)?.into()))
                 .await?;
         }
     }
@@ -408,9 +406,9 @@ async fn apply_mcp_line(
         s.sink
             .lock()
             .await
-            .send(Message::Text(serde_json::to_string(
-                &ClientMessage::MissionReady(ready),
-            )?))
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::MissionReady(ready))?.into(),
+            ))
             .await?;
     }
 
@@ -421,9 +419,9 @@ async fn apply_mcp_line(
         s.sink
             .lock()
             .await
-            .send(Message::Text(serde_json::to_string(
-                &ClientMessage::MissionContinue(request),
-            )?))
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::MissionContinue(request))?.into(),
+            ))
             .await?;
     }
 
@@ -433,7 +431,7 @@ async fn apply_mcp_line(
             s.sink
                 .lock()
                 .await
-                .send(Message::Text(serde_json::to_string(&speak_msg)?))
+                .send(Message::Text(serde_json::to_string(&speak_msg)?.into()))
                 .await?;
         }
     }
@@ -752,7 +750,7 @@ async fn run_scripted_bot(
         resume: None,
     };
     ws_sink
-        .send(Message::Text(serde_json::to_string(&hello)?))
+        .send(Message::Text(serde_json::to_string(&hello)?.into()))
         .await?;
 
     let Some(Ok(Message::Text(text))) = ws_stream.next().await else {
@@ -786,11 +784,11 @@ async fn run_scripted_bot(
                         ServerMessage::Mission { tick, state } => {
                             mission_client.observe(tick, state).map_err(io::Error::other)?;
                             if let Some(request) = mission_client.continuation(Some(bot_id)) {
-                                ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::MissionContinue(request))?)).await?;
+                                ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::MissionContinue(request))?.into())).await?;
                             }
                             if let Some(ready) = mission_client.readiness(Some(bot_id)) {
                                 ws_sink.send(Message::Text(
-                                    serde_json::to_string(&ClientMessage::MissionReady(ready))?,
+                                    serde_json::to_string(&ClientMessage::MissionReady(ready))?.into(),
                                 )).await?;
                             }
                         }
@@ -866,7 +864,7 @@ async fn run_scripted_bot(
                     // enemy is close.
                     let sabotage = sabotage_map.as_ref().filter(|_| snapshot.sabotage.is_some());
                     if let Some(hold) = sabotage.and_then(|map| sabotage_hold(bot_id, snapshot, map)) {
-                        if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?)).await.is_err() {
+                        if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?.into())).await.is_err() {
                             tracing::info!("Bot disconnected: action send failed");
                             break;
                         }
@@ -885,7 +883,7 @@ async fn run_scripted_bot(
                     let action = mission_client.steer_with_equipment(&mut navigator, world, bot_id, snapshot, wanted, loadout.as_ref());
                     let action_msg = ClientMessage::Action(action);
 
-                    if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
+                    if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?.into())).await.is_err() {
                         tracing::info!("Bot disconnected: action send failed");
                         break;
                     }
@@ -893,7 +891,7 @@ async fn run_scripted_bot(
                     if let Some(line) = maybe_bot_taunt(snapshot.tick, bot_id) {
                         let speak_msg = ClientMessage::Speak(protocol::Speak { text: line });
                         if ws_sink
-                            .send(Message::Text(serde_json::to_string(&speak_msg)?))
+                            .send(Message::Text(serde_json::to_string(&speak_msg)?.into()))
                             .await
                             .is_err()
                         {
@@ -1176,8 +1174,8 @@ mod tests {
                         ..
                     }
                 ));
-                ws.send(Message::Text(serde_json::json!({"type":"welcome", "role":"agent", "player_id":uuid::Uuid::nil()}).to_string())).await.unwrap();
-                ws.send(Message::Text(serde_json::json!({"type":"map_info", "map_id":1, "map_name":"Invalid", "half_extent":12.0, "solids":[], "geometry_version":version}).to_string())).await.unwrap();
+                ws.send(Message::Text(serde_json::json!({"type":"welcome", "role":"agent", "player_id":uuid::Uuid::nil()}).to_string().into())).await.unwrap();
+                ws.send(Message::Text(serde_json::json!({"type":"map_info", "map_id":1, "map_name":"Invalid", "half_extent":12.0, "solids":[], "geometry_version":version}).to_string().into())).await.unwrap();
                 let closed = tokio::time::timeout(std::time::Duration::from_secs(2), ws.next())
                     .await
                     .unwrap();
@@ -3106,7 +3104,7 @@ fn main() -> ExitCode {
                     "mode_name": "Scrap League",
                     "playlist": "Solo Scrap"
                 });
-                ws.send(Message::Text(welcome.to_string()))
+                ws.send(Message::Text(welcome.to_string().into()))
                     .await
                     .expect("welcome");
             } else {
@@ -3142,7 +3140,7 @@ fn main() -> ExitCode {
                         "host_line": "frequency contested",
                         "pickups": []
                     });
-                    let _ = ws.send(Message::Text(snapshot.to_string())).await;
+                    let _ = ws.send(Message::Text(snapshot.to_string().into())).await;
                     // Drain one client action/speak if any, then close.
                     let _ = tokio::time::timeout(std::time::Duration::from_millis(200), ws.next())
                         .await;
@@ -3542,9 +3540,11 @@ fn main() -> ExitCode {
                 duck: false,
                 fun_metrics: false,
             };
-            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(
+                serde_json::to_string(&welcome).unwrap().into(),
+            ))
+            .await
+            .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
                 epilogue: None,
@@ -3582,7 +3582,7 @@ fn main() -> ExitCode {
                     2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
                 )],
             };
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap().into()))
                 .await
                 .unwrap();
             // Map receipt starts blocking-pool topology preparation. Confirm
@@ -3592,7 +3592,9 @@ fn main() -> ExitCode {
             // bound only has to outlast connect and setup, which a loaded
             // runner can stretch past seconds (#494), so it is generous.
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot()))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -3614,7 +3616,7 @@ fn main() -> ExitCode {
                     _ = &mut deadline => panic!("snapshot traffic starved the action clock"),
                     _ = snapshots.tick() => {
                         state.tick += 1;
-                        ws.send(Message::Text(serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap())).await.unwrap();
+                        ws.send(Message::Text(serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap().into())).await.unwrap();
                     }
                     message = ws.next() => {
                         let Some(Ok(Message::Text(text))) = message else { panic!("bot disconnected before playing") };
@@ -3746,9 +3748,11 @@ fn main() -> ExitCode {
                 duck: false,
                 fun_metrics: false,
             };
-            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(
+                serde_json::to_string(&welcome).unwrap().into(),
+            ))
+            .await
+            .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
                 epilogue: None,
@@ -3786,11 +3790,13 @@ fn main() -> ExitCode {
                     2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
                 )],
             };
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap().into()))
                 .await
                 .unwrap();
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot()))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -3814,11 +3820,11 @@ fn main() -> ExitCode {
             })
             .await
             .expect("scripted bot never became ready");
-            ws.send(Message::Ping(b"localexception".to_vec()))
+            ws.send(Message::Ping(b"localexception".to_vec().into()))
                 .await
                 .unwrap();
-            ws.send(Message::Pong(Vec::new())).await.unwrap();
-            ws.send(Message::Binary(Vec::new())).await.unwrap();
+            ws.send(Message::Pong(Vec::new().into())).await.unwrap();
+            ws.send(Message::Binary(Vec::new().into())).await.unwrap();
             let deadline = tokio::time::sleep(std::time::Duration::from_secs(4));
             tokio::pin!(deadline);
             let mut saw_pong = false;
@@ -3834,7 +3840,7 @@ fn main() -> ExitCode {
                                     break;
                                 }
                             }
-                            Some(Ok(Message::Pong(payload))) => { saw_pong |= payload == b"localexception"; }
+                            Some(Ok(Message::Pong(payload))) => { saw_pong |= payload.as_ref() == b"localexception"; }
                             Some(Ok(Message::Ping(_))) => {}
                             other => panic!("bot disconnected after ping: {other:?}"),
                         }

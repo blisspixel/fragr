@@ -284,7 +284,7 @@ async fn seat_task(
         resume: None,
     };
     sink.send(Message::Text(
-        serde_json::to_string(&hello).map_err(transport)?,
+        serde_json::to_string(&hello).map_err(transport)?.into(),
     ))
     .await
     .map_err(transport)?;
@@ -311,7 +311,7 @@ async fn seat_task(
                 for _ in 0..per_send {
                     step = step.saturating_add(1);
                     let text = serde_json::to_string(&action(index, step)).map_err(transport)?;
-                    if sink.feed(Message::Text(text)).await.is_err() {
+                    if sink.feed(Message::Text(text.into())).await.is_err() {
                         result.disconnected = !*stop.borrow();
                         break;
                     }

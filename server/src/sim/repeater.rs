@@ -397,7 +397,7 @@ mod tests {
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"Reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"Reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let mut welcomed = false;
                     let mut mapped = false;

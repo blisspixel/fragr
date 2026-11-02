@@ -240,7 +240,8 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -390,7 +391,8 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -524,7 +526,8 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -667,7 +670,8 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -831,7 +835,8 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -939,7 +944,8 @@ async fn campaign_run_id(ready: &Ready) -> uuid::Uuid {
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -992,7 +998,8 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -1144,7 +1151,8 @@ async fn explicit_leave_durably_abandons_a_local_run() {
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -1168,7 +1176,7 @@ async fn explicit_leave_durably_abandons_a_local_run() {
     .unwrap();
     socket
         .send(Message::Text(
-            serde_json::to_string(&ClientMessage::Leave).unwrap(),
+            serde_json::to_string(&ClientMessage::Leave).unwrap().into(),
         ))
         .await
         .unwrap();
@@ -1345,7 +1353,8 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
             ticket: None,
             resume: None,
         })
-        .unwrap(),
+        .unwrap()
+        .into(),
     ))
     .await
     .unwrap();
@@ -1374,7 +1383,8 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -1470,7 +1480,8 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1545,7 +1556,8 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1575,7 +1587,8 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -1663,7 +1676,8 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1693,7 +1707,8 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();

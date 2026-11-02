@@ -4,7 +4,7 @@
 
 use crate::join_ticket::{hex_decode, hex_encode, hmac_sha256, mac_equal};
 use crate::protocol::Role;
-use rand::RngCore;
+use rand::TryRng;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -54,7 +54,9 @@ impl Default for ResumeTable {
 impl ResumeTable {
     pub fn new() -> Self {
         let mut key = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut key);
+        rand::rngs::SysRng
+            .try_fill_bytes(&mut key)
+            .expect("OS randomness for resume key");
         Self {
             key,
             tick: AtomicU64::new(0),
@@ -176,7 +178,9 @@ impl ResumeTable {
 
 fn random_nonce() -> u64 {
     let mut raw = [0u8; 8];
-    rand::rngs::OsRng.fill_bytes(&mut raw);
+    rand::rngs::SysRng
+        .try_fill_bytes(&mut raw)
+        .expect("OS randomness for resume nonce");
     u64::from_le_bytes(raw) | 1
 }
 

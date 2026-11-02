@@ -1280,7 +1280,8 @@ mod tests {
                     "gameplay_version": version,
                     "geometry_version": geom,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1360,7 +1361,9 @@ mod tests {
                 "gameplay_version": version,
                 "geometry_version": geom,
             });
-            ws.send(Message::Text(hello.to_string())).await.unwrap();
+            ws.send(Message::Text(hello.to_string().into()))
+                .await
+                .unwrap();
             let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
                 .await
                 .expect("reply timeout");
@@ -1431,7 +1434,8 @@ mod tests {
                     "gameplay_version": version,
                     "geometry_version": geom,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1567,7 +1571,8 @@ mod tests {
                     "gameplay_version": version,
                     "geometry_version": geom,
                 })
-                .to_string(),
+                .to_string()
+                .into(),
             ))
             .await
             .unwrap();
@@ -1653,7 +1658,7 @@ mod tests {
             "gameplay_version": localexception_server::protocol::GAMEPLAY_VERSION,
             "geometry_version": localexception_server::protocol::GEOMETRY_VERSION,
         });
-        sink.send(Message::Text(hello.to_string()))
+        sink.send(Message::Text(hello.to_string().into()))
             .await
             .expect("send hello");
 

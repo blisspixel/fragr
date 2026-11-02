@@ -91,7 +91,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -118,7 +119,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();

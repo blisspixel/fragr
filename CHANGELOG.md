@@ -15,6 +15,9 @@ Release history, newest first. Planned work stays in
   LAN discovery identifiers. Older builds receive an update refusal.
 - Store new desktop settings under the `localexception` user-data directory.
   Earlier product data is not migrated or deleted.
+- Refresh all direct Rust dependencies to current stable releases, including
+  Tokio's I/O safety fix and the TLS certificate distrust updates. Align CI and
+  container builds on Rust 1.99.1 and use Debian 13 for the server image.
 
 ## v0.99.1 - 2026-11-01
 

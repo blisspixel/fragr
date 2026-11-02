@@ -52,7 +52,8 @@ async fn hello(url: &str, role: Role, index: usize, version: u32) -> Socket {
                 dress: None,
                 seat: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -385,7 +386,9 @@ async fn low_water_ten_mixed_sockets_plant_defuse_swap_and_finish_normal_finite_
                 );
                 writer
                     .send(Message::Text(
-                        serde_json::to_string(&ClientMessage::Action(input)).unwrap(),
+                        serde_json::to_string(&ClientMessage::Action(input))
+                            .unwrap()
+                            .into(),
                     ))
                     .await
                     .unwrap();

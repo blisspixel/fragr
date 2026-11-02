@@ -169,7 +169,8 @@ async fn connect(
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -306,7 +307,9 @@ async fn drive(
                 if let Some(ready) = probe.observer.readiness(id) {
                     socket
                         .send(Message::Text(
-                            serde_json::to_string(&ClientMessage::MissionReady(ready)).unwrap(),
+                            serde_json::to_string(&ClientMessage::MissionReady(ready))
+                                .unwrap()
+                                .into(),
                         ))
                         .await
                         .unwrap();
@@ -339,7 +342,9 @@ async fn drive(
                     };
                     socket
                         .send(Message::Text(
-                            serde_json::to_string(&ClientMessage::Action(action)).unwrap(),
+                            serde_json::to_string(&ClientMessage::Action(action))
+                                .unwrap()
+                                .into(),
                         ))
                         .await
                         .unwrap();
@@ -548,7 +553,10 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
     };
     let wire = serde_json::to_string(&ClientMessage::MissionReady(acknowledgement)).unwrap();
     for (index, socket) in sockets.iter_mut().take(3).enumerate() {
-        socket.send(Message::Text(wire.clone())).await.unwrap();
+        socket
+            .send(Message::Text(wire.clone().into()))
+            .await
+            .unwrap();
         let command = tokio::time::timeout(
             Duration::from_secs(2),
             crate::net::skip_seat_notes(&mut commands_rx),
@@ -566,12 +574,17 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
             index + 1
         );
     }
-    sockets[4].send(Message::Text(wire.clone())).await.unwrap();
+    sockets[4]
+        .send(Message::Text(wire.clone().into()))
+        .await
+        .unwrap();
     let mut invalid = acknowledgement;
     invalid.attempt += 1;
     sockets[3]
         .send(Message::Text(
-            serde_json::to_string(&ClientMessage::MissionReady(invalid)).unwrap(),
+            serde_json::to_string(&ClientMessage::MissionReady(invalid))
+                .unwrap()
+                .into(),
         ))
         .await
         .unwrap();
@@ -590,7 +603,7 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         session.state.mission_state().unwrap().phase,
         MissionPhase::Briefing
     );
-    sockets[3].send(Message::Text(wire)).await.unwrap();
+    sockets[3].send(Message::Text(wire.into())).await.unwrap();
     let command = tokio::time::timeout(
         Duration::from_secs(2),
         crate::net::skip_seat_notes(&mut commands_rx),

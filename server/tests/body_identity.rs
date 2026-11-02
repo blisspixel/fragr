@@ -30,7 +30,10 @@ async fn next_message(socket: &mut Socket) -> Option<ServerMessage> {
 
 async fn hello(url: &str, value: serde_json::Value) -> Socket {
     let (mut socket, _) = connect_async(url).await.unwrap();
-    socket.send(Message::Text(value.to_string())).await.unwrap();
+    socket
+        .send(Message::Text(value.to_string().into()))
+        .await
+        .unwrap();
     socket
 }
 

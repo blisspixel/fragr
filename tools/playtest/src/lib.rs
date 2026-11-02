@@ -2364,7 +2364,7 @@ async fn agent_task(
         resume: None,
     };
     sink.send(Message::Text(
-        serde_json::to_string(&hello).map_err(transport)?,
+        serde_json::to_string(&hello).map_err(transport)?.into(),
     ))
     .await
     .map_err(transport)?;
@@ -2399,7 +2399,8 @@ async fn agent_task(
                 if let Some(ready) = mission_client.readiness(player_id) {
                     sink.send(Message::Text(
                         serde_json::to_string(&ClientMessage::MissionReady(ready))
-                            .map_err(transport)?,
+                            .map_err(transport)?
+                            .into(),
                     ))
                     .await
                     .map_err(transport)?;
@@ -2407,7 +2408,8 @@ async fn agent_task(
                 if let Some(request) = mission_client.continuation(player_id) {
                     sink.send(Message::Text(
                         serde_json::to_string(&ClientMessage::MissionContinue(request))
-                            .map_err(transport)?,
+                            .map_err(transport)?
+                            .into(),
                     ))
                     .await
                     .map_err(transport)?;
@@ -2557,7 +2559,7 @@ async fn agent_task(
                         });
                         if sink
                             .send(Message::Text(
-                                serde_json::to_string(&hold).map_err(transport)?,
+                                serde_json::to_string(&hold).map_err(transport)?.into(),
                             ))
                             .await
                             .is_err()
@@ -2613,7 +2615,7 @@ async fn agent_task(
                 let action = ClientMessage::Action(driven);
                 if sink
                     .send(Message::Text(
-                        serde_json::to_string(&action).map_err(transport)?,
+                        serde_json::to_string(&action).map_err(transport)?.into(),
                     ))
                     .await
                     .is_err()
@@ -2741,7 +2743,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         resume: None,
     };
     sink.send(Message::Text(
-        serde_json::to_string(&hello).map_err(transport)?,
+        serde_json::to_string(&hello).map_err(transport)?.into(),
     ))
     .await
     .map_err(transport)?;
@@ -2884,8 +2886,8 @@ mod tests {
             let (socket, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
             ws.next().await.unwrap().unwrap();
-            ws.send(Message::Text(valid)).await.unwrap();
-            ws.send(Message::Text(bad)).await.unwrap();
+            ws.send(Message::Text(valid.into())).await.unwrap();
+            ws.send(Message::Text(bad.into())).await.unwrap();
             let _ = ws.next().await;
         });
         let (_stop, stopped) = tokio::sync::watch::channel(false);

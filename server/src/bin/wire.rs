@@ -124,7 +124,11 @@ async fn main() -> ExitCode {
         "geometry_version": GEOMETRY_VERSION,
         "gameplay_version": GAMEPLAY_VERSION,
     });
-    if write.send(Message::Text(hello.to_string())).await.is_err() {
+    if write
+        .send(Message::Text(hello.to_string().into()))
+        .await
+        .is_err()
+    {
         eprintln!("The hello did not leave this machine.");
         return ExitCode::from(1);
     }
@@ -212,7 +216,7 @@ async fn send_ask(write: &mut (impl SinkExt<Message> + Unpin), ask: &Ask) -> Res
         Ask::Quit | Ask::Help => return Ok(()),
     };
     write
-        .send(Message::Text(body.to_string()))
+        .send(Message::Text(body.to_string().into()))
         .await
         .map_err(|_| ())
 }

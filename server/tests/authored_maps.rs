@@ -99,7 +99,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         .send(Message::Text(
             serde_json::json!({"type":"hello", "role":"human", "name":"Legacy geometry",
                 "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION})
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -113,7 +114,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 serde_json::json!({
                     "type":"hello", "role":role, "name":"Old equipment", "geometry_version":2, "gameplay_version":5,
                 })
-                .to_string(),
+                .to_string().into(),
             ))
             .await
             .unwrap();
@@ -138,7 +139,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -219,7 +221,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                             attempt: state.attempt,
                         },
                     ))
-                    .unwrap(),
+                    .unwrap()
+                    .into(),
                 ))
                 .await
                 .unwrap();
@@ -232,7 +235,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                             ..Default::default()
                         },
                     ))
-                    .unwrap(),
+                    .unwrap()
+                    .into(),
                 ))
                 .await
                 .unwrap();
@@ -364,7 +368,9 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
 async fn send_action(socket: &mut Socket, action: localexception_server::protocol::Action) {
     socket
         .send(Message::Text(
-            serde_json::to_string(&ClientMessage::Action(action)).unwrap(),
+            serde_json::to_string(&ClientMessage::Action(action))
+                .unwrap()
+                .into(),
         ))
         .await
         .unwrap();

@@ -45,7 +45,7 @@ async fn live_campaign_rules_refuse_old_readers_and_deliver_geometry_first() {
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"NoticeProbe","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"NoticeProbe","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let (mut map, mut welcome, mut mission_seen, mut snapshot) =
                         (false, false, false, false);

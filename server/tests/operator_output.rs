@@ -318,7 +318,7 @@ fn a_watcher_changes_the_room_line_and_the_join_event_stays_visible() {
         });
         socket
             .send(tokio_tungstenite::tungstenite::Message::Text(
-                hello.to_string(),
+                hello.to_string().into(),
             ))
             .await
             .unwrap();

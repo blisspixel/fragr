@@ -64,7 +64,8 @@ async fn hello(url: &str, role: &str, resume: Option<&str>) -> (Socket, Value) {
             json!({"type":"hello", "role":role, "name":"Seat probe",
         "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION, "geometry_version":2,
         "resume":resume, "body":"synthetic"})
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -251,7 +252,7 @@ async fn five_seats_mixed_sockets_bots_overflow_spectators_leave_and_parked_resu
         .clone();
     let mut leaving = clients.remove(0);
     leaving
-        .send(Message::Text(json!({"type":"leave"}).to_string()))
+        .send(Message::Text(json!({"type":"leave"}).to_string().into()))
         .await
         .unwrap();
     leaving.close(None).await.unwrap();
@@ -407,7 +408,9 @@ async fn five_seats_live_socket_join_waits_without_active_body_or_shots_until_ne
     let initial_equipment = equipment(&mut late).await;
     assert_pistol_equipment(&initial_equipment);
     late.send(Message::Text(
-        json!({"type":"action", "forward":true,"fire":true,"yaw":0.0}).to_string(),
+        json!({"type":"action", "forward":true,"fire":true,"yaw":0.0})
+            .to_string()
+            .into(),
     ))
     .await
     .unwrap();
@@ -487,7 +490,9 @@ async fn five_seats_real_pistol_shots_spend_finite_ammo_and_resume_keeps_it() {
     snapshot(&mut watcher, |s| s["sabotage"]["phase"] == "live").await;
     shooter
         .send(Message::Text(
-            json!({"type":"action", "fire":true,"yaw":0.0,"pitch":0.0}).to_string(),
+            json!({"type":"action", "fire":true,"yaw":0.0,"pitch":0.0})
+                .to_string()
+                .into(),
         ))
         .await
         .unwrap();
@@ -498,7 +503,7 @@ async fn five_seats_real_pistol_shots_spend_finite_ammo_and_resume_keeps_it() {
         }
     };
     shooter
-        .send(Message::Text(json!({"type":"action"}).to_string()))
+        .send(Message::Text(json!({"type":"action"}).to_string().into()))
         .await
         .unwrap();
     // Inspect the actually committed resolved shot, rather than a HUD effect.
