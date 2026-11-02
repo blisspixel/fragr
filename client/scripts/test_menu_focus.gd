@@ -8,7 +8,7 @@ extends SceneTree
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://test-menu-focus-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 

@@ -20,7 +20,7 @@ var _shots: int = 0
 var _failed: bool = false
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "")
 	set_meta("localexception_records_path", "")
 	call_deferred("_run")

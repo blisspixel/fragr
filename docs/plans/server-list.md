@@ -24,7 +24,10 @@ a spike before deployment. The historical implementation notes below describe
 the local list, not the scope of the planned public directory.
 
 
-Status: **implemented**, 2026-10-06. Not merged, and not a release.
+## Implemented local list
+
+The local list below is implemented and shipped. It does not provide the public
+directory or sleeping-server lifecycle described above.
 
 ## Goal
 

@@ -24,7 +24,7 @@ var viewport: SubViewport
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	MouseCapture.release()
 	call_deferred("_bake")
 

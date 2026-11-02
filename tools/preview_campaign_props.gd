@@ -27,7 +27,7 @@ const WEAPONS: Dictionary[String, String] = {"clerk": "Tack", "sweeper": "Fleche
 var _shots: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "")
 	set_meta("localexception_records_path", "")
 	MouseCapture.release()

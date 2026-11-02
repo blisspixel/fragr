@@ -4,7 +4,7 @@ var _failures: int = 0
 const STANDING_KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret"]
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("run")
 
 func run() -> void:

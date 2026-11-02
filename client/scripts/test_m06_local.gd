@@ -8,7 +8,7 @@ const PRIOR_BYTES: String = "prior personal run bytes retained by development la
 const RUN_ID: String = "40000000-0000-4000-8000-000000000004"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://m06-local-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://m06-run-%d" % OS.get_process_id())

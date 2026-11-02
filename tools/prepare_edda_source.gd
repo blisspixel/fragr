@@ -5,7 +5,7 @@ const Repair = preload("res://../tools/edda_skin_repair.gd")
 const SOURCE_SHA: String = "bb5511f280147bb3f4fa81db6ce1b42a58cb10daebdf486def6a807d3286693f"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

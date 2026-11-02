@@ -7,7 +7,7 @@ extends SceneTree
 const PawnScript: GDScript = preload("res://scripts/player_pawn.gd")
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _fail(message: String) -> void:

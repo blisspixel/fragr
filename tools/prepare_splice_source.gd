@@ -9,7 +9,7 @@ var _document: Dictionary
 var _binary: PackedByteArray
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

@@ -8,7 +8,7 @@ const TOTAL_TICKS: int = 100
 
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 

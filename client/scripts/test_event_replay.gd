@@ -21,7 +21,7 @@ func _harness_name() -> String:
 	return "test_event_replay"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:

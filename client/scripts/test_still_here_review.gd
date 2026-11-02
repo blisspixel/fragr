@@ -22,7 +22,7 @@ var capture_calls: Array[String] = []
 var capture_error: Error = OK
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_tests.call_deferred()
 
 func _manager() -> Node:

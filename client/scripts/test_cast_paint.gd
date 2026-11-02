@@ -7,7 +7,7 @@ extends SceneTree
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:

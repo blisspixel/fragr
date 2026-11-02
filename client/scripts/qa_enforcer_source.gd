@@ -16,7 +16,7 @@ const POSES: Array[Dictionary] = [
 const VIEWS: Array[float] = [0.0, PI * 0.5, PI]
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	MouseCapture.release()
 	_run.call_deferred()
 

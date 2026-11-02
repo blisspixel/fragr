@@ -6,7 +6,7 @@ var captures: String
 var run_directory: String
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://local-campaign-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://local-run-%d" % OS.get_process_id())

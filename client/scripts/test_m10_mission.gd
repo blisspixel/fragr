@@ -4,7 +4,7 @@ const PLAYER: String = "00000000-0000-0000-0000-000000000010"
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:

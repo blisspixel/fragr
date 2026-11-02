@@ -4,7 +4,7 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://loading-first-%d.cfg" % OS.get_process_id())
 	set_meta("localexception_records_memory", true)
 	MouseCapture.release()

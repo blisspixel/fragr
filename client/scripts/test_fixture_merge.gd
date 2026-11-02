@@ -8,7 +8,7 @@ const Geometry = preload("res://scripts/model_geometry.gd")
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_run.call_deferred()
 
 static func triangles(mesh: Mesh, surface: int) -> int:

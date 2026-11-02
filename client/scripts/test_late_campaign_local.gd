@@ -5,7 +5,7 @@ var settings_path: String
 var owned: LocalMatch
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://late-local-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	node_added.connect(func(node: Node) -> void:

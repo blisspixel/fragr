@@ -5,7 +5,7 @@ var _failures: int = 0
 var _out: String
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _check(ok: bool, message: String) -> void:

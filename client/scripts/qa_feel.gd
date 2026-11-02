@@ -62,7 +62,7 @@ var _frame_id: int = 0
 
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_started = Time.get_ticks_msec()
 	MouseCapture.release()
 	call_deferred("_run")

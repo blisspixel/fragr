@@ -11,7 +11,7 @@ var _failures: int = 0
 var _dir: String = ""
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_dir = "user://test-auto-tune-%d" % OS.get_process_id()
 	DirAccess.make_dir_recursive_absolute(_dir)
 	set_meta("localexception_benchmark_dir", _dir.path_join("results"))

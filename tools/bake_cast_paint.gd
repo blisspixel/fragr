@@ -5,7 +5,7 @@ extends SceneTree
 ## Run: godot --headless --path client --script res://../tools/bake_cast_paint.gd
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

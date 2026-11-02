@@ -4,7 +4,7 @@ const Prepared = preload("res://../tools/splice_prepared_source.gd")
 const Rig = preload("res://../tools/splice_mechanical_rig.gd")
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

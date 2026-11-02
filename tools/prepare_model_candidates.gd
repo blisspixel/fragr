@@ -76,7 +76,7 @@ var _excluded: Array = []
 var _excluded_keys: Array = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

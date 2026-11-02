@@ -16,7 +16,7 @@ const NORMAL_SHADER: Shader = preload("res://art/models/normal_bake.gdshader")
 var _bake_materials: Array[Material] = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("bake")
 
 func bake() -> void:

@@ -4,7 +4,7 @@ const Source = preload("res://art/models/rifle_source.gd")
 const Geometry = preload("res://scripts/model_geometry.gd")
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

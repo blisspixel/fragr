@@ -104,7 +104,7 @@ var _receipt: Dictionary = {}
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "")
 	call_deferred("_run")
 

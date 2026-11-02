@@ -6,7 +6,7 @@ var failures: int = 0
 var _retiring_chimes: Array[WeakRef] = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://m07-mission-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 

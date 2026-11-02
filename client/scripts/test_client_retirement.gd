@@ -8,7 +8,7 @@ var _quit_observed: bool = false
 var _owned_pids: Array[int] = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_records_path", "")
 	_settings_path = "user://exit-retirement-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", _settings_path)

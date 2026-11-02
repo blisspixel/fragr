@@ -6,7 +6,7 @@ const TownFixture = preload("res://scripts/test_m07_mission.gd")
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:

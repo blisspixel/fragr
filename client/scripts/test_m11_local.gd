@@ -24,7 +24,7 @@ static func completed_ship() -> Dictionary:
 				"grenades": 2, "proximity_mines": 3, "remote_mines": 0, "personal_claims": ["m10_actual_find"]}}}}
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://m11-local-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	set_meta("localexception_records_path", "user://m11-records-%d" % OS.get_process_id())

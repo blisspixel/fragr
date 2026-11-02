@@ -11,7 +11,7 @@ var _failures: int = 0
 const NORMAL_DIRECTION_TOLERANCE: float = 0.0005
 
 func _initialize() -> void:
-	set_meta("localexception_automated",true)
+	set_meta("fragr_automated",true)
 	call_deferred("_run")
 
 func _run() -> void:

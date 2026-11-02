@@ -1098,7 +1098,7 @@ func _should_offer_tune() -> bool:
 		return false
 	if tree.has_meta(TUNE_OFFER_FORCE_META):
 		return true
-	if DisplayServer.get_name() == "headless" or tree.has_meta("localexception_automated"):
+	if DisplayServer.get_name() == "headless" or tree.has_meta("fragr_automated"):
 		return false
 	var record: Dictionary = _settings.get_value("video", "tune")
 	if record.has("compat_trial"):

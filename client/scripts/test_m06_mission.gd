@@ -4,7 +4,7 @@ const PLAYER: String = "00000000-0000-0000-0000-000000000002"
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://m06-mission-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 

@@ -11,7 +11,7 @@ var _camera: Camera3D
 var _environment: Environment
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

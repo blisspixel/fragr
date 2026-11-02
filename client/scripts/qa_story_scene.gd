@@ -11,7 +11,7 @@ extends SceneTree
 const STILL: String = "res://assets/factions/free_coalition/dont_tread_on_me.png"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _argument(arguments: PackedStringArray, flag: String) -> String:

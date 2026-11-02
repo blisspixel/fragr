@@ -7,7 +7,7 @@ var _result_run_dir: String = ""
 var _result_settings: String = ""
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	_result_settings = "user://campaign-results-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", _result_settings)
 	set_meta("localexception_records_path", "")

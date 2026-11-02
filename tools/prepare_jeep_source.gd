@@ -5,7 +5,7 @@ const SOURCE_SHA: String = "18943cef37bc341b3f2ef5672e1a0777e200bd83749f27ab0200
 const OUTPUT: String = "res://assets/vehicles"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

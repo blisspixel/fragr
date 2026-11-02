@@ -33,7 +33,7 @@ func _run() -> void:
 	capture._focus_entered()
 	_check(capture.desired_mode() == Input.MOUSE_MODE_VISIBLE and not capture.gameplay_input_allowed(), "closing cannot recapture on a late frame or focus event")
 	capture.free()
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	var scene_capture: MouseCapture = MouseCapture.new()
 	root.add_child(scene_capture)
 	scene_capture.set_gameplay(true)
@@ -41,7 +41,7 @@ func _run() -> void:
 	scene_capture.queue_free()
 	await process_frame
 	_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "scene teardown releases the pointer")
-	remove_meta("localexception_automated")
+	remove_meta("fragr_automated")
 	if _failures == 0:
 		print("test_mouse_capture: PASS startup, menus, focus, automation, close and teardown")
 	quit(0 if _failures == 0 else 1)

@@ -5,7 +5,7 @@ extends SceneTree
 # Timed stills: Calibration/Larak Lot chrome, Host bumper, killfeed/scoreboard, mid-join Host flash.
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	MouseCapture.release()
 	call_deferred("_run_capture")
 

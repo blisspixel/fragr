@@ -12,7 +12,7 @@ class InspectableFoundry extends M13Dressing:
 
 var failures: int = 0
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 func _expect(condition: bool, why: String) -> void:
 	if not condition:

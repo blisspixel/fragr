@@ -6,7 +6,7 @@ const SOURCE_SHA: String = "bb5511f280147bb3f4fa81db6ce1b42a58cb10daebdf486def6a
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

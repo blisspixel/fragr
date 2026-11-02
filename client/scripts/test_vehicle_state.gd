@@ -196,7 +196,7 @@ func _prediction() -> void:
 	_check(predict.vehicle_id == 0 and predict.vehicle_samples.is_empty(), "exit clears vehicle replay and pair history")
 
 func _run() -> void:
-	root.set_meta("localexception_automated", true)
+	root.set_meta("fragr_automated", true)
 	_boundaries()
 	_presentation()
 	_prediction()

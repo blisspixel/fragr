@@ -8,7 +8,7 @@ const SPECS: Array[Dictionary] = [
 	{"id":"repair-workbench", "name":"RepairWorkbench", "sha":"37c149f3b6c402a349e283f4e49ab3baded27bfba5932a86b058556dc8537682", "triangles":10567, "vertices":14872, "axis":1, "metres":0.90, "worktop_source_xz":Vector2(0.0,-0.2)}]
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

@@ -21,7 +21,7 @@ const PAINT_PIXELS: int = 128
 const MAP_PIXELS: int = 512
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

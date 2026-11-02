@@ -10,7 +10,7 @@ class ManagerProbe extends "res://scripts/game_manager.gd":
 		pass
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://m05-mission-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 

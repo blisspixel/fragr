@@ -9,7 +9,7 @@ var before_settings: PackedByteArray
 var report: Dictionary = {}
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	MouseCapture.release()
 	_run.call_deferred()
 

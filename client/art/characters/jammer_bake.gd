@@ -5,7 +5,7 @@ const OUTPUT: String = "res://assets/characters/union/jammer.png"
 const MANIFEST: String = "res://assets/characters/union/jammer-manifest.json"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	MouseCapture.release()
 	call_deferred("bake")
 

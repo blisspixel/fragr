@@ -7,7 +7,7 @@ const SHA: String = "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d5
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

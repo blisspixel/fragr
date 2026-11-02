@@ -838,7 +838,7 @@ func _setup_frontend() -> void:
 ## keeps the fact in memory instead of writing a player's real settings.
 func _on_controls_hint_shown() -> void:
 	settings.set_value("gameplay", "controls_hint_seen", true)
-	if get_tree().get_meta("localexception_automated", false) and settings.storage_path == LocalExceptionSettings.PATH:
+	if get_tree().get_meta("fragr_automated", false) and settings.storage_path == LocalExceptionSettings.PATH:
 		return
 	settings.save_to_disk()
 
@@ -1693,7 +1693,7 @@ func _request_onward() -> void:
 	var tree: SceneTree = get_tree()
 	tree.set_meta(LocalMatch.ONWARD_META, true)
 	# A headless harness records the handoff and keeps its own scene.
-	if tree.has_meta("localexception_automated"):
+	if tree.has_meta("fragr_automated"):
 		return
 	_on_leave_requested()
 
@@ -2638,7 +2638,7 @@ func _close_wipe_failure_pages() -> void:
 ## The credits are done: back to the menu, where the run's saved result
 ## stays, whichever ending this was.
 func _on_still_here_finished() -> void:
-	if get_tree().has_meta("localexception_automated"):
+	if get_tree().has_meta("fragr_automated"):
 		return
 	_on_leave_requested()
 

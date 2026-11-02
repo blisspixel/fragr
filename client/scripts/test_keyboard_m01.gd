@@ -18,7 +18,7 @@ var _shots_hit: int = 0
 var _assist_engaged: bool = false
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://keyboard-m01-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://keyboard-m01-run-%d" % OS.get_process_id())

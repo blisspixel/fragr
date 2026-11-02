@@ -13,7 +13,7 @@ const VIEWS: Dictionary[String, Vector3] = {
 }
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _frame(viewport: SubViewport) -> Image:

@@ -3,7 +3,7 @@ extends SceneTree
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _check(value: bool, message: String) -> void:

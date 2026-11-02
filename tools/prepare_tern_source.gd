@@ -4,7 +4,7 @@ const GlbContainer = preload("res://../tools/tern_glb.gd")
 const SOURCE_SHA: String = "9c9b3a8af8fee7c5f3d3fe52254871a4a6e022ed5dd56cbfb1f9cb9e9096ef89"
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

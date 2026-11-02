@@ -9,7 +9,7 @@ var path: String
 var output: String
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	path = "user://m05-presentation-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", path)
 	output = ProjectSettings.globalize_path("res://../.agents/m05-client-buildout-20260930")

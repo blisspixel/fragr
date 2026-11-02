@@ -8,7 +8,7 @@ var run_directory: String = ""
 var settings_path: String = ""
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	settings_path = "user://m09-local-%d.cfg" % OS.get_process_id()
 	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://m09-run-%d" % OS.get_process_id())

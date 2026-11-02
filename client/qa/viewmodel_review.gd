@@ -19,7 +19,7 @@ var _camera: Camera3D
 var _failed: bool = false
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 

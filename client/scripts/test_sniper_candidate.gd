@@ -4,7 +4,7 @@ const Source = preload("res://art/models/sniper_source.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	set_meta("localexception_settings_path", "user://test-sniper-candidate-%d.cfg" % OS.get_process_id())
 	call_deferred("_run")
 

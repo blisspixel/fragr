@@ -5,7 +5,7 @@ var _world: Dictionary = {}
 var _notary: Dictionary = {"x":19.0,"y":8.0,"z":13.919999,"campaign":{"side":"union","kind":"notary","phase":"moving","phase_started":2513,"phase_ends":2513}}
 
 func _initialize() -> void:
-	set_meta("localexception_automated", true)
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:
