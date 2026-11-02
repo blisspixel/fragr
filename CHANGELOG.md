@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.99.3 - 2026-11-01
 
 - Keep Sabotage attacks on their staging route until they gather, reach a
   clear approach to the site or hit the existing staging deadline. Being
