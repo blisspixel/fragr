@@ -1389,10 +1389,13 @@ fn sector_b_loading_stack_breaks_the_lane_with_two_walkable_exits() {
         [-31.5, crate::movement::EYE_HEIGHT, 30.0],
         &arena.solids,
     ));
-    for x in [-35.0, -28.0] {
-        let from = [x, 0.0, 55.0];
-        let to = [x, 0.0, 45.0];
-        assert!(crate::navigation::Navigation::walkable_in(arena, from, to));
+    for x in [-35.0, -29.25] {
+        let from = [x, 0.0, 54.0];
+        let to = [x, 0.0, 46.0];
+        assert!(
+            crate::navigation::Navigation::walkable_in(arena, from, to),
+            "passage at {x}"
+        );
         assert!(walk_ticks(from, to).is_some(), "passage at {x}");
     }
 }

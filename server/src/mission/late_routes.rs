@@ -265,7 +265,7 @@ fn carried_route(mission: MissionId, seed: u64, mut fixtures: Option<&mut Vec<se
                     };
                 }
             }
-            futile.observe_intent(&snapshot, &combat);
+            futile.observe(&snapshot, &combat);
             let mut action = client.steer_with_equipment(
                 &mut navigator,
                 navigation.as_ref().unwrap(),

@@ -974,7 +974,7 @@ fn sector_9() -> MapDef {
     }
     // B's freight approach has no inspection deck to break its firing lane.
     // A loading stack makes the entry turn, with a passage at either end.
-    s.push(Solid::from_center_top(-31.5, 50.0, 2.0, 3.0, 2.5));
+    s.push(Solid::from_center_top(-31.75, 50.0, 1.75, 3.0, 2.5));
 
     MapDef {
         half_extent: half,

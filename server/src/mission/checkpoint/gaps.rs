@@ -288,7 +288,7 @@ fn play_until(
                 };
             }
         }
-        futile.observe_intent(&snapshot, &combat);
+        futile.observe(&snapshot, &combat);
         let mut action = client.steer_with_equipment(
             &mut navigator,
             navigation.as_ref().unwrap(),

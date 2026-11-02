@@ -142,9 +142,10 @@ longer stall in a narrow corridor.
 The Local Exception rename (#543) shipped in v0.99.2, including crates,
 binaries, environment variables and paired wire identifiers. Wave 24 fixes
 Sabotage staging that mistook proximity through a wall for a foothold and adds
-a freight stack to break Sector 9's exposed B approach. The 5v5 survey now
-balances both sites across the tuning and held-out seeds; eight-bot site A
-and the scarce comeback opportunities keep #520 open.
+a freight stack to break Sector 9's exposed B approach, with both passages
+verified by swept clearance and actual movement. B's 5v5 results improve
+across the tuning and validation seeds; site A still favours attackers, and
+the scarce comeback opportunities keep #520 open.
 
 The campaign survey now tracks combat intent before navigation replaces aim.
 Levels 13 and 19 finish with bounded checkpoint gaps. Six routes remain
