@@ -1379,8 +1379,6 @@ fn the_sector_9_layout_is_clear_inside_its_zones_and_near_its_pistols() {
     }
 }
 
-/// The recorded B failure was already within 25 m while still east of the
-/// dividing wall. Mirror it at A so staging does not depend on the site label.
 #[test]
 fn sector_b_loading_stack_breaks_the_lane_with_two_walkable_exits() {
     let arena = crate::maps::arena(MapKind::Sector9);
@@ -1400,6 +1398,8 @@ fn sector_b_loading_stack_breaks_the_lane_with_two_walkable_exits() {
     }
 }
 
+/// The recorded B failure was already within 25 m while still east of the
+/// dividing wall. Mirror it at A so staging does not depend on the site label.
 fn attack_behind_sector_wall(site: SiteId) -> (GameState, Uuid) {
     let (mut state, _) = two_a_side(SabotageConfig {
         live_ticks: 2000,
