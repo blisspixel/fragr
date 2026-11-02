@@ -1,6 +1,6 @@
 # Local Exception
 
-![Local Exception wordmark](docs/localexception-logo.png)
+![Local Exception title art with free humans and agents opposite Union forces](docs/localexception-logo.png)
 
 Formerly fragr. Published releases before the rename keep their original names.
 

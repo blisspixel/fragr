@@ -18,7 +18,7 @@ Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then 
 
 ## Where we are (2026-11-01)
 
-- **Release.** v0.99.1 is the development release checkpoint for wave 23 (the Forward+ look pass, bots that aim by zone, checkpoints saved to disk, lore-built humour, and fair play for shots, throws and pickups), following v0.99.0 for wave 22. The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening remain separate unproven evidence.
+- **Release.** v0.99.2 is the Local Exception naming checkpoint, following v0.99.1 for wave 23 (the Forward+ look pass, bots that aim by zone, checkpoints saved to disk, lore-built humour, and fair play for shots, throws and pickups). The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463) and rocket-jump (#431); the Custody Plate is the lot's power item and Duel runs on it, with a fire-to-rematch podium (#431, wave 3); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, and wave 3 deepens it, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows human play, real pads and a fresh-player pass remain open evidence for the finished game. v0.92.0 packages passed automated install checks. Nick requested a development release after waves 4 and 5 on 2026-10-25.
@@ -140,9 +140,12 @@ longer stall in a narrow corridor.
 ### After wave 23
 
 The Local Exception rename (#543) is implemented in this change, including
-crates, binaries, environment variables and paired wire identifiers. Next: fighter models after the November 3 model credit refresh and a
-recolour of the pale base agent (#530), the contrast target decision (#528),
-Sector 9 site B, hardware matrix runs for the graphics gate, then call-ins and
+crates, binaries, environment variables and paired wire identifiers. Next:
+Sector 9 site B (#520), whose result is hidden by the aggregate win rate, and
+the eight incomplete campaign route surveys (#527), so checkpoint evidence
+covers whole routes. Fighter models follow the November 3 model credit refresh,
+alongside a recolour of the pale base agent (#530), the contrast target decision
+(#528), hardware matrix runs for the graphics gate, then call-ins and
 friendly fire (#535). Then the measured fun night and the first human LAN night.
 
 Close the multiplayer work with a measured fun night of bots and agents across

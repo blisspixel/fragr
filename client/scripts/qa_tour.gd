@@ -646,7 +646,20 @@ func _run() -> void:
 		# A front-door still waits for a clear frame: no card, centre call or
 		# caption over the fight, and live fighters in view.
 		if state.has("await_clear_frame"):
-			if not await _await_clear_frame(int(state.get("clear_frame_fighters", 1)), float(state["await_clear_frame"]), float(state.get("clear_frame_face", 0.0)), float(state.get("clear_frame_max_pitch_degrees", 90.0))):
+			var clear: bool = await _await_clear_frame(int(state.get("clear_frame_fighters", 1)), float(state["await_clear_frame"]), float(state.get("clear_frame_face", 0.0)), float(state.get("clear_frame_max_pitch_degrees", 90.0)))
+			# A safe spawn may have no fight in view for the entire wait. Retry
+			# the real watch/join flow for this Pistol-start still. The server
+			# chooses each spawn; every attempt must satisfy the same predicate.
+			if not clear and _joined and state.get("retry_join_for_clear_frame", false) == true:
+				for retry: int in range(2):
+					print("qa_tour: %s retrying actual watch/join for a clear frame (%d/2)" % [state_name, retry + 1])
+					await _change_role(false)
+					await _change_role(true)
+					_pose_camera(state.get("camera", "none"), state)
+					clear = await _await_clear_frame(int(state.get("clear_frame_fighters", 1)), float(state["await_clear_frame"]), float(state.get("clear_frame_face", 0.0)), float(state.get("clear_frame_max_pitch_degrees", 90.0)))
+					if clear:
+						break
+			if not clear:
 				push_error("qa_tour: %s never reached a clear frame" % state_name)
 				_failed = true
 		if state.has("expect_m02_machine_playing"):

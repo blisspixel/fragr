@@ -668,8 +668,8 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
         .await
         .expect("bounded preparation")
         .unwrap();
-    // The foundry places Ranged Sweepers: its floor is locational damage.
-    let floor = localexception_server::protocol::ZONES_GAMEPLAY_VERSION;
+    // Map features do not relax the current production wire contract.
+    let floor = localexception_server::protocol::GAMEPLAY_VERSION;
     for version in [floor - 1, floor] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();

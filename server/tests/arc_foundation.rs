@@ -171,6 +171,7 @@ async fn arc_lesson_admits_all_roles_only_at_the_current_live_campaign_rules_flo
         WATER_GAMEPLAY_VERSION,
         ARC_GAMEPLAY_VERSION,
         ASSESSOR_GAMEPLAY_VERSION,
+        GAMEPLAY_VERSION - 1,
         GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
@@ -184,7 +185,7 @@ async fn arc_lesson_admits_all_roles_only_at_the_current_live_campaign_rules_flo
                         continue;
                     };
                     let value: Value = serde_json::from_str(&text).unwrap();
-                    if version < ASSESSOR_GAMEPLAY_VERSION {
+                    if version < GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
                             "unsupported {role} must not see new geometry or Welcome"

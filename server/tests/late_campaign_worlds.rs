@@ -4,7 +4,7 @@ use localexception_server::protocol::{validate_decorations, MissionId, MissionOb
 use localexception_server::sim::GameState;
 
 #[tokio::test]
-async fn late_campaign_admission_requires_each_mission_floor_before_any_world() {
+async fn late_campaign_admission_requires_current_contract_before_any_world() {
     use futures_util::{SinkExt, StreamExt};
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
@@ -14,7 +14,7 @@ async fn late_campaign_admission_requires_each_mission_floor_before_any_world() 
         MissionId::AllSystemsNormal,
         MissionId::CivicPressureValve,
     ] {
-        let floor = mission.gameplay_version();
+        let floor = localexception_server::protocol::GAMEPLAY_VERSION;
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
         let server = tokio::spawn(localexception_server::run::run_server(
