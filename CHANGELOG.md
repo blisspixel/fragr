@@ -4,6 +4,16 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.3 - 2026-11-01
+
+- Keep Sabotage attacks on their staging route until they gather, reach a
+  clear approach to the site or hit the existing staging deadline. Being
+  close through a wall no longer sends the team back through Mid Doors.
+- Break Sector 9's exposed B approach with a freight stack and two passages.
+- Track campaign survey combat intent before navigation changes aim, so
+  ineffective pursuits expire. Levels 13 and 19 now finish the diagnostic
+  route; six other routes still need investigation.
+
 ## v0.99.2 - 2026-11-01
 
 - Rename the game to Local Exception, with matching desktop branding, packages,

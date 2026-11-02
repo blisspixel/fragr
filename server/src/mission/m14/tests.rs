@@ -678,6 +678,9 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
             action.fire = false;
         }
         reload_held = action.reload;
+        // This controller considers targets beyond sight and lets navigation
+        // choose the actual engagement. Do not time out unseen candidates
+        // while still walking the objective or collecting finite supplies.
         futile.observe(&snapshot, &action);
         let action = tells.evade(&s.state, &snapshot, id, action);
         s.state.set_action(id, action);
